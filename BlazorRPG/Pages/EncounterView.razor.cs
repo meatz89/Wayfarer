@@ -155,24 +155,6 @@ public partial class EncounterViewBase : ComponentBase
         StateHasChanged();
     }
 
-    public string GetChoiceName(UserEncounterChoiceOption choiceOption)
-    {
-        EncounterOption choice = choiceOption.Choice;
-        NarrativeResult narrativeResult = Model.EncounterResult.NarrativeResult;
-        Dictionary<string, ChoiceNarrative> choiceDescriptions = narrativeResult?.ChoiceDescriptions;
-        ChoiceNarrative choiceNarrative = null;
-
-        if (choiceDescriptions != null && choiceDescriptions.ContainsKey(choice.Id))
-            choiceNarrative = choiceDescriptions[choice.Id];
-
-        string name = $"{choice.Name}";
-        if (choiceNarrative != null)
-        {
-            name = choiceNarrative.ShorthandName;
-        }
-        return name;
-    }
-
     protected int GetCurrentFocusPoints()
     {
         return EncounterManager?.encounterState?.FocusPoints ?? 0;
@@ -186,32 +168,13 @@ public partial class EncounterViewBase : ComponentBase
 
     protected int GetFocusCost(UserEncounterChoiceOption choice)
     {
-        if (choice.Choice is EncounterOption option)
+        if (choice.Choice is AiChoice option)
         {
             return option.FocusCost;
         }
         return 0;
     }
-
-    protected string GetChoiceCssClass(UserEncounterChoiceOption choice)
-    {
-        if (choice.Choice is EncounterOption option)
-        {
-            return option.ActionType switch
-            {
-                UniversalActionTypes.Recovery => "tier-1",
-                UniversalActionTypes.GenerationA => "tier-2",
-                UniversalActionTypes.GenerationB => "tier-2",
-                UniversalActionTypes.ConversionA => "tier-3",
-                UniversalActionTypes.ConversionB => "tier-3",
-                UniversalActionTypes.Hybrid => "tier-4",
-                _ => "tier-1"
-            };
-        }
-        return "tier-1";
-    }
 }
-
 
 public class TooltipPosition
 {

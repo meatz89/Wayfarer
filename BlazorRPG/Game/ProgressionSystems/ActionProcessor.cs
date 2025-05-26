@@ -7,21 +7,18 @@
     public WorldState worldState { get; }
     public PlayerProgression playerProgression { get; }
     public LocationPropertyManager environmentalPropertyManager { get; }
-    public ChoiceRepository choiceRepository { get; }
     public MessageSystem messageSystem { get; }
 
     public ActionProcessor(
         GameState gameState,
         PlayerProgression playerProgression,
         LocationPropertyManager environmentalPropertyManager,
-        ChoiceRepository choiceRepository,
         LocationRepository locationRepository,
         MessageSystem messageSystem)
     {
         this.gameState = gameState;
         this.playerProgression = playerProgression;
         this.environmentalPropertyManager = environmentalPropertyManager;
-        this.choiceRepository = choiceRepository;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
         glayerState = gameState.PlayerState;

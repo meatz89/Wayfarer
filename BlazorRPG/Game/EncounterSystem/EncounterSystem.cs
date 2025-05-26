@@ -3,16 +3,14 @@
     private readonly GameState gameState;
     private readonly MessageSystem messageSystem;
     private readonly IConfiguration configuration;
-    private readonly ChoiceRepository choiceRepository;
     private readonly ILogger<EncounterSystem> logger;
 
     private readonly IAIService _aiService;
-    private ChoiceCardSelector cardSelector;
 
     public WorldState worldState;
     public EncounterFactory encounterFactory;
     private readonly WorldStateInputBuilder worldStateInputCreator;
-
+    private readonly ChoiceProjectionService choiceProjectionService;
     private readonly PreGenerationManager _preGenerationManager;
 
     public EncounterSystem(
@@ -20,18 +18,18 @@
         MessageSystem messageSystem,
         NarrativeContextManager narrativeContextManager,
         IAIService aiService,
-        ChoiceRepository choiceRepository,
         EncounterFactory encounterFactory,
         WorldStateInputBuilder worldStateInputCreator,
+        ChoiceProjectionService choiceProjectionService,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
         this.gameState = gameState;
         this.messageSystem = messageSystem;
         this.configuration = configuration;
-        this.choiceRepository = choiceRepository;
         this.encounterFactory = encounterFactory;
         this.worldStateInputCreator = worldStateInputCreator;
+        this.choiceProjectionService = choiceProjectionService;
         this.logger = logger;
         this._aiService = aiService;
 
@@ -77,14 +75,13 @@
         ActionImplementation actionImplementation)
     {
         logger.LogInformation("StartEncounter called for encounter: {EncounterId}, location: {LocationId}", encounter?.Id, location?.Id);
-        cardSelector = new ChoiceCardSelector(choiceRepository);
 
         EncounterManager encounterManager = new EncounterManager(
             encounter,
             actionImplementation,
-            cardSelector,
             _aiService,
             worldStateInputCreator,
+            choiceProjectionService,
             configuration,
             logger);
 
@@ -114,9 +111,9 @@
 
     public async Task<EncounterResult> ExecuteChoice(
         NarrativeResult narrativeResult,
-        EncounterOption choice)
+        AiChoice choice)
     {
-        logger.LogInformation("ExecuteChoice called for choice: {ChoiceId}", choice?.Id);
+        logger.LogInformation("ExecuteChoice called for choice: {ChoiceId}", choice?.ChoiceID);
         NarrativeResult currentNarrative = narrativeResult;
         NarrativeResult cachedResult = null;
 
@@ -125,24 +122,17 @@
 
         _preGenerationManager.CancelAllPendingGenerations();
 
-        Dictionary<string, ChoiceNarrative> choiceDescriptions = currentNarrative.ChoiceDescriptions;
-        ChoiceNarrative selectedDescription = null;
-
-        if (currentNarrative.ChoiceDescriptions != null && choiceDescriptions.ContainsKey(choice.Id))
-        {
-            selectedDescription = currentNarrative.ChoiceDescriptions[choice.Id];
-        }
+        List<AiChoice> choices = currentNarrative.Choices;
 
         currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
             encounterManager.Encounter.LocationName,
             choice,
-            selectedDescription,
             AIClient.PRIORITY_IMMEDIATE);
 
         encounterManager.IsInitialState = false;
         encounterManager.EncounterResult = CreateEncounterResult(encounterManager, currentNarrative);
 
-        logger.LogInformation("Choice executed: {ChoiceId}, EncounterOver: {IsEncounterOver}", choice?.Id, currentNarrative.IsEncounterOver);
+        logger.LogInformation("Choice executed: {ChoiceId}, EncounterOver: {IsEncounterOver}", choice?.ChoiceID, currentNarrative.IsEncounterOver);
         return encounterManager.EncounterResult;
     }
 
@@ -156,7 +146,7 @@
                     encounter.ActionImplementation?.Id,
                     currentNarrative.Outcome,
                     currentNarrative?.ToString(),
-                    currentNarrative?.ChoiceDescriptions?.Count ?? 0,
+                    currentNarrative?.Choices?.Count ?? 0,
                     currentNarrative.IsEncounterOver);
 
                 EncounterResult failureResult = new EncounterResult()
@@ -175,7 +165,7 @@
                     encounter.ActionImplementation?.Id,
                     currentNarrative.Outcome,
                     currentNarrative?.ToString(),
-                    currentNarrative?.ChoiceDescriptions?.Count ?? 0,
+                    currentNarrative?.Choices?.Count ?? 0,
                     currentNarrative.IsEncounterOver);
 
                 EncounterResult successResult = new EncounterResult()
@@ -194,7 +184,7 @@
             encounter.ActionImplementation?.Id,
             currentNarrative.Outcome,
             currentNarrative?.ToString(),
-            currentNarrative?.ChoiceDescriptions?.Count ?? 0,
+            currentNarrative?.Choices?.Count ?? 0,
             currentNarrative.IsEncounterOver);
 
         EncounterResult ongoingResult = new EncounterResult()
@@ -249,17 +239,17 @@
         gameState.WorldState.ActiveCommissions.Remove(commission);
     }
 
-    public List<EncounterOption> GetChoices()
+    public List<AiChoice> GetChoices()
     {
         EncounterManager encounterManager = GetCurrentEncounter();
-        List<EncounterOption> choices = encounterManager.GetCurrentChoices();
+        List<AiChoice> choices = encounterManager.GetCurrentChoices();
         return choices;
     }
 
-    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, EncounterOption choice)
+    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, AiChoice choice)
     {
         EncounterManager encounterManager = GetCurrentEncounter();
-        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(encounter.encounterState, choice);
+        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choiceProjectionService, encounter.encounterState, choice);
         return choiceProjection;
     }
 

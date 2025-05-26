@@ -1,184 +1,112 @@
-﻿using System.Text;
-
-public static class ChoiceProjectionService
+﻿public class ChoiceProjectionService
 {
-    public static ChoiceProjection CreateUniversalChoiceProjection(
-        EncounterOption choice,
-        EncounterState encounterState,
-        Player playerState,
-        Location location)
+    private readonly PayloadRegistry _payloadRegistry;
+    private readonly ILogger<ChoiceProjectionService> _logger;
+
+    public ChoiceProjectionService(PayloadRegistry payloadRegistry, ILogger<ChoiceProjectionService> logger)
+    {
+        _payloadRegistry = payloadRegistry;
+        _logger = logger;
+    }
+
+    public ChoiceProjection ProjectChoice(AiChoice choice, EncounterState state, Player player)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
 
-        // --- 1. Determine Affordability (Focus Points & Aspect Tokens) ---
-        projection.IsAffordableFocus = encounterState.FocusPoints >= choice.FocusCost;
+        // Check if player can afford this choice
+        projection.IsAffordable = state.FocusPoints >= choice.FocusCost;
+        projection.IsAffordableFocus = projection.IsAffordable;
 
-        projection.IsAffordableAspectTokens = true;
+        // Process skill options
+        List<SkillOptionProjection> skillProjections = new List<SkillOptionProjection>();
 
-        // --- 2. Project Positive Effects ---
-        ProjectPositiveEffects(projection, choice, encounterState);
-
-        // --- 3. Project Skill Check for Negative Consequence Mitigation ---
-        if (choice.HasSkillCheck)
+        foreach (SkillOption option in choice.SkillOptions)
         {
-            projection.BaseSkillLevel = playerState.GetSkillLevel(choice.Skill);
-            projection.LocationModifierValue = GetLocationPropertyModifier(choice.Skill, location);
-            projection.EffectiveSkillLevel = projection.BaseSkillLevel + projection.LocationModifierValue;
-            projection.SkillCheckSuccess = projection.EffectiveSkillLevel >= choice.Difficulty;
-        }
-        else
-        {
-            projection.SkillCheckSuccess = (choice.NegativeConsequenceType == NegativeConsequenceTypes.None);
+            SkillOptionProjection skillProjection = ProjectSkillOption(option, state, player);
+            skillProjections.Add(skillProjection);
         }
 
-        // --- 4. Describe the Projected Mechanical Negative Effect ---
-        projection.MechanicalDescription = GetProjectedNegativeEffectText(
-            choice,
-            projection.SkillCheckSuccess,
-            encounterState
-        );
-
-        // --- 5. Project Encounter End & Outcome ---
-        ProjectEncounterOutcome(projection, choice, encounterState);
-
-        // --- 6. Generate Comprehensive Formatted Outcome Summary Text ---
-        projection.FormattedOutcomeSummary = GenerateFormattedOutcomeSummary(projection, playerState, choice, encounterState);
+        projection.SkillOptions = skillProjections;
 
         return projection;
     }
 
-    private static void ProjectPositiveEffects(ChoiceProjection projection, EncounterOption choice, EncounterState encounterState)
+    private SkillOptionProjection ProjectSkillOption(SkillOption option, EncounterState state, Player player)
     {
-        if (choice.ActionType == UniversalActionTypes.Recovery)
-        {
-            projection.FocusPointsGained = 1;
-        }
-    }
+        SkillOptionProjection projection = new SkillOptionProjection();
+        projection.SkillName = option.SkillName;
+        projection.Difficulty = option.Difficulty;
+        projection.SCD = option.SCD;
 
-    private static void ProjectEncounterOutcome(ChoiceProjection projection, EncounterOption choice, EncounterState encounterState)
-    {
-        int totalStages = encounterState.MaxDuration;
-        bool isLastStage = (encounterState.CurrentStageIndex == totalStages - 1);
-        int projectedProgressAfterThisChoice = encounterState.CurrentProgress + projection.ProgressGained;
+        // Find matching skill card
+        SkillCard card = FindCardByName(player.AvailableCards, option.SkillName);
 
-        projection.WillEncounterEnd = isLastStage;
-        if (isLastStage)
+        if (card != null && !card.IsExhausted)
         {
-            int successThreshold = 10;
-            int progressNeededForSuccess = successThreshold;
-            projection.ProjectedOutcome =
-                projectedProgressAfterThisChoice >= progressNeededForSuccess
-                ? EncounterOutcomes.BasicSuccess
-                : EncounterOutcomes.Failure;
+            // Player has the card and it's not exhausted
+            projection.IsAvailable = true;
+            projection.IsUntrained = false;
+            projection.EffectiveLevel = card.GetEffectiveLevel(state);
         }
         else
         {
-            projection.ProjectedOutcome = EncounterOutcomes.None;
+            // Untrained attempt
+            projection.IsAvailable = true; // Still available, but untrained
+            projection.IsUntrained = true;
+            projection.EffectiveLevel = 0; // Base level for untrained
+            projection.SCD = option.SCD + 2; // +2 difficulty for untrained
         }
+
+        // Calculate success chance
+        projection.SuccessChance = CalculateSuccessChance(projection.EffectiveLevel, projection.SCD);
+
+        // Project payloads
+        projection.SuccessPayload = ProjectPayload(option.SuccessPayload, state);
+        projection.FailurePayload = ProjectPayload(option.FailurePayload, state);
+
+        return projection;
     }
 
-    private static string GetProjectedNegativeEffectText(EncounterOption choice, bool isSkillCheckProjectedToSucceed, EncounterState encounterState)
+    private PayloadProjection ProjectPayload(Payload payload, EncounterState state)
     {
-        if (isSkillCheckProjectedToSucceed)
+        PayloadProjection projection = new PayloadProjection();
+        projection.NarrativeEffect = payload.NarrativeEffect;
+
+        // Get mechanical effect from registry
+        if (_payloadRegistry.HasEffect(payload.MechanicalEffectID))
         {
-            if (choice.NegativeConsequenceType == NegativeConsequenceTypes.None && !choice.HasSkillCheck)
-                return "This action has no inherent negative consequence.";
-            else
-                return "Projected: Negative consequence will be AVOIDED.";
+            IMechanicalEffect effect = _payloadRegistry.GetEffect(payload.MechanicalEffectID);
+            projection.MechanicalDescription = effect.GetDescriptionForPlayer();
+        }
+        else
+        {
+            projection.MechanicalDescription = "Unknown effect";
         }
 
-        NegativeConsequenceTypes actualNegativeType = choice.NegativeConsequenceType;
-
-        if (actualNegativeType == NegativeConsequenceTypes.None)
-        {
-            return "This action has no inherent negative consequence.";
-        }
-
-        string penaltyPrefix = "RISK (if skill check fails): ";
-        return actualNegativeType switch
-        {
-            NegativeConsequenceTypes.ProgressLoss => penaltyPrefix + "Lose 1 Progress Marker.",
-            NegativeConsequenceTypes.FocusLoss => penaltyPrefix + "Lose 1 Focus Point from your encounter pool.",
-            NegativeConsequenceTypes.ThresholdIncrease => penaltyPrefix + "Final success thresholds for this encounter will increase by 1.",
-            _ => penaltyPrefix + "An unforeseen setback occurs."
-        };
+        return projection;
     }
 
-    private static string GenerateFormattedOutcomeSummary(ChoiceProjection projection, Player playerState, EncounterOption choice, EncounterState encounterState)
+    private int CalculateSuccessChance(int effectiveLevel, int difficulty)
     {
-        StringBuilder summary = new StringBuilder();
+        int difference = effectiveLevel - difficulty;
 
-        // Cost
-        summary.Append($"Cost: {choice.FocusCost} Focus");
-        if (!projection.IsAffordableFocus) summary.Append(" (CANNOT AFFORD)");
-
-        // Positive Effects
-        summary.Append("Effect: ");
-        List<string> positiveEffects = new List<string>();
-
-        if (projection.FocusPointsGained > 0)
-            positiveEffects.Add($"+{projection.FocusPointsGained} Focus");
-
-        if (projection.ProgressGained > 0)
-            positiveEffects.Add($"+{projection.ProgressGained} Progress");
-
-        if (!positiveEffects.Any())
-            positiveEffects.Add("No direct resource change");
-
-        summary.AppendLine(string.Join(", ", positiveEffects));
-
-        // Skill Check & Risk
-        if (projection.HasSkillCheck)
-        {
-            summary.AppendLine($"Skill Check: {choice.Skill} ({projection.EffectiveSkillLevel}) vs {choice.Difficulty} - {(projection.SkillCheckSuccess ? "SUCCESS" : "FAILURE")} projected");
-        }
-
-        summary.AppendLine(projection.MechanicalDescription);
-
-        // Final Outcome
-        if (projection.WillEncounterEnd)
-        {
-            summary.AppendLine($"Encounter End: {projection.ProjectedOutcome}");
-        }
-
-        return summary.ToString().Trim();
+        if (difference >= 2) return 100;
+        if (difference == 1) return 75;
+        if (difference == 0) return 50;
+        if (difference == -1) return 25;
+        return 5; // Not impossible, but very unlikely
     }
 
-    public static int GetLocationPropertyModifier(SkillTypes skill, Location location)
+    private SkillCard FindCardByName(List<SkillCard> cards, string name)
     {
-        int modifier = 0;
-
-        if (IsIntellectualSkill(skill))
+        foreach (SkillCard card in cards)
         {
-            if (location.Population == Population.Crowded) modifier -= 1;
-            if (location.Illumination == Illumination.Dark) modifier -= 1;
-            if (location.Population == Population.Quiet) modifier += 1;
+            if (card.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && !card.IsExhausted)
+            {
+                return card;
+            }
         }
-        else if (IsSocialSkill(skill))
-        {
-            if (location.Population == Population.Quiet) modifier -= 1;
-            if (location.Atmosphere == Atmosphere.Formal) modifier += 1;
-            if (location.Population == Population.Crowded) modifier += 1;
-        }
-        else if (IsPhysicalSkill(skill))
-        {
-            if (location.Physical == Physical.Confined) modifier -= 1;
-            if (location.Illumination == Illumination.Dark) modifier -= 1;
-            if (location.Physical == Physical.Expansive) modifier += 1;
-        }
-
-        return modifier;
+        return null;
     }
-
-    public static bool IsPhysicalSkill(SkillTypes skill) =>
-        skill == SkillTypes.Strength || skill == SkillTypes.Endurance ||
-        skill == SkillTypes.Precision || skill == SkillTypes.Agility;
-
-    public static bool IsIntellectualSkill(SkillTypes skill) =>
-        skill == SkillTypes.Analysis || skill == SkillTypes.Observation ||
-        skill == SkillTypes.Knowledge || skill == SkillTypes.Planning;
-
-    public static bool IsSocialSkill(SkillTypes skill) =>
-        skill == SkillTypes.Charm || skill == SkillTypes.Persuasion ||
-        skill == SkillTypes.Deception || skill == SkillTypes.Intimidation;
 }
+

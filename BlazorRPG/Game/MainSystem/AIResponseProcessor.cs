@@ -1,52 +1,56 @@
 ﻿public class AIResponseProcessor
 {
-    private readonly PayloadRegistry payloadRegistry;
+    private readonly PayloadRegistry _payloadRegistry;
+    private readonly ILogger<AIResponseProcessor> _logger;
 
-    public AIResponseProcessor(PayloadRegistry payloadRegistry)
+    public AIResponseProcessor(PayloadRegistry payloadRegistry, ILogger<AIResponseProcessor> logger)
     {
-        this.payloadRegistry = payloadRegistry;
+        _payloadRegistry = payloadRegistry;
+        _logger = logger;
     }
 
-    public void ProcessChoice(AIChoice choice, string skillOptionName, EncounterState state)
+    public ChoiceOutcome ProcessChoice(AiChoice choice, string skillOptionName, EncounterState state, Player player)
     {
-        state.FocusPoints -= choice.FocusCost;
+        // First, deduct Focus cost
+        state.SpendFocusPoints(choice.FocusCost);
 
-        SkillOption selectedOption = null;
-        foreach (SkillOption option in choice.SkillOptions)
-        {
-            if (option.SkillName.Equals(skillOptionName, StringComparison.OrdinalIgnoreCase))
-            {
-                selectedOption = option;
-                break;
-            }
-        }
+        // Find the selected skill option
+        SkillOption selectedOption = choice.SkillOptions.FirstOrDefault(
+            option => option.SkillName.Equals(skillOptionName, StringComparison.OrdinalIgnoreCase));
 
         if (selectedOption == null)
         {
             throw new InvalidOperationException($"Skill option {skillOptionName} not found in choice {choice.ChoiceID}");
         }
 
-        SkillCard card = FindCardByName(state.Player.PlayerHandCards, selectedOption.SkillName);
+        // Find the skill card
+        SkillCard card = FindCardByName(player.AvailableCards, selectedOption.SkillName);
         bool isUntrained = (card == null || card.IsExhausted);
 
+        // Perform skill check
         int effectiveLevel = 0;
         int difficulty = selectedOption.SCD;
 
         if (!isUntrained && card != null)
         {
+            // Using a skill card
             effectiveLevel = card.GetEffectiveLevel(state);
-            card.Exhaust();
+            card.Exhaust(); // Exhaust the card
         }
         else
         {
+            // Untrained attempt
             effectiveLevel = 0;
-            difficulty += 2;
+            difficulty += 2; // +2 difficulty for untrained
         }
 
+        // Add any next check modifier
         effectiveLevel += state.GetNextCheckModifier();
 
+        // Determine success
         bool success = effectiveLevel >= difficulty;
 
+        // Apply appropriate payload
         if (success)
         {
             ApplyPayload(selectedOption.SuccessPayload.MechanicalEffectID, state);
@@ -56,27 +60,87 @@
             ApplyPayload(selectedOption.FailurePayload.MechanicalEffectID, state);
         }
 
+        // If this was a recovery action (0 Focus cost), increment consecutive recovery count
         if (choice.FocusCost == 0)
         {
             state.ConsecutiveRecoveryCount++;
         }
         else
         {
+            // Reset consecutive recovery count for non-recovery actions
             state.ConsecutiveRecoveryCount = 0;
         }
 
+        // Process skill modifiers
         state.ProcessModifiers();
+
+        // Check if goal has been achieved
         state.CheckGoalCompletion();
+
+        // Advance duration - basic duration advance for any action
         state.AdvanceDuration(1);
+
+        // Calculate progress based on choice and state
+        int progressGained = CalculateProgressGained(choice, selectedOption, success);
+
+        // Create outcome
+        ChoiceOutcome outcome = new ChoiceOutcome(
+            progressGained,
+            success ? selectedOption.SuccessPayload.NarrativeEffect : selectedOption.FailurePayload.NarrativeEffect,
+            GetMechanicalDescriptionForPayload(success ? selectedOption.SuccessPayload : selectedOption.FailurePayload),
+            state.IsEncounterComplete,
+            DetermineOutcome(state, progressGained)
+        );
+
+        return outcome;
+    }
+
+    private int CalculateProgressGained(AiChoice choice, SkillOption option, bool success)
+    {
+        // Base progress calculation - can be expanded based on payload types
+        if (success)
+        {
+            return 2; // Default progress for successful action
+        }
+        return 1; // Minimal progress for failed action
+    }
+
+    private EncounterOutcomes DetermineOutcome(EncounterState state, int progressGained)
+    {
+        if (!state.IsEncounterComplete)
+        {
+            return EncounterOutcomes.None;
+        }
+
+        int projectedTotalProgress = state.CurrentProgress + progressGained;
+        int successThreshold = 10; // Basic success threshold
+
+        return projectedTotalProgress >= successThreshold
+            ? EncounterOutcomes.BasicSuccess
+            : EncounterOutcomes.Failure;
     }
 
     private void ApplyPayload(string payloadID, EncounterState state)
     {
-        if (payloadRegistry.HasEffect(payloadID))
+        if (_payloadRegistry.HasEffect(payloadID))
         {
-            IMechanicalEffect effect = payloadRegistry.GetEffect(payloadID);
+            IMechanicalEffect effect = _payloadRegistry.GetEffect(payloadID);
             effect.Apply(state);
         }
+        else
+        {
+            _logger.LogWarning("Payload ID not found: {PayloadID}", payloadID);
+        }
+    }
+
+    private string GetMechanicalDescriptionForPayload(Payload payload)
+    {
+        if (_payloadRegistry.HasEffect(payload.MechanicalEffectID))
+        {
+            IMechanicalEffect effect = _payloadRegistry.GetEffect(payload.MechanicalEffectID);
+            return effect.GetDescriptionForPlayer();
+        }
+        return "Unknown effect";
     }
 
     private SkillCard FindCardByName(List<SkillCard> cards, string name)
@@ -91,4 +155,3 @@
         return null;
     }
 }
-

@@ -10,25 +10,21 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     protected string GetSkillCheckInfo(UserEncounterChoiceOption choice)
     {
-        if (choice.Choice is EncounterOption option && option.Skill != SkillTypes.None)
+        if (choice.Choice is AiChoice option)
         {
-            string skillName = option.Skill.ToString();
-            int difficulty = option.Difficulty;
-            string locationEffect = option.LocationModifier switch
+            string skillInfo = "";
+            foreach (var skillOption in option.SkillOptions)
             {
-                < 0 => $" (Easier due to location: -{Math.Abs(option.LocationModifier)})",
-                > 0 => $" (Harder due to location: +{option.LocationModifier})",
-                _ => ""
-            };
-
-            return $"Requires {skillName} check (Difficulty: {difficulty}{locationEffect})";
+                skillInfo += skillOption.ToString();
+            }
+            return skillInfo;
         }
         return "No skill check required";
     }
 
     protected string GetProgressInfo(UserEncounterChoiceOption choice)
     {
-        if (choice.Choice is EncounterOption option)
+        if (choice.Choice is AiChoice option)
         {
             // Get the choice projection to show accurate progress information
             ChoiceProjection projection = Preview;
@@ -36,14 +32,13 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
             string focusCost = option.FocusCost > 0 ? $"Focus Cost: {option.FocusCost}" : "No Focus cost";
 
             string positiveEffects = GetPositiveEffectsDescription(option, projection);
-            string negativeRisk = GetNegativeRiskDescription(option, projection);
 
-            return $"{focusCost}\n{positiveEffects}\n{negativeRisk}";
+            return $"{focusCost}\n{positiveEffects}";
         }
         return "";
     }
 
-    private string GetPositiveEffectsDescription(EncounterOption option, ChoiceProjection projection)
+    private string GetPositiveEffectsDescription(AiChoice option, ChoiceProjection projection)
     {
         List<string> effects = new List<string>();
 
@@ -54,19 +49,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         }
 
         return effects.Count > 0 ? $"Positive: {string.Join(", ", effects)}" : "Positive: Minimal effect";
-    }
-
-    private string GetNegativeRiskDescription(EncounterOption option, ChoiceProjection projection)
-    {
-        if (option.Skill == SkillTypes.None)
-        {
-            return GetNegativeConsequenceDescription(option.NegativeConsequenceType);
-        }
-
-        string riskLevel = projection.SkillCheckSuccess ? "Low Risk" : "High Risk";
-        string consequence = GetNegativeConsequenceDescription(option.NegativeConsequenceType);
-
-        return $"{riskLevel}: {consequence}";
     }
 
     private string GetNegativeConsequenceDescription(NegativeConsequenceTypes consequenceType)
@@ -80,26 +62,8 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         };
     }
 
-    protected string GetActionTypeClass(EncounterOption option)
-    {
-        return option.ActionType.ToString().ToLowerInvariant();
-    }
 
-    protected string GetActionTypeName(UniversalActionTypes actionType)
-    {
-        return actionType switch
-        {
-            UniversalActionTypes.Recovery => "Recovery",
-            UniversalActionTypes.GenerationA => "Generation",
-            UniversalActionTypes.GenerationB => "Generation",
-            UniversalActionTypes.ConversionA => "Conversion",
-            UniversalActionTypes.ConversionB => "Conversion",
-            UniversalActionTypes.Hybrid => "Hybrid",
-            _ => actionType.ToString()
-        };
-    }
-
-    protected List<EffectItem> GetPositiveEffectsAsList(EncounterOption option, ChoiceProjection projection)
+    protected List<EffectItem> GetPositiveEffectsAsList(AiChoice option, ChoiceProjection projection)
     {
         List<EffectItem> effects = new List<EffectItem>();
 
@@ -111,17 +75,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
                 Value = projection.ProgressGained,
                 Description = $"Gain {projection.ProgressGained} Progress",
                 IsProgressEffect = true
-            });
-        }
-
-        // Focus gain (for Recovery actions)
-        if (option.ActionType == UniversalActionTypes.Recovery)
-        {
-            effects.Add(new EffectItem
-            {
-                Value = 1,
-                Description = $"Restore 1 Focus",
-                IsFocusEffect = true
             });
         }
 
@@ -137,37 +90,8 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         public bool IsFocusEffect { get; set; }
     }
 
-    protected string GetFormattedRiskDescription(EncounterOption option)
-    {
-        return option.NegativeConsequenceType switch
-        {
-            NegativeConsequenceTypes.ThresholdIncrease => "increased success requirements",
-            NegativeConsequenceTypes.ProgressLoss => "progress loss",
-            NegativeConsequenceTypes.FocusLoss => "Focus point loss",
-            _ => "unknown consequence"
-        };
-    }
-
-    protected int GetSkillCheckSuccessChance(UserEncounterChoiceOption choice)
-    {
-        if (!choice.Choice.HasSkillCheck) return 100;
-        
-        // This is a simplified version - you might need to update this
-        // to match your actual skill check calculation logic
-        var skillLevel = GetPlayerSkillLevel(choice.Choice.Skill);
-        var difficulty = choice.Choice.Difficulty + choice.Choice.LocationModifier;
-        
-        if (skillLevel >= difficulty + 2) return 100;
-        if (skillLevel >= difficulty + 1) return 75;
-        if (skillLevel == difficulty) return 50;
-        if (skillLevel == difficulty - 1) return 25;
-        return 0;
-    }
-
     protected int GetPlayerSkillLevel(SkillTypes skill)
     {
-        // This is a simplified placeholder - you'll need to update this
-        // to get the actual player's skill level from your game state
         return GameState.PlayerState.GetSkillLevel(skill);
     }
 

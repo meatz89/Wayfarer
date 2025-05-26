@@ -35,7 +35,7 @@
                         bool isDisabled = IsChoiceDisabled(choice) || !canAfford;
 
                         <div id="choice-@choice.Index"
-                             class="choice-option @(isDisabled ? "disabled" : "") @GetChoiceCssClass(choice)"
+                             class="choice-option @(isDisabled ? "disabled" : "")"
                              @onclick="(() => HandleChoiceSelection(choice))"
                              @onmouseover="@(() => ShowTooltip(choice, $"choice-{choice.Index}"))"
                              @onmouseout="HideTooltip">
@@ -43,7 +43,7 @@
                             <div class="choice-index">@choice.Index</div>
 
                             <div class="choice-name">
-                                @GetChoiceName(choice)
+                                @choice.Choice.ChoiceID
                                 @if (GetFocusCost(choice) > 0)
                                 {
                                     <span class="status-value">⚡@GetFocusCost(choice)</span>

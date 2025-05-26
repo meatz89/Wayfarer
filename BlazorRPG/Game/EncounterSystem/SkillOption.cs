@@ -6,4 +6,3 @@
     public Payload SuccessPayload { get; set; }
     public Payload FailurePayload { get; set; }
 }
-

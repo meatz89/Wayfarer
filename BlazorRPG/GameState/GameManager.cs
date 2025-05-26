@@ -435,28 +435,18 @@
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
         NarrativeResult narrativeResult = encounterResult.NarrativeResult;
-        List<EncounterOption> choices = encounterSystem.GetChoices();
+        List<AiChoice> choices = encounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
-        foreach (EncounterOption choice in choices)
+        foreach (AiChoice choice in choices)
         {
             i++;
             NarrativeContext narrativeContext = encounterResult.NarrativeContext;
-
-            string shorthandName = "short name";
-            string fullDescription = "description";
-            if (narrativeResult.ChoiceDescriptions != null && narrativeResult.ChoiceDescriptions[choice.Id] != null)
-            {
-                ChoiceNarrative choiceNarrative = narrativeResult.ChoiceDescriptions[choice.Id];
-                shorthandName = choiceNarrative.ShorthandName;
-                fullDescription = choiceNarrative.FullDescription;
-            }
             UserEncounterChoiceOption option = new UserEncounterChoiceOption(
                 i,
-                shorthandName,
-                fullDescription,
-                choice.Description,
+                choice.ChoiceID,
+                choice.NarrativeText,
                 narrativeContext.LocationName,
                 "locationSpotName",
                 encounterResult,

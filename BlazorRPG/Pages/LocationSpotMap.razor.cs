@@ -29,13 +29,13 @@ public partial class LocationSpotMap : ComponentBase
 
     private async Task HandleApproachSelection(UserActionOption action, ApproachDefinition approach)
     {
-        if (DragDropService.IsValidDropTarget(approach.RequiredCardType))
+        bool isCompatible = DragDropService.IsValidDropTarget(approach.RequiredCardType);
+        if (isCompatible)
         {
             SkillCard card = DragDropService.SelectedCard;
             DragDropService.Reset();
-
-            await SelectApproach(action, approach, card);
         }
+        await SelectApproach(action, approach);
     }
 
     private async Task HandleActionSelection(UserActionOption action)
@@ -66,7 +66,8 @@ public partial class LocationSpotMap : ComponentBase
 
     private bool IsValidCardForApproach(SkillCategories requiredCardType)
     {
-        return DragDropService.IsValidDropTarget(requiredCardType);
+        bool isValidTarget = DragDropService.IsValidDropTarget(requiredCardType);
+        return true;
     }
 
     private string GetCardTypeClass(SkillCategories type)
@@ -92,16 +93,16 @@ public partial class LocationSpotMap : ComponentBase
         }
     }
 
-    private async Task SelectApproach(UserActionOption action, ApproachDefinition approach, SkillCard card)
+    private async Task SelectApproach(UserActionOption action, ApproachDefinition approach)
     {
         showTooltip = false;
 
-        if (!GameState.PlayerState.HasAvailableCard(approach.RequiredCardType))
-        {
-            return;
-        }
+        //if (!GameState.PlayerState.HasAvailableCard(approach.RequiredCardType))
+        //{
+        //    return;
+        //}
 
-        UserActionOption actionWithApproach = action with { ApproachId = approach.Id, SelectedCard = card };
+        UserActionOption actionWithApproach = action with { ApproachId = approach.Id };
 
         await OnActionSelected.InvokeAsync(actionWithApproach);
 
