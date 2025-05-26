@@ -52,7 +52,7 @@ public class NarrativeContext
 
         foreach (NarrativeEvent evt in Events)
         {
-            prompt.AppendLine($"--- Turn {evt.TurnNumber} ---");
+            prompt.AppendLine($"--- Turn {evt.Stage} ---");
             prompt.AppendLine("Scene:");
             prompt.AppendLine(evt.Summary);
             prompt.AppendLine();
@@ -60,7 +60,7 @@ public class NarrativeContext
             if (evt.ChosenOption != null)
             {
                 prompt.AppendLine("Player Choice:");
-                prompt.AppendLine($"- {evt.ChosenOption.Id}: {evt.ChoiceNarrative}");
+                prompt.AppendLine($"- {evt.ChosenOption.ChoiceID}: {evt.ChosenOption.NarrativeText}");
                 prompt.AppendLine();
 
                 if (!string.IsNullOrEmpty(evt.Outcome))

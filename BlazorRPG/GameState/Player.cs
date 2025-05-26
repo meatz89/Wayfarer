@@ -53,7 +53,7 @@
 
     // Card collection (player skills)
     public List<SkillCard> PlayerSkillCards { get; set; } = new List<SkillCard>();
-    public List<SkillCard> PlayerHandCards { get; set; } = new List<SkillCard>();
+    public List<SkillCard> AvailableCards { get; set; } = new List<SkillCard>();
     public Location CurrentLocation { get; set; }
     public LocationSpot CurrentLocationSpot { get; set; }
 
@@ -67,7 +67,7 @@
         CurrentXP = 0;
         XPToNextLevel = 100;
 
-        PlayerHandCards = new List<SkillCard>();
+        AvailableCards = new List<SkillCard>();
 
     }
 
@@ -180,7 +180,7 @@
 
     public bool HasAvailableCard(SkillCategories cardTypes)
     {
-        foreach (SkillCard card in PlayerHandCards)
+        foreach (SkillCard card in AvailableCards)
         {
             if (card.Category == cardTypes && !card.IsExhausted)
             {

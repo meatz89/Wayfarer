@@ -1,37 +1,29 @@
 ﻿public class NarrativeEvent
 {
-    public int TurnNumber { get; }
-    public string Summary { get; }
-    public Dictionary<string, ChoiceNarrative> ChoiceDescriptions { get; set; } = new();
-    public EncounterOption ChosenOption { get; set; }
-    public ChoiceNarrative ChoiceNarrative { get; set; }
-    public string Outcome { get; set; }
+    public int Stage { get; private set; }
+    public string Summary { get; private set; }
+    public AiChoice ChosenOption { get; private set; }
+    public string Outcome { get; private set; }
+    public List<AiChoice> AvailableChoices { get; private set; } = new List<AiChoice>();
 
-    public NarrativeEvent(
-        int turnNumber,
-        string sceneDescription)
+    public NarrativeEvent(int stage, string summary)
     {
-        TurnNumber = turnNumber;
-        Summary = sceneDescription;
+        Stage = stage;
+        Summary = summary;
     }
 
-    public void SetAvailableChoiceDescriptions(Dictionary<string, ChoiceNarrative> choiceDescriptions)
+    public void SetChosenOption(AiChoice choice)
     {
-        ChoiceDescriptions = choiceDescriptions;
+        ChosenOption = choice;
     }
 
-    public void SetChosenOption(EncounterOption chosenOption)
-    {
-        ChosenOption = chosenOption;
-    }
-
-    public void SetChoiceNarrative(ChoiceNarrative choiceNarrative)
-    {
-        this.ChoiceNarrative = choiceNarrative;
-    }
-
-    public void SetOutcome(string? outcome)
+    public void SetOutcome(string outcome)
     {
         Outcome = outcome;
+    }
+
+    public void SetAvailableChoices(List<AiChoice> choices) 
+    {
+        AvailableChoices = choices;
     }
 }

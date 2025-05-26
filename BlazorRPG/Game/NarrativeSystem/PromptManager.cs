@@ -73,8 +73,7 @@ public class PromptManager
     public string BuildReactionPrompt(
         NarrativeContext context,
         EncounterState encounterState,
-        EncounterOption chosenOption,
-        ChoiceNarrative choiceDescription,
+        AiChoice chosenOption,
         ChoiceOutcome outcome)
     {
         string template = promptTemplates[REACTION_MD];
@@ -97,19 +96,19 @@ public class PromptManager
         string characterArchetype = context.PlayerState.Archetype.ToString();
         string playerStatus = $"Archetype: {characterArchetype}";
 
+        string choiceDescription = chosenOption.NarrativeText;
 
         string prompt = template
             .Replace("{ENCOUNTER_TYPE}", context.SkillCategory.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
             .Replace("{PLAYER_STATUS}", playerStatus)
-            .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
-            .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription);
+            .Replace("{SELECTED_CHOICE}", choiceDescription);
 
         return CreatePromptJson(prompt);
     }
 
-    public string BuildChoicesPrompt(NarrativeContext narrativeContext, EncounterState encounterState, List<EncounterOption> choices, List<ChoiceProjection> projections)
+    public string BuildChoicesPrompt(NarrativeContext narrativeContext, EncounterState encounterState)
     {
         string prompt = promptTemplates[CHOICES_MD];
 
@@ -118,9 +117,6 @@ public class PromptManager
 
         // Player status
         prompt = prompt.Replace("{PLAYER_STATUS}", BuildPlayerStatusSection(encounterState, narrativeContext.PlayerState));
-
-        // Choices mechanical info
-        prompt = prompt.Replace("{CHOICES_INFO}", BuildChoicesInfo(narrativeContext, choices, projections));
 
         return prompt;
     }
@@ -217,15 +213,15 @@ public class PromptManager
         };
     }
 
-    private static string BuildChoicesInfo(NarrativeContext context, List<EncounterOption> choices, List<ChoiceProjection> projections)
+    private static string BuildChoicesInfo(NarrativeContext context, List<AiChoice> choices, List<ChoiceProjection> projections)
     {
         string choicesInfo = string.Empty;
         for (int i = 0; i < choices.Count; i++)
         {
-            EncounterOption choice = choices[i];
+            AiChoice choice = choices[i];
             ChoiceProjection projection = projections[i];
-            string choiceText = $"\nCHOICE {i + 1}: {choice.Name}\n";
-            choiceText += $"Description: {choice.Description}\n";
+            string choiceText = $"\nCHOICE {i + 1}: {choice.ChoiceID}\n";
+            choiceText += $"Description: {choice.NarrativeText}\n";
 
             // Focus cost information
             choiceText += $"Focus Cost: {projection.FocusCost}";
@@ -244,25 +240,6 @@ public class PromptManager
             {
                 choiceText += $"Skill Check: {projection.SkillUsed} ";
                 choiceText += $"Difficulty {projection.SkillCheckDifficulty}\n";
-            }
-
-            // Negative consequence if skill check fails
-            if (projection.HasSkillCheck && !projection.SkillCheckSuccess)
-            {
-                choiceText += $"Negative Consequence (will trigger): {projection.NegativeConsequenceType}";
-                if (!string.IsNullOrEmpty(projection.MechanicalDescription))
-                    choiceText += $" - {projection.MechanicalDescription}";
-                choiceText += "\n";
-            }
-            else if (projection.HasSkillCheck && projection.SkillCheckSuccess)
-            {
-                choiceText += $"Negative Consequence (avoided): {projection.NegativeConsequenceType}\n";
-            }
-
-            // Choice tags if any
-            if (choice.Tags.Count > 0)
-            {
-                choiceText += $"Tags: {string.Join(", ", choice.Tags)}\n";
             }
 
             // Encounter ending information
@@ -284,8 +261,7 @@ public class PromptManager
     public string BuildEncounterEndPrompt(
         NarrativeContext context,
         EncounterOutcomes outcome,
-        EncounterOption finalChoice,
-        ChoiceNarrative choiceDescription
+        AiChoice finalChoice
         )
     {
         string template = promptTemplates[ENDING_MD];
@@ -306,10 +282,10 @@ public class PromptManager
             ? $"You have successfully achieved your goal to {encounterGoal}"
             : $"You have failed to {encounterGoal}";
 
+        string choiceDescription = finalChoice.NarrativeText;
         // Replace placeholders in template
         string prompt = template
-            .Replace("{SELECTED_CHOICE}", choiceDescription.ShorthandName)
-            .Replace("{CHOICE_DESCRIPTION}", choiceDescription.FullDescription)
+            .Replace("{SELECTED_CHOICE}", choiceDescription)
             .Replace("{ENCOUNTER_TYPE}", context.SkillCategory.ToString())
             .Replace("{ENCOUNTER_OUTCOME}", outcome.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
@@ -511,5 +487,95 @@ public class PromptManager
             .Replace("{LOCATION_NAME}", context.LocationName);
 
         return CreatePromptJson(prompt);
+    }
+
+    public string BuildEncounterChoicesPrompt(NarrativeContext context, EncounterState encounterState, WorldStateInput worldStateInput)
+    {
+        // Get the current encounter situation
+        NarrativeEvent? narrativeEvent = context.Events.LastOrDefault();
+        string currentNarrative = narrativeEvent?.Summary ?? "The encounter has just begun.";
+
+        // Get player status
+        string playerStatus = $"- Focus Points: {encounterState.FocusPoints}/{encounterState.MaxFocusPoints}\n";
+
+        // Get encounter type and tier
+        string encounterType = context.SkillCategory.ToString();
+        string encounterTier = GetTierName(encounterState.DurationCounter);
+        int successThreshold = 10; // Basic success threshold
+
+        // Build the prompt
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.Append("IMPORTANT: Generate ONLY the raw content with no meta-commentary. ");
+        promptBuilder.AppendLine("DO NOT acknowledge this request, introduce your response, or end with questions to the reader. Your entire response should be exactly what will be shown to the player without requiring any editing.");
+        promptBuilder.AppendLine();
+
+        promptBuilder.AppendLine("# WAYFARER'S RESOLVE CHOICE GENERATION");
+        promptBuilder.AppendLine();
+
+        promptBuilder.AppendLine("## Current Encounter Situation");
+        promptBuilder.AppendLine($"- Encounter Type: {encounterType}");
+        promptBuilder.AppendLine($"- Current Stage: {encounterState.DurationCounter}/5 ({encounterTier} Tier)");
+        promptBuilder.AppendLine($"- Progress: {encounterState.CurrentProgress}/{successThreshold}");
+        promptBuilder.AppendLine();
+
+        promptBuilder.AppendLine("## Player Character Status");
+        promptBuilder.AppendLine(playerStatus);
+        promptBuilder.AppendLine();
+
+        promptBuilder.AppendLine("## CRITICAL REQUIREMENT: NARRATIVE COMPREHENSION STEP");
+        promptBuilder.AppendLine("Before creating choices, you MUST analyze the narrative context by answering the following three questions based on {CHOICES_INFO}:");
+        promptBuilder.AppendLine();
+        promptBuilder.AppendLine("1. **What has already happened in the story leading to this point?**");
+        promptBuilder.AppendLine("   - Summarize the key recent actions and consequences.");
+        promptBuilder.AppendLine("2. **What is happening right now in this specific moment?**");
+        promptBuilder.AppendLine("   - Describe the immediate setting, characters present, emotional or physical conflict, and current circumstances.");
+        promptBuilder.AppendLine("3. **What decision is the protagonist currently facing as a direct result of recent events?**");
+        promptBuilder.AppendLine("   - Clearly identify the tension or choice the player must now respond to, including any emotional or logistical stakes.");
+        promptBuilder.AppendLine();
+
+        // Add the content about choice creation
+        promptBuilder.AppendLine("## RESPONSE FORMAT");
+        promptBuilder.AppendLine("You must respond with a SINGLE JSON object containing exactly 6 choices that are direct reactions to the current encounter situation:");
+        promptBuilder.AppendLine();
+        promptBuilder.AppendLine("```json");
+        promptBuilder.AppendLine("{");
+        promptBuilder.AppendLine("  \"choices\": [");
+        promptBuilder.AppendLine("    {");
+        promptBuilder.AppendLine("      \"choiceID\": \"choice_1\",");
+        promptBuilder.AppendLine("      \"narrativeText\": \"Specific reaction to current situation\",");
+        promptBuilder.AppendLine("      \"focusCost\": 1,");
+        promptBuilder.AppendLine("      \"skillOptions\": [");
+        promptBuilder.AppendLine("        {");
+        promptBuilder.AppendLine("          \"skillName\": \"Brute Force\",");
+        promptBuilder.AppendLine("          \"difficulty\": \"Standard\",");
+        promptBuilder.AppendLine("          \"sCD\": 3,");
+        promptBuilder.AppendLine("          \"successPayload\": {");
+        promptBuilder.AppendLine("            \"narrativeEffect\": \"How this succeeds\",");
+        promptBuilder.AppendLine("            \"mechanicalEffectID\": \"SET_FLAG_INSIGHT_GAINED\"");
+        promptBuilder.AppendLine("          },");
+        promptBuilder.AppendLine("          \"failurePayload\": {");
+        promptBuilder.AppendLine("            \"narrativeEffect\": \"How this fails\",");
+        promptBuilder.AppendLine("            \"mechanicalEffectID\": \"ADVANCE_DURATION_1\"");
+        promptBuilder.AppendLine("          }");
+        promptBuilder.AppendLine("        }");
+        promptBuilder.AppendLine("      ]");
+        promptBuilder.AppendLine("    }");
+        promptBuilder.AppendLine("  ]");
+        promptBuilder.AppendLine("}");
+        promptBuilder.AppendLine("```");
+
+        promptBuilder.AppendLine();
+        promptBuilder.AppendLine("## Current Encounter Context for Direct Response");
+        promptBuilder.AppendLine(currentNarrative);
+
+        return promptBuilder.ToString();
+    }
+
+
+    private string GetTierName(int durationCounter)
+    {
+        if (durationCounter <= 2) return "Foundation";
+        if (durationCounter <= 4) return "Development";
+        return "Execution";
     }
 }

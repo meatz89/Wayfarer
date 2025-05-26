@@ -10,27 +10,23 @@
         WorldStateInput worldStateInput,
         int priority);
 
-    Task<Dictionary<string, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
+    Task<List<AiChoice>> GenerateEncounterChoicesAsync(
         NarrativeContext context,
         EncounterState encounterState,
-        List<EncounterOption> choices,
-        List<ChoiceProjection> projections,
         WorldStateInput worldStateInput,
         int priority);
 
     Task<string> GenerateReactionAsync(
         NarrativeContext context,
         EncounterState encounterState,
-        EncounterOption chosenOption,
-        ChoiceNarrative choiceNarrative,
+        AiChoice chosenOption,
         ChoiceOutcome outcome,
         WorldStateInput worldStateInput,
         int priority);
 
     Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        EncounterOption chosenOption,
-        ChoiceNarrative choiceNarrative,
+        AiChoice chosenOption,
         ChoiceOutcome outcome,
         WorldStateInput worldStateInput,
         int priority);

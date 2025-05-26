@@ -19,7 +19,7 @@ public class NarrativeSummaryBuilder
         {
             NarrativeEvent evt = context.Events[i];
 
-            history.AppendLine($"## Turn {evt.TurnNumber}");
+            history.AppendLine($"## Turn {evt.Stage}");
 
             // Add initial scene description
             if (i == 0)
@@ -33,13 +33,7 @@ public class NarrativeSummaryBuilder
                 // For other turns, add chosen option and outcome
                 if (evt.ChosenOption != null)
                 {
-                    history.AppendLine($"### Choice: {evt.ChosenOption.Id}");
-
-                    // Add choice narrative description if available
-                    if (evt.ChoiceNarrative != null && !string.IsNullOrEmpty(evt.ChoiceNarrative.FullDescription))
-                    {
-                        history.AppendLine($"Description: {evt.ChoiceNarrative.FullDescription}");
-                    }
+                    history.AppendLine($"### Choice: {evt.ChosenOption.NarrativeText}");
 
                     // Add outcome
                     if (!string.IsNullOrEmpty(evt.Outcome))
@@ -64,7 +58,7 @@ public class NarrativeSummaryBuilder
         NarrativeEvent? mostRecentEvent = context.Events
             .OrderByDescending(e =>
             {
-                return e.TurnNumber;
+                return e.Stage;
             })
             .FirstOrDefault();
 
@@ -72,7 +66,7 @@ public class NarrativeSummaryBuilder
             return $"{context.ActionImplementation} at {context.LocationName}.";
 
         // Keep the summary extremely focused
-        if (mostRecentEvent.TurnNumber == 0)
+        if (mostRecentEvent.Stage == 0)
         {
             // Initial scene
             return mostRecentEvent.Summary.Trim();
@@ -80,7 +74,7 @@ public class NarrativeSummaryBuilder
         else
         {
             // Latest action and result
-            return $"{mostRecentEvent.ChosenOption?.Description}. {mostRecentEvent.Summary.Trim()}";
+            return $"{mostRecentEvent.ChosenOption?.NarrativeText}. {mostRecentEvent.Summary.Trim()}";
         }
     }
 }

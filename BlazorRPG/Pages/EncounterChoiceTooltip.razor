@@ -3,12 +3,12 @@
 <div class="tooltip" style="top:@tooltipYpx; left:@tooltipXpx;">
     <!-- Choice Header -->
     <div class="tooltip-header">
-        <h4>@GetActionTypeName(hoveredChoice.Choice.ActionType)</h4>
+        <h4>@hoveredChoice.Choice.ChoiceID</h4>
     </div>
 
     <!-- Narrative Description -->
     <div class="tooltip-section narrative-section">
-        <div class="choice-narrative">@hoveredChoice.ChoiceNarrative</div>
+        <div class="choice-narrative">@hoveredChoice.ChoiceDescription</div>
     </div>
 
     <!-- Costs Section -->
@@ -68,55 +68,17 @@
     </div>
 
     <!-- Skill Check Section -->
-    @if (hoveredChoice.Choice.HasSkillCheck)
+    @if (hoveredChoice.Choice.SkillOptions.Count > 0)
     {
         <div class="tooltip-section skill-section">
             <h5>Skill Check</h5>
             <div class="tooltip-item">
                 <div class="skill-details">
                     <div class="skill-name">
-                        @hoveredChoice.Choice.Skill @(hoveredChoice.Choice.Difficulty) Check
-                        @if (hoveredChoice.Choice.LocationModifier != 0)
-                        {
-                            <span class="location-modifier @(hoveredChoice.Choice.LocationModifier < 0 ? "positive" : "negative")">
-                                (@(hoveredChoice.Choice.LocationModifier < 0 ? "" : "+")@hoveredChoice.Choice.LocationModifier due to location)
-                            </span>
-                        }
+                        @hoveredChoice.Choice.SkillOptions Check
                     </div>
                 </div>
             </div>
         </div>
     }
-
-    <!-- Risk Section -->
-    <div class="tooltip-section risk-section">
-        <h5>Risk Assessment</h5>
-        <div class="tooltip-item">
-            @{
-                var riskDescription = GetFormattedRiskDescription(hoveredChoice.Choice);
-                var riskClass = hoveredChoice.Choice.HasSkillCheck && Preview.SkillCheckSuccess ? "low-risk" :
-                hoveredChoice.Choice.HasSkillCheck ? "high-risk" : "fixed-risk";
-            }
-            <div class="risk-description @riskClass">
-                @if (hoveredChoice.Choice.HasSkillCheck && Preview.SkillCheckSuccess)
-                {
-                    <span class="risk-icon">✓</span>
-                    <b>
-                        Low Risk:
-                        Likely to avoid @riskDescription
-                    </b>
-                }
-                else if (hoveredChoice.Choice.HasSkillCheck)
-                {
-                    <span class="risk-icon">⚠</span>
-                    <b>High Risk:Likely to suffer @riskDescription</b>
-                }
-                else
-                {
-                    <span class="risk-icon">⚠</span>
-                    <b>Fixed Outcome: Will suffer @riskDescription</b>
-                }
-            </div>
-        </div>
-    </div>
 </div>

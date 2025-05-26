@@ -34,7 +34,7 @@ public static class GameStateSerializer
                     .Select(item => item.ToString())
                     .ToList(),
                 // Add serialization for player's cards if needed
-                SelectedCards = gameState.PlayerState.PlayerHandCards?.Select(c => c.Id).ToList() ?? new List<string>()
+                SelectedCards = gameState.PlayerState.AvailableCards?.Select(c => c.Id).ToList() ?? new List<string>()
             }
         };
 
@@ -112,13 +112,13 @@ public static class GameStateSerializer
             // Apply selected cards if available
             if (serialized.Player.SelectedCards != null && cards != null)
             {
-                gameState.PlayerState.PlayerHandCards = new List<SkillCard>();
+                gameState.PlayerState.AvailableCards = new List<SkillCard>();
                 foreach (string cardId in serialized.Player.SelectedCards)
                 {
                     SkillCard card = cards.FirstOrDefault(c => c.Id == cardId);
                     if (card != null)
                     {
-                        gameState.PlayerState.PlayerHandCards.Add(card);
+                        gameState.PlayerState.AvailableCards.Add(card);
                     }
                 }
             }

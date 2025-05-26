@@ -28,7 +28,8 @@ public static class GameServiceExtensions
         services.AddSingleton<OpportunitySystem>();
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ActionSystem>();
-        services.AddSingleton<ChoiceRepository>();
+        services.AddSingleton<PayloadRegistry>();
+        services.AddSingleton<ChoiceProjectionService>();
         services.AddSingleton<ActionProcessor>();
         services.AddSingleton<EncounterFactory>();
         services.AddSingleton<WorldStateInputBuilder>();

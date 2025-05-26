@@ -1,16 +1,15 @@
 ﻿public class SkillCard
 {
-    public string Id { get; }
-    public string Name { get; }
-    public SkillTypes SkillType { get; }
-    public SkillCategories Category { get; }
-    public int Level { get; }
-    public string Description { get; }
+    public string Name { get; private set; }
+    public SkillTypes SkillType { get; private set; }
+    public SkillCategories Category { get; private set; }
+    public int Level { get; private set; }
+    public string Description { get; private set; }
     public bool IsExhausted { get; private set; }
+    public string Id { get; internal set; }
 
     public SkillCard(string name, SkillTypes skillType, SkillCategories category, int level, string description)
     {
-        Id = Guid.NewGuid().ToString();
         Name = name;
         SkillType = skillType;
         Category = category;
@@ -31,12 +30,19 @@
 
     public int GetEffectiveLevel(EncounterState state)
     {
-        int baseLevel = Level;
+        // Base level
+        int effectiveLevel = Level;
+
+        // Add modifiers from state
         List<SkillModifier> modifiers = state.GetActiveModifiers(SkillType);
         foreach (SkillModifier modifier in modifiers)
         {
-            baseLevel += modifier.ModifierValue;
+            effectiveLevel += modifier.ModifierValue;
         }
-        return Math.Max(0, baseLevel);
+
+        // Check for location modifiers (already applied to choice difficulty)
+
+        return Math.Max(0, effectiveLevel);
     }
 }
+

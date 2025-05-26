@@ -47,7 +47,7 @@
             {
                 StageNumber = stageNum,
                 Description = GetUniversalStageDescription(stageNum),
-                Options = new List<EncounterOption>() // Empty - populated by ChoiceCardSelector
+                Options = new List<AiChoice>() // Empty - populated by ChoiceCardSelector
             };
             stages.Add(stage);
         }

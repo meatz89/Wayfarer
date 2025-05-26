@@ -79,22 +79,16 @@
         return response;
     }
 
-    public async Task<Dictionary<string, ChoiceNarrative>> GenerateChoiceDescriptionsAsync(
-        NarrativeContext context,
-        EncounterState encounterState,
-        List<EncounterOption> choices,
-        List<ChoiceProjection> projections,
-        WorldStateInput worldStateInput,
-        int priority)
+    public async Task<List<AiChoice>> GenerateEncounterChoicesAsync(
+         NarrativeContext context,
+         EncounterState encounterState,
+         WorldStateInput worldStateInput,
+         int priority)
     {
-        List<NarrativeEvent> events = context.Events;
-        NarrativeEvent? narrativeEvent = events.FirstOrDefault();
-        var summary = narrativeEvent.Summary;
-
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildChoicesPrompt(
-            context, encounterState, choices, projections);
+            context, encounterState);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -113,7 +107,6 @@
             model = _fallbackModel;
         }
 
-        // Using PRIORITY_HIGH for player-facing content
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
@@ -122,14 +115,16 @@
         string response = await _aiClient.ProcessCommand(aiGenerationCommand);
 
         _contextManager.AddAssistantMessage(conversationId, response, MessageType.ChoiceGeneration);
-        return NarrativeJsonParser.ParseChoiceResponse(response, choices);
+
+        // Parse the response into a list of AiChoice objects
+        var parser = new AIResponseParser();
+        return parser.ParseMultipleChoicesResponse(response);
     }
 
     public async Task<string> GenerateReactionAsync(
         NarrativeContext context,
         EncounterState encounterState,
-        EncounterOption chosenOption,
-        ChoiceNarrative choiceNarrative,
+        AiChoice chosenOption,
         ChoiceOutcome outcome,
         WorldStateInput worldStateInput,
         int priority)
@@ -137,7 +132,7 @@
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildReactionPrompt(
-            context, encounterState, chosenOption, choiceNarrative, outcome);
+            context, encounterState, chosenOption, outcome);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -146,7 +141,8 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice, choiceNarrative);
+        string choiceDescription = chosenOption.NarrativeText;
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice, choiceDescription);
         }
 
         string model = _primaryModel;
@@ -156,7 +152,6 @@
             model = _fallbackModel;
         }
 
-        // Using PRIORITY_HIGH for player-facing content
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
@@ -170,8 +165,7 @@
 
     public async Task<string> GenerateEndingAsync(
         NarrativeContext context,
-        EncounterOption chosenOption,
-        ChoiceNarrative choiceNarrative,
+        AiChoice chosenOption,
         ChoiceOutcome outcome,
         WorldStateInput worldStateInput,
         int priority)
@@ -179,7 +173,7 @@
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
         string prompt = _promptManager.BuildEncounterEndPrompt(
-            context, outcome.Outcome, chosenOption, choiceNarrative);
+            context, outcome.Outcome, chosenOption);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -188,7 +182,8 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice, choiceNarrative);
+            string choiceDescription = chosenOption.NarrativeText;
+            _contextManager.AddUserMessage(conversationId, prompt, MessageType.PlayerChoice, choiceDescription);
         }
 
         string model = _primaryModel;
@@ -198,7 +193,6 @@
             model = _fallbackModel;
         }
 
-        // Using PRIORITY_HIGH for player-facing content
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
@@ -238,7 +232,6 @@
 
         string response = await _aiClient.ProcessCommand(aiGenerationCommand);
 
-        // Parse the JSON response into location details
         return LocationJsonParser.ParseLocationDetails(response);
     }
 
@@ -308,7 +301,6 @@
             model = _fallbackModel;
         }
 
-        // Using PRIORITY_LOW for memory consolidation
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             model, fallbackModel, Watcher,
@@ -339,7 +331,6 @@
             model = _fallbackModel;
         }
 
-        // Using PRIORITY_NORMAL for action generation
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             messages,
             model, fallbackModel, Watcher,

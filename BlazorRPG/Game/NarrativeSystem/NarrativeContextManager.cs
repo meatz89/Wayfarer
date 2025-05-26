@@ -33,14 +33,14 @@
     }
 
     // Add a message with type tracking
-    public void AddUserMessage(string conversationId, string message, MessageType type, ChoiceNarrative? choiceNarrative)
+    public void AddUserMessage(string conversationId, string message, MessageType type, string choiceDescription)
     {
         _fullConversationHistories[conversationId].Add(new ConversationEntry
         {
             Role = "user",
             Content = message,
             Type = type,
-            ChoiceNarrative = choiceNarrative
+            choiceDescription = choiceDescription
         });
     }
 
@@ -109,7 +109,7 @@
             if (entry.Type == MessageType.PlayerChoice && entry.Role == "user")
             {
                 // Extract just the choice information
-                string simplifiedChoice = SimplifyPlayerChoicePrompt(entry.Content, entry.ChoiceNarrative!);
+                string simplifiedChoice = SimplifyPlayerChoicePrompt(entry.Content, entry.choiceDescription!);
                 optimizedHistory.Add(new ConversationEntry { Role = entry.Role, Content = simplifiedChoice });
             }
 
@@ -139,11 +139,11 @@
     }
 
     // Simplify player choice prompt to just "Player chose X"
-    private string SimplifyPlayerChoicePrompt(string fullPrompt, ChoiceNarrative choiceNarrative)
+    private string SimplifyPlayerChoicePrompt(string fullPrompt, string choiceDescription)
     {
-        if (choiceNarrative != null)
+        if (choiceDescription != null)
         {
-            return $"The Player chose: '{choiceNarrative.ShorthandName}'. The players intention was: '{choiceNarrative.FullDescription}'. Generate the narrative response.";
+            return $"The Player chose: '{choiceDescription}'. Generate the narrative response.";
         }
 
         // If we can't parse it properly, return a default simplified version

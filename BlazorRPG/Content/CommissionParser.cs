@@ -121,9 +121,6 @@ public static class CommissionParser
                 RequiredCardType = requiredCardType,
                 PrimarySkill = primarySkill,
                 SecondarySkill = secondarySkill,
-                ContextTags = GetStringArray(approachElement, "contextTags"),
-                ApproachTags = GetStringArray(approachElement, "approachTags"),
-                DomainTags = GetStringArray(approachElement, "domainTags")
             };
 
             approaches.Add(approach);
