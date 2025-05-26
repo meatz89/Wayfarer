@@ -1,5 +1,4 @@
-﻿
-public class EncounterManager
+﻿public class EncounterManager
 {
     private readonly Encounter encounter;
     public ActionImplementation ActionImplementation;
@@ -101,8 +100,6 @@ public class EncounterManager
             for (int i = 0; i < generatedChoices.Count; i++)
             {
                 AiChoice choice = generatedChoices[i];
-                choice.ChoiceID = $"choice_{encounterState.DurationCounter}_{i}";
-                choice.ChoiceID = choice.ChoiceID;
             }
 
             CurrentChoices = generatedChoices;
