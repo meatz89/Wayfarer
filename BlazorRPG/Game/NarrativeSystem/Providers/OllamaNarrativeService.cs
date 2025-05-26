@@ -87,8 +87,8 @@
     {
         string conversationId = $"{context.LocationName}_encounter";
         string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
-        string prompt = _promptManager.BuildChoicesPrompt(
-            context, encounterState);
+        string prompt = _promptManager.BuildEncounterChoicesPrompt(
+            context, encounterState, worldStateInput);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
