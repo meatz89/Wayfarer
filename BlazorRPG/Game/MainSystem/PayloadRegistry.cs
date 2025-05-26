@@ -1,13 +1,9 @@
-﻿
-
-public class PayloadRegistry
+﻿public class PayloadRegistry
 {
     private Dictionary<string, IMechanicalEffect> registeredEffects = new Dictionary<string, IMechanicalEffect>();
-    private readonly ILogger<PayloadRegistry> _logger;
 
     public PayloadRegistry(ILogger<PayloadRegistry> logger)
     {
-        _logger = logger;
         InitializeEffects();
     }
 
@@ -19,7 +15,7 @@ public class PayloadRegistry
         }
         else
         {
-            _logger.LogWarning("Effect ID {EffectID} already registered", effectID);
+            throw new Exception("Effect ID {EffectID} already registered");
         }
     }
 
@@ -30,8 +26,7 @@ public class PayloadRegistry
             return effect;
         }
 
-        _logger.LogWarning("Effect ID {EffectID} not found", effectID);
-        return null;
+        throw new Exception("Effect ID {EffectID} not found");
     }
 
     public bool HasEffect(string effectID)

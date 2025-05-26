@@ -210,7 +210,7 @@
             bool success = effectiveLevel >= difficulty;
 
             // Apply appropriate payload
-            PayloadRegistry payloadRegistry = new PayloadRegistry(null);
+            PayloadRegistry payloadRegistry = new PayloadRegistry();
             if (success)
             {
                 IMechanicalEffect effect = payloadRegistry.GetEffect(selectedSkillOption.SuccessPayload.MechanicalEffectID);
