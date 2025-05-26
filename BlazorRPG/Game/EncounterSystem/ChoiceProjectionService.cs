@@ -18,15 +18,8 @@
         projection.IsAffordableFocus = projection.IsAffordable;
 
         // Process skill options
-        List<SkillOptionProjection> skillProjections = new List<SkillOptionProjection>();
-
-        foreach (SkillOption option in choice.SkillOptions)
-        {
-            SkillOptionProjection skillProjection = ProjectSkillOption(option, state, player);
-            skillProjections.Add(skillProjection);
-        }
-
-        projection.SkillOptions = skillProjections;
+        SkillOptionProjection skillProjection = ProjectSkillOption(choice.SkillOption, state, player);
+        projection.SkillOption = skillProjection;
 
         return projection;
     }

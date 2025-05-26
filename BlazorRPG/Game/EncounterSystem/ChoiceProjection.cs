@@ -4,7 +4,7 @@
     public string NarrativeText { get; }
     public int FocusCost { get; }
     public bool IsAffordable { get; set; }
-    public List<SkillOptionProjection> SkillOptions { get; set; }
+    public SkillOptionProjection SkillOption { get; set; }
     public AiChoice Choice { get; }
     public string NarrativeDescription { get; set; }
     public string FormattedOutcomeSummary { get; set; }
@@ -29,7 +29,6 @@
         ChoiceID = choice.ChoiceID;
         NarrativeText = choice.NarrativeText;
         FocusCost = choice.FocusCost;
-        SkillOptions = new List<SkillOptionProjection>();
     }
 }
 

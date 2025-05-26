@@ -179,7 +179,7 @@
         FocusPoints -= choice.FocusCost;
 
         // Select a skill option to process (for this POC, just use the first one)
-        SkillOption selectedSkillOption = choice.SkillOptions.FirstOrDefault();
+        SkillOption selectedSkillOption = choice.SkillOption;
         if (selectedSkillOption != null)
         {
             // Find matching skill card

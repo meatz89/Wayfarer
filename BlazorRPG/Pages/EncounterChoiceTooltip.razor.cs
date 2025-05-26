@@ -13,10 +13,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         if (choice.Choice is AiChoice option)
         {
             string skillInfo = "";
-            foreach (var skillOption in option.SkillOptions)
-            {
-                skillInfo += skillOption.ToString();
-            }
+            skillInfo += option.SkillOption.ToString();
             return skillInfo;
         }
         return "No skill check required";

@@ -10,20 +10,51 @@ public class AIResponseParser
         _logger = logger;
     }
 
+    private string CleanMarkdownCodeBlocks(string response)
+    {
+        // Remove markdown code block delimiters
+        string cleaned = Regex.Replace(response, "```json", "", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, "```", "");
+
+        // Trim any whitespace
+        return cleaned.Trim();
+    }
+
+    private string ExtractJsonContent(string text)
+    {
+        // Look for content between { and }
+        Match match = Regex.Match(text, @"\{.*\}", RegexOptions.Singleline);
+        if (match.Success)
+        {
+            return match.Value;
+        }
+
+        return string.Empty;
+    }
+
     public List<AiChoice> ParseMultipleChoicesResponse(string response)
     {
         List<AiChoice> choices = new List<AiChoice>();
 
         try
         {
-            // First try to parse as JSON directly
+            // Clean up the response to remove markdown code block formatting
+            string cleanedResponse = CleanMarkdownCodeBlocks(response);
+
+            // Try to extract JSON object
+            string jsonContent = ExtractJsonContent(cleanedResponse);
+
+            if (string.IsNullOrEmpty(jsonContent))
+            {
+                _logger?.LogWarning("Could not extract valid JSON content from response.");
+                return choices;
+            }
+
+            // Parse the JSON
             try
             {
-                // Log the response for debugging
-                _logger?.LogDebug("Parsing response: {Response}", response);
-
                 // Try to parse the entire response as a JSON array
-                JsonDocument document = JsonDocument.Parse(response);
+                JsonDocument document = JsonDocument.Parse(jsonContent);
 
                 if (document.RootElement.ValueKind == JsonValueKind.Array)
                 {
@@ -122,8 +153,6 @@ public class AIResponseParser
             if (choiceElement.TryGetProperty("skillOptions", out JsonElement skillOptionsElement) ||
                 choiceElement.TryGetProperty("SkillOptions", out skillOptionsElement))
             {
-                choice.SkillOptions = new List<SkillOption>();
-
                 if (skillOptionsElement.ValueKind == JsonValueKind.Array)
                 {
                     foreach (JsonElement skillOptionElement in skillOptionsElement.EnumerateArray())
@@ -131,7 +160,7 @@ public class AIResponseParser
                         SkillOption skillOption = ParseSkillOptionFromJson(skillOptionElement);
                         if (skillOption != null)
                         {
-                            choice.SkillOptions.Add(skillOption);
+                            choice.SkillOption = skillOption;
                         }
                     }
                 }
@@ -285,23 +314,21 @@ public class AIResponseParser
             ChoiceID = $"fallback_choice_{index}",
             NarrativeText = narrativeText,
             FocusCost = focusCost,
-            SkillOptions = new List<SkillOption>
+            SkillOption =
+            new SkillOption
             {
-                new SkillOption
+                SkillName = skillName,
+                Difficulty = "Standard",
+                SCD = 3,
+                SuccessPayload = new Payload
                 {
-                    SkillName = skillName,
-                    Difficulty = "Standard",
-                    SCD = 3,
-                    SuccessPayload = new Payload
-                    {
-                        NarrativeEffect = "You succeed in your attempt.",
-                        MechanicalEffectID = focusCost == 0 ? "GAIN_FOCUS_1" : "SET_FLAG_INSIGHT_GAINED"
-                    },
-                    FailurePayload = new Payload
-                    {
-                        NarrativeEffect = "You encounter a setback.",
-                        MechanicalEffectID = "ADVANCE_DURATION_1"
-                    }
+                    NarrativeEffect = "You succeed in your attempt.",
+                    MechanicalEffectID = focusCost == 0 ? "GAIN_FOCUS_1" : "SET_FLAG_INSIGHT_GAINED"
+                },
+                FailurePayload = new Payload
+                {
+                    NarrativeEffect = "You encounter a setback.",
+                    MechanicalEffectID = "ADVANCE_DURATION_1"
                 }
             }
         };

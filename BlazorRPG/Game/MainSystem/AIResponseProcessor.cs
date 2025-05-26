@@ -15,8 +15,7 @@
         state.SpendFocusPoints(choice.FocusCost);
 
         // Find the selected skill option
-        SkillOption selectedOption = choice.SkillOptions.FirstOrDefault(
-            option => option.SkillName.Equals(skillOptionName, StringComparison.OrdinalIgnoreCase));
+        SkillOption selectedOption = choice.SkillOption;
 
         if (selectedOption == null)
         {
