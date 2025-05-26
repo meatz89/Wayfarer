@@ -1,42 +1,58 @@
 ﻿using System.Text;
-
-/// <summary>
-/// Stores the complete narrative context for an encounter
-/// </summary>
 public class NarrativeContext
 {
     public string LocationName { get; }
     public string LocationSpotName { get; }
     public SkillCategories SkillCategory { get; }
+    public Player PlayerState { get; }
     public ActionImplementation ActionImplementation { get; }
-    public ApproachDefinition ChosenApproach { get; }
-    public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
-    public Player PlayerState { get; set; }
+    public ApproachDefinition Approach { get; }
+
+    private List<NarrativeEvent> events = new List<NarrativeEvent>();
+    public List<NarrativeEvent> Events
+    {
+        get
+        {
+            return events;
+        }
+    }
 
     public NarrativeContext(
-        string location,
-        string locationSpot,
-        SkillCategories SkillCategory,
+        string locationName,
+        string locationSpotName,
+        SkillCategories skillCategory,
         Player playerState,
-        ActionImplementation incitingAction,
-        ApproachDefinition chosenApproach)
+        ActionImplementation actionImplementation,
+        ApproachDefinition approach)
     {
-        LocationName = location;
-        LocationSpotName = locationSpot;
-        SkillCategory = SkillCategory;
+        LocationName = locationName;
+        LocationSpotName = locationSpotName;
+        SkillCategory = skillCategory;
         PlayerState = playerState;
-        ActionImplementation = incitingAction;
-        ChosenApproach = chosenApproach;
+        ActionImplementation = actionImplementation;
+        Approach = approach;
+
+        events = new List<NarrativeEvent>();
     }
 
     public void AddEvent(NarrativeEvent narrativeEvent)
     {
-        Events.Add(narrativeEvent);
+        events.Add(narrativeEvent);
     }
 
-    public string GetLastScene()
+    public List<NarrativeEvent> GetEvents()
     {
-        return Events.Count > 0 ? Events[Events.Count - 1].Summary : string.Empty;
+        return events;
+    }
+
+    public NarrativeEvent GetLatestEvent()
+    {
+        if (events.Count > 0)
+        {
+            return events[events.Count - 1];
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -50,7 +66,7 @@ public class NarrativeContext
         prompt.AppendLine($"Presentation Style: {SkillCategory}");
         prompt.AppendLine();
 
-        foreach (NarrativeEvent evt in Events)
+        foreach (NarrativeEvent evt in events)
         {
             prompt.AppendLine($"--- Turn {evt.Stage} ---");
             prompt.AppendLine("Scene:");

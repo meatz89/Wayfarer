@@ -76,10 +76,10 @@
         switch (archetype)
         {
             case Professions.Warrior:
-                playerProgression.AddSkillExp(SkillTypes.Endurance, XpBonusForArchetype);
+                playerProgression.AddSkillExp(SkillTypes.BruteForce, XpBonusForArchetype);
                 break;
             default:
-                playerProgression.AddSkillExp(SkillTypes.Endurance, XpBonusForArchetype);
+                playerProgression.AddSkillExp(SkillTypes.BruteForce, XpBonusForArchetype);
                 break;
         }
     }

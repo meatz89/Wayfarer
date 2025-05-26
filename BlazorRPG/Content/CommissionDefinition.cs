@@ -110,9 +110,7 @@
             Id = $"physical_followup_{Guid.NewGuid()}",
             Name = "Physical Approach",
             Description = "Use physical means to follow up on your findings.",
-            RequiredCardType = SkillCategories.Physical,
-            PrimarySkill = SkillTypes.Strength,
-            SecondarySkill = SkillTypes.Endurance
+            RequiredCardType = SkillCategories.Physical
         });
 
         approaches.Add(new ApproachDefinition
@@ -120,9 +118,7 @@
             Id = $"intellectual_followup_{Guid.NewGuid()}",
             Name = "Intellectual Approach",
             Description = "Apply analytical thinking to advance your investigation.",
-            RequiredCardType = SkillCategories.Intellectual,
-            PrimarySkill = SkillTypes.Analysis,
-            SecondarySkill = SkillTypes.Observation
+            RequiredCardType = SkillCategories.Intellectual
         });
 
         approaches.Add(new ApproachDefinition
@@ -130,9 +126,7 @@
             Id = $"social_followup_{Guid.NewGuid()}",
             Name = "Social Approach",
             Description = "Use interpersonal skills to gather more information.",
-            RequiredCardType = SkillCategories.Social,
-            PrimarySkill = SkillTypes.Charm,
-            SecondarySkill = SkillTypes.Persuasion
+            RequiredCardType = SkillCategories.Social
         });
 
         return approaches;

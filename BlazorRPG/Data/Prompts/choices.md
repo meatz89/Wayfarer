@@ -1,4 +1,4 @@
-IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowledge this request, introduce your response (like "I'll create..." or "Here is..."), or end with questions to the reader. Your entire response should be exactly what will be shown to the player without requiring any editing.
+IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowledge this request, introduce your response, or end with questions to the reader. Your entire response should be exactly what will be shown to the player without requiring any editing.
 
 # WAYFARER'S RESOLVE CHOICE GENERATION
 
@@ -58,9 +58,6 @@ Every choice must:
 - Experience-based responses to the specific challenge at hand
 - Avoid modern analytical terms or abstract strategic thinking
 
-## Current Encounter Context for Direct Response
-{CHOICES_INFO}
-
 ## RESPONSE FORMAT
 You must respond with a SINGLE JSON object containing exactly 6 choices that are direct reactions to the current encounter situation:
 
@@ -68,9 +65,24 @@ You must respond with a SINGLE JSON object containing exactly 6 choices that are
 {
   "choices": [
     {
-      "index": 1,
-      "name": "Specific reaction to current situation",
-      "description": "How this reaction addresses what's happening now and what risk it carries"
+      "choiceID": "choice_1",
+      "narrativeText": "Specific reaction to current situation",
+      "focusCost": 1,
+      "skillOptions": [
+        {
+          "skillName": "Brute Force",
+          "difficulty": "Standard",
+          "sCD": 3,
+          "successPayload": {
+            "narrativeEffect": "How this succeeds",
+            "mechanicalEffectID": "SET_FLAG_INSIGHT_GAINED"
+          },
+          "failurePayload": {
+            "narrativeEffect": "How this fails",
+            "mechanicalEffectID": "ADVANCE_DURATION_1"
+          }
+        }
+      ]
     }
   ]
 }

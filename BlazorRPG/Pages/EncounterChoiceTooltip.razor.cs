@@ -51,18 +51,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return effects.Count > 0 ? $"Positive: {string.Join(", ", effects)}" : "Positive: Minimal effect";
     }
 
-    private string GetNegativeConsequenceDescription(NegativeConsequenceTypes consequenceType)
-    {
-        return consequenceType switch
-        {
-            NegativeConsequenceTypes.ThresholdIncrease => "Success requirements increase",
-            NegativeConsequenceTypes.ProgressLoss => "Lose 1 progress",
-            NegativeConsequenceTypes.FocusLoss => "Lose 1 Focus from pool",
-            _ => "Unknown risk"
-        };
-    }
-
-
     protected List<EffectItem> GetPositiveEffectsAsList(AiChoice option, ChoiceProjection projection)
     {
         List<EffectItem> effects = new List<EffectItem>();

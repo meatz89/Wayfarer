@@ -2,23 +2,25 @@
 {
     public SkillTypes TargetSkill { get; }
     public int ModifierValue { get; }
-    public int Duration { get; private set; }
+    public int RemainingDuration { get; private set; }
 
     public SkillModifier(SkillTypes targetSkill, int modifierValue, int duration)
     {
         TargetSkill = targetSkill;
         ModifierValue = modifierValue;
-        Duration = duration;
+        RemainingDuration = duration;
     }
 
     public void DecrementDuration()
     {
-        Duration = Math.Max(0, Duration - 1);
+        if (RemainingDuration > 0)
+        {
+            RemainingDuration--;
+        }
     }
 
     public bool HasExpired()
     {
-        return Duration <= 0;
+        return RemainingDuration <= 0;
     }
 }
-

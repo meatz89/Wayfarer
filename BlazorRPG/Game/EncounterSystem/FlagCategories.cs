@@ -1,9 +1,10 @@
 ﻿public enum FlagCategories
 {
-    Positional,
-    Relational,
-    Informational,
-    Tactical,
-    Environmental,
-    Emotional
+    None = 0,
+    Positional,   // Spatial relationships
+    Relational,   // Social connections
+    Informational, // Knowledge states
+    Tactical,     // Action opportunities
+    Environmental, // Surroundings
+    Emotional     // Mood/tone
 }

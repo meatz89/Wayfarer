@@ -104,23 +104,12 @@ public static class CommissionParser
             SkillCategories requiredCardType = Enum.TryParse<SkillCategories>(cardTypeStr, true,
                 out SkillCategories parsedCardType) ? parsedCardType : SkillCategories.Physical;
 
-            // Parse skills
-            string primarySkillStr = GetStringProperty(approachElement, "primarySkill", "");
-            SkillTypes primarySkill = Enum.TryParse<SkillTypes>(primarySkillStr, true,
-                out SkillTypes parsedPrimarySkill) ? parsedPrimarySkill : SkillTypes.Strength;
-
-            string secondarySkillStr = GetStringProperty(approachElement, "secondarySkill", "");
-            SkillTypes secondarySkill = Enum.TryParse<SkillTypes>(secondarySkillStr, true,
-                out SkillTypes parsedSecondarySkill) ? parsedSecondarySkill : SkillTypes.Endurance;
-
             ApproachDefinition approach = new ApproachDefinition
             {
                 Id = id,
                 Name = name,
                 Description = description,
                 RequiredCardType = requiredCardType,
-                PrimarySkill = primarySkill,
-                SecondarySkill = secondarySkill,
             };
 
             approaches.Add(approach);
