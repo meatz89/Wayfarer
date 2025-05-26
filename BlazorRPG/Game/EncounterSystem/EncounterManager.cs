@@ -12,7 +12,7 @@
     private readonly WorldStateInputBuilder worldStateInputCreator;
     public List<EncounterOption> CurrentChoices = new List<EncounterOption>();
 
-    public PlayerState playerState;
+    public Player playerState;
     public WorldState worldState;
     public Encounter Encounter;
 
@@ -55,7 +55,7 @@
         Location location,
         Encounter encounterInfo,
         WorldState worldState,
-        PlayerState playerState,
+        Player playerState,
         ActionImplementation actionImplementation)
     {
         _logger.LogInformation("StartEncounterWithNarrativeAsync called for location: {LocationId}, encounter: {EncounterId}", location?.Id, encounterInfo?.Id);
@@ -68,7 +68,7 @@
             new NarrativeContext(
                 encounterInfo.LocationName.ToString(),
                 encounterInfo.LocationSpotName.ToString(),
-                encounterInfo.EncounterType,
+                encounterInfo.SkillCategory,
                 playerState,
                 actionImplementation,
                 encounter.Approach);
@@ -96,7 +96,7 @@
         }
 
         NarrativeEvent firstNarrative = new NarrativeEvent(
-            encounterState.CurrentTurn,
+            encounterState.DurationCounter,
             introduction);
 
         narrativeContext.AddEvent(firstNarrative);
@@ -152,12 +152,12 @@
         return introduction;
     }
 
-    private void StartEncounter(WorldState worldState, PlayerState playerState, Encounter encounterInfo)
+    private void StartEncounter(WorldState worldState, Player player, Encounter encounterInfo)
     {
         this.worldState = worldState;
-        this.playerState = playerState;
+        this.playerState = player;
 
-        encounterState = new EncounterState(encounterInfo, playerState);
+        encounterState = new EncounterState(player, encounterState.SkillCategory);
     }
 
     public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
@@ -280,7 +280,7 @@
         }
     }
 
-    private ChoiceOutcome ApplyChoiceProjection(PlayerState playerState, EncounterState encounterState, EncounterOption choice)
+    private ChoiceOutcome ApplyChoiceProjection(Player playerState, EncounterState encounterState, EncounterOption choice)
     {
         this.playerState = playerState;
 
@@ -312,7 +312,7 @@
         string narrative)
     {
         NarrativeEvent narrativeEvent = new NarrativeEvent(
-            encounterState.CurrentTurn - 1,
+            encounterState.DurationCounter - 1,
             narrative);
 
         narrativeEvent.SetChosenOption(choice);
@@ -338,7 +338,7 @@
         return CurrentChoices;
     }
 
-    public void GenerateChoicesForPlayer(PlayerState playerState)
+    public void GenerateChoicesForPlayer(Player playerState)
     {
         CurrentChoices = cardSelectionAlgorithm.SelectChoices(encounterState, playerState);
     }

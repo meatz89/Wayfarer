@@ -22,7 +22,7 @@ public class WorldStateInputBuilder
     public async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
     {
         WorldState worldState = gameState.WorldState;
-        PlayerState playerState = gameState.PlayerState;
+        Player playerState = gameState.PlayerState;
 
         // Create context for location generation
         WorldStateInput context = new WorldStateInput

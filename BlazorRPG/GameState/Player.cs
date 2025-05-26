@@ -1,4 +1,4 @@
-﻿public class PlayerState
+﻿public class Player
 {
     // Core identity
     public string Name { get; set; }
@@ -43,7 +43,7 @@
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
 
 
-    public HashSet<(string, CardTypes)> LocationActionAvailability { get; set; } = new();
+    public HashSet<(string, SkillCategories)> LocationActionAvailability { get; set; } = new();
 
     public bool IsInitialized { get; set; } = false;
 
@@ -52,12 +52,12 @@
     public PlayerSkills Skills { get; private set; } = new();
 
     // Card collection (player skills)
-    public List<CardDefinition> PlayerSkillCards { get; set; } = new List<CardDefinition>();
-    public List<CardDefinition> PlayerHandCards { get; set; } = new List<CardDefinition>();
+    public List<SkillCard> PlayerSkillCards { get; set; } = new List<SkillCard>();
+    public List<SkillCard> PlayerHandCards { get; set; } = new List<SkillCard>();
     public Location CurrentLocation { get; set; }
     public LocationSpot CurrentLocationSpot { get; set; }
 
-    public PlayerState()
+    public Player()
     {
         Background = GameRules.StandardRuleset.Background;
         Inventory = new Inventory(10);
@@ -67,17 +67,8 @@
         CurrentXP = 0;
         XPToNextLevel = 100;
 
-        PlayerHandCards = new List<CardDefinition>();
+        PlayerHandCards = new List<SkillCard>();
 
-        CardDefinition card1 = new CardDefinition("1", "1") { Type = CardTypes.Physical, };
-        CardDefinition card2 = new CardDefinition("1", "1") { Type = CardTypes.Physical, };
-        CardDefinition card3 = new CardDefinition("1", "1") { Type = CardTypes.Intellectual, };
-        CardDefinition card4 = new CardDefinition("1", "1") { Type = CardTypes.Social, IsExhausted = true };
-
-        PlayerHandCards.Add(card1);
-        PlayerHandCards.Add(card2);
-        PlayerHandCards.Add(card3);
-        PlayerHandCards.Add(card4);
     }
 
     public void Initialize(string playerName, Professions selectedArchetype, Genders gender)
@@ -187,11 +178,11 @@
         Inventory.AddItem(ItemTypes.TradeDocuments);
     }
 
-    public bool HasAvailableCard(CardTypes cardTypes)
+    public bool HasAvailableCard(SkillCategories cardTypes)
     {
-        foreach (CardDefinition card in PlayerHandCards)
+        foreach (SkillCard card in PlayerHandCards)
         {
-            if (card.Type == cardTypes && !card.IsExhausted)
+            if (card.Category == cardTypes && !card.IsExhausted)
             {
                 return true;
             }
@@ -199,14 +190,14 @@
         return false;
     }
 
-    public void ExhaustCard(CardDefinition card)
+    public void ExhaustCard(SkillCard card)
     {
-        card.IsExhausted = true;
+        card.Exhaust();
     }
 
-    public void RefreshCard(CardDefinition card)
+    public void RefreshCard(SkillCard card)
     {
-        card.IsExhausted = false;
+        card.Refresh();
     }
 
     private void ClearInventory()
@@ -275,7 +266,7 @@
         }
     }
 
-    public void UnlockCard(CardDefinition card)
+    public void UnlockCard(SkillCard card)
     {
         PlayerSkillCards.Add(card);
     }
@@ -330,7 +321,7 @@
         this.EnergyPoints += amount;
     }
 
-    internal bool HasNonExhaustedCardOfType(CardTypes requiredCardType)
+    internal bool HasNonExhaustedCardOfType(SkillCategories requiredCardType)
     {
         return true;
     }
@@ -341,7 +332,7 @@
         return level;
     }
 
-    internal CardDefinition GetSelectedCardForSkill(SkillTypes skill)
+    internal SkillCard GetSelectedCardForSkill(SkillTypes skill)
     {
         return null;
     }
@@ -361,10 +352,10 @@
         throw new NotImplementedException();
     }
 
-    internal PlayerState Serialize()
+    internal Player Serialize()
     {
         // Create a new PlayerState instance
-        PlayerState clone = new PlayerState();
+        Player clone = new Player();
 
         // Copy simple properties
         clone.Name = this.Name;
@@ -417,21 +408,20 @@
         // Deep copy of Skills
         clone.Skills = this.Skills.Clone();
 
-        // Deep copy of Cards
-        clone.PlayerHandCards = new List<CardDefinition>();
-        foreach (CardDefinition card in this.PlayerHandCards)
-        {
-            CardDefinition cardCopy = new CardDefinition(card.Id, card.Name)
-            {
-                Type = card.Type
-            };
-            clone.PlayerHandCards.Add(cardCopy);
-        }
-
         return clone;
     }
 
-    internal CardDefinition GetBestNonExhaustedCardOfType(CardTypes requiredCardType)
+    internal SkillCard GetBestNonExhaustedCardOfType(SkillCategories requiredCardType)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void ModifyRelationship(string id, int amount, string source)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void ModifyCoins(int amount)
     {
         throw new NotImplementedException();
     }

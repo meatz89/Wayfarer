@@ -11,7 +11,7 @@ public partial class EncounterViewBase : ComponentBase
     [Parameter] public EncounterManager EncounterManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
     private IJSObjectReference _tooltipModule;
-    public PlayerState PlayerState
+    public Player PlayerState
     {
         get
         {
@@ -104,7 +104,7 @@ public partial class EncounterViewBase : ComponentBase
             ChoiceSetName = "None",
             CurrentChoices = new List<UserEncounterChoiceOption>(),
             CurrentEncounter = null,
-            State = EncounterState.PreviousEncounterState,
+            State = null,
             EncounterResult = new EncounterResult()
             {
                 ActionImplementation = null,
@@ -183,52 +183,6 @@ public partial class EncounterViewBase : ComponentBase
         return EncounterManager?.encounterState?.MaxFocusPoints ?? 0;
     }
 
-    protected Dictionary<AspectTokenTypes, int> GetAspectTokenCounts()
-    {
-        return EncounterManager?.encounterState?.AspectTokens?.GetAllTokenCounts() ??
-               new Dictionary<AspectTokenTypes, int>();
-    }
-
-    protected int GetCurrentProgress()
-    {
-        return EncounterManager?.encounterState?.CurrentProgress ?? 0;
-    }
-
-    protected int GetProgressThreshold()
-    {
-        return EncounterManager?.encounterState?.EncounterInfo?.TotalProgress ?? 0;
-    }
-
-    protected string GetStageTitle()
-    {
-        int currentStage = (EncounterManager?.encounterState?.CurrentStageIndex ?? 0) + 1;
-        int totalStages = EncounterManager?.encounterState?.EncounterInfo?.Stages?.Count ?? 0;
-        return $"Stage {currentStage} of {totalStages}";
-    }
-
-    protected bool CanAffordChoice(UserEncounterChoiceOption choice)
-    {
-        if (choice.Choice is EncounterOption option)
-        {
-            return EncounterManager?.encounterState?.CanAffordFocusCost(option.FocusCost) ?? false;
-        }
-        return true;
-    }
-
-    protected bool HasRequiredTokens(UserEncounterChoiceOption choice)
-    {
-        if (choice.Choice is EncounterOption option)
-        {
-            foreach (KeyValuePair<AspectTokenTypes, int> requirement in option.TokenCosts)
-            {
-                if (!EncounterManager.encounterState.HasAspectTokens(requirement.Key, requirement.Value))
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 
     protected int GetFocusCost(UserEncounterChoiceOption choice)
     {
@@ -237,24 +191,6 @@ public partial class EncounterViewBase : ComponentBase
             return option.FocusCost;
         }
         return 0;
-    }
-
-    protected List<string> GetTokenRequirements(UserEncounterChoiceOption choice)
-    {
-        List<string> requirements = new List<string>();
-
-        if (choice.Choice is EncounterOption option)
-        {
-            foreach (KeyValuePair<AspectTokenTypes, int> requirement in option.TokenCosts)
-            {
-                if (requirement.Value > 0)
-                {
-                    requirements.Add($"{requirement.Value} {GetTokenDisplayName(requirement.Key)}");
-                }
-            }
-        }
-
-        return requirements;
     }
 
     protected string GetChoiceCssClass(UserEncounterChoiceOption choice)
@@ -273,30 +209,6 @@ public partial class EncounterViewBase : ComponentBase
             };
         }
         return "tier-1";
-    }
-
-    protected string GetTokenIcon(AspectTokenTypes tokenType)
-    {
-        return tokenType switch
-        {
-            AspectTokenTypes.Force => "🔴",
-            AspectTokenTypes.Flow => "🔵",
-            AspectTokenTypes.Focus => "🟡",
-            AspectTokenTypes.Fortitude => "🟢",
-            _ => "⚪"
-        };
-    }
-
-    private string GetTokenDisplayName(AspectTokenTypes tokenType)
-    {
-        return tokenType switch
-        {
-            AspectTokenTypes.Force => "Force",
-            AspectTokenTypes.Flow => "Flow",
-            AspectTokenTypes.Focus => "Focus",
-            AspectTokenTypes.Fortitude => "Fortitude",
-            _ => tokenType.ToString()
-        };
     }
 }
 

@@ -11,7 +11,7 @@ public class NarrativeSummaryBuilder
 
         StringBuilder history = new StringBuilder();
         history.AppendLine("# Complete Encounter History");
-        history.AppendLine($"Location: {context.LocationName} | Encounter Type: {context.EncounterType} | Goal: {context.ActionImplementation}");
+        history.AppendLine($"Location: {context.LocationName} | Encounter Type: {context.SkillCategory} | Goal: {context.ActionImplementation}");
         history.AppendLine();
 
         // Create detailed history of all events

@@ -122,39 +122,6 @@ public partial class NarrativeViewBase : ComponentBase
         public int EnergyCost { get; set; }
     }
 
-    public List<Outcome> GetActionOutcomesSuccess()
-    {
-        ActionImplementation actionImplementation = EncounterResult.ActionImplementation;
-
-        List<Outcome> outcomes = new List<Outcome>();
-        outcomes.AddRange(actionImplementation.Costs.ToList());
-        outcomes.AddRange(actionImplementation.Yields.ToList());
-
-        return outcomes;
-    }
-
-    public List<Outcome> GetActionOutcomesFailure()
-    {
-        ActionImplementation actionImplementation = EncounterResult.ActionImplementation;
-
-        List<Outcome> outcomes = new List<Outcome>();
-        outcomes.AddRange(actionImplementation.Costs.ToList());
-        outcomes.AddRange(actionImplementation.Yields.ToList());
-
-        return outcomes;
-    }
-
-    public MarkupString GetOutcomeIcon(Outcome outcome)
-    {
-        return outcome switch
-        {
-            HealthOutcome => new MarkupString("<i class='value-icon health-icon'>❤️</i>"),
-            ConcentrationOutcome => new MarkupString("<i class='value-icon focus-icon'>🌀</i>"),
-            CoinOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
-            _ => new MarkupString("")
-        };
-    }
-
     public List<CharacterChangeDisplay> GetCharacterChanges()
     {
         if (!HasPostEncounterEvolution()) return new List<CharacterChangeDisplay>();

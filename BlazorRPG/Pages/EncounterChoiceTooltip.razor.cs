@@ -47,15 +47,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         List<string> effects = new List<string>();
 
-        // Token generation
-        foreach (KeyValuePair<AspectTokenTypes, int> tokenGen in option.TokenGeneration)
-        {
-            if (tokenGen.Value > 0)
-            {
-                effects.Add($"+{tokenGen.Value} {GetTokenDisplayName(tokenGen.Key)} tokens");
-            }
-        }
-
         // Direct progress
         if (projection.ProgressGained > 0)
         {
@@ -82,27 +73,12 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         return consequenceType switch
         {
-            NegativeConsequenceTypes.TokenDisruption => "Lose 1 random token",
             NegativeConsequenceTypes.ThresholdIncrease => "Success requirements increase",
             NegativeConsequenceTypes.ProgressLoss => "Lose 1 progress",
             NegativeConsequenceTypes.FocusLoss => "Lose 1 Focus from pool",
             _ => "Unknown risk"
         };
     }
-
-    protected string GetTokenDisplayName(AspectTokenTypes tokenType)
-    {
-        return tokenType switch
-        {
-            AspectTokenTypes.Force => "Force",
-            AspectTokenTypes.Flow => "Flow",
-            AspectTokenTypes.Focus => "Focus",
-            AspectTokenTypes.Fortitude => "Fortitude",
-            _ => tokenType.ToString()
-        };
-    }
-
-    // NEW METHODS FOR THE ENHANCED TOOLTIP
 
     protected string GetActionTypeClass(EncounterOption option)
     {
@@ -126,21 +102,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     protected List<EffectItem> GetPositiveEffectsAsList(EncounterOption option, ChoiceProjection projection)
     {
         List<EffectItem> effects = new List<EffectItem>();
-
-        // Token generation
-        foreach (KeyValuePair<AspectTokenTypes, int> tokenGen in option.TokenGeneration)
-        {
-            if (tokenGen.Value > 0)
-            {
-                effects.Add(new EffectItem
-                {
-                    TokenType = tokenGen.Key,
-                    Value = tokenGen.Value,
-                    Description = $"Gain {tokenGen.Value} {GetTokenDisplayName(tokenGen.Key)} tokens",
-                    IsTokenEffect = true
-                });
-            }
-        }
 
         // Direct progress
         if (projection.ProgressGained > 0)
@@ -167,10 +128,8 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return effects;
     }
 
-    // Add this class to your component
     protected class EffectItem
     {
-        public AspectTokenTypes TokenType { get; set; }
         public int Value { get; set; }
         public string Description { get; set; }
         public bool IsTokenEffect { get; set; }
@@ -182,23 +141,10 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         return option.NegativeConsequenceType switch
         {
-            NegativeConsequenceTypes.TokenDisruption => "token loss",
             NegativeConsequenceTypes.ThresholdIncrease => "increased success requirements",
             NegativeConsequenceTypes.ProgressLoss => "progress loss",
             NegativeConsequenceTypes.FocusLoss => "Focus point loss",
             _ => "unknown consequence"
-        };
-    }
-
-    protected string GetTokenEmoji(AspectTokenTypes tokenType)
-    {
-        return tokenType switch
-        {
-            AspectTokenTypes.Force => "🔴",
-            AspectTokenTypes.Flow => "🔵",
-            AspectTokenTypes.Focus => "🟡",
-            AspectTokenTypes.Fortitude => "🟢",
-            _ => "⚪"
         };
     }
 

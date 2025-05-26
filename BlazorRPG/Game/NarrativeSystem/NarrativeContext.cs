@@ -7,23 +7,23 @@ public class NarrativeContext
 {
     public string LocationName { get; }
     public string LocationSpotName { get; }
-    public CardTypes EncounterType { get; }
+    public SkillCategories SkillCategory { get; }
     public ActionImplementation ActionImplementation { get; }
     public ApproachDefinition ChosenApproach { get; }
     public List<NarrativeEvent> Events { get; } = new List<NarrativeEvent>();
-    public PlayerState PlayerState { get; set; }
+    public Player PlayerState { get; set; }
 
     public NarrativeContext(
         string location,
         string locationSpot,
-        CardTypes encounterType,
-        PlayerState playerState,
+        SkillCategories SkillCategory,
+        Player playerState,
         ActionImplementation incitingAction,
         ApproachDefinition chosenApproach)
     {
         LocationName = location;
         LocationSpotName = locationSpot;
-        EncounterType = encounterType;
+        SkillCategory = SkillCategory;
         PlayerState = playerState;
         ActionImplementation = incitingAction;
         ChosenApproach = chosenApproach;
@@ -47,7 +47,7 @@ public class NarrativeContext
         StringBuilder prompt = new StringBuilder();
         prompt.AppendLine($"Location: {LocationName}");
         prompt.AppendLine($"Inciting Action: {ActionImplementation}");
-        prompt.AppendLine($"Presentation Style: {EncounterType}");
+        prompt.AppendLine($"Presentation Style: {SkillCategory}");
         prompt.AppendLine();
 
         foreach (NarrativeEvent evt in Events)

@@ -45,7 +45,7 @@
         Location location,
         LocationSpot locationSpot,
         WorldState worldState,
-        PlayerState playerState,
+        Player playerState,
         ActionImplementation actionImplementation)
     {
         logger.LogInformation(
@@ -73,7 +73,7 @@
         Encounter encounter,
         Location location,
         WorldState worldState,
-        PlayerState playerState,
+        Player playerState,
         ActionImplementation actionImplementation)
     {
         logger.LogInformation("StartEncounter called for encounter: {EncounterId}, location: {LocationId}", encounter?.Id, location?.Id);

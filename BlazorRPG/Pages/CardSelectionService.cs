@@ -1,8 +1,8 @@
 ﻿public class CardSelectionService
 {
-    private CardDefinition _selectedCard;
+    private SkillCard _selectedCard;
 
-    public CardDefinition SelectedCard
+    public SkillCard SelectedCard
     {
         get
         {
@@ -21,12 +21,12 @@
 
     public event Action OnStateChanged;
 
-    public bool IsValidDropTarget(CardTypes requiredCardType)
+    public bool IsValidDropTarget(SkillCategories requiredCardType)
     {
         if (SelectedCard == null)
             return false;
 
-        return SelectedCard.Type == requiredCardType && !SelectedCard.IsExhausted;
+        return SelectedCard.Category == requiredCardType && !SelectedCard.IsExhausted;
     }
 
     public void Reset()

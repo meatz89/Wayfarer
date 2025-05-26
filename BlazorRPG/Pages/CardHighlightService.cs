@@ -1,7 +1,7 @@
 ﻿public class CardHighlightService
 {
     private bool isHighlightModeActive = false;
-    private CardTypes _targetCardType = CardTypes.Physical;
+    private SkillCategories _targetCardType = SkillCategories.Physical;
 
     public bool IsHighlightModeActive
     {
@@ -11,7 +11,7 @@
         }
     }
 
-    public CardTypes TargetCardType
+    public SkillCategories TargetCardType
     {
         get
         {
@@ -23,7 +23,7 @@
 
     public HighlightMode _highlightMode = HighlightMode.Refresh;
 
-    public void ActivateHighlightMode(CardTypes cardType, HighlightMode highlightMode)
+    public void ActivateHighlightMode(SkillCategories cardType, HighlightMode highlightMode)
     {
         _highlightMode = highlightMode;
         _targetCardType = cardType;
@@ -37,12 +37,12 @@
         OnHighlightModeChanged?.Invoke();
     }
 
-    public bool ShouldHighlightCard(CardDefinition card)
+    public bool ShouldHighlightCard(SkillCard card)
     {
         if (!isHighlightModeActive)
             return false;
 
-        return card.Type == _targetCardType &&
+        return card.Category == _targetCardType &&
             (_highlightMode == HighlightMode.Refresh ? card.IsExhausted : !card.IsExhausted);
     }
 }

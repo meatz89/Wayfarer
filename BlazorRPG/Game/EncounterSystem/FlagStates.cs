@@ -1,0 +1,28 @@
+﻿public enum FlagStates
+{
+    AdvantageousPosition,
+    DisadvantageousPosition,
+    HiddenPosition,
+    ExposedPosition,
+    TrustEstablished,
+    DistrustTriggered,
+    RespectEarned,
+    HostilityProvoked,
+    InsightGained,
+    SecretRevealed,
+    DeceptionDetected,
+    ConfusionCreated,
+    SurpriseAchieved,
+    PreparationCompleted,
+    PathCleared,
+    PathBlocked,
+    ResourceSecured,
+    AreaSecured,
+    DistractionCreated,
+    HazardNeutralized,
+    ObstaclePresent,
+    TensionIncreased,
+    ConfidenceBuilt,
+    FearInstilled,
+    UrgencyCreated
+}

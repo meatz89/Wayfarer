@@ -5,7 +5,7 @@
     public string Description { get; set; }
     public string LocationName { get; set; }
     public string LocationSpotName { get; set; }
-    public CardTypes EncounterType { get; set; }
+    public SkillCategories SkillCategory { get; set; }
     public List<EncounterStage> Stages { get; set; }
     public int TotalProgress { get; set; }
     public int EncounterDifficulty { get; set; }

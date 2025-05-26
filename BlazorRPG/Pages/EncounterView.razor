@@ -15,36 +15,13 @@
             <span class="stat-label">Focus</span>
             <span class="stat-value">@GetCurrentFocusPoints() / @GetMaxFocusPoints()</span>
         </div>
-
-        <div class="stat">
-            <span class="stat-label">Progress</span>
-            <span class="stat-value">@GetCurrentProgress() / @GetProgressThreshold()</span>
-        </div>
-
-        @if (GetAspectTokenCounts().Values.Any(v => v > 0))
-        {
-            <div class="stat">
-                <span class="stat-label">Tokens</span>
-                <div class="progress-item">
-                    @foreach (var tokenCount in GetAspectTokenCounts())
-                    {
-                        if (tokenCount.Value > 0)
-                        {
-                            <span class="tag-value token-@(tokenCount.Key.ToString().ToLower())">
-                                @GetTokenIcon(tokenCount.Key) @tokenCount.Value
-                            </span>
-                        }
-                    }
-                </div>
-            </div>
-        }
     </div>
 
     <div class="encounter-content">
         <div class="encounter-main">
             <div class="encounter-stage">
                 <div class="stage-header">
-                    <div class="choice-set-name">@GetStageTitle()</div>
+                    <div class="choice-set-name">Choice Set</div>
                 </div>
                 <div class="stage-situation">@Model.EncounterResult.NarrativeResult?.SceneNarrative</div>
             </div>
@@ -54,9 +31,8 @@
                 {
                     @foreach (UserEncounterChoiceOption choice in CurrentChoices)
                     {
-                        bool canAfford = CanAffordChoice(choice);
-                        bool hasRequiredTokens = HasRequiredTokens(choice);
-                        bool isDisabled = IsChoiceDisabled(choice) || !canAfford || !hasRequiredTokens;
+                        bool canAfford = true;
+                        bool isDisabled = IsChoiceDisabled(choice) || !canAfford;
 
                         <div id="choice-@choice.Index"
                              class="choice-option @(isDisabled ? "disabled" : "") @GetChoiceCssClass(choice)"
@@ -74,20 +50,9 @@
                                 }
                             </div>
 
-                            @if (GetTokenRequirements(choice).Any())
-                            {
-                                <div class="blocked-reason">
-                                    Requires: @string.Join(", ", GetTokenRequirements(choice))
-                                </div>
-                            }
-
                             @if (!canAfford)
                             {
                                 <div class="blocked-reason">Insufficient Focus</div>
-                            }
-                            @if (!hasRequiredTokens)
-                            {
-                                <div class="blocked-reason">Missing Required Tokens</div>
                             }
                         </div>
                     }

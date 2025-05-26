@@ -6,11 +6,7 @@
 
     public int FocusCost { get; set; }
     public bool IsAffordableFocus { get; set; }
-    public Dictionary<AspectTokenTypes, int> AspectTokenCosts { get; private set; }
     public bool IsAffordableAspectTokens { get; set; }
-    public bool IsDisabled => !IsAffordableFocus || (Choice.RequiresTokens() && !IsAffordableAspectTokens);
-
-    public Dictionary<AspectTokenTypes, int> AspectTokensGained { get; private set; }
     public int ProgressGained { get; set; }
     public int FocusPointsGained { get; set; }
 
@@ -35,18 +31,10 @@
 
         FocusCost = choice.FocusCost;
 
-        AspectTokensGained = new Dictionary<AspectTokenTypes, int>(choice.TokenGeneration ?? new Dictionary<AspectTokenTypes, int>());
-        AspectTokenCosts = new Dictionary<AspectTokenTypes, int>(choice.TokenCosts ?? new Dictionary<AspectTokenTypes, int>());
-        ProgressGained = choice.SuccessProgress; 
-
         SkillUsed = choice.Skill;
         HasSkillCheck = choice.Skill != SkillTypes.None;
         SkillCheckDifficulty = choice.Difficulty;
         NegativeConsequenceType = choice.NegativeConsequenceType;
     }
 
-    public int GetTokenGain(AspectTokenTypes tokenType) => AspectTokensGained.TryGetValue(tokenType, out int value) ? value : 0;
-    public int GetTokenCost(AspectTokenTypes tokenType) => AspectTokenCosts.TryGetValue(tokenType, out int value) ? value : 0;
-    public Dictionary<AspectTokenTypes, int> GetAllTokenGains() => new Dictionary<AspectTokenTypes, int>(AspectTokensGained);
-    public Dictionary<AspectTokenTypes, int> GetAllTokenCosts() => new Dictionary<AspectTokenTypes, int>(AspectTokenCosts);
 }

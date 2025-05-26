@@ -22,22 +22,6 @@
                         <span class="resource-icon">⚡</span> @hoveredChoice.Choice.FocusCost Focus
                     </div>
                 }
-
-                @foreach (var tokenCost in hoveredChoice.Choice.TokenCosts)
-                {
-                    if (tokenCost.Value > 0)
-                    {
-                        <div class="resource-cost token-cost">
-                            <span class="resource-icon">@GetTokenEmoji(tokenCost.Key)</span>
-                            @tokenCost.Value @GetTokenDisplayName(tokenCost.Key)
-                        </div>
-                    }
-                }
-
-                @if (hoveredChoice.Choice.FocusCost == 0 && !hoveredChoice.Choice.TokenCosts.Any(tc => tc.Value > 0))
-                {
-                    <div class="resource-cost">No resource cost</div>
-                }
             </div>
         </div>
     </div>
@@ -58,11 +42,7 @@
                     {
                         <div class="effect-item positive">
                             <span class="effect-icon">
-                                @if (effect.IsTokenEffect)
-                                {
-                                    @GetTokenEmoji(effect.TokenType)
-                                }
-                                else if (effect.IsProgressEffect)
+                                if (effect.IsProgressEffect)
                                 {
                                     <span>🏆</span>
                                 }

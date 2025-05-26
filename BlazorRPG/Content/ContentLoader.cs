@@ -55,13 +55,8 @@
             File.ReadAllText(Path.Combine(savePath, "commissions.json")));
 
         // Load cards if available
-        List<CardDefinition> cards = new List<CardDefinition>();
+        List<SkillCard> cards = new List<SkillCard>();
         string cardsFilePath = Path.Combine(savePath, "cards.json");
-        if (File.Exists(cardsFilePath))
-        {
-            cards = GameStateSerializer.DeserializeCards(
-                File.ReadAllText(cardsFilePath));
-        }
 
         // Load game state using the loaded content
         gameState = GameStateSerializer.DeserializeGameState(
@@ -90,13 +85,8 @@
             File.ReadAllText(Path.Combine(templatePath, "commissions.json")));
 
         // Load cards if available
-        List<CardDefinition> cards = new List<CardDefinition>();
+        List<SkillCard> cards = new List<SkillCard>();
         string cardsFilePath = Path.Combine(templatePath, "cards.json");
-        if (File.Exists(cardsFilePath))
-        {
-            cards = GameStateSerializer.DeserializeCards(
-                File.ReadAllText(cardsFilePath));
-        }
 
         // Load game state using the loaded content
         GameState gameState = GameStateSerializer.DeserializeGameState(
@@ -132,14 +122,6 @@
             File.WriteAllText(
                 Path.Combine(savePath, "actions.json"),
                 GameStateSerializer.SerializeActions(gameState.WorldState.actions));
-
-            // Save cards if they exist in world state
-            if (gameState.WorldState.AllCards != null && gameState.WorldState.AllCards.Count > 0)
-            {
-                File.WriteAllText(
-                    Path.Combine(savePath, "cards.json"),
-                    GameStateSerializer.SerializeCards(gameState.WorldState.AllCards));
-            }
 
             Console.WriteLine("Game saved successfully");
         }
@@ -181,7 +163,7 @@
         List<ActionDefinition> actions = new List<ActionDefinition>();
         List<CommissionDefinition> comissions = new List<CommissionDefinition>();
 
-        List<CardDefinition> cards = new List<CardDefinition>();
+        List<SkillCard> cards = new List<SkillCard>();
 
         // Add content to game state
         gameState.WorldState.locations.Clear();

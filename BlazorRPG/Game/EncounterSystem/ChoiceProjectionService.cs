@@ -5,7 +5,7 @@ public static class ChoiceProjectionService
     public static ChoiceProjection CreateUniversalChoiceProjection(
         EncounterOption choice,
         EncounterState encounterState,
-        PlayerState playerState,
+        Player playerState,
         Location location)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
@@ -14,17 +14,6 @@ public static class ChoiceProjectionService
         projection.IsAffordableFocus = encounterState.FocusPoints >= choice.FocusCost;
 
         projection.IsAffordableAspectTokens = true;
-        if (choice.RequiresTokens())
-        {
-            foreach (var costEntry in choice.TokenCosts)
-            {
-                if (encounterState.AspectTokens.GetTokenCount(costEntry.Key) < costEntry.Value)
-                {
-                    projection.IsAffordableAspectTokens = false;
-                    break;
-                }
-            }
-        }
 
         // --- 2. Project Positive Effects ---
         ProjectPositiveEffects(projection, choice, encounterState);
@@ -63,57 +52,20 @@ public static class ChoiceProjectionService
         if (choice.ActionType == UniversalActionTypes.Recovery)
         {
             projection.FocusPointsGained = 1;
-            projection.ProgressGained = 0;
-            projection.AspectTokensGained.Clear();
-        }
-        else
-        {
-            // Project token generation
-            if (choice.TokenGeneration != null)
-            {
-                foreach (var tokenGen in choice.TokenGeneration)
-                {
-                    projection.AspectTokensGained[tokenGen.Key] = tokenGen.Value;
-                }
-            }
-
-            // Project progress generation
-            if (choice.RequiresTokens() && !projection.IsAffordableAspectTokens)
-            {
-                projection.ProgressGained = 0; // Can't convert without tokens
-            }
-            else
-            {
-                projection.ProgressGained = choice.SuccessProgress;
-            }
-
-            projection.FocusPointsGained = 0;
         }
     }
 
     private static void ProjectEncounterOutcome(ChoiceProjection projection, EncounterOption choice, EncounterState encounterState)
     {
-        int totalStages = encounterState.EncounterInfo.Stages.Count;
+        int totalStages = encounterState.MaxDuration;
         bool isLastStage = (encounterState.CurrentStageIndex == totalStages - 1);
         int projectedProgressAfterThisChoice = encounterState.CurrentProgress + projection.ProgressGained;
-
-        int effectiveOutcomeThresholdModifier = encounterState.OutcomeThresholdModifier;
-        if (choice.ActionType == UniversalActionTypes.Recovery &&
-            choice.FocusCost == 0 &&
-            !projection.SkillCheckSuccess)
-        {
-            NegativeConsequenceTypes recoveryNegative = DetermineActualRecoveryNegative(encounterState);
-            if (recoveryNegative == NegativeConsequenceTypes.ThresholdIncrease)
-            {
-                effectiveOutcomeThresholdModifier++;
-            }
-        }
 
         projection.WillEncounterEnd = isLastStage;
         if (isLastStage)
         {
-            int successThreshold = encounterState.EncounterInfo.SuccessThreshold;
-            int progressNeededForSuccess = successThreshold + effectiveOutcomeThresholdModifier;
+            int successThreshold = 10;
+            int progressNeededForSuccess = successThreshold;
             projection.ProjectedOutcome =
                 projectedProgressAfterThisChoice >= progressNeededForSuccess
                 ? EncounterOutcomes.BasicSuccess
@@ -136,10 +88,6 @@ public static class ChoiceProjectionService
         }
 
         NegativeConsequenceTypes actualNegativeType = choice.NegativeConsequenceType;
-        if (choice.ActionType == UniversalActionTypes.Recovery)
-        {
-            actualNegativeType = DetermineActualRecoveryNegative(encounterState);
-        }
 
         if (actualNegativeType == NegativeConsequenceTypes.None)
         {
@@ -151,31 +99,12 @@ public static class ChoiceProjectionService
         {
             NegativeConsequenceTypes.ProgressLoss => penaltyPrefix + "Lose 1 Progress Marker.",
             NegativeConsequenceTypes.FocusLoss => penaltyPrefix + "Lose 1 Focus Point from your encounter pool.",
-            NegativeConsequenceTypes.TokenDisruption => choice.ActionType == UniversalActionTypes.Recovery
-                ? penaltyPrefix + GetRecoveryTokenDisruptionText(encounterState)
-                : penaltyPrefix + "This generation produces 1 fewer token.",
             NegativeConsequenceTypes.ThresholdIncrease => penaltyPrefix + "Final success thresholds for this encounter will increase by 1.",
             _ => penaltyPrefix + "An unforeseen setback occurs."
         };
     }
 
-    private static string GetRecoveryTokenDisruptionText(EncounterState encounterState)
-    {
-        int totalTokens = encounterState.AspectTokens.GetAllTokenCounts().Values.Sum();
-        return totalTokens >= 2 ? "Discard 2 random Aspect Tokens from your pool." : "Discard 1 random Aspect Token from your pool.";
-    }
-
-    private static NegativeConsequenceTypes DetermineActualRecoveryNegative(EncounterState encounterState)
-    {
-        if (encounterState.CurrentProgress > 0)
-            return NegativeConsequenceTypes.ProgressLoss;
-        else if (encounterState.AspectTokens.GetAllTokenCounts().Values.Sum() >= 2)
-            return NegativeConsequenceTypes.TokenDisruption;
-        else
-            return NegativeConsequenceTypes.ThresholdIncrease;
-    }
-
-    private static string GenerateFormattedOutcomeSummary(ChoiceProjection projection, PlayerState playerState, EncounterOption choice, EncounterState encounterState)
+    private static string GenerateFormattedOutcomeSummary(ChoiceProjection projection, Player playerState, EncounterOption choice, EncounterState encounterState)
     {
         StringBuilder summary = new StringBuilder();
 
@@ -183,31 +112,12 @@ public static class ChoiceProjectionService
         summary.Append($"Cost: {choice.FocusCost} Focus");
         if (!projection.IsAffordableFocus) summary.Append(" (CANNOT AFFORD)");
 
-        if (choice.RequiresTokens())
-        {
-            summary.Append(" + ");
-            List<string> costStrings = new List<string>();
-            foreach (var cost in choice.TokenCosts)
-            {
-                costStrings.Add($"{cost.Value} {cost.Key}");
-            }
-            summary.Append(string.Join(", ", costStrings));
-            if (!projection.IsAffordableAspectTokens) summary.Append(" (INSUFFICIENT TOKENS)");
-        }
-        summary.AppendLine();
-
         // Positive Effects
         summary.Append("Effect: ");
         List<string> positiveEffects = new List<string>();
 
         if (projection.FocusPointsGained > 0)
             positiveEffects.Add($"+{projection.FocusPointsGained} Focus");
-
-        foreach (var gain in projection.AspectTokensGained)
-        {
-            if (gain.Value > 0)
-                positiveEffects.Add($"+{gain.Value} {gain.Key}");
-        }
 
         if (projection.ProgressGained > 0)
             positiveEffects.Add($"+{projection.ProgressGained} Progress");

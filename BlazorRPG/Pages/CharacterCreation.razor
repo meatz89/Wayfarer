@@ -76,7 +76,7 @@
 </div>
 
 @code {
-    [Parameter] public EventCallback<PlayerState> OnCharacterCreated { get; set; }
+    [Parameter] public EventCallback<Player> OnCharacterCreated { get; set; }
     [Inject] protected GameState GameState { get; set; }
 
     private string playerName;

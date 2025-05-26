@@ -11,9 +11,7 @@
     public string LocationSpotId { get; set; }
 
     public List<IRequirement> Requirements { get; set; } = new();
-    public List<Outcome> Costs { get; set; }
-    public List<Outcome> Yields { get; set; }
-
+    
     public ActionExecutionTypes ActionType { get; set; }
     public int ActionPointCost { get; set; }
 

@@ -8,13 +8,13 @@ public partial class ActionPreviewBase : ComponentBase
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
-    protected string GetCardCostClass(CardTypes costType)
+    protected string GetCardCostClass(SkillCategories costType)
     {
         return costType switch
         {
-            CardTypes.Physical => "physical",
-            CardTypes.Intellectual => "intellectual",
-            CardTypes.Social => "social",
+            SkillCategories.Physical => "physical",
+            SkillCategories.Intellectual => "intellectual",
+            SkillCategories.Social => "social",
             _ => ""
         };
     }
@@ -32,16 +32,6 @@ public partial class ActionPreviewBase : ComponentBase
 
         string name = $"{action?.Description}";
         return string.IsNullOrWhiteSpace(name) ? "No Action" : name;
-    }
-
-    public List<Outcome> GetCosts()
-    {
-        return CurrentAction.ActionImplementation.Costs;
-    }
-
-    public List<Outcome> GetRewards()
-    {
-        return CurrentAction.ActionImplementation.Yields;
     }
 
     public bool GetRequirementsMet()
@@ -82,25 +72,6 @@ public partial class ActionPreviewBase : ComponentBase
             ValueTypes.Pressure => new MarkupString("<i class='value-icon outcome-icon'>⭐</i>"),
             ValueTypes.Health => new MarkupString("<i class='value-icon physical-icon'>⚡</i>"),
             ValueTypes.Concentration => new MarkupString("<i class='value-icon focus-icon'>🎯</i>"),
-            _ => new MarkupString("")
-        };
-    }
-
-    public MarkupString GetOutcomeIcon(Outcome outcome)
-    {
-        return outcome switch
-        {
-            // Existing outcomes
-            EnergyOutcome => new MarkupString("<i class='value-icon energy-icon'>⚡</i>"),
-            HealthOutcome => new MarkupString("<i class='value-icon health-icon'>❤️</i>"),
-            ConcentrationOutcome => new MarkupString("<i class='value-icon focus-icon'>🌀</i>"),
-            CoinOutcome => new MarkupString("<i class='value-icon coins-icon'>💰</i>"),
-            FoodOutcome => new MarkupString("<i class='value-icon food-icon'>🍖</i>"),
-            ActionPointOutcome => new MarkupString("<i class='value-icon ap-icon'>🔹</i>"),
-
-            // Recovery outcomes
-            EnergyRecoveryOutcome => new MarkupString("<i class='value-icon energy-recovery-icon'>🔋</i>"),
-
             _ => new MarkupString("")
         };
     }

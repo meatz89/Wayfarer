@@ -1,21 +1,19 @@
 ﻿public class ActionAvailabilityService
 {
-    // Core method to check if an action can be performed at a location spot
     public bool IsActionAvailable(
         ActionDefinition template,
         Location location,
         LocationSpot locationSpot,
         WorldState worldState,
-        PlayerState playerState)
+        Player playerState)
     {
         return true;
     }
 }
 
-// Extension to ActionTemplate to make the checking more elegant
 public static class ActionTemplateExtensions
 {
-    public static bool IsValidForSpot(this ActionDefinition template, Location location, LocationSpot locationSpot, WorldState worldState, PlayerState playerState)
+    public static bool IsValidForSpot(this ActionDefinition template, Location location, LocationSpot locationSpot, WorldState worldState, Player playerState)
     {
         ActionAvailabilityService service = new ActionAvailabilityService();
         bool isValid = service.IsActionAvailable(template, location, locationSpot, worldState, playerState);

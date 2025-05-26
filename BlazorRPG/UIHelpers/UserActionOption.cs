@@ -11,5 +11,5 @@
     string ApproachId
 )
 {
-    public CardDefinition SelectedCard { get; internal set; }
+    public SkillCard SelectedCard { get; internal set; }
 }

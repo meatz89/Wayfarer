@@ -3,7 +3,7 @@
     private bool _useMemory;
     private bool _processStateChanges;
     private readonly GameState gameState;
-    private readonly PlayerState playerState;
+    private readonly Player playerState;
     private readonly WorldState worldState;
     private readonly EncounterSystem encounterSystem;
     private readonly PostEncounterEvolutionSystem evolutionSystem;
@@ -84,7 +84,7 @@
         }
     }
 
-    public async Task RefreshCard(CardDefinition card)
+    public async Task RefreshCard(SkillCard card)
     {
         playerState.RefreshCard(card);
     }
@@ -183,7 +183,7 @@
         // Use our action classification system to determine execution path
         ActionExecutionTypes executionType = GetExecutionType(action.ActionImplementation);
 
-        CardDefinition card = action.SelectedCard;
+        SkillCard card = action.SelectedCard;
         if (card != null)
         {
             playerState.ExhaustCard(card);
@@ -290,12 +290,12 @@
         int playerLevel = playerState.Level;
 
         ApproachDefinition? approach = commission.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
-        CardTypes encounterType = approach.RequiredCardType;
+        SkillCategories SkillCategory = approach.RequiredCardType;
 
         EncounterContext context = new EncounterContext()
         {
             ActionImplementation = actionImplementation,
-            EncounterCategories = encounterType,
+            EncounterCategories = SkillCategory,
             Location = location,
             LocationSpot = locationSpot,
         };
@@ -361,7 +361,7 @@
         gameState.ActionStateTracker.CompleteAction();
     }
 
-    private bool IsGameOver(PlayerState playerState)
+    private bool IsGameOver(Player playerState)
     {
         return false;
     }

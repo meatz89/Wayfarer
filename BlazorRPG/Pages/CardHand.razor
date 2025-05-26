@@ -12,7 +12,7 @@
         {
             bool isSelected = CardSelectionService.SelectedCard == card;
             bool isHighlighted = CardHighlightService.ShouldHighlightCard(card);
-            <div class="card @GetCardTypeClass(card.Type) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "") @(isHighlighted ? "highlighted" : "")"
+            <div class="card @GetCardTypeClass(card.Category) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "") @(isHighlighted ? "highlighted" : "")"
                  @onclick="() => HandleCardClick(card)"
                  title="@card.Name">
                 <div class="card-content">
@@ -37,8 +37,8 @@
     [Inject] private GameManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
 
-    [Parameter] public List<CardDefinition> PlayerCards { get; set; }
-    [Parameter] public EventCallback<CardDefinition> OnCardRefreshed { get; set; }
+    [Parameter] public List<SkillCard> PlayerCards { get; set; }
+    [Parameter] public EventCallback<SkillCard> OnCardRefreshed { get; set; }
 
     protected override void OnInitialized()
     {
@@ -46,18 +46,18 @@
         CardHighlightService.OnHighlightModeChanged += StateHasChanged;
     }
 
-    private string GetCardTypeClass(CardTypes type)
+    private string GetCardTypeClass(SkillCategories type)
     {
         return type switch
         {
-            CardTypes.Physical => "physical",
-            CardTypes.Intellectual => "intellectual",
-            CardTypes.Social => "social",
+            SkillCategories.Physical => "physical",
+            SkillCategories.Intellectual => "intellectual",
+            SkillCategories.Social => "social",
             _ => ""
         };
     }
 
-    private async Task HandleCardClick(CardDefinition card)
+    private async Task HandleCardClick(SkillCard card)
     {
         if (CardHighlightService.IsHighlightModeActive)
         {
@@ -80,7 +80,7 @@
         }
     }
     
-    private void SelectCard(CardDefinition card)
+    private void SelectCard(SkillCard card)
     {
         if (!card.IsExhausted)
         {
