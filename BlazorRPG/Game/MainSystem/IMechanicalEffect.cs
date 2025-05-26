@@ -7,9 +7,10 @@ public interface IMechanicalEffect
 }
 
 
+// Concrete effect implementations
 public class SetFlagEffect : IMechanicalEffect
 {
-    private readonly FlagStates flagToSet;
+    private FlagStates flagToSet;
 
     public SetFlagEffect(FlagStates flagToSet)
     {
@@ -23,13 +24,13 @@ public class SetFlagEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return $"Sets {flagToSet}";
+        return $"Sets {flagToSet.ToString().SpaceBeforeCapitals()}";
     }
 }
 
 public class ClearFlagEffect : IMechanicalEffect
 {
-    private readonly FlagStates flagToClear;
+    private FlagStates flagToClear;
 
     public ClearFlagEffect(FlagStates flagToClear)
     {
@@ -43,13 +44,13 @@ public class ClearFlagEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return $"Clears {flagToClear}";
+        return $"Clears {flagToClear.ToString().SpaceBeforeCapitals()}";
     }
 }
 
 public class FocusChangeEffect : IMechanicalEffect
 {
-    private readonly int amount;
+    private int amount;
 
     public FocusChangeEffect(int amount)
     {
@@ -58,18 +59,34 @@ public class FocusChangeEffect : IMechanicalEffect
 
     public void Apply(EncounterState state)
     {
-        state.FocusPoints = Math.Max(0, Math.Min(state.MaxFocusPoints, state.FocusPoints + amount));
+        if (amount > 0)
+        {
+            // Cannot exceed maximum
+            state.FocusPoints = Math.Min(state.FocusPoints + amount, state.MaxFocusPoints);
+        }
+        else
+        {
+            // Cannot go below zero
+            state.FocusPoints = Math.Max(0, state.FocusPoints + amount);
+        }
     }
 
     public string GetDescriptionForPlayer()
     {
-        return amount >= 0 ? $"Gain {amount} Focus" : $"Lose {Math.Abs(amount)} Focus";
+        if (amount > 0)
+        {
+            return $"+{amount} Focus Point{(amount > 1 ? "s" : "")}";
+        }
+        else
+        {
+            return $"{amount} Focus Point{(amount < -1 ? "s" : "")}";
+        }
     }
 }
 
 public class DurationAdvanceEffect : IMechanicalEffect
 {
-    private readonly int amount;
+    private int amount;
 
     public DurationAdvanceEffect(int amount)
     {
@@ -87,119 +104,36 @@ public class DurationAdvanceEffect : IMechanicalEffect
     }
 }
 
-public class NextCheckModifierEffect : IMechanicalEffect
+public class ProgressChangeEffect : IMechanicalEffect
 {
-    private readonly int modifierValue;
+    private int amount;
 
-    public NextCheckModifierEffect(int modifierValue)
-    {
-        this.modifierValue = modifierValue;
-    }
-
-    public void Apply(EncounterState state)
-    {
-        state.SetNextCheckModifier(modifierValue);
-    }
-
-    public string GetDescriptionForPlayer()
-    {
-        string direction = modifierValue >= 0 ? "+" : "";
-        return $"{direction}{modifierValue} to next skill check";
-    }
-}
-
-public class CurrencyChangeEffect : IMechanicalEffect
-{
-    private readonly int minAmount;
-    private readonly int maxAmount;
-
-    public CurrencyChangeEffect(int amount)
-    {
-        minAmount = amount;
-        maxAmount = amount;
-    }
-
-    public CurrencyChangeEffect(int minAmount, int maxAmount)
-    {
-        this.minAmount = minAmount;
-        this.maxAmount = maxAmount;
-    }
-
-    public void Apply(EncounterState state)
-    {
-        int amount = minAmount == maxAmount ? minAmount : state.GetDeterministicRandom(minAmount, maxAmount + 1);
-        state.Player.ModifyCoins(amount);
-    }
-
-    public string GetDescriptionForPlayer()
-    {
-        if (minAmount == maxAmount)
-        {
-            return minAmount >= 0 ? $"Gain {minAmount} coins" : $"Lose {Math.Abs(minAmount)} coins";
-        }
-        else
-        {
-            return minAmount >= 0 ? $"Gain {minAmount}-{maxAmount} coins" : $"Lose {Math.Abs(maxAmount)}-{Math.Abs(minAmount)} coins";
-        }
-    }
-}
-
-public class RelationshipModifierEffect : IMechanicalEffect
-{
-    private readonly int amount;
-    private readonly string source;
-
-    public RelationshipModifierEffect(int amount, string source)
+    public ProgressChangeEffect(int amount)
     {
         this.amount = amount;
-        this.source = source;
     }
 
     public void Apply(EncounterState state)
     {
-        if (state.CurrentNPC != null)
-        {
-            state.Player.ModifyRelationship(state.CurrentNPC.Id, amount, source);
-        }
+        state.AddProgress(amount);
     }
 
     public string GetDescriptionForPlayer()
     {
-        return amount > 0 ? $"Improves relationship by {amount}" : $"Worsens relationship by {Math.Abs(amount)}";
-    }
-}
-
-public class RecoveryEffect : IMechanicalEffect
-{
-    private readonly bool success;
-
-    public RecoveryEffect(bool success)
-    {
-        this.success = success;
-    }
-
-    public void Apply(EncounterState state)
-    {
-        if (success)
+        if (amount > 0)
         {
-            state.FocusPoints = Math.Min(state.FocusPoints + 1, state.MaxFocusPoints);
-            state.ConsecutiveRecoveryCount++;
+            return $"+{amount} Progress";
         }
         else
         {
-            state.AdvanceDuration(1);
+            return $"{amount} Progress";
         }
-    }
-
-    public string GetDescriptionForPlayer()
-    {
-        return success ? "Regain 1 Focus Point" : "Wastes valuable time";
     }
 }
 
 public class CompoundEffect : IMechanicalEffect
 {
-    private readonly List<IMechanicalEffect> effects;
+    private List<IMechanicalEffect> effects;
 
     public CompoundEffect(List<IMechanicalEffect> effects)
     {
@@ -216,15 +150,13 @@ public class CompoundEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        StringBuilder description = new StringBuilder();
-        for (int i = 0; i < effects.Count; i++)
+        List<string> descriptions = new List<string>();
+
+        foreach (IMechanicalEffect effect in effects)
         {
-            if (i > 0)
-            {
-                description.Append(", ");
-            }
-            description.Append(effects[i].GetDescriptionForPlayer());
+            descriptions.Add(effect.GetDescriptionForPlayer());
         }
-        return description.ToString();
+
+        return string.Join(", ", descriptions);
     }
 }

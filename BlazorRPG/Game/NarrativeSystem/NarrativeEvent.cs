@@ -1,20 +1,21 @@
 ﻿public class NarrativeEvent
 {
-    public int Stage { get; private set; }
-    public string Summary { get; private set; }
+    public int Stage { get; }
+    public string Summary { get; }
     public AiChoice ChosenOption { get; private set; }
     public string Outcome { get; private set; }
-    public List<AiChoice> AvailableChoices { get; private set; } = new List<AiChoice>();
+    public List<AiChoice> AvailableChoices { get; private set; }
 
-    public NarrativeEvent(int stage, string summary)
+    public NarrativeEvent(int durationCounter, string description)
     {
-        Stage = stage;
-        Summary = summary;
+        Stage = durationCounter;
+        Summary = description;
+        AvailableChoices = new List<AiChoice>();
     }
 
-    public void SetChosenOption(AiChoice choice)
+    public void SetChosenOption(AiChoice chosenOption)
     {
-        ChosenOption = choice;
+        ChosenOption = chosenOption;
     }
 
     public void SetOutcome(string outcome)
@@ -22,8 +23,8 @@
         Outcome = outcome;
     }
 
-    public void SetAvailableChoices(List<AiChoice> choices) 
+    public void SetAvailableChoices(List<AiChoice> availableChoices)
     {
-        AvailableChoices = choices;
+        AvailableChoices = availableChoices;
     }
 }

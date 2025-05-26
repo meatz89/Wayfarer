@@ -1,127 +1,301 @@
 ﻿using System.Text.Json;
+using System.Text.RegularExpressions;
 
 public class AIResponseParser
 {
+    private readonly ILogger<AIResponseParser> _logger;
 
-    public AIResponseParser()
+    public AIResponseParser(ILogger<AIResponseParser> logger = null)
     {
-    }
-
-    public AiChoice ParseChoiceResponse(string response)
-    {
-        // Extract JSON from potential text
-        string jsonContent = ExtractJsonFromText(response);
-
-        // Attempt to parse as full response format
-        AIResponseFormat fullResponse = JsonSerializer.Deserialize<AIResponseFormat>(jsonContent);
-
-        if (fullResponse != null && fullResponse.AvailableChoices != null && fullResponse.AvailableChoices.Count > 0)
-        {
-            // Return the first choice from the full response
-            return fullResponse.AvailableChoices[0];
-        }
-
-        // If full response parsing fails, try parsing as direct AIChoice
-        AiChoice directChoice = JsonSerializer.Deserialize<AiChoice>(jsonContent);
-        if (directChoice != null)
-        {
-            return directChoice;
-        }
-
-        return null; // Return null if no valid choice found
+        _logger = logger;
     }
 
     public List<AiChoice> ParseMultipleChoicesResponse(string response)
     {
-        // Extract JSON from potential text
-        string jsonContent = ExtractJsonFromText(response);
+        List<AiChoice> choices = new List<AiChoice>();
 
-        // First try to parse as our expected format with a "choices" array
-        ChoicesResponse choicesResponse = JsonSerializer.Deserialize<ChoicesResponse>(jsonContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        if (choicesResponse != null && choicesResponse.Choices != null && choicesResponse.Choices.Count > 0)
+        try
         {
-            return TransformChoices(choicesResponse.Choices);
-        }
-
-        // Try to parse as a direct list of AiChoice objects
-        List<AiChoice> directChoices = JsonSerializer.Deserialize<List<AiChoice>>(jsonContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        if (directChoices != null && directChoices.Count > 0)
-        {
-            return directChoices;
-        }
-
-        // Try to parse as a format with "availableChoices" property
-        var availableChoicesResponse = JsonSerializer.Deserialize<AvailableChoicesResponse>(jsonContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        if (availableChoicesResponse != null && availableChoicesResponse.AvailableChoices != null && availableChoicesResponse.AvailableChoices.Count > 0)
-        {
-            return availableChoicesResponse.AvailableChoices;
-        }
-
-        // Last attempt to extract a choices array from any JSON object
-        var rawJson = JsonDocument.Parse(jsonContent);
-        JsonElement rootElement = rawJson.RootElement;
-
-        // Try to find a property that might contain choices
-        foreach (JsonProperty property in rootElement.EnumerateObject())
-        {
-            if (property.Value.ValueKind == JsonValueKind.Array)
+            // First try to parse as JSON directly
+            try
             {
-                try
-                {
-                    List<AiChoice> extractedChoices = JsonSerializer.Deserialize<List<AiChoice>>(
-                        property.Value.GetRawText(),
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                // Log the response for debugging
+                _logger?.LogDebug("Parsing response: {Response}", response);
 
-                    if (extractedChoices != null && extractedChoices.Count > 0)
+                // Try to parse the entire response as a JSON array
+                JsonDocument document = JsonDocument.Parse(response);
+
+                if (document.RootElement.ValueKind == JsonValueKind.Array)
+                {
+                    // Response is an array of choices
+                    foreach (JsonElement choiceElement in document.RootElement.EnumerateArray())
                     {
-                        return extractedChoices;
+                        AiChoice choice = ParseChoiceFromJson(choiceElement);
+                        if (choice != null)
+                        {
+                            choices.Add(choice);
+                        }
                     }
                 }
-                catch
+                else if (document.RootElement.ValueKind == JsonValueKind.Object &&
+                         document.RootElement.TryGetProperty("choices", out JsonElement choicesArray) &&
+                         choicesArray.ValueKind == JsonValueKind.Array)
                 {
-                    // Continue to next property if this one doesn't contain valid AiChoice objects
-                    continue;
+                    // Response is an object with a "choices" property
+                    foreach (JsonElement choiceElement in choicesArray.EnumerateArray())
+                    {
+                        AiChoice choice = ParseChoiceFromJson(choiceElement);
+                        if (choice != null)
+                        {
+                            choices.Add(choice);
+                        }
+                    }
                 }
+                else if (document.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    // Response is a single choice object
+                    AiChoice choice = ParseChoiceFromJson(document.RootElement);
+                    if (choice != null)
+                    {
+                        choices.Add(choice);
+                    }
+                }
+            }
+            catch (JsonException jsonEx)
+            {
+                _logger?.LogWarning("Failed to parse response as JSON: {Error}", jsonEx.Message);
+
+                // If JSON parsing fails, try to extract JSON from text
+                choices = ExtractChoicesFromText(response);
+            }
+
+            // Add IDs to choices that don't have them
+            for (int i = 0; i < choices.Count; i++)
+            {
+                if (string.IsNullOrEmpty(choices[i].ChoiceID))
+                {
+                    choices[i].ChoiceID = $"choice_{i + 1}";
+                }
+            }
+
+            _logger?.LogInformation("Successfully parsed {Count} choices", choices.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error parsing AI response");
+
+            // Create fallback choices
+            choices = CreateFallbackChoices();
+        }
+
+        return choices;
+    }
+
+    private AiChoice ParseChoiceFromJson(JsonElement choiceElement)
+    {
+        try
+        {
+            AiChoice choice = new AiChoice();
+
+            // Parse the choice ID
+            if (choiceElement.TryGetProperty("choiceID", out JsonElement choiceIDElement) ||
+                choiceElement.TryGetProperty("ChoiceID", out choiceIDElement))
+            {
+                choice.ChoiceID = choiceIDElement.GetString();
+            }
+
+            // Parse the narrative text
+            if (choiceElement.TryGetProperty("narrativeText", out JsonElement narrativeTextElement) ||
+                choiceElement.TryGetProperty("NarrativeText", out narrativeTextElement))
+            {
+                choice.NarrativeText = narrativeTextElement.GetString();
+            }
+
+            // Parse the focus cost
+            if (choiceElement.TryGetProperty("focusCost", out JsonElement focusCostElement) ||
+                choiceElement.TryGetProperty("FocusCost", out focusCostElement))
+            {
+                choice.FocusCost = focusCostElement.GetInt32();
+            }
+
+            // Parse skill options
+            if (choiceElement.TryGetProperty("skillOptions", out JsonElement skillOptionsElement) ||
+                choiceElement.TryGetProperty("SkillOptions", out skillOptionsElement))
+            {
+                choice.SkillOptions = new List<SkillOption>();
+
+                if (skillOptionsElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (JsonElement skillOptionElement in skillOptionsElement.EnumerateArray())
+                    {
+                        SkillOption skillOption = ParseSkillOptionFromJson(skillOptionElement);
+                        if (skillOption != null)
+                        {
+                            choice.SkillOptions.Add(skillOption);
+                        }
+                    }
+                }
+            }
+
+            return choice;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error parsing choice from JSON");
+            return null;
+        }
+    }
+
+    private SkillOption ParseSkillOptionFromJson(JsonElement skillOptionElement)
+    {
+        try
+        {
+            SkillOption skillOption = new SkillOption();
+
+            // Parse the skill name
+            if (skillOptionElement.TryGetProperty("skillName", out JsonElement skillNameElement) ||
+                skillOptionElement.TryGetProperty("SkillName", out skillNameElement))
+            {
+                skillOption.SkillName = skillNameElement.GetString();
+            }
+
+            // Parse the difficulty
+            if (skillOptionElement.TryGetProperty("difficulty", out JsonElement difficultyElement) ||
+                skillOptionElement.TryGetProperty("Difficulty", out difficultyElement))
+            {
+                skillOption.Difficulty = difficultyElement.GetString();
+            }
+
+            // Parse the SCD (Skill Check Difficulty)
+            if (skillOptionElement.TryGetProperty("sCD", out JsonElement scdElement) ||
+                skillOptionElement.TryGetProperty("SCD", out scdElement))
+            {
+                skillOption.SCD = scdElement.GetInt32();
+            }
+
+            // Parse the success payload
+            if (skillOptionElement.TryGetProperty("successPayload", out JsonElement successPayloadElement) ||
+                skillOptionElement.TryGetProperty("SuccessPayload", out successPayloadElement))
+            {
+                skillOption.SuccessPayload = ParsePayloadFromJson(successPayloadElement);
+            }
+
+            // Parse the failure payload
+            if (skillOptionElement.TryGetProperty("failurePayload", out JsonElement failurePayloadElement) ||
+                skillOptionElement.TryGetProperty("FailurePayload", out failurePayloadElement))
+            {
+                skillOption.FailurePayload = ParsePayloadFromJson(failurePayloadElement);
+            }
+
+            return skillOption;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error parsing skill option from JSON");
+            return null;
+        }
+    }
+
+    private Payload ParsePayloadFromJson(JsonElement payloadElement)
+    {
+        try
+        {
+            Payload payload = new Payload();
+
+            // Parse the narrative effect
+            if (payloadElement.TryGetProperty("narrativeEffect", out JsonElement narrativeEffectElement) ||
+                payloadElement.TryGetProperty("NarrativeEffect", out narrativeEffectElement))
+            {
+                payload.NarrativeEffect = narrativeEffectElement.GetString();
+            }
+
+            // Parse the mechanical effect ID
+            if (payloadElement.TryGetProperty("mechanicalEffectID", out JsonElement mechanicalEffectIDElement) ||
+                payloadElement.TryGetProperty("MechanicalEffectID", out mechanicalEffectIDElement))
+            {
+                payload.MechanicalEffectID = mechanicalEffectIDElement.GetString();
+            }
+
+            return payload;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error parsing payload from JSON");
+            return new Payload
+            {
+                NarrativeEffect = "Error parsing payload",
+                MechanicalEffectID = "ADVANCE_DURATION_1" // Safe default
+            };
+        }
+    }
+
+    private List<AiChoice> ExtractChoicesFromText(string text)
+    {
+        List<AiChoice> choices = new List<AiChoice>();
+
+        // Try to find JSON blocks in the text
+        Regex jsonRegex = new Regex(@"\{(?:[^{}]|(?<Open>\{)|(?<-Open>\}))+(?(Open)(?!))\}");
+        MatchCollection matches = jsonRegex.Matches(text);
+
+        foreach (Match match in matches)
+        {
+            try
+            {
+                JsonDocument document = JsonDocument.Parse(match.Value);
+                AiChoice choice = ParseChoiceFromJson(document.RootElement);
+                if (choice != null)
+                {
+                    choices.Add(choice);
+                }
+            }
+            catch (JsonException)
+            {
+                // Not valid JSON, skip
             }
         }
 
-        // If we reach here, no valid choices were found
-        return new List<AiChoice> { CreateFallbackChoice() };
+        // If we still couldn't find any choices, return fallbacks
+        if (choices.Count == 0)
+        {
+            choices = CreateFallbackChoices();
+        }
+
+        return choices;
     }
 
-    private List<AiChoice> TransformChoices(List<Choice> choices)
+    private List<AiChoice> CreateFallbackChoices()
     {
-        List<AiChoice> result = new List<AiChoice>();
+        _logger?.LogWarning("Creating fallback choices");
 
-        foreach (Choice choice in choices)
+        // Create basic fallback choices
+        return new List<AiChoice>
         {
-            // Create a new AiChoice with data from the Choice object
-            AiChoice aiChoice = new AiChoice
-            {
-                ChoiceID = choice.ChoiceID ?? $"choice_{choice.Index}",
-                NarrativeText = choice.Name ?? choice.NarrativeText,
-                FocusCost = choice.FocusCost
-            };
+            CreateFallbackChoice(0, "Proceed carefully", 1, "Observation"),
+            CreateFallbackChoice(1, "Take aggressive action", 2, "BruteForce"),
+            CreateFallbackChoice(2, "Try diplomatic approach", 1, "Negotiation"),
+            CreateFallbackChoice(3, "Gather more information", 1, "Investigation"),
+            CreateFallbackChoice(4, "Take a moment to recover", 0, "Perception")
+        };
+    }
 
-            // Handle skill options
-            if (choice.SkillOptions != null && choice.SkillOptions.Count > 0)
-            {
-                aiChoice.SkillOptions = choice.SkillOptions;
-            }
-            else
-            {
-                // Create a default skill option if none provided
-                aiChoice.SkillOptions = new List<SkillOption>
+    private AiChoice CreateFallbackChoice(int index, string narrativeText, int focusCost, string skillName)
+    {
+        return new AiChoice
+        {
+            ChoiceID = $"fallback_choice_{index}",
+            NarrativeText = narrativeText,
+            FocusCost = focusCost,
+            SkillOptions = new List<SkillOption>
             {
                 new SkillOption
                 {
-                    SkillName = DetermineSkillFromName(choice.Name ?? choice.NarrativeText),
+                    SkillName = skillName,
                     Difficulty = "Standard",
                     SCD = 3,
                     SuccessPayload = new Payload
                     {
                         NarrativeEffect = "You succeed in your attempt.",
-                        MechanicalEffectID = choice.FocusCost == 0 ? "GAIN_FOCUS_1" : "SET_FLAG_INSIGHT_GAINED"
+                        MechanicalEffectID = focusCost == 0 ? "GAIN_FOCUS_1" : "SET_FLAG_INSIGHT_GAINED"
                     },
                     FailurePayload = new Payload
                     {
@@ -129,121 +303,7 @@ public class AIResponseParser
                         MechanicalEffectID = "ADVANCE_DURATION_1"
                     }
                 }
-            };
-            }
-
-            result.Add(aiChoice);
-        }
-
-        return result;
-    }
-
-    private string DetermineSkillFromName(string name)
-    {
-        // Determine skill based on name content
-        if (name.Contains("force") || name.Contains("strength") || name.Contains("power"))
-            return "Brute Force";
-        if (name.Contains("jump") || name.Contains("leap") || name.Contains("climb"))
-            return "Acrobatics";
-        if (name.Contains("pick") || name.Contains("unlock") || name.Contains("open"))
-            return "Lockpicking";
-        if (name.Contains("investigate") || name.Contains("examine") || name.Contains("analyze"))
-            return "Investigation";
-        if (name.Contains("watch") || name.Contains("observe") || name.Contains("notice"))
-            return "Perception";
-        if (name.Contains("plan") || name.Contains("strategize") || name.Contains("prepare"))
-            return "Strategy";
-        if (name.Contains("manner") || name.Contains("polite") || name.Contains("proper"))
-            return "Etiquette";
-        if (name.Contains("convince") || name.Contains("persuade") || name.Contains("bargain"))
-            return "Negotiation";
-        if (name.Contains("pretend") || name.Contains("deceive") || name.Contains("perform"))
-            return "Acting";
-        if (name.Contains("threaten") || name.Contains("intimidate") || name.Contains("frighten"))
-            return "Threatening";
-
-        // Default to Perception if no match
-        return "Perception";
-    }
-
-    // Classes for deserialization
-    private class ChoicesResponse
-    {
-        public List<Choice> Choices { get; set; }
-    }
-
-    private class AvailableChoicesResponse
-    {
-        public List<AiChoice> AvailableChoices { get; set; }
-    }
-
-    private class Choice
-    {
-        public int Index { get; set; }
-        public string Name { get; set; }
-        public string ChoiceID { get; set; }
-        public string NarrativeText { get; set; }
-        public string Description { get; set; }
-        public int FocusCost { get; set; }
-        public List<SkillOption> SkillOptions { get; set; }
-    }
-
-    private class SimpleChoice
-    {
-        public int Index { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-    }
-
-    private string ExtractJsonFromText(string text)
-    {
-        // Find JSON content between curly braces
-        int startIndex = text.IndexOf('{');
-        int endIndex = text.LastIndexOf('}');
-
-        if (startIndex >= 0 && endIndex > startIndex)
-        {
-            return text.Substring(startIndex, endIndex - startIndex + 1);
-        }
-
-        return text; // Return original if no JSON found
-    }
-
-    private AiChoice CreateFallbackChoice()
-    {
-        // Create a safe fallback choice when parsing fails
-        AiChoice fallback = new AiChoice
-        {
-            ChoiceID = "fallback_choice",
-            NarrativeText = "Continue carefully",
-            FocusCost = 1,
-            SkillOptions = new List<SkillOption>
-            {
-                new SkillOption
-                {
-                    SkillName = "Observation",
-                    Difficulty = "Standard",
-                    SCD = 3,
-                    SuccessPayload = new Payload
-                    {
-                        NarrativeEffect = "You proceed with caution and avoid complications.",
-                        MechanicalEffectID = "GAIN_FOCUS_1"
-                    },
-                    FailurePayload = new Payload
-                    {
-                        NarrativeEffect = "You proceed but encounter a minor setback.",
-                        MechanicalEffectID = "ADVANCE_DURATION_1"
-                    }
-                }
             }
         };
-
-        return fallback;
-    }
-
-    private class AIResponseFormat
-    {
-        public string BeatNarration { get; set; }
-        public List<AiChoice> AvailableChoices { get; set; }
     }
 }

@@ -1,9 +1,8 @@
 ﻿@inherits EncounterChoiceTooltipBase
-
 <div class="tooltip" style="top:@tooltipYpx; left:@tooltipXpx;">
     <!-- Choice Header -->
     <div class="tooltip-header">
-        <h4>@hoveredChoice.Choice.ChoiceID</h4>
+        <h4>@hoveredChoice.Choice.NarrativeText</h4>
     </div>
 
     <!-- Narrative Description -->
@@ -22,19 +21,24 @@
                         <span class="resource-icon">⚡</span> @hoveredChoice.Choice.FocusCost Focus
                     </div>
                 }
+                else
+                {
+                    <div class="resource-cost focus-cost">
+                        <span class="resource-icon">⚡</span> 0 Focus (Recovery Option)
+                    </div>
+                }
             </div>
         </div>
     </div>
 
     <!-- Effects Section -->
     <div class="tooltip-section effects-section">
-        <h5>Effects</h5>
+        <h5>Potential Effects</h5>
         <div class="tooltip-item">
             @{
                 var projection = Preview;
                 var positiveEffects = GetPositiveEffectsAsList(hoveredChoice.Choice, projection);
             }
-
             @if (positiveEffects.Any())
             {
                 <div class="effect-list positive-effects">
@@ -42,7 +46,7 @@
                     {
                         <div class="effect-item positive">
                             <span class="effect-icon">
-                                if (effect.IsProgressEffect)
+                                @if (effect.IsProgressEffect)
                                 {
                                     <span>🏆</span>
                                 }
@@ -71,14 +75,40 @@
     @if (hoveredChoice.Choice.SkillOptions.Count > 0)
     {
         <div class="tooltip-section skill-section">
-            <h5>Skill Check</h5>
-            <div class="tooltip-item">
-                <div class="skill-details">
-                    <div class="skill-name">
-                        @hoveredChoice.Choice.SkillOptions Check
+            <h5>Skill Checks</h5>
+            @foreach (var skillOption in hoveredChoice.Choice.SkillOptions)
+            {
+                <div class="tooltip-item">
+                    <div class="skill-details">
+                        <div class="skill-name">
+                            @skillOption.SkillName Check (@skillOption.Difficulty)
+                        </div>
+                        <div class="skill-difficulty">
+                            Difficulty: @skillOption.SCD
+                        </div>
+                        <div class="skill-outcome">
+                            <div class="success-outcome">
+                                <span class="outcome-label">Success:</span>
+                                <span class="outcome-description">@skillOption.SuccessPayload.NarrativeEffect</span>
+                            </div>
+                            <div class="failure-outcome">
+                                <span class="outcome-label">Failure:</span>
+                                <span class="outcome-description">@skillOption.FailurePayload.NarrativeEffect</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
     }
+
+    <!-- State Flags Section -->
+    <div class="tooltip-section flags-section">
+        <h5>Encounter Stage</h5>
+        <div class="tooltip-item">
+            <div class="stage-info">
+                @hoveredChoice.Index
+            </div>
+        </div>
+    </div>
 </div>

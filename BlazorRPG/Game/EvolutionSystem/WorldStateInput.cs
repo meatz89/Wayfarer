@@ -1,6 +1,6 @@
 ﻿public class WorldStateInput
 {
-    public string CharacterArchetype { get; set; }
+    public string PlayerArchetype { get; set; }
 
     public int Health { get; set; }
     public int MaxHealth { get; set; }

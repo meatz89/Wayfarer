@@ -4,5 +4,5 @@
     Failure,
     BasicSuccess,
     GoodSuccess,
-    ExcellentSuccess
+    ExcellentSuccess,
 }

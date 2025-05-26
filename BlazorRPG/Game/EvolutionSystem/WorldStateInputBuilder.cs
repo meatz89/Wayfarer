@@ -27,7 +27,7 @@ public class WorldStateInputBuilder
         // Create context for location generation
         WorldStateInput context = new WorldStateInput
         {
-            CharacterArchetype = playerState.Archetype.ToString(),
+            PlayerArchetype = playerState.Archetype.ToString(),
 
             Health = playerState.Health,
             MaxHealth = playerState.MaxHealth,

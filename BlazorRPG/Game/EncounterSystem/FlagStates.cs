@@ -1,26 +1,37 @@
 ﻿public enum FlagStates
 {
+    // Positional Flags
     AdvantageousPosition,
     DisadvantageousPosition,
     HiddenPosition,
     ExposedPosition,
+
+    // Relational Flags
     TrustEstablished,
     DistrustTriggered,
     RespectEarned,
     HostilityProvoked,
+
+    // Informational Flags
     InsightGained,
     SecretRevealed,
     DeceptionDetected,
     ConfusionCreated,
+
+    // Tactical Flags
     SurpriseAchieved,
     PreparationCompleted,
     PathCleared,
-    PathBlocked,
+    ObstaclePresent,
     ResourceSecured,
+
+    // Environmental Flags
     AreaSecured,
     DistractionCreated,
     HazardNeutralized,
-    ObstaclePresent,
+    ObstacleActive,
+
+    // Emotional Flags
     TensionIncreased,
     ConfidenceBuilt,
     FearInstilled,
