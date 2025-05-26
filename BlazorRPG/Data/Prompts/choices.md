@@ -59,7 +59,7 @@ Every choice must:
 - Avoid modern analytical terms or abstract strategic thinking
 
 ## RESPONSE FORMAT
-You must respond with a SINGLE JSON object containing exactly 6 choices that are direct reactions to the current encounter situation:
+You must respond with a SINGLE JSON object containing 2-6 choices that are direct reactions to the current encounter situation:
 
 ```json
 {

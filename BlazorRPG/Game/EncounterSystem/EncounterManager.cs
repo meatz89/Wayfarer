@@ -132,8 +132,7 @@
             ChoiceID = $"fallback_choice_{index}",
             NarrativeText = narrativeText,
             FocusCost = focusCost,
-            SkillOptions = new List<SkillOption>
-        {
+            SkillOption = 
             new SkillOption
             {
                 SkillName = skillName,
@@ -150,7 +149,6 @@
                     MechanicalEffectID = "ADVANCE_DURATION_1"
                 }
             }
-        }
         };
     }
 
