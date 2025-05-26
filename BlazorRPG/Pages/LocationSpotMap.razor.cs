@@ -31,7 +31,7 @@ public partial class LocationSpotMap : ComponentBase
     {
         if (DragDropService.IsValidDropTarget(approach.RequiredCardType))
         {
-            CardDefinition card = DragDropService.SelectedCard;
+            SkillCard card = DragDropService.SelectedCard;
             DragDropService.Reset();
 
             await SelectApproach(action, approach, card);
@@ -47,7 +47,7 @@ public partial class LocationSpotMap : ComponentBase
         selectedAction = null;
     }
 
-    private void ActivateHighlightMode(CardTypes cardType)
+    private void ActivateHighlightMode(SkillCategories cardType)
     {
         if (CardHighlightService.IsHighlightModeActive)
         {
@@ -64,18 +64,18 @@ public partial class LocationSpotMap : ComponentBase
         DragDropService.OnStateChanged -= StateHasChanged;
     }
 
-    private bool IsValidCardForApproach(CardTypes requiredCardType)
+    private bool IsValidCardForApproach(SkillCategories requiredCardType)
     {
         return DragDropService.IsValidDropTarget(requiredCardType);
     }
 
-    private string GetCardTypeClass(CardTypes type)
+    private string GetCardTypeClass(SkillCategories type)
     {
         return type switch
         {
-            CardTypes.Physical => "physical",
-            CardTypes.Intellectual => "intellectual",
-            CardTypes.Social => "social",
+            SkillCategories.Physical => "physical",
+            SkillCategories.Intellectual => "intellectual",
+            SkillCategories.Social => "social",
             _ => ""
         };
     }
@@ -92,7 +92,7 @@ public partial class LocationSpotMap : ComponentBase
         }
     }
 
-    private async Task SelectApproach(UserActionOption action, ApproachDefinition approach, CardDefinition card)
+    private async Task SelectApproach(UserActionOption action, ApproachDefinition approach, SkillCard card)
     {
         showTooltip = false;
 

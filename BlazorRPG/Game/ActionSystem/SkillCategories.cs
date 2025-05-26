@@ -1,10 +1,11 @@
-﻿public enum CardTypes
+﻿public enum SkillCategories
 {
     None = 0,
     Physical,
     Intellectual,
     Social
 }
+
 //| Skill Name      | Action Type(s) Covered | Description |
 //| -------------   | ---------------------- | --------------------------------------------------------------------------- |
 //| **Endurance**   | Force                  | Physical labor, carrying, building, hauling, long travel, bodily toughness  |

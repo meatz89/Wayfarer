@@ -2,7 +2,7 @@
 {
     private ActionResultMessages currentChanges = new();
 
-    public void AddOutcome(Outcome outcome)
+    public void AddOutcome(IMechanicalEffect outcome)
     {
         currentChanges.Outcomes.Add(outcome);
     }

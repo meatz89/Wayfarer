@@ -20,7 +20,7 @@ public class WorldState
     // Current location tracking
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
-    public List<CardDefinition> AllCards { get; set; } = new List<CardDefinition>();
+    public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
     public List<CommissionDefinition> CompletedCommissions { get; internal set; }
     public List<CommissionDefinition> ActiveCommissions { get; internal set; }
     public List<CommissionDefinition> FailedCommissions { get; internal set; }

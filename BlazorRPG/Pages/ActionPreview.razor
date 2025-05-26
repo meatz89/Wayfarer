@@ -22,49 +22,4 @@
             </div>
         </div>
     }
-    @if (GetRequirementsMet() && GetCosts().Any())
-    {
-        <div class="tooltip-section">
-            <h5>Costs</h5>
-            <div class="tooltip-list">
-                @foreach (Outcome cost in GetCosts())
-                {
-                    <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetOutcomeIcon(cost)
-                                <span class="tooltip-item-name">@cost.GetDescription()</span>
-                            </div>
-                            <span class="tooltip-item-value negative-change">
-                                @cost.GetPreview(GameState)
-                            </span>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-
-    @if (GetRequirementsMet() && GetRewards().Any())
-    {
-        <div class="tooltip-section">
-            <h5>Potential Outcomes</h5>
-            <div class="tooltip-list">
-                @foreach (Outcome reward in GetRewards())
-                {
-                    <div class="tooltip-item">
-                        <div class="tooltip-item-header">
-                            <div class="tooltip-item-title">
-                                @GetOutcomeIcon(reward)
-                                <span class="tooltip-item-name">@reward.GetDescription()</span>
-                            </div>
-                            <span class="tooltip-item-value positive-change">
-                                @reward.GetPreview(GameState)
-                            </span>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
 </div>

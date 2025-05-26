@@ -21,7 +21,7 @@ public partial class MainGameplayView : ComponentBase
         }
     }
 
-    public PlayerState PlayerState
+    public Player PlayerState
     {
         get
         {
@@ -230,7 +230,7 @@ public partial class MainGameplayView : ComponentBase
         UpdateState();
     }
 
-    private async Task HandleCardRefreshed(CardDefinition card)
+    private async Task HandleCardRefreshed(SkillCard card)
     {
         await GameManager.RefreshCard(card);
         MessageSystem.AddSystemMessage($"Refreshed {card.Name} card");
@@ -296,9 +296,9 @@ public partial class MainGameplayView : ComponentBase
         if (messages == null) return list;
 
         // Add outcome descriptions
-        foreach (Outcome outcome in messages.Outcomes)
+        foreach (IMechanicalEffect outcome in messages.Outcomes)
         {
-            list.Add(outcome.GetDescription());
+            list.Add(outcome.GetDescriptionForPlayer());
         }
 
         // Add system messages

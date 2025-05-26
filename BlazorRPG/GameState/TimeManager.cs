@@ -1,10 +1,10 @@
 ﻿public class TimeManager
 {
     public const int TimeDayStart = 6;
-    private readonly PlayerState playerState;
+    private readonly Player playerState;
     private readonly WorldState worldState;
 
-    public TimeManager(PlayerState playerState, WorldState worldState)
+    public TimeManager(Player playerState, WorldState worldState)
     {
         this.playerState = playerState;
         this.worldState = worldState;

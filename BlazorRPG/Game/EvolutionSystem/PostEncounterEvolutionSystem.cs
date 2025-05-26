@@ -59,7 +59,7 @@
     public async Task IntegrateEncounterOutcome(
         PostEncounterEvolutionResult evolution,
         WorldState worldState,
-        PlayerState playerState)
+        Player playerState)
     {
         // Same logic but with updated registry calls
         foreach (Location loc in evolution.NewLocations)
@@ -123,7 +123,7 @@
         string encounterOutcome)
     {
         WorldState worldState = gameState.WorldState;
-        PlayerState playerState = gameState.PlayerState;
+        Player playerState = gameState.PlayerState;
 
         // Get all locations
         List<Location> allLocations = locationRepository.GetAllLocations();

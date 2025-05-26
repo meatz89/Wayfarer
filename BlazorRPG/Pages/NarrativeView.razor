@@ -28,39 +28,11 @@
                 <div class="tooltip-list">
                     @if (EncounterResult.ActionResult == ActionResults.EncounterSuccess)
                     {
-                        foreach (Outcome reward in GetActionOutcomesSuccess())
-                        {
-                            <div class="encounter-result-item wide">
-                                <div class="tooltip-item-header">
-                                    <div class="tooltip-item-title">
-                                        @GetOutcomeIcon(reward)
-                                        <span class="tooltip-item-name">@reward.GetDescription()</span>
-                                    </div>
-                                    <span class="tooltip-item-value positive-change">
-                                        @reward.GetPreview(GameState)
-                                    </span>
-                                </div>
-                            </div>
-                        }
                     }
                 </div>
                 <div class="tooltip-list">
                     @if (EncounterResult.ActionResult == ActionResults.EncounterFailure)
                     {
-                        @foreach (Outcome reward in GetActionOutcomesFailure())
-                        {
-                            <div class="encounter-result-item wide">
-                                <div class="tooltip-item-header">
-                                    <div class="tooltip-item-title">
-                                        @GetOutcomeIcon(reward)
-                                        <span class="tooltip-item-name">@reward.GetDescription()</span>
-                                    </div>
-                                    <span class="tooltip-item-value negative-change">
-                                        @reward.GetPreview(GameState)
-                                    </span>
-                                </div>
-                            </div>
-                        }
                     }
                 </div>
             </div>

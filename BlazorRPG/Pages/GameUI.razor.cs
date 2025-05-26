@@ -15,7 +15,7 @@ public partial class GameUI : ComponentBase
 
     public CurrentViews CurrentScreen { get; private set; } = CurrentViews.CharacterScreen;
 
-    public PlayerState PlayerState
+    public Player PlayerState
     {
         get
         {
@@ -87,7 +87,7 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    private async Task HandleCharacterCreated(PlayerState playerState)
+    private async Task HandleCharacterCreated(Player playerState)
     {
         CurrentScreen = CurrentViews.LocationScreen;
         await GameManager.StartGame();

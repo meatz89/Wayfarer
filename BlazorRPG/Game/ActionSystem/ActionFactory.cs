@@ -2,7 +2,7 @@
 {
     private readonly ActionRepository actionRepository;
     private readonly EncounterFactory encounterFactory;
-    private readonly PlayerState playerState;
+    private readonly Player playerState;
     private readonly WorldState worldState;
 
     public ActionFactory(
@@ -36,12 +36,9 @@
         actionImplementation.ActionType = actionType;
 
         actionImplementation.Requirements = CreateRequirements(template);
-        actionImplementation.Costs = CreateCosts(template);
-        actionImplementation.Yields = CreateYields(template);
 
         int actionCost = 1;
         actionImplementation.Requirements.Add(new ActionPointRequirement(actionCost));
-        actionImplementation.Costs.Add(new ActionPointOutcome(-actionCost));
         return actionImplementation;
     }
 
@@ -70,11 +67,6 @@
         return worldState.locationSpots.FirstOrDefault(s => s.Id == firstSpotId);
     }
 
-    private List<Outcome> CreateYields(ActionDefinition template)
-    {
-        return new List<Outcome>();
-    }
-
     private List<IRequirement> CreateRequirements(ActionDefinition template)
     {
         List<IRequirement> requirements = new();
@@ -84,12 +76,6 @@
             requirements.Add(new TimeWindowRequirement(template.TimeWindows));
         }
         return requirements;
-    }
-
-    private List<Outcome> CreateCosts(ActionDefinition template)
-    {
-        List<Outcome> costs = new();
-        return costs;
     }
 
     public ActionImplementation CreateActionFromCommission(CommissionDefinition commission)
@@ -126,13 +112,6 @@
         {
             new ActionPointRequirement(1),
         };
-
-        actionImplementation.Costs = new List<Outcome>
-        {
-            new ActionPointOutcome(-1)
-        };
-
-        actionImplementation.Yields = new List<Outcome>();
 
         return actionImplementation;
     }

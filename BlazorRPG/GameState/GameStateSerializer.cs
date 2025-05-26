@@ -42,7 +42,7 @@ public static class GameStateSerializer
     }
 
     public static GameState DeserializeGameState(string json, List<Location> locations, List<LocationSpot> spots,
-            List<ActionDefinition> actions, List<CommissionDefinition> commissions, List<CardDefinition> cards)
+            List<ActionDefinition> actions, List<CommissionDefinition> commissions, List<SkillCard> cards)
     {
         SerializableGameState serialized = JsonSerializer.Deserialize<SerializableGameState>(json, _jsonOptions);
         if (serialized == null)
@@ -112,10 +112,10 @@ public static class GameStateSerializer
             // Apply selected cards if available
             if (serialized.Player.SelectedCards != null && cards != null)
             {
-                gameState.PlayerState.PlayerHandCards = new List<CardDefinition>();
+                gameState.PlayerState.PlayerHandCards = new List<SkillCard>();
                 foreach (string cardId in serialized.Player.SelectedCards)
                 {
-                    CardDefinition card = cards.FirstOrDefault(c => c.Id == cardId);
+                    SkillCard card = cards.FirstOrDefault(c => c.Id == cardId);
                     if (card != null)
                     {
                         gameState.PlayerState.PlayerHandCards.Add(card);
@@ -286,38 +286,5 @@ public static class GameStateSerializer
         }
 
         return commissions;
-    }
-
-    // New methods for card serialization
-    public static string SerializeCards(List<CardDefinition> cards)
-    {
-        List<object> serializableCards = cards.Select(card => (object)new
-        {
-            id = card.Id,
-            name = card.Name,
-            type = card.Type.ToString(),
-            skill = card.Skill.ToString(),
-            level = card.Level,
-            cost = card.EnergyCost,
-            gain = card.SkillBonus,
-            tags = card.Tags
-        }).ToList();
-
-        return JsonSerializer.Serialize(serializableCards, _jsonOptions);
-    }
-
-    public static List<CardDefinition> DeserializeCards(string json)
-    {
-        List<CardDefinition> cards = new List<CardDefinition>();
-
-        using (JsonDocument doc = JsonDocument.Parse(json))
-        {
-            foreach (JsonElement cardElement in doc.RootElement.EnumerateArray())
-            {
-                cards.Add(CardParser.ParseCard(cardElement.GetRawText()));
-            }
-        }
-
-        return cards;
     }
 }

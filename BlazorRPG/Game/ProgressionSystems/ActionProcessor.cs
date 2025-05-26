@@ -1,11 +1,9 @@
-﻿using System;
-
-public class ActionProcessor
+﻿public class ActionProcessor
 {
     private readonly LocationRepository locationRepository;
 
     public GameState gameState { get; }
-    public PlayerState glayerState { get; }
+    public Player glayerState { get; }
     public WorldState worldState { get; }
     public PlayerProgression playerProgression { get; }
     public LocationPropertyManager environmentalPropertyManager { get; }
@@ -32,7 +30,7 @@ public class ActionProcessor
 
     public void ProcessTurnChange()
     {
-        PlayerState playerState = gameState.PlayerState;
+        Player playerState = gameState.PlayerState;
 
         int energy = playerState.CurrentEnergy();
         int turnAp = playerState.MaxActionPoints;
@@ -49,49 +47,8 @@ public class ActionProcessor
 
     public void ProcessAction(ActionImplementation action)
     {
-        PlayerState playerState = gameState.PlayerState;
+        Player playerState = gameState.PlayerState;
         playerState.ApplyActionPointCost(action.ActionPointCost);
-
-        ProcessActionCosts(action);
-        ProcessActionOutcomes(action);
-    }
-
-    private void ProcessActionOutcomes(ActionImplementation action)
-    {
-        UnlockCards();
-
-        foreach (Outcome reward in action.Yields)
-        {
-            reward.Apply(gameState);
-            messageSystem.AddOutcome(reward);
-        }
-    }
-
-    private void ProcessActionCosts(ActionImplementation action)
-    {
-        int actionPointCost = 1; // Default cost of 1 action point
-
-        foreach (Outcome cost in action.Costs)
-        {
-            if (cost is ActionPointOutcome apCost)
-            {
-                actionPointCost = apCost.Amount;
-            }
-            else
-            {
-                cost.Apply(gameState);
-            }
-            messageSystem.AddOutcome(cost);
-        }
-
-        gameState.PlayerState.ModifyActionPoints(actionPointCost);
-        gameState.TimeManager.UpdateTimeWindow();
-
-        UpdateState();
-    }
-
-    private void UnlockCards()
-    {
     }
 
     private int CalculateBasicActionSkillXP(ActionImplementation action)

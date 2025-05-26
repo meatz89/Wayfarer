@@ -14,7 +14,7 @@
     public Encounter CreateEncounterFromCommission(
         CommissionDefinition commission,
         ApproachDefinition approach,
-        PlayerState playerState,
+        Player playerState,
         Location location)
     {
         Encounter encounter = new Encounter
@@ -25,7 +25,7 @@
             TotalProgress = GetProgressThresholdForTier(commission.Tier),
             LocationName = location.Name,
             LocationSpotName = playerState.CurrentLocationSpot.Name,
-            EncounterType = DetermineEncounterType(approach.Id),
+            SkillCategory = DetermineSkillCategory(approach.Id),
             EncounterDifficulty = commission.Tier,
             SuccessThreshold = 10
         };
@@ -82,16 +82,16 @@
         };
     }
 
-    private CardTypes DetermineEncounterType(string approachId)
+    private SkillCategories DetermineSkillCategory(string approachId)
     {
         if (approachId.Contains("physical", StringComparison.OrdinalIgnoreCase))
-            return CardTypes.Physical;
+            return SkillCategories.Physical;
         if (approachId.Contains("intellectual", StringComparison.OrdinalIgnoreCase))
-            return CardTypes.Intellectual;
+            return SkillCategories.Intellectual;
         if (approachId.Contains("social", StringComparison.OrdinalIgnoreCase))
-            return CardTypes.Social;
+            return SkillCategories.Social;
 
-        return CardTypes.Physical; // Default fallback
+        return SkillCategories.Physical; // Default fallback
     }
 
     public Encounter GetDefaultEncounterTemplate()
@@ -101,7 +101,7 @@
             Id = "default_encounter",
             TotalProgress = 10, // Basic success threshold
             EncounterDifficulty = 1,
-            EncounterType = CardTypes.Physical,
+            SkillCategory = SkillCategories.Physical,
             Stages = GenerateUniversalFiveStageStructure() // Always 5 stages
         };
 
