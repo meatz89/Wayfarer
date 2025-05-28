@@ -1,15 +1,13 @@
 ﻿public class ChoiceProjectionService
 {
     private readonly PayloadRegistry _payloadRegistry;
-    private readonly ILogger<ChoiceProjectionService> _logger;
 
-    public ChoiceProjectionService(PayloadRegistry payloadRegistry, ILogger<ChoiceProjectionService> logger)
+    public ChoiceProjectionService(PayloadRegistry payloadRegistry, Player player)
     {
         _payloadRegistry = payloadRegistry;
-        _logger = logger;
     }
 
-    public ChoiceProjection ProjectChoice(AiChoice choice, EncounterState state, Player player)
+    public ChoiceProjection ProjectChoice(EncounterChoice choice, EncounterState state)
     {
         ChoiceProjection projection = new ChoiceProjection(choice);
 
@@ -31,8 +29,11 @@
         projection.Difficulty = option.Difficulty;
         projection.SCD = option.SCD;
 
-        // Find matching skill card
         SkillCard card = FindCardByName(player.AvailableCards, option.SkillName);
+
+        // TODO 
+        SkillCheckResolver resolver = new SkillCheckResolver(_payloadRegistry);
+        SkillCheckResult skillCheckResult = resolver.Resolve(option, card, state);
 
         if (card != null && !card.IsExhausted)
         {
@@ -60,10 +61,14 @@
         return projection;
     }
 
-    private PayloadProjection ProjectPayload(Payload payload, EncounterState state)
+    private PayloadProjection ProjectPayload(AIPayload payload, EncounterState state)
     {
         PayloadProjection projection = new PayloadProjection();
         projection.NarrativeEffect = payload.NarrativeEffect;
+
+        // TODO
+        PayloadProcessor payloadProcessor = new PayloadProcessor(_payloadRegistry, state);
+        payloadProcessor.Apply(payload.MechanicalEffectID, state);
 
         // Get mechanical effect from registry
         if (_payloadRegistry.HasEffect(payload.MechanicalEffectID))
@@ -102,4 +107,3 @@
         return null;
     }
 }
-

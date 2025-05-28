@@ -1,0 +1,65 @@
+﻿public record LocationAction
+{
+    public string ActionId { get; set; }
+    public string Name { get; set; }
+    public ActionTypes RequiredCardType { get; set; }
+
+    public string ObjectiveDescription { get; set; }
+    public string DestinationLocation { get; set; }
+    public string DestinationLocationSpot { get; set; }
+
+    public string LocationId { get; set; }
+    public string LocationSpotId { get; set; }
+
+    public List<IRequirement> Requirements { get; set; } = new();
+    public int ActionPointCost { get; set; }
+
+    public int Difficulty { get; set; } = 1;
+    public List<ApproachDefinition> Approaches { get; set; } = new List<ApproachDefinition>();
+    public CommissionDefinition Commission { get; set; }
+    public int Complexity { get; set; }
+
+
+    // This method is your bridge into the encounter system
+    public void Execute(Player player, LocationSpot location)
+    {
+        // Step 1: Check if player has appropriate card type available
+        List<SkillCard> validCards = player.GetAvailableCardsByType(RequiredCardType);
+        if (validCards.Count == 0)
+        {
+            UIManager UIManager = new();
+            UIManager.ShowMessage("You don't have any " + RequiredCardType + " cards available.");
+            return;
+        }
+
+        // Step 2: Create the encounter context
+        EncounterContext context = new EncounterContext();
+        context.LocationName = location.Name;
+        context.LocationID = location.SpotID;
+        context.ActionName = this.Name;
+        context.ActionType = this.RequiredCardType;
+        context.PlayerSkillCards = validCards;
+        context.PlayerAllCards = player.GetAllAvailableCards();
+
+        // Step 3: Determine encounter parameters based on action type
+        EncounterParameters parameters = DetermineEncounterParameters(this.RequiredCardType);
+
+        // Step 4: Launch the encounter
+        EncounterManager encounterManager = new EncounterManager();
+        encounterManager.StartEncounter(context, parameters, player);
+    }
+
+    private EncounterParameters DetermineEncounterParameters(ActionTypes actionType)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class UIManager
+{
+    public void ShowMessage(string message)
+    {
+        // Implementation for showing messages to the player
+        Console.WriteLine(message);
+    }
+}

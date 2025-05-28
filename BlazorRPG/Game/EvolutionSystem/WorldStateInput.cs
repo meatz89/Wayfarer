@@ -21,6 +21,6 @@
     public string ActiveOpportunities { get; set; }
 
     public string MemorySummary { get; set; }
-    public List<Character> Characters { get; set; }
+    public List<NPC> Characters { get; set; }
     public RelationshipList RelationshipList { get; set; }
 }

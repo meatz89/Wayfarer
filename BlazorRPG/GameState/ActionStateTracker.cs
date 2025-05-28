@@ -11,17 +11,17 @@
     public List<UserActionOption> GlobalActions { get; private set; } = new List<UserActionOption>();
     public List<UserEncounterChoiceOption> UserEncounterChoiceOptions { get; private set; } = new List<UserEncounterChoiceOption>();
 
-    public ActionImplementation PreviousAction { get; private set; }
+    public LocationAction PreviousAction { get; private set; }
 
     public void SetCurrentUserAction(UserActionOption currentUserAction)
     {
-        PreviousAction = CurrentAction?.ActionImplementation;
+        PreviousAction = CurrentAction?.locationAction;
         CurrentAction = currentUserAction;
     }
 
     public void ClearCurrentUserAction()
     {
-        PreviousAction = CurrentAction?.ActionImplementation;
+        PreviousAction = CurrentAction?.locationAction;
         CurrentAction = null;
     }
 

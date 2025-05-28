@@ -1,9 +1,10 @@
 ﻿public class EncounterResult
 {
-    public ActionImplementation ActionImplementation { get; set; }
+    public LocationAction locationAction { get; set; }
     public ActionResults ActionResult { get; set; }
-    public NarrativeResult NarrativeResult { get; set; }
+    public AIGameMasterResponse AIResponse { get; set; }
     public string EncounterEndMessage { get; set; }
-    public NarrativeContext NarrativeContext { get; set; }
+    public EncounterContext EncounterContext { get; set; }
     public PostEncounterEvolutionResult PostEncounterEvolution { get; set; }
+    public IEnumerable<ProposedChange> ProposedChanges { get; set; }
 }

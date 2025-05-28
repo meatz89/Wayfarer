@@ -2,7 +2,7 @@
 {
     private readonly LocationRepository locationRepository;
 
-    public GameState gameState { get; }
+    public GameWorld gameState { get; }
     public Player glayerState { get; }
     public WorldState worldState { get; }
     public PlayerProgression playerProgression { get; }
@@ -10,7 +10,7 @@
     public MessageSystem messageSystem { get; }
 
     public ActionProcessor(
-        GameState gameState,
+        GameWorld gameState,
         PlayerProgression playerProgression,
         LocationPropertyManager environmentalPropertyManager,
         LocationRepository locationRepository,
@@ -21,13 +21,13 @@
         this.environmentalPropertyManager = environmentalPropertyManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
-        glayerState = gameState.PlayerState;
+        glayerState = gameState.Player;
         worldState = gameState.WorldState;
     }
 
     public void ProcessTurnChange()
     {
-        Player playerState = gameState.PlayerState;
+        Player playerState = gameState.Player;
 
         int energy = playerState.CurrentEnergy();
         int turnAp = playerState.MaxActionPoints;
@@ -39,16 +39,16 @@
         }
 
         gameState.TimeManager.StartNewDay();
-        gameState.PlayerState.ModifyActionPoints(gameState.PlayerState.MaxActionPoints);
+        gameState.Player.ModifyActionPoints(gameState.Player.MaxActionPoints);
     }
 
-    public void ProcessAction(ActionImplementation action)
+    public void ProcessAction(LocationAction action)
     {
-        Player playerState = gameState.PlayerState;
+        Player playerState = gameState.Player;
         playerState.ApplyActionPointCost(action.ActionPointCost);
     }
 
-    private int CalculateBasicActionSkillXP(ActionImplementation action)
+    private int CalculateBasicActionSkillXP(LocationAction action)
     {
         return action.Difficulty * 5;
     }
@@ -65,7 +65,7 @@
         }
     }
 
-    public bool CanExecute(ActionImplementation action)
+    public bool CanExecute(LocationAction action)
     {
         foreach (IRequirement requirement in action.Requirements)
         {
@@ -76,9 +76,9 @@
         }
 
         // Check if the action has been completed and is non-repeatable
-        if (action.ActionType == ActionExecutionTypes.Encounter)
+        if (action.RequiredCardType == ActionExecutionTypes.Encounter)
         {
-            string encounterId = action.Id;
+            string encounterId = action.ActionId;
             if (gameState.WorldState.IsEncounterCompleted(encounterId))
             {
                 return false; // Encounter already completed

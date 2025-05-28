@@ -5,7 +5,7 @@
     string LocationName,
     string locationSpotName,
     EncounterResult encounterResult,
-    NarrativeResult NarrativeResult,
-    AiChoice Choice)
+    AIGameMasterResponse AIResponse,
+    EncounterChoice Choice)
 {
 }

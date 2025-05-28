@@ -2,21 +2,24 @@
 {
     // Core state tracking
     public int FocusPoints { get; set; }
-    public int MaxFocusPoints { get; }
-    public int DurationCounter { get; private set; }
-    public int MaxDuration { get; }
-    public int ConsecutiveRecoveryCount { get; set; }
+    public int MaxFocusPoints { get; set; }
+    public int DurationCounter { get; set; }
+    public int MaxDuration { get; set; }
     public bool IsEncounterComplete { get; set; }
+    public EncounterOutcomes EncounterOutcome { get; set; }
+    public List<FlagStates> GoalFlags { get; set; }
+    public EncounterFlagManager FlagManager { get; set; }
+    public Player Player { get; set; }
+
+    public int ConsecutiveRecoveryCount { get; set; }
     public int EncounterSeed { get; }
 
     // Skill category for this encounter
-    public SkillCategories SkillCategory { get; }
-
-    // Flag management
-    public EncounterFlagManager FlagManager { get; }
+    public ActionTypes SkillCategory { get; }
+    public int MaxFocusPoints1 { get; }
 
     // Current context
-    public Character CurrentNPC { get; set; }
+    public NPC CurrentNPC { get; set; }
 
     // Progress tracking
     public int CurrentProgress { get; private set; }
@@ -26,18 +29,12 @@
     private List<SkillModifier> activeModifiers;
     private int nextCheckModifier;
 
-    // Player reference
-    public Player Player { get; }
-
-    // Success determination - flags that constitute success
-    private List<FlagStates> goalFlags;
-
-    public EncounterState(Player player, SkillCategories skillCategory)
+    public EncounterState(Player player, int maxFocusPoints, int maxDuration)
     {
         // Initialize core values
         Player = player;
-        SkillCategory = skillCategory;
-        MaxFocusPoints = 6;
+        MaxFocusPoints = maxFocusPoints;
+        MaxDuration = maxDuration;
         FocusPoints = MaxFocusPoints;
         MaxDuration = 8;
         DurationCounter = 0;
@@ -49,7 +46,7 @@
         // Initialize tracking systems
         FlagManager = new EncounterFlagManager();
         activeModifiers = new List<SkillModifier>();
-        goalFlags = new List<FlagStates>();
+        GoalFlags = new List<FlagStates>();
         nextCheckModifier = 0;
 
         // Set deterministic seed for consistent random results
@@ -87,7 +84,7 @@
 
     public void SetGoalFlags(List<FlagStates> flags)
     {
-        goalFlags = new List<FlagStates>(flags);
+        GoalFlags = new List<FlagStates>(flags);
     }
 
     public void CheckGoalCompletion()
@@ -95,7 +92,7 @@
         // Simple goal check: are all required flags active?
         bool allGoalFlagsActive = true;
 
-        foreach (FlagStates flag in goalFlags)
+        foreach (FlagStates flag in GoalFlags)
         {
             if (!FlagManager.IsActive(flag))
             {
@@ -157,7 +154,7 @@
 
     public ChoiceProjection CreateChoiceProjection(
         ChoiceProjectionService choiceProjectionService,
-        AiChoice choice,
+        EncounterChoice choice,
         Player playerState)
     {
         return choiceProjectionService.ProjectChoice(
@@ -170,7 +167,7 @@
         ChoiceProjectionService choiceProjectionService,
         Player playerState,
         Encounter encounter,
-        AiChoice choice)
+        EncounterChoice choice)
     {
         // Create projection to determine outcome
         ChoiceProjection projection = CreateChoiceProjection(choiceProjectionService, choice, playerState);
@@ -266,7 +263,7 @@
             int successThreshold = 10; // Basic success threshold
             projection.ProjectedOutcome =
                 CurrentProgress >= successThreshold
-                ? EncounterOutcomes.BasicSuccess
+                ? EncounterOutcomes.Success
                 : EncounterOutcomes.Failure;
         }
 
@@ -291,5 +288,15 @@
         // Use encounter seed for deterministic random
         Random random = new Random(EncounterSeed + DurationCounter);
         return random.Next(minValue, maxValue);
+    }
+
+    public void AddEventLog(EncounterEvent encounterEvent)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal int GetTemporarySkillModifier(string requiredSkillName)
+    {
+        throw new NotImplementedException();
     }
 }

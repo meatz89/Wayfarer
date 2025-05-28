@@ -11,7 +11,7 @@ public class ActionGenerator
     private readonly WorldState worldState;
 
     public ActionGenerator(
-        GameState gameState,
+        GameWorld gameState,
         ActionRepository actionRepository,
         LocationRepository locationRepository,
         WorldStateInputBuilder worldStateInputCreator,
@@ -40,7 +40,7 @@ public class ActionGenerator
             locationSpot = worldState.CurrentLocationSpot;
         }
 
-        ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpot.Id);
+        ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpot.SpotID);
 
         if (_configuration.GetValue<bool>("actionGeneration"))
         {
@@ -61,7 +61,7 @@ public class ActionGenerator
         return actionDef.Id;
     }
 
-    internal async Task<string> GenerateCommission(string name, string id1, string id2)
+    public async Task<string> GenerateCommission(string name, string id1, string id2)
     {
         throw new NotImplementedException();
     }

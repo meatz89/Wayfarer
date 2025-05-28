@@ -5,7 +5,7 @@
     public int FocusCost { get; }
     public bool IsAffordable { get; set; }
     public SkillOptionProjection SkillOption { get; set; }
-    public AiChoice Choice { get; }
+    public EncounterChoice Choice { get; }
     public string NarrativeDescription { get; set; }
     public string FormattedOutcomeSummary { get; set; }
     public bool IsAffordableFocus { get; set; }
@@ -24,7 +24,7 @@
     public bool WillEncounterEnd { get; set; }
     public EncounterOutcomes ProjectedOutcome { get; set; }
 
-    public ChoiceProjection(AiChoice choice)
+    public ChoiceProjection(EncounterChoice choice)
     {
         ChoiceID = choice.ChoiceID;
         NarrativeText = choice.NarrativeText;

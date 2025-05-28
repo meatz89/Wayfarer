@@ -2,14 +2,14 @@
 
 public class CharacterSystem
 {
-    public string FormatKnownCharacters(List<Character> characters)
+    public string FormatKnownCharacters(List<NPC> characters)
     {
         StringBuilder sb = new StringBuilder();
 
         if (characters == null || !characters.Any())
             return "None";
 
-        foreach (Character character in characters)
+        foreach (NPC character in characters)
         {
             sb.AppendLine($"- {character.Name}: {character.Role} at {character.Location}");
             if (!string.IsNullOrEmpty(character.Description))

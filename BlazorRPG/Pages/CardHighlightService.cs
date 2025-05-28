@@ -1,7 +1,7 @@
 ﻿public class CardHighlightService
 {
     private bool isHighlightModeActive = false;
-    private SkillCategories _targetCardType = SkillCategories.Physical;
+    private ActionTypes _targetCardType = ActionTypes.Physical;
 
     public bool IsHighlightModeActive
     {
@@ -11,7 +11,7 @@
         }
     }
 
-    public SkillCategories TargetCardType
+    public ActionTypes TargetCardType
     {
         get
         {
@@ -23,7 +23,7 @@
 
     public HighlightMode _highlightMode = HighlightMode.Refresh;
 
-    public void ActivateHighlightMode(SkillCategories cardType, HighlightMode highlightMode)
+    public void ActivateHighlightMode(ActionTypes cardType, HighlightMode highlightMode)
     {
         _highlightMode = highlightMode;
         _targetCardType = cardType;

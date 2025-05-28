@@ -1,45 +1,45 @@
 ﻿public class ActionFactory
 {
     private readonly ActionRepository actionRepository;
-    private readonly EncounterFactory encounterFactory;
+    private readonly LocationActionProcessor encounterFactory;
     private readonly Player playerState;
     private readonly WorldState worldState;
 
     public ActionFactory(
         ActionRepository actionRepository,
-        GameState gameState,
-        EncounterFactory encounterFactory)
+        GameWorld gameState,
+        LocationActionProcessor encounterFactory)
     {
         this.actionRepository = actionRepository;
         this.encounterFactory = encounterFactory;
-        this.playerState = gameState.PlayerState;
+        this.playerState = gameState.Player;
         this.worldState = gameState.WorldState;
     }
 
-    public ActionImplementation CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot, ActionExecutionTypes actionType)
+    public LocationAction CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot, ActionExecutionTypes actionType)
     {
-        ActionImplementation actionImplementation = new ActionImplementation();
-        actionImplementation.Id = template.Id;
-        actionImplementation.Name = template.Name;
-        actionImplementation.Description = template.Description;
-        actionImplementation.LocationId = location;
-        actionImplementation.LocationSpotId = locationSpot;
+        LocationAction locationAction = new LocationAction();
+        locationAction.ActionId = template.Id;
+        locationAction.Name = template.Name;
+        locationAction.ObjectiveDescription = template.Description;
+        locationAction.LocationId = location;
+        locationAction.LocationSpotId = locationSpot;
 
         if (!string.IsNullOrEmpty(template.MoveToLocation))
         {
-            actionImplementation.DestinationLocation = template.MoveToLocation;
+            locationAction.DestinationLocation = template.MoveToLocation;
         }
         if (!string.IsNullOrEmpty(template.MoveToLocationSpot))
         {
-            actionImplementation.DestinationLocationSpot = template.MoveToLocationSpot;
+            locationAction.DestinationLocationSpot = template.MoveToLocationSpot;
         }
-        actionImplementation.ActionType = actionType;
+        locationAction.RequiredCardType = actionType;
 
-        actionImplementation.Requirements = CreateRequirements(template);
+        locationAction.Requirements = CreateRequirements(template);
 
         int actionCost = 1;
-        actionImplementation.Requirements.Add(new ActionPointRequirement(actionCost));
-        return actionImplementation;
+        locationAction.Requirements.Add(new ActionPointRequirement(actionCost));
+        return locationAction;
     }
 
     private LocationSpot FindDefaultSpotForLocation(string locationId)
@@ -55,8 +55,8 @@
 
         foreach (string spotId in location.LocationSpotIds)
         {
-            LocationSpot spot = worldState.locationSpots.FirstOrDefault(s => s.Id == spotId);
-            if (spot != null && preferredSpotNames.Any(name => spot.Id.Contains(name)))
+            LocationSpot spot = worldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
+            if (spot != null && preferredSpotNames.Any(name => spot.SpotID.Contains(name)))
             {
                 return spot;
             }
@@ -64,7 +64,7 @@
 
         // If no preferred spot found, return the first available spot
         string firstSpotId = location.LocationSpotIds.First();
-        return worldState.locationSpots.FirstOrDefault(s => s.Id == firstSpotId);
+        return worldState.locationSpots.FirstOrDefault(s => s.SpotID == firstSpotId);
     }
 
     private List<IRequirement> CreateRequirements(ActionDefinition template)
@@ -78,41 +78,41 @@
         return requirements;
     }
 
-    public ActionImplementation CreateActionFromCommission(CommissionDefinition commission)
+    public LocationAction CreateActionFromCommission(CommissionDefinition commission)
     {
-        ActionImplementation actionImplementation = new ActionImplementation();
+        LocationAction locationAction = new LocationAction();
 
-        actionImplementation.Id = commission.Id;
-        actionImplementation.Name = commission.Name;
-        actionImplementation.Description = commission.Description;
-        actionImplementation.Commission = commission;
+        locationAction.ActionId = commission.Id;
+        locationAction.Name = commission.Name;
+        locationAction.ObjectiveDescription = commission.Description;
+        locationAction.Commission = commission;
 
         if (commission.Type == CommissionTypes.Accumulative)
         {
-            actionImplementation.LocationId = commission.InitialLocationId;
+            locationAction.LocationId = commission.InitialLocationId;
 
             LocationSpot defaultSpot = FindDefaultSpotForLocation(commission.InitialLocationId);
-            actionImplementation.LocationSpotId = defaultSpot?.Id;
+            locationAction.LocationSpotId = defaultSpot?.SpotID;
 
-            actionImplementation.Approaches = commission.Approaches;
+            locationAction.Approaches = commission.Approaches;
         }
         else if (commission.Type == CommissionTypes.Sequential && commission.InitialStep != null)
         {
-            actionImplementation.LocationId = commission.InitialStep.LocationId;
+            locationAction.LocationId = commission.InitialStep.LocationId;
 
             LocationSpot defaultSpot = FindDefaultSpotForLocation(commission.InitialStep.LocationId);
-            actionImplementation.LocationSpotId = defaultSpot?.Id;
+            locationAction.LocationSpotId = defaultSpot?.SpotID;
 
-            actionImplementation.Approaches = commission.InitialStep.Approaches;
+            locationAction.Approaches = commission.InitialStep.Approaches;
         }
 
-        actionImplementation.ActionType = ActionExecutionTypes.Encounter;
+        locationAction.RequiredCardType = ActionExecutionTypes.Encounter;
 
-        actionImplementation.Requirements = new List<IRequirement>
+        locationAction.Requirements = new List<IRequirement>
         {
             new ActionPointRequirement(1),
         };
 
-        return actionImplementation;
+        return locationAction;
     }
 }

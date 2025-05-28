@@ -2,13 +2,13 @@
 
 public class WorldStateInputBuilder
 {
-    private readonly GameState gameState;
+    private readonly GameWorld gameState;
     public LocationSystem LocationSystem { get; }
     public CharacterSystem CharacterSystem { get; }
     public OpportunitySystem OpportunitySystem { get; }
 
     public WorldStateInputBuilder(
-        GameState gameState,
+        GameWorld gameState,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem)
@@ -22,7 +22,7 @@ public class WorldStateInputBuilder
     public async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
     {
         WorldState worldState = gameState.WorldState;
-        Player playerState = gameState.PlayerState;
+        Player playerState = gameState.Player;
 
         // Create context for location generation
         WorldStateInput context = new WorldStateInput
@@ -39,7 +39,7 @@ public class WorldStateInputBuilder
 
             CurrentLocation = currentLocation,
             LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
-            CurrentSpot = worldState.CurrentLocationSpot.Id,
+            CurrentSpot = worldState.CurrentLocationSpot.SpotID,
             LocationDepth = worldState.CurrentLocation.Depth,
             ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
 

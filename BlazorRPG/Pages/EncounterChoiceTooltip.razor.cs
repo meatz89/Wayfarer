@@ -2,15 +2,15 @@
 
 public partial class EncounterChoiceTooltipBase : ComponentBase
 {
-    [Inject] public GameManager GameManager { get; set; }
-    [Inject] public GameState GameState { get; set; }
+    [Inject] public GameWorldManager GameManager { get; set; }
+    [Inject] public GameWorld GameState { get; set; }
     [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
     [Parameter] public double tooltipX { get; set; }
     [Parameter] public double tooltipY { get; set; }
 
     protected string GetSkillCheckInfo(UserEncounterChoiceOption choice)
     {
-        if (choice.Choice is AiChoice option)
+        if (choice.Choice is EncounterChoice option)
         {
             string skillInfo = "";
             skillInfo += option.SkillOption.ToString();
@@ -21,7 +21,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     protected string GetProgressInfo(UserEncounterChoiceOption choice)
     {
-        if (choice.Choice is AiChoice option)
+        if (choice.Choice is EncounterChoice option)
         {
             // Get the choice projection to show accurate progress information
             ChoiceProjection projection = Preview;
@@ -35,7 +35,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return "";
     }
 
-    private string GetPositiveEffectsDescription(AiChoice option, ChoiceProjection projection)
+    private string GetPositiveEffectsDescription(EncounterChoice option, ChoiceProjection projection)
     {
         List<string> effects = new List<string>();
 
@@ -48,7 +48,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return effects.Count > 0 ? $"Positive: {string.Join(", ", effects)}" : "Positive: Minimal effect";
     }
 
-    protected List<EffectItem> GetPositiveEffectsAsList(AiChoice option, ChoiceProjection projection)
+    protected List<EffectItem> GetPositiveEffectsAsList(EncounterChoice option, ChoiceProjection projection)
     {
         List<EffectItem> effects = new List<EffectItem>();
 
@@ -77,7 +77,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     protected int GetPlayerSkillLevel(SkillTypes skill)
     {
-        return GameState.PlayerState.GetSkillLevel(skill);
+        return GameState.Player.GetSkillLevel(skill);
     }
 
     public string tooltipXpx

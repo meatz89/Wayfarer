@@ -3,7 +3,7 @@
     private readonly LocationSystem locationSystem;
     private readonly CharacterSystem characterSystem;
     private readonly OpportunitySystem opportunitySystem;
-    private readonly GameState gameState;
+    private readonly GameWorld gameState;
     private readonly ActionGenerator actionGenerator;
     private readonly LocationRepository locationRepository;
     private readonly ActionRepository actionRepository;
@@ -15,7 +15,7 @@
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
         OpportunitySystem opportunitySystem,
-        GameState gameState,
+        GameWorld gameState,
         ActionGenerator actionGenerator,
         LocationRepository locationRepository,
         ActionRepository actionRepository,
@@ -71,7 +71,7 @@
             string spotId = $"{locationName}:{spotDetail.Name}";
             LocationSpot spot = new LocationSpot(spotDetail.Name, locationName)
             {
-                Id = spotDetail.Name.Replace(" ", "_").ToLowerInvariant(),
+                SpotID = spotDetail.Name.Replace(" ", "_").ToLowerInvariant(),
                 Name = spotDetail.Name,
                 LocationId = locationName,
                 Description = spotDetail.Description,
@@ -101,7 +101,7 @@
         Location location = locationRepository.GetLocationById(locationId);
         LocationSpot locationSpot = new LocationSpot(locationSpotId, locationId)
         {
-            Id = locationSpotId,
+            SpotID = locationSpotId,
             LocationId = locationId,
             Description = "A new location spot.",
             PlayerKnowledge = true
@@ -123,7 +123,7 @@
         )
     {
         WorldState worldState = gameState.WorldState;
-        Player playerState = gameState.PlayerState;
+        Player playerState = gameState.Player;
 
         // Get all locations
         List<Location> allLocations = locationRepository.GetAllLocations();

@@ -110,7 +110,7 @@ public class PostEncounterEvolutionParser
             CoinChange = flatResponse.ResourceChanges?.CoinChange ?? 0,
             NewLocationSpots = new List<LocationSpot>(),
             NewActions = new List<NewAction>(),
-            NewCharacters = flatResponse.Characters ?? new List<Character>(),
+            NewCharacters = flatResponse.Characters ?? new List<NPC>(),
             NewLocations = new List<Location>(),
             NewOpportunities = flatResponse.Opportunities ?? new List<Opportunity>()
         };
@@ -279,11 +279,11 @@ public class PostEncounterEvolutionParser
         });
     }
 
-    private Character ParseCharacter(JsonElement element)
+    private NPC ParseCharacter(JsonElement element)
     {
         return SafeParseEntity("character", () =>
         {
-            return new Character
+            return new NPC
             {
                 Name = GetStringProperty(element, "name", "Unnamed Character"),
                 Role = GetStringProperty(element, "role", "Unknown Role"),

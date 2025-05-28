@@ -43,7 +43,7 @@
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
 
 
-    public HashSet<(string, SkillCategories)> LocationActionAvailability { get; set; } = new();
+    public HashSet<(string, ActionTypes)> LocationActionAvailability { get; set; } = new();
 
     public bool IsInitialized { get; set; } = false;
 
@@ -178,7 +178,7 @@
         Inventory.AddItem(ItemTypes.TradeDocuments);
     }
 
-    public bool HasAvailableCard(SkillCategories cardTypes)
+    public bool HasAvailableCard(ActionTypes cardTypes)
     {
         foreach (SkillCard card in AvailableCards)
         {
@@ -321,38 +321,38 @@
         this.EnergyPoints += amount;
     }
 
-    internal bool HasNonExhaustedCardOfType(SkillCategories requiredCardType)
+    public bool HasNonExhaustedCardOfType(ActionTypes requiredCardType)
     {
         return true;
     }
 
-    internal int GetSkillLevel(SkillTypes skill)
+    public int GetSkillLevel(SkillTypes skill)
     {
         int level = Skills.GetLevelForSkill(skill);
         return level;
     }
 
-    internal SkillCard GetSelectedCardForSkill(SkillTypes skill)
+    public SkillCard GetSelectedCardForSkill(SkillTypes skill)
     {
         return null;
     }
 
-    internal void AddSilver(int silverReward)
+    public void AddSilver(int silverReward)
     {
         throw new NotImplementedException();
     }
 
-    internal void AddReputation(int reputationReward)
+    public void AddReputation(int reputationReward)
     {
         throw new NotImplementedException();
     }
 
-    internal void AddInsightPoints(int insightPointReward)
+    public void AddInsightPoints(int insightPointReward)
     {
         throw new NotImplementedException();
     }
 
-    internal Player Serialize()
+    public Player Serialize()
     {
         // Create a new PlayerState instance
         Player clone = new Player();
@@ -411,17 +411,62 @@
         return clone;
     }
 
-    internal SkillCard GetBestNonExhaustedCardOfType(SkillCategories requiredCardType)
+    public SkillCard GetBestNonExhaustedCardOfType(ActionTypes requiredCardType)
     {
         throw new NotImplementedException();
     }
 
-    internal void ModifyRelationship(string id, int amount, string source)
+    public void ModifyRelationship(string id, int amount, string source)
     {
         throw new NotImplementedException();
     }
 
-    internal void ModifyCoins(int amount)
+    public void ModifyCoins(int amount)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddKnowledge(object knowledgeItem)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void ModifyCurrency(object amount)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<SkillCard> GetAvailableCardsByType(ActionTypes requiredCardType)
+    {
+        return new List<SkillCard>(AvailableCards);
+    }
+
+    public List<SkillCard> GetAllAvailableCards()
+    {
+        return new List<SkillCard>(AvailableCards);
+    }
+
+    public SkillCard FindCard(string skillName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public SkillCard? FindCard(object requiredSkillName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int GetRelationship(object iD)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void SetRelationship(string iD, int newRelationship)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<SkillCard> GetCardsOfType(ActionTypes requiredApproach)
     {
         throw new NotImplementedException();
     }

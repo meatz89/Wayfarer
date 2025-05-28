@@ -1,4 +1,4 @@
-﻿internal enum SidebarSections
+﻿public enum SidebarSections
 {
     skills,
     resources,

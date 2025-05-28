@@ -2,7 +2,6 @@
 {
     None,
     Failure,
-    BasicSuccess,
-    GoodSuccess,
-    ExcellentSuccess,
+    Success,
+    Timeout
 }

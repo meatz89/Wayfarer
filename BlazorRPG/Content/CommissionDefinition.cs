@@ -46,7 +46,7 @@
     }
 
     // Add progress and handle step transitions
-    public void AddProgress(int progress, GameState gameState)
+    public void AddProgress(int progress, GameWorld gameState)
     {
         CurrentProgress += progress;
 
@@ -65,7 +65,7 @@
     }
 
     // Generate the next step based on completed steps and approach used
-    private CommissionStep GenerateNextStep(GameState gameState)
+    private CommissionStep GenerateNextStep(GameWorld gameState)
     {
         // For a POC, we can implement a simple step generation
         // In a full implementation, this would use more sophisticated logic
@@ -86,7 +86,7 @@
         return nextStep;
     }
 
-    private string DetermineNextLocationId(CommissionStep previousStep, GameState gameState)
+    private string DetermineNextLocationId(CommissionStep previousStep, GameWorld gameState)
     {
         // Simple implementation - alternate between locations
         // In a full implementation, this would use more sophisticated logic
@@ -110,7 +110,7 @@
             Id = $"physical_followup_{Guid.NewGuid()}",
             Name = "Physical Approach",
             Description = "Use physical means to follow up on your findings.",
-            RequiredCardType = SkillCategories.Physical
+            RequiredCardType = ActionTypes.Physical
         });
 
         approaches.Add(new ApproachDefinition
@@ -118,7 +118,7 @@
             Id = $"intellectual_followup_{Guid.NewGuid()}",
             Name = "Intellectual Approach",
             Description = "Apply analytical thinking to advance your investigation.",
-            RequiredCardType = SkillCategories.Intellectual
+            RequiredCardType = ActionTypes.Intellectual
         });
 
         approaches.Add(new ApproachDefinition
@@ -126,7 +126,7 @@
             Id = $"social_followup_{Guid.NewGuid()}",
             Name = "Social Approach",
             Description = "Use interpersonal skills to gather more information.",
-            RequiredCardType = SkillCategories.Social
+            RequiredCardType = ActionTypes.Social
         });
 
         return approaches;

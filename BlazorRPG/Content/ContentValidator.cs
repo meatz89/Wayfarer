@@ -2,7 +2,7 @@
 {
     private readonly WorldState _worldState;
 
-    public ContentValidator(GameState gameState)
+    public ContentValidator(GameWorld gameState)
     {
         _worldState = gameState.WorldState;
     }
@@ -16,7 +16,7 @@
         {
             foreach (string locationSpotId in location.LocationSpotIds)
             {
-                if (!_worldState.locationSpots.Any(ls => ls.Id == locationSpotId))
+                if (!_worldState.locationSpots.Any(ls => ls.SpotID == locationSpotId))
                 {
                     result.AddMissingLocationSpot(locationSpotId, location);
                 }
@@ -27,7 +27,7 @@
         {
             if (!_worldState.locationSpots.Any((Func<LocationSpot, bool>)(ls =>
             {
-                return ls.Id == actionDefinition.LocationSpotId;
+                return ls.SpotID == actionDefinition.LocationSpotId;
             })))
             {
                 // Need to get the locationId for this spot, not just use the spotId twice

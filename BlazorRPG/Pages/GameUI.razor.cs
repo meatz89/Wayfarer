@@ -5,8 +5,8 @@ namespace BlazorRPG.Pages;
 public partial class GameUI : ComponentBase
 {
     [Inject] private ContentValidator ContentValidator { get; set; }
-    [Inject] private GameState GameState { get; set; }
-    [Inject] private GameManager GameManager { get; set; }
+    [Inject] private GameWorld GameState { get; set; }
+    [Inject] private GameWorldManager GameManager { get; set; }
 
     private Timer _pollingTimer;
     private bool _previousLoadingState;
@@ -19,7 +19,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return GameState.PlayerState;
+            return GameState.Player;
         }
     }
 

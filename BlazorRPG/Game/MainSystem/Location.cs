@@ -31,7 +31,7 @@
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }
-    public List<LocationSpot> LocationSpots { get; internal set; } = new List<LocationSpot>();
+    public List<LocationSpot> LocationSpots { get; set; } = new List<LocationSpot>();
 
     public List<ILocationProperty> GetLocationProperties(TimeWindowTypes timeOfDay)
     {
