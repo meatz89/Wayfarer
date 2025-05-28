@@ -1,12 +1,12 @@
 ﻿public class AIGenerationQueue
 {
-    private readonly object _queueLock = new object();
-    private readonly PriorityQueue<AIGenerationCommand, (int Priority, DateTime Timestamp)> _queue = new();
-    private readonly Dictionary<string, TaskCompletionSource<string>> _pendingResults = new();
-    private readonly IAIProvider _aiProvider;
-    private readonly string _gameInstanceId;
-    private readonly NarrativeLogManager _logManager;
-    private readonly ILogger<EncounterSystem> _logger;
+    private object _queueLock = new object();
+    private PriorityQueue<AIGenerationCommand, (int Priority, DateTime Timestamp)> _queue = new();
+    private Dictionary<string, TaskCompletionSource<string>> _pendingResults = new();
+    private IAIProvider _aiProvider;
+    private string _gameInstanceId;
+    private NarrativeLogManager _logManager;
+    private ILogger<EncounterSystem> _logger;
     private bool _isProcessing = false;
 
     public AIGenerationQueue(

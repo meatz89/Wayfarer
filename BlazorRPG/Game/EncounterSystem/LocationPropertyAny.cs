@@ -3,7 +3,7 @@
 /// </summary>
 public class LocationPropertyAny : ILocationProperty
 {
-    private readonly string _propertyType;
+    private string _propertyType;
 
     public LocationPropertyAny(string propertyType)
     {

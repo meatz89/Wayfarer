@@ -2,7 +2,7 @@
 
 public static class GameStateSerializer
 {
-    private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    private static JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
         WriteIndented = true
     };

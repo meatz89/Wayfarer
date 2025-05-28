@@ -1,6 +1,6 @@
 ﻿public class EncounterChoiceResponseProcessor
 {
-    private readonly PayloadRegistry _payloadRegistry;
+    private PayloadRegistry _payloadRegistry;
 
     public EncounterChoiceResponseProcessor(PayloadRegistry payloadRegistry, ILogger<EncounterChoiceResponseProcessor> logger)
     {

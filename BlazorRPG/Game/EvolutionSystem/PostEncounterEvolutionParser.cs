@@ -2,7 +2,7 @@
 
 public class PostEncounterEvolutionParser
 {
-    private readonly ILogger<PostEncounterEvolutionParser> _logger;
+    private ILogger<PostEncounterEvolutionParser> _logger;
 
     public PostEncounterEvolutionParser(
         ILogger<PostEncounterEvolutionParser> logger = null)

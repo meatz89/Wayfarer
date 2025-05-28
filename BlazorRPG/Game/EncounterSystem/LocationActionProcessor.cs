@@ -3,8 +3,8 @@ using System.Numerics;
 
 public class LocationActionProcessor
 {
-    private readonly LocationRepository _locationRepository;
-    private readonly WorldState worldState;
+    private LocationRepository _locationRepository;
+    private WorldState worldState;
 
     public LocationActionProcessor(
         GameWorld gameState,

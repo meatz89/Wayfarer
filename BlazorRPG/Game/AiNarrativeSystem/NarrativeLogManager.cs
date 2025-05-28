@@ -5,7 +5,7 @@ public class NarrativeLogManager
 {
     private string _baseLogDirectory;
     private string _sessionDirectory;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private JsonSerializerOptions _jsonOptions;
 
     public NarrativeLogManager()
     {

@@ -1,6 +1,6 @@
 ﻿public class ActionRepository
 {
-    private readonly WorldState _worldState;
+    private WorldState _worldState;
 
     public ActionRepository(GameWorld gameState)
     {

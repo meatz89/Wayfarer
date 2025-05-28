@@ -1,7 +1,7 @@
 ﻿public class EncounterContextManager
 {
     // Store the full history for record-keeping
-    private readonly Dictionary<string, List<ConversationEntry>> _fullConversationHistories = new();
+    private Dictionary<string, List<ConversationEntry>> _fullConversationHistories = new();
 
     // Initialize a conversation with system message and introduction
     public void InitializeConversation(string conversationId, string systemMessage, string userMessage)

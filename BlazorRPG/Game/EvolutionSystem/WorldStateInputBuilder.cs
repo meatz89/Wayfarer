@@ -2,7 +2,7 @@
 
 public class WorldStateInputBuilder
 {
-    private readonly GameWorld gameState;
+    private GameWorld gameState;
     public LocationSystem LocationSystem { get; }
     public CharacterSystem CharacterSystem { get; }
     public OpportunitySystem OpportunitySystem { get; }

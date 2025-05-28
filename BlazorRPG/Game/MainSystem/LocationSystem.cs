@@ -2,8 +2,8 @@
 
 public class LocationSystem
 {
-    private readonly LocationRepository locationRepository;
-    private readonly GameWorld gameState;
+    private LocationRepository locationRepository;
+    private GameWorld gameState;
 
     public LocationSystem(GameWorld gameState, LocationRepository locationRepo)
     {

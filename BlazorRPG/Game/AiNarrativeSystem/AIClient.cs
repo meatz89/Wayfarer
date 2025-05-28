@@ -1,8 +1,8 @@
 ﻿public class AIClient
 {
-    private readonly AIGenerationQueue _queue;
-    private readonly string _gameInstanceId;
-    private readonly LoadingStateService _loadingStateService;
+    private AIGenerationQueue _queue;
+    private string _gameInstanceId;
+    private LoadingStateService _loadingStateService;
 
     // Priority constants
     public const int PRIORITY_IMMEDIATE = 1;

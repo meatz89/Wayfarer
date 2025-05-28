@@ -3,12 +3,12 @@
 /// </summary>
 public class ActionGenerator
 {
-    private readonly ActionRepository actionRepository;
-    private readonly LocationRepository locationRepository;
-    private readonly WorldStateInputBuilder _worldStateInputCreator;
-    private readonly IConfiguration _configuration;
-    private readonly IAIService _aiService;
-    private readonly WorldState worldState;
+    private ActionRepository actionRepository;
+    private LocationRepository locationRepository;
+    private WorldStateInputBuilder _worldStateInputCreator;
+    private IConfiguration _configuration;
+    private IAIService _aiService;
+    private WorldState worldState;
 
     public ActionGenerator(
         GameWorld gameState,

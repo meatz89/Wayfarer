@@ -9,10 +9,10 @@ public interface IResponseStreamWatcher
 
 public class ConsoleResponseWatcher : IResponseStreamWatcher
 {
-    private readonly StringBuilder _responseBuilder = new StringBuilder();
+    private StringBuilder _responseBuilder = new StringBuilder();
     private int _currentLineLength = 0;
     private int _totalLength = 0;
-    private readonly int _maxLineLength;
+    private int _maxLineLength;
 
     public ConsoleResponseWatcher()
     {

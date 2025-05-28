@@ -3,11 +3,11 @@ using System.Text.Json;
 
 public class OllamaProvider : IAIProvider
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<EncounterSystem> _logger;
-    private readonly string _baseUrl;
-    private readonly string _modelName = "gemma3:12b-it-qat";
-    private readonly string _fallbackModel = "gemma3:2b-it";
+    private HttpClient _httpClient;
+    private ILogger<EncounterSystem> _logger;
+    private string _baseUrl;
+    private string _modelName = "gemma3:12b-it-qat";
+    private string _fallbackModel = "gemma3:2b-it";
 
     public string Name
     {

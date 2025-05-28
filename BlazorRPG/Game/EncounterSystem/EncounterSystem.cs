@@ -1,15 +1,15 @@
 ﻿public class EncounterSystem
 {
-    private readonly GameWorld gameState;
-    private readonly MessageSystem messageSystem;
-    private readonly IConfiguration configuration;
-    private readonly ILogger<EncounterSystem> logger;
+    private GameWorld gameState;
+    private MessageSystem messageSystem;
+    private IConfiguration configuration;
+    private ILogger<EncounterSystem> logger;
 
     public WorldState worldState;
     public LocationActionProcessor encounterFactory;
-    private readonly WorldStateInputBuilder worldStateInputCreator;
-    private readonly ChoiceProjectionService choiceProjectionService;
-    private readonly PreGenerationManager _preGenerationManager;
+    private WorldStateInputBuilder worldStateInputCreator;
+    private ChoiceProjectionService choiceProjectionService;
+    private PreGenerationManager _preGenerationManager;
 
 
     private PayloadRegistry payloadRegistry;

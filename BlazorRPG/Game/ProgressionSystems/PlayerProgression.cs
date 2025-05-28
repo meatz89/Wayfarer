@@ -1,7 +1,7 @@
 ﻿public class PlayerProgression
 {
-    private readonly Player playerState;
-    private readonly MessageSystem messageSystem;
+    private Player playerState;
+    private MessageSystem messageSystem;
 
     public PlayerProgression(GameWorld gameState, MessageSystem messageSystem)
     {

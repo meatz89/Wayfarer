@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 public class EncounterChoiceResponseParser
 {
-    private readonly ILogger<EncounterChoiceResponseParser> _logger;
+    private ILogger<EncounterChoiceResponseParser> _logger;
 
     public EncounterChoiceResponseParser(ILogger<EncounterChoiceResponseParser> logger = null)
     {

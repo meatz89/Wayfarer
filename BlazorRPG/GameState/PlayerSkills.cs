@@ -13,7 +13,7 @@
 
 public class PlayerSkills
 {
-    public readonly Dictionary<SkillTypes, SkillProgress> Skills = new();
+    public Dictionary<SkillTypes, SkillProgress> Skills = new();
 
     public PlayerSkills()
     {

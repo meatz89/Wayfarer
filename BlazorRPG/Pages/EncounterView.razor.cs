@@ -4,20 +4,13 @@ using Microsoft.JSInterop;
 using System.Text;
 public partial class EncounterViewBase : ComponentBase
 {
-    [Inject] public IJSRuntime JSRuntime { get; set; }
-
     [Inject] public GameWorld GameState { get; set; }
     [Inject] public GameWorldManager GameManager { get; set; }
-    [Parameter] public EncounterManager EncounterManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
+
+    [Parameter] public EncounterManager EncounterManager { get; set; }
+    [Inject] public IJSRuntime JSRuntime { get; set; }
     private IJSObjectReference _tooltipModule;
-    public Player PlayerState
-    {
-        get
-        {
-            return GameState.Player;
-        }
-    }
 
     public UserEncounterChoiceOption hoveredChoice;
     public bool showTooltip;
@@ -28,6 +21,14 @@ public partial class EncounterViewBase : ComponentBase
 
     public EncounterResult EncounterResult { get; private set; }
     public List<UserEncounterChoiceOption> CurrentChoices { get; set; } = new();
+
+    public Player PlayerState
+    {
+        get
+        {
+            return GameState.Player;
+        }
+    }
 
     public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption)
     {
