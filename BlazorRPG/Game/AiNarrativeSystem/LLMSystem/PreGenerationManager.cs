@@ -1,25 +1,25 @@
 ﻿public class PreGenerationManager
 {
-    private Dictionary<string, Task<AIGameMasterResponse>> _pendingGenerations;
-    private Dictionary<string, AIGameMasterResponse> _cachedResults;
+    private Dictionary<string, Task<BeatResponse>> _pendingGenerations;
+    private Dictionary<string, BeatResponse> _cachedResults;
     private CancellationTokenSource _cancellationTokenSource;
     private ILogger<EncounterSystem> _logger;
 
     public PreGenerationManager(ILogger<EncounterSystem> logger = null)
     {
-        _pendingGenerations = new Dictionary<string, Task<AIGameMasterResponse>>();
-        _cachedResults = new Dictionary<string, AIGameMasterResponse>();
+        _pendingGenerations = new Dictionary<string, Task<BeatResponse>>();
+        _cachedResults = new Dictionary<string, BeatResponse>();
         _cancellationTokenSource = new CancellationTokenSource();
         _logger = logger;
     }
 
-    public void StartPreGeneration(string choiceId, Task<AIGameMasterResponse> generationTask)
+    public void StartPreGeneration(string choiceId, Task<BeatResponse> generationTask)
     {
         _logger?.LogInformation($"Starting pre-generation for choice: {choiceId}");
         _pendingGenerations[choiceId] = generationTask;
     }
 
-    public bool TryGetCachedResult(string choiceId, out AIGameMasterResponse result)
+    public bool TryGetCachedResult(string choiceId, out BeatResponse result)
     {
         bool hasResult = _cachedResults.TryGetValue(choiceId, out result);
         if (hasResult)
@@ -29,7 +29,7 @@
         return hasResult;
     }
 
-    public void StoreCompletedResult(string choiceId, AIGameMasterResponse result)
+    public void StoreCompletedResult(string choiceId, BeatResponse result)
     {
         _logger?.LogInformation($"Completed pre-generation for choice: {choiceId}");
         _cachedResults[choiceId] = result;

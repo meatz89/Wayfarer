@@ -18,32 +18,14 @@ public class AIPromptBuilder
     public AIPromptBuilder(IConfiguration configuration)
     {
         // Load prompts from JSON files
-        AIPrompt promptsPath = configuration.GetValue<string>("NarrativePromptsPath") ?? "Data/Prompts";
+        string promptsPath = configuration.GetValue<string>("NarrativePromptsPath") ?? "Data/Prompts";
 
         // Load all prompt templates
         promptTemplates = new Dictionary<string, string>();
         LoadPromptTemplates(promptsPath);
     }
 
-    public AIPrompt BuildChoicesPrompt(EncounterContext encounterContext, EncounterState encounterState)
-    {
-        string prompt = promptTemplates[CHOICES_MD];
-
-        // Basic encounter info
-        prompt = prompt.Replace("{ENCOUNTER_TYPE}", GetSkillCategoryDescription(encounterContext.SkillCategory));
-
-        // Player status
-        prompt = prompt.Replace("{PLAYER_STATUS}", BuildPlayerStatusSection(encounterState, encounterContext.PlayerState));
-
-        return new AIPrompt()
-        {
-            Content = prompt,
-            Model = "gemma3-12b"
-        };
-    }
-
-
-    public string BuildInitialPrompt(
+    public AIPrompt BuildInitialPrompt(
         EncounterContext encounterContext,
         EncounterState encounterState,
         string memoryContent)
@@ -51,15 +33,15 @@ public class AIPromptBuilder
         string template = promptTemplates[INTRO_MD];
 
         // Format environment and NPC details
-        string environmentDetails = $"A {encounterContext.LocationID.ToLower()} in a {encounterContext.LocationName.ToLower()}";
-        string npcList = GetCharactersAtLocation(encounterContext.LocationName, characters, relationshipList);
+        string environmentDetails = $"A {encounterContext.LocationSpotName.ToLower()} in a {encounterContext.LocationName.ToLower()}";
+        string npcList = "";
         if (string.IsNullOrWhiteSpace(npcList))
         {
             npcList = "None";
         }
 
         // Format player character info
-        string characterArchetype = encounterContext.PlayerState.Archetype.ToString();
+        string characterArchetype = encounterContext.Player.Archetype.ToString();
         string playerStatus = $"Archetype: {characterArchetype}";
 
         // Get action and approach information
@@ -67,27 +49,32 @@ public class AIPromptBuilder
         string actionGoal = locationAction.ObjectiveDescription;
 
         // Get chosen approach - CRITICAL ADDITION
-        string approachName = encounterContext.Approach?.Name ?? "General approach";
-        string approachDescription = encounterContext.Approach?.Description ?? "Using available skills";
+        string approachName = encounterContext.ActionApproach?.Name ?? "General approach";
+        string approachDescription = encounterContext.ActionApproach?.Description ?? "Using available skills";
         string approachDetails = $"{approachName}: {approachDescription}";
 
         // Replace placeholders in template
-        AIPrompt prompt = template
+        AIPrompt prompt = new AIPrompt()
+        {
+            Content = CreatePromptJson(
+            template
             .Replace("{ENCOUNTER_TYPE}", encounterContext.SkillCategory.ToString())
             .Replace("{LOCATION_NAME}", encounterContext.LocationName)
-            .Replace("{LOCATION_SPOT}", encounterContext.LocationID)
+            .Replace("{LOCATION_SPOT}", encounterContext.LocationSpotName)
             .Replace("{CHARACTER_ARCHETYPE}", characterArchetype)
             .Replace("{CHARACTER_GOAL}", actionGoal)
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
             .Replace("{PLAYER_STATUS}", playerStatus)
             .Replace("{NPC_LIST}", npcList)
             .Replace("{MEMORY_CONTENT}", memoryContent ?? "")
-            .Replace("{CHOSEN_APPROACH}", approachDetails);
+            .Replace("{CHOSEN_APPROACH}", approachDetails)
+        )
+        };
 
-        return CreatePromptJson(prompt);
+        return prompt;
     }
 
-    public string BuildReactionPrompt(
+    public AIPrompt BuildReactionPrompt(
         EncounterContext context,
         EncounterState encounterState,
         EncounterChoice chosenOption,
@@ -101,19 +88,24 @@ public class AIPromptBuilder
         string environmentDetails = $"A {context.LocationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
 
         // Format player character info
-        string characterArchetype = context.PlayerState.Archetype.ToString();
+        string characterArchetype = context.Player.Archetype.ToString();
         string playerStatus = $"Archetype: {characterArchetype}";
 
         string choiceDescription = chosenOption.NarrativeText;
 
-        AIPrompt prompt = template
+        AIPrompt prompt = new AIPrompt()
+        {
+            Content = CreatePromptJson(
+            template
             .Replace("{ENCOUNTER_TYPE}", context.SkillCategory.ToString())
             .Replace("{LOCATION_NAME}", context.LocationName)
             .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
             .Replace("{PLAYER_STATUS}", playerStatus)
-            .Replace("{SELECTED_CHOICE}", choiceDescription);
+            .Replace("{SELECTED_CHOICE}", choiceDescription)
+            )
+        };
 
-        return CreatePromptJson(prompt);
+        return prompt;
     }
 
 
@@ -195,6 +187,38 @@ public class AIPromptBuilder
         return status.ToString().TrimEnd();
     }
 
+    public AIPrompt BuildChoicesPrompt(
+        EncounterContext context,
+        EncounterState encounterState,
+        WorldStateInput worldStateInput)
+    {
+        string template = promptTemplates[CHOICES_MD];
+
+        // Get player status
+        string playerStatus = $"- Focus Points: {encounterState.FocusPoints}/{encounterState.MaxFocusPoints}\n";
+
+        // Get encounter type and tier
+        string encounterType = context.SkillCategory.ToString();
+        string encounterTier = GetTierName(encounterState.DurationCounter);
+        int successThreshold = 10; // Basic success threshold
+
+        // Replace placeholders in template
+        AIPrompt prompt = new AIPrompt()
+        {
+            Content = CreatePromptJson(
+            template
+            .Replace("{ENCOUNTER_TYPE}", encounterType)
+            .Replace("{CURRENT_STAGE}", encounterState.DurationCounter.ToString())
+            .Replace("{ENCOUNTER_TIER}", encounterTier)
+            .Replace("{CURRENT_PROGRESS}", encounterState.CurrentProgress.ToString())
+            .Replace("{SUCCESS_THRESHOLD}", successThreshold.ToString())
+            .Replace("{PLAYER_STATUS}", playerStatus)
+            .Replace("{CURRENT_NARRATIVE}", encounterState.CurrentNarrative))
+        };
+
+        return prompt;
+    }
+
     private static string BuildChoicesInfo(EncounterContext context, List<EncounterChoice> choices, List<ChoiceProjection> projections)
     {
         string choicesInfo = string.Empty;
@@ -230,8 +254,8 @@ public class AIPromptBuilder
                 choiceText += "This choice will end the encounter\n";
                 choiceText += $"Projected Final Outcome: {projection.ProjectedOutcome}\n";
                 choiceText += $"Goal Achievement: " +
-                    $"{(projection.ProjectedOutcome != EncounterOutcomes.Failure ?
-                    "Will achieve goal to" : "Will fail to")} {context.locationAction.ObjectiveDescription}\n";
+                    $"{(projection.ProjectedOutcome != BeatOutcomes.Failure ?
+                    "Will achieve goal to" : "Will fail to")} {context.LocationAction.ObjectiveDescription}\n";
             }
 
             choicesInfo += choiceText;
@@ -240,9 +264,9 @@ public class AIPromptBuilder
         return choicesInfo;
     }
 
-    public string BuildEncounterEndPrompt(
+    public AIPrompt BuildEncounterEndPrompt(
         EncounterContext context,
-        EncounterOutcomes outcome,
+        BeatOutcomes outcome,
         EncounterChoice finalChoice
         )
     {
@@ -250,23 +274,20 @@ public class AIPromptBuilder
 
         // Get the last narrative event
         string lastNarrative = "No previous narrative available.";
-        if (context.Events.Count > 0)
-        {
-            NarrativeEvent lastEvent = context.Events[context.Events.Count - 1];
-            lastNarrative = lastEvent.Summary;
-        }
 
         // Extract encounter goal from inciting action
-        string encounterGoal = context.locationAction.ObjectiveDescription;
+        string encounterGoal = context.LocationAction.ObjectiveDescription;
 
         // Add goal achievement status
-        string goalAchievementStatus = outcome != EncounterOutcomes.Failure
+        string goalAchievementStatus = outcome != BeatOutcomes.Failure
             ? $"You have successfully achieved your goal to {encounterGoal}"
             : $"You have failed to {encounterGoal}";
 
         string choiceDescription = finalChoice.NarrativeText;
-        // Replace placeholders in template
-        AIPrompt prompt = template
+        AIPrompt prompt = new AIPrompt()
+        {
+            Content = CreatePromptJson(
+            template
             .Replace("{SELECTED_CHOICE}", choiceDescription)
             .Replace("{ENCOUNTER_TYPE}", context.SkillCategory.ToString())
             .Replace("{ENCOUNTER_OUTCOME}", outcome.ToString())
@@ -274,9 +295,10 @@ public class AIPromptBuilder
             .Replace("{LOCATION_SPOT}", context.LocationSpotName)
             .Replace("{CHARACTER_GOAL}", encounterGoal)
             .Replace("{LAST_NARRATIVE}", lastNarrative)
-            .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus);
+            .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus))
+        };
 
-        return CreatePromptJson(prompt);
+        return prompt;
     }
 
     public static string CreatePromptJson(string markdownContent)
@@ -337,11 +359,14 @@ public class AIPromptBuilder
         return mdContent;
     }
 
-    public string BuildPostEncounterEvolutionPrompt(PostEncounterEvolutionInput input)
+    public AIPrompt BuildPostEncounterEvolutionPrompt(PostEncounterEvolutionInput input)
     {
         string template = promptTemplates[WORLD_EVOLUTION_MD];
 
-        return template
+        AIPrompt prompt = new AIPrompt()
+        {
+            Content = CreatePromptJson(
+            template
             .Replace("{characterBackground}", input.CharacterBackground)
             .Replace("{currentLocation}", input.CurrentLocation)
             .Replace("{encounterOutcome}", input.EncounterOutcome)
@@ -357,31 +382,41 @@ public class AIPromptBuilder
             .Replace("{activeOpportunities}", input.ActiveOpportunities)
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
             .Replace("{connectedLocations}", input.ConnectedLocations)
-            .Replace("{locationDepth}", input.CurrentDepth.ToString());
+            .Replace("{locationDepth}", input.CurrentDepth.ToString()))
+        };
+        return prompt;
     }
 
-    public string BuildLocationCreationPrompt(LocationCreationInput input)
+    public AIPrompt BuildLocationCreationPrompt(LocationCreationInput input)
     {
         string template = promptTemplates[LOCATION_GENERATION_MD];
 
-        // Replace placeholders in template
-        AIPrompt prompt = template
+        AIPrompt prompt = new AIPrompt()
+        {
+            Content = CreatePromptJson(
+            template
             .Replace("{characterArchetype}", input.CharacterArchetype)
             .Replace("{locationName}", input.TravelDestination)
             .Replace("{allKnownLocations}", input.KnownLocations)
             .Replace("{originLocationName}", input.TravelOrigin)
             .Replace("{knownCharacters}", input.KnownCharacters)
-            .Replace("{activeOpportunities}", input.ActiveOpportunities);
+            .Replace("{activeOpportunities}", input.ActiveOpportunities))
+        };
 
-        return CreatePromptJson(prompt);
+        return prompt;
     }
 
-    public string BuildMemoryPrompt(MemoryConsolidationInput input)
+    public AIPrompt BuildMemoryPrompt(MemoryConsolidationInput input)
     {
         string template = promptTemplates[MEMORY_CONSOLIDATION_MD];
 
-        AIPrompt prompt = template
-            .Replace("{FILE_CONTENT}", input.OldMemory);
+        AIPrompt prompt = new AIPrompt()
+        {
+            Content = CreatePromptJson(
+            template
+            .Replace("{FILE_CONTENT}", input.OldMemory)
+            )
+        };
 
         return prompt;
     }
@@ -459,46 +494,18 @@ public class AIPromptBuilder
         }
     }
 
-    public string BuildActionGenerationPrompt(ActionGenerationContext context)
+    public AIPrompt BuildActionGenerationPrompt(ActionGenerationContext context)
     {
         string template = promptTemplates[ACTION_GENERATION_MD];
 
-        AIPrompt prompt = template
+        AIPrompt prompt = new AIPrompt()
+        {
+            Content = CreatePromptJson(
+            template
             .Replace("{ACTIONNAME}", context.ActionId)
             .Replace("{SPOT_NAME}", context.SpotName)
-            .Replace("{LOCATION_NAME}", context.LocationName);
-
-        return CreatePromptJson(prompt);
-    }
-
-    public string BuildEncounterChoicesPrompt(
-    EncounterContext context,
-    EncounterState encounterState,
-    WorldStateInput worldStateInput)
-    {
-        string template = promptTemplates[CHOICES_MD];
-
-        // Get the current encounter situation
-        NarrativeEvent narrativeEvent = context.Events.LastOrDefault();
-        string currentNarrative = narrativeEvent?.Summary ?? "The encounter has just begun.";
-
-        // Get player status
-        string playerStatus = $"- Focus Points: {encounterState.FocusPoints}/{encounterState.MaxFocusPoints}\n";
-
-        // Get encounter type and tier
-        string encounterType = context.SkillCategory.ToString();
-        string encounterTier = GetTierName(encounterState.DurationCounter);
-        int successThreshold = 10; // Basic success threshold
-
-        // Replace placeholders in template
-        AIPrompt prompt = template
-            .Replace("{ENCOUNTER_TYPE}", encounterType)
-            .Replace("{CURRENT_STAGE}", encounterState.DurationCounter.ToString())
-            .Replace("{ENCOUNTER_TIER}", encounterTier)
-            .Replace("{CURRENT_PROGRESS}", encounterState.CurrentProgress.ToString())
-            .Replace("{SUCCESS_THRESHOLD}", successThreshold.ToString())
-            .Replace("{PLAYER_STATUS}", playerStatus)
-            .Replace("{CURRENT_NARRATIVE}", currentNarrative);
+            .Replace("{LOCATION_NAME}", context.LocationName))
+        };
 
         return prompt;
     }

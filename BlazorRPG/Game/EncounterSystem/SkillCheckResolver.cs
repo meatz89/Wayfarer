@@ -1,6 +1,6 @@
 ﻿public class SkillCheckResolver
 {
-    public SkillCheckResult ResolveCheck(SkillOption option, EncounterState state)
+    public SkillCheckResult Resolve(SkillOption option, EncounterState state)
     {
         SkillCard card = FindSkillCard(option.RequiredSkillName, state.Player);
 

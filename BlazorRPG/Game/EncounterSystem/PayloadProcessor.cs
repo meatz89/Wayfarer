@@ -9,7 +9,7 @@
         this.state = state;
     }
 
-    public void Apply(string payloadID, EncounterState state)
+    public void ApplyPayload(string payloadID, EncounterState state)
     {
         IMechanicalEffect effect = registry.GetEffect(payloadID);
 

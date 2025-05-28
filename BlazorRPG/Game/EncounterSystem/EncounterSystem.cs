@@ -15,7 +15,6 @@
     private PayloadRegistry payloadRegistry;
     private EncounterManager encounterManager;
     private AIGameMaster aiGameMaster;
-    private EncounterUIController uiController;
 
     public EncounterSystem(
         GameWorld gameState,
@@ -84,7 +83,7 @@
 
         gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
 
-        AIGameMasterResponse initialResult = await encounterManager.StartEncounter(
+        BeatResponse initialResult = await encounterManager.InitializeEncounter(
             location,
             encounter,
             worldState,
@@ -107,12 +106,12 @@
     }
 
     public async Task<EncounterResult> ExecuteChoice(
-        AIGameMasterResponse AIResponse,
+        BeatResponse AIResponse,
         EncounterChoice choice)
     {
         logger.LogInformation("ExecuteChoice called for choice: {ChoiceId}", choice?.ChoiceID);
-        AIGameMasterResponse currentNarrative = AIResponse;
-        AIGameMasterResponse cachedResult = null;
+        BeatResponse currentNarrative = AIResponse;
+        BeatResponse cachedResult = null;
 
         EncounterManager encounterManager = GetEncounterManager();
         bool isInitialChoice = encounterManager.IsInitialState;
@@ -133,19 +132,12 @@
         return encounterManager.EncounterResult;
     }
 
-    private EncounterResult CreateEncounterResult(EncounterManager encounter, AIGameMasterResponse currentNarrative)
+    private EncounterResult CreateEncounterResult(EncounterManager encounter, BeatResponse currentNarrative)
     {
         if (currentNarrative.IsEncounterOver)
         {
-            if (currentNarrative.Outcome == EncounterOutcomes.Failure)
+            if (currentNarrative.Outcome == BeatOutcomes.Failure)
             {
-                logger.LogInformation("Encounter ended in failure. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
-                    encounter.locationAction?.ActionId,
-                    currentNarrative.Outcome,
-                    currentNarrative?.ToString(),
-                    currentNarrative?.AvailableChoices?.Count ?? 0,
-                    currentNarrative.IsEncounterOver);
-
                 EncounterResult failureResult = new EncounterResult()
                 {
                     locationAction = encounter.locationAction,
@@ -176,13 +168,6 @@
                 return successResult;
             }
         }
-
-        logger.LogInformation("Encounter ongoing. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
-            encounter.locationAction?.ActionId,
-            currentNarrative.Outcome,
-            currentNarrative?.ToString(),
-            currentNarrative?.AvailableChoices?.Count ?? 0,
-            currentNarrative.IsEncounterOver);
 
         EncounterResult ongoingResult = new EncounterResult()
         {
@@ -216,24 +201,7 @@
             }
 
             commission.AddProgress(progress, gameState);
-
-            if (commission.IsComplete())
-            {
-                CompleteCommission(commission, gameState);
-            }
         }
-    }
-
-    private void CompleteCommission(CommissionDefinition commission, GameWorld gameState)
-    {
-        gameState.Player.AddSilver(commission.SilverReward);
-        gameState.Player.AddReputation(commission.ReputationReward);
-        gameState.Player.AddInsightPoints(commission.InsightPointReward);
-
-        messageSystem.AddSystemMessage($"Commission completed: {commission.Name}");
-
-        gameState.WorldState.CompletedCommissions.Add(commission);
-        gameState.WorldState.ActiveCommissions.Remove(commission);
     }
 
     public List<EncounterChoice> GetChoices()

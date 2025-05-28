@@ -45,11 +45,11 @@
         // Apply appropriate payload
         if (success)
         {
-            ApplyPayload(selectedOption.SuccessPayload.MechanicalEffectID, state);
+            ApplyPayload(selectedOption.SuccessPayload.ID, state);
         }
         else
         {
-            ApplyPayload(selectedOption.FailurePayload.MechanicalEffectID, state);
+            ApplyPayload(selectedOption.FailurePayload.ID, state);
         }
 
         // If this was a recovery action (0 Focus cost), increment consecutive recovery count
@@ -98,19 +98,19 @@
         return 1; // Minimal progress for failed action
     }
 
-    private EncounterOutcomes DetermineOutcome(EncounterState state, int progressGained)
+    private BeatOutcomes DetermineOutcome(EncounterState state, int progressGained)
     {
         if (!state.IsEncounterComplete)
         {
-            return EncounterOutcomes.None;
+            return BeatOutcomes.None;
         }
 
         int projectedTotalProgress = state.CurrentProgress + progressGained;
         int successThreshold = 10; // Basic success threshold
 
         return projectedTotalProgress >= successThreshold
-            ? EncounterOutcomes.Success
-            : EncounterOutcomes.Failure;
+            ? BeatOutcomes.Success
+            : BeatOutcomes.Failure;
     }
 
     private void ApplyPayload(string payloadID, EncounterState state)
@@ -126,11 +126,11 @@
         }
     }
 
-    private string GetMechanicalDescriptionForPayload(AIPayload payload)
+    private string GetMechanicalDescriptionForPayload(PayloadEntry payload)
     {
-        if (_payloadRegistry.HasEffect(payload.MechanicalEffectID))
+        if (_payloadRegistry.HasEffect(payload.ID))
         {
-            IMechanicalEffect effect = _payloadRegistry.GetEffect(payload.MechanicalEffectID);
+            IMechanicalEffect effect = _payloadRegistry.GetEffect(payload.ID);
             return effect.GetDescriptionForPlayer();
         }
         return "Unknown effect";

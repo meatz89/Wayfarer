@@ -21,20 +21,20 @@ public class LocationActionProcessor
             LocationName = spot.Name,
             LocationDescription = spot.GetCurrentDescription(),
             ActionName = action.Name,
-            ActionType = action.RequiredCardType, // Physical/Intellectual/Social
+            SkillCategory = action.RequiredCardType, // Physical/Intellectual/Social
             ObjectiveDescription = action.ObjectiveDescription,
             PlayerSkillCards = player.GetCardsOfType(action.RequiredCardType),
             StartingFocusPoints = CalculateFocusPoints(action.Complexity),
             TargetNPC = spot.PrimaryNPC,
             LocationProperties = spot.GetCurrentProperties()
-        }
+        };
 
         return encounterContext;
     }
 
-    private object CalculateFocusPoints(object complexity)
+    private int CalculateFocusPoints(int complexity)
     {
-        throw new NotImplementedException();
+        return complexity; // For simplicity, using complexity directly as focus points
     }
 
     private List<EncounterStage> GenerateUniversalFiveStageStructure()

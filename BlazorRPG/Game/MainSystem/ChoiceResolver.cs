@@ -22,11 +22,11 @@
 
         // Apply appropriate payload
         string payloadID = checkResult.IsSuccess ?
-            selectedSkillOption.SuccessPayload.MechanicalEffectID :
-            selectedSkillOption.FailurePayload.MechanicalEffectID;
+            selectedSkillOption.SuccessPayload.ID :
+            selectedSkillOption.FailurePayload.ID;
 
         PayloadProcessor payloadProcessor = new PayloadProcessor(payloadRegistry, state);
-        payloadProcessor.Apply(payloadID, state);
+        payloadProcessor.ApplyPayload(payloadID, state);
 
         return new BeatOutcome
         {
