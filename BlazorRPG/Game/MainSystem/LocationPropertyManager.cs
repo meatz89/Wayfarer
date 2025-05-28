@@ -1,6 +1,6 @@
 ﻿public class LocationPropertyManager
 {
-    private readonly LocationSystem locationSystem;
+    private LocationSystem locationSystem;
 
     public LocationPropertyManager(
         LocationSystem locationSystem)

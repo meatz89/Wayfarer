@@ -3,7 +3,7 @@
     private Dictionary<string, Task<AIGameMasterResponse>> _pendingGenerations;
     private Dictionary<string, AIGameMasterResponse> _cachedResults;
     private CancellationTokenSource _cancellationTokenSource;
-    private readonly ILogger<EncounterSystem> _logger;
+    private ILogger<EncounterSystem> _logger;
 
     public PreGenerationManager(ILogger<EncounterSystem> logger = null)
     {

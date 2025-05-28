@@ -3,6 +3,7 @@
     public string ActionId { get; set; }
     public string Name { get; set; }
     public ActionTypes RequiredCardType { get; set; }
+    public ActionExecutionTypes ActionExecutionType { get; set; } = ActionExecutionTypes.Encounter;
 
     public string ObjectiveDescription { get; set; }
     public string DestinationLocation { get; set; }

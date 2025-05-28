@@ -1,6 +1,6 @@
 ﻿public class ChoiceProjectionService
 {
-    private readonly PayloadRegistry _payloadRegistry;
+    private PayloadRegistry _payloadRegistry;
 
     public ChoiceProjectionService(PayloadRegistry payloadRegistry, Player player)
     {

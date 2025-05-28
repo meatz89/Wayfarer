@@ -6,8 +6,8 @@ public class MemoryFileAccess
     const string fileNameWorld = "worldState.txt";
 
     // Static SemaphoreSlim instances to control file access
-    private static readonly SemaphoreSlim memorySemaphore = new SemaphoreSlim(1, 1);
-    private static readonly SemaphoreSlim worldStateSemaphore = new SemaphoreSlim(1, 1);
+    private static SemaphoreSlim memorySemaphore = new SemaphoreSlim(1, 1);
+    private static SemaphoreSlim worldStateSemaphore = new SemaphoreSlim(1, 1);
 
     public static async Task<string> ReadFromMemoryFile()
     {

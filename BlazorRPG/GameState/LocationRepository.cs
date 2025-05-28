@@ -1,6 +1,6 @@
 ﻿public class LocationRepository
 {
-    private readonly WorldState worldState;
+    private WorldState worldState;
 
     public LocationRepository(GameWorld gameState)
     {

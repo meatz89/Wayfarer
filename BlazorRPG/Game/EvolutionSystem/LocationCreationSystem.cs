@@ -1,15 +1,15 @@
 ﻿public class LocationCreationSystem
 {
-    private readonly LocationSystem locationSystem;
-    private readonly CharacterSystem characterSystem;
-    private readonly OpportunitySystem opportunitySystem;
-    private readonly GameWorld gameState;
-    private readonly ActionGenerator actionGenerator;
-    private readonly LocationRepository locationRepository;
-    private readonly ActionRepository actionRepository;
-    private readonly ActionSystem actionSystem;
-    private readonly WorldStateInputBuilder worldStateInputCreator;
-    private readonly IAIService aiService;
+    private LocationSystem locationSystem;
+    private CharacterSystem characterSystem;
+    private OpportunitySystem opportunitySystem;
+    private GameWorld gameState;
+    private ActionGenerator actionGenerator;
+    private LocationRepository locationRepository;
+    private ActionRepository actionRepository;
+    private ActionSystem actionSystem;
+    private WorldStateInputBuilder worldStateInputCreator;
+    private IAIService aiService;
 
     public LocationCreationSystem(
         LocationSystem locationSystem,

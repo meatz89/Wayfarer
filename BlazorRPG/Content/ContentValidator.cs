@@ -1,6 +1,6 @@
 ﻿public class ContentValidator
 {
-    private readonly WorldState _worldState;
+    private WorldState _worldState;
 
     public ContentValidator(GameWorld gameState)
     {

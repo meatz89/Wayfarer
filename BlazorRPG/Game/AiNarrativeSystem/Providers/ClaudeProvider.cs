@@ -4,15 +4,15 @@ using System.Text.Json;
 public class ClaudeProvider : IAIProvider
 {
     private const string RequestUri = "https://api.anthropic.com/v1/messages";
-    private readonly HttpClient _httpClient;
-    private readonly string _apiKey;
-    private readonly ILogger<EncounterSystem> _logger;
+    private HttpClient _httpClient;
+    private string _apiKey;
+    private ILogger<EncounterSystem> _logger;
 
     // Retry configuration
     private const int MaxRetryAttempts = 10;
     private const int FallbackToBackupAfterAttempts = 5;
     private const int InitialDelayMilliseconds = 1000;
-    private readonly Random _jitterer = new Random();
+    private Random _jitterer = new Random();
 
     public string Name
     {

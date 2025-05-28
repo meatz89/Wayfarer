@@ -1,25 +1,22 @@
-﻿using System;
-using static System.Collections.Specialized.BitVector32;
-
-public class GameWorldManager
+﻿public class GameWorldManager
 {
     private bool _useMemory;
     private bool _processStateChanges;
-    private readonly GameWorld gameState;
-    private readonly Player playerState;
-    private readonly WorldState worldState;
-    private readonly EncounterSystem encounterSystem;
-    private readonly PersistentChangeProcessor evolutionSystem;
-    private readonly LocationSystem locationSystem;
-    private readonly MessageSystem messageSystem;
-    private readonly ActionFactory actionFactory;
-    private readonly ActionRepository actionRepository;
-    private readonly LocationRepository locationRepository;
-    private readonly TravelManager travelManager;
-    private readonly ActionGenerator actionGenerator;
-    private readonly PlayerProgression playerProgression;
-    private readonly ActionProcessor actionProcessor;
-    private readonly ContentLoader contentLoader;
+    private GameWorld gameState;
+    private Player playerState;
+    private WorldState worldState;
+    private EncounterSystem encounterSystem;
+    private PersistentChangeProcessor evolutionSystem;
+    private LocationSystem locationSystem;
+    private MessageSystem messageSystem;
+    private ActionFactory actionFactory;
+    private ActionRepository actionRepository;
+    private LocationRepository locationRepository;
+    private TravelManager travelManager;
+    private ActionGenerator actionGenerator;
+    private PlayerProgression playerProgression;
+    private ActionProcessor actionProcessor;
+    private ContentLoader contentLoader;
     public GameWorldManager(GameWorld gameState, EncounterSystem encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
@@ -46,51 +43,6 @@ public class GameWorldManager
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
 
-    private EncounterSystemInitializer encounterSystem;
-    public void Initialize()
-    {
-        // Initialize the encounter system
-        encounterSystem = EncounterSystemInitializer.Instance;
-    }
-
-    public async Task<EncounterResult> RunEncounter(LocationSpot spot, LocationAction action, Player player)
-    {
-        // 1. Initialize encounter context
-        EncounterContext context = actionProcessor.InitializeEncounter(spot, action, player);
-        EncounterState state = CreateEncounterState(context, player);
-
-        // 2. Run encounter beats
-        while (!state.IsEncounterComplete && state.FocusPoints > 0)
-        {
-            // Generate AI choices
-            AIPrompt prompt = promptBuilder.BuildBeatPrompt(context, state);
-            AIGameMasterResponse aiResponse = await aiService.GetResponse(prompt);
-
-            // Present choices to player
-            List<ValidatedChoice> choices = responseProcessor.ProcessAIResponse(aiResponse, state);
-            PlayerChoiceSelection selection = await uiService.PresentChoices(choices);
-
-            // Resolve choice
-            BeatOutcome outcome = choiceResolver.ResolveChoice(selection, state);
-
-            // Update state
-            stateManager.ProcessBeatOutcome(outcome, state);
-
-            // Update UI
-            uiService.UpdateEncounterDisplay(state, outcome);
-        }
-
-        // 3. Process conclusion
-        EncounterConclusion conclusion = await ProcessConclusion(state, context);
-        ApplyPersistentChanges(conclusion);
-
-        return new EncounterResult
-        {
-            Success = DetermineSuccess(state),
-            PersistentChanges = conclusion.ApprovedChanges
-        };
-    }
-
     public async Task StartGame()
     {
         ProcessPlayerArchetype();
@@ -115,14 +67,6 @@ public class GameWorldManager
         await UpdateState();
     }
     
-    // This is called when a player interacts with a location action
-    public void OnLocationActionSelected(LocationAction action, Player player, LocationSpot spot)
-    {
-        // This is the bridge between your world and the encounter system
-        LocationActionProcessor launcher = new EncounterLauncher();
-        launcher.InitializeEncounter(action, player, spot);
-    }
-
     private void ProcessPlayerArchetype()
     {
         Professions archetype = playerState.Archetype;
@@ -218,7 +162,12 @@ public class GameWorldManager
                 actionTemplate = actionRepository.GetAction(actionTemplate.Id);
             }
 
-            LocationAction locationAction = actionFactory.CreateActionFromTemplate(actionTemplate, location.Id, locationSpot.SpotID, ActionExecutionTypes.Instant);
+            LocationAction locationAction = actionFactory.CreateActionFromTemplate(
+                    actionTemplate, 
+                    location.Id, 
+                    locationSpot.SpotID, 
+                    ActionExecutionTypes.Instant);
+
             locationActions.Add(locationAction);
         }
 
@@ -255,7 +204,7 @@ public class GameWorldManager
         {
             case ActionExecutionTypes.Encounter:
                 EncounterManager encounterManager =
-                    await PrepareEncounter(
+                    await RunEncounter(
                         locationAction.ActionId,
                         locationAction.Commission,
                         action.ApproachId,
@@ -272,46 +221,8 @@ public class GameWorldManager
         }
     }
 
-    public async Task ProcessActionCompletion(LocationAction action)
-    {
-        gameState.ActionStateTracker.CompleteAction();
 
-        await HandlePlayerMoving(action);
-
-        actionProcessor.ProcessAction(action);
-
-        await UpdateState();
-    }
-
-    private async Task HandlePlayerMoving(LocationAction locationAction)
-    {
-        string location = locationAction.DestinationLocation;
-        string locationSpot = locationAction.DestinationLocationSpot;
-
-        if (!string.IsNullOrWhiteSpace(location))
-        {
-            travelManager.EndLocationTravel(location, locationSpot);
-        }
-    }
-
-    public async Task InitiateTravelToLocation(string locationName)
-    {
-        Location loc = locationRepository.GetLocationByName(locationName);
-
-        // Create travel action using travelManager
-        LocationAction travelAction = travelManager.StartLocationTravel(loc.Id, TravelMethods.Walking);
-
-        // Create option with consistent structure
-        UserActionOption travelOption = new UserActionOption(
-            "Travel to " + locationName, false, travelAction,
-            worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.SpotID,
-            null, worldState.CurrentLocation.Difficulty, null, null);
-
-        // Use unified action execution
-        await ExecuteAction(travelOption);
-    }
-
-    private async Task<EncounterManager> PrepareEncounter(
+    private async Task<EncounterManager> RunEncounter(
         string id,
         CommissionDefinition commission,
         string approachId,
@@ -375,6 +286,85 @@ public class GameWorldManager
 
         return encounterManager;
     }
+
+    public async Task<EncounterResult> RunEncounter(LocationSpot spot, LocationAction action, Player player)
+    {
+        // 1. Initialize encounter context
+        EncounterContext context = actionProcessor.InitializeEncounter(spot, action, player);
+        EncounterState state = CreateEncounterState(context, player);
+
+        // 2. Run encounter beats
+        while (!state.IsEncounterComplete && state.FocusPoints > 0)
+        {
+            // Generate AI choices
+            AIPrompt prompt = promptBuilder.BuildBeatPrompt(context, state);
+            AIGameMasterResponse aiResponse = await aiService.GetResponse(prompt);
+
+            // Present choices to player
+            List<ValidatedChoice> choices = responseProcessor.ProcessAIResponse(aiResponse, state);
+            PlayerChoiceSelection selection = await uiService.PresentChoices(choices);
+
+            // Resolve choice
+            BeatOutcome outcome = choiceResolver.ResolveChoice(selection, state);
+
+            // Update state
+            stateManager.ProcessBeatOutcome(outcome, state);
+
+            // Update UI
+            uiService.UpdateEncounterDisplay(state, outcome);
+        }
+
+        // 3. Process conclusion
+        EncounterConclusion conclusion = await ProcessConclusion(state, context);
+        ApplyPersistentChanges(conclusion);
+
+        return new EncounterResult
+        {
+            Success = DetermineSuccess(state),
+            PersistentChanges = conclusion.ApprovedChanges
+        };
+    }
+
+
+    public async Task ProcessActionCompletion(LocationAction action)
+    {
+        gameState.ActionStateTracker.CompleteAction();
+
+        await HandlePlayerMoving(action);
+
+        actionProcessor.ProcessAction(action);
+
+        await UpdateState();
+    }
+
+    private async Task HandlePlayerMoving(LocationAction locationAction)
+    {
+        string location = locationAction.DestinationLocation;
+        string locationSpot = locationAction.DestinationLocationSpot;
+
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            travelManager.EndLocationTravel(location, locationSpot);
+        }
+    }
+
+    public async Task InitiateTravelToLocation(string locationName)
+    {
+        Location loc = locationRepository.GetLocationByName(locationName);
+
+        // Create travel action using travelManager
+        LocationAction travelAction = travelManager.StartLocationTravel(loc.Id, TravelMethods.Walking);
+
+        // Create option with consistent structure
+        UserActionOption travelOption = new UserActionOption(
+            "Travel to " + locationName, false, travelAction,
+            worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.SpotID,
+            null, worldState.CurrentLocation.Difficulty, null, null);
+
+        // Use unified action execution
+        await ExecuteAction(travelOption);
+    }
+
 
     public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
     {

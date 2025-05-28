@@ -1,9 +1,9 @@
 ﻿public class ActionFactory
 {
-    private readonly ActionRepository actionRepository;
-    private readonly LocationActionProcessor encounterFactory;
-    private readonly Player playerState;
-    private readonly WorldState worldState;
+    private ActionRepository actionRepository;
+    private LocationActionProcessor encounterFactory;
+    private Player playerState;
+    private WorldState worldState;
 
     public ActionFactory(
         ActionRepository actionRepository,
@@ -16,7 +16,11 @@
         this.worldState = gameState.WorldState;
     }
 
-    public LocationAction CreateActionFromTemplate(ActionDefinition template, string location, string locationSpot, ActionExecutionTypes actionType)
+    public LocationAction CreateActionFromTemplate(
+        ActionDefinition template, 
+        string location, 
+        string locationSpot, 
+        ActionExecutionTypes actionType)
     {
         LocationAction locationAction = new LocationAction();
         locationAction.ActionId = template.Id;
@@ -33,7 +37,9 @@
         {
             locationAction.DestinationLocationSpot = template.MoveToLocationSpot;
         }
-        locationAction.RequiredCardType = actionType;
+        
+        locationAction.RequiredCardType = ActionTypes.Physical;
+        locationAction.ActionExecutionType = actionType;
 
         locationAction.Requirements = CreateRequirements(template);
 

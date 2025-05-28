@@ -1,7 +1,7 @@
 ﻿public class ContentLoader
 {
-    private readonly string _contentDirectory;
-    private readonly string _saveFolder = "Saves";
+    private string _contentDirectory;
+    private string _saveFolder = "Saves";
 
     public ContentLoader(string contentDirectory)
     {

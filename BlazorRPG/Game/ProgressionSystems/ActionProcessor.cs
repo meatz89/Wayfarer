@@ -1,13 +1,12 @@
 ﻿public class ActionProcessor
 {
-    private readonly LocationRepository locationRepository;
-
     public GameWorld gameState { get; }
-    public Player glayerState { get; }
+    public Player player { get; }
     public WorldState worldState { get; }
     public PlayerProgression playerProgression { get; }
     public LocationPropertyManager environmentalPropertyManager { get; }
     public MessageSystem messageSystem { get; }
+    private LocationRepository locationRepository { get; }
 
     public ActionProcessor(
         GameWorld gameState,
@@ -21,8 +20,8 @@
         this.environmentalPropertyManager = environmentalPropertyManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
-        glayerState = gameState.Player;
-        worldState = gameState.WorldState;
+        this.player = gameState.Player;
+        this.worldState = gameState.WorldState;
     }
 
     public void ProcessTurnChange()
@@ -48,12 +47,6 @@
         playerState.ApplyActionPointCost(action.ActionPointCost);
     }
 
-    private int CalculateBasicActionSkillXP(LocationAction action)
-    {
-        return action.Difficulty * 5;
-    }
-
-
     public void UpdateState()
     {
         Location currentLocation = worldState.CurrentLocation;
@@ -75,8 +68,7 @@
             }
         }
 
-        // Check if the action has been completed and is non-repeatable
-        if (action.RequiredCardType == ActionExecutionTypes.Encounter)
+        if (action.ActionExecutionType == ActionExecutionTypes.Encounter)
         {
             string encounterId = action.ActionId;
             if (gameState.WorldState.IsEncounterCompleted(encounterId))

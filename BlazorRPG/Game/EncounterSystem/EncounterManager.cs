@@ -8,15 +8,15 @@
     private ChoiceConverter choiceConverter;
     private PayloadProcessor payloadProcessor;
 
-    private readonly Encounter encounter;
+    private Encounter encounter;
     public LocationAction locationAction;
 
     public EncounterState state;
 
     private EncounterContext context;
 
-    private readonly WorldStateInputBuilder worldStateInputCreator;
-    private readonly ChoiceProjectionService projectionService;
+    private WorldStateInputBuilder worldStateInputCreator;
+    private ChoiceProjectionService projectionService;
     public List<EncounterChoice> CurrentChoices = new List<EncounterChoice>();
 
     public Player playerState;
@@ -31,7 +31,7 @@
 
     public bool IsInitialState { get; set; }
 
-    private readonly ILogger<EncounterManager> _logger;
+    private ILogger<EncounterManager> _logger;
 
     public EncounterManager(
         Encounter encounter,
@@ -167,6 +167,31 @@
     }
 
 
+    // TODO
+    private void ProcessPlayerSelection(PlayerChoiceSelection selection, EncounterState state)
+    {
+        // Deduct focus cost
+        state.FocusPoints -= selection.Choice.FocusCost;
+
+        // Resolve skill check
+        SkillCheckResult result = skillResolver.ResolveCheck(selection.SelectedOption, state);
+        uiSystem.DisplaySkillCheckResult(result);
+
+        // Apply payload
+        string payloadID = result.IsSuccess ?
+            selection.SelectedOption.SuccessPayload.MechanicalEffectID :
+            selection.SelectedOption.FailurePayload.MechanicalEffectID;
+
+        IMechanicalEffect effect = payloadRegistry.GetEffect(payloadID);
+        effect.Apply(state);
+
+        // Advance duration
+        state.DurationCounter++;
+
+        // Check for completion
+        CheckEncounterCompletion(state);
+    }
+
     public async Task<AIGameMasterResponse> ProcessPlayerSelection(
         string location,
         EncounterChoice choice,
@@ -189,9 +214,6 @@
                     worldStateInput,
                     priority);
             }
-
-            NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, outcome, narrative);
-            context.AddEvent(narrativeEvent);
 
             AIGameMasterResponse currentResult = new(
                 narrative,
@@ -219,9 +241,6 @@
                     priority);
             }
 
-            NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, outcome, narrative);
-            context.AddEvent(narrativeEvent);
-
             await GenerateChoicesForPlayer(playerState);
             List<EncounterChoice> newChoices = GetCurrentChoices();
             List<ChoiceProjection> newProjections = new List<ChoiceProjection>();
@@ -229,9 +248,6 @@
             {
                 newProjections.Add(ProjectChoice(projectionService, state, newChoice));
             }
-
-            // Set the available choices on the narrative event
-            narrativeEvent.SetAvailableChoices(newChoices);
 
             AIGameMasterResponse ongoingResult = new(
                 narrative,
@@ -241,57 +257,6 @@
 
             _logger.LogInformation("ApplyChoiceWithNarrativeAsync completed: Encounter continues.");
             return ongoingResult;
-        }
-    }
-
-    // TODO
-
-    private void ProcessPlayerSelection(PlayerChoiceSelection selection, EncounterState state)
-    {
-        // Deduct focus cost
-        state.FocusPoints -= selection.Choice.FocusCost;
-
-        // Resolve skill check
-        SkillCheckResult result = skillResolver.ResolveCheck(selection.SelectedOption, state);
-        uiSystem.DisplaySkillCheckResult(result);
-
-        // Apply payload
-        string payloadID = result.IsSuccess ?
-            selection.SelectedOption.SuccessPayload.MechanicalEffectID :
-            selection.SelectedOption.FailurePayload.MechanicalEffectID;
-
-        IMechanicalEffect effect = payloadRegistry.GetEffect(payloadID);
-        effect.Apply(state);
-
-        // Advance duration
-        state.DurationCounter++;
-
-        // Check for completion
-        CheckEncounterCompletion(state);
-    }
-
-    private void CheckEncounterCompletion(EncounterState state)
-    {
-        // Check goal completion
-        bool allGoalsComplete = true;
-        foreach (FlagStates goalFlag in state.GoalFlags)
-        {
-            if (!state.FlagManager.IsActive(goalFlag))
-            {
-                allGoalsComplete = false;
-                break;
-            }
-        }
-
-        if (allGoalsComplete)
-        {
-            state.IsEncounterComplete = true;
-            state.EncounterOutcome = EncounterOutcomes.Success;
-        }
-        else if (state.FocusPoints <= 0 || state.DurationCounter >= state.MaxDuration)
-        {
-            state.IsEncounterComplete = true;
-            state.EncounterOutcome = EncounterOutcomes.Failure;
         }
     }
 
@@ -347,50 +312,12 @@
         };
     }
 
-    private EncounterChoice CreateFallbackChoice(int index, string narrativeText, int focusCost, string skillName)
-    {
-        return new EncounterChoice
-        {
-            ChoiceID = $"fallback_choice_{index}",
-            NarrativeText = narrativeText,
-            FocusCost = focusCost,
-            SkillOption =
-            new SkillOption
-            {
-                SkillName = skillName,
-                Difficulty = "Standard",
-                SCD = 3,
-                SuccessPayload = new AIPayload
-                {
-                    NarrativeEffect = "You succeed in your attempt.",
-                    MechanicalEffectID = focusCost == 0 ? "GAIN_FOCUS_1" : "SET_FLAG_INSIGHT_GAINED"
-                },
-                FailurePayload = new AIPayload
-                {
-                    NarrativeEffect = "You encounter a setback.",
-                    MechanicalEffectID = "ADVANCE_DURATION_1"
-                }
-            }
-        };
-    }
-
     public void StartEncounter(EncounterContext encounterContext, EncounterParameters encounterParameters, Player player)
     {
         // TODO
         state = new EncounterState(player, skillCategory);
     }
 
-    private SkillCheckResult ResolveSkillCheck(SkillOption option, EncounterState state)
-    {
-        SkillCheckResult result = new SkillCheckResult();
-        result.SkillName = option.RequiredSkillName;
-        result.PlayerLevel = option.EffectiveLevel;
-        result.RequiredLevel = option.Difficulty;
-        result.IsSuccess = option.EffectiveLevel >= option.Difficulty;
-        result.IsUntrained = option.IsUntrained;
-
-        return result;
-    }
 
     private BeatOutcome ApplyChoiceProjection(Player playerState, EncounterState encounterState, EncounterChoice choice)
     {
@@ -415,20 +342,6 @@
             projection.ProjectedOutcome);
 
         return outcome;
-    }
-
-    private NarrativeEvent GetNarrativeEvent(
-        EncounterChoice choice,
-        BeatOutcome outcome,
-        string narrative)
-    {
-        NarrativeEvent narrativeEvent = new NarrativeEvent(
-            state.DurationCounter - 1,
-            narrative);
-
-        narrativeEvent.SetChosenOption(choice);
-        narrativeEvent.SetOutcome(outcome.MechanicalDescription);
-        return narrativeEvent;
     }
 
     public EncounterContext GetEncounterContext()

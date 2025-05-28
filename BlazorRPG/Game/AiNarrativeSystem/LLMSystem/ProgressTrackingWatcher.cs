@@ -1,9 +1,9 @@
 ﻿public class ProgressTrackingWatcher : IResponseStreamWatcher
 {
-    private readonly IResponseStreamWatcher _innerWatcher;
-    private readonly LoadingStateService _loadingStateService;
+    private IResponseStreamWatcher _innerWatcher;
+    private LoadingStateService _loadingStateService;
     private string _fullText = string.Empty;
-    private readonly int _estimatedFullLength = 2000;
+    private int _estimatedFullLength = 2000;
 
     public ProgressTrackingWatcher(IResponseStreamWatcher innerWatcher, LoadingStateService loadingStateService)
     {

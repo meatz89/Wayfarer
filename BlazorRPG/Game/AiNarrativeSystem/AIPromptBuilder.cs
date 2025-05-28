@@ -2,7 +2,7 @@
 
 public class AIPromptBuilder
 {
-    private readonly Dictionary<string, string> promptTemplates;
+    private Dictionary<string, string> promptTemplates;
 
     private const string SYSTEM_MD1 = "system";
     private const string INTRO_MD = "introduction";

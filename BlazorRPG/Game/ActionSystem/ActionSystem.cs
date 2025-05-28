@@ -2,8 +2,8 @@
 
 public class ActionSystem
 {
-    private readonly ActionRepository actionRepository;
-    private readonly LocationSystem locationSystem;
+    private ActionRepository actionRepository;
+    private LocationSystem locationSystem;
 
     public ActionSystem(
         ActionRepository actionRepository,

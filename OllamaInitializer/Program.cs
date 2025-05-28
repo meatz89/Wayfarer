@@ -6,11 +6,11 @@ namespace OllamaInitializer
 {
     public class Program
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
-        private static readonly string _ollamaBaseUrl = "http://ollama:11434";
-        private static readonly string _modelName = "gemma3:12b-it-qat";
-        private static readonly int _maxRetries = 10;
-        private static readonly int _retryDelayMs = 5000;
+        private static HttpClient _httpClient = new HttpClient();
+        private static string _ollamaBaseUrl = "http://ollama:11434";
+        private static string _modelName = "gemma3:12b-it-qat";
+        private static int _maxRetries = 10;
+        private static int _retryDelayMs = 5000;
 
         public static async Task Main(string[] args)
         {

@@ -1,8 +1,8 @@
 ﻿public class TimeManager
 {
     public const int TimeDayStart = 6;
-    private readonly Player playerState;
-    private readonly WorldState worldState;
+    private Player playerState;
+    private WorldState worldState;
 
     public TimeManager(Player playerState, WorldState worldState)
     {
