@@ -1,6 +1,6 @@
 ﻿@* AreaMap.razor *@
-@inject GameManager ActionManager
-@inject GameState GameState
+@inject GameWorldManager ActionManager
+@inject GameWorld GameState
 
 <div class="world-map-container">
     <div class="world-map">
@@ -24,7 +24,7 @@
     </div>
 </div>
 @code {
-    [Inject] public GameManager GameManager { get; set; }
+    [Inject] public GameWorldManager GameManager { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback<string> OnTravel { get; set; }

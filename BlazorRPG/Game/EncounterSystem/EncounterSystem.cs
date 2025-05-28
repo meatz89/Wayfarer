@@ -1,24 +1,27 @@
 ﻿public class EncounterSystem
 {
-    private readonly GameState gameState;
+    private readonly GameWorld gameState;
     private readonly MessageSystem messageSystem;
     private readonly IConfiguration configuration;
     private readonly ILogger<EncounterSystem> logger;
 
-    private readonly IAIService _aiService;
-
     public WorldState worldState;
-    public EncounterFactory encounterFactory;
+    public LocationActionProcessor encounterFactory;
     private readonly WorldStateInputBuilder worldStateInputCreator;
     private readonly ChoiceProjectionService choiceProjectionService;
     private readonly PreGenerationManager _preGenerationManager;
 
+
+    private PayloadRegistry payloadRegistry;
+    private EncounterManager encounterManager;
+    private AIGameMaster aiGameMaster;
+    private EncounterUIController uiController;
+
     public EncounterSystem(
-        GameState gameState,
+        GameWorld gameState,
         MessageSystem messageSystem,
-        NarrativeContextManager narrativeContextManager,
-        IAIService aiService,
-        EncounterFactory encounterFactory,
+        EncounterContextManager EncounterContextManager,
+        LocationActionProcessor encounterFactory,
         WorldStateInputBuilder worldStateInputCreator,
         ChoiceProjectionService choiceProjectionService,
         IConfiguration configuration,
@@ -31,7 +34,6 @@
         this.worldStateInputCreator = worldStateInputCreator;
         this.choiceProjectionService = choiceProjectionService;
         this.logger = logger;
-        this._aiService = aiService;
 
         _preGenerationManager = new PreGenerationManager();
     }
@@ -44,25 +46,21 @@
         LocationSpot locationSpot,
         WorldState worldState,
         Player playerState,
-        ActionImplementation actionImplementation)
+        LocationAction locationAction)
     {
         logger.LogInformation(
-            "GenerateEncounter called with id: {Id}, commission: {CommissionId}, approachId: {ApproachId}, location: {LocationId}, locationSpot: {LocationSpotId}", 
-            id, commission?.Id, approach.Id, location?.Id, locationSpot?.Id);
+            "GenerateEncounter called with id: {Id}, commission: {CommissionId}, approachId: {ApproachId}, location: {LocationId}, locationSpot: {LocationSpotId}",
+            id, commission?.Id, approach.Id, location?.Id, locationSpot?.SpotID);
 
         this.worldState = worldState;
 
-        Encounter encounter = encounterFactory.CreateEncounterFromCommission(
+        Encounter encounter = encounterFactory.InitializeEncounter(
             commission, approach, playerState, location);
 
-        EncounterManager encounterManager = await StartEncounter(
-            encounter,
-            location,
-            this.worldState,
-            playerState,
-            actionImplementation);
+        // TODO 
+        locationAction.Execute(playerState, locationSpot);
 
-        string situation = $"{actionImplementation.Id} ({actionImplementation.ActionType} Action)";
+        string situation = $"{locationAction.ActionId} ({locationAction.RequiredCardType} Action)";
         logger.LogInformation("Encounter generated for situation: {Situation}", situation);
         return encounterManager;
     }
@@ -72,14 +70,13 @@
         Location location,
         WorldState worldState,
         Player playerState,
-        ActionImplementation actionImplementation)
+        LocationAction locationAction)
     {
         logger.LogInformation("StartEncounter called for encounter: {EncounterId}, location: {LocationId}", encounter?.Id, location?.Id);
 
         EncounterManager encounterManager = new EncounterManager(
             encounter,
-            actionImplementation,
-            _aiService,
+            locationAction,
             worldStateInputCreator,
             choiceProjectionService,
             configuration,
@@ -87,22 +84,22 @@
 
         gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
 
-        NarrativeResult initialResult = await encounterManager.StartEncounterWithNarrativeAsync(
+        AIGameMasterResponse initialResult = await encounterManager.StartEncounter(
             location,
             encounter,
             worldState,
             playerState,
-            actionImplementation);
+            locationAction);
 
         encounterManager.IsInitialState = true;
 
         encounterManager.EncounterResult = new EncounterResult()
         {
-            ActionImplementation = actionImplementation,
+            locationAction = locationAction,
             ActionResult = ActionResults.Ongoing,
             EncounterEndMessage = "",
-            NarrativeResult = initialResult,
-            NarrativeContext = encounterManager.GetNarrativeContext()
+            AIResponse = initialResult,
+            EncounterContext = encounterManager.GetEncounterContext()
         };
 
         logger.LogInformation("Encounter started: {EncounterId}", encounter?.Id);
@@ -110,21 +107,21 @@
     }
 
     public async Task<EncounterResult> ExecuteChoice(
-        NarrativeResult narrativeResult,
-        AiChoice choice)
+        AIGameMasterResponse AIResponse,
+        EncounterChoice choice)
     {
         logger.LogInformation("ExecuteChoice called for choice: {ChoiceId}", choice?.ChoiceID);
-        NarrativeResult currentNarrative = narrativeResult;
-        NarrativeResult cachedResult = null;
+        AIGameMasterResponse currentNarrative = AIResponse;
+        AIGameMasterResponse cachedResult = null;
 
-        EncounterManager encounterManager = GetCurrentEncounter();
+        EncounterManager encounterManager = GetEncounterManager();
         bool isInitialChoice = encounterManager.IsInitialState;
 
         _preGenerationManager.CancelAllPendingGenerations();
 
-        List<AiChoice> choices = currentNarrative.Choices;
+        List<EncounterChoice> choices = currentNarrative.AvailableChoices;
 
-        currentNarrative = await encounterManager.ApplyChoiceWithNarrativeAsync(
+        currentNarrative = await encounterManager.ProcessPlayerSelection(
             encounterManager.Encounter.LocationName,
             choice,
             AIClient.PRIORITY_IMMEDIATE);
@@ -136,73 +133,73 @@
         return encounterManager.EncounterResult;
     }
 
-    private EncounterResult CreateEncounterResult(EncounterManager encounter, NarrativeResult currentNarrative)
+    private EncounterResult CreateEncounterResult(EncounterManager encounter, AIGameMasterResponse currentNarrative)
     {
         if (currentNarrative.IsEncounterOver)
         {
             if (currentNarrative.Outcome == EncounterOutcomes.Failure)
             {
                 logger.LogInformation("Encounter ended in failure. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
-                    encounter.ActionImplementation?.Id,
+                    encounter.locationAction?.ActionId,
                     currentNarrative.Outcome,
                     currentNarrative?.ToString(),
-                    currentNarrative?.Choices?.Count ?? 0,
+                    currentNarrative?.AvailableChoices?.Count ?? 0,
                     currentNarrative.IsEncounterOver);
 
                 EncounterResult failureResult = new EncounterResult()
                 {
-                    ActionImplementation = encounter.ActionImplementation,
+                    locationAction = encounter.locationAction,
                     ActionResult = ActionResults.EncounterFailure,
                     EncounterEndMessage = $"=== Encounter Over: {currentNarrative.Outcome} ===",
-                    NarrativeResult = currentNarrative,
-                    NarrativeContext = encounter.GetNarrativeContext()
+                    AIResponse = currentNarrative,
+                    EncounterContext = encounter.GetEncounterContext()
                 };
                 return failureResult;
             }
             else
             {
                 logger.LogInformation("Encounter ended in success. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
-                    encounter.ActionImplementation?.Id,
+                    encounter.locationAction?.ActionId,
                     currentNarrative.Outcome,
                     currentNarrative?.ToString(),
-                    currentNarrative?.Choices?.Count ?? 0,
+                    currentNarrative?.AvailableChoices?.Count ?? 0,
                     currentNarrative.IsEncounterOver);
 
                 EncounterResult successResult = new EncounterResult()
                 {
-                    ActionImplementation = encounter.ActionImplementation,
+                    locationAction = encounter.locationAction,
                     ActionResult = ActionResults.EncounterSuccess,
                     EncounterEndMessage = $"=== Encounter Over: {currentNarrative.Outcome} ===",
-                    NarrativeResult = currentNarrative,
-                    NarrativeContext = encounter.GetNarrativeContext()
+                    AIResponse = currentNarrative,
+                    EncounterContext = encounter.GetEncounterContext()
                 };
                 return successResult;
             }
         }
 
         logger.LogInformation("Encounter ongoing. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
-            encounter.ActionImplementation?.Id,
+            encounter.locationAction?.ActionId,
             currentNarrative.Outcome,
             currentNarrative?.ToString(),
-            currentNarrative?.Choices?.Count ?? 0,
+            currentNarrative?.AvailableChoices?.Count ?? 0,
             currentNarrative.IsEncounterOver);
 
         EncounterResult ongoingResult = new EncounterResult()
         {
-            ActionImplementation = encounter.ActionImplementation,
+            locationAction = encounter.locationAction,
             ActionResult = ActionResults.Ongoing,
             EncounterEndMessage = "",
-            NarrativeResult = currentNarrative,
-            NarrativeContext = encounter.GetNarrativeContext()
+            AIResponse = currentNarrative,
+            EncounterContext = encounter.GetEncounterContext()
         };
 
         return ongoingResult;
     }
-    public void ProcessEncounterProgress(EncounterResult result, GameState gameState)
+    public void ProcessEncounterProgress(EncounterResult result, GameWorld gameState)
     {
-        if (result.ActionImplementation.Commission != null)
+        if (result.locationAction.Commission != null)
         {
-            CommissionDefinition commission = result.ActionImplementation.Commission;
+            CommissionDefinition commission = result.locationAction.Commission;
 
             int progress = 0;
             switch (result.ActionResult)
@@ -227,11 +224,11 @@
         }
     }
 
-    private void CompleteCommission(CommissionDefinition commission, GameState gameState)
+    private void CompleteCommission(CommissionDefinition commission, GameWorld gameState)
     {
-        gameState.PlayerState.AddSilver(commission.SilverReward);
-        gameState.PlayerState.AddReputation(commission.ReputationReward);
-        gameState.PlayerState.AddInsightPoints(commission.InsightPointReward);
+        gameState.Player.AddSilver(commission.SilverReward);
+        gameState.Player.AddReputation(commission.ReputationReward);
+        gameState.Player.AddInsightPoints(commission.InsightPointReward);
 
         messageSystem.AddSystemMessage($"Commission completed: {commission.Name}");
 
@@ -239,22 +236,22 @@
         gameState.WorldState.ActiveCommissions.Remove(commission);
     }
 
-    public List<AiChoice> GetChoices()
+    public List<EncounterChoice> GetChoices()
     {
-        EncounterManager encounterManager = GetCurrentEncounter();
-        List<AiChoice> choices = encounterManager.GetCurrentChoices();
+        EncounterManager encounterManager = GetEncounterManager();
+        List<EncounterChoice> choices = encounterManager.GetCurrentChoices();
         return choices;
     }
 
-    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, AiChoice choice)
+    public ChoiceProjection GetChoiceProjection(EncounterManager encounter, EncounterChoice choice)
     {
-        EncounterManager encounterManager = GetCurrentEncounter();
-        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choiceProjectionService, encounter.encounterState, choice);
+        EncounterManager encounterManager = GetEncounterManager();
+        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choiceProjectionService, encounter.state, choice);
         return choiceProjection;
     }
 
-    public EncounterManager GetCurrentEncounter()
+    public EncounterManager GetEncounterManager()
     {
-        return gameState.ActionStateTracker.CurrentEncounter;
+        return encounterManager;
     }
 }

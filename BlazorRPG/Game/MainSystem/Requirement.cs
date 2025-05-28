@@ -1,6 +1,6 @@
 ﻿public interface IRequirement
 {
-    bool IsMet(GameState gameState);
+    bool IsMet(GameWorld gameState);
     string GetDescription();
 }
 
@@ -13,9 +13,9 @@ public class ActionPointRequirement : IRequirement
         RequiredAmount = requiredAmount;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
-        return gameState.PlayerState.CurrentActionPoints() >= RequiredAmount;
+        return gameState.Player.CurrentActionPoints() >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -33,9 +33,9 @@ public class EnergyRequirement : IRequirement
         RequiredAmount = requiredAmount;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
-        return gameState.PlayerState.CurrentEnergy() >= RequiredAmount;
+        return gameState.Player.CurrentEnergy() >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -53,9 +53,9 @@ public class HealthRequirement : IRequirement
         RequiredAmount = requiredAmount;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
-        return gameState.PlayerState.Health >= RequiredAmount;
+        return gameState.Player.Health >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -73,9 +73,9 @@ public class ConcentrationRequirement : IRequirement
         RequiredAmount = requiredAmount;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
-        return gameState.PlayerState.Concentration >= RequiredAmount;
+        return gameState.Player.Concentration >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -93,9 +93,9 @@ public class CoinRequirement : IRequirement
         RequiredAmount = requiredAmount;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
-        return gameState.PlayerState.Silver >= RequiredAmount;
+        return gameState.Player.Silver >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -113,9 +113,9 @@ public class FoodRequirement : IRequirement
         RequiredAmount = requiredAmount;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
-        return gameState.PlayerState.Food >= RequiredAmount;
+        return gameState.Player.Food >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -133,7 +133,7 @@ public class TimeWindowRequirement : IRequirement
         AllowedWindows = allowedWindows;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
         TimeWindowTypes currentWindow = gameState.TimeManager.GetCurrentTimeWindow();
         return AllowedWindows.Contains(currentWindow);
@@ -156,9 +156,9 @@ public class RelationshipRequirement : IRequirement
         MinimumValue = minimumValue;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
-        int currentValue = gameState.PlayerState.GetRelationshipLevel(CharacterName);
+        int currentValue = gameState.Player.GetRelationshipLevel(CharacterName);
         return currentValue >= MinimumValue;
     }
 
@@ -179,9 +179,9 @@ public class SkillRequirement : IRequirement
         RequiredLevel = minimumLevel;
     }
 
-    public bool IsMet(GameState gameState)
+    public bool IsMet(GameWorld gameState)
     {
-        int currentLevel = gameState.PlayerState.Skills.GetLevelForSkill(SkillType);
+        int currentLevel = gameState.Player.Skills.GetLevelForSkill(SkillType);
         return currentLevel >= RequiredLevel;
     }
 

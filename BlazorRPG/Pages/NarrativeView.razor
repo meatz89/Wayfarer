@@ -14,10 +14,10 @@
                 })
             </h3>
 
-            @if (!string.IsNullOrEmpty(EncounterResult.NarrativeResult?.SceneNarrative))
+            @if (!string.IsNullOrEmpty(EncounterResult.AIResponse?.SceneNarrative))
             {
                 <div class="narrative-message">
-                    @((MarkupString)EncounterResult.NarrativeResult?.SceneNarrative)
+                    @((MarkupString)EncounterResult.AIResponse?.SceneNarrative)
                 </div>
             }
 

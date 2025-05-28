@@ -53,14 +53,14 @@
     {
         int currentCount = GetItemCount(item);
 
-        if (count > currentCount) 
+        if (count > currentCount)
         {
             while (currentCount < count && AddItem(item))
             {
                 currentCount++;
             }
         }
-        else if (count < currentCount) 
+        else if (count < currentCount)
         {
             while (currentCount > count && RemoveItem(item))
             {
@@ -100,11 +100,11 @@
             }
             else
             {
-                break; 
+                break;
             }
         }
 
-        return removedCount; 
+        return removedCount;
     }
 
     public bool AddItem(ItemTypes itemTypes)
@@ -119,10 +119,10 @@
             if (Slots[i] == string.Empty)
             {
                 Slots[i] = item;
-                return true; 
+                return true;
             }
         }
-        return false; 
+        return false;
     }
 
     public bool RemoveItem(string item)

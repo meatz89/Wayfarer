@@ -25,9 +25,9 @@ public class ActionSystem
         {
             foreach (LocationSpot spot in locationSystem.GetLocationSpots(location.Id))
             {
-                sb.AppendLine($"## Actions at {location.Id} / {spot.Id}:");
+                sb.AppendLine($"## Actions at {location.Id} / {spot.SpotID}:");
 
-                foreach (ActionDefinition actionTemplate in actionRepository.GetActionsForSpot(spot.Id))
+                foreach (ActionDefinition actionTemplate in actionRepository.GetActionsForSpot(spot.SpotID))
                 {
                     if (actionTemplate != null)
                     {

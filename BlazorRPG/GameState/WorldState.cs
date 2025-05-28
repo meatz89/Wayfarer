@@ -1,12 +1,11 @@
-﻿
-public class WorldState
+﻿public class WorldState
 {
     // Core data collections
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
     public List<CommissionDefinition> commissions { get; private set; } = new();
-    private List<Character> characters { get; set; } = new();
+    private List<NPC> characters { get; set; } = new();
     private List<Opportunity> opportunities { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
@@ -21,13 +20,13 @@ public class WorldState
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
-    public List<CommissionDefinition> CompletedCommissions { get; internal set; }
-    public List<CommissionDefinition> ActiveCommissions { get; internal set; }
-    public List<CommissionDefinition> FailedCommissions { get; internal set; }
+    public List<CommissionDefinition> CompletedCommissions { get; set; }
+    public List<CommissionDefinition> ActiveCommissions { get; set; }
+    public List<CommissionDefinition> FailedCommissions { get; set; }
 
     public string GetLocationIdForSpot(string locationSpotId)
     {
-        string? locationId = locationSpots.Where(x => x.Id == locationSpotId).Select(x => x.LocationId).FirstOrDefault();
+        string? locationId = locationSpots.Where(x => x.SpotID == locationSpotId).Select(x => x.LocationId).FirstOrDefault();
         return locationId;
     }
 
@@ -72,7 +71,7 @@ public class WorldState
         CompletedEncounters.Add(actionId);
     }
 
-    public void AddCharacter(Character character)
+    public void AddCharacter(NPC character)
     {
         characters.Add(character);
     }
@@ -82,7 +81,7 @@ public class WorldState
         opportunities.Add(opp);
     }
 
-    public List<Character> GetCharacters()
+    public List<NPC> GetCharacters()
     {
         return characters;
     }

@@ -2,7 +2,7 @@
 
 public partial class NarrativeViewBase : ComponentBase
 {
-    [Inject] public GameState GameState { get; set; }
+    [Inject] public GameWorld GameState { get; set; }
     [Parameter] public string LocationName { get; set; }
     [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
     [Parameter] public EncounterResult EncounterResult { get; set; }
@@ -129,7 +129,7 @@ public partial class NarrativeViewBase : ComponentBase
         List<CharacterChangeDisplay> changes = new List<CharacterChangeDisplay>();
 
         // Add new characters
-        foreach (Character character in EncounterResult.PostEncounterEvolution.NewCharacters)
+        foreach (NPC character in EncounterResult.PostEncounterEvolution.NewCharacters)
         {
             changes.Add(new CharacterChangeDisplay
             {
@@ -172,8 +172,8 @@ public partial class NarrativeViewBase : ComponentBase
         return new CoinsChangeDisplay
         {
             Amount = EncounterResult.PostEncounterEvolution.CoinChange,
-            Current = GameState.PlayerState.Silver,
-            New = GameState.PlayerState.Silver + EncounterResult.PostEncounterEvolution.CoinChange
+            Current = GameState.Player.Silver,
+            New = GameState.Player.Silver + EncounterResult.PostEncounterEvolution.CoinChange
         };
     }
 

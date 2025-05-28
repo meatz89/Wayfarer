@@ -3,10 +3,10 @@
     private readonly Player playerState;
     private readonly MessageSystem messageSystem;
 
-    public PlayerProgression(GameState gameState, MessageSystem messageSystem)
+    public PlayerProgression(GameWorld gameState, MessageSystem messageSystem)
     {
         this.messageSystem = messageSystem;
-        this.playerState = gameState.PlayerState;
+        this.playerState = gameState.Player;
     }
 
     public void AddPlayerExp(int xpAmount)

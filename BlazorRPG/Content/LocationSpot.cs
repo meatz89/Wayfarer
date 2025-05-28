@@ -1,6 +1,8 @@
-﻿public class LocationSpot
+﻿
+
+public class LocationSpot
 {
-    public string Id { get; set; }
+    public string SpotID { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string LocationId { get; set; }
@@ -21,12 +23,22 @@
     // Requirements
     public Dictionary<SkillTypes, int> SkillRequirements { get; set; } = new Dictionary<SkillTypes, int>();
     public Dictionary<string, int> RelationshipRequirements { get; set; } = new Dictionary<string, int>();
-    public string CharacterName { get; set; }
+    public NPC PrimaryNPC { get; set; }
     public bool IsClosed { get; set; }
 
     public LocationSpot(string id, string name)
     {
-        Id = id;
+        SpotID = id;
         Name = name;
+    }
+
+    public string GetCurrentDescription()
+    {
+        return "location description"; // Placeholder for actual description logic  
+    }
+
+    public List<string> GetCurrentProperties()
+    {
+        throw new NotImplementedException();
     }
 }

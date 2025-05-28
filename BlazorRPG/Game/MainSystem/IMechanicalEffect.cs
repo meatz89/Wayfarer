@@ -7,7 +7,6 @@ public interface IMechanicalEffect
 }
 
 
-// Concrete effect implementations
 public class SetFlagEffect : IMechanicalEffect
 {
     private FlagStates flagToSet;
@@ -25,6 +24,30 @@ public class SetFlagEffect : IMechanicalEffect
     public string GetDescriptionForPlayer()
     {
         return $"Sets {flagToSet.ToString().SpaceBeforeCapitals()}";
+    }
+}
+
+public class ModifyFocusEffect : IMechanicalEffect
+{
+    private int amount;
+
+    public ModifyFocusEffect(int amount)
+    {
+        this.amount = amount;
+    }
+
+    public void Apply(EncounterState state)
+    {
+        state.FocusPoints += amount;
+        state.FocusPoints = Math.Max(0, Math.Min(state.FocusPoints, state.MaxFocusPoints));
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        if (amount > 0)
+            return "Regain " + amount + " Focus";
+        else
+            return "Lose " + Math.Abs(amount) + " Focus";
     }
 }
 

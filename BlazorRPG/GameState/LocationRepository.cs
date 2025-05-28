@@ -2,7 +2,7 @@
 {
     private readonly WorldState worldState;
 
-    public LocationRepository(GameState gameState)
+    public LocationRepository(GameWorld gameState)
     {
         worldState = gameState.WorldState;
     }
@@ -58,7 +58,7 @@
     {
         Location location = GetLocationById(locationId);
         if (location == null) location = worldState.CurrentLocation;
-        LocationSpot spot = location.LocationSpots.FirstOrDefault(s => s.Id == spotId);
+        LocationSpot spot = location.LocationSpots.FirstOrDefault(s => s.SpotID == spotId);
 
         return spot;
     }
@@ -116,9 +116,9 @@
         if (worldState.locationSpots.Any((Func<LocationSpot, bool>)(s =>
         {
             return (bool)(s.LocationId.Equals(spot.LocationId, StringComparison.OrdinalIgnoreCase) &&
-                        s.Id.Equals((string)spot.Id, StringComparison.OrdinalIgnoreCase));
+                        s.SpotID.Equals((string)spot.SpotID, StringComparison.OrdinalIgnoreCase));
         })))
-            throw new InvalidOperationException($"Spot '{spot.Id}' already exists in '{spot.LocationId}'.");
+            throw new InvalidOperationException($"Spot '{spot.SpotID}' already exists in '{spot.LocationId}'.");
 
         worldState.locationSpots.Add(spot);
     }

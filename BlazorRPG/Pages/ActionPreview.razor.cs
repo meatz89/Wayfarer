@@ -4,40 +4,40 @@ public partial class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
     [Parameter] public ApproachDefinition CurrentApproach { get; set; }
-    [Parameter] public GameState GameState { get; set; }
+    [Parameter] public GameWorld GameState { get; set; }
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
-    protected string GetCardCostClass(SkillCategories costType)
+    protected string GetCardCostClass(ActionTypes costType)
     {
         return costType switch
         {
-            SkillCategories.Physical => "physical",
-            SkillCategories.Intellectual => "intellectual",
-            SkillCategories.Social => "social",
+            ActionTypes.Physical => "physical",
+            ActionTypes.Intellectual => "intellectual",
+            ActionTypes.Social => "social",
             _ => ""
         };
     }
     public string GetActionName()
     {
-        ActionImplementation action = CurrentAction?.ActionImplementation;
+        LocationAction action = CurrentAction?.locationAction;
 
-        string name = $"{action?.ActionType} - {action?.Name}";
+        string name = $"{action?.RequiredCardType} - {action?.Name}";
         return string.IsNullOrWhiteSpace(name) ? "No Action" : name;
     }
 
     public string GetActionDescription()
     {
-        ActionImplementation action = CurrentAction?.ActionImplementation;
+        LocationAction action = CurrentAction?.locationAction;
 
-        string name = $"{action?.Description}";
+        string name = $"{action?.ObjectiveDescription}";
         return string.IsNullOrWhiteSpace(name) ? "No Action" : name;
     }
 
     public bool GetRequirementsMet()
     {
         List<string> descriptions = new();
-        ActionImplementation basicAction = CurrentAction.ActionImplementation;
+        LocationAction basicAction = CurrentAction.locationAction;
         foreach (IRequirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
@@ -52,7 +52,7 @@ public partial class ActionPreviewBase : ComponentBase
     public List<string> GetRequirements()
     {
         List<string> descriptions = new();
-        ActionImplementation basicAction = CurrentAction.ActionImplementation;
+        LocationAction basicAction = CurrentAction.locationAction;
         foreach (IRequirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();

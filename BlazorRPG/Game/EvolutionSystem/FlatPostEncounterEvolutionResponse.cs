@@ -5,6 +5,6 @@
     public List<LocationDefinition> Locations { get; set; } = new List<LocationDefinition>();
     public List<LocationSpotDefinition> LocationSpots { get; set; } = new List<LocationSpotDefinition>();
     public List<EvolutionActionTemplate> ActionDefinitions { get; set; } = new List<EvolutionActionTemplate>();
-    public List<Character> Characters { get; set; } = new List<Character>();
+    public List<NPC> Characters { get; set; } = new List<NPC>();
     public List<Opportunity> Opportunities { get; set; } = new List<Opportunity>();
 }

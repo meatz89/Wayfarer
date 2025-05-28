@@ -1,6 +1,6 @@
 ﻿public class TravelManager
 {
-    public GameState gameState { get; }
+    public GameWorld gameState { get; }
     public WorldState worldState { get; }
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
@@ -8,7 +8,7 @@
     public ActionFactory ActionFactory { get; }
 
     public TravelManager(
-        GameState gameState,
+        GameWorld gameState,
         LocationSystem locationSystem,
         ActionRepository actionRepository,
         LocationRepository locationRepository,
@@ -23,7 +23,7 @@
         this.ActionFactory = actionFactory;
     }
 
-    public ActionImplementation StartLocationTravel(
+    public LocationAction StartLocationTravel(
         string travelLocationId,
         TravelMethods travelMethod = TravelMethods.Walking)
     {
@@ -45,7 +45,7 @@
 
         if (currentLocation == null)
         {
-            EndLocationTravel(travelLocationId, locationSpot.Id);
+            EndLocationTravel(travelLocationId, locationSpot.SpotID);
             return null;
         }
         else
@@ -56,10 +56,10 @@
             ConsumeTravelResources(travelMinutes, travelMethod);
 
             ActionDefinition travelTemplate =
-                GetTravelTemplate(travelLocationId, locationSpot.Id);
+                GetTravelTemplate(travelLocationId, locationSpot.SpotID);
 
-            ActionImplementation travelAction =
-                ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Id, locationSpot.Id, ActionExecutionTypes.Instant);
+            LocationAction travelAction =
+                ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Id, locationSpot.SpotID, ActionExecutionTypes.Instant);
 
             return travelAction;
         }
@@ -72,7 +72,7 @@
         List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Id);
         LocationSpot? locSpot = spots.FirstOrDefault((Func<LocationSpot, bool>)(ls =>
         {
-            return ls.Id == locationSpotName;
+            return ls.SpotID == locationSpotName;
         }));
 
         gameState.SetCurrentLocation(targetLocation, locSpot);
@@ -108,13 +108,13 @@
         {
             // Award XP
             int xpBonus = location.DiscoveryBonusXP;
-            gameState.PlayerState.AddExperiencePoints(xpBonus);
+            gameState.Player.AddExperiencePoints(xpBonus);
 
             // Award coins
             int coinBonus = location.DiscoveryBonusCoins;
             if (coinBonus > 0)
             {
-                gameState.PlayerState.AddCoins(coinBonus);
+                gameState.Player.AddCoins(coinBonus);
             }
         }
     }

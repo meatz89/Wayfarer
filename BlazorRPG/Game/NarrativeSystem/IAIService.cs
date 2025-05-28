@@ -4,45 +4,48 @@
     /// <summary>
     /// Set the initial scene based on location and inciting action
     /// </summary>
-    Task<string> GenerateIntroductionAsync(
-        NarrativeContext context,
-        string memoryContent,
+    Task<string> GenerateIntroduction(
+        EncounterContext context,
+        EncounterState state,
+        PlayerChoiceSelection chosenOption,
         WorldStateInput worldStateInput,
         int priority);
 
-    Task<List<AiChoice>> GenerateEncounterChoicesAsync(
-        NarrativeContext context,
+    Task<List<EncounterChoice>> GenerateChoices(
+        EncounterContext context,
+        EncounterState state,
+        PlayerChoiceSelection chosenOption,
+        WorldStateInput worldStateInput,
+        int priority);
+
+    Task<string> GenerateReaction(
+        EncounterContext context,
         EncounterState encounterState,
+        EncounterChoice chosenOption,
+        BeatOutcome outcome,
         WorldStateInput worldStateInput,
         int priority);
 
-    Task<string> GenerateReactionAsync(
-        NarrativeContext context,
+    Task<string> GenerateConclusion(
+        EncounterContext context,
         EncounterState encounterState,
-        AiChoice chosenOption,
-        ChoiceOutcome outcome,
-        WorldStateInput worldStateInput,
-        int priority);
-
-    Task<string> GenerateEndingAsync(
-        NarrativeContext context,
-        AiChoice chosenOption,
-        ChoiceOutcome outcome,
+        EncounterChoice chosenOption,
+        BeatOutcome outcome,
         WorldStateInput worldStateInput,
         int priority);
 
     Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
-        NarrativeContext context,
+        EncounterContext context,
         PostEncounterEvolutionInput input,
         WorldStateInput worldStateInput);
     Task<string> ProcessMemoryConsolidation(
-        NarrativeContext context,
+        EncounterContext context,
         MemoryConsolidationInput input,
         WorldStateInput worldStateInput);
-    Task<LocationDetails> GenerateLocationDetailsAsync(
+    Task<LocationDetails> GenerateLocationDetails(
         LocationCreationInput context,
         WorldStateInput worldStateInput);
-    Task<string> GenerateActionsAsync(
+    Task<string> GenerateActions(
         ActionGenerationContext input,
         WorldStateInput worldStateInput);
     string GetProviderName();

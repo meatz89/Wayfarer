@@ -1,82 +1,85 @@
 ﻿public class PayloadRegistry
 {
-    private Dictionary<string, IMechanicalEffect> registeredEffects = new Dictionary<string, IMechanicalEffect>();
+    private List<PayloadEntry> registeredEffects;
 
-    public PayloadRegistry(ILogger<PayloadRegistry> logger)
+    public PayloadRegistry()
     {
-        InitializeEffects();
+        registeredEffects = new List<PayloadEntry>();
+        RegisterAllStandardEffects();
     }
 
-    public void RegisterEffect(string effectID, IMechanicalEffect effect)
+    public void RegisterEffect(string id, IMechanicalEffect effect)
     {
-        if (!registeredEffects.ContainsKey(effectID))
+        // Remove existing if present
+        for (int i = registeredEffects.Count - 1; i >= 0; i--)
         {
-            registeredEffects[effectID] = effect;
-        }
-        else
-        {
-            throw new Exception("Effect ID {EffectID} already registered");
-        }
-    }
-
-    public IMechanicalEffect GetEffect(string effectID)
-    {
-        if (registeredEffects.TryGetValue(effectID, out IMechanicalEffect effect))
-        {
-            return effect;
+            if (registeredEffects[i].ID == id)
+            {
+                registeredEffects.RemoveAt(i);
+            }
         }
 
-        throw new Exception("Effect ID {EffectID} not found");
+        registeredEffects.Add(new PayloadEntry { ID = id, Effect = effect });
     }
 
-    public bool HasEffect(string effectID)
+    public IMechanicalEffect GetEffect(string id)
     {
-        return registeredEffects.ContainsKey(effectID);
+        for (int i = 0; i < registeredEffects.Count; i++)
+        {
+            if (registeredEffects[i].ID == id)
+            {
+                return registeredEffects[i].Effect;
+            }
+        }
+        return new NoEffect(); // Safe fallback
     }
 
-    private void InitializeEffects()
+    private void RegisterAllStandardEffects()
     {
-        // State flag payloads
-        RegisterEffect("SET_FLAG_TRUST_ESTABLISHED",
-            new SetFlagEffect(FlagStates.TrustEstablished));
-        RegisterEffect("SET_FLAG_INSIGHT_GAINED",
-            new SetFlagEffect(FlagStates.InsightGained));
-        RegisterEffect("SET_FLAG_PATH_CLEARED",
-            new SetFlagEffect(FlagStates.PathCleared));
-        RegisterEffect("SET_FLAG_ADVANTAGEOUS_POSITION",
-            new SetFlagEffect(FlagStates.AdvantageousPosition));
-        RegisterEffect("CLEAR_FLAG_DISTRUST_TRIGGERED",
-            new ClearFlagEffect(FlagStates.DistrustTriggered));
+        // Flag effects
+        RegisterEffect("SET_FLAG_TRUST_ESTABLISHED", new SetFlagEffect(FlagStates.TrustEstablished));
+        RegisterEffect("SET_FLAG_INSIGHT_GAINED", new SetFlagEffect(FlagStates.InsightGained));
+        RegisterEffect("SET_FLAG_PATH_CLEARED", new SetFlagEffect(FlagStates.PathCleared));
+        RegisterEffect("SET_FLAG_ADVANTAGEOUS_POSITION", new SetFlagEffect(FlagStates.AdvantageousPosition));
+        RegisterEffect("SET_FLAG_HIDDEN_POSITION", new SetFlagEffect(FlagStates.HiddenPosition));
 
-        // Focus payloads
-        RegisterEffect("GAIN_FOCUS_1",
-            new FocusChangeEffect(1));
-        RegisterEffect("GAIN_FOCUS_2",
-            new FocusChangeEffect(2));
-        RegisterEffect("LOSE_FOCUS_1",
-            new FocusChangeEffect(-1));
+        // Focus effects
+        RegisterEffect("GAIN_FOCUS_1", new ModifyFocusEffect(1));
+        RegisterEffect("GAIN_FOCUS_2", new ModifyFocusEffect(2));
+        RegisterEffect("LOSE_FOCUS_1", new ModifyFocusEffect(-1));
+        RegisterEffect("LOSE_FOCUS_2", new ModifyFocusEffect(-2));
 
-        // Duration payloads
-        RegisterEffect("ADVANCE_DURATION_1",
-            new DurationAdvanceEffect(1));
-        RegisterEffect("ADVANCE_DURATION_2",
-            new DurationAdvanceEffect(2));
+        // Duration effects
+        RegisterEffect("ADVANCE_DURATION_1", new AdvanceDurationEffect(1));
+        RegisterEffect("ADVANCE_DURATION_2", new AdvanceDurationEffect(2));
 
-        // Progress payloads
-        RegisterEffect("GAIN_PROGRESS_2",
-            new ProgressChangeEffect(2));
-        RegisterEffect("GAIN_PROGRESS_4",
-            new ProgressChangeEffect(4));
-        RegisterEffect("GAIN_PROGRESS_6",
-            new ProgressChangeEffect(6));
-        RegisterEffect("LOSE_PROGRESS_1",
-            new ProgressChangeEffect(-1));
+        // No effect fallback
+        RegisterEffect("NO_EFFECT", new NoEffect());
+    }
+}
 
-        // Combined effects for common patterns
-        RegisterEffect("SUCCESS_WITH_INSIGHT",
-            new CompoundEffect(new List<IMechanicalEffect> {
-                new SetFlagEffect(FlagStates.InsightGained),
-                new ProgressChangeEffect(2)
-            }));
+public class NoEffect : IMechanicalEffect
+{
+    public void Apply(EncounterState state) { }
+    public string GetDescriptionForPlayer() { return "No effect"; }
+}
+
+public class AdvanceDurationEffect : IMechanicalEffect
+{
+    private int amount;
+
+    public AdvanceDurationEffect(int amount)
+    {
+        this.amount = amount;
+    }
+
+    public void Apply(EncounterState state)
+    {
+        state.DurationCounter += amount;
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return "Time advances";
     }
 }

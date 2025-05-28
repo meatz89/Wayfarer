@@ -18,10 +18,10 @@
         }
     }
 
-    public GameState LoadGame()
+    public GameWorld LoadGame()
     {
         string savePath = Path.Combine(_contentDirectory, _saveFolder);
-        GameState gameState = CreateNewGameState();
+        GameWorld gameState = CreateNewGameState();
 
         bool shouldLoad = false;
 
@@ -38,9 +38,9 @@
         return gameState;
     }
 
-    private static GameState LoadGameFromSaveFile(string savePath)
+    private static GameWorld LoadGameFromSaveFile(string savePath)
     {
-        GameState gameState;
+        GameWorld gameState;
         // Load content from save files
         List<Location> locations = GameStateSerializer.DeserializeLocations(
             File.ReadAllText(Path.Combine(savePath, "locations.json")));
@@ -65,7 +65,7 @@
         return gameState;
     }
 
-    private GameState LoadGameFromTemplates()
+    private GameWorld LoadGameFromTemplates()
     {
         string templatePath = Path.Combine(_contentDirectory, "Templates");
 
@@ -89,14 +89,14 @@
         string cardsFilePath = Path.Combine(templatePath, "cards.json");
 
         // Load game state using the loaded content
-        GameState gameState = GameStateSerializer.DeserializeGameState(
+        GameWorld gameState = GameStateSerializer.DeserializeGameState(
             File.ReadAllText(Path.Combine(templatePath, "gameState.json")),
             locations, spots, actions, commissions, cards);
 
         return gameState;
     }
 
-    public void SaveGame(GameState gameState)
+    public void SaveGame(GameWorld gameState)
     {
         try
         {
@@ -151,9 +151,9 @@
         }
     }
 
-    private GameState CreateNewGameState()
+    private GameWorld CreateNewGameState()
     {
-        GameState gameState = new GameState();
+        GameWorld gameState = new GameWorld();
 
         // Load fresh content from the content directory
         List<Location> locations = new List<Location>();
@@ -192,7 +192,7 @@
         {
             foreach (string locSpotId in location.LocationSpotIds)
             {
-                LocationSpot? spot = spots.FirstOrDefault(s => s.Id == locSpotId);
+                LocationSpot? spot = spots.FirstOrDefault(s => s.SpotID == locSpotId);
                 if (spot != null)
                 {
                     location.LocationSpots.Add(spot);

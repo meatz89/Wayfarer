@@ -77,7 +77,7 @@
 
 @code {
     [Parameter] public EventCallback<Player> OnCharacterCreated { get; set; }
-    [Inject] protected GameState GameState { get; set; }
+    [Inject] protected GameWorld GameState { get; set; }
 
     private string playerName;
     private Professions selectedArchetype = Professions.Warrior;
@@ -179,10 +179,10 @@
     private async Task CreateCharacter()
     {
         // Set player name, archetype, and gender
-        GameState.PlayerState.Initialize(playerName, selectedArchetype, selectedGender);
+        GameState.Player.Initialize(playerName, selectedArchetype, selectedGender);
 
         // Notify parent component that character creation is complete
-        await OnCharacterCreated.InvokeAsync(GameState.PlayerState);
+        await OnCharacterCreated.InvokeAsync(GameState.Player);
     }
 
     private string FormatArchetypeName(Professions archetype)

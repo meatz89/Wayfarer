@@ -6,8 +6,8 @@ public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; }
 
-    [Inject] public GameState GameState { get; set; }
-    [Inject] public GameManager GameManager { get; set; }
+    [Inject] public GameWorld GameState { get; set; }
+    [Inject] public GameWorldManager GameManager { get; set; }
     [Parameter] public EncounterManager EncounterManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
     private IJSObjectReference _tooltipModule;
@@ -15,7 +15,7 @@ public partial class EncounterViewBase : ComponentBase
     {
         get
         {
-            return GameState.PlayerState;
+            return GameState.Player;
         }
     }
 
@@ -107,12 +107,12 @@ public partial class EncounterViewBase : ComponentBase
             State = null,
             EncounterResult = new EncounterResult()
             {
-                ActionImplementation = null,
+                locationAction = null,
                 ActionResult = ActionResults.GameOver,
                 EncounterEndMessage = "Game Over",
-                NarrativeContext = null,
+                EncounterContext = null,
                 PostEncounterEvolution = null,
-                NarrativeResult = null
+                AIResponse = null
             }
         };
 
@@ -157,18 +157,18 @@ public partial class EncounterViewBase : ComponentBase
 
     protected int GetCurrentFocusPoints()
     {
-        return EncounterManager?.encounterState?.FocusPoints ?? 0;
+        return EncounterManager?.state?.FocusPoints ?? 0;
     }
 
     protected int GetMaxFocusPoints()
     {
-        return EncounterManager?.encounterState?.MaxFocusPoints ?? 0;
+        return EncounterManager?.state?.MaxFocusPoints ?? 0;
     }
 
 
     protected int GetFocusCost(UserEncounterChoiceOption choice)
     {
-        if (choice.Choice is AiChoice option)
+        if (choice.Choice is EncounterChoice option)
         {
             return option.FocusCost;
         }

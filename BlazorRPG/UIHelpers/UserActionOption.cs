@@ -2,7 +2,7 @@
 (
     string ActionName,
     bool IsDisabled,
-    ActionImplementation ActionImplementation,
+    LocationAction locationAction,
     string LocationId,
     string LocationSpot,
     string Character,
@@ -11,5 +11,5 @@
     string ApproachId
 )
 {
-    public SkillCard SelectedCard { get; internal set; }
+    public SkillCard SelectedCard { get; set; }
 }

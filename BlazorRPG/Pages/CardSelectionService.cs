@@ -21,7 +21,7 @@
 
     public event Action OnStateChanged;
 
-    public bool IsValidDropTarget(SkillCategories requiredCardType)
+    public bool IsValidDropTarget(ActionTypes requiredCardType)
     {
         if (SelectedCard == null)
             return false;

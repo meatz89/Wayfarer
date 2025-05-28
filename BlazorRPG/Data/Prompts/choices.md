@@ -20,7 +20,7 @@ Before creating choices, you MUST analyze the narrative context by answering the
 3. **What decision is the protagonist currently facing as a direct result of recent events?**
    - Clearly identify the tension or choice the player must now respond to, including any emotional or logistical stakes.
 
-You MUST complete this analysis internally before generating any choices. Choices that do not clearly emerge from this situational analysis are incorrect.
+You MUST complete this analysis publicly before generating any choices. Choices that do not clearly emerge from this situational analysis are incorrect.
 
 ## CRITICAL REQUIREMENT: IDENTIFY THE CORE DECISION POINT
 Before creating choices, analyze the narrative to identify:

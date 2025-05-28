@@ -6,8 +6,8 @@ namespace BlazorRPG.Pages;
 public partial class MainGameplayView : ComponentBase
 {
     [Inject] private IJSRuntime JSRuntime { get; set; }
-    [Inject] private GameState GameState { get; set; }
-    [Inject] private GameManager GameManager { get; set; }
+    [Inject] private GameWorld GameState { get; set; }
+    [Inject] private GameWorldManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
     [Inject] private CardHighlightService CardRefreshService { get; set; }
@@ -25,7 +25,7 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameState.PlayerState;
+            return GameState.Player;
         }
     }
 
@@ -111,7 +111,7 @@ public partial class MainGameplayView : ComponentBase
     }
 
     public EncounterManager EncounterManager = null;
-    public ActionImplementation ActionImplementation = null;
+    public LocationAction locationAction = null;
 
     private int StateVersion = 0;
 
@@ -165,7 +165,7 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task HandleSpotSelection(LocationSpot locationSpot)
     {
-        await GameManager.MoveToLocationSpot(locationSpot.Id);
+        await GameManager.MoveToLocationSpot(locationSpot.SpotID);
         UpdateState();
     }
 
@@ -179,7 +179,7 @@ public partial class MainGameplayView : ComponentBase
     {
         if (action.IsDisabled) return;
 
-        ActionImplementation = await GameManager.ExecuteAction(action);
+        await GameManager.ExecuteAction(action);
 
         EncounterManager = GameState.ActionStateTracker.GetCurrentEncounter();
         if (EncounterManager != null)
@@ -208,8 +208,8 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task OnEncounterCompleted(EncounterResult result)
     {
-        ActionImplementation actionImplementation = result.ActionImplementation;
-        await GameManager.ProcessActionCompletion(actionImplementation);
+        LocationAction locationAction = result.locationAction;
+        await GameManager.ProcessActionCompletion(locationAction);
 
         EncounterResult = result;
         CurrentScreen = CurrentViews.NarrativeScreen;
@@ -240,12 +240,12 @@ public partial class MainGameplayView : ComponentBase
     private async Task WaitAction()
     {
         // Create a "Wait" action that advances time without other effects
-        ActionImplementation waitAction = GameManager.GetWaitAction(CurrentSpot.Id);
+        LocationAction waitAction = GameManager.GetWaitAction(CurrentSpot.SpotID);
 
         UserActionOption waitOption = new UserActionOption(
             "Wait for one hour", false, waitAction,
             GameState.WorldState.CurrentLocation?.Id ?? "Global",
-            GameState.WorldState.CurrentLocationSpot?.Id ?? "Global",
+            GameState.WorldState.CurrentLocationSpot?.SpotID ?? "Global",
             null, 0, null, null);
 
         await GameManager.ExecuteAction(waitOption);

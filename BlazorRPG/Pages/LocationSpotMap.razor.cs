@@ -5,8 +5,8 @@ namespace BlazorRPG.Pages;
 
 public partial class LocationSpotMap : ComponentBase
 {
-    [Inject] private GameManager GameManager { get; set; }
-    [Inject] private GameState GameState { get; set; }
+    [Inject] private GameWorldManager GameManager { get; set; }
+    [Inject] private GameWorld GameState { get; set; }
     [Inject] private LocationSystem LocationSystem { get; set; }
     [Inject] private CardSelectionService DragDropService { get; set; }
     [Inject] private CardHighlightService CardHighlightService { get; set; }
@@ -47,7 +47,7 @@ public partial class LocationSpotMap : ComponentBase
         selectedAction = null;
     }
 
-    private void ActivateHighlightMode(SkillCategories cardType)
+    private void ActivateHighlightMode(ActionTypes cardType)
     {
         if (CardHighlightService.IsHighlightModeActive)
         {
@@ -64,26 +64,26 @@ public partial class LocationSpotMap : ComponentBase
         DragDropService.OnStateChanged -= StateHasChanged;
     }
 
-    private bool IsValidCardForApproach(SkillCategories requiredCardType)
+    private bool IsValidCardForApproach(ActionTypes requiredCardType)
     {
         bool isValidTarget = DragDropService.IsValidDropTarget(requiredCardType);
         return true;
     }
 
-    private string GetCardTypeClass(SkillCategories type)
+    private string GetCardTypeClass(ActionTypes type)
     {
         return type switch
         {
-            SkillCategories.Physical => "physical",
-            SkillCategories.Intellectual => "intellectual",
-            SkillCategories.Social => "social",
+            ActionTypes.Physical => "physical",
+            ActionTypes.Intellectual => "intellectual",
+            ActionTypes.Social => "social",
             _ => ""
         };
     }
 
     private void ToggleActionApproaches(UserActionOption action)
     {
-        if (selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id)
+        if (selectedAction?.locationAction.ActionId == action.locationAction.ActionId)
         {
             selectedAction = null; // Collapse if already selected
         }

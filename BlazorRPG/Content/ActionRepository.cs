@@ -2,7 +2,7 @@
 {
     private readonly WorldState _worldState;
 
-    public ActionRepository(GameState gameState)
+    public ActionRepository(GameWorld gameState)
     {
         _worldState = gameState.WorldState;
     }
@@ -61,10 +61,10 @@
         return action;
     }
 
-    internal List<CommissionDefinition> GetCommissionsForSpot(string spotId)
+    public List<CommissionDefinition> GetCommissionsForSpot(string spotId)
     {
         // First, find the location this spot belongs to
-        LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s => s.Id == spotId);
+        LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
         if (spot == null)
         {
             return new List<CommissionDefinition>();
@@ -95,7 +95,7 @@
         return commissions;
     }
 
-    internal CommissionDefinition GetCommission(string commissionId)
+    public CommissionDefinition GetCommission(string commissionId)
     {
         CommissionDefinition commission = _worldState.commissions.FirstOrDefault(a =>
         {

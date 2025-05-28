@@ -2,18 +2,13 @@
 {
     public SkillTypes Skill { get; }
     public int EffectiveLevel { get; }
-    public int Difficulty { get; }
-    public bool IsSuccess { get; }
-    public bool IsUntrained { get; }
-
-    public SkillCheckResult(SkillTypes skill, int effectiveLevel, int difficulty, bool isSuccess, bool isUntrained)
-    {
-        Skill = skill;
-        EffectiveLevel = effectiveLevel;
-        Difficulty = difficulty;
-        IsSuccess = isSuccess;
-        IsUntrained = isUntrained;
-    }
+    public int Difficulty { get; set; }
+    public bool IsSuccess { get; set; }
+    public bool IsUntrained { get; set; }
+    public string SkillName { get; set; }
+    public int PlayerLevel { get; set; }
+    public int RequiredLevel { get; set; }
+    public int SuccessChance { get; set; }
 
     public string GetDifficultyLabel()
     {

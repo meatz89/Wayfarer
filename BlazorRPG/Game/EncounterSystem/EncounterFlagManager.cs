@@ -1,4 +1,5 @@
-﻿public class EncounterFlagManager
+﻿
+public class EncounterFlagManager
 {
     private HashSet<FlagStates> activeFlags = new HashSet<FlagStates>();
     private List<FlagDefinition> flagDefinitions = new List<FlagDefinition>();
@@ -199,5 +200,22 @@
         }
 
         return null;
+    }
+
+    public void ProcessFlagChange(FlagStates newFlag, EncounterState state)
+    {
+        // Apply the flag change
+        state.FlagManager.SetFlag(newFlag);
+
+        // Check for goal completion
+        if (state.GoalFlags.Contains(newFlag))
+        {
+            state.CheckGoalCompletion();
+        }
+    }
+
+    internal List<FlagStates> GetRecentlySetFlags()
+    {
+        throw new NotImplementedException();
     }
 }

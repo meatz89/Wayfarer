@@ -4,7 +4,7 @@
     {
         <div class="@(!spot.IsClosed ? "enabled" : "disabled")">
 
-            <div class="location-card @(spot.Id == CurrentSpot.Id ? "current" : "reachable")">
+            <div class="location-card @(spot.SpotID == CurrentSpot.SpotID ? "current" : "reachable")">
                 <div class="location-spot-properties">
                     @foreach (var prop in StyleHelper.GetSpotProperties(GetLocation(), spot))
                     {
@@ -19,36 +19,36 @@
                 </div>
                 <div class="location-type">@spot.Description</div>
 
-        @if (spot.Id == CurrentSpot.Id)
+        @if (spot.SpotID == CurrentSpot.SpotID)
         {
             <div class="action-list">
                 @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
                 {
-                    if(action.ActionImplementation.ActionType == ActionExecutionTypes.Instant)
+                    if(action.locationAction.RequiredCardType == ActionExecutionTypes.Instant)
                     {
                         <button class="approach-button" @onclick="() => HandleActionSelection(action)">
-                                @action.ActionImplementation.Name
+                                @action.locationAction.Name
                         </button >
                     }
                     else
                     {
-                        <div class="action-header @(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "expanded" : "")"
+                        <div class="action-header @(selectedAction?.locationAction.ActionId == action.locationAction.ActionId ? "expanded" : "")"
                                 @onclick="() => ToggleActionApproaches(action)">
                             <div class="action-header-content">
-                                <span class="action-title">@action.ActionImplementation.Name</span>
-                                <span class="action-type">@action.ActionImplementation.ActionType</span>
+                                <span class="action-title">@action.locationAction.Name</span>
+                                <span class="action-type">@action.locationAction.RequiredCardType</span>
                             </div>
-                            <span class="action-toggle-icon">@(selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id ? "▼" : "►")</span>
+                            <span class="action-toggle-icon">@(selectedAction?.locationAction.ActionId == action.locationAction.ActionId ? "▼" : "►")</span>
                         </div>
-                        @if (selectedAction?.ActionImplementation.Id == action.ActionImplementation.Id)
+                        @if (selectedAction?.locationAction.ActionId == action.locationAction.ActionId)
                         {
                             <div class="approaches-container">
                                 <div class="approaches-description">
-                                    @action.ActionImplementation.Description
+                                    @action.locationAction.ObjectiveDescription
                                 </div>
 
                                 <div class="approaches-list">
-                                    @foreach (var approach in action.ActionImplementation.Approaches)
+                                    @foreach (var approach in action.locationAction.Approaches)
                                     {
                                         bool isCompatible = IsValidCardForApproach(approach.RequiredCardType);
                                         <div class="approach-option @(isCompatible ? "compatible-approach" : "incompatible-approach")"
@@ -83,7 +83,7 @@
                 else
                 {
                     @* Add travel option if not current spot *@
-                    <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.Id))"
+                    <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.SpotID))"
                             @onclick="() => OnSpotSelected.InvokeAsync(spot)">
                         MOVE HERE
                     </button>

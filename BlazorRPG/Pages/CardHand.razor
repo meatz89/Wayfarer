@@ -34,7 +34,7 @@
 @code {
     [Inject] private CardHighlightService CardHighlightService { get; set; }
     [Inject] private CardSelectionService CardSelectionService { get; set; }
-    [Inject] private GameManager GameManager { get; set; }
+    [Inject] private GameWorldManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
 
     [Parameter] public List<SkillCard> PlayerCards { get; set; }
@@ -46,13 +46,13 @@
         CardHighlightService.OnHighlightModeChanged += StateHasChanged;
     }
 
-    private string GetCardTypeClass(SkillCategories type)
+    private string GetCardTypeClass(ActionTypes type)
     {
         return type switch
         {
-            SkillCategories.Physical => "physical",
-            SkillCategories.Intellectual => "intellectual",
-            SkillCategories.Social => "social",
+            ActionTypes.Physical => "physical",
+            ActionTypes.Intellectual => "intellectual",
+            ActionTypes.Social => "social",
             _ => ""
         };
     }

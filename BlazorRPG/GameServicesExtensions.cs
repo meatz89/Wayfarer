@@ -1,6 +1,4 @@
-﻿using BlazorRPG.Pages;
-
-public static class GameServiceExtensions
+﻿public static class GameServiceExtensions
 {
     public static IServiceCollection AddGameServices(this IServiceCollection services)
     {
@@ -11,7 +9,7 @@ public static class GameServiceExtensions
         services.AddSingleton(contentLoader);
 
         // Load game state
-        GameState gameState = contentLoader.LoadGame();
+        GameWorld gameState = contentLoader.LoadGame();
         services.AddSingleton(gameState);
 
         // Register the content validator
@@ -31,13 +29,13 @@ public static class GameServiceExtensions
         services.AddSingleton<PayloadRegistry>();
         services.AddSingleton<ChoiceProjectionService>();
         services.AddSingleton<ActionProcessor>();
-        services.AddSingleton<EncounterFactory>();
+        services.AddSingleton<LocationActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
-        services.AddSingleton<GameManager>();
+        services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
-        services.AddSingleton<PostEncounterEvolutionSystem>();
+        services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
 
         // UI Razor Services
@@ -52,11 +50,12 @@ public static class GameServiceExtensions
     public static IServiceCollection AddAIServices(this IServiceCollection services)
     {
         // Register core services
-        services.AddSingleton<NarrativeContextManager>();
+        services.AddSingleton<EncounterContextManager>();
         services.AddSingleton<NarrativeLogManager>();
         services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<IResponseStreamWatcher, ConsoleResponseWatcher>();
         services.AddSingleton<LoadingStateService>();
+        services.AddSingleton<IAIService, AIGameMaster>();
 
         // Get configuration to determine which provider to use
         using (ServiceProvider sp = services.BuildServiceProvider())
@@ -68,13 +67,13 @@ public static class GameServiceExtensions
             switch (defaultProvider.ToLower())
             {
                 case "claude":
-                    services.AddSingleton<IAIService, ClaudeNarrativeService>();
+                    services.AddSingleton<IAIProvider, ClaudeProvider>();
                     break;
                 case "ollama":
-                    services.AddSingleton<IAIService, OllamaNarrativeService>();
+                    services.AddSingleton<IAIProvider, OllamaProvider>();
                     break;
                 default: // Default to ollama
-                    services.AddSingleton<IAIService, OllamaNarrativeService>();
+                    services.AddSingleton<IAIProvider, OllamaProvider>();
                     break;
             }
         }

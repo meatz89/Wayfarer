@@ -1,16 +1,23 @@
 ﻿public class EncounterManager
 {
+    private IAIService aiGameMaster;
+    private EncounterUIController uiController;
+    private IUISystem uiSystem;
+    private PayloadRegistry payloadRegistry;
+    private SkillCheckResolver skillResolver;
+    private ChoiceConverter choiceConverter;
+    private PayloadProcessor payloadProcessor;
+
     private readonly Encounter encounter;
-    public ActionImplementation ActionImplementation;
+    public LocationAction locationAction;
 
-    public EncounterState encounterState;
+    public EncounterState state;
 
-    private IAIService _aiService;
-    private NarrativeContext narrativeContext;
+    private EncounterContext context;
 
     private readonly WorldStateInputBuilder worldStateInputCreator;
-    private readonly ChoiceProjectionService choiceProjectionService;
-    public List<AiChoice> CurrentChoices = new List<AiChoice>();
+    private readonly ChoiceProjectionService projectionService;
+    public List<EncounterChoice> CurrentChoices = new List<EncounterChoice>();
 
     public Player playerState;
     public WorldState worldState;
@@ -20,6 +27,7 @@
     private bool _useMemory = false;
 
     public EncounterResult EncounterResult;
+    private UIService uiService;
 
     public bool IsInitialState { get; set; }
 
@@ -27,210 +35,155 @@
 
     public EncounterManager(
         Encounter encounter,
-        ActionImplementation actionImplementation,
-        IAIService aiService,
+        LocationAction locationAction,
         WorldStateInputBuilder worldStateInputCreator,
         ChoiceProjectionService choiceProjectionService,
+        IAIService aiGameMaster,
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
         this.encounter = encounter;
-        ActionImplementation = actionImplementation;
-        _aiService = aiService;
+        this.encounter = encounter;
+        this.aiGameMaster = aiGameMaster;
         this.worldStateInputCreator = worldStateInputCreator;
-        this.choiceProjectionService = choiceProjectionService;
+        this.projectionService = choiceProjectionService;
         _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
         _useMemory = configuration.GetValue<bool>("useMemory");
-        // Use EncounterManager logger for this class
         _logger = logger as ILogger<EncounterManager> ?? LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<EncounterManager>();
     }
 
-    public string GetCurrentAIProviderName()
+    public async Task<EncounterResult> StartEncounter(EncounterContext context, Player player)
     {
-        _logger.LogInformation("GetCurrentAIProviderName called.");
-        return _aiService.GetProviderName();
-    }
+        EncounterState state = new EncounterState(player, 6, 8);
 
-    public async Task<NarrativeResult> StartEncounterWithNarrativeAsync(
-    Location location,
-    Encounter encounterInfo,
-    WorldState worldState,
-    Player playerState,
-    ActionImplementation actionImplementation)
-    {
-        _logger.LogInformation("StartEncounterWithNarrativeAsync called for location: {LocationId}, encounter: {EncounterId}", location?.Id, encounterInfo?.Id);
-        this.playerState = playerState;
-        this.Encounter = encounterInfo;
+        uiSystem.ShowMessage("Beginning encounter: " + context.ActionName);
 
-        SkillCategories skillCategory = encounter.Approach.RequiredCardType;
-        StartEncounter(worldState, playerState, skillCategory);
-
-        narrativeContext =
-            new NarrativeContext(
-                encounterInfo.LocationName.ToString(),
-                encounterInfo.LocationSpotName.ToString(),
-                encounterInfo.SkillCategory,
-                playerState,
-                actionImplementation,
-                encounter.Approach);
-
-        string introduction = await CreateIntroduction(location);
-
-        await GenerateChoicesForPlayer(playerState);
-
-        NarrativeResult result = await CreateChoices(location, actionImplementation, introduction);
-
-        _logger.LogInformation("StartEncounterWithNarrativeAsync completed for encounter: {EncounterId}", encounterInfo?.Id);
-        return result;
-    }
-
-
-    private async Task GenerateChoicesForPlayer(Player playerState)
-    {
-        if (_useAiNarrative)
+        if (!state.IsEncounterComplete && state.FocusPoints > 0 && state.DurationCounter < state.MaxDuration)
         {
-            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(Encounter.LocationName);
-            List<AiChoice> generatedChoices = await _aiService.GenerateEncounterChoicesAsync(
-                narrativeContext,
-                encounterState,
-                worldStateInput,
-                AIClient.PRIORITY_IMMEDIATE);
+            var beatResult = await ProcessEncounterBeat(
+                state, 
+                context,
+                chosenOption,
+                worldStateInput);
 
-            // Update choice IDs to ensure uniqueness
-            for (int i = 0; i < generatedChoices.Count; i++)
-            {
-                AiChoice choice = generatedChoices[i];
-            }
-
-            CurrentChoices = generatedChoices;
-            _logger.LogInformation($"Generated {CurrentChoices.Count} AI choices for encounter stage {encounterState.DurationCounter}");
+            return null;
         }
         else
         {
-            // Fallback to hardcoded choices if AI narrative is disabled
-            GenerateFallbackChoices();
+            EncounterResult result = await ProcessEncounterConclusion(state, context);
+            return result;
         }
     }
 
-    private void GenerateFallbackChoices()
+    public void StartEncounter(EncounterContext context, Player player)
     {
-        // Create basic fallback choices
-        CurrentChoices = new List<AiChoice>
-    {
-        CreateFallbackChoice(0, "Proceed carefully", 1, "Observation"),
-        CreateFallbackChoice(1, "Take aggressive action", 2, "Brute Force"),
-        CreateFallbackChoice(2, "Try diplomatic approach", 1, "Negotiation"),
-        CreateFallbackChoice(3, "Gather more information", 1, "Investigation"),
-        CreateFallbackChoice(4, "Take a moment to recover", 0, "Perception")
-    };
-    }
+        // Initialize state
+        EncounterState state = new EncounterState();
+        state.Player = player;
+        state.MaxFocusPoints = DetermineFocusPoints(context.ActionType);
+        state.FocusPoints = state.MaxFocusPoints;
+        state.MaxDuration = 8;
+        state.DurationCounter = 0;
+        state.IsEncounterComplete = false;
+        state.GoalFlags = DetermineGoalFlags(context.ActionType);
+        state.FlagManager = new EncounterFlagManager();
 
-    private AiChoice CreateFallbackChoice(int index, string narrativeText, int focusCost, string skillName)
-    {
-        return new AiChoice
+        // Initialize AI
+        aiGameMaster = new AIGameMaster();
+
+        // Run encounter loop
+        while (!state.IsEncounterComplete && state.FocusPoints >= 0)
         {
-            ChoiceID = $"fallback_choice_{index}",
-            NarrativeText = narrativeText,
-            FocusCost = focusCost,
-            SkillOption = 
-            new SkillOption
-            {
-                SkillName = skillName,
-                Difficulty = "Standard",
-                SCD = 3,
-                SuccessPayload = new Payload
-                {
-                    NarrativeEffect = "You succeed in your attempt.",
-                    MechanicalEffectID = focusCost == 0 ? "GAIN_FOCUS_1" : "SET_FLAG_INSIGHT_GAINED"
-                },
-                FailurePayload = new Payload
-                {
-                    NarrativeEffect = "You encounter a setback.",
-                    MechanicalEffectID = "ADVANCE_DURATION_1"
-                }
-            }
-        };
+            ProcessEncounterBeat(state, context);
+        }
+
+        ProcessEncounterConclusion(state, context);
     }
 
-    private async Task<NarrativeResult> CreateChoices(
-        Location location,
-        ActionImplementation actionImplementation,
-        string introduction)
+    public async Task<BeatResult> ProcessEncounterBeat(
+        EncounterState state, 
+        EncounterContext context,
+        PlayerChoiceSelection chosenOption,
+        WorldStateInput worldStateInput)
     {
-        List<AiChoice> choices = GetCurrentChoices();
+        // Step 1: Get AI response
+        AIGameMasterResponse aiResponse = new AIGameMasterResponse();
+        string narration = await aiGameMaster.GenerateIntroduction(
+            context,
+            state,
+            chosenOption,
+            worldStateInput,
+            AIClient.PRIORITY_IMMEDIATE
+        );
+        aiResponse.Narration = narration;
+
+        List<EncounterChoice> choices = await aiGameMaster.GenerateChoices(
+            context,
+            state,
+            chosenOption,
+            worldStateInput,
+            AIClient.PRIORITY_IMMEDIATE
+        );
+        aiResponse.AvailableChoices = choices;
+
+        // Step 2: Project choices for UI
         List<ChoiceProjection> projections = new List<ChoiceProjection>();
-        foreach (AiChoice choice in choices)
+        foreach (EncounterChoice choice in aiResponse.AvailableChoices)
         {
-            projections.Add(ProjectChoice(choiceProjectionService, encounterState, choice));
+            projections.Add(projectionService.ProjectChoice(choice, state));
         }
 
-        NarrativeEvent firstNarrative = new NarrativeEvent(
-            encounterState.DurationCounter,
-            introduction);
+        // Step 3: Present to player via UI
+        PlayerChoiceSelection selection = await uiService.PresentChoices(projections);
 
-        narrativeContext.AddEvent(firstNarrative);
-
-        // Set the available choices on the narrative event
-        firstNarrative.SetAvailableChoices(choices);
-
-        NarrativeResult result = new NarrativeResult(
-            introduction,
-            actionImplementation.Description,
-            choices,
-            projections);
-
-        return result;
-    }
-
-    private async Task<string> CreateIntroduction(Location location)
-    {
-        string introduction = "introduction";
-
-        if (_useAiNarrative)
+        // Step 4: Check for encounter completion
+        if (state.IsEncounterComplete)
         {
-            string memoryContent = string.Empty;
-
-            if (_useMemory)
-            {
-                memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
-            }
-
-            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location.Id);
-            introduction = await _aiService.GenerateIntroductionAsync(
-                narrativeContext,
-                memoryContent,
-                worldStateInput,
-                AIClient.PRIORITY_IMMEDIATE);
+            return new BeatResult { IsComplete = true };
         }
 
-        return introduction;
+        // Step 8: Continue to next beat
+        return new BeatResult { IsComplete = false };
     }
 
-    private void StartEncounter(WorldState worldState, Player player, SkillCategories skillCategory)
+
+    private void ProcessEncounterConclusion(EncounterState state, EncounterContext context)
     {
-        this.worldState = worldState;
-        this.playerState = player;
+        // Step 1: Get AI to generate narrative conclusion
+        EncounterResult conclusion = aiGameMaster.GenerateConclusion(
+            context,
+            state,
+            chosenOption,
+            worldStateInput,
+            AIClient.PRIORITY_IMMEDIATE
+        ); 
 
-        encounterState = new EncounterState(player, skillCategory);
+        // Step 2: Show conclusion to player
+        uiController.ShowEncounterConclusion(conclusion);
+
+        // Step 3: Apply persistent changes
+        PersistentChangeProcessor persistentChangeProcessor = new PersistentChangeProcessor();
+        persistentChangeProcessor.ApplyChanges(conclusion, state);
     }
 
-    public async Task<NarrativeResult> ApplyChoiceWithNarrativeAsync(
+
+    public async Task<AIGameMasterResponse> ProcessPlayerSelection(
         string location,
-        AiChoice choice,
+        EncounterChoice choice,
         int priority)
     {
         _logger.LogInformation("ApplyChoiceWithNarrativeAsync called with location: {Location}, choice: {ChoiceId}, priority: {Priority}", location, choice?.ChoiceID, priority);
-        ChoiceOutcome outcome = ApplyChoiceProjection(playerState, encounterState, choice);
+        BeatOutcome outcome = ApplyChoiceProjection(playerState, state, choice);
 
         string narrative = "Continued Narrative";
 
-        if (outcome.IsEncounterOver)
+        if (outcome.IsEncounterComplete)
         {
             if (_useAiNarrative)
             {
                 WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
-                narrative = await _aiService.GenerateEndingAsync(
-                    narrativeContext,
+                narrative = await _aiGameMaster.GenerateEndingAsync(
+                    context,
                     choice,
                     outcome,
                     worldStateInput,
@@ -238,16 +191,16 @@
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, outcome, narrative);
-            narrativeContext.AddEvent(narrativeEvent);
+            context.AddEvent(narrativeEvent);
 
-            NarrativeResult currentResult = new(
+            AIGameMasterResponse currentResult = new(
                 narrative,
                 string.Empty,
-                new List<AiChoice>(),
+                new List<EncounterChoice>(),
                 new List<ChoiceProjection>());
 
             currentResult.SetOutcome(outcome.Outcome);
-            currentResult.SetIsEncounterOver(outcome.IsEncounterOver);
+            currentResult.SetIsEncounterOver(outcome.IsEncounterComplete);
 
             _logger.LogInformation("ApplyChoiceWithNarrativeAsync completed: Encounter is over.");
             return currentResult;
@@ -257,9 +210,9 @@
             if (_useAiNarrative)
             {
                 WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(location);
-                narrative = await _aiService.GenerateReactionAsync(
-                    narrativeContext,
-                    encounterState,
+                narrative = await _aiGameMaster.GenerateReactionAsync(
+                    context,
+                    state,
                     choice,
                     outcome,
                     worldStateInput,
@@ -267,20 +220,20 @@
             }
 
             NarrativeEvent narrativeEvent = GetNarrativeEvent(choice, outcome, narrative);
-            narrativeContext.AddEvent(narrativeEvent);
+            context.AddEvent(narrativeEvent);
 
             await GenerateChoicesForPlayer(playerState);
-            List<AiChoice> newChoices = GetCurrentChoices();
+            List<EncounterChoice> newChoices = GetCurrentChoices();
             List<ChoiceProjection> newProjections = new List<ChoiceProjection>();
-            foreach (var newChoice in newChoices)
+            foreach (EncounterChoice newChoice in newChoices)
             {
-                newProjections.Add(ProjectChoice(choiceProjectionService, encounterState, newChoice));
+                newProjections.Add(ProjectChoice(projectionService, state, newChoice));
             }
 
             // Set the available choices on the narrative event
             narrativeEvent.SetAvailableChoices(newChoices);
 
-            NarrativeResult ongoingResult = new(
+            AIGameMasterResponse ongoingResult = new(
                 narrative,
                 string.Empty,
                 newChoices,
@@ -291,11 +244,159 @@
         }
     }
 
-    private ChoiceOutcome ApplyChoiceProjection(Player playerState, EncounterState encounterState, AiChoice choice)
+    // TODO
+
+    private void ProcessPlayerSelection(PlayerChoiceSelection selection, EncounterState state)
+    {
+        // Deduct focus cost
+        state.FocusPoints -= selection.Choice.FocusCost;
+
+        // Resolve skill check
+        SkillCheckResult result = skillResolver.ResolveCheck(selection.SelectedOption, state);
+        uiSystem.DisplaySkillCheckResult(result);
+
+        // Apply payload
+        string payloadID = result.IsSuccess ?
+            selection.SelectedOption.SuccessPayload.MechanicalEffectID :
+            selection.SelectedOption.FailurePayload.MechanicalEffectID;
+
+        IMechanicalEffect effect = payloadRegistry.GetEffect(payloadID);
+        effect.Apply(state);
+
+        // Advance duration
+        state.DurationCounter++;
+
+        // Check for completion
+        CheckEncounterCompletion(state);
+    }
+
+    private void CheckEncounterCompletion(EncounterState state)
+    {
+        // Check goal completion
+        bool allGoalsComplete = true;
+        foreach (FlagStates goalFlag in state.GoalFlags)
+        {
+            if (!state.FlagManager.IsActive(goalFlag))
+            {
+                allGoalsComplete = false;
+                break;
+            }
+        }
+
+        if (allGoalsComplete)
+        {
+            state.IsEncounterComplete = true;
+            state.EncounterOutcome = EncounterOutcomes.Success;
+        }
+        else if (state.FocusPoints <= 0 || state.DurationCounter >= state.MaxDuration)
+        {
+            state.IsEncounterComplete = true;
+            state.EncounterOutcome = EncounterOutcomes.Failure;
+        }
+    }
+
+
+    private int DetermineFocusPoints(ActionTypes actionType)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task GenerateChoicesForPlayer(Player playerState, PlayerChoiceSelection chosenOption)
+    {
+        if (_useAiNarrative)
+        {
+            WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(Encounter.LocationName);
+            List<EncounterChoice> generatedChoices = await aiGameMaster.GenerateChoices(
+                context,
+                state,
+                chosenOption,
+                worldStateInput,
+                AIClient.PRIORITY_IMMEDIATE);
+
+            // Update choice IDs to ensure uniqueness
+            for (int i = 0; i < generatedChoices.Count; i++)
+            {
+                EncounterChoice choice = generatedChoices[i];
+            }
+
+            CurrentChoices = generatedChoices;
+            _logger.LogInformation($"Generated {CurrentChoices.Count} AI choices for encounter stage {state.DurationCounter}");
+        }
+        else
+        {
+            // Fallback to hardcoded choices if AI narrative is disabled
+            GenerateFallbackChoices(state, context);
+        }
+    }
+
+    private AIGameMasterResponse GenerateFallbackChoices(EncounterState encounterState, EncounterContext encounterContext)
+    {
+        CurrentChoices = new List<EncounterChoice>
+        {
+            CreateFallbackChoice(0, "Proceed carefully", 1, "Observation"),
+            CreateFallbackChoice(1, "Take aggressive action", 2, "Brute Force"),
+            CreateFallbackChoice(2, "Try diplomatic approach", 1, "Negotiation"),
+            CreateFallbackChoice(3, "Gather more information", 1, "Investigation"),
+            CreateFallbackChoice(4, "Take a moment to recover", 0, "Perception")
+        };
+
+        return new AIGameMasterResponse
+        {
+            Narration = "Fallback choices generated due to AI narrative being disabled.",
+            AvailableChoices = CurrentChoices,
+        };
+    }
+
+    private EncounterChoice CreateFallbackChoice(int index, string narrativeText, int focusCost, string skillName)
+    {
+        return new EncounterChoice
+        {
+            ChoiceID = $"fallback_choice_{index}",
+            NarrativeText = narrativeText,
+            FocusCost = focusCost,
+            SkillOption =
+            new SkillOption
+            {
+                SkillName = skillName,
+                Difficulty = "Standard",
+                SCD = 3,
+                SuccessPayload = new AIPayload
+                {
+                    NarrativeEffect = "You succeed in your attempt.",
+                    MechanicalEffectID = focusCost == 0 ? "GAIN_FOCUS_1" : "SET_FLAG_INSIGHT_GAINED"
+                },
+                FailurePayload = new AIPayload
+                {
+                    NarrativeEffect = "You encounter a setback.",
+                    MechanicalEffectID = "ADVANCE_DURATION_1"
+                }
+            }
+        };
+    }
+
+    public void StartEncounter(EncounterContext encounterContext, EncounterParameters encounterParameters, Player player)
+    {
+        // TODO
+        state = new EncounterState(player, skillCategory);
+    }
+
+    private SkillCheckResult ResolveSkillCheck(SkillOption option, EncounterState state)
+    {
+        SkillCheckResult result = new SkillCheckResult();
+        result.SkillName = option.RequiredSkillName;
+        result.PlayerLevel = option.EffectiveLevel;
+        result.RequiredLevel = option.Difficulty;
+        result.IsSuccess = option.EffectiveLevel >= option.Difficulty;
+        result.IsUntrained = option.IsUntrained;
+
+        return result;
+    }
+
+    private BeatOutcome ApplyChoiceProjection(Player playerState, EncounterState encounterState, EncounterChoice choice)
     {
         this.playerState = playerState;
 
-        ChoiceProjection projection = encounterState.ApplyChoice(choiceProjectionService, playerState, Encounter, choice);
+        ChoiceProjection projection = encounterState.ApplyChoice(projectionService, playerState, Encounter, choice);
 
         // Log details of the projection
         _logger.LogInformation(
@@ -306,7 +407,7 @@
             projection.ProjectedOutcome
         );
 
-        ChoiceOutcome outcome = new ChoiceOutcome(
+        BeatOutcome outcome = new BeatOutcome(
             projection.ProgressGained,
             projection.NarrativeDescription,
             projection.MechanicalDescription,
@@ -317,12 +418,12 @@
     }
 
     private NarrativeEvent GetNarrativeEvent(
-        AiChoice choice,
-        ChoiceOutcome outcome,
+        EncounterChoice choice,
+        BeatOutcome outcome,
         string narrative)
     {
         NarrativeEvent narrativeEvent = new NarrativeEvent(
-            encounterState.DurationCounter - 1,
+            state.DurationCounter - 1,
             narrative);
 
         narrativeEvent.SetChosenOption(choice);
@@ -330,22 +431,21 @@
         return narrativeEvent;
     }
 
-    public NarrativeContext GetNarrativeContext()
+    public EncounterContext GetEncounterContext()
     {
-        return narrativeContext;
+        return context;
     }
 
     public ChoiceProjection ProjectChoice(ChoiceProjectionService choiceProjectionService,
-        EncounterState encounterState, AiChoice choice)
+        EncounterState encounterState, EncounterChoice choice)
     {
-        ChoiceProjection projection = this.encounterState.CreateChoiceProjection(choiceProjectionService, choice, playerState);
+        ChoiceProjection projection = this.state.CreateChoiceProjection(choiceProjectionService, choice, playerState);
         projection.MechanicalDescription = choice.ChoiceID;
         return projection;
     }
 
-    public List<AiChoice> GetCurrentChoices()
+    public List<EncounterChoice> GetCurrentChoices()
     {
         return CurrentChoices;
     }
-
 }
