@@ -36,17 +36,35 @@
 
     Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
         EncounterContext context,
-        PostEncounterEvolutionInput input,
-        WorldStateInput worldStateInput);
+        EncounterState encounterState,
+        EncounterChoice chosenOption,
+        BeatOutcome outcome,
+        WorldStateInput worldStateInput,
+        int priority);
+
     Task<string> ProcessMemoryConsolidation(
         EncounterContext context,
-        MemoryConsolidationInput input,
-        WorldStateInput worldStateInput);
+        EncounterState encounterState,
+        EncounterChoice chosenOption,
+        BeatOutcome outcome,
+        WorldStateInput worldStateInput,
+        int priority);
+
     Task<LocationDetails> GenerateLocationDetails(
-        LocationCreationInput context,
-        WorldStateInput worldStateInput);
+        EncounterContext context,
+        EncounterState encounterState,
+        EncounterChoice chosenOption,
+        BeatOutcome outcome,
+        WorldStateInput worldStateInput,
+        int priority);
+
     Task<string> GenerateActions(
-        ActionGenerationContext input,
-        WorldStateInput worldStateInput);
+        EncounterContext context,
+        EncounterState encounterState,
+        EncounterChoice chosenOption,
+        BeatOutcome outcome,
+        WorldStateInput worldStateInput,
+        int priority);
+
     string GetProviderName();
 }

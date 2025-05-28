@@ -266,9 +266,9 @@
         EncounterContext context = new EncounterContext()
         {
             LocationAction = locationAction,
-            ActionType = SkillCategory,
+            SkillCategory = SkillCategory,
             LocationName = location,
-            LocationID = locationSpot,
+            LocationSpotName = locationSpot,
         };
 
         EncounterManager encounterManager = await encounterSystem.GenerateEncounter(
@@ -298,7 +298,7 @@
         {
             // Generate AI choices
             AIPrompt prompt = promptBuilder.BuildBeatPrompt(context, state);
-            AIGameMasterResponse aiResponse = await aiService.GetResponse(prompt);
+            BeatResponse aiResponse = await aiService.GetResponse(prompt);
 
             // Present choices to player
             List<ValidatedChoice> choices = responseProcessor.ProcessAIResponse(aiResponse, state);
@@ -427,7 +427,7 @@
 
         gameState.ActionStateTracker.EncounterResult = result;
 
-        AIGameMasterResponse AIResponse = result.AIResponse;
+        BeatResponse AIResponse = result.AIResponse;
         string narrative = AIResponse?.SceneNarrative;
         string outcome = AIResponse?.Outcome.ToString();
 
@@ -484,7 +484,7 @@
 
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
-        AIGameMasterResponse AIResponse = encounterResult.AIResponse;
+        BeatResponse AIResponse = encounterResult.AIResponse;
         List<EncounterChoice> choices = encounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 

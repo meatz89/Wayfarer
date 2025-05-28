@@ -31,34 +31,36 @@ public class ActionGenerator
         string locationId,
         string spotId)
     {
-        Location location = locationRepository.GetLocationById(locationId);
-        LocationSpot locationSpot = locationRepository.GetSpot(locationId, spotId);
+        //Location location = locationRepository.GetLocationById(locationId);
+        //LocationSpot locationSpot = locationRepository.GetSpot(locationId, spotId);
 
-        if (location == null || locationSpot == null)
-        {
-            location = worldState.CurrentLocation;
-            locationSpot = worldState.CurrentLocationSpot;
-        }
+        //if (location == null || locationSpot == null)
+        //{
+        //    location = worldState.CurrentLocation;
+        //    locationSpot = worldState.CurrentLocationSpot;
+        //}
 
-        ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpot.SpotID);
+        //ActionDefinition actionDef = GetDefaultActionDefinition(actionName, locationSpot.SpotID);
 
-        if (_configuration.GetValue<bool>("actionGeneration"))
-        {
-            ActionGenerationContext context = new ActionGenerationContext
-            {
-                ActionId = actionName.Replace(" ", ""),
-                SpotName = locationSpot.Name,
-                LocationName = location.Name,
-            };
+        //if (_configuration.GetValue<bool>("actionGeneration"))
+        //{
+        //    ActionGenerationContext context = new ActionGenerationContext
+        //    {
+        //        ActionId = actionName.Replace(" ", ""),
+        //        SpotName = locationSpot.Name,
+        //        LocationName = location.Name,
+        //    };
 
-            WorldStateInput worldStateInput = await _worldStateInputCreator.CreateWorldStateInput(location.Name);
-            string json = await _aiService.GenerateActionsAsync(context, worldStateInput);
+        //    WorldStateInput worldStateInput = await _worldStateInputCreator.CreateWorldStateInput(location.Name);
+        //    string json = await _aiService.GenerateActions(context, worldStateInput);
 
-            actionDef = ActionParser.ParseAction(json);
-        }
+        //    actionDef = ActionParser.ParseAction(json);
+        //}
 
-        actionRepository.AddAction(actionDef);
-        return actionDef.Id;
+        //actionRepository.AddAction(actionDef);
+        //return actionDef.Id;
+
+        return GetDefaultActionDefinition(actionName, spotId).Id;
     }
 
     public async Task<string> GenerateCommission(string name, string id1, string id2)

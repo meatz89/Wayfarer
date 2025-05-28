@@ -1,10 +1,12 @@
 ﻿public class ChoiceProjectionService
 {
     private PayloadRegistry _payloadRegistry;
+    private readonly Player player;
 
     public ChoiceProjectionService(PayloadRegistry payloadRegistry, Player player)
     {
         _payloadRegistry = payloadRegistry;
+        this.player = player;
     }
 
     public ChoiceProjection ProjectChoice(EncounterChoice choice, EncounterState state)
@@ -32,8 +34,8 @@
         SkillCard card = FindCardByName(player.AvailableCards, option.SkillName);
 
         // TODO 
-        SkillCheckResolver resolver = new SkillCheckResolver(_payloadRegistry);
-        SkillCheckResult skillCheckResult = resolver.Resolve(option, card, state);
+        SkillCheckResolver resolver = new SkillCheckResolver();
+        SkillCheckResult skillCheckResult = resolver.Resolve(option, state);
 
         if (card != null && !card.IsExhausted)
         {
@@ -61,19 +63,19 @@
         return projection;
     }
 
-    private PayloadProjection ProjectPayload(AIPayload payload, EncounterState state)
+    private PayloadProjection ProjectPayload(PayloadEntry payload, EncounterState state)
     {
         PayloadProjection projection = new PayloadProjection();
-        projection.NarrativeEffect = payload.NarrativeEffect;
+        projection.NarrativeEffect = payload.Effect.ToString();
 
         // TODO
         PayloadProcessor payloadProcessor = new PayloadProcessor(_payloadRegistry, state);
-        payloadProcessor.Apply(payload.MechanicalEffectID, state);
+        payloadProcessor.ApplyPayload(payload.ID, state);
 
         // Get mechanical effect from registry
-        if (_payloadRegistry.HasEffect(payload.MechanicalEffectID))
+        if (_payloadRegistry.GetEffect(payload.ID) != null)
         {
-            IMechanicalEffect effect = _payloadRegistry.GetEffect(payload.MechanicalEffectID);
+            IMechanicalEffect effect = _payloadRegistry.GetEffect(payload.ID);
             projection.MechanicalDescription = effect.GetDescriptionForPlayer();
         }
         else

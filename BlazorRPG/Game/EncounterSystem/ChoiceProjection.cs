@@ -22,7 +22,7 @@
     public NegativeConsequenceTypes NegativeConsequenceType { get; }
     public string MechanicalDescription { get; set; }
     public bool WillEncounterEnd { get; set; }
-    public EncounterOutcomes ProjectedOutcome { get; set; }
+    public BeatOutcomes ProjectedOutcome { get; set; }
 
     public ChoiceProjection(EncounterChoice choice)
     {

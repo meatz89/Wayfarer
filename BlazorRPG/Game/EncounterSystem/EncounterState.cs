@@ -6,7 +6,7 @@
     public int DurationCounter { get; set; }
     public int MaxDuration { get; set; }
     public bool IsEncounterComplete { get; set; }
-    public EncounterOutcomes EncounterOutcome { get; set; }
+    public BeatOutcomes EncounterOutcome { get; set; }
     public List<FlagStates> GoalFlags { get; set; }
     public EncounterFlagManager FlagManager { get; set; }
     public Player Player { get; set; }
@@ -16,7 +16,6 @@
 
     // Skill category for this encounter
     public ActionTypes SkillCategory { get; }
-    public int MaxFocusPoints1 { get; }
 
     // Current context
     public NPC CurrentNPC { get; set; }
@@ -24,12 +23,13 @@
     // Progress tracking
     public int CurrentProgress { get; private set; }
     public int CurrentStageIndex { get; private set; }
+    public string CurrentNarrative { get; set; }
 
     // Skill modifiers
     private List<SkillModifier> activeModifiers;
     private int nextCheckModifier;
 
-    public EncounterState(Player player, int maxFocusPoints, int maxDuration)
+    public EncounterState(Player player, int maxFocusPoints, int maxDuration, string currentNarrative)
     {
         // Initialize core values
         Player = player;
@@ -51,6 +51,7 @@
 
         // Set deterministic seed for consistent random results
         EncounterSeed = Environment.TickCount;
+        CurrentNarrative = currentNarrative;
     }
 
     public void AdvanceDuration(int amount)
@@ -155,22 +156,21 @@
     public ChoiceProjection CreateChoiceProjection(
         ChoiceProjectionService choiceProjectionService,
         EncounterChoice choice,
-        Player playerState)
+        EncounterState state)
     {
         return choiceProjectionService.ProjectChoice(
             choice,
-            this,
-            playerState);
+            state);
     }
 
     public ChoiceProjection ApplyChoice(
         ChoiceProjectionService choiceProjectionService,
         Player playerState,
-        Encounter encounter,
+        EncounterState state,
         EncounterChoice choice)
     {
         // Create projection to determine outcome
-        ChoiceProjection projection = CreateChoiceProjection(choiceProjectionService, choice, playerState);
+        ChoiceProjection projection = CreateChoiceProjection(choiceProjectionService, choice, state);
 
         // Apply Focus cost
         FocusPoints -= choice.FocusCost;
@@ -210,7 +210,7 @@
             PayloadRegistry payloadRegistry = new PayloadRegistry();
             if (success)
             {
-                IMechanicalEffect effect = payloadRegistry.GetEffect(selectedSkillOption.SuccessPayload.MechanicalEffectID);
+                IMechanicalEffect effect = payloadRegistry.GetEffect(selectedSkillOption.SuccessPayload.ID);
                 if (effect != null)
                 {
                     effect.Apply(this);
@@ -219,7 +219,7 @@
             }
             else
             {
-                IMechanicalEffect effect = payloadRegistry.GetEffect(selectedSkillOption.FailurePayload.MechanicalEffectID);
+                IMechanicalEffect effect = payloadRegistry.GetEffect(selectedSkillOption.FailurePayload.ID);
                 if (effect != null)
                 {
                     effect.Apply(this);
@@ -263,8 +263,8 @@
             int successThreshold = 10; // Basic success threshold
             projection.ProjectedOutcome =
                 CurrentProgress >= successThreshold
-                ? EncounterOutcomes.Success
-                : EncounterOutcomes.Failure;
+                ? BeatOutcomes.Success
+                : BeatOutcomes.Failure;
         }
 
         return projection;

@@ -112,7 +112,7 @@
             locationAction.Approaches = commission.InitialStep.Approaches;
         }
 
-        locationAction.RequiredCardType = ActionExecutionTypes.Encounter;
+        locationAction.RequiredCardType = ActionTypes.Physical;
 
         locationAction.Requirements = new List<IRequirement>
         {

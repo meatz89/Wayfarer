@@ -36,9 +36,9 @@
         // Step 2: Create the encounter context
         EncounterContext context = new EncounterContext();
         context.LocationName = location.Name;
-        context.LocationID = location.SpotID;
+        context.LocationSpotName = location.SpotID;
         context.ActionName = this.Name;
-        context.ActionType = this.RequiredCardType;
+        context.SkillCategory = this.RequiredCardType;
         context.PlayerSkillCards = validCards;
         context.PlayerAllCards = player.GetAllAvailableCards();
 

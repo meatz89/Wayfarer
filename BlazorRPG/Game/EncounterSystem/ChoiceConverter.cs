@@ -2,7 +2,7 @@
 {
     private PayloadRegistry payloadRegistry;
 
-    public List<EncounterChoice> ConvertEncounterChoices(AIGameMasterResponse aiResponse, EncounterState state)
+    public List<EncounterChoice> ConvertEncounterChoices(BeatResponse aiResponse, EncounterState state)
     {
         List<EncounterChoice> choices = new List<EncounterChoice>();
 
@@ -51,8 +51,8 @@
         option.SuccessChance = CalculateSuccessChance(option.EffectiveLevel, option.Difficulty);
 
         // Link to payloads
-        option.SuccessPayload = aiOption.SuccessPayload.MechanicalEffectID;
-        option.FailurePayload = aiOption.FailurePayload.MechanicalEffectID;
+        option.SuccessPayload = aiOption.SuccessPayload.ID;
+        option.FailurePayload = aiOption.FailurePayload.ID;
 
         return option;
     }
