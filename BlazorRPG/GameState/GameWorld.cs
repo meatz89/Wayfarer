@@ -1,5 +1,4 @@
-﻿
-public class GameWorld
+﻿public class GameWorld
 {
     public Player Player { get; set; }
     public ActionStateTracker ActionStateTracker { get; }

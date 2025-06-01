@@ -1,4 +1,4 @@
-﻿public enum ActionTypes
+﻿public enum SkillCategories
 {
     None = 0,
     Physical,

@@ -2,11 +2,11 @@
 {
     private PayloadRegistry payloadRegistry;
 
-    public List<EncounterChoice> ConvertEncounterChoices(BeatResponse aiResponse, EncounterState state)
+    public List<EncounterChoice> ConvertEncounterChoices(AIResponse aiResponse, EncounterState state)
     {
         List<EncounterChoice> choices = new List<EncounterChoice>();
 
-        foreach (EncounterChoice EncounterChoice in aiResponse.AvailableChoices)
+        foreach (EncounterChoice EncounterChoice in aiResponse.Choices)
         {
             EncounterChoice choice = new EncounterChoice();
             choice.ChoiceID = EncounterChoice.ChoiceID;

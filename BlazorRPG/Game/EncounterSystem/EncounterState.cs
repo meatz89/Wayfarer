@@ -15,7 +15,7 @@
     public int EncounterSeed { get; }
 
     // Skill category for this encounter
-    public ActionTypes SkillCategory { get; }
+    public SkillCategories SkillCategory { get; }
 
     // Current context
     public NPC CurrentNPC { get; set; }

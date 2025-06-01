@@ -3,7 +3,7 @@
     public string LocationName { get; set; }
     public string LocationSpotName { get; set; }
     public string ActionName { get; set; }
-    public ActionTypes SkillCategory { get; set; }
+    public SkillCategories SkillCategory { get; set; }
     public List<SkillCard> PlayerSkillCards { get; set; }
     public List<SkillCard> PlayerAllCards { get; set; }
 

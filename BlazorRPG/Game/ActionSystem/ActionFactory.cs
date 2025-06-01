@@ -38,7 +38,7 @@
             locationAction.DestinationLocationSpot = template.MoveToLocationSpot;
         }
         
-        locationAction.RequiredCardType = ActionTypes.Physical;
+        locationAction.RequiredCardType = SkillCategories.Physical;
         locationAction.ActionExecutionType = actionType;
 
         locationAction.Requirements = CreateRequirements(template);
@@ -112,7 +112,7 @@
             locationAction.Approaches = commission.InitialStep.Approaches;
         }
 
-        locationAction.RequiredCardType = ActionTypes.Physical;
+        locationAction.RequiredCardType = SkillCategories.Physical;
 
         locationAction.Requirements = new List<IRequirement>
         {

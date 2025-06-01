@@ -261,7 +261,7 @@
         int playerLevel = playerState.Level;
 
         ApproachDefinition? approach = commission.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
-        ActionTypes SkillCategory = approach.RequiredCardType;
+        SkillCategories SkillCategory = approach.RequiredCardType;
 
         EncounterContext context = new EncounterContext()
         {
@@ -298,7 +298,7 @@
         {
             // Generate AI choices
             AIPrompt prompt = promptBuilder.BuildBeatPrompt(context, state);
-            BeatResponse aiResponse = await aiService.GetResponse(prompt);
+            AIResponse aiResponse = await aiService.GetResponse(prompt);
 
             // Present choices to player
             List<ValidatedChoice> choices = responseProcessor.ProcessAIResponse(aiResponse, state);
@@ -427,8 +427,8 @@
 
         gameState.ActionStateTracker.EncounterResult = result;
 
-        BeatResponse AIResponse = result.AIResponse;
-        string narrative = AIResponse?.SceneNarrative;
+        AIResponse AIResponse = result.AIResponse;
+        string narrative = AIResponse?.BeatNarration;
         string outcome = AIResponse?.Outcome.ToString();
 
         if (_processStateChanges)
@@ -484,7 +484,7 @@
 
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
-        BeatResponse AIResponse = encounterResult.AIResponse;
+        AIResponse AIResponse = encounterResult.AIResponse;
         List<EncounterChoice> choices = encounterSystem.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 

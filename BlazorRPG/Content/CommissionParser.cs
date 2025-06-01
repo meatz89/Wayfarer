@@ -101,8 +101,8 @@ public static class CommissionParser
 
             // Parse card type
             string cardTypeStr = GetStringProperty(approachElement, "requiredCardType", "");
-            ActionTypes requiredCardType = Enum.TryParse<ActionTypes>(cardTypeStr, true,
-                out ActionTypes parsedCardType) ? parsedCardType : ActionTypes.Physical;
+            SkillCategories requiredCardType = Enum.TryParse<SkillCategories>(cardTypeStr, true,
+                out SkillCategories parsedCardType) ? parsedCardType : SkillCategories.Physical;
 
             ApproachDefinition approach = new ApproachDefinition
             {

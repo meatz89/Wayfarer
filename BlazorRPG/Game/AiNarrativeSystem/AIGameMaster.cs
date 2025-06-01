@@ -20,7 +20,7 @@
         this._promptManager = new AIPromptBuilder(configuration);
     }
 
-    public async Task<List<EncounterChoice>> GenerateChoices(
+    public async Task<AIResponse> GenerateChoices(
         EncounterContext context,
         EncounterState state,
         PlayerChoiceSelection chosenOption,

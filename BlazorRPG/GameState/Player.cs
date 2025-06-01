@@ -43,7 +43,7 @@
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
 
 
-    public HashSet<(string, ActionTypes)> LocationActionAvailability { get; set; } = new();
+    public HashSet<(string, SkillCategories)> LocationActionAvailability { get; set; } = new();
 
     public bool IsInitialized { get; set; } = false;
 
@@ -178,7 +178,7 @@
         Inventory.AddItem(ItemTypes.TradeDocuments);
     }
 
-    public bool HasAvailableCard(ActionTypes cardTypes)
+    public bool HasAvailableCard(SkillCategories cardTypes)
     {
         foreach (SkillCard card in AvailableCards)
         {
@@ -321,7 +321,7 @@
         this.EnergyPoints += amount;
     }
 
-    public bool HasNonExhaustedCardOfType(ActionTypes requiredCardType)
+    public bool HasNonExhaustedCardOfType(SkillCategories requiredCardType)
     {
         return true;
     }
@@ -411,7 +411,7 @@
         return clone;
     }
 
-    public SkillCard GetBestNonExhaustedCardOfType(ActionTypes requiredCardType)
+    public SkillCard GetBestNonExhaustedCardOfType(SkillCategories requiredCardType)
     {
         throw new NotImplementedException();
     }
@@ -436,7 +436,7 @@
         throw new NotImplementedException();
     }
 
-    public List<SkillCard> GetAvailableCardsByType(ActionTypes requiredCardType)
+    public List<SkillCard> GetAvailableCardsByType(SkillCategories requiredCardType)
     {
         return new List<SkillCard>(AvailableCards);
     }
@@ -466,7 +466,7 @@
         throw new NotImplementedException();
     }
 
-    public List<SkillCard> GetCardsOfType(ActionTypes requiredApproach)
+    public List<SkillCard> GetCardsOfType(SkillCategories requiredApproach)
     {
         throw new NotImplementedException();
     }

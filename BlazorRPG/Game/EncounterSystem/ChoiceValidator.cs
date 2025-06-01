@@ -2,7 +2,7 @@
 
 public class ChoiceValidator
 {
-    public ValidationResult Validate(BeatResponse aiResponse)
+    public ValidationResult Validate(AIResponse aiResponse)
     {
         throw new NotImplementedException();
     }
