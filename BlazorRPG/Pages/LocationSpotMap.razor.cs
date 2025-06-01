@@ -47,7 +47,7 @@ public partial class LocationSpotMap : ComponentBase
         selectedAction = null;
     }
 
-    private void ActivateHighlightMode(ActionTypes cardType)
+    private void ActivateHighlightMode(SkillCategories cardType)
     {
         if (CardHighlightService.IsHighlightModeActive)
         {
@@ -64,19 +64,19 @@ public partial class LocationSpotMap : ComponentBase
         DragDropService.OnStateChanged -= StateHasChanged;
     }
 
-    private bool IsValidCardForApproach(ActionTypes requiredCardType)
+    private bool IsValidCardForApproach(SkillCategories requiredCardType)
     {
         bool isValidTarget = DragDropService.IsValidDropTarget(requiredCardType);
         return true;
     }
 
-    private string GetCardTypeClass(ActionTypes type)
+    private string GetCardTypeClass(SkillCategories type)
     {
         return type switch
         {
-            ActionTypes.Physical => "physical",
-            ActionTypes.Intellectual => "intellectual",
-            ActionTypes.Social => "social",
+            SkillCategories.Physical => "physical",
+            SkillCategories.Intellectual => "intellectual",
+            SkillCategories.Social => "social",
             _ => ""
         };
     }

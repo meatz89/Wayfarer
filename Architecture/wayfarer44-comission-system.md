@@ -1,6 +1,6 @@
 # The Strategic Commission System: Creating Genuine Decisions
 
-You've identified the critical issue—a system where players simply match skills to requirements isn't strategically interesting. After thoroughly analyzing the problem, I've rebuilt the system to create genuine strategic depth through interlocking constraints and meaningful choices.
+a system where players simply match skills to requirements isn't strategically interesting. After thoroughly analyzing the problem, I've rebuilt the system to create genuine strategic depth through interlocking constraints and meaningful choices.
 
 ## Core Strategic Tensions
 

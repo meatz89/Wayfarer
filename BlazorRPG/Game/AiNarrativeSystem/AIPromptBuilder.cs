@@ -167,13 +167,13 @@ public class AIPromptBuilder
             return "Unkown";
     }
 
-    private string GetSkillCategoryDescription(ActionTypes SkillCategory)
+    private string GetSkillCategoryDescription(SkillCategories SkillCategory)
     {
         return SkillCategory switch
         {
-            ActionTypes.Physical => "Physical",
-            ActionTypes.Social => "Social",
-            ActionTypes.Intellectual => "Intellectual",
+            SkillCategories.Physical => "Physical",
+            SkillCategories.Social => "Social",
+            SkillCategories.Intellectual => "Intellectual",
             _ => "Unknown"
         };
     }

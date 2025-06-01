@@ -2,5 +2,5 @@
 {
     public int FocusPoints { get; set; }
     public int MaxDuration { get; set; }
-    public ActionTypes EncounterType { get; set; }
+    public SkillCategories EncounterType { get; set; }
 }

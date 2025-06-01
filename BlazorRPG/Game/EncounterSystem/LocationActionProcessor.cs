@@ -83,16 +83,16 @@ public class LocationActionProcessor
         };
     }
 
-    private ActionTypes DetermineSkillCategory(string approachId)
+    private SkillCategories DetermineSkillCategory(string approachId)
     {
         if (approachId.Contains("physical", StringComparison.OrdinalIgnoreCase))
-            return ActionTypes.Physical;
+            return SkillCategories.Physical;
         if (approachId.Contains("intellectual", StringComparison.OrdinalIgnoreCase))
-            return ActionTypes.Intellectual;
+            return SkillCategories.Intellectual;
         if (approachId.Contains("social", StringComparison.OrdinalIgnoreCase))
-            return ActionTypes.Social;
+            return SkillCategories.Social;
 
-        return ActionTypes.Physical; // Default fallback
+        return SkillCategories.Physical; // Default fallback
     }
 
     public Encounter GetDefaultEncounterTemplate()
@@ -102,7 +102,7 @@ public class LocationActionProcessor
             Id = "default_encounter",
             TotalProgress = 10, // Basic success threshold
             EncounterDifficulty = 1,
-            SkillCategory = ActionTypes.Physical,
+            SkillCategory = SkillCategories.Physical,
             Stages = GenerateUniversalFiveStageStructure() // Always 5 stages
         };
 

@@ -5,7 +5,7 @@
     string LocationName,
     string locationSpotName,
     EncounterResult encounterResult,
-    BeatResponse AIResponse,
+    AIResponse AIResponse,
     EncounterChoice Choice)
 {
 }

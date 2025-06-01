@@ -2,7 +2,7 @@
 {
     public string ActionId { get; set; }
     public string Name { get; set; }
-    public ActionTypes RequiredCardType { get; set; }
+    public SkillCategories RequiredCardType { get; set; }
     public ActionExecutionTypes ActionExecutionType { get; set; } = ActionExecutionTypes.Encounter;
 
     public string ObjectiveDescription { get; set; }
@@ -50,7 +50,7 @@
         encounterManager.StartEncounter(context, parameters, player);
     }
 
-    private EncounterParameters DetermineEncounterParameters(ActionTypes actionType)
+    private EncounterParameters DetermineEncounterParameters(SkillCategories actionType)
     {
         throw new NotImplementedException();
     }

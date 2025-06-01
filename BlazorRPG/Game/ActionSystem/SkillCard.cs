@@ -2,13 +2,13 @@
 {
     public string Name { get; private set; }
     public SkillTypes SkillType { get; private set; }
-    public ActionTypes Category { get; private set; }
+    public SkillCategories Category { get; private set; }
     public int Level { get; private set; }
     public string Description { get; private set; }
     public bool IsExhausted { get; private set; }
     public string Id { get; set; }
 
-    public SkillCard(string name, SkillTypes skillType, ActionTypes category, int level, string description)
+    public SkillCard(string name, SkillTypes skillType, SkillCategories category, int level, string description)
     {
         Name = name;
         SkillType = skillType;

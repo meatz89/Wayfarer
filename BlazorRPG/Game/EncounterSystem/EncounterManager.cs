@@ -87,10 +87,10 @@
             locationAction = locationAction,
             ActionResult = ActionResults.Ongoing,
             EncounterContext = context,
-            AIResponse = new BeatResponse
+            AIResponse = new AIResponse
             {
-                SceneNarrative = narrative,
-                AvailableChoices = generatedChoices
+                BeatNarration = narrative,
+                Choices = generatedChoices
             }
         };
 
@@ -141,10 +141,10 @@
                 ActionResult = outcome.Outcome == BeatOutcomes.Success ? ActionResults.EncounterSuccess : ActionResults.EncounterFailure,
                 EncounterEndMessage = concludingNarrative,
                 EncounterContext = context,
-                AIResponse = new BeatResponse
+                AIResponse = new AIResponse
                 {
-                    SceneNarrative = concludingNarrative,
-                    AvailableChoices = new List<EncounterChoice>(), // No choices after conclusion
+                    BeatNarration = concludingNarrative,
+                    Choices = new List<EncounterChoice>(), // No choices after conclusion
                 }
             };
 
@@ -184,10 +184,10 @@
                 locationAction = locationAction,
                 ActionResult = ActionResults.Ongoing,
                 EncounterContext = context,
-                AIResponse = new BeatResponse
+                AIResponse = new AIResponse
                 {
-                    SceneNarrative = reactionNarrative,
-                    AvailableChoices = CurrentChoices
+                    BeatNarration = reactionNarrative,
+                    Choices = CurrentChoices
                 }
             };
 
@@ -274,19 +274,19 @@
         }
     }
 
-    private List<FlagStates> DetermineGoalFlags(ActionTypes actionType)
+    private List<FlagStates> DetermineGoalFlags(SkillCategories actionType)
     {
         List<FlagStates> goalFlags = new List<FlagStates>();
 
         switch (actionType)
         {
-            case ActionTypes.Physical:
+            case SkillCategories.Physical:
                 goalFlags.Add(FlagStates.PathCleared);
                 break;
-            case ActionTypes.Intellectual:
+            case SkillCategories.Intellectual:
                 goalFlags.Add(FlagStates.InsightGained);
                 break;
-            case ActionTypes.Social:
+            case SkillCategories.Social:
                 goalFlags.Add(FlagStates.TrustEstablished);
                 break;
             default:
@@ -297,16 +297,16 @@
         return goalFlags;
     }
 
-    private int DetermineFocusPoints(ActionTypes actionType)
+    private int DetermineFocusPoints(SkillCategories actionType)
     {
         // Base focus points for different action types
         switch (actionType)
         {
-            case ActionTypes.Physical:
+            case SkillCategories.Physical:
                 return 7;
-            case ActionTypes.Intellectual:
+            case SkillCategories.Intellectual:
                 return 8;
-            case ActionTypes.Social:
+            case SkillCategories.Social:
                 return 6;
             default:
                 return 6;

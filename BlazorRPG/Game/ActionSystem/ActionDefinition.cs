@@ -6,7 +6,7 @@
     public string LocationSpotId { get; set; }
     public int ActionPointCost { get; set; }
     public int SilverCost { get; set; }
-    public ActionTypes RefreshCardType { get; set; }
+    public SkillCategories RefreshCardType { get; set; }
     public int EnergyCost { get; set; }
     public int ConcentrationCost { get; set; }
 

@@ -83,7 +83,7 @@
 
         gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
 
-        BeatResponse initialResult = await encounterManager.InitializeEncounter(
+        AIResponse initialResult = await encounterManager.InitializeEncounter(
             location,
             encounter,
             worldState,
@@ -106,19 +106,19 @@
     }
 
     public async Task<EncounterResult> ExecuteChoice(
-        BeatResponse AIResponse,
+        AIResponse AIResponse,
         EncounterChoice choice)
     {
         logger.LogInformation("ExecuteChoice called for choice: {ChoiceId}", choice?.ChoiceID);
-        BeatResponse currentNarrative = AIResponse;
-        BeatResponse cachedResult = null;
+        AIResponse currentNarrative = AIResponse;
+        AIResponse cachedResult = null;
 
         EncounterManager encounterManager = GetEncounterManager();
         bool isInitialChoice = encounterManager.IsInitialState;
 
         _preGenerationManager.CancelAllPendingGenerations();
 
-        List<EncounterChoice> choices = currentNarrative.AvailableChoices;
+        List<EncounterChoice> choices = currentNarrative.Choices;
 
         currentNarrative = await encounterManager.ProcessPlayerSelection(
             encounterManager.Encounter.LocationName,
@@ -132,7 +132,7 @@
         return encounterManager.EncounterResult;
     }
 
-    private EncounterResult CreateEncounterResult(EncounterManager encounter, BeatResponse currentNarrative)
+    private EncounterResult CreateEncounterResult(EncounterManager encounter, AIResponse currentNarrative)
     {
         if (currentNarrative.IsEncounterOver)
         {
@@ -154,7 +154,7 @@
                     encounter.locationAction?.ActionId,
                     currentNarrative.Outcome,
                     currentNarrative?.ToString(),
-                    currentNarrative?.AvailableChoices?.Count ?? 0,
+                    currentNarrative?.Choices?.Count ?? 0,
                     currentNarrative.IsEncounterOver);
 
                 EncounterResult successResult = new EncounterResult()

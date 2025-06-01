@@ -25,7 +25,7 @@ public static class ActionParser
         string refreshCardType = GetStringProperty(root, "refreshCardType", "");
         if (!string.IsNullOrEmpty(refreshCardType))
         {
-            if (Enum.TryParse(refreshCardType, true, out ActionTypes cardType))
+            if (Enum.TryParse(refreshCardType, true, out SkillCategories cardType))
             {
                 action.RefreshCardType = cardType;
             }

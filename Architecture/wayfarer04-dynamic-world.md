@@ -100,17 +100,6 @@ These changes aren't merely aesthetic—they fundamentally alter how encounters 
 
 ## 4. Characters and Connections
 
-### Authentic Character Placement
-
-Characters in Wayfarer are fixed entities with specific places in the world:
-
-- **Fixed Location**: Every character has exactly one home location where they will always be found
-- **Specific Spot**: Each character occupies a specific interaction spot within their location
-- **No Movement**: Characters do not move between locations or have schedules
-- **Role-Appropriate Placement**: A blacksmith is found at the forge, a merchant at their stall, etc.
-
-This creates a deterministic world where finding someone doesn't rely on timing or chance. Players always know where to find a specific character once discovered.
-
 ### Location-Opportunity Connection
 
 Every quest, job, or mystery is anchored to specific spots within the world:
@@ -210,16 +199,6 @@ Player progression in Wayfarer is represented through cards—special abilities 
 - Card effectiveness varies based on opponent and situation
 
 This creates a progression system where advancement feels like growing mastery rather than arbitrary statistical increases.
-
-### Resource Management
-
-The player manages several resources that add meaningful constraints to exploration:
-
-- Health, focus, and spirit during encounters
-- Money and food for survival and travel
-- Items that provide strategic advantages in specific situations
-
-These resources create meaningful decisions about priorities and risk management without overwhelming the player with complex economies.
 
 ### Relationship Development
 
@@ -437,78 +416,11 @@ The world should grow in ways that balance novelty with familiarity:
 - **Contextual Introduction**: New elements work best when they relate to current player goals or interests
 - **Recognition Patterns**: Players should recognize how new discoveries fit into their understanding of the world
 
-
 # Environmental Property Card System
 
 ## Overview
 
 The Wayfarer property card system enhances the tiered card progression with environmental property synergies. This system creates dynamic, changing environments that interact with player cards to produce varying strategies based on time, place, and circumstance.
-
-## Environmental & Situational Properties
-
-Strategic tags are now based on properties that can be combined to create varied environments:
-
-### Illumination Properties
-- **Bright** - Well-lit areas with clear visibility
-  - *Effect Example*: Enhances Precision and Analysis approaches
-  - *Locations*: Open market (day), noble court, temples
-  
-- **Shadowy** - Areas with mixed lighting and many shadows
-  - *Effect Example*: Enhances Evasion approach, creates tension
-  - *Locations*: Forest edge, taverns, evening streets
-  
-- **Dark** - Poorly lit or nighttime environments
-  - *Effect Example*: Significantly boosts Evasion, penalizes Precision
-  - *Locations*: Night environments, caves, cellars
-
-### Population Properties
-- **Crowded** - Densely populated areas with many people
-  - *Effect Example*: Enhances Rapport and Dominance approaches
-  - *Locations*: Markets, festivals, public gatherings
-  
-- **Quiet** - Sparsely populated with few observers
-  - *Effect Example*: Enhances Analysis and Precision approaches
-  - *Locations*: Libraries, private studies, early morning streets
-  
-- **Isolated** - Completely private or secluded environments
-  - *Effect Example*: Boosts extreme approaches (very high Dominance or Evasion)
-  - *Locations*: Charm, abandoned buildings, private chambers
-
-### Atmosphere Properties
-- **Tense** - High-pressure, stressful environments
-  - *Effect Example*: Increases pressure generation, enhances decisive actions
-  - *Locations*: Negotiations, dangerous areas, confrontations
-  
-- **Formal** - Rule-bound, ceremonial, or structured settings
-  - *Effect Example*: Enhances Rapport and Analysis, penalizes Dominance
-  - *Locations*: Courts, ceremonies, guild meetings
-  
-- **Chaotic** - Unpredictable, disordered environments
-  - *Effect Example*: Enhances adaptable approaches, penalizes rigid strategies
-  - *Locations*: Tavern brawls, markets, celebrations
-
-### Physical Properties
-- **Confined** - Tight spaces with limited movement
-  - *Effect Example*: Enhances Precision, penalizes Dominance
-  - *Locations*: Narrow alleys, small rooms, caves
-  
-- **Expansive** - Open areas with room to maneuver
-  - *Effect Example*: Enhances Dominance, creates movement options
-  - *Locations*: Fields, large halls, town squares
-  
-- **Hazardous** - Physically dangerous environments
-  - *Effect Example*: Increases pressure, rewards careful approaches
-  - *Locations*: Crumbling ruins, battlefield, stormy conditions
-
-### Synergy Types
-
-Cards can have various types of property synergies:
-
-1. **Bonus Effects** - Additional mechanical benefits when a property is present
-2. **Resource Generation** - Generate or preserve resources in specific environments
-3. **Requirement Modifications** - Lower requirements in favorable environments
-4. **Card Transformations** - Card changes function in certain environments
-5. **Blocking Conditions** - Card cannot be used in certain environments
 
 ## Dynamic Location Design
 
@@ -527,40 +439,6 @@ Locations combine multiple properties to create unique strategic environments:
 
 **Night Market** (10pm-12am)
 - Properties: Dark + Quiet + Commercial + Tense
-
-## Gameplay Impact
-
-The property-based strategic tag system transforms gameplay in several ways:
-
-### 1. Timing Strategy
-
-Players consider not just where to go, but when to go there:
-- Sneaky characters prefer night versions of locations
-- Rapportly dominant characters prefer crowded daytime settings
-- Analytical characters might prefer quiet morning hours
-- Different quests may be easier at different times of day
-
-### 2. Card Collection Strategy
-
-Players build card collections with complementary property synergies:
-- Cards that work well in the same property combinations
-- Cards that excel in properties that align with their approach preferences
-- Versatile cards that have benefits in multiple environment types
-
-### 3. Adaptive Play
-
-Players adapt to changing conditions:
-- Weather changes might alter available properties
-- Time progression changes illumination properties
-- Player actions may alter population properties
-- Special events create unique property combinations
-
-### 4. Increased Replayability
-
-The same location feels different based on:
-- Time of day
-- Weather conditions
-- Player actions in previous encounters
 
 ## Implementation Notes
 
