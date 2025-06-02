@@ -17,6 +17,9 @@
     private PlayerProgression playerProgression;
     private ActionProcessor actionProcessor;
     private ContentLoader contentLoader;
+
+    private List<Opportunity> availableOpportunities = new List<Opportunity>();
+
     public GameWorldManager(GameWorld gameState, EncounterSystem encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
@@ -348,7 +351,7 @@
         }
     }
 
-    public async Task InitiateTravelToLocation(string locationName)
+    public async Task Travel(string targetLocation)
     {
         Location loc = locationRepository.GetLocationByName(locationName);
 
@@ -361,8 +364,44 @@
             worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.SpotID,
             null, worldState.CurrentLocation.Difficulty, null, null);
 
+        TravelRoute route;
+        Travel(route);
+
         // Use unified action execution
         await ExecuteAction(travelOption);
+    }
+
+    public void Travel(TravelRoute route)
+    {
+        // Check if player can travel this route
+        if (!route.CanTravel(gameWorld.Player))
+            return;
+
+        // Apply costs
+        int timeCost = route.GetActualTimeCost();
+        int energyCost = route.GetActualEnergyCost();
+
+        gameWorld.Player.SpendEnergy(energyCost);
+        gameWorld.AdvanceTime(TimeSpan.FromHours(timeCost));
+
+        // Increase knowledge of this route
+        route.IncreaseKnowledge();
+
+        // Check for encounters
+        int seed = gameWorld.CurrentDay + gameWorld.Player.GetHashCode();
+        TravelEncounter encounter = route.GetEncounter(seed);
+
+        if (encounter != null)
+        {
+            // Start a travel encounter
+            StartEncounter(encounter.EncounterTemplates, encounter.Description);
+        }
+        else
+        {
+            // Arrived safely
+            gameWorld.CurrentLocation = route.Destination;
+            UpdateState();
+        }
     }
 
 
@@ -605,20 +644,31 @@
         return null;
     }
 
-    public ActionExecutionTypes GetExecutionType(LocationAction action)
+    public void UpdateAvailableOpportunities()
     {
-        if (action.RequiredCardType == ActionExecutionTypes.Encounter)
+        foreach (var opportunity in GameWorld.AllOpportunities)
         {
-            return ActionExecutionTypes.Encounter;
+            if (opportunity.IsAvailable(GameWorld.CurrentDay, GameWorld.CurrentTimeOfDay))
+            {
+                if (!availableOpportunities.Contains(opportunity))
+                {
+                    availableOpportunities.Add(opportunity);
+                }
+            }
+            else
+            {
+                availableOpportunities.Remove(opportunity);
+            }
         }
-        // Instant action
-        return ActionExecutionTypes.Instant;
     }
+
 
     public async Task UpdateState()
     {
         gameState.ActionStateTracker.ClearCurrentUserAction();
         actionProcessor.UpdateState();
+        
+        UpdateAvailableOpportunities();
 
         Location location = worldState.CurrentLocation;
         LocationSpot locationSpot = worldState.CurrentLocationSpot;
@@ -713,5 +763,4 @@
             Console.WriteLine($"Error saving game: {ex}");
         }
     }
-
 }

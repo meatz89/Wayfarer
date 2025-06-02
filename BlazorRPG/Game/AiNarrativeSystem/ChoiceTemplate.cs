@@ -17,6 +17,8 @@
     public string SuccessOutcomeNarrativeGuidance { get; private set; }
     public string FailureOutcomeNarrativeGuidance { get; private set; }
 
+    public Dictionary<SkillCategories, ApproachCost> ContextualCosts { get; private set; }
+
     public ChoiceTemplate(
         string templateName,
         string strategicPurpose,
@@ -47,6 +49,36 @@
         ConceptualOutput = conceptualOutput;
         SuccessOutcomeNarrativeGuidance = successOutcomeNarrativeGuidance;
         FailureOutcomeNarrativeGuidance = failureOutcomeNarrativeGuidance;
+    }
+
+
+    // Get the appropriate cost based on approach and context
+    public ApproachCost GetCost(SkillCategories approach, Location location, TimeOfDay timeOfDay)
+    {
+        // Base cost from the approach
+        ApproachCost baseCost = ContextualCosts.ContainsKey(approach)
+            ? ContextualCosts[approach]
+            : new ApproachCost(1, 0, 0, TimeSpan.FromHours(1));
+
+        // Modify based on location properties
+        List<FlagStates> locationFlags = location.GetCurrentFlags(timeOfDay);
+
+        // Apply modifiers based on flags
+        // This is a simple example - you would expand this based on your flag system
+        if (locationFlags.Contains(FlagStates.Crowded) && approach == SkillCategories.Intellectual)
+        {
+            // Intellectual approaches cost more energy in crowded places
+            return new ApproachCost(
+                baseCost.EnergyCost + 1,
+                baseCost.MoneyCost,
+                baseCost.ReputationImpact,
+                baseCost.TimeCost
+            );
+        }
+
+        // More contextual modifiers here...
+
+        return baseCost;
     }
 
     // Create and execute the success effect

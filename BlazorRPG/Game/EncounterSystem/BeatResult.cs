@@ -1,4 +1,4 @@
 ﻿public class BeatResult
 {
-    public bool IsComplete { get; internal set; }
+    public bool IsComplete { get; public set; }
 }

@@ -163,35 +163,6 @@ In 80 Days, local knowledge confers advantages. For Wayfarer:
 
 This rewards exploration within a limited area, making the world feel rich and deep.
 
-## VII. The Anticipation Engine: Creating Meaningful Planning
-
-80 Days creates engagement through anticipation of future challenges. Wayfarer can adapt this:
-
-### A. The Preparation Value System
-
-Add meaningful preparation mechanics:
-
-- Information about upcoming challenges should be available but require effort to acquire
-- Specific preparations should provide tangible advantages:
-  - Researching a person before meeting them unlocks special dialogue options
-  - Acquiring appropriate tools for a task significantly reduces difficulty
-  - Bringing the right item to a meeting opens new opportunities
-  - Learning local customs prevents reputation penalties
-
-This makes planning as engaging as execution without expanding the game scope.
-
-### B. The Risk Mitigation Loop
-
-80 Days creates tension through preparation trade-offs. For Wayfarer:
-
-- Each preparation should represent a resource investment that may or may not pay off
-- Players must choose between:
-  - General preparations (useful in many situations but less effective)
-  - Specific preparations (powerful in the right situation, useless otherwise)
-  - No preparation (saving resources but accepting higher risk)
-
-This creates strategic depth even within limited geographic and temporal constraints.
-
 ## VIII. Implementation Strategy: The Layered Integration Approach
 
 To implement these systems without disrupting existing Wayfarer architecture:

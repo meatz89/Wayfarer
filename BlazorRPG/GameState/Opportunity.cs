@@ -1,9 +1,14 @@
 ﻿public class Opportunity
 {
+    public string Name { get; private set; }
+    public string Description { get; private set; }
+    public int AppearanceDay { get; private set; }
+    public int ExpirationDay { get; private set; }
+    public List<TimeOfDay> AvailableTimes { get; private set; }
+    public List<ChoiceTemplate> OpportunityTemplates { get; private set; }
+
     // Identity
-    public string Name { get; set; }
     public string Type { get; set; }  // "Quest", "Mystery", "Job" - flexible text
-    public string Description { get; set; }
     public string Location { get; set; }
     public string LocationSpot { get; set; }  // Specific spot where this opportunity is found
     public string RelatedCharacter { get; set; }
@@ -11,16 +16,11 @@
     // Classification
     public string Status { get; set; } = "Available";
 
-    // Connections
-
-    // Narrative details
-    public string DetailedDescription { get; set; }
-    public string Challenges { get; set; }
-
-    // Rewards (suggested values for engine to implement)
-    public Dictionary<string, int> ResourceRewards { get; set; } = new Dictionary<string, int>();
-    public List<string> ItemRewards { get; set; } = new List<string>();
-    public Dictionary<string, int> RelationshipChanges { get; set; } = new Dictionary<string, int>();
-    public List<string> SkillExperience { get; set; } = new List<string>();
+    public bool IsAvailable(int currentDay, TimeOfDay currentTime)
+    {
+        return currentDay >= AppearanceDay &&
+               currentDay <= ExpirationDay &&
+               AvailableTimes.Contains(currentTime);
+    }
 }
 

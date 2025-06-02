@@ -1,4 +1,5 @@
-﻿public class Location
+﻿
+public class Location
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -33,9 +34,17 @@
     public bool PlayerKnowledge { get; set; }
     public List<LocationSpot> LocationSpots { get; set; } = new List<LocationSpot>();
 
-    public List<ILocationProperty> GetLocationProperties(TimeWindowTypes timeOfDay)
+    // Time-based properties
+    public Dictionary<TimeOfDay, List<FlagStates>> TimeStateFlags { get; private set; }
+    public Dictionary<TimeOfDay, List<string>> AvailableActions { get; private set; }
+    public Dictionary<TimeOfDay, string> TimeSpecificDescription { get; private set; }
+
+    // Method to get current state based on time
+    public List<FlagStates> GetCurrentFlags(TimeOfDay timeOfDay)
     {
-        return new List<ILocationProperty>();
+        return TimeStateFlags.ContainsKey(timeOfDay)
+            ? TimeStateFlags[timeOfDay]
+            : new List<FlagStates>();
     }
 
     public Location(string id, string name)

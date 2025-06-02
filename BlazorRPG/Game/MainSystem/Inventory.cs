@@ -36,7 +36,7 @@
     {
         foreach (string itemType in Slots)
         {
-            if (itemType != string.Empty && ContainsItem(itemType))
+            if (itemType != string.Empty && HasItem(itemType))
             {
                 return itemType;
             }
@@ -138,7 +138,7 @@
         return false;
     }
 
-    public bool ContainsItem(string item)
+    public bool HasItem(string item)
     {
         foreach (string slot in Slots)
         {

@@ -34,8 +34,8 @@ public class WorldStateInputBuilder
             Concentration = playerState.Concentration,
             MaxConcentration = playerState.MaxConcentration,
             Energy = playerState.CurrentEnergy(),
-            MaxEnergy = playerState.MaxEnergyPoints,
-            Coins = playerState.Silver,
+            MaxEnergy = playerState.MaxEnergy,
+            Coins = playerState.Money,
 
             CurrentLocation = currentLocation,
             LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
