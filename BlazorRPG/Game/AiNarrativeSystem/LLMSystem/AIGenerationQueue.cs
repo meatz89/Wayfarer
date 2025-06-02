@@ -6,14 +6,14 @@
     private IAIProvider _aiProvider;
     private string _gameInstanceId;
     private NarrativeLogManager _logManager;
-    private ILogger<EncounterSystem> _logger;
+    private ILogger<EncounterFactory> _logger;
     private bool _isProcessing = false;
 
     public AIGenerationQueue(
         IAIProvider aiProvider,
         string gameInstanceId,
         NarrativeLogManager logManager,
-        ILogger<EncounterSystem> logger)
+        ILogger<EncounterFactory> logger)
     {
         _aiProvider = aiProvider;
         _gameInstanceId = gameInstanceId;

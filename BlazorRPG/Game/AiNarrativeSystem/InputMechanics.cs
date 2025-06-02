@@ -9,7 +9,6 @@
         SkillCheckRequirement = skillCheckRequirement;
     }
 
-    // For JSON serialization
     public object ToJsonObject()
     {
         return new

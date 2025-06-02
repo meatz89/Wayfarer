@@ -12,7 +12,6 @@
     public NPC CurrentNPC { get; set; }
     public List<string> LocationProperties { get; set; }
 
-    public string LocationDescription { get; set; }
     public string ObjectiveDescription { get; set; }
     public LocationAction LocationAction { get; set; }
     public int StartingFocusPoints { get; set; }

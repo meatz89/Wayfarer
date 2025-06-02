@@ -51,14 +51,14 @@
     public List<LocationSpot> GetSpotsForLocation(string locationId)
     {
         Location location = GetLocationById(locationId);
-        return location.LocationSpots;
+        return location.AvailableSpots;
     }
 
     public LocationSpot GetSpot(string locationId, string spotId)
     {
         Location location = GetLocationById(locationId);
         if (location == null) location = worldState.CurrentLocation;
-        LocationSpot spot = location.LocationSpots.FirstOrDefault(s => s.SpotID == spotId);
+        LocationSpot spot = location.AvailableSpots.FirstOrDefault(s => s.SpotID == spotId);
 
         return spot;
     }

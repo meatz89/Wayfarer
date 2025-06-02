@@ -111,7 +111,7 @@
         locationRepository.AddLocationSpot(locationSpot);
 
         // Register the new location spot in the location
-        location.LocationSpots.Add(locationSpot);
+        location.AvailableSpots.Add(locationSpot);
 
         return locationSpot;
     }

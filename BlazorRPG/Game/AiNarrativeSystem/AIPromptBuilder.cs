@@ -106,7 +106,7 @@ public partial class AIPromptBuilder
         if (gameWorld.CurrentEncounter != null)
         {
             // Add focus points
-            EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.CurrentEncounterContext;
+            EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.EncounterManager;
             EncounterState state = currentEncounterContext.state;
             prompt.AppendLine($"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}");
 
@@ -391,7 +391,7 @@ public partial class AIPromptBuilder
                 choiceText += "This choice will end the encounter\n";
                 choiceText += $"Projected Final Outcome: {projection.ProjectedOutcome}\n";
                 choiceText += $"Goal Achievement: " +
-                    $"{(projection.ProjectedOutcome != BeatOutcomes.Failure ?
+                    $"{(projection.ProjectedOutcome != EncounterStageOutcomes.Failure ?
                     "Will achieve goal to" : "Will fail to")} {context.LocationAction.ObjectiveDescription}\n";
             }
 
@@ -403,7 +403,7 @@ public partial class AIPromptBuilder
 
     public AIPrompt BuildEncounterEndPrompt(
         EncounterContext context,
-        BeatOutcomes outcome,
+        EncounterStageOutcomes outcome,
         EncounterChoice finalChoice
         )
     {
@@ -413,7 +413,7 @@ public partial class AIPromptBuilder
 
         string encounterGoal = context.LocationAction.ObjectiveDescription;
 
-        string goalAchievementStatus = outcome != BeatOutcomes.Failure
+        string goalAchievementStatus = outcome != EncounterStageOutcomes.Failure
             ? $"You have successfully achieved your goal to {encounterGoal}"
             : $"You have failed to {encounterGoal}";
 

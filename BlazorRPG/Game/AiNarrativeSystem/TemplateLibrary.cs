@@ -1,4 +1,5 @@
-﻿public static class TemplateLibrary
+﻿
+public static class TemplateLibrary
 {
     public static List<ChoiceTemplate> GetAllTemplates()
     {
@@ -12,8 +13,8 @@
                     new FocusCost(1),
                     new SkillCheckRequirement(SkillCategories.Social, 3)
                 ),
-                successEffectClass: typeof(EstablishTrustEffect),
-                failureEffectClass: typeof(TriggerDistrustEffect),
+                successEffectClass: typeof(NoEffect),
+                failureEffectClass: typeof(NoEffect),
                 conceptualOutput: "Player attempts to build trust with NPC",
                 successOutcomeNarrativeGuidance: "NPC becomes more trusting toward player",
                 failureOutcomeNarrativeGuidance: "NPC becomes suspicious of player's intentions"
@@ -51,5 +52,10 @@
             
             // Additional templates would be defined here...
         };
+    }
+
+    internal object GetEffect(object iD)
+    {
+        throw new NotImplementedException();
     }
 }

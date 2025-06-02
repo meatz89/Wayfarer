@@ -174,7 +174,7 @@ public partial class EncounterViewBase : ComponentBase
         showTooltip = false;
         IsLoading = true;
 
-        EncounterResult result = await gameWorldManager.ProcessPlayerChoice(choice);
+        EncounterResult result = await gameWorldManager.ProcessPlayerChoice(choice.Choice.ChoiceID);
         await CheckEncounterCompleted(result);
 
         Model = GetModel();

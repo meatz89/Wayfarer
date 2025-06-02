@@ -2073,43 +2073,6 @@ public class StreamingContentState
 }
 ```
 
-## 7. Program Entry Point and Integration
-
-```csharp
-// Program.cs
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        var builder = WebApplication.CreateBuilder(args);
-        
-        // Add services to the container.
-        builder.Services.AddRazorPages();
-        builder.Services.AddServerSideBlazor();
-        
-        // Register the GameWorldManager as a singleton
-        builder.Services.AddSingleton<GameWorldManager>();
-        
-        var app = builder.Build();
-        
-        // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Error");
-            app.UseHsts();
-        }
-        
-        app.UseHttpsRedirection();
-        app.UseStaticFiles();
-        app.UseRouting();
-        app.MapBlazorHub();
-        app.MapFallbackToPage("/_Host");
-        
-        app.Run();
-    }
-}
-```
-
 ## 8. Full Integration Example
 
 Here's an example showing the flow of execution in a typical interaction:

@@ -2,7 +2,7 @@
 {
     public BeatOutcome ResolveChoice(PlayerChoiceSelection selection, EncounterState state)
     {
-        PayloadRegistry payloadRegistry = new PayloadRegistry();
+        TemplateLibrary templateLibrary = new TemplateLibrary();
 
         // Deduct focus cost
         EncounterChoice selectedChoice = selection.Choice;
@@ -20,18 +20,18 @@
             state
         );
 
-        // Apply appropriate payload
-        string payloadID = checkResult.IsSuccess ?
-            selectedSkillOption.SuccessPayload.ID :
-            selectedSkillOption.FailurePayload.ID;
+        // Apply appropriate effect
+        string effectID = checkResult.IsSuccess ?
+            selectedSkillOption.SuccessEffect.ID :
+            selectedSkillOption.FailureEffect.ID;
 
-        PayloadProcessor payloadProcessor = new PayloadProcessor(payloadRegistry, state);
-        payloadProcessor.ApplyPayload(payloadID, state);
+        EffectProcessor effectProcessor = new EffectProcessor(templateLibrary, state);
+        effectProcessor.ApplyEffect(effectID, state);
 
         return new BeatOutcome
         {
             CheckResult = checkResult,
-            PayloadApplied = payloadID,
+            EffectApplied = effectID,
             NewFlags = state.FlagManager.GetRecentlySetFlags(),
             IsEncounterComplete = state.IsEncounterComplete
         };

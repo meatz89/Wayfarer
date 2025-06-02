@@ -6,7 +6,7 @@
     public int DurationCounter { get; set; }
     public int MaxDuration { get; set; }
     public bool IsEncounterComplete { get; set; }
-    public BeatOutcomes EncounterOutcome { get; set; }
+    public EncounterStageOutcomes EncounterOutcome { get; set; }
     public List<FlagStates> GoalFlags { get; set; }
     public EncounterFlagManager FlagManager { get; set; }
     public Player Player { get; set; }
@@ -206,11 +206,11 @@
             // Determine success
             bool success = effectiveLevel >= difficulty;
 
-            // Apply appropriate payload
-            PayloadRegistry payloadRegistry = new PayloadRegistry();
+            // Apply appropriate effect
+            TemplateLibrary templateLibrary = new TemplateLibrary();
             if (success)
             {
-                IMechanicalEffect effect = payloadRegistry.GetEffect(selectedSkillOption.SuccessPayload.ID);
+                IMechanicalEffect effect = templateLibrary.GetEffect(selectedSkillOption.SuccessEffect.ID);
                 if (effect != null)
                 {
                     effect.Apply(this);
@@ -219,7 +219,7 @@
             }
             else
             {
-                IMechanicalEffect effect = payloadRegistry.GetEffect(selectedSkillOption.FailurePayload.ID);
+                IMechanicalEffect effect = templateLibrary.GetEffect(selectedSkillOption.FailureEffect.ID);
                 if (effect != null)
                 {
                     effect.Apply(this);
@@ -263,8 +263,8 @@
             int successThreshold = 10; // Basic success threshold
             projection.ProjectedOutcome =
                 CurrentProgress >= successThreshold
-                ? BeatOutcomes.Success
-                : BeatOutcomes.Failure;
+                ? EncounterStageOutcomes.Success
+                : EncounterStageOutcomes.Failure;
         }
 
         return projection;

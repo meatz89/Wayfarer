@@ -33,7 +33,7 @@
 
     // Consequences & Outcomes
     public NegativeConsequenceTypes NegativeConsequenceType { get; }
-    public BeatOutcomes ProjectedOutcome { get; set; }
+    public EncounterStageOutcomes ProjectedOutcome { get; set; }
 
     public ChoiceProjection(EncounterChoice choice)
     {
@@ -44,7 +44,7 @@
     }
 }
 
-public class PayloadProjection
+public class EffectProjection
 {
     public string NarrativeEffect { get; set; }
     public string MechanicalDescription { get; set; }

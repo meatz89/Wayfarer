@@ -23,7 +23,7 @@
         this.ActionFactory = actionFactory;
     }
 
-    public LocationAction StartLocationTravel(
+    public TravelRoute StartLocationTravel(
         string travelLocationId,
         TravelMethods travelMethod = TravelMethods.Walking)
     {
@@ -58,10 +58,17 @@
             ActionDefinition travelTemplate =
                 GetTravelTemplate(travelLocationId, locationSpot.SpotID);
 
-            LocationAction travelAction =
-                ActionFactory.CreateActionFromTemplate(travelTemplate, currentLocation.Id, locationSpot.SpotID, ActionExecutionTypes.Instant);
+            TravelRoute travelRoute = new TravelRoute
+            {
+                Origin = currentLocation,
+                Destination = LocationRepository.GetLocationById(travelLocationId),
+                BaseTimeCost = travelMinutes,
+                BaseEnergyCost = travelMinutes, // Assuming energy cost is same as time cost for simplicity
+                DangerLevel = 0, // Default danger level, can be adjusted based on location
+                RequiredEquipment = new List<string>(), // No specific equipment required by default
+            };
 
-            return travelAction;
+            return travelRoute;
         }
     }
 

@@ -4,6 +4,32 @@
     string GetDescriptionForPlayer();
 }
 
+public class NoEffect : IMechanicalEffect
+{
+    public void Apply(EncounterState state) { }
+    public string GetDescriptionForPlayer() { return "No effect"; }
+}
+
+public class AdvanceDurationEffect : IMechanicalEffect
+{
+    private int amount;
+
+    public AdvanceDurationEffect(int amount)
+    {
+        this.amount = amount;
+    }
+
+    public void Apply(EncounterState state)
+    {
+        state.DurationCounter += amount;
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return "Time advances";
+    }
+}
+
 public class CreateMemoryEffect : IMechanicalEffect
 {
     private string memoryKey;

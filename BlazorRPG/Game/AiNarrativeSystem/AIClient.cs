@@ -14,7 +14,7 @@
     public AIClient(
         IAIProvider aiProvider,
         string gameInstanceId,
-        ILogger<EncounterSystem> logger,
+        ILogger<EncounterFactory> logger,
         NarrativeLogManager logManager,
         LoadingStateService loadingStateService)
     {
