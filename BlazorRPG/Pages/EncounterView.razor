@@ -9,7 +9,7 @@
         </div>
     }
 
-    <!-- Universal Encounter System Status Display -->
+    <!-- Universal EncounterContext System Status Display -->
     <div class="encounter-stats">
         <div class="stat">
             <span class="stat-label">Focus</span>
@@ -34,13 +34,13 @@
                         bool canAfford = true;
                         bool isDisabled = IsChoiceDisabled(choice) || !canAfford;
 
-                        <div id="choice-@choice.Index"
+                        <div id="choice-@choice.ID3"
                              class="choice-option @(isDisabled ? "disabled" : "")"
                              @onclick="(() => HandleChoiceSelection(choice))"
-                             @onmouseover="@(() => ShowTooltip(choice, $"choice-{choice.Index}"))"
+                             @onmouseover="@(() => ShowTooltip(choice, $"choice-{choice.ID3}"))"
                              @onmouseout="HideTooltip">
 
-                            <div class="choice-index">@choice.Index</div>
+                            <div class="choice-index">@choice.ID3</div>
 
                             <div class="choice-name">
                                 @choice.Choice.ChoiceId

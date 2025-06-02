@@ -73,7 +73,7 @@
             string encounterId = action.ActionId;
             if (gameState.WorldState.IsEncounterCompleted(encounterId))
             {
-                return false; // Encounter already completed
+                return false; // EncounterContext already completed
             }
         }
         return true; // All requirements are met

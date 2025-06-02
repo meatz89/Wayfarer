@@ -2,11 +2,11 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 # ENCOUNTER INTRODUCTION
 
-Create a BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounter at {LOCATION_SPOT} of {LOCATION_NAME}.
+Create a BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounterContext at {LOCATION_SPOT} of {LOCATION_NAME}.
 Talk in the voice of the player character archetype. The narration of a Warrior, Scholar, Courtier, Ranger, Mystic, and Diplomat should be remarkably different.
 
-## Current Encounter Situation
-- Encounter Type: {ENCOUNTER_TYPE}
+## Current EncounterContext Situation
+- EncounterContext Type: {ENCOUNTER_TYPE}
 - Primary Action Goal: {CHARACTER_GOAL}
 - Chosen Approach: {CHOSEN_APPROACH}
 
@@ -17,7 +17,7 @@ Talk in the voice of the player character archetype. The narration of a Warrior,
 ## Player Character Status
 {PLAYER_STATUS}
 
-## Encounter Clarification
+## EncounterContext Clarification
 - Make clear what success would accomplish through the SPECIFIC chosen approach
 - Hint at consequences of failure for this particular approach
 - The scene should directly set up the chosen approach method, not generic action possibilities
@@ -28,22 +28,22 @@ Talk in the voice of the player character archetype. The narration of a Warrior,
    - For Introduced elements: Reference and develop them further
    - For Developed elements: Advance them meaningfully
    - For Fired elements: Only reference if directly relevant
-   - ONLY Resolve an element if this encounter naturally concludes its arc
-3. Never force inclusion if it doesn't fit the encounter context
-4. The Chekhov's Gun should enhance but not dominate the primary encounter goal
+   - ONLY Resolve an element if this encounterContext naturally concludes its arc
+3. Never force inclusion if it doesn't fit the encounterContext context
+4. The Chekhov's Gun should enhance but not dominate the primary encounterContext goal
 
 ## Memory Integration
 Incorporate relevant details from the character's past experiences:
 {MEMORY_CONTENT}
 
 ## Conflict Generation
-Based on the location, encounter type, and CHOSEN APPROACH, create an appropriate conflict situation.
+Based on the location, encounterContext type, and CHOSEN APPROACH, create an appropriate conflict situation.
 
 The selected conflict should:
 - Arise NATURALLY from the approach the player has chosen
 - Create meaningful STAKES for success or failure with this specific approach
 - Offer multiple viable ways to use this particular approach
-- Introduce TENSION appropriate to a {ENCOUNTER_TYPE} encounter using the player's chosen method
+- Introduce TENSION appropriate to a {ENCOUNTER_TYPE} encounterContext using the player's chosen method
 
 ## General Requirements
 1. Reference at least 1-2 specific details from the memory file
@@ -56,4 +56,4 @@ The selected conflict should:
 8. Use weather, lighting, or architecture to enhance the mood of confrontation
 9. The player's potential choices should involve complicated moral considerations within their chosen approach
 
-The tone should match a {ENCOUNTER_TYPE} encounter specifically using the {CHOSEN_APPROACH}.
+The tone should match a {ENCOUNTER_TYPE} encounterContext specifically using the {CHOSEN_APPROACH}.

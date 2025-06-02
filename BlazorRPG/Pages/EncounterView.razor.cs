@@ -5,7 +5,7 @@ using System.Text;
 public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public GameWorld GameState { get; set; }
-    [Inject] public GameWorldManager GameManager { get; set; }
+    [Inject] public GameWorldManager gameWorldManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
 
     [Parameter] public EncounterManager EncounterManager { get; set; }
@@ -64,6 +64,47 @@ public partial class EncounterViewBase : ComponentBase
         }
     }
 
+
+    private Timer pollingTimer;
+    private GameWorldSnapshot currentSnapshot;
+
+    protected override void OnInitialized()
+    {
+        // Set up polling timer - no events, just regular polling
+        pollingTimer = new Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                PollGameState();
+                StateHasChanged();
+            });
+        }, null, 0, 100); // Poll every 100ms
+    }
+
+    private void PollGameState()
+    {
+        // Poll for current game state
+        currentSnapshot = gameWorldManager.GetGameSnapshot();
+    }
+
+    private void StartEncounter()
+    {
+        gameWorldManager.StartEncounter("SocialIntroduction", null);
+    }
+
+    private void MakeChoice(string choiceId)
+    {
+        if (currentSnapshot != null && currentSnapshot.CanSelectChoice)
+        {
+            gameWorldManager.ProcessPlayerChoice(choiceId);
+        }
+    }
+
+    public void Dispose()
+    {
+        pollingTimer?.Dispose();
+    }
+
     public async Task ShowTooltip(UserEncounterChoiceOption choice, string elementId)
     {
         hoveredChoice = choice;
@@ -99,7 +140,7 @@ public partial class EncounterViewBase : ComponentBase
 
     private EncounterViewModel GetModel()
     {
-        EncounterViewModel? encounterViewModel = GameManager.GetEncounterViewModel();
+        EncounterViewModel? encounterViewModel = gameWorldManager.GetEncounterViewModel();
 
         if (encounterViewModel == null)
         {
@@ -115,7 +156,7 @@ public partial class EncounterViewBase : ComponentBase
         {
             ChoiceSetName = "None",
             CurrentChoices = new List<UserEncounterChoiceOption>(),
-            CurrentEncounter = null,
+            CurrentEncounterContext = null,
             State = null,
             EncounterResult = new EncounterResult()
             {
@@ -137,7 +178,7 @@ public partial class EncounterViewBase : ComponentBase
         showTooltip = false;
         IsLoading = true;
 
-        EncounterResult result = await GameManager.ExecuteEncounterChoice(choice);
+        EncounterResult result = await gameWorldManager.ProcessPlayerChoice(choice);
         await CheckEncounterCompleted(result);
 
         Model = GetModel();

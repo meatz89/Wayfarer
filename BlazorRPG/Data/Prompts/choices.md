@@ -2,8 +2,8 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 # WAYFARER'S RESOLVE CHOICE GENERATION
 
-## Current Encounter Situation
-- Encounter Type: {ENCOUNTER_TYPE}
+## Current EncounterContext Situation
+- EncounterContext Type: {ENCOUNTER_TYPE}
 - Current Stage: {CURRENT_STAGE}/5 ({ENCOUNTER_TIER} Tier)
 - Progress: {CURRENT_PROGRESS}/{SUCCESS_THRESHOLD}
 
@@ -33,7 +33,7 @@ Before creating choices, analyze the narrative to identify:
 All choices MUST respond directly to these identified elements and the central decision point.
 
 ## CRITICAL REQUIREMENT: SITUATIONAL RESPONSE
-Every choice represents how the player responds to what's happening RIGHT NOW in this specific moment. Each choice name and description must directly reference elements, characters, objects, or circumstances from the current scene. Generic responses that could apply to any encounter are INCORRECT.
+Every choice represents how the player responds to what's happening RIGHT NOW in this specific moment. Each choice name and description must directly reference elements, characters, objects, or circumstances from the current scene. Generic responses that could apply to any encounterContext are INCORRECT.
 
 ## Response Creation Requirements
 Every choice must:
@@ -59,7 +59,7 @@ Every choice must:
 - Avoid modern analytical terms or abstract strategic thinking
 
 ## RESPONSE FORMAT
-You must respond with a SINGLE JSON object containing 2-6 choices that are direct reactions to the current encounter situation:
+You must respond with a SINGLE JSON object containing 2-6 choices that are direct reactions to the current encounterContext situation:
 
 ```json
 {

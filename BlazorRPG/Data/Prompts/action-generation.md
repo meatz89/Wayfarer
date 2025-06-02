@@ -2,23 +2,23 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 # ACTION AND ENCOUNTER GENERATION
 
-Create a complete action and encounter template for '{ACTIONNAME}' at the location spot '{SPOT_NAME}' in '{LOCATION_NAME}'.
+Create a complete action and encounterContext template for '{ACTIONNAME}' at the location spot '{SPOT_NAME}' in '{LOCATION_NAME}'.
 
 ## Core Action Details
 - Name: "{ACTIONNAME}"
 
-## Encounter Design Task
+## EncounterContext Design Task
 
-Design a complete encounter that implements this action, providing all required mechanical values.
+Design a complete encounterContext that implements this action, providing all required mechanical values.
 
 ### ActionTemplate Values Needed
 - **ActionType**: Choose between:
   * "Basic" - Direct action with immediate effects (rest, purchase, travel)
-  * "Encounter" - Triggers the tag-based encounter system (most actions are this type)
+  * "Encounter" - Triggers the tag-based encounterContext system (most actions are this type)
 - **CoinCost**: Any upfront coin cost to attempt the action (often 0)
 
 ## Response Format
-Respond with a JSON object containing both action and encounter details:
+Respond with a JSON object containing both action and encounterContext details:
 
 {
   "action": {

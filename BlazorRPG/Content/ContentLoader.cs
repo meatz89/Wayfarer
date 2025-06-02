@@ -51,8 +51,8 @@
         List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(savePath, "actions.json")));
 
-        List<OpportunityDefinition> opportunitys = GameStateSerializer.DeserializeOpportunitys(
-            File.ReadAllText(Path.Combine(savePath, "opportunitys.json")));
+        List<OpportunityDefinition> Opportunities = GameStateSerializer.DeserializeOpportunities(
+            File.ReadAllText(Path.Combine(savePath, "Opportunities.json")));
 
         // Load cards if available
         List<SkillCard> cards = new List<SkillCard>();
@@ -61,7 +61,7 @@
         // Load game state using the loaded content
         gameState = GameStateSerializer.DeserializeGameState(
             File.ReadAllText(Path.Combine(savePath, "gameState.json")),
-            locations, spots, actions, opportunitys, cards);
+            locations, spots, actions, Opportunities, cards);
         return gameState;
     }
 
@@ -81,8 +81,8 @@
         List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
 
-        List<OpportunityDefinition> opportunitys = GameStateSerializer.DeserializeOpportunitys(
-            File.ReadAllText(Path.Combine(templatePath, "opportunitys.json")));
+        List<OpportunityDefinition> Opportunities = GameStateSerializer.DeserializeOpportunities(
+            File.ReadAllText(Path.Combine(templatePath, "Opportunities.json")));
 
         // Load cards if available
         List<SkillCard> cards = new List<SkillCard>();
@@ -91,7 +91,7 @@
         // Load game state using the loaded content
         GameWorld gameState = GameStateSerializer.DeserializeGameState(
             File.ReadAllText(Path.Combine(templatePath, "gameState.json")),
-            locations, spots, actions, opportunitys, cards);
+            locations, spots, actions, Opportunities, cards);
 
         return gameState;
     }
@@ -141,7 +141,7 @@
         File.Copy(Path.Combine(templatePath, "locations.json"), Path.Combine(savePath, "locations.json"), true);
         File.Copy(Path.Combine(templatePath, "location_spots.json"), Path.Combine(savePath, "locationSpots.json"), true);
         File.Copy(Path.Combine(templatePath, "basic_actions.json"), Path.Combine(savePath, "actions.json"), true);
-        File.Copy(Path.Combine(templatePath, "basic_opportunitys.json"), Path.Combine(savePath, "opportunitys.json"), true);
+        File.Copy(Path.Combine(templatePath, "basic_Opportunities.json"), Path.Combine(savePath, "Opportunities.json"), true);
 
         // Copy cards.json if it exists
         string templateCardsPath = Path.Combine(templatePath, "cards.json");
@@ -174,7 +174,7 @@
 
         gameState.WorldState.actions.Clear();
         gameState.WorldState.actions.AddRange(actions);
-        gameState.WorldState.opportunitys.AddRange(comissions);
+        gameState.WorldState.Opportunities.AddRange(comissions);
 
         // Add cards to world state if applicable
         if (gameState.WorldState.AllCards != null)

@@ -43,20 +43,20 @@
         return true;
     }
 
-    // Get a travel encounter if one should occur
-    public TravelEncounter GetEncounter(int seed)
+    // Get a travel encounterContext if one should occur
+    public TravelEncounterContext GetEncounter(int seed)
     {
         if (PotentialEncounters.Count == 0)
             return null;
 
-        // Knowledge reduces encounter chance
+        // Knowledge reduces encounterContext chance
         int encounterChance = 20 + (DangerLevel * 5) - (KnowledgeLevel * 10);
 
-        // Determine if encounter happens
+        // Determine if encounterContext happens
         Random random = new Random(seed);
         if (random.Next(100) < encounterChance)
         {
-            // Select an encounter based on danger level
+            // Select an encounterContext based on danger level
             List<TravelEncounter> appropriateEncounters = PotentialEncounters
                 .Where(e => e.DangerLevel <= DangerLevel)
                 .ToList();

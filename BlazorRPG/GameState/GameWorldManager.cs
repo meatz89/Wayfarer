@@ -2,8 +2,8 @@
 {
     private bool _useMemory;
     private bool _processStateChanges;
-    private GameWorld gameState;
-    private Player playerState;
+    private GameWorld gameWorld;
+    private Player player;
     private WorldState worldState;
     private EncounterSystem encounterSystem;
     private PersistentChangeProcessor evolutionSystem;
@@ -27,8 +27,8 @@
                        ActionGenerator actionGenerator, PlayerProgression playerProgression,
                        ActionProcessor actionProcessor, ContentLoader contentLoader, IConfiguration configuration)
     {
-        this.gameState = gameState;
-        this.playerState = gameState.Player;
+        this.gameWorld = gameState;
+        this.player = gameState.Player;
         this.worldState = gameState.WorldState;
         this.encounterSystem = encounterSystem;
         this.evolutionSystem = evolutionSystem;
@@ -49,9 +49,9 @@
     public async Task StartGame()
     {
         ProcessPlayerArchetype();
-        playerState.HealFully();
+        player.HealFully();
 
-        gameState.TimeManager.SetNewTime(TimeManager.TimeDayStart);
+        gameWorld.TimeManager.SetNewTime(TimeManager.TimeDayStart);
 
         Location startingLocation = await locationSystem.Initialize();
         worldState.RecordLocationVisit(startingLocation.Id);
@@ -61,7 +61,7 @@
         if (worldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
         {
             Console.WriteLine("Current location spot is null despite spots existing - manually setting");
-            gameState.SetCurrentLocation(startingLocation, locationSystem.GetLocationSpots(currentLocation.Id).First());
+            gameWorld.SetCurrentLocation(startingLocation, locationSystem.GetLocationSpots(currentLocation.Id).First());
         }
 
         Location? currentLoc = currentLocation;
@@ -72,7 +72,7 @@
 
     private void ProcessPlayerArchetype()
     {
-        Professions archetype = playerState.Archetype;
+        Professions archetype = player.Archetype;
         int XpBonusForArchetype = 300;
 
         switch (archetype)
@@ -88,7 +88,7 @@
 
     public async Task RefreshCard(SkillCard card)
     {
-        playerState.RefreshCard(card);
+        player.RefreshCard(card);
     }
 
     private async Task<List<UserActionOption>> CreateUserActionsForLocationSpot(Location location, LocationSpot locationSpot, List<LocationAction> locationActions)
@@ -120,13 +120,13 @@
         return options;
     }
 
-    private async Task<List<LocationAction>> CreateOpportunitys(Location location, LocationSpot locationSpot)
+    private async Task<List<LocationAction>> CreateOpportunities(Location location, LocationSpot locationSpot)
     {
         List<LocationAction> opportunityImplementations = new List<LocationAction>();
-        List<OpportunityDefinition> locationSpotOpportunitys = actionRepository.GetOpportunitysForSpot(locationSpot.SpotID);
-        for (int i = 0; i < locationSpotOpportunitys.Count; i++)
+        List<OpportunityDefinition> locationSpotOpportunities = actionRepository.GetOpportunitiesForSpot(locationSpot.SpotID);
+        for (int i = 0; i < locationSpotOpportunities.Count; i++)
         {
-            OpportunityDefinition opportunityTemplate = locationSpotOpportunitys[i];
+            OpportunityDefinition opportunityTemplate = locationSpotOpportunities[i];
             if (opportunityTemplate == null)
             {
                 string opportunityId =
@@ -180,7 +180,7 @@
     public async Task ExecuteAction(UserActionOption action)
     {
         LocationAction locationAction = action.locationAction;
-        Player player = gameState.Player;
+        Player player = gameWorld.Player;
 
         Location location = locationSystem.GetLocation(action.LocationId);
         LocationSpot locationSpot = location.LocationSpots.FirstOrDefault(spot => spot.LocationId == action.LocationSpot);
@@ -191,29 +191,22 @@
     private async Task OnPlayerSelectsAction(UserActionOption action, Player player, LocationSpot? locationSpot)
     {
         // Set current action in game state
-        gameState.ActionStateTracker.SetCurrentUserAction(action);
+        gameWorld.ActionStateTracker.SetCurrentUserAction(action);
 
         // Use our action classification system to determine execution path
         LocationAction locationAction = action.locationAction;
-        ActionExecutionTypes executionType = GetExecutionType(locationAction);
+        ActionExecutionTypes executionType = ActionExecutionTypes.Encounter;
 
         SkillCard card = action.SelectedCard;
         if (card != null)
         {
-            playerState.ExhaustCard(card);
+            this.player.ExhaustCard(card);
         }
 
         switch (executionType)
         {
             case ActionExecutionTypes.Encounter:
-                EncounterManager encounterManager =
-                    await RunEncounter(
-                        locationAction.ActionId,
-                        locationAction.Opportunity,
-                        action.ApproachId,
-                        locationAction);
-
-                gameState.ActionStateTracker.SetActiveEncounter(encounterManager);
+                await StartEncounter(action.ApproachId, locationAction);
 
                 break;
 
@@ -224,8 +217,19 @@
         }
     }
 
+    public async Task StartEncounter(string approachId, LocationAction locationAction)
+    {
+        EncounterManager encounterManager =
+                            await StartEncounter(
+                                locationAction.ActionId,
+                                locationAction.Opportunity,
+                                approachId,
+                                locationAction);
 
-    private async Task<EncounterManager> RunEncounter(
+        gameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
+    }
+
+    private async Task<EncounterManager> StartEncounter(
         string id,
         OpportunityDefinition opportunity,
         string approachId,
@@ -261,7 +265,7 @@
             location.Id, worldState.CurrentLocationSpot.SpotID);
 
         // Create initial context with our new value system
-        int playerLevel = playerState.Level;
+        int playerLevel = player.Level;
 
         ApproachDefinition? approach = opportunity.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
         SkillCategories SkillCategory = approach.RequiredCardType;
@@ -281,22 +285,22 @@
             location,
             locationSpot,
             worldState,
-            playerState,
+            player,
             locationAction);
 
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);
-        gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
+        gameWorld.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
 
         return encounterManager;
     }
 
-    public async Task<EncounterResult> RunEncounter(LocationSpot spot, LocationAction action, Player player)
+    public async Task<EncounterResult> StartEncounter(LocationSpot spot, LocationAction action, Player player)
     {
-        // 1. Initialize encounter context
+        // 1. Initialize encounterContext context
         EncounterContext context = actionProcessor.InitializeEncounter(spot, action, player);
         EncounterState state = CreateEncounterState(context, player);
 
-        // 2. Run encounter beats
+        // 2. Run encounterContext beats
         while (!state.IsEncounterComplete && state.FocusPoints > 0)
         {
             // Generate AI choices
@@ -331,7 +335,7 @@
 
     public async Task ProcessActionCompletion(LocationAction action)
     {
-        gameState.ActionStateTracker.CompleteAction();
+        gameWorld.ActionStateTracker.CompleteAction();
 
         await HandlePlayerMoving(action);
 
@@ -389,9 +393,9 @@
 
         // Check for encounters
         int seed = gameWorld.CurrentDay + gameWorld.Player.GetHashCode();
-        TravelEncounter encounter = route.GetEncounter(seed);
+        TravelEncounterContext encounterContext = route.GetEncounter(seed);
 
-        if (encounter != null)
+        if (encounterContext != null)
         {
             // Start a travel encounter
             StartEncounter(encounter.EncounterTemplates, encounter.Description);
@@ -405,8 +409,10 @@
     }
 
 
-    public async Task<EncounterResult> ExecuteEncounterChoice(UserEncounterChoiceOption choiceOption)
+    public async Task<EncounterResult> ProcessPlayerChoice(string choiceId)
     {
+        UserEncounterChoiceOption choiceOption = gameWorld.ActionStateTracker.GetEncounterChoiceOption(choiceId);
+
         Location location = locationSystem.GetLocation(choiceOption.LocationName);
 
         string? currentLocation = worldState.CurrentLocation?.Id;
@@ -431,12 +437,12 @@
 
     private void ProcessOngoingEncounter(EncounterResult encounterResult)
     {
-        if (!IsGameOver(gameState.Player))
+        if (!IsGameOver(gameWorld.Player))
         {
-            gameState.ActionStateTracker.EncounterResult = encounterResult;
+            gameWorld.ActionStateTracker.EncounterResult = encounterResult;
 
             List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult);
-            gameState.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
+            gameWorld.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
         }
         else
         {
@@ -447,7 +453,7 @@
 
     private void GameOver()
     {
-        gameState.ActionStateTracker.CompleteAction();
+        gameWorld.ActionStateTracker.CompleteAction();
     }
 
     private bool IsGameOver(Player playerState)
@@ -456,7 +462,7 @@
     }
 
     /// <summary>
-    /// ONLY Encounter related outcome that is NOT ALSO included in basic actions
+    /// ONLY EncounterContext related outcome that is NOT ALSO included in basic actions
     /// </summary>
     /// <param name="result"></param>
     /// <returns></returns>
@@ -464,7 +470,7 @@
     {
         worldState.MarkEncounterCompleted(result.locationAction.ActionId);
 
-        gameState.ActionStateTracker.EncounterResult = result;
+        gameWorld.ActionStateTracker.EncounterResult = result;
 
         AIResponse AIResponse = result.AIResponse;
         string narrative = AIResponse?.BeatNarration;
@@ -494,7 +500,7 @@
         result.PostEncounterEvolution = evolutionResponse;
 
         // Update world state
-        await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, playerState);
+        await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, player);
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)
@@ -553,17 +559,17 @@
         Location location = locationSystem.GetLocation(choiceOption.LocationName);
 
         // Execute the choice
-        EncounterManager encounter = gameState.ActionStateTracker.GetCurrentEncounter();
-        ChoiceProjection choiceProjection = encounterSystem.GetChoiceProjection(encounter, choiceOption.Choice);
+        EncounterManager encounterContext = gameWorld.ActionStateTracker.GetCurrentEncounter();
+        ChoiceProjection choiceProjection = encounterSystem.GetChoiceProjection(encounterContext, choiceOption.Choice);
         return choiceProjection;
     }
 
     public async Task MoveToLocationSpot(string locationSpotName)
     {
-        Location location = gameState.WorldState.CurrentLocation;
+        Location location = gameWorld.WorldState.CurrentLocation;
 
         LocationSpot locationSpot = locationSystem.GetLocationSpot(location.Id, locationSpotName);
-        gameState.SetCurrentLocation(location, locationSpot);
+        gameWorld.SetCurrentLocation(location, locationSpot);
 
         await UpdateState();
     }
@@ -579,7 +585,7 @@
             locationSystem.GetAllLocations()
             .Where(x =>
             {
-                return x != gameState.WorldState.CurrentLocation;
+                return x != gameWorld.WorldState.CurrentLocation;
             })
             .Select(x =>
             {
@@ -619,12 +625,12 @@
     public EncounterViewModel? GetEncounterViewModel()
     {
         EncounterManager encounterManager = encounterSystem.GetCurrentEncounter();
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = gameState.ActionStateTracker.UserEncounterChoiceOptions;
+        List<UserEncounterChoiceOption> userEncounterChoiceOptions = gameWorld.ActionStateTracker.UserEncounterChoiceOptions;
 
         if (encounterManager == null)
         {
             EncounterViewModel encounterViewModel = new();
-            encounterViewModel.CurrentEncounter = encounterManager;
+            encounterViewModel.CurrentEncounterContext = encounterManager;
             encounterViewModel.CurrentChoices = userEncounterChoiceOptions;
             encounterViewModel.ChoiceSetName = "Current Situation";
         }
@@ -633,7 +639,7 @@
             EncounterState state = encounterManager.state;
 
             EncounterViewModel model = new EncounterViewModel();
-            model.CurrentEncounter = encounterManager;
+            model.CurrentEncounterContext = encounterManager;
             model.CurrentChoices = userEncounterChoiceOptions;
             model.ChoiceSetName = "Current Situation";
             model.State = state;
@@ -665,7 +671,7 @@
 
     public async Task UpdateState()
     {
-        gameState.ActionStateTracker.ClearCurrentUserAction();
+        gameWorld.ActionStateTracker.ClearCurrentUserAction();
         actionProcessor.UpdateState();
 
         UpdateAvailableOpportunities();
@@ -674,7 +680,7 @@
         LocationSpot locationSpot = worldState.CurrentLocationSpot;
 
         List<LocationAction> locationActions = await CreateActions(location, locationSpot);
-        List<LocationAction> opportunityImplementations = await CreateOpportunitys(location, locationSpot);
+        List<LocationAction> opportunityImplementations = await CreateOpportunities(location, locationSpot);
         locationActions.AddRange(opportunityImplementations);
 
         List<UserActionOption> locationSpotActionOptions =
@@ -683,7 +689,7 @@
                 locationSpot,
                 locationActions);
 
-        gameState.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
+        gameWorld.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
 
     public EncounterResult GetEncounterResultFor(LocationAction locationAction)
@@ -713,20 +719,20 @@
     {
         //SaveGame();
 
-        if (gameState.Player.CurrentActionPoints() == 0)
+        if (gameWorld.Player.CurrentActionPoints() == 0)
         {
             actionProcessor.ProcessTurnChange();
         }
 
-        UpdateOpportunitys(gameState);
+        UpdateOpportunities(gameWorld);
         await UpdateState();
     }
 
-    public void UpdateOpportunitys(GameWorld gameState)
+    public void UpdateOpportunities(GameWorld gameState)
     {
-        List<OpportunityDefinition> expiredOpportunitys = new List<OpportunityDefinition>();
+        List<OpportunityDefinition> expiredOpportunities = new List<OpportunityDefinition>();
 
-        foreach (OpportunityDefinition opportunity in gameState.WorldState.ActiveOpportunitys)
+        foreach (OpportunityDefinition opportunity in gameState.WorldState.ActiveOpportunities)
         {
             // Reduce days remaining
             opportunity.ExpirationDays--;
@@ -734,16 +740,16 @@
             // Check if expired
             if (opportunity.ExpirationDays <= 0)
             {
-                expiredOpportunitys.Add(opportunity);
+                expiredOpportunities.Add(opportunity);
             }
         }
 
-        // Remove expired opportunitys
-        foreach (OpportunityDefinition expired in expiredOpportunitys)
+        // Remove expired Opportunities
+        foreach (OpportunityDefinition expired in expiredOpportunities)
         {
-            gameState.WorldState.ActiveOpportunitys.Remove(expired);
-            // Optionally: Add to failed opportunitys list
-            gameState.WorldState.FailedOpportunitys.Add(expired);
+            gameState.WorldState.ActiveOpportunities.Remove(expired);
+            // Optionally: Add to failed Opportunities list
+            gameState.WorldState.FailedOpportunities.Add(expired);
 
             // Add message
             // messageSystem.AddSystemMessage($"Opportunity expired: {expired.Name}");
@@ -754,7 +760,7 @@
     {
         try
         {
-            contentLoader.SaveGame(gameState);
+            contentLoader.SaveGame(gameWorld);
             messageSystem.AddSystemMessage("Game saved successfully");
         }
         catch (Exception ex)
@@ -762,5 +768,10 @@
             messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
             Console.WriteLine($"Error saving game: {ex}");
         }
+    }
+
+    public GameWorldSnapshot GetGameSnapshot()
+    {
+        return new GameWorldSnapshot();
     }
 }

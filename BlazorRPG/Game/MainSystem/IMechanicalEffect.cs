@@ -263,7 +263,7 @@ public class CheckMemoryEffect : IMechanicalEffect
 
         public string GetDescriptionForPlayer()
         {
-            return $"Advances encounter duration by {amount}";
+            return $"Advances encounterContext duration by {amount}";
         }
     }
 

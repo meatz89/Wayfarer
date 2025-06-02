@@ -76,9 +76,9 @@ public class LocationActionProcessor
         // Basic Success: 10, Good Success: 14, Excellent Success: 18
         return tier switch
         {
-            1 => 10, // Basic success threshold for Tier 1 opportunitys
-            2 => 12, // Moderate threshold for Tier 2 opportunitys
-            3 => 14, // Higher threshold for Tier 3 opportunitys
+            1 => 10, // Basic success threshold for Tier 1 Opportunities
+            2 => 12, // Moderate threshold for Tier 2 Opportunities
+            3 => 14, // Higher threshold for Tier 3 Opportunities
             _ => 10  // Default to basic threshold
         };
     }
@@ -95,9 +95,9 @@ public class LocationActionProcessor
         return SkillCategories.Physical; // Default fallback
     }
 
-    public Encounter GetDefaultEncounterTemplate()
+    public EncounterContext GetDefaultEncounterTemplate()
     {
-        Encounter defaultEncounter = new Encounter
+        EncounterContext defaultEncounterContext = new Encounter
         {
             Id = "default_encounter",
             TotalProgress = 10, // Basic success threshold

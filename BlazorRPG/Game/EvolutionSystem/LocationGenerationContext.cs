@@ -11,7 +11,7 @@
     public string CurrentLocationSpots { get; set; } // All spots in current location
     public string AllExistingActions { get; set; } // All existing actions
 
-    public bool WasTravelEncounter { get; set; }
+    public bool WasTravelEncounterContext { get; set; }
     public string TravelOrigin { get; set; }
     public string TravelDestination { get; set; }
 

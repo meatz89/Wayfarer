@@ -6,12 +6,12 @@ public class NarrativeSummaryBuilder
     {
         if (context.Events.Count == 0)
         {
-            return $"Beginning a new encounter at {context.LocationName} after {context.locationAction}.";
+            return $"Beginning a new encounterContext at {context.LocationName} after {context.locationAction}.";
         }
 
         StringBuilder history = new StringBuilder();
-        history.AppendLine("# Complete Encounter History");
-        history.AppendLine($"Location: {context.LocationName} | Encounter Type: {context.SkillCategory} | Goal: {context.locationAction}");
+        history.AppendLine("# Complete EncounterContext History");
+        history.AppendLine($"Location: {context.LocationName} | EncounterContext Type: {context.SkillCategory} | Goal: {context.locationAction}");
         history.AppendLine();
 
         // Create detailed history of all events
