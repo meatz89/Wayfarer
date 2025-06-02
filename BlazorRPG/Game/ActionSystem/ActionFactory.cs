@@ -17,9 +17,9 @@
     }
 
     public LocationAction CreateActionFromTemplate(
-        ActionDefinition template, 
-        string location, 
-        string locationSpot, 
+        ActionDefinition template,
+        string location,
+        string locationSpot,
         ActionExecutionTypes actionType)
     {
         LocationAction locationAction = new LocationAction();
@@ -37,7 +37,7 @@
         {
             locationAction.DestinationLocationSpot = template.MoveToLocationSpot;
         }
-        
+
         locationAction.RequiredCardType = SkillCategories.Physical;
         locationAction.ActionExecutionType = actionType;
 

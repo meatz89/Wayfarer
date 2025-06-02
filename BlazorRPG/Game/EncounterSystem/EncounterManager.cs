@@ -1,6 +1,5 @@
 ﻿public class EncounterManager
 {
-    public Encounter Encounter;
     private EncounterContext context;
     public EncounterState state;
     private IAIService aiGameMaster;
@@ -23,7 +22,6 @@
     private ILogger<EncounterManager> _logger;
 
     public EncounterManager(
-        Encounter encounter,
         LocationAction locationAction,
         WorldStateInputBuilder worldStateInputCreator,
         ChoiceProjectionService choiceProjectionService,
@@ -31,7 +29,6 @@
         IConfiguration configuration,
         ILogger<EncounterSystem> logger)
     {
-        this.Encounter = encounter;
         this.locationAction = locationAction;
         this.aiGameMaster = aiGameMaster;
         this.worldStateInputCreator = worldStateInputCreator;
@@ -62,7 +59,7 @@
 
     public async Task GenerateInitialChoices()
     {
-        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(Encounter.LocationName);
+        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(context.LocationName);
 
         string narrative = await aiGameMaster.GenerateIntroduction(
             context,
@@ -177,7 +174,7 @@
             );
 
             CurrentChoices = newChoices;
-            
+
             // Update encounter result
             EncounterResult = new EncounterResult
             {
@@ -196,8 +193,8 @@
     }
 
     public async Task<BeatOutcome> ApplyChoiceProjection(
-        Player playerState, 
-        EncounterState encounterState, 
+        Player playerState,
+        EncounterState encounterState,
         EncounterChoice choice)
     {
         this.player = playerState;

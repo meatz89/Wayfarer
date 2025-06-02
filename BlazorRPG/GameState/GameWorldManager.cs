@@ -69,7 +69,7 @@
 
         await UpdateState();
     }
-    
+
     private void ProcessPlayerArchetype()
     {
         Professions archetype = playerState.Archetype;
@@ -166,9 +166,9 @@
             }
 
             LocationAction locationAction = actionFactory.CreateActionFromTemplate(
-                    actionTemplate, 
-                    location.Id, 
-                    locationSpot.SpotID, 
+                    actionTemplate,
+                    location.Id,
+                    locationSpot.SpotID,
                     ActionExecutionTypes.Instant);
 
             locationActions.Add(locationAction);
@@ -646,7 +646,7 @@
 
     public void UpdateAvailableOpportunities()
     {
-        foreach (var opportunity in GameWorld.AllOpportunities)
+        foreach (Opportunity opportunity in GameWorld.AllOpportunities)
         {
             if (opportunity.IsAvailable(GameWorld.CurrentDay, GameWorld.CurrentTimeOfDay))
             {
@@ -667,7 +667,7 @@
     {
         gameState.ActionStateTracker.ClearCurrentUserAction();
         actionProcessor.UpdateState();
-        
+
         UpdateAvailableOpportunities();
 
         Location location = worldState.CurrentLocation;

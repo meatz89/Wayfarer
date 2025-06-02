@@ -1,3 +1,3 @@
-﻿internal class TemplateRegistry
+﻿public class TemplateRegistry
 {
 }

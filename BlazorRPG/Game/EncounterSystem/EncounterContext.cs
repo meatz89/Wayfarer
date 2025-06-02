@@ -9,7 +9,7 @@
     public List<SkillCard> PlayerSkillCards { get; set; }
     public List<SkillCard> PlayerAllCards { get; set; }
 
-    public NPC TargetNPC { get; set; }
+    public NPC CurrentNPC { get; set; }
     public List<string> LocationProperties { get; set; }
 
     public string LocationDescription { get; set; }
