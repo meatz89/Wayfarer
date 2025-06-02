@@ -17,6 +17,7 @@
     public bool IsInitialState { get; set; }
 
     private ILogger<EncounterManager> _logger;
+    private List<ChoiceTemplate> allTemplates;
 
     public EncounterManager(
         EncounterContext encounterContext,
@@ -29,6 +30,7 @@
 
         _useAiNarrative = true;
         _useMemory = true;
+        allTemplates = TemplateLibrary.GetAllTemplates();
     }
 
     public async Task Initialize()
@@ -42,78 +44,11 @@
         state.GoalFlags = DetermineGoalFlags(context.SkillCategory);
         state.FlagManager = new EncounterFlagManager();
 
-        await GenerateInitialChoices();
-
         IsInitialState = true;
     }
 
-    public async Task GenerateInitialChoices()
-    {
-        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(context.LocationName);
-
-        string narrative = await aiGameMaster.GenerateIntroduction(
-            context,
-            state,
-            null, // No chosen option for initial state
-            worldStateInput,
-            AIClient.PRIORITY_IMMEDIATE
-        );
-
-        List<EncounterChoice> generatedChoices = await aiGameMaster.GenerateChoices(
-            context,
-            state,
-            null, // No chosen option for initial state
-            worldStateInput,
-            AIClient.PRIORITY_IMMEDIATE
-        );
-
-        CurrentChoices = generatedChoices;
-
-        EncounterResult = new EncounterResult
-        {
-            locationAction = locationAction,
-            ActionResult = ActionResults.Ongoing,
-            EncounterContext = context,
-            AIResponse = new AIResponse
-            {
-                BeatNarration = narrative,
-                Choices = generatedChoices
-            }
-        };
-
-        _logger.LogInformation($"Generated {CurrentChoices.Count} initial AI choices for encounter");
-    }
-
-    public async Task<EncounterResult> ProcessPlayerChoice(
-        EncounterChoice choice)
-    {
-        logger.LogInformation("ExecuteChoice called for choice: {ChoiceId}", choice?.ChoiceID);
-        AIResponse currentNarrative = AIResponse;
-        AIResponse cachedResult = null;
-
-        EncounterManager encounterManager = GetEncounterManager();
-        bool isInitialChoice = encounterManager.IsInitialState;
-
-        _preGenerationManager.CancelAllPendingGenerations();
-
-        List<EncounterChoice> choices = currentNarrative.Choices;
-
-        currentNarrative = await encounterManager.ProcessPlayerChoice(
-            encounterManager.context.LocationName,
-            choice,
-            AIClient.PRIORITY_IMMEDIATE);
-
-        encounterManager.IsInitialState = false;
-        encounterManager.EncounterResult = CreateEncounterResult(encounterManager, currentNarrative);
-
-        logger.LogInformation("Choice executed: {ChoiceId}, EncounterOver: {IsEncounterOver}", choice?.ChoiceID, currentNarrative.IsEncounterOver);
-        return encounterManager.EncounterResult;
-    }
-
-
     public async Task<EncounterResult> ProcessPlayerChoice(GameWorld gameWorld, EncounterChoice choice)
     {
-
         if (gameWorld.CurrentEncounter == null || gameWorld.CurrentAIResponse == null)
         {
             return; // No active encounter or no AI response
@@ -178,146 +113,23 @@
 
     }
 
-    public async Task<EncounterResult> ProcessPlayerChoice(EncounterChoice choice)
+    private bool PerformSkillCheck(object skillCheck)
     {
-        if (state.IsEncounterComplete)
-        {
-            return EncounterResult;
-        }
-
-        _logger.LogInformation($"Processing player choice: {choice.ChoiceID}");
-
-        // Create chosen option from selected choice
-        PlayerChoiceSelection chosenOption = new PlayerChoiceSelection
-        {
-            Choice = choice,
-            SelectedOption = choice.SkillOption
-        };
-
-        // Apply choice effects
-        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(context.LocationName);
-        BeatOutcome outcome = await ApplyChoiceProjection(player, state, choice);
-
-        // Check if encounterContext is complete
-        if (outcome.IsEncounterComplete)
-        {
-            string concludingNarrative = "The encounterContext has concluded.";
-
-            if (_useAiNarrative)
-            {
-                concludingNarrative = await aiGameMaster.GenerateConclusion(
-                    context,
-                    state,
-                    choice,
-                    outcome,
-                    worldStateInput,
-                    AIClient.PRIORITY_IMMEDIATE
-                );
-            }
-
-            // Create final result
-            EncounterResult = new EncounterResult
-            {
-                locationAction = locationAction,
-                ActionResult = outcome.Outcome == EncounterStageOutcomes.Success ? ActionResults.EncounterSuccess : ActionResults.EncounterFailure,
-                EncounterEndMessage = concludingNarrative,
-                EncounterContext = context,
-                AIResponse = new AIResponse
-                {
-                    BeatNarration = concludingNarrative,
-                    Choices = new List<EncounterChoice>(), // No choices after conclusion
-                }
-            };
-
-            // Apply any persistent changes
-            //await ProcessEncounterConclusion();
-
-            return EncounterResult;
-        }
-        else
-        {
-            // Continue the encounterContext with new choices
-            string reactionNarrative = "The situation continues to unfold.";
-
-            reactionNarrative = await aiGameMaster.GenerateReaction(
-                context,
-                state,
-                choice,
-                outcome,
-                worldStateInput,
-                AIClient.PRIORITY_IMMEDIATE
-            );
-
-            // Generate new choices
-            List<EncounterChoice> newChoices = await aiGameMaster.GenerateChoices(
-                context,
-                state,
-                chosenOption,
-                worldStateInput,
-                AIClient.PRIORITY_IMMEDIATE
-            );
-
-            CurrentChoices = newChoices;
-
-            // Update encounterContext result
-            EncounterResult = new EncounterResult
-            {
-                locationAction = locationAction,
-                ActionResult = ActionResults.Ongoing,
-                EncounterContext = context,
-                AIResponse = new AIResponse
-                {
-                    BeatNarration = reactionNarrative,
-                    Choices = CurrentChoices
-                }
-            };
-
-            return EncounterResult;
-        }
+        return true; // Placeholder for actual skill check logic
     }
 
-    private EncounterResult CreateEncounterResult(EncounterManager encounterContext, AIResponse aiResponse)
+    private ChoiceTemplate FindTemplateByName(string templateName)
     {
-        if (aiResponse.IsEncounterOver)
+        foreach (ChoiceTemplate template in allTemplates)
         {
-            if (aiResponse.Outcome == EncounterStageOutcomes.Failure)
+            if (template.TemplateName == templateName)
             {
-                EncounterResult failureResult = new EncounterResult()
-                {
-                    locationAction = encounterContext.locationAction,
-                    ActionResult = ActionResults.EncounterFailure,
-                    EncounterEndMessage = $"=== EncounterContext Over: {aiResponse.Outcome} ===",
-                    AIResponse = aiResponse,
-                    EncounterContext = encounterContext.GetEncounterContext()
-                };
-                return failureResult;
-            }
-            else
-            {
-                EncounterResult successResult = new EncounterResult()
-                {
-                    locationAction = encounterContext.locationAction,
-                    ActionResult = ActionResults.EncounterSuccess,
-                    EncounterEndMessage = $"=== EncounterContext Over: {aiResponse.Outcome} ===",
-                    AIResponse = aiResponse,
-                    EncounterContext = encounterContext.GetEncounterContext()
-                };
-                return successResult;
+                return template;
             }
         }
 
-        EncounterResult ongoingResult = new EncounterResult()
-        {
-            locationAction = encounterContext.locationAction,
-            ActionResult = ActionResults.Ongoing,
-            EncounterEndMessage = "",
-            AIResponse = aiResponse,
-            EncounterContext = encounterContext.GetEncounterContext()
-        };
-
-        return ongoingResult;
+        return null;
     }
-
 
     public async Task<BeatOutcome> ApplyChoiceProjection(
         Player playerState,
@@ -454,7 +266,4 @@
     {
         return CurrentChoices;
     }
-
-
-
 }
