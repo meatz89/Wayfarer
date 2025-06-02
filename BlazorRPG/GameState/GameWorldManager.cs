@@ -20,7 +20,6 @@
     private readonly ChoiceProjectionService choiceProjectionService;
     private readonly ILogger<GameWorldManager> logger;
     private List<Opportunity> availableOpportunities = new List<Opportunity>();
-    private List<ChoiceTemplate> allTemplates;
 
     public GameWorldManager(GameWorld gameState, EncounterFactory encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
@@ -54,8 +53,6 @@
 
     public async Task StartGame()
     {
-        allTemplates = TemplateLibrary.GetAllTemplates();
-
         ProcessPlayerArchetype();
         player.HealFully();
 
@@ -733,18 +730,6 @@
         }
     }
 
-    private ChoiceTemplate FindTemplateByName(string templateName)
-    {
-        foreach (ChoiceTemplate template in allTemplates)
-        {
-            if (template.TemplateName == templateName)
-            {
-                return template;
-            }
-        }
-
-        return null;
-    }
 
     private List<FlagStates> DetermineGoalFlags(string encounterType)
     {

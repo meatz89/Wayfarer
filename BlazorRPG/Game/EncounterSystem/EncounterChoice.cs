@@ -8,5 +8,6 @@
     public bool IsAffordable { get; set; }
     public string TemplateUsed { get; set; }
     public string TemplatePurpose { get; set; }
+    public object SkillCheck { get; internal set; }
 }
 
