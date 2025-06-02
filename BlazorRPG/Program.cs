@@ -10,7 +10,7 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .Build();
 
-builder.Services.AddGameServices();
+builder.Services.ConfigureServices();
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
