@@ -1,3 +1,3 @@
-﻿internal class PreparationAdvantage
+﻿public class PreparationAdvantage
 {
 }

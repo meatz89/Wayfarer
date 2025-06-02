@@ -6,7 +6,7 @@
     public SkillOption SkillOption { get; set; }
     public bool IsDisabled { get; set; }
     public bool IsAffordable { get; set; }
-    public string TemplateUsed { get; internal set; }
-    public string TemplatePurpose { get; internal set; }
+    public string TemplateUsed { get; set; }
+    public string TemplatePurpose { get; set; }
 }
 

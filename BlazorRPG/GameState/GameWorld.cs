@@ -1,7 +1,7 @@
 ﻿public class GameWorld
 {
     public static int CurrentDay { get; }
-    public static TimeOfDay CurrentTimeOfDay { get; private set;  }
+    public static TimeOfDay CurrentTimeOfDay { get; private set; }
     public static List<Opportunity> AllOpportunities { get; set; }
 
     public Player Player { get; set; }
@@ -11,6 +11,7 @@
     public Location CurrentLocation { get; set; }
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
+    public EncounterManager CurrentEncounter { get; set; }
 
     public GameWorld()
     {
@@ -58,7 +59,7 @@
         throw new NotImplementedException();
     }
 
-    internal List<Goal> GetGoalsByType(object core)
+    public List<Goal> GetGoalsByType(object core)
     {
         throw new NotImplementedException();
     }

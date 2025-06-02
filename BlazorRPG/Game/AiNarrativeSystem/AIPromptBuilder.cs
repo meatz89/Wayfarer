@@ -71,10 +71,10 @@ public partial class AIPromptBuilder
 
         GameWorld gameWorld = encounterContext.gameWorld;
 
-        // Add core game state context
-        AddGameStateContext(content, gameWorld);
-
         StringBuilder prompt = new StringBuilder(content);
+
+        // Add core game state context
+        AddGameStateContext(prompt, gameWorld);
 
         // Add time context
         AddGoalContext(prompt, gameWorld);
@@ -99,9 +99,50 @@ public partial class AIPromptBuilder
         return aiPrompt;
     }
 
-    private void AddGameStateContext(string prompt, GameWorld gameWorld)
+    private void AddGameStateContext(StringBuilder prompt, GameWorld gameWorld)
     {
+        prompt.AppendLine("ENCOUNTER CONTEXT:");
+
+        if (gameWorld.CurrentEncounter != null)
+        {
+            // Add focus points
+            EncounterState state = gameWorld.CurrentEncounter.state;
+            prompt.AppendLine($"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}");
+
+            // Add active flags
+            prompt.AppendLine("- Active State Flags:");
+            List<FlagStates> activeFlags = state.FlagManager.GetAllActiveFlags();
+            foreach (FlagStates flag in activeFlags)
+            {
+                prompt.AppendLine($"  * {flag}");
+            }
+
+            // Add NPC information if available
+            EncounterContext encounterContext = gameWorld.CurrentEncounter.GetEncounterContext();
+            if (encounterContext.CurrentNPC != null)
+            {
+                prompt.AppendLine($"- Current NPC: {encounterContext.CurrentNPC.Name}");
+                prompt.AppendLine($"  * Role: {encounterContext.CurrentNPC.Role}");
+                prompt.AppendLine($"  * Attitude: {encounterContext.CurrentNPC.Attitude}");
+            }
+
+            // Add duration information
+            prompt.AppendLine($"- Encounter Duration: {state.DurationCounter}/{gameWorld.CurrentEncounter.state.MaxDuration}");
+        }
+
+        // Add player skills
+        prompt.AppendLine("- Player Skills Available:");
+        foreach (SkillCard card in gameWorld.Player.AvailableCards)
+        {
+            if (!card.IsExhausted)
+            {
+                prompt.AppendLine($"  * {card.Name} (Level {card.Level}, {card.Category})");
+            }
+        }
+
+        prompt.AppendLine();
     }
+
 
     private void AddGoalContext(StringBuilder prompt, GameWorld gameWorld)
     {

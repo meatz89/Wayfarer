@@ -151,7 +151,7 @@ public class CheckMemoryEffect : IMechanicalEffect
     {
         private FlagStates flagToSet;
 
-        public SetFlagEffect(FlagStates flagToSet)
+        setFlagEffect(FlagStates flagToSet)
         {
             this.flagToSet = flagToSet;
         }

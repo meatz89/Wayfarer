@@ -38,11 +38,45 @@ namespace BlazorRPG.Components
             _positionUpdateTimer.Start();
         }
 
-        public List<Track> Queue => _queue;
-        public Track CurrentTrack => _currentTrackIndex >= 0 && _currentTrackIndex < _queue.Count ? _queue[_currentTrackIndex] : null;
-        public bool IsPlaying => _isPlaying;
-        public TimeSpan CurrentPosition => _currentPosition;
-        public int CurrentTrackIndex => _currentTrackIndex;
+        public List<Track> Queue
+        {
+            get
+            {
+                return _queue;
+            }
+        }
+
+        public Track CurrentTrack
+        {
+            get
+            {
+                return _currentTrackIndex >= 0 && _currentTrackIndex < _queue.Count ? _queue[_currentTrackIndex] : null;
+            }
+        }
+
+        public bool IsPlaying
+        {
+            get
+            {
+                return _isPlaying;
+            }
+        }
+
+        public TimeSpan CurrentPosition
+        {
+            get
+            {
+                return _currentPosition;
+            }
+        }
+
+        public int CurrentTrackIndex
+        {
+            get
+            {
+                return _currentTrackIndex;
+            }
+        }
 
         public void ClearQueue()
         {

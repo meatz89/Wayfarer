@@ -17,9 +17,15 @@ public class Goal
     public bool IsCompleted { get; private set; }
     public bool HasFailed { get; private set; }
 
-    public float Progress => Requirements.Count > 0
+    public float Progress
+    {
+        get
+        {
+            return Requirements.Count > 0
         ? (float)CompletedRequirements.Count / Requirements.Count
         : 0f;
+        }
+    }
 
     public void CompleteRequirement(string requirement)
     {

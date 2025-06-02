@@ -25,7 +25,7 @@ public class LocationActionProcessor
             ObjectiveDescription = action.ObjectiveDescription,
             PlayerSkillCards = player.GetCardsOfType(action.RequiredCardType),
             StartingFocusPoints = CalculateFocusPoints(action.Complexity),
-            TargetNPC = spot.PrimaryNPC,
+            CurrentNPC = spot.PrimaryNPC,
             LocationProperties = spot.GetCurrentProperties()
         };
 

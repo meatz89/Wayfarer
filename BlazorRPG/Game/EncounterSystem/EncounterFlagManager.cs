@@ -168,7 +168,7 @@ public class EncounterFlagManager
         activeFlags.Remove(flag);
     }
 
-    public List<FlagStates> GetActiveFlags()
+    public List<FlagStates> GetAllActiveFlags()
     {
         return activeFlags.ToList();
     }
