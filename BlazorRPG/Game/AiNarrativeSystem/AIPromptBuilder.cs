@@ -103,7 +103,7 @@ public partial class AIPromptBuilder
     {
         prompt.AppendLine("ENCOUNTER CONTEXT:");
 
-        if (gameWorld.CurrentEncounterContext != null)
+        if (gameWorld.CurrentEncounter != null)
         {
             // Add focus points
             EncounterState state = gameWorld.CurrentEncounter.state;

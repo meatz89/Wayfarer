@@ -19,6 +19,9 @@
     private ContentLoader contentLoader;
 
     private List<Opportunity> availableOpportunities = new List<Opportunity>();
+    private List<ChoiceTemplate> allTemplates;
+
+
 
     public GameWorldManager(GameWorld gameState, EncounterSystem encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
