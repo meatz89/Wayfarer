@@ -220,24 +220,12 @@
         }
     }
 
-    public async Task StartEncounter(string approachId, LocationAction locationAction)
-    {
-        EncounterManager encounterManager =
-                            await StartEncounter(
-                                locationAction.ActionId,
-                                locationAction.Opportunity,
-                                approachId,
-                                locationAction);
-
-        gameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
-    }
-
-    private async Task<EncounterManager> StartEncounter(
-        string id,
-        OpportunityDefinition opportunity,
+    public async Task<EncounterManager> StartEncounter(
         string approachId,
         LocationAction locationAction)
     {
+
+
         Location location = worldState.CurrentLocation;
         string locationId = location.Id;
         string locationName = location.Name;
@@ -277,13 +265,12 @@
         {
             LocationAction = locationAction,
             SkillCategory = SkillCategory,
-            LocationName = location,
-            LocationSpotName = locationSpot,
+            LocationName = location.Name,
+            LocationSpotName = locationSpot.Name,
         };
 
         EncounterManager encounterManager = await encounterSystem.GenerateEncounter(
             id,
-            opportunity,
             approach,
             location,
             locationSpot,
@@ -291,50 +278,13 @@
             player,
             locationAction);
 
+        gameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
+
         List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);
         gameWorld.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
 
         return encounterManager;
     }
-
-    public async Task<EncounterResult> StartEncounter(LocationSpot spot, LocationAction action, Player player)
-    {
-        // 1. Initialize encounterContext context
-        EncounterContext context = actionProcessor.InitializeEncounter(spot, action, player);
-        EncounterState state = CreateEncounterState(context, player);
-
-        // 2. Run encounterContext beats
-        while (!state.IsEncounterComplete && state.FocusPoints > 0)
-        {
-            // Generate AI choices
-            AIPrompt prompt = promptBuilder.BuildBeatPrompt(context, state);
-            AIResponse aiResponse = await aiService.GetResponse(prompt);
-
-            // Present choices to player
-            List<ValidatedChoice> choices = responseProcessor.ProcessAIResponse(aiResponse, state);
-            PlayerChoiceSelection selection = await uiService.PresentChoices(choices);
-
-            // Resolve choice
-            BeatOutcome outcome = choiceResolver.ResolveChoice(selection, state);
-
-            // Update state
-            stateManager.ProcessBeatOutcome(outcome, state);
-
-            // Update UI
-            uiService.UpdateEncounterDisplay(state, outcome);
-        }
-
-        // 3. Process conclusion
-        EncounterConclusion conclusion = await ProcessConclusion(state, context);
-        ApplyPersistentChanges(conclusion);
-
-        return new EncounterResult
-        {
-            Success = DetermineSuccess(state),
-            PersistentChanges = conclusion.ApprovedChanges
-        };
-    }
-
 
     public async Task ProcessActionCompletion(LocationAction action)
     {
@@ -360,14 +310,14 @@
 
     public async Task Travel(string targetLocation)
     {
-        Location loc = locationRepository.GetLocationByName(locationName);
+        Location location = locationRepository.GetLocationByName(targetLocation);
 
         // Create travel action using travelManager
-        LocationAction travelAction = travelManager.StartLocationTravel(loc.Id, TravelMethods.Walking);
+        LocationAction travelAction = travelManager.StartLocationTravel(location.Id, TravelMethods.Walking);
 
         // Create option with consistent structure
         UserActionOption travelOption = new UserActionOption(
-            "Travel to " + locationName, false, travelAction,
+            "Travel to " + location.Name, false, travelAction,
             worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.SpotID,
             null, worldState.CurrentLocation.Difficulty, null, null);
 
@@ -389,19 +339,19 @@
         int energyCost = route.GetActualEnergyCost();
 
         gameWorld.Player.SpendEnergy(energyCost);
-        gameWorld.AdvanceTime(TimeSpan.FromHours(timeCost));
+        GameWorld.AdvanceTime(TimeSpan.FromHours(timeCost));
 
         // Increase knowledge of this route
         route.IncreaseKnowledge();
 
         // Check for encounters
-        int seed = gameWorld.CurrentDay + gameWorld.Player.GetHashCode();
+        int seed = GameWorld.CurrentDay + gameWorld.Player.GetHashCode();
         TravelEncounterContext encounterContext = route.GetEncounter(seed);
 
         if (encounterContext != null)
         {
             // Start a travel encounter
-            StartEncounter(encounter.EncounterTemplates, encounter.Description);
+            StartEncounter(encounterContext.EncounterTemplates, encounterContext.Description);
         }
         else
         {
@@ -477,33 +427,11 @@
 
         AIResponse AIResponse = result.AIResponse;
         string narrative = AIResponse?.BeatNarration;
-        string outcome = AIResponse?.Outcome.ToString();
 
         if (_processStateChanges)
         {
-            await ProcessPostEncounterEvolution(result, narrative, outcome);
+            //await ProcessPostEncounterEvolution(result, narrative, outcome);
         }
-    }
-
-    private async Task ProcessPostEncounterEvolution(EncounterResult result, string narrative, string outcome)
-    {
-        Location currentLocation = locationRepository.GetLocationById(result.EncounterContext.LocationName);
-        if (_useMemory)
-        {
-            await CreateMemoryRecord(result);
-        }
-
-        // Prepare the input
-        PostEncounterEvolutionInput input = evolutionSystem.PreparePostEncounterEvolutionInput(narrative, outcome);
-
-        // Process world evolution
-        PostEncounterEvolutionResult evolutionResponse = await evolutionSystem.ProcessEncounterOutcome(result.EncounterContext, input, result);
-
-        // Store the evolution response in the result
-        result.PostEncounterEvolution = evolutionResponse;
-
-        // Update world state
-        await evolutionSystem.IntegrateEncounterOutcome(evolutionResponse, worldState, player);
     }
 
     private async Task CreateMemoryRecord(EncounterResult encounterResult)
@@ -562,7 +490,7 @@
         Location location = locationSystem.GetLocation(choiceOption.LocationName);
 
         // Execute the choice
-        EncounterManager encounterContext = gameWorld.ActionStateTracker.GetCurrentEncounter();
+        EncounterManager encounterContext = gameWorld.ActionStateTracker.CurrentEncounterContext;
         ChoiceProjection choiceProjection = encounterSystem.GetChoiceProjection(encounterContext, choiceOption.Choice);
         return choiceProjection;
     }
@@ -627,7 +555,7 @@
 
     public EncounterViewModel? GetEncounterViewModel()
     {
-        EncounterManager encounterManager = encounterSystem.GetCurrentEncounter();
+        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterContext;
         List<UserEncounterChoiceOption> userEncounterChoiceOptions = gameWorld.ActionStateTracker.UserEncounterChoiceOptions;
 
         if (encounterManager == null)
@@ -775,6 +703,6 @@
 
     public GameWorldSnapshot GetGameSnapshot()
     {
-        return new GameWorldSnapshot();
+        return new GameWorldSnapshot(gameWorld);
     }
 }

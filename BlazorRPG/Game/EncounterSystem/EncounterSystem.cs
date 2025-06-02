@@ -1,4 +1,5 @@
-﻿public class EncounterSystem
+﻿
+public class EncounterSystem
 {
     private GameWorld gameState;
     private MessageSystem messageSystem;
@@ -11,6 +12,7 @@
     private ChoiceProjectionService choiceProjectionService;
     private PreGenerationManager _preGenerationManager;
 
+    private EncounterContext encounterContext;
 
     private PayloadRegistry payloadRegistry;
     private EncounterManager encounterManager;
@@ -19,7 +21,7 @@
     public EncounterSystem(
         GameWorld gameState,
         MessageSystem messageSystem,
-        EncounterContextManager EncounterContextManager,
+        EncounterContextManager encounterContextManager,
         LocationActionProcessor encounterFactory,
         WorldStateInputBuilder worldStateInputCreator,
         ChoiceProjectionService choiceProjectionService,
@@ -39,7 +41,6 @@
 
     public async Task<EncounterManager> GenerateEncounter(
         string id,
-        OpportunityDefinition opportunity,
         ApproachDefinition approach,
         Location location,
         LocationSpot locationSpot,
@@ -49,12 +50,12 @@
     {
         logger.LogInformation(
             "GenerateEncounterContext called with id: {Id}, opportunity: {OpportunityId}, approachId: {ApproachId}, location: {LocationId}, locationSpot: {LocationSpotId}",
-            id, opportunity?.Id, approach.Id, location?.Id, locationSpot?.SpotID);
+            id, approach.Id, location?.Id, locationSpot?.SpotID);
 
         this.worldState = worldState;
 
         EncounterContext encounterContext = encounterFactory.InitializeEncounter(
-            opportunity, approach, playerState, location);
+            approach, playerState, location);
 
         // TODO 
         locationAction.Execute(playerState, locationSpot);
@@ -70,7 +71,7 @@
         Player playerState,
         LocationAction locationAction)
     {
-        logger.LogInformation("StartEncounterContext called for encounter: {EncounterId}, location: {LocationId}", encounter?.Id, location?.Id);
+        logger.LogInformation("StartEncounterContext called for encounter: {EncounterId}, location: {LocationId}", encounterContext?.Id, location?.Id);
 
         EncounterManager encounterManager = new EncounterManager(
             encounterContext,
@@ -100,7 +101,7 @@
             EncounterContext = encounterManager.GetEncounterContext()
         };
 
-        logger.LogInformation("EncounterContext started: {EncounterId}", encounter?.Id);
+        logger.LogInformation("EncounterContext started: {EncounterId}", encounterContext?.Id);
         return encounterManager;
     }
 
@@ -119,8 +120,8 @@
 
         List<EncounterChoice> choices = currentNarrative.Choices;
 
-        currentNarrative = await encounterManager.ProcessPlayerSelection(
-            encounterManager.Encounter.LocationName,
+        currentNarrative = await encounterManager.ProcessPlayerChoice(
+            encounterManager.encounterContext.LocationName,
             choice,
             AIClient.PRIORITY_IMMEDIATE);
 
@@ -139,18 +140,18 @@
             {
                 EncounterResult failureResult = new EncounterResult()
                 {
-                    locationAction = encounter.locationAction,
+                    locationAction = encounterContext.locationAction,
                     ActionResult = ActionResults.EncounterFailure,
                     EncounterEndMessage = $"=== EncounterContext Over: {currentNarrative.Outcome} ===",
                     AIResponse = currentNarrative,
-                    EncounterContext = encounter.GetEncounterContext()
+                    EncounterContext = encounterContext.GetEncounterContext()
                 };
                 return failureResult;
             }
             else
             {
                 logger.LogInformation("EncounterContext ended in success. ActionId: {ActionId}, Outcome: {Outcome}, Narrative: {Narrative}, Choices: {Choices}, IsEncounterOver: {IsEncounterOver}",
-                    encounter.locationAction?.ActionId,
+                    encounterContext.locationAction?.ActionId,
                     currentNarrative.Outcome,
                     currentNarrative?.ToString(),
                     currentNarrative?.Choices?.Count ?? 0,
@@ -158,11 +159,11 @@
 
                 EncounterResult successResult = new EncounterResult()
                 {
-                    locationAction = encounter.locationAction,
+                    locationAction = encounterContext.locationAction,
                     ActionResult = ActionResults.EncounterSuccess,
                     EncounterEndMessage = $"=== EncounterContext Over: {currentNarrative.Outcome} ===",
                     AIResponse = currentNarrative,
-                    EncounterContext = encounter.GetEncounterContext()
+                    EncounterContext = encounterContext.GetEncounterContext()
                 };
                 return successResult;
             }
@@ -170,11 +171,11 @@
 
         EncounterResult ongoingResult = new EncounterResult()
         {
-            locationAction = encounter.locationAction,
+            locationAction = encounterContext.locationAction,
             ActionResult = ActionResults.Ongoing,
             EncounterEndMessage = "",
             AIResponse = currentNarrative,
-            EncounterContext = encounter.GetEncounterContext()
+            EncounterContext = encounterContext.GetEncounterContext()
         };
 
         return ongoingResult;
@@ -213,7 +214,7 @@
     public ChoiceProjection GetChoiceProjection(EncounterManager encounterContext, EncounterChoice choice)
     {
         EncounterManager encounterManager = GetEncounterManager();
-        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choiceProjectionService, encounter.state, choice);
+        ChoiceProjection choiceProjection = encounterManager.ProjectChoice(choiceProjectionService, encounterContext.state, choice);
         return choiceProjection;
     }
 
@@ -221,4 +222,5 @@
     {
         return encounterManager;
     }
+
 }

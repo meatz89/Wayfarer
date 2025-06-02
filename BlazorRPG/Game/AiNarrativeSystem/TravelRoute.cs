@@ -6,7 +6,7 @@
     public int BaseEnergyCost { get; private set; }
     public int DangerLevel { get; private set; } // 0-10 scale
     public List<string> RequiredEquipment { get; private set; } = new List<string>();
-    public List<TravelEncounter> PotentialEncounters { get; private set; } = new List<TravelEncounter>();
+    public List<TravelEncounterContext> PotentialEncounters { get; private set; } = new List<TravelEncounterContext>();
 
     // Knowledge level tracking - how well player knows this route
     public int KnowledgeLevel { get; private set; }
@@ -57,7 +57,7 @@
         if (random.Next(100) < encounterChance)
         {
             // Select an encounterContext based on danger level
-            List<TravelEncounter> appropriateEncounters = PotentialEncounters
+            List<TravelEncounterContext> appropriateEncounters = PotentialEncounters
                 .Where(e => e.DangerLevel <= DangerLevel)
                 .ToList();
 

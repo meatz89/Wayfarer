@@ -35,7 +35,7 @@ A "Chekhov's Gun" is a narrative element introduced that should have future sign
    - If any were permanently resolved, note this
 
 ## Output Format
-Update the supplied memory content with the new information the player learned from this previous encounter.
+Update the supplied memory content with the new information the player learned from this previous encounterContext.
 1. 1. MEMORY: The standard memory paragraph (2-3 sentences)
 2. CHEKHOV'S GUNS: List of active narrative elements with name, description, significance, and status
 

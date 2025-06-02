@@ -25,7 +25,7 @@
         ActionStateTracker = new ActionStateTracker();
         WorldState = new WorldState();
         TimeManager = new TimeManager(Player, WorldState);
-     
+
         StreamingContentState = new StreamingContentState();
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;

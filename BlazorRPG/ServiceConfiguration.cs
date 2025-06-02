@@ -57,7 +57,7 @@
         services.AddSingleton<IAIService, AIGameMaster>();
 
         // Register updated services
-        services.AddSingleton<TemplateRegistry>();
+        services.AddSingleton<TemplateLibrary>();
         services.AddSingleton<AIPromptBuilder>();
         services.AddSingleton<EncounterChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();

@@ -6,20 +6,15 @@
     {
         List<EncounterChoice> choices = new List<EncounterChoice>();
 
-        foreach (EncounterChoice EncounterChoice in aiResponse.Choices)
+        foreach (EncounterChoice encounterChoice in aiResponse.Choices)
         {
             EncounterChoice choice = new EncounterChoice();
-            choice.ChoiceID = EncounterChoice.ChoiceID;
-            choice.NarrativeText = EncounterChoice.NarrativeText;
-            choice.FocusCost = EncounterChoice.FocusCost;
+            choice.ChoiceID = encounterChoice.ChoiceID;
+            choice.NarrativeText = encounterChoice.NarrativeText;
+            choice.FocusCost = encounterChoice.FocusCost;
 
-            // Convert each skill option
-            choice.SkillOption = new List<SkillOption>();
-            foreach (SkillOption aiSkillOption in EncounterChoice.SkillOption)
-            {
-                SkillOption option = ConvertSkillOption(aiSkillOption, state);
-                choice.SkillOption.Add(option);
-            }
+            SkillOption option = ConvertSkillOption(encounterChoice.SkillOption, state);
+            choice.SkillOption = option;
 
             choices.Add(choice);
         }
@@ -48,11 +43,11 @@
         }
 
         // Calculate success chance
-        option.SuccessChance = CalculateSuccessChance(option.EffectiveLevel, option.Difficulty);
+        option.SuccessChance = CalculateSuccessChance(option.EffectiveLevel, option.DifficultyString);
 
         // Link to payloads
-        option.SuccessPayload = aiOption.SuccessPayload.ID;
-        option.FailurePayload = aiOption.FailurePayload.ID;
+        option.SuccessPayload = aiOption.SuccessPayload;
+        option.FailurePayload = aiOption.FailurePayload;
 
         return option;
     }

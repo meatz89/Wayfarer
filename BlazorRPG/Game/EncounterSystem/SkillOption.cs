@@ -1,7 +1,8 @@
 ﻿public class SkillOption
 {
     public string SkillName { get; set; }
-    public string Difficulty { get; set; } // "EASY", "STANDARD", "HARD", "EXCEPTIONAL"
+    public int Difficulty { get; set; }
+    public string DifficultyString { get; set; } // "EASY", "STANDARD", "HARD", "EXCEPTIONAL"
     public int SCD { get; set; } // The actual numerical difficulty
     public PayloadEntry SuccessPayload { get; set; }
     public PayloadEntry FailurePayload { get; set; }

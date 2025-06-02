@@ -2,7 +2,13 @@
 {
     private AIResponse pendingResponse;
     private bool hasResponse;
-    public bool HasResponse => hasResponse;
+    public bool HasResponse
+    {
+        get
+        {
+            return hasResponse;
+        }
+    }
 
     private AIPromptBuilder _promptManager;
     private EncounterContextManager _contextManager;
@@ -27,7 +33,7 @@
         hasResponse = false;
     }
 
-    public async Task<AIResponse> GenerateChoices(
+    public async Task<List<EncounterChoice>> GenerateChoices(
         EncounterContext context,
         EncounterState state,
         PlayerChoiceSelection chosenOption,
@@ -61,6 +67,7 @@
         _contextManager.AddAssistantMessage(conversationId, response, messageType);
 
         List<EncounterChoice> choices = _EncounterChoiceResponseParser.ParseMultipleChoicesResponse(response);
+
         return choices;
     }
 

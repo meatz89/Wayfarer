@@ -6,7 +6,7 @@ namespace BlazorRPG.Pages;
 public partial class MainGameplayView : ComponentBase
 {
     [Inject] private IJSRuntime JSRuntime { get; set; }
-    [Inject] private GameWorld GameState { get; set; }
+    [Inject] private GameWorld GameWorld { get; set; }
     [Inject] private GameWorldManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
@@ -25,7 +25,7 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameState.Player;
+            return GameWorld.Player;
         }
     }
 
@@ -74,7 +74,7 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameState.WorldState.CurrentLocation;
+            return GameWorld.WorldState.CurrentLocation;
         }
     }
 
@@ -82,7 +82,7 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameState.WorldState.CurrentLocationSpot;
+            return GameWorld.WorldState.CurrentLocationSpot;
         }
     }
 
@@ -90,7 +90,7 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameState.WorldState.CurrentTimeWindow;
+            return GameWorld.WorldState.CurrentTimeWindow;
         }
     }
 
@@ -98,7 +98,7 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameState.WorldState.CurrentTimeHours;
+            return GameWorld.WorldState.CurrentTimeHours;
         }
     }
 
@@ -181,7 +181,7 @@ public partial class MainGameplayView : ComponentBase
 
         await GameManager.ExecuteAction(action);
 
-        EncounterManager = GameState.ActionStateTracker.GetCurrentEncounter();
+        EncounterManager = GameWorld.ActionStateTracker.CurrentEncounterContext;
         if (EncounterManager != null)
         {
             CurrentScreen = CurrentViews.EncounterScreen;
@@ -244,8 +244,8 @@ public partial class MainGameplayView : ComponentBase
 
         UserActionOption waitOption = new UserActionOption(
             "Wait for one hour", false, waitAction,
-            GameState.WorldState.CurrentLocation?.Id ?? "Global",
-            GameState.WorldState.CurrentLocationSpot?.SpotID ?? "Global",
+            GameWorld.WorldState.CurrentLocation?.Id ?? "Global",
+            GameWorld.WorldState.CurrentLocationSpot?.SpotID ?? "Global",
             null, 0, null, null);
 
         await GameManager.ExecuteAction(waitOption);

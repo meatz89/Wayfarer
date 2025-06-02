@@ -111,7 +111,7 @@
         };
 
         // Apply choice effects
-        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(Encounter.LocationName);
+        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(encounterContext.LocationName);
         BeatOutcome outcome = await ApplyChoiceProjection(player, state, choice);
 
         // Check if encounterContext is complete
