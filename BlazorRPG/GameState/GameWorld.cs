@@ -11,7 +11,7 @@
     public Location CurrentLocation { get; set; }
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
-    public EncounterManager CurrentEncounter { get; set; }
+    public EncounterManager CurrentEncounterContext { get; set; }
 
     public GameWorld()
     {

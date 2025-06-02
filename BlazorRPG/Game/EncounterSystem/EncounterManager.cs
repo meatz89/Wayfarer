@@ -114,10 +114,10 @@
         WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(Encounter.LocationName);
         BeatOutcome outcome = await ApplyChoiceProjection(player, state, choice);
 
-        // Check if encounter is complete
+        // Check if encounterContext is complete
         if (outcome.IsEncounterComplete)
         {
-            string concludingNarrative = "The encounter has concluded.";
+            string concludingNarrative = "The encounterContext has concluded.";
 
             if (_useAiNarrative)
             {
@@ -152,7 +152,7 @@
         }
         else
         {
-            // Continue the encounter with new choices
+            // Continue the encounterContext with new choices
             string reactionNarrative = "The situation continues to unfold.";
 
             reactionNarrative = await aiGameMaster.GenerateReaction(
@@ -175,7 +175,7 @@
 
             CurrentChoices = newChoices;
 
-            // Update encounter result
+            // Update encounterContext result
             EncounterResult = new EncounterResult
             {
                 locationAction = locationAction,

@@ -61,7 +61,7 @@
         return action;
     }
 
-    public List<OpportunityDefinition> GetOpportunitysForSpot(string spotId)
+    public List<OpportunityDefinition> GetOpportunitiesForSpot(string spotId)
     {
         // First, find the location this spot belongs to
         LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
@@ -71,33 +71,33 @@
         }
 
         string locationId = spot.LocationId;
-        List<OpportunityDefinition> opportunitys = new List<OpportunityDefinition>();
+        List<OpportunityDefinition> Opportunities = new List<OpportunityDefinition>();
 
-        foreach (OpportunityDefinition opportunity in _worldState.opportunitys)
+        foreach (OpportunityDefinition opportunity in _worldState.Opportunities)
         {
-            // For ACCUMULATIVE opportunitys, they're available at any spot within their location
+            // For ACCUMULATIVE Opportunities, they're available at any spot within their location
             if (opportunity.Type == OpportunityTypes.Accumulative &&
                 opportunity.InitialLocationId == locationId)
             {
-                opportunitys.Add(opportunity);
+                Opportunities.Add(opportunity);
             }
-            // For SEQUENTIAL opportunitys, check the current step's location
+            // For SEQUENTIAL Opportunities, check the current step's location
             else if (opportunity.Type == OpportunityTypes.Sequential &&
                      opportunity.InitialStep != null &&
                      opportunity.InitialStep.LocationId == locationId)
             {
                 // If the step specifies a spot, check if it matches
                 // If not specified, it's available at any spot in the location
-                opportunitys.Add(opportunity);
+                Opportunities.Add(opportunity);
             }
         }
 
-        return opportunitys;
+        return Opportunities;
     }
 
     public OpportunityDefinition GetOpportunity(string opportunityId)
     {
-        OpportunityDefinition opportunity = _worldState.opportunitys.FirstOrDefault(a =>
+        OpportunityDefinition opportunity = _worldState.Opportunities.FirstOrDefault(a =>
         {
             return a.Id.Equals(opportunityId, StringComparison.OrdinalIgnoreCase);
         });

@@ -2,8 +2,8 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 # ENCOUNTER CONCLUSION
 
-Create a BRIEF, immersive Conclusion to the prior encounter, only 1-2 sections. 
-ONLY wrap up the encounter (success or failure). DO NOT introduce new elements.
+Create a BRIEF, immersive Conclusion to the prior encounterContext, only 1-2 sections. 
+ONLY wrap up the encounterContext (success or failure). DO NOT introduce new elements.
 
 The player concluded the encoutner with his last choice: '{SELECTED_CHOICE}' ({CHOICE_DESCRIPTION})
 CRITICAL: This scene must directly continue from the player's final choice.

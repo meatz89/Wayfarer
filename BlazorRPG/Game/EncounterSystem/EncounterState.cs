@@ -255,7 +255,7 @@
             AdvanceStage();
         }
 
-        // Update projection with encounter state
+        // Update projection with encounterContext state
         projection.WillEncounterEnd = IsEncounterComplete;
 
         if (projection.WillEncounterEnd)
@@ -285,7 +285,7 @@
 
     public int GetDeterministicRandom(int minValue, int maxValue)
     {
-        // Use encounter seed for deterministic random
+        // Use encounterContext seed for deterministic random
         Random random = new Random(EncounterSeed + DurationCounter);
         return random.Next(minValue, maxValue);
     }

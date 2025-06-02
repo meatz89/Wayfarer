@@ -54,24 +54,24 @@ public static class OpportunityParser
             opportunity.Approaches = ParseApproaches(approachesElement);
         }
 
-        // For sequential opportunitys, parse the initial step
+        // For sequential Opportunities, parse the initial step
         if (type == OpportunityTypes.Sequential &&
             root.TryGetProperty("initialStep", out JsonElement initialStepElement))
         {
-            opportunity.InitialStep = ParseOpportunityStep(initialStepElement);
+            opportunity.InitialStep = ParseOpportunitiestep(initialStepElement);
         }
 
         return opportunity;
     }
 
-    private static OpportunityStep ParseOpportunityStep(JsonElement stepElement)
+    private static Opportunitiestep ParseOpportunitiestep(JsonElement stepElement)
     {
         string name = GetStringProperty(stepElement, "name", "");
         string description = GetStringProperty(stepElement, "description", "");
         string locationId = GetStringProperty(stepElement, "locationId", "");
         int progressGoal = GetIntProperty(stepElement, "progressGoal", 5);
 
-        OpportunityStep step = new OpportunityStep
+        Opportunitiestep step = new Opportunitiestep
         {
             Name = name,
             Description = description,

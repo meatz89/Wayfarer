@@ -2,8 +2,8 @@
 {
     public string DefinitionId { get; set; }
     public int CurrentProgress { get; set; }
-    public int CurrentStepIndex { get; set; } // For Sequential opportunitys
+    public int CurrentStepIndex { get; set; } // For Sequential Opportunities
     public int DaysRemaining { get; set; }
-    public List<OpportunityStep> GeneratedSteps { get; set; } // For Sequential opportunitys
+    public List<Opportunitiestep> GeneratedSteps { get; set; } // For Sequential Opportunities
     public bool IsCompleted { get; set; }
 }

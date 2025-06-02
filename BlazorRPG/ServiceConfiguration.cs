@@ -23,7 +23,7 @@
         services.AddSingleton<ActionGenerator>();
         services.AddSingleton<TravelManager>();
         services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<OpportunitySystem>();
+        services.AddSingleton<Opportunitiesystem>();
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<PayloadRegistry>();

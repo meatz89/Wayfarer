@@ -21,7 +21,7 @@
     public int Complexity { get; set; }
 
 
-    // This method is your bridge into the encounter system
+    // This method is your bridge into the encounterContext system
     public void Execute(Player player, LocationSpot location)
     {
         // Step 1: Check if player has appropriate card type available
@@ -33,7 +33,7 @@
             return;
         }
 
-        // Step 2: Create the encounter context
+        // Step 2: Create the encounterContext context
         EncounterContext context = new EncounterContext();
         context.LocationName = location.Name;
         context.LocationSpotName = location.SpotID;
@@ -42,7 +42,7 @@
         context.PlayerSkillCards = validCards;
         context.PlayerAllCards = player.GetAllAvailableCards();
 
-        // Step 3: Determine encounter parameters based on action type
+        // Step 3: Determine encounterContext parameters based on action type
         EncounterParameters parameters = DetermineEncounterParameters(this.RequiredCardType);
 
         // Step 4: Launch the encounter

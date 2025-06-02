@@ -119,7 +119,7 @@ public static class LocationJsonParser
             action.EnergyCost = GetIntProperty(costElement, "energy", 1);
         }
 
-        // Get encounter definition info
+        // Get encounterContext definition info
         if (element.TryGetProperty("encounterDefinition", out JsonElement encounterElement))
         {
             action.Description = GetStringProperty(encounterElement, "goal", "");

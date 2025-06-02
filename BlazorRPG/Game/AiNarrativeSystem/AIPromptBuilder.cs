@@ -103,7 +103,7 @@ public partial class AIPromptBuilder
     {
         prompt.AppendLine("ENCOUNTER CONTEXT:");
 
-        if (gameWorld.CurrentEncounter != null)
+        if (gameWorld.CurrentEncounterContext != null)
         {
             // Add focus points
             EncounterState state = gameWorld.CurrentEncounter.state;
@@ -127,7 +127,7 @@ public partial class AIPromptBuilder
             }
 
             // Add duration information
-            prompt.AppendLine($"- Encounter Duration: {state.DurationCounter}/{gameWorld.CurrentEncounter.state.MaxDuration}");
+            prompt.AppendLine($"- EncounterContext Duration: {state.DurationCounter}/{gameWorld.CurrentEncounter.state.MaxDuration}");
         }
 
         // Add player skills
@@ -332,7 +332,7 @@ public partial class AIPromptBuilder
         // Get player status
         string playerStatus = $"- Focus Points: {encounterState.FocusPoints}/{encounterState.MaxFocusPoints}\n";
 
-        // Get encounter type and tier
+        // Get encounterContext type and tier
         string encounterType = context.SkillCategory.ToString();
         string encounterTier = GetTierName(encounterState.DurationCounter);
         int successThreshold = 10; // Basic success threshold
@@ -384,7 +384,7 @@ public partial class AIPromptBuilder
                 choiceText += $"Difficulty {projection.SkillCheckDifficulty}\n";
             }
 
-            // Encounter ending information
+            // EncounterContext ending information
             if (projection.WillEncounterEnd)
             {
                 choiceText += "This choice will end the encounter\n";

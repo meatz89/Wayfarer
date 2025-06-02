@@ -30,7 +30,7 @@ A "Chekhov's Gun" is a narrative element introduced that should have future sign
    - Status: "Introduced" (new), "Developed" (mentioned again), "Fired" (played significant role), or "Resolved" (completed)
    
 3. CHECK existing Chekhov's Guns from memory file:
-   - If any were significantly developed in this encounter, update their status
+   - If any were significantly developed in this encounterContext, update their status
    - If any reached climactic use ("fired"), mark accordingly
    - If any were permanently resolved, note this
 

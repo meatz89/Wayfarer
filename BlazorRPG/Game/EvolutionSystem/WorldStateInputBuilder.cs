@@ -5,18 +5,18 @@ public class WorldStateInputBuilder
     private GameWorld gameState;
     public LocationSystem LocationSystem { get; }
     public CharacterSystem CharacterSystem { get; }
-    public OpportunitySystem OpportunitySystem { get; }
+    public Opportunitiesystem Opportunitiesystem { get; }
 
     public WorldStateInputBuilder(
         GameWorld gameState,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
-        OpportunitySystem opportunitySystem)
+        Opportunitiesystem Opportunitiesystem)
     {
         this.gameState = gameState;
         LocationSystem = locationSystem;
         CharacterSystem = characterSystem;
-        OpportunitySystem = opportunitySystem;
+        Opportunitiesystem = Opportunitiesystem;
     }
 
     public async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
@@ -46,7 +46,7 @@ public class WorldStateInputBuilder
             Inventory = FormatPlayerInventory(playerState.Inventory),
 
             KnownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters()),
-            ActiveOpportunities = OpportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
+            ActiveOpportunities = Opportunitiesystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
             MemorySummary = await MemoryFileAccess.ReadFromMemoryFile(),
 

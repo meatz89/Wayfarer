@@ -1,10 +1,11 @@
-﻿public class ActionStateTracker
+﻿
+public class ActionStateTracker
 {
     // Current action information
     public UserActionOption CurrentAction { get; private set; }
-    public bool IsActiveEncounter { get; private set; }
+    public bool IsActiveEncounterContext { get; private set; }
     public EncounterResult EncounterResult { get; set; }
-    public EncounterManager CurrentEncounter { get; private set; }
+    public EncounterManager CurrentEncounterContext { get; private set; }
 
     // Action options
     public List<UserActionOption> LocationSpotActions { get; private set; } = new List<UserActionOption>();
@@ -27,14 +28,14 @@
 
     public void SetActiveEncounter(EncounterManager encounter)
     {
-        IsActiveEncounter = true;
-        CurrentEncounter = encounter;
+        IsActiveEncounterContext = true;
+        CurrentEncounterContext = encounter;
     }
 
     public void CompleteAction()
     {
-        IsActiveEncounter = false;
-        CurrentEncounter = null;
+        IsActiveEncounterContext = false;
+        CurrentEncounterContext = null;
     }
 
     public EncounterManager GetCurrentEncounter()
@@ -55,5 +56,10 @@
     public void SetGlobalActions(List<UserActionOption> actions)
     {
         GlobalActions = actions;
+    }
+
+    public UserEncounterChoiceOption GetEncounterChoiceOption(string choiceId)
+    {
+        return UserEncounterChoiceOptions.FirstOrDefault(o => o.Choice.ChoiceID == choiceId);
     }
 }

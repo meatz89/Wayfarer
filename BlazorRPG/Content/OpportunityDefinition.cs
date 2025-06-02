@@ -13,23 +13,23 @@
     public int InsightPointReward { get; set; }
     public int Tier { get; set; } = 1;
     public List<ApproachDefinition> Approaches { get; set; } = new List<ApproachDefinition>();
-    public OpportunityStep InitialStep { get; set; }
+    public Opportunitiestep InitialStep { get; set; }
 
     public int CurrentProgress { get; set; } = 0;
     public int CurrentStepIndex { get; set; } = 0;
-    public List<OpportunityStep> CompletedSteps { get; set; } = new List<OpportunityStep>();
+    public List<Opportunitiestep> CompletedSteps { get; set; } = new List<Opportunitiestep>();
 
-    public OpportunityStep CurrentStep()
+    public Opportunitiestep CurrentStep()
     {
-        // For SEQUENTIAL opportunitys, return the initial step
+        // For SEQUENTIAL Opportunities, return the initial step
         if (Type == OpportunityTypes.Sequential)
         {
             return InitialStep;
         }
 
-        // For ACCUMULATIVE opportunitys, create a virtual step
+        // For ACCUMULATIVE Opportunities, create a virtual step
         // that references the opportunity's location
-        return new OpportunityStep
+        return new Opportunitiestep
         {
             Name = this.Name,
             Description = this.Description,
@@ -65,16 +65,16 @@
     }
 
     // Generate the next step based on completed steps and approach used
-    private OpportunityStep GenerateNextStep(GameWorld gameState)
+    private Opportunitiestep GenerateNextStep(GameWorld gameState)
     {
         // For a POC, we can implement a simple step generation
         // In a full implementation, this would use more sophisticated logic
         // based on your procedural generation approach
 
-        OpportunityStep previousStep = CompletedSteps.Last();
+        Opportunitiestep previousStep = CompletedSteps.Last();
         string nextLocationId = DetermineNextLocationId(previousStep, gameState);
 
-        OpportunityStep nextStep = new OpportunityStep
+        Opportunitiestep nextStep = new Opportunitiestep
         {
             Name = $"Continue {Name}",
             Description = $"Follow up on your findings from {previousStep.Name}.",
@@ -86,7 +86,7 @@
         return nextStep;
     }
 
-    private string DetermineNextLocationId(OpportunityStep previousStep, GameWorld gameState)
+    private string DetermineNextLocationId(Opportunitiestep previousStep, GameWorld gameState)
     {
         // Simple implementation - alternate between locations
         // In a full implementation, this would use more sophisticated logic
@@ -99,7 +99,7 @@
         return InitialLocationId;
     }
 
-    private List<ApproachDefinition> GenerateApproachesForStep(OpportunityStep previousStep)
+    private List<ApproachDefinition> GenerateApproachesForStep(Opportunitiestep previousStep)
     {
         // Create approaches that follow logically from previous step
         // This is a simple implementation - a full implementation would be more sophisticated

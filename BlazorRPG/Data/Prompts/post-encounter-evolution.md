@@ -15,7 +15,7 @@
 ## Context
 - Current location: {currentLocation} (Depth: {currentDepth})
 - Last hub depth: {lastHubDepth}
-- Encounter outcome: {encounterOutcome} (Success/Partial/Failure)
+- EncounterContext outcome: {encounterOutcome} (Success/Partial/Failure)
 
 ## Existing World Context
 
