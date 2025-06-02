@@ -73,14 +73,6 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
           "skillName": "Brute Force",
           "difficulty": "Standard",
           "sCD": 3,
-          "successPayload": {
-            "narrativeEffect": "How this succeeds",
-            "mechanicalEffectID": "SET_FLAG_INSIGHT_GAINED"
-          },
-          "failurePayload": {
-            "narrativeEffect": "How this fails",
-            "mechanicalEffectID": "ADVANCE_DURATION_1"
-          }
         }
       ]
     }

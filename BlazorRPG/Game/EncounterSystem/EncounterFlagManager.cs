@@ -1,5 +1,4 @@
-﻿
-public class EncounterFlagManager
+﻿public class EncounterFlagManager
 {
     private HashSet<FlagStates> activeFlags = new HashSet<FlagStates>();
     private List<FlagDefinition> flagDefinitions = new List<FlagDefinition>();

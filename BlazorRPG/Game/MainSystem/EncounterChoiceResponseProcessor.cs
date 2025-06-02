@@ -1,10 +1,10 @@
 ﻿public class EncounterChoiceResponseProcessor
 {
-    private PayloadRegistry _payloadRegistry;
+    private TemplateLibrary _templateLibrary;
 
-    public EncounterChoiceResponseProcessor(PayloadRegistry payloadRegistry, ILogger<EncounterChoiceResponseProcessor> logger)
+    public EncounterChoiceResponseProcessor(TemplateLibrary templateLibrary, ILogger<EncounterChoiceResponseProcessor> logger)
     {
-        _payloadRegistry = payloadRegistry;
+        _templateLibrary = templateLibrary;
     }
 
     public BeatOutcome ProcessChoice(EncounterChoice choice, string skillOptionName, EncounterState state, Player player)
@@ -42,14 +42,14 @@
         // Determine success
         bool success = effectiveLevel >= difficulty;
 
-        // Apply appropriate payload
+        // Apply appropriate effect
         if (success)
         {
-            ApplyPayload(selectedOption.SuccessPayload.ID, state);
+            ApplyEffect(selectedOption.SuccessEffect.ID, state);
         }
         else
         {
-            ApplyPayload(selectedOption.FailurePayload.ID, state);
+            ApplyEffect(selectedOption.FailureEffect.ID, state);
         }
 
         // If this was a recovery action (0 Focus cost), increment consecutive recovery count
@@ -90,7 +90,7 @@
 
     private int CalculateProgressGained(EncounterChoice choice, SkillOption option, bool success)
     {
-        // Base progress calculation - can be expanded based on payload types
+        // Base progress calculation - can be expanded based on effect types
         if (success)
         {
             return 2; // Default progress for successful action
@@ -98,39 +98,39 @@
         return 1; // Minimal progress for failed action
     }
 
-    private BeatOutcomes DetermineOutcome(EncounterState state, int progressGained)
+    private EncounterStageOutcomes DetermineOutcome(EncounterState state, int progressGained)
     {
         if (!state.IsEncounterComplete)
         {
-            return BeatOutcomes.None;
+            return EncounterStageOutcomes.None;
         }
 
         int projectedTotalProgress = state.CurrentProgress + progressGained;
         int successThreshold = 10; // Basic success threshold
 
         return projectedTotalProgress >= successThreshold
-            ? BeatOutcomes.Success
-            : BeatOutcomes.Failure;
+            ? EncounterStageOutcomes.Success
+            : EncounterStageOutcomes.Failure;
     }
 
-    private void ApplyPayload(string payloadID, EncounterState state)
+    private void ApplyEffect(string effectID, EncounterState state)
     {
-        if (_payloadRegistry.HasEffect(payloadID))
+        if (_templateLibrary.HasEffect(effectID))
         {
-            IMechanicalEffect effect = _payloadRegistry.GetEffect(payloadID);
+            IMechanicalEffect effect = _templateLibrary.GetEffect(effectID);
             effect.Apply(state);
         }
         else
         {
-            _logger.LogWarning("Payload ID not found: {PayloadID}", payloadID);
+            _logger.LogWarning("Effect ID not found: {EffectID}", effectID);
         }
     }
 
-    private string GetMechanicalDescriptionForPayload(PayloadEntry payload)
+    private string GetMechanicalDescriptionForEffect(EffectEntry effect)
     {
-        if (_payloadRegistry.HasEffect(payload.ID))
+        if (_templateLibrary.HasEffect(effect.ID))
         {
-            IMechanicalEffect effect = _payloadRegistry.GetEffect(payload.ID);
+            IMechanicalEffect effect = _templateLibrary.GetEffect(effect.ID);
             return effect.GetDescriptionForPlayer();
         }
         return "Unknown effect";

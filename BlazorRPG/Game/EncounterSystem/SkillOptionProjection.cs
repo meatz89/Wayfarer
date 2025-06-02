@@ -7,6 +7,6 @@
     public bool IsUntrained { get; set; }
     public int EffectiveLevel { get; set; }
     public int SuccessChance { get; set; }
-    public PayloadProjection SuccessPayload { get; set; }
-    public PayloadProjection FailurePayload { get; set; }
+    public EffectProjection SuccessEffect { get; set; }
+    public EffectProjection FailureEffect { get; set; }
 }

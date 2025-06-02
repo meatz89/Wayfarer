@@ -1,11 +1,11 @@
 ﻿public class ChoiceProjectionService
 {
-    private PayloadRegistry _payloadRegistry;
+    private TemplateLibrary templateLibrary;
     private readonly Player player;
 
-    public ChoiceProjectionService(PayloadRegistry payloadRegistry, Player player)
+    public ChoiceProjectionService(TemplateLibrary templateLibrary, Player player)
     {
-        _payloadRegistry = payloadRegistry;
+        this.templateLibrary = templateLibrary;
         this.player = player;
     }
 
@@ -28,7 +28,7 @@
     {
         SkillOptionProjection projection = new SkillOptionProjection();
         projection.SkillName = option.SkillName;
-        projection.Difficulty = option.Difficulty;
+        projection.Difficulty = option.DifficultyString;
         projection.SCD = option.SCD;
 
         SkillCard card = FindCardByName(player.AvailableCards, option.SkillName);
@@ -56,26 +56,23 @@
         // Calculate success chance
         projection.SuccessChance = CalculateSuccessChance(projection.EffectiveLevel, projection.SCD);
 
-        // Project payloads
-        projection.SuccessPayload = ProjectPayload(option.SuccessPayload, state);
-        projection.FailurePayload = ProjectPayload(option.FailurePayload, state);
+        // Project effects
+        projection.SuccessEffect = ProjectEffect(option.SuccessEffect, state);
+        projection.FailureEffect = ProjectEffect(option.FailureEffect, state);
 
         return projection;
     }
 
-    private PayloadProjection ProjectPayload(PayloadEntry payload, EncounterState state)
+    private EffectProjection ProjectEffect(IMechanicalEffect effect, EncounterState state)
     {
-        PayloadProjection projection = new PayloadProjection();
-        projection.NarrativeEffect = payload.Effect.ToString();
+        EffectProjection projection = new EffectProjection();
+        projection.NarrativeEffect = effect.ToString();
 
-        // TODO
-        PayloadProcessor payloadProcessor = new PayloadProcessor(_payloadRegistry, state);
-        payloadProcessor.ApplyPayload(payload.ID, state);
+        effect.Apply(state); 
 
         // Get mechanical effect from registry
-        if (_payloadRegistry.GetEffect(payload.ID) != null)
+        if (templateLibrary.GetEffect(effect) != null)
         {
-            IMechanicalEffect effect = _payloadRegistry.GetEffect(payload.ID);
             projection.MechanicalDescription = effect.GetDescriptionForPlayer();
         }
         else

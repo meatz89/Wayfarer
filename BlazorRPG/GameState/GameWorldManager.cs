@@ -5,7 +5,7 @@
     private GameWorld gameWorld;
     private Player player;
     private WorldState worldState;
-    private EncounterSystem encounterSystem;
+    private EncounterFactory encounterFactory;
     private PersistentChangeProcessor evolutionSystem;
     private LocationSystem locationSystem;
     private MessageSystem messageSystem;
@@ -17,23 +17,24 @@
     private PlayerProgression playerProgression;
     private ActionProcessor actionProcessor;
     private ContentLoader contentLoader;
-
+    private readonly ChoiceProjectionService choiceProjectionService;
+    private readonly ILogger<GameWorldManager> logger;
     private List<Opportunity> availableOpportunities = new List<Opportunity>();
     private List<ChoiceTemplate> allTemplates;
 
-
-
-    public GameWorldManager(GameWorld gameState, EncounterSystem encounterSystem,
+    public GameWorldManager(GameWorld gameState, EncounterFactory encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
                        ActionGenerator actionGenerator, PlayerProgression playerProgression,
-                       ActionProcessor actionProcessor, ContentLoader contentLoader, IConfiguration configuration)
+                       ActionProcessor actionProcessor, ContentLoader contentLoader, 
+                       ChoiceProjectionService choiceProjectionService,
+                       IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         this.gameWorld = gameState;
         this.player = gameState.Player;
         this.worldState = gameState.WorldState;
-        this.encounterSystem = encounterSystem;
+        this.encounterFactory = encounterSystem;
         this.evolutionSystem = evolutionSystem;
         this.locationSystem = locationSystem;
         this.messageSystem = messageSystem;
@@ -45,12 +46,16 @@
         this.playerProgression = playerProgression;
         this.actionProcessor = actionProcessor;
         this.contentLoader = contentLoader;
+        this.choiceProjectionService = choiceProjectionService;
+        this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
 
     public async Task StartGame()
     {
+        allTemplates = TemplateLibrary.GetAllTemplates();
+
         ProcessPlayerArchetype();
         player.HealFully();
 
@@ -70,7 +75,128 @@
         Location? currentLoc = currentLocation;
         Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {worldState.CurrentLocationSpot?.SpotID}");
 
+        await UpdateGameState();
+    }
+
+    public async Task UpdateGameState()
+    {
+        // Process any pending AI responses
+        ProcessPendingAIResponses();
+
+        // Process streaming content updates
+        UpdateStreamingContent();
+
+        // Check for encounter completion
+        CheckEncounterState();
+        
         await UpdateState();
+    }
+
+    private async Task UpdateState()
+    {
+        gameWorld.ActionStateTracker.ClearCurrentUserAction();
+        actionProcessor.UpdateState();
+
+        UpdateAvailableOpportunities();
+
+        Location location = worldState.CurrentLocation;
+        LocationSpot locationSpot = worldState.CurrentLocationSpot;
+
+        List<LocationAction> locationActions = await CreateActions(location, locationSpot);
+        List<LocationAction> opportunityImplementations = await CreateOpportunities(location, locationSpot);
+        locationActions.AddRange(opportunityImplementations);
+
+        List<UserActionOption> locationSpotActionOptions =
+            await CreateUserActionsForLocationSpot(
+                location,
+                locationSpot,
+                locationActions);
+
+        gameWorld.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
+    }
+
+    public async Task<EncounterManager> StartEncounter(
+        string approachId,
+        LocationAction locationAction)
+    {
+        Location location = worldState.CurrentLocation;
+        string locationId = location.Id;
+        string locationName = location.Name;
+
+        string timeOfDay = GetTimeOfDay(worldState.CurrentTimeHours);
+
+        List<NPC> presentCharacters = worldState.GetCharacters()
+            .Where(c =>
+            {
+                return c.Location == locationId;
+            })
+            .ToList();
+
+        List<Opportunity> opportunities = worldState.GetOpportunities()
+            .Where(o =>
+            {
+                return o.Location == locationId && o.Status == "Available";
+            })
+            .ToList();
+
+        List<string> previousInteractions = new();
+
+        LocationSpot? locationSpot = locationSystem.GetLocationSpot(
+            location.Id, worldState.CurrentLocationSpot.SpotID);
+
+        int playerLevel = player.Level;
+
+        ApproachDefinition? approach = locationAction.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
+        SkillCategories SkillCategory = approach.RequiredCardType;
+
+        EncounterContext context = new EncounterContext()
+        {
+            LocationAction = locationAction,
+            SkillCategory = SkillCategory,
+            LocationName = location.Name,
+            LocationSpotName = locationSpot.Name,
+
+            ActionName = locationAction.Name,
+            ObjectiveDescription = locationAction.ObjectiveDescription,
+            PlayerSkillCards = player.GetCardsOfType(locationAction.RequiredCardType),
+            StartingFocusPoints = CalculateFocusPoints(locationAction.Complexity),
+            CurrentNPC = locationSpot.PrimaryNPC,
+            LocationProperties = locationSpot.GetCurrentProperties()
+        };
+
+        logger.LogInformation("StartEncounterContext called for encounter: {EncounterId}, location: {LocationId}", encounterContext?.Id, location?.Id);
+        EncounterManager encounterManager = await encounterFactory.GenerateEncounter(
+            context,
+            player,
+            locationAction);
+
+        gameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
+
+        await encounterManager.Initialize();
+        
+    }
+
+    private AIResponse GetInitialResult()
+    {
+        throw new NotImplementedException();
+    }
+
+    private int CalculateFocusPoints(int complexity)
+    {
+        return 10; // For simplicity, using complexity directly as focus points
+    }
+
+    private void CheckEncounterState()
+    {
+        if (gameWorld.CurrentEncounter != null && gameWorld.CurrentEncounter.IsEncounterComplete)
+        {
+            // Handle encounter completion
+            if (!gameWorld.StreamingContentState.IsStreaming)
+            {
+                // Only end encounter after streaming is complete
+                gameWorld.EndEncounter();
+            }
+        }
     }
 
     private void ProcessPlayerArchetype()
@@ -186,7 +312,7 @@
         Player player = gameWorld.Player;
 
         Location location = locationSystem.GetLocation(action.LocationId);
-        LocationSpot locationSpot = location.LocationSpots.FirstOrDefault(spot => spot.LocationId == action.LocationSpot);
+        LocationSpot locationSpot = location.AvailableSpots.FirstOrDefault(spot => spot.LocationId == action.LocationSpot);
 
         await OnPlayerSelectsAction(action, player, locationSpot);
     }
@@ -220,72 +346,6 @@
         }
     }
 
-    public async Task<EncounterManager> StartEncounter(
-        string approachId,
-        LocationAction locationAction)
-    {
-
-
-        Location location = worldState.CurrentLocation;
-        string locationId = location.Id;
-        string locationName = location.Name;
-
-        // Get time of day
-        string timeOfDay = GetTimeOfDay(worldState.CurrentTimeHours);
-
-        // Find characters at this location
-        List<NPC> presentCharacters = worldState.GetCharacters()
-            .Where(c =>
-            {
-                return c.Location == locationId;
-            })
-            .ToList();
-
-        // Find available opportunities
-        List<Opportunity> opportunities = worldState.GetOpportunities()
-            .Where(o =>
-            {
-                return o.Location == locationId && o.Status == "Available";
-            })
-            .ToList();
-
-        // Get player's history with this location
-        List<string> previousInteractions = new();
-
-        LocationSpot? locationSpot = locationSystem.GetLocationSpot(
-            location.Id, worldState.CurrentLocationSpot.SpotID);
-
-        // Create initial context with our new value system
-        int playerLevel = player.Level;
-
-        ApproachDefinition? approach = opportunity.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
-        SkillCategories SkillCategory = approach.RequiredCardType;
-
-        EncounterContext context = new EncounterContext()
-        {
-            LocationAction = locationAction,
-            SkillCategory = SkillCategory,
-            LocationName = location.Name,
-            LocationSpotName = locationSpot.Name,
-        };
-
-        EncounterManager encounterManager = await encounterSystem.GenerateEncounter(
-            id,
-            approach,
-            location,
-            locationSpot,
-            worldState,
-            player,
-            locationAction);
-
-        gameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
-
-        List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterManager.EncounterResult);
-        gameWorld.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
-
-        return encounterManager;
-    }
-
     public async Task ProcessActionCompletion(LocationAction action)
     {
         gameWorld.ActionStateTracker.CompleteAction();
@@ -294,7 +354,7 @@
 
         actionProcessor.ProcessAction(action);
 
-        await UpdateState();
+        await UpdateGameState();
     }
 
     private async Task HandlePlayerMoving(LocationAction locationAction)
@@ -312,19 +372,15 @@
     {
         Location location = locationRepository.GetLocationByName(targetLocation);
 
-        // Create travel action using travelManager
-        LocationAction travelAction = travelManager.StartLocationTravel(location.Id, TravelMethods.Walking);
+        TravelRoute route = travelManager.StartLocationTravel(location.Id, TravelMethods.Walking);
 
-        // Create option with consistent structure
         UserActionOption travelOption = new UserActionOption(
-            "Travel to " + location.Name, false, travelAction,
+            "Travel to " + location.Name, false, route,
             worldState.CurrentLocation.Id, worldState.CurrentLocationSpot.SpotID,
             null, worldState.CurrentLocation.Difficulty, null, null);
 
-        TravelRoute route;
         Travel(route);
 
-        // Use unified action execution
         await ExecuteAction(travelOption);
     }
 
@@ -356,8 +412,8 @@
         else
         {
             // Arrived safely
-            gameWorld.CurrentLocation = route.Destination;
-            UpdateState();
+            gameWorld.SetCurrentLocation(route.Destination);
+            UpdateGameState();
         }
     }
 
@@ -371,9 +427,8 @@
         string? currentLocation = worldState.CurrentLocation?.Id;
         if (string.IsNullOrWhiteSpace(currentLocation)) return null;
 
-        EncounterResult encounterResult = await encounterSystem.ExecuteChoice(
-            choiceOption.AIResponse,
-            choiceOption.Choice);
+        EncounterResult encounterResult = await gameWorld.ActionStateTracker.EncounterManager
+            .ProcessPlayerChoice(gameWorld, choiceOption.Choice);
 
         ActionResults currentEncounterResult = encounterResult.ActionResult;
         if (currentEncounterResult == ActionResults.Ongoing)
@@ -461,7 +516,7 @@
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
         AIResponse AIResponse = encounterResult.AIResponse;
-        List<EncounterChoice> choices = encounterSystem.GetChoices();
+        List<EncounterChoice> choices = gameWorld.ActionStateTracker.EncounterManager.GetChoices();
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
@@ -490,8 +545,8 @@
         Location location = locationSystem.GetLocation(choiceOption.LocationName);
 
         // Execute the choice
-        EncounterManager encounterContext = gameWorld.ActionStateTracker.CurrentEncounterContext;
-        ChoiceProjection choiceProjection = encounterSystem.GetChoiceProjection(encounterContext, choiceOption.Choice);
+        EncounterManager encounterContext = gameWorld.ActionStateTracker.EncounterManager;
+        ChoiceProjection choiceProjection = gameWorld.ActionStateTracker.EncounterManager.GetChoiceProjection(encounterContext, choiceOption.Choice);
         return choiceProjection;
     }
 
@@ -502,7 +557,7 @@
         LocationSpot locationSpot = locationSystem.GetLocationSpot(location.Id, locationSpotName);
         gameWorld.SetCurrentLocation(location, locationSpot);
 
-        await UpdateState();
+        await UpdateGameState();
     }
 
     public List<Location> GetPlayerKnownLocations()
@@ -555,7 +610,7 @@
 
     public EncounterViewModel? GetEncounterViewModel()
     {
-        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterContext;
+        EncounterManager encounterManager = gameWorld.ActionStateTracker.EncounterManager;
         List<UserEncounterChoiceOption> userEncounterChoiceOptions = gameWorld.ActionStateTracker.UserEncounterChoiceOptions;
 
         if (encounterManager == null)
@@ -600,29 +655,6 @@
     }
 
 
-    public async Task UpdateState()
-    {
-        gameWorld.ActionStateTracker.ClearCurrentUserAction();
-        actionProcessor.UpdateState();
-
-        UpdateAvailableOpportunities();
-
-        Location location = worldState.CurrentLocation;
-        LocationSpot locationSpot = worldState.CurrentLocationSpot;
-
-        List<LocationAction> locationActions = await CreateActions(location, locationSpot);
-        List<LocationAction> opportunityImplementations = await CreateOpportunities(location, locationSpot);
-        locationActions.AddRange(opportunityImplementations);
-
-        List<UserActionOption> locationSpotActionOptions =
-            await CreateUserActionsForLocationSpot(
-                location,
-                locationSpot,
-                locationActions);
-
-        gameWorld.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
-    }
-
     public EncounterResult GetEncounterResultFor(LocationAction locationAction)
     {
         return new EncounterResult()
@@ -656,7 +688,7 @@
         }
 
         UpdateOpportunities(gameWorld);
-        await UpdateState();
+        await UpdateGameState();
     }
 
     public void UpdateOpportunities(GameWorld gameState)
@@ -701,6 +733,38 @@
         }
     }
 
+    private ChoiceTemplate FindTemplateByName(string templateName)
+    {
+        foreach (ChoiceTemplate template in allTemplates)
+        {
+            if (template.TemplateName == templateName)
+            {
+                return template;
+            }
+        }
+
+        return null;
+    }
+
+    private List<FlagStates> DetermineGoalFlags(string encounterType)
+    {
+        // In a real implementation, this would return different goals based on encounter type
+        List<FlagStates> goalFlags = new List<FlagStates>();
+
+        if (encounterType == "SocialIntroduction")
+        {
+            goalFlags.Add(FlagStates.TrustEstablished);
+        }
+        else if (encounterType == "Investigation")
+        {
+            goalFlags.Add(FlagStates.InsightGained);
+            goalFlags.Add(FlagStates.SecretRevealed);
+        }
+
+        return goalFlags;
+    }
+
+    // Public method to get current game state - used by polling UI
     public GameWorldSnapshot GetGameSnapshot()
     {
         return new GameWorldSnapshot(gameWorld);

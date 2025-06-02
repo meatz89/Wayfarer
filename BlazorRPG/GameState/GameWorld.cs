@@ -1,12 +1,26 @@
 ﻿public class GameWorld
 {
-    public static int CurrentDay { get; }
-    public static TimeOfDay CurrentTimeOfDay { get; private set; }
-    public static List<Opportunity> AllOpportunities { get; set; }
-
+    // Existing properties
     public Player Player { get; private set; }
     public EncounterState CurrentEncounter { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }
+
+    // New journey-related properties
+    public WorldMap Map { get; private set; }
+    public Location CurrentLocation { get; private set; }
+    public int GlobalTime { get; private set; }
+    public List<Location> DiscoveredLocations { get; private set; }
+    public List<Route> DiscoveredRoutes { get; private set; }
+
+    // New resource properties
+    public int Money { get; set; }
+    public int Condition { get; set; }
+    public Inventory PlayerInventory { get; private set; }
+
+
+    public static int CurrentDay { get; }
+    public static TimeOfDay CurrentTimeOfDay { get; private set; }
+    public static List<Opportunity> AllOpportunities { get; set; }
 
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
@@ -15,7 +29,6 @@
     public ActionStateTracker ActionStateTracker { get; }
     public WorldState WorldState { get; }
     public TimeManager TimeManager { get; set; }
-    public Location CurrentLocation { get; set; }
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
 

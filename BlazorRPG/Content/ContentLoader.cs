@@ -195,7 +195,7 @@
                 LocationSpot? spot = spots.FirstOrDefault(s => s.SpotID == locSpotId);
                 if (spot != null)
                 {
-                    location.LocationSpots.Add(spot);
+                    location.AvailableSpots.Add(spot);
                     spot.LocationId = location.Id;
                 }
             }

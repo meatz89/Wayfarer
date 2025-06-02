@@ -1,8 +1,7 @@
-﻿
-public class Location
+﻿public class Location
 {
     public string Id { get; set; }
-    public string Name { get; set; }
+    public string Name { get; private set; }
     public string Description { get; set; }
     public List<string> ConnectedTo { get; set; } = new List<string>();
     public List<string> LocationSpotIds { get; set; } = new List<string>();
@@ -32,12 +31,14 @@ public class Location
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }
-    public List<LocationSpot> LocationSpots { get; set; } = new List<LocationSpot>();
+    public List<LocationSpot> AvailableSpots { get; set; } = new List<LocationSpot>();
 
     // Time-based properties
     public Dictionary<TimeOfDay, List<FlagStates>> TimeStateFlags { get; private set; }
     public Dictionary<TimeOfDay, List<string>> AvailableActions { get; private set; }
     public Dictionary<TimeOfDay, string> TimeSpecificDescription { get; private set; }
+    public Dictionary<TimeOfDay, List<ILocationProperty>> TimeProperties { get; private set; }
+
 
     // Method to get current state based on time
     public List<FlagStates> GetCurrentFlags(TimeOfDay timeOfDay)

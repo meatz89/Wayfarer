@@ -182,42 +182,42 @@ public class EncounterChoiceResponseParser
             skillOption.SCD = scdElement.GetInt32();
         }
 
-        // Parse the success payload
-        if (skillOptionElement.TryGetProperty("successPayload", out JsonElement successPayloadElement) ||
-            skillOptionElement.TryGetProperty("SuccessPayload", out successPayloadElement))
+        // Parse the success effect
+        if (skillOptionElement.TryGetProperty("successEffect", out JsonElement successEffectElement) ||
+            skillOptionElement.TryGetProperty("SuccessEffect", out successEffectElement))
         {
-            skillOption.SuccessPayload = ParsePayloadFromJson(successPayloadElement);
+            skillOption.SuccessEffect = ParseEffectFromJson(successEffectElement);
         }
 
-        // Parse the failure payload
-        if (skillOptionElement.TryGetProperty("failurePayload", out JsonElement failurePayloadElement) ||
-            skillOptionElement.TryGetProperty("FailurePayload", out failurePayloadElement))
+        // Parse the failure effect
+        if (skillOptionElement.TryGetProperty("failureEffect", out JsonElement failureEffectElement) ||
+            skillOptionElement.TryGetProperty("FailureEffect", out failureEffectElement))
         {
-            skillOption.FailurePayload = ParsePayloadFromJson(failurePayloadElement);
+            skillOption.FailureEffect = ParseEffectFromJson(failureEffectElement);
         }
 
         return skillOption;
     }
 
-    private PayloadEntry ParsePayloadFromJson(JsonElement payloadElement)
+    private EffectEntry ParseEffectFromJson(JsonElement effectElement)
     {
-        PayloadEntry payload = new PayloadEntry();
+        EffectEntry effect = new EffectEntry();
 
         // Parse the narrative effect
-        if (payloadElement.TryGetProperty("narrativeEffect", out JsonElement narrativeEffectElement) ||
-            payloadElement.TryGetProperty("NarrativeEffect", out narrativeEffectElement))
+        if (effectElement.TryGetProperty("narrativeEffect", out JsonElement narrativeEffectElement) ||
+            effectElement.TryGetProperty("NarrativeEffect", out narrativeEffectElement))
         {
-            payload.Effect = narrativeEffectElement.GetString();
+            effect.Effect = narrativeEffectElement.GetString();
         }
 
         // Parse the mechanical effect ID
-        if (payloadElement.TryGetProperty("mechanicalEffectID", out JsonElement mechanicalEffectIDElement) ||
-            payloadElement.TryGetProperty("MechanicalEffectID", out mechanicalEffectIDElement))
+        if (effectElement.TryGetProperty("mechanicalEffectID", out JsonElement mechanicalEffectIDElement) ||
+            effectElement.TryGetProperty("MechanicalEffectID", out mechanicalEffectIDElement))
         {
-            payload.ID = mechanicalEffectIDElement.GetString();
+            effect.ID = mechanicalEffectIDElement.GetString();
         }
 
-        return payload;
+        return effect;
     }
 
     private List<EncounterChoice> ExtractChoicesFromText(string text)

@@ -4,7 +4,7 @@ using System.Text.Json;
 public class OllamaProvider : IAIProvider
 {
     private HttpClient _httpClient;
-    private ILogger<EncounterSystem> _logger;
+    private ILogger<EncounterFactory> _logger;
     private string _baseUrl;
     private string _modelName = "gemma3:12b-it-qat";
     private string _fallbackModel = "gemma3:2b-it";
@@ -17,7 +17,7 @@ public class OllamaProvider : IAIProvider
         }
     }
 
-    public OllamaProvider(IConfiguration configuration, ILogger<EncounterSystem> logger)
+    public OllamaProvider(IConfiguration configuration, ILogger<EncounterFactory> logger)
     {
         _baseUrl = configuration.GetValue<string>("Ollama:BaseUrl") ?? "http://localhost:11434";
         _logger = logger;
@@ -26,7 +26,7 @@ public class OllamaProvider : IAIProvider
         _httpClient.Timeout = TimeSpan.FromMinutes(5);
     }
 
-    public OllamaProvider(string baseUrl, ILogger<EncounterSystem> logger = null)
+    public OllamaProvider(string baseUrl, ILogger<EncounterFactory> logger = null)
     {
         _baseUrl = baseUrl ?? throw new ArgumentNullException(nameof(baseUrl));
         _logger = logger;

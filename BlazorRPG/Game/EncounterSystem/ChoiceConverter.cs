@@ -1,7 +1,5 @@
 ﻿public class ChoiceConverter
 {
-    private PayloadRegistry payloadRegistry;
-
     public List<EncounterChoice> ConvertEncounterChoices(AIResponse aiResponse, EncounterState state)
     {
         List<EncounterChoice> choices = new List<EncounterChoice>();
@@ -45,9 +43,9 @@
         // Calculate success chance
         option.SuccessChance = CalculateSuccessChance(option.EffectiveLevel, option.DifficultyString);
 
-        // Link to payloads
-        option.SuccessPayload = aiOption.SuccessPayload;
-        option.FailurePayload = aiOption.FailurePayload;
+        // Link to effects
+        option.SuccessEffect = aiOption.SuccessEffect;
+        option.FailureEffect = aiOption.FailureEffect;
 
         return option;
     }

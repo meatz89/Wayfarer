@@ -2,11 +2,8 @@
 {
     private EncounterContext context;
     public EncounterState state;
-    private IAIService aiGameMaster;
-    private PayloadProcessor payloadProcessor;
+
     public LocationAction locationAction;
-    private WorldStateInputBuilder worldStateInputCreator;
-    private ChoiceProjectionService projectionService;
     public List<EncounterChoice> CurrentChoices = new List<EncounterChoice>();
 
     public Player player;
@@ -22,34 +19,27 @@
     private ILogger<EncounterManager> _logger;
 
     public EncounterManager(
-        LocationAction locationAction,
-        WorldStateInputBuilder worldStateInputCreator,
-        ChoiceProjectionService choiceProjectionService,
-        IAIService aiGameMaster,
-        IConfiguration configuration,
-        ILogger<EncounterSystem> logger)
-    {
-        this.locationAction = locationAction;
-        this.aiGameMaster = aiGameMaster;
-        this.worldStateInputCreator = worldStateInputCreator;
-        this.projectionService = choiceProjectionService;
-        _useAiNarrative = configuration.GetValue<bool>("useAiNarrative");
-        _useMemory = configuration.GetValue<bool>("useMemory");
-        _logger = logger as ILogger<EncounterManager> ?? LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<EncounterManager>();
-    }
-
-    public async Task InitializeEncounter(EncounterContext encounterContext, Player player)
+        EncounterContext encounterContext,
+        EncounterState encounterState,
+        LocationAction locationAction)
     {
         this.context = encounterContext;
-        this.player = player;
+        this.state = encounterState;
+        this.locationAction = locationAction;
 
+        _useAiNarrative = true;
+        _useMemory = true;
+    }
+
+    public async Task Initialize()
+    {
         state = new EncounterState(player, 6, 8, "Narrative Begins");
-        state.MaxFocusPoints = DetermineFocusPoints(encounterContext.SkillCategory);
+        state.MaxFocusPoints = DetermineFocusPoints(context.SkillCategory);
         state.FocusPoints = state.MaxFocusPoints;
         state.MaxDuration = 8;
         state.DurationCounter = 0;
         state.IsEncounterComplete = false;
-        state.GoalFlags = DetermineGoalFlags(encounterContext.SkillCategory);
+        state.GoalFlags = DetermineGoalFlags(context.SkillCategory);
         state.FlagManager = new EncounterFlagManager();
 
         await GenerateInitialChoices();
@@ -94,6 +84,100 @@
         _logger.LogInformation($"Generated {CurrentChoices.Count} initial AI choices for encounter");
     }
 
+    public async Task<EncounterResult> ProcessPlayerChoice(
+        EncounterChoice choice)
+    {
+        logger.LogInformation("ExecuteChoice called for choice: {ChoiceId}", choice?.ChoiceID);
+        AIResponse currentNarrative = AIResponse;
+        AIResponse cachedResult = null;
+
+        EncounterManager encounterManager = GetEncounterManager();
+        bool isInitialChoice = encounterManager.IsInitialState;
+
+        _preGenerationManager.CancelAllPendingGenerations();
+
+        List<EncounterChoice> choices = currentNarrative.Choices;
+
+        currentNarrative = await encounterManager.ProcessPlayerChoice(
+            encounterManager.context.LocationName,
+            choice,
+            AIClient.PRIORITY_IMMEDIATE);
+
+        encounterManager.IsInitialState = false;
+        encounterManager.EncounterResult = CreateEncounterResult(encounterManager, currentNarrative);
+
+        logger.LogInformation("Choice executed: {ChoiceId}, EncounterOver: {IsEncounterOver}", choice?.ChoiceID, currentNarrative.IsEncounterOver);
+        return encounterManager.EncounterResult;
+    }
+
+
+    public async Task<EncounterResult> ProcessPlayerChoice(GameWorld gameWorld, EncounterChoice choice)
+    {
+
+        if (gameWorld.CurrentEncounter == null || gameWorld.CurrentAIResponse == null)
+        {
+            return; // No active encounter or no AI response
+        }
+
+        // Find selected choice
+        EncounterChoice selectedChoice = null;
+        foreach (EncounterChoice choice in gameWorld.CurrentAIResponse.Choices)
+        {
+            if (choice.ChoiceID == choiceId)
+            {
+                selectedChoice = choice;
+                break;
+            }
+        }
+
+        if (selectedChoice == null)
+        {
+            return; // Choice not found
+        }
+
+        // Find the template used by the AI
+        ChoiceTemplate template = FindTemplateByName(selectedChoice.TemplateUsed);
+        if (template == null)
+        {
+            return; // Template not found
+        }
+
+        // Process focus cost
+        gameWorld.CurrentEncounter.FocusPoints -= selectedChoice.FocusCost;
+
+        // Perform skill check
+        bool success = PerformSkillCheck(selectedChoice.SkillCheck);
+
+        // Apply mechanical effect directly from template
+        if (success)
+        {
+            // Begin streaming success narrative
+            gameWorld.StreamingContentState.BeginStreaming(selectedChoice.SuccessNarrative);
+
+            // Create and apply the success effect (direct instantiation)
+            IMechanicalEffect effect = (IMechanicalEffect)Activator.CreateInstance(template.SuccessEffectClass);
+            effect.Apply(gameWorld.CurrentEncounter);
+        }
+        else
+        {
+            // Begin streaming failure narrative
+            gameWorld.StreamingContentState.BeginStreaming(selectedChoice.FailureNarrative);
+
+            // Create and apply the failure effect (direct instantiation)
+            IMechanicalEffect effect = (IMechanicalEffect)Activator.CreateInstance(template.FailureEffectClass);
+            effect.Apply(gameWorld.CurrentEncounter);
+        }
+
+        // Update encounter state
+        gameWorld.CurrentEncounter.AdvanceDuration(1);
+        gameWorld.CurrentEncounter.ProcessModifiers();
+        gameWorld.CurrentEncounter.CheckGoalCompletion();
+
+        // Clear AI response while streaming occurs
+        gameWorld.CurrentAIResponse = null;
+
+    }
+
     public async Task<EncounterResult> ProcessPlayerChoice(EncounterChoice choice)
     {
         if (state.IsEncounterComplete)
@@ -111,7 +195,7 @@
         };
 
         // Apply choice effects
-        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(encounterContext.LocationName);
+        WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(context.LocationName);
         BeatOutcome outcome = await ApplyChoiceProjection(player, state, choice);
 
         // Check if encounterContext is complete
@@ -135,7 +219,7 @@
             EncounterResult = new EncounterResult
             {
                 locationAction = locationAction,
-                ActionResult = outcome.Outcome == BeatOutcomes.Success ? ActionResults.EncounterSuccess : ActionResults.EncounterFailure,
+                ActionResult = outcome.Outcome == EncounterStageOutcomes.Success ? ActionResults.EncounterSuccess : ActionResults.EncounterFailure,
                 EncounterEndMessage = concludingNarrative,
                 EncounterContext = context,
                 AIResponse = new AIResponse
@@ -192,6 +276,49 @@
         }
     }
 
+    private EncounterResult CreateEncounterResult(EncounterManager encounterContext, AIResponse aiResponse)
+    {
+        if (aiResponse.IsEncounterOver)
+        {
+            if (aiResponse.Outcome == EncounterStageOutcomes.Failure)
+            {
+                EncounterResult failureResult = new EncounterResult()
+                {
+                    locationAction = encounterContext.locationAction,
+                    ActionResult = ActionResults.EncounterFailure,
+                    EncounterEndMessage = $"=== EncounterContext Over: {aiResponse.Outcome} ===",
+                    AIResponse = aiResponse,
+                    EncounterContext = encounterContext.GetEncounterContext()
+                };
+                return failureResult;
+            }
+            else
+            {
+                EncounterResult successResult = new EncounterResult()
+                {
+                    locationAction = encounterContext.locationAction,
+                    ActionResult = ActionResults.EncounterSuccess,
+                    EncounterEndMessage = $"=== EncounterContext Over: {aiResponse.Outcome} ===",
+                    AIResponse = aiResponse,
+                    EncounterContext = encounterContext.GetEncounterContext()
+                };
+                return successResult;
+            }
+        }
+
+        EncounterResult ongoingResult = new EncounterResult()
+        {
+            locationAction = encounterContext.locationAction,
+            ActionResult = ActionResults.Ongoing,
+            EncounterEndMessage = "",
+            AIResponse = aiResponse,
+            EncounterContext = encounterContext.GetEncounterContext()
+        };
+
+        return ongoingResult;
+    }
+
+
     public async Task<BeatOutcome> ApplyChoiceProjection(
         Player playerState,
         EncounterState encounterState,
@@ -214,19 +341,19 @@
         // Apply focus cost
         state.FocusPoints -= choice.FocusCost;
 
-        // Apply payload effects
+        // Apply effect effects
         if (projection.HasSkillCheck)
         {
-            if (payloadProcessor != null && !string.IsNullOrEmpty(choice.SkillOption.SuccessPayload.ID))
+            if (effectProcessor != null && !string.IsNullOrEmpty(choice.SkillOption.SuccessEffect.ID))
             {
-                payloadProcessor.ApplyPayload(choice.SkillOption.SuccessPayload.ID, state);
+                effectProcessor.ApplyEffect(choice.SkillOption.SuccessEffect.ID, state);
             }
         }
         else
         {
-            if (payloadProcessor != null && !string.IsNullOrEmpty(choice.SkillOption.FailurePayload.ID))
+            if (effectProcessor != null && !string.IsNullOrEmpty(choice.SkillOption.FailureEffect.ID))
             {
-                payloadProcessor.ApplyPayload(choice.SkillOption.FailurePayload.ID, state);
+                effectProcessor.ApplyEffect(choice.SkillOption.FailureEffect.ID, state);
             }
         }
 
@@ -262,12 +389,12 @@
         if (allGoalsComplete)
         {
             state.IsEncounterComplete = true;
-            state.EncounterOutcome = BeatOutcomes.Success;
+            state.EncounterOutcome = EncounterStageOutcomes.Success;
         }
         else if (state.FocusPoints <= 0 || state.DurationCounter >= state.MaxDuration)
         {
             state.IsEncounterComplete = true;
-            state.EncounterOutcome = BeatOutcomes.Failure;
+            state.EncounterOutcome = EncounterStageOutcomes.Failure;
         }
     }
 
@@ -310,7 +437,7 @@
         }
     }
 
-    public ChoiceProjection ProjectChoice(ChoiceProjectionService choiceProjectionService,
+    public ChoiceProjection GetChoiceProjection(ChoiceProjectionService choiceProjectionService,
         EncounterState encounterState, EncounterChoice choice)
     {
         ChoiceProjection projection = this.state.CreateChoiceProjection(choiceProjectionService, choice, player);
@@ -327,4 +454,7 @@
     {
         return CurrentChoices;
     }
+
+
+
 }

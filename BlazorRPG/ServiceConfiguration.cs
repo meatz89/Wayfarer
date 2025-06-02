@@ -24,9 +24,8 @@
         services.AddSingleton<TravelManager>();
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<Opportunitiesystem>();
-        services.AddSingleton<EncounterSystem>();
+        services.AddSingleton<EncounterFactory>();
         services.AddSingleton<ActionSystem>();
-        services.AddSingleton<PayloadRegistry>();
         services.AddSingleton<ActionProcessor>();
         services.AddSingleton<LocationActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
@@ -57,7 +56,6 @@
         services.AddSingleton<IAIService, AIGameMaster>();
 
         // Register updated services
-        services.AddSingleton<TemplateLibrary>();
         services.AddSingleton<AIPromptBuilder>();
         services.AddSingleton<EncounterChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
