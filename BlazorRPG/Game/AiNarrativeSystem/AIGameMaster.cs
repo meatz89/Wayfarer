@@ -1,5 +1,9 @@
 ﻿public class AIGameMaster : IAIService
 {
+    private AIResponse pendingResponse;
+    private bool hasResponse;
+    public bool HasResponse => hasResponse;
+
     private AIPromptBuilder _promptManager;
     private EncounterContextManager _contextManager;
     private EncounterChoiceResponseParser _EncounterChoiceResponseParser;
@@ -18,6 +22,9 @@
         this._aiClient = aiClient;
         this._watcher = responseStreamWatcher;
         this._promptManager = new AIPromptBuilder(configuration);
+
+        pendingResponse = null;
+        hasResponse = false;
     }
 
     public async Task<AIResponse> GenerateChoices(

@@ -4,14 +4,20 @@
     public static TimeOfDay CurrentTimeOfDay { get; private set; }
     public static List<Opportunity> AllOpportunities { get; set; }
 
-    public Player Player { get; set; }
+    public Player Player { get; private set; }
+    public EncounterState CurrentEncounter { get; private set; }
+    public StreamingContentState StreamingContentState { get; private set; }
+
+    public AIResponse CurrentAIResponse { get; set; }
+    public bool IsAwaitingAIResponse { get; set; }
+
+
     public ActionStateTracker ActionStateTracker { get; }
     public WorldState WorldState { get; }
     public TimeManager TimeManager { get; set; }
     public Location CurrentLocation { get; set; }
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
-    public EncounterManager CurrentEncounterContext { get; set; }
 
     public GameWorld()
     {
@@ -19,6 +25,22 @@
         ActionStateTracker = new ActionStateTracker();
         WorldState = new WorldState();
         TimeManager = new TimeManager(Player, WorldState);
+     
+        StreamingContentState = new StreamingContentState();
+        CurrentAIResponse = null;
+        IsAwaitingAIResponse = false;
+    }
+
+    public void StartEncounter(EncounterState encounterState)
+    {
+        CurrentEncounter = encounterState;
+    }
+
+    public void EndEncounter()
+    {
+        CurrentEncounter = null;
+        CurrentAIResponse = null;
+        IsAwaitingAIResponse = false;
     }
 
     public void SetCurrentLocation(Location location, LocationSpot locationSpot)

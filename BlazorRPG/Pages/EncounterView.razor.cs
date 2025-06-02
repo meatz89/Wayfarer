@@ -1,13 +1,10 @@
-﻿using BlazorRPG.Pages;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using System.Text;
 public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public GameWorld GameState { get; set; }
     [Inject] public GameWorldManager gameWorldManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
-
     [Parameter] public EncounterManager EncounterManager { get; set; }
     [Inject] public IJSRuntime JSRuntime { get; set; }
     private IJSObjectReference _tooltipModule;
@@ -21,6 +18,9 @@ public partial class EncounterViewBase : ComponentBase
 
     public EncounterResult EncounterResult { get; private set; }
     public List<UserEncounterChoiceOption> CurrentChoices { get; set; } = new();
+
+    private Timer pollingTimer;
+    public GameWorldSnapshot currentSnapshot;
 
     public Player PlayerState
     {
@@ -64,10 +64,6 @@ public partial class EncounterViewBase : ComponentBase
         }
     }
 
-
-    private Timer pollingTimer;
-    private GameWorldSnapshot currentSnapshot;
-
     protected override void OnInitialized()
     {
         // Set up polling timer - no events, just regular polling
@@ -87,12 +83,12 @@ public partial class EncounterViewBase : ComponentBase
         currentSnapshot = gameWorldManager.GetGameSnapshot();
     }
 
-    private void StartEncounter()
+    public void StartEncounter()
     {
         gameWorldManager.StartEncounter("SocialIntroduction", null);
     }
 
-    private void MakeChoice(string choiceId)
+    public void MakeChoice(string choiceId)
     {
         if (currentSnapshot != null && currentSnapshot.CanSelectChoice)
         {
