@@ -36,6 +36,7 @@ public partial class EncounterViewBase : ComponentBase
     }
 
     public EncounterViewModel Model;
+    private string tooltipContent;
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,6 +68,16 @@ public partial class EncounterViewBase : ComponentBase
     {
         hoveredChoice = choice;
         showTooltip = true;
+
+        if (choice.Choice is EncounterChoice encounterChoice)
+        {
+            // Include template information in tooltip
+            string templateName = encounterChoice.TemplateUsed;
+            string templatePurpose = encounterChoice.TemplatePurpose;
+
+            // Set tooltip content
+            tooltipContent = $"{templatePurpose}";
+        }
 
         if (_tooltipModule != null)
         {

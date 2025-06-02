@@ -1,6 +1,6 @@
-﻿public static class GameServiceExtensions
+﻿public static class ServiceConfiguration
 {
-    public static IServiceCollection AddGameServices(this IServiceCollection services)
+    public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
         string contentDirectory = "content";
 
@@ -27,7 +27,6 @@
         services.AddSingleton<EncounterSystem>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<PayloadRegistry>();
-        services.AddSingleton<ChoiceProjectionService>();
         services.AddSingleton<ActionProcessor>();
         services.AddSingleton<LocationActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
@@ -57,6 +56,12 @@
         services.AddSingleton<LoadingStateService>();
         services.AddSingleton<IAIService, AIGameMaster>();
 
+        // Register updated services
+        services.AddSingleton<TemplateRegistry>();
+        services.AddSingleton<AIPromptBuilder>();
+        services.AddSingleton<EncounterChoiceResponseParser>();
+        services.AddSingleton<ChoiceProjectionService>();
+
         // Get configuration to determine which provider to use
         using (ServiceProvider sp = services.BuildServiceProvider())
         {
@@ -66,9 +71,6 @@
             // Register the appropriate AI service based on configuration
             switch (defaultProvider.ToLower())
             {
-                case "claude":
-                    services.AddSingleton<IAIProvider, ClaudeProvider>();
-                    break;
                 case "ollama":
                     services.AddSingleton<IAIProvider, OllamaProvider>();
                     break;

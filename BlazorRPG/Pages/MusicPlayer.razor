@@ -1,0 +1,43 @@
+﻿@using System
+@using System.Timers
+@inherits ComponentBase
+@implements IDisposable
+
+<div class="music-player">
+    <div class="track-info">
+        @if (MusicService.CurrentTrack != null)
+        {
+            <div class="title">@MusicService.CurrentTrack.Title</div>
+            <div class="time-display">
+                <span class="current-time">@_formattedCurrentPosition</span>
+                <span class="duration-separator">/</span>
+                <span class="total-time">@FormatTimeSpan(MusicService.CurrentTrack.Duration)</span>
+            </div>
+        }
+        else
+        {
+            <div class="title">No track playing</div>
+            <div class="time-display">
+                <span class="current-time">0:00</span>
+                <span class="duration-separator">/</span>
+                <span class="total-time">0:00</span>
+            </div>
+        }
+    </div>
+    
+    <div class="controls">
+        <button class="play-pause-btn" @onclick="TogglePlayPauseAsync">
+            @if (MusicService.IsPlaying)
+            {
+                <span>⏸️</span> <!-- Pause Icon -->
+            }
+            else
+            {
+                <span>▶️</span> <!-- Play Icon -->
+            }
+        </button>
+        <button class="next-btn" @onclick="NextTrackAsync">
+            <span>⏭️</span> <!-- Next Track Icon -->
+        </button>
+    </div>
+</div>
