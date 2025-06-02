@@ -63,7 +63,7 @@ public class ActionGenerator
         return GetDefaultActionDefinition(actionName, spotId).Id;
     }
 
-    public async Task<string> GenerateCommission(string name, string id1, string id2)
+    public async Task<string> GenerateOpportunity(string name, string id1, string id2)
     {
         throw new NotImplementedException();
     }

@@ -1,9 +1,9 @@
-﻿public class CommissionDefinition
+﻿public class OpportunityDefinition
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public CommissionTypes Type { get; set; }
+    public OpportunityTypes Type { get; set; }
     public int ProgressThreshold { get; set; }
     public int ExpirationDays { get; set; }
     public int ReputationRequirement { get; set; }
@@ -13,23 +13,23 @@
     public int InsightPointReward { get; set; }
     public int Tier { get; set; } = 1;
     public List<ApproachDefinition> Approaches { get; set; } = new List<ApproachDefinition>();
-    public CommissionStep InitialStep { get; set; }
+    public OpportunityStep InitialStep { get; set; }
 
     public int CurrentProgress { get; set; } = 0;
     public int CurrentStepIndex { get; set; } = 0;
-    public List<CommissionStep> CompletedSteps { get; set; } = new List<CommissionStep>();
+    public List<OpportunityStep> CompletedSteps { get; set; } = new List<OpportunityStep>();
 
-    public CommissionStep CurrentStep()
+    public OpportunityStep CurrentStep()
     {
-        // For SEQUENTIAL commissions, return the initial step
-        if (Type == CommissionTypes.Sequential)
+        // For SEQUENTIAL opportunitys, return the initial step
+        if (Type == OpportunityTypes.Sequential)
         {
             return InitialStep;
         }
 
-        // For ACCUMULATIVE commissions, create a virtual step
-        // that references the commission's location
-        return new CommissionStep
+        // For ACCUMULATIVE opportunitys, create a virtual step
+        // that references the opportunity's location
+        return new OpportunityStep
         {
             Name = this.Name,
             Description = this.Description,
@@ -39,7 +39,7 @@
         };
     }
 
-    // Check if commission is complete
+    // Check if opportunity is complete
     public bool IsComplete()
     {
         return CurrentProgress >= ProgressThreshold;
@@ -50,7 +50,7 @@
     {
         CurrentProgress += progress;
 
-        if (Type == CommissionTypes.Sequential && InitialStep != null)
+        if (Type == OpportunityTypes.Sequential && InitialStep != null)
         {
             if (CurrentProgress >= InitialStep.ProgressGoal)
             {
@@ -65,16 +65,16 @@
     }
 
     // Generate the next step based on completed steps and approach used
-    private CommissionStep GenerateNextStep(GameWorld gameState)
+    private OpportunityStep GenerateNextStep(GameWorld gameState)
     {
         // For a POC, we can implement a simple step generation
         // In a full implementation, this would use more sophisticated logic
         // based on your procedural generation approach
 
-        CommissionStep previousStep = CompletedSteps.Last();
+        OpportunityStep previousStep = CompletedSteps.Last();
         string nextLocationId = DetermineNextLocationId(previousStep, gameState);
 
-        CommissionStep nextStep = new CommissionStep
+        OpportunityStep nextStep = new OpportunityStep
         {
             Name = $"Continue {Name}",
             Description = $"Follow up on your findings from {previousStep.Name}.",
@@ -86,7 +86,7 @@
         return nextStep;
     }
 
-    private string DetermineNextLocationId(CommissionStep previousStep, GameWorld gameState)
+    private string DetermineNextLocationId(OpportunityStep previousStep, GameWorld gameState)
     {
         // Simple implementation - alternate between locations
         // In a full implementation, this would use more sophisticated logic
@@ -99,7 +99,7 @@
         return InitialLocationId;
     }
 
-    private List<ApproachDefinition> GenerateApproachesForStep(CommissionStep previousStep)
+    private List<ApproachDefinition> GenerateApproachesForStep(OpportunityStep previousStep)
     {
         // Create approaches that follow logically from previous step
         // This is a simple implementation - a full implementation would be more sophisticated

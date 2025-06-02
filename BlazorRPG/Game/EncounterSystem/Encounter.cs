@@ -10,6 +10,6 @@
     public int TotalProgress { get; set; }
     public int EncounterDifficulty { get; set; }
     public int SuccessThreshold { get; set; }
-    public string CommissionId { get; set; }
+    public string OpportunityId { get; set; }
     public ApproachDefinition Approach { get; set; }
 }

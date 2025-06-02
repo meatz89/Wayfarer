@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-public static class CommissionParser
+public static class OpportunityParser
 {
-    public static CommissionDefinition ParseCommission(string json)
+    public static OpportunityDefinition ParseOpportunity(string json)
     {
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
@@ -11,10 +11,10 @@ public static class CommissionParser
         string name = GetStringProperty(root, "name", id);
         string description = GetStringProperty(root, "description", "");
 
-        // Parse commission type
-        CommissionTypes type = Enum.TryParse<CommissionTypes>(
+        // Parse opportunity type
+        OpportunityTypes type = Enum.TryParse<OpportunityTypes>(
             GetStringProperty(root, "type", "ACCUMULATIVE"), true,
-            out CommissionTypes parsedType) ? parsedType : CommissionTypes.Accumulative;
+            out OpportunityTypes parsedType) ? parsedType : OpportunityTypes.Accumulative;
 
         // Parse thresholds and requirements
         int progressThreshold = GetIntProperty(root, "progressThreshold", 8);
@@ -30,8 +30,8 @@ public static class CommissionParser
         string initialLocationId = GetStringProperty(root, "initialLocationId", "");
         int tier = GetIntProperty(root, "tier", 1);
 
-        // Create the commission
-        CommissionDefinition commission = new CommissionDefinition
+        // Create the opportunity
+        OpportunityDefinition opportunity = new OpportunityDefinition
         {
             Id = id,
             Name = name,
@@ -51,27 +51,27 @@ public static class CommissionParser
         if (root.TryGetProperty("approaches", out JsonElement approachesElement) &&
             approachesElement.ValueKind == JsonValueKind.Array)
         {
-            commission.Approaches = ParseApproaches(approachesElement);
+            opportunity.Approaches = ParseApproaches(approachesElement);
         }
 
-        // For sequential commissions, parse the initial step
-        if (type == CommissionTypes.Sequential &&
+        // For sequential opportunitys, parse the initial step
+        if (type == OpportunityTypes.Sequential &&
             root.TryGetProperty("initialStep", out JsonElement initialStepElement))
         {
-            commission.InitialStep = ParseCommissionStep(initialStepElement);
+            opportunity.InitialStep = ParseOpportunityStep(initialStepElement);
         }
 
-        return commission;
+        return opportunity;
     }
 
-    private static CommissionStep ParseCommissionStep(JsonElement stepElement)
+    private static OpportunityStep ParseOpportunityStep(JsonElement stepElement)
     {
         string name = GetStringProperty(stepElement, "name", "");
         string description = GetStringProperty(stepElement, "description", "");
         string locationId = GetStringProperty(stepElement, "locationId", "");
         int progressGoal = GetIntProperty(stepElement, "progressGoal", 5);
 
-        CommissionStep step = new CommissionStep
+        OpportunityStep step = new OpportunityStep
         {
             Name = name,
             Description = description,

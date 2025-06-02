@@ -4,7 +4,7 @@
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
-    public List<CommissionDefinition> commissions { get; private set; } = new();
+    public List<OpportunityDefinition> opportunitys { get; private set; } = new();
     private List<NPC> characters { get; set; } = new();
     private List<Opportunity> opportunities { get; set; } = new();
 
@@ -20,9 +20,9 @@
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
-    public List<CommissionDefinition> CompletedCommissions { get; set; }
-    public List<CommissionDefinition> ActiveCommissions { get; set; }
-    public List<CommissionDefinition> FailedCommissions { get; set; }
+    public List<OpportunityDefinition> CompletedOpportunitys { get; set; }
+    public List<OpportunityDefinition> ActiveOpportunitys { get; set; }
+    public List<OpportunityDefinition> FailedOpportunitys { get; set; }
 
     public string GetLocationIdForSpot(string locationSpotId)
     {

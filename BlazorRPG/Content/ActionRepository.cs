@@ -61,57 +61,57 @@
         return action;
     }
 
-    public List<CommissionDefinition> GetCommissionsForSpot(string spotId)
+    public List<OpportunityDefinition> GetOpportunitysForSpot(string spotId)
     {
         // First, find the location this spot belongs to
         LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
         if (spot == null)
         {
-            return new List<CommissionDefinition>();
+            return new List<OpportunityDefinition>();
         }
 
         string locationId = spot.LocationId;
-        List<CommissionDefinition> commissions = new List<CommissionDefinition>();
+        List<OpportunityDefinition> opportunitys = new List<OpportunityDefinition>();
 
-        foreach (CommissionDefinition commission in _worldState.commissions)
+        foreach (OpportunityDefinition opportunity in _worldState.opportunitys)
         {
-            // For ACCUMULATIVE commissions, they're available at any spot within their location
-            if (commission.Type == CommissionTypes.Accumulative &&
-                commission.InitialLocationId == locationId)
+            // For ACCUMULATIVE opportunitys, they're available at any spot within their location
+            if (opportunity.Type == OpportunityTypes.Accumulative &&
+                opportunity.InitialLocationId == locationId)
             {
-                commissions.Add(commission);
+                opportunitys.Add(opportunity);
             }
-            // For SEQUENTIAL commissions, check the current step's location
-            else if (commission.Type == CommissionTypes.Sequential &&
-                     commission.InitialStep != null &&
-                     commission.InitialStep.LocationId == locationId)
+            // For SEQUENTIAL opportunitys, check the current step's location
+            else if (opportunity.Type == OpportunityTypes.Sequential &&
+                     opportunity.InitialStep != null &&
+                     opportunity.InitialStep.LocationId == locationId)
             {
                 // If the step specifies a spot, check if it matches
                 // If not specified, it's available at any spot in the location
-                commissions.Add(commission);
+                opportunitys.Add(opportunity);
             }
         }
 
-        return commissions;
+        return opportunitys;
     }
 
-    public CommissionDefinition GetCommission(string commissionId)
+    public OpportunityDefinition GetOpportunity(string opportunityId)
     {
-        CommissionDefinition commission = _worldState.commissions.FirstOrDefault(a =>
+        OpportunityDefinition opportunity = _worldState.opportunitys.FirstOrDefault(a =>
         {
-            return a.Id.Equals(commissionId, StringComparison.OrdinalIgnoreCase);
+            return a.Id.Equals(opportunityId, StringComparison.OrdinalIgnoreCase);
         });
 
-        if (commission != null)
-            return commission;
+        if (opportunity != null)
+            return opportunity;
 
-        Console.WriteLine($"Commission '{commissionId}' not found.");
-        return CreateDefaultCommission(commissionId, "DefaultLocation", "DefaultLocationSpot");
+        Console.WriteLine($"Opportunity '{opportunityId}' not found.");
+        return CreateDefaultOpportunity(opportunityId, "DefaultLocation", "DefaultLocationSpot");
     }
 
-    private CommissionDefinition CreateDefaultCommission(object commissionId, string location, string locationSpot)
+    private OpportunityDefinition CreateDefaultOpportunity(object opportunityId, string location, string locationSpot)
     {
-        CommissionDefinition action = new CommissionDefinition()
+        OpportunityDefinition action = new OpportunityDefinition()
         {
             Description = "Description",
         };

@@ -96,7 +96,7 @@
         List<UserActionOption> options = new List<UserActionOption>();
         foreach (LocationAction locationAction in locationActions)
         {
-            UserActionOption commission =
+            UserActionOption opportunity =
                     new UserActionOption(
                         locationAction.Name,
                         locationSpot.IsClosed,
@@ -108,39 +108,39 @@
                         string.Empty,
                         null);
 
-            bool requirementsMet = actionProcessor.CanExecute(commission.locationAction);
+            bool requirementsMet = actionProcessor.CanExecute(opportunity.locationAction);
 
-            commission = commission with { IsDisabled = !requirementsMet };
-            options.Add(commission);
+            opportunity = opportunity with { IsDisabled = !requirementsMet };
+            options.Add(opportunity);
         }
 
         return options;
     }
 
-    private async Task<List<LocationAction>> CreateCommissions(Location location, LocationSpot locationSpot)
+    private async Task<List<LocationAction>> CreateOpportunitys(Location location, LocationSpot locationSpot)
     {
-        List<LocationAction> commissionImplementations = new List<LocationAction>();
-        List<CommissionDefinition> locationSpotCommissions = actionRepository.GetCommissionsForSpot(locationSpot.SpotID);
-        for (int i = 0; i < locationSpotCommissions.Count; i++)
+        List<LocationAction> opportunityImplementations = new List<LocationAction>();
+        List<OpportunityDefinition> locationSpotOpportunitys = actionRepository.GetOpportunitysForSpot(locationSpot.SpotID);
+        for (int i = 0; i < locationSpotOpportunitys.Count; i++)
         {
-            CommissionDefinition commissionTemplate = locationSpotCommissions[i];
-            if (commissionTemplate == null)
+            OpportunityDefinition opportunityTemplate = locationSpotOpportunitys[i];
+            if (opportunityTemplate == null)
             {
-                string commissionId =
-                    await actionGenerator.GenerateCommission(
-                    commissionTemplate.Name,
+                string opportunityId =
+                    await actionGenerator.GenerateOpportunity(
+                    opportunityTemplate.Name,
                     location.Id,
                     locationSpot.SpotID
                     );
 
-                commissionTemplate = actionRepository.GetCommission(commissionTemplate.Id);
+                opportunityTemplate = actionRepository.GetOpportunity(opportunityTemplate.Id);
             }
 
-            LocationAction commissionImplementation = actionFactory.CreateActionFromCommission(commissionTemplate);
-            commissionImplementations.Add(commissionImplementation);
+            LocationAction opportunityImplementation = actionFactory.CreateActionFromOpportunity(opportunityTemplate);
+            opportunityImplementations.Add(opportunityImplementation);
         }
 
-        return commissionImplementations;
+        return opportunityImplementations;
     }
 
     private async Task<List<LocationAction>> CreateActions(Location location, LocationSpot locationSpot)
@@ -206,7 +206,7 @@
                 EncounterManager encounterManager =
                     await RunEncounter(
                         locationAction.ActionId,
-                        locationAction.Commission,
+                        locationAction.Opportunity,
                         action.ApproachId,
                         locationAction);
 
@@ -224,7 +224,7 @@
 
     private async Task<EncounterManager> RunEncounter(
         string id,
-        CommissionDefinition commission,
+        OpportunityDefinition opportunity,
         string approachId,
         LocationAction locationAction)
     {
@@ -260,7 +260,7 @@
         // Create initial context with our new value system
         int playerLevel = playerState.Level;
 
-        ApproachDefinition? approach = commission.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
+        ApproachDefinition? approach = opportunity.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
         SkillCategories SkillCategory = approach.RequiredCardType;
 
         EncounterContext context = new EncounterContext()
@@ -273,7 +273,7 @@
 
         EncounterManager encounterManager = await encounterSystem.GenerateEncounter(
             id,
-            commission,
+            opportunity,
             approach,
             location,
             locationSpot,
@@ -624,8 +624,8 @@
         LocationSpot locationSpot = worldState.CurrentLocationSpot;
 
         List<LocationAction> locationActions = await CreateActions(location, locationSpot);
-        List<LocationAction> commissionImplementations = await CreateCommissions(location, locationSpot);
-        locationActions.AddRange(commissionImplementations);
+        List<LocationAction> opportunityImplementations = await CreateOpportunitys(location, locationSpot);
+        locationActions.AddRange(opportunityImplementations);
 
         List<UserActionOption> locationSpotActionOptions =
             await CreateUserActionsForLocationSpot(
@@ -668,35 +668,35 @@
             actionProcessor.ProcessTurnChange();
         }
 
-        UpdateCommissions(gameState);
+        UpdateOpportunitys(gameState);
         await UpdateState();
     }
 
-    public void UpdateCommissions(GameWorld gameState)
+    public void UpdateOpportunitys(GameWorld gameState)
     {
-        List<CommissionDefinition> expiredCommissions = new List<CommissionDefinition>();
+        List<OpportunityDefinition> expiredOpportunitys = new List<OpportunityDefinition>();
 
-        foreach (CommissionDefinition commission in gameState.WorldState.ActiveCommissions)
+        foreach (OpportunityDefinition opportunity in gameState.WorldState.ActiveOpportunitys)
         {
             // Reduce days remaining
-            commission.ExpirationDays--;
+            opportunity.ExpirationDays--;
 
             // Check if expired
-            if (commission.ExpirationDays <= 0)
+            if (opportunity.ExpirationDays <= 0)
             {
-                expiredCommissions.Add(commission);
+                expiredOpportunitys.Add(opportunity);
             }
         }
 
-        // Remove expired commissions
-        foreach (CommissionDefinition expired in expiredCommissions)
+        // Remove expired opportunitys
+        foreach (OpportunityDefinition expired in expiredOpportunitys)
         {
-            gameState.WorldState.ActiveCommissions.Remove(expired);
-            // Optionally: Add to failed commissions list
-            gameState.WorldState.FailedCommissions.Add(expired);
+            gameState.WorldState.ActiveOpportunitys.Remove(expired);
+            // Optionally: Add to failed opportunitys list
+            gameState.WorldState.FailedOpportunitys.Add(expired);
 
             // Add message
-            // messageSystem.AddSystemMessage($"Commission expired: {expired.Name}");
+            // messageSystem.AddSystemMessage($"Opportunity expired: {expired.Name}");
         }
     }
 

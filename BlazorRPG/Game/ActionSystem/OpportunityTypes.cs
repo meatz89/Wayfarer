@@ -1,4 +1,4 @@
-﻿public enum CommissionTypes
+﻿public enum OpportunityTypes
 {
     Accumulative,
     Sequential
