@@ -214,7 +214,7 @@ public class EncounterFlagManager
         }
     }
 
-    internal List<FlagStates> GetRecentlySetFlags()
+    public List<FlagStates> GetRecentlySetFlags()
     {
         throw new NotImplementedException();
     }

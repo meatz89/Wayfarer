@@ -95,7 +95,7 @@ public class CoinRequirement : IRequirement
 
     public bool IsMet(GameWorld gameState)
     {
-        return gameState.Player.Silver >= RequiredAmount;
+        return gameState.Player.Money >= RequiredAmount;
     }
 
     public string GetDescription()

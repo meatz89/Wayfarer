@@ -30,10 +30,11 @@
     DistractionCreated,
     HazardNeutralized,
     ObstacleActive,
+    Crowded,
 
     // Emotional Flags
     TensionIncreased,
     ConfidenceBuilt,
     FearInstilled,
-    UrgencyCreated
+    UrgencyCreated,
 }

@@ -1,5 +1,7 @@
 ﻿public class EncounterContext
 {
+    public GameWorld gameWorld;
+
     public string LocationName { get; set; }
     public string LocationSpotName { get; set; }
     public string ActionName { get; set; }

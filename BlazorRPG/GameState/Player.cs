@@ -13,18 +13,17 @@
     public int CurrentXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = 100;
 
-
     // Resources
-    public int Silver { get; set; } = 10;
+    public int Money { get; set; } = 10;
     public int ActionPoints { get; set; } = 18;
-    public int EnergyPoints { get; set; } = 10;
+    public int Energy { get; set; } = 10;
     public int Concentration { get; set; } = 10;
     public int Reputation { get; set; } = 0;
     public int Health { get; set; }
     public int Food { get; set; }
 
     public int MaxActionPoints { get; set; } = 4;
-    public int MaxEnergyPoints { get; set; } = 12;
+    public int MaxEnergy { get; set; } = 12;
     public int MaxConcentration { get; set; }
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
@@ -56,13 +55,118 @@
     public List<SkillCard> AvailableCards { get; set; } = new List<SkillCard>();
     public Location CurrentLocation { get; set; }
     public LocationSpot CurrentLocationSpot { get; set; }
+    public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
+    public int CurrentDay { get; private set; }
+
+    public List<InformationItem> KnownInformation { get; private set; } = new List<InformationItem>();
+
+    public Dictionary<string, List<TravelRoute>> KnownRoutes { get; private set; } = new Dictionary<string, List<TravelRoute>>();
+
+    public List<Goal> ActiveGoals { get; private set; } = new List<Goal>();
+    public List<Goal> CompletedGoals { get; private set; } = new List<Goal>();
+    public List<Goal> FailedGoals { get; private set; } = new List<Goal>();
+
+    public void AddGoal(Goal goal)
+    {
+        ActiveGoals.Add(goal);
+    }
+
+    public void UpdateGoals()
+    {
+        for (int i = ActiveGoals.Count - 1; i >= 0; i--)
+        {
+            Goal goal = ActiveGoals[i];
+
+            if (goal.IsCompleted)
+            {
+                ActiveGoals.RemoveAt(i);
+                CompletedGoals.Add(goal);
+            }
+            else if (goal.CheckFailure(CurrentDay))
+            {
+                ActiveGoals.RemoveAt(i);
+                FailedGoals.Add(goal);
+            }
+        }
+    }
+
+    public List<Goal> GetGoalsByType(GoalType type)
+    {
+        return ActiveGoals.Where(g => g.Type == type).ToList();
+    }
+
+
+    public void AddKnownRoute(TravelRoute route)
+    {
+        string originName = route.Origin.Name;
+
+        if (!KnownRoutes.ContainsKey(originName))
+        {
+            KnownRoutes[originName] = new List<TravelRoute>();
+        }
+
+        // Only add if not already known
+        if (!KnownRoutes[originName].Any(r => r.Destination.Name == route.Destination.Name))
+        {
+            KnownRoutes[originName].Add(route);
+        }
+    }
+
+    public void LearnInformation(InformationItem item)
+    {
+        if (!KnownInformation.Any(i => i.Key == item.Key))
+        {
+            KnownInformation.Add(item);
+        }
+    }
+
+    public bool KnowsInformation(string key)
+    {
+        return KnownInformation.Any(i => i.Key == key);
+    }
+
+    public List<InformationItem> GetInformationByTag(string tag)
+    {
+        return KnownInformation.Where(i => i.Tags.Contains(tag)).ToList();
+    }
+
+    public void AddMemory(string key, string description, int importance, int expirationDays = -1)
+    {
+        // Remove any existing memory with same key
+        Memories.RemoveAll(m => m.Key == key);
+
+        // Add new memory
+        Memories.Add(new MemoryFlag
+        {
+            Key = key,
+            Description = description,
+            CreationDay = CurrentDay,
+            ExpirationDay = expirationDays == -1 ? -1 : CurrentDay + expirationDays,
+            Importance = importance
+        });
+    }
+
+    public bool HasMemory(string key)
+    {
+        return Memories.Any(m => m.Key == key && m.IsActive(CurrentDay));
+    }
+
+    public List<MemoryFlag> GetRecentMemories(int count = 5)
+    {
+        return Memories
+            .Where(m => m.IsActive(CurrentDay))
+            .OrderByDescending(m => m.Importance)
+            .ThenByDescending(m => m.CreationDay)
+            .Take(count)
+            .ToList();
+    }
 
     public Player()
     {
         Background = GameRules.StandardRuleset.Background;
         Inventory = new Inventory(10);
 
-        Silver = 5;
+        Money = 5;
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
@@ -84,7 +188,7 @@
 
     public void HealFully()
     {
-        EnergyPoints = MaxEnergyPoints;
+        Energy = MaxEnergy;
         Health = MaxHealth;
         Concentration = MaxConcentration;
     }
@@ -259,10 +363,10 @@
 
     public void AddCoins(int count)
     {
-        int newCoins = Math.Max(0, Silver + count);
-        if (newCoins != Silver)
+        int newCoins = Math.Max(0, Money + count);
+        if (newCoins != Money)
         {
-            Silver = newCoins;
+            Money = newCoins;
         }
     }
 
@@ -308,17 +412,17 @@
 
     public int CurrentEnergy()
     {
-        return EnergyPoints;
+        return Energy;
     }
 
     public void SetNewEnergy(int newEnergy)
     {
-        this.EnergyPoints = newEnergy;
+        this.Energy = newEnergy;
     }
 
     public void ModifyEnergy(int amount)
     {
-        this.EnergyPoints += amount;
+        this.Energy += amount;
     }
 
     public bool HasNonExhaustedCardOfType(SkillCategories requiredCardType)
@@ -367,9 +471,9 @@
         clone.XPToNextLevel = this.XPToNextLevel;
         clone.MaxActionPoints = this.MaxActionPoints;
         clone.ActionPoints = this.ActionPoints;
-        clone.MaxEnergyPoints = this.MaxEnergyPoints;
-        clone.EnergyPoints = this.EnergyPoints;
-        clone.Silver = this.Silver;
+        clone.MaxEnergy = this.MaxEnergy;
+        clone.Energy = this.Energy;
+        clone.Money = this.Money;
         clone.Food = this.Food;
         clone.MinHealth = this.MinHealth;
         clone.Health = this.Health;
@@ -451,11 +555,6 @@
         throw new NotImplementedException();
     }
 
-    public SkillCard? FindCard(object requiredSkillName)
-    {
-        throw new NotImplementedException();
-    }
-
     public int GetRelationship(object iD)
     {
         throw new NotImplementedException();
@@ -469,5 +568,62 @@
     public List<SkillCard> GetCardsOfType(SkillCategories requiredApproach)
     {
         throw new NotImplementedException();
+    }
+
+    public ReputationLevel GetReputationLevel()
+    {
+        if (Reputation >= 75) return ReputationLevel.Revered;
+        if (Reputation >= 50) return ReputationLevel.Respected;
+        if (Reputation >= 25) return ReputationLevel.Trusted;
+        if (Reputation >= 0) return ReputationLevel.Neutral;
+        if (Reputation >= -25) return ReputationLevel.Suspicious;
+        if (Reputation >= -50) return ReputationLevel.Distrusted;
+        return ReputationLevel.Hated;
+    }
+
+    public bool HasItem(string equipment)
+    {
+        return Inventory.HasItem(equipment);
+    }
+
+
+    // Resource modification with interdependence
+    public bool SpendEnergy(int amount)
+    {
+        if (Energy < amount) return false;
+
+        Energy -= amount;
+
+        // Automatic time advancement based on energy expenditure
+        GameWorld.AdvanceTime(TimeSpan.FromHours(amount));
+
+        return true;
+    }
+
+    public bool SpendMoney(int amount)
+    {
+        // Reputation affects costs
+        int actualCost = CalculateAdjustedCost(amount);
+
+        if (Money < actualCost) return false;
+
+        Money -= actualCost;
+        return true;
+    }
+
+    private int CalculateAdjustedCost(int baseCost)
+    {
+        // Higher reputation means lower costs
+        float multiplier = 1.0f;
+
+        if (Reputation >= 75) multiplier = 0.8f;
+        else if (Reputation >= 50) multiplier = 0.9f;
+        else if (Reputation >= 25) multiplier = 0.95f;
+        else if (Reputation >= 0) multiplier = 1.0f;
+        else if (Reputation >= -25) multiplier = 1.1f;
+        else if (Reputation >= -50) multiplier = 1.25f;
+        else multiplier = 1.5f;
+
+        return (int)(baseCost * multiplier);
     }
 }

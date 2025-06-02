@@ -21,11 +21,11 @@ public static class GameStateSerializer
                 Name = gameState.Player.Name,
                 Gender = gameState.Player.IsInitialized ? gameState.Player.Gender.ToString() : null,
                 Archetype = gameState.Player.IsInitialized ? gameState.Player.Archetype.ToString() : null,
-                Coins = gameState.Player.Silver,
+                Coins = gameState.Player.Money,
                 MaxActionPoints = gameState.Player.MaxActionPoints,
                 ActionPoints = gameState.Player.ActionPoints,
-                MaxEnergy = gameState.Player.MaxEnergyPoints,
-                Energy = gameState.Player.EnergyPoints,
+                MaxEnergy = gameState.Player.MaxEnergy,
+                Energy = gameState.Player.Energy,
                 MaxHealth = gameState.Player.MaxHealth,
                 Health = gameState.Player.Health,
                 Level = gameState.Player.Level,
@@ -87,11 +87,11 @@ public static class GameStateSerializer
             }
 
             // Apply resources
-            gameState.Player.Silver = serialized.Player.Coins;
+            gameState.Player.Money = serialized.Player.Coins;
             gameState.Player.MaxActionPoints = serialized.Player.MaxActionPoints;
             gameState.Player.ActionPoints = serialized.Player.ActionPoints;
-            gameState.Player.MaxEnergyPoints = serialized.Player.MaxEnergy;
-            gameState.Player.EnergyPoints = serialized.Player.Energy;
+            gameState.Player.MaxEnergy = serialized.Player.MaxEnergy;
+            gameState.Player.Energy = serialized.Player.Energy;
             gameState.Player.MaxHealth = serialized.Player.MaxHealth;
             gameState.Player.Health = serialized.Player.Health;
 

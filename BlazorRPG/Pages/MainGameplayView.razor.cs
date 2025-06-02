@@ -200,7 +200,7 @@ public partial class MainGameplayView : ComponentBase
             return;
         }
 
-        await GameManager.InitiateTravelToLocation(travelLocationName);
+        await GameManager.Travel(travelLocationName);
 
         CurrentScreen = CurrentViews.LocationScreen;
         UpdateState();

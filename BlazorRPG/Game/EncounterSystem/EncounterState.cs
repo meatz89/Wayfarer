@@ -295,7 +295,7 @@
         throw new NotImplementedException();
     }
 
-    internal int GetTemporarySkillModifier(string requiredSkillName)
+    public int GetTemporarySkillModifier(string requiredSkillName)
     {
         throw new NotImplementedException();
     }
