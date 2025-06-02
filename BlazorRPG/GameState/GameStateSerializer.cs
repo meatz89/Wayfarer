@@ -42,7 +42,7 @@ public static class GameStateSerializer
     }
 
     public static GameWorld DeserializeGameState(string json, List<Location> locations, List<LocationSpot> spots,
-            List<ActionDefinition> actions, List<CommissionDefinition> commissions, List<SkillCard> cards)
+            List<ActionDefinition> actions, List<OpportunityDefinition> opportunitys, List<SkillCard> cards)
     {
         SerializableGameState serialized = JsonSerializer.Deserialize<SerializableGameState>(json, _jsonOptions);
         if (serialized == null)
@@ -62,8 +62,8 @@ public static class GameStateSerializer
         gameState.WorldState.actions.Clear();
         gameState.WorldState.actions.AddRange(actions);
 
-        gameState.WorldState.commissions.Clear();
-        gameState.WorldState.commissions.AddRange(commissions);
+        gameState.WorldState.opportunitys.Clear();
+        gameState.WorldState.opportunitys.AddRange(opportunitys);
 
         // Add cards to world state if applicable
         if (gameState.WorldState.AllCards != null)
@@ -273,18 +273,18 @@ public static class GameStateSerializer
         return actions;
     }
 
-    public static List<CommissionDefinition> DeserializeCommissions(string json)
+    public static List<OpportunityDefinition> DeserializeOpportunitys(string json)
     {
-        List<CommissionDefinition> commissions = new List<CommissionDefinition>();
+        List<OpportunityDefinition> opportunitys = new List<OpportunityDefinition>();
 
         using (JsonDocument doc = JsonDocument.Parse(json))
         {
-            foreach (JsonElement commissionElement in doc.RootElement.EnumerateArray())
+            foreach (JsonElement opportunityElement in doc.RootElement.EnumerateArray())
             {
-                commissions.Add(CommissionParser.ParseCommission(commissionElement.GetRawText()));
+                opportunitys.Add(OpportunityParser.ParseOpportunity(opportunityElement.GetRawText()));
             }
         }
 
-        return commissions;
+        return opportunitys;
     }
 }

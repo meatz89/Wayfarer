@@ -84,32 +84,32 @@
         return requirements;
     }
 
-    public LocationAction CreateActionFromCommission(CommissionDefinition commission)
+    public LocationAction CreateActionFromOpportunity(OpportunityDefinition opportunity)
     {
         LocationAction locationAction = new LocationAction();
 
-        locationAction.ActionId = commission.Id;
-        locationAction.Name = commission.Name;
-        locationAction.ObjectiveDescription = commission.Description;
-        locationAction.Commission = commission;
+        locationAction.ActionId = opportunity.Id;
+        locationAction.Name = opportunity.Name;
+        locationAction.ObjectiveDescription = opportunity.Description;
+        locationAction.Opportunity = opportunity;
 
-        if (commission.Type == CommissionTypes.Accumulative)
+        if (opportunity.Type == OpportunityTypes.Accumulative)
         {
-            locationAction.LocationId = commission.InitialLocationId;
+            locationAction.LocationId = opportunity.InitialLocationId;
 
-            LocationSpot defaultSpot = FindDefaultSpotForLocation(commission.InitialLocationId);
+            LocationSpot defaultSpot = FindDefaultSpotForLocation(opportunity.InitialLocationId);
             locationAction.LocationSpotId = defaultSpot?.SpotID;
 
-            locationAction.Approaches = commission.Approaches;
+            locationAction.Approaches = opportunity.Approaches;
         }
-        else if (commission.Type == CommissionTypes.Sequential && commission.InitialStep != null)
+        else if (opportunity.Type == OpportunityTypes.Sequential && opportunity.InitialStep != null)
         {
-            locationAction.LocationId = commission.InitialStep.LocationId;
+            locationAction.LocationId = opportunity.InitialStep.LocationId;
 
-            LocationSpot defaultSpot = FindDefaultSpotForLocation(commission.InitialStep.LocationId);
+            LocationSpot defaultSpot = FindDefaultSpotForLocation(opportunity.InitialStep.LocationId);
             locationAction.LocationSpotId = defaultSpot?.SpotID;
 
-            locationAction.Approaches = commission.InitialStep.Approaches;
+            locationAction.Approaches = opportunity.InitialStep.Approaches;
         }
 
         locationAction.RequiredCardType = SkillCategories.Physical;

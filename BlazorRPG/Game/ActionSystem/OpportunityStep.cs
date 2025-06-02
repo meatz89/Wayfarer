@@ -1,4 +1,4 @@
-﻿public class CommissionStep
+﻿public class OpportunityStep
 {
     public string Name { get; set; }
     public string Description { get; set; }

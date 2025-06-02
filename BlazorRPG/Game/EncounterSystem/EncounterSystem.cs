@@ -39,7 +39,7 @@
 
     public async Task<EncounterManager> GenerateEncounter(
         string id,
-        CommissionDefinition commission,
+        OpportunityDefinition opportunity,
         ApproachDefinition approach,
         Location location,
         LocationSpot locationSpot,
@@ -48,13 +48,13 @@
         LocationAction locationAction)
     {
         logger.LogInformation(
-            "GenerateEncounter called with id: {Id}, commission: {CommissionId}, approachId: {ApproachId}, location: {LocationId}, locationSpot: {LocationSpotId}",
-            id, commission?.Id, approach.Id, location?.Id, locationSpot?.SpotID);
+            "GenerateEncounter called with id: {Id}, opportunity: {OpportunityId}, approachId: {ApproachId}, location: {LocationId}, locationSpot: {LocationSpotId}",
+            id, opportunity?.Id, approach.Id, location?.Id, locationSpot?.SpotID);
 
         this.worldState = worldState;
 
         Encounter encounter = encounterFactory.InitializeEncounter(
-            commission, approach, playerState, location);
+            opportunity, approach, playerState, location);
 
         // TODO 
         locationAction.Execute(playerState, locationSpot);
@@ -182,9 +182,9 @@
     }
     public void ProcessEncounterProgress(EncounterResult result, GameWorld gameState)
     {
-        if (result.locationAction.Commission != null)
+        if (result.locationAction.Opportunity != null)
         {
-            CommissionDefinition commission = result.locationAction.Commission;
+            OpportunityDefinition opportunity = result.locationAction.Opportunity;
 
             int progress = 0;
             switch (result.ActionResult)
@@ -200,7 +200,7 @@
                     break;
             }
 
-            commission.AddProgress(progress, gameState);
+            opportunity.AddProgress(progress, gameState);
         }
     }
 
