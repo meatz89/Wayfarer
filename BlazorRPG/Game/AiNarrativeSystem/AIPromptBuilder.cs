@@ -106,7 +106,8 @@ public partial class AIPromptBuilder
         if (gameWorld.CurrentEncounter != null)
         {
             // Add focus points
-            EncounterState state = gameWorld.CurrentEncounter.state;
+            EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.CurrentEncounterContext;
+            EncounterState state = currentEncounterContext.state;
             prompt.AppendLine($"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}");
 
             // Add active flags
@@ -118,7 +119,7 @@ public partial class AIPromptBuilder
             }
 
             // Add NPC information if available
-            EncounterContext encounterContext = gameWorld.CurrentEncounter.GetEncounterContext();
+            EncounterContext encounterContext = currentEncounterContext.GetEncounterContext();
             if (encounterContext.CurrentNPC != null)
             {
                 prompt.AppendLine($"- Current NPC: {encounterContext.CurrentNPC.Name}");
@@ -127,7 +128,7 @@ public partial class AIPromptBuilder
             }
 
             // Add duration information
-            prompt.AppendLine($"- EncounterContext Duration: {state.DurationCounter}/{gameWorld.CurrentEncounter.state.MaxDuration}");
+            prompt.AppendLine($"- EncounterContext Duration: {state.DurationCounter}/{currentEncounterContext.state.MaxDuration}");
         }
 
         // Add player skills
@@ -270,7 +271,7 @@ public partial class AIPromptBuilder
         // Add contextual guidance
         if (gameWorld.DeadlineDay > 0)
         {
-            int daysRemaining = gameWorld.DeadlineDay - gameWorld.CurrentDay;
+            int daysRemaining = gameWorld.DeadlineDay - GameWorld.CurrentDay;
 
             if (daysRemaining <= 3)
             {

@@ -10,7 +10,6 @@
         PlayerChoiceSelection chosenOption,
         WorldStateInput worldStateInput,
         int priority);
-
     Task<List<EncounterChoice>> GenerateChoices(
         EncounterContext context,
         EncounterState state,

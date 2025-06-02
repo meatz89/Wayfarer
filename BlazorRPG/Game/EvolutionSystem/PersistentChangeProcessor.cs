@@ -1,4 +1,5 @@
-﻿public class PersistentChangeProcessor
+﻿
+public class PersistentChangeProcessor
 {
     public void ApplyChanges(EncounterResult conclusion, EncounterState state)
     {
@@ -52,5 +53,10 @@
             int newRelationship = currentRelationship + change.Magnitude;
             player.SetRelationship(targetNPC.ID, newRelationship);
         }
+    }
+
+    internal async Task<string> ConsolidateMemory(EncounterContext encounterContext, MemoryConsolidationInput memoryInput)
+    {
+        throw new NotImplementedException();
     }
 }

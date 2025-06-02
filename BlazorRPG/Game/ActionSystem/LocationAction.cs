@@ -47,7 +47,7 @@
 
         // Step 4: Launch the encounter
         EncounterManager encounterManager = new EncounterManager();
-        encounterManager.StartEncounter(context, parameters, player);
+        encounterManager.start(context, parameters, player);
     }
 
     private EncounterParameters DetermineEncounterParameters(SkillCategories actionType)

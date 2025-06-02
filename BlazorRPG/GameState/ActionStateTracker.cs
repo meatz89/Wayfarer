@@ -38,11 +38,6 @@ public class ActionStateTracker
         CurrentEncounterContext = null;
     }
 
-    public EncounterManager GetCurrentEncounter()
-    {
-        return CurrentEncounter;
-    }
-
     public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> options)
     {
         UserEncounterChoiceOptions = options;

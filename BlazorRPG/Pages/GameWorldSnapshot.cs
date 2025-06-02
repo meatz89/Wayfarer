@@ -19,9 +19,9 @@
 
         if (HasActiveEncounter)
         {
-            CurrentFocusPoints = gameWorld.CurrentEncounter.state.FocusPoints;
-            MaxFocusPoints = gameWorld.CurrentEncounter.state.MaxFocusPoints;
-            ActiveFlags = gameWorld.CurrentEncounter.state.FlagManager.GetAllActiveFlags();
+            CurrentFocusPoints = gameWorld.ActionStateTracker.CurrentEncounterContext.state.FocusPoints;
+            MaxFocusPoints = gameWorld.ActionStateTracker.CurrentEncounterContext.state.MaxFocusPoints;
+            ActiveFlags = gameWorld.ActionStateTracker.CurrentEncounterContext.state.FlagManager.GetAllActiveFlags();
         }
 
         StreamingText = gameWorld.StreamingContentState.CurrentText;
