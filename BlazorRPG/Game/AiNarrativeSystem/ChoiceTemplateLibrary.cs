@@ -1,5 +1,4 @@
-﻿
-public static class TemplateLibrary
+﻿public static class ChoiceTemplateLibrary
 {
     public static List<ChoiceTemplate> GetAllTemplates()
     {
@@ -13,8 +12,8 @@ public static class TemplateLibrary
                     new FocusCost(1),
                     new SkillCheckRequirement(SkillCategories.Social, 3)
                 ),
-                successEffectClass: typeof(NoEffect),
-                failureEffectClass: typeof(NoEffect),
+                successEffect: new NoEffect(),
+                failureEffect: new NoEffect(),
                 conceptualOutput: "Player attempts to build trust with NPC",
                 successOutcomeNarrativeGuidance: "NPC becomes more trusting toward player",
                 failureOutcomeNarrativeGuidance: "NPC becomes suspicious of player's intentions"
@@ -28,8 +27,8 @@ public static class TemplateLibrary
                     new FocusCost(1),
                     new SkillCheckRequirement(SkillCategories.Intellectual, 3)
                 ),
-                successEffectClass: typeof(GainInsightEffect),
-                failureEffectClass: typeof(CreateConfusionEffect),
+                successEffect: new NoEffect(),
+                failureEffect: new NoEffect(),
                 conceptualOutput: "Player attempts to gather information",
                 successOutcomeNarrativeGuidance: "Player gains valuable insight",
                 failureOutcomeNarrativeGuidance: "Player becomes confused by conflicting information"
@@ -43,8 +42,8 @@ public static class TemplateLibrary
                     new FocusCost(0),
                     new SkillCheckRequirement(SkillCategories.Physical, 2)
                 ),
-                successEffectClass: typeof(RecoverFocusEffect),
-                failureEffectClass: typeof(WasteTimeEffect),
+                successEffect: new NoEffect(),
+                failureEffect: new NoEffect(),
                 conceptualOutput: "Player attempts to recover focus",
                 successOutcomeNarrativeGuidance: "Player regains composure and energy",
                 failureOutcomeNarrativeGuidance: "Player wastes time without recovering"

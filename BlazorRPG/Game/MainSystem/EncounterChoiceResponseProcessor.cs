@@ -1,8 +1,8 @@
 ﻿public class EncounterChoiceResponseProcessor
 {
-    private TemplateLibrary _templateLibrary;
+    private ChoiceTemplateLibrary _templateLibrary;
 
-    public EncounterChoiceResponseProcessor(TemplateLibrary templateLibrary, ILogger<EncounterChoiceResponseProcessor> logger)
+    public EncounterChoiceResponseProcessor(ChoiceTemplateLibrary templateLibrary, ILogger<EncounterChoiceResponseProcessor> logger)
     {
         _templateLibrary = templateLibrary;
     }

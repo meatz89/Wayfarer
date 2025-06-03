@@ -9,8 +9,8 @@
         services.AddSingleton(contentLoader);
 
         // Load game state
-        GameWorld gameState = contentLoader.LoadGame();
-        services.AddSingleton(gameState);
+        GameWorld gameWorld = contentLoader.LoadGame();
+        services.AddSingleton(gameWorld);
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();

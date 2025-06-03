@@ -7,34 +7,34 @@ public static class GameStateSerializer
         WriteIndented = true
     };
 
-    public static string SerializeGameState(GameWorld gameState)
+    public static string SerializeGameState(GameWorld gameWorld)
     {
         SerializableGameState serialized = new SerializableGameState
         {
-            CurrentLocationId = gameState.WorldState.CurrentLocation?.Id,
-            CurrentLocationSpotId = gameState.WorldState.CurrentLocationSpot?.SpotID,
-            CurrentDay = gameState.WorldState.CurrentDay,
-            CurrentTimeHours = gameState.WorldState.CurrentTimeHours,
+            CurrentLocationId = gameWorld.WorldState.CurrentLocation?.Id,
+            CurrentLocationSpotId = gameWorld.WorldState.CurrentLocationSpot?.SpotID,
+            CurrentDay = gameWorld.WorldState.CurrentDay,
+            CurrentTimeHours = gameWorld.WorldState.CurrentTimeHours,
 
             Player = new SerializablePlayerState
             {
-                Name = gameState.Player.Name,
-                Gender = gameState.Player.IsInitialized ? gameState.Player.Gender.ToString() : null,
-                Archetype = gameState.Player.IsInitialized ? gameState.Player.Archetype.ToString() : null,
-                Coins = gameState.Player.Money,
-                MaxActionPoints = gameState.Player.MaxActionPoints,
-                ActionPoints = gameState.Player.ActionPoints,
-                MaxEnergy = gameState.Player.MaxEnergy,
-                Energy = gameState.Player.Energy,
-                MaxHealth = gameState.Player.MaxHealth,
-                Health = gameState.Player.Health,
-                Level = gameState.Player.Level,
-                CurrentXP = gameState.Player.CurrentXP,
-                InventoryItems = gameState.Player.Inventory.GetAllItems()
+                Name = gameWorld.Player.Name,
+                Gender = gameWorld.Player.IsInitialized ? gameWorld.Player.Gender.ToString() : null,
+                Archetype = gameWorld.Player.IsInitialized ? gameWorld.Player.Archetype.ToString() : null,
+                Coins = gameWorld.Player.Money,
+                MaxActionPoints = gameWorld.Player.MaxActionPoints,
+                ActionPoints = gameWorld.Player.ActionPoints,
+                MaxEnergy = gameWorld.Player.MaxEnergy,
+                Energy = gameWorld.Player.Energy,
+                MaxHealth = gameWorld.Player.MaxHealth,
+                Health = gameWorld.Player.Health,
+                Level = gameWorld.Player.Level,
+                CurrentXP = gameWorld.Player.CurrentXP,
+                InventoryItems = gameWorld.Player.Inventory.GetAllItems()
                     .Select(item => item.ToString())
                     .ToList(),
                 // Add serialization for player's cards if needed
-                SelectedCards = gameState.Player.AvailableCards?.Select(c => c.Id).ToList() ?? new List<string>()
+                SelectedCards = gameWorld.Player.AvailableCards?.Select(c => c.Id).ToList() ?? new List<string>()
             }
         };
 
@@ -50,31 +50,31 @@ public static class GameStateSerializer
             throw new JsonException("Failed to deserialize game state");
         }
 
-        GameWorld gameState = new GameWorld();
+        GameWorld gameWorld = new GameWorld();
 
         // Apply loaded content to world state
-        gameState.WorldState.locations.Clear();
-        gameState.WorldState.locations.AddRange(locations);
+        gameWorld.WorldState.locations.Clear();
+        gameWorld.WorldState.locations.AddRange(locations);
 
-        gameState.WorldState.locationSpots.Clear();
-        gameState.WorldState.locationSpots.AddRange(spots);
+        gameWorld.WorldState.locationSpots.Clear();
+        gameWorld.WorldState.locationSpots.AddRange(spots);
 
-        gameState.WorldState.actions.Clear();
-        gameState.WorldState.actions.AddRange(actions);
+        gameWorld.WorldState.actions.Clear();
+        gameWorld.WorldState.actions.AddRange(actions);
 
-        gameState.WorldState.Opportunities.Clear();
-        gameState.WorldState.Opportunities.AddRange(Opportunities);
+        gameWorld.WorldState.Opportunities.Clear();
+        gameWorld.WorldState.Opportunities.AddRange(Opportunities);
 
         // Add cards to world state if applicable
-        if (gameState.WorldState.AllCards != null)
+        if (gameWorld.WorldState.AllCards != null)
         {
-            gameState.WorldState.AllCards.Clear();
-            gameState.WorldState.AllCards.AddRange(cards);
+            gameWorld.WorldState.AllCards.Clear();
+            gameWorld.WorldState.AllCards.AddRange(cards);
         }
 
         // Apply basic state data
-        gameState.WorldState.CurrentDay = serialized.CurrentDay;
-        gameState.TimeManager.SetNewTime(serialized.CurrentTimeHours);
+        gameWorld.WorldState.CurrentDay = serialized.CurrentDay;
+        gameWorld.TimeManager.SetNewTime(serialized.CurrentTimeHours);
 
         // Apply player state if character exists
         if (!string.IsNullOrEmpty(serialized.Player.Name))
@@ -83,42 +83,42 @@ public static class GameStateSerializer
                 Enum.TryParse<Professions>(serialized.Player.Archetype, out Professions archetype))
             {
                 // Initialize player
-                gameState.Player.Initialize(serialized.Player.Name, archetype, gender);
+                gameWorld.Player.Initialize(serialized.Player.Name, archetype, gender);
             }
 
             // Apply resources
-            gameState.Player.Money = serialized.Player.Coins;
-            gameState.Player.MaxActionPoints = serialized.Player.MaxActionPoints;
-            gameState.Player.ActionPoints = serialized.Player.ActionPoints;
-            gameState.Player.MaxEnergy = serialized.Player.MaxEnergy;
-            gameState.Player.Energy = serialized.Player.Energy;
-            gameState.Player.MaxHealth = serialized.Player.MaxHealth;
-            gameState.Player.Health = serialized.Player.Health;
+            gameWorld.Player.Money = serialized.Player.Coins;
+            gameWorld.Player.MaxActionPoints = serialized.Player.MaxActionPoints;
+            gameWorld.Player.ActionPoints = serialized.Player.ActionPoints;
+            gameWorld.Player.MaxEnergy = serialized.Player.MaxEnergy;
+            gameWorld.Player.Energy = serialized.Player.Energy;
+            gameWorld.Player.MaxHealth = serialized.Player.MaxHealth;
+            gameWorld.Player.Health = serialized.Player.Health;
 
             // Apply progression
-            gameState.Player.Level = serialized.Player.Level;
-            gameState.Player.CurrentXP = serialized.Player.CurrentXP;
+            gameWorld.Player.Level = serialized.Player.Level;
+            gameWorld.Player.CurrentXP = serialized.Player.CurrentXP;
 
             // Apply inventory
-            gameState.Player.Inventory.Clear();
+            gameWorld.Player.Inventory.Clear();
             foreach (string itemName in serialized.Player.InventoryItems)
             {
                 if (Enum.TryParse<ItemTypes>(itemName, out ItemTypes itemType))
                 {
-                    gameState.Player.Inventory.AddItem(itemType);
+                    gameWorld.Player.Inventory.AddItem(itemType);
                 }
             }
 
             // Apply selected cards if available
             if (serialized.Player.SelectedCards != null && cards != null)
             {
-                gameState.Player.AvailableCards = new List<SkillCard>();
+                gameWorld.Player.AvailableCards = new List<SkillCard>();
                 foreach (string cardId in serialized.Player.SelectedCards)
                 {
                     SkillCard card = cards.FirstOrDefault(c => c.Id == cardId);
                     if (card != null)
                     {
-                        gameState.Player.AvailableCards.Add(card);
+                        gameWorld.Player.AvailableCards.Add(card);
                     }
                 }
             }
@@ -146,12 +146,12 @@ public static class GameStateSerializer
 
                 if (currentSpot != null)
                 {
-                    gameState.SetCurrentLocation(currentLocation, currentSpot);
+                    gameWorld.SetCurrentLocation(currentLocation, currentSpot);
                 }
             }
         }
 
-        return gameState;
+        return gameWorld;
     }
 
     public static string SerializeLocations(List<Location> locations)

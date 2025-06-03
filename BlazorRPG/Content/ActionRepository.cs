@@ -2,9 +2,9 @@
 {
     private WorldState _worldState;
 
-    public ActionRepository(GameWorld gameState)
+    public ActionRepository(GameWorld gameWorld)
     {
-        _worldState = gameState.WorldState;
+        _worldState = gameWorld.WorldState;
     }
 
     public void AddAction(ActionDefinition action)

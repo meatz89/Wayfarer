@@ -1,9 +1,9 @@
 ﻿public class ChoiceProjectionService
 {
-    private TemplateLibrary templateLibrary;
+    private ChoiceTemplateLibrary templateLibrary;
     private readonly Player player;
 
-    public ChoiceProjectionService(TemplateLibrary templateLibrary, Player player)
+    public ChoiceProjectionService(ChoiceTemplateLibrary templateLibrary, Player player)
     {
         this.templateLibrary = templateLibrary;
         this.player = player;

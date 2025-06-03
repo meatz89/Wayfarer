@@ -207,7 +207,7 @@
             bool success = effectiveLevel >= difficulty;
 
             // Apply appropriate effect
-            TemplateLibrary templateLibrary = new TemplateLibrary();
+            ChoiceTemplateLibrary templateLibrary = new ChoiceTemplateLibrary();
             if (success)
             {
                 IMechanicalEffect effect = templateLibrary.GetEffect(selectedSkillOption.SuccessEffect.ID);

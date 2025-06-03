@@ -2,7 +2,7 @@
 {
     public BeatOutcome ResolveChoice(PlayerChoiceSelection selection, EncounterState state)
     {
-        TemplateLibrary templateLibrary = new TemplateLibrary();
+        ChoiceTemplateLibrary templateLibrary = new ChoiceTemplateLibrary();
 
         // Deduct focus cost
         EncounterChoice selectedChoice = selection.Choice;

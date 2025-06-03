@@ -2,9 +2,9 @@
 {
     private WorldState _worldState;
 
-    public ContentValidator(GameWorld gameState)
+    public ContentValidator(GameWorld gameWorld)
     {
-        _worldState = gameState.WorldState;
+        _worldState = gameWorld.WorldState;
     }
 
     public ContentValidationResult ValidateContent()

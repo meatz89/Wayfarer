@@ -181,7 +181,7 @@ public partial class MainGameplayView : ComponentBase
 
         await GameManager.ExecuteAction(action);
 
-        EncounterManager = GameWorld.ActionStateTracker.EncounterManager;
+        EncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager ;
         if (EncounterManager != null)
         {
             CurrentScreen = CurrentViews.EncounterScreen;

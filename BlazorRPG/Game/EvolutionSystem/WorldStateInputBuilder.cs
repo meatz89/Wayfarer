@@ -2,18 +2,18 @@
 
 public class WorldStateInputBuilder
 {
-    private GameWorld gameState;
+    private GameWorld gameWorld;
     public LocationSystem LocationSystem { get; }
     public CharacterSystem CharacterSystem { get; }
     public Opportunitiesystem Opportunitiesystem { get; }
 
     public WorldStateInputBuilder(
-        GameWorld gameState,
+        GameWorld gameWorld,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
         Opportunitiesystem Opportunitiesystem)
     {
-        this.gameState = gameState;
+        this.gameWorld = gameWorld;
         LocationSystem = locationSystem;
         CharacterSystem = characterSystem;
         Opportunitiesystem = Opportunitiesystem;
@@ -21,8 +21,8 @@ public class WorldStateInputBuilder
 
     public async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
     {
-        WorldState worldState = gameState.WorldState;
-        Player playerState = gameState.Player;
+        WorldState worldState = gameWorld.WorldState;
+        Player playerState = gameWorld.Player;
 
         // Create context for location generation
         WorldStateInput context = new WorldStateInput

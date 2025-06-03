@@ -1,39 +1,43 @@
 ﻿public class EncounterManager
 {
     private EncounterContext context;
-    public EncounterState state;
+    private EncounterState state;
+    private AIGameMaster aiGameMaster;
+    private ChoiceProjectionService choiceProjectionService;
+    private StreamingContentState streamingState;
+    private bool isAwaitingAIResponse = false;
 
     public LocationAction locationAction;
-    public List<EncounterChoice> CurrentChoices = new List<EncounterChoice>();
+    public List<EncounterChoice> Choices = new List<EncounterChoice>();
+    private List<ChoiceProjection> currentChoiceProjections = new List<ChoiceProjection>();
 
     public Player player;
     public WorldState worldState;
-
+    public EncounterResult EncounterResult;
+    public bool IsInitialState { get; set; }
     private bool _useAiNarrative = false;
     private bool _useMemory = false;
-
-    public EncounterResult EncounterResult;
-
-    public bool IsInitialState { get; set; }
-
     private ILogger<EncounterManager> _logger;
     private List<ChoiceTemplate> allTemplates;
 
     public EncounterManager(
         EncounterContext encounterContext,
         EncounterState encounterState,
-        LocationAction locationAction)
+        LocationAction locationAction,
+        ChoiceProjectionService choiceProjectionService,
+        AIGameMaster aiGameMaster)
     {
         this.context = encounterContext;
         this.state = encounterState;
         this.locationAction = locationAction;
-
+        this.choiceProjectionService = choiceProjectionService;
+        this.aiGameMaster = aiGameMaster;
         _useAiNarrative = true;
         _useMemory = true;
-        allTemplates = TemplateLibrary.GetAllTemplates();
+        allTemplates = ChoiceTemplateLibrary.GetAllTemplates();
     }
 
-    public async Task Initialize()
+    public async Task InitializeEncounter()
     {
         state = new EncounterState(player, 6, 8, "Narrative Begins");
         state.MaxFocusPoints = DetermineFocusPoints(context.SkillCategory);
@@ -49,7 +53,7 @@
 
     public async Task<EncounterResult> ProcessPlayerChoice(GameWorld gameWorld, EncounterChoice choice)
     {
-        if (gameWorld.CurrentEncounter == null || gameWorld.CurrentAIResponse == null)
+        if (gameWorld.CurrentEncounterManager == null || gameWorld.CurrentAIResponse == null)
         {
             return; // No active encounter or no AI response
         }
@@ -78,7 +82,7 @@
         }
 
         // Process focus cost
-        gameWorld.CurrentEncounter.FocusPoints -= selectedChoice.FocusCost;
+        gameWorld.CurrentEncounterManager.FocusPoints -= selectedChoice.FocusCost;
 
         // Perform skill check
         bool success = PerformSkillCheck(selectedChoice.SkillCheck);
@@ -91,7 +95,7 @@
 
             // Create and apply the success effect (direct instantiation)
             IMechanicalEffect effect = (IMechanicalEffect)Activator.CreateInstance(template.SuccessEffectClass);
-            effect.Apply(gameWorld.CurrentEncounter);
+            effect.Apply(gameWorld.CurrentEncounterManager);
         }
         else
         {
@@ -100,13 +104,13 @@
 
             // Create and apply the failure effect (direct instantiation)
             IMechanicalEffect effect = (IMechanicalEffect)Activator.CreateInstance(template.FailureEffectClass);
-            effect.Apply(gameWorld.CurrentEncounter);
+            effect.Apply(gameWorld.CurrentEncounterManager);
         }
 
         // Update encounter state
-        gameWorld.CurrentEncounter.AdvanceDuration(1);
-        gameWorld.CurrentEncounter.ProcessModifiers();
-        gameWorld.CurrentEncounter.CheckGoalCompletion();
+        gameWorld.CurrentEncounterManager.AdvanceDuration(1);
+        gameWorld.CurrentEncounterManager.ProcessModifiers();
+        gameWorld.CurrentEncounterManager.CheckGoalCompletion();
 
         // Clear AI response while streaming occurs
         gameWorld.CurrentAIResponse = null;
@@ -249,8 +253,7 @@
         }
     }
 
-    public ChoiceProjection GetChoiceProjection(ChoiceProjectionService choiceProjectionService,
-        EncounterState encounterState, EncounterChoice choice)
+    public ChoiceProjection GetChoiceProjection(EncounterState encounterState, EncounterChoice choice)
     {
         ChoiceProjection projection = this.state.CreateChoiceProjection(choiceProjectionService, choice, player);
         projection.MechanicalDescription = choice.ChoiceID;
@@ -264,6 +267,16 @@
 
     public List<EncounterChoice> GetCurrentChoices()
     {
-        return CurrentChoices;
+        return Choices;
+    }
+
+    public EncounterState GetEncounterState()
+    {
+        return state;
+    }
+
+    internal StreamingContentState GetStreamingState()
+    {
+        throw new NotImplementedException();
     }
 }

@@ -3,11 +3,11 @@
 public class LocationSystem
 {
     private LocationRepository locationRepository;
-    private GameWorld gameState;
+    private GameWorld gameWorld;
 
-    public LocationSystem(GameWorld gameState, LocationRepository locationRepo)
+    public LocationSystem(GameWorld gameWorld, LocationRepository locationRepo)
     {
-        this.gameState = gameState;
+        this.gameWorld = gameWorld;
         this.locationRepository = locationRepo;
     }
 
@@ -31,12 +31,12 @@ public class LocationSystem
             return l.PlayerKnowledge;
         }))
         {
-            gameState.Player.AddKnownLocation(loc.Id);
+            gameWorld.Player.AddKnownLocation(loc.Id);
             foreach (LocationSpot? spot in locationRepository.GetSpotsForLocation(loc.Id).Where(s =>
             {
                 return s.PlayerKnowledge;
             }))
-                gameState.Player.AddKnownLocationSpot(spot.SpotID);
+                gameWorld.Player.AddKnownLocationSpot(spot.SpotID);
         }
 
         return GetLocation(startLoc.Id);
@@ -102,5 +102,7 @@ public class LocationSystem
 
         return sb.ToString();
     }
+
+
 
 }

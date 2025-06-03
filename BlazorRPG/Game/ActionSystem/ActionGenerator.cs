@@ -11,7 +11,7 @@ public class ActionGenerator
     private WorldState worldState;
 
     public ActionGenerator(
-        GameWorld gameState,
+        GameWorld gameWorld,
         ActionRepository actionRepository,
         LocationRepository locationRepository,
         WorldStateInputBuilder worldStateInputCreator,
@@ -23,7 +23,7 @@ public class ActionGenerator
         _worldStateInputCreator = worldStateInputCreator;
         _configuration = configuration;
         this._aiService = aiService;
-        worldState = gameState.WorldState;
+        worldState = gameWorld.WorldState;
     }
 
     public async Task<string> GenerateAction(

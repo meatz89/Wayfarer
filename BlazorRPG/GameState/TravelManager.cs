@@ -1,6 +1,6 @@
 ﻿public class TravelManager
 {
-    public GameWorld gameState { get; }
+    public GameWorld gameWorld { get; }
     public WorldState worldState { get; }
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
@@ -8,19 +8,28 @@
     public ActionFactory ActionFactory { get; }
 
     public TravelManager(
-        GameWorld gameState,
+        GameWorld gameWorld,
         LocationSystem locationSystem,
         ActionRepository actionRepository,
         LocationRepository locationRepository,
         ActionFactory actionFactory
         )
     {
-        this.gameState = gameState;
-        this.worldState = gameState.WorldState;
+        this.gameWorld = gameWorld;
+        this.worldState = gameWorld.WorldState;
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
         LocationRepository = locationRepository;
         this.ActionFactory = actionFactory;
+    }
+
+    public bool CanTravelTo(string destinationName)
+    {
+        if (worldState.CurrentLocation == null)
+            return false;
+
+        // Check if locations are directly connected
+        return worldState.CurrentLocation.ConnectedTo?.Contains(destinationName) ?? false;
     }
 
     public TravelRoute StartLocationTravel(
@@ -82,7 +91,7 @@
             return ls.SpotID == locationSpotName;
         }));
 
-        gameState.SetCurrentLocation(targetLocation, locSpot);
+        gameWorld.SetCurrentLocation(targetLocation, locSpot);
 
         string? currentLocation = worldState.CurrentLocation?.Id;
 
@@ -115,13 +124,13 @@
         {
             // Award XP
             int xpBonus = location.DiscoveryBonusXP;
-            gameState.Player.AddExperiencePoints(xpBonus);
+            gameWorld.Player.AddExperiencePoints(xpBonus);
 
             // Award coins
             int coinBonus = location.DiscoveryBonusCoins;
             if (coinBonus > 0)
             {
-                gameState.Player.AddCoins(coinBonus);
+                gameWorld.Player.AddCoins(coinBonus);
             }
         }
     }
@@ -157,7 +166,7 @@
 
     public int CalculateTravelTime(Location startLocation, string endLocationId, TravelMethods travelMethod)
     {
-        WorldState worldState = gameState.WorldState;
+        WorldState worldState = gameWorld.WorldState;
 
         // Get base travel time between locations
         int baseTravelMinutes = 0;

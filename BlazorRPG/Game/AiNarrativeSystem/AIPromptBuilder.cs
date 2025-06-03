@@ -103,10 +103,10 @@ public partial class AIPromptBuilder
     {
         prompt.AppendLine("ENCOUNTER CONTEXT:");
 
-        if (gameWorld.CurrentEncounter != null)
+        if (gameWorld.CurrentEncounterManager != null)
         {
             // Add focus points
-            EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.EncounterManager;
+            EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.CurrentEncounterManager ;
             EncounterState state = currentEncounterContext.state;
             prompt.AppendLine($"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}");
 
@@ -120,11 +120,11 @@ public partial class AIPromptBuilder
 
             // Add NPC information if available
             EncounterContext encounterContext = currentEncounterContext.GetEncounterContext();
-            if (encounterContext.CurrentNPC != null)
+            if (encounterContext.TargetNPC != null)
             {
-                prompt.AppendLine($"- Current NPC: {encounterContext.CurrentNPC.Name}");
-                prompt.AppendLine($"  * Role: {encounterContext.CurrentNPC.Role}");
-                prompt.AppendLine($"  * Attitude: {encounterContext.CurrentNPC.Attitude}");
+                prompt.AppendLine($"- Current NPC: {encounterContext.TargetNPC.Name}");
+                prompt.AppendLine($"  * Role: {encounterContext.TargetNPC.Role}");
+                prompt.AppendLine($"  * Attitude: {encounterContext.TargetNPC.Attitude}");
             }
 
             // Add duration information

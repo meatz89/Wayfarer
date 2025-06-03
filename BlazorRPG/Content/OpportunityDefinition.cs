@@ -46,7 +46,7 @@
     }
 
     // Add progress and handle step transitions
-    public void AddProgress(int progress, GameWorld gameState)
+    public void AddProgress(int progress, GameWorld gameWorld)
     {
         CurrentProgress += progress;
 
@@ -58,21 +58,21 @@
 
                 if (CurrentProgress < ProgressThreshold)
                 {
-                    InitialStep = GenerateNextStep(gameState);
+                    InitialStep = GenerateNextStep(gameWorld);
                 }
             }
         }
     }
 
     // Generate the next step based on completed steps and approach used
-    private Opportunitiestep GenerateNextStep(GameWorld gameState)
+    private Opportunitiestep GenerateNextStep(GameWorld gameWorld)
     {
         // For a POC, we can implement a simple step generation
         // In a full implementation, this would use more sophisticated logic
         // based on your procedural generation approach
 
         Opportunitiestep previousStep = CompletedSteps.Last();
-        string nextLocationId = DetermineNextLocationId(previousStep, gameState);
+        string nextLocationId = DetermineNextLocationId(previousStep, gameWorld);
 
         Opportunitiestep nextStep = new Opportunitiestep
         {
@@ -86,13 +86,13 @@
         return nextStep;
     }
 
-    private string DetermineNextLocationId(Opportunitiestep previousStep, GameWorld gameState)
+    private string DetermineNextLocationId(Opportunitiestep previousStep, GameWorld gameWorld)
     {
         // Simple implementation - alternate between locations
         // In a full implementation, this would use more sophisticated logic
         if (previousStep.LocationId == InitialLocationId)
         {
-            return gameState.WorldState.locations
+            return gameWorld.WorldState.locations
                 .FirstOrDefault(l => l.Id != InitialLocationId &&
                                    l.ConnectedTo.Contains(InitialLocationId))?.Id ?? InitialLocationId;
         }
