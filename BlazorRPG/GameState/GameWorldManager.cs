@@ -6,22 +6,19 @@
     private Player player;
     private WorldState worldState;
     private EncounterFactory encounterFactory;
-    private PersistentChangeProcessor evolutionSystem;
-    private LocationSystem locationSystem;
     private MessageSystem messageSystem;
+    private ActionGenerator actionGenerator;
     private ActionFactory actionFactory;
     private ActionRepository actionRepository;
+    private ActionProcessor actionProcessor;
+    private LocationSystem locationSystem;
     private LocationRepository locationRepository;
     private TravelManager travelManager;
-    private ActionGenerator actionGenerator;
-    private PlayerProgression playerProgression;
-    private ActionProcessor actionProcessor;
     private ContentLoader contentLoader;
-    private readonly ChoiceProjectionService choiceProjectionService;
-    private readonly ILogger<GameWorldManager> logger;
     private List<Opportunity> availableOpportunities = new List<Opportunity>();
+    private readonly ILogger<GameWorldManager> logger;
 
-    public GameWorldManager(GameWorld gameState, EncounterFactory encounterSystem,
+    public GameWorldManager(GameWorld gameWorld, EncounterFactory encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
@@ -30,11 +27,10 @@
                        ChoiceProjectionService choiceProjectionService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
-        this.gameWorld = gameState;
-        this.player = gameState.Player;
-        this.worldState = gameState.WorldState;
+        this.gameWorld = gameWorld;
+        this.player = gameWorld.Player;
+        this.worldState = gameWorld.WorldState;
         this.encounterFactory = encounterSystem;
-        this.evolutionSystem = evolutionSystem;
         this.locationSystem = locationSystem;
         this.messageSystem = messageSystem;
         this.actionFactory = actionFactory;
@@ -42,10 +38,8 @@
         this.locationRepository = locationRepository;
         this.travelManager = travelManager;
         this.actionGenerator = actionGenerator;
-        this.playerProgression = playerProgression;
         this.actionProcessor = actionProcessor;
         this.contentLoader = contentLoader;
-        this.choiceProjectionService = choiceProjectionService;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -122,22 +116,6 @@
 
         string timeOfDay = GetTimeOfDay(worldState.CurrentTimeHours);
 
-        List<NPC> presentCharacters = worldState.GetCharacters()
-            .Where(c =>
-            {
-                return c.Location == locationId;
-            })
-            .ToList();
-
-        List<Opportunity> opportunities = worldState.GetOpportunities()
-            .Where(o =>
-            {
-                return o.Location == locationId && o.Status == "Available";
-            })
-            .ToList();
-
-        List<string> previousInteractions = new();
-
         LocationSpot? locationSpot = locationSystem.GetLocationSpot(
             location.Id, worldState.CurrentLocationSpot.SpotID);
 
@@ -157,7 +135,7 @@
             ObjectiveDescription = locationAction.ObjectiveDescription,
             PlayerSkillCards = player.GetCardsOfType(locationAction.RequiredCardType),
             StartingFocusPoints = CalculateFocusPoints(locationAction.Complexity),
-            CurrentNPC = locationSpot.PrimaryNPC,
+            TargetNPC = locationSpot.PrimaryNPC,
             LocationProperties = locationSpot.GetCurrentProperties()
         };
 
@@ -166,16 +144,61 @@
             context,
             player,
             locationAction);
-
+        
+        // Store reference in GameWorld
         gameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
 
-        await encounterManager.Initialize();
-        
+        // Initialize the encounter
+        await encounterManager.InitializeEncounter();
     }
 
-    private AIResponse GetInitialResult()
+    public async Task<EncounterResult> ProcessPlayerChoice(string choiceId)
     {
-        throw new NotImplementedException();
+        UserEncounterChoiceOption choiceOption = gameWorld.ActionStateTracker.GetEncounterChoiceOption(choiceId);
+        Location location = locationSystem.GetLocation(choiceOption.LocationName);
+        string? currentLocation = worldState.CurrentLocation?.Id;
+        if (string.IsNullOrWhiteSpace(currentLocation)) return null;
+
+        EncounterResult encounterResult = await gameWorld.ActionStateTracker.CurrentEncounterManager
+            .ProcessPlayerChoice(gameWorld, choiceOption.Choice);
+
+        ActionResults currentEncounterResult = encounterResult.ActionResult;
+        if (currentEncounterResult == ActionResults.Ongoing)
+        {
+            ProcessOngoingEncounter(encounterResult);
+        }
+        else
+        {
+            ProcessEndEncounter(encounterResult);
+        }
+
+        return encounterResult;
+    }
+
+
+    private void ProcessOngoingEncounter(EncounterResult encounterResult)
+    {
+        if (!IsGameOver(gameWorld.Player))
+        {
+            gameWorld.ActionStateTracker.CurrentEncounterResult = encounterResult;
+
+            List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult);
+            gameWorld.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
+        }
+        else
+        {
+            GameOver();
+            return;
+        }
+    }
+
+    public void ProcessEndEncounter(EncounterResult result)
+    {
+        worldState.MarkEncounterCompleted(result.locationAction.ActionId);
+        gameWorld.ActionStateTracker.CurrentEncounterResult = result;
+
+        AIResponse AIResponse = result.AIResponse;
+        string narrative = AIResponse?.BeatNarration;
     }
 
     private int CalculateFocusPoints(int complexity)
@@ -185,7 +208,7 @@
 
     private void CheckEncounterState()
     {
-        if (gameWorld.CurrentEncounter != null && gameWorld.CurrentEncounter.IsEncounterComplete)
+        if (gameWorld.CurrentEncounterManager != null && gameWorld.CurrentEncounterManager.IsEncounterComplete)
         {
             // Handle encounter completion
             if (!gameWorld.StreamingContentState.IsStreaming)
@@ -194,27 +217,6 @@
                 gameWorld.EndEncounter();
             }
         }
-    }
-
-    private void ProcessPlayerArchetype()
-    {
-        Professions archetype = player.Archetype;
-        int XpBonusForArchetype = 300;
-
-        switch (archetype)
-        {
-            case Professions.Warrior:
-                playerProgression.AddSkillExp(SkillTypes.BruteForce, XpBonusForArchetype);
-                break;
-            default:
-                playerProgression.AddSkillExp(SkillTypes.BruteForce, XpBonusForArchetype);
-                break;
-        }
-    }
-
-    public async Task RefreshCard(SkillCard card)
-    {
-        player.RefreshCard(card);
     }
 
     private async Task<List<UserActionOption>> CreateUserActionsForLocationSpot(Location location, LocationSpot locationSpot, List<LocationAction> locationActions)
@@ -415,105 +417,11 @@
     }
 
 
-    public async Task<EncounterResult> ProcessPlayerChoice(string choiceId)
-    {
-        UserEncounterChoiceOption choiceOption = gameWorld.ActionStateTracker.GetEncounterChoiceOption(choiceId);
-
-        Location location = locationSystem.GetLocation(choiceOption.LocationName);
-
-        string? currentLocation = worldState.CurrentLocation?.Id;
-        if (string.IsNullOrWhiteSpace(currentLocation)) return null;
-
-        EncounterResult encounterResult = await gameWorld.ActionStateTracker.EncounterManager
-            .ProcessPlayerChoice(gameWorld, choiceOption.Choice);
-
-        ActionResults currentEncounterResult = encounterResult.ActionResult;
-        if (currentEncounterResult == ActionResults.Ongoing)
-        {
-            ProcessOngoingEncounter(encounterResult);
-        }
-        else
-        {
-            await ProcessEncounterNarrativeEnding(encounterResult);
-        }
-
-        return encounterResult;
-    }
-
-    private void ProcessOngoingEncounter(EncounterResult encounterResult)
-    {
-        if (!IsGameOver(gameWorld.Player))
-        {
-            gameWorld.ActionStateTracker.EncounterResult = encounterResult;
-
-            List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult);
-            gameWorld.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
-        }
-        else
-        {
-            GameOver();
-            return;
-        }
-    }
-
-    private void GameOver()
-    {
-        gameWorld.ActionStateTracker.CompleteAction();
-    }
-
-    private bool IsGameOver(Player playerState)
-    {
-        return false;
-    }
-
-    /// <summary>
-    /// ONLY EncounterContext related outcome that is NOT ALSO included in basic actions
-    /// </summary>
-    /// <param name="result"></param>
-    /// <returns></returns>
-    public async Task ProcessEncounterNarrativeEnding(EncounterResult result)
-    {
-        worldState.MarkEncounterCompleted(result.locationAction.ActionId);
-
-        gameWorld.ActionStateTracker.EncounterResult = result;
-
-        AIResponse AIResponse = result.AIResponse;
-        string narrative = AIResponse?.BeatNarration;
-
-        if (_processStateChanges)
-        {
-            //await ProcessPostEncounterEvolution(result, narrative, outcome);
-        }
-    }
-
-    private async Task CreateMemoryRecord(EncounterResult encounterResult)
-    {
-        string oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
-
-        // Create memory entry
-        MemoryConsolidationInput memoryInput = new MemoryConsolidationInput { OldMemory = oldMemory };
-
-        string currentLocation = worldState.CurrentLocation.Id;
-        if (string.IsNullOrWhiteSpace(currentLocation)) return;
-
-        string memoryEntry = await evolutionSystem.ConsolidateMemory(encounterResult.EncounterContext, memoryInput);
-
-        string location = encounterResult.EncounterContext.LocationName;
-        string locationSpot = encounterResult.EncounterContext.LocationSpotName;
-        string actionName = encounterResult.locationAction.ActionId;
-        string description = encounterResult.locationAction.ObjectiveDescription;
-
-        string title = $"{location} - {locationSpot}, {actionName} - {description}" + Environment.NewLine;
-
-        string memoryEntryToWrite = title + memoryEntry;
-
-        await MemoryFileAccess.WriteToMemoryFile(memoryEntryToWrite);
-    }
 
     public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
     {
         AIResponse AIResponse = encounterResult.AIResponse;
-        List<EncounterChoice> choices = gameWorld.ActionStateTracker.EncounterManager.GetChoices();
+        List<EncounterChoice> choices = gameWorld.ActionStateTracker.CurrentEncounterManager.Choices;
         List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
 
         int i = 0;
@@ -542,8 +450,9 @@
         Location location = locationSystem.GetLocation(choiceOption.LocationName);
 
         // Execute the choice
-        EncounterManager encounterContext = gameWorld.ActionStateTracker.EncounterManager;
-        ChoiceProjection choiceProjection = gameWorld.ActionStateTracker.EncounterManager.GetChoiceProjection(encounterContext, choiceOption.Choice);
+        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
+        ChoiceProjection choiceProjection = gameWorld.ActionStateTracker.CurrentEncounterManager
+            .GetChoiceProjection(encounterManager.state, choiceOption.Choice);
         return choiceProjection;
     }
 
@@ -560,32 +469,6 @@
     public List<Location> GetPlayerKnownLocations()
     {
         return locationSystem.GetAllLocations();
-    }
-
-    public List<string> GetConnectedLocations()
-    {
-        List<string> loc =
-            locationSystem.GetAllLocations()
-            .Where(x =>
-            {
-                return x != gameWorld.WorldState.CurrentLocation;
-            })
-            .Select(x =>
-            {
-                return x.Id;
-            })
-            .ToList();
-
-        return loc;
-    }
-
-    public bool CanTravelTo(string destinationName)
-    {
-        if (worldState.CurrentLocation == null)
-            return false;
-
-        // Check if locations are directly connected
-        return worldState.CurrentLocation.ConnectedTo?.Contains(destinationName) ?? false;
     }
 
     public bool CanMoveToSpot(string locationSpotId)
@@ -607,7 +490,7 @@
 
     public EncounterViewModel? GetEncounterViewModel()
     {
-        EncounterManager encounterManager = gameWorld.ActionStateTracker.EncounterManager;
+        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager ;
         List<UserEncounterChoiceOption> userEncounterChoiceOptions = gameWorld.ActionStateTracker.UserEncounterChoiceOptions;
 
         if (encounterManager == null)
@@ -688,11 +571,11 @@
         await UpdateGameState();
     }
 
-    public void UpdateOpportunities(GameWorld gameState)
+    public void UpdateOpportunities(GameWorld gameWorld)
     {
         List<OpportunityDefinition> expiredOpportunities = new List<OpportunityDefinition>();
 
-        foreach (OpportunityDefinition opportunity in gameState.WorldState.ActiveOpportunities)
+        foreach (OpportunityDefinition opportunity in gameWorld.WorldState.ActiveOpportunities)
         {
             // Reduce days remaining
             opportunity.ExpirationDays--;
@@ -707,26 +590,12 @@
         // Remove expired Opportunities
         foreach (OpportunityDefinition expired in expiredOpportunities)
         {
-            gameState.WorldState.ActiveOpportunities.Remove(expired);
+            gameWorld.WorldState.ActiveOpportunities.Remove(expired);
             // Optionally: Add to failed Opportunities list
-            gameState.WorldState.FailedOpportunities.Add(expired);
+            gameWorld.WorldState.FailedOpportunities.Add(expired);
 
             // Add message
             // messageSystem.AddSystemMessage($"Opportunity expired: {expired.Name}");
-        }
-    }
-
-    private void SaveGame()
-    {
-        try
-        {
-            contentLoader.SaveGame(gameWorld);
-            messageSystem.AddSystemMessage("Game saved successfully");
-        }
-        catch (Exception ex)
-        {
-            messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
-            Console.WriteLine($"Error saving game: {ex}");
         }
     }
 
@@ -749,9 +618,39 @@
         return goalFlags;
     }
 
+    public async Task RefreshCard(SkillCard card)
+    {
+        player.RefreshCard(card);
+    }
+
+    private void SaveGame()
+    {
+        try
+        {
+            contentLoader.SaveGame(gameWorld);
+            messageSystem.AddSystemMessage("Game saved successfully");
+        }
+        catch (Exception ex)
+        {
+            messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
+            Console.WriteLine($"Error saving game: {ex}");
+        }
+    }
+
     // Public method to get current game state - used by polling UI
     public GameWorldSnapshot GetGameSnapshot()
     {
         return new GameWorldSnapshot(gameWorld);
+    }
+
+
+    private void GameOver()
+    {
+        gameWorld.ActionStateTracker.CompleteAction();
+    }
+
+    private bool IsGameOver(Player playerState)
+    {
+        return false;
     }
 }

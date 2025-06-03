@@ -41,7 +41,7 @@
 		<Content Update="Content\Templates\cards.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\gameState.json">
+		<Content Update="Content\Templates\gameWorld.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="Content\Templates\locations.json">

@@ -2,7 +2,7 @@
 {
     // Existing properties
     public Player Player { get; private set; }
-    public EncounterState CurrentEncounter { get; private set; }
+    public EncounterManager CurrentEncounterManager { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }
 
     // New journey-related properties
@@ -44,14 +44,14 @@
         IsAwaitingAIResponse = false;
     }
 
-    public void StartEncounter(EncounterState encounterState)
+    public void StartEncounter(EncounterManager encounterManager)
     {
-        CurrentEncounter = encounterState;
+        CurrentEncounterManager = encounterManager;
     }
 
     public void EndEncounter()
     {
-        CurrentEncounter = null;
+        CurrentEncounterManager = null;
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;
     }

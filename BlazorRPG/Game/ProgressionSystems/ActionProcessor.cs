@@ -1,6 +1,6 @@
 ﻿public class ActionProcessor
 {
-    public GameWorld gameState { get; }
+    public GameWorld gameWorld { get; }
     public Player player { get; }
     public WorldState worldState { get; }
     public PlayerProgression playerProgression { get; }
@@ -9,24 +9,24 @@
     private LocationRepository locationRepository { get; }
 
     public ActionProcessor(
-        GameWorld gameState,
+        GameWorld gameWorld,
         PlayerProgression playerProgression,
         LocationPropertyManager environmentalPropertyManager,
         LocationRepository locationRepository,
         MessageSystem messageSystem)
     {
-        this.gameState = gameState;
+        this.gameWorld = gameWorld;
         this.playerProgression = playerProgression;
         this.environmentalPropertyManager = environmentalPropertyManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
-        this.player = gameState.Player;
-        this.worldState = gameState.WorldState;
+        this.player = gameWorld.Player;
+        this.worldState = gameWorld.WorldState;
     }
 
     public void ProcessTurnChange()
     {
-        Player playerState = gameState.Player;
+        Player playerState = gameWorld.Player;
 
         int energy = playerState.CurrentEnergy();
         int turnAp = playerState.MaxActionPoints;
@@ -37,13 +37,13 @@
             playerState.SetNewEnergy(newEnergy);
         }
 
-        gameState.TimeManager.StartNewDay();
-        gameState.Player.ModifyActionPoints(gameState.Player.MaxActionPoints);
+        gameWorld.TimeManager.StartNewDay();
+        gameWorld.Player.ModifyActionPoints(gameWorld.Player.MaxActionPoints);
     }
 
     public void ProcessAction(LocationAction action)
     {
-        Player playerState = gameState.Player;
+        Player playerState = gameWorld.Player;
         playerState.ApplyActionPointCost(action.ActionPointCost);
     }
 
@@ -62,7 +62,7 @@
     {
         foreach (IRequirement requirement in action.Requirements)
         {
-            if (!requirement.IsMet(gameState))
+            if (!requirement.IsMet(gameWorld))
             {
                 return false; // Requirement not met
             }
@@ -71,7 +71,7 @@
         if (action.ActionExecutionType == ActionExecutionTypes.Encounter)
         {
             string encounterId = action.ActionId;
-            if (gameState.WorldState.IsEncounterCompleted(encounterId))
+            if (gameWorld.WorldState.IsEncounterCompleted(encounterId))
             {
                 return false; // EncounterContext already completed
             }

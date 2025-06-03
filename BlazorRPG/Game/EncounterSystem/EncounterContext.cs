@@ -9,7 +9,7 @@
     public List<SkillCard> PlayerSkillCards { get; set; }
     public List<SkillCard> PlayerAllCards { get; set; }
 
-    public NPC CurrentNPC { get; set; }
+    public NPC TargetNPC { get; set; }
     public List<string> LocationProperties { get; set; }
 
     public string ObjectiveDescription { get; set; }
@@ -17,4 +17,8 @@
     public int StartingFocusPoints { get; set; }
     public Player Player { get; set; }
     public ApproachDefinition? ActionApproach { get; set; }
+    
+    public List<FlagStates> GoalFlags { get; private set; }
+    public List<FlagDefinition> FlagDefinitions { get; private set; }
+
 }

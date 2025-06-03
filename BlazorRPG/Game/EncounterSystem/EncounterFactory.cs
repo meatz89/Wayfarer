@@ -1,19 +1,20 @@
 ﻿public class EncounterFactory
 {
+    public WorldState worldState;
+    private AIGameMaster aiGameMaster;
+    private ChoiceProjectionService choiceProjectionService;
     private IConfiguration configuration;
     private ILogger<EncounterFactory> logger;
 
-    public WorldState worldState;
-
     public EncounterFactory(
-        GameWorld gameState,
-        MessageSystem messageSystem,
-        EncounterContextManager encounterContextManager,
-        WorldStateInputBuilder worldStateInputCreator,
+        GameWorld gameWorld,
+        AIGameMaster aiGameMaster,
         ChoiceProjectionService choiceProjectionService,
         IConfiguration configuration,
         ILogger<EncounterFactory> logger)
     {
+        this.aiGameMaster = this.aiGameMaster;
+        this.choiceProjectionService = choiceProjectionService;
         this.configuration = configuration;
         this.logger = logger;
     }
@@ -35,7 +36,9 @@
         EncounterManager encounterManager = new EncounterManager(
             context,
             state,
-            locationAction);
+            locationAction,
+            choiceProjectionService,
+            aiGameMaster);
 
         return encounterManager;
     }

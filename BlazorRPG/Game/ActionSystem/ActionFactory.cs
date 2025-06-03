@@ -7,13 +7,13 @@
 
     public ActionFactory(
         ActionRepository actionRepository,
-        GameWorld gameState,
+        GameWorld gameWorld,
         LocationActionProcessor encounterFactory)
     {
         this.actionRepository = actionRepository;
         this.encounterFactory = encounterFactory;
-        this.playerState = gameState.Player;
-        this.worldState = gameState.WorldState;
+        this.playerState = gameWorld.Player;
+        this.worldState = gameWorld.WorldState;
     }
 
     public LocationAction CreateActionFromTemplate(

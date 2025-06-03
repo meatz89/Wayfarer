@@ -2,9 +2,9 @@
 {
     private WorldState worldState;
 
-    public LocationRepository(GameWorld gameState)
+    public LocationRepository(GameWorld gameWorld)
     {
-        worldState = gameState.WorldState;
+        worldState = gameWorld.WorldState;
     }
 
     public Location GetCurrentLocation()

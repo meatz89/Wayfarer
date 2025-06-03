@@ -7,21 +7,31 @@
     public string StreamingText { get; private set; }
     public bool IsStreaming { get; private set; }
     public float StreamProgress { get; private set; }
+    public List<EncounterChoice> AvailableChoices { get; }
 
     // Added fields for integration
     public AIResponse CurrentAIResponse { get; private set; }
     public bool IsAwaitingAIResponse { get; private set; }
     public bool CanSelectChoice { get; private set; }
 
-    public GameWorldSnapshot(GameWorld gameWorld)
+    public GameWorldSnapshot(GameWorld gameWorld, List<EncounterChoice> availableChoices)
     {
-        HasActiveEncounter = gameWorld.CurrentEncounter != null;
+        HasActiveEncounter = gameWorld.CurrentEncounterManager != null;
 
         if (HasActiveEncounter)
         {
-            CurrentFocusPoints = gameWorld.ActionStateTracker.EncounterManager.state.FocusPoints;
-            MaxFocusPoints = gameWorld.ActionStateTracker.EncounterManager.state.MaxFocusPoints;
-            ActiveFlags = gameWorld.ActionStateTracker.EncounterManager.state.FlagManager.GetAllActiveFlags();
+            EncounterState state = gameWorld.CurrentEncounterManager.GetEncounterState();
+            CurrentFocusPoints = state.FocusPoints;
+            MaxFocusPoints = state.MaxFocusPoints;
+            ActiveFlags = state.FlagManager.GetAllActiveFlags();
+
+            StreamingContentState streamingState = gameWorld.CurrentEncounterManager.GetStreamingState();
+            StreamingText = streamingState.CurrentText;
+            IsStreaming = streamingState.IsStreaming;
+            StreamProgress = streamingState.StreamProgress;
+
+            AvailableChoices = gameWorld.CurrentEncounterManager.GetCurrentChoices();
+            CanSelectChoice = !IsStreaming && AvailableChoices != null && AvailableChoices.Count > 0;
         }
 
         StreamingText = gameWorld.StreamingContentState.CurrentText;
@@ -38,5 +48,6 @@
         CanSelectChoice = gameWorld.CurrentAIResponse != null &&
                            !gameWorld.IsAwaitingAIResponse &&
                            !gameWorld.StreamingContentState.IsStreaming;
+        AvailableChoices = availableChoices;
     }
 }

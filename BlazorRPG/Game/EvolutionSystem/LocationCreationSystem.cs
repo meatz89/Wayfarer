@@ -3,7 +3,7 @@
     private LocationSystem locationSystem;
     private CharacterSystem characterSystem;
     private Opportunitiesystem Opportunitiesystem;
-    private GameWorld gameState;
+    private GameWorld gameWorld;
     private ActionGenerator actionGenerator;
     private LocationRepository locationRepository;
     private ActionRepository actionRepository;
@@ -15,7 +15,7 @@
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
         Opportunitiesystem Opportunitiesystem,
-        GameWorld gameState,
+        GameWorld gameWorld,
         ActionGenerator actionGenerator,
         LocationRepository locationRepository,
         ActionRepository actionRepository,
@@ -27,7 +27,7 @@
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
         this.Opportunitiesystem = Opportunitiesystem;
-        this.gameState = gameState;
+        this.gameWorld = gameWorld;
         this.actionGenerator = actionGenerator;
         this.locationRepository = locationRepository;
         this.actionRepository = actionRepository;
@@ -122,8 +122,8 @@
         int locationDepth
         )
     {
-        WorldState worldState = gameState.WorldState;
-        Player playerState = gameState.Player;
+        WorldState worldState = gameWorld.WorldState;
+        Player playerState = gameWorld.Player;
 
         // Get all locations
         List<Location> allLocations = locationRepository.GetAllLocations();
