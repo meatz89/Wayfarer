@@ -13,11 +13,11 @@ namespace BlazorRPG.Pages
         {
             if (firstRender && !string.IsNullOrEmpty(MusicDirectory))
             {
-                await LoadAndPlayFolderAsync(MusicDirectory);
+                await LoadFolderAsync(MusicDirectory);
             }
         }
 
-        public async Task LoadAndPlayFolderAsync(string folderName)
+        public async Task LoadFolderAsync(string folderName)
         {
             MusicService.ClearQueue();
 
@@ -27,31 +27,25 @@ namespace BlazorRPG.Pages
                 return;
 
             MusicService.EnqueueTracks(tracks);
+
+            Thread.Sleep(1000); // Ensure the queue is populated before starting playback
+
             await MusicService.StartPlayingQueueAsync();
         }
 
         public async Task UpdateMusicForContextAsync(List<string> contextTags)
         {
-            // Stop current playback
             await MusicService.StopCurrentTrackAsync();
-
-            // Clear the queue
             MusicService.ClearQueue();
 
-            // Filter tracks based on tags
             List<Track> matchingTracks = FilterTracksByTags(contextTags);
 
-            // If no matching tracks, return
             if (matchingTracks.Count == 0)
                 return;
 
-            // Shuffle tracks for variety
             List<Track> shuffledTracks = ShuffleTracks(matchingTracks);
-
-            // Enqueue filtered tracks
             MusicService.EnqueueTracks(shuffledTracks);
 
-            // Start playing the first track
             await MusicService.StartPlayingQueueAsync();
         }
 
