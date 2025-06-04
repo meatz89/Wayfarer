@@ -21,4 +21,5 @@
     public List<FlagStates> GoalFlags { get; private set; }
     public List<FlagDefinition> FlagDefinitions { get; private set; }
 
+    public int DangerLevel { get; set; }
 }

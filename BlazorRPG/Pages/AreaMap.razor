@@ -1,6 +1,6 @@
 ﻿@* AreaMap.razor *@
 @inject GameWorldManager ActionManager
-@inject GameWorld GameState
+@inject GameWorld GameWorld
 
 <div class="area-map-container">
     <div class="locations-grid">
@@ -20,7 +20,7 @@
     </div>
 </div>
 @code {
-    [Inject] public GameWorldManager GameManager { get; set; }
+    [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback<string> OnTravel { get; set; }
@@ -28,7 +28,7 @@
     private List<Location> GetTravelableLocations()
     {
         List<Location> enumerable = Locations.Where(loc =>
-            GameManager.CanTravelTo(loc.Id)).ToList();
+            GameWorldManager.CanTravelTo(loc.Id)).ToList();
 
         return enumerable;
     }

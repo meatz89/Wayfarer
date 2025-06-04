@@ -46,7 +46,7 @@
         WorldStateInput worldStateInput = await worldStateInputCreator.CreateWorldStateInput(locationId);
 
         // Get location details from AI
-        LocationDetails details = await aiService.GenerateLocationDetailsAsync(input, worldStateInput);
+        LocationDetails details = null;// = await aiService.GenerateLocationDetails(input, worldStateInput);
 
         // Convert SpotDetails to LocationSpot objects
         return await IntegrateNewLocation(details);
@@ -123,7 +123,7 @@
         )
     {
         WorldState worldState = gameWorld.WorldState;
-        Player playerState = gameWorld.Player;
+        Player player = gameWorld.Player;
 
         // Get all locations
         List<Location> allLocations = locationRepository.GetAllLocations();
@@ -131,7 +131,7 @@
         // Create context for location generation
         LocationCreationInput context = new LocationCreationInput
         {
-            CharacterArchetype = playerState.Archetype.ToString(),
+            CharacterArchetype = player.Archetype.ToString(),
             LocationName = worldState.CurrentLocation?.Id ?? "Unknown",
 
             KnownLocations = this.locationSystem.FormatLocations(allLocations),
@@ -142,7 +142,7 @@
             ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
             AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
-            WasTravelEncounterContext = true,
+            WasEncounterContext = true,
             TravelOrigin = travelOrigin,
             TravelDestination = travelDestination,
 

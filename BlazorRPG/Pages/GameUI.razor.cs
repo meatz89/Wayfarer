@@ -5,10 +5,12 @@ namespace BlazorRPG.Pages;
 public partial class GameUI : ComponentBase
 {
     [Inject] private ContentValidator ContentValidator { get; set; }
-    [Inject] private GameWorld GameState { get; set; }
-    [Inject] private GameWorldManager GameManager { get; set; }
+    [Inject] private GameWorld GameWorld { get; set; }
+    [Inject] private GameWorldManager GameWorldManager { get; set; }
 
     private Timer _pollingTimer;
+    private GameWorldSnapshot currentSnapshot;
+
     private bool _previousLoadingState;
     private string _previousMessage = string.Empty;
     private int _previousProgress;
@@ -19,7 +21,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return GameState.Player;
+            return GameWorld.Player;
         }
     }
 
@@ -46,9 +48,22 @@ public partial class GameUI : ComponentBase
         _pollingTimer = new Timer(CheckLoadingState, null, 0, 100);
     }
 
+    private void PollGameState()
+    {
+        // Poll for current game state
+        currentSnapshot = GameWorldManager.GetGameSnapshot();
+    }
+
+    public void Dispose()
+    {
+        _pollingTimer?.Dispose();
+    }
+
     private void CheckLoadingState(object state)
     {
         // Check if loading state has changed
+        PollGameState();
+        
         bool hasChanged = _previousLoadingState != LoadingStateService.IsLoading ||
             _previousMessage != LoadingStateService.Message ||
             _previousProgress != LoadingStateService.Progress;
@@ -61,11 +76,6 @@ public partial class GameUI : ComponentBase
 
             InvokeAsync(StateHasChanged);
         }
-    }
-
-    public void Dispose()
-    {
-        _pollingTimer?.Dispose();
     }
 
     private async Task ResolvedMissingReferences()
@@ -87,10 +97,10 @@ public partial class GameUI : ComponentBase
         StateHasChanged();
     }
 
-    private async Task HandleCharacterCreated(Player playerState)
+    private async Task HandleCharacterCreated(Player player)
     {
         CurrentScreen = CurrentViews.LocationScreen;
-        await GameManager.StartGame();
+        await GameWorldManager.StartGame();
         StateHasChanged();
     }
 }

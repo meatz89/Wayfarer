@@ -26,15 +26,15 @@
 
     public void ProcessTurnChange()
     {
-        Player playerState = gameWorld.Player;
+        Player player = gameWorld.Player;
 
-        int energy = playerState.CurrentEnergy();
-        int turnAp = playerState.MaxActionPoints;
+        int energy = player.CurrentEnergy();
+        int turnAp = player.MaxActionPoints;
 
         int newEnergy = energy - turnAp;
         if (newEnergy >= 0)
         {
-            playerState.SetNewEnergy(newEnergy);
+            player.SetNewEnergy(newEnergy);
         }
 
         gameWorld.TimeManager.StartNewDay();
@@ -43,8 +43,8 @@
 
     public void ProcessAction(LocationAction action)
     {
-        Player playerState = gameWorld.Player;
-        playerState.ApplyActionPointCost(action.ActionPointCost);
+        Player player = gameWorld.Player;
+        player.ApplyActionPointCost(action.ActionPointCost);
     }
 
     public void UpdateState()

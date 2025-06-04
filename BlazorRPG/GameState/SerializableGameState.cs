@@ -1,4 +1,4 @@
-﻿public class SerializableGameState
+﻿public class SerializableGameWorld
 {
     public string CurrentLocationId { get; set; }
     public string CurrentLocationSpotId { get; set; }

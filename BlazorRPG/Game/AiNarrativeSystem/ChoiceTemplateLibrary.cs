@@ -1,4 +1,5 @@
-﻿public static class ChoiceTemplateLibrary
+﻿
+public static class ChoiceTemplateLibrary
 {
     public static List<ChoiceTemplate> GetAllTemplates()
     {
@@ -53,8 +54,13 @@
         };
     }
 
-    internal object GetEffect(object iD)
+    public static ChoiceTemplate GetEffect(string id)
     {
-        throw new NotImplementedException();
+        return GetAllTemplates().FirstOrDefault(t => t.TemplateName == id.ToString());
+    }
+
+    public static bool HasEffect(string? id)
+    {
+        return GetAllTemplates().Any(t => t.TemplateName == id);
     }
 }

@@ -1,19 +1,19 @@
 ﻿public class TimeManager
 {
     public const int TimeDayStart = 6;
-    private Player playerState;
+    private Player player;
     private WorldState worldState;
 
-    public TimeManager(Player playerState, WorldState worldState)
+    public TimeManager(Player player, WorldState worldState)
     {
-        this.playerState = playerState;
+        this.player = player;
         this.worldState = worldState;
     }
 
     public void UpdateTimeWindow()
     {
-        int maxAP = playerState.MaxActionPoints;
-        int currentAP = playerState.CurrentActionPoints();
+        int maxAP = player.MaxActionPoints;
+        int currentAP = player.CurrentActionPoints();
         int actionsUsed = maxAP - currentAP;
 
         int activeDayStartHour = TimeDayStart;  // 6 AM

@@ -1,15 +1,15 @@
 ﻿using System.Text.Json;
 
-public static class GameStateSerializer
+public static class GameWorldSerializer
 {
     private static JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
     {
         WriteIndented = true
     };
 
-    public static string SerializeGameState(GameWorld gameWorld)
+    public static string SerializeGameWorld(GameWorld gameWorld)
     {
-        SerializableGameState serialized = new SerializableGameState
+        SerializableGameWorld serialized = new SerializableGameWorld
         {
             CurrentLocationId = gameWorld.WorldState.CurrentLocation?.Id,
             CurrentLocationSpotId = gameWorld.WorldState.CurrentLocationSpot?.SpotID,
@@ -41,10 +41,10 @@ public static class GameStateSerializer
         return JsonSerializer.Serialize(serialized, _jsonOptions);
     }
 
-    public static GameWorld DeserializeGameState(string json, List<Location> locations, List<LocationSpot> spots,
+    public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots,
             List<ActionDefinition> actions, List<OpportunityDefinition> Opportunities, List<SkillCard> cards)
     {
-        SerializableGameState serialized = JsonSerializer.Deserialize<SerializableGameState>(json, _jsonOptions);
+        SerializableGameWorld serialized = JsonSerializer.Deserialize<SerializableGameWorld>(json, _jsonOptions);
         if (serialized == null)
         {
             throw new JsonException("Failed to deserialize game state");

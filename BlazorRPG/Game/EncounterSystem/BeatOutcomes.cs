@@ -1,4 +1,4 @@
-﻿public enum EncounterStageOutcomes
+﻿public enum BeatOutcomes
 {
     None,
     Failure,

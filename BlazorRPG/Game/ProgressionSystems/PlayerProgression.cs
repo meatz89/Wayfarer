@@ -1,32 +1,32 @@
 ﻿public class PlayerProgression
 {
-    private Player playerState;
+    private Player player;
     private MessageSystem messageSystem;
 
     public PlayerProgression(GameWorld gameWorld, MessageSystem messageSystem)
     {
         this.messageSystem = messageSystem;
-        this.playerState = gameWorld.Player;
+        this.player = gameWorld.Player;
     }
 
     public void AddPlayerExp(int xpAmount)
     {
-        playerState.CurrentXP += xpAmount;
+        player.CurrentXP += xpAmount;
 
         // Check for level up
         int xpRequiredForNextLevel = GetXpRequiredForNextLevel();
-        playerState.XPToNextLevel = xpRequiredForNextLevel;
+        player.XPToNextLevel = xpRequiredForNextLevel;
 
-        if (playerState.CurrentXP >= xpRequiredForNextLevel)
+        if (player.CurrentXP >= xpRequiredForNextLevel)
         {
             LevelUp();
-            playerState.XPToNextLevel = GetXpRequiredForNextLevel();
+            player.XPToNextLevel = GetXpRequiredForNextLevel();
         }
     }
 
     public void AddSkillExp(SkillTypes skill, int xp)
     {
-        SkillProgress prog = playerState.Skills.Skills[skill];
+        SkillProgress prog = player.Skills.Skills[skill];
         prog.XP += xp;
         while (prog.XP >= prog.XPToNextLevel)
         {
@@ -37,20 +37,20 @@
 
     private void LevelUp()
     {
-        playerState.Level++;
+        player.Level++;
 
         // Heal on level up
-        playerState.HealFully();
+        player.HealFully();
 
         // Reset XP for next level
-        playerState.CurrentXP -= GetXpRequiredForNextLevel(playerState.Level - 1);
+        player.CurrentXP -= GetXpRequiredForNextLevel(player.Level - 1);
 
         messageSystem.AddSystemMessage("Level Up", SystemMessageTypes.Success);
     }
 
     public int GetXpRequiredForNextLevel(int level = 0)
     {
-        if (level == 0) level = playerState.Level;
+        if (level == 0) level = player.Level;
 
         // Simple formula: 100 * current level
         return 100 * level;

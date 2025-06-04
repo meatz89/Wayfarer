@@ -2,7 +2,7 @@
 
 public partial class NarrativeViewBase : ComponentBase
 {
-    [Inject] public GameWorld GameState { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
     [Parameter] public string LocationName { get; set; }
     [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
     [Parameter] public EncounterResult EncounterResult { get; set; }
@@ -172,8 +172,8 @@ public partial class NarrativeViewBase : ComponentBase
         return new CoinsChangeDisplay
         {
             Amount = EncounterResult.PostEncounterEvolution.CoinChange,
-            Current = GameState.Player.Money,
-            New = GameState.Player.Money + EncounterResult.PostEncounterEvolution.CoinChange
+            Current = GameWorld.Player.Money,
+            New = GameWorld.Player.Money + EncounterResult.PostEncounterEvolution.CoinChange
         };
     }
 

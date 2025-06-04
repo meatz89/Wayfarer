@@ -1,10 +1,10 @@
-﻿public class EncounterChoiceResponseProcessor
+﻿public class EncounterChoiceProcessor
 {
-    private ChoiceTemplateLibrary _templateLibrary;
+    public ILogger<EncounterChoiceProcessor> _logger { get; }
 
-    public EncounterChoiceResponseProcessor(ChoiceTemplateLibrary templateLibrary, ILogger<EncounterChoiceResponseProcessor> logger)
+    public EncounterChoiceProcessor(ILogger<EncounterChoiceProcessor> logger)
     {
-        _templateLibrary = templateLibrary;
+        _logger = logger;
     }
 
     public BeatOutcome ProcessChoice(EncounterChoice choice, string skillOptionName, EncounterState state, Player player)
@@ -45,11 +45,11 @@
         // Apply appropriate effect
         if (success)
         {
-            ApplyEffect(selectedOption.SuccessEffect.ID, state);
+            ApplyEffect(selectedOption.SuccessEffectEntry.ID, state);
         }
         else
         {
-            ApplyEffect(selectedOption.FailureEffect.ID, state);
+            ApplyEffect(selectedOption.FailureEffectEntry.ID, state);
         }
 
         // If this was a recovery action (0 Focus cost), increment consecutive recovery count
@@ -82,7 +82,6 @@
             SelectedOption = selectedOption,
         };
 
-        ChoiceResolver choiceResolver = new ChoiceResolver();
         BeatOutcome beatOutcome = choiceResolver.ResolveChoice(playerSelection, state);
 
         return beatOutcome;
@@ -98,26 +97,26 @@
         return 1; // Minimal progress for failed action
     }
 
-    private EncounterStageOutcomes DetermineOutcome(EncounterState state, int progressGained)
+    private BeatOutcome DetermineOutcome(EncounterState state, int progressGained)
     {
         if (!state.IsEncounterComplete)
         {
-            return EncounterStageOutcomes.None;
+            return BeatOutcome.None;
         }
 
         int projectedTotalProgress = state.CurrentProgress + progressGained;
         int successThreshold = 10; // Basic success threshold
 
         return projectedTotalProgress >= successThreshold
-            ? EncounterStageOutcomes.Success
-            : EncounterStageOutcomes.Failure;
+            ? BeatOutcome.Success
+            : BeatOutcomes.Failure;
     }
 
     private void ApplyEffect(string effectID, EncounterState state)
     {
-        if (_templateLibrary.HasEffect(effectID))
+        if (ChoiceTemplateLibrary.HasEffect(effectID))
         {
-            IMechanicalEffect effect = _templateLibrary.GetEffect(effectID);
+            IMechanicalEffect effect = ChoiceTemplateLibrary.GetEffect(effectID).SuccessEffect;
             effect.Apply(state);
         }
         else
@@ -128,10 +127,10 @@
 
     private string GetMechanicalDescriptionForEffect(EffectEntry effect)
     {
-        if (_templateLibrary.HasEffect(effect.ID))
+        if (ChoiceTemplateLibrary.HasEffect(effect.ID))
         {
-            IMechanicalEffect effect = _templateLibrary.GetEffect(effect.ID);
-            return effect.GetDescriptionForPlayer();
+            IMechanicalEffect mechanicalEffect = ChoiceTemplateLibrary.GetEffect(effect.ID).SuccessEffect;
+            return mechanicalEffect.GetDescriptionForPlayer();
         }
         return "Unknown effect";
     }

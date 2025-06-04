@@ -9,7 +9,7 @@
 }
 
 @code {
-    [Inject] private GameWorld GameState { get; set; }
+    [Inject] private GameWorld GameWorld { get; set; }
     [Parameter] public int StateVersion { get; set; }
 
     public bool HasObjective()

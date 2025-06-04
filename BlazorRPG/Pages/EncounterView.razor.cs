@@ -2,7 +2,7 @@
 using Microsoft.JSInterop;
 public partial class EncounterViewBase : ComponentBase
 {
-    [Inject] public GameWorld GameState { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameWorldManager gameWorldManager { get; set; }
     [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
     [Parameter] public EncounterManager EncounterManager { get; set; }
@@ -26,7 +26,7 @@ public partial class EncounterViewBase : ComponentBase
     {
         get
         {
-            return GameState.Player;
+            return GameWorld.Player;
         }
     }
 
@@ -71,13 +71,13 @@ public partial class EncounterViewBase : ComponentBase
         {
             InvokeAsync(() =>
             {
-                PollGameState();
+                PollGameWorld();
                 StateHasChanged();
             });
         }, null, 0, 100); // Poll every 100ms
     }
 
-    private void PollGameState()
+    private void PollGameWorld()
     {
         // Poll for current game state
         currentSnapshot = gameWorldManager.GetGameSnapshot();
@@ -200,18 +200,18 @@ public partial class EncounterViewBase : ComponentBase
 
     public void GetChoices()
     {
-        CurrentChoices = GameState.ActionStateTracker.UserEncounterChoiceOptions;
+        CurrentChoices = GameWorld.ActionStateTracker.UserEncounterChoiceOptions;
         StateHasChanged();
     }
 
     protected int GetCurrentFocusPoints()
     {
-        return EncounterManager?.state?.FocusPoints ?? 0;
+        return EncounterManager?.GetEncounterState()?.FocusPoints ?? 0;
     }
 
     protected int GetMaxFocusPoints()
     {
-        return EncounterManager?.state?.MaxFocusPoints ?? 0;
+        return EncounterManager?.GetEncounterState()?.MaxFocusPoints ?? 0;
     }
 
 

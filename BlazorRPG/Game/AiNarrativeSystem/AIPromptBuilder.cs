@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-public partial class AIPromptBuilder
+public class AIPromptBuilder
 {
     private Dictionary<string, string> promptTemplates;
 
@@ -28,8 +28,8 @@ public partial class AIPromptBuilder
 
     public AIPrompt BuildInitialPrompt(
         EncounterContext encounterContext,
-        EncounterState encounterState,
-        string memoryContent)
+        EncounterState state,
+        string memory)
     {
         string template = promptTemplates[INTRO_MD];
 
@@ -74,7 +74,7 @@ public partial class AIPromptBuilder
         StringBuilder prompt = new StringBuilder(content);
 
         // Add core game state context
-        AddGameStateContext(prompt, gameWorld);
+        AddGameWorldContext(prompt, gameWorld);
 
         // Add time context
         AddGoalContext(prompt, gameWorld);
@@ -99,7 +99,7 @@ public partial class AIPromptBuilder
         return aiPrompt;
     }
 
-    private void AddGameStateContext(StringBuilder prompt, GameWorld gameWorld)
+    private void AddGameWorldContext(StringBuilder prompt, GameWorld gameWorld)
     {
         prompt.AppendLine("ENCOUNTER CONTEXT:");
 
@@ -107,7 +107,7 @@ public partial class AIPromptBuilder
         {
             // Add focus points
             EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.CurrentEncounterManager ;
-            EncounterState state = currentEncounterContext.state;
+            EncounterState state = currentEncounterContext.GetEncounterState();
             prompt.AppendLine($"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}");
 
             // Add active flags
@@ -128,7 +128,7 @@ public partial class AIPromptBuilder
             }
 
             // Add duration information
-            prompt.AppendLine($"- EncounterContext Duration: {state.DurationCounter}/{currentEncounterContext.state.MaxDuration}");
+            prompt.AppendLine($"- EncounterContext Duration: {state.DurationCounter}/{currentEncounterContext.GetEncounterState().MaxDuration}");
         }
 
         // Add player skills
@@ -198,7 +198,7 @@ public partial class AIPromptBuilder
     {
         prompt.AppendLine("TIME CONTEXT:");
         prompt.AppendLine($"- Current Day: {GameWorld.CurrentDay}");
-        prompt.AppendLine($"- Time of Day: {gameWorld.CurrentTimeOfDay}");
+        prompt.AppendLine($"- Time of Day: {GameWorld.CurrentTimeOfDay}");
 
         if (gameWorld.DeadlineDay > 0)
         {
@@ -290,9 +290,9 @@ public partial class AIPromptBuilder
 
     public AIPrompt BuildReactionPrompt(
         EncounterContext context,
-        EncounterState encounterState,
+        EncounterState state,
         EncounterChoice chosenOption,
-        BeatOutcome outcome)
+        BeatOutcomes outcome)
     {
         string template = promptTemplates[REACTION_MD];
 
@@ -325,29 +325,29 @@ public partial class AIPromptBuilder
 
     public AIPrompt BuildChoicesPrompt(
         EncounterContext context,
-        EncounterState encounterState,
-        WorldStateInput worldStateInput)
+        EncounterState state,
+        List<ChoiceTemplate> choiceTemplates)
     {
         string template = promptTemplates[CHOICES_MD];
 
         // Get player status
-        string playerStatus = $"- Focus Points: {encounterState.FocusPoints}/{encounterState.MaxFocusPoints}\n";
+        string playerStatus = $"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}\n";
 
         // Get encounterContext type and tier
         string encounterType = context.SkillCategory.ToString();
-        string encounterTier = GetTierName(encounterState.DurationCounter);
+        string encounterTier = GetTierName(state.DurationCounter);
         int successThreshold = 10; // Basic success threshold
 
         // Replace placeholders in template
         string content = CreatePromptJson(
             template
             .Replace("{ENCOUNTER_TYPE}", encounterType)
-            .Replace("{CURRENT_STAGE}", encounterState.DurationCounter.ToString())
+            .Replace("{CURRENT_STAGE}", state.DurationCounter.ToString())
             .Replace("{ENCOUNTER_TIER}", encounterTier)
-            .Replace("{CURRENT_PROGRESS}", encounterState.CurrentProgress.ToString())
+            .Replace("{CURRENT_PROGRESS}", state.CurrentProgress.ToString())
             .Replace("{SUCCESS_THRESHOLD}", successThreshold.ToString())
             .Replace("{PLAYER_STATUS}", playerStatus)
-            .Replace("{CURRENT_NARRATIVE}", encounterState.CurrentNarrative));
+            .Replace("{CURRENT_NARRATIVE}", state.CurrentNarrative));
         AIPrompt prompt = new AIPrompt()
         {
             Content = content
@@ -391,7 +391,7 @@ public partial class AIPromptBuilder
                 choiceText += "This choice will end the encounter\n";
                 choiceText += $"Projected Final Outcome: {projection.ProjectedOutcome}\n";
                 choiceText += $"Goal Achievement: " +
-                    $"{(projection.ProjectedOutcome != EncounterStageOutcomes.Failure ?
+                    $"{(projection.ProjectedOutcome != BeatOutcomes.Failure ?
                     "Will achieve goal to" : "Will fail to")} {context.LocationAction.ObjectiveDescription}\n";
             }
 
@@ -403,7 +403,7 @@ public partial class AIPromptBuilder
 
     public AIPrompt BuildEncounterEndPrompt(
         EncounterContext context,
-        EncounterStageOutcomes outcome,
+        BeatOutcomes outcome,
         EncounterChoice finalChoice
         )
     {
@@ -413,7 +413,7 @@ public partial class AIPromptBuilder
 
         string encounterGoal = context.LocationAction.ObjectiveDescription;
 
-        string goalAchievementStatus = outcome != EncounterStageOutcomes.Failure
+        string goalAchievementStatus = outcome != BeatOutcomes.Failure
             ? $"You have successfully achieved your goal to {encounterGoal}"
             : $"You have failed to {encounterGoal}";
 

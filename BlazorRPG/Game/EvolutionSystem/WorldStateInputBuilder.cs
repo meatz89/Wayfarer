@@ -22,20 +22,20 @@ public class WorldStateInputBuilder
     public async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
     {
         WorldState worldState = gameWorld.WorldState;
-        Player playerState = gameWorld.Player;
+        Player player = gameWorld.Player;
 
         // Create context for location generation
         WorldStateInput context = new WorldStateInput
         {
-            PlayerArchetype = playerState.Archetype.ToString(),
+            PlayerArchetype = player.Archetype.ToString(),
 
-            Health = playerState.Health,
-            MaxHealth = playerState.MaxHealth,
-            Concentration = playerState.Concentration,
-            MaxConcentration = playerState.MaxConcentration,
-            Energy = playerState.CurrentEnergy(),
-            MaxEnergy = playerState.MaxEnergy,
-            Coins = playerState.Money,
+            Health = player.Health,
+            MaxHealth = player.MaxHealth,
+            Concentration = player.Concentration,
+            MaxConcentration = player.MaxConcentration,
+            Energy = player.CurrentEnergy(),
+            MaxEnergy = player.MaxEnergy,
+            Coins = player.Money,
 
             CurrentLocation = currentLocation,
             LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
@@ -43,7 +43,7 @@ public class WorldStateInputBuilder
             LocationDepth = worldState.CurrentLocation.Depth,
             ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
 
-            Inventory = FormatPlayerInventory(playerState.Inventory),
+            Inventory = FormatPlayerInventory(player.Inventory),
 
             KnownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters()),
             ActiveOpportunities = Opportunitiesystem.FormatActiveOpportunities(worldState.GetOpportunities()),
@@ -51,7 +51,7 @@ public class WorldStateInputBuilder
             MemorySummary = await MemoryFileAccess.ReadFromMemoryFile(),
 
             Characters = worldState.GetCharacters(),
-            RelationshipList = playerState.Relationships
+            RelationshipList = player.Relationships
         };
 
         await MemoryFileAccess.WriteToLogFile(context);

@@ -1,240 +1,139 @@
 ﻿public class EncounterManager
 {
-    private EncounterContext context;
-    private EncounterState state;
-    private AIGameMaster aiGameMaster;
-    private ChoiceProjectionService choiceProjectionService;
-    private StreamingContentState streamingState;
-    private bool isAwaitingAIResponse = false;
+    private EncounterContext _context;
+    private EncounterState _state;
+    private AIGameMaster _aiGameMaster;
+    private AIPromptBuilder _promptBuilder;
+    private readonly WorldStateInputBuilder worldStateInputBuilder;
+    private ChoiceProjectionService _projectionService;
+    private StreamingContentState _streamingState;
+    private EncounterChoiceProcessor _choiceProcessor;
+    private bool _isAwaitingAIResponse = false;
 
-    public LocationAction locationAction;
+    public LocationAction _locationAction { get; private set; }
     public List<EncounterChoice> Choices = new List<EncounterChoice>();
-    private List<ChoiceProjection> currentChoiceProjections = new List<ChoiceProjection>();
+    private List<ChoiceProjection> _currentChoiceProjections = new List<ChoiceProjection>();
 
-    public Player player;
-    public WorldState worldState;
-    public EncounterResult EncounterResult;
+    public Player Player => _context.Player;
+    public WorldState WorldState { get; private set; }
+    public EncounterResult EncounterResult { get; private set; }
     public bool IsInitialState { get; set; }
+    public bool IsEncounterComplete => _state?.IsEncounterComplete ?? false;
+
     private bool _useAiNarrative = false;
     private bool _useMemory = false;
-    private ILogger<EncounterManager> _logger;
-    private List<ChoiceTemplate> allTemplates;
+    private List<ChoiceTemplate> _allTemplates;
 
     public EncounterManager(
         EncounterContext encounterContext,
-        EncounterState encounterState,
+        EncounterState state,
         LocationAction locationAction,
         ChoiceProjectionService choiceProjectionService,
-        AIGameMaster aiGameMaster)
+        AIGameMaster aiGameMaster,
+        AIPromptBuilder promptBuilder,
+        WorldStateInputBuilder worldStateInputBuilder,
+        EncounterChoiceProcessor choiceProcessor)
     {
-        this.context = encounterContext;
-        this.state = encounterState;
-        this.locationAction = locationAction;
-        this.choiceProjectionService = choiceProjectionService;
-        this.aiGameMaster = aiGameMaster;
+        _context = encounterContext;
+        _state = state;
+        _locationAction = locationAction;
+        _projectionService = choiceProjectionService;
+        _aiGameMaster = aiGameMaster;
+        _promptBuilder = promptBuilder;
+        this.worldStateInputBuilder = worldStateInputBuilder;
+        _choiceProcessor = choiceProcessor;
+        _streamingState = new StreamingContentState();
         _useAiNarrative = true;
         _useMemory = true;
-        allTemplates = ChoiceTemplateLibrary.GetAllTemplates();
+        _allTemplates = ChoiceTemplateLibrary.GetAllTemplates();
     }
 
     public async Task InitializeEncounter()
     {
-        state = new EncounterState(player, 6, 8, "Narrative Begins");
-        state.MaxFocusPoints = DetermineFocusPoints(context.SkillCategory);
-        state.FocusPoints = state.MaxFocusPoints;
-        state.MaxDuration = 8;
-        state.DurationCounter = 0;
-        state.IsEncounterComplete = false;
-        state.GoalFlags = DetermineGoalFlags(context.SkillCategory);
-        state.FlagManager = new EncounterFlagManager();
+        if (_state == null)
+        {
+            _state = new EncounterState(
+                _context.Player,
+                DetermineFocusPoints(_context.SkillCategory),
+                8,
+                "You find yourself in a tense situation, where your skills will be put to the test.");
+        }
+
+        _state.MaxDuration = 8;
+        _state.DurationCounter = 0;
+        _state.IsEncounterComplete = false;
 
         IsInitialState = true;
+
+        // Request initial choices from AI
+        await RequestAIChoices();
     }
 
-    public async Task<EncounterResult> ProcessPlayerChoice(GameWorld gameWorld, EncounterChoice choice)
+    public ChoiceProjection GetChoiceProjection(EncounterChoice choice)
     {
-        if (gameWorld.CurrentEncounterManager == null || gameWorld.CurrentAIResponse == null)
-        {
-            return; // No active encounter or no AI response
-        }
-
-        // Find selected choice
-        EncounterChoice selectedChoice = null;
-        foreach (EncounterChoice choice in gameWorld.CurrentAIResponse.Choices)
-        {
-            if (choice.ChoiceID == choiceId)
-            {
-                selectedChoice = choice;
-                break;
-            }
-        }
-
-        if (selectedChoice == null)
-        {
-            return; // Choice not found
-        }
-
-        // Find the template used by the AI
-        ChoiceTemplate template = FindTemplateByName(selectedChoice.TemplateUsed);
-        if (template == null)
-        {
-            return; // Template not found
-        }
-
-        // Process focus cost
-        gameWorld.CurrentEncounterManager.FocusPoints -= selectedChoice.FocusCost;
-
-        // Perform skill check
-        bool success = PerformSkillCheck(selectedChoice.SkillCheck);
-
-        // Apply mechanical effect directly from template
-        if (success)
-        {
-            // Begin streaming success narrative
-            gameWorld.StreamingContentState.BeginStreaming(selectedChoice.SuccessNarrative);
-
-            // Create and apply the success effect (direct instantiation)
-            IMechanicalEffect effect = (IMechanicalEffect)Activator.CreateInstance(template.SuccessEffectClass);
-            effect.Apply(gameWorld.CurrentEncounterManager);
-        }
-        else
-        {
-            // Begin streaming failure narrative
-            gameWorld.StreamingContentState.BeginStreaming(selectedChoice.FailureNarrative);
-
-            // Create and apply the failure effect (direct instantiation)
-            IMechanicalEffect effect = (IMechanicalEffect)Activator.CreateInstance(template.FailureEffectClass);
-            effect.Apply(gameWorld.CurrentEncounterManager);
-        }
-
-        // Update encounter state
-        gameWorld.CurrentEncounterManager.AdvanceDuration(1);
-        gameWorld.CurrentEncounterManager.ProcessModifiers();
-        gameWorld.CurrentEncounterManager.CheckGoalCompletion();
-
-        // Clear AI response while streaming occurs
-        gameWorld.CurrentAIResponse = null;
-
+        return _projectionService.ProjectChoice(choice, _state);
     }
 
-    private bool PerformSkillCheck(object skillCheck)
+    public async Task<BeatOutcome> ProcessPlayerChoice(EncounterChoice selectedChoice)
     {
-        return true; // Placeholder for actual skill check logic
-    }
-
-    private ChoiceTemplate FindTemplateByName(string templateName)
-    {
-        foreach (ChoiceTemplate template in allTemplates)
+        if (selectedChoice == null || _isAwaitingAIResponse || _streamingState.IsStreaming)
         {
-            if (template.TemplateName == templateName)
-            {
-                return template;
-            }
+            return null;
         }
 
-        return null;
-    }
+        // Create player selection
+        PlayerChoiceSelection selection = new PlayerChoiceSelection
+        {
+            Choice = selectedChoice,
+            SelectedOption = selectedChoice.SkillOption
+        };
 
-    public async Task<BeatOutcome> ApplyChoiceProjection(
-        Player playerState,
-        EncounterState encounterState,
-        EncounterChoice choice)
-    {
-        this.player = playerState;
-
-        // Get the projection for this choice
-        ChoiceProjection projection = encounterState.ApplyChoice(projectionService, playerState, encounterState, choice);
-
-        // Log details of the projection
-        _logger.LogInformation(
-            "ApplyChoiceProjection: ChoiceId={ChoiceId}, ProgressGained={ProgressGained}, EncounterWillEnd={EncounterWillEnd}, ProjectedOutcome={ProjectedOutcome}",
-            choice?.ChoiceID,
-            projection.ProgressGained,
-            projection.WillEncounterEnd,
-            projection.ProjectedOutcome
+        // Process choice using the EncounterChoiceResponseProcessor
+        BeatOutcome outcome = _choiceProcessor.ProcessChoice(
+            selectedChoice,
+            selectedChoice.SkillOption.SkillName,
+            _state,
+            _context.Player
         );
 
-        // Apply focus cost
-        state.FocusPoints -= choice.FocusCost;
-
-        // Apply effect effects
-        if (projection.HasSkillCheck)
+        // Begin streaming narrative based on outcome
+        if (outcome.Outcome == BeatOutcomes.Success)
         {
-            if (effectProcessor != null && !string.IsNullOrEmpty(choice.SkillOption.SuccessEffect.ID))
-            {
-                effectProcessor.ApplyEffect(choice.SkillOption.SuccessEffect.ID, state);
-            }
+            _streamingState.BeginStreaming(selectedChoice.SuccessNarrative);
         }
         else
         {
-            if (effectProcessor != null && !string.IsNullOrEmpty(choice.SkillOption.FailureEffect.ID))
-            {
-                effectProcessor.ApplyEffect(choice.SkillOption.FailureEffect.ID, state);
-            }
+            _streamingState.BeginStreaming(selectedChoice.FailureNarrative);
         }
 
-        // Advance duration
-        state.DurationCounter++;
+        // Clear choices while streaming
+        _currentChoiceProjections.Clear();
 
-        // Check for completion conditions
-        CheckEncounterCompletion(state);
-
-        return new BeatOutcome()
-        {
-            ProgressGained = projection.ProgressGained,
-            NarrativeDescription = projection.NarrativeDescription,
-            MechanicalDescription = projection.MechanicalDescription,
-            IsEncounterComplete = projection.WillEncounterEnd || state.IsEncounterComplete,
-            Outcome = projection.ProjectedOutcome
-        };
+        return outcome;
     }
 
-    private void CheckEncounterCompletion(EncounterState state)
+    private async Task RequestAIChoices()
     {
-        // Check if all goal flags are active
-        bool allGoalsComplete = true;
-        foreach (FlagStates goalFlag in state.GoalFlags)
+        if (_isAwaitingAIResponse || _streamingState.IsStreaming)
         {
-            if (!state.FlagManager.IsActive(goalFlag))
-            {
-                allGoalsComplete = false;
-                break;
-            }
+            return;
         }
 
-        if (allGoalsComplete)
-        {
-            state.IsEncounterComplete = true;
-            state.EncounterOutcome = EncounterStageOutcomes.Success;
-        }
-        else if (state.FocusPoints <= 0 || state.DurationCounter >= state.MaxDuration)
-        {
-            state.IsEncounterComplete = true;
-            state.EncounterOutcome = EncounterStageOutcomes.Failure;
-        }
-    }
+        _isAwaitingAIResponse = true;
 
-    private List<FlagStates> DetermineGoalFlags(SkillCategories actionType)
-    {
-        List<FlagStates> goalFlags = new List<FlagStates>();
+        // Build prompt with ALL templates
+        AIPrompt prompt = _promptBuilder.BuildChoicesPrompt(_context, _state, _allTemplates);
 
-        switch (actionType)
-        {
-            case SkillCategories.Physical:
-                goalFlags.Add(FlagStates.PathCleared);
-                break;
-            case SkillCategories.Intellectual:
-                goalFlags.Add(FlagStates.InsightGained);
-                break;
-            case SkillCategories.Social:
-                goalFlags.Add(FlagStates.TrustEstablished);
-                break;
-            default:
-                goalFlags.Add(FlagStates.PathCleared);
-                break;
-        }
+        WorldStateInput worldStateInput = await worldStateInputBuilder
+            .CreateWorldStateInput(_context.LocationName);
 
-        return goalFlags;
+        string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
+
+        // Request choices from AI
+        List<EncounterChoice> encounterChoices = await _aiGameMaster.RequestChoices(
+            "test", systemMessage, prompt, "test", AIClient.PRIORITY_IMMEDIATE);
+
+        Choices = encounterChoices;
     }
 
     private int DetermineFocusPoints(SkillCategories actionType)
@@ -253,30 +152,39 @@
         }
     }
 
-    public ChoiceProjection GetChoiceProjection(EncounterState encounterState, EncounterChoice choice)
+    public StreamingContentState GetStreamingState()
     {
-        ChoiceProjection projection = this.state.CreateChoiceProjection(choiceProjectionService, choice, player);
-        projection.MechanicalDescription = choice.ChoiceID;
-        return projection;
+        // Update streaming state
+        _streamingState.Update();
+
+        // Check if streaming just completed and we need new choices
+        if (!_streamingState.IsStreaming &&
+            !_isAwaitingAIResponse &&
+            _currentChoiceProjections.Count == 0 &&
+            !_state.IsEncounterComplete)
+        {
+            RequestAIChoices().ConfigureAwait(false);
+        }
+
+        return _streamingState;
     }
 
     public EncounterContext GetEncounterContext()
     {
-        return context;
+        return _context;
+    }
+
+    public EncounterState GetEncounterState()
+    {
+        return _state;
+    }
+    public List<ChoiceProjection> GetCurrentChoiceProjections()
+    {
+        return _currentChoiceProjections;
     }
 
     public List<EncounterChoice> GetCurrentChoices()
     {
         return Choices;
-    }
-
-    public EncounterState GetEncounterState()
-    {
-        return state;
-    }
-
-    internal StreamingContentState GetStreamingState()
-    {
-        throw new NotImplementedException();
     }
 }

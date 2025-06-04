@@ -24,7 +24,7 @@
     {
         SkillOption option = new SkillOption();
         option.RequiredSkillName = aiOption.SkillName;
-        option.Difficulty = aiOption.SCD;
+        option.DifficultyLevel = aiOption.SCD;
 
         // Calculate player's effective level with this skill
         SkillCard card = state.Player.FindCard(aiOption.SkillName);

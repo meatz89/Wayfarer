@@ -21,7 +21,7 @@
     public GameWorld LoadGame()
     {
         string savePath = Path.Combine(_contentDirectory, _saveFolder);
-        GameWorld gameWorld = CreateNewGameState();
+        GameWorld gameWorld = CreateNewGameWorld();
 
         bool shouldLoad = false;
 
@@ -42,16 +42,16 @@
     {
         GameWorld gameWorld;
         // Load content from save files
-        List<Location> locations = GameStateSerializer.DeserializeLocations(
+        List<Location> locations = GameWorldSerializer.DeserializeLocations(
             File.ReadAllText(Path.Combine(savePath, "locations.json")));
 
-        List<LocationSpot> spots = GameStateSerializer.DeserializeLocationSpots(
+        List<LocationSpot> spots = GameWorldSerializer.DeserializeLocationSpots(
             File.ReadAllText(Path.Combine(savePath, "locationSpots.json")));
 
-        List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
+        List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(savePath, "actions.json")));
 
-        List<OpportunityDefinition> Opportunities = GameStateSerializer.DeserializeOpportunities(
+        List<OpportunityDefinition> Opportunities = GameWorldSerializer.DeserializeOpportunities(
             File.ReadAllText(Path.Combine(savePath, "Opportunities.json")));
 
         // Load cards if available
@@ -59,7 +59,7 @@
         string cardsFilePath = Path.Combine(savePath, "cards.json");
 
         // Load game state using the loaded content
-        gameWorld = GameStateSerializer.DeserializeGameState(
+        gameWorld = GameWorldSerializer.DeserializeGameWorld(
             File.ReadAllText(Path.Combine(savePath, "gameWorld.json")),
             locations, spots, actions, Opportunities, cards);
         return gameWorld;
@@ -70,18 +70,18 @@
         string templatePath = Path.Combine(_contentDirectory, "Templates");
 
         // Load content from template files
-        List<Location> locations = GameStateSerializer.DeserializeLocations(
+        List<Location> locations = GameWorldSerializer.DeserializeLocations(
             File.ReadAllText(Path.Combine(templatePath, "locations.json")));
 
-        List<LocationSpot> spots = GameStateSerializer.DeserializeLocationSpots(
+        List<LocationSpot> spots = GameWorldSerializer.DeserializeLocationSpots(
             File.ReadAllText(Path.Combine(templatePath, "locationSpots.json")));
 
         ConnectLocationsToSpots(locations, spots);
 
-        List<ActionDefinition> actions = GameStateSerializer.DeserializeActions(
+        List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
 
-        List<OpportunityDefinition> Opportunities = GameStateSerializer.DeserializeOpportunities(
+        List<OpportunityDefinition> Opportunities = GameWorldSerializer.DeserializeOpportunities(
             File.ReadAllText(Path.Combine(templatePath, "Opportunities.json")));
 
         // Load cards if available
@@ -89,7 +89,7 @@
         string cardsFilePath = Path.Combine(templatePath, "cards.json");
 
         // Load game state using the loaded content
-        GameWorld gameWorld = GameStateSerializer.DeserializeGameState(
+        GameWorld gameWorld = GameWorldSerializer.DeserializeGameWorld(
             File.ReadAllText(Path.Combine(templatePath, "gameWorld.json")),
             locations, spots, actions, Opportunities, cards);
 
@@ -109,19 +109,19 @@
             // Serialize and save all content
             File.WriteAllText(
                 Path.Combine(savePath, "gameWorld.json"),
-                GameStateSerializer.SerializeGameState(gameWorld));
+                GameWorldSerializer.SerializeGameWorld(gameWorld));
 
             File.WriteAllText(
                 Path.Combine(savePath, "locations.json"),
-                GameStateSerializer.SerializeLocations(gameWorld.WorldState.locations));
+                GameWorldSerializer.SerializeLocations(gameWorld.WorldState.locations));
 
             File.WriteAllText(
                 Path.Combine(savePath, "location_Spots.json"),
-                GameStateSerializer.SerializeLocationSpots(gameWorld.WorldState.locationSpots));
+                GameWorldSerializer.SerializeLocationSpots(gameWorld.WorldState.locationSpots));
 
             File.WriteAllText(
                 Path.Combine(savePath, "actions.json"),
-                GameStateSerializer.SerializeActions(gameWorld.WorldState.actions));
+                GameWorldSerializer.SerializeActions(gameWorld.WorldState.actions));
 
             Console.WriteLine("Game saved successfully");
         }
@@ -151,7 +151,7 @@
         }
     }
 
-    private GameWorld CreateNewGameState()
+    private GameWorld CreateNewGameWorld()
     {
         GameWorld gameWorld = new GameWorld();
 

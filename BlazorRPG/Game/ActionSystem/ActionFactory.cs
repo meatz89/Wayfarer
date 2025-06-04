@@ -1,18 +1,11 @@
 ﻿public class ActionFactory
 {
-    private ActionRepository actionRepository;
-    private LocationActionProcessor encounterFactory;
-    private Player playerState;
     private WorldState worldState;
 
     public ActionFactory(
         ActionRepository actionRepository,
-        GameWorld gameWorld,
-        LocationActionProcessor encounterFactory)
+        GameWorld gameWorld)
     {
-        this.actionRepository = actionRepository;
-        this.encounterFactory = encounterFactory;
-        this.playerState = gameWorld.Player;
         this.worldState = gameWorld.WorldState;
     }
 
