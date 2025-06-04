@@ -102,7 +102,7 @@
 
     public List<Goal> GetGoalsByType(object core)
     {
-        throw new NotImplementedException();
+        return new List<Goal>();
     }
 
     public List<TravelRoute> GetRoutesFromCurrentLocation()

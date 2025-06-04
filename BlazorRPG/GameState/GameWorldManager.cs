@@ -143,19 +143,21 @@
             SkillCategory = SkillCategory,
             LocationName = location.Name,
             LocationSpotName = locationSpot.Name,
+            LocationProperties = locationSpot.GetCurrentProperties(),
+            DangerLevel = 1,
 
             Player = player,
             GameWorld = gameWorld,
-            ActionApproach = approach,
-            DangerLevel = 1,
-            PlayerAllCards = player.GetAllAvailableCards(),
 
             ActionName = locationAction.Name,
+            ActionApproach = approach,
             ObjectiveDescription = locationAction.ObjectiveDescription,
-            PlayerSkillCards = player.GetCardsOfType(locationAction.RequiredCardType),
             StartingFocusPoints = CalculateFocusPoints(locationAction.Complexity),
+
+            PlayerAllCards = player.GetAllAvailableCards(),
+            PlayerSkillCards = player.GetCardsOfType(locationAction.RequiredCardType),
+
             TargetNPC = locationSpot.PrimaryNPC,
-            LocationProperties = locationSpot.GetCurrentProperties()
         };
 
         logger.LogInformation("StartEncounterContext called for encounter at location: {LocationId}", location?.Id);
