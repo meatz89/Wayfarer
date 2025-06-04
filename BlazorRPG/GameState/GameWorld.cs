@@ -56,6 +56,14 @@
         IsAwaitingAIResponse = false;
     }
 
+    public void SetCurrentLocation(Location location)
+    {
+        WorldState.SetCurrentLocation(location, null);
+        Player.CurrentLocation = location;
+        Player.CurrentLocationSpot = null;
+        CurrentLocation = location;
+    }
+
     public void SetCurrentLocation(Location location, LocationSpot locationSpot)
     {
         WorldState.SetCurrentLocation(location, locationSpot);

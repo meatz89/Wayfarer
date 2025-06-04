@@ -1,11 +1,9 @@
 ﻿public class ChoiceProjectionService
 {
-    private ChoiceTemplateLibrary templateLibrary;
     private readonly Player player;
 
-    public ChoiceProjectionService(ChoiceTemplateLibrary templateLibrary, Player player)
+    public ChoiceProjectionService(Player player)
     {
-        this.templateLibrary = templateLibrary;
         this.player = player;
     }
 
@@ -70,15 +68,7 @@
 
         effect.Apply(state); 
 
-        // Get mechanical effect from registry
-        if (templateLibrary.GetEffect(effect) != null)
-        {
-            projection.MechanicalDescription = effect.GetDescriptionForPlayer();
-        }
-        else
-        {
-            projection.MechanicalDescription = "Unknown effect";
-        }
+        projection.MechanicalDescription = effect.GetDescriptionForPlayer();
 
         return projection;
     }

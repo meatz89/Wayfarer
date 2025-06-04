@@ -33,7 +33,7 @@
 
     // Consequences & Outcomes
     public NegativeConsequenceTypes NegativeConsequenceType { get; }
-    public EncounterStageOutcomes ProjectedOutcome { get; set; }
+    public BeatOutcomes ProjectedOutcome { get; set; }
 
     public ChoiceProjection(EncounterChoice choice)
     {

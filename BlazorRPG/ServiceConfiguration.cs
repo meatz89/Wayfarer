@@ -27,7 +27,6 @@
         services.AddSingleton<EncounterFactory>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<ActionProcessor>();
-        services.AddSingleton<LocationActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();

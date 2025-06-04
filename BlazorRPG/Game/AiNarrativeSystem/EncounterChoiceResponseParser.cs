@@ -186,14 +186,14 @@ public class EncounterChoiceResponseParser
         if (skillOptionElement.TryGetProperty("successEffect", out JsonElement successEffectElement) ||
             skillOptionElement.TryGetProperty("SuccessEffect", out successEffectElement))
         {
-            skillOption.SuccessEffect = ParseEffectFromJson(successEffectElement);
+            skillOption.SuccessEffectEntry = ParseEffectFromJson(successEffectElement);
         }
 
         // Parse the failure effect
         if (skillOptionElement.TryGetProperty("failureEffect", out JsonElement failureEffectElement) ||
             skillOptionElement.TryGetProperty("FailureEffect", out failureEffectElement))
         {
-            skillOption.FailureEffect = ParseEffectFromJson(failureEffectElement);
+            skillOption.FailureEffectEntry = ParseEffectFromJson(failureEffectElement);
         }
 
         return skillOption;

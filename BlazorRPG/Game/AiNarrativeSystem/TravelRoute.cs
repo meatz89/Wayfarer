@@ -6,7 +6,7 @@
     public int BaseEnergyCost { get; set; }
     public int DangerLevel { get; set; } // 0-10 scale
     public List<string> RequiredEquipment { get; set; } = new List<string>();
-    public List<TravelEncounterContext> PotentialEncounters { get; set; } = new List<TravelEncounterContext>();
+    public List<EncounterContext> PotentialEncounters { get; set; } = new List<EncounterContext>();
 
     public int KnowledgeLevel { get; private set; }
 
@@ -37,7 +37,7 @@
         return true;
     }
 
-    public TravelEncounterContext GetEncounter(int seed)
+    public EncounterContext GetEncounter(int seed)
     {
         if (PotentialEncounters.Count == 0)
             return null;
@@ -47,7 +47,7 @@
         Random random = new Random(seed);
         if (random.Next(100) < encounterChance)
         {
-            List<TravelEncounterContext> appropriateEncounters = PotentialEncounters
+            List<EncounterContext> appropriateEncounters = PotentialEncounters
                 .Where(e => e.DangerLevel <= DangerLevel)
                 .ToList();
 

@@ -41,7 +41,7 @@
                                 disabled="@(!currentSnapshot.CanSelectChoice)">
                             <div class="choice-header">
                                 <span class="choice-focus">@choice.FocusCost Focus</span>
-                                <span class="choice-difficulty">@choice.SkillCheck.DifficultyLabel</span>
+                                <span class="choice-difficulty">@choice.SkillCheck</span>
                                 <span class="choice-template">@choice.TemplateUsed</span>
                             </div>
                             <div class="choice-text">@choice.NarrativeText</div>
@@ -55,13 +55,6 @@
                     Thinking...
                 </div>
             }
-        </div>
-    }
-    else
-    {
-        <div class="no-encounter">
-            <p>No active encounter</p>
-            <button @onclick="StartEncounter">Start Encounter</button>
         </div>
     }
 

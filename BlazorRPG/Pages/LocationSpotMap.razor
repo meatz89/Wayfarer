@@ -22,9 +22,9 @@
         @if (spot.SpotID == CurrentSpot.SpotID)
         {
             <div class="action-list">
-                @foreach (UserActionOption action in GameState.ActionStateTracker.LocationSpotActions)
+                @foreach (UserActionOption action in GameWorld.ActionStateTracker.LocationSpotActions)
                 {
-                    if(action.locationAction.RequiredCardType == ActionExecutionTypes.Instant)
+                    if(action.locationAction.ActionExecutionType == ActionExecutionTypes.Instant)
                     {
                         <button class="approach-button" @onclick="() => HandleActionSelection(action)">
                                 @action.locationAction.Name
@@ -83,7 +83,7 @@
                 else
                 {
                     @* Add travel option if not current spot *@
-                    <button class="action-button" disabled="@(!GameManager.CanMoveToSpot(spot.SpotID))"
+                    <button class="action-button" disabled="@(!GameWorldManager.CanMoveToSpot(spot.SpotID))"
                             @onclick="() => OnSpotSelected.InvokeAsync(spot)">
                         MOVE HERE
                     </button>
@@ -98,6 +98,6 @@
     <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">
         <ActionPreview CurrentAction="@selectedAction"
                        CurrentApproach="@hoveredApproach"
-                       GameState="@GameState" />
+                       GameWorld="@GameWorld" />
     </div>
 }

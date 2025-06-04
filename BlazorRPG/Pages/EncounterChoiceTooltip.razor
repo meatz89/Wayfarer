@@ -89,26 +89,16 @@
                         <div class="skill-outcome">
                             <div class="success-outcome">
                                 <span class="outcome-label">Success:</span>
-                                <span class="outcome-description">@hoveredChoice.Choice.SkillOption.SuccessEffect.Effect</span>
+                                <span class="outcome-description">@hoveredChoice.Choice.SkillOption.SuccessEffectEntry.Effect</span>
                             </div>
                             <div class="failure-outcome">
                                 <span class="outcome-label">Failure:</span>
-                                <span class="outcome-description">@hoveredChoice.Choice.SkillOption.FailureEffect.Effect</span>
+                                <span class="outcome-description">@hoveredChoice.Choice.SkillOption.FailureEffectEntry.Effect</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         }
-
-        <!-- State Flags Section -->
-        <div class="tooltip-section flags-section">
-            <h5>EncounterContext Stage</h5>
-            <div class="tooltip-item">
-                <div class="stage-info">
-                    @hoveredChoice.ID3
-                </div>
-            </div>
-        </div>
     </div>
 }

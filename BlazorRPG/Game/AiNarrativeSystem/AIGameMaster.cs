@@ -33,18 +33,13 @@
         hasResponse = false;
     }
 
-    public async Task<List<EncounterChoice>> GenerateChoices(
-        EncounterContext context,
-        EncounterState state,
-        PlayerChoiceSelection chosenOption,
-        WorldStateInput worldStateInput,
+    public async Task<List<EncounterChoice>> RequestChoices(
+        string conversationId,
+        string systemMessage,
+        AIPrompt prompt,
+        string initialNarrative,
         int priority)
     {
-        string conversationId = $"{context.LocationName}_encounter";
-        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
-        AIPrompt prompt = _promptManager
-            .BuildChoicesPrompt(context, state, worldStateInput);
-
         if (!_contextManager.ConversationExists(conversationId))
         {
             _contextManager.InitializeConversation(conversationId, systemMessage, prompt.Content);
@@ -52,8 +47,7 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            string choiceDescription = chosenOption.Choice.NarrativeText;
-            _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice, choiceDescription);
+            _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice, initialNarrative);
         }
 
         MessageType messageType = MessageType.ChoicesGeneration;
@@ -72,17 +66,13 @@
     }
 
     public async Task<string> GenerateReaction(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption,
-        BeatOutcome outcome,
-        WorldStateInput worldStateInput,
+        string conversationId,
+        string systemMessage,
+        AIPrompt prompt,
+        string choiceDescription,
         int priority)
     {
-        string conversationId = $"{context.LocationName}_encounter";
-        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
-        AIPrompt prompt = _promptManager
-            .BuildReactionPrompt(context, state, chosenOption, outcome);
+        AIPrompt prompt = _promptManager.BuildReactionPrompt(context, state, chosenOption, outcome);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -91,7 +81,6 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            string choiceDescription = chosenOption.NarrativeText;
             _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice, choiceDescription);
         }
 
@@ -109,17 +98,13 @@
     }
 
     public async Task<string> GenerateIntroduction(
-        EncounterContext context,
-        EncounterState state,
-        PlayerChoiceSelection chosenOption,
-        WorldStateInput worldStateInput,
+        string conversationId,
+        string systemMessage,
+        AIPrompt prompt,
+        string memory,
         int priority)
     {
-        string conversationId = $"{context.LocationName}_encounter";
-        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
-
         string memory = await MemoryFileAccess.ReadFromMemoryFile();
-
         AIPrompt prompt = _promptManager.BuildInitialPrompt(context, state, memory);
 
         if (!_contextManager.ConversationExists(conversationId))
@@ -129,8 +114,6 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            string choiceDescription = chosenOption.Choice.NarrativeText;
-            _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice, choiceDescription);
         }
 
         MessageType messageType = MessageType.Introduction;
@@ -147,17 +130,13 @@
     }
 
     public async Task<string> GenerateConclusion(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption,
-        BeatOutcome outcome,
-        WorldStateInput worldStateInput,
+        string conversationId,
+        string systemMessage,
+        AIPrompt prompt,
+        string choiceDescription,
         int priority)
     {
-        string conversationId = $"{context.LocationName}_encounter";
-        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
-        AIPrompt prompt = _promptManager
-            .BuildEncounterEndPrompt(context, state.EncounterOutcome, chosenOption);
+        AIPrompt prompt = _promptManager.BuildEncounterEndPrompt(context, state.EncounterOutcome, chosenOption);
 
         if (!_contextManager.ConversationExists(conversationId))
         {
@@ -166,7 +145,6 @@
         else
         {
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            string choiceDescription = chosenOption.NarrativeText;
             _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice, choiceDescription);
         }
 
@@ -187,7 +165,7 @@
         EncounterContext context,
         EncounterState state,
         EncounterChoice chosenOption,
-        BeatOutcome outcome,
+        BeatOutcomes outcome,
         WorldStateInput worldStateInput,
         int priority)
     {
@@ -228,7 +206,7 @@
         EncounterContext context,
         EncounterState state,
         EncounterChoice chosenOption,
-        BeatOutcome outcome,
+        BeatOutcomes outcome,
         WorldStateInput worldStateInput,
         int priority)
     {
@@ -262,12 +240,49 @@
         {
         };
     }
+    public async Task<string> GenerateActions(
+        EncounterContext context,
+        EncounterState state,
+        EncounterChoice chosenOption,
+        BeatOutcomes outcome,
+        WorldStateInput worldStateInput,
+        int priority)
+    {
+        string conversationId = $"{context.LocationName}_encounter";
+        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
+        ActionGenerationContext context1 = new();
+        AIPrompt prompt = _promptManager.BuildActionGenerationPrompt(context1);
+
+        if (!_contextManager.ConversationExists(conversationId))
+        {
+            _contextManager.InitializeConversation(conversationId, systemMessage, prompt.Content);
+        }
+        else
+        {
+            _contextManager.UpdateSystemMessage(conversationId, systemMessage);
+            string choiceDescription = chosenOption.NarrativeText;
+            _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice, choiceDescription);
+        }
+
+        MessageType messageType = MessageType.PostEncounterEvolution;
+        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _watcher,
+            priority,
+            messageType.ToString());
+
+        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
+        _contextManager.AddAssistantMessage(conversationId, response, messageType);
+
+        return response;
+    }
+
 
     public async Task<string> ProcessMemoryConsolidation(
         EncounterContext context,
         EncounterState state,
         EncounterChoice chosenOption,
-        BeatOutcome outcome,
+        BeatOutcomes outcome,
         WorldStateInput worldStateInput,
         int priority)
     {
@@ -292,43 +307,6 @@
         }
 
         MessageType messageType = MessageType.MemoryUpdate;
-        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
-            _watcher,
-            priority,
-            messageType.ToString());
-
-        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
-        _contextManager.AddAssistantMessage(conversationId, response, messageType);
-
-        return response;
-    }
-
-    public async Task<string> GenerateActions(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption,
-        BeatOutcome outcome,
-        WorldStateInput worldStateInput,
-        int priority)
-    {
-        string conversationId = $"{context.LocationName}_encounter";
-        string systemMessage = _promptManager.GetSystemMessage(worldStateInput);
-        ActionGenerationContext context1 = new();
-        AIPrompt prompt = _promptManager.BuildActionGenerationPrompt(context1);
-
-        if (!_contextManager.ConversationExists(conversationId))
-        {
-            _contextManager.InitializeConversation(conversationId, systemMessage, prompt.Content);
-        }
-        else
-        {
-            _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-            string choiceDescription = chosenOption.NarrativeText;
-            _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice, choiceDescription);
-        }
-
-        MessageType messageType = MessageType.PostEncounterEvolution;
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetOptimizedConversationHistory(conversationId),
             _watcher,

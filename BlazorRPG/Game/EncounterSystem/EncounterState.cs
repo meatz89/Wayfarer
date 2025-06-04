@@ -6,7 +6,7 @@
     public int DurationCounter { get; set; }
     public int MaxDuration { get; set; }
     public bool IsEncounterComplete { get; set; }
-    public EncounterStageOutcomes EncounterOutcome { get; set; }
+    public BeatOutcomes EncounterOutcome { get; set; }
     public List<FlagStates> GoalFlags { get; set; }
     public EncounterFlagManager FlagManager { get; set; }
     public Player Player { get; set; }
@@ -165,7 +165,7 @@
 
     public ChoiceProjection ApplyChoice(
         ChoiceProjectionService choiceProjectionService,
-        Player playerState,
+        Player player,
         EncounterState state,
         EncounterChoice choice)
     {
@@ -180,7 +180,7 @@
         if (selectedSkillOption != null)
         {
             // Find matching skill card
-            SkillCard card = FindCardByName(playerState.AvailableCards, selectedSkillOption.SkillName);
+            SkillCard card = FindCardByName(player.AvailableCards, selectedSkillOption.SkillName);
             bool isUntrained = (card == null || card.IsExhausted);
 
             // Perform skill check
@@ -263,8 +263,8 @@
             int successThreshold = 10; // Basic success threshold
             projection.ProjectedOutcome =
                 CurrentProgress >= successThreshold
-                ? EncounterStageOutcomes.Success
-                : EncounterStageOutcomes.Failure;
+                ? BeatOutcome.Success
+                : BeatOutcomes.Failure;
         }
 
         return projection;

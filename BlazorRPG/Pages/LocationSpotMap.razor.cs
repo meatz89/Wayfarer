@@ -5,8 +5,8 @@ namespace BlazorRPG.Pages;
 
 public partial class LocationSpotMap : ComponentBase
 {
-    [Inject] private GameWorldManager GameManager { get; set; }
-    [Inject] private GameWorld GameState { get; set; }
+    [Inject] private GameWorldManager GameWorldManager { get; set; }
+    [Inject] private GameWorld GameWorld { get; set; }
     [Inject] private LocationSystem LocationSystem { get; set; }
     [Inject] private CardSelectionService DragDropService { get; set; }
     [Inject] private CardHighlightService CardHighlightService { get; set; }
@@ -97,7 +97,7 @@ public partial class LocationSpotMap : ComponentBase
     {
         showTooltip = false;
 
-        //if (!GameState.PlayerState.HasAvailableCard(approach.RequiredCardType))
+        //if (!GameWorld.PlayerState.HasAvailableCard(approach.RequiredCardType))
         //{
         //    return;
         //}

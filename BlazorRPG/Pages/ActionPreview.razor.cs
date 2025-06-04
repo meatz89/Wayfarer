@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-public partial class ActionPreviewBase : ComponentBase
+public class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
     [Parameter] public ApproachDefinition CurrentApproach { get; set; }
-    [Parameter] public GameWorld GameState { get; set; }
+    [Parameter] public GameWorld GameWorld { get; set; }
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
@@ -41,7 +41,7 @@ public partial class ActionPreviewBase : ComponentBase
         foreach (IRequirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
-            bool isSatisfied = req.IsMet(GameState);
+            bool isSatisfied = req.IsMet(GameWorld);
 
             if (!isSatisfied) return false;
         }
@@ -56,7 +56,7 @@ public partial class ActionPreviewBase : ComponentBase
         foreach (IRequirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
-            bool isSatisfied = req.IsMet(GameState);
+            bool isSatisfied = req.IsMet(GameWorld);
 
             string color = isSatisfied ? "positive" : "negative";
             descriptions.Add($"<span class='{color}'>{description}</span>");

@@ -2,8 +2,8 @@
 
 public partial class EncounterChoiceTooltipBase : ComponentBase
 {
-    [Inject] public GameWorldManager GameManager { get; set; }
-    [Inject] public GameWorld GameState { get; set; }
+    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
     [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
     [Parameter] public double tooltipX { get; set; }
     [Parameter] public double tooltipY { get; set; }
@@ -77,7 +77,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     protected int GetPlayerSkillLevel(SkillTypes skill)
     {
-        return GameState.Player.GetSkillLevel(skill);
+        return GameWorld.Player.GetSkillLevel(skill);
     }
 
     public string tooltipXpx
@@ -100,7 +100,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     {
         get
         {
-            return GameManager.GetChoicePreview(hoveredChoice);
+            return GameWorldManager.GetChoicePreview(hoveredChoice);
         }
     }
 }

@@ -7,7 +7,7 @@ public partial class MainGameplayView : ComponentBase
 {
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private GameWorld GameWorld { get; set; }
-    [Inject] private GameWorldManager GameManager { get; set; }
+    [Inject] private GameWorldManager GameWorldManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
     [Inject] private CardHighlightService CardRefreshService { get; set; }
@@ -106,7 +106,7 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameManager.GetPlayerKnownLocations();
+            return GameWorldManager.GetPlayerKnownLocations();
         }
     }
 
@@ -144,6 +144,7 @@ public partial class MainGameplayView : ComponentBase
         DisplayActionMessages();
     }
 
+
     public async Task SwitchAreaMap()
     {
         if (CurrentScreen == CurrentViews.MapScreen)
@@ -165,13 +166,13 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task HandleSpotSelection(LocationSpot locationSpot)
     {
-        await GameManager.MoveToLocationSpot(locationSpot.SpotID);
+        await GameWorldManager.MoveToLocationSpot(locationSpot.SpotID);
         UpdateState();
     }
 
     private async Task StartNewDay()
     {
-        await GameManager.StartNewDay();
+        await GameWorldManager.StartNewDay();
         UpdateState();
     }
 
@@ -179,7 +180,7 @@ public partial class MainGameplayView : ComponentBase
     {
         if (action.IsDisabled) return;
 
-        await GameManager.ExecuteAction(action);
+        await GameWorldManager.ExecuteAction(action);
 
         EncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager ;
         if (EncounterManager != null)
@@ -200,7 +201,7 @@ public partial class MainGameplayView : ComponentBase
             return;
         }
 
-        await GameManager.Travel(travelLocationName);
+        await GameWorldManager.Travel(travelLocationName);
 
         CurrentScreen = CurrentViews.LocationScreen;
         UpdateState();
@@ -209,7 +210,7 @@ public partial class MainGameplayView : ComponentBase
     private async Task OnEncounterCompleted(EncounterResult result)
     {
         LocationAction locationAction = result.locationAction;
-        await GameManager.ProcessActionCompletion(locationAction);
+        await GameWorldManager.ProcessActionCompletion(locationAction);
 
         EncounterResult = result;
         CurrentScreen = CurrentViews.NarrativeScreen;
@@ -232,7 +233,7 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task HandleCardRefreshed(SkillCard card)
     {
-        await GameManager.RefreshCard(card);
+        await GameWorldManager.RefreshCard(card);
         MessageSystem.AddSystemMessage($"Refreshed {card.Name} card");
         UpdateState();
     }
@@ -240,7 +241,7 @@ public partial class MainGameplayView : ComponentBase
     private async Task WaitAction()
     {
         // Create a "Wait" action that advances time without other effects
-        LocationAction waitAction = GameManager.GetWaitAction(CurrentSpot.SpotID);
+        LocationAction waitAction = GameWorldManager.GetWaitAction(CurrentSpot.SpotID);
 
         UserActionOption waitOption = new UserActionOption(
             "Wait for one hour", false, waitAction,
@@ -248,7 +249,7 @@ public partial class MainGameplayView : ComponentBase
             GameWorld.WorldState.CurrentLocationSpot?.SpotID ?? "Global",
             null, 0, null, null);
 
-        await GameManager.ExecuteAction(waitOption);
+        await GameWorldManager.ExecuteAction(waitOption);
 
         UpdateState();
     }
