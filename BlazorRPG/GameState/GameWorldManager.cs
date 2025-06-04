@@ -1,4 +1,6 @@
-﻿public class GameWorldManager
+﻿using Microsoft.AspNetCore.Routing;
+
+public class GameWorldManager
 {
     private bool _useMemory;
     private bool _processStateChanges;
@@ -54,6 +56,7 @@
         Location startingLocation = await locationSystem.Initialize();
         worldState.RecordLocationVisit(startingLocation.Id);
         travelManager.StartLocationTravel(startingLocation.Id);
+        gameWorld.SetCurrentLocation(startingLocation);
 
         Location currentLocation = worldState.CurrentLocation;
         if (worldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
