@@ -1,39 +1,41 @@
 ﻿using BlazorRPG.Components;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
+using System.Timers;
 
 namespace BlazorRPG.Pages
 {
-    public partial class MusicPlayer : ComponentBase
+    public partial class MusicPlayer : ComponentBase, IDisposable
     {
         [Inject] private MusicService MusicService { get; set; }
-        [Inject] private IJSRuntime JSRuntime { get; set; }
 
         private string _formattedCurrentPosition = "0:00";
         private string _formattedDuration = "0:00";
-        private bool _isInitialized = false;
+        private System.Timers.Timer _uiTimer;
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             MusicService.OnQueueChanged += StateHasChanged;
             MusicService.OnPlaybackStateChanged += StateHasChanged;
             MusicService.OnPositionChanged += UpdatePosition;
 
-            await base.OnInitializedAsync();
-        }
-
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender)
+            _uiTimer = new System.Timers.Timer(1000);
+            _uiTimer.Elapsed += async (sender, e) =>
             {
-                _isInitialized = true;
-            }
+                if (MusicService.IsPlaying)
+                {
+                    await InvokeAsync(() =>
+                    {
+                        MusicService.IncrementPosition(TimeSpan.FromSeconds(1));
+                        UpdatePosition(MusicService.CurrentPosition);
+                    });
+                }
+            };
+            _uiTimer.Start();
         }
 
         private void UpdatePosition(TimeSpan position)
         {
             _formattedCurrentPosition = FormatTimeSpan(position);
-
             InvokeAsync(StateHasChanged);
         }
 
@@ -45,13 +47,9 @@ namespace BlazorRPG.Pages
         private async Task TogglePlayPauseAsync()
         {
             if (MusicService.IsPlaying)
-            {
                 await MusicService.PauseAsync();
-            }
             else
-            {
                 await MusicService.PlayAsync();
-            }
         }
 
         private async Task NextTrackAsync()
@@ -61,6 +59,9 @@ namespace BlazorRPG.Pages
 
         public void Dispose()
         {
+            _uiTimer?.Stop();
+            _uiTimer?.Dispose();
+
             MusicService.OnQueueChanged -= StateHasChanged;
             MusicService.OnPlaybackStateChanged -= StateHasChanged;
             MusicService.OnPositionChanged -= UpdatePosition;
