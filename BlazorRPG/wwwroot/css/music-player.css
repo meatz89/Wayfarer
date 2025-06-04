@@ -1,14 +1,15 @@
-﻿
-.music-player {
+﻿.music-player {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding: 0.5rem;
-	background-color: rgba(0, 0, 0, 0.6);
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-dark);
 	border-radius: 5px;
-	color: white;
+	color: var(--text-primary);
 	min-width: 240px;
 	font-size: 0.8rem;
+	font-family: var(--font-secondary);
 }
 
 .track-info {
@@ -25,35 +26,42 @@
 	text-overflow: ellipsis;
 	font-weight: bold;
 	margin-bottom: 0.25rem;
+	color: var(--text-secondary);
 }
 
 .controls {
 	display: flex;
-	align-items: center;
+	align-items: flex-end;
 }
 
-.play-pause-btn, .next-btn {
-	background: none;
-	border: none;
-	color: white;
-	cursor: pointer;
+.icon {
+	display: inline-block;
 	font-size: 1.2rem;
-	padding: 0.25rem;
-	margin-left: 0.25rem;
+	color: var(--text-primary);
+}
+
+.play-pause-btn,
+.next-btn {
+	all: unset;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	width: 2rem;
 	height: 2rem;
+	cursor: pointer;
+	color: var(--text-primary);
 	border-radius: 50%;
 	transition: background-color 0.2s;
+	font-size: 1.2rem;
+	background-color: transparent;
 }
 
-	.play-pause-btn:hover, .next-btn:hover {
-		background-color: rgba(255, 255, 255, 0.2);
+	.play-pause-btn:hover,
+	.next-btn:hover {
+		background-color: var(--bg-active);
 	}
 
 .time-display {
 	font-size: 0.7rem;
-	color: #ccc;
+	color: var(--text-muted);
 }

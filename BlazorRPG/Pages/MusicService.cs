@@ -178,5 +178,29 @@ namespace BlazorRPG.Components
             OnPlaybackStateChanged?.Invoke();
             OnPositionChanged?.Invoke(_currentPosition);
         }
+
+        public List<Track> LoadTracksFromFolder(string folderName)
+        {
+            string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "music", folderName);
+
+            if (!Directory.Exists(folderPath))
+                return new List<Track>();
+
+            string[] files = Directory.GetFiles(folderPath, "*.mp3");
+
+            var tracks = files.Select(file =>
+            {
+                string fileName = Path.GetFileName(file);
+
+                return new Track(
+                    Path.GetFileNameWithoutExtension(file),
+                    $"music/{folderName}/{fileName}",
+                    TimeSpan.FromMinutes(3), // default to 3:00 for UI
+                    new List<string> { folderName.ToLower() }
+                );
+            }).ToList();
+
+            return tracks;
+        }
     }
 }

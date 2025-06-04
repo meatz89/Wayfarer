@@ -1,4 +1,5 @@
 ﻿using BlazorRPG.Components;
+using BlazorRPG.Pages;
 
 public static class ServiceConfiguration
 {
@@ -36,6 +37,7 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
+
         services.AddScoped<MusicService>();
 
         // UI Razor Services

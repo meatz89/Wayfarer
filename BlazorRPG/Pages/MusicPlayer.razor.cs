@@ -4,8 +4,7 @@ using Microsoft.JSInterop;
 
 namespace BlazorRPG.Pages
 {
-    // Main Music Player component
-    public partial class MusicPlayer : ComponentBase, IDisposable
+    public partial class MusicPlayer : ComponentBase
     {
         [Inject] private MusicService MusicService { get; set; }
         [Inject] private IJSRuntime JSRuntime { get; set; }
@@ -34,7 +33,8 @@ namespace BlazorRPG.Pages
         private void UpdatePosition(TimeSpan position)
         {
             _formattedCurrentPosition = FormatTimeSpan(position);
-            StateHasChanged();
+
+            InvokeAsync(StateHasChanged);
         }
 
         private string FormatTimeSpan(TimeSpan timeSpan)
