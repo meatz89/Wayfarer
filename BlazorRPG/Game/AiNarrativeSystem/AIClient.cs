@@ -13,14 +13,12 @@
 
     public AIClient(
         IAIProvider aiProvider,
-        string gameInstanceId,
         ILogger<EncounterFactory> logger,
         NarrativeLogManager logManager,
         LoadingStateService loadingStateService)
     {
-        _gameInstanceId = gameInstanceId;
         _loadingStateService = loadingStateService;
-        _queue = new AIGenerationQueue(aiProvider, gameInstanceId, logManager, logger);
+        _queue = new AIGenerationQueue(aiProvider, "gameInstanceId", logManager, logger);
     }
 
     public async Task<string> ProcessCommand(AIGenerationCommand command)

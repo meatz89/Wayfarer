@@ -1,4 +1,6 @@
-﻿public static class ServiceConfiguration
+﻿using BlazorRPG.Components;
+
+public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
@@ -34,6 +36,7 @@
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
+        services.AddScoped<MusicService>();
 
         // UI Razor Services
         services.AddSingleton<CardSelectionService>();
@@ -52,12 +55,14 @@
         services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<IResponseStreamWatcher, ConsoleResponseWatcher>();
         services.AddSingleton<LoadingStateService>();
-        services.AddSingleton<IAIService, AIGameMaster>();
+        services.AddSingleton<AIGameMaster>();
+        services.AddSingleton<AIClient>();
 
         // Register updated services
         services.AddSingleton<AIPromptBuilder>();
         services.AddSingleton<EncounterChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
+        services.AddSingleton<MemoryFileAccess>();
 
         // Get configuration to determine which provider to use
         using (ServiceProvider sp = services.BuildServiceProvider())

@@ -42,7 +42,7 @@ public static class GameWorldSerializer
     }
 
     public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots,
-            List<ActionDefinition> actions, List<OpportunityDefinition> Opportunities, List<SkillCard> cards)
+            List<ActionDefinition> actions, List<SkillCard> cards)
     {
         SerializableGameWorld serialized = JsonSerializer.Deserialize<SerializableGameWorld>(json, _jsonOptions);
         if (serialized == null)
@@ -63,7 +63,6 @@ public static class GameWorldSerializer
         gameWorld.WorldState.actions.AddRange(actions);
 
         gameWorld.WorldState.Opportunities.Clear();
-        gameWorld.WorldState.Opportunities.AddRange(Opportunities);
 
         // Add cards to world state if applicable
         if (gameWorld.WorldState.AllCards != null)

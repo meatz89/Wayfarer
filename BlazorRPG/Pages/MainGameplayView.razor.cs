@@ -12,6 +12,8 @@ public partial class MainGameplayView : ComponentBase
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
     [Inject] private CardHighlightService CardRefreshService { get; set; }
 
+    public EncounterResult EncounterResult;
+
     public bool HasApLeft { get; private set; }
     public bool HasNoApLeft
     {
@@ -67,7 +69,7 @@ public partial class MainGameplayView : ComponentBase
     public int MentalLoad;
     public int Isolation;
 
-    public EncounterResult EncounterResult { get; private set; }
+    public BeatOutcome BeatOutcome { get; private set; }
 
     public CurrentViews CurrentScreen { get; private set; } = CurrentViews.LocationScreen;
     public Location CurrentLocation
@@ -180,7 +182,7 @@ public partial class MainGameplayView : ComponentBase
     {
         if (action.IsDisabled) return;
 
-        await GameWorldManager.ExecuteAction(action);
+        await GameWorldManager.OnPlayerSelectsAction(action);
 
         EncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager ;
         if (EncounterManager != null)
@@ -207,19 +209,18 @@ public partial class MainGameplayView : ComponentBase
         UpdateState();
     }
 
-    private async Task OnEncounterCompleted(EncounterResult result)
+    private async Task OnEncounterCompleted(BeatOutcome result)
     {
-        LocationAction locationAction = result.locationAction;
-        await GameWorldManager.ProcessActionCompletion(locationAction);
+        await GameWorldManager.ProcessActionCompletion();
 
-        EncounterResult = result;
+        BeatOutcome = result;
         CurrentScreen = CurrentViews.NarrativeScreen;
         UpdateState();
     }
 
     private async Task OnNarrativeCompleted()
     {
-        EncounterResult = null;
+        BeatOutcome = null;
 
         CurrentScreen = CurrentViews.LocationScreen;
         UpdateState();
@@ -235,22 +236,6 @@ public partial class MainGameplayView : ComponentBase
     {
         await GameWorldManager.RefreshCard(card);
         MessageSystem.AddSystemMessage($"Refreshed {card.Name} card");
-        UpdateState();
-    }
-
-    private async Task WaitAction()
-    {
-        // Create a "Wait" action that advances time without other effects
-        LocationAction waitAction = GameWorldManager.GetWaitAction(CurrentSpot.SpotID);
-
-        UserActionOption waitOption = new UserActionOption(
-            "Wait for one hour", false, waitAction,
-            GameWorld.WorldState.CurrentLocation?.Id ?? "Global",
-            GameWorld.WorldState.CurrentLocationSpot?.SpotID ?? "Global",
-            null, 0, null, null);
-
-        await GameWorldManager.ExecuteAction(waitOption);
-
         UpdateState();
     }
 

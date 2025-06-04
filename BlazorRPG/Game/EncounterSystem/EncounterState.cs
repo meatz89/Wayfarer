@@ -1,6 +1,5 @@
 ﻿public class EncounterState
 {
-    // Core state tracking
     public int FocusPoints { get; set; }
     public int MaxFocusPoints { get; set; }
     public int DurationCounter { get; set; }
@@ -14,24 +13,19 @@
     public int ConsecutiveRecoveryCount { get; set; }
     public int EncounterSeed { get; }
 
-    // Skill category for this encounter
     public SkillCategories SkillCategory { get; }
 
-    // Current context
     public NPC CurrentNPC { get; set; }
 
-    // Progress tracking
     public int CurrentProgress { get; private set; }
     public int CurrentStageIndex { get; private set; }
     public string CurrentNarrative { get; set; }
 
-    // Skill modifiers
     private List<SkillModifier> activeModifiers;
     private int nextCheckModifier;
 
     public EncounterState(Player player, int maxFocusPoints, int maxDuration, string currentNarrative)
     {
-        // Initialize core values
         Player = player;
         MaxFocusPoints = maxFocusPoints;
         MaxDuration = maxDuration;
@@ -43,13 +37,11 @@
         ConsecutiveRecoveryCount = 0;
         IsEncounterComplete = false;
 
-        // Initialize tracking systems
         FlagManager = new EncounterFlagManager();
         activeModifiers = new List<SkillModifier>();
         GoalFlags = new List<FlagStates>();
         nextCheckModifier = 0;
 
-        // Set deterministic seed for consistent random results
         EncounterSeed = Environment.TickCount;
         CurrentNarrative = currentNarrative;
     }
@@ -151,136 +143,6 @@
         }
 
         return result;
-    }
-
-    public ChoiceProjection CreateChoiceProjection(
-        ChoiceProjectionService choiceProjectionService,
-        EncounterChoice choice,
-        EncounterState state)
-    {
-        return choiceProjectionService.ProjectChoice(
-            choice,
-            state);
-    }
-
-    public ChoiceProjection ApplyChoice(
-        ChoiceProjectionService choiceProjectionService,
-        Player player,
-        EncounterState state,
-        EncounterChoice choice)
-    {
-        // Create projection to determine outcome
-        ChoiceProjection projection = CreateChoiceProjection(choiceProjectionService, choice, state);
-
-        // Apply Focus cost
-        FocusPoints -= choice.FocusCost;
-
-        // Select a skill option to process (for this POC, just use the first one)
-        SkillOption selectedSkillOption = choice.SkillOption;
-        if (selectedSkillOption != null)
-        {
-            // Find matching skill card
-            SkillCard card = FindCardByName(player.AvailableCards, selectedSkillOption.SkillName);
-            bool isUntrained = (card == null || card.IsExhausted);
-
-            // Perform skill check
-            int effectiveLevel = 0;
-            int difficulty = selectedSkillOption.SCD;
-
-            if (!isUntrained && card != null)
-            {
-                // Using a skill card
-                effectiveLevel = card.GetEffectiveLevel(this);
-                card.Exhaust(); // Exhaust the card
-            }
-            else
-            {
-                // Untrained attempt
-                effectiveLevel = 0;
-                difficulty += 2; // +2 difficulty for untrained
-            }
-
-            // Add any next check modifier
-            effectiveLevel += GetNextCheckModifier();
-
-            // Determine success
-            bool success = effectiveLevel >= difficulty;
-
-            // Apply appropriate effect
-            ChoiceTemplateLibrary templateLibrary = new ChoiceTemplateLibrary();
-            if (success)
-            {
-                IMechanicalEffect effect = templateLibrary.GetEffect(selectedSkillOption.SuccessEffect.ID);
-                if (effect != null)
-                {
-                    effect.Apply(this);
-                }
-                projection.ProgressGained = 2; // Default success progress
-            }
-            else
-            {
-                IMechanicalEffect effect = templateLibrary.GetEffect(selectedSkillOption.FailureEffect.ID);
-                if (effect != null)
-                {
-                    effect.Apply(this);
-                }
-            }
-
-            projection.SkillCheckSuccess = success;
-        }
-
-        // If this was a recovery action (0 Focus cost), increment consecutive recovery count
-        if (choice.FocusCost == 0)
-        {
-            ConsecutiveRecoveryCount++;
-        }
-        else
-        {
-            // Reset consecutive recovery count for non-recovery actions
-            ConsecutiveRecoveryCount = 0;
-        }
-
-        // Process skill modifiers
-        ProcessModifiers();
-
-        // Check if goal has been achieved
-        CheckGoalCompletion();
-
-        // Advance duration - basic duration advance for any action
-        AdvanceDuration(1);
-
-        // Advance stage if at a stage boundary (every 2 turns)
-        if (DurationCounter % 2 == 0 && CurrentStageIndex < 4)
-        {
-            AdvanceStage();
-        }
-
-        // Update projection with encounterContext state
-        projection.WillEncounterEnd = IsEncounterComplete;
-
-        if (projection.WillEncounterEnd)
-        {
-            int successThreshold = 10; // Basic success threshold
-            projection.ProjectedOutcome =
-                CurrentProgress >= successThreshold
-                ? BeatOutcome.Success
-                : BeatOutcomes.Failure;
-        }
-
-        return projection;
-    }
-
-    private SkillCard FindCardByName(List<SkillCard> cards, string name)
-    {
-        foreach (SkillCard card in cards)
-        {
-            if (card.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && !card.IsExhausted)
-            {
-                return card;
-            }
-        }
-
-        return null;
     }
 
     public int GetDeterministicRandom(int minValue, int maxValue)

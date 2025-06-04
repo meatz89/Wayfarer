@@ -2,9 +2,9 @@
 {
     private readonly Player player;
 
-    public ChoiceProjectionService(Player player)
+    public ChoiceProjectionService(GameWorld gameWorld)
     {
-        this.player = player;
+        this.player = gameWorld.Player;
     }
 
     public ChoiceProjection ProjectChoice(EncounterChoice choice, EncounterState state)

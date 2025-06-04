@@ -37,7 +37,7 @@
                     @foreach (var choice in currentSnapshot.CurrentAIResponse.Choices)
                     {
                         <button class="choice-button" 
-                                @onclick="() => MakeChoice(choice.ChoiceID)" 
+                                @onclick="() => ProcessPlayerChoice(choice)" 
                                 disabled="@(!currentSnapshot.CanSelectChoice)">
                             <div class="choice-header">
                                 <span class="choice-focus">@choice.FocusCost Focus</span>

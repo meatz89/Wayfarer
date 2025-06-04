@@ -115,10 +115,16 @@
         gameWorld.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
 
-    public async Task<EncounterManager> StartEncounter(
-        string approachId,
-        LocationAction locationAction)
+    public async Task NextEncounterBeat()
     {
+        EncounterManager currentEncounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
+        await currentEncounterManager.ProcessNextBeat();
+    }
+    
+    public async Task<EncounterManager> StartEncounter(string approachId)
+    {
+        LocationAction locationAction = gameWorld.ActionStateTracker.CurrentAction.locationAction;
+
         Location location = worldState.CurrentLocation;
         string locationId = location.Id;
         string locationName = location.Name;
@@ -159,19 +165,18 @@
 
         // Initialize the encounter
         await encounterManager.InitializeEncounter();
-
         return encounterManager;
     }
 
-    public async Task<BeatOutcome> ProcessPlayerChoice(string choiceId)
+    public async Task<BeatOutcome> ProcessPlayerChoice(PlayerChoiceSelection playerChoice)
     {
-        UserEncounterChoiceOption choiceOption = gameWorld.ActionStateTracker.GetEncounterChoiceOption(choiceId);
-        Location location = locationSystem.GetLocation(choiceOption.LocationName);
+        Location location = worldState.CurrentLocation;
         string? currentLocation = worldState.CurrentLocation?.Id;
+
         if (string.IsNullOrWhiteSpace(currentLocation)) return null;
 
         BeatOutcome beatOutcome = await gameWorld.ActionStateTracker.CurrentEncounterManager
-            .ProcessPlayerChoice(choiceOption.Choice);
+            .ProcessPlayerChoice(playerChoice.Choice);
 
         //ProcessOngoingEncounter(beatOutcome);
         //ProcessEndEncounter(beatOutcome);
@@ -309,19 +314,12 @@
         return locationActions;
     }
 
-    public async Task ExecuteAction(UserActionOption action)
+    public async Task OnPlayerSelectsAction(UserActionOption action)
     {
-        LocationAction locationAction = action.locationAction;
         Player player = gameWorld.Player;
-
         Location location = locationSystem.GetLocation(action.LocationId);
         LocationSpot locationSpot = location.AvailableSpots.FirstOrDefault(spot => spot.LocationId == action.LocationSpot);
 
-        await OnPlayerSelectsAction(action, player, locationSpot);
-    }
-
-    private async Task OnPlayerSelectsAction(UserActionOption action, Player player, LocationSpot? locationSpot)
-    {
         // Set current action in game state
         gameWorld.ActionStateTracker.SetCurrentUserAction(action);
 
@@ -338,23 +336,24 @@
         switch (executionType)
         {
             case ActionExecutionTypes.Encounter:
-                await StartEncounter(action.ApproachId, locationAction);
+                string approachId = action.ApproachId;
+                await StartEncounter(approachId);
 
                 break;
 
             case ActionExecutionTypes.Instant:
             default:
-                await ProcessActionCompletion(locationAction);
+                await ProcessActionCompletion();
                 break;
         }
     }
 
-    public async Task ProcessActionCompletion(LocationAction action)
+    public async Task ProcessActionCompletion()
     {
+        var action = gameWorld.ActionStateTracker.CurrentAction.locationAction;
         gameWorld.ActionStateTracker.CompleteAction();
 
         await HandlePlayerMoving(action);
-
         actionProcessor.ProcessAction(action);
 
         await UpdateGameWorld();
@@ -591,25 +590,6 @@
             // Add message
             // messageSystem.AddSystemMessage($"Opportunity expired: {expired.Name}");
         }
-    }
-
-
-    private List<FlagStates> DetermineGoalFlags(string encounterType)
-    {
-        // In a real implementation, this would return different goals based on encounter type
-        List<FlagStates> goalFlags = new List<FlagStates>();
-
-        if (encounterType == "SocialIntroduction")
-        {
-            goalFlags.Add(FlagStates.TrustEstablished);
-        }
-        else if (encounterType == "Investigation")
-        {
-            goalFlags.Add(FlagStates.InsightGained);
-            goalFlags.Add(FlagStates.SecretRevealed);
-        }
-
-        return goalFlags;
     }
 
     public async Task RefreshCard(SkillCard card)
