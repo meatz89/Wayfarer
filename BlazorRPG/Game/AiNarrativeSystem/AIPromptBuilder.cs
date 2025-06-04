@@ -69,7 +69,7 @@ public class AIPromptBuilder
             .Replace("{CHOSEN_APPROACH}", approachDetails)
         );
 
-        GameWorld gameWorld = encounterContext.gameWorld;
+        GameWorld gameWorld = encounterContext.GameWorld;
 
         StringBuilder prompt = new StringBuilder(content);
 
@@ -103,7 +103,7 @@ public class AIPromptBuilder
     {
         prompt.AppendLine("ENCOUNTER CONTEXT:");
 
-        if (gameWorld.CurrentEncounterManager != null)
+        if (gameWorld.ActionStateTracker.CurrentEncounterManager != null)
         {
             // Add focus points
             EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.CurrentEncounterManager ;

@@ -84,12 +84,10 @@
 
     private void ProcessPendingAIResponses()
     {
-        throw new NotImplementedException();
     }
 
     private void UpdateStreamingContent()
     {
-        throw new NotImplementedException();
     }
 
     private async Task UpdateState()
@@ -137,7 +135,7 @@
         int playerLevel = player.Level;
 
         ApproachDefinition? approach = locationAction.Approaches.Where(a => a.Id == approachId).FirstOrDefault();
-        SkillCategories SkillCategory = approach.RequiredCardType;
+        SkillCategories SkillCategory = approach?.RequiredCardType ?? SkillCategories.None;
 
         EncounterContext context = new EncounterContext()
         {
@@ -145,6 +143,12 @@
             SkillCategory = SkillCategory,
             LocationName = location.Name,
             LocationSpotName = locationSpot.Name,
+
+            Player = player,
+            GameWorld = gameWorld,
+            ActionApproach = approach,
+            DangerLevel = 1,
+            PlayerAllCards = player.GetAllAvailableCards(),
 
             ActionName = locationAction.Name,
             ObjectiveDescription = locationAction.ObjectiveDescription,
@@ -217,7 +221,7 @@
 
     private void CheckEncounterState()
     {
-        if (gameWorld.CurrentEncounterManager != null && gameWorld.CurrentEncounterManager.IsEncounterComplete)
+        if (gameWorld.ActionStateTracker.CurrentEncounterManager != null && gameWorld.ActionStateTracker.CurrentEncounterManager.IsEncounterComplete)
         {
             // Handle encounter completion
             if (!gameWorld.StreamingContentState.IsStreaming)
@@ -351,7 +355,7 @@
     public async Task ProcessActionCompletion()
     {
         var action = gameWorld.ActionStateTracker.CurrentAction.locationAction;
-        gameWorld.ActionStateTracker.CompleteAction();
+        gameWorld.ActionStateTracker.EndEncounter();
 
         await HandlePlayerMoving(action);
         actionProcessor.ProcessAction(action);
@@ -624,7 +628,7 @@
 
     private void GameOver()
     {
-        gameWorld.ActionStateTracker.CompleteAction();
+        gameWorld.ActionStateTracker.EndEncounter();
     }
 
     private bool IsGameOver(Player player)

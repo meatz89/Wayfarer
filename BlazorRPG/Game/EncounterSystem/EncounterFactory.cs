@@ -16,7 +16,7 @@
         IConfiguration configuration,
         ILogger<EncounterFactory> logger)
     {
-        this.aiGameMaster = this.aiGameMaster;
+        this.aiGameMaster = aiGameMaster;
         this.choiceProjectionService = choiceProjectionService;
         this.worldStateInputBuilder = worldStateInputBuilder;
         this.configuration = configuration;

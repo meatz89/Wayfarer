@@ -44,7 +44,6 @@
     public async Task<string> GenerateIntroduction(
         EncounterContext context,
         EncounterState state,
-        EncounterChoice chosenOption,
         WorldStateInput worldStateInput,
         int priority)
     {

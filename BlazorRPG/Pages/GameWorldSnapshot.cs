@@ -16,21 +16,22 @@
 
     public GameWorldSnapshot(GameWorld gameWorld)
     {
-        HasActiveEncounter = gameWorld.CurrentEncounterManager != null;
+        EncounterManager currentEncounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
+        HasActiveEncounter = currentEncounterManager != null;
 
         if (HasActiveEncounter)
         {
-            EncounterState state = gameWorld.CurrentEncounterManager.GetEncounterState();
+            EncounterState state = currentEncounterManager.GetEncounterState();
             CurrentFocusPoints = state.FocusPoints;
             MaxFocusPoints = state.MaxFocusPoints;
             ActiveFlags = state.FlagManager.GetAllActiveFlags();
 
-            StreamingContentState streamingState = gameWorld.CurrentEncounterManager.GetStreamingState();
+            StreamingContentState streamingState = currentEncounterManager.GetStreamingState();
             StreamingText = streamingState.CurrentText;
             IsStreaming = streamingState.IsStreaming;
             StreamProgress = streamingState.StreamProgress;
 
-            AvailableChoices = gameWorld.CurrentEncounterManager.GetCurrentChoices();
+            AvailableChoices = currentEncounterManager.GetCurrentChoices();
             CanSelectChoice = !IsStreaming && AvailableChoices != null && AvailableChoices.Count > 0;
         }
 

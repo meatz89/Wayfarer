@@ -39,6 +39,6 @@ public class LocationSpot
 
     public List<string> GetCurrentProperties()
     {
-        throw new NotImplementedException();
+        return new List<string>();
     }
 }

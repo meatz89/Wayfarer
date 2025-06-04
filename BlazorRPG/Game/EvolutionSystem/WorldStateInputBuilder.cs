@@ -5,18 +5,18 @@ public class WorldStateInputBuilder
     private GameWorld gameWorld;
     public LocationSystem LocationSystem { get; }
     public CharacterSystem CharacterSystem { get; }
-    public Opportunitiesystem Opportunitiesystem { get; }
+    public OpportunitySystem OpportunitySystem { get; }
 
     public WorldStateInputBuilder(
         GameWorld gameWorld,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
-        Opportunitiesystem Opportunitiesystem)
+        OpportunitySystem OpportunitySystem)
     {
         this.gameWorld = gameWorld;
         LocationSystem = locationSystem;
         CharacterSystem = characterSystem;
-        Opportunitiesystem = Opportunitiesystem;
+        OpportunitySystem = OpportunitySystem;
     }
 
     public async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
@@ -25,6 +25,16 @@ public class WorldStateInputBuilder
         Player player = gameWorld.Player;
 
         // Create context for location generation
+        string locationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation);
+        string connectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Id));
+        string playerInventory = FormatPlayerInventory(player.Inventory);
+
+        int currentEnergy = player.CurrentEnergy();
+        string memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
+
+        string knownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters());
+        List<NPC> allCharacters = worldState.GetCharacters();
+
         WorldStateInput context = new WorldStateInput
         {
             PlayerArchetype = player.Archetype.ToString(),
@@ -33,24 +43,24 @@ public class WorldStateInputBuilder
             MaxHealth = player.MaxHealth,
             Concentration = player.Concentration,
             MaxConcentration = player.MaxConcentration,
-            Energy = player.CurrentEnergy(),
+            Energy = currentEnergy,
             MaxEnergy = player.MaxEnergy,
             Coins = player.Money,
 
             CurrentLocation = currentLocation,
-            LocationSpots = LocationSystem.FormatLocationSpots(worldState.CurrentLocation),
+            LocationSpots = locationSpots,
             CurrentSpot = worldState.CurrentLocationSpot.SpotID,
             LocationDepth = worldState.CurrentLocation.Depth,
-            ConnectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
+            ConnectedLocations = connectedLocations,
 
-            Inventory = FormatPlayerInventory(player.Inventory),
+            Inventory = playerInventory,
 
-            KnownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters()),
-            ActiveOpportunities = Opportunitiesystem.FormatActiveOpportunities(worldState.GetOpportunities()),
+            KnownCharacters = knownCharacters,
+            ActiveOpportunities = string.Empty,
 
-            MemorySummary = await MemoryFileAccess.ReadFromMemoryFile(),
+            MemorySummary = memoryContent,
 
-            Characters = worldState.GetCharacters(),
+            Characters = allCharacters,
             RelationshipList = player.Relationships
         };
 

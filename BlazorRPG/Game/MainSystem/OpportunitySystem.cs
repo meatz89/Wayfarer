@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-public class Opportunitiesystem
+public class OpportunitySystem
 {
     public string FormatActiveOpportunities(List<Opportunity> opportunities)
     {
