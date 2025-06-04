@@ -2,7 +2,7 @@
 {
     private LocationSystem locationSystem;
     private CharacterSystem characterSystem;
-    private Opportunitiesystem Opportunitiesystem;
+    private OpportunitySystem OpportunitySystem;
     private GameWorld gameWorld;
     private ActionGenerator actionGenerator;
     private LocationRepository locationRepository;
@@ -14,7 +14,7 @@
     public LocationCreationSystem(
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
-        Opportunitiesystem Opportunitiesystem,
+        OpportunitySystem opportunitySystem,
         GameWorld gameWorld,
         ActionGenerator actionGenerator,
         LocationRepository locationRepository,
@@ -26,7 +26,7 @@
     {
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
-        this.Opportunitiesystem = Opportunitiesystem;
+        this.OpportunitySystem = opportunitySystem;
         this.gameWorld = gameWorld;
         this.actionGenerator = actionGenerator;
         this.locationRepository = locationRepository;
@@ -136,7 +136,7 @@
 
             KnownLocations = this.locationSystem.FormatLocations(allLocations),
             KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
-            ActiveOpportunities = Opportunitiesystem.FormatActiveOpportunities(worldState.GetOpportunities()),
+            ActiveOpportunities = OpportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
 
             CurrentLocationSpots = this.locationSystem.FormatLocationSpots(worldState.CurrentLocation),
             ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),

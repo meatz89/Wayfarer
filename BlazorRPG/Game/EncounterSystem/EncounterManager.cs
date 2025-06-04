@@ -80,10 +80,8 @@
         WorldStateInput worldStateInput = await _worldStateInputBuilder
             .CreateWorldStateInput(_context.LocationName);
 
-        Choices = await _aiGameMaster.RequestChoices(
-            _context, _state, worldStateInput, _allTemplates, AIClient.PRIORITY_IMMEDIATE);
-
-        _currentChoiceProjections = CreateChoiceProjections(Choices);
+        var introduction = await _aiGameMaster.GenerateIntroduction(
+            _context, _state, worldStateInput, AIClient.PRIORITY_IMMEDIATE);
 
         _isAwaitingAIResponse = false;
     }

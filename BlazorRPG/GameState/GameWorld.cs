@@ -2,7 +2,6 @@
 {
     // Existing properties
     public Player Player { get; private set; }
-    public EncounterManager CurrentEncounterManager { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }
 
     // New journey-related properties
@@ -17,10 +16,9 @@
     public int Condition { get; set; }
     public Inventory PlayerInventory { get; private set; }
 
-
     public static int CurrentDay { get; }
     public static TimeOfDay CurrentTimeOfDay { get; private set; }
-    public static List<Opportunity> AllOpportunities { get; set; }
+    public static List<Opportunity> AllOpportunities { get; set; } = new List<Opportunity>();
 
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
@@ -46,12 +44,12 @@
 
     public void StartEncounter(EncounterManager encounterManager)
     {
-        CurrentEncounterManager = encounterManager;
+        ActionStateTracker.SetActiveEncounter(encounterManager);
     }
 
     public void EndEncounter()
     {
-        CurrentEncounterManager = null;
+        ActionStateTracker.EndEncounter();
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;
     }

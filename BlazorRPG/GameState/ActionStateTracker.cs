@@ -32,7 +32,7 @@ public class ActionStateTracker
         CurrentEncounterManager  = encounter;
     }
 
-    public void CompleteAction()
+    public void EndEncounter()
     {
         IsActiveEncounterContext = false;
         CurrentEncounterManager  = null;

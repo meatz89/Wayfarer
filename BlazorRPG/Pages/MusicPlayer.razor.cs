@@ -27,7 +27,6 @@ namespace BlazorRPG.Pages
         {
             if (firstRender)
             {
-                await JSRuntime.InvokeVoidAsync("musicPlayer.initialize");
                 _isInitialized = true;
             }
         }

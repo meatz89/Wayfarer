@@ -567,7 +567,7 @@
 
     public List<SkillCard> GetCardsOfType(SkillCategories requiredApproach)
     {
-        throw new NotImplementedException();
+        return new List<SkillCard>();
     }
 
     public ReputationLevel GetReputationLevel()
