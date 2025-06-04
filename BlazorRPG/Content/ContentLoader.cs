@@ -51,7 +51,7 @@
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(savePath, "actions.json")));
 
-        List<OpportunityDefinition> Opportunities = GameWorldSerializer.DeserializeOpportunities(
+        List<OpportunityDefinition> opportunities = GameWorldSerializer.DeserializeOpportunities(
             File.ReadAllText(Path.Combine(savePath, "Opportunities.json")));
 
         // Load cards if available
@@ -61,7 +61,7 @@
         // Load game state using the loaded content
         gameWorld = GameWorldSerializer.DeserializeGameWorld(
             File.ReadAllText(Path.Combine(savePath, "gameWorld.json")),
-            locations, spots, actions, Opportunities, cards);
+            locations, spots, actions, cards);
         return gameWorld;
     }
 
@@ -81,9 +81,6 @@
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
 
-        List<OpportunityDefinition> Opportunities = GameWorldSerializer.DeserializeOpportunities(
-            File.ReadAllText(Path.Combine(templatePath, "Opportunities.json")));
-
         // Load cards if available
         List<SkillCard> cards = new List<SkillCard>();
         string cardsFilePath = Path.Combine(templatePath, "cards.json");
@@ -91,7 +88,7 @@
         // Load game state using the loaded content
         GameWorld gameWorld = GameWorldSerializer.DeserializeGameWorld(
             File.ReadAllText(Path.Combine(templatePath, "gameWorld.json")),
-            locations, spots, actions, Opportunities, cards);
+            locations, spots, actions, cards);
 
         return gameWorld;
     }

@@ -7,7 +7,7 @@ public class ActionGenerator
     private LocationRepository locationRepository;
     private WorldStateInputBuilder _worldStateInputCreator;
     private IConfiguration _configuration;
-    private IAIService _aiService;
+    private AIGameMaster _aiService;
     private WorldState worldState;
 
     public ActionGenerator(
@@ -16,7 +16,7 @@ public class ActionGenerator
         LocationRepository locationRepository,
         WorldStateInputBuilder worldStateInputCreator,
         IConfiguration configuration,
-        IAIService aiService)
+        AIGameMaster aiService)
     {
         this.actionRepository = actionRepository;
         this.locationRepository = locationRepository;

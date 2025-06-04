@@ -74,9 +74,6 @@
                     <div class="location-header">
                         <h2 class="location-title">@GetCurrentLocation().Name</h2>
                         <div class="location-actions">
-                            <button class="location-button" @onclick="WaitAction" hidden="@HasNoApLeft">
-                                Wait
-                            </button>
                             <button class="location-button" @onclick="SwitchAreaMap" hidden="@HasNoApLeft">
                                 Travel 🗺️
                             </button>

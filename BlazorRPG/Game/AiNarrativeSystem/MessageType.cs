@@ -7,5 +7,7 @@
     Reaction,
     MemoryUpdate,
     PostEncounterEvolution,
-    LocationCreation
+    LocationCreation,
+    ActionGeneration,
+    Conclusion
 }

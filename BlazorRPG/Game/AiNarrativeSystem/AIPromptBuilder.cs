@@ -26,10 +26,10 @@ public class AIPromptBuilder
         LoadPromptTemplates(promptsPath);
     }
 
-    public AIPrompt BuildInitialPrompt(
+    public AIPrompt BuildIntroductionPrompt(
         EncounterContext encounterContext,
         EncounterState state,
-        string memory)
+        string memoryContent)
     {
         string template = promptTemplates[INTRO_MD];
 
@@ -291,8 +291,7 @@ public class AIPromptBuilder
     public AIPrompt BuildReactionPrompt(
         EncounterContext context,
         EncounterState state,
-        EncounterChoice chosenOption,
-        BeatOutcomes outcome)
+        EncounterChoice chosenOption)
     {
         string template = promptTemplates[REACTION_MD];
 
@@ -401,7 +400,7 @@ public class AIPromptBuilder
         return choicesInfo;
     }
 
-    public AIPrompt BuildEncounterEndPrompt(
+    public AIPrompt BuildEncounterConclusionPrompt(
         EncounterContext context,
         BeatOutcomes outcome,
         EncounterChoice finalChoice

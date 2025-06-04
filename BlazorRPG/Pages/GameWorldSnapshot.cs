@@ -14,7 +14,7 @@
     public bool IsAwaitingAIResponse { get; private set; }
     public bool CanSelectChoice { get; private set; }
 
-    public GameWorldSnapshot(GameWorld gameWorld, List<EncounterChoice> availableChoices)
+    public GameWorldSnapshot(GameWorld gameWorld)
     {
         HasActiveEncounter = gameWorld.CurrentEncounterManager != null;
 
@@ -48,6 +48,7 @@
         CanSelectChoice = gameWorld.CurrentAIResponse != null &&
                            !gameWorld.IsAwaitingAIResponse &&
                            !gameWorld.StreamingContentState.IsStreaming;
-        AvailableChoices = availableChoices;
+
+        AvailableChoices = gameWorld.AvailableChoices;
     }
 }

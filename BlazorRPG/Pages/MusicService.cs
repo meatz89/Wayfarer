@@ -3,7 +3,6 @@ using Timer = System.Timers.Timer;
 
 namespace BlazorRPG.Components
 {
-
     public class MusicService
     {
         private readonly IJSRuntime _jsRuntime;

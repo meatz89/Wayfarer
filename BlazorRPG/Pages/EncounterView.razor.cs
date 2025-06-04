@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+
 public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public GameWorld GameWorld { get; set; }
-    [Inject] public GameWorldManager gameWorldManager { get; set; }
-    [Parameter] public EventCallback<EncounterResult> OnEncounterCompleted { get; set; }
+    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Parameter] public EventCallback<BeatOutcome> OnEncounterCompleted { get; set; }
     [Parameter] public EncounterManager EncounterManager { get; set; }
     [Inject] public IJSRuntime JSRuntime { get; set; }
     private IJSObjectReference _tooltipModule;
@@ -16,7 +17,7 @@ public partial class EncounterViewBase : ComponentBase
 
     public bool IsLoading = true;
 
-    public EncounterResult EncounterResult { get; private set; }
+    public BeatOutcome EncounterResult { get; private set; }
     public List<UserEncounterChoiceOption> CurrentChoices { get; set; } = new();
 
     private Timer pollingTimer;
@@ -66,6 +67,8 @@ public partial class EncounterViewBase : ComponentBase
 
     protected override void OnInitialized()
     {
+        NextEncounterBeat();
+
         // Set up polling timer - no events, just regular polling
         pollingTimer = new Timer(_ =>
         {
@@ -77,23 +80,39 @@ public partial class EncounterViewBase : ComponentBase
         }, null, 0, 100); // Poll every 100ms
     }
 
+    private async Task NextEncounterBeat()
+    {
+        await GameWorldManager.NextEncounterBeat();
+    }
+
     private void PollGameWorld()
     {
         // Poll for current game state
-        currentSnapshot = gameWorldManager.GetGameSnapshot();
+        currentSnapshot = GameWorldManager.GetGameSnapshot();
     }
 
-    public void StartEncounter()
+    public async Task ProcessPlayerChoice(EncounterChoice choice)
     {
-        gameWorldManager.StartEncounter("SocialIntroduction", null);
-    }
+        hoveredChoice = null;
+        showTooltip = false;
+        IsLoading = true;
 
-    public void MakeChoice(string choiceId)
-    {
-        if (currentSnapshot != null && currentSnapshot.CanSelectChoice)
+        PlayerChoiceSelection playerChoice = new PlayerChoiceSelection()
         {
-            gameWorldManager.ProcessPlayerChoice(choiceId);
-        }
+            Choice = choice,
+            SelectedOption = choice.SkillOption
+        };
+
+        BeatOutcome result = await GameWorldManager.ProcessPlayerChoice(playerChoice);
+        await CheckEncounterCompleted(result);
+
+        Model = GetModel();
+        GetChoices();
+
+        HideTooltip();
+        IsLoading = false;
+
+        StateHasChanged();
     }
 
     public void Dispose()
@@ -136,7 +155,7 @@ public partial class EncounterViewBase : ComponentBase
 
     private EncounterViewModel GetModel()
     {
-        EncounterViewModel? encounterViewModel = gameWorldManager.GetEncounterViewModel();
+        EncounterViewModel? encounterViewModel = GameWorldManager.GetEncounterViewModel();
 
         if (encounterViewModel == null)
         {
@@ -168,33 +187,16 @@ public partial class EncounterViewBase : ComponentBase
         return encounterViewModel;
     }
 
-    public async Task HandleChoiceSelection(UserEncounterChoiceOption choice)
+
+    private async Task CheckEncounterCompleted(BeatOutcome result)
     {
-        hoveredChoice = null;
-        showTooltip = false;
-        IsLoading = true;
-
-        EncounterResult result = await gameWorldManager.ProcessPlayerChoice(choice.Choice.ChoiceID);
-        await CheckEncounterCompleted(result);
-
-        Model = GetModel();
-        GetChoices();
-
-        HideTooltip();
-        IsLoading = false;
-
-        StateHasChanged();
-    }
-
-    private async Task CheckEncounterCompleted(EncounterResult result)
-    {
-        if (result.ActionResult == ActionResults.Ongoing)
+        if (result.Outcome != BeatOutcomes.None)
         {
-            EncounterResult = result;
+            await OnEncounterCompleted.InvokeAsync(result);
         }
         else
         {
-            await OnEncounterCompleted.InvokeAsync(result);
+            EncounterResult = result;
         }
     }
 

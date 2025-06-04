@@ -24,7 +24,7 @@
 
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
-
+    public List<EncounterChoice> AvailableChoices { get; set; } = new List<EncounterChoice>();
 
     public ActionStateTracker ActionStateTracker { get; }
     public WorldState WorldState { get; }

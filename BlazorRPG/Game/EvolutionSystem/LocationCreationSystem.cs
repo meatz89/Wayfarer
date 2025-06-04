@@ -9,7 +9,7 @@
     private ActionRepository actionRepository;
     private ActionSystem actionSystem;
     private WorldStateInputBuilder worldStateInputCreator;
-    private IAIService aiService;
+    private AIGameMaster aiService;
 
     public LocationCreationSystem(
         LocationSystem locationSystem,
@@ -21,7 +21,7 @@
         ActionRepository actionRepository,
         ActionSystem actionSystem,
         WorldStateInputBuilder worldStateInputCreator,
-        IAIService aiService
+        AIGameMaster aiService
         )
     {
         this.locationSystem = locationSystem;
