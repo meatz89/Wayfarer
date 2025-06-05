@@ -36,10 +36,7 @@
             <div class="choices-container">
                 @foreach (var choice in currentSnapshot.AvailableChoices)
                 {
-                    <button class="choice-button" 
-                            @onclick="() => MakeChoice(choice.ChoiceID)"
-                            @onmouseover="e => ShowTooltip(e, choice)"
-                            @onmouseout="HideTooltip">
+                    <button class="choice-button" @onclick="() => MakeChoice(choice.ChoiceID)">
                         <div class="choice-header">
                             <span class="choice-focus">@choice.FocusCost Focus</span>
                             <span class="choice-difficulty">@(choice.SkillOption?.DifficultyLabel ?? "No Check")</span>
@@ -60,7 +57,7 @@
 
 @if (showTooltip && hoveredChoice != null)
 {
-    <div class="choice-tooltip" style="left: @(tooltipX)px; top: @(tooltipY)px">
-        <ChoiceTooltip Choice="hoveredChoice" />
+    <div class="tooltip" >
+        <ChoicePreview Choice="@hoveredChoice" />
     </div>
 }

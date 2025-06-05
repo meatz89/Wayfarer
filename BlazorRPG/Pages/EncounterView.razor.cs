@@ -24,6 +24,7 @@ public class EncounterViewBase : ComponentBase
 
         currentSnapshot = GameWorldManager.GetGameSnapshot();
     }
+
     protected override void OnParametersSet()
     {
         currentSnapshot = GameWorldManager.GetGameSnapshot();

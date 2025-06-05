@@ -110,7 +110,7 @@ public partial class MainGameplayView : ComponentBase
                     PollGameState();
                     StateHasChanged();
                 });
-                await Task.Delay(100);
+                await Task.Delay(2000);
             }
         });
     }
@@ -119,21 +119,16 @@ public partial class MainGameplayView : ComponentBase
     {
         GameWorldSnapshot snapshot = GameManager.GetGameSnapshot();
 
-        // Update UI state from snapshot, not directly from backend events
+        // You only update these values but not the encounter data
         CurrentTimeOfDay = snapshot.CurrentTimeOfDay;
         Energy = snapshot.Energy;
         Concentration = snapshot.Concentration;
 
-        // Update location properties based on time
-        if (CurrentScreen == CurrentViews.LocationScreen)
+        // You need to update EncounterManager state and force StateHasChanged for ALL screens
+        if (CurrentScreen == CurrentViews.EncounterScreen)
         {
-            // Refresh available actions based on time-of-day
-            UpdateAvailableActions();
+            StateVersion++;  // Force re-render of EncounterView
         }
-    }
-
-    private void UpdateAvailableActions()
-    {
     }
 
     public async Task SwitchAreaMap()

@@ -21,31 +21,27 @@
         EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
         HasActiveEncounter = encounterManager != null;
 
-        // Capture streaming state regardless of encounter state
-        StreamingText = gameWorld.StreamingContentState.CurrentText;
-        IsStreaming = gameWorld.StreamingContentState.IsStreaming;
-        StreamProgress = gameWorld.StreamingContentState.StreamProgress;
+        StreamingContentState streamingState  = gameWorld.StreamingContentState;
+        StreamingText = streamingState.CurrentText;
+        IsStreaming = streamingState.IsStreaming;
+        StreamProgress = streamingState.StreamProgress;
 
         if (HasActiveEncounter)
         {
-            // Get encounter state
             EncounterState state = encounterManager.GetEncounterState();
             CurrentFocusPoints = state.FocusPoints;
             MaxFocusPoints = state.MaxFocusPoints;
             ActiveFlags = state.FlagManager?.GetAllActiveFlags() ?? new List<FlagStates>();
             IsEncounterComplete = state.IsEncounterComplete;
 
-            // Handle choices
             AvailableChoices = encounterManager.GetCurrentChoices();
             IsAwaitingAIResponse = encounterManager._isAwaitingAIResponse;
 
-            // Determine if player can make a choice
             CanSelectChoice = AvailableChoices != null &&
                               AvailableChoices.Count > 0 &&
                               !IsAwaitingAIResponse &&
                               !IsStreaming;
 
-            // Determine outcome (simple implementation - can be expanded)
             SuccessfulOutcome = state.Progress >= state.ProgressThreshold;
         }
     }
