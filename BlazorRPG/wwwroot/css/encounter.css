@@ -1,13 +1,7 @@
-﻿/* Main container - matches class in component */
-.encounter-container {
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-	flex: 1;
-}
+﻿
+/* ==================== EncounterContext Styles ==================== */
 
-/* Header area */
-.encounter-header {
+.encounter-status-bar {
 	background-color: var(--bg-card);
 	padding: 10px 20px;
 	border-bottom: 1px solid var(--oak-dark);
@@ -15,21 +9,105 @@
 	justify-content: space-between;
 }
 
-/* Main narrative area */
-.narrative-container {
+.encounter-stats {
+	display: flex;
+	gap: 20px;
+	padding: 1rem;
+	margin-bottom: 1rem;
+	background-color: var(--bg-card);
+	border-radius: 5px;
+	border: 1px solid var(--oak-mid);
+}
+
+.encounter-content {
 	flex: 1;
 	display: flex;
+	overflow: hidden;
+}
+
+.encounter-main {
+	flex: 3;
+	padding: 20px;
+	display: flex;
 	flex-direction: column;
+	overflow: hidden;
+}
+
+.encounter-sidebar {
+	flex: 1;
+	background-color: var(--bg-card);
+	border-left: 1px solid var(--oak-dark);
+	padding: 20px;
+	max-width: 300px;
+	overflow-y: auto;
+}
+
+.encounter-stage {
 	background-color: var(--bg-card);
 	padding: 1.5rem;
 	border-radius: 5px;
 	border: 1px solid var(--oak-mid);
-	margin: 20px;
+	display: flex;
+	flex-direction: column;
 	overflow: hidden;
+	flex: 1;
 }
 
-/* Text content */
-.narrative-text, .streaming-text {
+.encounter-choices {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-top: 20px;
+	background-color: var(--bg-dark);
+}
+
+.encounter-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	font-size: 1.2rem;
+	color: var(--text-secondary);
+	padding: 40px;
+}
+
+.encounter-progress {
+	display: flex;
+	gap: 20px;
+}
+
+.progress-item {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.progress-label {
+	color: var(--text-secondary);
+	margin-right: 5px;
+}
+
+.progress-value {
+	font-weight: bold;
+}
+
+.encounter-details, .tag-section {
+	margin-bottom: 1rem;
+}
+
+.stage-header {
+	margin-bottom: 15px;
+}
+
+.choice-set-name {
+	font-family: var(--font-primary);
+	color: var(--leather);
+	margin-bottom: 1rem;
+	font-size: 1.2rem;
+	font-weight: normal;
+}
+
+.stage-situation {
 	line-height: 1.6;
 	font-family: var(--font-tertiary);
 	font-size: 1.2rem;
@@ -40,93 +118,64 @@
 	padding-right: 5px;
 }
 
-/* Streaming animation */
-.cursor {
-	animation: blink 1s infinite;
-}
-
-@keyframes blink {
-	0%, 100% {
-		opacity: 1;
-	}
-
-	50% {
-		opacity: 0;
-	}
-}
-
-/* Choices area */
-.choices-container {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	padding-top: 20px;
-}
-
-/* Individual choice */
-.choice-button {
+.choice-option {
 	background-color: var(--bg-card);
 	border-radius: 5px;
 	padding: 15px;
 	cursor: pointer;
 	transition: all 0.2s ease;
-	text-align: left;
-	border: 1px solid var(--oak-mid);
-	border-left: 4px solid var(--leather);
+	display: flex;
+	gap: 10px;
+	border-left: 4px solid transparent;
 }
 
-	.choice-button:hover {
+	.choice-option:hover:not(.disabled) {
 		background-color: var(--bg-active);
 		transform: translateY(-2px);
 		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 	}
 
-.choice-header {
-	display: flex;
-	gap: 10px;
-	margin-bottom: 8px;
+	.choice-option.disabled {
+		opacity: 0.7;
+		cursor: not-allowed;
+		background-color: var(--bg-card);
+	}
+
+.choice-index {
+	color: var(--leather);
+	min-width: 25px;
+	font-weight: bold;
+}
+
+.choice-narrative {
+	margin-bottom: 1rem;
+}
+
+.blocked-reason {
+	font-style: italic;
+	color: var(--rust);
+	margin-top: 5px;
 	font-size: 0.9rem;
-	color: var(--text-secondary);
 }
 
-.choice-text {
-	font-family: var(--font-tertiary);
-	color: var(--text-primary);
+/* Choice tier styling */
+.choice-option.tier-1 {
+	border-left-color: #606060;
 }
 
-/* Loading indicator */
-.loading-indicator {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 100px;
-	font-size: 1.2rem;
-	color: var(--text-secondary);
+.choice-option.tier-2 {
+	border-left-color: var(--moss);
 }
 
-/* Progress bar */
-.stream-progress {
-	height: 4px;
-	background-color: var(--bg-dark);
-	margin-top: 10px;
-	border-radius: 2px;
+.choice-option.tier-3 {
+	border-left-color: #19559E;
 }
 
-.progress-bar {
-	height: 100%;
-	background-color: var(--leather);
-	border-radius: 2px;
-	transition: width 0.1s ease-out;
+.choice-option.tier-4 {
+	border-left-color: #6A3A99;
 }
 
-/* Tooltip */
-.choice-tooltip {
-	position: absolute;
-	background-color: var(--bg-dark);
-	border: 1px solid var(--oak-mid);
-	border-radius: 5px;
-	padding: 10px;
-	z-index: 100;
-	max-width: 300px;
-	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+.choice-option.tier-5 {
+	border-left-color: #A25B0F;
+	box-shadow: 0 0 5px rgba(162, 91, 15, 0.5);
 }

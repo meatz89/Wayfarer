@@ -561,9 +561,23 @@
         }
     }
 
+    public bool CanTravelTo(string locationId)
+    {
+        return travelManager.CanTravelTo(locationId);
+    }
+
     public async Task RefreshCard(SkillCard card)
     {
         player.RefreshCard(card);
+    }
+
+    public GameWorldSnapshot GetGameSnapshot()
+    {
+        // Update streaming state
+        gameWorld.StreamingContentState.Update();
+
+        // Return current snapshot
+        return new GameWorldSnapshot(gameWorld);
     }
 
     private void SaveGame()
@@ -578,20 +592,6 @@
             messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
             Console.WriteLine($"Error saving game: {ex}");
         }
-    }
-
-    public GameWorldSnapshot GetGameSnapshot()
-    {
-        // Update streaming state
-        gameWorld.StreamingContentState.Update();
-
-        // Return current snapshot
-        return new GameWorldSnapshot(gameWorld);
-    }
-
-    public bool CanTravelTo(string locationId)
-    {
-        return travelManager.CanTravelTo(locationId);
     }
 
     private void GameOver()
