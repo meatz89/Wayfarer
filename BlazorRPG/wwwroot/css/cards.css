@@ -3,7 +3,7 @@
 .card-hand {
 	display: flex;
 	gap: 5px;
-	height: 90px;
+	min-height: 20px;
 	align-items: center;
 	justify-content: center;
 	perspective: 800px;
@@ -208,7 +208,6 @@
 
 .card-hand-container {
 	position: relative;
-	padding-top: 20px;
 }
 
 .valid-drop-target {
