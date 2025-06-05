@@ -13,8 +13,6 @@
 
     // Game time
     public int CurrentDay { get; set; } = 1;
-    public int CurrentTimeHours { get; set; }
-    public TimeWindowTypes CurrentTimeWindow { get; set; }
 
     // Current location tracking
     public Location CurrentLocation { get; private set; }
@@ -23,6 +21,8 @@
     public List<OpportunityDefinition> CompletedOpportunities { get; set; }
     public List<OpportunityDefinition> ActiveOpportunities { get; set; }
     public List<OpportunityDefinition> FailedOpportunities { get; set; }
+    public TimeWindowTypes CurrentTimeWindow { get; internal set; }
+    public int CurrentTimeHours { get; internal set; }
 
     public string GetLocationIdForSpot(string locationSpotId)
     {

@@ -12,6 +12,9 @@
     public bool CanSelectChoice { get; private set; }
     public bool IsEncounterComplete { get; private set; }
     public bool SuccessfulOutcome { get; private set; }
+    public int Energy { get; internal set; }
+    public int Concentration { get; internal set; }
+    public TimeOfDay CurrentTimeOfDay { get; internal set; }
 
     public GameWorldSnapshot(GameWorld gameWorld)
     {
