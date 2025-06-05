@@ -151,14 +151,4 @@
         Random random = new Random(EncounterSeed + DurationCounter);
         return random.Next(minValue, maxValue);
     }
-
-    public void AddEventLog(EncounterEvent encounterEvent)
-    {
-        throw new NotImplementedException();
-    }
-
-    public int GetTemporarySkillModifier(string requiredSkillName)
-    {
-        throw new NotImplementedException();
-    }
 }

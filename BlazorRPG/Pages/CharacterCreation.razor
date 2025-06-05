@@ -1,57 +1,52 @@
 ﻿<div class="character-container">
-    <h2>Choose Your Character</h2>
-    <div class="tooltip-section">
-        <h4>Choose Your Gender</h4>
-        <div class="gender-toggle">
-            <button class="gender-option @(selectedGender == Genders.Male ? "selected" : "")"
-            @onclick="() => SelectGender(Genders.Male)">
-                <span><i class="fas fa-mars icon-spacing"></i> Male</span>
-            </button>
-            <button class="gender-option @(selectedGender == Genders.Female ? "selected" : "")"
-            @onclick="() => SelectGender(Genders.Female)">
-                <span><i class="fas fa-venus icon-spacing"></i> Female</span>
-            </button>
-        </div>
+    <h4>Choose Your Gender</h4>
+    <div class="gender-toggle">
+        <button class="gender-option @(selectedGender == Genders.Male ? "selected" : "")"
+        @onclick="() => SelectGender(Genders.Male)">
+            <span><i class="fas fa-mars icon-spacing"></i> Male</span>
+        </button>
+        <button class="gender-option @(selectedGender == Genders.Female ? "selected" : "")"
+        @onclick="() => SelectGender(Genders.Female)">
+            <span><i class="fas fa-venus icon-spacing"></i> Female</span>
+        </button>
     </div>
 
-    <div class="tooltip-section">
-        <h4>Choose Your Profession</h4>
-        <div class="archetype-selection">
-            <div class="archetype-options">
-                @foreach (Professions archetype in Enum.GetValues(typeof(Professions)))
-                {
-                    <div class="archetype-option @(selectedArchetype == archetype ? "selected" : "")"
-                    @onclick="() => SelectArchetype(archetype)">
-                        <span class="archetype-name">@FormatArchetypeName(archetype)</span>
-                        <span class="archetype-brief">@GetShortDescription(archetype)</span>
-                    </div>
-                }
-            </div>
+    <h4>Choose Your Profession</h4>
+    <div class="archetype-selection">
+        <div class="archetype-options">
+            @foreach (Professions archetype in Enum.GetValues(typeof(Professions)))
+            {
+                <div class="archetype-option @(selectedArchetype == archetype ? "selected" : "")"
+                @onclick="() => SelectArchetype(archetype)">
+                    <span class="archetype-name">@FormatArchetypeName(archetype)</span>
+                    <span class="archetype-brief">@GetShortDescription(archetype)</span>
+                </div>
+            }
+        </div>
 
-            <div class="archetype-details">
-                @if (selectedArchetype != null)
-                {
-                    <div class="archetype-portrait portrait-high">
-                        <img class="@(changingImage ? "changing" : "")"
-                        src="@GetArchetypeImage(selectedArchetype)"
-                        alt="@FormatArchetypeName(selectedArchetype)" />
-                    </div>
-                    <div class="archetype-content @(changingContent ? "changing" : "")">
-                        <h3 class="archetype-title">@FormatArchetypeName(selectedArchetype)</h3>
-                        <p class="archetype-description">@GetArchetypeDescription(selectedArchetype)</p>
+        <div class="archetype-details">
+            @if (selectedArchetype != null)
+            {
+                <div class="archetype-portrait portrait-high">
+                    <img class="@(changingImage ? "changing" : "")"
+                    src="@GetArchetypeImage(selectedArchetype)"
+                    alt="@FormatArchetypeName(selectedArchetype)" />
+                </div>
+                <div class="archetype-content @(changingContent ? "changing" : "")">
+                    <h3 class="archetype-title">@FormatArchetypeName(selectedArchetype)</h3>
+                    <p class="archetype-description">@GetArchetypeDescription(selectedArchetype)</p>
 
-                        <div class="starting-items">
-                            <strong>Starting Items:</strong>
-                            <div class="items-list">
-                                @foreach (string item in GetStartingItems(selectedArchetype))
-                                {
-                                    <div class="item">@item</div>
-                                }
-                            </div>
+                    <div class="starting-items">
+                        <strong>Starting Items:</strong>
+                        <div class="items-list">
+                            @foreach (string item in GetStartingItems(selectedArchetype))
+                            {
+                                <div class="item">@item</div>
+                            }
                         </div>
                     </div>
-                }
-            </div>
+                </div>
+            }
         </div>
     </div>
 
