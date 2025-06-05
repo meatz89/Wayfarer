@@ -73,24 +73,19 @@ public class GameWorldManager
 
     public async Task UpdateGameWorld()
     {
-        // Process any pending AI responses
-        ProcessPendingAIResponses();
+        // Update streaming content
+        gameWorld.StreamingContentState.Update();
 
-        // Process streaming content updates
-        UpdateStreamingContent();
+        // Check if streaming just completed and encounter manager needs to progress
+        if (gameWorld.ActionStateTracker.CurrentEncounterManager != null &&
+            !gameWorld.StreamingContentState.IsStreaming &&
+            !gameWorld.ActionStateTracker.CurrentEncounterManager._isAwaitingAIResponse)
+        {
+            await gameWorld.ActionStateTracker.CurrentEncounterManager.ProcessNextBeat();
+        }
 
-        // Check for encounter completion
-        CheckEncounterState();
-        
+        // Other state updates...
         await UpdateState();
-    }
-
-    private void ProcessPendingAIResponses()
-    {
-    }
-
-    private void UpdateStreamingContent()
-    {
     }
 
     private async Task UpdateState()
@@ -511,7 +506,6 @@ public class GameWorldManager
             model.CurrentChoices = userEncounterChoiceOptions;
             model.ChoiceSetName = "Current Situation";
             model.State = state;
-            model.EncounterResult = encounterManager.EncounterResult;
             return model;
         }
 
@@ -620,9 +614,12 @@ public class GameWorldManager
         }
     }
 
-    // Public method to get current game state - used by polling UI
     public GameWorldSnapshot GetGameSnapshot()
     {
+        // Update streaming state
+        gameWorld.StreamingContentState.Update();
+
+        // Return current snapshot
         return new GameWorldSnapshot(gameWorld);
     }
 

@@ -6,16 +6,9 @@
     private EncounterChoiceResponseParser _encounterChoiceResponseParser;
     private AIClient _aiClient;
     private IResponseStreamWatcher _watcher;
-
+    private GameWorld _gameWorld;
     private AIResponse pendingResponse;
     private bool hasResponse;
-    public bool HasResponse
-    {
-        get
-        {
-            return hasResponse;
-        }
-    }
 
     public AIGameMaster(
         ConversationHistoryManager contextManager,
@@ -23,17 +16,27 @@
         AIClient aiClient,
         MemoryFileAccess memoryFileAccess,
         IConfiguration configuration,
-        IResponseStreamWatcher responseStreamWatcher)
+        IResponseStreamWatcher responseStreamWatcher,
+        GameWorld gameWorld)
     {
         _contextManager = contextManager;
         _encounterChoiceResponseParser = EncounterChoiceResponseParser;
         _aiClient = aiClient;
         _memoryFileAccess = memoryFileAccess;
         _watcher = responseStreamWatcher;
+        this._gameWorld = gameWorld;
         _promptBuilder = new AIPromptBuilder(configuration);
 
         pendingResponse = null;
         hasResponse = false;
+    }
+
+    public bool HasResponse
+    {
+        get
+        {
+            return hasResponse;
+        }
     }
 
     private static string GetConversationId(EncounterContext context)
@@ -73,6 +76,9 @@
         string response = await _aiClient.ProcessCommand(aiGenerationCommand);
         _contextManager.AddAssistantMessage(conversationId, response, messageType);
 
+        // Begin streaming the introduction
+        _gameWorld.StreamingContentState.BeginStreaming(response);
+
         return response;
     }
 
@@ -109,6 +115,7 @@
         EncounterContext context,
         EncounterState state,
         EncounterChoice chosenOption,
+        bool choiceSuccess,
         WorldStateInput worldStateInput,
         int priority)
     {
@@ -130,8 +137,11 @@
         string response = await _aiClient.ProcessCommand(aiGenerationCommand);
         _contextManager.AddAssistantMessage(conversationId, response, messageType);
 
+        _gameWorld.StreamingContentState.BeginStreaming(response);
+
         return response;
     }
+
 
     public async Task<string> GenerateConclusion(
         EncounterContext context,

@@ -26,7 +26,7 @@
     {
         SkillOptionProjection projection = new SkillOptionProjection();
         projection.SkillName = option.SkillName;
-        projection.Difficulty = option.DifficultyString;
+        projection.Difficulty = option.DifficultyLabel;
         projection.SCD = option.SCD;
 
         SkillCard card = FindCardByName(player.AvailableCards, option.SkillName);

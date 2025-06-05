@@ -2,6 +2,8 @@
 {
     // Existing properties
     public Player Player { get; private set; }
+    public WorldState WorldState { get; private set; }
+    public ActionStateTracker ActionStateTracker { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }
 
     // New journey-related properties
@@ -24,8 +26,6 @@
     public bool IsAwaitingAIResponse { get; set; }
     public List<EncounterChoice> AvailableChoices { get; set; } = new List<EncounterChoice>();
 
-    public ActionStateTracker ActionStateTracker { get; }
-    public WorldState WorldState { get; }
     public TimeManager TimeManager { get; set; }
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
@@ -33,11 +33,11 @@
     public GameWorld()
     {
         Player = new Player();
-        ActionStateTracker = new ActionStateTracker();
         WorldState = new WorldState();
+        ActionStateTracker = new ActionStateTracker();
+        StreamingContentState = new StreamingContentState();
         TimeManager = new TimeManager(Player, WorldState);
 
-        StreamingContentState = new StreamingContentState();
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;
     }

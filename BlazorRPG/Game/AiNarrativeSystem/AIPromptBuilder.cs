@@ -119,7 +119,7 @@ public class AIPromptBuilder
             }
 
             // Add NPC information if available
-            EncounterContext encounterContext = currentEncounterContext.GetEncounterContext();
+            EncounterContext encounterContext = currentEncounterContext.EncounterContext;
             if (encounterContext.TargetNPC != null)
             {
                 prompt.AppendLine($"- Current NPC: {encounterContext.TargetNPC.Name}");

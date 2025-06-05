@@ -184,11 +184,26 @@ public partial class MainGameplayView : ComponentBase
 
         await GameWorldManager.OnPlayerSelectsAction(action);
 
-        EncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager ;
-        if (EncounterManager != null)
+        // Check if an encounter was started
+        if (GameWorld.ActionStateTracker.CurrentEncounterManager != null)
         {
+            // Simply switch to encounter screen - EncounterView will handle initialization
             CurrentScreen = CurrentViews.EncounterScreen;
         }
+
+        UpdateState();
+    }
+
+    private async Task OnEncounterCompleted(BeatOutcome result)
+    {
+        // Process action completion
+        await GameWorldManager.ProcessActionCompletion();
+
+        // Store the result for narrative view
+        BeatOutcome = result;
+
+        // Switch to narrative screen to show result
+        CurrentScreen = CurrentViews.NarrativeScreen;
 
         UpdateState();
     }
@@ -206,15 +221,6 @@ public partial class MainGameplayView : ComponentBase
         await GameWorldManager.Travel(travelLocationName);
 
         CurrentScreen = CurrentViews.LocationScreen;
-        UpdateState();
-    }
-
-    private async Task OnEncounterCompleted(BeatOutcome result)
-    {
-        await GameWorldManager.ProcessActionCompletion();
-
-        BeatOutcome = result;
-        CurrentScreen = CurrentViews.NarrativeScreen;
         UpdateState();
     }
 

@@ -1,234 +1,89 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-public partial class EncounterViewBase : ComponentBase
+public class EncounterViewBase : ComponentBase, IDisposable
 {
-    [Inject] public GameWorld GameWorld { get; set; }
-    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] protected GameWorldManager GameWorldManager { get; set; }
     [Parameter] public EventCallback<BeatOutcome> OnEncounterCompleted { get; set; }
-    [Parameter] public EncounterManager EncounterManager { get; set; }
-    [Inject] public IJSRuntime JSRuntime { get; set; }
-    private IJSObjectReference _tooltipModule;
+    [Inject] protected IJSRuntime JSRuntime { get; set; }
 
-    public UserEncounterChoiceOption hoveredChoice;
-    public bool showTooltip;
-    public double tooltipX;
-    public double tooltipY;
+    // State
+    protected Timer _pollingTimer;
+    protected GameWorldSnapshot currentSnapshot;
 
-    public bool IsLoading = true;
-
-    public BeatOutcome EncounterResult { get; private set; }
-    public List<UserEncounterChoiceOption> CurrentChoices { get; set; } = new();
-
-    private Timer pollingTimer;
-    public GameWorldSnapshot currentSnapshot;
-
-    public Player PlayerState
-    {
-        get
-        {
-            return GameWorld.Player;
-        }
-    }
-
-    public bool IsChoiceDisabled(UserEncounterChoiceOption userEncounterChoiceOption)
-    {
-        return userEncounterChoiceOption.Choice.IsDisabled;
-    }
-
-    public EncounterViewModel Model;
-    private string tooltipContent;
-
-    protected override async Task OnInitializedAsync()
-    {
-        Model = GetModel();
-        GetChoices();
-
-        if (EncounterManager != null && Model != null)
-        {
-            IsLoading = false;
-        }
-        else
-        {
-            IsLoading = true;
-        }
-
-        StateHasChanged();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _tooltipModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
-                "import", "./js/tooltipInterop.js");
-        }
-    }
+    // Tooltip state
+    protected EncounterChoice hoveredChoice;
+    protected bool showTooltip;
+    protected double tooltipX;
+    protected double tooltipY;
 
     protected override void OnInitialized()
     {
-        NextEncounterBeat();
-
         // Set up polling timer - no events, just regular polling
-        pollingTimer = new Timer(_ =>
+        _pollingTimer = new Timer(_ =>
         {
             InvokeAsync(() =>
             {
-                PollGameWorld();
+                PollGameState();
                 StateHasChanged();
             });
         }, null, 0, 100); // Poll every 100ms
     }
 
-    private async Task NextEncounterBeat()
-    {
-        await GameWorldManager.NextEncounterBeat();
-    }
-
-    private void PollGameWorld()
+    protected void PollGameState()
     {
         // Poll for current game state
         currentSnapshot = GameWorldManager.GetGameSnapshot();
+
+        // Check if encounter has completed and streaming is done
+        if (currentSnapshot.HasActiveEncounter &&
+            currentSnapshot.IsEncounterComplete &&
+            !currentSnapshot.IsStreaming)
+        {
+            OnEncounterCompleted.InvokeAsync(new BeatOutcome
+            {
+                IsEncounterComplete = true,
+                Outcome = currentSnapshot.SuccessfulOutcome ? BeatOutcomes.Success : BeatOutcomes.Failure
+            });
+        }
     }
 
-    public async Task ProcessPlayerChoice(EncounterChoice choice)
+    protected async Task MakeChoice(string choiceId)
+    {
+        HideTooltip();
+
+        if (currentSnapshot?.CanSelectChoice == true)
+        {
+            EncounterChoice selectedChoice = currentSnapshot.AvailableChoices
+                .FirstOrDefault(c => c.ChoiceID == choiceId);
+
+            if (selectedChoice != null)
+            {
+                await GameWorldManager.ProcessPlayerChoice(new PlayerChoiceSelection
+                {
+                    Choice = selectedChoice
+                });
+            }
+        }
+    }
+
+    protected void ShowTooltip(MouseEventArgs e, EncounterChoice choice)
+    {
+        hoveredChoice = choice;
+        showTooltip = true;
+        tooltipX = e.ClientX + 10;
+        tooltipY = e.ClientY + 10;
+    }
+
+    protected void HideTooltip()
     {
         hoveredChoice = null;
         showTooltip = false;
-        IsLoading = true;
-
-        PlayerChoiceSelection playerChoice = new PlayerChoiceSelection()
-        {
-            Choice = choice,
-            SelectedOption = choice.SkillOption
-        };
-
-        BeatOutcome result = await GameWorldManager.ProcessPlayerChoice(playerChoice);
-        await CheckEncounterCompleted(result);
-
-        Model = GetModel();
-        GetChoices();
-
-        HideTooltip();
-        IsLoading = false;
-
-        StateHasChanged();
     }
 
     public void Dispose()
     {
-        pollingTimer?.Dispose();
+        _pollingTimer?.Dispose();
     }
-
-    public async Task ShowTooltip(UserEncounterChoiceOption choice, string elementId)
-    {
-        hoveredChoice = choice;
-        showTooltip = true;
-
-        if (choice.Choice is EncounterChoice encounterChoice)
-        {
-            // Include template information in tooltip
-            string templateName = encounterChoice.TemplateUsed;
-            string templatePurpose = encounterChoice.TemplatePurpose;
-
-            // Set tooltip content
-            tooltipContent = $"{templatePurpose}";
-        }
-
-        if (_tooltipModule != null)
-        {
-            TooltipPosition position = await _tooltipModule.InvokeAsync<TooltipPosition>(
-                "getTooltipPositionRelativeToElement", $"{elementId}");
-
-            tooltipX = position.TooltipX;
-            tooltipY = position.TooltipY;
-        }
-
-        StateHasChanged();
-    }
-
-    public void HideTooltip()
-    {
-        hoveredChoice = null;
-        showTooltip = false;
-    }
-
-    private EncounterViewModel GetModel()
-    {
-        EncounterViewModel? encounterViewModel = GameWorldManager.GetEncounterViewModel();
-
-        if (encounterViewModel == null)
-        {
-            encounterViewModel = CreateGameOverModel();
-        }
-
-        return encounterViewModel;
-    }
-
-    private EncounterViewModel CreateGameOverModel()
-    {
-        EncounterViewModel encounterViewModel = new EncounterViewModel()
-        {
-            ChoiceSetName = "None",
-            CurrentChoices = new List<UserEncounterChoiceOption>(),
-            CurrentEncounterContext = null,
-            State = null,
-            EncounterResult = new EncounterResult()
-            {
-                locationAction = null,
-                ActionResult = ActionResults.GameOver,
-                EncounterEndMessage = "Game Over",
-                EncounterContext = null,
-                PostEncounterEvolution = null,
-                AIResponse = null
-            }
-        };
-
-        return encounterViewModel;
-    }
-
-
-    private async Task CheckEncounterCompleted(BeatOutcome result)
-    {
-        if (result.Outcome != BeatOutcomes.None)
-        {
-            await OnEncounterCompleted.InvokeAsync(result);
-        }
-        else
-        {
-            EncounterResult = result;
-        }
-    }
-
-    public void GetChoices()
-    {
-        CurrentChoices = GameWorld.ActionStateTracker.UserEncounterChoiceOptions;
-        StateHasChanged();
-    }
-
-    protected int GetCurrentFocusPoints()
-    {
-        return EncounterManager?.GetEncounterState()?.FocusPoints ?? 0;
-    }
-
-    protected int GetMaxFocusPoints()
-    {
-        return EncounterManager?.GetEncounterState()?.MaxFocusPoints ?? 0;
-    }
-
-
-    protected int GetFocusCost(UserEncounterChoiceOption choice)
-    {
-        if (choice.Choice is EncounterChoice option)
-        {
-            return option.FocusCost;
-        }
-        return 0;
-    }
-}
-
-public class TooltipPosition
-{
-    public double TooltipX { get; set; }
-    public double TooltipY { get; set; }
 }

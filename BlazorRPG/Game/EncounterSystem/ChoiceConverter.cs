@@ -41,7 +41,7 @@
         }
 
         // Calculate success chance
-        option.SuccessChance = CalculateSuccessChance(option.EffectiveLevel, option.DifficultyString);
+        option.SuccessChance = CalculateSuccessChance(option.EffectiveLevel, option.DifficultyLabel);
 
         // Link to effects
         option.SuccessEffect = aiOption.SuccessEffect;

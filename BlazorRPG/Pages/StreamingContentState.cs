@@ -1,62 +1,63 @@
 ﻿public class StreamingContentState
 {
-    public string CurrentText { get; private set; }
+    public string CurrentText { get; private set; } = string.Empty;
     public bool IsStreaming { get; private set; }
     public float StreamProgress { get; private set; }
-    private string targetText;
-    private int currentCharIndex;
-    private DateTime lastUpdateTime;
+
+    private string _targetText = string.Empty;
+    private int _currentCharIndex;
+    private DateTime _lastUpdateTime;
     private const int CHARS_PER_UPDATE = 3;
 
     public StreamingContentState()
     {
-        CurrentText = string.Empty;
         IsStreaming = false;
         StreamProgress = 0;
-        targetText = string.Empty;
-        currentCharIndex = 0;
     }
 
     public void BeginStreaming(string fullText)
     {
+        if (string.IsNullOrEmpty(fullText)) return;
+
         CurrentText = string.Empty;
-        targetText = fullText;
+        _targetText = fullText;
         IsStreaming = true;
         StreamProgress = 0;
-        currentCharIndex = 0;
-        lastUpdateTime = DateTime.Now;
+        _currentCharIndex = 0;
+        _lastUpdateTime = DateTime.Now;
     }
 
     public void Update()
     {
-        if (!IsStreaming)
-        {
-            return;
-        }
+        if (!IsStreaming) return;
 
         // Only update if enough time has passed (simulates token streaming)
         DateTime now = DateTime.Now;
-        if ((now - lastUpdateTime).TotalMilliseconds < 50)
-        {
-            return;
-        }
+        if ((now - _lastUpdateTime).TotalMilliseconds < 50) return;
 
         // Update a few characters at a time
-        currentCharIndex += CHARS_PER_UPDATE;
-        if (currentCharIndex >= targetText.Length)
+        _currentCharIndex += CHARS_PER_UPDATE;
+        if (_currentCharIndex >= _targetText.Length)
         {
             // Streaming complete
-            currentCharIndex = targetText.Length;
+            _currentCharIndex = _targetText.Length;
             IsStreaming = false;
             StreamProgress = 1.0f;
         }
         else
         {
-            StreamProgress = (float)currentCharIndex / targetText.Length;
+            StreamProgress = (float)_currentCharIndex / _targetText.Length;
         }
 
         // Update current text
-        CurrentText = targetText.Substring(0, currentCharIndex);
-        lastUpdateTime = now;
+        CurrentText = _targetText.Substring(0, _currentCharIndex);
+        _lastUpdateTime = now;
+    }
+
+    public void SetFullText(string text)
+    {
+        CurrentText = text;
+        IsStreaming = false;
+        StreamProgress = 1.0f;
     }
 }

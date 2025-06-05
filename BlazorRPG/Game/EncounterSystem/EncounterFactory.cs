@@ -1,6 +1,7 @@
 ﻿public class EncounterFactory
 {
     public WorldState worldState;
+    private readonly GameWorld gameWorld;
     private AIGameMaster aiGameMaster;
     private ChoiceProjectionService choiceProjectionService;
     private readonly WorldStateInputBuilder worldStateInputBuilder;
@@ -16,6 +17,7 @@
         IConfiguration configuration,
         ILogger<EncounterFactory> logger)
     {
+        this.gameWorld = gameWorld;
         this.aiGameMaster = aiGameMaster;
         this.choiceProjectionService = choiceProjectionService;
         this.worldStateInputBuilder = worldStateInputBuilder;
@@ -35,7 +37,7 @@
             player,
             10,
             10,
-            ""); // Placeholder values for focus points and complexity
+            10); // Placeholder values for focus points and complexity
 
         EncounterManager encounterManager = new EncounterManager(
             context,
@@ -43,7 +45,8 @@
             locationAction,
             choiceProjectionService,
             aiGameMaster,
-            worldStateInputBuilder);
+            worldStateInputBuilder,
+            gameWorld);
 
         return encounterManager;
     }
