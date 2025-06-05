@@ -172,8 +172,8 @@ public partial class NarrativeViewBase : ComponentBase
         return new CoinsChangeDisplay
         {
             Amount = EncounterResult.PostEncounterEvolution.CoinChange,
-            Current = GameWorld.Player.Money,
-            New = GameWorld.Player.Money + EncounterResult.PostEncounterEvolution.CoinChange
+            Current = GameWorld.GetPlayer().Money,
+            New = GameWorld.GetPlayer().Money + EncounterResult.PostEncounterEvolution.CoinChange
         };
     }
 

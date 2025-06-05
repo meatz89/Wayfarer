@@ -174,10 +174,10 @@
     private async Task CreateCharacter()
     {
         // Set player name, archetype, and gender
-        GameWorld.Player.Initialize(playerName, selectedArchetype, selectedGender);
+        GameWorld.GetPlayer().Initialize(playerName, selectedArchetype, selectedGender);
 
         // Notify parent component that character creation is complete
-        await OnCharacterCreated.InvokeAsync(GameWorld.Player);
+        await OnCharacterCreated.InvokeAsync(GameWorld.GetPlayer());
     }
 
     private string FormatArchetypeName(Professions archetype)

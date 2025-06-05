@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Routing;
-
-public class GameWorldManager
+﻿public class GameWorldManager
 {
     private bool _useMemory;
     private bool _processStateChanges;
@@ -30,7 +28,7 @@ public class GameWorldManager
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         this.gameWorld = gameWorld;
-        this.player = gameWorld.Player;
+        this.player = gameWorld.GetPlayer();
         this.worldState = gameWorld.WorldState;
         this.encounterFactory = encounterSystem;
         this.locationSystem = locationSystem;
@@ -182,28 +180,9 @@ public class GameWorldManager
         BeatOutcome beatOutcome = await gameWorld.ActionStateTracker.CurrentEncounterManager
             .ProcessPlayerChoice(playerChoice.Choice);
 
-        //ProcessOngoingEncounter(beatOutcome);
-        //ProcessEndEncounter(beatOutcome);
-
         return beatOutcome;
     }
 
-
-    private void ProcessOngoingEncounter(BeatOutcome encounterResult)
-    {
-        if (!IsGameOver(gameWorld.Player))
-        {
-            //gameWorld.ActionStateTracker.CurrentEncounterResult = encounterResult;
-
-            //List<UserEncounterChoiceOption> choiceOptions = GetUserEncounterChoiceOptions(encounterResult);
-            //gameWorld.ActionStateTracker.SetEncounterChoiceOptions(choiceOptions);
-        }
-        else
-        {
-            GameOver();
-            return;
-        }
-    }
 
     public void ProcessEndEncounter(EncounterResult result)
     {
@@ -217,19 +196,6 @@ public class GameWorldManager
     private int CalculateFocusPoints(int complexity)
     {
         return 10; // For simplicity, using complexity directly as focus points
-    }
-
-    private void CheckEncounterState()
-    {
-        if (gameWorld.ActionStateTracker.CurrentEncounterManager != null && gameWorld.ActionStateTracker.CurrentEncounterManager.IsEncounterComplete)
-        {
-            // Handle encounter completion
-            if (!gameWorld.StreamingContentState.IsStreaming)
-            {
-                // Only end encounter after streaming is complete
-                gameWorld.EndEncounter();
-            }
-        }
     }
 
     private async Task<List<UserActionOption>> CreateUserActionsForLocationSpot(Location location, LocationSpot locationSpot, List<LocationAction> locationActions)
@@ -320,7 +286,7 @@ public class GameWorldManager
 
     public async Task OnPlayerSelectsAction(UserActionOption action)
     {
-        Player player = gameWorld.Player;
+        Player player = gameWorld.GetPlayer();
         Location location = locationSystem.GetLocation(action.LocationId);
         LocationSpot locationSpot = location.AvailableSpots.FirstOrDefault(spot => spot.LocationId == action.LocationSpot);
 
@@ -385,21 +351,21 @@ public class GameWorldManager
     public async Task Travel(TravelRoute route)
     {
         // Check if player can travel this route
-        if (!route.CanTravel(gameWorld.Player))
+        if (!route.CanTravel(gameWorld.GetPlayer()))
             return;
 
         // Apply costs
         int timeCost = route.GetActualTimeCost();
         int energyCost = route.GetActualEnergyCost();
 
-        gameWorld.Player.SpendEnergy(energyCost);
+        gameWorld.GetPlayer().SpendEnergy(energyCost);
         gameWorld.AdvanceTime(timeCost);
 
         // Increase knowledge of this route
         route.IncreaseKnowledge();
 
         // Check for encounters
-        int seed = GameWorld.CurrentDay + gameWorld.Player.GetHashCode();
+        int seed = GameWorld.CurrentDay + gameWorld.GetPlayer().GetHashCode();
         EncounterContext encounterContext = route.GetEncounter(seed);
 
         if (encounterContext != null)
@@ -558,7 +524,7 @@ public class GameWorldManager
     {
         //SaveGame();
 
-        if (gameWorld.Player.CurrentActionPoints() == 0)
+        if (gameWorld.GetPlayer().CurrentActionPoints() == 0)
         {
             actionProcessor.ProcessTurnChange();
         }

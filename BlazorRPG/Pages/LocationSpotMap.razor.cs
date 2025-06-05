@@ -97,7 +97,7 @@ public partial class LocationSpotMap : ComponentBase
     {
         showTooltip = false;
 
-        //if (!GameWorld.PlayerState.HasAvailableCard(approach.RequiredCardType))
+        //if (!GameWorld.GetPlayer()State.HasAvailableCard(approach.RequiredCardType))
         //{
         //    return;
         //}

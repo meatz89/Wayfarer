@@ -124,13 +124,13 @@
         {
             // Award XP
             int xpBonus = location.DiscoveryBonusXP;
-            gameWorld.Player.AddExperiencePoints(xpBonus);
+            gameWorld.GetPlayer().AddExperiencePoints(xpBonus);
 
             // Award coins
             int coinBonus = location.DiscoveryBonusCoins;
             if (coinBonus > 0)
             {
-                gameWorld.Player.AddCoins(coinBonus);
+                gameWorld.GetPlayer().AddCoins(coinBonus);
             }
         }
     }

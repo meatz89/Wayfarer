@@ -15,7 +15,7 @@ public class ActionPointRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        return gameWorld.Player.CurrentActionPoints() >= RequiredAmount;
+        return gameWorld.GetPlayer().CurrentActionPoints() >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -35,7 +35,7 @@ public class EnergyRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        return gameWorld.Player.CurrentEnergy() >= RequiredAmount;
+        return gameWorld.GetPlayer().CurrentEnergy() >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -55,7 +55,7 @@ public class HealthRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        return gameWorld.Player.Health >= RequiredAmount;
+        return gameWorld.GetPlayer().Health >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -75,7 +75,7 @@ public class ConcentrationRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        return gameWorld.Player.Concentration >= RequiredAmount;
+        return gameWorld.GetPlayer().Concentration >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -95,7 +95,7 @@ public class CoinRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        return gameWorld.Player.Money >= RequiredAmount;
+        return gameWorld.GetPlayer().Money >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -115,7 +115,7 @@ public class FoodRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        return gameWorld.Player.Food >= RequiredAmount;
+        return gameWorld.GetPlayer().Food >= RequiredAmount;
     }
 
     public string GetDescription()
@@ -158,7 +158,7 @@ public class RelationshipRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        int currentValue = gameWorld.Player.GetRelationshipLevel(CharacterName);
+        int currentValue = gameWorld.GetPlayer().GetRelationshipLevel(CharacterName);
         return currentValue >= MinimumValue;
     }
 
@@ -181,7 +181,7 @@ public class SkillRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        int currentLevel = gameWorld.Player.Skills.GetLevelForSkill(SkillType);
+        int currentLevel = gameWorld.GetPlayer().Skills.GetLevelForSkill(SkillType);
         return currentLevel >= RequiredLevel;
     }
 
