@@ -1,65 +1,66 @@
 ﻿@inherits EncounterViewBase
-@using Microsoft.AspNetCore.Components.Web
 
 <div class="encounter-container">
-    @if (currentSnapshot != null && currentSnapshot.HasActiveEncounter)
-    {
-        <div class="encounter-header">
-            <div class="focus-display">
-                Focus Points: @currentSnapshot.CurrentFocusPoints / @currentSnapshot.MaxFocusPoints
-            </div>
-            
-            <div class="flag-display">
+    <div class="encounter-header">
+        <div class="focus-display">
+            Focus Points: @currentSnapshot?.CurrentFocusPoints / @currentSnapshot?.MaxFocusPoints
+        </div>
+        
+        <div class="flag-display">
+            @if (currentSnapshot?.ActiveFlags != null)
+            {
                 @foreach (var flag in currentSnapshot.ActiveFlags)
                 {
                     <span class="flag-badge">@flag</span>
                 }
+            }
+        </div>
+    </div>
+    
+    <div class="narrative-container">
+        @if (currentSnapshot?.IsStreaming == true)
+        {
+            <div class="streaming-text">
+                @currentSnapshot.StreamingText<span class="cursor">|</span>
             </div>
-        </div>
-        
-        <div class="narrative-container">
-            @if (currentSnapshot.IsStreaming)
-            {
-                <div class="streaming-text">
-                    @currentSnapshot.StreamingText<span class="cursor">|</span>
-                </div>
-                <div class="stream-progress">
-                    <div class="progress-bar" style="width: @(currentSnapshot.StreamProgress * 100)%"></div>
-                </div>
-            }
-            else if (currentSnapshot.CurrentAIResponse != null && !currentSnapshot.IsAwaitingAIResponse)
-            {
-                <div class="narrative-text">
-                    @currentSnapshot.StreamingText
-                </div>
-                
-                <div class="choices-container">
-                    @foreach (var choice in currentSnapshot.CurrentAIResponse.Choices)
-                    {
-                        <button class="choice-button" 
-                                @onclick="() => ProcessPlayerChoice(choice)" 
-                                disabled="@(!currentSnapshot.CanSelectChoice)">
-                            <div class="choice-header">
-                                <span class="choice-focus">@choice.FocusCost Focus</span>
-                                <span class="choice-difficulty">@choice.SkillCheck</span>
-                                <span class="choice-template">@choice.TemplateUsed</span>
-                            </div>
-                            <div class="choice-text">@choice.NarrativeText</div>
-                        </button>
-                    }
-                </div>
-            }
-            else if (currentSnapshot.IsAwaitingAIResponse)
-            {
-                <div class="loading-indicator">
-                    Thinking...
-                </div>
-            }
-        </div>
-    }
-
-    @if (showTooltip && hoveredChoice != null)
-    {
-        <EncounterChoiceTooltip hoveredChoice="hoveredChoice" tooltipX="tooltipX" tooltipY="tooltipY" />
-    }
+            <div class="stream-progress">
+                <div class="progress-bar" style="width: @(currentSnapshot.StreamProgress * 100)%"></div>
+            </div>
+        }
+        else if (currentSnapshot?.CanSelectChoice == true)
+        {
+            <div class="narrative-text">
+                @currentSnapshot.StreamingText
+            </div>
+            
+            <div class="choices-container">
+                @foreach (var choice in currentSnapshot.AvailableChoices)
+                {
+                    <button class="choice-button" 
+                            @onclick="() => MakeChoice(choice.ChoiceID)"
+                            @onmouseover="e => ShowTooltip(e, choice)"
+                            @onmouseout="HideTooltip">
+                        <div class="choice-header">
+                            <span class="choice-focus">@choice.FocusCost Focus</span>
+                            <span class="choice-difficulty">@(choice.SkillOption?.DifficultyLabel ?? "No Check")</span>
+                        </div>
+                        <div class="choice-text">@choice.NarrativeText</div>
+                    </button>
+                }
+            </div>
+        }
+        else if (currentSnapshot?.IsAwaitingAIResponse == true)
+        {
+            <div class="loading-indicator">
+                Thinking...
+            </div>
+        }
+    </div>
 </div>
+
+@if (showTooltip && hoveredChoice != null)
+{
+    <div class="choice-tooltip" style="left: @(tooltipX)px; top: @(tooltipY)px">
+        <ChoiceTooltip Choice="hoveredChoice" />
+    </div>
+}

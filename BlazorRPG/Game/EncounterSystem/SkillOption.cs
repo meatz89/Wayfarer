@@ -3,7 +3,7 @@
     public string SkillName { get; set; }
     public string Difficulty { get; set; }
     public int DifficultyLevel { get; set; }
-    public string DifficultyString { get; set; } // "EASY", "STANDARD", "HARD", "EXCEPTIONAL"
+    public string DifficultyLabel { get; set; } // "EASY", "STANDARD", "HARD", "EXCEPTIONAL"
     public int SCD { get; set; } // The actual numerical difficulty
     public IMechanicalEffect SuccessEffect { get; set; }
     public IMechanicalEffect FailureEffect { get; set; }

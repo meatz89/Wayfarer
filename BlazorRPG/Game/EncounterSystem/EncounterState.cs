@@ -20,11 +20,13 @@
     public int CurrentProgress { get; private set; }
     public int CurrentStageIndex { get; private set; }
     public string CurrentNarrative { get; set; }
+    public int ProgressThreshold { get; internal set; }
+    public int Progress { get; internal set; }
 
     private List<SkillModifier> activeModifiers;
     private int nextCheckModifier;
 
-    public EncounterState(Player player, int maxFocusPoints, int maxDuration, string currentNarrative)
+    public EncounterState(Player player, int maxFocusPoints, int maxDuration, int progressthreshold)
     {
         Player = player;
         MaxFocusPoints = maxFocusPoints;
@@ -43,7 +45,7 @@
         nextCheckModifier = 0;
 
         EncounterSeed = Environment.TickCount;
-        CurrentNarrative = currentNarrative;
+        ProgressThreshold = progressthreshold;
     }
 
     public void AdvanceDuration(int amount)
