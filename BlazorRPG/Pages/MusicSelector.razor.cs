@@ -27,10 +27,6 @@ namespace BlazorRPG.Pages
                 return;
 
             MusicService.EnqueueTracks(tracks);
-
-            Thread.Sleep(1000); // Ensure the queue is populated before starting playback
-
-            await MusicService.StartPlayingQueueAsync();
         }
 
         public async Task UpdateMusicForContextAsync(List<string> contextTags)

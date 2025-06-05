@@ -19,9 +19,6 @@
             modifiedDifficulty += 2; // Untrained penalty
         }
 
-        // Apply any temporary modifiers
-        effectiveLevel += state.GetTemporarySkillModifier(option.RequiredSkillName);
-
         bool success = effectiveLevel >= modifiedDifficulty;
 
         return new SkillCheckResult
