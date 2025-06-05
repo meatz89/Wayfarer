@@ -7,7 +7,7 @@ public partial class MainGameplayView : ComponentBase
 {
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private GameWorld GameWorld { get; set; }
-    [Inject] private GameWorldManager GameWorldManager { get; set; }
+    [Inject] private GameWorldManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
     [Inject] private CardHighlightService CardRefreshService { get; set; }
@@ -23,38 +23,6 @@ public partial class MainGameplayView : ComponentBase
         }
     }
 
-    public Player PlayerState
-    {
-        get
-        {
-            return GameWorld.Player;
-        }
-    }
-
-    // Player Resources
-    public int Energy
-    {
-        get
-        {
-            return PlayerState.CurrentEnergy();
-        }
-    }
-
-    public int Concentration
-    {
-        get
-        {
-            return PlayerState.Concentration;
-        }
-    }
-
-    public int ActionPoints
-    {
-        get
-        {
-            return PlayerState.CurrentActionPoints();
-        }
-    }
 
     public int TurnActionPoints
     {
@@ -63,22 +31,9 @@ public partial class MainGameplayView : ComponentBase
             return PlayerState.MaxActionPoints;
         }
     }
-
-    public int Exhaustion;
-    public int Hunger;
-    public int MentalLoad;
-    public int Isolation;
-
+    
     public BeatOutcome BeatOutcome { get; private set; }
-
     public CurrentViews CurrentScreen { get; private set; } = CurrentViews.LocationScreen;
-    public Location CurrentLocation
-    {
-        get
-        {
-            return GameWorld.WorldState.CurrentLocation;
-        }
-    }
 
     public LocationSpot CurrentSpot
     {
@@ -87,7 +42,6 @@ public partial class MainGameplayView : ComponentBase
             return GameWorld.WorldState.CurrentLocationSpot;
         }
     }
-
     public TimeWindowTypes CurrentTime
     {
         get
@@ -108,17 +62,20 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameWorldManager.GetPlayerKnownLocations();
+            return GameManager.GetPlayerKnownLocations();
         }
     }
 
-    public EncounterManager EncounterManager = null;
-    public LocationAction locationAction = null;
-
     private int StateVersion = 0;
+    public EncounterManager EncounterManager = null;
 
     // Navigation State
     public string SelectedLocation { get; private set; }
+    public TimeOfDay CurrentTimeOfDay { get; private set; }
+    public int Energy { get; private set; }
+    public int Concentration { get; private set; }
+    public Location CurrentLocation { get; private set; }
+    public Player PlayerState { get; private set; }
 
     // Tooltip State
     public bool ShowTooltip = false;
@@ -140,12 +97,44 @@ public partial class MainGameplayView : ComponentBase
         { SidebarSections.status, false }
     };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        HasApLeft = PlayerState.CurrentActionPoints() > 0;
-        DisplayActionMessages();
+        // Set up polling instead of direct timer calls
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                await InvokeAsync(() =>
+                {
+                    PollGameState();
+                    StateHasChanged();
+                });
+                await Task.Delay(100);
+            }
+        });
     }
 
+    private void PollGameState()
+    {
+        GameWorldSnapshot snapshot = GameManager.GetGameSnapshot();
+
+        // Update UI state from snapshot, not directly from backend events
+        CurrentTimeOfDay = snapshot.CurrentTimeOfDay;
+        Energy = snapshot.Energy;
+        Concentration = snapshot.Concentration;
+
+        // Update location properties based on time
+        if (CurrentScreen == CurrentViews.LocationScreen)
+        {
+            // Refresh available actions based on time-of-day
+            UpdateAvailableActions();
+        }
+    }
+
+    private void UpdateAvailableActions()
+    {
+        throw new NotImplementedException();
+    }
 
     public async Task SwitchAreaMap()
     {
@@ -168,13 +157,13 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task HandleSpotSelection(LocationSpot locationSpot)
     {
-        await GameWorldManager.MoveToLocationSpot(locationSpot.SpotID);
+        await GameManager.MoveToLocationSpot(locationSpot.SpotID);
         UpdateState();
     }
 
     private async Task StartNewDay()
     {
-        await GameWorldManager.StartNewDay();
+        await GameManager.StartNewDay();
         UpdateState();
     }
 
@@ -182,7 +171,7 @@ public partial class MainGameplayView : ComponentBase
     {
         if (action.IsDisabled) return;
 
-        await GameWorldManager.OnPlayerSelectsAction(action);
+        await GameManager.OnPlayerSelectsAction(action);
 
         // Check if an encounter was started
         if (GameWorld.ActionStateTracker.CurrentEncounterManager != null)
@@ -197,7 +186,7 @@ public partial class MainGameplayView : ComponentBase
     private async Task OnEncounterCompleted(BeatOutcome result)
     {
         // Process action completion
-        await GameWorldManager.ProcessActionCompletion();
+        await GameManager.ProcessActionCompletion();
 
         // Store the result for narrative view
         BeatOutcome = result;
@@ -210,15 +199,7 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task HandleTravelStart(string travelLocationName)
     {
-        SelectedLocation = travelLocationName;
-
-        if (travelLocationName == CurrentLocation.Id)
-        {
-            UpdateState();
-            return;
-        }
-
-        await GameWorldManager.Travel(travelLocationName);
+        await GameManager.Travel(travelLocationName);
 
         CurrentScreen = CurrentViews.LocationScreen;
         UpdateState();
@@ -240,14 +221,13 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task HandleCardRefreshed(SkillCard card)
     {
-        await GameWorldManager.RefreshCard(card);
+        await GameManager.RefreshCard(card);
         MessageSystem.AddSystemMessage($"Refreshed {card.Name} card");
         UpdateState();
     }
 
     public void UpdateState()
     {
-        HasApLeft = PlayerState.CurrentActionPoints() > 0;
         DisplayActionMessages();
 
         StateVersion++;

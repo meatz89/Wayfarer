@@ -4,10 +4,29 @@
     private Player player;
     private WorldState worldState;
 
+    public int CurrentTimeHours { get; private set; }
+    public TimeWindowTypes CurrentTimeWindow { get; private set; }
+
     public TimeManager(Player player, WorldState worldState)
     {
         this.player = player;
         this.worldState = worldState;
+    }
+
+    public void SetNewTime(int hours)
+    {
+        CurrentTimeHours = hours;
+        UpdateTimeWindow();
+    }
+
+    public void AdvanceTime(int duration)
+    {
+        SetNewTime(CurrentTimeHours + duration);
+    }
+
+    public int GetCurrentHour()
+    {
+        return CurrentTimeHours;
     }
 
     public void UpdateTimeWindow()
@@ -27,7 +46,7 @@
         if (newHour >= 24)
             newHour = 23;  // Cap to prevent overflow, last action sits near midnight
 
-        worldState.CurrentTimeHours = newHour;
+        CurrentTimeHours = newHour;
 
         // Now update TimeWindow based on newHour
         TimeWindowTypes newWindow;
@@ -40,12 +59,12 @@
         else
             newWindow = TimeWindowTypes.Night;  // should never hit this because of cap
 
-        worldState.CurrentTimeWindow = newWindow;
+        CurrentTimeWindow = newWindow;
 
         if (currentAP == 0)
         {
-            worldState.CurrentTimeHours = 0;
-            worldState.CurrentTimeWindow = TimeWindowTypes.Night;
+            CurrentTimeHours = 0;
+            CurrentTimeWindow = TimeWindowTypes.Night;
         }
     }
 
@@ -55,20 +74,14 @@
         SetNewTime(TimeDayStart);
     }
 
-    public void SetNewTime(int hours)
-    {
-        worldState.CurrentTimeHours = hours;
-        UpdateTimeWindow();
-    }
-
     public TimeWindowTypes GetCurrentTimeWindow()
     {
-        return worldState.CurrentTimeWindow;
+        return CurrentTimeWindow;
     }
 
     public string PreviewTimeAdvancement(string timeWindow)
     {
-        switch (worldState.CurrentTimeWindow)
+        switch (CurrentTimeWindow)
         {
             case TimeWindowTypes.Morning:
                 return timeWindow == "Half" ? "Morning" : "Afternoon";

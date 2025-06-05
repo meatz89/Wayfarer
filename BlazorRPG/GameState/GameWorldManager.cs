@@ -393,7 +393,7 @@ public class GameWorldManager
         int energyCost = route.GetActualEnergyCost();
 
         gameWorld.Player.SpendEnergy(energyCost);
-        GameWorld.AdvanceTime(TimeSpan.FromHours(timeCost));
+        gameWorld.AdvanceTime(timeCost);
 
         // Increase knowledge of this route
         route.IncreaseKnowledge();

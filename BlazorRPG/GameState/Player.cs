@@ -586,16 +586,11 @@
         return Inventory.HasItem(equipment);
     }
 
-
-    // Resource modification with interdependence
     public bool SpendEnergy(int amount)
     {
         if (Energy < amount) return false;
 
         Energy -= amount;
-
-        // Automatic time advancement based on energy expenditure
-        GameWorld.AdvanceTime(TimeSpan.FromHours(amount));
 
         return true;
     }

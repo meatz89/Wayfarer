@@ -70,9 +70,11 @@
         Player.CurrentLocationSpot = locationSpot;
     }
 
-    public static void AdvanceTime(TimeSpan timeSpan)
+    public void AdvanceTime(int duration)
     {
-        CurrentTimeOfDay = CurrentTimeOfDay.Advance(timeSpan);
+        TimeManager.AdvanceTime(duration);
+        WorldState.CurrentTimeWindow = TimeManager.GetCurrentTimeWindow();
+        WorldState.CurrentTimeHours = TimeManager.GetCurrentHour();
     }
 
     public bool IsDeadlineReached()

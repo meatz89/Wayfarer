@@ -8,13 +8,6 @@ public partial class GameUI : ComponentBase
     [Inject] private GameWorld GameWorld { get; set; }
     [Inject] private GameWorldManager GameWorldManager { get; set; }
 
-    private Timer _pollingTimer;
-    private GameWorldSnapshot currentSnapshot;
-
-    private bool _previousLoadingState;
-    private string _previousMessage = string.Empty;
-    private int _previousProgress;
-
     public CurrentViews CurrentScreen { get; private set; } = CurrentViews.CharacterScreen;
 
     public Player PlayerState
@@ -43,38 +36,6 @@ public partial class GameUI : ComponentBase
         else
         {
             CurrentScreen = CurrentViews.LocationScreen;
-        }
-
-        _pollingTimer = new Timer(CheckLoadingState, null, 0, 100);
-    }
-
-    private void PollGameState()
-    {
-        // Poll for current game state
-        currentSnapshot = GameWorldManager.GetGameSnapshot();
-    }
-
-    public void Dispose()
-    {
-        _pollingTimer?.Dispose();
-    }
-
-    private void CheckLoadingState(object state)
-    {
-        // Check if loading state has changed
-        PollGameState();
-        
-        bool hasChanged = _previousLoadingState != LoadingStateService.IsLoading ||
-            _previousMessage != LoadingStateService.Message ||
-            _previousProgress != LoadingStateService.Progress;
-
-        if (hasChanged)
-        {
-            _previousLoadingState = LoadingStateService.IsLoading;
-            _previousMessage = LoadingStateService.Message;
-            _previousProgress = LoadingStateService.Progress;
-
-            InvokeAsync(StateHasChanged);
         }
     }
 
