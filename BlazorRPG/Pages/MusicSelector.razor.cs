@@ -26,7 +26,8 @@ namespace BlazorRPG.Pages
             if (tracks.Count == 0)
                 return;
 
-            MusicService.EnqueueTracks(tracks);
+            List<Track> shuffledTracks = ShuffleTracks(tracks);
+            MusicService.EnqueueTracks(shuffledTracks);
         }
 
         public async Task UpdateMusicForContextAsync(List<string> contextTags)
@@ -41,8 +42,6 @@ namespace BlazorRPG.Pages
 
             List<Track> shuffledTracks = ShuffleTracks(matchingTracks);
             MusicService.EnqueueTracks(shuffledTracks);
-
-            await MusicService.StartPlayingQueueAsync();
         }
 
         private List<Track> FilterTracksByTags(List<string> contextTags)
@@ -58,7 +57,7 @@ namespace BlazorRPG.Pages
         private List<Track> ShuffleTracks(List<Track> tracks)
         {
             Random random = new Random();
-            return tracks.OrderBy(x => random.Next()).ToList();
+            return tracks.OrderBy(_ => random.Next()).ToList();
         }
     }
 }
