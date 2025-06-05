@@ -1,7 +1,7 @@
 ﻿public class GameWorld
 {
     // Existing properties
-    public Player Player { get; private set; }
+    private Player Player;
     public WorldState WorldState { get; private set; }
     public ActionStateTracker ActionStateTracker { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }

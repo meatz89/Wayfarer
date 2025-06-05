@@ -123,7 +123,7 @@
         )
     {
         WorldState worldState = gameWorld.WorldState;
-        Player player = gameWorld.Player;
+        Player player = gameWorld.GetPlayer();
 
         // Get all locations
         List<Location> allLocations = locationRepository.GetAllLocations();

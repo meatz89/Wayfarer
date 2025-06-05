@@ -77,7 +77,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 
     protected int GetPlayerSkillLevel(SkillTypes skill)
     {
-        return GameWorld.Player.GetSkillLevel(skill);
+        return GameWorld.GetPlayer().GetSkillLevel(skill);
     }
 
     public string tooltipXpx

@@ -83,7 +83,7 @@ public class AIPromptBuilder
         AddTimeContext(prompt, gameWorld);
 
         // Add resource context
-        AddResourceContext(prompt, gameWorld.Player);
+        AddResourceContext(prompt, gameWorld.GetPlayer());
 
         // Add travel context
         AddTravelContext(prompt, gameWorld);
@@ -133,7 +133,7 @@ public class AIPromptBuilder
 
         // Add player skills
         prompt.AppendLine("- Player Skills Available:");
-        foreach (SkillCard card in gameWorld.Player.AvailableCards)
+        foreach (SkillCard card in gameWorld.GetPlayer().AvailableCards)
         {
             if (!card.IsExhausted)
             {
@@ -241,7 +241,7 @@ public class AIPromptBuilder
 
                 if (route.RequiredEquipment.Any())
                 {
-                    bool canTravel = route.CanTravel(gameWorld.Player);
+                    bool canTravel = route.CanTravel(gameWorld.GetPlayer());
                     string status = canTravel ? "Requirements met" : "Missing requirements";
                     prompt.AppendLine($"    - Requirements: {string.Join(", ", route.RequiredEquipment)} ({status})");
                 }
@@ -280,7 +280,7 @@ public class AIPromptBuilder
         }
 
         // Add memory guidance
-        if (gameWorld.Player.Memories.Any())
+        if (gameWorld.GetPlayer().Memories.Any())
         {
             prompt.AppendLine("6. Reference the player's past experiences where relevant.");
         }

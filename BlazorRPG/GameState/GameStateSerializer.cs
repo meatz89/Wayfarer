@@ -18,23 +18,23 @@ public static class GameWorldSerializer
 
             Player = new SerializablePlayerState
             {
-                Name = gameWorld.Player.Name,
-                Gender = gameWorld.Player.IsInitialized ? gameWorld.Player.Gender.ToString() : null,
-                Archetype = gameWorld.Player.IsInitialized ? gameWorld.Player.Archetype.ToString() : null,
-                Coins = gameWorld.Player.Money,
-                MaxActionPoints = gameWorld.Player.MaxActionPoints,
-                ActionPoints = gameWorld.Player.ActionPoints,
-                MaxEnergy = gameWorld.Player.MaxEnergy,
-                Energy = gameWorld.Player.Energy,
-                MaxHealth = gameWorld.Player.MaxHealth,
-                Health = gameWorld.Player.Health,
-                Level = gameWorld.Player.Level,
-                CurrentXP = gameWorld.Player.CurrentXP,
-                InventoryItems = gameWorld.Player.Inventory.GetAllItems()
+                Name = gameWorld.GetPlayer().Name,
+                Gender = gameWorld.GetPlayer().IsInitialized ? gameWorld.GetPlayer().Gender.ToString() : null,
+                Archetype = gameWorld.GetPlayer().IsInitialized ? gameWorld.GetPlayer().Archetype.ToString() : null,
+                Coins = gameWorld.GetPlayer().Money,
+                MaxActionPoints = gameWorld.GetPlayer().MaxActionPoints,
+                ActionPoints = gameWorld.GetPlayer().ActionPoints,
+                MaxEnergy = gameWorld.GetPlayer().MaxEnergy,
+                Energy = gameWorld.GetPlayer().Energy,
+                MaxHealth = gameWorld.GetPlayer().MaxHealth,
+                Health = gameWorld.GetPlayer().Health,
+                Level = gameWorld.GetPlayer().Level,
+                CurrentXP = gameWorld.GetPlayer().CurrentXP,
+                InventoryItems = gameWorld.GetPlayer().Inventory.GetAllItems()
                     .Select(item => item.ToString())
                     .ToList(),
                 // Add serialization for player's cards if needed
-                SelectedCards = gameWorld.Player.AvailableCards?.Select(c => c.Id).ToList() ?? new List<string>()
+                SelectedCards = gameWorld.GetPlayer().AvailableCards?.Select(c => c.Id).ToList() ?? new List<string>()
             }
         };
 
@@ -82,42 +82,42 @@ public static class GameWorldSerializer
                 Enum.TryParse<Professions>(serialized.Player.Archetype, out Professions archetype))
             {
                 // Initialize player
-                gameWorld.Player.Initialize(serialized.Player.Name, archetype, gender);
+                gameWorld.GetPlayer().Initialize(serialized.Player.Name, archetype, gender);
             }
 
             // Apply resources
-            gameWorld.Player.Money = serialized.Player.Coins;
-            gameWorld.Player.MaxActionPoints = serialized.Player.MaxActionPoints;
-            gameWorld.Player.ActionPoints = serialized.Player.ActionPoints;
-            gameWorld.Player.MaxEnergy = serialized.Player.MaxEnergy;
-            gameWorld.Player.Energy = serialized.Player.Energy;
-            gameWorld.Player.MaxHealth = serialized.Player.MaxHealth;
-            gameWorld.Player.Health = serialized.Player.Health;
+            gameWorld.GetPlayer().Money = serialized.Player.Coins;
+            gameWorld.GetPlayer().MaxActionPoints = serialized.Player.MaxActionPoints;
+            gameWorld.GetPlayer().ActionPoints = serialized.Player.ActionPoints;
+            gameWorld.GetPlayer().MaxEnergy = serialized.Player.MaxEnergy;
+            gameWorld.GetPlayer().Energy = serialized.Player.Energy;
+            gameWorld.GetPlayer().MaxHealth = serialized.Player.MaxHealth;
+            gameWorld.GetPlayer().Health = serialized.Player.Health;
 
             // Apply progression
-            gameWorld.Player.Level = serialized.Player.Level;
-            gameWorld.Player.CurrentXP = serialized.Player.CurrentXP;
+            gameWorld.GetPlayer().Level = serialized.Player.Level;
+            gameWorld.GetPlayer().CurrentXP = serialized.Player.CurrentXP;
 
             // Apply inventory
-            gameWorld.Player.Inventory.Clear();
+            gameWorld.GetPlayer().Inventory.Clear();
             foreach (string itemName in serialized.Player.InventoryItems)
             {
                 if (Enum.TryParse<ItemTypes>(itemName, out ItemTypes itemType))
                 {
-                    gameWorld.Player.Inventory.AddItem(itemType);
+                    gameWorld.GetPlayer().Inventory.AddItem(itemType);
                 }
             }
 
             // Apply selected cards if available
             if (serialized.Player.SelectedCards != null && cards != null)
             {
-                gameWorld.Player.AvailableCards = new List<SkillCard>();
+                gameWorld.GetPlayer().AvailableCards = new List<SkillCard>();
                 foreach (string cardId in serialized.Player.SelectedCards)
                 {
                     SkillCard card = cards.FirstOrDefault(c => c.Id == cardId);
                     if (card != null)
                     {
-                        gameWorld.Player.AvailableCards.Add(card);
+                        gameWorld.GetPlayer().AvailableCards.Add(card);
                     }
                 }
             }

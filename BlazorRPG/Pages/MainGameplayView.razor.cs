@@ -12,7 +12,31 @@ public partial class MainGameplayView : ComponentBase
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
     [Inject] private CardHighlightService CardRefreshService { get; set; }
 
+
+    private int StateVersion = 0;
+    public EncounterManager EncounterManager = null;
     public EncounterResult EncounterResult;
+
+    // Navigation State
+    public string SelectedLocation { get; private set; }
+    public TimeOfDay CurrentTimeOfDay { get; private set; }
+    public int Energy { get; private set; } = 0;
+    public int Concentration { get; private set; } = 0;
+    public Location CurrentLocation { get; private set; }
+    public Player PlayerState => GameWorld.GetPlayer();
+
+    // Tooltip State
+    public bool ShowTooltip = false;
+    public UserActionOption HoveredAction;
+    private double MouseX;
+    private double MouseY;
+
+    // Action Message State
+    private bool ShowActionMessage = false;
+    private string ActionMessageType = "success";
+    private List<string> ActionMessages = new List<string>();
+    public ElementReference SidebarRef;
+
 
     public bool HasApLeft { get; private set; }
     public bool HasNoApLeft
@@ -66,29 +90,6 @@ public partial class MainGameplayView : ComponentBase
         }
     }
 
-    private int StateVersion = 0;
-    public EncounterManager EncounterManager = null;
-
-    // Navigation State
-    public string SelectedLocation { get; private set; }
-    public TimeOfDay CurrentTimeOfDay { get; private set; }
-    public int Energy { get; private set; }
-    public int Concentration { get; private set; }
-    public Location CurrentLocation { get; private set; }
-    public Player PlayerState { get; private set; }
-
-    // Tooltip State
-    public bool ShowTooltip = false;
-    public UserActionOption HoveredAction;
-    private double MouseX;
-    private double MouseY;
-
-    // Action Message State
-    private bool ShowActionMessage = false;
-    private string ActionMessageType = "success";
-    private List<string> ActionMessages = new List<string>();
-    public ElementReference SidebarRef;
-
     private Dictionary<SidebarSections, bool> ExpandedSections = new Dictionary<SidebarSections, bool>
     {
         { SidebarSections.skills, false },
@@ -133,7 +134,6 @@ public partial class MainGameplayView : ComponentBase
 
     private void UpdateAvailableActions()
     {
-        throw new NotImplementedException();
     }
 
     public async Task SwitchAreaMap()
@@ -152,7 +152,7 @@ public partial class MainGameplayView : ComponentBase
 
     public Location GetCurrentLocation()
     {
-        return CurrentLocation;
+        return GameWorld.CurrentLocation;
     }
 
     private async Task HandleSpotSelection(LocationSpot locationSpot)
@@ -179,6 +179,8 @@ public partial class MainGameplayView : ComponentBase
             // Simply switch to encounter screen - EncounterView will handle initialization
             CurrentScreen = CurrentViews.EncounterScreen;
         }
+
+        EncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager;
 
         UpdateState();
     }

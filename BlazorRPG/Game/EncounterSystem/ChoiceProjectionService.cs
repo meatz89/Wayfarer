@@ -4,7 +4,7 @@
 
     public ChoiceProjectionService(GameWorld gameWorld)
     {
-        this.player = gameWorld.Player;
+        this.player = gameWorld.GetPlayer();
     }
 
     public ChoiceProjection ProjectChoice(EncounterChoice choice, EncounterState state)

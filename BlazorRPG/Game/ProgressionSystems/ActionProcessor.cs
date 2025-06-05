@@ -20,13 +20,13 @@
         this.environmentalPropertyManager = environmentalPropertyManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
-        this.player = gameWorld.Player;
+        this.player = gameWorld.GetPlayer();
         this.worldState = gameWorld.WorldState;
     }
 
     public void ProcessTurnChange()
     {
-        Player player = gameWorld.Player;
+        Player player = gameWorld.GetPlayer();
 
         int energy = player.CurrentEnergy();
         int turnAp = player.MaxActionPoints;
@@ -38,12 +38,12 @@
         }
 
         gameWorld.TimeManager.StartNewDay();
-        gameWorld.Player.ModifyActionPoints(gameWorld.Player.MaxActionPoints);
+        gameWorld.GetPlayer().ModifyActionPoints(gameWorld.GetPlayer().MaxActionPoints);
     }
 
     public void ProcessAction(LocationAction action)
     {
-        Player player = gameWorld.Player;
+        Player player = gameWorld.GetPlayer();
         player.ApplyActionPointCost(action.ActionPointCost);
     }
 

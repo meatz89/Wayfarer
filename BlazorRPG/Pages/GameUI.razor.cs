@@ -14,7 +14,7 @@ public partial class GameUI : ComponentBase
     {
         get
         {
-            return GameWorld.Player;
+            return GameWorld.GetPlayer();
         }
     }
 

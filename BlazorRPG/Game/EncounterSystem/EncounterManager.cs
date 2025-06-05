@@ -49,9 +49,6 @@
         _state.MaxDuration = 8;
         _state.DurationCounter = 0;
         _state.IsEncounterComplete = false;
-
-        // Start the introduction immediately
-        await ProcessNextBeat();
     }
 
     public async Task ProcessNextBeat()
@@ -100,6 +97,9 @@
 
         _isAwaitingAIResponse = true;
 
+        // Store the current narrative before generating choices
+        string currentNarrative = _gameWorld.StreamingContentState.CurrentText;
+
         WorldStateInput worldStateInput = await _worldStateInputBuilder
             .CreateWorldStateInput(_context.LocationName);
 
@@ -107,6 +107,12 @@
 
         Choices = await _aiGameMaster.RequestChoices(
             _context, _state, worldStateInput, allTemplates, AIClient.PRIORITY_IMMEDIATE);
+
+        // After choices are generated, ensure narrative is preserved
+        if (string.IsNullOrEmpty(_gameWorld.StreamingContentState.CurrentText))
+        {
+            _gameWorld.StreamingContentState.SetFullText(currentNarrative);
+        }
 
         _isAwaitingAIResponse = false;
     }

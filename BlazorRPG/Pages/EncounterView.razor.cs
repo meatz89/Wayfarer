@@ -18,6 +18,17 @@ public class EncounterViewBase : ComponentBase
     protected double tooltipX;
     protected double tooltipY;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await EncounterManager.ProcessNextBeat();
+
+        currentSnapshot = GameWorldManager.GetGameSnapshot();
+    }
+    protected override void OnParametersSet()
+    {
+        currentSnapshot = GameWorldManager.GetGameSnapshot();
+    }
+
     protected async Task MakeChoice(string choiceId)
     {
         HideTooltip();

@@ -42,7 +42,8 @@
         {
             case CurrentViews.EncounterScreen:
                 <EncounterView EncounterManager="EncounterManager"
-                               OnEncounterCompleted="OnEncounterCompleted" />
+                               OnEncounterCompleted="OnEncounterCompleted"
+                               @key="StateVersion" />
                 break;
 
             case CurrentViews.NarrativeScreen:
@@ -72,7 +73,7 @@
             case CurrentViews.LocationScreen:
                 <div class="location-container">
                     <div class="location-header">
-                        <h2 class="location-title">@GetCurrentLocation().Name</h2>
+                        <h2 class="location-title">@GetCurrentLocation()?.Name</h2>
                         <div class="location-actions">
                             <button class="location-button" @onclick="SwitchAreaMap" hidden="@HasNoApLeft">
                                 Travel 🗺️

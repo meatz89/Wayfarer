@@ -31,12 +31,12 @@ public class LocationSystem
             return l.PlayerKnowledge;
         }))
         {
-            gameWorld.Player.AddKnownLocation(loc.Id);
+            gameWorld.GetPlayer().AddKnownLocation(loc.Id);
             foreach (LocationSpot? spot in locationRepository.GetSpotsForLocation(loc.Id).Where(s =>
             {
                 return s.PlayerKnowledge;
             }))
-                gameWorld.Player.AddKnownLocationSpot(spot.SpotID);
+                gameWorld.GetPlayer().AddKnownLocationSpot(spot.SpotID);
         }
 
         return GetLocation(startLoc.Id);

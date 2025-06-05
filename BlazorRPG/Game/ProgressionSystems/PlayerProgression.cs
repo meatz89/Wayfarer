@@ -6,7 +6,7 @@
     public PlayerProgression(GameWorld gameWorld, MessageSystem messageSystem)
     {
         this.messageSystem = messageSystem;
-        this.player = gameWorld.Player;
+        this.player = gameWorld.GetPlayer();
     }
 
     public void AddPlayerExp(int xpAmount)
