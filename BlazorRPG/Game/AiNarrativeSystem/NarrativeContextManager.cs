@@ -1,4 +1,4 @@
-﻿public class EncounterContextManager
+﻿public class ConversationHistoryManager
 {
     private Dictionary<string, List<ConversationEntry>> _fullConversationHistories = new();
 
@@ -61,7 +61,7 @@
         });
     }
 
-    public List<ConversationEntry> GetOptimizedConversationHistory(string conversationId)
+    public List<ConversationEntry> GetConversationHistory(string conversationId)
     {
         List<ConversationEntry> fullHistory = _fullConversationHistories[conversationId];
         List<ConversationEntry> optimizedHistory = new List<ConversationEntry>();

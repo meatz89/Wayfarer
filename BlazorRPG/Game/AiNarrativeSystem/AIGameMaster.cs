@@ -1,7 +1,7 @@
 ﻿public class AIGameMaster
 {
     private AIPromptBuilder _promptBuilder;
-    private EncounterContextManager _contextManager;
+    private ConversationHistoryManager _contextManager;
     private MemoryFileAccess _memoryFileAccess;
     private EncounterChoiceResponseParser _encounterChoiceResponseParser;
     private AIClient _aiClient;
@@ -18,7 +18,7 @@
     }
 
     public AIGameMaster(
-        EncounterContextManager contextManager,
+        ConversationHistoryManager contextManager,
         EncounterChoiceResponseParser EncounterChoiceResponseParser,
         AIClient aiClient,
         MemoryFileAccess memoryFileAccess,
@@ -65,7 +65,7 @@
         }
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _contextManager.GetConversationHistory(conversationId),
             _watcher,
             priority,
             messageType.ToString());
@@ -93,7 +93,7 @@
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.ChoicesGeneration);
         
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _contextManager.GetConversationHistory(conversationId),
             _watcher,
             priority,
             messageType.ToString());
@@ -122,7 +122,7 @@
         _contextManager.AddUserChoiceSelectionMessage(conversationId, prompt.Content, chosenOption.NarrativeText);
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _contextManager.GetConversationHistory(conversationId),
             _watcher,
             priority,
             messageType.ToString());
@@ -150,7 +150,7 @@
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _contextManager.GetConversationHistory(conversationId),
             _watcher,
             priority,
             messageType.ToString());
@@ -179,7 +179,7 @@
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _contextManager.GetConversationHistory(conversationId),
             _watcher,
             priority,
             messageType.ToString());
@@ -212,7 +212,7 @@
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _contextManager.GetConversationHistory(conversationId),
             _watcher,
             priority,
             messageType.ToString());
@@ -244,7 +244,7 @@
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _contextManager.GetConversationHistory(conversationId),
             _watcher,
             priority,
             messageType.ToString());
@@ -280,7 +280,7 @@
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            _contextManager.GetOptimizedConversationHistory(conversationId),
+            _contextManager.GetConversationHistory(conversationId),
             _watcher,
             priority,
             messageType.ToString());

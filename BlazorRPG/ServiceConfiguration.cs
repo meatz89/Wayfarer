@@ -52,7 +52,7 @@ public static class ServiceConfiguration
     public static IServiceCollection AddAIServices(this IServiceCollection services)
     {
         // Register core services
-        services.AddSingleton<EncounterContextManager>();
+        services.AddSingleton<ConversationHistoryManager>();
         services.AddSingleton<NarrativeLogManager>();
         services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<IResponseStreamWatcher, ConsoleResponseWatcher>();
