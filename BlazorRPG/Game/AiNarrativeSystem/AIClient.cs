@@ -35,6 +35,7 @@
             {
                 _loadingStateService.StartLoading($"Generating {FormatSourceSystem(command.SourceSystem)}...");
             }
+
             result = await _queue.WaitForResult(command.Id);
         }
         finally
@@ -48,22 +49,13 @@
     }
 
     public async Task<AIGenerationCommand> CreateAndQueueCommand(
+        List<IResponseStreamWatcher> watchers,
         List<ConversationEntry> messages,
         int priority,
         string sourceSystem)
     {
-        // Create list of watchers
-        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
+        watchers.Add(new ConsoleResponseWatcher());
 
-        // Add streaming watcher for non-background tasks
-        bool isBackgroundRequest = priority >= PRIORITY_BACKGROUND;
-        if (!isBackgroundRequest && _gameWorld?.StreamingContentState != null)
-        {
-            watchers.Add(new ConsoleResponseWatcher());
-            watchers.Add(new StreamingContentStateWatcher(_gameWorld.StreamingContentState));
-        }
-
-        // Queue the command with all watchers
         AIGenerationCommand command = _queue.EnqueueCommand(
             messages, watchers, priority, sourceSystem);
 

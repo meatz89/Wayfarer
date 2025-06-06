@@ -59,16 +59,19 @@
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
         }
 
+        List<IResponseStreamWatcher> watchers = 
+        [
+            new StreamingContentStateWatcher(_gameWorld.StreamingContentState)
+        ];
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            watchers,
             _contextManager.GetConversationHistory(conversationId),
             priority,
             messageType.ToString());
 
         string response = await _aiClient.ProcessCommand(aiGenerationCommand);
         _contextManager.AddAssistantMessage(conversationId, response, messageType);
-
-        // Begin streaming the introduction
-        _gameWorld.StreamingContentState.BeginStreaming(response);
 
         return response;
     }
@@ -89,7 +92,10 @@
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.ChoicesGeneration);
 
+        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            watchers,
             _contextManager.GetConversationHistory(conversationId),
             priority,
             messageType.ToString());
@@ -118,15 +124,19 @@
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);
         _contextManager.AddUserChoiceSelectionMessage(conversationId, prompt.Content, chosenOption.NarrativeText);
 
+        List<IResponseStreamWatcher> watchers =
+        [
+            new StreamingContentStateWatcher(_gameWorld.StreamingContentState)
+        ];
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            watchers,
             _contextManager.GetConversationHistory(conversationId),
             priority,
             messageType.ToString());
 
         string response = await _aiClient.ProcessCommand(aiGenerationCommand);
         _contextManager.AddAssistantMessage(conversationId, response, messageType);
-
-        _gameWorld.StreamingContentState.BeginStreaming(response);
 
         return response;
     }
@@ -147,7 +157,10 @@
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
+        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            watchers,
             _contextManager.GetConversationHistory(conversationId),
             priority,
             messageType.ToString());
@@ -175,7 +188,10 @@
         string choiceDescription = chosenOption.NarrativeText;
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
+        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            watchers,
             _contextManager.GetConversationHistory(conversationId),
             priority,
             messageType.ToString());
@@ -207,7 +223,10 @@
         string choiceDescription = chosenOption.NarrativeText;
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
+        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            watchers,
             _contextManager.GetConversationHistory(conversationId),
             priority,
             messageType.ToString());
@@ -238,7 +257,10 @@
         string choiceDescription = chosenOption.NarrativeText;
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
+        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            watchers,
             _contextManager.GetConversationHistory(conversationId),
             priority,
             messageType.ToString());
@@ -248,7 +270,6 @@
 
         return response;
     }
-
 
     public async Task<string> ProcessMemoryConsolidation(
         EncounterContext context,
@@ -273,7 +294,10 @@
         string choiceDescription = chosenOption.NarrativeText;
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
 
+        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
+            watchers,
             _contextManager.GetConversationHistory(conversationId),
             priority,
             messageType.ToString());

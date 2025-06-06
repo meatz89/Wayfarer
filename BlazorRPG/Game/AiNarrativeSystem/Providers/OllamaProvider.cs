@@ -76,7 +76,8 @@ public class OllamaProvider : IAIProvider
             // If streaming is enabled, handle it differently
             if (watchers.Any())
             {
-                return await StreamCompletionAsync(endpoint, jsonRequest, watchers);
+                string completeText = await StreamCompletionAsync(endpoint, jsonRequest, watchers);
+                return completeText;
             }
             else
             {
@@ -88,7 +89,9 @@ public class OllamaProvider : IAIProvider
                 response.EnsureSuccessStatusCode();
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 string content = OllamaResponseParser.ExtractMessageContent(jsonResponse);
+                
                 _logger?.LogInformation($"Received response from Ollama API ({content.Length} chars)");
+
                 return content;
             }
         }
@@ -108,6 +111,14 @@ public class OllamaProvider : IAIProvider
         string jsonRequest,
         List<IResponseStreamWatcher> watchers)
     {
+        foreach (IResponseStreamWatcher watcher in watchers)
+        {
+            if(watcher is StreamingContentStateWatcher contentStateWatcher)
+            {
+                contentStateWatcher.BeginStreaming();
+            }
+        }
+
         using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
             Content = new StringContent(jsonRequest, Encoding.UTF8, "application/json")
