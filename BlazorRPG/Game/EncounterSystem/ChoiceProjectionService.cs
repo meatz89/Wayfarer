@@ -63,6 +63,11 @@
 
     private EffectProjection ProjectEffect(IMechanicalEffect effect, EncounterState state)
     {
+        if(effect == null)
+        {
+            return new EffectProjection() { MechanicalDescription = "No mechanical Effect", NarrativeEffect = "No Narrative Effect" };
+        }
+
         EffectProjection projection = new EffectProjection();
         projection.NarrativeEffect = effect.ToString();
 
