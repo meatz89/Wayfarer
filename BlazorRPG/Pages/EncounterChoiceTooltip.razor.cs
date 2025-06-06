@@ -8,6 +8,10 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     [Parameter] public double tooltipX { get; set; }
     [Parameter] public double tooltipY { get; set; }
 
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
     protected string GetSkillCheckInfo(EncounterChoice choice)
     {
         string skillInfo = "";
@@ -56,15 +60,6 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         }
 
         return effects;
-    }
-
-    protected class EffectItem
-    {
-        public int Value { get; set; }
-        public string Description { get; set; }
-        public bool IsTokenEffect { get; set; }
-        public bool IsProgressEffect { get; set; }
-        public bool IsFocusEffect { get; set; }
     }
 
     protected int GetPlayerSkillLevel(SkillTypes skill)
