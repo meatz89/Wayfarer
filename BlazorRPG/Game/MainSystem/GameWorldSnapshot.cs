@@ -3,19 +3,19 @@
     public bool HasActiveEncounter { get; private set; }
     public int? CurrentFocusPoints { get; private set; }
     public int? MaxFocusPoints { get; private set; }
-    public List<FlagStates> ActiveFlags { get; private set; }
+    public List<FlagStates> ActiveFlags { get; private set; } = new List<FlagStates>();
     public string StreamingText { get; private set; }
     public bool IsStreaming { get; private set; }
     public float StreamProgress { get; private set; }
-    public List<EncounterChoice> AvailableChoices { get; private set; }
-    public EncounterChoice LastChoiceSelection { get; private set; }
+    public List<EncounterChoice> AvailableChoices { get; private set; } = new List<EncounterChoice>();
+    public EncounterChoice LastChoiceSelection { get; private set; } = new EncounterChoice();
     public bool IsAwaitingAIResponse { get; private set; }
     public bool CanSelectChoice { get; private set; }
     public bool IsEncounterComplete { get; private set; }
     public bool SuccessfulOutcome { get; private set; }
     public int Energy { get; internal set; }
     public int Concentration { get; internal set; }
-    public TimeOfDay CurrentTimeOfDay { get; internal set; }
+    public TimeOfDay CurrentTimeOfDay { get; internal set; } = new TimeOfDay();
 
     public GameWorldSnapshot(GameWorld gameWorld)
     {
@@ -45,5 +45,43 @@
 
             SuccessfulOutcome = state.Progress >= state.ProgressThreshold;
         }
+    }
+
+    public bool IsEqualTo(GameWorldSnapshot snapshot)
+    {
+        if (snapshot == null) return false;
+
+        if (HasActiveEncounter != snapshot.HasActiveEncounter) return false;
+        if (CurrentFocusPoints != snapshot.CurrentFocusPoints) return false;
+        if (MaxFocusPoints != snapshot.MaxFocusPoints) return false;
+        if (StreamingText != snapshot.StreamingText) return false;
+        if (IsStreaming != snapshot.IsStreaming) return false;
+        if (StreamProgress != snapshot.StreamProgress) return false;
+        if (IsAwaitingAIResponse != snapshot.IsAwaitingAIResponse) return false;
+        if (CanSelectChoice != snapshot.CanSelectChoice) return false;
+        if (IsEncounterComplete != snapshot.IsEncounterComplete) return false;
+        if (SuccessfulOutcome != snapshot.SuccessfulOutcome) return false;
+        if (Energy != snapshot.Energy) return false;
+        if (Concentration != snapshot.Concentration) return false;
+
+        if (ActiveFlags.Count != snapshot.ActiveFlags.Count) return false;
+        for (int i = 0; i < ActiveFlags.Count; i++)
+        {
+            if (ActiveFlags[i] != snapshot.ActiveFlags[i]) return false;
+        }
+
+        if ((AvailableChoices == null) != (snapshot.AvailableChoices == null)) return false;
+        if (AvailableChoices != null)
+        {
+            if (AvailableChoices.Count != snapshot.AvailableChoices.Count) return false;
+            for (int i = 0; i < AvailableChoices.Count; i++)
+            {
+                if (AvailableChoices[i] != snapshot.AvailableChoices[i]) return false;
+            }
+        }
+
+        if ((LastChoiceSelection == null) != (snapshot.LastChoiceSelection == null)) return false;
+
+        return true;
     }
 }

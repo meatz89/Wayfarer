@@ -56,6 +56,7 @@ html body * {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    overflow: hidden;
 }
 
 /* Override for all potentially interactive elements with even higher specificity */
@@ -202,7 +203,6 @@ body {
 .main-content {
     flex: 3;
     overflow-y: auto;
-    overflow-x: hidden;
 }
 
 ::-webkit-scrollbar {

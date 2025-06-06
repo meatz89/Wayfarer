@@ -121,19 +121,24 @@ public partial class MainGameplayView : ComponentBase
         });
     }
 
+    private GameWorldSnapshot oldSnapshot;
+
     private void PollGameState()
     {
         GameWorldSnapshot snapshot = GameManager.GetGameSnapshot();
-
-        // You only update these values but not the encounter data
         CurrentTimeOfDay = snapshot.CurrentTimeOfDay;
         Energy = snapshot.Energy;
         Concentration = snapshot.Concentration;
 
-        // You need to update EncounterManager state and force StateHasChanged for ALL screens
-        if (CurrentScreen == CurrentViews.EncounterScreen)
+        if (oldSnapshot == null | !snapshot.IsEqualTo(oldSnapshot))
         {
-            StateVersion++;  // Force re-render of EncounterView
+            // You need to update EncounterManager state and force StateHasChanged for ALL screens
+            if (CurrentScreen == CurrentViews.EncounterScreen)
+            {
+                StateVersion++;  // Force re-render of EncounterView
+            }
+        
+            oldSnapshot = snapshot;
         }
     }
 
