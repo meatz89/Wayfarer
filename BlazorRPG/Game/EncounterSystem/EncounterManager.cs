@@ -242,15 +242,6 @@
 
     public List<EncounterChoice> GetCurrentChoices()
     {
-        // Poll for next beat if needed
-        if (!_isAwaitingAIResponse &&
-            !_gameWorld.StreamingContentState.IsStreaming &&
-            Choices.Count == 0 &&
-            !_state.IsEncounterComplete)
-        {
-            ProcessNextBeat().ConfigureAwait(false);
-        }
-
         return Choices;
     }
 
