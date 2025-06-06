@@ -21,7 +21,7 @@
         EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
         HasActiveEncounter = encounterManager != null;
 
-        StreamingContentState streamingState  = gameWorld.StreamingContentState;
+        StreamingContentState streamingState = gameWorld.StreamingContentState;
         StreamingText = streamingState.CurrentText;
         IsStreaming = streamingState.IsStreaming;
         StreamProgress = streamingState.StreamProgress;

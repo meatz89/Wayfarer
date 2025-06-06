@@ -17,7 +17,7 @@
     public int StartingFocusPoints { get; set; }
     public Player Player { get; set; }
     public ApproachDefinition? ActionApproach { get; set; }
-    
+
     public List<FlagStates> GoalFlags { get; private set; }
     public List<FlagDefinition> FlagDefinitions { get; private set; }
 

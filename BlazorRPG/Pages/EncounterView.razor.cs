@@ -5,8 +5,8 @@ using Microsoft.JSInterop;
 public class EncounterViewBase : ComponentBase
 {
     [Inject] protected GameWorldManager GameWorldManager { get; set; }
-    [Parameter] public EventCallback<BeatOutcome> OnEncounterCompleted { get; set; }
     [Inject] protected IJSRuntime JSRuntime { get; set; }
+    [Parameter] public EventCallback<BeatOutcome> OnEncounterCompleted { get; set; }
     [Parameter] public EncounterManager EncounterManager { get; set; }
 
     // State
@@ -20,14 +20,19 @@ public class EncounterViewBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
-        await EncounterManager.ProcessNextBeat();
-
         currentSnapshot = GameWorldManager.GetGameSnapshot();
+        await GameWorldManager.ProcessNextBeat();
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         currentSnapshot = GameWorldManager.GetGameSnapshot();
+
+        if (!currentSnapshot.IsStreaming &&
+            !currentSnapshot.IsAwaitingAIResponse)
+        {
+            await GameWorldManager.ProcessNextBeat();
+        }
     }
 
     protected async Task MakeChoice(string choiceId)

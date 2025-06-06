@@ -1,12 +1,5 @@
 ﻿using System.Text;
 
-public interface IResponseStreamWatcher
-{
-    void OnStreamUpdate(string chunk);
-    void OnStreamComplete(string completeResponse);
-    void OnError(Exception ex);
-}
-
 public class ConsoleResponseWatcher : IResponseStreamWatcher
 {
     private StringBuilder _responseBuilder = new StringBuilder();

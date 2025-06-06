@@ -3,6 +3,7 @@
     private AIGenerationQueue _queue;
     private string _gameInstanceId;
     private LoadingStateService _loadingStateService;
+    private GameWorld _gameWorld;
 
     // Priority constants
     public const int PRIORITY_IMMEDIATE = 1;
@@ -15,32 +16,29 @@
         IAIProvider aiProvider,
         ILogger<EncounterFactory> logger,
         NarrativeLogManager logManager,
-        LoadingStateService loadingStateService)
+        LoadingStateService loadingStateService,
+        GameWorld gameWorld)
     {
         _loadingStateService = loadingStateService;
+        _gameWorld = gameWorld;
         _queue = new AIGenerationQueue(aiProvider, "gameInstanceId", logManager, logger);
     }
 
     public async Task<string> ProcessCommand(AIGenerationCommand command)
     {
         string result = string.Empty;
-
-        // Only show loading screens for non-background priority requests
         bool isBackgroundRequest = command.Priority >= PRIORITY_BACKGROUND;
 
         try
         {
-            // Only start loading UI for non-background requests
             if (!isBackgroundRequest)
             {
                 _loadingStateService.StartLoading($"Generating {FormatSourceSystem(command.SourceSystem)}...");
             }
-
             result = await _queue.WaitForResult(command.Id);
         }
         finally
         {
-            // Only stop loading if we started it (non-background requests)
             if (!isBackgroundRequest)
             {
                 _loadingStateService.StopLoading();
@@ -51,30 +49,23 @@
 
     public async Task<AIGenerationCommand> CreateAndQueueCommand(
         List<ConversationEntry> messages,
-        IResponseStreamWatcher watcher,
         int priority,
         string sourceSystem)
     {
-        // Only show loading screens for non-background priority requests
+        // Create list of watchers
+        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
+
+        // Add streaming watcher for non-background tasks
         bool isBackgroundRequest = priority >= PRIORITY_BACKGROUND;
-
-        // Determine which watcher to use
-        IResponseStreamWatcher effectiveWatcher;
-        if (isBackgroundRequest)
+        if (!isBackgroundRequest && _gameWorld?.StreamingContentState != null)
         {
-            // For background tasks, use raw watcher without progress tracking
-            effectiveWatcher = watcher;
-        }
-        else
-        {
-            // For foreground tasks, use progress tracking watcher
-            effectiveWatcher = watcher != null
-                ? new ProgressTrackingWatcher(watcher, _loadingStateService)
-                : new ProgressTrackingWatcher(null, _loadingStateService);
+            watchers.Add(new ConsoleResponseWatcher());
+            watchers.Add(new StreamingContentStateWatcher(_gameWorld.StreamingContentState));
         }
 
+        // Queue the command with all watchers
         AIGenerationCommand command = _queue.EnqueueCommand(
-            messages, effectiveWatcher, priority, sourceSystem);
+            messages, watchers, priority, sourceSystem);
 
         return command;
     }

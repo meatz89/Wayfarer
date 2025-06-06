@@ -23,7 +23,13 @@ public partial class MainGameplayView : ComponentBase
     public int Energy { get; private set; } = 0;
     public int Concentration { get; private set; } = 0;
     public Location CurrentLocation { get; private set; }
-    public Player PlayerState => GameWorld.GetPlayer();
+    public Player PlayerState
+    {
+        get
+        {
+            return GameWorld.GetPlayer();
+        }
+    }
 
     // Tooltip State
     public bool ShowTooltip = false;
@@ -55,7 +61,7 @@ public partial class MainGameplayView : ComponentBase
             return PlayerState.MaxActionPoints;
         }
     }
-    
+
     public BeatOutcome BeatOutcome { get; private set; }
     public CurrentViews CurrentScreen { get; private set; } = CurrentViews.LocationScreen;
 

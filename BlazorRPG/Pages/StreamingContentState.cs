@@ -3,55 +3,54 @@
     public string CurrentText { get; private set; } = string.Empty;
     public bool IsStreaming { get; private set; }
     public float StreamProgress { get; private set; }
+    public bool HasError { get; private set; }
+    public string ErrorMessage { get; private set; }
 
-    private string _targetText = string.Empty;
-    private int _currentCharIndex;
-    private DateTime _lastUpdateTime;
-    private const int CHARS_PER_UPDATE = 3;
+    private const int ESTIMATED_TOTAL_TOKENS = 1000;
 
     public StreamingContentState()
     {
         IsStreaming = false;
         StreamProgress = 0;
+        HasError = false;
+        ErrorMessage = string.Empty;
     }
 
-    public void BeginStreaming(string fullText)
+    public void BeginStreaming(string initialText = "")
     {
-        if (string.IsNullOrEmpty(fullText)) return;
-
-        CurrentText = string.Empty;
-        _targetText = fullText;
+        CurrentText = initialText;
         IsStreaming = true;
         StreamProgress = 0;
-        _currentCharIndex = 0;
-        _lastUpdateTime = DateTime.Now;
+        HasError = false;
+        ErrorMessage = string.Empty;
     }
 
-    public void Update()
+    public void UpdateStreamingText(string partialText)
     {
         if (!IsStreaming) return;
 
-        // Only update if enough time has passed (simulates token streaming)
-        DateTime now = DateTime.Now;
-        if ((now - _lastUpdateTime).TotalMilliseconds < 50) return;
+        CurrentText = partialText;
 
-        // Update a few characters at a time
-        _currentCharIndex += CHARS_PER_UPDATE;
-        if (_currentCharIndex >= _targetText.Length)
-        {
-            // Streaming complete
-            _currentCharIndex = _targetText.Length;
-            IsStreaming = false;
-            StreamProgress = 1.0f;
-        }
-        else
-        {
-            StreamProgress = (float)_currentCharIndex / _targetText.Length;
-        }
+        // Estimate progress based on token count (approximate)
+        int estimatedTokens = partialText.Length / 4; // Rough estimate: 4 chars per token
+        StreamProgress = Math.Min(0.95f, (float)estimatedTokens / ESTIMATED_TOTAL_TOKENS);
+    }
 
-        // Update current text
-        CurrentText = _targetText.Substring(0, _currentCharIndex);
-        _lastUpdateTime = now;
+    public void CompleteStreaming(string completeText)
+    {
+        if (string.IsNullOrEmpty(completeText)) return;
+
+        CurrentText = completeText;
+        IsStreaming = false;
+        StreamProgress = 1.0f;
+    }
+
+    public void SetError(string message)
+    {
+        HasError = true;
+        ErrorMessage = message;
+        IsStreaming = false;
+        StreamProgress = 1.0f;
     }
 
     public void SetFullText(string text)

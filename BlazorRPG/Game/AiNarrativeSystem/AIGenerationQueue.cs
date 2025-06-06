@@ -23,14 +23,14 @@
 
     public AIGenerationCommand EnqueueCommand(
         List<ConversationEntry> messages,
-        IResponseStreamWatcher watcher,
+        List<IResponseStreamWatcher> watchers,
         int priority,
         string sourceSystem)
     {
         string commandId = Guid.NewGuid().ToString();
 
         AIGenerationCommand command = new AIGenerationCommand(
-            commandId, messages, watcher, priority, sourceSystem);
+            commandId, messages, watchers, priority, sourceSystem);
 
         lock (_queueLock)
         {
@@ -102,7 +102,7 @@
                 // Call the provider
                 string result = await _aiProvider.GetCompletionAsync(
                     command.Messages,
-                    command.Watcher);
+                    command.Watchers);
 
                 result = result?.Trim();
                 generatedContent = result;
