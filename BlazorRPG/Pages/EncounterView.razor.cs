@@ -4,6 +4,7 @@ using Microsoft.JSInterop;
 
 public class EncounterViewBase : ComponentBase
 {
+    [Inject] public IJSRuntime JSRuntime { get; set; }
     [Inject] protected GameWorldManager GameWorldManager { get; set; }
     [Parameter] public EventCallback<BeatOutcome> OnEncounterCompleted { get; set; }
     [Parameter] public EncounterManager EncounterManager { get; set; }
