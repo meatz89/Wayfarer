@@ -16,9 +16,9 @@
         ErrorMessage = string.Empty;
     }
 
-    public void BeginStreaming(string initialText = "")
+    public void BeginStreaming()
     {
-        CurrentText = initialText;
+        CurrentText = string.Empty;
         IsStreaming = true;
         StreamProgress = 0;
         HasError = false;

@@ -10,6 +10,11 @@ public class StreamingContentStateWatcher : IResponseStreamWatcher
         _streamingContentState = streamingContentState;
     }
 
+    public void BeginStreaming()
+    {
+        _streamingContentState.BeginStreaming();
+    }
+
     public void OnStreamUpdate(string chunk)
     {
         if (_streamingContentState == null || string.IsNullOrEmpty(chunk))
@@ -25,9 +30,6 @@ public class StreamingContentStateWatcher : IResponseStreamWatcher
     {
         if (_streamingContentState == null)
             return;
-
-        // Ensure the final text is complete
-        _streamingContentState.CompleteStreaming(completeResponse);
 
         // Clear buffer for next use
         _buffer.Clear();
