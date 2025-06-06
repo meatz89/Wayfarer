@@ -116,7 +116,7 @@ public partial class MainGameplayView : ComponentBase
                     PollGameState();
                     StateHasChanged();
                 });
-                await Task.Delay(2000);
+                await Task.Delay(50);
             }
         });
     }

@@ -31,6 +31,8 @@ public class StreamingContentStateWatcher : IResponseStreamWatcher
         if (_streamingContentState == null)
             return;
 
+        _streamingContentState.CompleteStreaming(completeResponse);
+
         // Clear buffer for next use
         _buffer.Clear();
     }

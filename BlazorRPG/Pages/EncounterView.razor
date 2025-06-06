@@ -18,21 +18,18 @@
     </div>
     
     <div class="narrative-container">
+        <div class="streaming-text">
+            @currentSnapshot.StreamingText<span class="cursor">|</span>
+        </div>
+        
         @if (currentSnapshot?.IsStreaming == true)
         {
-            <div class="streaming-text">
-                @currentSnapshot.StreamingText<span class="cursor">|</span>
-            </div>
             <div class="stream-progress">
                 <div class="progress-bar" style="width: @(currentSnapshot.StreamProgress * 100)%"></div>
             </div>
         }
         else if (currentSnapshot?.CanSelectChoice == true)
         {
-            <div class="narrative-text">
-                @currentSnapshot.StreamingText
-            </div>
-            
             <div class="choices-container">
                 @foreach (var choice in currentSnapshot.AvailableChoices)
                 {
