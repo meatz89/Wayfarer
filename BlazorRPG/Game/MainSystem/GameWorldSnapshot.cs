@@ -8,6 +8,7 @@
     public bool IsStreaming { get; private set; }
     public float StreamProgress { get; private set; }
     public List<EncounterChoice> AvailableChoices { get; private set; }
+    public EncounterChoice LastChoiceSelection { get; private set; }
     public bool IsAwaitingAIResponse { get; private set; }
     public bool CanSelectChoice { get; private set; }
     public bool IsEncounterComplete { get; private set; }

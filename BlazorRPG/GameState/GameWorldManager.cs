@@ -363,41 +363,12 @@
         }
     }
 
-    public List<UserEncounterChoiceOption> GetUserEncounterChoiceOptions(EncounterResult encounterResult)
+
+    public ChoiceProjection GetChoicePreview(EncounterChoice choiceOption)
     {
-        AIResponse AIResponse = encounterResult.AIResponse;
-        List<EncounterChoice> choices = gameWorld.ActionStateTracker.CurrentEncounterManager.Choices;
-        List<UserEncounterChoiceOption> choiceOptions = new List<UserEncounterChoiceOption>();
-
-        int i = 0;
-        foreach (EncounterChoice choice in choices)
-        {
-            i++;
-            EncounterContext EncounterContext = encounterResult.EncounterContext;
-            UserEncounterChoiceOption option = new UserEncounterChoiceOption(
-                i,
-                choice.ChoiceID,
-                choice.NarrativeText,
-                EncounterContext.LocationName,
-                "locationSpotName",
-                encounterResult,
-                AIResponse,
-                choice);
-
-            choiceOptions.Add(option);
-        }
-
-        return choiceOptions;
-    }
-
-    public ChoiceProjection GetChoicePreview(UserEncounterChoiceOption choiceOption)
-    {
-        Location location = locationSystem.GetLocation(choiceOption.LocationName);
-
-        // Execute the choice
         EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
         ChoiceProjection choiceProjection = gameWorld.ActionStateTracker.CurrentEncounterManager
-            .GetChoiceProjection(choiceOption.Choice);
+            .GetChoiceProjection(choiceOption);
 
         return choiceProjection;
     }
@@ -434,33 +405,6 @@
         return "Night";
     }
 
-    public EncounterViewModel? GetEncounterViewModel()
-    {
-        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
-        List<UserEncounterChoiceOption> userEncounterChoiceOptions = gameWorld.ActionStateTracker.UserEncounterChoiceOptions;
-
-        if (encounterManager == null)
-        {
-            EncounterViewModel encounterViewModel = new();
-            encounterViewModel.CurrentEncounterContext = encounterManager;
-            encounterViewModel.CurrentChoices = userEncounterChoiceOptions;
-            encounterViewModel.ChoiceSetName = "Current Situation";
-        }
-        else
-        {
-            EncounterState state = encounterManager.GetEncounterState();
-
-            EncounterViewModel model = new EncounterViewModel();
-            model.CurrentEncounterContext = encounterManager;
-            model.CurrentChoices = userEncounterChoiceOptions;
-            model.ChoiceSetName = "Current Situation";
-            model.State = state;
-            return model;
-        }
-
-        return null;
-    }
-
     public void UpdateAvailableOpportunities()
     {
         foreach (Opportunity opportunity in GameWorld.AllOpportunities)
@@ -478,7 +422,6 @@
             }
         }
     }
-
 
     public EncounterResult GetEncounterResultFor(LocationAction locationAction)
     {

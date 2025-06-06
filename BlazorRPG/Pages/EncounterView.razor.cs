@@ -5,7 +5,6 @@ using Microsoft.JSInterop;
 public class EncounterViewBase : ComponentBase
 {
     [Inject] protected GameWorldManager GameWorldManager { get; set; }
-    [Inject] protected IJSRuntime JSRuntime { get; set; }
     [Parameter] public EventCallback<BeatOutcome> OnEncounterCompleted { get; set; }
     [Parameter] public EncounterManager EncounterManager { get; set; }
 
@@ -13,10 +12,10 @@ public class EncounterViewBase : ComponentBase
     protected GameWorldSnapshot currentSnapshot;
 
     // Tooltip state
-    protected EncounterChoice hoveredChoice;
-    protected bool showTooltip;
-    protected double tooltipX;
-    protected double tooltipY;
+    public EncounterChoice hoveredChoice;
+    public bool showTooltip;
+    public double tooltipX;
+    public double tooltipY;
 
     protected override async Task OnInitializedAsync()
     {
