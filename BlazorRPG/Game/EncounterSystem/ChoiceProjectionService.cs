@@ -66,7 +66,7 @@
         EffectProjection projection = new EffectProjection();
         projection.NarrativeEffect = effect.ToString();
 
-        effect.Apply(state); 
+        effect.Apply(state);
 
         projection.MechanicalDescription = effect.GetDescriptionForPlayer();
 

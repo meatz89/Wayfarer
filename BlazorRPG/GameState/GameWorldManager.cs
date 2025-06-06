@@ -23,7 +23,7 @@
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
                        ActionGenerator actionGenerator, PlayerProgression playerProgression,
-                       ActionProcessor actionProcessor, ContentLoader contentLoader, 
+                       ActionProcessor actionProcessor, ContentLoader contentLoader,
                        ChoiceProjectionService choiceProjectionService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
@@ -69,24 +69,7 @@
         await UpdateGameWorld();
     }
 
-    public async Task UpdateGameWorld()
-    {
-        // Update streaming content
-        gameWorld.StreamingContentState.Update();
-
-        // Check if streaming just completed and encounter manager needs to progress
-        if (gameWorld.ActionStateTracker.CurrentEncounterManager != null &&
-            !gameWorld.StreamingContentState.IsStreaming &&
-            !gameWorld.ActionStateTracker.CurrentEncounterManager._isAwaitingAIResponse)
-        {
-            await gameWorld.ActionStateTracker.CurrentEncounterManager.ProcessNextBeat();
-        }
-
-        // Other state updates...
-        await UpdateState();
-    }
-
-    private async Task UpdateState()
+    private async Task UpdateGameWorld()
     {
         gameWorld.ActionStateTracker.ClearCurrentUserAction();
         actionProcessor.UpdateState();
@@ -109,12 +92,12 @@
         gameWorld.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
 
-    public async Task NextEncounterBeat()
+    public async Task ProcessNextBeat()
     {
         EncounterManager currentEncounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
         await currentEncounterManager.ProcessNextBeat();
     }
-    
+
     public async Task<EncounterManager> StartEncounter(string approachId)
     {
         LocationAction locationAction = gameWorld.ActionStateTracker.CurrentAction.locationAction;
@@ -161,7 +144,7 @@
             context,
             player,
             locationAction);
-        
+
         // Store reference in GameWorld
         gameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
 
@@ -320,7 +303,7 @@
 
     public async Task ProcessActionCompletion()
     {
-        var action = gameWorld.ActionStateTracker.CurrentAction.locationAction;
+        LocationAction action = gameWorld.ActionStateTracker.CurrentAction.locationAction;
         gameWorld.ActionStateTracker.EndEncounter();
 
         await HandlePlayerMoving(action);
@@ -453,7 +436,7 @@
 
     public EncounterViewModel? GetEncounterViewModel()
     {
-        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager ;
+        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
         List<UserEncounterChoiceOption> userEncounterChoiceOptions = gameWorld.ActionStateTracker.UserEncounterChoiceOptions;
 
         if (encounterManager == null)
@@ -573,10 +556,6 @@
 
     public GameWorldSnapshot GetGameSnapshot()
     {
-        // Update streaming state
-        gameWorld.StreamingContentState.Update();
-
-        // Return current snapshot
         return new GameWorldSnapshot(gameWorld);
     }
 

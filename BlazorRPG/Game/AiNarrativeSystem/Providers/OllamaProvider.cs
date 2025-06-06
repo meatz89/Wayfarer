@@ -37,7 +37,7 @@ public class OllamaProvider : IAIProvider
 
     public async Task<string> GetCompletionAsync(
         List<ConversationEntry> messages,
-        IResponseStreamWatcher watcher)
+        List<IResponseStreamWatcher> watchers)
     {
         string endpoint = $"{_baseUrl}/api/chat";
 
@@ -55,7 +55,7 @@ public class OllamaProvider : IAIProvider
         {
             Model = _modelName,
             Messages = ollamaMessages,
-            Stream = watcher != null, // Use streaming if we have a watcher
+            Stream = watchers.Any(), // Use streaming if we have a watcher
             Options = new OllamaOptions
             {
                 Temperature = 0.7,
@@ -74,9 +74,9 @@ public class OllamaProvider : IAIProvider
             _logger?.LogInformation($"Sending request to Ollama API using model: {_modelName}");
 
             // If streaming is enabled, handle it differently
-            if (watcher != null)
+            if (watchers.Any())
             {
-                return await StreamCompletionAsync(endpoint, jsonRequest, watcher);
+                return await StreamCompletionAsync(endpoint, jsonRequest, watchers);
             }
             else
             {
@@ -95,7 +95,10 @@ public class OllamaProvider : IAIProvider
         catch (Exception ex)
         {
             _logger?.LogError(ex, $"Error calling Ollama API: {ex.Message}");
-            watcher?.OnError(ex);
+            foreach (IResponseStreamWatcher watcher in watchers)
+            {
+                watcher?.OnError(ex);
+            }
             throw;
         }
     }
@@ -103,7 +106,7 @@ public class OllamaProvider : IAIProvider
     private async Task<string> StreamCompletionAsync(
         string endpoint,
         string jsonRequest,
-        IResponseStreamWatcher watcher)
+        List<IResponseStreamWatcher> watchers)
     {
         using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
@@ -143,7 +146,10 @@ public class OllamaProvider : IAIProvider
                     fullResponseBuilder.Append(chunk);
 
                     // Report the chunk to the watcher
-                    watcher.OnStreamUpdate(chunk);
+                    foreach (IResponseStreamWatcher watcher in watchers)
+                    {
+                        watcher.OnStreamUpdate(chunk);
+                    }
                 }
 
                 // When we reach a "done": true message, we have the complete response
@@ -161,7 +167,10 @@ public class OllamaProvider : IAIProvider
         }
 
         string finalResponse = fullMessageContent;
-        watcher.OnStreamComplete(finalResponse);
+        foreach (IResponseStreamWatcher watcher in watchers)
+        {
+            watcher.OnStreamComplete(finalResponse);
+        }
         return finalResponse;
     }
 }

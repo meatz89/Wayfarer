@@ -1,13 +1,11 @@
-﻿public class ProgressTrackingWatcher : IResponseStreamWatcher
+﻿public class LoadingProgressWatcher : IResponseStreamWatcher
 {
-    private IResponseStreamWatcher _innerWatcher;
     private LoadingStateService _loadingStateService;
     private string _fullText = string.Empty;
-    private int _estimatedFullLength = 2000;
+    private int _estimatedFullLength = 1000;
 
-    public ProgressTrackingWatcher(IResponseStreamWatcher innerWatcher, LoadingStateService loadingStateService)
+    public LoadingProgressWatcher(LoadingStateService loadingStateService)
     {
-        _innerWatcher = innerWatcher;
         _loadingStateService = loadingStateService;
     }
 
@@ -20,21 +18,15 @@
 
         // Update loading state progress
         _loadingStateService.Progress = progress;
-
-        // Forward to inner watcher
-        _innerWatcher?.OnStreamUpdate(text);
     }
 
     public void OnError(Exception ex)
     {
-        _innerWatcher?.OnError(ex);
     }
 
     public void OnStreamComplete(string completeResponse)
     {
         // Set progress to 100% when complete
         _loadingStateService.Progress = 100;
-
-        _innerWatcher?.OnStreamComplete(completeResponse);
     }
 }

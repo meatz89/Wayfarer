@@ -9,10 +9,29 @@
     private GameWorld _gameWorld;
 
     public LocationAction _locationAction { get; private set; }
-    public bool IsEncounterComplete => _state?.IsEncounterComplete ?? false;
+    public bool IsEncounterComplete
+    {
+        get
+        {
+            return _state?.IsEncounterComplete ?? false;
+        }
+    }
 
-    public EncounterState EncounterState => _state;
-    public EncounterContext EncounterContext => _context;
+    public EncounterState EncounterState
+    {
+        get
+        {
+            return _state;
+        }
+    }
+
+    public EncounterContext EncounterContext
+    {
+        get
+        {
+            return _context;
+        }
+    }
 
     public List<EncounterChoice> Choices = new List<EncounterChoice>();
 
@@ -53,7 +72,6 @@
 
     public async Task ProcessNextBeat()
     {
-        // Generate introduction first, then choices
         if (!_isAwaitingAIResponse && !_gameWorld.StreamingContentState.IsStreaming)
         {
             if (string.IsNullOrEmpty(_gameWorld.StreamingContentState.CurrentText))
@@ -282,5 +300,5 @@
     public ChoiceProjection GetChoiceProjection(EncounterChoice choice)
     {
         return _projectionService.ProjectChoice(choice, _state);
-    } 
+    }
 }

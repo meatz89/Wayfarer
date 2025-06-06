@@ -106,7 +106,7 @@ public class AIPromptBuilder
         if (gameWorld.ActionStateTracker.CurrentEncounterManager != null)
         {
             // Add focus points
-            EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.CurrentEncounterManager ;
+            EncounterManager currentEncounterContext = gameWorld.ActionStateTracker.CurrentEncounterManager;
             EncounterState state = currentEncounterContext.GetEncounterState();
             prompt.AppendLine($"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}");
 

@@ -2,12 +2,9 @@
 {
     private AIPromptBuilder _promptBuilder;
     private ConversationHistoryManager _contextManager;
-    private MemoryFileAccess _memoryFileAccess;
     private EncounterChoiceResponseParser _encounterChoiceResponseParser;
     private AIClient _aiClient;
-    private IResponseStreamWatcher _watcher;
     private GameWorld _gameWorld;
-    private AIResponse pendingResponse;
     private bool hasResponse;
 
     public AIGameMaster(
@@ -16,18 +13,13 @@
         AIClient aiClient,
         MemoryFileAccess memoryFileAccess,
         IConfiguration configuration,
-        IResponseStreamWatcher responseStreamWatcher,
         GameWorld gameWorld)
     {
         _contextManager = contextManager;
         _encounterChoiceResponseParser = EncounterChoiceResponseParser;
         _aiClient = aiClient;
-        _memoryFileAccess = memoryFileAccess;
-        _watcher = responseStreamWatcher;
-        this._gameWorld = gameWorld;
+        _gameWorld = gameWorld;
         _promptBuilder = new AIPromptBuilder(configuration);
-
-        pendingResponse = null;
         hasResponse = false;
     }
 
@@ -69,7 +61,6 @@
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetConversationHistory(conversationId),
-            _watcher,
             priority,
             messageType.ToString());
 
@@ -97,10 +88,9 @@
 
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);
         _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.ChoicesGeneration);
-        
+
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetConversationHistory(conversationId),
-            _watcher,
             priority,
             messageType.ToString());
 
@@ -124,13 +114,12 @@
 
         AIPrompt prompt = _promptBuilder.BuildReactionPrompt(context, state, chosenOption);
         MessageType messageType = MessageType.Reaction;
-        
+
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);
         _contextManager.AddUserChoiceSelectionMessage(conversationId, prompt.Content, chosenOption.NarrativeText);
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetConversationHistory(conversationId),
-            _watcher,
             priority,
             messageType.ToString());
 
@@ -141,7 +130,6 @@
 
         return response;
     }
-
 
     public async Task<string> GenerateConclusion(
         EncounterContext context,
@@ -161,7 +149,6 @@
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetConversationHistory(conversationId),
-            _watcher,
             priority,
             messageType.ToString());
 
@@ -190,7 +177,6 @@
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetConversationHistory(conversationId),
-            _watcher,
             priority,
             messageType.ToString());
 
@@ -223,7 +209,6 @@
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetConversationHistory(conversationId),
-            _watcher,
             priority,
             messageType.ToString());
 
@@ -244,7 +229,7 @@
         string conversationId = GetConversationId(context);
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
-        var actionContext = new ActionGenerationContext();
+        ActionGenerationContext actionContext = new ActionGenerationContext();
 
         AIPrompt prompt = _promptBuilder.BuildActionGenerationPrompt(actionContext);
         MessageType messageType = MessageType.ActionGeneration;
@@ -255,7 +240,6 @@
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetConversationHistory(conversationId),
-            _watcher,
             priority,
             messageType.ToString());
 
@@ -291,7 +275,6 @@
 
         AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
             _contextManager.GetConversationHistory(conversationId),
-            _watcher,
             priority,
             messageType.ToString());
 

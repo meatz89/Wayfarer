@@ -55,7 +55,6 @@ public static class ServiceConfiguration
         services.AddSingleton<ConversationHistoryManager>();
         services.AddSingleton<NarrativeLogManager>();
         services.AddSingleton<PostEncounterEvolutionParser>();
-        services.AddSingleton<IResponseStreamWatcher, ConsoleResponseWatcher>();
         services.AddSingleton<LoadingStateService>();
         services.AddSingleton<AIGameMaster>();
         services.AddSingleton<AIClient>();

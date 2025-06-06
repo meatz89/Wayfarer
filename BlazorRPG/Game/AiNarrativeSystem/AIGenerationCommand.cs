@@ -2,7 +2,7 @@
 {
     public string Id { get; }
     public List<ConversationEntry> Messages { get; }
-    public IResponseStreamWatcher Watcher { get; }
+    public List<IResponseStreamWatcher> Watchers { get; }
     public int Priority { get; }
     public string SourceSystem { get; }
     public DateTime Timestamp { get; }
@@ -11,13 +11,13 @@
     public AIGenerationCommand(
         string id,
         List<ConversationEntry> messages,
-        IResponseStreamWatcher watcher,
+        List<IResponseStreamWatcher> watchers,
         int priority,
         string sourceSystem)
     {
         Id = id;
         Messages = messages;
-        Watcher = watcher;
+        Watchers = watchers;
         Priority = priority;
         SourceSystem = sourceSystem;
         Timestamp = DateTime.UtcNow;

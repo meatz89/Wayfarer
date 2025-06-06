@@ -5,7 +5,7 @@ public class ActionStateTracker
     public UserActionOption CurrentAction { get; private set; }
     public bool IsActiveEncounterContext { get; private set; }
     public EncounterResult CurrentEncounterResult { get; set; }
-    public EncounterManager CurrentEncounterManager  { get; private set; }
+    public EncounterManager CurrentEncounterManager { get; private set; }
 
     // Action options
     public List<UserActionOption> LocationSpotActions { get; private set; } = new List<UserActionOption>();
@@ -29,13 +29,13 @@ public class ActionStateTracker
     public void SetActiveEncounter(EncounterManager encounter)
     {
         IsActiveEncounterContext = true;
-        CurrentEncounterManager  = encounter;
+        CurrentEncounterManager = encounter;
     }
 
     public void EndEncounter()
     {
         IsActiveEncounterContext = false;
-        CurrentEncounterManager  = null;
+        CurrentEncounterManager = null;
     }
 
     public void SetEncounterChoiceOptions(List<UserEncounterChoiceOption> options)

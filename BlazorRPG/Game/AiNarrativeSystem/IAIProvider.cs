@@ -2,7 +2,7 @@
 {
     Task<string> GetCompletionAsync(
         List<ConversationEntry> messages,
-        IResponseStreamWatcher watcher);
+        List<IResponseStreamWatcher> watchers);
 
     string Name { get; }
 }
