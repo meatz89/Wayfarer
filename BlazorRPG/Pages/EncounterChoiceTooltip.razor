@@ -4,12 +4,13 @@
     <div class="tooltip" style="top:@tooltipYpx; left:@tooltipXpx;">
         <!-- Choice Header -->
         <div class="tooltip-header">
-            <h4>@hoveredChoice.Choice.NarrativeText</h4>
+            <h4>@hoveredChoice.NarrativeText</h4>
         </div>
 
         <!-- Narrative Description -->
         <div class="tooltip-section narrative-section">
-            <div class="choice-narrative">@hoveredChoice.ChoiceDescription</div>
+            Success: <div class="choice-narrative">@hoveredChoice.SuccessNarrative</div>
+            Failure: <div class="choice-narrative">@hoveredChoice.FailureNarrative</div>
         </div>
 
         <!-- Costs Section -->
@@ -17,10 +18,10 @@
             <h5>Costs</h5>
             <div class="tooltip-item">
                 <div class="resource-costs">
-                    @if (hoveredChoice.Choice.FocusCost > 0)
+                    @if (hoveredChoice.FocusCost > 0)
                     {
                         <div class="resource-cost focus-cost">
-                            <span class="resource-icon">⚡</span> @hoveredChoice.Choice.FocusCost Focus
+                            <span class="resource-icon">⚡</span> @hoveredChoice.FocusCost Focus
                         </div>
                     }
                     else
@@ -39,7 +40,7 @@
             <div class="tooltip-item">
                 @{
                     var projection = Preview;
-                    var positiveEffects = GetPositiveEffectsAsList(hoveredChoice.Choice, projection);
+                    var positiveEffects = GetPositiveEffectsAsList(hoveredChoice, projection);
                 }
                 @if (positiveEffects.Any())
                 {
@@ -74,26 +75,26 @@
         </div>
 
         <!-- Skill Check Section -->
-        @if (hoveredChoice.Choice.SkillOption != null)
+        @if (hoveredChoice.SkillOption != null)
         {
             <div class="tooltip-section skill-section">
                 <h5>Skill Checks</h5>
                 <div class="tooltip-item">
                     <div class="skill-details">
                         <div class="skill-name">
-                            @hoveredChoice.Choice.SkillOption.SkillName Check (@hoveredChoice.Choice.SkillOption.Difficulty)
+                            @hoveredChoice.SkillOption.SkillName Check (@hoveredChoice.SkillOption.Difficulty)
                         </div>
                         <div class="skill-difficulty">
-                            Difficulty: @hoveredChoice.Choice.SkillOption.SCD
+                            Difficulty: @hoveredChoice.SkillOption.SCD
                         </div>
                         <div class="skill-outcome">
                             <div class="success-outcome">
                                 <span class="outcome-label">Success:</span>
-                                <span class="outcome-description">@hoveredChoice.Choice.SkillOption.SuccessEffectEntry.Effect</span>
+                                <span class="outcome-description">@hoveredChoice.SkillOption.SuccessEffectEntry.Effect</span>
                             </div>
                             <div class="failure-outcome">
                                 <span class="outcome-label">Failure:</span>
-                                <span class="outcome-description">@hoveredChoice.Choice.SkillOption.FailureEffectEntry.Effect</span>
+                                <span class="outcome-description">@hoveredChoice.SkillOption.FailureEffectEntry.Effect</span>
                             </div>
                         </div>
                     </div>

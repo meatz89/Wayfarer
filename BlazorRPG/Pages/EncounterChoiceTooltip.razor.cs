@@ -4,35 +4,27 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
 {
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
-    [Parameter] public UserEncounterChoiceOption hoveredChoice { get; set; }
+    [Parameter] public EncounterChoice hoveredChoice { get; set; }
     [Parameter] public double tooltipX { get; set; }
     [Parameter] public double tooltipY { get; set; }
 
-    protected string GetSkillCheckInfo(UserEncounterChoiceOption choice)
+    protected string GetSkillCheckInfo(EncounterChoice choice)
     {
-        if (choice.Choice is EncounterChoice option)
-        {
-            string skillInfo = "";
-            skillInfo += option.SkillOption.ToString();
-            return skillInfo;
-        }
-        return "No skill check required";
+        string skillInfo = "";
+        skillInfo += choice.SkillOption.ToString();
+        return skillInfo;
     }
 
-    protected string GetProgressInfo(UserEncounterChoiceOption choice)
+    protected string GetProgressInfo(EncounterChoice choice)
     {
-        if (choice.Choice is EncounterChoice option)
-        {
-            // Get the choice projection to show accurate progress information
-            ChoiceProjection projection = Preview;
+        // Get the choice projection to show accurate progress information
+        ChoiceProjection projection = Preview;
 
-            string focusCost = option.FocusCost > 0 ? $"Focus Cost: {option.FocusCost}" : "No Focus cost";
+        string focusCost = choice.FocusCost > 0 ? $"Focus Cost: {choice.FocusCost}" : "No Focus cost";
 
-            string positiveEffects = GetPositiveEffectsDescription(option, projection);
+        string positiveEffects = GetPositiveEffectsDescription(choice, projection);
 
-            return $"{focusCost}\n{positiveEffects}";
-        }
-        return "";
+        return $"{focusCost}\n{positiveEffects}";
     }
 
     private string GetPositiveEffectsDescription(EncounterChoice option, ChoiceProjection projection)

@@ -65,7 +65,7 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
 {
   "choices": [
     {
-      "choiceID": "choice_1",
+      "choiceID": "1",
       "narrativeText": "Specific reaction to current situation",
       "focusCost": 1,
       "skillOptions": [
