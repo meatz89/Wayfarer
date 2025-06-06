@@ -90,11 +90,11 @@
                         <div class="skill-outcome">
                             <div class="success-outcome">
                                 <span class="outcome-label">Success:</span>
-                                <span class="outcome-description">@hoveredChoice.SkillOption.SuccessEffectEntry.Effect</span>
+                                <span class="outcome-description">@hoveredChoice.SkillOption.SuccessEffectEntry?.Effect ?? "No Effect"</span>
                             </div>
                             <div class="failure-outcome">
                                 <span class="outcome-label">Failure:</span>
-                                <span class="outcome-description">@hoveredChoice.SkillOption.FailureEffectEntry.Effect</span>
+                                <span class="outcome-description">@hoveredChoice.SkillOption.FailureEffectEntry?.Effect ?? "No Effect"</span>
                             </div>
                         </div>
                     </div>
