@@ -2,25 +2,16 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 # ENCOUNTER INTRODUCTION
 
-Create a BRIEF, immersive introductory scene for a {ENCOUNTER_TYPE} encounterContext at {LOCATION_SPOT} of {LOCATION_NAME}.
+Create a BRIEF, immersive introductory scene for the Encounter at this location and spot.
 Talk in the voice of the player character archetype. The narration of a Warrior, Scholar, Courtier, Ranger, Mystic, and Diplomat should be remarkably different.
 
-## Current EncounterContext Situation
-- EncounterContext Type: {ENCOUNTER_TYPE}
-- Primary Action Goal: {CHARACTER_GOAL}
-- Chosen Approach: {CHOSEN_APPROACH}
-
-## Location Context
-- Environment: {ENVIRONMENT_DETAILS}
-- NPCs: {NPC_LIST}
-
-## Player Character Status
-{PLAYER_STATUS}
+{PROMPT_CONTEXT}
 
 ## EncounterContext Clarification
 - Make clear what success would accomplish through the SPECIFIC chosen approach
 - Hint at consequences of failure for this particular approach
 - The scene should directly set up the chosen approach method, not generic action possibilities
+- Incorporate relevant details from the character's past experiences:
 
 ## Chekhov's Gun Integration
 1. SELECT 0-1 Chekhov's Guns from the list that would naturally fit this encounter
@@ -31,10 +22,6 @@ Talk in the voice of the player character archetype. The narration of a Warrior,
    - ONLY Resolve an element if this encounterContext naturally concludes its arc
 3. Never force inclusion if it doesn't fit the encounterContext context
 4. The Chekhov's Gun should enhance but not dominate the primary encounterContext goal
-
-## Memory Integration
-Incorporate relevant details from the character's past experiences:
-{MEMORY_CONTENT}
 
 ## Conflict Generation
 Based on the location, encounterContext type, and CHOSEN APPROACH, create an appropriate conflict situation.
@@ -56,4 +43,3 @@ The selected conflict should:
 8. Use weather, lighting, or architecture to enhance the mood of confrontation
 9. The player's potential choices should involve complicated moral considerations within their chosen approach
 
-The tone should match a {ENCOUNTER_TYPE} encounterContext specifically using the {CHOSEN_APPROACH}.

@@ -6,14 +6,21 @@ public class MemoryFileAccess
     const string fileNameWorld = "worldState.txt";
 
     // Static SemaphoreSlim instances to control file access
-    private static SemaphoreSlim memorySemaphore = new SemaphoreSlim(1, 1);
-    private static SemaphoreSlim worldStateSemaphore = new SemaphoreSlim(1, 1);
+    private SemaphoreSlim memorySemaphore = new SemaphoreSlim(1, 1);
+    private SemaphoreSlim worldStateSemaphore = new SemaphoreSlim(1, 1);
+    private Guid gameInstanceId;
 
-    public static async Task<string> ReadFromMemoryFile()
+    public MemoryFileAccess(Guid guid)
     {
-        string memoryContent = string.Empty;
+        this.gameInstanceId = guid;
+    }
+
+    private async Task<List<string>> ReadFromMemoryFile()
+    {
+        List<string> memoryContent = new();
         string _baseLogDirectory = Path.Combine("C:", "Logs");
-        string filePath = Path.Combine(_baseLogDirectory, fileName);
+        string memoryFileName = this.gameInstanceId.ToString() + "_" + fileName;
+        string filePath = Path.Combine(_baseLogDirectory, memoryFileName);
 
         // Ensure directory exists
         Directory.CreateDirectory(_baseLogDirectory);
@@ -26,9 +33,10 @@ public class MemoryFileAccess
             if (!File.Exists(filePath))
             {
                 Console.WriteLine($"Error reading memory file");
-                return string.Empty;
+                return memoryContent; // Return empty list if file does not exist
             }
-            memoryContent = await File.ReadAllTextAsync(filePath);
+            string[] strings = await File.ReadAllLinesAsync(filePath);
+            memoryContent = strings.ToList();
             return memoryContent;
         }
         finally
@@ -38,7 +46,7 @@ public class MemoryFileAccess
         }
     }
 
-    public static async Task WriteToMemoryFile(string memoryContent)
+    public async Task WriteToMemoryFile(string memoryContent)
     {
         string _baseLogDirectory = Path.Combine("C:", "Logs");
         string filePath = Path.Combine(_baseLogDirectory, fileName);
@@ -76,7 +84,7 @@ public class MemoryFileAccess
         }
     }
 
-    public static async Task WriteToLogFile(WorldStateInput context)
+    public async Task WriteToLogFile(WorldStateInput context)
     {
         string newContent = JsonConvert.SerializeObject(context);
         string _baseLogDirectory = Path.Combine("C:", "Logs");
@@ -122,5 +130,10 @@ public class MemoryFileAccess
             // Always release the semaphore when done
             worldStateSemaphore.Release();
         }
+    }
+
+    public async Task<List<string>> GetAllMemories()
+    {
+        return await ReadFromMemoryFile();
     }
 }
