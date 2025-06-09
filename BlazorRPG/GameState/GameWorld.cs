@@ -29,9 +29,12 @@
     public TimeManager TimeManager { get; set; }
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
+    public Guid GameInstanceId { get; set; }
 
     public GameWorld()
     {
+        if(GameInstanceId == Guid.Empty) GameInstanceId = Guid.NewGuid();
+
         Player = new Player();
         WorldState = new WorldState();
         ActionStateTracker = new ActionStateTracker();
@@ -119,4 +122,8 @@
         return new List<TravelRoute>();
     }
 
+    public Guid GetGameInstanceId()
+    {
+        return GameInstanceId;
+    }
 }
