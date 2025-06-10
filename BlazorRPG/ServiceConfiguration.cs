@@ -63,7 +63,6 @@ public static class ServiceConfiguration
         services.AddSingleton<AIPromptBuilder>();
         services.AddSingleton<EncounterChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
-        services.AddSingleton<MemoryFileAccess>();
 
         // Get configuration to determine which provider to use
         using (ServiceProvider sp = services.BuildServiceProvider())
