@@ -66,15 +66,15 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
   "choices": [
     {
       "choiceID": "1",
-      "narrativeText": "Specific reaction to current situation",
+      "narrativeText": "Specific reaction to current situation. Maximum 5 words.",
       "focusCost": 1,
-      "skillOptions": [
+      "template": "Template this choice belongs to"
+      "skillOption": 
         {
-          "skillName": "Brute Force",
-          "difficulty": "Standard",
-          "sCD": 3,
+            "skillName": "Brute Force",
+            "difficulty": "Standard",
+            "sCD": 3,
         }
-      ]
     }
   ]
 }
