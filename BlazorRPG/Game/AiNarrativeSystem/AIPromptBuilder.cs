@@ -677,12 +677,11 @@ public class AIPromptBuilder
 
         prompt.AppendLine("INSTRUCTIONS:");
         prompt.AppendLine("1. Generate a narrative beat description (2-3 sentences) appropriate to the current encounter context and encounter state.");
-        prompt.AppendLine("2. Create 3-4 distinct choices that advance toward the player's goals.");
+        prompt.AppendLine("2. Create 4-6 distinct choices that advance toward the player's goals.");
         prompt.AppendLine("3. For each choice:");
         prompt.AppendLine("   - Set Focus cost (0-2)");
         prompt.AppendLine("   - Define which skill cards can be used");
         prompt.AppendLine("   - Set appropriate difficulty (Easy=2, Standard=3, Hard=4, Exceptional=5)");
-        prompt.AppendLine("   - Include any special bonuses from preparations");
         prompt.AppendLine("   - Select appropriate template from the provided options");
         prompt.AppendLine("   - Ensure narrative descriptions match cultural context");
 
