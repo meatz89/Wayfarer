@@ -11,7 +11,6 @@
         ConversationHistoryManager contextManager,
         EncounterChoiceResponseParser EncounterChoiceResponseParser,
         AIClient aiClient,
-        MemoryFileAccess memoryFileAccess,
         IConfiguration configuration,
         GameWorld gameWorld)
     {
@@ -45,7 +44,10 @@
         string conversationId = GetConversationId(context);
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
-        string memory = await MemoryFileAccess.ReadFromMemoryFile();
+        var gameInstanceId = context.GameWorld.GameInstanceId;
+        MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameInstanceId);
+        List<string> memoryContent = await memoryFileAccess.GetAllMemories();
+        var memory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
 
         AIPrompt prompt = _promptBuilder.BuildIntroductionPrompt(context, state, memory);
         MessageType messageType = MessageType.Introduction;
@@ -144,14 +146,15 @@
     public async Task<string> GenerateConclusion(
         EncounterContext context,
         EncounterState state,
-        EncounterChoice chosenOption,
+        EncounterChoice finalChoice,
         WorldStateInput worldStateInput,
         int priority)
     {
         string conversationId = GetConversationId(context);
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
-        AIPrompt prompt = _promptBuilder.BuildEncounterConclusionPrompt(context, state.EncounterOutcome, chosenOption);
+        AIPrompt prompt = _promptBuilder
+            .BuildEncounterConclusionPrompt(context, state, state.EncounterOutcome, finalChoice);
         MessageType messageType = MessageType.Conclusion;
 
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);
@@ -281,7 +284,10 @@
         string conversationId = GetConversationId(context);
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
-        string oldMemory = await MemoryFileAccess.ReadFromMemoryFile();
+        var gameInstanceId = context.GameWorld.GameInstanceId;
+        MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameInstanceId);
+        List<string> memoryContent = await memoryFileAccess.GetAllMemories();
+        var oldMemory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
         MemoryConsolidationInput input = new()
         {
             OldMemory = oldMemory

@@ -63,9 +63,9 @@ public class ActionGenerator
         return GetDefaultActionDefinition(actionName, spotId).Id;
     }
 
-    public async Task<string> GenerateOpportunity(string name, string id1, string id2)
+    internal async Task<string> GenerateOpportunity(string name, string id, string spotID)
     {
-        throw new NotImplementedException();
+        return string.Empty; // Placeholder for opportunity generation logic
     }
 
     private ActionDefinition GetDefaultActionDefinition(

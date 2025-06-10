@@ -1,11 +1,10 @@
 ﻿public class EncounterFactory
 {
     public WorldState worldState;
-    private readonly GameWorld gameWorld;
+    private GameWorld gameWorld;
     private AIGameMaster aiGameMaster;
     private ChoiceProjectionService choiceProjectionService;
-    private readonly WorldStateInputBuilder worldStateInputBuilder;
-    private IConfiguration configuration;
+    private WorldStateInputBuilder worldStateInputBuilder;
     private ILogger<EncounterFactory> logger;
 
     public EncounterFactory(
@@ -14,14 +13,12 @@
         ChoiceProjectionService choiceProjectionService,
         AIPromptBuilder promptBuilder,
         WorldStateInputBuilder worldStateInputBuilder,
-        IConfiguration configuration,
         ILogger<EncounterFactory> logger)
     {
         this.gameWorld = gameWorld;
         this.aiGameMaster = aiGameMaster;
         this.choiceProjectionService = choiceProjectionService;
         this.worldStateInputBuilder = worldStateInputBuilder;
-        this.configuration = configuration;
         this.logger = logger;
     }
 

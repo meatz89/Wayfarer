@@ -30,7 +30,11 @@ public class WorldStateInputBuilder
         string playerInventory = FormatPlayerInventory(player.Inventory);
 
         int currentEnergy = player.CurrentEnergy();
-        string memoryContent = await MemoryFileAccess.ReadFromMemoryFile();
+
+        var gameInstanceId = gameWorld.GameInstanceId;
+        MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameInstanceId);
+        List<string> memoryContent = await memoryFileAccess.GetAllMemories();
+        var memory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
 
         string knownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters());
         List<NPC> allCharacters = worldState.GetCharacters();
@@ -58,13 +62,13 @@ public class WorldStateInputBuilder
             KnownCharacters = knownCharacters,
             ActiveOpportunities = string.Empty,
 
-            MemorySummary = memoryContent,
+            MemorySummary = memory,
 
             Characters = allCharacters,
             RelationshipList = player.Relationships
         };
 
-        await MemoryFileAccess.WriteToLogFile(context);
+        await memoryFileAccess.WriteToLogFile(context);
 
         return context;
     }
