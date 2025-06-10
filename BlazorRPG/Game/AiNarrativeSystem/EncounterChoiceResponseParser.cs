@@ -137,21 +137,25 @@ public class EncounterChoiceResponseParser
             choice.FocusCost = focusCostElement.GetInt32();
         }
 
-        // Parse skill options
-        if (choiceElement.TryGetProperty("skillOptions", out JsonElement skillOptionsElement) ||
-            choiceElement.TryGetProperty("SkillOptions", out skillOptionsElement))
+        // Parse template information
+        if (choiceElement.TryGetProperty("template", out JsonElement templateElement))
         {
-            if (skillOptionsElement.ValueKind == JsonValueKind.Array)
-            {
-                foreach (JsonElement skillOptionElement in skillOptionsElement.EnumerateArray())
-                {
-                    SkillOption skillOption = ParseSkillOptionFromJson(skillOptionElement);
-                    if (skillOption != null)
-                    {
-                        choice.SkillOption = skillOption;
-                    }
-                }
-            }
+            choice.TemplateUsed = templateElement.GetString();
+        }
+        else if (choiceElement.TryGetProperty("templateUsed", out JsonElement templateUsedElement))
+        {
+            choice.TemplateUsed = templateUsedElement.GetString();
+        }
+
+        if (choiceElement.TryGetProperty("templatePurpose", out JsonElement templatePurposeElement))
+        {
+            choice.TemplatePurpose = templatePurposeElement.GetString();
+        }
+
+        // Parse skill options
+        if (choiceElement.TryGetProperty("skillOption", out JsonElement skillOptionElement))
+        {
+            choice.SkillOption = ParseSkillOptionFromJson(skillOptionElement);
         }
 
         return choice;
@@ -230,18 +234,11 @@ public class EncounterChoiceResponseParser
 
         foreach (Match match in matches)
         {
-            try
+            JsonDocument document = JsonDocument.Parse(match.Value);
+            EncounterChoice choice = ParseChoiceFromJson(document.RootElement);
+            if (choice != null)
             {
-                JsonDocument document = JsonDocument.Parse(match.Value);
-                EncounterChoice choice = ParseChoiceFromJson(document.RootElement);
-                if (choice != null)
-                {
-                    choices.Add(choice);
-                }
-            }
-            catch (JsonException)
-            {
-                // Not valid JSON, skip
+                choices.Add(choice);
             }
         }
 
