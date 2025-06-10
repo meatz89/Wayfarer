@@ -2,13 +2,7 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 # WAYFARER'S RESOLVE CHOICE GENERATION
 
-## Current EncounterContext Situation
-- EncounterContext Type: {ENCOUNTER_TYPE}
-- Current Stage: {CURRENT_STAGE}/5 ({ENCOUNTER_TIER} Tier)
-- Progress: {CURRENT_PROGRESS}/{SUCCESS_THRESHOLD}
-
-## Player Character Status
-{PLAYER_STATUS}
+{PROMPT_CONTEXT}
 
 ## CRITICAL REQUIREMENT: NARRATIVE COMPREHENSION STEP
 Before creating choices, you MUST analyze the narrative context by answering the following three questions based on {CHOICES_INFO}:
@@ -68,12 +62,13 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
       "choiceID": "1",
       "narrativeText": "Specific reaction to current situation. Maximum 5 words.",
       "focusCost": 1,
-      "template": "Template this choice belongs to"
+      "templateUsed": "Template this choice belongs to",
+      "templatePurpose": "Strategic purpose of this template",
       "skillOption": 
         {
             "skillName": "Brute Force",
             "difficulty": "Standard",
-            "sCD": 3,
+            "sCD": 3
         }
     }
   ]
