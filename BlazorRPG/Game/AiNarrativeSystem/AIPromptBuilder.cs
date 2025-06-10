@@ -675,6 +675,7 @@ public class AIPromptBuilder
             }
         }
 
+        prompt.AppendLine("");
         prompt.AppendLine("INSTRUCTIONS:");
         prompt.AppendLine("1. Generate a narrative beat description (2-3 sentences) appropriate to the current encounter context and encounter state.");
         prompt.AppendLine("2. Create 4-6 distinct choices that advance toward the player's goals.");
