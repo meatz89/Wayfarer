@@ -58,9 +58,4 @@ public static class ChoiceTemplateLibrary
     {
         return GetAllTemplates().FirstOrDefault(t => t.TemplateName == id.ToString());
     }
-
-    public static bool HasEffect(string? id)
-    {
-        return GetAllTemplates().Any(t => t.TemplateName == id);
-    }
 }

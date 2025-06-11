@@ -69,6 +69,8 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
             "skillName": "Brute Force",
             "difficulty": "Standard",
             "sCD": 3
+            "successEffect": "On Success Effect"
+            "failureEffect": "On Failure Effect"
         }
     }
   ]

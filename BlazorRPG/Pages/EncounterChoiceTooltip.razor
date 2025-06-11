@@ -27,7 +27,7 @@
                     else
                     {
                         <div class="resource-cost focus-cost">
-                            <span class="resource-icon">⚡</span> 0 Focus (Recovery Option)
+                            <span class="resource-icon">⚡</span> 0 Focus
                         </div>
                     }
                 </div>
@@ -36,41 +36,12 @@
 
         <!-- Effects Section -->
         <div class="tooltip-section effects-section">
-            <h5>Potential Effects</h5>
+            <h5>Template Info</h5>
             <div class="tooltip-item">
-                @{
-                    var projection = Preview;
-                    var positiveEffects = GetPositiveEffectsAsList(hoveredChoice, projection);
-                }
-                @if (positiveEffects.Any())
-                {
-                    <div class="effect-list positive-effects">
-                        @foreach (var effect in positiveEffects)
-                        {
-                            <div class="effect-item positive">
-                                <span class="effect-icon">
-                                    @if (effect.IsProgressEffect)
-                                    {
-                                        <span>🏆</span>
-                                    }
-                                    else if (effect.IsFocusEffect)
-                                    {
-                                        <span>⚡</span>
-                                    }
-                                    else
-                                    {
-                                        <span>✓</span>
-                                    }
-                                </span>
-                                @effect.Description
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="effect-item neutral">No significant effects</div>
-                }
+                @hoveredChoice.TemplateUsed
+            </div>
+            <div class="tooltip-item">
+                @hoveredChoice.TemplatePurpose
             </div>
         </div>
 
@@ -86,16 +57,6 @@
                         </div>
                         <div class="skill-difficulty">
                             Difficulty: @hoveredChoice.SkillOption.SCD
-                        </div>
-                        <div class="skill-outcome">
-                            <div class="success-outcome">
-                                <span class="outcome-label">Success:</span>
-                                <span class="outcome-description">@hoveredChoice.SkillOption.SuccessEffectEntry?.Effect ?? "No Effect"</span>
-                            </div>
-                            <div class="failure-outcome">
-                                <span class="outcome-label">Failure:</span>
-                                <span class="outcome-description">@hoveredChoice.SkillOption.FailureEffectEntry?.Effect ?? "No Effect"</span>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -2,7 +2,7 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 # ENCOUNTER INTRODUCTION
 
-Create a BRIEF, immersive introductory scene for the Encounter at this location and spot.
+Create a BRIEF, immersive introductory scene for the Encounter at this location and spot. Keep it short.
 Talk in the voice of the player character archetype. The narration of a Warrior, Scholar, Courtier, Ranger, Mystic, and Diplomat should be remarkably different.
 
 {PROMPT_CONTEXT}
