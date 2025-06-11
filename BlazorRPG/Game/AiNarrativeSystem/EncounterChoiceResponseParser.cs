@@ -142,26 +142,33 @@ public class EncounterChoiceResponseParser
             choice.FocusCost = focusCostElement.GetInt32();
         }
 
-        // Parse template information
-        string templateValue = null;
         if (choiceElement.TryGetProperty("template", out JsonElement templateElement))
         {
-            templateValue = templateElement.GetString();
-            choice.TemplateUsed = templateValue;
+            choice.TemplateUsed = templateElement.GetString();
+
+            if (!string.IsNullOrWhiteSpace(choice.TemplateUsed))
+            {
+                AppendUniqueValueToFile(_templateFile, choice.TemplateUsed);
+            }
         }
         else if (choiceElement.TryGetProperty("templateUsed", out JsonElement templateUsedElement))
         {
-            templateValue = templateUsedElement.GetString();
-            choice.TemplateUsed = templateValue;
-        }
-        if (!string.IsNullOrWhiteSpace(templateValue))
-        {
-            AppendUniqueValueToFile(_templateFile, templateValue);
+            choice.TemplateUsed = templateUsedElement.GetString();
+
+            if (!string.IsNullOrWhiteSpace(choice.TemplateUsed))
+            {
+                AppendUniqueValueToFile(_templateFile, choice.TemplateUsed);
+            }
         }
 
         if (choiceElement.TryGetProperty("templatePurpose", out JsonElement templatePurposeElement))
         {
             choice.TemplatePurpose = templatePurposeElement.GetString();
+
+            if (!string.IsNullOrWhiteSpace(choice.TemplatePurpose))
+            {
+                AppendUniqueValueToFile(_templateFile, choice.TemplatePurpose);
+            }
         }
 
         // Parse skill options

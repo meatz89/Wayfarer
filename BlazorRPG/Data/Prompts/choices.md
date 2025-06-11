@@ -62,7 +62,7 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
       "choiceID": "1",
       "narrativeText": "Specific reaction to current situation. Maximum 5 words.",
       "focusCost": 1,
-      "templateUsed": "Template this choice belongs to",
+      "templateUsed": "Template this choice belongs to (i.e. GatherInformation or EstablishTrust)",
       "templatePurpose": "Strategic purpose of this template",
       "skillOption": 
         {
