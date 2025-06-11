@@ -39,16 +39,20 @@ public class AIPromptBuilder
 
         StringBuilder prompt = new StringBuilder();
 
+        // Add base context
         AddBaseContext(prompt, context);
 
-        // Add time context
+        // Add memory context
         AddMemoryContext(prompt, gameWorld);
+
+        // Add global goal context
+        AddGlobalGoalContext(prompt, gameWorld);
 
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
 
-        // Add time context
-        AddGoalContext(prompt, gameWorld);
+        // Add goal context
+        AddEncounterGoalContext(prompt, context, state, gameWorld);
 
         // Add time context
         AddTimeContext(prompt, gameWorld);
@@ -85,11 +89,11 @@ public class AIPromptBuilder
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
 
-        // Add time context
-        AddGoalContext(prompt, gameWorld);
+        // Add goal context
+        AddEncounterGoalContext(prompt, context, state, gameWorld);
 
         // Add choices information
-        AddChoicesContext(prompt, context, choiceTemplates);
+        AddChoiceTemplatesContext(prompt, context, choiceTemplates);
 
         // Replace Prompt Context placeholder
         var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
@@ -109,43 +113,26 @@ public class AIPromptBuilder
     {
         string template = promptTemplates[REACTION_MD];
 
-        // Format strategic effects
-        StringBuilder strategicEffects = new StringBuilder();
-
-        string environmentDetails = $"A {context.LocationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
-
-        // Format player character info
-        string characterArchetype = context.Player.Archetype.ToString();
-        string playerStatus = $"Archetype: {characterArchetype}";
-
-        string choiceDescription = chosenOption.NarrativeText;
-
-        string content = CreatePromptJson(
-            template
-            .Replace("{ENCOUNTER_TYPE}", context.SkillCategory.ToString())
-            .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{ENVIRONMENT_DETAILS}", environmentDetails)
-            .Replace("{PLAYER_STATUS}", playerStatus)
-            .Replace("{SELECTED_CHOICE}", choiceDescription)
-            );
-
         Player player = context.Player;
         GameWorld gameWorld = context.GameWorld;
 
-        StringBuilder prompt = new StringBuilder(content);
+        StringBuilder prompt = new StringBuilder();
 
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
 
-        // Add time context
-        AddGoalContext(prompt, gameWorld);
+        // Add goal context
+        AddEncounterGoalContext(prompt, context, state, gameWorld);
 
         // Add selected choice context
         AddSelectedChoiceContext(prompt, chosenOption);
 
+        // Replace Prompt Context placeholder
+        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+
         AIPrompt aiPrompt = new AIPrompt()
         {
-            Content = prompt.ToString()
+            Content = content.ToString()
         };
 
         return aiPrompt;
@@ -160,36 +147,16 @@ public class AIPromptBuilder
     {
         string template = promptTemplates[ENDING_MD];
 
-        string lastNarrative = "No previous narrative available.";
-
-        string encounterGoal = context.LocationAction.ObjectiveDescription;
-
-        string goalAchievementStatus = outcome != BeatOutcomes.Failure
-            ? $"You have successfully achieved your goal to {encounterGoal}"
-            : $"You have failed to {encounterGoal}";
-
-        string choiceDescription = finalChoice.NarrativeText;
-        string content = CreatePromptJson(
-            template
-            .Replace("{SELECTED_CHOICE}", choiceDescription)
-            .Replace("{ENCOUNTER_TYPE}", context.SkillCategory.ToString())
-            .Replace("{ENCOUNTER_OUTCOME}", outcome.ToString())
-            .Replace("{LOCATION_NAME}", context.LocationName)
-            .Replace("{LOCATION_SPOT}", context.LocationSpotName)
-            .Replace("{CHARACTER_GOAL}", encounterGoal)
-            .Replace("{LAST_NARRATIVE}", lastNarrative)
-            .Replace("{GOAL_ACHIEVEMENT_STATUS}", goalAchievementStatus));
-
         GameWorld gameWorld = context.GameWorld;
         Player player = context.Player;
 
-        StringBuilder prompt = new StringBuilder(content);
+        StringBuilder prompt = new StringBuilder();
 
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
 
-        // Add time context
-        AddGoalContext(prompt, gameWorld);
+        // Add goal context
+        AddEncounterGoalContext(prompt, context, state, gameWorld);
 
         // Add time context
         AddTimeContext(prompt, gameWorld);
@@ -200,9 +167,12 @@ public class AIPromptBuilder
         // Add travel context
         AddTravelContext(prompt, gameWorld);
 
+        // Replace Prompt Context placeholder
+        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+
         AIPrompt aiPrompt = new AIPrompt()
         {
-            Content = prompt.ToString()
+            Content = content.ToString()
         };
 
         return aiPrompt;
@@ -370,16 +340,11 @@ public class AIPromptBuilder
 
         return dynamicSystemPrompt;
     }
-    private string GetTierName(int durationCounter)
-    {
-        if (durationCounter <= 2) return "Foundation";
-        if (durationCounter <= 4) return "Development";
-        return "Execution";
-    }
-
 
     private void AddEncounterContext(StringBuilder prompt, EncounterContext context, EncounterState state, Player player)
     {
+        prompt.AppendLine();
+
         prompt.AppendLine("ENCOUNTER CONTEXT:");
 
         // Add focus points
@@ -423,6 +388,8 @@ public class AIPromptBuilder
 
     private static void AddBaseContext(StringBuilder prompt, EncounterContext context)
     {
+        prompt.AppendLine();
+
         string environmentDetails = $"A {context.LocationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
         string npcList = "";
         if (string.IsNullOrWhiteSpace(npcList))
@@ -453,11 +420,14 @@ public class AIPromptBuilder
         prompt.AppendLine("Player Status: " + playerStatus);
         prompt.AppendLine("NPCs Present: " + npcList);
         prompt.AppendLine("Chosen Approach: " + approachDetails);
+
         prompt.AppendLine();
     }
 
     private void AddMemoryContext(StringBuilder prompt, GameWorld gameWorld)
     {
+        prompt.AppendLine();
+
         MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameWorld.GetGameInstanceId());
         List<string> memories = memoryFileAccess.GetAllMemories().Result;
         
@@ -473,11 +443,35 @@ public class AIPromptBuilder
         {
             prompt.AppendLine("- No memories available.");
         }
+        
+        prompt.AppendLine();
     }
 
-    private void AddGoalContext(StringBuilder prompt, GameWorld gameWorld)
+    private void AddEncounterGoalContext(StringBuilder prompt, EncounterContext context, EncounterState state, GameWorld gameWorld)
     {
-        prompt.AppendLine("GOAL CONTEXT:");
+        prompt.AppendLine();
+
+        prompt.AppendLine("ENCOUNTER GOAL CONTEXT:");
+
+        var outcome = state.EncounterOutcome;
+
+        string encounterGoal = context.LocationAction.ObjectiveDescription;
+        prompt.AppendLine(encounterGoal);
+
+        string goalAchievementStatus =
+            outcome == BeatOutcomes.Success ? $"You have successfully achieved your goal to {encounterGoal}" :
+            outcome == BeatOutcomes.Failure ? $"You have failed to {encounterGoal}" : string.Empty;
+
+        prompt.AppendLine(goalAchievementStatus);
+
+        prompt.AppendLine();
+    }
+
+    private void AddGlobalGoalContext(StringBuilder prompt, GameWorld gameWorld)
+    {
+        prompt.AppendLine();
+
+        prompt.AppendLine("GLOBAL GOAL CONTEXT:");
 
         // Core goal
         List<Goal> coreGoals = gameWorld.GetGoalsByType(GoalType.Core);
@@ -520,12 +514,13 @@ public class AIPromptBuilder
                 prompt.AppendLine($"  * {goal.Name}: {goal.Progress * 100:0}% complete");
             }
         }
-
         prompt.AppendLine();
     }
 
     private void AddTimeContext(StringBuilder prompt, GameWorld gameWorld)
     {
+        prompt.AppendLine();
+
         prompt.AppendLine("TIME CONTEXT:");
         prompt.AppendLine($"- Current Day: {GameWorld.CurrentDay}");
         prompt.AppendLine($"- Time of Day: {GameWorld.CurrentTimeOfDay}");
@@ -542,6 +537,8 @@ public class AIPromptBuilder
 
     private void AddResourceContext(StringBuilder prompt, Player player)
     {
+        prompt.AppendLine();
+
         prompt.AppendLine("RESOURCE CONTEXT:");
         prompt.AppendLine($"- Energy: {player.Energy}/{player.MaxEnergy}");
         prompt.AppendLine($"- Money: {player.Money} coins");
@@ -552,6 +549,8 @@ public class AIPromptBuilder
 
     private void AddTravelContext(StringBuilder prompt, GameWorld gameWorld)
     {
+        prompt.AppendLine();
+
         prompt.AppendLine("TRAVEL CONTEXT:");
         prompt.AppendLine($"- Current Location: {gameWorld.CurrentLocation.Name}");
 
@@ -587,6 +586,8 @@ public class AIPromptBuilder
 
     private void AddSelectedChoiceContext(StringBuilder prompt, EncounterChoice choice)
     {
+        prompt.AppendLine();
+
         prompt.AppendLine("SELECTED CHOICE CONTEXT:");
         prompt.AppendLine($"- Choice ID: {choice.ChoiceID}");
         prompt.AppendLine($"- Narrative Text: {choice.NarrativeText}");
@@ -621,11 +622,13 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private void AddChoicesContext(StringBuilder prompt, EncounterContext context, List<ChoiceTemplate> choices)
+    private void AddChoiceTemplatesContext(StringBuilder prompt, EncounterContext context, List<ChoiceTemplate> choiceTemplates)
     {
-        for (int i = 0; i < choices.Count; i++)
+        prompt.AppendLine();
+
+        for (int i = 0; i < choiceTemplates.Count; i++)
         {
-            ChoiceTemplate template = choices[i];
+            ChoiceTemplate template = choiceTemplates[i];
             prompt.AppendLine($"\nCHOICE TEMPLATE {i + 1}: {template.TemplateName}");
             prompt.AppendLine($"Strategic Purpose: {template.StrategicPurpose}");
             prompt.AppendLine($"Weight: {template.Weight}");
@@ -694,5 +697,4 @@ public class AIPromptBuilder
 
         prompt.AppendLine();
     }
-
 }
