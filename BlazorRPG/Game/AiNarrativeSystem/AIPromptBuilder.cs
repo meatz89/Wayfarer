@@ -70,6 +70,38 @@ public class AIPromptBuilder
         return aiPrompt;
     }
 
+    public AIPrompt BuildChoicesPrompt(
+        EncounterContext context,
+        EncounterState state,
+        List<ChoiceTemplate> choiceTemplates)
+    {
+        string template = promptTemplates[CHOICES_MD];
+
+        Player player = context.Player;
+        GameWorld gameWorld = context.GameWorld;
+
+        StringBuilder prompt = new StringBuilder();
+
+        // Add core game state context
+        AddEncounterContext(prompt, context, state, player);
+
+        // Add time context
+        AddGoalContext(prompt, gameWorld);
+
+        // Add choices information
+        AddChoicesContext(prompt, context, choiceTemplates);
+
+        // Replace Prompt Context placeholder
+        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+
+        AIPrompt aiPrompt = new AIPrompt()
+        {
+            Content = content.ToString()
+        };
+
+        return aiPrompt;
+    }
+
     public AIPrompt BuildReactionPrompt(
         EncounterContext context,
         EncounterState state,
@@ -118,55 +150,6 @@ public class AIPromptBuilder
 
         return aiPrompt;
     }
-
-    public AIPrompt BuildChoicesPrompt(
-        EncounterContext context,
-        EncounterState state,
-        List<ChoiceTemplate> choiceTemplates)
-    {
-        string template = promptTemplates[CHOICES_MD];
-
-        // Get player status
-        string playerStatus = $"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}\n";
-
-        // Get encounterContext type and tier
-        string encounterType = context.SkillCategory.ToString();
-        string encounterTier = GetTierName(state.DurationCounter);
-        int successThreshold = 10; // Basic success threshold
-
-        // Replace placeholders in template
-        string content = CreatePromptJson(
-            template
-            .Replace("{ENCOUNTER_TYPE}", encounterType)
-            .Replace("{CURRENT_STAGE}", state.DurationCounter.ToString())
-            .Replace("{ENCOUNTER_TIER}", encounterTier)
-            .Replace("{CURRENT_PROGRESS}", state.CurrentProgress.ToString())
-            .Replace("{SUCCESS_THRESHOLD}", successThreshold.ToString())
-            .Replace("{PLAYER_STATUS}", playerStatus)
-            .Replace("{CURRENT_NARRATIVE}", state.CurrentNarrative));
-
-        Player player = context.Player;
-        GameWorld gameWorld = context.GameWorld;
-
-        StringBuilder prompt = new StringBuilder(content);
-
-        // Add core game state context
-        AddEncounterContext(prompt, context, state, player);
-
-        // Add time context
-        AddGoalContext(prompt, gameWorld);
-
-        // Add choices information
-        AddChoicesContext(prompt, context, choiceTemplates);
-
-        AIPrompt aiPrompt = new AIPrompt()
-        {
-            Content = prompt.ToString()
-        };
-
-        return aiPrompt;
-    }
-
 
     public AIPrompt BuildEncounterConclusionPrompt(
         EncounterContext context,
@@ -418,8 +401,12 @@ public class AIPromptBuilder
             prompt.AppendLine($"  * Attitude: {context.TargetNPC.Attitude}");
         }
 
+        // Get player status
+        string playerStatus = $"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}\n";
+
         // Add duration information
-        prompt.AppendLine($"- EncounterContext Duration: {state.DurationCounter}/{state.MaxDuration}");
+        prompt.AppendLine($"- Encounter Type: {context.SkillCategory.ToString()}");
+        prompt.AppendLine($"- Encounter Duration: {state.DurationCounter}/{state.MaxDuration}");
 
         // Add player skills
         prompt.AppendLine("- Player Skills Available:");
