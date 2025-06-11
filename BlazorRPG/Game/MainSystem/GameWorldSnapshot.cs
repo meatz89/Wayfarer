@@ -3,12 +3,9 @@
     public bool HasActiveEncounter { get; private set; }
     public int? CurrentFocusPoints { get; private set; }
     public int? MaxFocusPoints { get; private set; }
-    public List<FlagStates> ActiveFlags { get; private set; } = new List<FlagStates>();
     public string StreamingText { get; private set; }
     public bool IsStreaming { get; private set; }
     public float StreamProgress { get; private set; }
-    public List<EncounterChoice> AvailableChoices { get; private set; } = new List<EncounterChoice>();
-    public EncounterChoice LastChoiceSelection { get; private set; } = new EncounterChoice();
     public bool IsAwaitingAIResponse { get; private set; }
     public bool CanSelectChoice { get; private set; }
     public bool IsEncounterComplete { get; private set; }
@@ -16,6 +13,11 @@
     public int Energy { get; internal set; }
     public int Concentration { get; internal set; }
     public TimeOfDay CurrentTimeOfDay { get; internal set; } = new TimeOfDay();
+    public List<FlagStates> ActiveFlags { get; private set; } = new List<FlagStates>();
+    public List<EncounterChoice> AvailableChoices { get; private set; } = new List<EncounterChoice>();
+    public EncounterChoice LastChoiceSelection { get; private set; } = new EncounterChoice();
+    public string LastChoiceLabel { get; private set; }
+    public bool LastChoiceSuccess { get; private set; }
 
     public GameWorldSnapshot(GameWorld gameWorld)
     {
@@ -30,6 +32,9 @@
         if (HasActiveEncounter)
         {
             EncounterState state = encounterManager.GetEncounterState();
+            LastChoiceLabel = LastChoiceSelection.NarrativeText;
+            LastChoiceSuccess = state.BeatOutcome == BeatOutcomes.Success;
+
             CurrentFocusPoints = state.FocusPoints;
             MaxFocusPoints = state.MaxFocusPoints;
             ActiveFlags = state.FlagManager?.GetAllActiveFlags() ?? new List<FlagStates>();

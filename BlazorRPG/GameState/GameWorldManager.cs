@@ -161,7 +161,7 @@
         if (string.IsNullOrWhiteSpace(currentLocation)) return null;
 
         BeatOutcome beatOutcome = await gameWorld.ActionStateTracker.CurrentEncounterManager
-            .ProcessPlayerChoice(playerChoice.Choice);
+            .ProcessPlayerChoice(playerChoice);
 
         return beatOutcome;
     }

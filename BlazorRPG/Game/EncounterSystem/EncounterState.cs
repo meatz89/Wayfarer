@@ -22,6 +22,7 @@
     public string CurrentNarrative { get; set; }
     public int ProgressThreshold { get; internal set; }
     public int Progress { get; internal set; }
+    public BeatOutcomes BeatOutcome { get; internal set; }
 
     private List<SkillModifier> activeModifiers;
     private int nextCheckModifier;

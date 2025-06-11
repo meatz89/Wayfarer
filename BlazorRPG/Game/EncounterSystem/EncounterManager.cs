@@ -2,37 +2,12 @@
 {
     private EncounterContext _context;
     private EncounterState _state;
+    private LocationAction _locationAction;
     private AIGameMaster _aiGameMaster;
-    private readonly WorldStateInputBuilder _worldStateInputBuilder;
+    private WorldStateInputBuilder _worldStateInputBuilder;
     private ChoiceProjectionService _projectionService;
-    public bool _isAwaitingAIResponse = false;
     private GameWorld _gameWorld;
-
-    public LocationAction _locationAction { get; private set; }
-    public bool IsEncounterComplete
-    {
-        get
-        {
-            return _state?.IsEncounterComplete ?? false;
-        }
-    }
-
-    public EncounterState EncounterState
-    {
-        get
-        {
-            return _state;
-        }
-    }
-
-    public EncounterContext EncounterContext
-    {
-        get
-        {
-            return _context;
-        }
-    }
-
+    public bool _isAwaitingAIResponse = false;
     public List<EncounterChoice> Choices = new List<EncounterChoice>();
 
     public EncounterManager(
@@ -46,7 +21,7 @@
     {
         _context = encounterContext;
         _state = state;
-        _locationAction = locationAction;
+        this._locationAction = locationAction;
         _projectionService = choiceProjectionService;
         _aiGameMaster = aiGameMaster;
         _worldStateInputBuilder = worldStateInputBuilder;
@@ -135,72 +110,50 @@
         _isAwaitingAIResponse = false;
     }
 
-    public async Task<BeatOutcome> ProcessPlayerChoice(EncounterChoice selectedChoice)
+    public async Task<BeatOutcome> ProcessPlayerChoice(PlayerChoiceSelection choiceSelection)
     {
-        if (selectedChoice == null || _isAwaitingAIResponse || _gameWorld.StreamingContentState.IsStreaming)
+        if (choiceSelection.Choice == null || _isAwaitingAIResponse || _gameWorld.StreamingContentState.IsStreaming)
         {
             return null;
         }
+
+        EncounterChoice selectedChoice = choiceSelection.Choice;
 
         // Process the choice
         _state.SpendFocusPoints(selectedChoice.FocusCost);
 
         // Get the skill option
-        SkillOption selectedOption = selectedChoice.SkillOption;
+        SkillOption skillCheck = selectedChoice.SkillOption;
 
         // Perform skill check
-        bool success = false;
         int progressGained = 0;
 
-        if (selectedOption != null)
+        // Determine success
+        ChoiceProjection projection = _projectionService.ProjectChoice(selectedChoice, _state);
+        bool success = projection.SkillCheckSuccess;
+            
+        // Generate reaction - will automatically begin streaming
+        _isAwaitingAIResponse = true;
+
+        WorldStateInput worldStateInput = await _worldStateInputBuilder
+            .CreateWorldStateInput(_context.LocationName);
+
+        await _aiGameMaster.GenerateReaction(
+            _context, _state, selectedChoice, success,
+            worldStateInput, AIClient.PRIORITY_IMMEDIATE);
+
+        _isAwaitingAIResponse = false;
+
+        // Apply appropriate effect
+        if (success)
         {
-            // Find matching skill card
-            SkillCard card = FindCardByName(_context.Player.AvailableCards, selectedOption.SkillName);
-            bool isUntrained = (card == null || card.IsExhausted);
-
-            // Calculate effective level and difficulty
-            int effectiveLevel = 0;
-            int difficulty = selectedOption.SCD;
-
-            if (!isUntrained && card != null)
-            {
-                effectiveLevel = card.GetEffectiveLevel(_state);
-                card.Exhaust();
-            }
-            else
-            {
-                difficulty += 2; // +2 difficulty for untrained
-            }
-
-            // Apply modifier
-            effectiveLevel += _state.GetNextCheckModifier();
-
-            // Determine success
-            success = effectiveLevel >= difficulty;
-
-            // Generate reaction - will automatically begin streaming
-            _isAwaitingAIResponse = true;
-
-            WorldStateInput worldStateInput = await _worldStateInputBuilder
-                .CreateWorldStateInput(_context.LocationName);
-
-            await _aiGameMaster.GenerateReaction(
-                _context, _state, selectedChoice, success,
-                worldStateInput, AIClient.PRIORITY_IMMEDIATE);
-
-            _isAwaitingAIResponse = false;
-
-            // Apply appropriate effect
-            if (success)
-            {
-                ApplyEffect(selectedOption.SuccessEffect, _state);
-                progressGained = 2; // Default success progress
-            }
-            else
-            {
-                ApplyEffect(selectedOption.FailureEffect, _state);
-                progressGained = 1; // Default failure progress
-            }
+            ApplyEffect(selectedChoice.ChoiceTemplate.SuccessEffect, _state);
+            progressGained = 2; // Default success progress
+        }
+        else
+        {
+            ApplyEffect(selectedChoice.ChoiceTemplate.FailureEffect, _state);
+            progressGained = 1; // Default failure progress
         }
 
         // Update recovery count
@@ -231,8 +184,58 @@
             ProgressGained = progressGained,
             IsEncounterComplete = _state.IsEncounterComplete
         };
+        
+        _state.BeatOutcome = outcome.Outcome;
 
         return outcome;
+    }
+
+    private bool DetermineChoiceSuccess(EncounterChoice encounterChoice)
+    {
+        SkillOption skillCheck = encounterChoice.SkillOption;
+
+        bool success;
+        // Find matching skill card
+        SkillCard card = FindCardByName(_context.Player.AvailableCards, skillCheck.SkillName);
+        bool isUntrained = (card == null || card.IsExhausted);
+
+        // Calculate effective level and difficulty
+        int effectiveLevel = 0;
+        int difficulty = GetDifficulty(skillCheck.Difficulty);
+
+        if (!isUntrained && card != null)
+        {
+            effectiveLevel = card.GetEffectiveLevel(_state);
+            card.Exhaust();
+        }
+        else
+        {
+            difficulty += 2; // +2 difficulty for untrained
+        }
+
+        // Apply modifier
+        effectiveLevel += _state.GetNextCheckModifier();
+
+        success = effectiveLevel >= difficulty;
+        return success;
+    }
+
+    private int GetDifficulty(string difficulty)
+    {
+        //Easy=2, Standard=3, Hard=4, Exceptional=5
+        switch(difficulty)
+        {
+            case "Easy":
+                return 2;
+            case "Standard":
+                return 3;
+            case "Hard":
+                return 4;
+            case "Exceptional":
+                return 5;
+            default:
+                return 3; // Default to Standard
+        }
     }
 
     public EncounterState GetEncounterState()

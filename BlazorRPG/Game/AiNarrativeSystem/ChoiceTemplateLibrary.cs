@@ -1,5 +1,4 @@
-﻿
-public static class ChoiceTemplateLibrary
+﻿public static class ChoiceTemplateLibrary
 {
     public static List<ChoiceTemplate> GetAllTemplates()
     {
@@ -14,10 +13,7 @@ public static class ChoiceTemplateLibrary
                     new SkillCheckRequirement(SkillCategories.Social, 3)
                 ),
                 successEffect: new NoEffect(),
-                failureEffect: new NoEffect(),
-                conceptualOutput: "Player attempts to build trust with NPC",
-                successOutcomeNarrativeGuidance: "NPC becomes more trusting toward player",
-                failureOutcomeNarrativeGuidance: "NPC becomes suspicious of player's intentions"
+                failureEffect: new NoEffect()
             ),
 
             new ChoiceTemplate(
@@ -29,10 +25,7 @@ public static class ChoiceTemplateLibrary
                     new SkillCheckRequirement(SkillCategories.Intellectual, 3)
                 ),
                 successEffect: new NoEffect(),
-                failureEffect: new NoEffect(),
-                conceptualOutput: "Player attempts to gather information",
-                successOutcomeNarrativeGuidance: "Player gains valuable insight",
-                failureOutcomeNarrativeGuidance: "Player becomes confused by conflicting information"
+                failureEffect: new NoEffect()
             ),
 
             new ChoiceTemplate(
@@ -44,10 +37,7 @@ public static class ChoiceTemplateLibrary
                     new SkillCheckRequirement(SkillCategories.Physical, 2)
                 ),
                 successEffect: new NoEffect(),
-                failureEffect: new NoEffect(),
-                conceptualOutput: "Player attempts to recover focus",
-                successOutcomeNarrativeGuidance: "Player regains composure and energy",
-                failureOutcomeNarrativeGuidance: "Player wastes time without recovering"
+                failureEffect: new NoEffect()
             )
             
             // Additional templates would be defined here...
