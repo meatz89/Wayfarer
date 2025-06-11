@@ -51,9 +51,6 @@ public class AIPromptBuilder
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
 
-        // Add goal context
-        AddEncounterGoalContext(prompt, context, state, gameWorld);
-
         // Add time context
         AddTimeContext(prompt, gameWorld);
 
@@ -89,9 +86,6 @@ public class AIPromptBuilder
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
 
-        // Add goal context
-        AddEncounterGoalContext(prompt, context, state, gameWorld);
-
         // Add choices information
         AddChoiceTemplatesContext(prompt, context, choiceTemplates);
 
@@ -120,9 +114,6 @@ public class AIPromptBuilder
 
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
-
-        // Add goal context
-        AddEncounterGoalContext(prompt, context, state, gameWorld);
 
         // Add selected choice context
         AddSelectedChoiceContext(prompt, chosenOption);
@@ -398,8 +389,9 @@ public class AIPromptBuilder
         }
 
         // Format player character info
-        string characterArchetype = context.Player.Archetype.ToString();
-        string playerStatus = $"Archetype: {characterArchetype}";
+        string gender = context.Player.Gender.ToString();
+        string playerArchetype = context.Player.Archetype.ToString();
+        string playerInfo = $"{gender} {playerArchetype}";
 
         // Get action and approach information
         LocationAction locationAction = context.LocationAction;
@@ -414,10 +406,9 @@ public class AIPromptBuilder
         prompt.AppendLine("Encounter Type: " + context.SkillCategory);
         prompt.AppendLine("Location Name: " + context.LocationName);
         prompt.AppendLine("Location Spot: " + context.LocationSpotName);
-        prompt.AppendLine("Character Archetype: " + characterArchetype);
         prompt.AppendLine("Character Goal: " + actionGoal);
         prompt.AppendLine("Environment Details: " + environmentDetails);
-        prompt.AppendLine("Player Status: " + playerStatus);
+        prompt.AppendLine("Player Info: " + playerInfo);
         prompt.AppendLine("NPCs Present: " + npcList);
         prompt.AppendLine("Chosen Approach: " + approachDetails);
 
