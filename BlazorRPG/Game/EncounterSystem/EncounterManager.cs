@@ -269,6 +269,8 @@
 
     private void ApplyEffect(IMechanicalEffect effect, EncounterState state)
     {
+        if (effect == null) return;
+
         effect.Apply(state);
     }
     
