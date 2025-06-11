@@ -227,10 +227,10 @@ public class EncounterChoiceResponseParser
         }
 
         // Parse the success effect
-        skillOption.SuccessEffect = choice.ChoiceTemplate.SuccessEffect;
+        skillOption.SuccessEffect = choice.ChoiceTemplate?.SuccessEffect;
 
         // Parse the failure effect
-        skillOption.FailureEffect = choice.ChoiceTemplate.FailureEffect;
+        skillOption.FailureEffect = choice.ChoiceTemplate?.FailureEffect;
         return skillOption;
     }
 
