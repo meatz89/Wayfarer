@@ -23,9 +23,6 @@
                              @onmouseout="HideTooltip">
                             <div class="choice-index">@choice.ChoiceID</div>
                             <div class="choice-name">@choice.NarrativeText</div>
-                            
-                            <span class="choice-focus">@choice.FocusCost Focus</span>
-                            <span class="choice-difficulty">@(choice.SkillOption?.DifficultyLabel ?? "No Check")</span>
                         </div>
                     }
 
