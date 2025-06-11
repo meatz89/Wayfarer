@@ -145,16 +145,9 @@
         _isAwaitingAIResponse = false;
 
         // Apply appropriate effect
-        if (success)
-        {
-            ApplyEffect(selectedChoice.ChoiceTemplate.SuccessEffect, _state);
-            progressGained = 2; // Default success progress
-        }
-        else
-        {
-            ApplyEffect(selectedChoice.ChoiceTemplate.FailureEffect, _state);
-            progressGained = 1; // Default failure progress
-        }
+        IMechanicalEffect effect = ChoiceTemplateLibrary.GetEffect(selectedChoice.TemplateUsed, success);
+        ApplyEffect(effect, _state);
+        progressGained = success ? 2 : 1; // Default success progress
 
         // Update recovery count
         if (selectedChoice.FocusCost == 0)
