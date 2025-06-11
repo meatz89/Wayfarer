@@ -2,7 +2,6 @@
 
 ## Current EncounterContext Situation
 - EncounterContext Type: {ENCOUNTER_TYPE}
-- Current Turn: {CURRENT_TURN}/{MAX_TURNS}
 
 ## Location Context
 - Environment: {ENVIRONMENT_DETAILS}
@@ -16,8 +15,8 @@ CRITICAL: This choice represents the player's INTENT only, not what actually hap
 This choice has NOT YET HAPPENED and must be executed in this scene.
 
 ## Character Continuity
-- Limit new NAMED characters to 1-2 per encounterContext (not per turn)
-- Focus primarily on developing characters already established in previous turns
+- Limit new NAMED characters to 1-2 per Encounter
+- Focus primarily on developing characters already established
 - Feel free to include unnamed NPCs as needed
 - Background characters can take actions and react, but keep the focus on main NPCs
 - When introducing a named character, give them distinctive traits and motivations
@@ -26,7 +25,7 @@ This choice has NOT YET HAPPENED and must be executed in this scene.
 - NPCs must take independent actions pursuing their own goals
 - Show emotions through physical details (gestures, expressions, posture)
 - NPCs should speak in distinctive voices appropriate to their character
-- Every turn, NPCs must take at least one independent action
+- NPCs should take at least one independent action
 - NPCs should influence and utilize the environment
 - Include physical details revealing NPC emotions
 
