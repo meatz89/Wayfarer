@@ -626,6 +626,7 @@ public class AIPromptBuilder
     {
         prompt.AppendLine();
 
+        choiceTemplates = new List<ChoiceTemplate>();
         for (int i = 0; i < choiceTemplates.Count; i++)
         {
             ChoiceTemplate template = choiceTemplates[i];
@@ -674,7 +675,6 @@ public class AIPromptBuilder
         prompt.AppendLine("   - Define which skill cards can be used");
         prompt.AppendLine("   - Set appropriate difficulty (Easy=2, Standard=3, Hard=4, Exceptional=5)");
         prompt.AppendLine("   - Select appropriate template from the provided options");
-        prompt.AppendLine("   - Ensure narrative descriptions match cultural context");
 
         GameWorld gameWorld = context.GameWorld;
 

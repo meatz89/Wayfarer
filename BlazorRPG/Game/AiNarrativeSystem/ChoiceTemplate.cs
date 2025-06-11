@@ -69,28 +69,4 @@
 
         return baseCost;
     }
-
-    public void ExecuteSuccessEffect(EncounterState state)
-    {
-        SuccessEffect.Apply(state);
-    }
-
-    public void ExecuteFailureEffect(EncounterState state)
-    {
-        FailureEffect.Apply(state);
-    }
-
-    public object ToJsonObject()
-    {
-        return new
-        {
-            TemplateName = TemplateName,
-            StrategicPurpose = StrategicPurpose,
-            Weight = Weight,
-            InputMechanics = InputMechanics.ToJsonObject(),
-            ConceptualOutput = ConceptualOutput,
-            SuccessOutcomeNarrativeGuidance = SuccessOutcomeNarrativeGuidance,
-            FailureOutcomeNarrativeGuidance = FailureOutcomeNarrativeGuidance
-        };
-    }
 }
