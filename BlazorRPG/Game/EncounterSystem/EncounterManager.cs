@@ -138,10 +138,6 @@
         WorldStateInput worldStateInput = await _worldStateInputBuilder
             .CreateWorldStateInput(_context.LocationName);
 
-        await _aiGameMaster.GenerateReaction(
-            _context, _state, selectedChoice, success,
-            worldStateInput, AIClient.PRIORITY_IMMEDIATE);
-
         _isAwaitingAIResponse = false;
 
         // Apply appropriate effect
@@ -180,6 +176,10 @@
         
         _state.LastBeatOutcome = outcome.Outcome;
         _state.LastChoiceNarrative = selectedChoice.NarrativeText;
+
+        await _aiGameMaster.GenerateReaction(
+            _context, _state, selectedChoice, success,
+            worldStateInput, AIClient.PRIORITY_IMMEDIATE);
 
         return outcome;
     }
