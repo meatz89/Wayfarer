@@ -5,16 +5,15 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 {PROMPT_CONTEXT}
 
 ## CRITICAL REQUIREMENT: NARRATIVE COMPREHENSION STEP
-Before creating choices, you MUST analyze the narrative context by answering the following three questions based on {CHOICES_INFO}:
+Before creating choices, analyze the narrative context INTERNALLY by answering the following three questions.
 
-1. **What has already happened in the story leading to this point?**
-   - Summarize the key recent actions and consequences.
-2. **What is happening right now in this specific moment?**
-   - Describe the immediate setting, characters present, emotional or physical conflict, and current circumstances.
-3. **What decision is the protagonist currently facing as a direct result of recent events?**
-   - Clearly identify the tension or choice the player must now respond to, including any emotional or logistical stakes.
+**What has already happened in the story leading to this point?**
+**What is happening right now in this specific moment?**
+**What decision is the protagonist currently facing as a direct result of recent events?**
 
-You MUST complete this analysis publicly before generating any choices. Choices that do not clearly emerge from this situational analysis are incorrect.
+You MUST complete this analysis before generating any choices
+You MUST NOT publish the results.
+Choices that do not clearly emerge from this situational analysis are incorrect.
 
 ## CRITICAL REQUIREMENT: IDENTIFY THE CORE DECISION POINT
 Before creating choices, analyze the narrative to identify:

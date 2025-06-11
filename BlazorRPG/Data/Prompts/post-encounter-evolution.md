@@ -1,6 +1,4 @@
-﻿IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowledge this request, introduce your response (like "I'll create..." or "Here is..."), or end with questions to the reader. Your entire response should be exactly what will be shown to the player without requiring any editing.
-
-# WORLD EVOLUTION
+﻿# WORLD EVOLUTION
 
 ## LOCATION DUPLICATION PREVENTION
 - BEFORE creating ANY new location, CHECK if its name appears in "{knownLocations}" 

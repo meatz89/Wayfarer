@@ -7,6 +7,7 @@ public class EncounterChoiceResponseParser
 
     // Add these fields to EncounterChoiceResponseParser
     private readonly string _templateFile = "UniqueTemplates.txt";
+    private readonly string _templatePurposeFile = "UniqueTemplatePurposes.txt";
     private readonly string _skillNameFile = "UniqueSkillNames.txt";
     private readonly string _effectFile = "UniqueEffects.txt";
 
@@ -167,7 +168,7 @@ public class EncounterChoiceResponseParser
 
             if (!string.IsNullOrWhiteSpace(choice.TemplatePurpose))
             {
-                AppendUniqueValueToFile(_templateFile, choice.TemplatePurpose);
+                AppendUniqueValueToFile(_templatePurposeFile, choice.TemplatePurpose);
             }
         }
 
