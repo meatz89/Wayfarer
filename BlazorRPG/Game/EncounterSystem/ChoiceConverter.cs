@@ -24,7 +24,6 @@
     {
         SkillOption option = new SkillOption();
         option.RequiredSkillName = aiOption.SkillName;
-        option.DifficultyLevel = aiOption.SCD;
 
         // Calculate player's effective level with this skill
         SkillCard card = state.Player.FindCard(aiOption.SkillName);
@@ -42,10 +41,6 @@
 
         // Calculate success chance
         option.SuccessChance = CalculateSuccessChance(option.EffectiveLevel, option.DifficultyLabel);
-
-        // Link to effects
-        option.SuccessEffect = aiOption.SuccessEffect;
-        option.FailureEffect = aiOption.FailureEffect;
 
         return option;
     }

@@ -205,13 +205,6 @@ public class EncounterChoiceResponseParser
             skillOption.Difficulty = difficultyElement.GetString();
         }
 
-        // Parse the SCD (Skill Check Difficulty)
-        if (skillOptionElement.TryGetProperty("sCD", out JsonElement scdElement) ||
-            skillOptionElement.TryGetProperty("SCD", out scdElement))
-        {
-            skillOption.SCD = scdElement.GetInt32();
-        }
-
         // Parse the success effect
         if (skillOptionElement.TryGetProperty("successEffect", out JsonElement successEffectElement) ||
             skillOptionElement.TryGetProperty("SuccessEffect", out successEffectElement))
@@ -234,11 +227,6 @@ public class EncounterChoiceResponseParser
             }
         }
 
-        // Parse the success effect
-        skillOption.SuccessEffect = choice.ChoiceTemplate?.SuccessEffect;
-
-        // Parse the failure effect
-        skillOption.FailureEffect = choice.ChoiceTemplate?.FailureEffect;
         return skillOption;
     }
 

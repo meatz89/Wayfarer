@@ -27,11 +27,9 @@
         SkillOptionProjection projection = new SkillOptionProjection();
         projection.SkillName = option.SkillName;
         projection.Difficulty = option.DifficultyLabel;
-        projection.SCD = option.SCD;
 
         SkillCard card = FindCardByName(player.AvailableCards, option.SkillName);
 
-        // TODO 
         SkillCheckResolver resolver = new SkillCheckResolver();
         SkillCheckResult skillCheckResult = resolver.Resolve(option, state);
 
@@ -48,15 +46,10 @@
             projection.IsAvailable = true; // Still available, but untrained
             projection.IsUntrained = true;
             projection.EffectiveLevel = 0; // Base level for untrained
-            projection.SCD = option.SCD + 2; // +2 difficulty for untrained
         }
 
         // Calculate success chance
         projection.SuccessChance = CalculateSuccessChance(projection.EffectiveLevel, projection.SCD);
-
-        // Project effects
-        projection.SuccessEffect = ProjectEffect(option.SuccessEffect, state);
-        projection.FailureEffect = ProjectEffect(option.FailureEffect, state);
 
         return projection;
     }

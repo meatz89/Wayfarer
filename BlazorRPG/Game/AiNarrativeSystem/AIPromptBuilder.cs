@@ -583,7 +583,6 @@ public class AIPromptBuilder
         prompt.AppendLine($"- Choice ID: {choice.ChoiceID}");
         prompt.AppendLine($"- Narrative Text: {choice.NarrativeText}");
         prompt.AppendLine($"- Focus Cost: {choice.FocusCost}");
-        prompt.AppendLine($"- Is Disabled: {choice.IsDisabled}");
         prompt.AppendLine($"- Is Affordable: {choice.IsAffordable}");
         prompt.AppendLine($"- Template Used: {choice.TemplateUsed}");
         prompt.AppendLine($"- Template Purpose: {choice.TemplatePurpose}");
@@ -617,13 +616,14 @@ public class AIPromptBuilder
     {
         prompt.AppendLine();
 
-        choiceTemplates = new List<ChoiceTemplate>();
+        choiceTemplates.Clear(); // clear list
+
         for (int i = 0; i < choiceTemplates.Count; i++)
         {
             ChoiceTemplate template = choiceTemplates[i];
             prompt.AppendLine($"\nCHOICE TEMPLATE {i + 1}: {template.TemplateName}");
-            prompt.AppendLine($"Strategic Purpose: {template.StrategicPurpose}");
-            prompt.AppendLine($"Weight: {template.Weight}");
+            prompt.AppendLine($"Template Purpose: {template.TemplatePurpose}");
+            prompt.AppendLine($"Weight (How often it should be picked relative to other templates): {template.Weight}");
 
             // Input mechanics
             if (template.InputMechanics != null)
@@ -639,21 +639,6 @@ public class AIPromptBuilder
             if (template.FailureEffect != null)
             {
                 prompt.AppendLine($"Failure Effect: {template.FailureEffect.GetDescriptionForPlayer()}");
-            }
-
-            // Narrative guidance
-            prompt.AppendLine($"Conceptual Output: {template.ConceptualOutput}");
-            prompt.AppendLine($"Success Outcome Narrative Guidance: {template.SuccessOutcomeNarrativeGuidance}");
-            prompt.AppendLine($"Failure Outcome Narrative Guidance: {template.FailureOutcomeNarrativeGuidance}");
-
-            // Contextual costs
-            if (template.ContextualCosts != null && template.ContextualCosts.Count > 0)
-            {
-                prompt.AppendLine("Contextual Costs:");
-                foreach (var kvp in template.ContextualCosts)
-                {
-                    prompt.AppendLine($"  * {kvp.Key}: Energy={kvp.Value.EnergyCost}, Money={kvp.Value.MoneyCost}, Reputation={kvp.Value.ReputationImpact}, Time={kvp.Value.TimeCost}");
-                }
             }
         }
 
