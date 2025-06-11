@@ -178,7 +178,8 @@
             IsEncounterComplete = _state.IsEncounterComplete
         };
         
-        _state.BeatOutcome = outcome.Outcome;
+        _state.LastBeatOutcome = outcome.Outcome;
+        _state.LastChoiceNarrative = selectedChoice.NarrativeText;
 
         return outcome;
     }

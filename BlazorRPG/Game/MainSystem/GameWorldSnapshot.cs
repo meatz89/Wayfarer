@@ -15,7 +15,6 @@
     public TimeOfDay CurrentTimeOfDay { get; internal set; } = new TimeOfDay();
     public List<FlagStates> ActiveFlags { get; private set; } = new List<FlagStates>();
     public List<EncounterChoice> AvailableChoices { get; private set; } = new List<EncounterChoice>();
-    public EncounterChoice LastChoiceSelection { get; private set; } = new EncounterChoice();
     public string LastChoiceLabel { get; private set; }
     public bool LastChoiceSuccess { get; private set; }
 
@@ -32,8 +31,9 @@
         if (HasActiveEncounter)
         {
             EncounterState state = encounterManager.GetEncounterState();
-            LastChoiceLabel = LastChoiceSelection.NarrativeText;
-            LastChoiceSuccess = state.BeatOutcome == BeatOutcomes.Success;
+
+            LastChoiceLabel = state.LastChoiceNarrative;
+            LastChoiceSuccess = state.LastBeatOutcome == BeatOutcomes.Success;
 
             CurrentFocusPoints = state.FocusPoints;
             MaxFocusPoints = state.MaxFocusPoints;
@@ -84,8 +84,6 @@
                 if (AvailableChoices[i] != snapshot.AvailableChoices[i]) return false;
             }
         }
-
-        if ((LastChoiceSelection == null) != (snapshot.LastChoiceSelection == null)) return false;
 
         return true;
     }
