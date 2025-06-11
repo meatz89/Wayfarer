@@ -44,8 +44,22 @@
         };
     }
 
-    public static ChoiceTemplate GetEffect(string id)
+    public static IMechanicalEffect GetEffect(string id, bool success)
     {
-        return GetAllTemplates().FirstOrDefault(t => t.TemplateName == id.ToString());
+        List<ChoiceTemplate> choiceTemplates = GetAllTemplates();
+        ChoiceTemplate? choiceTemplate = choiceTemplates.FirstOrDefault(t => t.TemplateName == id.ToString());
+
+        if(choiceTemplate == null)
+        {
+            return new NoEffect();
+        }
+        else if (success)
+        {
+            return choiceTemplate.SuccessEffect;
+        }
+        else
+        {
+            return choiceTemplate.FailureEffect;
+        }
     }
 }

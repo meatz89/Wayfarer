@@ -1,6 +1,6 @@
 # ENCOUNTER INTRODUCTION
 
-Create a BRIEF, immersive introductory scene for the Encounter at this location and spot. Keep it short.
+Create a BRIEF, immersive introductory scene for the Encounter at this location and spot. Keep it short. Maximum 5 paragrahs.
 Talk in the voice of the player character archetype. The narration of a Warrior, Scholar, Courtier, Ranger, Mystic, and Diplomat should be remarkably different.
 
 {PROMPT_CONTEXT}
