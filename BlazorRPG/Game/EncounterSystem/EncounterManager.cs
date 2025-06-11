@@ -193,12 +193,12 @@
             // Apply appropriate effect
             if (success)
             {
-                ApplyEffect(selectedOption.SuccessEffectEntry.ID, _state);
+                ApplyEffect(selectedOption.SuccessEffect, _state);
                 progressGained = 2; // Default success progress
             }
             else
             {
-                ApplyEffect(selectedOption.FailureEffectEntry.ID, _state);
+                ApplyEffect(selectedOption.FailureEffect, _state);
                 progressGained = 1; // Default failure progress
             }
         }
@@ -267,15 +267,11 @@
         return 5 + complexity * 2;
     }
 
-    private void ApplyEffect(string effectID, EncounterState state)
+    private void ApplyEffect(IMechanicalEffect effect, EncounterState state)
     {
-        if (ChoiceTemplateLibrary.HasEffect(effectID))
-        {
-            IMechanicalEffect effect = ChoiceTemplateLibrary.GetEffect(effectID).SuccessEffect;
-            effect.Apply(state);
-        }
+        effect.Apply(state);
     }
-
+    
     private SkillCard FindCardByName(List<SkillCard> cards, string name)
     {
         foreach (SkillCard card in cards)

@@ -5,6 +5,11 @@ public class EncounterChoiceResponseParser
 {
     private ILogger<EncounterChoiceResponseParser> _logger;
 
+    // Add these fields to EncounterChoiceResponseParser
+    private readonly string _templateFile = "UniqueTemplates.txt";
+    private readonly string _skillNameFile = "UniqueSkillNames.txt";
+    private readonly string _effectFile = "UniqueEffects.txt";
+
     public EncounterChoiceResponseParser(ILogger<EncounterChoiceResponseParser> logger = null)
     {
         _logger = logger;
@@ -138,13 +143,20 @@ public class EncounterChoiceResponseParser
         }
 
         // Parse template information
+        string templateValue = null;
         if (choiceElement.TryGetProperty("template", out JsonElement templateElement))
         {
-            choice.TemplateUsed = templateElement.GetString();
+            templateValue = templateElement.GetString();
+            choice.TemplateUsed = templateValue;
         }
         else if (choiceElement.TryGetProperty("templateUsed", out JsonElement templateUsedElement))
         {
-            choice.TemplateUsed = templateUsedElement.GetString();
+            templateValue = templateUsedElement.GetString();
+            choice.TemplateUsed = templateValue;
+        }
+        if (!string.IsNullOrWhiteSpace(templateValue))
+        {
+            AppendUniqueValueToFile(_templateFile, templateValue);
         }
 
         if (choiceElement.TryGetProperty("templatePurpose", out JsonElement templatePurposeElement))
@@ -155,21 +167,27 @@ public class EncounterChoiceResponseParser
         // Parse skill options
         if (choiceElement.TryGetProperty("skillOption", out JsonElement skillOptionElement))
         {
-            choice.SkillOption = ParseSkillOptionFromJson(skillOptionElement);
+            choice.SkillOption = ParseSkillOptionFromJson(choice, skillOptionElement);
         }
 
         return choice;
     }
 
-    private SkillOption ParseSkillOptionFromJson(JsonElement skillOptionElement)
+    private SkillOption ParseSkillOptionFromJson(EncounterChoice choice, JsonElement skillOptionElement)
     {
         SkillOption skillOption = new SkillOption();
 
         // Parse the skill name
+        string skillNameValue = null;
         if (skillOptionElement.TryGetProperty("skillName", out JsonElement skillNameElement) ||
             skillOptionElement.TryGetProperty("SkillName", out skillNameElement))
         {
-            skillOption.SkillName = skillNameElement.GetString();
+            skillNameValue = skillNameElement.GetString();
+            skillOption.SkillName = skillNameValue;
+        }
+        if (!string.IsNullOrWhiteSpace(skillNameValue))
+        {
+            AppendUniqueValueToFile(_skillNameFile, skillNameValue);
         }
 
         // Parse the difficulty
@@ -190,40 +208,82 @@ public class EncounterChoiceResponseParser
         if (skillOptionElement.TryGetProperty("successEffect", out JsonElement successEffectElement) ||
             skillOptionElement.TryGetProperty("SuccessEffect", out successEffectElement))
         {
-            skillOption.SuccessEffectEntry = ParseEffectFromJson(successEffectElement);
+            choice.SuccessNarrative = successEffectElement.ToString();
+            if (choice.SuccessNarrative != null && !string.IsNullOrWhiteSpace(choice.SuccessNarrative))
+            {
+                AppendUniqueValueToFile(_effectFile, choice.SuccessNarrative);
+            }
         }
 
         // Parse the failure effect
         if (skillOptionElement.TryGetProperty("failureEffect", out JsonElement failureEffectElement) ||
             skillOptionElement.TryGetProperty("FailureEffect", out failureEffectElement))
         {
-            skillOption.FailureEffectEntry = ParseEffectFromJson(failureEffectElement);
+            choice.FailureNarrative = failureEffectElement.ToString();
+            if (choice.FailureNarrative != null && !string.IsNullOrWhiteSpace(choice.FailureNarrative))
+            {
+                AppendUniqueValueToFile(_effectFile, choice.FailureNarrative);
+            }
         }
 
+        // Parse the success effect
+        skillOption.SuccessEffect = choice.ChoiceTemplate.SuccessEffect;
+
+        // Parse the failure effect
+        skillOption.FailureEffect = choice.ChoiceTemplate.FailureEffect;
         return skillOption;
     }
 
-    private EffectEntry ParseEffectFromJson(JsonElement effectElement)
+
+    // Utility method to append unique value to file or increment a number next to entry
+    private void AppendUniqueValueToFile(string filePath, string value)
     {
-        EffectEntry effect = new EffectEntry();
+        if (string.IsNullOrWhiteSpace(value))
+            return;
 
-        // Parse the narrative effect
-        if (effectElement.TryGetProperty("narrativeEffect", out JsonElement narrativeEffectElement) ||
-            effectElement.TryGetProperty("NarrativeEffect", out narrativeEffectElement))
+        try
         {
-            effect.Effect = narrativeEffectElement.GetString();
-        }
+            // Ensure file exists
+            if (!File.Exists(filePath))
+            {
+                File.WriteAllText(filePath, "");
+            }
 
-        // Parse the mechanical effect ID
-        if (effectElement.TryGetProperty("mechanicalEffectID", out JsonElement mechanicalEffectIDElement) ||
-            effectElement.TryGetProperty("MechanicalEffectID", out mechanicalEffectIDElement))
+            var lines = File.ReadAllLines(filePath).ToList();
+            bool found = false;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                // Match "value" or "value|count"
+                var line = lines[i];
+                var parts = line.Split('|');
+                if (parts[0] == value)
+                {
+                    int count = 1;
+                    if (parts.Length > 1 && int.TryParse(parts[1], out int parsed))
+                    {
+                        count = parsed + 1;
+                    }
+                    else
+                    {
+                        count = 2;
+                    }
+                    lines[i] = $"{value}|{count}";
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                lines.Add($"{value}|1");
+            }
+            File.WriteAllLines(filePath, lines);
+        }
+        catch (Exception ex)
         {
-            effect.ID = mechanicalEffectIDElement.GetString();
+            _logger?.LogWarning("Failed to write unique value to file {File}: {Error}", filePath, ex.Message);
         }
-
-        return effect;
     }
-
+    
     private List<EncounterChoice> ExtractChoicesFromText(string text)
     {
         List<EncounterChoice> choices = new List<EncounterChoice>();

@@ -7,8 +7,6 @@
     public int SCD { get; set; } // The actual numerical difficulty
     public IMechanicalEffect SuccessEffect { get; set; }
     public IMechanicalEffect FailureEffect { get; set; }
-    public EffectEntry SuccessEffectEntry { get; set; }
-    public EffectEntry FailureEffectEntry { get; set; }
 
     public string RequiredSkillName { get; set; }
     public int EffectiveLevel { get; set; }
