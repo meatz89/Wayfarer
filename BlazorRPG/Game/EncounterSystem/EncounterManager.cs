@@ -130,7 +130,7 @@
 
         // Determine success
         ChoiceProjection projection = _projectionService.ProjectChoice(selectedChoice, _state);
-        bool success = projection.SkillCheckSuccess;
+        bool success = projection.SkillOption.ChoiceSuccess;
             
         // Generate reaction - will automatically begin streaming
         _isAwaitingAIResponse = true;

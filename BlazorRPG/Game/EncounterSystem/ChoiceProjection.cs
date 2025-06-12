@@ -22,13 +22,7 @@
     public int FocusPointsGained { get; set; }
 
     // Skill Check Data
-    public bool HasSkillCheck { get; set; }
-    public SkillTypes SkillUsed { get; }
-    public int BaseSkillLevel { get; set; }
     public int LocationModifierValue { get; set; }
-    public int EffectiveSkillLevel { get; set; }
-    public int SkillCheckDifficulty { get; }
-    public bool SkillCheckSuccess { get; set; }
     public SkillOptionProjection SkillOption { get; set; }
 
     // Consequences & Outcomes

@@ -113,7 +113,7 @@
         if (difference == 1) return 75;
         if (difference == 0) return 50;
         if (difference == -1) return 25;
-        return 10; // Not impossible, but very unlikely
+        return 15; // Not impossible, but very unlikely
     }
 
 
