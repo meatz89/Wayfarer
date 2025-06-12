@@ -116,7 +116,7 @@ public class AIPromptBuilder
         AddEncounterContext(prompt, context, state, player);
 
         // Add selected choice context
-        AddSelectedChoiceContext(prompt, chosenOption);
+        AddSelectedChoiceContext(prompt, state, chosenOption);
 
         // Replace Prompt Context placeholder
         string content = BuildFinalContent(template, prompt);
@@ -575,38 +575,23 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private void AddSelectedChoiceContext(StringBuilder prompt, EncounterChoice choice)
+    private void AddSelectedChoiceContext(StringBuilder prompt, EncounterState state, EncounterChoice choice)
     {
         prompt.AppendLine();
 
-        prompt.AppendLine("SELECTED CHOICE CONTEXT:");
-        prompt.AppendLine($"- Choice ID: {choice.ChoiceID}");
-        prompt.AppendLine($"- Narrative Text: {choice.NarrativeText}");
-        prompt.AppendLine($"- Focus Cost: {choice.FocusCost}");
-        prompt.AppendLine($"- Is Affordable: {choice.IsAffordable}");
-        prompt.AppendLine($"- Template Used: {choice.TemplateUsed}");
-        prompt.AppendLine($"- Template Purpose: {choice.TemplatePurpose}");
+        prompt.AppendLine("SELECTED CHOICE:");
+        prompt.AppendLine($"{choice.NarrativeText}");
 
-        // Skill Option details
-        if (choice.SkillOption != null)
+        var success = state.LastBeatOutcome == BeatOutcomes.Success;
+        if(success)
         {
-            prompt.AppendLine($"- Skill Option: {choice.SkillOption}");
+            prompt.AppendLine("RESULT: Success");
+            prompt.AppendLine($"{choice.SuccessNarrative}");
         }
-
-        // Skill Check details
-        if (choice.SkillCheck != null)
+        else
         {
-            prompt.AppendLine($"- Skill Check: {choice.SkillCheck}");
-        }
-
-        // Success/Failure Narratives
-        if (!string.IsNullOrWhiteSpace(choice.SuccessNarrative))
-        {
-            prompt.AppendLine($"- Success Narrative: {choice.SuccessNarrative}");
-        }
-        if (!string.IsNullOrWhiteSpace(choice.FailureNarrative))
-        {
-            prompt.AppendLine($"- Failure Narrative: {choice.FailureNarrative}");
+            prompt.AppendLine("RESULT: Failure");
+            prompt.AppendLine($"{choice.FailureNarrative}");
         }
 
         prompt.AppendLine();

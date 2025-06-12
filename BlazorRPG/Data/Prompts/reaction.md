@@ -1,17 +1,9 @@
 ﻿# NARRATIVE REACTION
 
-## Current EncounterContext Situation
-- EncounterContext Type: {ENCOUNTER_TYPE}
-
-## Location Context
-- Environment: {ENVIRONMENT_DETAILS}
-
-## Player Character Status
-{PLAYER_STATUS}
+{PROMPT_CONTEXT}
 
 ## Player's Choice
-'{SELECTED_CHOICE}' (Player Intent: '{CHOICE_DESCRIPTION}')
-CRITICAL: This choice represents the player's INTENT only, not what actually happens. The actual outcome must be driven by the mechanical changes below.
+CRITICAL: This choice represents the player's INTENT only, not what actually happens. The actual outcome must be driven by the rules below.
 This choice has NOT YET HAPPENED and must be executed in this scene.
 
 ## Character Continuity
@@ -30,9 +22,9 @@ This choice has NOT YET HAPPENED and must be executed in this scene.
 - Include physical details revealing NPC emotions
 
 ## Writing Requirements
-Write three paragraphs in first-person present tense:
+Write a reaction narrative to the player's choice in first-person present tense:
 1. Show the player's attempted action and the ACTUAL results (which may differ from expectations)
 2. Demonstrate situation evolution with NPCs taking independent actions
 3. Present a new challenge requiring decision with NPC involvement
 
-Start with acknowledging the player's intent, but then show what ACTUALLY happens based on the mechanical outcomes.
+Start with acknowledging the player's intent, but then show what ACTUALLY happens based on the rules above.

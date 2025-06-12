@@ -6,7 +6,6 @@
     public bool IsAffordable { get; set; }
     public string TemplateUsed { get; set; }
     public string TemplatePurpose { get; set; }
-    public object SkillCheck { get; internal set; }
     public string SuccessNarrative { get; internal set; }
     public string FailureNarrative { get; internal set; }
     public SkillOption SkillOption { get; set; }
