@@ -113,7 +113,7 @@ public class OllamaProvider : IAIProvider
     {
         foreach (IResponseStreamWatcher watcher in watchers)
         {
-            if(watcher is StreamingContentStateWatcher contentStateWatcher)
+            if (watcher is StreamingContentStateWatcher contentStateWatcher)
             {
                 contentStateWatcher.BeginStreaming();
             }
@@ -178,6 +178,10 @@ public class OllamaProvider : IAIProvider
         }
 
         string finalResponse = fullMessageContent;
+        if (!string.IsNullOrEmpty(finalResponse) && finalResponse[^1] == '"')
+        {
+            finalResponse = finalResponse.Substring(0, finalResponse.Length - 1);
+        }
         foreach (IResponseStreamWatcher watcher in watchers)
         {
             watcher.OnStreamComplete(finalResponse);
