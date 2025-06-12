@@ -28,3 +28,4 @@ Write a reaction narrative to the player's choice in first-person present tense:
 3. Present a new challenge requiring decision with NPC involvement
 
 Start with acknowledging the player's intent, but then show what ACTUALLY happens based on the rules above.
+Do not spell out to the player that he will have to make a decision.
