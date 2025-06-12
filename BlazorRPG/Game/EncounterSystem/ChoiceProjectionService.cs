@@ -47,7 +47,7 @@
             // Untrained attempt
             projection.IsAvailable = true; // Still available, but untrained
             projection.IsUntrained = true;
-            projection.EffectiveLevel = 0; // Base level for untrained
+            projection.EffectiveLevel = 1; // Base level for untrained
         }
 
         // Calculate success chance
@@ -60,17 +60,12 @@
     {
         SkillOption skillCheck = choice.SkillOption;
 
-        bool success;
-
-        int scd = GetDifficulty(projection.Difficulty);
-        var successChance = CalculateSuccessChance(projection.EffectiveLevel, scd);
-
         // Find matching skill card
         SkillCard card = FindCardByName(player.AvailableCards, skillCheck.SkillName);
         bool isUntrained = (card == null || card.IsExhausted);
 
         int effectiveLevel = 0;
-        int difficulty = scd;
+        int difficulty = GetDifficulty(projection.Difficulty);
 
         if (!isUntrained && card != null)
         {
@@ -85,7 +80,10 @@
         // Apply modifier
         effectiveLevel += state.GetNextCheckModifier();
 
-        success = effectiveLevel >= difficulty;
+        var successChance = CalculateSuccessChance(effectiveLevel, difficulty);
+        int random = new Random().Next(100);
+        bool success = successChance >= random;
+
         return success;
     }
 
@@ -115,7 +113,7 @@
         if (difference == 1) return 75;
         if (difference == 0) return 50;
         if (difference == -1) return 25;
-        return 5; // Not impossible, but very unlikely
+        return 10; // Not impossible, but very unlikely
     }
 
 
