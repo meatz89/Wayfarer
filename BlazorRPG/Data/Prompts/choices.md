@@ -4,29 +4,40 @@ IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowl
 
 {PROMPT_CONTEXT}
 
+## Period Authenticity:
+- Medieval character perspective appropriate to the current situation
+- Concrete reactions to visible, tangible elements of the scene
+- Experience-based responses to the specific challenge at hand
+- Avoid modern analytical terms or abstract strategic thinking
+
+
 ## CRITICAL REQUIREMENT: NARRATIVE COMPREHENSION STEP
 Before creating choices, analyze the narrative context INTERNALLY by answering the following three questions.
 
-**What has already happened in the story leading to this point?**
-**What is happening right now in this specific moment?**
-**What decision is the protagonist currently facing as a direct result of recent events?**
+What has already happened in the story leading to this point?
+What is happening right now in this specific moment?
+What decision is the protagonist currently facing as a direct result of recent events?
 
-You MUST complete this analysis before generating any choices
-You MUST NOT publish the results.
-Choices that do not clearly emerge from this situational analysis are incorrect.
+### CRITICAL REQUIREMENT: IDENTIFY THE CORE DECISION POINT
 
-## CRITICAL REQUIREMENT: IDENTIFY THE CORE DECISION POINT
-Before creating choices, analyze the narrative to identify:
+Analyze the narrative to identify:
 1. Exactly where the character is physically located RIGHT NOW
 2. Who is present in the immediate scene with them
 3. The main decision or challenge facing the character in this moment
 4. Any moral, emotional, or strategic tension explicitly described
 5. Any significant objects or elements that have emotional or practical importance
 
+You MUST complete this analysis before generating any choices
+You MUST NOT publish the results.
+Choices that do not clearly emerge from this situational analysis are incorrect.
+
+Before creating choices, 
 All choices MUST respond directly to these identified elements and the central decision point.
 
 ## CRITICAL REQUIREMENT: SITUATIONAL RESPONSE
-Every choice represents how the player responds to what's happening RIGHT NOW in this specific moment. Each choice name and description must directly reference elements, characters, objects, or circumstances from the current scene. Generic responses that could apply to any encounterContext are INCORRECT.
+Every choice represents how the player responds to what's happening RIGHT NOW in this specific moment. 
+Each choice name and description must directly reference elements, characters, objects, or circumstances from the current scene. 
+Generic responses that could apply to any encounterContext are INCORRECT.
 
 ## Response Creation Requirements
 Every choice must:
@@ -45,12 +56,6 @@ Every choice must:
 - Indicate WHAT risk the player accepts by reacting this way to this specific situation
 - Use "might," "could," or "would" to express potential consequences of this specific reaction
 
-## Period Authenticity:
-- Medieval character perspective appropriate to the current situation
-- Concrete reactions to visible, tangible elements of the scene
-- Experience-based responses to the specific challenge at hand
-- Avoid modern analytical terms or abstract strategic thinking
-
 ## RESPONSE FORMAT
 You must respond with a SINGLE JSON object containing 2-6 choices that are direct reactions to the current encounterContext situation:
 
@@ -68,7 +73,7 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
             "skillName": "Brute Force",
             "difficulty": "Standard",
             "successEffect": "On Success Effect"
-            "failureEffect": "On Failure Effect"
+            "failureEffect": "On Failure Effect,"
         }
     }
   ]
