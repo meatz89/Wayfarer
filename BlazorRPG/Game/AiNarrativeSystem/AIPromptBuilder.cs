@@ -61,7 +61,7 @@ public class AIPromptBuilder
         AddTravelContext(prompt, gameWorld);
 
         // Replace Prompt Context placeholder
-        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+        string content = BuildFinalContent(template, prompt);
 
         AIPrompt aiPrompt = new AIPrompt()
         {
@@ -90,11 +90,11 @@ public class AIPromptBuilder
         AddChoiceTemplatesContext(prompt, context, choiceTemplates);
 
         // Replace Prompt Context placeholder
-        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+        string content = BuildFinalContent(template, prompt);
 
         AIPrompt aiPrompt = new AIPrompt()
         {
-            Content = content.ToString()
+            Content = content
         };
 
         return aiPrompt;
@@ -119,11 +119,11 @@ public class AIPromptBuilder
         AddSelectedChoiceContext(prompt, chosenOption);
 
         // Replace Prompt Context placeholder
-        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+        string content = BuildFinalContent(template, prompt);
 
         AIPrompt aiPrompt = new AIPrompt()
         {
-            Content = content.ToString()
+            Content = content
         };
 
         return aiPrompt;
@@ -159,11 +159,11 @@ public class AIPromptBuilder
         AddTravelContext(prompt, gameWorld);
 
         // Replace Prompt Context placeholder
-        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+        string content = BuildFinalContent(template, prompt);
 
         AIPrompt aiPrompt = new AIPrompt()
         {
-            Content = content.ToString()
+            Content = content
         };
 
         return aiPrompt;
@@ -672,5 +672,27 @@ public class AIPromptBuilder
         }
 
         prompt.AppendLine();
+    }
+
+    private static string BuildFinalContent(string template, StringBuilder prompt)
+    {
+        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+
+        StringBuilder finalContent = new StringBuilder();
+        foreach (string line in template.Split(@"\n"))
+        {
+            if (line.Contains("{PROMPT_CONTEXT}"))
+            {
+                finalContent.AppendLine(line.Replace("{PROMPT_CONTEXT}", prompt.ToString()));
+            }
+            else
+            {
+                finalContent.AppendLine(line);
+            }
+        }
+
+        // Normalize to ensure only one empty line (i.e. two consecutive newlines) between paragraphs.
+        string normalizedContent = System.Text.RegularExpressions.Regex.Replace(finalContent.ToString(), @"(\n\s*){3,}", "\n\n");
+        return normalizedContent;
     }
 }
