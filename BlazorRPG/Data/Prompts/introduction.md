@@ -2,6 +2,7 @@
 
 Create a BRIEF, immersive introductory scene for the Encounter at this location and spot. Keep it short. No more than 4 paragrahs.
 Talk in the voice of the player character archetype. The narration of a Warrior, Scholar, Courtier, Ranger, Mystic, and Diplomat should be remarkably different.
+Do not spell out to the player that he will have to make a decision.
 
 {PROMPT_CONTEXT}
 
