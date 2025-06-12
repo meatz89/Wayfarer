@@ -16,17 +16,19 @@
         projection.IsAffordableFocus = projection.IsAffordable;
 
         // Process skill options
-        SkillOptionProjection skillProjection = ProjectSkillOption(choice.SkillOption, state, player);
+        SkillOptionProjection skillProjection = ProjectSkillOption(choice, state, player);
         projection.SkillOption = skillProjection;
 
         return projection;
     }
 
-    private SkillOptionProjection ProjectSkillOption(SkillOption option, EncounterState state, Player player)
+    private SkillOptionProjection ProjectSkillOption(EncounterChoice choice, EncounterState state, Player player)
     {
+        var option = choice.SkillOption;
+
         SkillOptionProjection projection = new SkillOptionProjection();
         projection.SkillName = option.SkillName;
-        projection.Difficulty = option.DifficultyLabel;
+        projection.Difficulty = option.Difficulty;
 
         SkillCard card = FindCardByName(player.AvailableCards, option.SkillName);
 
@@ -49,26 +51,60 @@
         }
 
         // Calculate success chance
-        projection.SuccessChance = CalculateSuccessChance(projection.EffectiveLevel, projection.SCD);
+        projection.ChoiceSuccess = DetermineChoiceSuccess(choice, projection, state, player);
 
         return projection;
     }
 
-    private EffectProjection ProjectEffect(IMechanicalEffect effect, EncounterState state)
+    private bool DetermineChoiceSuccess(EncounterChoice choice, SkillOptionProjection projection, EncounterState state, Player player)
     {
-        if(effect == null)
+        SkillOption skillCheck = choice.SkillOption;
+
+        bool success;
+
+        int scd = GetDifficulty(projection.Difficulty);
+        var successChance = CalculateSuccessChance(projection.EffectiveLevel, scd);
+
+        // Find matching skill card
+        SkillCard card = FindCardByName(player.AvailableCards, skillCheck.SkillName);
+        bool isUntrained = (card == null || card.IsExhausted);
+
+        int effectiveLevel = 0;
+        int difficulty = scd;
+
+        if (!isUntrained && card != null)
         {
-            return new EffectProjection() { MechanicalDescription = "No mechanical Effect", NarrativeEffect = "No Narrative Effect" };
+            effectiveLevel = card.GetEffectiveLevel(state);
+            card.Exhaust();
+        }
+        else
+        {
+            difficulty += 2; // +2 difficulty for untrained
         }
 
-        EffectProjection projection = new EffectProjection();
-        projection.NarrativeEffect = effect.ToString();
+        // Apply modifier
+        effectiveLevel += state.GetNextCheckModifier();
 
-        effect.Apply(state);
+        success = effectiveLevel >= difficulty;
+        return success;
+    }
 
-        projection.MechanicalDescription = effect.GetDescriptionForPlayer();
-
-        return projection;
+    private int GetDifficulty(string difficulty)
+    {
+        //Easy=2, Standard=3, Hard=4, Exceptional=5
+        switch (difficulty)
+        {
+            case "Easy":
+                return 2;
+            case "Standard":
+                return 3;
+            case "Hard":
+                return 4;
+            case "Exceptional":
+                return 5;
+            default:
+                return 3; // Default to Standard
+        }
     }
 
     private int CalculateSuccessChance(int effectiveLevel, int difficulty)
@@ -82,6 +118,7 @@
         return 5; // Not impossible, but very unlikely
     }
 
+
     private SkillCard FindCardByName(List<SkillCard> cards, string name)
     {
         foreach (SkillCard card in cards)
@@ -92,5 +129,22 @@
             }
         }
         return null;
+    }
+
+    private EffectProjection ProjectEffect(IMechanicalEffect effect, EncounterState state)
+    {
+        if (effect == null)
+        {
+            return new EffectProjection() { MechanicalDescription = "No mechanical Effect", NarrativeEffect = "No Narrative Effect" };
+        }
+
+        EffectProjection projection = new EffectProjection();
+        projection.NarrativeEffect = effect.ToString();
+
+        effect.Apply(state);
+
+        projection.MechanicalDescription = effect.GetDescriptionForPlayer();
+
+        return projection;
     }
 }
