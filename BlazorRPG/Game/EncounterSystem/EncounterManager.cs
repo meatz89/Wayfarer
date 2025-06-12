@@ -184,54 +184,6 @@
         return outcome;
     }
 
-    private bool DetermineChoiceSuccess(EncounterChoice encounterChoice)
-    {
-        SkillOption skillCheck = encounterChoice.SkillOption;
-
-        bool success;
-        // Find matching skill card
-        SkillCard card = FindCardByName(_context.Player.AvailableCards, skillCheck.SkillName);
-        bool isUntrained = (card == null || card.IsExhausted);
-
-        // Calculate effective level and difficulty
-        int effectiveLevel = 0;
-        int difficulty = GetDifficulty(skillCheck.Difficulty);
-
-        if (!isUntrained && card != null)
-        {
-            effectiveLevel = card.GetEffectiveLevel(_state);
-            card.Exhaust();
-        }
-        else
-        {
-            difficulty += 2; // +2 difficulty for untrained
-        }
-
-        // Apply modifier
-        effectiveLevel += _state.GetNextCheckModifier();
-
-        success = effectiveLevel >= difficulty;
-        return success;
-    }
-
-    private int GetDifficulty(string difficulty)
-    {
-        //Easy=2, Standard=3, Hard=4, Exceptional=5
-        switch(difficulty)
-        {
-            case "Easy":
-                return 2;
-            case "Standard":
-                return 3;
-            case "Hard":
-                return 4;
-            case "Exceptional":
-                return 5;
-            default:
-                return 3; // Default to Standard
-        }
-    }
-
     public EncounterState GetEncounterState()
     {
         return _state;
