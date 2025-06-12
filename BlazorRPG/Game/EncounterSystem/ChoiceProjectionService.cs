@@ -1,5 +1,6 @@
 ﻿public class ChoiceProjectionService
 {
+    private static readonly Random _random = new Random(); 
     private readonly Player player;
 
     public ChoiceProjectionService(GameWorld gameWorld)
@@ -74,14 +75,14 @@
         }
         else
         {
-            difficulty += 2; // +2 difficulty for untrained
+            difficulty += 1; // +1 difficulty for untrained
         }
 
         // Apply modifier
         effectiveLevel += state.GetNextCheckModifier();
 
         var successChance = CalculateSuccessChance(effectiveLevel, difficulty);
-        int random = new Random().Next(100);
+        int random = _random.Next(100); // Use shared Random instance
         bool success = successChance >= random;
 
         return success;
@@ -109,11 +110,11 @@
     {
         int difference = effectiveLevel - difficulty;
 
-        if (difference >= 2) return 100;
+        if (difference >= 2) return 95;
         if (difference == 1) return 75;
         if (difference == 0) return 50;
-        if (difference == -1) return 25;
-        return 15; // Not impossible, but very unlikely
+        if (difference == -1) return 40;
+        return 30; // Not impossible, but very unlikely
     }
 
 
