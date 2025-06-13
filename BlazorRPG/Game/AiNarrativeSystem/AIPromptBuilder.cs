@@ -40,7 +40,7 @@ public class AIPromptBuilder
         StringBuilder prompt = new StringBuilder();
 
         // Add base context
-        AddBaseContext(prompt, context);
+        AddLocationContext(prompt, context);
 
         // Add base context
         AddPlayerContext(prompt, context);
@@ -86,10 +86,7 @@ public class AIPromptBuilder
 
         StringBuilder prompt = new StringBuilder();
 
-        // Add base context
-        AddBaseContext(prompt, context);
-
-        // Add base context
+        // Add player context
         AddPlayerContext(prompt, context);
 
         // Add core game state context
@@ -122,7 +119,7 @@ public class AIPromptBuilder
         StringBuilder prompt = new StringBuilder();
 
         // Add base context
-        AddBaseContext(prompt, context);
+        AddLocationContext(prompt, context);
 
         // Add base context
         AddPlayerContext(prompt, context);
@@ -187,7 +184,7 @@ public class AIPromptBuilder
     {
         string template = promptTemplates[WORLD_EVOLUTION_MD];
 
-        string prompt = CreatePromptJson(
+        string prompt = 
             template
             .Replace("{characterBackground}", input.CharacterBackground)
             .Replace("{currentLocation}", input.CurrentLocation)
@@ -204,7 +201,7 @@ public class AIPromptBuilder
             .Replace("{activeOpportunities}", input.ActiveOpportunities)
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
             .Replace("{connectedLocations}", input.ConnectedLocations)
-            .Replace("{locationDepth}", input.CurrentDepth.ToString()));
+            .Replace("{locationDepth}", input.CurrentDepth.ToString());
 
         AIPrompt aiPrompt = new AIPrompt()
         {
@@ -218,14 +215,14 @@ public class AIPromptBuilder
     {
         string template = promptTemplates[LOCATION_GENERATION_MD];
 
-        string content = CreatePromptJson(
+        string content = 
             template
             .Replace("{characterArchetype}", input.CharacterArchetype)
             .Replace("{locationName}", input.TravelDestination)
             .Replace("{allKnownLocations}", input.KnownLocations)
             .Replace("{originLocationName}", input.TravelOrigin)
             .Replace("{knownCharacters}", input.KnownCharacters)
-            .Replace("{activeOpportunities}", input.ActiveOpportunities));
+            .Replace("{activeOpportunities}", input.ActiveOpportunities);
         AIPrompt prompt = new AIPrompt()
         {
             Content = content
@@ -238,11 +235,11 @@ public class AIPromptBuilder
     {
         string template = promptTemplates[ACTION_GENERATION_MD];
 
-        string content = CreatePromptJson(
+        string content = 
             template
             .Replace("{ACTIONNAME}", context.ActionId)
             .Replace("{SPOT_NAME}", context.SpotName)
-            .Replace("{LOCATION_NAME}", context.LocationName));
+            .Replace("{LOCATION_NAME}", context.LocationName);
         AIPrompt prompt = new AIPrompt()
         {
             Content = content
@@ -258,10 +255,7 @@ public class AIPromptBuilder
 
         AIPrompt prompt = new AIPrompt()
         {
-            Content = CreatePromptJson(
-            template
-            .Replace("{FILE_CONTENT}", input.OldMemory)
-            )
+            Content = template.Replace("{FILE_CONTENT}", input.OldMemory)
         };
 
         return prompt;
@@ -274,7 +268,7 @@ public class AIPromptBuilder
         {
             string key = Path.GetFileNameWithoutExtension(filePath);
             string mdContent = LoadPromptFile(filePath);
-            string jsonContent = CreatePromptJson(mdContent);
+            string jsonContent = mdContent;
             promptTemplates[key] = jsonContent;
         }
     }
@@ -288,41 +282,6 @@ public class AIPromptBuilder
 
         string mdContent = File.ReadAllText(filePath);
         return mdContent;
-    }
-
-    public static string CreatePromptJson(string markdownContent)
-    {
-        // First normalize all newlines to \n
-        string normalized = markdownContent.Replace("\r\n", "\n");
-
-        // Now build the JSON string manually with proper escaping
-        StringBuilder jsonBuilder = new StringBuilder();
-        jsonBuilder.Append("{\n");
-        jsonBuilder.Append("\t\"prompt\": \"");
-
-        // Process each character to ensure proper escaping
-        foreach (char c in normalized)
-        {
-            switch (c)
-            {
-                case '\\':
-                    jsonBuilder.Append("\\\\"); // Escape backslash
-                    break;
-                case '\"':
-                    jsonBuilder.Append("\\\""); // Escape double quote
-                    break;
-                case '\n':
-                    jsonBuilder.Append("\\n"); // Replace newline with \n
-                    break;
-                default:
-                    jsonBuilder.Append(c);
-                    break;
-            }
-        }
-
-        jsonBuilder.Append("\"\n}");
-
-        return jsonBuilder.ToString();
     }
 
     public string GetSystemMessage(WorldStateInput input)
@@ -394,18 +353,23 @@ public class AIPromptBuilder
 
     private static void AddPlayerContext(StringBuilder prompt, EncounterContext context)
     {
-        // Format player character info
+        prompt.AppendLine();
+        prompt.AppendLine("PLAYER CHARACTER CONTEXT:");
+
         string name = context.Player.Name.ToString();
         string gender = context.Player.Gender.ToString();
         string playerArchetype = context.Player.Archetype.ToString();
-        string playerInfo = $"{gender} {playerArchetype}";
 
-        prompt.AppendLine("Player Info: " + playerInfo);
+        prompt.AppendLine("Player name: " + name);
+        prompt.AppendLine("Player gender: " + gender);
+        prompt.AppendLine("Player archetype: " + playerArchetype);
+        prompt.AppendLine();
     }
 
-    private static void AddBaseContext(StringBuilder prompt, EncounterContext context)
+    private static void AddLocationContext(StringBuilder prompt, EncounterContext context)
     {
         prompt.AppendLine();
+        prompt.AppendLine("LOCATION CONTEXT:");
 
         string environmentDetails = $"A {context.LocationSpotName.ToLower()} in a {context.LocationName.ToLower()}";
         string npcList = "";
@@ -426,7 +390,7 @@ public class AIPromptBuilder
         prompt.AppendLine("Encounter Type: " + context.SkillCategory);
         prompt.AppendLine("Location Name: " + context.LocationName);
         prompt.AppendLine("Location Spot: " + context.LocationSpotName);
-        prompt.AppendLine("Character Goal: " + actionGoal);
+        prompt.AppendLine("Player character Goal: " + actionGoal);
         prompt.AppendLine("Environment Details: " + environmentDetails);
         prompt.AppendLine("NPCs Present: " + npcList);
         prompt.AppendLine("Chosen Approach: " + approachDetails);
@@ -437,11 +401,11 @@ public class AIPromptBuilder
     private void AddMemoryContext(StringBuilder prompt, GameWorld gameWorld)
     {
         prompt.AppendLine();
+        prompt.AppendLine("PLAYER CHARACTER MEMORIES");
 
         MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameWorld.GetGameInstanceId());
         List<string> memories = memoryFileAccess.GetAllMemories().Result;
         
-        prompt.AppendLine("Memories:");
         if (memories.Any())
         {
             foreach (var memory in memories)
@@ -530,8 +494,8 @@ public class AIPromptBuilder
     private void AddTimeContext(StringBuilder prompt, GameWorld gameWorld)
     {
         prompt.AppendLine();
-
         prompt.AppendLine("TIME CONTEXT:");
+
         prompt.AppendLine($"- Current Day: {GameWorld.CurrentDay}");
         prompt.AppendLine($"- Time of Day: {GameWorld.CurrentTimeOfDay}");
 
@@ -548,8 +512,8 @@ public class AIPromptBuilder
     private void AddResourceContext(StringBuilder prompt, Player player)
     {
         prompt.AppendLine();
-
         prompt.AppendLine("RESOURCE CONTEXT:");
+
         prompt.AppendLine($"- Energy: {player.Energy}/{player.MaxEnergy}");
         prompt.AppendLine($"- Money: {player.Money} coins");
         prompt.AppendLine($"- Reputation: {player.Reputation} ({player.GetReputationLevel()})");
@@ -560,8 +524,8 @@ public class AIPromptBuilder
     private void AddTravelContext(StringBuilder prompt, GameWorld gameWorld)
     {
         prompt.AppendLine();
-
         prompt.AppendLine("TRAVEL CONTEXT:");
+
         prompt.AppendLine($"- Current Location: {gameWorld.CurrentLocation.Name}");
 
         List<TravelRoute> availableRoutes = gameWorld.GetRoutesFromCurrentLocation();

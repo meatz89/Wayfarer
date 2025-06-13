@@ -1,4 +1,4 @@
-IMPORTANT: Generate ONLY the raw content with no meta-commentary. DO NOT acknowledge this request, introduce your response, or end with questions to the reader. Your entire response should be exactly what will be shown to the player without requiring any editing.
+IMPORTANT: Generate ONLY the raw choice content with no meta-commentary, JSON formatting, or structural elements.
 
 # WAYFARER'S RESOLVE CHOICE GENERATION
 
