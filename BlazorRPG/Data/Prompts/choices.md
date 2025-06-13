@@ -40,13 +40,13 @@ Create choices based on:
 - Verify each choice against what was actually described
 - Ground every choice in the specific, current environment
 
-## CHOICE TEMPLATES
-Use these mechanical templates for choice generation:
-- GatherInformation: Examine, question, investigate
-- EstablishTrust: Social bonding, demonstrate competence, show vulnerability
-- AssertDominance: Intimidate, command, challenge
-- AvoidConflict: Deflect, withdraw, appease
-- DirectAction: Physical intervention, immediate problem-solving
+## CHOICE REQUIREMENTS
+Every choice must:
+- Involve immediate actions with currently present elements
+- Stay within current physical location and timeframe
+- Feel like natural next steps from this exact moment
+- Reference specific elements actively present in the scene
+- Show immediate, short-term consequences
 
 ## RESPONSE FORMAT
 Generate 2-6 choices as a JSON object:
