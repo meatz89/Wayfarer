@@ -16,25 +16,7 @@ Write with restraint. Trust readers to sense currents beneath still waters. The 
 
 ## FORBIDDEN LANGUAGE PATTERNS
 
-Never use these overused AI phrases that break immersion:
-- "tapestry" (of conversation, voices, etc.)
-- "symphony" (of sounds, etc.)
-- "kaleidoscope" (of colors, emotions, etc.)
-- "myriad" 
-- "plethora"
-- "labyrinth" (unless literally describing a maze)
-- "cacophony"
-- "juxtaposition"
-- "enigmatic"
-- "ephemeral" 
-- "quintessential"
-- "palpable tension"
-- "the very air seems to..."
-- "as if the [object] holds secrets"
-- "weave/weaving" (unless literal textile work)
-- "dance/dancing" (unless literal movement)
-
-Use simple, direct language that feels natural to the medieval setting and character voice.
+Never use these overused AI phrases that break immersion. Use simple, direct language that feels natural to the medieval setting and character voice.
 
 ## DIALOGUE AND VOICE
 
