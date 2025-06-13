@@ -9,32 +9,39 @@ IMPORTANT: Generate ONLY the raw choice content with no meta-commentary, JSON fo
 - Experience-based responses to the specific challenge at hand
 - Avoid modern analytical terms or abstract strategic thinking
 
-## CRITICAL REQUIREMENT: CURRENT SITUATION ANALYSIS
+## CRITICAL REQUIREMENT: IMMEDIATE CONTEXT CONSTRAINTS
 Before creating choices, analyze the narrative context INTERNALLY:
 1. What is the character's current physical location and immediate surroundings?
-2. What opportunities or elements are currently available to interact with?
-3. Has the previous dramatic moment concluded or moved on?
-4. What would a person naturally do next in this specific setting?
+2. What people, objects, or elements are physically present RIGHT NOW?
+3. What can the character do in the NEXT FEW SECONDS in this exact spot?
+4. What immediate interactions are available with current scene elements?
 
-## SITUATIONAL FLEXIBILITY
-- If a specific interaction or moment has naturally concluded, choices should reflect new available options
-- Don't artificially prolong resolved tensions or force continued focus on elements that have moved on
-- Allow the player to naturally pivot to other opportunities in the current environment
-- Choices should feel organic to what's actually happening NOW, not what happened moments ago
+## TEMPORAL AND SPATIAL BOUNDARIES
+- ALL choices must happen in the current location within the next few minutes
+- NO choices about leaving the location, traveling elsewhere, or long-term planning
+- NO choices about what to do "later" or "tomorrow" 
+- Focus on immediate actions: speaking to someone present, examining something visible, moving to a different part of the same room
+- Choices should be about HOW to engage with what's already established in the scene
+
+## SITUATIONAL FLEXIBILITY  
+- If a specific interaction or moment has naturally concluded, choices should reflect new available options within the same space
+- Don't artificially prolong resolved tensions, but stay in the current physical context
+- Allow the player to pivot between different elements/people in the current scene
+- Choices should feel organic to what's immediately available
 
 ## Response Creation Requirements
 Every choice must:
-- Reflect what's currently available and relevant in the immediate scene
-- Feel like natural next steps a person would consider in this environment
-- Reference elements that are still active and present
-- Allow for organic scene progression rather than forced continuation
-- Show realistic options for advancing the character's goals
+- Involve immediate actions with currently present elements (people, objects, opportunities)
+- Stay within the current physical location and timeframe
+- Feel like natural next steps someone would take in this exact moment
+- Reference specific elements that are actively present in the scene
+- Show immediate, short-term consequences rather than long-term outcomes
 
 ## Description Guidelines (1-2 sentences):
-- Reference elements that are currently relevant and available
-- Focus on forward momentum rather than dwelling on concluded moments
-- Show practical next steps appropriate to the setting
-- Use "might," "could," or "would" to express potential consequences
+- Reference specific people or objects currently present in the scene
+- Focus on immediate actions and their likely immediate results
+- Show what happens in the next few seconds/minutes
+- Use "might," "could," or "would" to express immediate potential consequences
 
 ## RESPONSE FORMAT
 You must respond with a SINGLE JSON object containing 2-6 choices that are direct reactions to the current encounterContext situation:
