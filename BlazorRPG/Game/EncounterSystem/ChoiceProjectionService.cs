@@ -25,9 +25,19 @@
 
     private SkillOptionProjection ProjectSkillOption(EncounterChoice choice, EncounterState state, Player player)
     {
+        SkillOptionProjection projection = new SkillOptionProjection();
+        if(!choice.RequiresSkillCheck)
+        {
+            projection.SkillName = "None";
+            projection.IsAvailable = true;
+            projection.IsUntrained = false;
+            projection.EffectiveLevel = 1;
+            projection.ChoiceSuccess = true;
+            return projection;
+        }
+
         var option = choice.SkillOption;
 
-        SkillOptionProjection projection = new SkillOptionProjection();
         projection.SkillName = option.SkillName;
         projection.Difficulty = option.Difficulty;
 

@@ -168,17 +168,68 @@ public class EncounterChoiceResponseParser
 
             if (!string.IsNullOrWhiteSpace(choice.TemplateUsed) && !string.IsNullOrWhiteSpace(choice.TemplatePurpose))
             {
-                    AppendUniqueTemplateUsedPurposeToFile(_templateUsedPurposeFile, choice.TemplateUsed, choice.TemplatePurpose);
+                AppendUniqueTemplateUsedPurposeToFile(_templateUsedPurposeFile, choice.TemplateUsed, choice.TemplatePurpose);
             }
         }
 
-        // Parse skill options
-        if (choiceElement.TryGetProperty("skillOption", out JsonElement skillOptionElement))
+        if (choiceElement.TryGetProperty("successEffect", out JsonElement successEffectElement) ||
+            choiceElement.TryGetProperty("SuccessEffect", out successEffectElement))
+        {
+            choice.SuccessNarrative = successEffectElement.ToString();
+            if (choice.SuccessNarrative != null && !string.IsNullOrWhiteSpace(choice.SuccessNarrative))
+            {
+                AppendUniqueValueToFile(_effectFile, choice.SuccessNarrative);
+            }
+        }
+
+        if (choiceElement.TryGetProperty("failureEffect", out JsonElement failureEffectElement) ||
+            choiceElement.TryGetProperty("FailureEffect", out failureEffectElement))
+        {
+            choice.FailureNarrative = failureEffectElement.ToString();
+            if (choice.FailureNarrative != null && !string.IsNullOrWhiteSpace(choice.FailureNarrative))
+            {
+                AppendUniqueValueToFile(_effectFile, choice.FailureNarrative);
+            }
+        }
+
+        if (choiceElement.TryGetProperty("requiresSkillCheck", out JsonElement requiresSkillCheckElement))
+        {
+            choice.RequiresSkillCheck = EvaluateBool(requiresSkillCheckElement);
+        }
+        else
+        {
+            choice.RequiresSkillCheck = choiceElement.TryGetProperty("skillOption", out JsonElement _);
+        }
+
+        if (choice.RequiresSkillCheck && choiceElement.TryGetProperty("skillOption", out JsonElement skillOptionElement))
         {
             choice.SkillOption = ParseSkillOptionFromJson(choice, skillOptionElement);
         }
 
         return choice;
+    }
+
+    private static bool EvaluateBool(JsonElement requiresSkillCheckElement)
+    {
+        bool requiresSkillCheck = false;
+
+        if (requiresSkillCheckElement.ValueKind == JsonValueKind.True)
+            requiresSkillCheck = true;
+        else if (requiresSkillCheckElement.ValueKind == JsonValueKind.False)
+            requiresSkillCheck = false;
+        else if (requiresSkillCheckElement.ValueKind == JsonValueKind.String)
+        {
+            var str = requiresSkillCheckElement.GetString();
+            if (bool.TryParse(str, out bool parsed))
+                requiresSkillCheck = parsed;
+        }
+        else if (requiresSkillCheckElement.ValueKind == JsonValueKind.Number)
+        {
+            if (requiresSkillCheckElement.TryGetInt32(out int num))
+                requiresSkillCheck = num != 0;
+        }
+
+        return requiresSkillCheck;
     }
 
     private SkillOption ParseSkillOptionFromJson(EncounterChoice choice, JsonElement skillOptionElement)
@@ -203,28 +254,6 @@ public class EncounterChoiceResponseParser
             skillOptionElement.TryGetProperty("Difficulty", out difficultyElement))
         {
             skillOption.Difficulty = difficultyElement.GetString();
-        }
-
-        // Parse the success effect
-        if (skillOptionElement.TryGetProperty("successEffect", out JsonElement successEffectElement) ||
-            skillOptionElement.TryGetProperty("SuccessEffect", out successEffectElement))
-        {
-            choice.SuccessNarrative = successEffectElement.ToString();
-            if (choice.SuccessNarrative != null && !string.IsNullOrWhiteSpace(choice.SuccessNarrative))
-            {
-                AppendUniqueValueToFile(_effectFile, choice.SuccessNarrative);
-            }
-        }
-
-        // Parse the failure effect
-        if (skillOptionElement.TryGetProperty("failureEffect", out JsonElement failureEffectElement) ||
-            skillOptionElement.TryGetProperty("FailureEffect", out failureEffectElement))
-        {
-            choice.FailureNarrative = failureEffectElement.ToString();
-            if (choice.FailureNarrative != null && !string.IsNullOrWhiteSpace(choice.FailureNarrative))
-            {
-                AppendUniqueValueToFile(_effectFile, choice.FailureNarrative);
-            }
         }
 
         return skillOption;
