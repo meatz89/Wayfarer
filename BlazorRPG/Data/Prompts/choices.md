@@ -34,7 +34,14 @@ Create choices based on:
 - Don't artificially prolong resolved tensions
 - Allow pivoting between different elements/people in current scene
 - Choices should feel organic to immediate environment
-- 
+
+## ENCOUNTER HISTORY AWARENESS
+- Review the full conversation history to identify completed actions
+- Do NOT offer choices that repeat actions already taken in this encounter
+- If player has examined/considered/interacted with an element, offer different approaches or new elements
+- Generate only fresh interactions that advance the situation
+- Maximum ONE choice per specific object/person/element unless circumstances have changed
+
 ## CURRENT NARRATIVE STATE AWARENESS
 - Acknowledge the character's current emotional and physical state from the reaction
 - Account for how NPCs' attitudes have changed during this encounter
@@ -92,4 +99,3 @@ Generate 2-6 choices as a JSON object:
     }
   ]
 }
-```
