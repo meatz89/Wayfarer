@@ -48,6 +48,13 @@ When the narrative establishes character interest in specific elements:
 - Don't offer choices to engage with elements the narrative has already moved away from unless there's natural reason to return
 - Follow the actual flow of attention established in the text, not ideal scenarios
 - Ensure choices feel like natural next steps from the narrative's actual ending point
+- 
+## CONTEXTUAL VALIDATION
+- ALL choices must reference elements explicitly present in the current narrative
+- NO choices about objects, people, or situations not mentioned in the immediate scene
+- Verify each choice against what was actually described
+- Remove any option that requires knowledge not established in the text
+- Ground every choice in the specific, current environment described
 
 ## Response Creation Requirements
 Every choice must:
