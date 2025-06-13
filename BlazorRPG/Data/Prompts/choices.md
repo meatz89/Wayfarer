@@ -3,75 +3,53 @@ IMPORTANT: Generate ONLY the raw choice content with no meta-commentary, JSON fo
 # WAYFARER'S RESOLVE CHOICE GENERATION
 {PROMPT_CONTEXT}
 
-## Period Authenticity:
+## Period Authenticity
 - Medieval character perspective appropriate to the current situation
 - Concrete reactions to visible, tangible elements of the scene
 - Experience-based responses to the specific challenge at hand
 - Avoid modern analytical terms or abstract strategic thinking
 
-## CRITICAL REQUIREMENT: IMMEDIATE CONTEXT CONSTRAINTS
-Before creating choices, analyze the narrative context INTERNALLY:
-1. What is the character's current physical location and immediate surroundings?
-2. What people, objects, or elements are physically present RIGHT NOW?
-3. What can the character do in the NEXT FEW SECONDS in this exact spot?
-4. What immediate interactions are available with current scene elements?
+## IMMEDIATE CONTEXT FOCUS
+Create choices based on:
+1. Character's current physical location and immediate surroundings
+2. People, objects, or elements physically present RIGHT NOW
+3. Actions possible within the NEXT FEW MINUTES in this exact location
+4. Immediate interactions available with established scene elements
 
-## TEMPORAL AND SPATIAL BOUNDARIES
-- ALL choices must happen in the current location within the next few minutes
-- NO choices about leaving the location, traveling elsewhere, or long-term planning
-- NO choices about what to do "later" or "tomorrow" 
-- Focus on immediate actions: speaking to someone present, examining something visible, moving to a different part of the same room
-- Choices should be about HOW to engage with what's already established in the scene
+## SCOPE BOUNDARIES
+- ALL choices occur in current location within immediate timeframe
+- NO choices about leaving location, traveling elsewhere, or long-term planning
+- Focus on immediate actions: speaking to someone present, examining visible objects, moving within the same space
+- Choices about HOW to engage with established scene elements
 
-## SITUATIONAL FLEXIBILITY  
-- If a specific interaction or moment has naturally concluded, choices should reflect new available options within the same space
-- Don't artificially prolong resolved tensions, but stay in the current physical context
-- Allow the player to pivot between different elements/people in the current scene
-- Choices should feel organic to what's immediately available
-- 
+## SITUATIONAL FLOW
+- If interactions have concluded, offer new options within the same space
+- Don't artificially prolong resolved tensions
+- Allow pivoting between different elements/people in current scene
+- Choices should feel organic to immediate environment
+
 ## NARRATIVE CONTINUITY
-- If the introduction shows the character noticing, observing, or being drawn to specific elements, prioritize choices that acknowledge this natural attention
-- Don't immediately abandon what the character just focused on unless something more urgent intervenes
-- Allow the character to follow through on established interest while still offering alternative options
-- Balance continuation of established focus with scene flexibility
+- If introduction establishes character focus on specific elements, prioritize related choices
+- Don't abandon established interest unless urgent intervention occurs
+- Allow follow-through on established attention while offering alternatives
+- Balance continuation with scene flexibility
 
-## PRIORITY WEIGHTING
-When the narrative establishes character interest in specific elements:
-- Include choices that directly engage with what caught the character's attention
-- Offer alternative approaches to the same element (different ways to engage)
-- Include broader scene options for players who want to pivot away
-- Maintain narrative flow rather than creating jarring disconnects
-
-## CURRENT NARRATIVE STATE COMPLIANCE
-- Base choices on where the character's attention actually ended in the narrative, not where it began
-- If the narrative shows the character focusing on specific elements by the end, prioritize choices related to those elements
-- Don't offer choices to engage with elements the narrative has already moved away from unless there's natural reason to return
-- Follow the actual flow of attention established in the text, not ideal scenarios
-- Ensure choices feel like natural next steps from the narrative's actual ending point
-- 
-## CONTEXTUAL VALIDATION
-- ALL choices must reference elements explicitly present in the current narrative
-- NO choices about objects, people, or situations not mentioned in the immediate scene
+## CONTEXTUAL GROUNDING
+- ALL choices must reference elements explicitly present in current narrative
+- NO choices about objects, people, or situations not mentioned in immediate scene
 - Verify each choice against what was actually described
-- Remove any option that requires knowledge not established in the text
-- Ground every choice in the specific, current environment described
+- Ground every choice in the specific, current environment
 
-## Response Creation Requirements
-Every choice must:
-- Involve immediate actions with currently present elements (people, objects, opportunities)
-- Stay within the current physical location and timeframe
-- Feel like natural next steps someone would take in this exact moment
-- Reference specific elements that are actively present in the scene
-- Show immediate, short-term consequences rather than long-term outcomes
-
-## Description Guidelines (1-2 sentences):
-- Reference specific people or objects currently present in the scene
-- Focus on immediate actions and their likely immediate results
-- Show what happens in the next few seconds/minutes
-- Use "might," "could," or "would" to express immediate potential consequences
+## CHOICE TEMPLATES
+Use these mechanical templates for choice generation:
+- GatherInformation: Examine, question, investigate
+- EstablishTrust: Social bonding, demonstrate competence, show vulnerability
+- AssertDominance: Intimidate, command, challenge
+- AvoidConflict: Deflect, withdraw, appease
+- DirectAction: Physical intervention, immediate problem-solving
 
 ## RESPONSE FORMAT
-You must respond with a SINGLE JSON object containing 2-6 choices that are direct reactions to the current encounterContext situation:
+Generate 2-6 choices as a JSON object:
 
 ```json
 {
@@ -80,16 +58,15 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
       "choiceID": "1",
       "narrativeText": "Specific reaction to current situation. Maximum 5 words.",
       "focusCost": 1,
-      "templateUsed": "Template this choice belongs to (i.e. GatherInformation or EstablishTrust)",
-      "templatePurpose": "Strategic purpose of this template",
-      "requiresSkillCheck": "(true or false) Does this choice require a skill check?", 
-      "successEffect": "On Success Effect",
-      "failureEffect": "On Failure Effect"
-      "skillOption": 
-        {
-            "skillName": "Brute Force",
-            "difficulty": "Standard",
-        }
+      "templateUsed": "GatherInformation",
+      "templatePurpose": "Learn about the blacksmith's techniques",
+      "requiresSkillCheck": true,
+      "successEffect": "Gain insight into metalworking process",
+      "failureEffect": "Miss important details about the craft",
+      "skillOption": {
+        "skillName": "Observation",
+        "difficulty": "Standard"
+      }
     }
   ]
 }

@@ -569,12 +569,12 @@ public class AIPromptBuilder
         if(success)
         {
             prompt.AppendLine("RESULT: Success");
-            prompt.AppendLine($"{choice.SuccessNarrative}");
+            //prompt.AppendLine($"{choice.SuccessNarrative}");
         }
         else
         {
             prompt.AppendLine("RESULT: Failure");
-            prompt.AppendLine($"{choice.FailureNarrative}");
+            //prompt.AppendLine($"{choice.FailureNarrative}");
         }
 
         prompt.AppendLine();
