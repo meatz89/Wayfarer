@@ -5,10 +5,15 @@
 The player's choice represents their selected action. Execute this action and show the realistic consequences. The choice has been made and must now occur in the scene.
 
 ## ABSOLUTE CONSTRAINTS
-- If "NPCs Present: None" then NO NPCs can appear or react
-- If specific NPCs are listed, only those NPCs exist
 - Never add elements not explicitly provided in the context
 - Follow game state data exactly, never contradict it
+
+## NPC PERSISTENCE REQUIREMENTS
+- NPCs established in previous reactions MUST continue to exist unless explicitly removed
+- NPCs cannot vanish without logical explanation (leaving, being dismissed, etc.)
+- If an NPC was actively engaged in an activity, they continue that activity unless interrupted
+- NPC locations and behaviors must remain consistent between reactions
+- Never make NPCs disappear to convenience the player's action
 
 ## MANDATORY REALISM PRINCIPLES
 - All reactions MUST be proportionate and realistic to the player's action
@@ -23,6 +28,7 @@ The player's choice represents their selected action. Execute this action and sh
 - Show natural progression from observation to action
 - Reference character's prior attention when relevant
 - Build on established narrative momentum
+- Maintain all established scene elements unless logically altered
 
 ## ESTABLISHED INTEREST ACKNOWLEDGMENT
 When player chooses actions related to elements the character was observing:
@@ -31,12 +37,11 @@ When player chooses actions related to elements the character was observing:
 - Show natural progression from observation to engagement
 - Avoid treating engagement like completely new discovery
 
-## ATTENTION CONSISTENCY
-- Maintain focus established in previous narrative
-- DO NOT have character's attention shift between multiple elements within same reaction
-- Once interest is established, maintain that focus through narrative end
-- Let the player choose whether to maintain, shift, or abandon established interests
-- Avoid "attention wandering" that pre-decides character priorities
+## SCENE ELEMENT CONSISTENCY
+- Objects, people, and environmental details established in previous reactions must persist
+- If the player's action would interfere with an established NPC's activity, show that interaction
+- NPCs have their own motivations and won't simply vanish to accommodate player actions
+- Show realistic responses when player actions affect established scene elements
 
 ## REACTION EXECUTION
 - Simple actions should have simple outcomes
@@ -62,9 +67,9 @@ When player chooses actions related to elements the character was observing:
 
 ## Writing Requirements
 Write in first-person present tense:
-- Show the player's action and its ACTUAL results
-- Describe what happens naturally as a consequence
-- End with the resulting situation
-- Keep to 2-3 paragraphs maximum
+1. Show the player's action and its ACTUAL results
+2. Describe what happens naturally as a consequence
+3. End with the resulting situation
+4. Keep to 2-3 paragraphs maximum
 
 CRITICAL: Not every action needs drama or complications. Sometimes the player accomplishes their goal, or faces straightforward outcomes that require new decisions.
