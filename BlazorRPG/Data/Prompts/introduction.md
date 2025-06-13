@@ -3,16 +3,23 @@
 Create a BRIEF, immersive introductory scene for the Encounter at this location and spot. Keep it short. No more than 4 paragraphs.
 Talk in the voice of the player character archetype. The narration of a Warrior, Scholar, Courtier, Ranger, Mystic, and Diplomat should be remarkably different.
 
-CRITICAL: Do not spell out to the player that he will have to make a decision. Do not end with questions. Do not have the character decide on specific actions or interactions.
+CRITICAL: Do not spell out to the player that he will have to make a decision. Do not end with explicit questions about what to do next. Do not have the character pre-decide on specific interactions or commit to particular courses of action.
 
 {PROMPT_CONTEXT}
 
 ## Narrative Boundaries
-- Describe the environment and present available elements (NPCs, objects, opportunities)
+- Present the situation appropriately for the encounter context
 - Show the character's observations and internal perspective
 - DO NOT have the character decide to interact with specific people or objects
 - DO NOT commit the character to any particular course of action
-- Let the character notice and consider, but not choose
+- DO NOT end with explicit questions like "Do I approach X or Y?"
+- Let the situation speak for itself - if it's dangerous, show the danger; if it's peaceful, show the opportunities
+
+## Context-Appropriate Endings
+- For peaceful/social encounters: End with the character taking in available opportunities
+- For dangerous/urgent encounters: End with the character facing the immediate threat or challenge  
+- For puzzle/investigation encounters: End with the character confronting the mystery or problem
+- Match the ending to what the situation actually demands
 
 ## EncounterContext Clarification
 - Make clear what success would accomplish through the SPECIFIC chosen approach
