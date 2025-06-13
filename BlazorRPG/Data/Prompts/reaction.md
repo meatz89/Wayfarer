@@ -41,6 +41,14 @@ When the player chooses actions related to elements the character was already ob
 - Some reactions can simply accomplish what the player intended without additional complications
 - Maintain continuity with previously established character focus and interest
 
+## PROGRESSION REQUIREMENTS
+- Each reaction must advance the situation meaningfully
+- Avoid repeating previous observations or descriptions
+- Show concrete change from the player's action
+- Move the narrative forward, not sideways
+- If nothing significant happens, describe completion rather than prolonging
+- End with a NEW situation, not a rehash of the previous one
+
 ## Writing Requirements
 Write a reaction narrative to the player's choice in first-person present tense:
 1. Show the player's attempted action and the ACTUAL results (which should be realistic and grounded)

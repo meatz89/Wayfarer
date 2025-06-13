@@ -1,9 +1,11 @@
 # ENCOUNTER INTRODUCTION
 
-Create a BRIEF, immersive introductory scene for the Encounter at this location and spot. Keep it short. No more than 4 paragraphs.
-Talk in the voice of the player character archetype. The narration of a Warrior, Scholar, Courtier, Ranger, Mystic, and Diplomat should be remarkably different.
+Create a BRIEF introductory scene that establishes:
+1. The immediate environment through the character archetype's perspective
+2. One specific situation or opportunity requiring the player's attention
+3. The character's current position and what they can observe
 
-CRITICAL: Do not spell out to the player that he will have to make a decision. Do not end with explicit questions about what to do next. Do not have the character pre-decide on specific interactions or commit to particular courses of action.
+CRITICAL: Do not have the character pre-decide actions or end with questions.
 
 {PROMPT_CONTEXT}
 
