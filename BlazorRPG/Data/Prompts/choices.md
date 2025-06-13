@@ -55,12 +55,13 @@ You must respond with a SINGLE JSON object containing 2-6 choices that are direc
       "focusCost": 1,
       "templateUsed": "Template this choice belongs to (i.e. GatherInformation or EstablishTrust)",
       "templatePurpose": "Strategic purpose of this template",
+      "requiresSkillCheck": "(true or false) Does this choice require a skill check?", 
+      "successEffect": "On Success Effect",
+      "failureEffect": "On Failure Effect"
       "skillOption": 
         {
             "skillName": "Brute Force",
             "difficulty": "Standard",
-            "successEffect": "On Success Effect"
-            "failureEffect": "On Failure Effect,"
         }
     }
   ]

@@ -58,8 +58,8 @@ public class EncounterViewBase : ComponentBase
     {
         hoveredChoice = choice;
         showTooltip = true;
-        tooltipX = e.ClientX + 50;
-        tooltipY = e.ClientY - 550;
+        tooltipX = e.ClientX + 10;
+        tooltipY = e.ClientY - 510;
     }
 
     protected void HideTooltip()

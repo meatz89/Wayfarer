@@ -9,6 +9,6 @@
     public string SuccessNarrative { get; internal set; }
     public string FailureNarrative { get; internal set; }
     public SkillOption SkillOption { get; set; }
-
+    public bool RequiresSkillCheck { get; internal set; }
 }
 
