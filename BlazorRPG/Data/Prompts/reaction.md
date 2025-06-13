@@ -13,12 +13,26 @@ This choice has NOT YET HAPPENED and must be executed in this scene.
 - NPCs should only notice or react to player actions if they would realistically do so
 - Maintain authentic medieval setting where everyday activities remain ordinary
 
+## NARRATIVE CONTINUITY
+- If the introduction or previous narrative established the character's interest in specific elements, acknowledge this when the player chooses to engage with them
+- Show natural progression from observation to action rather than starting fresh
+- Reference the character's prior attention or established interest when relevant
+- Build on established narrative momentum rather than creating disconnects
+
+## ESTABLISHED INTEREST ACKNOWLEDGMENT
+When the player chooses actions related to elements the character was already observing or drawn to:
+- Acknowledge the prior attention
+- Reference the established interest
+- Show natural progression
+- Avoid treating it like a completely new discovery
+
 ## REACTION REQUIREMENTS
 - Simple actions should have simple outcomes
 - If the player's action naturally completes their immediate goal, describe the completion
 - Only introduce new elements if they would realistically occur
 - NPCs should only act if they have logical motivation to do so
 - Some reactions can simply accomplish what the player intended without additional complications
+- Maintain continuity with previously established character focus and interest
 
 ## Writing Requirements
 Write a reaction narrative to the player's choice in first-person present tense:

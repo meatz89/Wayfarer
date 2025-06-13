@@ -28,6 +28,19 @@ Before creating choices, analyze the narrative context INTERNALLY:
 - Don't artificially prolong resolved tensions, but stay in the current physical context
 - Allow the player to pivot between different elements/people in the current scene
 - Choices should feel organic to what's immediately available
+- 
+## NARRATIVE CONTINUITY
+- If the introduction shows the character noticing, observing, or being drawn to specific elements, prioritize choices that acknowledge this natural attention
+- Don't immediately abandon what the character just focused on unless something more urgent intervenes
+- Allow the character to follow through on established interest while still offering alternative options
+- Balance continuation of established focus with scene flexibility
+
+## PRIORITY WEIGHTING
+When the narrative establishes character interest in specific elements:
+- Include at least 1-2 choices that directly engage with what caught the character's attention
+- Offer 1-2 alternative approaches to the same element (different ways to engage)
+- Include 1-2 broader scene options for players who want to pivot away
+- Maintain narrative flow rather than creating jarring disconnects
 
 ## Response Creation Requirements
 Every choice must:
