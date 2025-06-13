@@ -35,13 +35,6 @@ Create choices based on:
 - Allow pivoting between different elements/people in current scene
 - Choices should feel organic to immediate environment
 
-## ENCOUNTER HISTORY AWARENESS
-- Review the full conversation history to identify completed actions
-- Do NOT offer choices that repeat actions already taken in this encounter
-- If player has examined/considered/interacted with an element, offer different approaches or new elements
-- Generate only fresh interactions that advance the situation
-- Maximum ONE choice per specific object/person/element unless circumstances have changed
-
 ## CURRENT NARRATIVE STATE AWARENESS
 - Acknowledge the character's current emotional and physical state from the reaction
 - Account for how NPCs' attitudes have changed during this encounter
@@ -60,7 +53,13 @@ Create choices based on:
 - NO choices about objects, people, or situations not mentioned in immediate scene
 - Verify each choice against what was actually described in the introduction
 - Ground every choice in the specific, current environment described
-- Never reference external locations or distant activities
+
+## ENCOUNTER HISTORY AWARENESS
+- MANDATORY: Read every reaction narrative to identify what the character has already accomplished
+- If narrative states character secured/pocketed/examined/interacted with something, NEVER offer that action again
+- Do NOT offer choices for any action explicitly completed in previous reactions
+- Generate only fresh interactions that advance the situation
+- When in doubt, choose NEW elements over repeating completed actions
 
 ## CHOICE REQUIREMENTS
 Every choice must:
@@ -69,7 +68,6 @@ Every choice must:
 - Feel like natural next steps from this exact moment
 - Reference specific elements actively present in the scene as described
 - Show immediate, short-term consequences
-- Never reference anything outside the current location
 
 ## SKILL SYSTEM INTEGRATION
 - focusCost: Always 1 unless action is particularly demanding
