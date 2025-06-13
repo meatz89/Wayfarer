@@ -54,8 +54,8 @@
             // Set Illumination
             if (upperProp == "WELL-LIT" || upperProp == "BRIGHT")
                 location.Illumination = Illumination.Bright;
-            else if (upperProp == "SHADOWY" || upperProp == "ROGUEY")
-                location.Illumination = Illumination.Roguey;
+            else if (upperProp == "SHADOWY" || upperProp == "ThiefY")
+                location.Illumination = Illumination.Thiefy;
             else if (upperProp == "DARK")
                 location.Illumination = Illumination.Dark;
 

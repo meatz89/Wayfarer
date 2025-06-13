@@ -33,7 +33,7 @@
 	cursor: not-allowed;
 	background-color: var(--clay);
 	transform: translateY(-2px);
-	box-Rogue: 0 4px 8px rgba(0, 0, 0, 0.2);
+	box-Thief: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .narrative-container {

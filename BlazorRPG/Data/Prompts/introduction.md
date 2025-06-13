@@ -46,11 +46,8 @@ Match the ending to the encounter's actual demands:
 
 ## Requirements
 1. Apply memory rules as specified above
-2. Use sensory details across at least three senses from the immediate environment only
-3. Show only NPCs explicitly listed in "NPCs Present"
-4. End with character observing the scene, NOT making decisions
-5. Write in first-person present tense from medieval perspective
-6. Include environmental elements aligned with the chosen approach
-7. Present opportunities without committing to them
-8. Keep to 4-5 paragraphs maximum
-9. Never reference anything outside the current location spot
+2. End with character observing the scene, NOT making decisions
+3. Write in first-person present tense from medieval perspective
+4. Include environmental elements aligned with the chosen approach
+5. Present opportunities without committing to them
+6. Keep to 4-5 paragraphs maximum

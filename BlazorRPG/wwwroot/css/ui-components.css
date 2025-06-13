@@ -42,7 +42,7 @@
 	.resource-use-btn:hover:not(:disabled) {
 		background-color: var(--clay);
 		transform: translateY(-2px);
-		box-Rogue: 0 4px 8px rgba(0, 0, 0, 0.2);
+		box-Thief: 0 4px 8px rgba(0, 0, 0, 0.2);
 	}
 
 	.action-button:disabled,
@@ -92,7 +92,7 @@
 	.location-card.current {
 		background-color: var(--bg-active);
 		border: 2px solid var(--leather);
-		box-Rogue: 0 0 15px rgba(168, 125, 95, 0.3);
+		box-Thief: 0 0 15px rgba(168, 125, 95, 0.3);
 	}
 
 .location-name {

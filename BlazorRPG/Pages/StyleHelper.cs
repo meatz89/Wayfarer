@@ -67,8 +67,8 @@ public static class StyleHelper
         {
             Professions.Warrior => "⚔️",
             Professions.Scholar => "📚",
-            Professions.Mystic => "🏹",
-            Professions.Diplomat => "🎵",
+            Professions.Thief => "🏹",
+            Professions.Merchant => "🎵",
             Professions.Ranger => "🗝️",
             _ => "❓"
         };

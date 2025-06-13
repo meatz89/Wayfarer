@@ -5,15 +5,15 @@
 /// **Market Square: **
 /// -**Morning * *: Bright + Crowded + Commercial + Chaotic
 /// - **Afternoon * *: Bright + Crowded + Commercial + Tense
-/// - **Evening * *: Roguey + Crowded + Commercial + Chaotic
+/// - **Evening * *: Thiefy + Crowded + Commercial + Chaotic
 /// - **Night * *: Dark + Quiet + Commercial + Tense
 /// 
 /// **Forest Path: **
 /// -**Day * *: Bright + Isolated + Expansive + Hazardous
-/// - **Dusk * *: Roguey + Isolated + Expansive + Tense
+/// - **Dusk * *: Thiefy + Isolated + Expansive + Tense
 /// - **Night * *: Dark + Isolated + Expansive + Hazardous
 /// 
-/// Illumination (Bright, Roguey, Dark)
+/// Illumination (Bright, Thiefy, Dark)
 /// Population (Crowded, Quiet, Scholarly)
 /// Physical (Confined, Expansive, Hazardous)
 /// Atmosphere (Tense, Formal, Chaotic)
@@ -35,7 +35,7 @@ public class Illumination : ILocationProperty, IEquatable<Illumination>
     }
 
     public static Illumination Bright = new Illumination("Bright");
-    public static Illumination Roguey = new Illumination("Roguey");
+    public static Illumination Thiefy = new Illumination("Thiefy");
     public static Illumination Dark = new Illumination("Dark");
 
     private string Value;

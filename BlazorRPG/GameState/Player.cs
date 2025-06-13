@@ -203,20 +203,20 @@
             case Professions.Warrior:
                 InitializeGuard();
                 break;
-            case Professions.Diplomat:
-                InitializeDiplomat();
+            case Professions.Merchant:
+                InitializeMerchant();
                 break;
             case Professions.Scholar:
                 InitializeScholar();
                 break;
-            case Professions.Mystic:
+            case Professions.Thief:
                 InitializeExplorer();
                 break;
             case Professions.Ranger:
-                InitializeRogue();
+                InitializeThief();
                 break;
             case Professions.Courtier:
-                InitializeMerchant();
+                InitializeCourtier();
                 break;
 
             default:
@@ -234,7 +234,7 @@
         Inventory.AddItem(ItemTypes.Mortar);
     }
 
-    private void InitializeDiplomat()
+    private void InitializeCourtier()
     {
         ClearInventory();
         Inventory.AddItem(ItemTypes.FineClothes);
@@ -262,7 +262,7 @@
         Inventory.AddItem(ItemTypes.FieldGuide);
     }
 
-    private void InitializeRogue()
+    private void InitializeThief()
     {
         ClearInventory();
         Inventory.AddItem(ItemTypes.Lockpicks);
