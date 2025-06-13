@@ -90,19 +90,19 @@
 
     private int GetDifficulty(string difficulty)
     {
-        //Easy=2, Standard=3, Hard=4, Exceptional=5
+        //Easy=0, Standard=1, Hard=2, Exceptional=3
         switch (difficulty)
         {
             case "Easy":
-                return 2;
+                return 0;
             case "Standard":
-                return 3;
+                return 1;
             case "Hard":
-                return 4;
+                return 2;
             case "Exceptional":
-                return 5;
+                return 3;
             default:
-                return 3; // Default to Standard
+                return 1; // Default to Standard
         }
     }
 
