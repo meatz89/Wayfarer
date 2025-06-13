@@ -23,13 +23,10 @@ Do not spell out to the player that he will have to make a decision.
 4. The Chekhov's Gun should enhance but not dominate the primary encounterContext goal
 
 ## Conflict Generation
-Based on the location, encounterContext type, and CHOSEN APPROACH, create an appropriate conflict situation.
-
-The selected conflict should:
+When creating conflicts, they should:
 - Arise NATURALLY from the approach the player has chosen
 - Create meaningful STAKES for success or failure with this specific approach
 - Offer multiple viable ways to use this particular approach
-- Introduce TENSION appropriate to a {ENCOUNTER_TYPE} encounterContext using the player's chosen method
 
 ## General Requirements
 1. Reference at least 1-2 specific details from the memory file
