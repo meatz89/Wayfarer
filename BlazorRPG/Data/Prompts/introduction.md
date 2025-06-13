@@ -12,14 +12,10 @@ CRITICAL: Do not have the character pre-decide actions or end with questions.
 - If "NPCs Present: None" then NO NPCs exist in this scene
 - If "No memories available" then NO references to character's past
 - If NPCs are listed, only those NPCs exist
-- Never add elements not explicitly provided in the context
-- Never reference locations, people, or activities outside the current location
 - ALL elements mentioned must be within the immediate physical space
 
 ## Spatial Boundaries
 - Only describe what exists within the current location spot
-- Never reference sounds, sights, or activities from other locations
-- Do not mention adjacent rooms, outside areas, or distant activities
 - Focus exclusively on the immediate physical environment the character occupies
 
 ## Narrative Boundaries

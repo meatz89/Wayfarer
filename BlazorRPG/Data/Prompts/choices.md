@@ -34,12 +34,19 @@ Create choices based on:
 - Don't artificially prolong resolved tensions
 - Allow pivoting between different elements/people in current scene
 - Choices should feel organic to immediate environment
+- 
+## CURRENT NARRATIVE STATE AWARENESS
+- Acknowledge the character's current emotional and physical state from the reaction
+- Account for how NPCs' attitudes have changed during this encounter
+- Don't offer choices that contradict established relationship dynamics
+- Reflect consequences of previous failed or successful actions
+- Generate choices appropriate to the current situation, not the initial situation
 
-## NARRATIVE CONTINUITY
-- If introduction establishes character focus on specific elements, prioritize related choices
-- Don't abandon established interest unless urgent intervention occurs
-- Allow follow-through on established attention while offering alternatives
-- Balance continuation with scene flexibility
+## ESTABLISHED FOCUS PRIORITY
+- Identify what specific elements the character was observing or considering at the introduction's end
+- Generate at least 2 choices that directly engage with those established elements
+- Other choices can offer alternatives, but established focus must be addressed
+- Never ignore what the character was actively paying attention to
 
 ## CONTEXTUAL GROUNDING
 - ALL choices must reference elements explicitly present in current narrative
