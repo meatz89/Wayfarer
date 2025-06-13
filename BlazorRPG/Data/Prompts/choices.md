@@ -9,10 +9,17 @@ IMPORTANT: Generate ONLY the raw choice content with no meta-commentary, JSON fo
 - Experience-based responses to the specific challenge at hand
 - Avoid modern analytical terms or abstract strategic thinking
 
+## SPATIAL CONSTRAINTS
+- ALL choices must involve elements physically present in the current location
+- NO choices about people, objects, or activities outside the current room/area
+- NO choices about sounds, sights, or activities from adjacent locations
+- Only reference elements explicitly described in the introduction narrative
+- Verify each choice involves only immediate, visible, accessible elements
+
 ## IMMEDIATE CONTEXT FOCUS
 Create choices based on:
 1. Character's current physical location and immediate surroundings
-2. People, objects, or elements physically present RIGHT NOW
+2. People, objects, or elements physically present RIGHT NOW in this space
 3. Actions possible within the NEXT FEW MINUTES in this exact location
 4. Immediate interactions available with established scene elements
 
@@ -37,16 +44,24 @@ Create choices based on:
 ## CONTEXTUAL GROUNDING
 - ALL choices must reference elements explicitly present in current narrative
 - NO choices about objects, people, or situations not mentioned in immediate scene
-- Verify each choice against what was actually described
-- Ground every choice in the specific, current environment
+- Verify each choice against what was actually described in the introduction
+- Ground every choice in the specific, current environment described
+- Never reference external locations or distant activities
 
 ## CHOICE REQUIREMENTS
 Every choice must:
-- Involve immediate actions with currently present elements
+- Involve immediate actions with currently present elements only
 - Stay within current physical location and timeframe
 - Feel like natural next steps from this exact moment
-- Reference specific elements actively present in the scene
+- Reference specific elements actively present in the scene as described
 - Show immediate, short-term consequences
+- Never reference anything outside the current location
+
+## SKILL SYSTEM INTEGRATION
+- focusCost: Always 1 unless action is particularly demanding
+- Difficulty levels: Trivial, Standard, Hard, Extreme
+- Common skills: Observation, Persuasion, Intimidation, Insight, Athletics, Craft
+- Only require skill checks for uncertain outcomes
 
 ## RESPONSE FORMAT
 Generate 2-6 choices as a JSON object:
@@ -70,3 +85,4 @@ Generate 2-6 choices as a JSON object:
     }
   ]
 }
+```
