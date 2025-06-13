@@ -13,28 +13,17 @@ This choice has NOT YET HAPPENED and must be executed in this scene.
 - NPCs should only notice or react to player actions if they would realistically do so
 - Maintain authentic medieval setting where everyday activities remain ordinary
 
-## Character Continuity
-- Limit new NAMED characters to 1-2 per Encounter
-- Focus primarily on developing characters already established
-- Feel free to include unnamed NPCs as needed
-- Background characters can take actions and react, but keep the focus on main NPCs
-- When introducing a named character, give them distinctive traits and motivations
-
-## NPC CHARACTERIZATION
-- NPCs must take independent actions pursuing their own goals
-- NPCs should only react to player actions if they would logically notice and care
-- Show emotions through subtle physical details (gestures, expressions, posture)
-- NPCs should speak in distinctive voices appropriate to their character
-- NPCs should take at least one independent action that fits their established character
-- Include physical details revealing NPC emotions without exaggeration
+## REACTION REQUIREMENTS
+- Simple actions should have simple outcomes
+- If the player's action naturally completes their immediate goal, describe the completion
+- Only introduce new elements if they would realistically occur
+- NPCs should only act if they have logical motivation to do so
+- Some reactions can simply accomplish what the player intended without additional complications
 
 ## Writing Requirements
 Write a reaction narrative to the player's choice in first-person present tense:
 1. Show the player's attempted action and the ACTUAL results (which should be realistic and grounded)
-2. Demonstrate situation evolution with NPCs taking independent actions ONLY when appropriate
-3. Present a new challenge requiring decision with NPC involvement that follows naturally from the scene
+2. Describe what happens naturally as a result of the action
+3. End with the resulting situation - this may be a new choice point OR simple completion
 
-Start with acknowledging the player's intent, but then show what ACTUALLY happens based on the rules above.
-Do not spell out to the player that he will have to make a decision.
-
-CRITICAL: The world should feel authentic and medieval - NOT mystical, magical, or overly dramatic. Reactions must match the actual significance of the player's action.
+CRITICAL: Not every action needs to create drama or complications. Sometimes the player just accomplishes what they set out to do, or is left with unanswered questions or lingering problems to respond to.
