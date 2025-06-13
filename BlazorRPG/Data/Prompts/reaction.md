@@ -70,6 +70,6 @@ Write in first-person present tense:
 1. Show the player's action and its ACTUAL results
 2. Describe what happens naturally as a consequence
 3. End with the resulting situation
-4. Keep to 2-3 paragraphs maximum
+4. Keep to 4-5 paragraphs maximum
 
 CRITICAL: Not every action needs drama or complications. Sometimes the player accomplishes their goal, or faces straightforward outcomes that require new decisions.

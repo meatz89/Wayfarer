@@ -52,5 +52,5 @@ Match the ending to the encounter's actual demands:
 5. Write in first-person present tense from medieval perspective
 6. Include environmental elements aligned with the chosen approach
 7. Present opportunities without committing to them
-8. Keep to 2-3 paragraphs maximum
+8. Keep to 4-5 paragraphs maximum
 9. Never reference anything outside the current location spot
