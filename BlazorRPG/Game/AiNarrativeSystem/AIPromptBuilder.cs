@@ -42,6 +42,9 @@ public class AIPromptBuilder
         // Add base context
         AddBaseContext(prompt, context);
 
+        // Add base context
+        AddPlayerContext(prompt, context);
+
         // Add memory context
         AddMemoryContext(prompt, gameWorld);
 
@@ -83,6 +86,12 @@ public class AIPromptBuilder
 
         StringBuilder prompt = new StringBuilder();
 
+        // Add base context
+        AddBaseContext(prompt, context);
+
+        // Add base context
+        AddPlayerContext(prompt, context);
+
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
 
@@ -111,6 +120,12 @@ public class AIPromptBuilder
         GameWorld gameWorld = context.GameWorld;
 
         StringBuilder prompt = new StringBuilder();
+
+        // Add base context
+        AddBaseContext(prompt, context);
+
+        // Add base context
+        AddPlayerContext(prompt, context);
 
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
@@ -377,6 +392,17 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
+    private static void AddPlayerContext(StringBuilder prompt, EncounterContext context)
+    {
+        // Format player character info
+        string name = context.Player.Name.ToString();
+        string gender = context.Player.Gender.ToString();
+        string playerArchetype = context.Player.Archetype.ToString();
+        string playerInfo = $"{gender} {playerArchetype}";
+
+        prompt.AppendLine("Player Info: " + playerInfo);
+    }
+
     private static void AddBaseContext(StringBuilder prompt, EncounterContext context)
     {
         prompt.AppendLine();
@@ -387,12 +413,6 @@ public class AIPromptBuilder
         {
             npcList = "None";
         }
-
-        // Format player character info
-        string gender = context.Player.Gender.ToString();
-        string playerArchetype = context.Player.Archetype.ToString();
-        string playerInfo = $"{gender} {playerArchetype}";
-
         // Get action and approach information
         LocationAction locationAction = context.LocationAction;
         string actionGoal = locationAction.ObjectiveDescription;
@@ -408,7 +428,6 @@ public class AIPromptBuilder
         prompt.AppendLine("Location Spot: " + context.LocationSpotName);
         prompt.AppendLine("Character Goal: " + actionGoal);
         prompt.AppendLine("Environment Details: " + environmentDetails);
-        prompt.AppendLine("Player Info: " + playerInfo);
         prompt.AppendLine("NPCs Present: " + npcList);
         prompt.AppendLine("Chosen Approach: " + approachDetails);
 

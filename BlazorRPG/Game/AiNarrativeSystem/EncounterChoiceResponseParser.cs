@@ -7,9 +7,9 @@ public class EncounterChoiceResponseParser
 
     // Add these fields to EncounterChoiceResponseParser
     private readonly string _templateFile = "UniqueTemplates.txt";
-    private readonly string _templatePurposeFile = "UniqueTemplatePurposes.txt";
     private readonly string _skillNameFile = "UniqueSkillNames.txt";
     private readonly string _effectFile = "UniqueEffects.txt";
+    private readonly string _templateUsedPurposeFile = "UniqueTemplateUsedPurposes.txt";
 
     public EncounterChoiceResponseParser(ILogger<EncounterChoiceResponseParser> logger = null)
     {
@@ -166,9 +166,9 @@ public class EncounterChoiceResponseParser
         {
             choice.TemplatePurpose = templatePurposeElement.GetString();
 
-            if (!string.IsNullOrWhiteSpace(choice.TemplatePurpose))
+            if (!string.IsNullOrWhiteSpace(choice.TemplateUsed) && !string.IsNullOrWhiteSpace(choice.TemplatePurpose))
             {
-                AppendUniqueValueToFile(_templatePurposeFile, choice.TemplatePurpose);
+                    AppendUniqueTemplateUsedPurposeToFile(_templateUsedPurposeFile, choice.TemplateUsed, choice.TemplatePurpose);
             }
         }
 
@@ -231,7 +231,34 @@ public class EncounterChoiceResponseParser
     }
 
 
-    // Utility method to append unique value to file or increment a number next to entry
+    private List<EncounterChoice> ExtractChoicesFromText(string text)
+    {
+        List<EncounterChoice> choices = new List<EncounterChoice>();
+
+        // Try to find JSON blocks in the text
+        Regex jsonRegex = new Regex(@"\{(?:[^{}]|(?<Open>\{)|(?<-Open>\}))+(?(Open)(?!))\}");
+        MatchCollection matches = jsonRegex.Matches(text);
+
+        foreach (Match match in matches)
+        {
+            JsonDocument document = JsonDocument.Parse(match.Value);
+            EncounterChoice choice = ParseChoiceFromJson(document.RootElement);
+            if (choice != null)
+            {
+                choices.Add(choice);
+            }
+        }
+
+        return choices;
+    }
+    private void EnsureFileExists(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            File.WriteAllText(filePath, "");
+        }
+    }
+
     private void AppendUniqueValueToFile(string filePath, string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -239,11 +266,7 @@ public class EncounterChoiceResponseParser
 
         try
         {
-            // Ensure file exists
-            if (!File.Exists(filePath))
-            {
-                File.WriteAllText(filePath, "");
-            }
+            EnsureFileExists(filePath);
 
             var lines = File.ReadAllLines(filePath).ToList();
             bool found = false;
@@ -279,25 +302,51 @@ public class EncounterChoiceResponseParser
             _logger?.LogWarning("Failed to write unique value to file {File}: {Error}", filePath, ex.Message);
         }
     }
-    
-    private List<EncounterChoice> ExtractChoicesFromText(string text)
+
+    private void AppendUniqueTemplateUsedPurposeToFile(string filePath, string templateUsed, string templatePurpose)
     {
-        List<EncounterChoice> choices = new List<EncounterChoice>();
+        if (string.IsNullOrWhiteSpace(templateUsed) || string.IsNullOrWhiteSpace(templatePurpose))
+            return;
 
-        // Try to find JSON blocks in the text
-        Regex jsonRegex = new Regex(@"\{(?:[^{}]|(?<Open>\{)|(?<-Open>\}))+(?(Open)(?!))\}");
-        MatchCollection matches = jsonRegex.Matches(text);
+        string entry = $"{templateUsed}|{templatePurpose}";
 
-        foreach (Match match in matches)
+        try
         {
-            JsonDocument document = JsonDocument.Parse(match.Value);
-            EncounterChoice choice = ParseChoiceFromJson(document.RootElement);
-            if (choice != null)
+            EnsureFileExists(filePath);
+
+            var lines = File.ReadAllLines(filePath);
+            if (!lines.Contains(entry))
             {
-                choices.Add(choice);
+                File.AppendAllText(filePath, entry + Environment.NewLine);
             }
         }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning("Failed to write unique templateUsed|templatePurpose to file {File}: {Error}", filePath, ex.Message);
+        }
+    }
+    private bool TryGetJsonProperty(JsonElement element, string[] propertyNames, out JsonElement value)
+    {
+        foreach (var name in propertyNames)
+        {
+            if (element.TryGetProperty(name, out value))
+                return true;
+        }
+        value = default;
+        return false;
+    }
 
-        return choices;
+    private string GetStringProperty(JsonElement element, params string[] propertyNames)
+    {
+        if (TryGetJsonProperty(element, propertyNames, out var value))
+            return value.GetString();
+        return null;
+    }
+
+    private int? GetIntProperty(JsonElement element, params string[] propertyNames)
+    {
+        if (TryGetJsonProperty(element, propertyNames, out var value) && value.ValueKind == JsonValueKind.Number)
+            return value.GetInt32();
+        return null;
     }
 }
