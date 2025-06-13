@@ -13,6 +13,14 @@ CRITICAL: Do not have the character pre-decide actions or end with questions.
 - If "No memories available" then NO references to character's past
 - If NPCs are listed, only those NPCs exist
 - Never add elements not explicitly provided in the context
+- Never reference locations, people, or activities outside the current location
+- ALL elements mentioned must be within the immediate physical space
+
+## Spatial Boundaries
+- Only describe what exists within the current location spot
+- Never reference sounds, sights, or activities from other locations
+- Do not mention adjacent rooms, outside areas, or distant activities
+- Focus exclusively on the immediate physical environment the character occupies
 
 ## Narrative Boundaries
 - Present the situation appropriately for the encounter context
@@ -42,10 +50,11 @@ Match the ending to the encounter's actual demands:
 
 ## Requirements
 1. Apply memory rules as specified above
-2. Use sensory details across at least three senses
+2. Use sensory details across at least three senses from the immediate environment only
 3. Show only NPCs explicitly listed in "NPCs Present"
 4. End with character observing the scene, NOT making decisions
 5. Write in first-person present tense from medieval perspective
 6. Include environmental elements aligned with the chosen approach
 7. Present opportunities without committing to them
 8. Keep to 2-3 paragraphs maximum
+9. Never reference anything outside the current location spot
