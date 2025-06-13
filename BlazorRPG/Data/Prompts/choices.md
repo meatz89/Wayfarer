@@ -37,10 +37,17 @@ Before creating choices, analyze the narrative context INTERNALLY:
 
 ## PRIORITY WEIGHTING
 When the narrative establishes character interest in specific elements:
-- Include at least 1-2 choices that directly engage with what caught the character's attention
-- Offer 1-2 alternative approaches to the same element (different ways to engage)
-- Include 1-2 broader scene options for players who want to pivot away
+- Include choices that directly engage with what caught the character's attention
+- Offer alternative approaches to the same element (different ways to engage)
+- Include broader scene options for players who want to pivot away
 - Maintain narrative flow rather than creating jarring disconnects
+
+## CURRENT NARRATIVE STATE COMPLIANCE
+- Base choices on where the character's attention actually ended in the narrative, not where it began
+- If the narrative shows the character focusing on specific elements by the end, prioritize choices related to those elements
+- Don't offer choices to engage with elements the narrative has already moved away from unless there's natural reason to return
+- Follow the actual flow of attention established in the text, not ideal scenarios
+- Ensure choices feel like natural next steps from the narrative's actual ending point
 
 ## Response Creation Requirements
 Every choice must:

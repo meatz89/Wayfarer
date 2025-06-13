@@ -25,6 +25,13 @@ When the player chooses actions related to elements the character was already ob
 - Reference the established interest
 - Show natural progression
 - Avoid treating it like a completely new discovery
+- 
+## ATTENTION FOCUS CONSISTENCY
+- If the character notices or observes specific elements, maintain that focus through the end of the narrative
+- DO NOT have the character's attention shift between multiple different elements within the same narrative
+- Once the character's interest is established on something, end with that focus rather than jumping to new observations
+- Let the player choose whether to maintain, shift, or abandon established points of interest
+- Avoid "attention wandering" that pre-decides the character's priorities
 
 ## REACTION REQUIREMENTS
 - Simple actions should have simple outcomes
