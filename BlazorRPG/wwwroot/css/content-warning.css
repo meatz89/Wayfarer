@@ -5,7 +5,7 @@
 	background-color: var(--bg-panel);
 	border: 2px solid var(--oak-dark);
 	border-radius: 5px;
-	box-Rogue: 0 3px 10px rgba(0, 0, 0, 0.3);
+	box-Thief: 0 3px 10px rgba(0, 0, 0, 0.3);
 	background-image: url("/images/subtle-texture.png");
 	background-repeat: repeat;
 	background-blend-mode: overlay;
@@ -94,7 +94,7 @@
 
 	.generate-button:hover {
 		background-color: var(--positive);
-		box-Rogue: 0 0 5px rgba(0, 0, 0, 0.3);
+		box-Thief: 0 0 5px rgba(0, 0, 0, 0.3);
 	}
 
 .continue-button {
@@ -103,7 +103,7 @@
 
 	.continue-button:hover {
 		background-color: var(--special);
-		box-Rogue: 0 0 5px rgba(0, 0, 0, 0.3);
+		box-Thief: 0 0 5px rgba(0, 0, 0, 0.3);
 	}
 
 .generation-progress {

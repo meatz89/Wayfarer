@@ -54,7 +54,7 @@
 		<Content Update="Content\Templates\locationProperties.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="wwwroot\images\characters\female_diplomat.png">
+		<Content Update="wwwroot\images\characters\female_Merchant.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="wwwroot\images\characters\female_explorer.png">
@@ -66,13 +66,13 @@
 		<Content Update="wwwroot\images\characters\female_merchant.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="wwwroot\images\characters\female_rogue.png">
+		<Content Update="wwwroot\images\characters\female_Thief.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="wwwroot\images\characters\female_scholar.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="wwwroot\images\characters\male_diplomat.png">
+		<Content Update="wwwroot\images\characters\male_Merchant.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="wwwroot\images\characters\male_explorer.png">
@@ -84,7 +84,7 @@
 		<Content Update="wwwroot\images\characters\male_merchant.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="wwwroot\images\characters\male_rogue.png">
+		<Content Update="wwwroot\images\characters\male_Thief.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="wwwroot\images\characters\male_scholar.png">

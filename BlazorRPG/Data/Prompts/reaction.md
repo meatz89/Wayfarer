@@ -18,7 +18,7 @@ The player's choice represents their selected action. Execute this action and sh
 ## MANDATORY REALISM PRINCIPLES
 - All reactions MUST be proportionate and realistic to the player's action
 - Mundane actions receive mundane reactions
-- NO magical, mystical, or unexplained reactions to ordinary actions
+- NO magical, Thiefal, or unexplained reactions to ordinary actions
 - Weather and environment should NOT dramatically change in response to player actions
 - NPCs only notice or react if they would realistically do so and if they exist
 - Maintain authentic medieval setting where everyday activities remain ordinary

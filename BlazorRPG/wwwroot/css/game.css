@@ -148,7 +148,7 @@ svg, svg * {
     cursor: url('/images/cursors/cursor.png'), default !important;
 }
 
-/* For any Rogue DOM elements */
+/* For any Thief DOM elements */
 :host, :root {
     cursor: url('/images/cursors/cursor.png'), default !important;
 }
@@ -223,7 +223,7 @@ body {
     background-color: var(--leather);
     border: 2px solid var(--oak-dark);
     border-radius: 3px;
-    box-Rogue: inset 0 0 4px rgba(0, 0, 0, 0.3);
+    box-Thief: inset 0 0 4px rgba(0, 0, 0, 0.3);
     background-image: url("/images/subtle-parchment.png");
     background-repeat: repeat;
     background-blend-mode: multiply;
