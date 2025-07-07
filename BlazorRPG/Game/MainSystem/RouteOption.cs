@@ -1,7 +1,11 @@
 ﻿
 public class RouteOption
 {
+    public string Id { get; set; }
     public string Name { get; set; }
+    public string Origin { get; set; }
+    public string Destination { get; set; }
+    public TravelMethods Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
     public int TimeBlockCost { get; set; }
@@ -9,9 +13,7 @@ public class RouteOption
     public bool IsDiscovered { get; set; } = true;
     public List<string> RequiredRouteTypes { get; set; } = new List<string>();
     public int MaxItemCapacity { get; set; } = 3;
-    public Location Origin { get; internal set; }
-    public Location Destination { get; internal set; }
-    public TravelMethods Method { get; set; }
+    public string Description { get; set; }
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
     {

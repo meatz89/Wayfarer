@@ -175,19 +175,13 @@
         return availableRoutes;
     }
 
-    public int CalculateStaminaCost(RouteOption route)
-    {
-        int totalWeight = CalculateCurrentWeight(gameWorld);
-        int staminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
-        return staminaCost;
-    }
 
     public int CalculateCurrentWeight(GameWorld gameWorld)
     {
         int totalWeight = 0;
 
         // Calculate item weight
-        foreach (string itemName in gameWorld.PlayerInventory.ItemSlots)
+        foreach (string itemName in gameWorld.GetPlayer().Inventory.ItemSlots)
         {
             if (itemName != null)
             {
@@ -200,9 +194,16 @@
         }
 
         // Add coin weight (10 coins = 1 weight unit)
-        totalWeight += gameWorld.PlayerCoins / 10;
+        totalWeight += gameWorld.GetPlayer().Coins / 10;
 
         return totalWeight;
+    }
+
+    public int CalculateStaminaCost(RouteOption route)
+    {
+        int totalWeight = CalculateCurrentWeight(gameWorld);
+        int staminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
+        return staminaCost;
     }
 
     // Add a helper method for UI display

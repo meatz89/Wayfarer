@@ -1,19 +1,35 @@
-﻿
-
-public class ContractRepository
+﻿public class ContractRepository
 {
-    internal void AddContract(Contract exclusiveContract)
+    private List<Contract> _contracts = new List<Contract>();
+
+    public ContractRepository()
     {
-        throw new NotImplementedException();
+        // Initialize with contracts from game state
+        _contracts = GameWorld.AllContracts ?? new List<Contract>();
     }
 
-    internal List<Contract> GetAvailableContracts(int currentDay, TimeBlocks currentTimeBlock)
+    public List<Contract> GetAvailableContracts(int currentDay, TimeBlocks currentTimeBlock)
     {
-        throw new NotImplementedException();
+        return _contracts
+            .Where(c => c.IsAvailable(currentDay, currentTimeBlock))
+            .ToList();
     }
 
-    internal Contract GetContract(string contractId)
+    public Contract GetContract(string id)
     {
-        throw new NotImplementedException();
+        return _contracts.FirstOrDefault(c => c.Id == id);
+    }
+
+    public void AddContract(Contract contract)
+    {
+        if (!_contracts.Any(c => c.Id == contract.Id))
+        {
+            _contracts.Add(contract);
+            // Also add to the static list to ensure it's persisted
+            if (!GameWorld.AllContracts.Any(c => c.Id == contract.Id))
+            {
+                GameWorld.AllContracts.Add(contract);
+            }
+        }
     }
 }

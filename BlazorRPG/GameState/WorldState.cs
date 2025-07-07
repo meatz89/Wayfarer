@@ -16,6 +16,10 @@
     public TimeBlocks CurrentTimeWindow { get; set; }
     public int CurrentTimeHours { get; set; }
 
+    // New properties
+    public List<Item> Items { get; set; } = new List<Item>();
+    public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
+
     // Current location tracking
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }

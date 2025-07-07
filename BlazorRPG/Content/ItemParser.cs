@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-public static class ContractParser
+public static class ItemParser
 {
-    public static Contract ParseContract(string json)
+    public static Item ParseItem(string json)
     {
         JsonDocumentOptions options = new JsonDocumentOptions
         {
@@ -12,24 +12,22 @@ public static class ContractParser
         using JsonDocument doc = JsonDocument.Parse(json, options);
         JsonElement root = doc.RootElement;
 
-        Contract contract = new Contract
+        Item item = new Item
         {
             Id = GetStringProperty(root, "id", ""),
+            Name = GetStringProperty(root, "name", ""),
+            Weight = GetIntProperty(root, "weight", 1),
+            BuyPrice = GetIntProperty(root, "buyPrice", 0),
+            SellPrice = GetIntProperty(root, "sellPrice", 0),
+            InventorySlots = GetIntProperty(root, "inventorySlots", 1),
+            IsContraband = GetBoolProperty(root, "isContraband", false),
+            LocationId = GetStringProperty(root, "locationId", ""),
+            SpotId = GetStringProperty(root, "spotId", ""),
             Description = GetStringProperty(root, "description", ""),
-            DestinationLocation = GetStringProperty(root, "destinationLocation", ""),
-            StartDay = GetIntProperty(root, "startDay", 1),
-            DueDay = GetIntProperty(root, "dueDay", 5),
-            Payment = GetIntProperty(root, "payment", 0),
-            FailurePenalty = GetStringProperty(root, "failurePenalty", ""),
-            IsCompleted = GetBoolProperty(root, "isCompleted", false),
-            IsFailed = GetBoolProperty(root, "isFailed", false),
-            RequiredItems = GetStringArray(root, "requiredItems"),
-            RequiredLocations = GetStringArray(root, "requiredLocations"),
-            UnlocksContractIds = GetStringArray(root, "unlocksContractIds"),
-            LocksContractIds = GetStringArray(root, "locksContractIds")
+            EnabledRouteTypes = GetStringArray(root, "enabledRouteTypes")
         };
 
-        return contract;
+        return item;
     }
 
 

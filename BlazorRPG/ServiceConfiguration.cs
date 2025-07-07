@@ -7,7 +7,7 @@ public static class ServiceConfiguration
         string contentDirectory = "content";
 
         // Create ContentLoader
-        ContentLoader contentLoader = new ContentLoader(contentDirectory);
+        ContentLoader  contentLoader = new ContentLoader (contentDirectory);
         services.AddSingleton(contentLoader);
 
         // Load game state

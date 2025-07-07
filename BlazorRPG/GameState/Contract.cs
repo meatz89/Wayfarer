@@ -11,10 +11,10 @@
     public string FailurePenalty { get; set; }
     public bool IsCompleted { get; set; } = false;
     public bool IsFailed { get; set; } = false;
-    public List<string> UnlocksContractIds { get; set; } = new List<string>();  // Chain contracts
-    public List<string> LocksContractIds { get; set; } = new List<string>();    // Competitive contracts
+    public List<string> UnlocksContractIds { get; set; } = new List<string>();
+    public List<string> LocksContractIds { get; set; } = new List<string>();
 
-    public bool IsAvailable(int currentDay, TimeBlocks timeBlock)
+    public bool IsAvailable(int currentDay, TimeBlocks currentTimeBlock)
     {
         return !IsCompleted && !IsFailed && currentDay >= StartDay && currentDay <= DueDay;
     }

@@ -2,11 +2,15 @@
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public int Weight { get; set; } = 1;  // Default weight of 1
+    public int Weight { get; set; } = 1;
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
-    public int InventorySlots { get; set; } = 1;  // For bulk items
+    public int InventorySlots { get; set; } = 1;
     public List<string> EnabledRouteTypes { get; set; } = new List<string>();
+    public bool IsContraband { get; set; } = false;
+    public string LocationId { get; set; }
+    public string SpotId { get; set; }
+    public string Description { get; set; }
 
     public string WeightDescription => Weight switch
     {
