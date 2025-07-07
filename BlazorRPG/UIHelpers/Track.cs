@@ -1,4 +1,4 @@
-﻿namespace BlazorRPG.Components
+﻿namespace BlazorRPG.UIHelpers
 {
     public class Track
     {

@@ -1,6 +1,6 @@
-﻿using BlazorRPG.Components;
-using BlazorRPG.GameState;
+﻿using BlazorRPG.GameState;
 using BlazorRPG.Pages;
+using BlazorRPG.UIHelpers;
 
 public static class ServiceConfiguration
 {
