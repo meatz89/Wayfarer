@@ -100,7 +100,7 @@
         GameWorld.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
 
-    public async Task ProcessNextBeat()
+    public async Task NextEncounterBeat()
     {
         if(!isAiAvailable)
         {
@@ -299,15 +299,19 @@
             this.player.ExhaustCard(card);
         }
 
+        executionType = ActionExecutionTypes.Instant;
+
         switch (executionType)
         {
+            case ActionExecutionTypes.Instant:
+                await ProcessActionCompletion();
+                break;
+
             case ActionExecutionTypes.Encounter:
                 string approachId = action.ApproachId;
                 await StartEncounter(approachId);
-
                 break;
 
-            case ActionExecutionTypes.Instant:
             default:
                 await ProcessActionCompletion();
                 break;
