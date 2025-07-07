@@ -1,0 +1,99 @@
+﻿@* ContractUI.razor *@
+@inherits ContractUIBase
+
+@inject GameWorldManager GameWorldManager
+@inject GameWorld GameWorld
+@inject ContractRepository ContractRepository
+
+<div class="contracts-container">
+    <h2>Available Contracts</h2>
+
+    <div class="contracts-list">
+        @if (AvailableContracts.Any())
+        {
+            @foreach (var contract in AvailableContracts)
+            {
+                bool canComplete = contract.CanComplete(GameWorld.GetPlayer(), GameWorld.CurrentLocation.Id);
+                int daysRemaining = contract.DueDay - GameWorld.CurrentDay;
+
+                <div class="contract-card">
+                    <div class="contract-header">
+                        <span class="contract-name">@contract.Description</span>
+                        <span class="contract-time @(daysRemaining <= 1 ? "urgent" : "")">
+                            @(daysRemaining > 0 ? $"{daysRemaining} days remaining" : "Due today!")
+                        </span>
+                    </div>
+
+                    <div class="contract-details">
+                        <div class="detail">
+                            <span class="detail-label">Delivery to:</span>
+                            <span class="detail-value">@contract.DestinationLocation</span>
+                        </div>
+
+                        @if (contract.RequiredItems.Any())
+                        {
+                            <div class="detail">
+                                <span class="detail-label">Required items:</span>
+                                <span class="detail-value">@string.Join(", ", contract.RequiredItems)</span>
+                            </div>
+                        }
+
+                        @if (contract.RequiredLocations.Any())
+                        {
+                            <div class="detail">
+                                <span class="detail-label">Required locations:</span>
+                                <span class="detail-value">@string.Join(", ", contract.RequiredLocations)</span>
+                            </div>
+                        }
+
+                        <div class="detail">
+                            <span class="detail-label">Payment:</span>
+                            <span class="detail-value">@contract.Payment coins</span>
+                        </div>
+
+                        <div class="detail">
+                            <span class="detail-label">Failure penalty:</span>
+                            <span class="detail-value">@contract.FailurePenalty</span>
+                        </div>
+                    </div>
+
+                    @if (canComplete)
+                    {
+                        <button class="complete-button"
+                                @onclick="() => CompleteContract(contract)">
+                            Complete Contract
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="requirements-message">
+                            @if (GameWorld.CurrentLocation.Id != contract.DestinationLocation)
+                            {
+                                <span>You must be in @contract.DestinationLocation to complete this contract.</span>
+                            }
+                            else if (contract.RequiredItems.Any(item => Array.IndexOf(GameWorld.PlayerInventory.ItemSlots, item) == -1))
+                            {
+                                <span>
+                                    You're missing required items:
+                                    @string.Join(", ", contract.RequiredItems.Where(item =>
+                                    Array.IndexOf(GameWorld.PlayerInventory.ItemSlots, item) == -1))
+                </span>
+                                }
+                            else if (contract.RequiredLocations.Any(loc => !GameWorld.GetPlayer().HasVisitedLocation(loc)))
+                            {
+                                <span>You haven't visited all required locations.</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-contracts">
+                No contracts available at this time.
+            </div>
+        }
+    </div>
+</div>
+

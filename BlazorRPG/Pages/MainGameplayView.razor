@@ -196,26 +196,41 @@
                     </div>
                 }
             </div>
-
             <div class="sidebar-section @(ExpandedSections[SidebarSections.inventory] ? "expanded" : "collapsed")">
                 <div class="section-header hover" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
-                    <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Capacity)</span>
+                    <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Size)</span>
                     <span class="expand-icon">@(ExpandedSections[SidebarSections.inventory] ? "▼" : "►")</span>
                 </div>
 
                 @if (ExpandedSections[SidebarSections.inventory])
                 {
                     <div class="section-content">
+                        @{
+                            int totalWeight = GameManager.CalculateTotalWeight();
+                            int coinWeight = PlayerState.Coins / 10;
+                            string weightStatus = totalWeight <= 3 ? "Light load" :
+                            (totalWeight <= 6 ? "Medium load (+1 stamina)" :
+                            "Heavy load (+2 stamina)");
+                        }
+                        <div class="weight-info">
+                            <span>Total Weight: @totalWeight (@weightStatus)</span>
+                            <span>Coin Weight: @coinWeight</span>
+                        </div>
+
                         <div class="inventory-grid">
-                            @foreach (Item itemType in Enum.GetValues(typeof(Item)))
+                            @foreach (var itemName in PlayerState.Inventory.ItemSlots)
                             {
-                                int count = PlayerState.Inventory.GetItemCount(itemType.ToString());
-                                if (count > 0)
+                                if (itemName != null)
                                 {
-                                    <div class="inventory-item" title="@itemType">
-                                        <span class="item-icon">@itemType</span>
-                                        <span class="item-name">@FormatItemName(itemType)</span>
-                                        <span class="item-count">@count</span>
+                                    Item item = ItemRepository.GetItemByName(itemName);
+                                    <div class="inventory-item" title="@itemName">
+                                        <span class="item-icon">🧰</span>
+                                        <span class="item-name">@itemName</span>
+                                        <span class="item-weight">Weight: @item.Weight</span>
+                                        @if (item.EnabledRouteTypes.Any())
+                                        {
+                                            <span class="item-routes">Enables: @string.Join(", ", item.EnabledRouteTypes)</span>
+                                        }
                                     </div>
                                 }
                             }

@@ -1,6 +1,4 @@
-﻿using BlazorRPG.GameState;
-using BlazorRPG.Pages;
-using BlazorRPG.UIHelpers;
+﻿using BlazorRPG.UIHelpers;
 
 public static class ServiceConfiguration
 {
@@ -23,6 +21,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<ItemRepository>();
+        services.AddSingleton<ContractRepository>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();

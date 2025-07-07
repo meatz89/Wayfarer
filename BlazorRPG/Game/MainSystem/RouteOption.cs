@@ -13,24 +13,15 @@ public class RouteOption
     public Location Destination { get; internal set; }
     public TravelMethods Method { get; set; }
 
-    public bool CanTravel(ItemRepository itemRepository, Player player)
+    public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
     {
         // Check if player has enough coins
         if (player.Coins < BaseCoinCost) return false;
 
-        // Check weight-adjusted stamina cost
-        int adjustedStaminaCost = BaseStaminaCost;
-        int totalWeight = player.CalculateTotalWeight();
+        // Calculate adjusted stamina cost based on weight
+        int adjustedStaminaCost = CalculateWeightAdjustedStaminaCost(totalWeight);
 
-        if (totalWeight >= 4 && totalWeight <= 6)
-        {
-            adjustedStaminaCost += 1;
-        }
-        else if (totalWeight >= 7)
-        {
-            adjustedStaminaCost += 2;
-        }
-
+        // Check if player has enough stamina
         if (player.Stamina < adjustedStaminaCost) return false;
 
         // Check inventory size against transport capacity
@@ -40,9 +31,19 @@ public class RouteOption
         // Check for required route types
         foreach (string requiredType in RequiredRouteTypes)
         {
-            bool hasEnablingItem = player.Inventory.ItemSlots
-                .Select(itemId => itemRepository.GetItemByName(itemId))
-                .Any(item => item != null && item.EnabledRouteTypes.Contains(requiredType));
+            bool hasEnablingItem = false;
+            foreach (string itemName in player.Inventory.ItemSlots)
+            {
+                if (itemName != null)
+                {
+                    Item item = itemRepository.GetItemByName(itemName);
+                    if (item != null && item.EnabledRouteTypes.Contains(requiredType))
+                    {
+                        hasEnablingItem = true;
+                        break;
+                    }
+                }
+            }
 
             if (!hasEnablingItem) return false;
         }
@@ -60,9 +61,26 @@ public class RouteOption
         return TimeBlockCost;
     }
 
+    public int CalculateWeightAdjustedStaminaCost(int totalWeight)
+    {
+        int adjustedStaminaCost = BaseStaminaCost;
+
+        // Apply weight penalties
+        if (totalWeight >= 4 && totalWeight <= 6)
+        {
+            adjustedStaminaCost += 1;
+        }
+        else if (totalWeight >= 7)
+        {
+            adjustedStaminaCost += 2;
+        }
+
+        return adjustedStaminaCost;
+    }
+
     internal EncounterContext GetEncounter(int seed)
     {
-        throw new NotImplementedException();
+        return null;
     }
 }
 

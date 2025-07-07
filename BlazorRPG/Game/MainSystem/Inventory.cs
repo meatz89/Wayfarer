@@ -1,7 +1,7 @@
 ﻿public class Inventory
 {
     public string[] ItemSlots;
-    public int Capacity { get { return ItemSlots.Length; } }
+    public int Size { get { return ItemSlots.Length; } }
     public int UsedCapacity
     {
         get
@@ -150,17 +150,16 @@
         return false;
     }
 
-    public int GetEmptySlots()
+    public bool HasFreeSlot()
     {
-        int emptyCount = 0;
         foreach (string slot in ItemSlots)
         {
             if (slot == string.Empty)
             {
-                emptyCount++;
+                return true;
             }
         }
-        return emptyCount;
+        return false;
     }
 
     public int GetItemCount(string item)

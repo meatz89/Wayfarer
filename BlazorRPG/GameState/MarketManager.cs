@@ -9,7 +9,7 @@
         LocationSystem = locationSystem;
     }
 
-    public List<TradeItem> GetAvailableItems(string locationId)
+    public List<Item> GetAvailableItems(string locationId)
     {
         Location location = LocationSystem.GetLocation(locationId);
         return location.MarketItems.Where(i => i.IsAvailable).ToList();
