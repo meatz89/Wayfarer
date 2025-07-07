@@ -28,7 +28,6 @@
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
 
-
     public Inventory Inventory { get; set; } = new Inventory(10);
 
     // Relationships with characters
@@ -453,7 +452,7 @@
         clone.CurrentLocationSpot = this.CurrentLocationSpot;
 
         // Deep copy Inventory
-        clone.Inventory = new Inventory(this.Inventory.Capacity);
+        clone.Inventory = new Inventory(this.Inventory.Size);
         foreach (string item in this.Inventory.GetAllItems())
         {
             clone.Inventory.AddItem(item);
@@ -590,13 +589,13 @@
         return (int)(baseCost * multiplier);
     }
 
-    internal int CalculateTotalWeight()
+    public int GetMaxItemCapacity()
     {
-        throw new NotImplementedException();
+        return Inventory.Size;
     }
 
-    internal int GetMaxItemCapacity()
+    public bool HasVisitedLocation(string requiredLocation)
     {
-        throw new NotImplementedException();
+        return false;
     }
 }

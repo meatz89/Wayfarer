@@ -1,12 +1,24 @@
-﻿@* TravelSelection.razor *@
-@inherits TravelSelectionBase
-
-@inject GameWorldManager ActionManager
-@inject GameWorld GameWorld
+﻿@inject GameWorldManager GameManager
+@inject TravelManager TravelManager
 
 <div class="world-map-container">
     <div class="world-map">
-        <img src="/images//world-map.png" />
+        <img src="/images/world-map.png" />
+    </div>
+
+    <div class="travel-status">
+        @{
+            int totalWeight1 = GameManager.CalculateTotalWeight();
+            string weightStatus = TravelManager.GetWeightStatusDescription(totalWeight1);
+            int coinWeight = GameWorld.GetPlayer().Coins / 10;
+        }
+        <div class="weight-status @(totalWeight1 > 3 ? "warning" : "")">
+            <span>Current load: @weightStatus (@totalWeight1 weight units)</span>
+        </div>
+        <div class="resource-status">
+            <span>Coins: @GameWorld.GetPlayer().Coins (Weight: @coinWeight)</span>
+            <span>Stamina: @GameWorld.GetPlayer().Stamina</span>
+        </div>
     </div>
 
     <div class="locations-grid">
@@ -14,14 +26,106 @@
         {
             <div class="location-card reachable">
                 <div class="location-name">
-                    @location.Id @(location.Id == CurrentLocation.Id ? "(Current)" : "")
+                    @location.Name @(location.Id == CurrentLocation.Id ? "(Current)" : "")
                 </div>
+                <div class="location-routes">
+                    @{
+                        var routes = TravelManager.GetAvailableRoutes(CurrentLocation.Id, location.Id);
+                        int totalWeight = GameManager.CalculateTotalWeight();
+                    }
+                    @foreach (var route in routes)
+                    {
+                        int adjustedStaminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
+                        string arrivalTime = CalculateArrivalTimeBlock(GameWorld.CurrentTimeBlock, route.TimeBlockCost);
+                        bool canAfford = route.CanTravel(ItemRepository, GameWorld.GetPlayer(), totalWeight);
 
-                <button class="action-button"
-                        @onclick="() => OnTravel.InvokeAsync(location.Id)">
-                    TRAVEL
-                </button>
+                        <div class="route-option @(!canAfford ? "disabled" : "")">
+                            <div class="route-name">@route.Name</div>
+                            <div class="route-details">
+                                <span>@route.BaseCoinCost coins</span>
+                                <span>@adjustedStaminaCost stamina @(route.BaseStaminaCost != adjustedStaminaCost ? $"(base {route.BaseStaminaCost} + weight penalty)" : "")</span>
+                                <span>Arrives: @arrivalTime</span>
+                                @if (route.DepartureTime.HasValue)
+                                {
+                                    <span>Departs: @route.DepartureTime</span>
+                                }
+                                @if (route.RequiredRouteTypes.Any())
+                                {
+                                    <span>Requires: @string.Join(", ", route.RequiredRouteTypes)</span>
+                                }
+                                <span>Max items: @route.MaxItemCapacity</span>
+                            </div>
+                            <button class="travel-button"
+                                    disabled="@(!canAfford)"
+                                    @onclick="() => OnTravelRoute.InvokeAsync(route)">
+                                Travel
+                            </button>
+                        </div>
+                    }
+                </div>
             </div>
         }
     </div>
+
+    @if (ShowEnablingItems)
+    {
+        <div class="enabling-items">
+            <h3>Items that enable special routes:</h3>
+            <div class="items-list">
+                @foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
+                {
+                    if (itemName != null)
+                    {
+                        Item item = ItemRepository.GetItemByName(itemName);
+                        if (item != null && item.EnabledRouteTypes.Any())
+                        {
+                            <div class="enabling-item">
+                                <span class="item-name">@item.Name</span>
+                                <span class="enables">Enables: @string.Join(", ", item.EnabledRouteTypes)</span>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    }
 </div>
+
+@code {
+    [Parameter] public Location CurrentLocation { get; set; }
+    [Parameter] public List<Location> Locations { get; set; }
+    [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
+    [Inject] public ItemRepository ItemRepository { get; set; }
+
+    private bool ShowEnablingItems => GameWorld.GetPlayer().Inventory.ItemSlots
+        .Select(name => ItemRepository.GetItemByName(name))
+        .Any(item => item != null && item.EnabledRouteTypes.Any());
+
+    private List<Location> GetTravelableLocations()
+    {
+        return Locations.Where(loc => loc.Id != CurrentLocation.Id &&
+                              GameManager.CanTravelTo(loc.Id)).ToList();
+    }
+
+    private string CalculateArrivalTimeBlock(TimeBlocks currentTimeBlock, int timeBlocksToAdvance)
+    {
+        int finalTimeBlockValue = ((int)currentTimeBlock + timeBlocksToAdvance) % 5;
+        int daysLater = ((int)currentTimeBlock + timeBlocksToAdvance) / 5;
+
+        TimeBlocks arrivalTimeBlock = (TimeBlocks)finalTimeBlockValue;
+
+        if (daysLater == 0)
+        {
+            return arrivalTimeBlock.ToString();
+        }
+        else if (daysLater == 1)
+        {
+            return $"Tomorrow {arrivalTimeBlock}";
+        }
+        else
+        {
+            return $"{daysLater} days later, {arrivalTimeBlock}";
+        }
+    }
+}

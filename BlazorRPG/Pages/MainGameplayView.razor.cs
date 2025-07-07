@@ -10,6 +10,7 @@ public partial class MainGameplayView : ComponentBase
     [Inject] private GameWorld GameWorld { get; set; }
     [Inject] private GameWorldManager GameManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
+    [Inject] private ItemRepository ItemRepository { get; set; }
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
     [Inject] private CardHighlightService CardRefreshService { get; set; }
 

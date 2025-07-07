@@ -343,11 +343,35 @@
         }
     }
 
+    public int CalculateTotalWeight()
+    {
+        int totalWeight = 0;
+
+        // Calculate item weight
+        foreach (string itemName in player.Inventory.ItemSlots)
+        {
+            if (itemName != null)
+            {
+                Item item = itemRepository.GetItemByName(itemName);
+                if (item != null)
+                {
+                    totalWeight += item.Weight;
+                }
+            }
+        }
+
+        // Add coin weight (10 coins = 1 weight)
+        totalWeight += player.Coins / 10;
+
+        return totalWeight;
+    }
+
     public async Task Travel(RouteOption route)
     {
         // Check if player can travel this route
         Player player = GameWorld.GetPlayer();
-        if (!route.CanTravel(itemRepository, player))
+        int totalWeight = CalculateTotalWeight();
+        if (!route.CanTravel(itemRepository, player, totalWeight))
             return;
 
         // Apply costs

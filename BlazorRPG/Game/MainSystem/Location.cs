@@ -40,7 +40,7 @@ public class Location
     public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
     public Dictionary<TimeBlocks, List<ILocationProperty>> TimeProperties { get; private set; }
     public List<string> ConnectedLocationIds { get; internal set; }
-    public List<TradeItem> MarketItems { get; internal set; }
+    public List<Item> MarketItems { get; internal set; }
     public List<RestOption> RestOptions { get; internal set; }
 
 

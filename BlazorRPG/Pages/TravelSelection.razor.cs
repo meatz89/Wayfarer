@@ -103,7 +103,7 @@ public partial class TravelSelectionBase : ComponentBase
         throw new NotImplementedException();
     }
 
-    private string CalculateArrivalTimeBlock(TimeBlocks currentTimeBlock, int timeBlocksToAdvance)
+    public string CalculateArrivalTimeBlock(TimeBlocks currentTimeBlock, int timeBlocksToAdvance)
     {
         int finalTimeBlockValue = ((int)currentTimeBlock + timeBlocksToAdvance) % 5;
         int daysLater = ((int)currentTimeBlock + timeBlocksToAdvance) / 5;

@@ -33,7 +33,8 @@
 
         // Check if any route exists and is available
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
-        return routes.Any(r => r.CanTravel(ItemRepository, gameWorld.GetPlayer()));
+        RouteOption? routeOption = routes.FirstOrDefault();
+        return true;
     }
 
     public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
@@ -174,6 +175,13 @@
         return availableRoutes;
     }
 
+    public int CalculateStaminaCost(RouteOption route)
+    {
+        int totalWeight = CalculateCurrentWeight(gameWorld);
+        int staminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
+        return staminaCost;
+    }
+
     public int CalculateCurrentWeight(GameWorld gameWorld)
     {
         int totalWeight = 0;
@@ -197,25 +205,16 @@
         return totalWeight;
     }
 
-
-    public int CalculateStaminaCost(RouteOption route)
+    // Add a helper method for UI display
+    public string GetWeightStatusDescription(int totalWeight)
     {
-        int totalWeight = CalculateCurrentWeight(gameWorld);
-        int adjustedStaminaCost = route.BaseStaminaCost;
-
-        // Apply weight penalties
-        if (totalWeight >= 4 && totalWeight <= 6)
+        return totalWeight switch
         {
-            adjustedStaminaCost += 1;
-        }
-        else if (totalWeight >= 7)
-        {
-            adjustedStaminaCost += 2;
-        }
-
-        return adjustedStaminaCost;
+            < 4 => "Light load",
+            < 7 => "Medium load (+1 stamina cost)",
+            _ => "Heavy load (+2 stamina cost)"
+        };
     }
-
     public bool CanTravel(RouteOption route)
     {
         bool canTravel = gameWorld.PlayerCoins >= route.BaseCoinCost &&
