@@ -2,20 +2,25 @@ using Microsoft.AspNetCore.Components;
 
 public partial class TravelSelectionBase : ComponentBase
 {
+    [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public TravelManager TravelManager { get; set; }
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback<string> OnTravel { get; set; }
+    [Inject] public ItemRepository ItemRepository { get; set; }
+    [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
+
+    public bool ShowEnablingItems => GameWorld.GetPlayer().Inventory.ItemSlots
+        .Select(name => ItemRepository.GetItemByName(name))
+        .Any(item => item != null && item.EnabledRouteTypes.Any());
 
     public List<Location> GetTravelableLocations()
     {
-        List<Location> travelableLocations = Locations.Where(loc =>
-            loc.Id != CurrentLocation.Id &&
-            GameWorldManager.CanTravelTo(loc.Id)).ToList();
-
-        return travelableLocations;
+        return Locations.Where(loc => loc.Id != CurrentLocation.Id &&
+                              GameWorldManager.CanTravelTo(loc.Id)).ToList();
     }
+
 
     public void ShowRouteOptions(GameWorld gameWorld, string destinationName, string destinationId)
     {
@@ -80,7 +85,7 @@ public partial class TravelSelectionBase : ComponentBase
         {
             if (itemName != null)
             {
-                Item item = GetItemByName(gameWorld, itemName);
+                Item item = ItemRepository.GetItemByName(itemName);
                 if (item != null && item.EnabledRouteTypes.Count > 0)
                 {
                     enablingItems.Add($"{itemName} (enables {string.Join(", ", item.EnabledRouteTypes)})");
@@ -96,11 +101,6 @@ public partial class TravelSelectionBase : ComponentBase
                 Console.WriteLine($"- {itemInfo}");
             }
         }
-    }
-
-    private Item GetItemByName(GameWorld gameWorld, string itemName)
-    {
-        throw new NotImplementedException();
     }
 
     public string CalculateArrivalTimeBlock(TimeBlocks currentTimeBlock, int timeBlocksToAdvance)
