@@ -48,6 +48,11 @@
         return result;
     }
 
+    public async Task<bool> CanReceiveRequests()
+    {
+        return await _queue.CanReceiveRequests();
+    }
+
     public async Task<AIGenerationCommand> CreateAndQueueCommand(
         List<IResponseStreamWatcher> watchers,
         List<ConversationEntry> messages,

@@ -19,6 +19,9 @@
     private TravelManager travelManager;
     private ContentLoader contentLoader;
     private List<Contract> availableContracts = new List<Contract>();
+    
+    private bool isAiAvailable = true;
+
     private readonly ILogger<GameWorldManager> logger;
 
     public GameWorldManager(GameWorld gameWorld, 
@@ -99,8 +102,13 @@
 
     public async Task ProcessNextBeat()
     {
+        if(!isAiAvailable)
+        {
+            return;
+        }
+
         EncounterManager currentEncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager;
-        await currentEncounterManager.ProcessNextBeat();
+        isAiAvailable = await currentEncounterManager.ProcessNextBeat();
     }
 
     public async Task<EncounterManager> StartEncounter(string approachId)
