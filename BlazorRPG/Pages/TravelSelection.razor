@@ -1,22 +1,24 @@
-﻿@inject GameWorldManager GameManager
+﻿ @inherits TravelSelectionBase
+
+@inject GameWorldManager GameManager
 @inject TravelManager TravelManager
 
 <div class="world-map-container">
-    <div class="world-map">
-        <img src="/images/world-map.png" />
-    </div>
-
     <div class="travel-status">
         @{
             int totalWeight1 = GameManager.CalculateTotalWeight();
-            string weightStatus = TravelManager.GetWeightStatusDescription(totalWeight1);
+            string weightClass = totalWeight1 <= 3 ? "" :
+            (totalWeight1 <= 6 ? "warning" : "danger");
+            string weightStatus = totalWeight1 <= 3 ? "Light load" :
+            (totalWeight1 <= 6 ? "Medium load (+1 stamina)" :
+            "Heavy load (+2 stamina)");
             int coinWeight = GameWorld.GetPlayer().Coins / 10;
         }
-        <div class="weight-status @(totalWeight1 > 3 ? "warning" : "")">
+        <div class="weight-status @weightClass">
             <span>Current load: @weightStatus (@totalWeight1 weight units)</span>
         </div>
         <div class="resource-status">
-            <span>Coins: @GameWorld.GetPlayer().Coins (Weight: @coinWeight)</span>
+            <span>Coins: @GameWorld.GetPlayer().Coins <span class="coin-weight">(@coinWeight weight)</span></span>
             <span>Stamina: @GameWorld.GetPlayer().Stamina</span>
         </div>
     </div>
@@ -24,7 +26,7 @@
     <div class="locations-grid">
         @foreach (var location in GetTravelableLocations())
         {
-            <div class="location-card reachable">
+            <div class="location-card">
                 <div class="location-name">
                     @location.Name @(location.Id == CurrentLocation.Id ? "(Current)" : "")
                 </div>
@@ -66,66 +68,4 @@
             </div>
         }
     </div>
-
-    @if (ShowEnablingItems)
-    {
-        <div class="enabling-items">
-            <h3>Items that enable special routes:</h3>
-            <div class="items-list">
-                @foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
-                {
-                    if (itemName != null)
-                    {
-                        Item item = ItemRepository.GetItemByName(itemName);
-                        if (item != null && item.EnabledRouteTypes.Any())
-                        {
-                            <div class="enabling-item">
-                                <span class="item-name">@item.Name</span>
-                                <span class="enables">Enables: @string.Join(", ", item.EnabledRouteTypes)</span>
-                            </div>
-                        }
-                    }
-                }
-            </div>
-        </div>
-    }
 </div>
-
-@code {
-    [Parameter] public Location CurrentLocation { get; set; }
-    [Parameter] public List<Location> Locations { get; set; }
-    [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
-    [Inject] public GameWorld GameWorld { get; set; }
-    [Inject] public ItemRepository ItemRepository { get; set; }
-
-    private bool ShowEnablingItems => GameWorld.GetPlayer().Inventory.ItemSlots
-        .Select(name => ItemRepository.GetItemByName(name))
-        .Any(item => item != null && item.EnabledRouteTypes.Any());
-
-    private List<Location> GetTravelableLocations()
-    {
-        return Locations.Where(loc => loc.Id != CurrentLocation.Id &&
-                              GameManager.CanTravelTo(loc.Id)).ToList();
-    }
-
-    private string CalculateArrivalTimeBlock(TimeBlocks currentTimeBlock, int timeBlocksToAdvance)
-    {
-        int finalTimeBlockValue = ((int)currentTimeBlock + timeBlocksToAdvance) % 5;
-        int daysLater = ((int)currentTimeBlock + timeBlocksToAdvance) / 5;
-
-        TimeBlocks arrivalTimeBlock = (TimeBlocks)finalTimeBlockValue;
-
-        if (daysLater == 0)
-        {
-            return arrivalTimeBlock.ToString();
-        }
-        else if (daysLater == 1)
-        {
-            return $"Tomorrow {arrivalTimeBlock}";
-        }
-        else
-        {
-            return $"{daysLater} days later, {arrivalTimeBlock}";
-        }
-    }
-}
