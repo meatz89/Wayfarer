@@ -49,4 +49,12 @@
         // Remove from inventory
         player.Inventory.RemoveItem(item.Name);
     }
+
+    public void DropItem(Item item)
+    {
+        Player player = gameWorld.GetPlayer();
+
+        // Remove from inventory
+        player.Inventory.RemoveItem(item.Name);
+    }
 }

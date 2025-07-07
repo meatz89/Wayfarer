@@ -4,7 +4,7 @@
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
-    public List<ContractDefinition> Contracts { get; private set; } = new();
+    public List<Contract> Contracts { get; private set; } = new();
     private List<NPC> characters { get; set; } = new();
     private List<Contract> contracts { get; set; } = new();
 
@@ -24,9 +24,9 @@
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
-    public List<ContractDefinition> CompletedContracts { get; set; } = new List<ContractDefinition>();
-    public List<ContractDefinition> ActiveContracts { get; set; } = new List<ContractDefinition>();
-    public List<ContractDefinition> FailedContracts { get; set; } = new List<ContractDefinition>();
+    public List<Contract> CompletedContracts { get; set; } = new List<Contract>();
+    public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
+    public List<Contract> FailedContracts { get; set; } = new List<Contract>();
 
     public string GetLocationIdForSpot(string locationSpotId)
     {

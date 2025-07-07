@@ -86,10 +86,6 @@
                         <div class="item-details">
                             <span class="item-name">@itemName</span>
                             <span class="item-weight">Weight: @item.Weight</span>
-                            <button class="drop-button"
-                                    @onclick="() => DropItem(index)">
-                                Drop
-                            </button>
                         </div>
                     }
                     else
@@ -109,19 +105,14 @@
 
     private void BuyItem(Item item)
     {
-        TradeManager.BuyItem(GameWorld, item);
+        TradeManager.BuyItem(item);
         StateHasChanged();
     }
 
     private void SellItem(Item item)
     {
-        TradeManager.SellItem(GameWorld, item);
+        TradeManager.SellItem(item);
         StateHasChanged();
     }
 
-    private void DropItem(int slot)
-    {
-        TradeManager.DropItem(GameWorld, slot);
-        StateHasChanged();
-    }
 }

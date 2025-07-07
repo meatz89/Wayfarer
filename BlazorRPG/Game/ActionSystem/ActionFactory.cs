@@ -41,31 +41,6 @@
         return locationAction;
     }
 
-    private LocationSpot FindDefaultSpotForLocation(string locationId)
-    {
-        Location location = worldState.locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null || location.LocationSpotIds == null || location.LocationSpotIds.Count == 0)
-        {
-            return null;
-        }
-
-        // Try to find a central/main spot first (marketplace, common_room, etc.)
-        string[] preferredSpotNames = { "marketplace", "common_room", "center", "main" };
-
-        foreach (string spotId in location.LocationSpotIds)
-        {
-            LocationSpot spot = worldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
-            if (spot != null && preferredSpotNames.Any(name => spot.SpotID.Contains(name)))
-            {
-                return spot;
-            }
-        }
-
-        // If no preferred spot found, return the first available spot
-        string firstSpotId = location.LocationSpotIds.First();
-        return worldState.locationSpots.FirstOrDefault(s => s.SpotID == firstSpotId);
-    }
-
     private List<IRequirement> CreateRequirements(ActionDefinition template)
     {
         List<IRequirement> requirements = new();
@@ -77,41 +52,4 @@
         return requirements;
     }
 
-    public LocationAction CreateActionFromOpportunity(ContractDefinition contract)
-    {
-        LocationAction locationAction = new LocationAction();
-
-        locationAction.ActionId = contract.Id;
-        locationAction.Name = contract.Name;
-        locationAction.ObjectiveDescription = contract.Description;
-        locationAction.Opportunity = contract;
-
-        if (contract.Type == ContractTypes.Accumulative)
-        {
-            locationAction.LocationId = contract.InitialLocationId;
-
-            LocationSpot defaultSpot = FindDefaultSpotForLocation(contract.InitialLocationId);
-            locationAction.LocationSpotId = defaultSpot?.SpotID;
-
-            locationAction.Approaches = contract.Approaches;
-        }
-        else if (contract.Type == ContractTypes.Sequential && contract.InitialStep != null)
-        {
-            locationAction.LocationId = contract.InitialStep.LocationId;
-
-            LocationSpot defaultSpot = FindDefaultSpotForLocation(contract.InitialStep.LocationId);
-            locationAction.LocationSpotId = defaultSpot?.SpotID;
-
-            locationAction.Approaches = contract.InitialStep.Approaches;
-        }
-
-        locationAction.RequiredCardType = SkillCategories.Physical;
-
-        locationAction.Requirements = new List<IRequirement>
-        {
-            new ActionPointRequirement(1),
-        };
-
-        return locationAction;
-    }
 }

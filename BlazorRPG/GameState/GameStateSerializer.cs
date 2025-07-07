@@ -265,9 +265,9 @@ public static class GameWorldSerializer
         return actions;
     }
 
-    public static List<ContractDefinition> DeserializeContracts(string json)
+    public static List<Contract> DeserializeContracts(string json)
     {
-        List<ContractDefinition> Contracts = new List<ContractDefinition>();
+        List<Contract> Contracts = new List<Contract>();
 
         using (JsonDocument doc = JsonDocument.Parse(json))
         {
@@ -278,5 +278,118 @@ public static class GameWorldSerializer
         }
 
         return Contracts;
+    }
+    public static string SerializeRouteOptions(List<RouteOption> routes)
+    {
+        List<object> serializableRoutes = routes.Select(route => (object)new
+        {
+            id = route.Id,
+            name = route.Name,
+            origin = route.Origin,
+            destination = route.Destination,
+            method = route.Method.ToString(),
+            baseCoinCost = route.BaseCoinCost,
+            baseStaminaCost = route.BaseStaminaCost,
+            timeBlockCost = route.TimeBlockCost,
+            departureTime = route.DepartureTime?.ToString(),
+            isDiscovered = route.IsDiscovered,
+            requiredRouteTypes = route.RequiredRouteTypes,
+            maxItemCapacity = route.MaxItemCapacity,
+            description = route.Description
+        }).ToList();
+
+        return JsonSerializer.Serialize(serializableRoutes, _jsonOptions);
+    }
+
+    public static string SerializeItems(List<Item> items)
+    {
+        List<object> serializableItems = items.Select(item => (object)new
+        {
+            id = item.Id,
+            name = item.Name,
+            weight = item.Weight,
+            buyPrice = item.BuyPrice,
+            sellPrice = item.SellPrice,
+            inventorySlots = item.InventorySlots,
+            enabledRouteTypes = item.EnabledRouteTypes,
+            isContraband = item.IsContraband,
+            locationId = item.LocationId,
+            spotId = item.SpotId,
+            description = item.Description
+        }).ToList();
+
+        return JsonSerializer.Serialize(serializableItems, _jsonOptions);
+    }
+
+    public static string SerializeContracts(List<Contract> contracts)
+    {
+        List<object> serializableContracts = contracts.Select(contract => (object)new
+        {
+            id = contract.Id,
+            description = contract.Description,
+            requiredItems = contract.RequiredItems,
+            requiredLocations = contract.RequiredLocations,
+            destinationLocation = contract.DestinationLocation,
+            startDay = contract.StartDay,
+            dueDay = contract.DueDay,
+            payment = contract.Payment,
+            failurePenalty = contract.FailurePenalty,
+            isCompleted = contract.IsCompleted,
+            isFailed = contract.IsFailed,
+            unlocksContractIds = contract.UnlocksContractIds,
+            locksContractIds = contract.LocksContractIds
+        }).ToList();
+
+        return JsonSerializer.Serialize(serializableContracts, _jsonOptions);
+    }
+
+    public static List<RouteOption> DeserializeRouteOptions(string json)
+    {
+        List<RouteOption> routes = new List<RouteOption>();
+
+        if (string.IsNullOrWhiteSpace(json) || json == "[]")
+        {
+            return routes;
+        }
+
+        using (JsonDocument doc = JsonDocument.Parse(json))
+        {
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new FormatException("RouteOption JSON must be an array of route objects");
+            }
+
+            foreach (JsonElement routeElement in doc.RootElement.EnumerateArray())
+            {
+                routes.Add(RouteOptionParser.ParseRouteOption(routeElement.GetRawText()));
+            }
+        }
+
+        return routes;
+    }
+
+    public static List<Item> DeserializeItems(string json)
+    {
+        List<Item> items = new List<Item>();
+
+        if (string.IsNullOrWhiteSpace(json) || json == "[]")
+        {
+            return items;
+        }
+
+        using (JsonDocument doc = JsonDocument.Parse(json))
+        {
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new FormatException("Item JSON must be an array of item objects");
+            }
+
+            foreach (JsonElement itemElement in doc.RootElement.EnumerateArray())
+            {
+                items.Add(ItemParser.ParseItem(itemElement.GetRawText()));
+            }
+        }
+
+        return items;
     }
 }

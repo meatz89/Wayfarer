@@ -12,20 +12,12 @@ public static class RouteOptionParser
         using JsonDocument doc = JsonDocument.Parse(json, options);
         JsonElement root = doc.RootElement;
 
-        string id = GetStringProperty(root, "id", "");
-        string name = GetStringProperty(root, "name", "");
-        string origin = GetStringProperty(root, "origin", "");
-        string destination = GetStringProperty(root, "destination", "");
-        string methodStr = GetStringProperty(root, "method", "Walking");
-        TravelMethods method = Enum.TryParse<TravelMethods>(methodStr, true, out var m) ? m : TravelMethods.Walking;
-
         RouteOption route = new RouteOption
         {
-            Id = id,
-            Name = name,
-            Origin = origin,
-            Destination = destination,
-            Method = method,
+            Id = GetStringProperty(root, "id", ""),
+            Name = GetStringProperty(root, "name", ""),
+            Origin = GetStringProperty(root, "origin", ""),
+            Destination = GetStringProperty(root, "destination", ""),
             BaseCoinCost = GetIntProperty(root, "baseCoinCost", 0),
             BaseStaminaCost = GetIntProperty(root, "baseStaminaCost", 1),
             TimeBlockCost = GetIntProperty(root, "timeBlockCost", 1),
@@ -33,6 +25,17 @@ public static class RouteOptionParser
             MaxItemCapacity = GetIntProperty(root, "maxItemCapacity", 3),
             Description = GetStringProperty(root, "description", "")
         };
+
+        // Parse method
+        string methodStr = GetStringProperty(root, "method", "Walking");
+        if (Enum.TryParse<TravelMethods>(methodStr, true, out TravelMethods method))
+        {
+            route.Method = method;
+        }
+        else
+        {
+            route.Method = TravelMethods.Walking;
+        }
 
         // Parse departure time
         string departureTimeStr = GetStringProperty(root, "departureTime", null);
@@ -74,7 +77,7 @@ public static class RouteOptionParser
     private static bool GetBoolProperty(JsonElement element, string propertyName, bool defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.True || property.ValueKind == JsonValueKind.False)
+            (property.ValueKind == JsonValueKind.True || property.ValueKind == JsonValueKind.False))
         {
             return property.GetBoolean();
         }

@@ -33,6 +33,7 @@
         else
         {
             return LoadGameFromTemplates();
+
         }
 
         return gameWorld;
@@ -51,7 +52,7 @@
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(savePath, "actions.json")));
 
-        List<ContractDefinition> contracts = GameWorldSerializer.DeserializeContracts(
+        List<Contract> contracts = GameWorldSerializer.DeserializeContracts(
             File.ReadAllText(Path.Combine(savePath, "Contracts.json")));
 
         // Load cards if available
@@ -74,9 +75,54 @@
             File.ReadAllText(Path.Combine(templatePath, "locations.json")));
 
         List<LocationSpot> spots = GameWorldSerializer.DeserializeLocationSpots(
-            File.ReadAllText(Path.Combine(templatePath, "locationSpots.json")));
+            File.ReadAllText(Path.Combine(templatePath, "location_spots.json")));
 
+        // Connect locations to spots
         ConnectLocationsToSpots(locations, spots);
+
+        // Load route options
+        List<RouteOption> routes = new List<RouteOption>();
+        string routesFilePath = Path.Combine(templatePath, "routes.json");
+        if (File.Exists(routesFilePath))
+        {
+            routes = GameWorldSerializer.DeserializeRouteOptions(
+                File.ReadAllText(routesFilePath));
+        }
+
+        // Connect routes to locations
+        ConnectRoutesToLocations(locations, routes);
+
+        // Load items
+        List<Item> items = new List<Item>();
+        string itemsFilePath = Path.Combine(templatePath, "items.json");
+        if (File.Exists(itemsFilePath))
+        {
+            items = GameWorldSerializer.DeserializeItems(
+                File.ReadAllText(itemsFilePath));
+        }
+
+        // Load contracts
+        List<Contract> contracts = new List<Contract>();
+        string contractsFilePath = Path.Combine(templatePath, "contracts.json");
+        if (File.Exists(contractsFilePath))
+        {
+            contracts = GameWorldSerializer.DeserializeContracts(
+                File.ReadAllText(contractsFilePath));
+
+            contracts.Add(
+                new Contract
+                {
+                    Id = "deliver_tools",
+                    Description = "Deliver tools to the town carpenter",
+                    RequiredItems = new List<string> { "tools" },
+                    DestinationLocation = "town_square",
+                    StartDay = 1,
+                    DueDay = 3,
+                    Payment = 15,
+                    FailurePenalty = "Loss of reputation with craftsmen"
+                }
+            );
+        }
 
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
@@ -84,13 +130,106 @@
         // Load cards if available
         List<SkillCard> cards = new List<SkillCard>();
         string cardsFilePath = Path.Combine(templatePath, "cards.json");
+        if (File.Exists(cardsFilePath))
+        {
+            // Add card deserialization logic here if needed
+        }
 
         // Load game state using the loaded content
         GameWorld gameWorld = GameWorldSerializer.DeserializeGameWorld(
             File.ReadAllText(Path.Combine(templatePath, "gameWorld.json")),
             locations, spots, actions, cards);
 
+        // Add items to the game world
+        if (gameWorld.WorldState.Items == null)
+        {
+            gameWorld.WorldState.Items = new List<Item>();
+
+            items = new List<Item>
+            {
+                new Item { Id = "herbs", Name = "Herbs", Weight = 1, BuyPrice = 2, SellPrice = 1, LocationId = "town_square", SpotId = "marketplace" },
+                new Item { Id = "tools", Name = "Tools", Weight = 3, BuyPrice = 8, SellPrice = 4, LocationId = "town_square", SpotId = "marketplace" },
+                new Item { Id = "rope", Name = "Rope", Weight = 2, BuyPrice = 6, SellPrice = 3, EnabledRouteTypes = new List<string> { "MountainPass" }, LocationId = "town_square", SpotId = "marketplace" }
+            };
+        }
+        gameWorld.WorldState.Items.AddRange(items);
+
+        // Initialize player inventory if not already initialized
+        if (gameWorld.GetPlayer().Inventory == null)
+        {
+            gameWorld.GetPlayer().Inventory = new Inventory(10);
+        }
+
+        // Add routes to the game world
+        if (gameWorld.DiscoveredRoutes == null)
+        {
+            gameWorld.DiscoveredRoutes = new List<RouteOption>();
+        }
+        gameWorld.DiscoveredRoutes.AddRange(routes);
+
+        // Add contracts to the game world
+
+        GameWorld.AllContracts = contracts;
+
         return gameWorld;
+    }
+
+    // Helper method to connect routes to locations
+    private void ConnectRoutesToLocations(List<Location> locations, List<RouteOption> routes)
+    {
+        foreach (Location location in locations)
+        {
+            // For each connected location, create a LocationConnection
+            foreach (string connectedLocationId in location.ConnectedLocationIds)
+            {
+                // Find the destination location
+                Location destinationLocation = locations.FirstOrDefault(l => l.Id == connectedLocationId);
+                if (destinationLocation == null) continue;
+
+                // Create a new location connection
+                LocationConnection connection = new LocationConnection
+                {
+                    DestinationLocationId = connectedLocationId
+                };
+
+                // Find all routes that connect these locations
+                foreach (RouteOption route in routes)
+                {
+                    if (route.Origin == location.Id && route.Destination == connectedLocationId)
+                    {
+                        // Add route to the connection
+                        connection.RouteOptions.Add(route);
+                    }
+                }
+
+                // If no specific routes were found, create a default walking route
+                if (connection.RouteOptions.Count == 0)
+                {
+                    RouteOption defaultRoute = new RouteOption
+                    {
+                        Id = $"{location.Id}_to_{connectedLocationId}_walk",
+                        Name = $"Walk to {destinationLocation.Name}",
+                        Origin = location.Id,
+                        Destination = connectedLocationId,
+                        Method = TravelMethods.Walking,
+                        BaseCoinCost = 0,
+                        BaseStaminaCost = 2,
+                        TimeBlockCost = 1,
+                        DepartureTime = null,
+                        IsDiscovered = true,
+                        MaxItemCapacity = 3,
+                        Description = $"A walk from {location.Name} to {destinationLocation.Name}."
+                    };
+                    connection.RouteOptions.Add(defaultRoute);
+
+                    // Also add this default route to the routes list
+                    routes.Add(defaultRoute);
+                }
+
+                // Add the connection to the location
+                location.Connections.Add(connection);
+            }
+        }
     }
 
     public void SaveGame(GameWorld gameWorld)
@@ -113,12 +252,25 @@
                 GameWorldSerializer.SerializeLocations(gameWorld.WorldState.locations));
 
             File.WriteAllText(
-                Path.Combine(savePath, "location_Spots.json"),
+                Path.Combine(savePath, "location_spots.json"),
                 GameWorldSerializer.SerializeLocationSpots(gameWorld.WorldState.locationSpots));
 
             File.WriteAllText(
                 Path.Combine(savePath, "actions.json"),
                 GameWorldSerializer.SerializeActions(gameWorld.WorldState.actions));
+
+            // Save the new content types
+            File.WriteAllText(
+                Path.Combine(savePath, "items.json"),
+                GameWorldSerializer.SerializeItems(gameWorld.WorldState.Items));
+
+            File.WriteAllText(
+                Path.Combine(savePath, "routes.json"),
+                GameWorldSerializer.SerializeRouteOptions(gameWorld.DiscoveredRoutes));
+
+            File.WriteAllText(
+                Path.Combine(savePath, "contracts.json"),
+                GameWorldSerializer.SerializeContracts(GameWorld.AllContracts));
 
             Console.WriteLine("Game saved successfully");
         }
@@ -158,7 +310,7 @@
         locations = ConnectLocationsToSpots(locations, spots);
 
         List<ActionDefinition> actions = new List<ActionDefinition>();
-        List<ContractDefinition> comissions = new List<ContractDefinition>();
+        List<Contract> comissions = new List<Contract>();
 
         List<SkillCard> cards = new List<SkillCard>();
 

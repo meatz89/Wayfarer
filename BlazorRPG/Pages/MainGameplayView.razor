@@ -97,6 +97,75 @@
                                      OnActionSelected="@HandleActionSelection" />
                 </div>
                 break;
+
+                case CurrentViews.TravelScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Travel from @GetCurrentLocation()?.Name</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="travel-container">
+                        <TravelSelectionWithWeight 
+                            CurrentLocation="@GetCurrentLocation()"
+                            Locations="@Locations"
+                            OnTravelRoute="@HandleTravelRoute" />
+                    </div>
+                    break;
+
+                case CurrentViews.MarketScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">@GetCurrentLocation()?.Name Market</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="market-container">
+                        <MarketUI Location="@GetCurrentLocation()" />
+                    </div>
+                    break;
+
+                case CurrentViews.RestScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Rest in @GetCurrentLocation()?.Name</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rest-container">
+                        <RestUI 
+                            Location="@GetCurrentLocation()"
+                            OnRestComplete="HandleRestComplete" />
+                    </div>
+                    break;
+
+                case CurrentViews.ContractScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Contracts</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contracts-container">
+                        <ContractUI />
+                    </div>
+                    break;
         }
     </div>
 
