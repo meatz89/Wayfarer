@@ -8,7 +8,7 @@
         this.locationSystem = locationSystem;
     }
 
-    public void UpdateLocationForTime(Location location, TimeWindowTypes timeWindow)
+    public void UpdateLocationForTime(Location location, TimeBlocks timeWindow)
     {
         UpdateEnvironmentalProperties(location, timeWindow);
 
@@ -16,7 +16,7 @@
         SetClosed(locationSpots, timeWindow);
     }
 
-    private void SetClosed(List<LocationSpot> locationSpots, TimeWindowTypes timeWindow)
+    private void SetClosed(List<LocationSpot> locationSpots, TimeBlocks timeWindow)
     {
         foreach (LocationSpot spot in locationSpots)
         {
@@ -24,22 +24,22 @@
         }
     }
 
-    private static void UpdateEnvironmentalProperties(Location location, TimeWindowTypes timeWindow)
+    private static void UpdateEnvironmentalProperties(Location location, TimeBlocks timeWindow)
     {
         List<string> properties;
 
         switch (timeWindow)
         {
-            case TimeWindowTypes.Morning:
+            case TimeBlocks.Morning:
                 properties = location.MorningProperties;
                 break;
-            case TimeWindowTypes.Afternoon:
+            case TimeBlocks.Afternoon:
                 properties = location.AfternoonProperties;
                 break;
-            case TimeWindowTypes.Evening:
+            case TimeBlocks.Evening:
                 properties = location.EveningProperties;
                 break;
-            case TimeWindowTypes.Night:
+            case TimeBlocks.Night:
                 properties = location.NightProperties;
                 break;
             default:

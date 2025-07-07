@@ -26,7 +26,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ActionGenerator>();
         services.AddSingleton<TravelManager>();
         services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<OpportunitySystem>();
+        services.AddSingleton<ContractSystem>();
         services.AddSingleton<EncounterFactory>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<ActionProcessor>();

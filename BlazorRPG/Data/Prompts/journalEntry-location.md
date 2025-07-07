@@ -7,7 +7,7 @@ Generate location based on:
 Create location spots that:
 - Reflect player's demonstrated interests (from journal)
 - Connect to player's existing relationships
-- Provide opportunities for underdeveloped skills
+- Provide contracts for underdeveloped skills
 - Include at least one spot challenging player's strengths
 
 Reference relevant player experiences:

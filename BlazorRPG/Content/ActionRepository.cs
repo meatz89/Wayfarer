@@ -61,57 +61,57 @@
         return action;
     }
 
-    public List<OpportunityDefinition> GetOpportunitiesForSpot(string spotId)
+    public List<ContractDefinition> GetOpportunitiesForSpot(string spotId)
     {
         // First, find the location this spot belongs to
         LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
         if (spot == null)
         {
-            return new List<OpportunityDefinition>();
+            return new List<ContractDefinition>();
         }
 
         string locationId = spot.LocationId;
-        List<OpportunityDefinition> Opportunities = new List<OpportunityDefinition>();
+        List<ContractDefinition> Opportunities = new List<ContractDefinition>();
 
-        foreach (OpportunityDefinition opportunity in _worldState.Opportunities)
+        foreach (ContractDefinition contract in _worldState.Opportunities)
         {
             // For ACCUMULATIVE Opportunities, they're available at any spot within their location
-            if (opportunity.Type == OpportunityTypes.Accumulative &&
-                opportunity.InitialLocationId == locationId)
+            if (contract.Type == ContractTypes.Accumulative &&
+                contract.InitialLocationId == locationId)
             {
-                Opportunities.Add(opportunity);
+                Opportunities.Add(contract);
             }
             // For SEQUENTIAL Opportunities, check the current step's location
-            else if (opportunity.Type == OpportunityTypes.Sequential &&
-                     opportunity.InitialStep != null &&
-                     opportunity.InitialStep.LocationId == locationId)
+            else if (contract.Type == ContractTypes.Sequential &&
+                     contract.InitialStep != null &&
+                     contract.InitialStep.LocationId == locationId)
             {
                 // If the step specifies a spot, check if it matches
                 // If not specified, it's available at any spot in the location
-                Opportunities.Add(opportunity);
+                Opportunities.Add(contract);
             }
         }
 
         return Opportunities;
     }
 
-    public OpportunityDefinition GetOpportunity(string opportunityId)
+    public ContractDefinition GetOpportunity(string contractId)
     {
-        OpportunityDefinition opportunity = _worldState.Opportunities.FirstOrDefault(a =>
+        ContractDefinition contract = _worldState.Opportunities.FirstOrDefault(a =>
         {
-            return a.Id.Equals(opportunityId, StringComparison.OrdinalIgnoreCase);
+            return a.Id.Equals(contractId, StringComparison.OrdinalIgnoreCase);
         });
 
-        if (opportunity != null)
-            return opportunity;
+        if (contract != null)
+            return contract;
 
-        Console.WriteLine($"Opportunity '{opportunityId}' not found.");
-        return CreateDefaultOpportunity(opportunityId, "DefaultLocation", "DefaultLocationSpot");
+        Console.WriteLine($"Opportunity '{contractId}' not found.");
+        return CreateDefaultOpportunity(contractId, "DefaultLocation", "DefaultLocationSpot");
     }
 
-    private OpportunityDefinition CreateDefaultOpportunity(object opportunityId, string location, string locationSpot)
+    private ContractDefinition CreateDefaultOpportunity(object contractId, string location, string locationSpot)
     {
-        OpportunityDefinition action = new OpportunityDefinition()
+        ContractDefinition action = new ContractDefinition()
         {
             Description = "Description",
         };

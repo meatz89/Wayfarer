@@ -84,10 +84,10 @@ public class PostEncounterEvolutionParser
                     return ParseCharacter(element);
                 });
 
-            // Parse opportunities
+            // Parse contracts
             result.Opportunities = GetArrayOfType(
                 root,
-                "opportunities",
+                "contracts",
                 element =>
                 {
                     return ParseOpportunity(element);
@@ -112,7 +112,7 @@ public class PostEncounterEvolutionParser
             NewActions = new List<NewAction>(),
             NewCharacters = flatResponse.Characters ?? new List<NPC>(),
             NewLocations = new List<Location>(),
-            NewOpportunities = flatResponse.Opportunities ?? new List<Opportunity>()
+            NewOpportunities = flatResponse.Opportunities ?? new List<Contract>()
         };
 
         // Process action definitions
@@ -182,7 +182,7 @@ public class PostEncounterEvolutionParser
                 DiscoveryBonusCoins = locDef.DiscoveryBonusCoins,
                 HasBeenVisited = false,
                 VisitCount = 0,
-                ConnectedTo = locDef.ConnectedTo
+                Connections = locDef.ConnectedTo
             };
 
             result.NewLocations.Add(location);
@@ -293,11 +293,11 @@ public class PostEncounterEvolutionParser
         });
     }
 
-    private Opportunity ParseOpportunity(JsonElement element)
+    private Contract ParseOpportunity(JsonElement element)
     {
-        return SafeParseEntity("opportunity", () =>
+        return SafeParseEntity("contract", () =>
         {
-            return new Opportunity
+            return new Contract
             {
                 Name = GetStringProperty(element, "name", "Unnamed Opportunity"),
                 Type = GetStringProperty(element, "type", "Unknown Type"),

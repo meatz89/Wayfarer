@@ -36,7 +36,7 @@
 		<Content Update="Content\Templates\action_config.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\Opportunities.json">
+		<Content Update="Content\Templates\contracts.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="Content\Templates\cards.json">

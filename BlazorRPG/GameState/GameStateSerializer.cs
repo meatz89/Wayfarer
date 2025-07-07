@@ -174,7 +174,7 @@ public static class GameWorldSerializer
                 night = loc.NightProperties
             },
             locationSpots = loc.LocationSpotIds,
-            connectedTo = loc.ConnectedTo
+            connectedTo = loc.Connections
         }).ToList();
 
         return JsonSerializer.Serialize(serializableLocations, _jsonOptions);
@@ -272,15 +272,15 @@ public static class GameWorldSerializer
         return actions;
     }
 
-    public static List<OpportunityDefinition> DeserializeOpportunities(string json)
+    public static List<ContractDefinition> DeserializeOpportunities(string json)
     {
-        List<OpportunityDefinition> Opportunities = new List<OpportunityDefinition>();
+        List<ContractDefinition> Opportunities = new List<ContractDefinition>();
 
         using (JsonDocument doc = JsonDocument.Parse(json))
         {
-            foreach (JsonElement opportunityElement in doc.RootElement.EnumerateArray())
+            foreach (JsonElement contractElement in doc.RootElement.EnumerateArray())
             {
-                Opportunities.Add(OpportunityParser.ParseOpportunity(opportunityElement.GetRawText()));
+                Opportunities.Add(ContractParser.ParseOpportunity(contractElement.GetRawText()));
             }
         }
 

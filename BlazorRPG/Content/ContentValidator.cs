@@ -38,9 +38,9 @@
 
         foreach (Location location in _worldState.locations)
         {
-            if (location.ConnectedTo != null)
+            if (location.Connections != null)
             {
-                foreach (string connectedLocationId in location.ConnectedTo)
+                foreach (string connectedLocationId in location.Connections)
                 {
                     if (!_worldState.locations.Any(l =>
                     {

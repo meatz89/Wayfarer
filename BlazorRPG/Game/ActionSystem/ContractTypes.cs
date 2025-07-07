@@ -1,4 +1,4 @@
-﻿public enum OpportunityTypes
+﻿public enum ContractTypes
 {
     Accumulative,
     Sequential

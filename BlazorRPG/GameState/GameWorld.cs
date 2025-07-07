@@ -1,6 +1,16 @@
 ﻿public class GameWorld
 {
-    // Existing properties
+
+    public int CurrentDay { get; set; } = 1;
+    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Dawn;
+    public int PlayerCoins { get; set; } = 2;
+    public int PlayerStamina { get; set; } = 5;
+    public Inventory PlayerInventory { get; private set; }
+    public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
+    public List<Location> Locations { get; set; } = new List<Location>();
+
+    public Location CurrentLocation { get; private set; }
+
     private Player Player;
     public WorldState WorldState { get; private set; }
     public ActionStateTracker ActionStateTracker { get; private set; }
@@ -8,7 +18,6 @@
 
     // New journey-related properties
     public WorldMap Map { get; private set; }
-    public Location CurrentLocation { get; private set; }
     public int GlobalTime { get; private set; }
     public List<Location> DiscoveredLocations { get; private set; }
     public List<Route> DiscoveredRoutes { get; private set; }
@@ -16,11 +25,7 @@
     // New resource properties
     public int Money { get; set; }
     public int Condition { get; set; }
-    public Inventory PlayerInventory { get; private set; }
-
-    public static int CurrentDay { get; }
-    public static TimeOfDay CurrentTimeOfDay { get; private set; }
-    public static List<Opportunity> AllOpportunities { get; set; } = new List<Opportunity>();
+    public static List<Contract> AllOpportunities { get; set; } = new List<Contract>();
 
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
@@ -110,7 +115,7 @@
         return new List<Goal>();
     }
 
-    public List<TravelRoute> GetRoutesFromCurrentLocation()
+    public List<RouteOption> GetRoutesFromCurrentLocation()
     {
         string currentLocationName = CurrentLocation.Name;
 
@@ -119,7 +124,7 @@
             return Player.KnownRoutes[currentLocationName];
         }
 
-        return new List<TravelRoute>();
+        return new List<RouteOption>();
     }
 
     public Guid GetGameInstanceId()
@@ -127,3 +132,6 @@
         return GameInstanceId;
     }
 }
+
+
+

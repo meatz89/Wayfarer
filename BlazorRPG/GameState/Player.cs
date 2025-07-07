@@ -60,7 +60,7 @@
 
     public List<InformationItem> KnownInformation { get; private set; } = new List<InformationItem>();
 
-    public Dictionary<string, List<TravelRoute>> KnownRoutes { get; private set; } = new Dictionary<string, List<TravelRoute>>();
+    public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
 
     public List<Goal> ActiveGoals { get; private set; } = new List<Goal>();
     public List<Goal> CompletedGoals { get; private set; } = new List<Goal>();
@@ -96,13 +96,13 @@
     }
 
 
-    public void AddKnownRoute(TravelRoute route)
+    public void AddKnownRoute(RouteOption route)
     {
         string originName = route.Origin.Name;
 
         if (!KnownRoutes.ContainsKey(originName))
         {
-            KnownRoutes[originName] = new List<TravelRoute>();
+            KnownRoutes[originName] = new List<RouteOption>();
         }
 
         // Only add if not already known

@@ -77,32 +77,32 @@
         return requirements;
     }
 
-    public LocationAction CreateActionFromOpportunity(OpportunityDefinition opportunity)
+    public LocationAction CreateActionFromOpportunity(ContractDefinition contract)
     {
         LocationAction locationAction = new LocationAction();
 
-        locationAction.ActionId = opportunity.Id;
-        locationAction.Name = opportunity.Name;
-        locationAction.ObjectiveDescription = opportunity.Description;
-        locationAction.Opportunity = opportunity;
+        locationAction.ActionId = contract.Id;
+        locationAction.Name = contract.Name;
+        locationAction.ObjectiveDescription = contract.Description;
+        locationAction.Opportunity = contract;
 
-        if (opportunity.Type == OpportunityTypes.Accumulative)
+        if (contract.Type == ContractTypes.Accumulative)
         {
-            locationAction.LocationId = opportunity.InitialLocationId;
+            locationAction.LocationId = contract.InitialLocationId;
 
-            LocationSpot defaultSpot = FindDefaultSpotForLocation(opportunity.InitialLocationId);
+            LocationSpot defaultSpot = FindDefaultSpotForLocation(contract.InitialLocationId);
             locationAction.LocationSpotId = defaultSpot?.SpotID;
 
-            locationAction.Approaches = opportunity.Approaches;
+            locationAction.Approaches = contract.Approaches;
         }
-        else if (opportunity.Type == OpportunityTypes.Sequential && opportunity.InitialStep != null)
+        else if (contract.Type == ContractTypes.Sequential && contract.InitialStep != null)
         {
-            locationAction.LocationId = opportunity.InitialStep.LocationId;
+            locationAction.LocationId = contract.InitialStep.LocationId;
 
-            LocationSpot defaultSpot = FindDefaultSpotForLocation(opportunity.InitialStep.LocationId);
+            LocationSpot defaultSpot = FindDefaultSpotForLocation(contract.InitialStep.LocationId);
             locationAction.LocationSpotId = defaultSpot?.SpotID;
 
-            locationAction.Approaches = opportunity.InitialStep.Approaches;
+            locationAction.Approaches = contract.InitialStep.Approaches;
         }
 
         locationAction.RequiredCardType = SkillCategories.Physical;

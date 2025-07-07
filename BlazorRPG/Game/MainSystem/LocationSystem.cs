@@ -23,7 +23,7 @@ public class LocationSystem
             return l.Id != startLoc.Id;
         }))
         {
-            int depth = loc.ConnectedTo.Contains(startLoc.Id) ? 1 : 2;
+            int depth = loc.Connections.Contains(startLoc.Id) ? 1 : 2;
         }
 
         foreach (Location? loc in allLocations.Where(l =>

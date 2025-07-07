@@ -18,7 +18,7 @@ public static class LocationParser
         Location location = new Location(id, name)
         {
             Description = GetStringProperty(root, "description", ""),
-            ConnectedTo = GetStringArray(root, "connectedTo"),
+            Connections = GetStringArray(root, "connectedTo"),
             LocationSpotIds = GetStringArray(root, "locationSpots"),
             DomainTags = GetStringArray(root, "domainTags")
         };
@@ -66,7 +66,7 @@ public static class LocationParser
 
         foreach (string windowString in timeWindowStrings)
         {
-            if (Enum.TryParse(windowString, true, out TimeWindowTypes window))
+            if (Enum.TryParse(windowString, true, out TimeBlocks window))
             {
                 spot.TimeWindows.Add(window);
             }
@@ -75,10 +75,10 @@ public static class LocationParser
         if (timeWindowStrings.Count == 0)
         {
             // Add all time windows as default
-            spot.TimeWindows.Add(TimeWindowTypes.Morning);
-            spot.TimeWindows.Add(TimeWindowTypes.Afternoon);
-            spot.TimeWindows.Add(TimeWindowTypes.Evening);
-            spot.TimeWindows.Add(TimeWindowTypes.Night);
+            spot.TimeWindows.Add(TimeBlocks.Morning);
+            spot.TimeWindows.Add(TimeBlocks.Afternoon);
+            spot.TimeWindows.Add(TimeBlocks.Evening);
+            spot.TimeWindows.Add(TimeBlocks.Night);
         }
 
         return spot;

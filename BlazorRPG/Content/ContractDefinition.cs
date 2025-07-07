@@ -1,9 +1,9 @@
-﻿public class OpportunityDefinition
+﻿public class ContractDefinition
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public OpportunityTypes Type { get; set; }
+    public ContractTypes Type { get; set; }
     public int ProgressThreshold { get; set; }
     public int ExpirationDays { get; set; }
     public int ReputationRequirement { get; set; }
@@ -13,23 +13,23 @@
     public int InsightPointReward { get; set; }
     public int Tier { get; set; } = 1;
     public List<ApproachDefinition> Approaches { get; set; } = new List<ApproachDefinition>();
-    public Opportunitiestep InitialStep { get; set; }
+    public ContractStep InitialStep { get; set; }
 
     public int CurrentProgress { get; set; } = 0;
     public int CurrentStepIndex { get; set; } = 0;
-    public List<Opportunitiestep> CompletedSteps { get; set; } = new List<Opportunitiestep>();
+    public List<ContractStep> CompletedSteps { get; set; } = new List<ContractStep>();
 
-    public Opportunitiestep CurrentStep()
+    public ContractStep CurrentStep()
     {
         // For SEQUENTIAL Opportunities, return the initial step
-        if (Type == OpportunityTypes.Sequential)
+        if (Type == ContractTypes.Sequential)
         {
             return InitialStep;
         }
 
         // For ACCUMULATIVE Opportunities, create a virtual step
-        // that references the opportunity's location
-        return new Opportunitiestep
+        // that references the contract's location
+        return new ContractStep
         {
             Name = this.Name,
             Description = this.Description,
@@ -39,7 +39,7 @@
         };
     }
 
-    // Check if opportunity is complete
+    // Check if contract is complete
     public bool IsComplete()
     {
         return CurrentProgress >= ProgressThreshold;
@@ -50,7 +50,7 @@
     {
         CurrentProgress += progress;
 
-        if (Type == OpportunityTypes.Sequential && InitialStep != null)
+        if (Type == ContractTypes.Sequential && InitialStep != null)
         {
             if (CurrentProgress >= InitialStep.ProgressGoal)
             {
@@ -65,16 +65,16 @@
     }
 
     // Generate the next step based on completed steps and approach used
-    private Opportunitiestep GenerateNextStep(GameWorld gameWorld)
+    private ContractStep GenerateNextStep(GameWorld gameWorld)
     {
         // For a POC, we can implement a simple step generation
         // In a full implementation, this would use more sophisticated logic
         // based on your procedural generation approach
 
-        Opportunitiestep previousStep = CompletedSteps.Last();
+        ContractStep previousStep = CompletedSteps.Last();
         string nextLocationId = DetermineNextLocationId(previousStep, gameWorld);
 
-        Opportunitiestep nextStep = new Opportunitiestep
+        ContractStep nextStep = new ContractStep
         {
             Name = $"Continue {Name}",
             Description = $"Follow up on your findings from {previousStep.Name}.",
@@ -86,7 +86,7 @@
         return nextStep;
     }
 
-    private string DetermineNextLocationId(Opportunitiestep previousStep, GameWorld gameWorld)
+    private string DetermineNextLocationId(ContractStep previousStep, GameWorld gameWorld)
     {
         // Simple implementation - alternate between locations
         // In a full implementation, this would use more sophisticated logic
@@ -94,12 +94,12 @@
         {
             return gameWorld.WorldState.locations
                 .FirstOrDefault(l => l.Id != InitialLocationId &&
-                                   l.ConnectedTo.Contains(InitialLocationId))?.Id ?? InitialLocationId;
+                                   l.Connections.Contains(InitialLocationId))?.Id ?? InitialLocationId;
         }
         return InitialLocationId;
     }
 
-    private List<ApproachDefinition> GenerateApproachesForStep(Opportunitiestep previousStep)
+    private List<ApproachDefinition> GenerateApproachesForStep(ContractStep previousStep)
     {
         // Create approaches that follow logically from previous step
         // This is a simple implementation - a full implementation would be more sophisticated

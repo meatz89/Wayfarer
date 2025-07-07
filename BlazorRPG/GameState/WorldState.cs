@@ -4,9 +4,9 @@
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
-    public List<OpportunityDefinition> Opportunities { get; private set; } = new();
+    public List<ContractDefinition> Opportunities { get; private set; } = new();
     private List<NPC> characters { get; set; } = new();
-    private List<Opportunity> opportunities { get; set; } = new();
+    private List<Contract> contracts { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
     public List<string> CompletedEncounters { get; } = new List<string>();
@@ -18,10 +18,10 @@
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
-    public List<OpportunityDefinition> CompletedOpportunities { get; set; }
-    public List<OpportunityDefinition> ActiveOpportunities { get; set; }
-    public List<OpportunityDefinition> FailedOpportunities { get; set; }
-    public TimeWindowTypes CurrentTimeWindow { get; internal set; }
+    public List<ContractDefinition> CompletedOpportunities { get; set; }
+    public List<ContractDefinition> ActiveOpportunities { get; set; }
+    public List<ContractDefinition> FailedOpportunities { get; set; }
+    public TimeBlocks CurrentTimeWindow { get; internal set; }
     public int CurrentTimeHours { get; internal set; }
 
     public string GetLocationIdForSpot(string locationSpotId)
@@ -76,9 +76,9 @@
         characters.Add(character);
     }
 
-    public void AddOpportunity(Opportunity opp)
+    public void AddOpportunity(Contract opp)
     {
-        opportunities.Add(opp);
+        contracts.Add(opp);
     }
 
     public List<NPC> GetCharacters()
@@ -86,9 +86,9 @@
         return characters;
     }
 
-    public List<Opportunity> GetOpportunities()
+    public List<Contract> GetOpportunities()
     {
-        return opportunities;
+        return contracts;
     }
 
 }

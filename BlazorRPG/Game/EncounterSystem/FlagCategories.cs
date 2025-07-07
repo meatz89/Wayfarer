@@ -4,7 +4,7 @@
     Positional,   // Spatial relationships
     Relational,   // Social connections
     Informational, // Knowledge states
-    Tactical,     // Action opportunities
+    Tactical,     // Action contracts
     Environmental, // Surroundings
     Emotional     // Mood/tone
 }

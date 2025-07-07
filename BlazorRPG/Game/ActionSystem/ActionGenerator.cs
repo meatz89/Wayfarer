@@ -65,7 +65,7 @@ public class ActionGenerator
 
     internal async Task<string> GenerateOpportunity(string name, string id, string spotID)
     {
-        return string.Empty; // Placeholder for opportunity generation logic
+        return string.Empty; // Placeholder for contract generation logic
     }
 
     private ActionDefinition GetDefaultActionDefinition(

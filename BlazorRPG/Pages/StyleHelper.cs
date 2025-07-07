@@ -50,14 +50,14 @@ public static class StyleHelper
             .Replace("Types", "");
     }
 
-    public static string GetIconForTimeWindow(TimeWindowTypes time)
+    public static string GetIconForTimeWindow(TimeBlocks time)
     {
         return time switch
         {
-            TimeWindowTypes.Night => "🌙",
-            TimeWindowTypes.Morning => "🌄",
-            TimeWindowTypes.Afternoon => "☀️",
-            TimeWindowTypes.Evening => "🌆",
+            TimeBlocks.Night => "🌙",
+            TimeBlocks.Morning => "🌄",
+            TimeBlocks.Afternoon => "☀️",
+            TimeBlocks.Evening => "🌆",
             _ => "❓"
         };
     }
@@ -125,14 +125,14 @@ public static class StyleHelper
             _ => "A common item"
         };
     }
-    public static string GetTimeOfDayStyle(TimeWindowTypes currentTime)
+    public static string GetTimeOfDayStyle(TimeBlocks currentTime)
     {
         return currentTime switch
         {
-            TimeWindowTypes.Morning => "time-morning",
-            TimeWindowTypes.Afternoon => "time-afternoon",
-            TimeWindowTypes.Evening => "time-evening",
-            TimeWindowTypes.Night => "time-night",
+            TimeBlocks.Morning => "time-morning",
+            TimeBlocks.Afternoon => "time-afternoon",
+            TimeBlocks.Evening => "time-evening",
+            TimeBlocks.Night => "time-night",
             _ => ""
         };
     }

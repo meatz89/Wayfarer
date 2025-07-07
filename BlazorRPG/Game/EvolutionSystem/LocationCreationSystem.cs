@@ -2,7 +2,7 @@
 {
     private LocationSystem locationSystem;
     private CharacterSystem characterSystem;
-    private OpportunitySystem OpportunitySystem;
+    private ContractSystem OpportunitySystem;
     private GameWorld gameWorld;
     private ActionGenerator actionGenerator;
     private LocationRepository locationRepository;
@@ -14,7 +14,7 @@
     public LocationCreationSystem(
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
-        OpportunitySystem opportunitySystem,
+        ContractSystem contractSystem,
         GameWorld gameWorld,
         ActionGenerator actionGenerator,
         LocationRepository locationRepository,
@@ -26,7 +26,7 @@
     {
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
-        this.OpportunitySystem = opportunitySystem;
+        this.OpportunitySystem = contractSystem;
         this.gameWorld = gameWorld;
         this.actionGenerator = actionGenerator;
         this.locationRepository = locationRepository;
@@ -64,7 +64,7 @@
             locationRepository.AddLocation(location);
         }
         location.Description = details.Description;
-        location.ConnectedTo = details.ConnectedLocationIds;
+        location.Connections = details.ConnectedLocationIds;
 
         foreach (SpotDetails spotDetail in details.NewLocationSpots)
         {

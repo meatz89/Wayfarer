@@ -36,7 +36,7 @@ Before submitting your response, verify that:
 - All Known characters: 
 {knownCharacters}
 
-- Active opportunities: 
+- Active contracts: 
 {activeOpportunities}
 
 ## Minimal Design Philosophy

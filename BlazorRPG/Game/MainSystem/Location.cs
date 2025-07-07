@@ -3,8 +3,10 @@
     public string Id { get; set; }
     public string Name { get; private set; }
     public string Description { get; set; }
-    public List<string> ConnectedTo { get; set; } = new List<string>();
-    public List<string> LocationSpotIds { get; set; } = new List<string>();
+
+    public List<LocationConnection> Connections { get; set; } = new List<LocationConnection>();
+    public List<TradeItem> Market { get; set; } = new List<TradeItem>();
+    public List<LocationSpot> Spots { get; set; } = new List<LocationSpot>();
 
     // Environmental properties by time window
     public List<string> MorningProperties { get; set; } = new List<string>();
