@@ -21,6 +21,12 @@
         _logger = logger;
     }
 
+    public async Task<bool> CanReceiveRequests()
+    {
+        return await _aiProvider.IsAvailableAsync();
+    }
+
+
     public AIGenerationCommand EnqueueCommand(
         List<ConversationEntry> messages,
         List<IResponseStreamWatcher> watchers,
@@ -63,6 +69,7 @@
             throw new KeyNotFoundException($"No pending command with ID {commandId} found");
         }
     }
+
 
     private async Task ProcessQueue()
     {

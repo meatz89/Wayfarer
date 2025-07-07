@@ -39,6 +39,8 @@ public class OllamaProvider : IAIProvider
         List<ConversationEntry> messages,
         List<IResponseStreamWatcher> watchers)
     {
+        await IsAvailableAsync();
+
         string endpoint = $"{_baseUrl}/api/chat";
 
         List<OllamaMessage> ollamaMessages = new List<OllamaMessage>();
@@ -187,6 +189,49 @@ public class OllamaProvider : IAIProvider
             watcher.OnStreamComplete(finalResponse);
         }
         return finalResponse;
+    }
+    
+    public async Task<bool> IsAvailableAsync()
+    {
+        try
+        {
+            string healthEndpoint = $"{_baseUrl}/api/tags";
+            using var request = new HttpRequestMessage(HttpMethod.Get, healthEndpoint);
+            using var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger?.LogWarning($"Ollama health check failed: {response.StatusCode}");
+                return false;
+            }
+            string json = await response.Content.ReadAsStringAsync();
+            if (!string.IsNullOrEmpty(_modelName))
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("models", out var modelsElement) && modelsElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var model in modelsElement.EnumerateArray())
+                    {
+                        if (model.TryGetProperty("name", out var nameElement) && nameElement.GetString() == _modelName)
+                        {
+                            return true;
+                        }
+                    }
+                    _logger?.LogWarning($"Ollama model '{_modelName}' not found in available models.");
+                    return false;
+                }
+            }
+            return true;
+        }
+        catch (HttpRequestException ex) when (ex.InnerException is System.Net.Sockets.SocketException)
+        {
+            _logger?.LogError(ex, "Ollama availability check failed: Connection refused. Is the Ollama server running and reachable?");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Ollama availability check failed.");
+            return false;
+        }
     }
 }
 

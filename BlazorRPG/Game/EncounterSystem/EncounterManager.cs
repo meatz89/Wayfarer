@@ -7,8 +7,10 @@
     private WorldStateInputBuilder _worldStateInputBuilder;
     private ChoiceProjectionService _projectionService;
     private GameWorld _gameWorld;
-    public bool _isAwaitingAIResponse = false;
     public List<EncounterChoice> Choices = new List<EncounterChoice>();
+    public bool _isAwaitingAIResponse = false;
+    
+    public bool _isAvailable = true;
 
     public EncounterManager(
         EncounterContext encounterContext,
@@ -45,8 +47,14 @@
         _state.IsEncounterComplete = false;
     }
 
-    public async Task ProcessNextBeat()
+    public async Task<bool> ProcessNextBeat()
     {
+        if (!_isAvailable || !await _aiGameMaster.CanReceiveRequests())
+        {
+            _isAvailable = false;
+            return _isAvailable;
+        }
+
         if (!_isAwaitingAIResponse && !_gameWorld.StreamingContentState.IsStreaming)
         {
             if (string.IsNullOrEmpty(_gameWorld.StreamingContentState.CurrentText))
@@ -60,6 +68,8 @@
                 await GenerateChoices();
             }
         }
+
+        return _isAvailable;
     }
 
     private async Task GenerateIntroduction()

@@ -16,10 +16,10 @@
     {
         _contextManager = contextManager;
         _encounterChoiceResponseParser = EncounterChoiceResponseParser;
-        _aiClient = aiClient;
         _gameWorld = gameWorld;
         _promptBuilder = new AIPromptBuilder(configuration);
         hasResponse = false;
+        _aiClient = aiClient;
     }
 
     public bool HasResponse
@@ -33,6 +33,11 @@
     private static string GetConversationId(EncounterContext context)
     {
         return $"{context.LocationName}_encounter";
+    }
+
+    public async Task<bool> CanReceiveRequests()
+    {
+        return await _aiClient.CanReceiveRequests();
     }
 
     public async Task<string> GenerateIntroduction(
