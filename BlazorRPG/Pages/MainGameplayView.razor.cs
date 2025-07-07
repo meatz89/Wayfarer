@@ -144,7 +144,7 @@ public partial class MainGameplayView : ComponentBase
         }
     }
 
-    public async Task SwitchAreaMap()
+    public async Task SwitchToTravelScreen()
     {
         if (CurrentScreen == CurrentViews.MapScreen)
         {
@@ -156,6 +156,37 @@ public partial class MainGameplayView : ComponentBase
         }
 
         StateHasChanged();
+    }
+
+    private void SwitchToMarketScreen()
+    {
+        CurrentScreen = CurrentViews.MarketScreen;
+        StateHasChanged();
+    }
+
+    private void SwitchToRestScreen()
+    {
+        CurrentScreen = CurrentViews.RestScreen;
+        StateHasChanged();
+    }
+
+    private void SwitchToContractScreen()
+    {
+        CurrentScreen = CurrentViews.ContractScreen;
+        StateHasChanged();
+    }
+
+    private async Task HandleTravelRoute(RouteOption route)
+    {
+        await GameManager.Travel(route);
+        CurrentScreen = CurrentViews.LocationScreen;
+        UpdateState();
+    }
+
+    private async Task HandleRestComplete()
+    {
+        CurrentScreen = CurrentViews.LocationScreen;
+        UpdateState();
     }
 
     public Location GetCurrentLocation()

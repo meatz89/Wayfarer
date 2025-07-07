@@ -58,7 +58,7 @@
                     <div class="location-header">
                         <h2 class="location-title">@GetCurrentLocation().Id</h2>
                         <div class="location-actions">
-                            <button class="location-button" @onclick="SwitchAreaMap">
+                            <button class="location-button" @onclick="SwitchToTravelScreen">
                                 Travel 🗺️
                             </button>
                         </div>
@@ -76,11 +76,17 @@
                     <div class="location-header">
                         <h2 class="location-title">@GetCurrentLocation()?.Name</h2>
                         <div class="location-actions">
-                            <button class="location-button" @onclick="SwitchAreaMap" hidden="@HasNoApLeft">
+                            <button class="location-button" @onclick="SwitchToTravelScreen">
                                 Travel 🗺️
                             </button>
-                            <button class="location-button" @onclick="StartNewDay" hidden="@HasApLeft">
-                                Rest till next Day
+                            <button class="location-button" @onclick="SwitchToMarketScreen">
+                                Market 💰
+                            </button>
+                            <button class="location-button" @onclick="SwitchToRestScreen">
+                                Rest 🛏️
+                            </button>
+                            <button class="location-button" @onclick="SwitchToContractScreen">
+                                Contracts 📜
                             </button>
                         </div>
                     </div>

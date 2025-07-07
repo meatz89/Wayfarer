@@ -95,26 +95,6 @@
         return Player;
     }
 
-    public void ModifyRelationship(object targetNPC, object magnitude)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void RevealLocation(object locationID)
-    {
-        throw new NotImplementedException();
-    }
-
-    public NPC GetCharacter(object targetID)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<Goal> GetGoalsByType(object core)
-    {
-        return new List<Goal>();
-    }
-
     public List<RouteOption> GetRoutesFromCurrentLocation()
     {
         string currentLocationName = CurrentLocation.Name;
@@ -134,10 +114,18 @@
 
     public RouteOption GetRouteOption(string travelLocationName)
     {
-        RouteOption? routeOption = DiscoveredRoutes.FirstOrDefault(r => 
-            r.Destination.Name.Equals(travelLocationName, StringComparison.OrdinalIgnoreCase));
+        List<LocationConnection> connections = CurrentLocation.Connections;
 
-        return routeOption;
+        foreach (var connection in connections)
+        {
+            RouteOption? routeOption = connection.RouteOptions.FirstOrDefault(r =>
+                r.Destination.Name.Equals(travelLocationName, StringComparison.OrdinalIgnoreCase));
+            if (routeOption != null)
+            {
+                return routeOption;
+            }
+        }
+        return null;
     }
 }
 

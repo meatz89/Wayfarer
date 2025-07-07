@@ -2,10 +2,16 @@
 
 public enum CurrentViews
 {
-    CharacterScreen = 0,
+    LocationScreen,
+    MapScreen,
     EncounterScreen,
     NarrativeScreen,
-    MapScreen,
-    LocationScreen,
-    MissingReferences
+    CharacterScreen,
+    MissingReferences,
+    // New economic screens
+    MarketScreen,
+    RestScreen,
+    ContractScreen,
+    // Modified travel screen
+    TravelScreen
 }

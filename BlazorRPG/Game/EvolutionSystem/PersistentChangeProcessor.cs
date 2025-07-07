@@ -25,10 +25,6 @@ public class PersistentChangeProcessor
 
         switch (change.Type)
         {
-            case ChangeTypes.Relationship:
-                ApplyRelationshipChange(change, player);
-                break;
-
             case ChangeTypes.Knowledge:
                 player.AddKnowledge(change.KnowledgeItem);
                 break;
@@ -37,26 +33,6 @@ public class PersistentChangeProcessor
                 player.ModifyCurrency(change.Amount);
                 break;
 
-            case ChangeTypes.NewLocation:
-                gameWorld.RevealLocation(change.LocationID);
-                break;
         }
-    }
-
-    private void ApplyRelationshipChange(ProposedChange change, Player player)
-    {
-        GameWorld GameWorld = new GameWorld();
-        NPC targetNPC = GameWorld.GetCharacter(change.TargetID);
-        if (targetNPC != null)
-        {
-            int currentRelationship = player.GetRelationship(targetNPC.ID);
-            int newRelationship = currentRelationship + change.Magnitude;
-            player.SetRelationship(targetNPC.ID, newRelationship);
-        }
-    }
-
-    internal async Task<string> ConsolidateMemory(EncounterContext encounterContext, MemoryConsolidationInput memoryInput)
-    {
-        throw new NotImplementedException();
     }
 }
