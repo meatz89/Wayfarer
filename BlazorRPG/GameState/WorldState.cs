@@ -13,16 +13,16 @@
 
     // Game time
     public int CurrentDay { get; set; } = 1;
+    public TimeBlocks CurrentTimeWindow { get; set; }
+    public int CurrentTimeHours { get; set; }
 
     // Current location tracking
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
-    public List<ContractDefinition> CompletedContracts { get; set; }
-    public List<ContractDefinition> ActiveContracts { get; set; }
-    public List<ContractDefinition> FailedContracts { get; set; }
-    public TimeBlocks CurrentTimeWindow { get; internal set; }
-    public int CurrentTimeHours { get; internal set; }
+    public List<ContractDefinition> CompletedContracts { get; set; } = new List<ContractDefinition>();
+    public List<ContractDefinition> ActiveContracts { get; set; } = new List<ContractDefinition>();
+    public List<ContractDefinition> FailedContracts { get; set; } = new List<ContractDefinition>();
 
     public string GetLocationIdForSpot(string locationSpotId)
     {
