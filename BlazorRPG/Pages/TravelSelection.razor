@@ -1,4 +1,6 @@
-﻿@* AreaMap.razor *@
+﻿@* TravelSelection.razor *@
+@inherits TravelSelectionBase
+
 @inject GameWorldManager ActionManager
 @inject GameWorld GameWorld
 
@@ -23,18 +25,3 @@
         }
     </div>
 </div>
-@code {
-    [Inject] public GameWorldManager GameWorldManager { get; set; }
-    [Parameter] public Location CurrentLocation { get; set; }
-    [Parameter] public List<Location> Locations { get; set; }
-    [Parameter] public EventCallback<string> OnTravel { get; set; }
-
-    private List<Location> GetTravelableLocations()
-    {
-        List<Location> enumerable = Locations.Where(loc =>
-            loc.Id != CurrentLocation.Id &&
-            GameWorldManager.CanTravelTo(loc.Id)).ToList();
-
-        return enumerable;
-    }
-}

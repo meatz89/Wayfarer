@@ -1,4 +1,5 @@
 ﻿using BlazorRPG.Components;
+using BlazorRPG.GameState;
 using BlazorRPG.Pages;
 
 public static class ServiceConfiguration
@@ -21,10 +22,11 @@ public static class ServiceConfiguration
         // Register repositories
         services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
+        services.AddSingleton<ItemRepository>();
+
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
         services.AddSingleton<ActionGenerator>();
-        services.AddSingleton<TravelManager>();
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<ContractSystem>();
         services.AddSingleton<EncounterFactory>();
@@ -37,6 +39,10 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
+        
+        services.AddSingleton<TravelManager>();
+        services.AddSingleton<MarketManager>();
+        services.AddSingleton<TradeManager>();
 
         services.AddScoped<MusicService>();
 

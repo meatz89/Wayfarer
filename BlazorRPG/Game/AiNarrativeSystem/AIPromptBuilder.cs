@@ -184,24 +184,23 @@ public class AIPromptBuilder
     {
         string template = promptTemplates[WORLD_EVOLUTION_MD];
 
-        string prompt = 
+        string prompt =
             template
             .Replace("{characterBackground}", input.CharacterBackground)
             .Replace("{currentLocation}", input.CurrentLocation)
             .Replace("{encounterOutcome}", input.EncounterOutcome)
             .Replace("{health}", input.Health.ToString())
             .Replace("{maxHealth}", input.MaxHealth.ToString())
-            .Replace("{energy}", input.Energy.ToString())
-            .Replace("{maxEnergy}", input.MaxEnergy.ToString())
+            .Replace("{stamina}", input.Stamina.ToString())
+            .Replace("{maxStamina}", input.MaxStamina.ToString())
             .Replace("{allKnownLocations}", input.KnownLocations)
             .Replace("{connectedLocations}", input.ConnectedLocations)
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
             .Replace("{allExistingActions}", input.AllExistingActions)
             .Replace("{knownCharacters}", input.KnownCharacters)
-            .Replace("{activeOpportunities}", input.ActiveOpportunities)
+            .Replace("{activeContracts}", input.ActiveContracts)
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
-            .Replace("{connectedLocations}", input.ConnectedLocations)
-            .Replace("{locationDepth}", input.CurrentDepth.ToString());
+            .Replace("{connectedLocations}", input.ConnectedLocations);
 
         AIPrompt aiPrompt = new AIPrompt()
         {
@@ -222,7 +221,7 @@ public class AIPromptBuilder
             .Replace("{allKnownLocations}", input.KnownLocations)
             .Replace("{originLocationName}", input.TravelOrigin)
             .Replace("{knownCharacters}", input.KnownCharacters)
-            .Replace("{activeOpportunities}", input.ActiveOpportunities);
+            .Replace("{activeContracts}", input.ActiveContracts);
         AIPrompt prompt = new AIPrompt()
         {
             Content = content
@@ -290,8 +289,8 @@ public class AIPromptBuilder
 
         string dynamicSystemPrompt = staticSystemPrompt
             .Replace("{CHARACTER_ARCHETYPE}", input.PlayerArchetype)
-            .Replace("{ENERGY}", input.Energy.ToString())
-            .Replace("{MAX_ENERGY}", input.MaxEnergy.ToString())
+            .Replace("{ENERGY}", input.Stamina.ToString())
+            .Replace("{MAX_ENERGY}", input.MaxStamina.ToString())
             .Replace("{COINS}", input.Coins.ToString())
             .Replace("{CURRENT_LOCATION}", input.CurrentLocation)
             .Replace("{LOCATION_DEPTH}", input.LocationDepth.ToString())
@@ -300,7 +299,7 @@ public class AIPromptBuilder
             .Replace("{LOCATION_SPOTS}", input.LocationSpots)
             .Replace("{INVENTORY}", input.Inventory)
             .Replace("{KNOWN_CHARACTERS}", input.KnownCharacters)
-            .Replace("{ACTIVE_OPPORTUNITIES}", input.ActiveOpportunities)
+            .Replace("{ACTIVE_Contracts}", input.ActiveContracts)
             .Replace("{MEMORY_SUMMARY}", input.MemorySummary);
 
         return dynamicSystemPrompt;
@@ -458,7 +457,7 @@ public class AIPromptBuilder
 
             if (coreGoal.Deadline != -1)
             {
-                int daysRemaining = coreGoal.Deadline - GameWorld.CurrentDay;
+                int daysRemaining = coreGoal.Deadline - gameWorld.CurrentDay;
                 prompt.AppendLine($"  * Deadline: {daysRemaining} days remaining");
             }
         }
@@ -482,7 +481,7 @@ public class AIPromptBuilder
 
         if (contractGoals.Any())
         {
-            prompt.AppendLine("- Recent Opportunities:");
+            prompt.AppendLine("- Recent Contracts:");
             foreach (Goal goal in contractGoals)
             {
                 prompt.AppendLine($"  * {goal.Name}: {goal.Progress * 100:0}% complete");
@@ -496,12 +495,12 @@ public class AIPromptBuilder
         prompt.AppendLine();
         prompt.AppendLine("TIME CONTEXT:");
 
-        prompt.AppendLine($"- Current Day: {GameWorld.CurrentDay}");
-        prompt.AppendLine($"- Time of Day: {GameWorld.CurrentTimeOfDay}");
+        prompt.AppendLine($"- Current Day: {gameWorld.CurrentDay}");
+        prompt.AppendLine($"- Time of Day: {gameWorld.CurrentTimeBlock}");
 
         if (gameWorld.DeadlineDay > 0)
         {
-            int daysRemaining = gameWorld.DeadlineDay - GameWorld.CurrentDay;
+            int daysRemaining = gameWorld.DeadlineDay - gameWorld.CurrentDay;
             prompt.AppendLine($"- Deadline: {daysRemaining} days remaining");
             prompt.AppendLine($"- Deadline Reason: {gameWorld.DeadlineReason}");
         }
@@ -514,8 +513,8 @@ public class AIPromptBuilder
         prompt.AppendLine();
         prompt.AppendLine("RESOURCE CONTEXT:");
 
-        prompt.AppendLine($"- Energy: {player.Energy}/{player.MaxEnergy}");
-        prompt.AppendLine($"- Money: {player.Money} coins");
+        prompt.AppendLine($"- Stamina: {player.Stamina}/{player.MaxStamina}");
+        prompt.AppendLine($"- Money: {player.Coins} coins");
         prompt.AppendLine($"- Reputation: {player.Reputation} ({player.GetReputationLevel()})");
 
         prompt.AppendLine();
@@ -538,16 +537,7 @@ public class AIPromptBuilder
             {
                 prompt.AppendLine($"  * To {route.Destination.Name}:");
                 prompt.AppendLine($"    - Time: {route.GetActualTimeCost()} hours");
-                prompt.AppendLine($"    - Energy: {route.GetActualEnergyCost()} points");
-                prompt.AppendLine($"    - Danger: {route.DangerLevel}/10");
-                prompt.AppendLine($"    - Knowledge: Level {route.KnowledgeLevel}/3");
-
-                if (route.RequiredEquipment.Any())
-                {
-                    bool canTravel = route.CanTravel(gameWorld.GetPlayer());
-                    string status = canTravel ? "Requirements met" : "Missing requirements";
-                    prompt.AppendLine($"    - Requirements: {string.Join(", ", route.RequiredEquipment)} ({status})");
-                }
+                prompt.AppendLine($"    - Stamina: {route.GetActualStaminaCost()} points");
             }
         }
         else
@@ -625,7 +615,7 @@ public class AIPromptBuilder
         // Add contextual guidance
         if (gameWorld.DeadlineDay > 0)
         {
-            int daysRemaining = gameWorld.DeadlineDay - GameWorld.CurrentDay;
+            int daysRemaining = gameWorld.DeadlineDay - gameWorld.CurrentDay;
 
             if (daysRemaining <= 3)
             {

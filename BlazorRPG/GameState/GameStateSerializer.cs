@@ -21,11 +21,11 @@ public static class GameWorldSerializer
                 Name = gameWorld.GetPlayer().Name,
                 Gender = gameWorld.GetPlayer().IsInitialized ? gameWorld.GetPlayer().Gender.ToString() : null,
                 Archetype = gameWorld.GetPlayer().IsInitialized ? gameWorld.GetPlayer().Archetype.ToString() : null,
-                Coins = gameWorld.GetPlayer().Money,
+                Coins = gameWorld.GetPlayer().Coins,
                 MaxActionPoints = gameWorld.GetPlayer().MaxActionPoints,
                 ActionPoints = gameWorld.GetPlayer().ActionPoints,
-                MaxEnergy = gameWorld.GetPlayer().MaxEnergy,
-                Energy = gameWorld.GetPlayer().Energy,
+                MaxStamina = gameWorld.GetPlayer().MaxStamina,
+                Stamina = gameWorld.GetPlayer().Stamina,
                 MaxHealth = gameWorld.GetPlayer().MaxHealth,
                 Health = gameWorld.GetPlayer().Health,
                 Level = gameWorld.GetPlayer().Level,
@@ -62,7 +62,7 @@ public static class GameWorldSerializer
         gameWorld.WorldState.actions.Clear();
         gameWorld.WorldState.actions.AddRange(actions);
 
-        gameWorld.WorldState.Opportunities.Clear();
+        gameWorld.WorldState.Contracts.Clear();
 
         // Add cards to world state if applicable
         if (gameWorld.WorldState.AllCards != null)
@@ -86,11 +86,11 @@ public static class GameWorldSerializer
             }
 
             // Apply resources
-            gameWorld.GetPlayer().Money = serialized.Player.Coins;
+            gameWorld.GetPlayer().Coins = serialized.Player.Coins;
             gameWorld.GetPlayer().MaxActionPoints = serialized.Player.MaxActionPoints;
             gameWorld.GetPlayer().ActionPoints = serialized.Player.ActionPoints;
-            gameWorld.GetPlayer().MaxEnergy = serialized.Player.MaxEnergy;
-            gameWorld.GetPlayer().Energy = serialized.Player.Energy;
+            gameWorld.GetPlayer().MaxStamina = serialized.Player.MaxStamina;
+            gameWorld.GetPlayer().Stamina = serialized.Player.Stamina;
             gameWorld.GetPlayer().MaxHealth = serialized.Player.MaxHealth;
             gameWorld.GetPlayer().Health = serialized.Player.Health;
 
@@ -100,13 +100,6 @@ public static class GameWorldSerializer
 
             // Apply inventory
             gameWorld.GetPlayer().Inventory.Clear();
-            foreach (string itemName in serialized.Player.InventoryItems)
-            {
-                if (Enum.TryParse<ItemTypes>(itemName, out ItemTypes itemType))
-                {
-                    gameWorld.GetPlayer().Inventory.AddItem(itemType);
-                }
-            }
 
             // Apply selected cards if available
             if (serialized.Player.SelectedCards != null && cards != null)
@@ -272,18 +265,18 @@ public static class GameWorldSerializer
         return actions;
     }
 
-    public static List<ContractDefinition> DeserializeOpportunities(string json)
+    public static List<ContractDefinition> DeserializeContracts(string json)
     {
-        List<ContractDefinition> Opportunities = new List<ContractDefinition>();
+        List<ContractDefinition> Contracts = new List<ContractDefinition>();
 
         using (JsonDocument doc = JsonDocument.Parse(json))
         {
             foreach (JsonElement contractElement in doc.RootElement.EnumerateArray())
             {
-                Opportunities.Add(ContractParser.ParseOpportunity(contractElement.GetRawText()));
+                Contracts.Add(ContractParser.ParseOpportunity(contractElement.GetRawText()));
             }
         }
 
-        return Opportunities;
+        return Contracts;
     }
 }

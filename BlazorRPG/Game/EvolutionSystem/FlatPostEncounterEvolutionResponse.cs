@@ -6,5 +6,5 @@
     public List<LocationSpotDefinition> LocationSpots { get; set; } = new List<LocationSpotDefinition>();
     public List<EvolutionActionTemplate> ActionDefinitions { get; set; } = new List<EvolutionActionTemplate>();
     public List<NPC> Characters { get; set; } = new List<NPC>();
-    public List<Contract> Opportunities { get; set; } = new List<Contract>();
+    public List<Contract> Contracts { get; set; } = new List<Contract>();
 }

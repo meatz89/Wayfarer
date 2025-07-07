@@ -61,7 +61,7 @@
         return action;
     }
 
-    public List<ContractDefinition> GetOpportunitiesForSpot(string spotId)
+    public List<ContractDefinition> GetContractsForSpot(string spotId)
     {
         // First, find the location this spot belongs to
         LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
@@ -71,33 +71,33 @@
         }
 
         string locationId = spot.LocationId;
-        List<ContractDefinition> Opportunities = new List<ContractDefinition>();
+        List<ContractDefinition> Contracts = new List<ContractDefinition>();
 
-        foreach (ContractDefinition contract in _worldState.Opportunities)
+        foreach (ContractDefinition contract in _worldState.Contracts)
         {
-            // For ACCUMULATIVE Opportunities, they're available at any spot within their location
+            // For ACCUMULATIVE Contracts, they're available at any spot within their location
             if (contract.Type == ContractTypes.Accumulative &&
                 contract.InitialLocationId == locationId)
             {
-                Opportunities.Add(contract);
+                Contracts.Add(contract);
             }
-            // For SEQUENTIAL Opportunities, check the current step's location
+            // For SEQUENTIAL Contracts, check the current step's location
             else if (contract.Type == ContractTypes.Sequential &&
                      contract.InitialStep != null &&
                      contract.InitialStep.LocationId == locationId)
             {
                 // If the step specifies a spot, check if it matches
                 // If not specified, it's available at any spot in the location
-                Opportunities.Add(contract);
+                Contracts.Add(contract);
             }
         }
 
-        return Opportunities;
+        return Contracts;
     }
 
     public ContractDefinition GetOpportunity(string contractId)
     {
-        ContractDefinition contract = _worldState.Opportunities.FirstOrDefault(a =>
+        ContractDefinition contract = _worldState.Contracts.FirstOrDefault(a =>
         {
             return a.Id.Equals(contractId, StringComparison.OrdinalIgnoreCase);
         });

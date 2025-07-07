@@ -17,7 +17,7 @@
         return worldState.CurrentLocationSpot;
     }
 
-    public Location GetLocationById(string locationId)
+    public Location GetLocation(string locationId)
     {
         Location location = worldState.locations.FirstOrDefault(l =>
         {
@@ -50,13 +50,13 @@
 
     public List<LocationSpot> GetSpotsForLocation(string locationId)
     {
-        Location location = GetLocationById(locationId);
+        Location location = GetLocation(locationId);
         return location.AvailableSpots;
     }
 
     public LocationSpot GetSpot(string locationId, string spotId)
     {
-        Location location = GetLocationById(locationId);
+        Location location = GetLocation(locationId);
         if (location == null) location = worldState.CurrentLocation;
         LocationSpot spot = location.AvailableSpots.FirstOrDefault(s => s.SpotID == spotId);
 
@@ -68,7 +68,7 @@
         return worldState.locations
             .Where(l =>
             {
-                return l.Connections.Contains(currentLocation);
+                return l.ConnectedLocationIds.Contains(currentLocation);
             })
             .ToList();
     }

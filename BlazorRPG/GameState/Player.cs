@@ -14,16 +14,16 @@
     public int XPToNextLevel { get; set; } = 100;
 
     // Resources
-    public int Money { get; set; } = 10;
+    public int Coins { get; set; } = 10;
     public int ActionPoints { get; set; } = 18;
-    public int Energy { get; set; } = 10;
+    public int Stamina { get; set; } = 10;
     public int Concentration { get; set; } = 10;
     public int Reputation { get; set; } = 0;
     public int Health { get; set; }
     public int Food { get; set; }
 
     public int MaxActionPoints { get; set; } = 4;
-    public int MaxEnergy { get; set; } = 12;
+    public int MaxStamina { get; set; } = 12;
     public int MaxConcentration { get; set; }
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
@@ -166,7 +166,7 @@
         Background = GameRules.StandardRuleset.Background;
         Inventory = new Inventory(10);
 
-        Money = 5;
+        Coins = 5;
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
@@ -188,7 +188,7 @@
 
     public void HealFully()
     {
-        Energy = MaxEnergy;
+        Stamina = MaxStamina;
         Health = MaxHealth;
         Concentration = MaxConcentration;
     }
@@ -228,58 +228,31 @@
     {
         // Inventory
         ClearInventory();
-        Inventory.AddItem(ItemTypes.Hammer);
-        Inventory.AddItem(ItemTypes.Chisel);
-        Inventory.AddItem(ItemTypes.Trowel);
-        Inventory.AddItem(ItemTypes.Mortar);
     }
 
     private void InitializeCourtier()
     {
         ClearInventory();
-        Inventory.AddItem(ItemTypes.FineClothes);
-        Inventory.AddItem(ItemTypes.WaxSealKit);
-        Inventory.AddItem(ItemTypes.Perfume);
-        Inventory.AddItem(ItemTypes.SilverCoins);
-        Inventory.AddItem(ItemTypes.WineFlask);
     }
 
     private void InitializeScholar()
     {
         ClearInventory();
-        Inventory.AddItem(ItemTypes.Journal);
-        Inventory.AddItem(ItemTypes.QuillAndInk);
-        Inventory.AddItem(ItemTypes.Spectacles);
-        Inventory.AddItem(ItemTypes.PuzzleBox);
-        Inventory.AddItem(ItemTypes.AncientText);
     }
 
     private void InitializeExplorer()
     {
         ClearInventory();
-        Inventory.AddItem(ItemTypes.HerbSatchel);
-        Inventory.AddItem(ItemTypes.MortarAndPestle);
-        Inventory.AddItem(ItemTypes.FieldGuide);
     }
 
     private void InitializeThief()
     {
         ClearInventory();
-        Inventory.AddItem(ItemTypes.Lockpicks);
-        Inventory.AddItem(ItemTypes.DarkCloak);
-        Inventory.AddItem(ItemTypes.GrapplingHook);
-        Inventory.AddItem(ItemTypes.PoisonVial);
-        Inventory.AddItem(ItemTypes.DisguiseKit);
     }
 
     private void InitializeMerchant()
     {
         ClearInventory();
-        Inventory.AddItem(ItemTypes.Ledger);
-        Inventory.AddItem(ItemTypes.Scales);
-        Inventory.AddItem(ItemTypes.TradeGoods);
-        Inventory.AddItem(ItemTypes.CoinPurse);
-        Inventory.AddItem(ItemTypes.TradeDocuments);
     }
 
     public bool HasAvailableCard(SkillCategories cardTypes)
@@ -363,10 +336,10 @@
 
     public void AddCoins(int count)
     {
-        int newCoins = Math.Max(0, Money + count);
-        if (newCoins != Money)
+        int newCoins = Math.Max(0, Coins + count);
+        if (newCoins != Coins)
         {
-            Money = newCoins;
+            Coins = newCoins;
         }
     }
 
@@ -410,19 +383,14 @@
         this.ActionPoints = newActionPoints;
     }
 
-    public int CurrentEnergy()
+    public void SetNewStamina(int newStamina)
     {
-        return Energy;
+        this.Stamina = newStamina;
     }
 
-    public void SetNewEnergy(int newEnergy)
+    public void ModifyStamina(int amount)
     {
-        this.Energy = newEnergy;
-    }
-
-    public void ModifyEnergy(int amount)
-    {
-        this.Energy += amount;
+        this.Stamina += amount;
     }
 
     public bool HasNonExhaustedCardOfType(SkillCategories requiredCardType)
@@ -471,9 +439,9 @@
         clone.XPToNextLevel = this.XPToNextLevel;
         clone.MaxActionPoints = this.MaxActionPoints;
         clone.ActionPoints = this.ActionPoints;
-        clone.MaxEnergy = this.MaxEnergy;
-        clone.Energy = this.Energy;
-        clone.Money = this.Money;
+        clone.MaxStamina = this.MaxStamina;
+        clone.Stamina = this.Stamina;
+        clone.Coins = this.Coins;
         clone.Food = this.Food;
         clone.MinHealth = this.MinHealth;
         clone.Health = this.Health;
@@ -586,11 +554,11 @@
         return Inventory.HasItem(equipment);
     }
 
-    public bool SpendEnergy(int amount)
+    public bool SpendStamina(int amount)
     {
-        if (Energy < amount) return false;
+        if (Stamina < amount) return false;
 
-        Energy -= amount;
+        Stamina -= amount;
 
         return true;
     }
@@ -600,9 +568,9 @@
         // Reputation affects costs
         int actualCost = CalculateAdjustedCost(amount);
 
-        if (Money < actualCost) return false;
+        if (Coins < actualCost) return false;
 
-        Money -= actualCost;
+        Coins -= actualCost;
         return true;
     }
 
@@ -620,5 +588,15 @@
         else multiplier = 1.5f;
 
         return (int)(baseCost * multiplier);
+    }
+
+    internal int CalculateTotalWeight()
+    {
+        throw new NotImplementedException();
+    }
+
+    internal int GetMaxItemCapacity()
+    {
+        throw new NotImplementedException();
     }
 }

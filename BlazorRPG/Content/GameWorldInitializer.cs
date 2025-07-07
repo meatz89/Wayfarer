@@ -21,7 +21,7 @@
     public GameWorld LoadGame()
     {
         string savePath = Path.Combine(_contentDirectory, _saveFolder);
-        GameWorld gameWorld = CreateNewGameWorld();
+        GameWorld gameWorld = CreateInitialGameWorld();
 
         bool shouldLoad = false;
 
@@ -51,8 +51,8 @@
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(savePath, "actions.json")));
 
-        List<ContractDefinition> contracts = GameWorldSerializer.DeserializeOpportunities(
-            File.ReadAllText(Path.Combine(savePath, "Opportunities.json")));
+        List<ContractDefinition> contracts = GameWorldSerializer.DeserializeContracts(
+            File.ReadAllText(Path.Combine(savePath, "Contracts.json")));
 
         // Load cards if available
         List<SkillCard> cards = new List<SkillCard>();
@@ -138,7 +138,7 @@
         File.Copy(Path.Combine(templatePath, "locations.json"), Path.Combine(savePath, "locations.json"), true);
         File.Copy(Path.Combine(templatePath, "location_spots.json"), Path.Combine(savePath, "locationSpots.json"), true);
         File.Copy(Path.Combine(templatePath, "basic_actions.json"), Path.Combine(savePath, "actions.json"), true);
-        File.Copy(Path.Combine(templatePath, "basic_Opportunities.json"), Path.Combine(savePath, "Opportunities.json"), true);
+        File.Copy(Path.Combine(templatePath, "basic_Contracts.json"), Path.Combine(savePath, "Contracts.json"), true);
 
         // Copy cards.json if it exists
         string templateCardsPath = Path.Combine(templatePath, "cards.json");
@@ -148,7 +148,7 @@
         }
     }
 
-    private GameWorld CreateNewGameWorld()
+    private GameWorld CreateInitialGameWorld()
     {
         GameWorld gameWorld = new GameWorld();
 
@@ -171,7 +171,7 @@
 
         gameWorld.WorldState.actions.Clear();
         gameWorld.WorldState.actions.AddRange(actions);
-        gameWorld.WorldState.Opportunities.AddRange(comissions);
+        gameWorld.WorldState.Contracts.AddRange(comissions);
 
         // Add cards to world state if applicable
         if (gameWorld.WorldState.AllCards != null)

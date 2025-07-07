@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-public class ActionPreviewBase : ComponentBase
+public partial class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
     [Parameter] public ApproachDefinition CurrentApproach { get; set; }

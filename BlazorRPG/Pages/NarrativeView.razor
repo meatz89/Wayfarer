@@ -74,11 +74,11 @@
                         </div>
                     }
 
-                    @if (GetActionChangesWithEnergy().Any())
+                    @if (GetActionChangesWithStamina().Any())
                     {
                         <h6>New Actions</h6>
                         <div class="tooltip-list">
-                            @foreach (var action in GetActionChangesWithEnergy())
+                            @foreach (var action in GetActionChangesWithStamina())
                             {
                                 <div class="encounter-result-item wide">
                                     <div class="tooltip-item-header">
@@ -90,8 +90,8 @@
                                                 <span class="repeatable-icon" title="Repeatable">🔄</span>
                                             }
                                         </div>
-                                        <span class="tooltip-item-value @(action.EnergyCost > 0 ? "negative-change" : "info-change")">
-                                            @(action.EnergyCost > 0 ? $"-{action.EnergyCost} Energy" : "No Energy Cost")
+                                        <span class="tooltip-item-value @(action.StaminaCost > 0 ? "negative-change" : "info-change")">
+                                            @(action.StaminaCost > 0 ? $"-{action.StaminaCost} Stamina" : "No Stamina Cost")
                                         </span>
                                     </div>
                                 </div>

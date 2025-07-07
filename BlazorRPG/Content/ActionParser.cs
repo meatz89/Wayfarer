@@ -17,7 +17,7 @@ public static class ActionParser
             Description = description,
             ActionPointCost = GetIntProperty(root, "actionPointCost", 1),
             SilverCost = GetIntProperty(root, "silverCost", 0),
-            EnergyCost = GetIntProperty(root, "energyCost", 0),
+            StaminaCost = GetIntProperty(root, "staminaCost", 0),
             ConcentrationCost = GetIntProperty(root, "concentrationCost", 0)
         };
 

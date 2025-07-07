@@ -1,12 +1,12 @@
 ﻿public class Inventory
 {
-    public string[] Slots;
-    public int Capacity { get { return Slots.Length; } }
+    public string[] ItemSlots;
+    public int Capacity { get { return ItemSlots.Length; } }
     public int UsedCapacity
     {
         get
         {
-            return Slots.Count(s =>
+            return ItemSlots.Count(s =>
     {
         return s != string.Empty;
     });
@@ -15,26 +15,26 @@
 
     public Inventory(int size)
     {
-        Slots = new string[size];
+        ItemSlots = new string[size];
         Clear();
     }
 
     public List<string> GetAllItems()
     {
-        return Slots.ToList();
+        return ItemSlots.ToList();
     }
 
     public void Clear()
     {
-        for (int i = 0; i < Slots.Length; i++)
+        for (int i = 0; i < ItemSlots.Length; i++)
         {
-            Slots[i] = string.Empty;
+            ItemSlots[i] = string.Empty;
         }
     }
 
     public string GetFirstItem()
     {
-        foreach (string itemType in Slots)
+        foreach (string itemType in ItemSlots)
         {
             if (itemType != string.Empty && HasItem(itemType))
             {
@@ -46,7 +46,7 @@
 
     public int GetCapacity()
     {
-        return Slots.Length;
+        return ItemSlots.Length;
     }
 
     public void SetItemCount(string item, int count)
@@ -107,18 +107,18 @@
         return removedCount;
     }
 
-    public bool AddItem(ItemTypes itemTypes)
+    public bool AddItem(Item Item)
     {
-        return AddItem(itemTypes.ToString());
+        return AddItem(Item.ToString());
     }
 
     public bool AddItem(string item)
     {
-        for (int i = 0; i < Slots.Length; i++)
+        for (int i = 0; i < ItemSlots.Length; i++)
         {
-            if (Slots[i] == string.Empty)
+            if (ItemSlots[i] == string.Empty)
             {
-                Slots[i] = item;
+                ItemSlots[i] = item;
                 return true;
             }
         }
@@ -127,11 +127,11 @@
 
     public bool RemoveItem(string item)
     {
-        for (int i = 0; i < Slots.Length; i++)
+        for (int i = 0; i < ItemSlots.Length; i++)
         {
-            if (Slots[i] == item)
+            if (ItemSlots[i] == item)
             {
-                Slots[i] = string.Empty;
+                ItemSlots[i] = string.Empty;
                 return true;
             }
         }
@@ -140,7 +140,7 @@
 
     public bool HasItem(string item)
     {
-        foreach (string slot in Slots)
+        foreach (string slot in ItemSlots)
         {
             if (slot == item)
             {
@@ -153,7 +153,7 @@
     public int GetEmptySlots()
     {
         int emptyCount = 0;
-        foreach (string slot in Slots)
+        foreach (string slot in ItemSlots)
         {
             if (slot == string.Empty)
             {
@@ -166,7 +166,7 @@
     public int GetItemCount(string item)
     {
         int count = 0;
-        foreach (string slot in Slots)
+        foreach (string slot in ItemSlots)
         {
             if (slot == item)
             {

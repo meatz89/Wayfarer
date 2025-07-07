@@ -1,6 +1,5 @@
 ﻿public class GameWorld
 {
-
     public int CurrentDay { get; set; } = 1;
     public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Dawn;
     public int PlayerCoins { get; set; } = 2;
@@ -20,12 +19,12 @@
     public WorldMap Map { get; private set; }
     public int GlobalTime { get; private set; }
     public List<Location> DiscoveredLocations { get; private set; }
-    public List<Route> DiscoveredRoutes { get; private set; }
+    public List<RouteOption> DiscoveredRoutes { get; private set; }
 
     // New resource properties
     public int Money { get; set; }
     public int Condition { get; set; }
-    public static List<Contract> AllOpportunities { get; set; } = new List<Contract>();
+    public static List<Contract> AllContracts { get; set; } = new List<Contract>();
 
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
@@ -35,6 +34,7 @@
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
     public Guid GameInstanceId { get; set; }
+    public RouteOption CurrentRouteOption { get; internal set; }
 
     public GameWorld()
     {
@@ -130,6 +130,14 @@
     public Guid GetGameInstanceId()
     {
         return GameInstanceId;
+    }
+
+    public RouteOption GetRouteOption(string travelLocationName)
+    {
+        RouteOption? routeOption = DiscoveredRoutes.FirstOrDefault(r => 
+            r.Destination.Name.Equals(travelLocationName, StringComparison.OrdinalIgnoreCase));
+
+        return routeOption;
     }
 }
 

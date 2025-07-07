@@ -2,23 +2,27 @@
 {
     private bool _useMemory;
     private bool _processStateChanges;
-    private GameWorld gameWorld;
+    private GameWorld GameWorld;
     private Player player;
     private WorldState worldState;
+
+    private ActionRepository actionRepository;
+    private ItemRepository itemRepository;
+
     private EncounterFactory encounterFactory;
     private MessageSystem messageSystem;
     private ActionGenerator actionGenerator;
     private ActionFactory actionFactory;
-    private ActionRepository actionRepository;
     private ActionProcessor actionProcessor;
     private LocationSystem locationSystem;
     private LocationRepository locationRepository;
     private TravelManager travelManager;
     private ContentLoader contentLoader;
-    private List<Contract> availableOpportunities = new List<Contract>();
+    private List<Contract> availableContracts = new List<Contract>();
     private readonly ILogger<GameWorldManager> logger;
 
-    public GameWorldManager(GameWorld gameWorld, EncounterFactory encounterSystem,
+    public GameWorldManager(GameWorld gameWorld, 
+                       ItemRepository itemRepository, EncounterFactory encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
@@ -27,7 +31,8 @@
                        ChoiceProjectionService choiceProjectionService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
-        this.gameWorld = gameWorld;
+        this.GameWorld = gameWorld;
+        this.itemRepository = itemRepository;
         this.player = gameWorld.GetPlayer();
         this.worldState = gameWorld.WorldState;
         this.encounterFactory = encounterSystem;
@@ -49,18 +54,18 @@
     {
         player.HealFully();
 
-        gameWorld.TimeManager.SetNewTime(TimeManager.TimeDayStart);
+        GameWorld.TimeManager.SetNewTime(TimeManager.TimeDayStart);
 
         Location startingLocation = await locationSystem.Initialize();
         worldState.RecordLocationVisit(startingLocation.Id);
         travelManager.StartLocationTravel(startingLocation.Id);
-        gameWorld.SetCurrentLocation(startingLocation);
+        GameWorld.SetCurrentLocation(startingLocation);
 
         Location currentLocation = worldState.CurrentLocation;
         if (worldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
         {
             Console.WriteLine("Current location spot is null despite spots existing - manually setting");
-            gameWorld.SetCurrentLocation(startingLocation, locationSystem.GetLocationSpots(currentLocation.Id).First());
+            GameWorld.SetCurrentLocation(startingLocation, locationSystem.GetLocationSpots(currentLocation.Id).First());
         }
 
         Location? currentLoc = currentLocation;
@@ -71,16 +76,16 @@
 
     private async Task UpdateGameWorld()
     {
-        gameWorld.ActionStateTracker.ClearCurrentUserAction();
+        GameWorld.ActionStateTracker.ClearCurrentUserAction();
         actionProcessor.UpdateState();
 
-        UpdateAvailableOpportunities();
+        UpdateAvailableContracts();
 
         Location location = worldState.CurrentLocation;
         LocationSpot locationSpot = worldState.CurrentLocationSpot;
 
         List<LocationAction> locationActions = await CreateActions(location, locationSpot);
-        List<LocationAction> contractImplementations = await CreateOpportunities(location, locationSpot);
+        List<LocationAction> contractImplementations = await CreateContracts(location, locationSpot);
         locationActions.AddRange(contractImplementations);
 
         List<UserActionOption> locationSpotActionOptions =
@@ -89,24 +94,24 @@
                 locationSpot,
                 locationActions);
 
-        gameWorld.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
+        GameWorld.ActionStateTracker.SetLocationSpotActions(locationSpotActionOptions);
     }
 
     public async Task ProcessNextBeat()
     {
-        EncounterManager currentEncounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
+        EncounterManager currentEncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager;
         await currentEncounterManager.ProcessNextBeat();
     }
 
     public async Task<EncounterManager> StartEncounter(string approachId)
     {
-        LocationAction locationAction = gameWorld.ActionStateTracker.CurrentAction.locationAction;
+        LocationAction locationAction = GameWorld.ActionStateTracker.CurrentAction.locationAction;
 
         Location location = worldState.CurrentLocation;
         string locationId = location.Id;
         string locationName = location.Name;
 
-        string timeOfDay = GetTimeOfDay(worldState.CurrentTimeHours);
+        string TimeBlocks = GetTimeBlocks(worldState.CurrentTimeHours);
 
         LocationSpot? locationSpot = locationSystem.GetLocationSpot(
             location.Id, worldState.CurrentLocationSpot.SpotID);
@@ -126,7 +131,7 @@
             DangerLevel = 1,
 
             Player = player,
-            GameWorld = gameWorld,
+            GameWorld = GameWorld,
 
             ActionName = locationAction.Name,
             ActionApproach = approach,
@@ -146,7 +151,7 @@
             locationAction);
 
         // Store reference in GameWorld
-        gameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
+        GameWorld.ActionStateTracker.SetActiveEncounter(encounterManager);
 
         // Initialize the encounter
         await encounterManager.InitializeEncounter();
@@ -160,7 +165,7 @@
 
         if (string.IsNullOrWhiteSpace(currentLocation)) return null;
 
-        BeatOutcome beatOutcome = await gameWorld.ActionStateTracker.CurrentEncounterManager
+        BeatOutcome beatOutcome = await GameWorld.ActionStateTracker.CurrentEncounterManager
             .ProcessPlayerChoice(playerChoice);
 
         return beatOutcome;
@@ -170,7 +175,7 @@
     public void ProcessEndEncounter(EncounterResult result)
     {
         worldState.MarkEncounterCompleted(result.locationAction.ActionId);
-        gameWorld.ActionStateTracker.CurrentEncounterResult = result;
+        GameWorld.ActionStateTracker.CurrentEncounterResult = result;
 
         AIResponse AIResponse = result.AIResponse;
         string narrative = AIResponse?.BeatNarration;
@@ -210,13 +215,13 @@
         return options;
     }
 
-    private async Task<List<LocationAction>> CreateOpportunities(Location location, LocationSpot locationSpot)
+    private async Task<List<LocationAction>> CreateContracts(Location location, LocationSpot locationSpot)
     {
         List<LocationAction> contractImplementations = new List<LocationAction>();
-        List<ContractDefinition> locationSpotOpportunities = actionRepository.GetOpportunitiesForSpot(locationSpot.SpotID);
-        for (int i = 0; i < locationSpotOpportunities.Count; i++)
+        List<ContractDefinition> locationSpotContracts = actionRepository.GetContractsForSpot(locationSpot.SpotID);
+        for (int i = 0; i < locationSpotContracts.Count; i++)
         {
-            ContractDefinition contractTemplate = locationSpotOpportunities[i];
+            ContractDefinition contractTemplate = locationSpotContracts[i];
             if (contractTemplate == null)
             {
                 string contractId =
@@ -269,12 +274,12 @@
 
     public async Task OnPlayerSelectsAction(UserActionOption action)
     {
-        Player player = gameWorld.GetPlayer();
+        Player player = GameWorld.GetPlayer();
         Location location = locationSystem.GetLocation(action.LocationId);
         LocationSpot locationSpot = location.AvailableSpots.FirstOrDefault(spot => spot.LocationId == action.LocationSpot);
 
         // Set current action in game state
-        gameWorld.ActionStateTracker.SetCurrentUserAction(action);
+        GameWorld.ActionStateTracker.SetCurrentUserAction(action);
 
         // Use our action classification system to determine execution path
         LocationAction locationAction = action.locationAction;
@@ -303,8 +308,8 @@
 
     public async Task ProcessActionCompletion()
     {
-        LocationAction action = gameWorld.ActionStateTracker.CurrentAction.locationAction;
-        gameWorld.ActionStateTracker.EndEncounter();
+        LocationAction action = GameWorld.ActionStateTracker.CurrentAction.locationAction;
+        GameWorld.ActionStateTracker.EndEncounter();
 
         await HandlePlayerMoving(action);
         actionProcessor.ProcessAction(action);
@@ -317,57 +322,50 @@
         string location = locationAction.DestinationLocation;
         string locationSpot = locationAction.DestinationLocationSpot;
 
+        string fromLocationId = GameWorld.CurrentLocation.Id;
+        RouteOption routeOption = travelManager.GetAvailableRoutes(fromLocationId, location).FirstOrDefault();
+
         if (!string.IsNullOrWhiteSpace(location))
         {
-            travelManager.EndLocationTravel(location, locationSpot);
+            travelManager.TravelToLocation(location, locationSpot, routeOption);
         }
-    }
-
-    public async Task Travel(string targetLocation)
-    {
-        Location location = locationRepository.GetLocationByName(targetLocation);
-        RouteOption route = travelManager.StartLocationTravel(location.Id, TravelMethods.Walking);
-
-        await Travel(route);
     }
 
     public async Task Travel(RouteOption route)
     {
         // Check if player can travel this route
-        if (!route.CanTravel(gameWorld.GetPlayer()))
+        Player player = GameWorld.GetPlayer();
+        if (!route.CanTravel(itemRepository, player))
             return;
 
         // Apply costs
         int timeCost = route.GetActualTimeCost();
-        int energyCost = route.GetActualEnergyCost();
+        int staminaCost = travelManager.CalculateStaminaCost(route);
 
-        gameWorld.GetPlayer().SpendEnergy(energyCost);
-        gameWorld.AdvanceTime(timeCost);
+        player.SpendStamina(staminaCost);
+        player.ModifyCoins(route.BaseCoinCost);
+        GameWorld.AdvanceTime(timeCost);
 
-        // Increase knowledge of this route
-        route.IncreaseKnowledge();
-
-        // Check for encounters
-        int seed = GameWorld.CurrentDay + gameWorld.GetPlayer().GetHashCode();
+        int seed = GameWorld.CurrentDay + player.GetHashCode();
         EncounterContext encounterContext = route.GetEncounter(seed);
 
         if (encounterContext != null)
         {
             // Start a travel encounter
+            // This would use the encounter system
         }
         else
         {
             // Arrived safely
-            gameWorld.SetCurrentLocation(route.Destination);
+            GameWorld.SetCurrentLocation(route.Destination);
             await UpdateGameWorld();
         }
     }
 
-
     public ChoiceProjection GetChoicePreview(EncounterChoice choiceOption)
     {
-        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
-        ChoiceProjection choiceProjection = gameWorld.ActionStateTracker.CurrentEncounterManager
+        EncounterManager encounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager;
+        ChoiceProjection choiceProjection = GameWorld.ActionStateTracker.CurrentEncounterManager
             .GetChoiceProjection(choiceOption);
 
         return choiceProjection;
@@ -375,10 +373,10 @@
 
     public async Task MoveToLocationSpot(string locationSpotName)
     {
-        Location location = gameWorld.WorldState.CurrentLocation;
+        Location location = GameWorld.WorldState.CurrentLocation;
 
         LocationSpot locationSpot = locationSystem.GetLocationSpot(location.Id, locationSpotName);
-        gameWorld.SetCurrentLocation(location, locationSpot);
+        GameWorld.SetCurrentLocation(location, locationSpot);
 
         await UpdateGameWorld();
     }
@@ -397,7 +395,7 @@
         return canMove;
     }
 
-    public string GetTimeOfDay(int totalHours)
+    public string GetTimeBlocks(int totalHours)
     {
         if (totalHours >= 5 && totalHours < 12) return "Morning";
         if (totalHours >= 12 && totalHours < 17) return "Afternoon";
@@ -405,20 +403,20 @@
         return "Night";
     }
 
-    public void UpdateAvailableOpportunities()
+    public void UpdateAvailableContracts()
     {
-        foreach (Contract contract in GameWorld.AllOpportunities)
+        foreach (Contract contract in GameWorld.AllContracts)
         {
-            if (contract.IsAvailable(GameWorld.CurrentDay, GameWorld.CurrentTimeOfDay))
+            if (contract.IsAvailable(GameWorld.CurrentDay, GameWorld.CurrentTimeBlock))
             {
-                if (!availableOpportunities.Contains(contract))
+                if (!availableContracts.Contains(contract))
                 {
-                    availableOpportunities.Add(contract);
+                    availableContracts.Add(contract);
                 }
             }
             else
             {
-                availableOpportunities.Remove(contract);
+                availableContracts.Remove(contract);
             }
         }
     }
@@ -450,20 +448,20 @@
     {
         //SaveGame();
 
-        if (gameWorld.GetPlayer().CurrentActionPoints() == 0)
+        if (GameWorld.GetPlayer().CurrentActionPoints() == 0)
         {
             actionProcessor.ProcessTurnChange();
         }
 
-        UpdateOpportunities(gameWorld);
+        UpdateContracts(GameWorld);
         await UpdateGameWorld();
     }
 
-    public void UpdateOpportunities(GameWorld gameWorld)
+    public void UpdateContracts(GameWorld gameWorld)
     {
-        List<ContractDefinition> expiredOpportunities = new List<ContractDefinition>();
+        List<ContractDefinition> expiredContracts = new List<ContractDefinition>();
 
-        foreach (ContractDefinition contract in gameWorld.WorldState.ActiveOpportunities)
+        foreach (ContractDefinition contract in gameWorld.WorldState.ActiveContracts)
         {
             // Reduce days remaining
             contract.ExpirationDays--;
@@ -471,16 +469,16 @@
             // Check if expired
             if (contract.ExpirationDays <= 0)
             {
-                expiredOpportunities.Add(contract);
+                expiredContracts.Add(contract);
             }
         }
 
-        // Remove expired Opportunities
-        foreach (ContractDefinition expired in expiredOpportunities)
+        // Remove expired Contracts
+        foreach (ContractDefinition expired in expiredContracts)
         {
-            gameWorld.WorldState.ActiveOpportunities.Remove(expired);
-            // Optionally: Add to failed Opportunities list
-            gameWorld.WorldState.FailedOpportunities.Add(expired);
+            gameWorld.WorldState.ActiveContracts.Remove(expired);
+            // Optionally: Add to failed Contracts list
+            gameWorld.WorldState.FailedContracts.Add(expired);
 
             // Add message
             // messageSystem.AddSystemMessage($"Opportunity expired: {expired.Name}");
@@ -499,14 +497,14 @@
 
     public GameWorldSnapshot GetGameSnapshot()
     {
-        return new GameWorldSnapshot(gameWorld);
+        return new GameWorldSnapshot(GameWorld);
     }
 
     private void SaveGame()
     {
         try
         {
-            contentLoader.SaveGame(gameWorld);
+            contentLoader.SaveGame(GameWorld);
             messageSystem.AddSystemMessage("Game saved successfully");
         }
         catch (Exception ex)
@@ -518,7 +516,7 @@
 
     private void GameOver()
     {
-        gameWorld.ActionStateTracker.EndEncounter();
+        GameWorld.ActionStateTracker.EndEncounter();
     }
 
     private bool IsGameOver(Player player)

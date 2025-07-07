@@ -92,34 +92,34 @@ public partial class NarrativeViewBase : ComponentBase
         public List<ServiceTypes> AvailableServices { get; set; }
     }
 
-    public List<ActionWithEnergy> GetActionChangesWithEnergy()
+    public List<ActionWithStamina> GetActionChangesWithStamina()
     {
-        if (!HasPostEncounterEvolution()) return new List<ActionWithEnergy>();
+        if (!HasPostEncounterEvolution()) return new List<ActionWithStamina>();
 
-        List<ActionWithEnergy> changes = new List<ActionWithEnergy>();
+        List<ActionWithStamina> changes = new List<ActionWithStamina>();
 
         foreach (NewAction action in EncounterResult.PostEncounterEvolution.NewActions)
         {
-            changes.Add(new ActionWithEnergy
+            changes.Add(new ActionWithStamina
             {
                 Name = action.Name,
                 Description = action.Description,
                 Type = action.ActionType,
                 IsRepeatable = action.IsRepeatable,
-                EnergyCost = action.EnergyCost
+                StaminaCost = action.StaminaCost
             });
         }
 
         return changes;
     }
 
-    public class ActionWithEnergy
+    public class ActionWithStamina
     {
         public string Name { get; set; }
         public string Description { get; set; }
         public string Type { get; set; }
         public bool IsRepeatable { get; set; }
-        public int EnergyCost { get; set; }
+        public int StaminaCost { get; set; }
     }
 
     public List<CharacterChangeDisplay> GetCharacterChanges()
@@ -172,8 +172,8 @@ public partial class NarrativeViewBase : ComponentBase
         return new CoinsChangeDisplay
         {
             Amount = EncounterResult.PostEncounterEvolution.CoinChange,
-            Current = GameWorld.GetPlayer().Money,
-            New = GameWorld.GetPlayer().Money + EncounterResult.PostEncounterEvolution.CoinChange
+            Current = GameWorld.GetPlayer().Coins,
+            New = GameWorld.GetPlayer().Coins + EncounterResult.PostEncounterEvolution.CoinChange
         };
     }
 

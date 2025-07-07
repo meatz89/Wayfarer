@@ -21,13 +21,13 @@
 
     public ContractStep CurrentStep()
     {
-        // For SEQUENTIAL Opportunities, return the initial step
+        // For SEQUENTIAL Contracts, return the initial step
         if (Type == ContractTypes.Sequential)
         {
             return InitialStep;
         }
 
-        // For ACCUMULATIVE Opportunities, create a virtual step
+        // For ACCUMULATIVE Contracts, create a virtual step
         // that references the contract's location
         return new ContractStep
         {
@@ -94,7 +94,7 @@
         {
             return gameWorld.WorldState.locations
                 .FirstOrDefault(l => l.Id != InitialLocationId &&
-                                   l.Connections.Contains(InitialLocationId))?.Id ?? InitialLocationId;
+                                   l.ConnectedLocationIds.Contains(InitialLocationId))?.Id ?? InitialLocationId;
         }
         return InitialLocationId;
     }

@@ -18,7 +18,7 @@ public static class LocationParser
         Location location = new Location(id, name)
         {
             Description = GetStringProperty(root, "description", ""),
-            Connections = GetStringArray(root, "connectedTo"),
+            ConnectedLocationIds = GetStringArray(root, "connectedTo"),
             LocationSpotIds = GetStringArray(root, "locationSpots"),
             DomainTags = GetStringArray(root, "domainTags")
         };

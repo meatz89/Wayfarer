@@ -11,8 +11,7 @@
 - FAILURE TO MEET THESE REQUIREMENTS WILL BREAK THE GAME
 
 ## Context
-- Current location: {currentLocation} (Depth: {currentDepth})
-- Last hub depth: {lastHubDepth}
+- Current location: {currentLocation}
 - EncounterContext outcome: {encounterOutcome} (Success/Partial/Failure)
 
 ## Existing World Context
@@ -33,18 +32,7 @@
 {knownCharacters}
 
 - Active contracts: 
-{activeOpportunities}
-
-## Forward Progression Rules
-- New Locations MUST be connected to current location
-- New locations MUST have depth = current_depth or current_depth + 1
-- Difficulty scales with depth (base difficulty = depth/2 + 1, minimum 1)
-- Hub locations should appear every 3-4 depth levels
-- If current_depth - lastHubDepth >= 3, YOU MUST CREATE A HUB LOCATION at depth {currentDepth + 1}
-- Hub locations require 3+ spots with Rest/Trade/Healing services
-- Rest locations should be available every 2 depth levels
-- Locations must be directly connected to the current location
-- Locations must generally be small and in walkable distance
+{activeContracts}
 
 ## Location Types
 - Hub: Major settlement with multiple services (Rest, Trade, Healing)
@@ -89,7 +77,7 @@ You must provide your response ONLY as a valid JSON object with the following st
       "goal": "The player's goal in this action",
       "actionType": "Discuss",
       "isRepeatable": true/false,
-      "energyCost": 1,
+      "staminaCost": 1,
       "locationName": "{currentLocation}",
       "spotName": "Spot name", // MUST BE AN ALREADY KNOWN SPOT NAME OR DEFINED IN THIS RESPONSE 
     }

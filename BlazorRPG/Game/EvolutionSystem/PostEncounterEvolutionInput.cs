@@ -10,13 +10,13 @@
     public string CurrentLocationSpots { get; set; }
 
     public string KnownCharacters { get; set; }
-    public string ActiveOpportunities { get; set; }
+    public string ActiveContracts { get; set; }
     public string AllExistingActions { get; set; }
 
     public int CurrentDepth { get; set; }
 
     public int Health { get; set; }
     public int MaxHealth { get; set; }
-    public int Energy { get; set; }
-    public int MaxEnergy { get; set; }
+    public int Stamina { get; set; }
+    public int MaxStamina { get; set; }
 }

@@ -2,19 +2,16 @@
 
 public class ContractSystem
 {
-    public string FormatActiveOpportunities(List<Contract> contracts)
+    public string FormatActiveContracts(List<Contract> contracts)
     {
         StringBuilder sb = new StringBuilder();
 
         if (contracts == null || !contracts.Any())
             return "None";
 
-        foreach (Contract? contract in contracts.Where(o =>
+        foreach (Contract? contract in contracts)
         {
-            return o.Status == "Available";
-        }))
-        {
-            sb.AppendLine($"- {contract.Name}: {contract.Description} (at {contract.Location})");
+            sb.AppendLine($"- {contract.Id}: {contract.Description} (at {contract.DestinationLocation})");
         }
 
         return sb.ToString();

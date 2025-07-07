@@ -19,8 +19,8 @@ public partial class MainGameplayView : ComponentBase
 
     // Navigation State
     public string SelectedLocation { get; private set; }
-    public TimeOfDay CurrentTimeOfDay { get; private set; }
-    public int Energy { get; private set; } = 0;
+    public TimeBlocks CurrentTimeBlock { get; private set; }
+    public int Stamina { get; private set; } = 0;
     public int Concentration { get; private set; } = 0;
     public Location CurrentLocation { get; private set; }
     public Player PlayerState
@@ -126,8 +126,8 @@ public partial class MainGameplayView : ComponentBase
     private void PollGameState()
     {
         GameWorldSnapshot snapshot = GameManager.GetGameSnapshot();
-        CurrentTimeOfDay = snapshot.CurrentTimeOfDay;
-        Energy = snapshot.Energy;
+        CurrentTimeBlock = snapshot.CurrentTimeBlock;
+        Stamina = snapshot.Stamina;
         Concentration = snapshot.Concentration;
 
         if (oldSnapshot == null | !snapshot.IsEqualTo(oldSnapshot))
@@ -205,9 +205,11 @@ public partial class MainGameplayView : ComponentBase
         UpdateState();
     }
 
-    private async Task HandleTravelStart(string travelLocationName)
+    private async Task HandleTravelStart(string travelDestination)
     {
-        await GameManager.Travel(travelLocationName);
+        RouteOption routeOption = GameWorld.GetRouteOption(travelDestination);
+
+        await GameManager.Travel(routeOption);
 
         CurrentScreen = CurrentViews.LocationScreen;
         UpdateState();
@@ -296,7 +298,7 @@ public partial class MainGameplayView : ComponentBase
         return portraitPath;
     }
 
-    private string FormatItemName(ItemTypes itemType)
+    private string FormatItemName(Item itemType)
     {
         return System.Text.RegularExpressions.Regex.Replace(
             itemType.ToString(),

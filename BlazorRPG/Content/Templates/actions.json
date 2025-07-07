@@ -2,13 +2,13 @@
 	{
 		"id": "warm_by_hearth",
 		"name": "Warm by Hearth",
-		"description": "Rest by the warm hearth to recover your physical energy.",
+		"description": "Rest by the warm hearth to recover your physical stamina.",
 		"locationSpotId": "hearth",
 		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
 		"actionPointCost": 1,
 		"silverCost": 0,
 		"refreshCardType": "PHYSICAL",
-		"energyCost": 0,
+		"staminaCost": 0,
 		"concentrationCost": 0,
 		"contextTags": [ "INTERIOR" ],
 		"domainTags": [ "LABOR" ]
@@ -22,7 +22,7 @@
 		"actionPointCost": 1,
 		"silverCost": 0,
 		"refreshCardType": "INTELLECTUAL",
-		"energyCost": 0,
+		"staminaCost": 0,
 		"concentrationCost": 0,
 		"contextTags": [ "QUIET", "INTERIOR" ],
 		"domainTags": [ "KNOWLEDGE" ]
@@ -36,7 +36,7 @@
 		"actionPointCost": 1,
 		"silverCost": 0,
 		"refreshCardType": "SOCIAL",
-		"energyCost": 0,
+		"staminaCost": 0,
 		"concentrationCost": 0,
 		"contextTags": [ "CROWDED", "INTERIOR" ],
 		"domainTags": [ "SOCIAL" ]
@@ -50,7 +50,7 @@
 		"actionPointCost": 1,
 		"silverCost": 5,
 		"refreshCardType": null,
-		"energyCost": 0,
+		"staminaCost": 0,
 		"concentrationCost": 0,
 		"contextTags": [ "INTERIOR" ],
 		"domainTags": [ "COMMERCE" ]
