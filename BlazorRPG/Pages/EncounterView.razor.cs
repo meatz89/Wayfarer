@@ -21,7 +21,7 @@ public partial class EncounterViewBase : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         currentSnapshot = GameWorldManager.GetGameSnapshot();
-        await GameWorldManager.ProcessNextBeat();
+        await GameWorldManager.NextEncounterBeat();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -31,7 +31,7 @@ public partial class EncounterViewBase : ComponentBase
         if (!currentSnapshot.IsStreaming &&
             !currentSnapshot.IsAwaitingAIResponse)
         {
-            await GameWorldManager.ProcessNextBeat();
+            await GameWorldManager.NextEncounterBeat();
         }
     }
 
