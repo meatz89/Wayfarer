@@ -61,43 +61,9 @@
         return action;
     }
 
-    public List<ContractDefinition> GetContractsForSpot(string spotId)
+    public Contract GetOpportunity(string contractId)
     {
-        // First, find the location this spot belongs to
-        LocationSpot spot = _worldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
-        if (spot == null)
-        {
-            return new List<ContractDefinition>();
-        }
-
-        string locationId = spot.LocationId;
-        List<ContractDefinition> Contracts = new List<ContractDefinition>();
-
-        foreach (ContractDefinition contract in _worldState.Contracts)
-        {
-            // For ACCUMULATIVE Contracts, they're available at any spot within their location
-            if (contract.Type == ContractTypes.Accumulative &&
-                contract.InitialLocationId == locationId)
-            {
-                Contracts.Add(contract);
-            }
-            // For SEQUENTIAL Contracts, check the current step's location
-            else if (contract.Type == ContractTypes.Sequential &&
-                     contract.InitialStep != null &&
-                     contract.InitialStep.LocationId == locationId)
-            {
-                // If the step specifies a spot, check if it matches
-                // If not specified, it's available at any spot in the location
-                Contracts.Add(contract);
-            }
-        }
-
-        return Contracts;
-    }
-
-    public ContractDefinition GetOpportunity(string contractId)
-    {
-        ContractDefinition contract = _worldState.Contracts.FirstOrDefault(a =>
+        Contract contract = _worldState.Contracts.FirstOrDefault(a =>
         {
             return a.Id.Equals(contractId, StringComparison.OrdinalIgnoreCase);
         });
@@ -109,9 +75,9 @@
         return CreateDefaultOpportunity(contractId, "DefaultLocation", "DefaultLocationSpot");
     }
 
-    private ContractDefinition CreateDefaultOpportunity(object contractId, string location, string locationSpot)
+    private Contract CreateDefaultOpportunity(object contractId, string location, string locationSpot)
     {
-        ContractDefinition action = new ContractDefinition()
+        Contract action = new Contract()
         {
             Description = "Description",
         };

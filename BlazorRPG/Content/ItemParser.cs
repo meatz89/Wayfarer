@@ -24,12 +24,13 @@ public static class ItemParser
             LocationId = GetStringProperty(root, "locationId", ""),
             SpotId = GetStringProperty(root, "spotId", ""),
             Description = GetStringProperty(root, "description", ""),
-            EnabledRouteTypes = GetStringArray(root, "enabledRouteTypes")
         };
+
+        // Parse enabled route types
+        item.EnabledRouteTypes = GetStringArray(root, "enabledRouteTypes");
 
         return item;
     }
-
 
     private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {
@@ -55,7 +56,7 @@ public static class ItemParser
     private static bool GetBoolProperty(JsonElement element, string propertyName, bool defaultValue)
     {
         if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.True || property.ValueKind == JsonValueKind.False)
+            (property.ValueKind == JsonValueKind.True || property.ValueKind == JsonValueKind.False))
         {
             return property.GetBoolean();
         }

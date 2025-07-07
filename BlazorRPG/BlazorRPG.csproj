@@ -48,7 +48,7 @@
 		<Content Update="Content\Templates\locations.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<Content Update="Content\Templates\locationSpots.json">
+		<Content Update="Content\Templates\location_Spots.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 		<Content Update="Content\Templates\locationProperties.json">

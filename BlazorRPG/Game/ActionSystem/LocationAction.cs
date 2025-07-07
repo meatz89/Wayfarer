@@ -17,7 +17,7 @@
 
     public int Difficulty { get; set; } = 1;
     public List<ApproachDefinition> Approaches { get; set; } = new List<ApproachDefinition>();
-    public ContractDefinition Opportunity { get; set; }
+    public Contract Opportunity { get; set; }
     public int Complexity { get; set; }
 
 }

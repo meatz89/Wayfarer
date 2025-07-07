@@ -17,9 +17,9 @@
 
     // New journey-related properties
     public WorldMap Map { get; private set; }
-    public int GlobalTime { get; private set; }
-    public List<Location> DiscoveredLocations { get; private set; }
-    public List<RouteOption> DiscoveredRoutes { get; private set; }
+    public int GlobalTime { get; set; }
+    public List<Location> DiscoveredLocations { get; set; }
+    public List<RouteOption> DiscoveredRoutes { get; set; }
 
     // New resource properties
     public int Money { get; set; }

@@ -88,8 +88,6 @@
         LocationSpot locationSpot = worldState.CurrentLocationSpot;
 
         List<LocationAction> locationActions = await CreateActions(location, locationSpot);
-        List<LocationAction> contractImplementations = await CreateContracts(location, locationSpot);
-        locationActions.AddRange(contractImplementations);
 
         List<UserActionOption> locationSpotActionOptions =
             await CreateUserActionsForLocationSpot(
@@ -221,32 +219,6 @@
         }
 
         return options;
-    }
-
-    private async Task<List<LocationAction>> CreateContracts(Location location, LocationSpot locationSpot)
-    {
-        List<LocationAction> contractImplementations = new List<LocationAction>();
-        List<ContractDefinition> locationSpotContracts = actionRepository.GetContractsForSpot(locationSpot.SpotID);
-        for (int i = 0; i < locationSpotContracts.Count; i++)
-        {
-            ContractDefinition contractTemplate = locationSpotContracts[i];
-            if (contractTemplate == null)
-            {
-                string contractId =
-                    await actionGenerator.GenerateOpportunity(
-                    contractTemplate.Name,
-                    location.Id,
-                    locationSpot.SpotID
-                    );
-
-                contractTemplate = actionRepository.GetOpportunity(contractTemplate.Id);
-            }
-
-            LocationAction contractImplementation = actionFactory.CreateActionFromOpportunity(contractTemplate);
-            contractImplementations.Add(contractImplementation);
-        }
-
-        return contractImplementations;
     }
 
     private async Task<List<LocationAction>> CreateActions(Location location, LocationSpot locationSpot)
@@ -496,29 +468,13 @@
 
     public void UpdateContracts(GameWorld gameWorld)
     {
-        List<ContractDefinition> expiredContracts = new List<ContractDefinition>();
-
-        foreach (ContractDefinition contract in gameWorld.WorldState.ActiveContracts)
-        {
-            // Reduce days remaining
-            contract.ExpirationDays--;
-
-            // Check if expired
-            if (contract.ExpirationDays <= 0)
-            {
-                expiredContracts.Add(contract);
-            }
-        }
+        List<Contract> expiredContracts = new List<Contract>();
 
         // Remove expired Contracts
-        foreach (ContractDefinition expired in expiredContracts)
+        foreach (Contract expired in expiredContracts)
         {
             gameWorld.WorldState.ActiveContracts.Remove(expired);
-            // Optionally: Add to failed Contracts list
             gameWorld.WorldState.FailedContracts.Add(expired);
-
-            // Add message
-            // messageSystem.AddSystemMessage($"Opportunity expired: {expired.Name}");
         }
     }
 

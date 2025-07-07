@@ -3,70 +3,47 @@
 @inject GameWorld GameWorld
 @inject RestManager RestManager
 
-<div class="rest-container">
-    <h2>Rest Options in @Location.Name</h2>
-
-    <div class="player-status">
-        <div class="stamina">Stamina: @GameWorld.PlayerStamina/@GameWorld.GetPlayer().MaxStamina</div>
-        <div class="coins">Coins: @GameWorld.PlayerCoins</div>
-        <div class="time">Current time: @GameWorld.CurrentTimeBlock</div>
+<div class="rest-options">
+    <div class="rest-option">
+        <div class="option-header">
+            <span class="option-name">Camp Outside</span>
+            <span class="option-cost">Free</span>
+        </div>
+        <div class="option-benefits">
+            <div class="benefit">
+                <span class="benefit-label">Stamina Recovery:</span>
+                <span class="benefit-value">+2</span>
+            </div>
+            <div class="benefit special-benefit">
+                <span class="benefit-label">Special:</span>
+                <span class="benefit-value">Enables dawn departure</span>
+            </div>
+        </div>
+        <button class="rest-button" @onclick='() => Rest("camp")'>
+            Rest Here
+        </button>
     </div>
 
-    <div class="rest-options">
-        @foreach (var option in RestManager.GetAvailableRestOptions())
-        {
-            <div class="rest-option">
-                <div class="option-header">
-                    <span class="option-name">@option.Name</span>
-                    <span class="option-cost">@(option.CoinCost > 0 ? $"{option.CoinCost} coins" : "Free")</span>
-                </div>
-
-                <div class="option-benefits">
-                    <div class="benefit">
-                        <span class="benefit-label">Stamina Recovery:</span>
-                        <span class="benefit-value">+@option.StaminaRecovery</span>
-                    </div>
-
-                    @if (option.CleansesContraband)
-                    {
-                        <div class="benefit special-benefit">
-                            <span class="benefit-label">Special:</span>
-                            <span class="benefit-value">Cleanses contraband items</span>
-                        </div>
-                    }
-
-                    @if (option.ProvidesMarketRumors)
-                    {
-                        <div class="benefit special-benefit">
-                            <span class="benefit-label">Special:</span>
-                            <span class="benefit-value">Provides market rumors</span>
-                        </div>
-                    }
-
-                    @if (option.EnablesDawnDeparture)
-                    {
-                        <div class="benefit special-benefit">
-                            <span class="benefit-label">Special:</span>
-                            <span class="benefit-value">Enables dawn departure</span>
-                        </div>
-                    }
-
-                    @if (option.OffersExclusiveContract)
-                    {
-                        <div class="benefit special-benefit">
-                            <span class="benefit-label">Special:</span>
-                            <span class="benefit-value">Offers exclusive contract</span>
-                        </div>
-                    }
-                </div>
-
-                <button class="rest-button"
-                        disabled="@(GameWorld.PlayerCoins < option.CoinCost)"
-                        @onclick="() => Rest(option)">
-                    Rest Here
-                </button>
+    <div class="rest-option">
+        <div class="option-header">
+            <span class="option-name">Inn Room</span>
+            <span class="option-cost">2 coins</span>
+        </div>
+        <div class="option-benefits">
+            <div class="benefit">
+                <span class="benefit-label">Stamina Recovery:</span>
+                <span class="benefit-value">+4</span>
             </div>
-        }
+            <div class="benefit special-benefit">
+                <span class="benefit-label">Special:</span>
+                <span class="benefit-value">Provides market rumors</span>
+            </div>
+        </div>
+        <button class="rest-button"
+                disabled="@(GameWorld.GetPlayer().Coins < 2)"
+                @onclick='() => Rest("inn")'>
+            Rest Here
+        </button>
     </div>
 </div>
 
@@ -74,9 +51,29 @@
     [Parameter] public Location Location { get; set; }
     [Parameter] public EventCallback OnRestComplete { get; set; }
 
-    private async Task Rest(RestOption option)
+    private async Task Rest(string option)
     {
-        RestManager.Rest(option);
+        // Simulate resting
+        if (option == "inn")
+        {
+            GameWorld.GetPlayer().ModifyCoins(-2);
+            GameWorld.GetPlayer().Stamina += 4;
+        }
+        else // camp
+        {
+            GameWorld.GetPlayer().Stamina += 2;
+        }
+
+        // Advance to next day
+        GameWorld.CurrentDay++;
+        GameWorld.CurrentTimeBlock = option == "camp" ? TimeBlocks.Dawn : TimeBlocks.Morning;
+
+        // Refresh cards
+        foreach (var card in GameWorld.GetPlayer().GetAllAvailableCards())
+        {
+            GameWorld.GetPlayer().RefreshCard(card);
+        }
+
         await OnRestComplete.InvokeAsync();
     }
 }
