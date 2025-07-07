@@ -1,7 +1,7 @@
 # ENCOUNTER INTRODUCTION
 Create a BRIEF introductory scene (2-3 paragraphs maximum) that establishes:
 1. The immediate environment through the character archetype's perspective
-2. One specific situation or opportunity requiring the player's attention
+2. One specific situation or contract requiring the player's attention
 3. The character's current position and what they can observe
 
 CRITICAL: Do not have the character pre-decide actions or end with questions.
@@ -24,11 +24,11 @@ CRITICAL: Do not have the character pre-decide actions or end with questions.
 - DO NOT have the character decide to interact with specific people or objects
 - DO NOT commit the character to any particular course of action
 - DO NOT end with explicit questions like "Do I approach X or Y?"
-- Let the situation speak for itself through demonstrated stakes and opportunities
+- Let the situation speak for itself through demonstrated stakes and contracts
 
 ## Context-Appropriate Endings
 Match the ending to the encounter's actual demands:
-- Peaceful encounters: End with character observing available opportunities
+- Peaceful encounters: End with character observing available contracts
 - Urgent encounters: End with character facing immediate challenge
 - Investigation encounters: End with character confronting the mystery
 - Social encounters: End with character positioned within the social dynamic
@@ -49,5 +49,5 @@ Match the ending to the encounter's actual demands:
 2. End with character observing the scene, NOT making decisions
 3. Write in first-person present tense from medieval perspective
 4. Include environmental elements aligned with the chosen approach
-5. Present opportunities without committing to them
+5. Present contracts without committing to them
 6. Keep to 4-5 paragraphs maximum

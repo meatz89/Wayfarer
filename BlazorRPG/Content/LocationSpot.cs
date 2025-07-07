@@ -10,7 +10,7 @@ public class LocationSpot
     public int CurrentLevel { get; set; } = 1;
     public int CurrentSpotXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = 100;
-    public List<TimeWindowTypes> TimeWindows { get; set; } = new List<TimeWindowTypes>();
+    public List<TimeBlocks> TimeWindows { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
     public bool PlayerKnowledge { get; set; }
 

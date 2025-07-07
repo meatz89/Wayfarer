@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-public static class OpportunityParser
+public static class ContractParser
 {
-    public static OpportunityDefinition ParseOpportunity(string json)
+    public static ContractDefinition ParseOpportunity(string json)
     {
         using JsonDocument doc = JsonDocument.Parse(json);
         JsonElement root = doc.RootElement;
@@ -11,10 +11,10 @@ public static class OpportunityParser
         string name = GetStringProperty(root, "name", id);
         string description = GetStringProperty(root, "description", "");
 
-        // Parse opportunity type
-        OpportunityTypes type = Enum.TryParse<OpportunityTypes>(
+        // Parse contract type
+        ContractTypes type = Enum.TryParse<ContractTypes>(
             GetStringProperty(root, "type", "ACCUMULATIVE"), true,
-            out OpportunityTypes parsedType) ? parsedType : OpportunityTypes.Accumulative;
+            out ContractTypes parsedType) ? parsedType : ContractTypes.Accumulative;
 
         // Parse thresholds and requirements
         int progressThreshold = GetIntProperty(root, "progressThreshold", 8);
@@ -30,8 +30,8 @@ public static class OpportunityParser
         string initialLocationId = GetStringProperty(root, "initialLocationId", "");
         int tier = GetIntProperty(root, "tier", 1);
 
-        // Create the opportunity
-        OpportunityDefinition opportunity = new OpportunityDefinition
+        // Create the contract
+        ContractDefinition contract = new ContractDefinition
         {
             Id = id,
             Name = name,
@@ -51,27 +51,27 @@ public static class OpportunityParser
         if (root.TryGetProperty("approaches", out JsonElement approachesElement) &&
             approachesElement.ValueKind == JsonValueKind.Array)
         {
-            opportunity.Approaches = ParseApproaches(approachesElement);
+            contract.Approaches = ParseApproaches(approachesElement);
         }
 
         // For sequential Opportunities, parse the initial step
-        if (type == OpportunityTypes.Sequential &&
+        if (type == ContractTypes.Sequential &&
             root.TryGetProperty("initialStep", out JsonElement initialStepElement))
         {
-            opportunity.InitialStep = ParseOpportunitiestep(initialStepElement);
+            contract.InitialStep = ParseOpportunitiestep(initialStepElement);
         }
 
-        return opportunity;
+        return contract;
     }
 
-    private static Opportunitiestep ParseOpportunitiestep(JsonElement stepElement)
+    private static ContractStep ParseOpportunitiestep(JsonElement stepElement)
     {
         string name = GetStringProperty(stepElement, "name", "");
         string description = GetStringProperty(stepElement, "description", "");
         string locationId = GetStringProperty(stepElement, "locationId", "");
         int progressGoal = GetIntProperty(stepElement, "progressGoal", 5);
 
-        Opportunitiestep step = new Opportunitiestep
+        ContractStep step = new ContractStep
         {
             Name = name,
             Description = description,

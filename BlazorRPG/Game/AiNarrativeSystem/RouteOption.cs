@@ -1,5 +1,12 @@
-﻿public class TravelRoute
+﻿public class RouteOption
 {
+    public string Name { get; set; }
+    public int CoinCost { get; set; }
+    public int StaminaCost { get; set; }
+    public int TimeBlockCost { get; set; }
+    public TimeBlocks? DepartureTime { get; set; } // Null means departs anytime
+    public bool IsDiscovered { get; set; } = true;
+
     public Location Origin { get; set; }
     public Location Destination { get; set; }
     public int BaseTimeCost { get; set; }

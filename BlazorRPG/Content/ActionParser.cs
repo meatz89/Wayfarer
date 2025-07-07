@@ -42,7 +42,7 @@ public static class ActionParser
                     string windowStr = windowElement.GetString();
                     if (!string.IsNullOrEmpty(windowStr))
                     {
-                        if (Enum.TryParse(windowStr, true, out TimeWindowTypes windowType))
+                        if (Enum.TryParse(windowStr, true, out TimeBlocks windowType))
                         {
                             action.TimeWindows.Add(windowType);
                         }
@@ -53,10 +53,10 @@ public static class ActionParser
             // If no time windows are specified, default to all
             if (action.TimeWindows.Count == 0)
             {
-                action.TimeWindows.Add(TimeWindowTypes.Morning);
-                action.TimeWindows.Add(TimeWindowTypes.Afternoon);
-                action.TimeWindows.Add(TimeWindowTypes.Evening);
-                action.TimeWindows.Add(TimeWindowTypes.Night);
+                action.TimeWindows.Add(TimeBlocks.Morning);
+                action.TimeWindows.Add(TimeBlocks.Afternoon);
+                action.TimeWindows.Add(TimeBlocks.Evening);
+                action.TimeWindows.Add(TimeBlocks.Night);
             }
         }
 

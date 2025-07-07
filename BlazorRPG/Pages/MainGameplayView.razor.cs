@@ -72,7 +72,7 @@ public partial class MainGameplayView : ComponentBase
             return GameWorld.WorldState.CurrentLocationSpot;
         }
     }
-    public TimeWindowTypes CurrentTime
+    public TimeBlocks CurrentTime
     {
         get
         {

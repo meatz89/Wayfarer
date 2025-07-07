@@ -5,13 +5,13 @@ public class WorldStateInputBuilder
     private GameWorld gameWorld;
     public LocationSystem LocationSystem { get; }
     public CharacterSystem CharacterSystem { get; }
-    public OpportunitySystem OpportunitySystem { get; }
+    public ContractSystem OpportunitySystem { get; }
 
     public WorldStateInputBuilder(
         GameWorld gameWorld,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
-        OpportunitySystem OpportunitySystem)
+        ContractSystem OpportunitySystem)
     {
         this.gameWorld = gameWorld;
         LocationSystem = locationSystem;

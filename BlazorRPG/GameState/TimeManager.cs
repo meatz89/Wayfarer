@@ -5,7 +5,7 @@
     private WorldState worldState;
 
     public int CurrentTimeHours { get; private set; }
-    public TimeWindowTypes CurrentTimeWindow { get; private set; }
+    public TimeBlocks CurrentTimeWindow { get; private set; }
 
     public TimeManager(Player player, WorldState worldState)
     {
@@ -49,22 +49,22 @@
         CurrentTimeHours = newHour;
 
         // Now update TimeWindow based on newHour
-        TimeWindowTypes newWindow;
+        TimeBlocks newWindow;
         if (newHour >= TimeDayStart && newHour < 12)
-            newWindow = TimeWindowTypes.Morning;
+            newWindow = TimeBlocks.Morning;
         else if (newHour >= 12 && newHour < 18)
-            newWindow = TimeWindowTypes.Afternoon;
+            newWindow = TimeBlocks.Afternoon;
         else if (newHour >= 18 && newHour < 24)
-            newWindow = TimeWindowTypes.Evening;
+            newWindow = TimeBlocks.Evening;
         else
-            newWindow = TimeWindowTypes.Night;  // should never hit this because of cap
+            newWindow = TimeBlocks.Night;  // should never hit this because of cap
 
         CurrentTimeWindow = newWindow;
 
         if (currentAP == 0)
         {
             CurrentTimeHours = 0;
-            CurrentTimeWindow = TimeWindowTypes.Night;
+            CurrentTimeWindow = TimeBlocks.Night;
         }
     }
 
@@ -74,7 +74,7 @@
         SetNewTime(TimeDayStart);
     }
 
-    public TimeWindowTypes GetCurrentTimeWindow()
+    public TimeBlocks GetCurrentTimeWindow()
     {
         return CurrentTimeWindow;
     }
@@ -83,13 +83,13 @@
     {
         switch (CurrentTimeWindow)
         {
-            case TimeWindowTypes.Morning:
+            case TimeBlocks.Morning:
                 return timeWindow == "Half" ? "Morning" : "Afternoon";
-            case TimeWindowTypes.Afternoon:
+            case TimeBlocks.Afternoon:
                 return timeWindow == "Half" ? "Afternoon" : "Evening";
-            case TimeWindowTypes.Evening:
+            case TimeBlocks.Evening:
                 return timeWindow == "Half" ? "Evening" : "Night";
-            case TimeWindowTypes.Night:
+            case TimeBlocks.Night:
                 return timeWindow == "Half" ? "Night" : "Morning";
         }
 

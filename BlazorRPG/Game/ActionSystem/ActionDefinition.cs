@@ -11,7 +11,7 @@
     public int ConcentrationCost { get; set; }
 
     // Time windows
-    public List<TimeWindowTypes> TimeWindows { get; set; } = new List<TimeWindowTypes>();
+    public List<TimeBlocks> TimeWindows { get; set; } = new List<TimeBlocks>();
 
     // Tag Resonance System
     public List<string> ContextTags { get; set; } = new List<string>();

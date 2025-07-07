@@ -29,10 +29,10 @@
             return false;
 
         // Check if locations are directly connected
-        return worldState.CurrentLocation.ConnectedTo?.Contains(destinationName) ?? false;
+        return worldState.CurrentLocation.Connections?.Contains(destinationName) ?? false;
     }
 
-    public TravelRoute StartLocationTravel(
+    public RouteOption StartLocationTravel(
         string travelLocationId,
         TravelMethods travelMethod = TravelMethods.Walking)
     {
@@ -67,7 +67,7 @@
             ActionDefinition travelTemplate =
                 GetTravelTemplate(travelLocationId, locationSpot.SpotID);
 
-            TravelRoute travelRoute = new TravelRoute
+            RouteOption travelRoute = new RouteOption
             {
                 Origin = currentLocation,
                 Destination = LocationRepository.GetLocationById(travelLocationId),

@@ -475,15 +475,15 @@ public class AIPromptBuilder
         }
 
         // Opportunity goals (limit to 3 most recent)
-        List<Goal> opportunityGoals = gameWorld.GetGoalsByType(GoalType.Opportunity)
+        List<Goal> contractGoals = gameWorld.GetGoalsByType(GoalType.Opportunity)
             .OrderByDescending(g => g.CreationDay)
             .Take(3)
             .ToList();
 
-        if (opportunityGoals.Any())
+        if (contractGoals.Any())
         {
             prompt.AppendLine("- Recent Opportunities:");
-            foreach (Goal goal in opportunityGoals)
+            foreach (Goal goal in contractGoals)
             {
                 prompt.AppendLine($"  * {goal.Name}: {goal.Progress * 100:0}% complete");
             }
@@ -528,13 +528,13 @@ public class AIPromptBuilder
 
         prompt.AppendLine($"- Current Location: {gameWorld.CurrentLocation.Name}");
 
-        List<TravelRoute> availableRoutes = gameWorld.GetRoutesFromCurrentLocation();
+        List<RouteOption> availableRoutes = gameWorld.GetRoutesFromCurrentLocation();
 
         if (availableRoutes.Any())
         {
             prompt.AppendLine("- Available Routes:");
 
-            foreach (TravelRoute route in availableRoutes)
+            foreach (RouteOption route in availableRoutes)
             {
                 prompt.AppendLine($"  * To {route.Destination.Name}:");
                 prompt.AppendLine($"    - Time: {route.GetActualTimeCost()} hours");

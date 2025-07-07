@@ -51,7 +51,7 @@
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(savePath, "actions.json")));
 
-        List<OpportunityDefinition> opportunities = GameWorldSerializer.DeserializeOpportunities(
+        List<ContractDefinition> contracts = GameWorldSerializer.DeserializeOpportunities(
             File.ReadAllText(Path.Combine(savePath, "Opportunities.json")));
 
         // Load cards if available
@@ -158,7 +158,7 @@
         locations = ConnectLocationsToSpots(locations, spots);
 
         List<ActionDefinition> actions = new List<ActionDefinition>();
-        List<OpportunityDefinition> comissions = new List<OpportunityDefinition>();
+        List<ContractDefinition> comissions = new List<ContractDefinition>();
 
         List<SkillCard> cards = new List<SkillCard>();
 

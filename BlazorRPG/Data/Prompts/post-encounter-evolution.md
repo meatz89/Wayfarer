@@ -32,7 +32,7 @@
 - All Known characters: 
 {knownCharacters}
 
-- Active opportunities: 
+- Active contracts: 
 {activeOpportunities}
 
 ## Forward Progression Rules
@@ -125,7 +125,7 @@ You must provide your response ONLY as a valid JSON object with the following st
       "locationSpot": "Name of existing locationSpot where they can be found"
     }
   ],
-  "opportunities": [
+  "contracts": [
     {
       "name": "Opportunity name",
       "type": "Quest/Job/Mystery/Investigation",

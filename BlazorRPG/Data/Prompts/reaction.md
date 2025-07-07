@@ -62,7 +62,7 @@ When player chooses actions related to elements the character was observing:
 ## RESOLUTION CLARITY
 - Show what the player's action actually accomplished
 - Make clear what changed as a result
-- Indicate what new opportunities or challenges emerged
+- Indicate what new contracts or challenges emerged
 - Some actions simply resolve without creating new complications
 
 ## Writing Requirements

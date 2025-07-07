@@ -15,7 +15,7 @@
     private LocationRepository locationRepository;
     private TravelManager travelManager;
     private ContentLoader contentLoader;
-    private List<Opportunity> availableOpportunities = new List<Opportunity>();
+    private List<Contract> availableOpportunities = new List<Contract>();
     private readonly ILogger<GameWorldManager> logger;
 
     public GameWorldManager(GameWorld gameWorld, EncounterFactory encounterSystem,
@@ -80,8 +80,8 @@
         LocationSpot locationSpot = worldState.CurrentLocationSpot;
 
         List<LocationAction> locationActions = await CreateActions(location, locationSpot);
-        List<LocationAction> opportunityImplementations = await CreateOpportunities(location, locationSpot);
-        locationActions.AddRange(opportunityImplementations);
+        List<LocationAction> contractImplementations = await CreateOpportunities(location, locationSpot);
+        locationActions.AddRange(contractImplementations);
 
         List<UserActionOption> locationSpotActionOptions =
             await CreateUserActionsForLocationSpot(
@@ -189,7 +189,7 @@
         List<UserActionOption> options = new List<UserActionOption>();
         foreach (LocationAction locationAction in locationActions)
         {
-            UserActionOption opportunity =
+            UserActionOption contract =
                     new UserActionOption(
                         locationAction.Name,
                         locationSpot.IsClosed,
@@ -201,10 +201,10 @@
                         string.Empty,
                         null);
 
-            bool requirementsMet = actionProcessor.CanExecute(opportunity.locationAction);
+            bool requirementsMet = actionProcessor.CanExecute(contract.locationAction);
 
-            opportunity = opportunity with { IsDisabled = !requirementsMet };
-            options.Add(opportunity);
+            contract = contract with { IsDisabled = !requirementsMet };
+            options.Add(contract);
         }
 
         return options;
@@ -212,28 +212,28 @@
 
     private async Task<List<LocationAction>> CreateOpportunities(Location location, LocationSpot locationSpot)
     {
-        List<LocationAction> opportunityImplementations = new List<LocationAction>();
-        List<OpportunityDefinition> locationSpotOpportunities = actionRepository.GetOpportunitiesForSpot(locationSpot.SpotID);
+        List<LocationAction> contractImplementations = new List<LocationAction>();
+        List<ContractDefinition> locationSpotOpportunities = actionRepository.GetOpportunitiesForSpot(locationSpot.SpotID);
         for (int i = 0; i < locationSpotOpportunities.Count; i++)
         {
-            OpportunityDefinition opportunityTemplate = locationSpotOpportunities[i];
-            if (opportunityTemplate == null)
+            ContractDefinition contractTemplate = locationSpotOpportunities[i];
+            if (contractTemplate == null)
             {
-                string opportunityId =
+                string contractId =
                     await actionGenerator.GenerateOpportunity(
-                    opportunityTemplate.Name,
+                    contractTemplate.Name,
                     location.Id,
                     locationSpot.SpotID
                     );
 
-                opportunityTemplate = actionRepository.GetOpportunity(opportunityTemplate.Id);
+                contractTemplate = actionRepository.GetOpportunity(contractTemplate.Id);
             }
 
-            LocationAction opportunityImplementation = actionFactory.CreateActionFromOpportunity(opportunityTemplate);
-            opportunityImplementations.Add(opportunityImplementation);
+            LocationAction contractImplementation = actionFactory.CreateActionFromOpportunity(contractTemplate);
+            contractImplementations.Add(contractImplementation);
         }
 
-        return opportunityImplementations;
+        return contractImplementations;
     }
 
     private async Task<List<LocationAction>> CreateActions(Location location, LocationSpot locationSpot)
@@ -326,12 +326,12 @@
     public async Task Travel(string targetLocation)
     {
         Location location = locationRepository.GetLocationByName(targetLocation);
-        TravelRoute route = travelManager.StartLocationTravel(location.Id, TravelMethods.Walking);
+        RouteOption route = travelManager.StartLocationTravel(location.Id, TravelMethods.Walking);
 
         await Travel(route);
     }
 
-    public async Task Travel(TravelRoute route)
+    public async Task Travel(RouteOption route)
     {
         // Check if player can travel this route
         if (!route.CanTravel(gameWorld.GetPlayer()))
@@ -407,18 +407,18 @@
 
     public void UpdateAvailableOpportunities()
     {
-        foreach (Opportunity opportunity in GameWorld.AllOpportunities)
+        foreach (Contract contract in GameWorld.AllOpportunities)
         {
-            if (opportunity.IsAvailable(GameWorld.CurrentDay, GameWorld.CurrentTimeOfDay))
+            if (contract.IsAvailable(GameWorld.CurrentDay, GameWorld.CurrentTimeOfDay))
             {
-                if (!availableOpportunities.Contains(opportunity))
+                if (!availableOpportunities.Contains(contract))
                 {
-                    availableOpportunities.Add(opportunity);
+                    availableOpportunities.Add(contract);
                 }
             }
             else
             {
-                availableOpportunities.Remove(opportunity);
+                availableOpportunities.Remove(contract);
             }
         }
     }
@@ -461,22 +461,22 @@
 
     public void UpdateOpportunities(GameWorld gameWorld)
     {
-        List<OpportunityDefinition> expiredOpportunities = new List<OpportunityDefinition>();
+        List<ContractDefinition> expiredOpportunities = new List<ContractDefinition>();
 
-        foreach (OpportunityDefinition opportunity in gameWorld.WorldState.ActiveOpportunities)
+        foreach (ContractDefinition contract in gameWorld.WorldState.ActiveOpportunities)
         {
             // Reduce days remaining
-            opportunity.ExpirationDays--;
+            contract.ExpirationDays--;
 
             // Check if expired
-            if (opportunity.ExpirationDays <= 0)
+            if (contract.ExpirationDays <= 0)
             {
-                expiredOpportunities.Add(opportunity);
+                expiredOpportunities.Add(contract);
             }
         }
 
         // Remove expired Opportunities
-        foreach (OpportunityDefinition expired in expiredOpportunities)
+        foreach (ContractDefinition expired in expiredOpportunities)
         {
             gameWorld.WorldState.ActiveOpportunities.Remove(expired);
             // Optionally: Add to failed Opportunities list

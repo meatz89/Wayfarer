@@ -68,7 +68,7 @@
         return worldState.locations
             .Where(l =>
             {
-                return l.ConnectedTo.Contains(currentLocation);
+                return l.Connections.Contains(currentLocation);
             })
             .ToList();
     }

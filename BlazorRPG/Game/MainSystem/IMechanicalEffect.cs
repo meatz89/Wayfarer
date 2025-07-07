@@ -135,9 +135,9 @@ public class CheckMemoryEffect : IMechanicalEffect
 
     public class DiscoverRouteEffect : IMechanicalEffect
     {
-        private TravelRoute routeToDiscover;
+        private RouteOption routeToDiscover;
 
-        public DiscoverRouteEffect(TravelRoute routeToDiscover)
+        public DiscoverRouteEffect(RouteOption routeToDiscover)
         {
             this.routeToDiscover = routeToDiscover;
         }
