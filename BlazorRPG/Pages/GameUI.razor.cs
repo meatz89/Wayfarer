@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using BlazorRPG.UIHelpers;
+using Microsoft.AspNetCore.Components;
 
 namespace BlazorRPG.Pages;
 

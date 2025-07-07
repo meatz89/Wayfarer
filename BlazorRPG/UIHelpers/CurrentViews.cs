@@ -1,4 +1,4 @@
-﻿namespace BlazorRPG.Pages;
+﻿namespace BlazorRPG.UIHelpers;
 
 public enum CurrentViews
 {
