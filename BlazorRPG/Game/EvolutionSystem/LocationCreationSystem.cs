@@ -57,14 +57,14 @@
     {
         string locationId = details.LocationUpdate.NewLocationName.Replace(" ", "_").ToLowerInvariant();
         string locationName = details.LocationUpdate.NewLocationName;
-        Location location = locationRepository.GetLocationById(locationName);
+        Location location = locationRepository.GetLocation(locationName);
         if (location == null)
         {
             location = new Location(locationId, locationName);
             locationRepository.AddLocation(location);
         }
         location.Description = details.Description;
-        location.Connections = details.ConnectedLocationIds;
+        location.ConnectedLocationIds = details.ConnectedLocationIds;
 
         foreach (SpotDetails spotDetail in details.NewLocationSpots)
         {
@@ -98,7 +98,7 @@
 
     public async Task<LocationSpot> CreateLocationSpot(string locationId, string locationSpotId)
     {
-        Location location = locationRepository.GetLocationById(locationId);
+        Location location = locationRepository.GetLocation(locationId);
         LocationSpot locationSpot = new LocationSpot(locationSpotId, locationId)
         {
             SpotID = locationSpotId,
@@ -136,7 +136,7 @@
 
             KnownLocations = this.locationSystem.FormatLocations(allLocations),
             KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
-            ActiveOpportunities = OpportunitySystem.FormatActiveOpportunities(worldState.GetOpportunities()),
+            ActiveContracts = OpportunitySystem.FormatActiveContracts(worldState.GetContracts()),
 
             CurrentLocationSpots = this.locationSystem.FormatLocationSpots(worldState.CurrentLocation),
             ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),

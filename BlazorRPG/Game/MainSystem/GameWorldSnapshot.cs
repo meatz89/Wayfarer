@@ -10,9 +10,9 @@
     public bool CanSelectChoice { get; private set; }
     public bool IsEncounterComplete { get; private set; }
     public bool SuccessfulOutcome { get; private set; }
-    public int Energy { get; internal set; }
+    public int Stamina { get; internal set; }
     public int Concentration { get; internal set; }
-    public TimeOfDay CurrentTimeOfDay { get; internal set; } = new TimeOfDay();
+    public TimeBlocks CurrentTimeBlock { get; internal set; } = new TimeBlocks();
     public List<FlagStates> ActiveFlags { get; private set; } = new List<FlagStates>();
     public List<EncounterChoice> AvailableChoices { get; private set; } = new List<EncounterChoice>();
     public string LastChoiceLabel { get; private set; }
@@ -66,7 +66,7 @@
         if (CanSelectChoice != snapshot.CanSelectChoice) return false;
         if (IsEncounterComplete != snapshot.IsEncounterComplete) return false;
         if (SuccessfulOutcome != snapshot.SuccessfulOutcome) return false;
-        if (Energy != snapshot.Energy) return false;
+        if (Stamina != snapshot.Stamina) return false;
         if (Concentration != snapshot.Concentration) return false;
 
         if (ActiveFlags.Count != snapshot.ActiveFlags.Count) return false;

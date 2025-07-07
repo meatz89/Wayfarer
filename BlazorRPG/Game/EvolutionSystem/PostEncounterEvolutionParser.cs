@@ -84,14 +84,6 @@ public class PostEncounterEvolutionParser
                     return ParseCharacter(element);
                 });
 
-            // Parse contracts
-            result.Opportunities = GetArrayOfType(
-                root,
-                "contracts",
-                element =>
-                {
-                    return ParseOpportunity(element);
-                });
         }
         catch (Exception ex)
         {
@@ -112,7 +104,7 @@ public class PostEncounterEvolutionParser
             NewActions = new List<NewAction>(),
             NewCharacters = flatResponse.Characters ?? new List<NPC>(),
             NewLocations = new List<Location>(),
-            NewOpportunities = flatResponse.Opportunities ?? new List<Contract>()
+            NewContracts = flatResponse.Contracts ?? new List<Contract>()
         };
 
         // Process action definitions
@@ -130,7 +122,7 @@ public class PostEncounterEvolutionParser
                     Goal = actionDef.Description,
                     ActionType = actionDef.ActionType,
                     IsRepeatable = actionDef.IsRepeatable,
-                    EnergyCost = actionDef.EnergyCost
+                    StaminaCost = actionDef.StaminaCost
                 });
             }
             catch (Exception ex)
@@ -182,7 +174,7 @@ public class PostEncounterEvolutionParser
                 DiscoveryBonusCoins = locDef.DiscoveryBonusCoins,
                 HasBeenVisited = false,
                 VisitCount = 0,
-                Connections = locDef.ConnectedTo
+                ConnectedLocationIds = locDef.ConnectedTo
             };
 
             result.NewLocations.Add(location);
@@ -274,7 +266,7 @@ public class PostEncounterEvolutionParser
                 SpotName = GetStringProperty(element, "spotName", "Unknown Spot"),
                 LocationName = GetStringProperty(element, "locationName", "Unknown Location"),
                 IsRepeatable = GetBoolProperty(element, "isRepeatable", false),
-                EnergyCost = GetIntProperty(element, "energyCost", 1)
+                StaminaCost = GetIntProperty(element, "staminaCost", 1)
             };
         });
     }
@@ -289,21 +281,6 @@ public class PostEncounterEvolutionParser
                 Role = GetStringProperty(element, "role", "Unknown Role"),
                 Description = GetStringProperty(element, "description", "No description available."),
                 Location = GetStringProperty(element, "location", "Unknown Location")
-            };
-        });
-    }
-
-    private Contract ParseOpportunity(JsonElement element)
-    {
-        return SafeParseEntity("contract", () =>
-        {
-            return new Contract
-            {
-                Name = GetStringProperty(element, "name", "Unnamed Opportunity"),
-                Type = GetStringProperty(element, "type", "Unknown Type"),
-                Description = GetStringProperty(element, "description", "No description available."),
-                Location = GetStringProperty(element, "location", "Unknown Location"),
-                RelatedCharacter = GetStringProperty(element, "relatedCharacter", "Unknown Character")
             };
         });
     }

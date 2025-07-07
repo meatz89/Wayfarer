@@ -7,7 +7,7 @@
     public int ActionPointCost { get; set; }
     public int SilverCost { get; set; }
     public SkillCategories RefreshCardType { get; set; }
-    public int EnergyCost { get; set; }
+    public int StaminaCost { get; set; }
     public int ConcentrationCost { get; set; }
 
     // Time windows

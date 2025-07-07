@@ -25,7 +25,6 @@ Before submitting your response, verify that:
 ## Context
 - Current Location name: {locationName}
 - Arrived after travel from: {originLocationName}
-- Current depth: {locationDepth}
 - Player archetype: {characterArchetype}
 
 ## Existing World Context
@@ -37,7 +36,7 @@ Before submitting your response, verify that:
 {knownCharacters}
 
 - Active contracts: 
-{activeOpportunities}
+{activeContracts}
 
 ## Minimal Design Philosophy
 - Focus on QUALITY over QUANTITY
@@ -91,9 +90,9 @@ You must provide your response ONLY as a valid JSON object with the following st
       "goal": "The player's goal in this action",
       "actionType": "Discuss/Persuade/Perform/Study/Investigate/Analyze/Rest/Labor/Gather/Fight",
       "isRepeatable": true,
-      "energyCost": 1,
+      "staminaCost": 1,
       "cost": {
-        "energy": 1,
+        "stamina": 1,
         "timeMinutes": 30,
         "money": 0
       },

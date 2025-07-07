@@ -20,14 +20,6 @@ public class LocationSystem
 
         foreach (Location? loc in allLocations.Where(l =>
         {
-            return l.Id != startLoc.Id;
-        }))
-        {
-            int depth = loc.Connections.Contains(startLoc.Id) ? 1 : 2;
-        }
-
-        foreach (Location? loc in allLocations.Where(l =>
-        {
             return l.PlayerKnowledge;
         }))
         {
@@ -44,7 +36,7 @@ public class LocationSystem
 
     public Location GetLocation(string id)
     {
-        Location location = locationRepository.GetLocationById(id);
+        Location location = locationRepository.GetLocation(id);
         return location;
     }
 

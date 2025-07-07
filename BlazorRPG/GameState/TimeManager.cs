@@ -5,7 +5,7 @@
     private WorldState worldState;
 
     public int CurrentTimeHours { get; private set; }
-    public TimeBlocks CurrentTimeWindow { get; private set; }
+    public TimeBlocks CurrentTimeBlock { get; private set; }
 
     public TimeManager(Player player, WorldState worldState)
     {
@@ -59,12 +59,12 @@
         else
             newWindow = TimeBlocks.Night;  // should never hit this because of cap
 
-        CurrentTimeWindow = newWindow;
+        CurrentTimeBlock = newWindow;
 
         if (currentAP == 0)
         {
             CurrentTimeHours = 0;
-            CurrentTimeWindow = TimeBlocks.Night;
+            CurrentTimeBlock = TimeBlocks.Night;
         }
     }
 
@@ -76,12 +76,12 @@
 
     public TimeBlocks GetCurrentTimeWindow()
     {
-        return CurrentTimeWindow;
+        return CurrentTimeBlock;
     }
 
     public string PreviewTimeAdvancement(string timeWindow)
     {
-        switch (CurrentTimeWindow)
+        switch (CurrentTimeBlock)
         {
             case TimeBlocks.Morning:
                 return timeWindow == "Half" ? "Morning" : "Afternoon";

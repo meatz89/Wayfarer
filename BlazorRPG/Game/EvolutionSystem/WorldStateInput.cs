@@ -6,8 +6,8 @@
     public int MaxHealth { get; set; }
     public int Concentration { get; set; }
     public int MaxConcentration { get; set; }
-    public int Energy { get; set; }
-    public int MaxEnergy { get; set; }
+    public int Stamina { get; set; }
+    public int MaxStamina { get; set; }
     public int Coins { get; set; }
 
     public string CurrentLocation { get; set; }
@@ -18,7 +18,7 @@
 
     public string Inventory { get; set; }
     public string KnownCharacters { get; set; }
-    public string ActiveOpportunities { get; set; }
+    public string ActiveContracts { get; set; }
 
     public string MemorySummary { get; set; }
     public List<NPC> Characters { get; set; }

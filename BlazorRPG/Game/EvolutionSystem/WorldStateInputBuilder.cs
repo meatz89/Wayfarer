@@ -29,7 +29,7 @@ public class WorldStateInputBuilder
         string connectedLocations = LocationSystem.FormatLocations(LocationSystem.GetConnectedLocations(worldState.CurrentLocation.Id));
         string playerInventory = FormatPlayerInventory(player.Inventory);
 
-        int currentEnergy = player.CurrentEnergy();
+        int currentStamina = player.Stamina;
 
         var gameInstanceId = gameWorld.GameInstanceId;
         MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameInstanceId);
@@ -47,9 +47,9 @@ public class WorldStateInputBuilder
             MaxHealth = player.MaxHealth,
             Concentration = player.Concentration,
             MaxConcentration = player.MaxConcentration,
-            Energy = currentEnergy,
-            MaxEnergy = player.MaxEnergy,
-            Coins = player.Money,
+            Stamina = currentStamina,
+            MaxStamina = player.MaxStamina,
+            Coins = player.Coins,
 
             CurrentLocation = currentLocation,
             LocationSpots = locationSpots,
@@ -60,7 +60,7 @@ public class WorldStateInputBuilder
             Inventory = playerInventory,
 
             KnownCharacters = knownCharacters,
-            ActiveOpportunities = string.Empty,
+            ActiveContracts = string.Empty,
 
             MemorySummary = memory,
 
@@ -84,21 +84,18 @@ public class WorldStateInputBuilder
         sb.AppendLine("Carrying:");
 
         // Group items by type and count them
-        Dictionary<ItemTypes, int> itemCounts = new Dictionary<ItemTypes, int>();
-        foreach (ItemTypes itemType in Enum.GetValues(typeof(ItemTypes)))
+        Dictionary<Item, int> itemCounts = new Dictionary<Item, int>();
+        foreach (Item itemType in Enum.GetValues(typeof(Item)))
         {
-            if (itemType != ItemTypes.None)
+            int count = inventory.GetItemCount(itemType.ToString());
+            if (count > 0)
             {
-                int count = inventory.GetItemCount(itemType.ToString());
-                if (count > 0)
-                {
-                    itemCounts[itemType] = count;
-                }
+                itemCounts[itemType] = count;
             }
         }
 
         // Format items with counts
-        foreach (KeyValuePair<ItemTypes, int> item in itemCounts)
+        foreach (KeyValuePair<Item, int> item in itemCounts)
         {
             string itemName = GetItemName(item.Key);
 
@@ -115,7 +112,7 @@ public class WorldStateInputBuilder
         return sb.ToString();
     }
 
-    private string GetItemName(ItemTypes itemType)
+    private string GetItemName(Item itemType)
     {
         // Convert enum to display name
         return SplitCamelCase(itemType.ToString());

@@ -54,17 +54,17 @@ public static class ContractParser
             contract.Approaches = ParseApproaches(approachesElement);
         }
 
-        // For sequential Opportunities, parse the initial step
+        // For sequential Contracts, parse the initial step
         if (type == ContractTypes.Sequential &&
             root.TryGetProperty("initialStep", out JsonElement initialStepElement))
         {
-            contract.InitialStep = ParseOpportunitiestep(initialStepElement);
+            contract.InitialStep = ParseContractstep(initialStepElement);
         }
 
         return contract;
     }
 
-    private static ContractStep ParseOpportunitiestep(JsonElement stepElement)
+    private static ContractStep ParseContractstep(JsonElement stepElement)
     {
         string name = GetStringProperty(stepElement, "name", "");
         string description = GetStringProperty(stepElement, "description", "");

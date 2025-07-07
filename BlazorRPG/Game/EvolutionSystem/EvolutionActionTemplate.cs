@@ -7,5 +7,5 @@
     public string SpotName { get; set; }
     public string LocationName { get; set; }
     public bool IsRepeatable { get; set; }
-    public int EnergyCost { get; set; }
+    public int StaminaCost { get; set; }
 }

@@ -110,13 +110,13 @@ public static class LocationJsonParser
             SpotName = "", // This will be populated later when we match with spots
             ActionType = ConvertActionType(GetStringProperty(element, "type", "Encounter")),
             IsRepeatable = GetBoolProperty(element, "isRepeatable", true),
-            EnergyCost = 1,  // Default energy cost
+            StaminaCost = 1,  // Default stamina cost
         };
 
         // Get cost information
         if (element.TryGetProperty("cost", out JsonElement costElement))
         {
-            action.EnergyCost = GetIntProperty(costElement, "energy", 1);
+            action.StaminaCost = GetIntProperty(costElement, "stamina", 1);
         }
 
         // Get encounterContext definition info

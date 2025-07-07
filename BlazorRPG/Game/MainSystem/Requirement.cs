@@ -24,23 +24,23 @@ public class ActionPointRequirement : IRequirement
     }
 }
 
-public class EnergyRequirement : IRequirement
+public class StaminaRequirement : IRequirement
 {
     public int RequiredAmount { get; }
 
-    public EnergyRequirement(int requiredAmount)
+    public StaminaRequirement(int requiredAmount)
     {
         RequiredAmount = requiredAmount;
     }
 
     public bool IsMet(GameWorld gameWorld)
     {
-        return gameWorld.GetPlayer().CurrentEnergy() >= RequiredAmount;
+        return gameWorld.GetPlayer().Stamina >= RequiredAmount;
     }
 
     public string GetDescription()
     {
-        return $"Requires {RequiredAmount} Energy";
+        return $"Requires {RequiredAmount} Stamina";
     }
 }
 
@@ -95,7 +95,7 @@ public class CoinRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        return gameWorld.GetPlayer().Money >= RequiredAmount;
+        return gameWorld.GetPlayer().Coins >= RequiredAmount;
     }
 
     public string GetDescription()

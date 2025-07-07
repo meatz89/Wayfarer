@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-public class EncounterViewBase : ComponentBase
+public partial class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; }
     [Inject] protected GameWorldManager GameWorldManager { get; set; }

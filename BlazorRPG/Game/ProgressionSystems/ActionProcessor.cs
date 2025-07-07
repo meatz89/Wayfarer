@@ -28,13 +28,13 @@
     {
         Player player = gameWorld.GetPlayer();
 
-        int energy = player.CurrentEnergy();
+        int stamina = player.Stamina;
         int turnAp = player.MaxActionPoints;
 
-        int newEnergy = energy - turnAp;
-        if (newEnergy >= 0)
+        int newStamina = stamina - turnAp;
+        if (newStamina >= 0)
         {
-            player.SetNewEnergy(newEnergy);
+            player.SetNewStamina(newStamina);
         }
 
         gameWorld.TimeManager.StartNewDay();

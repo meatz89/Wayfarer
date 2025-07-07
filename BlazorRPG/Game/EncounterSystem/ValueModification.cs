@@ -50,10 +50,10 @@ public class PressureModification : ValueModification
     }
 }
 
-public class EnergyCostReduction : ValueModification
+public class StaminaCostReduction : ValueModification
 {
 
-    public EnergyCostReduction(int amount, string source)
+    public StaminaCostReduction(int amount, string source)
     {
         Amount = amount;
         Source = source;

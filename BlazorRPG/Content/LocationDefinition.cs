@@ -3,7 +3,6 @@
     public string Name { get; set; }
     public string Description { get; set; }
     public int Difficulty { get; set; }
-    // Forward progression additions
     public int Depth { get; set; }
     public string LocationType { get; set; }
     public List<string> AvailableServices { get; set; } = new List<string>();

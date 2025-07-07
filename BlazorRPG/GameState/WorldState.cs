@@ -4,7 +4,7 @@
     public List<Location> locations { get; private set; } = new();
     public List<LocationSpot> locationSpots { get; private set; } = new();
     public List<ActionDefinition> actions { get; private set; } = new();
-    public List<ContractDefinition> Opportunities { get; private set; } = new();
+    public List<ContractDefinition> Contracts { get; private set; } = new();
     private List<NPC> characters { get; set; } = new();
     private List<Contract> contracts { get; set; } = new();
 
@@ -18,9 +18,9 @@
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
-    public List<ContractDefinition> CompletedOpportunities { get; set; }
-    public List<ContractDefinition> ActiveOpportunities { get; set; }
-    public List<ContractDefinition> FailedOpportunities { get; set; }
+    public List<ContractDefinition> CompletedContracts { get; set; }
+    public List<ContractDefinition> ActiveContracts { get; set; }
+    public List<ContractDefinition> FailedContracts { get; set; }
     public TimeBlocks CurrentTimeWindow { get; internal set; }
     public int CurrentTimeHours { get; internal set; }
 
@@ -86,7 +86,7 @@
         return characters;
     }
 
-    public List<Contract> GetOpportunities()
+    public List<Contract> GetContracts()
     {
         return contracts;
     }

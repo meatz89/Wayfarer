@@ -1,12 +1,11 @@
-﻿public class Location
+﻿
+public class Location
 {
     public string Id { get; set; }
     public string Name { get; private set; }
     public string Description { get; set; }
-
     public List<LocationConnection> Connections { get; set; } = new List<LocationConnection>();
-    public List<TradeItem> Market { get; set; } = new List<TradeItem>();
-    public List<LocationSpot> Spots { get; set; } = new List<LocationSpot>();
+    public List<string> LocationSpotIds { get; set; } = new List<string>();
 
     // Environmental properties by time window
     public List<string> MorningProperties { get; set; } = new List<string>();
@@ -36,17 +35,20 @@
     public List<LocationSpot> AvailableSpots { get; set; } = new List<LocationSpot>();
 
     // Time-based properties
-    public Dictionary<TimeOfDay, List<FlagStates>> TimeStateFlags { get; private set; }
-    public Dictionary<TimeOfDay, List<string>> AvailableActions { get; private set; }
-    public Dictionary<TimeOfDay, string> TimeSpecificDescription { get; private set; }
-    public Dictionary<TimeOfDay, List<ILocationProperty>> TimeProperties { get; private set; }
+    public Dictionary<TimeBlocks, List<FlagStates>> TimeStateFlags { get; private set; }
+    public Dictionary<TimeBlocks, List<string>> AvailableActions { get; private set; }
+    public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
+    public Dictionary<TimeBlocks, List<ILocationProperty>> TimeProperties { get; private set; }
+    public List<string> ConnectedLocationIds { get; internal set; }
+    public List<TradeItem> MarketItems { get; internal set; }
+    public List<RestOption> RestOptions { get; internal set; }
 
 
     // Method to get current state based on time
-    public List<FlagStates> GetCurrentFlags(TimeOfDay timeOfDay)
+    public List<FlagStates> GetCurrentFlags(TimeBlocks TimeBlocks)
     {
-        return TimeStateFlags.ContainsKey(timeOfDay)
-            ? TimeStateFlags[timeOfDay]
+        return TimeStateFlags.ContainsKey(TimeBlocks)
+            ? TimeStateFlags[TimeBlocks]
             : new List<FlagStates>();
     }
 
