@@ -149,7 +149,7 @@ public class CheckMemoryEffect : IMechanicalEffect
 
         public string GetDescriptionForPlayer()
         {
-            return $"Discovered route to {routeToDiscover.Destination.Name}";
+            return $"Discovered route to {routeToDiscover.Destination}";
         }
     }
 

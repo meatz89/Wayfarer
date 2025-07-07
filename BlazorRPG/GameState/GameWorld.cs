@@ -119,7 +119,7 @@
         foreach (var connection in connections)
         {
             RouteOption? routeOption = connection.RouteOptions.FirstOrDefault(r =>
-                r.Destination.Name.Equals(travelLocationName, StringComparison.OrdinalIgnoreCase));
+                r.Destination.Equals(travelLocationName, StringComparison.OrdinalIgnoreCase));
             if (routeOption != null)
             {
                 return routeOption;

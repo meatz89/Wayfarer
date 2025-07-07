@@ -34,4 +34,16 @@
     {
         return _items;
     }
+
+    public List<Item> GetItemsForLocation(string locationId, string spotId = null)
+    {
+        if (spotId != null)
+        {
+            return _items.Where(i => i.LocationId == locationId && i.SpotId == spotId).ToList();
+        }
+        else
+        {
+            return _items.Where(i => i.LocationId == locationId).ToList();
+        }
+    }
 }

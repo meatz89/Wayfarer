@@ -273,7 +273,7 @@ public static class GameWorldSerializer
         {
             foreach (JsonElement contractElement in doc.RootElement.EnumerateArray())
             {
-                Contracts.Add(ContractParser.ParseOpportunity(contractElement.GetRawText()));
+                Contracts.Add(ContractParser.ParseContract(contractElement.GetRawText()));
             }
         }
 

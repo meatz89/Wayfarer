@@ -48,9 +48,6 @@ public class AIPromptBuilder
         // Add memory context
         AddMemoryContext(prompt, gameWorld);
 
-        // Add global goal context
-        AddGlobalGoalContext(prompt, gameWorld);
-
         // Add core game state context
         AddEncounterContext(prompt, context, state, player);
 
@@ -440,56 +437,6 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private void AddGlobalGoalContext(StringBuilder prompt, GameWorld gameWorld)
-    {
-        prompt.AppendLine();
-
-        prompt.AppendLine("GLOBAL GOAL CONTEXT:");
-
-        // Core goal
-        List<Goal> coreGoals = gameWorld.GetGoalsByType(GoalType.Core);
-        if (coreGoals.Any())
-        {
-            Goal coreGoal = coreGoals.First(); // Typically only one core goal
-            prompt.AppendLine($"- Main Goal: {coreGoal.Name}");
-            prompt.AppendLine($"  * {coreGoal.Description}");
-            prompt.AppendLine($"  * Progress: {coreGoal.Progress * 100:0}%");
-
-            if (coreGoal.Deadline != -1)
-            {
-                int daysRemaining = coreGoal.Deadline - gameWorld.CurrentDay;
-                prompt.AppendLine($"  * Deadline: {daysRemaining} days remaining");
-            }
-        }
-
-        // Supporting goals
-        List<Goal> supportingGoals = gameWorld.GetGoalsByType(GoalType.Supporting);
-        if (supportingGoals.Any())
-        {
-            prompt.AppendLine("- Supporting Goals:");
-            foreach (Goal goal in supportingGoals)
-            {
-                prompt.AppendLine($"  * {goal.Name}: {goal.Progress * 100:0}% complete");
-            }
-        }
-
-        // Opportunity goals (limit to 3 most recent)
-        List<Goal> contractGoals = gameWorld.GetGoalsByType(GoalType.Opportunity)
-            .OrderByDescending(g => g.CreationDay)
-            .Take(3)
-            .ToList();
-
-        if (contractGoals.Any())
-        {
-            prompt.AppendLine("- Recent Contracts:");
-            foreach (Goal goal in contractGoals)
-            {
-                prompt.AppendLine($"  * {goal.Name}: {goal.Progress * 100:0}% complete");
-            }
-        }
-        prompt.AppendLine();
-    }
-
     private void AddTimeContext(StringBuilder prompt, GameWorld gameWorld)
     {
         prompt.AppendLine();
@@ -535,7 +482,7 @@ public class AIPromptBuilder
 
             foreach (RouteOption route in availableRoutes)
             {
-                prompt.AppendLine($"  * To {route.Destination.Name}:");
+                prompt.AppendLine($"  * To {route.Destination}:");
                 prompt.AppendLine($"    - Time: {route.GetActualTimeCost()} hours");
                 prompt.AppendLine($"    - Stamina: {route.GetActualStaminaCost()} points");
             }

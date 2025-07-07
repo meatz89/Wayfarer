@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-public static class ContractParser
+public static class RouteOptionParser
 {
-    public static Contract ParseContract(string json)
+    public static RouteOption ParseRouteOption(string json)
     {
         JsonDocumentOptions options = new JsonDocumentOptions
         {
@@ -12,26 +12,43 @@ public static class ContractParser
         using JsonDocument doc = JsonDocument.Parse(json, options);
         JsonElement root = doc.RootElement;
 
-        Contract contract = new Contract
+        string id = GetStringProperty(root, "id", "");
+        string name = GetStringProperty(root, "name", "");
+        string origin = GetStringProperty(root, "origin", "");
+        string destination = GetStringProperty(root, "destination", "");
+        string methodStr = GetStringProperty(root, "method", "Walking");
+        TravelMethods method = Enum.TryParse<TravelMethods>(methodStr, true, out var m) ? m : TravelMethods.Walking;
+
+        RouteOption route = new RouteOption
         {
-            Id = GetStringProperty(root, "id", ""),
-            Description = GetStringProperty(root, "description", ""),
-            DestinationLocation = GetStringProperty(root, "destinationLocation", ""),
-            StartDay = GetIntProperty(root, "startDay", 1),
-            DueDay = GetIntProperty(root, "dueDay", 5),
-            Payment = GetIntProperty(root, "payment", 0),
-            FailurePenalty = GetStringProperty(root, "failurePenalty", ""),
-            IsCompleted = GetBoolProperty(root, "isCompleted", false),
-            IsFailed = GetBoolProperty(root, "isFailed", false),
-            RequiredItems = GetStringArray(root, "requiredItems"),
-            RequiredLocations = GetStringArray(root, "requiredLocations"),
-            UnlocksContractIds = GetStringArray(root, "unlocksContractIds"),
-            LocksContractIds = GetStringArray(root, "locksContractIds")
+            Id = id,
+            Name = name,
+            Origin = origin,
+            Destination = destination,
+            Method = method,
+            BaseCoinCost = GetIntProperty(root, "baseCoinCost", 0),
+            BaseStaminaCost = GetIntProperty(root, "baseStaminaCost", 1),
+            TimeBlockCost = GetIntProperty(root, "timeBlockCost", 1),
+            IsDiscovered = GetBoolProperty(root, "isDiscovered", true),
+            MaxItemCapacity = GetIntProperty(root, "maxItemCapacity", 3),
+            Description = GetStringProperty(root, "description", "")
         };
 
-        return contract;
-    }
+        // Parse departure time
+        string departureTimeStr = GetStringProperty(root, "departureTime", null);
+        if (!string.IsNullOrEmpty(departureTimeStr))
+        {
+            if (Enum.TryParse<TimeBlocks>(departureTimeStr, true, out TimeBlocks depTime))
+            {
+                route.DepartureTime = depTime;
+            }
+        }
 
+        // Parse required route types
+        route.RequiredRouteTypes = GetStringArray(root, "requiredRouteTypes");
+
+        return route;
+    }
 
     private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
     {

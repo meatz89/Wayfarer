@@ -1,62 +1,52 @@
 ﻿public class TradeManager
 {
-    public List<Item> GetAvailableItems(GameWorld gameWorld)
-    {
-        Location currentLocation = gameWorld.Locations.Find(l => l.Id == gameWorld.CurrentLocation.Id);
-        if (currentLocation == null || currentLocation.MarketItems == null)
-        {
-            return new List<Item>();
-        }
+    private GameWorld gameWorld;
+    private ItemRepository itemRepository;
 
-        return currentLocation.MarketItems.ToList();
+    public TradeManager(GameWorld gameWorld, ItemRepository itemRepository)
+    {
+        this.gameWorld = gameWorld;
+        this.itemRepository = itemRepository;
     }
 
-    public bool CanBuyItem(GameWorld gameWorld, Item item)
+    public List<Item> GetAvailableItems(string locationId, string spotId)
     {
-        bool hasEnoughMoney = gameWorld.PlayerCoins >= item.BuyPrice;
-        bool hasInventorySpace = Array.IndexOf(gameWorld.PlayerInventory.ItemSlots, null) != -1;
+        return itemRepository.GetItemsForLocation(locationId, spotId);
+    }
+
+    public bool CanBuyItem(Item item)
+    {
+        Player player = gameWorld.GetPlayer();
+        bool hasEnoughMoney = player.Coins >= item.BuyPrice;
+        bool hasInventorySpace = player.Inventory.HasFreeSlot();
 
         return hasEnoughMoney && hasInventorySpace;
     }
 
-    public bool CanSellItem(GameWorld gameWorld, string itemName)
+    public bool CanSellItem(string itemName)
     {
-        return Array.IndexOf(gameWorld.PlayerInventory.ItemSlots, itemName) != -1;
+        return gameWorld.GetPlayer().Inventory.HasItem(itemName);
     }
 
-    public void BuyItem(GameWorld gameWorld, Item item)
+    public void BuyItem(Item item)
     {
-        // Find empty inventory slot
-        int emptySlot = Array.IndexOf(gameWorld.PlayerInventory.ItemSlots, null);
-        if (emptySlot == -1)
-        {
-            return; // No empty slot (should never happen if CanBuyItem was checked)
-        }
+        Player player = gameWorld.GetPlayer();
 
-        // Deduct cost and add to inventory
-        gameWorld.PlayerCoins -= item.BuyPrice;
-        gameWorld.PlayerInventory.ItemSlots[emptySlot] = item.Name;
+        // Deduct cost
+        player.Coins -= item.BuyPrice;
+
+        // Add to inventory
+        player.Inventory.AddItem(item.Name);
     }
 
-    public void SellItem(GameWorld gameWorld, Item item)
+    public void SellItem(Item item)
     {
-        // Find the item in inventory
-        int itemSlot = Array.IndexOf(gameWorld.PlayerInventory.ItemSlots, item.Name);
-        if (itemSlot == -1)
-        {
-            return; // Item not found (should never happen if CanSellItem was checked)
-        }
+        Player player = gameWorld.GetPlayer();
 
-        // Add money and remove from inventory
-        gameWorld.PlayerCoins += item.SellPrice;
-        gameWorld.PlayerInventory.ItemSlots[itemSlot] = null;
-    }
+        // Add money
+        player.Coins += item.SellPrice;
 
-    public void DropItem(GameWorld gameWorld, int inventorySlot)
-    {
-        if (inventorySlot >= 0 && inventorySlot < gameWorld.PlayerInventory.ItemSlots.Length)
-        {
-            gameWorld.PlayerInventory.ItemSlots[inventorySlot] = null;
-        }
+        // Remove from inventory
+        player.Inventory.RemoveItem(item.Name);
     }
 }

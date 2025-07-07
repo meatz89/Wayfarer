@@ -17,7 +17,7 @@
     private LocationSystem locationSystem;
     private LocationRepository locationRepository;
     private TravelManager travelManager;
-    private ContentLoader contentLoader;
+    private ContentLoader  contentLoader;
     private List<Contract> availableContracts = new List<Contract>();
     
     private bool isAiAvailable = true;
@@ -30,7 +30,7 @@
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
                        ActionGenerator actionGenerator, PlayerProgression playerProgression,
-                       ActionProcessor actionProcessor, ContentLoader contentLoader,
+                       ActionProcessor actionProcessor, ContentLoader  contentLoader,
                        ChoiceProjectionService choiceProjectionService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
@@ -393,7 +393,8 @@
         else
         {
             // Arrived safely
-            GameWorld.SetCurrentLocation(route.Destination);
+            var destination = locationRepository.GetLocation(route.Destination);
+            GameWorld.SetCurrentLocation(destination);
             await UpdateGameWorld();
         }
     }
