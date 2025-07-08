@@ -1,0 +1,370 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Xunit;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Wayfarer.Tests
+{
+    /// <summary>
+    /// Unit tests for enhanced Route Selection Interface system.
+    /// These tests validate the cost-benefit analysis and route comparison features
+    /// that enable informed travel decisions in the resource management gameplay.
+    /// 
+    /// User Story: Enhanced Route Selection Interface (claude-analysis.md:192-210)
+    /// Priority: HIGH - Core gameplay mechanic
+    /// </summary>
+    public class RouteSelectionTests
+    {
+        /// <summary>
+        /// Creates a minimal test player for route selection testing
+        /// </summary>
+        private Player CreateTestPlayer()
+        {
+            Player player = new Player();
+            player.Coins = 100;
+            player.Stamina = 10;
+            return player;
+        }
+
+        /// <summary>
+        /// Creates a minimal test world state for route selection testing
+        /// </summary>
+        private WorldState CreateTestWorldState()
+        {
+            WorldState worldState = new WorldState();
+            worldState.CurrentTimeBlock = TimeBlocks.Morning;
+            worldState.CurrentDay = 1;
+            return worldState;
+        }
+
+        /// <summary>
+        /// Creates a minimal test game world for route selection testing
+        /// </summary>
+        private GameWorld CreateTestGameWorld()
+        {
+            Player player = CreateTestPlayer();
+            WorldState worldState = CreateTestWorldState();
+            GameWorld gameWorld = new GameWorld(player, worldState);
+            return gameWorld;
+        }
+
+        /// <summary>
+        /// Creates a test location repository with basic locations
+        /// </summary>
+        private LocationRepository CreateTestLocationRepository()
+        {
+            LocationRepository repository = new LocationRepository();
+            
+            // Add test locations with connections
+            Location townSquare = new Location { Id = "town_square", Name = "Town Square" };
+            Location dustyFlagon = new Location { Id = "dusty_flagon", Name = "Dusty Flagon" };
+            
+            // Add route connections
+            townSquare.Connections.Add(new LocationConnection
+            {
+                DestinationLocationId = "dusty_flagon",
+                RouteOptions = new List<RouteOption>
+                {
+                    new RouteOption { Name = "Walk", BaseCoinCost = 0, BaseStaminaCost = 2, TimeBlockCost = 1, IsDiscovered = true, Method = TravelMethods.Walking },
+                    new RouteOption { Name = "Horse Cart", BaseCoinCost = 5, BaseStaminaCost = 1, TimeBlockCost = 1, IsDiscovered = true, Method = TravelMethods.RidingInCart }
+                }
+            });
+            
+            repository.AddLocation(townSquare);
+            repository.AddLocation(dustyFlagon);
+            
+            return repository;
+        }
+
+        /// <summary>
+        /// Creates a test item repository with basic items
+        /// </summary>
+        private ItemRepository CreateTestItemRepository()
+        {
+            ItemRepository repository = new ItemRepository();
+            
+            repository.AddItem(new Item { Name = "heavy_armor", Weight = 3 });
+            repository.AddItem(new Item { Name = "heavy_weapon", Weight = 2 });
+            repository.AddItem(new Item { Name = "heavy_shield", Weight = 2 });
+            
+            return repository;
+        }
+
+        [Fact]
+        public void GetRouteComparisonData_WhenMultipleRoutesExist_ReturnsComparisonWithCostBenefitAnalysis()
+        {
+            // Arrange
+            GameWorld gameWorld = CreateTestGameWorld();
+            LocationRepository locationRepository = CreateTestLocationRepository();
+            ItemRepository itemRepository = CreateTestItemRepository();
+            TravelManager travelManager = new TravelManager(gameWorld, null, null, locationRepository, null, itemRepository);
+            
+            Player player = gameWorld.GetPlayer();
+            player.Coins = 100;
+            player.Stamina = 10;
+            gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            Location currentLocation = locationRepository.GetLocation("town_square");
+            Location targetLocation = locationRepository.GetLocation("dusty_flagon");
+            gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            List<RouteComparisonData> comparisonData = travelManager.GetRouteComparisonData(
+                currentLocation.Id, targetLocation.Id);
+
+            // Assert
+            Assert.NotNull(comparisonData);
+            Assert.True(comparisonData.Count > 0);
+            
+            foreach (RouteComparisonData comparison in comparisonData)
+            {
+                Assert.NotNull(comparison.Route);
+                Assert.NotNull(comparison.CostBenefitAnalysis);
+                Assert.True(comparison.TotalCost >= 0);
+                Assert.True(comparison.EfficiencyScore >= 0);
+            }
+        }
+
+        [Fact]
+        public void GetRouteComparisonData_WhenPlayerHasLimitedResources_MarkesUnaffordableRoutes()
+        {
+            // Arrange
+            _player.Coins = 5;
+            _player.Stamina = 2;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("dusty_flagon");
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            List<RouteComparisonData> comparisonData = _travelManager.GetRouteComparisonData(
+                currentLocation.Id, targetLocation.Id);
+
+            // Assert
+            Assert.NotNull(comparisonData);
+            Assert.True(comparisonData.Count > 0);
+            
+            bool hasUnaffordableRoute = comparisonData.Any(r => !r.CanAfford);
+            Assert.True(hasUnaffordableRoute, "Should have at least one unaffordable route with limited resources");
+        }
+
+        [Fact]
+        public void GetRouteComparisonData_WithHeavyInventory_IncludesWeightPenaltiesInCostCalculation()
+        {
+            // Arrange
+            _player.Coins = 100;
+            _player.Stamina = 10;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            // Add heavy items to inventory
+            _player.Inventory.AddItem("heavy_armor");
+            _player.Inventory.AddItem("heavy_weapon");
+            _player.Inventory.AddItem("heavy_shield");
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("dusty_flagon");
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            List<RouteComparisonData> comparisonData = _travelManager.GetRouteComparisonData(
+                currentLocation.Id, targetLocation.Id);
+
+            // Assert
+            Assert.NotNull(comparisonData);
+            Assert.True(comparisonData.Count > 0);
+            
+            foreach (RouteComparisonData comparison in comparisonData)
+            {
+                Assert.True(comparison.WeightPenalty > 0, 
+                    $"Route {comparison.Route.Name} should have weight penalty for heavy inventory");
+                Assert.True(comparison.AdjustedStaminaCost > comparison.Route.BaseStaminaCost,
+                    $"Route {comparison.Route.Name} should have increased stamina cost due to weight");
+            }
+        }
+
+        [Fact]
+        public void GetOptimalRouteRecommendation_WhenPlayerHasEnoughResources_ReturnsEfficiencyOptimizedRoute()
+        {
+            // Arrange
+            _player.Coins = 100;
+            _player.Stamina = 10;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("dusty_flagon");
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            RouteRecommendation recommendation = _travelManager.GetOptimalRouteRecommendation(
+                currentLocation.Id, targetLocation.Id, OptimizationStrategy.Efficiency);
+
+            // Assert
+            Assert.NotNull(recommendation);
+            Assert.NotNull(recommendation.RecommendedRoute);
+            Assert.NotNull(recommendation.Justification);
+            Assert.True(recommendation.EfficiencyScore > 0);
+            Assert.True(recommendation.Justification.Contains("efficiency") || 
+                         recommendation.Justification.Contains("optimal"));
+        }
+
+        [Fact]
+        public void GetOptimalRouteRecommendation_WhenPlayerHasLimitedCoins_ReturnsMoneyOptimizedRoute()
+        {
+            // Arrange
+            _player.Coins = 10;
+            _player.Stamina = 20;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("dusty_flagon");
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            RouteRecommendation recommendation = _travelManager.GetOptimalRouteRecommendation(
+                currentLocation.Id, targetLocation.Id, OptimizationStrategy.CheapestCost);
+
+            // Assert
+            Assert.NotNull(recommendation);
+            Assert.NotNull(recommendation.RecommendedRoute);
+            Assert.True(recommendation.RecommendedRoute.BaseCoinCost <= _player.Coins);
+            Assert.True(recommendation.Justification.Contains("cheapest") || 
+                         recommendation.Justification.Contains("affordable"));
+        }
+
+        [Fact]
+        public void GetOptimalRouteRecommendation_WhenPlayerHasLimitedStamina_ReturnsStaminaOptimizedRoute()
+        {
+            // Arrange
+            _player.Coins = 100;
+            _player.Stamina = 3;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("dusty_flagon");
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            RouteRecommendation recommendation = _travelManager.GetOptimalRouteRecommendation(
+                currentLocation.Id, targetLocation.Id, OptimizationStrategy.LeastStamina);
+
+            // Assert
+            Assert.NotNull(recommendation);
+            Assert.NotNull(recommendation.RecommendedRoute);
+            
+            int adjustedStaminaCost = _travelManager.CalculateStaminaCost(recommendation.RecommendedRoute);
+            Assert.True(adjustedStaminaCost <= _player.Stamina);
+            Assert.True(recommendation.Justification.Contains("stamina") || 
+                         recommendation.Justification.Contains("energy"));
+        }
+
+        [Fact]
+        public void GetOptimalRouteRecommendation_WhenPlayerHasLimitedTime_ReturnsTimeOptimizedRoute()
+        {
+            // Arrange
+            _player.Coins = 100;
+            _player.Stamina = 10;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Evening; // Late in the day
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("dusty_flagon");
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            RouteRecommendation recommendation = _travelManager.GetOptimalRouteRecommendation(
+                currentLocation.Id, targetLocation.Id, OptimizationStrategy.FastestTime);
+
+            // Assert
+            Assert.NotNull(recommendation);
+            Assert.NotNull(recommendation.RecommendedRoute);
+            Assert.True(recommendation.RecommendedRoute.TimeBlockCost > 0);
+            Assert.True(recommendation.Justification.Contains("fastest") || 
+                         recommendation.Justification.Contains("time"));
+        }
+
+        [Fact]
+        public void GetRouteComparisonData_WhenNoRoutesAvailable_ReturnsEmptyList()
+        {
+            // Arrange
+            _player.Coins = 100;
+            _player.Stamina = 10;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("town_square"); // Same location
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            List<RouteComparisonData> comparisonData = _travelManager.GetRouteComparisonData(
+                currentLocation.Id, targetLocation.Id);
+
+            // Assert
+            Assert.NotNull(comparisonData);
+            Assert.Equal(0, comparisonData.Count);
+        }
+
+        [Fact]
+        public void GetRouteComparisonData_SortsRoutesByEfficiencyScore_WhenMultipleRoutesAvailable()
+        {
+            // Arrange
+            _player.Coins = 100;
+            _player.Stamina = 10;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("dusty_flagon");
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            List<RouteComparisonData> comparisonData = _travelManager.GetRouteComparisonData(
+                currentLocation.Id, targetLocation.Id);
+
+            // Assert
+            Assert.NotNull(comparisonData);
+            Assert.True(comparisonData.Count > 1, "Need multiple routes to test sorting");
+            
+            // Verify routes are sorted by efficiency score (descending)
+            for (int i = 0; i < comparisonData.Count - 1; i++)
+            {
+                Assert.True(comparisonData[i].EfficiencyScore >= comparisonData[i + 1].EfficiencyScore,
+                    $"Route at index {i} should have efficiency score >= route at index {i + 1}");
+            }
+        }
+
+        [Fact]
+        public void GetRouteComparisonData_IncludesArrivalTimeCalculation_ForAllRoutes()
+        {
+            // Arrange
+            _player.Coins = 100;
+            _player.Stamina = 10;
+            _gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            
+            Location currentLocation = _locationRepository.GetLocation("town_square");
+            Location targetLocation = _locationRepository.GetLocation("dusty_flagon");
+            _gameWorld.SetCurrentLocation(currentLocation);
+
+            // Act
+            List<RouteComparisonData> comparisonData = _travelManager.GetRouteComparisonData(
+                currentLocation.Id, targetLocation.Id);
+
+            // Assert
+            Assert.NotNull(comparisonData);
+            Assert.True(comparisonData.Count > 0);
+            
+            foreach (RouteComparisonData comparison in comparisonData)
+            {
+                Assert.NotNull(comparison.ArrivalTime);
+                Assert.True(comparison.ArrivalTime.Length > 0);
+                Assert.True(comparison.ArrivalTime.Contains("Morning") || 
+                             comparison.ArrivalTime.Contains("Afternoon") || 
+                             comparison.ArrivalTime.Contains("Evening") || 
+                             comparison.ArrivalTime.Contains("Night") || 
+                             comparison.ArrivalTime.Contains("Dawn") ||
+                             comparison.ArrivalTime.Contains("Tomorrow"));
+            }
+        }
+    }
+}
