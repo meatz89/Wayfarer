@@ -6,6 +6,30 @@
 
 **Core Design Philosophy**: Simple systems with complex interactions, creating depth through the interplay of Time Blocks, Stamina, Route costs, Trading opportunities, and Contract obligations.
 
+## CRITICAL GAME DESIGN PRINCIPLES
+
+**Games vs Apps**: This POC creates interactive optimization puzzles for players to solve, NOT automated systems that solve everything for them.
+
+### ✅ GAMEPLAY PATTERNS TO IMPLEMENT
+- **Discovery is Gameplay**: Players explore locations to learn prices, routes, and opportunities
+- **Mental Models**: Players build understanding through experience, not through automated displays
+- **Strategic Thinking**: Players develop their own optimization strategies through trial and error
+- **Information as Advantage**: Knowledge gained through exploration provides competitive benefit
+- **Meaningful Choices**: Every decision involves trade-offs that require player evaluation
+
+### ❌ ANTI-PATTERNS TO AVOID (App-Style Features)
+- **Automated Profit Calculations**: Don't show "Buy X for Y, Sell for Z = Profit A"
+- **Optimal Route Finders**: Don't suggest "best" routes or paths
+- **Trading Opportunity Displays**: Don't list profitable items for players
+- **Resource Projections**: Don't predict end-of-day stamina/money
+- **Planning Automation**: Don't create tools that think for the player
+
+### 🎯 SUCCESS INDICATORS
+- Players naturally develop personal pricing knowledge through exploration
+- Different players discover different strategies organically  
+- Players experience "aha!" moments when finding profitable patterns
+- Gameplay requires active mental engagement, not passive optimization following
+
 ---
 
 ## PHASE 1: FOUNDATION SYSTEMS (Weeks 1-2)
@@ -214,20 +238,20 @@
 
 ---
 
-#### User Story 5.3: Trading Interface and Calculations
+#### User Story 5.3: Trading Interface Clarity
 **As a** player conducting trades  
-**I want** clear information about costs, profits, and opportunities  
-**So that** I can make informed trading decisions quickly  
+**I want** clear transaction information and smooth trade execution  
+**So that** I can focus on strategy rather than struggling with interface mechanics  
 
-**Description**: Trading interface provides clear profit calculations, price comparisons, and transaction management.
+**Description**: Trading interface provides essential transaction information without solving optimization puzzles for the player.
 
 **Acceptance Criteria**:
-- [ ] Trading interface shows: current money, inventory space, item prices
-- [ ] Player can see potential profit for items they own
+- [ ] Trading interface shows: current money, inventory space, item prices at current location
 - [ ] Buy/sell transactions are confirmed before execution
 - [ ] Player receives clear feedback on successful transactions
-- [ ] Interface shows running total of money gained/spent in session
-- [ ] Quick-view of best profit opportunities at current location
+- [ ] Interface shows running total of money gained/spent in current session
+- [ ] ❌ REMOVED: Profit calculations (players must calculate mentally)
+- [ ] ❌ REMOVED: "Best opportunities" displays (players discover through exploration)
 
 **Priority**: High - Essential for user experience
 
@@ -348,22 +372,20 @@
 
 ---
 
-#### User Story 8.2: Strategic Planning Interface
-**As a** player planning my day  
-**I want** tools to help me plan optimal routes and activities  
-**So that** I can make informed decisions about time and resource allocation  
+#### User Story 8.2: ❌ REMOVED - Strategic Planning Interface
+**REMOVED**: This entire feature violated game design principles by solving optimization puzzles for players.
 
-**Description**: Interface provides planning tools to compare route options, calculate potential profits, and plan multi-step journeys.
+**Why Removed**: 
+- Profit calculators eliminate the mental challenge of evaluating trades
+- Journey planners remove the exploration and discovery gameplay
+- Resource projections automate strategic thinking that should be in player's head
+- Route comparison tools reduce route selection to mechanical optimization
 
-**Acceptance Criteria**:
-- [ ] Route comparison tool showing all costs side-by-side
-- [ ] Profit calculator for potential trades
-- [ ] Journey planner for multi-location trips
-- [ ] Resource projection showing end-of-day stamina/money estimates
-- [ ] Contract deadline tracker with travel time estimates
-- [ ] Quick access to key information without navigating multiple screens
-
-**Priority**: Low - Advanced planning tools
+**Replacement Philosophy**: Players should develop these skills through gameplay:
+- Mental arithmetic for profit calculations
+- Memory and note-taking for route planning  
+- Experience-based resource estimation
+- Strategic thinking through trial and error
 
 ---
 

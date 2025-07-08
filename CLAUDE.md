@@ -74,8 +74,17 @@ All APIs must be location-aware and consistent:
 ### CURRENT SYSTEM STATUS
 
 **For current progress, session handoffs, and next steps, see:** `session-handoff.md`
+**For implementation roadmap, see:** `implementation-plan-revised.md`
+**For game design requirements, see:** `UserStories.md`
 
 **Overall Compliance**: 🟢 **FULLY COMPLIANT** - All major architectural patterns enforced
+**Game Design Compliance**: 🟢 **ALIGNED** - POC follows game vs app principles
+
+### CURRENT POC STATUS
+- ✅ **Foundation Systems**: Time blocks, stamina constraints, dynamic pricing complete
+- 🎯 **Next Priority**: Contract system with time pressure and deadline mechanics
+- 📋 **Remaining Systems**: Route conditions, discovery/progression
+- ❌ **Rejected Features**: Automated planning tools, profit calculators, optimization assistants
 
 ### KEY LOCATIONS IN CODEBASE
 
