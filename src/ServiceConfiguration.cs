@@ -4,10 +4,10 @@ public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
-        string contentDirectory = "content";
+        string contentDirectory = "Content";
 
-        // Create ContentLoader
-        ContentLoader  contentLoader = new ContentLoader (contentDirectory);
+        // Create GameWorldInitializer
+        GameWorldInitializer contentLoader = new GameWorldInitializer(contentDirectory);
         services.AddSingleton(contentLoader);
 
         // Load game state
@@ -51,6 +51,62 @@ public static class ServiceConfiguration
         services.AddSingleton<CardHighlightService>();
 
         services.AddAIServices();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Configure services for economic POC - excludes AI services completely
+    /// Use this for economic gameplay testing without AI dependencies
+    /// </summary>
+    public static IServiceCollection ConfigureEconomicServices(this IServiceCollection services)
+    {
+        string contentDirectory = "Content";
+
+        // Create GameWorldInitializer
+        GameWorldInitializer contentLoader = new GameWorldInitializer(contentDirectory);
+        services.AddSingleton(contentLoader);
+
+        // Load game state
+        GameWorld gameWorld = contentLoader.LoadGame();
+        services.AddSingleton(gameWorld);
+
+        // Register the content validator
+        services.AddSingleton<ContentValidator>();
+
+        // Register repositories (ECONOMIC ONLY)
+        services.AddSingleton<ActionRepository>();
+        services.AddSingleton<LocationRepository>();
+        services.AddSingleton<ItemRepository>();
+        services.AddSingleton<ContractRepository>();
+
+        // Core economic systems
+        services.AddSingleton<LocationSystem>();
+        services.AddSingleton<ActionFactory>();
+        services.AddSingleton<ActionGenerator>(); // Economic-only version (no AI)
+        services.AddSingleton<ContractSystem>();
+        services.AddSingleton<ActionProcessor>();
+        services.AddSingleton<MessageSystem>();
+        services.AddSingleton<GameWorldManager>();
+        
+        // Required by GameWorldManager but minimal for economic POC
+        services.AddSingleton<EncounterFactory>();
+        services.AddSingleton<PersistentChangeProcessor>();
+        services.AddSingleton<PlayerProgression>();
+        services.AddSingleton<ChoiceProjectionService>();
+        
+        // Economic managers
+        services.AddSingleton<TravelManager>();
+        services.AddSingleton<MarketManager>();
+        services.AddSingleton<TradeManager>();
+        services.AddSingleton<RestManager>();
+
+        // UI Razor Services (minimal for economic testing)
+        services.AddSingleton<CardSelectionService>();
+        services.AddSingleton<CardHighlightService>();
+
+        // DO NOT ADD AI SERVICES FOR ECONOMIC POC
+        // services.AddAIServices(); // EXCLUDED FOR ECONOMIC FLOW
 
         return services;
     }

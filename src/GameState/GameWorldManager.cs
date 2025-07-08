@@ -21,7 +21,7 @@
     private TradeManager tradeManager;
     private ContractSystem contractSystem;
     private RestManager restManager;
-    private ContentLoader  contentLoader;
+    private GameWorldInitializer contentLoader;
     private List<Contract> availableContracts = new List<Contract>();
     
     private bool isAiAvailable = true;
@@ -36,7 +36,7 @@
                        MarketManager marketManager, TradeManager tradeManager, 
                        ContractSystem contractSystem, RestManager restManager,
                        ActionGenerator actionGenerator, PlayerProgression playerProgression,
-                       ActionProcessor actionProcessor, ContentLoader  contentLoader,
+                       ActionProcessor actionProcessor, GameWorldInitializer contentLoader,
                        ChoiceProjectionService choiceProjectionService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
@@ -231,30 +231,27 @@
 
     private async Task<List<LocationAction>> CreateActions(Location location, LocationSpot locationSpot)
     {
-        // Location SPOT IS NULL HERE AFTER GAMESTART???
-
         List<LocationAction> locationActions = new List<LocationAction>();
         List<ActionDefinition> locationSpotActions = actionRepository.GetActionsForSpot(locationSpot.SpotID);
+        
         for (int i = 0; i < locationSpotActions.Count; i++)
         {
             ActionDefinition actionTemplate = locationSpotActions[i];
+            
+            // FOR ECONOMIC POC: Only use pre-defined actions from JSON
+            // Skip AI generation - use only what's loaded from templates
             if (actionTemplate == null)
             {
-                string actionId =
-                    await actionGenerator.GenerateAction(
-                    actionTemplate.Name,
-                    location.Id,
-                    locationSpot.SpotID
-                    );
-
-                actionTemplate = actionRepository.GetAction(actionTemplate.Id);
+                // Skip null actions instead of generating them via AI
+                continue;
             }
 
+            // Create action from template (no AI involvement)
             LocationAction locationAction = actionFactory.CreateActionFromTemplate(
                     actionTemplate,
                     location.Id,
                     locationSpot.SpotID,
-                    ActionExecutionTypes.Instant);
+                    ActionExecutionTypes.Instant); // Economic actions are instant, not encounters
 
             locationActions.Add(locationAction);
         }

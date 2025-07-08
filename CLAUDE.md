@@ -126,42 +126,56 @@ StateHasChanged() ←──────────── State Change ───
 - ❌ Passing GameWorld as method parameters
 - ❌ Reading JSON files during gameplay
 
-## COMMON INITIALIZATION BUGS & SOLUTIONS
+## GAME INITIALIZATION ARCHITECTURE
 
-### ❌ **Bug Pattern: Parameter Not Assigned in Setter Methods**
-**Symptom**: Method receives parameters but doesn't assign them to class properties
-**Example**: `SetCurrentLocation(location, spot)` receives `spot` but doesn't set `CurrentLocationSpot = spot`
-**Root Cause**: Missing assignment statement in setter method
-**Solution**: Always verify parameters are actually assigned to intended properties
+### **JSON → GameWorld Pipeline** 
+```
+ServiceConfiguration.cs → ContentLoader → JSON Files → GameWorld.WorldState
+├─ contentDirectory = "Content" (CRITICAL: must match actual directory)
+├─ Templates: locations.json, location_spots.json, actions.json, items.json
+├─ ContentLoader.LoadGameFromTemplates() populates GameWorld
+└─ Result: Fully loaded GameWorld.WorldState with all content
+```
 
-### ❌ **Bug Pattern: Incomplete State Initialization**
-**Symptom**: Game starts but critical state properties remain null/empty
-**Common Locations**: 
-- `WorldState.SetCurrentLocation()` - must set both location AND spot
-- `GameWorldManager.StartGame()` - must fully initialize all required state
-- JSON deserialization - must handle all required properties
-**Solution**: Follow complete initialization checklist for all state objects
+### **Initialization Flow & Dependencies**
+1. **ServiceConfiguration**: Creates ContentLoader with correct path
+2. **ContentLoader.LoadGame()**: Reads all JSON templates 
+3. **GameWorldSerializer**: Deserializes JSON into objects
+4. **ConnectLocationsToSpots()**: Links locations to their spots
+5. **GameWorld.WorldState**: Populated with locations, spots, actions, items
+6. **Dependency Injection**: GameWorld injected into all managers/repositories
 
-### ❌ **Bug Pattern: Initialization Order Dependencies**
-**Symptom**: Components depend on other components being initialized first
-**Example**: LocationSpot depends on Location being set, Actions depend on LocationSpot
-**Solution**: 
-1. Initialize base objects first (Location)
-2. Initialize dependent objects second (LocationSpot) 
-3. Initialize derived objects last (Actions)
-4. Use null checks and defensive programming
+### **Critical Requirements**
+- ✅ **Path Correctness**: ServiceConfiguration path MUST match actual directory
+- ✅ **JSON Completeness**: All template files must exist and be valid
+- ✅ **Relationship Linking**: Locations must connect to spots via IDs
+- ✅ **State Population**: GameWorld.WorldState must have non-empty collections
 
-### ✅ **Initialization Architecture Guidelines**
-1. **State-First Initialization**: Set all core state before creating dependent objects
-2. **Null-Safe Progression**: Check for null state at each initialization step
-3. **Complete Object Creation**: Don't leave objects in partially-initialized states
-4. **Validation After Initialization**: Verify all required properties are set
-5. **Clear Error Messages**: Log specific initialization failures for debugging
+### **Common Failure Points**
+- ❌ **Path Mismatch**: Wrong contentDirectory causes FileNotFoundException
+- ❌ **Empty State**: Failed JSON loading results in empty WorldState collections
+- ❌ **Null References**: UI components crash when accessing empty state
+- ❌ **Missing Links**: Locations without proper spot connections cause exceptions
 
-### 🔍 **Initialization Debugging Checklist**
-When debugging initialization issues:
-- ✅ Check all setter methods actually assign parameters
-- ✅ Verify initialization order follows dependencies  
-- ✅ Confirm JSON templates contain all required data
-- ✅ Validate GameWorld state after each major initialization step
-- ✅ Ensure UI polling receives complete, valid state objects
+## CURRENT SESSION STATUS
+
+### **Issue Identified & FIXED**: ServiceConfiguration Path Mismatch (2025-07-08)
+- **Problem**: `contentDirectory = "content"` but files at `src/Content/Templates/`
+- **Fix**: ✅ Changed ServiceConfiguration.cs line 7 to `"Content"` (capital C)
+- **Impact**: ✅ Game initialization now works - character creation no longer crashes
+- **Tests**: ✅ ContentLoaderPathTests.cs + GameInitializationFlowTests.cs document the flow
+
+### **Game Initialization Flow Documented** (2025-07-08)
+✅ **Step 1**: ContentLoader successfully loads all JSON templates  
+✅ **Step 2**: ServiceConfiguration creates all required services with DI  
+⚠️ **Note**: AI services require prompt files in test environment (expected limitation)
+
+### **Key Architectural Findings**:
+1. **JSON Loading Works**: All templates load correctly (locations, spots, actions, items, routes, contracts)
+2. **DI Container**: All services properly registered and injectable
+3. **Content Pipeline**: `ServiceConfiguration → ContentLoader → JSON → GameWorld.WorldState`
+4. **Player Knowledge**: LocationSystem.Initialize() sets up player knowledge correctly
+5. **Character Creation**: Player archetype/name setting works correctly
+6. **Location Spot Access**: Fixed - GetKnownSpots() now works without exceptions
+
+### **Development Ready**: Economic POC Option A can now proceed with working initialization
