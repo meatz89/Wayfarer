@@ -74,4 +74,23 @@ public class ContractSystem
             messageSystem.AddSystemMessage($"Contract '{contract.Description}' failed! {contract.FailurePenalty}");
         }
     }
+
+    public int GetDaysRemaining(Contract contract)
+    {
+        return Math.Max(0, contract.DueDay - gameWorld.CurrentDay);
+    }
+
+    public List<Contract> GetContractsExpiringToday()
+    {
+        return gameWorld.ActiveContracts
+            .Where(c => c.DueDay == gameWorld.CurrentDay)
+            .ToList();
+    }
+
+    public List<Contract> GetUrgentContracts(int daysThreshold = 1)
+    {
+        return gameWorld.ActiveContracts
+            .Where(c => GetDaysRemaining(c) <= daysThreshold)
+            .ToList();
+    }
 }
