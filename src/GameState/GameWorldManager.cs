@@ -329,7 +329,9 @@
         Player player = _gameWorld.GetPlayer();
         int totalWeight = CalculateTotalWeight();
         if (!route.CanTravel(itemRepository, player, totalWeight))
+        {
             return;
+        }
 
         // Apply costs
         int timeCost = route.GetActualTimeCost();
@@ -351,7 +353,16 @@
         {
             // Arrived safely
             var destination = locationRepository.GetLocation(route.Destination);
-            _gameWorld.WorldState.SetCurrentLocation(destination, null);
+            
+            // Find the first available location spot for the destination
+            var destinationSpot = locationSystem.GetLocationSpots(destination.Id).FirstOrDefault();
+            
+            _gameWorld.WorldState.SetCurrentLocation(destination, destinationSpot);
+            
+            // Also update the Player's location to keep them in sync
+            player.CurrentLocation = destination;
+            player.CurrentLocationSpot = destinationSpot;
+            
             await Update_gameWorld();
         }
     }

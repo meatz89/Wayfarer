@@ -18,17 +18,26 @@ public class RouteOption
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
     {
         // Check if player has enough coins
-        if (player.Coins < BaseCoinCost) return false;
+        if (player.Coins < BaseCoinCost) 
+        {
+            return false;
+        }
 
         // Calculate adjusted stamina cost based on weight
         int adjustedStaminaCost = CalculateWeightAdjustedStaminaCost(totalWeight);
 
         // Check if player has enough stamina
-        if (player.Stamina < adjustedStaminaCost) return false;
+        if (player.Stamina < adjustedStaminaCost) 
+        {
+            return false;
+        }
 
         // Check inventory size against transport capacity
-        int itemCount = player.Inventory.ItemSlots.Count(i => i != null);
-        if (itemCount > MaxItemCapacity) return false;
+        int itemCount = player.Inventory.ItemSlots.Count(i => i != null && i != string.Empty);
+        if (itemCount > MaxItemCapacity) 
+        {
+            return false;
+        }
 
         // Check for required route types
         foreach (string requiredType in RequiredRouteTypes)
@@ -47,7 +56,10 @@ public class RouteOption
                 }
             }
 
-            if (!hasEnablingItem) return false;
+            if (!hasEnablingItem) 
+            {
+                return false;
+            }
         }
 
         return true;
