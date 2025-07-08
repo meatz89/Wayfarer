@@ -29,8 +29,7 @@
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
     public List<EncounterChoice> AvailableChoices { get; set; } = new List<EncounterChoice>();
-
-    public TimeManager TimeManager { get; set; }
+    
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
     public Guid GameInstanceId { get; set; }
@@ -44,21 +43,11 @@
         WorldState = new WorldState();
         ActionStateTracker = new ActionStateTracker();
         StreamingContentState = new StreamingContentState();
-        // ✅ Remove TimeManager instantiation - should be injected via DI
 
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;
     }
 
-    // ✅ BUSINESS LOGIC METHODS REMOVED - These should be in appropriate managers
-    // StartEncounter() -> EncounterManager
-    // EndEncounter() -> EncounterManager  
-    // SetCurrentLocation() -> LocationSystem
-    // AdvanceTime() -> TimeManager
-    // GetRoutesFromCurrentLocation() -> TravelManager
-    // GetRouteOption() -> TravelManager
-
-    // ✅ KEEP ONLY STATE ACCESS METHODS
     public Player GetPlayer()
     {
         return Player;
