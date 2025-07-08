@@ -31,10 +31,12 @@
         Location destination = LocationRepository.GetLocation(locationId);
         Location currentLocation = _gameWorld.WorldState.CurrentLocation;
 
+        if (destination == null || currentLocation == null)
+            return false;
+
         // Check if any route exists and is available
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
-        RouteOption? routeOption = routes.FirstOrDefault();
-        return true;
+        return routes.Any();
     }
 
     public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
