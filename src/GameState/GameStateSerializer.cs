@@ -138,7 +138,7 @@ public static class GameWorldSerializer
 
                 if (currentSpot != null)
                 {
-                    gameWorld.SetCurrentLocation(currentLocation, currentSpot);
+                    gameWorld.WorldState.SetCurrentLocation(currentLocation, currentSpot);
                 }
             }
         }

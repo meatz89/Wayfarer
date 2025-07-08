@@ -1,7 +1,7 @@
 ﻿public class TravelManager
 {
-    public GameWorld gameWorld { get; }
-    public WorldState worldState { get; }
+    private readonly GameWorld _gameWorld;
+    // ✅ REMOVED: cached worldState reference - Read from GameWorld when needed
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
     public LocationRepository LocationRepository { get; }
@@ -17,8 +17,8 @@
         ItemRepository itemRepository
         )
     {
-        this.gameWorld = gameWorld;
-        this.worldState = gameWorld.WorldState;
+        _gameWorld = gameWorld;
+        // ✅ REMOVED: cached worldState assignment
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
         this.LocationRepository = locationRepository;
@@ -29,7 +29,7 @@
     public bool CanTravelTo(string locationId)
     {
         Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = gameWorld.WorldState.CurrentLocation;
+        Location currentLocation = _gameWorld.WorldState.CurrentLocation;
 
         // Check if any route exists and is available
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
@@ -40,7 +40,7 @@
     public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
     {
         Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = gameWorld.WorldState.CurrentLocation;
+        Location currentLocation = _gameWorld.WorldState.CurrentLocation;
 
         // Find the appropriate route
 
@@ -54,7 +54,7 @@
     
     public void TravelToLocation(string travelLocation, string locationSpotName, RouteOption selectedRoute)
     {
-        int totalWeight = CalculateCurrentWeight(gameWorld);
+        int totalWeight = CalculateCurrentWeight(_gameWorld);
         int adjustedStaminaCost = selectedRoute.BaseStaminaCost;
 
         // Apply weight penalties
@@ -68,8 +68,8 @@
         }
 
         // Deduct costs
-        gameWorld.PlayerCoins -= selectedRoute.BaseCoinCost;
-        gameWorld.PlayerStamina -= adjustedStaminaCost;
+        _gameWorld.GetPlayer().ModifyCoins(-selectedRoute.BaseCoinCost);
+        _gameWorld.GetPlayer().SpendStamina(adjustedStaminaCost);
 
         // Advance time
         AdvanceTimeBlocks(selectedRoute.TimeBlockCost);
@@ -83,14 +83,14 @@
             return ls.SpotID == locationSpotName;
         }));
 
-        gameWorld.SetCurrentLocation(targetLocation, locSpot);
+        _gameWorld.WorldState.SetCurrentLocation(targetLocation, locSpot);
 
-        string? currentLocation = worldState.CurrentLocation?.Id;
+        string? currentLocation = _gameWorld.WorldState.CurrentLocation?.Id;
 
-        bool isFirstVisit = worldState.IsFirstVisit(targetLocation.Id);
+        bool isFirstVisit = _gameWorld.WorldState.IsFirstVisit(targetLocation.Id);
         if (isFirstVisit)
         {
-            worldState.RecordLocationVisit(targetLocation.Id);
+            _gameWorld.WorldState.RecordLocationVisit(targetLocation.Id);
             if (targetLocation != null)
             {
                 ApplyDiscoveryBonus(targetLocation);
@@ -100,7 +100,7 @@
 
     private void AdvanceTimeBlocks(int timeBlockCost)
     {
-        gameWorld.AdvanceTime(timeBlockCost);
+        // TODO: Implement time advancement through TimeManager
     }
 
     private void ApplyDiscoveryBonus(Location location)
@@ -110,13 +110,13 @@
         {
             // Award XP
             int xpBonus = location.DiscoveryBonusXP;
-            gameWorld.GetPlayer().AddExperiencePoints(xpBonus);
+            _gameWorld.GetPlayer().AddExperiencePoints(xpBonus);
 
             // Award coins
             int coinBonus = location.DiscoveryBonusCoins;
             if (coinBonus > 0)
             {
-                gameWorld.GetPlayer().AddCoins(coinBonus);
+                _gameWorld.GetPlayer().AddCoins(coinBonus);
             }
         }
     }
@@ -137,7 +137,7 @@
                 continue;
 
             // Check departure times
-            if (route.DepartureTime != null && route.DepartureTime > gameWorld.CurrentTimeBlock)
+            if (route.DepartureTime != null && route.DepartureTime > _gameWorld.WorldState.CurrentTimeWindow)
                 continue;
 
             // Check if player has required items for this route type
@@ -146,7 +146,7 @@
             {
                 // Check if any inventory item enables this route type
                 bool routeTypeEnabled = false;
-                foreach (string itemName in gameWorld.PlayerInventory.ItemSlots)
+                foreach (string itemName in _gameWorld.GetPlayer().Inventory.ItemSlots)
                 {
                     if (itemName != null)
                     {
@@ -176,12 +176,12 @@
     }
 
 
-    public int CalculateCurrentWeight(GameWorld gameWorld)
+    public int CalculateCurrentWeight(GameWorld _gameWorld)
     {
         int totalWeight = 0;
 
         // Calculate item weight
-        foreach (string itemName in gameWorld.GetPlayer().Inventory.ItemSlots)
+        foreach (string itemName in _gameWorld.GetPlayer().Inventory.ItemSlots)
         {
             if (itemName != null)
             {
@@ -194,14 +194,14 @@
         }
 
         // Add coin weight (10 coins = 1 weight unit)
-        totalWeight += gameWorld.GetPlayer().Coins / 10;
+        totalWeight += _gameWorld.GetPlayer().Coins / 10;
 
         return totalWeight;
     }
 
     public int CalculateStaminaCost(RouteOption route)
     {
-        int totalWeight = CalculateCurrentWeight(gameWorld);
+        int totalWeight = CalculateCurrentWeight(_gameWorld);
         int staminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
         return staminaCost;
     }
@@ -218,8 +218,8 @@
     }
     public bool CanTravel(RouteOption route)
     {
-        bool canTravel = gameWorld.PlayerCoins >= route.BaseCoinCost &&
-               gameWorld.PlayerStamina >= CalculateStaminaCost(route);
+        bool canTravel = _gameWorld.GetPlayer().Coins >= route.BaseCoinCost &&
+               _gameWorld.GetPlayer().Stamina >= CalculateStaminaCost(route);
 
         return canTravel;
     }
@@ -238,7 +238,7 @@
             return comparisonData;
         }
 
-        int currentWeight = CalculateCurrentWeight(gameWorld);
+        int currentWeight = CalculateCurrentWeight(_gameWorld);
         
         foreach (RouteOption route in routes)
         {
@@ -255,11 +255,11 @@
             comparison.EfficiencyScore = (timeEfficiency + costEfficiency) / 2.0;
             
             // Check affordability
-            comparison.CanAfford = gameWorld.PlayerCoins >= route.BaseCoinCost && 
-                                   gameWorld.PlayerStamina >= comparison.AdjustedStaminaCost;
+            comparison.CanAfford = _gameWorld.GetPlayer().Coins >= route.BaseCoinCost && 
+                                   _gameWorld.GetPlayer().Stamina >= comparison.AdjustedStaminaCost;
             
             // Calculate arrival time
-            comparison.ArrivalTime = CalculateArrivalTimeDisplay(gameWorld.CurrentTimeBlock, route.TimeBlockCost);
+            comparison.ArrivalTime = CalculateArrivalTimeDisplay(_gameWorld.WorldState.CurrentTimeWindow, route.TimeBlockCost);
             
             // Generate cost-benefit analysis
             comparison.CostBenefitAnalysis = GenerateCostBenefitAnalysis(route, comparison, currentWeight);

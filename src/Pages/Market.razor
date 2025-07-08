@@ -1,7 +1,8 @@
 ﻿@* MarketUI.razor *@
+@inject GameWorld GameWorld
 @inject GameWorldManager GameManager
-@inject ItemRepository ItemRepository
 @inject MarketManager MarketManager
+@inject ItemRepository ItemRepository
 
 <div class="market-container">
     <h2>@Location.Name Market</h2>
@@ -128,18 +129,18 @@
 
 @code {
     [Parameter] public Location Location { get; set; }
-    [Inject] public GameWorld GameWorld { get; set; }
-    [Inject] public TradeManager TradeManager { get; set; }
+    // ✅ REMOVED: Duplicate GameWorld injection - already injected at top
+    // ✅ REMOVED: Direct TradeManager injection - use GameWorldManager gateway
 
     private void BuyItem(Item item)
     {
-        TradeManager.BuyItem(item);
+        GameManager.ExecuteTradeAction(item.Id ?? item.Name, "buy", Location.Id);
         StateHasChanged();
     }
 
     private void SellItem(Item item)
     {
-        TradeManager.SellItem(item);
+        GameManager.ExecuteTradeAction(item.Id ?? item.Name, "sell", Location.Id);
         StateHasChanged();
     }
 

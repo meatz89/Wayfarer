@@ -44,67 +44,24 @@
         WorldState = new WorldState();
         ActionStateTracker = new ActionStateTracker();
         StreamingContentState = new StreamingContentState();
-        TimeManager = new TimeManager(Player, WorldState);
+        // ✅ Remove TimeManager instantiation - should be injected via DI
 
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;
     }
 
-    public void StartEncounter(EncounterManager encounterManager)
-    {
-        ActionStateTracker.SetActiveEncounter(encounterManager);
-    }
+    // ✅ BUSINESS LOGIC METHODS REMOVED - These should be in appropriate managers
+    // StartEncounter() -> EncounterManager
+    // EndEncounter() -> EncounterManager  
+    // SetCurrentLocation() -> LocationSystem
+    // AdvanceTime() -> TimeManager
+    // GetRoutesFromCurrentLocation() -> TravelManager
+    // GetRouteOption() -> TravelManager
 
-    public void EndEncounter()
-    {
-        ActionStateTracker.EndEncounter();
-        CurrentAIResponse = null;
-        IsAwaitingAIResponse = false;
-    }
-
-    public void SetCurrentLocation(Location location)
-    {
-        WorldState.SetCurrentLocation(location, null);
-        Player.CurrentLocation = location;
-        Player.CurrentLocationSpot = null;
-        CurrentLocation = location;
-    }
-
-    public void SetCurrentLocation(Location location, LocationSpot locationSpot)
-    {
-        WorldState.SetCurrentLocation(location, locationSpot);
-        WorldState.SetCurrentLocationSpot(locationSpot);
-        Player.CurrentLocation = location;
-        Player.CurrentLocationSpot = locationSpot;
-    }
-
-    public void AdvanceTime(int duration)
-    {
-        TimeManager.AdvanceTime(duration);
-        WorldState.CurrentTimeWindow = TimeManager.GetCurrentTimeWindow();
-        WorldState.CurrentTimeHours = TimeManager.GetCurrentHour();
-    }
-
-    public bool IsDeadlineReached()
-    {
-        return CurrentDay >= DeadlineDay;
-    }
-
+    // ✅ KEEP ONLY STATE ACCESS METHODS
     public Player GetPlayer()
     {
         return Player;
-    }
-
-    public List<RouteOption> GetRoutesFromCurrentLocation()
-    {
-        string currentLocationName = CurrentLocation.Name;
-
-        if (Player.KnownRoutes.ContainsKey(currentLocationName))
-        {
-            return Player.KnownRoutes[currentLocationName];
-        }
-
-        return new List<RouteOption>();
     }
 
     public Guid GetGameInstanceId()
@@ -112,20 +69,9 @@
         return GameInstanceId;
     }
 
-    public RouteOption GetRouteOption(string travelLocationName)
+    public bool IsDeadlineReached()
     {
-        List<LocationConnection> connections = CurrentLocation.Connections;
-
-        foreach (var connection in connections)
-        {
-            RouteOption? routeOption = connection.RouteOptions.FirstOrDefault(r =>
-                r.Destination.Equals(travelLocationName, StringComparison.OrdinalIgnoreCase));
-            if (routeOption != null)
-            {
-                return routeOption;
-            }
-        }
-        return null;
+        return CurrentDay >= DeadlineDay;
     }
 }
 

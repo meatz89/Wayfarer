@@ -9,6 +9,7 @@ public partial class MainGameplayView : ComponentBase
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private GameWorld GameWorld { get; set; }
     [Inject] private GameWorldManager GameManager { get; set; }
+    [Inject] private TravelManager TravelManager { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     [Inject] private ItemRepository ItemRepository { get; set; }
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
@@ -25,6 +26,7 @@ public partial class MainGameplayView : ComponentBase
     public int Stamina { get; private set; } = 0;
     public int Concentration { get; private set; } = 0;
     public Location CurrentLocation { get; private set; }
+    
     public Player PlayerState
     {
         get
@@ -240,7 +242,8 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task HandleTravelStart(string travelDestination)
     {
-        RouteOption routeOption = GameWorld.GetRouteOption(travelDestination);
+        var routes = TravelManager.GetAvailableRoutes(GameWorld.WorldState.CurrentLocation.Id, travelDestination);
+        RouteOption routeOption = routes.FirstOrDefault();
 
         await GameManager.Travel(routeOption);
 
