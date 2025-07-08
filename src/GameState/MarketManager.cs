@@ -126,7 +126,8 @@ public class MarketManager
             Weight = baseItem?.Weight ?? GetDefaultWeight(itemId),
             InventorySlots = baseItem?.InventorySlots ?? 1,
             LocationId = locationId,
-            Description = baseItem?.Description ?? GetDefaultDescription(itemId)
+            Description = baseItem?.Description ?? GetDefaultDescription(itemId),
+            EnabledRouteTypes = baseItem?.EnabledRouteTypes ?? new List<string>()
         };
     }
 
@@ -157,6 +158,23 @@ public class MarketManager
             "rope" => "Strong hemp rope, essential for climbing and securing loads.",
             "food" => "Fresh provisions for sustenance during travel.",
             _ => $"A valuable {itemId} for trade."
+        };
+    }
+
+    /// <summary>
+    /// Get default weight description for known items (temporary implementation)
+    /// </summary>
+    private string GetDefaultWeightDescription(string itemId)
+    {
+        int weight = GetDefaultWeight(itemId);
+        return weight switch
+        {
+            0 => "weightless",
+            1 => "light",
+            2 => "medium",
+            3 => "heavy", 
+            4 => "very heavy",
+            _ => weight > 4 ? "extremely heavy" : "light"
         };
     }
 

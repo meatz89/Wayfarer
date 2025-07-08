@@ -35,6 +35,8 @@
 
         @foreach (Item item in MarketManager.GetAvailableItems(Location.Id))
         {
+            if (item == null) continue;
+            
             Player playerState = GameWorld.GetPlayer();
             bool canBuy = MarketManager.CanBuyItem(item.Id ?? item.Name, Location.Id);
             bool canSell = playerState.Inventory.HasItem(item.Name);
@@ -112,10 +114,20 @@
                     @if (itemName != null)
                     {
                         Item item = ItemRepository.GetItemByName(itemName);
-                        <div class="item-details">
-                            <span class="item-name">@itemName</span>
-                            <span class="item-weight">Weight: @item.Weight</span>
-                        </div>
+                        if (item != null)
+                        {
+                            <div class="item-details">
+                                <span class="item-name">@itemName</span>
+                                <span class="item-weight">Weight: @item.Weight</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="item-details">
+                                <span class="item-name">@itemName</span>
+                                <span class="item-weight">Weight: Unknown</span>
+                            </div>
+                        }
                     }
                     else
                     {
