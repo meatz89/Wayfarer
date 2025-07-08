@@ -193,7 +193,12 @@ public partial class MainGameplayView : ComponentBase
 
     public Location GetCurrentLocation()
     {
-        return GameWorld.CurrentLocation;
+        return GameWorld.WorldState.CurrentLocation;
+    }
+
+    public LocationSpot GetCurrentSpot()
+    {
+        return GameWorld.WorldState.CurrentLocationSpot;
     }
 
     private async Task HandleSpotSelection(LocationSpot locationSpot)

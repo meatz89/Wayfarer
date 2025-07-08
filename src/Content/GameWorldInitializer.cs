@@ -1,30 +1,15 @@
 ﻿public class GameWorldInitializer
 {
     private string _contentDirectory;
-    private string _saveFolder = "Saves";
 
     public GameWorldInitializer(string contentDirectory)
     {
         _contentDirectory = contentDirectory;
-        EnsureSaveDirectoryExists();
-    }
-
-    private void EnsureSaveDirectoryExists()
-    {
-        string savePath = Path.Combine(_contentDirectory, _saveFolder);
-        if (!Directory.Exists(savePath))
-        {
-            Directory.CreateDirectory(savePath);
-        }
     }
 
     public GameWorld LoadGame()
     {
-        string savePath = Path.Combine(_contentDirectory, _saveFolder);
         GameWorld gameWorld = CreateInitialGameWorld();
-
-        bool shouldLoad = false;
-
         return LoadGameFromTemplates();
     }
 
@@ -240,74 +225,6 @@
                 // Add the connection to the location
                 location.Connections.Add(connection);
             }
-        }
-    }
-
-    public void SaveGame(GameWorld gameWorld)
-    {
-        try
-        {
-            string savePath = Path.Combine(_contentDirectory, _saveFolder);
-            if (!Directory.Exists(savePath))
-            {
-                CopyTemplateToSave();
-            }
-
-            // Serialize and save all content
-            File.WriteAllText(
-                Path.Combine(savePath, "gameWorld.json"),
-                GameWorldSerializer.SerializeGameWorld(gameWorld));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "locations.json"),
-                GameWorldSerializer.SerializeLocations(gameWorld.WorldState.locations));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "location_spots.json"),
-                GameWorldSerializer.SerializeLocationSpots(gameWorld.WorldState.locationSpots));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "actions.json"),
-                GameWorldSerializer.SerializeActions(gameWorld.WorldState.actions));
-
-            // Save the new content types
-            File.WriteAllText(
-                Path.Combine(savePath, "items.json"),
-                GameWorldSerializer.SerializeItems(gameWorld.WorldState.Items));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "routes.json"),
-                GameWorldSerializer.SerializeRouteOptions(gameWorld.DiscoveredRoutes));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "contracts.json"),
-                GameWorldSerializer.SerializeContracts(GameWorld.AllContracts));
-
-            Console.WriteLine("Game saved successfully");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error saving game: {ex.Message}");
-            throw; // Rethrow so caller can handle it
-        }
-    }
-
-    private void CopyTemplateToSave()
-    {
-        string templatePath = Path.Combine(_contentDirectory, "Templates");
-        string savePath = Path.Combine(_contentDirectory, _saveFolder);
-
-        File.Copy(Path.Combine(templatePath, "gameWorld.json"), Path.Combine(savePath, "gameWorld.json"), true);
-        File.Copy(Path.Combine(templatePath, "locations.json"), Path.Combine(savePath, "locations.json"), true);
-        File.Copy(Path.Combine(templatePath, "location_spots.json"), Path.Combine(savePath, "locationSpots.json"), true);
-        File.Copy(Path.Combine(templatePath, "basic_actions.json"), Path.Combine(savePath, "actions.json"), true);
-        File.Copy(Path.Combine(templatePath, "basic_Contracts.json"), Path.Combine(savePath, "Contracts.json"), true);
-
-        // Copy cards.json if it exists
-        string templateCardsPath = Path.Combine(templatePath, "cards.json");
-        if (File.Exists(templateCardsPath))
-        {
-            File.Copy(templateCardsPath, Path.Combine(savePath, "cards.json"), true);
         }
     }
 

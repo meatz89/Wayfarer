@@ -2,11 +2,13 @@
 {
     public WorldState worldState;
     private GameWorld gameWorld;
-    private AIGameMaster aiGameMaster;
+    private AIGameMaster? aiGameMaster;
     private ChoiceProjectionService choiceProjectionService;
-    private WorldStateInputBuilder worldStateInputBuilder;
+    private WorldStateInputBuilder? worldStateInputBuilder;
     private ILogger<EncounterFactory> logger;
+    private bool aiAvailable;
 
+    // Full constructor with AI services
     public EncounterFactory(
         GameWorld gameWorld,
         AIGameMaster aiGameMaster,
@@ -20,14 +22,37 @@
         this.choiceProjectionService = choiceProjectionService;
         this.worldStateInputBuilder = worldStateInputBuilder;
         this.logger = logger;
+        this.aiAvailable = true;
     }
 
-    public async Task<EncounterManager> GenerateEncounter(
+    // Economic constructor without AI services
+    public EncounterFactory(
+        GameWorld gameWorld,
+        ChoiceProjectionService choiceProjectionService,
+        ILogger<EncounterFactory> logger)
+    {
+        this.gameWorld = gameWorld;
+        this.aiGameMaster = null;
+        this.choiceProjectionService = choiceProjectionService;
+        this.worldStateInputBuilder = null;
+        this.logger = logger;
+        this.aiAvailable = false;
+    }
+
+    public async Task<EncounterManager?> GenerateEncounter(
         EncounterContext context,
         Player player,
         LocationAction locationAction)
     {
         string situation = $"{locationAction.ActionId} ({locationAction.RequiredCardType} Action)";
+        
+        if (!aiAvailable)
+        {
+            logger.LogInformation("Economic POC: Skipping AI encounter generation for action: {ActionId}", locationAction.ActionId);
+            // Economic actions are processed instantly, no encounters
+            return null;
+        }
+
         logger.LogInformation("EncounterContext generated for situation: {Situation}", situation);
 
         EncounterState state = new EncounterState(
@@ -41,8 +66,8 @@
             state,
             locationAction,
             choiceProjectionService,
-            aiGameMaster,
-            worldStateInputBuilder,
+            aiGameMaster!,
+            worldStateInputBuilder!,
             gameWorld);
 
         return encounterManager;
