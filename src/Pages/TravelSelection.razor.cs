@@ -16,10 +16,20 @@ public partial class TravelSelectionBase : ComponentBase
         .Select(name => ItemRepository.GetItemByName(name))
         .Any(item => item != null && item.EnabledRouteTypes.Any());
 
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("TravelSelection component initialized");
+        base.OnInitialized();
+    }
+
     public List<Location> GetTravelableLocations()
     {
-        return Locations.Where(loc => loc.Id != CurrentLocation.Id &&
+        var locations = Locations?.Where(loc => loc.Id != CurrentLocation?.Id &&
                               GameWorldManager.CanTravelTo(loc.Id)).ToList();
+        Console.WriteLine($"GetTravelableLocations: Found {locations?.Count ?? 0} locations");
+        Console.WriteLine($"Current location: {CurrentLocation?.Id}");
+        Console.WriteLine($"All locations: {string.Join(", ", Locations?.Select(l => l.Id) ?? new string[0])}");
+        return locations ?? new List<Location>();
     }
 
 

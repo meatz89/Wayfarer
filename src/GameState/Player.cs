@@ -494,7 +494,11 @@
 
     public void ModifyCoins(int amount)
     {
-        throw new NotImplementedException();
+        Coins += amount;
+        if (Coins < 0)
+        {
+            Coins = 0;
+        }
     }
 
     public void AddKnowledge(object knowledgeItem)
