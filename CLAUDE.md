@@ -19,6 +19,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - After each change, run the tests to check for broken functionality. Never commit while tests are failing
 - **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
 
+### FRONTEND PERFORMANCE PRINCIPLES
+- **NEVER use caching in frontend components** - Components should be stateless and reactive
+- **Reduce queries by optimizing when objects actually change** - Focus on state change detection, not caching
+- **Log at state changes, not at queries** - Debug messages should track mutations, not reads
+- **Use proper reactive patterns** - Let Blazor's change detection handle rendering optimization
+
 ## PROJECT OVERVIEW: WAYFARER
 
 **Wayfarer** is a medieval life simulation RPG built as a Blazor Server application. It features a sophisticated, AI-driven narrative system with turn-based resource management gameplay focused on economic strategy, travel optimization, and contract fulfillment.

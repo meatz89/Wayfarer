@@ -12,10 +12,6 @@ public partial class TravelSelectionBase : ComponentBase
     [Parameter] public EventCallback<string> OnTravel { get; set; }
     [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
 
-    private List<Location> _cachedTravelableLocations;
-    private Location _lastCurrentLocation;
-    private List<Location> _lastLocations;
-
     public bool ShowEnablingItems => GameWorld.GetPlayer().Inventory.ItemSlots
         .Select(name => ItemRepository.GetItemByName(name))
         .Any(item => item != null && item.EnabledRouteTypes.Any());
@@ -25,30 +21,10 @@ public partial class TravelSelectionBase : ComponentBase
         base.OnInitialized();
     }
 
-    protected override void OnParametersSet()
-    {
-        // Clear cache when parameters change to ensure fresh data
-        if (_lastCurrentLocation != CurrentLocation || _lastLocations != Locations)
-        {
-            _cachedTravelableLocations = null;
-        }
-        base.OnParametersSet();
-    }
-
     public List<Location> GetTravelableLocations()
     {
-        // Cache the result to avoid recomputation on every render
-        if (_cachedTravelableLocations == null || 
-            _lastCurrentLocation != CurrentLocation || 
-            _lastLocations != Locations)
-        {
-            _lastCurrentLocation = CurrentLocation;
-            _lastLocations = Locations;
-            _cachedTravelableLocations = Locations?.Where(loc => loc.Id != CurrentLocation?.Id &&
-                                  GameWorldManager.CanTravelTo(loc.Id)).ToList() ?? new List<Location>();
-        }
-        
-        return _cachedTravelableLocations;
+        return Locations?.Where(loc => loc.Id != CurrentLocation?.Id &&
+                              GameWorldManager.CanTravelTo(loc.Id)).ToList() ?? new List<Location>();
     }
 
 
