@@ -39,6 +39,7 @@ public static class ServiceConfiguration
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
         
+        services.AddSingleton<TimeManager>();
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
@@ -94,6 +95,7 @@ public static class ServiceConfiguration
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
         
+        services.AddSingleton<TimeManager>();
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();

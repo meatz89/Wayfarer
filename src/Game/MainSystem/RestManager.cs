@@ -1,17 +1,20 @@
 ﻿public class RestManager
 {
     private GameWorld gameWorld;
+    private TimeManager timeManager;
     private LocationRepository locationRepository;
     private MessageSystem messageSystem;
     private ContractRepository contractRepository;
 
     public RestManager(
         GameWorld gameWorld, 
+        TimeManager timeManager,
         LocationRepository locationRepository,
         MessageSystem messageSystem,
         ContractRepository contractRepository)
     {
         this.gameWorld = gameWorld;
+        this.timeManager = timeManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
         this.contractRepository = contractRepository;
@@ -90,8 +93,17 @@
     {
         Player player = gameWorld.GetPlayer();
 
+        // Validate time block availability
+        if (!timeManager.ValidateTimeBlockAction(option.TimeBlockCost))
+        {
+            throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
+        }
+
         // Deduct cost
         player.ModifyCoins(-option.CoinCost);
+
+        // Consume time blocks
+        timeManager.ConsumeTimeBlock(option.TimeBlockCost);
 
         // Recover stamina
         player.Stamina += option.StaminaRecovery;
