@@ -149,15 +149,9 @@ public partial class MainGameplayView : ComponentBase
 
     public async Task SwitchToTravelScreen()
     {
-        if (CurrentScreen == CurrentViews.MapScreen)
-        {
-            CurrentScreen = CurrentViews.LocationScreen;
-        }
-        else if (CurrentScreen == CurrentViews.LocationScreen)
-        {
-            CurrentScreen = CurrentViews.MapScreen;
-        }
-
+        Console.WriteLine($"SwitchToTravelScreen called. Current screen: {CurrentScreen}");
+        CurrentScreen = CurrentViews.TravelScreen;
+        Console.WriteLine($"New current screen: {CurrentScreen}");
         StateHasChanged();
     }
 
