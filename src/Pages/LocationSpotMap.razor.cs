@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace BlazorRPG.Pages;
+namespace Wayfarer.Pages;
 
 public partial class LocationSpotMap : ComponentBase
 {

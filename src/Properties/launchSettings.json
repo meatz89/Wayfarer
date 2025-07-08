@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "BlazorRPG": {
+    "Wayfarer": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

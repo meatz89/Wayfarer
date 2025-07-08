@@ -1,4 +1,4 @@
-﻿namespace BlazorRPG.UIHelpers;
+﻿namespace Wayfarer.UIHelpers;
 
 public class PropertyDisplay
 {

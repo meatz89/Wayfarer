@@ -1,6 +1,6 @@
 ﻿using Microsoft.JSInterop;
 
-namespace BlazorRPG.UIHelpers
+namespace Wayfarer.UIHelpers
 {
     public class MusicService
     {

@@ -1,1 +1,1 @@
-# BlazorRPG
+# Wayfarer
