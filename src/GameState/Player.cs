@@ -349,7 +349,7 @@
 
     public void AddKnownLocation(string location)
     {
-        KnownLocationSpots.Add(location);
+        KnownLocations.Add(location);
     }
 
     public void AddKnownLocationSpot(string locationSpot)

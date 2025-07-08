@@ -1,9 +1,9 @@
-﻿public class ContentLoader
+﻿public class GameWorldInitializer
 {
     private string _contentDirectory;
     private string _saveFolder = "Saves";
 
-    public ContentLoader(string contentDirectory)
+    public GameWorldInitializer(string contentDirectory)
     {
         _contentDirectory = contentDirectory;
         EnsureSaveDirectoryExists();
@@ -132,10 +132,57 @@
         gameWorld.DiscoveredRoutes.AddRange(routes);
 
         // Add contracts to the game world
-
         GameWorld.AllContracts = contracts;
 
+        // CRITICAL: Ensure Player.CurrentLocation and CurrentLocationSpot are NEVER null
+        // Systems depend on these values being valid
+        InitializePlayerLocation(gameWorld);
+
         return gameWorld;
+    }
+
+    /// <summary>
+    /// CRITICAL: Ensure Player.CurrentLocation and CurrentLocationSpot are NEVER null
+    /// Systems depend on these values being valid at all times
+    /// </summary>
+    private void InitializePlayerLocation(GameWorld gameWorld)
+    {
+        Player player = gameWorld.GetPlayer();
+        WorldState worldState = gameWorld.WorldState;
+
+        // If WorldState has current location but Player doesn't, sync them
+        if (worldState.CurrentLocation != null && player.CurrentLocation == null)
+        {
+            player.CurrentLocation = worldState.CurrentLocation;
+            Console.WriteLine($"Set player CurrentLocation to: {worldState.CurrentLocation.Id}");
+        }
+
+        if (worldState.CurrentLocationSpot != null && player.CurrentLocationSpot == null)
+        {
+            player.CurrentLocationSpot = worldState.CurrentLocationSpot;
+            Console.WriteLine($"Set player CurrentLocationSpot to: {worldState.CurrentLocationSpot.SpotID}");
+        }
+
+        // If neither has location, set to first available location
+        if (player.CurrentLocation == null && worldState.locations.Any())
+        {
+            Location firstLocation = worldState.locations.First();
+            LocationSpot firstSpot = worldState.locationSpots.FirstOrDefault(s => s.LocationId == firstLocation.Id);
+
+            if (firstSpot != null)
+            {
+                player.CurrentLocation = firstLocation;
+                player.CurrentLocationSpot = firstSpot;
+                worldState.SetCurrentLocation(firstLocation, firstSpot);
+                Console.WriteLine($"FALLBACK: Set player location to: {firstLocation.Id}, spot: {firstSpot.SpotID}");
+            }
+        }
+
+        // Final validation - these should NEVER be null
+        if (player.CurrentLocation == null || player.CurrentLocationSpot == null)
+        {
+            throw new InvalidOperationException("CRITICAL: Player location initialization failed. CurrentLocation and CurrentLocationSpot must never be null.");
+        }
     }
 
     // Helper method to connect routes to locations
