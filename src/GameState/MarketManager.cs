@@ -270,22 +270,6 @@ public class MarketManager
         return true;
     }
 
-    /// <summary>
-    /// Legacy method for backward compatibility - delegates to new location-aware method
-    /// </summary>
-    public bool CanBuyItem(Item item)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Check if player has enough money
-        if (player.Coins < item.BuyPrice) return false;
-
-        // Check if player has enough inventory space
-        int freeSlots = player.GetMaxItemCapacity() - player.Inventory.ItemSlots.Count(i => i != null);
-        if (freeSlots < item.InventorySlots) return false;
-
-        return true;
-    }
 
     /// <summary>
     /// Get location pricing data for UI display
@@ -302,14 +286,4 @@ public class MarketManager
         }).ToList();
     }
 
-    /// <summary>
-    /// Legacy method for backward compatibility - delegates to new location-aware method
-    /// </summary>
-    public void BuyItem(Item item)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Deduct cost
-        player.Coins -= item.BuyPrice;
-    }
 }

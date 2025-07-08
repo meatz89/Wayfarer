@@ -1,32 +1,33 @@
 ﻿public class ActionRepository
 {
-    private WorldState _worldState;
+    // ✅ ARCHITECTURAL COMPLIANCE: Stateless repository with GameWorld DI
+    private readonly GameWorld _gameWorld;
 
     public ActionRepository(GameWorld gameWorld)
     {
-        _worldState = gameWorld.WorldState;
+        _gameWorld = gameWorld;
     }
 
     public void AddAction(ActionDefinition action)
     {
-        if (_worldState.actions.Any(a =>
+        if (_gameWorld.WorldState.actions.Any(a =>
         {
             return a.Name.Equals(action.Name, StringComparison.OrdinalIgnoreCase);
         }))
             throw new InvalidOperationException($"Action '{action.Name}' already exists.");
 
-        _worldState.actions.Add(action);
+        _gameWorld.WorldState.actions.Add(action);
     }
 
     public List<ActionDefinition> GetAllActions()
     {
-        return _worldState.actions;
+        return _gameWorld.WorldState.actions;
     }
 
     public List<ActionDefinition> GetActionsForSpot(string spotId)
     {
         List<ActionDefinition> actions = new List<ActionDefinition>();
-        foreach (ActionDefinition action in _worldState.actions)
+        foreach (ActionDefinition action in _gameWorld.WorldState.actions)
         {
             if (action.LocationSpotId == spotId)
             {
@@ -40,7 +41,7 @@
 
     public ActionDefinition GetAction(string actionId)
     {
-        ActionDefinition action = _worldState.actions.FirstOrDefault(a =>
+        ActionDefinition action = _gameWorld.WorldState.actions.FirstOrDefault(a =>
         {
             return a.Id.Equals(actionId, StringComparison.OrdinalIgnoreCase);
         });
@@ -63,7 +64,7 @@
 
     public Contract GetOpportunity(string contractId)
     {
-        Contract contract = _worldState.Contracts.FirstOrDefault(a =>
+        Contract contract = _gameWorld.WorldState.Contracts.FirstOrDefault(a =>
         {
             return a.Id.Equals(contractId, StringComparison.OrdinalIgnoreCase);
         });

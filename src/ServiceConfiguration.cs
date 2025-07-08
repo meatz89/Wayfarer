@@ -55,11 +55,8 @@ public static class ServiceConfiguration
         return services;
     }
 
-    /// <summary>
-    /// Configure services for economic POC - excludes AI services completely
-    /// Use this for economic gameplay testing without AI dependencies
-    /// </summary>
-    public static IServiceCollection ConfigureEconomicServices(this IServiceCollection services)
+
+    public static IServiceCollection ConfigureTestServices(this IServiceCollection services)
     {
         string contentDirectory = "Content";
 
@@ -74,80 +71,40 @@ public static class ServiceConfiguration
         // Register the content validator
         services.AddSingleton<ContentValidator>();
 
-        // Register repositories (ECONOMIC ONLY)
+        // Register repositories
         services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<ContractRepository>();
 
-        // Core economic systems
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
-        // ActionGenerator excluded for economic POC (AI-dependent)
+        services.AddSingleton<ActionGenerator>();
+        services.AddSingleton<CharacterSystem>();
         services.AddSingleton<ContractSystem>();
-        services.AddSingleton<LocationPropertyManager>();
         services.AddSingleton<ActionProcessor>();
-        services.AddSingleton<MessageSystem>();
-        services.AddSingleton<GameWorldManager>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var itemRepository = serviceProvider.GetRequiredService<ItemRepository>();
-            var encounterFactory = serviceProvider.GetRequiredService<EncounterFactory>();
-            var persistentChangeProcessor = serviceProvider.GetRequiredService<PersistentChangeProcessor>();
-            var locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            var actionFactory = serviceProvider.GetRequiredService<ActionFactory>();
-            var actionRepository = serviceProvider.GetRequiredService<ActionRepository>();
-            var locationRepository = serviceProvider.GetRequiredService<LocationRepository>();
-            var travelManager = serviceProvider.GetRequiredService<TravelManager>();
-            var marketManager = serviceProvider.GetRequiredService<MarketManager>();
-            var tradeManager = serviceProvider.GetRequiredService<TradeManager>();
-            var contractSystem = serviceProvider.GetRequiredService<ContractSystem>();
-            var restManager = serviceProvider.GetRequiredService<RestManager>();
-            // ActionGenerator is null for economic POC
-            var playerProgression = serviceProvider.GetRequiredService<PlayerProgression>();
-            var actionProcessor = serviceProvider.GetRequiredService<ActionProcessor>();
-            var contentLoader = serviceProvider.GetRequiredService<GameWorldInitializer>();
-            var choiceProjectionService = serviceProvider.GetRequiredService<ChoiceProjectionService>();
-            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-            var logger = serviceProvider.GetRequiredService<ILogger<GameWorldManager>>();
-            
-            return new GameWorldManager(
-                gameWorld, itemRepository, encounterFactory, persistentChangeProcessor,
-                locationSystem, messageSystem, actionFactory, actionRepository,
-                locationRepository, travelManager, marketManager, tradeManager,
-                contractSystem, restManager, null, // ActionGenerator is null for economic POC
-                playerProgression, actionProcessor, contentLoader,
-                choiceProjectionService, configuration, logger);
-        });
-        
-        // Required by GameWorldManager but minimal for economic POC
-        services.AddSingleton<EncounterFactory>(serviceProvider => 
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var choiceProjectionService = serviceProvider.GetRequiredService<ChoiceProjectionService>();
-            var logger = serviceProvider.GetRequiredService<ILogger<EncounterFactory>>();
-            
-            // Use the economic constructor (no AI dependencies)
-            return new EncounterFactory(gameWorld, choiceProjectionService, logger);
-        });
-        
-        services.AddSingleton<PersistentChangeProcessor>();
+        services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
-        services.AddSingleton<ChoiceProjectionService>();
+        services.AddSingleton<MessageSystem>();
+        services.AddSingleton<GameWorldManager>();
+        services.AddSingleton<LocationCreationSystem>();
+        services.AddSingleton<PersistentChangeProcessor>();
+        services.AddSingleton<LocationPropertyManager>();
         
-        // Economic managers
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
 
-        // UI Razor Services (minimal for economic testing)
+        services.AddScoped<MusicService>();
+
+        // UI Razor Services
         services.AddSingleton<CardSelectionService>();
         services.AddSingleton<CardHighlightService>();
 
-        // DO NOT ADD AI SERVICES FOR ECONOMIC POC
-        // services.AddAIServices(); // EXCLUDED FOR ECONOMIC FLOW
+        // Minimal AI services for testing
+        services.AddSingleton<ChoiceProjectionService>();
+        services.AddSingleton<EncounterFactory>();
 
         return services;
     }
@@ -177,9 +134,7 @@ public static class ServiceConfiguration
             switch (defaultProvider.ToLower())
             {
                 case "ollama":
-                    services.AddSingleton<IAIProvider, OllamaProvider>();
-                    break;
-                default: // Default to ollama
+                default:
                     services.AddSingleton<IAIProvider, OllamaProvider>();
                     break;
             }

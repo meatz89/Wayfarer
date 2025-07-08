@@ -1,7 +1,9 @@
 ﻿@* MarketUI.razor *@
 @inject GameWorld GameWorld
 @inject GameWorldManager GameManager
-@inject MarketManager MarketManager
+@* ✅ ARCHITECTURAL COMPLIANCE: Only inject GameWorldManager for actions *@
+@* MarketManager removed - all actions through GameWorldManager *@
+@* ItemRepository allowed for read-only UI data binding *@
 @inject ItemRepository ItemRepository
 
 <div class="market-container">
@@ -33,12 +35,13 @@
             <div class="item-actions">Actions</div>
         </div>
 
-        @foreach (Item item in MarketManager.GetAvailableItems(Location.Id))
+        @* ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway *@
+        @foreach (Item item in GameManager.GetAvailableMarketItems(Location.Id))
         {
             if (item == null) continue;
             
             Player playerState = GameWorld.GetPlayer();
-            bool canBuy = MarketManager.CanBuyItem(item.Id ?? item.Name, Location.Id);
+            bool canBuy = GameManager.CanBuyMarketItem(item.Id ?? item.Name, Location.Id);
             bool canSell = playerState.Inventory.HasItem(item.Name);
 
             <div class="market-item">
@@ -82,7 +85,8 @@
         }
         @foreach (string otherLocationId in otherLocations)
         {
-            var opportunities = MarketManager.GetArbitrageOpportunities(Location.Id, otherLocationId);
+            @* ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway *@
+            var opportunities = GameManager.GetArbitrageOpportunities(Location.Id, otherLocationId);
             if (opportunities.Any())
             {
                 <div class="arbitrage-section">
