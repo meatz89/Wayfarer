@@ -25,45 +25,7 @@
 
         bool shouldLoad = false;
 
-        // Check if save files exist
-        if (Directory.Exists(savePath) && shouldLoad)
-        {
-            gameWorld = LoadGameFromSaveFile(savePath);
-        }
-        else
-        {
-            return LoadGameFromTemplates();
-
-        }
-
-        return gameWorld;
-    }
-
-    private static GameWorld LoadGameFromSaveFile(string savePath)
-    {
-        GameWorld gameWorld;
-        // Load content from save files
-        List<Location> locations = GameWorldSerializer.DeserializeLocations(
-            File.ReadAllText(Path.Combine(savePath, "locations.json")));
-
-        List<LocationSpot> spots = GameWorldSerializer.DeserializeLocationSpots(
-            File.ReadAllText(Path.Combine(savePath, "locationSpots.json")));
-
-        List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
-            File.ReadAllText(Path.Combine(savePath, "actions.json")));
-
-        List<Contract> contracts = GameWorldSerializer.DeserializeContracts(
-            File.ReadAllText(Path.Combine(savePath, "Contracts.json")));
-
-        // Load cards if available
-        List<SkillCard> cards = new List<SkillCard>();
-        string cardsFilePath = Path.Combine(savePath, "cards.json");
-
-        // Load game state using the loaded content
-        gameWorld = GameWorldSerializer.DeserializeGameWorld(
-            File.ReadAllText(Path.Combine(savePath, "gameWorld.json")),
-            locations, spots, actions, cards);
-        return gameWorld;
+        return LoadGameFromTemplates();
     }
 
     private GameWorld LoadGameFromTemplates()
