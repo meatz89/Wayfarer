@@ -5,21 +5,27 @@ namespace Wayfarer.Tests
 {
     /// <summary>
     /// Simple integration test to verify Route Selection Interface functionality.
-    /// This test verifies that the new route comparison methods work correctly.
+    /// This test verifies that basic route functionality works correctly without automation.
+    /// 
+    /// IMPORTANT: This test now follows game design principles - no automated optimization!
     /// </summary>
     public class RouteSelectionIntegrationTest
     {
         [Fact]
-        public void TravelManager_GetRouteComparisonData_Should_Return_Valid_Comparison()
+        public void TravelManager_GetAvailableRoutes_Should_Return_Valid_Routes()
         {
             // Arrange
             GameWorld gameWorld = new GameWorld();
             Player player = gameWorld.GetPlayer();
+            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
             player.Coins = 100;
             player.Stamina = 10;
-            gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
 
             LocationRepository locationRepository = new LocationRepository(gameWorld);
+            ActionRepository actionRepository = new ActionRepository(gameWorld);
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
 
             // Create test locations with routes
@@ -29,7 +35,10 @@ namespace Wayfarer.Tests
             // Add route options
             RouteOption walkRoute = new RouteOption 
             { 
+                Id = "walk_route",
                 Name = "Walk", 
+                Origin = "town_square",
+                Destination = "dusty_flagon",
                 BaseCoinCost = 0, 
                 BaseStaminaCost = 2, 
                 TimeBlockCost = 1, 
@@ -39,7 +48,10 @@ namespace Wayfarer.Tests
 
             RouteOption cartRoute = new RouteOption 
             { 
+                Id = "cart_route",
                 Name = "Cart", 
+                Origin = "town_square",
+                Destination = "dusty_flagon",
                 BaseCoinCost = 5, 
                 BaseStaminaCost = 1, 
                 TimeBlockCost = 1, 
@@ -56,78 +68,103 @@ namespace Wayfarer.Tests
             locationRepository.AddLocation(townSquare);
             locationRepository.AddLocation(dustyFlagon);
 
-            TravelManager travelManager = new TravelManager(gameWorld, null, null, locationRepository, null, itemRepository);
+            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository);
 
             // Act
-            List<RouteComparisonData> comparisonData = travelManager.GetRouteComparisonData("town_square", "dusty_flagon");
+            List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes("town_square", "dusty_flagon");
 
             // Assert
-            Assert.NotNull(comparisonData);
-            Assert.Equal(2, comparisonData.Count);
+            Assert.NotNull(availableRoutes);
+            Assert.Equal(2, availableRoutes.Count);
 
-            // Verify each route has proper comparison data
-            foreach (RouteComparisonData comparison in comparisonData)
+            // Verify each route has basic properties (no automated analysis)
+            foreach (RouteOption route in availableRoutes)
             {
-                Assert.NotNull(comparison.Route);
-                Assert.NotNull(comparison.CostBenefitAnalysis);
-                Assert.True(comparison.TotalCost >= 0);
-                Assert.True(comparison.EfficiencyScore > 0);
-                Assert.NotNull(comparison.ArrivalTime);
-                Assert.True(comparison.CanAfford);
+                Assert.NotNull(route.Name);
+                Assert.True(route.BaseCoinCost >= 0);
+                Assert.True(route.BaseStaminaCost >= 0);
+                Assert.True(route.TimeBlockCost >= 0);
+                Assert.True(route.IsDiscovered);
+                
+                // Verify player can manually check costs
+                int coinCost = travelManager.CalculateCoinCost(route);
+                int staminaCost = travelManager.CalculateStaminaCost(route);
+                bool canAfford = travelManager.CanTravel(route);
+                
+                Assert.True(coinCost >= 0);
+                Assert.True(staminaCost >= 0);
+                Assert.True(canAfford); // Player should be able to afford these test routes
             }
-
-            // Verify routes are sorted by efficiency (higher is better)
-            Assert.True(comparisonData[0].EfficiencyScore >= comparisonData[1].EfficiencyScore);
         }
 
         [Fact]
-        public void TravelManager_GetOptimalRouteRecommendation_Should_Return_Valid_Recommendation()
+        public void TravelManager_WeatherModifications_Should_Affect_Costs()
         {
             // Arrange
             GameWorld gameWorld = new GameWorld();
             Player player = gameWorld.GetPlayer();
+            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
             player.Coins = 100;
             player.Stamina = 10;
-            gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
 
             LocationRepository locationRepository = new LocationRepository(gameWorld);
+            ActionRepository actionRepository = new ActionRepository(gameWorld);
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
 
-            // Create test locations with routes
+            // Create test locations with weather-sensitive route
             Location townSquare = new Location("town_square", "Town Square");
             Location dustyFlagon = new Location("dusty_flagon", "Dusty Flagon");
 
-            RouteOption walkRoute = new RouteOption 
+            RouteOption weatherRoute = new RouteOption 
             { 
-                Name = "Walk", 
-                BaseCoinCost = 0, 
-                BaseStaminaCost = 2, 
+                Id = "weather_route",
+                Name = "Forest Path", 
+                Origin = "town_square",
+                Destination = "dusty_flagon",
+                BaseCoinCost = 2, 
+                BaseStaminaCost = 3, 
                 TimeBlockCost = 1, 
                 IsDiscovered = true,
-                Method = TravelMethods.Walking
+                Method = TravelMethods.Walking,
+                WeatherModifications = new Dictionary<WeatherCondition, RouteModification>
+                {
+                    { WeatherCondition.Rain, new RouteModification { StaminaCostModifier = 2 } }
+                }
             };
 
             townSquare.Connections.Add(new LocationConnection
             {
                 DestinationLocationId = "dusty_flagon",
-                RouteOptions = new List<RouteOption> { walkRoute }
+                RouteOptions = new List<RouteOption> { weatherRoute }
             });
 
             locationRepository.AddLocation(townSquare);
             locationRepository.AddLocation(dustyFlagon);
 
-            TravelManager travelManager = new TravelManager(gameWorld, null, null, locationRepository, null, itemRepository);
+            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository);
 
-            // Act
-            RouteRecommendation recommendation = travelManager.GetOptimalRouteRecommendation(
-                "town_square", "dusty_flagon", OptimizationStrategy.Efficiency);
+            // Act & Assert - Clear weather
+            gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
+            int clearWeatherCost = travelManager.CalculateStaminaCost(weatherRoute);
+            Assert.Equal(3, clearWeatherCost); // Base cost
 
-            // Assert
-            Assert.NotNull(recommendation);
-            Assert.NotNull(recommendation.RecommendedRoute);
-            Assert.NotNull(recommendation.Justification);
-            Assert.True(recommendation.EfficiencyScore > 0);
-            Assert.Equal(OptimizationStrategy.Efficiency, recommendation.Strategy);
+            // Act & Assert - Rainy weather
+            gameWorld.WorldState.CurrentWeather = WeatherCondition.Rain;
+            int rainyWeatherCost = travelManager.CalculateStaminaCost(weatherRoute);
+            Assert.Equal(5, rainyWeatherCost); // Base cost + 2 penalty
+
+            // Verify no automated warnings are provided
+            Assert.False(HasProperty(weatherRoute, "WeatherWarning"));
+            Assert.False(HasProperty(weatherRoute, "CostPrediction"));
+            Assert.False(HasProperty(weatherRoute, "OptimalWeatherAdvice"));
+        }
+
+        private bool HasProperty(object obj, string propertyName)
+        {
+            return obj.GetType().GetProperty(propertyName) != null;
         }
     }
 }

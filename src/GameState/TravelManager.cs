@@ -58,22 +58,16 @@
     
     public void TravelToLocation(string travelLocation, string locationSpotName, RouteOption selectedRoute)
     {
-        int totalWeight = CalculateCurrentWeight(_gameWorld);
-        int adjustedStaminaCost = selectedRoute.BaseStaminaCost;
-
-        // Apply weight penalties
-        if (totalWeight >= 4 && totalWeight <= 6)
-        {
-            adjustedStaminaCost += 1;
-        }
-        else if (totalWeight >= 7)
-        {
-            adjustedStaminaCost += 2;
-        }
+        // Calculate actual costs with weather and weight modifications
+        int adjustedStaminaCost = CalculateStaminaCost(selectedRoute);
+        int adjustedCoinCost = CalculateCoinCost(selectedRoute);
 
         // Deduct costs
-        _gameWorld.GetPlayer().ModifyCoins(-selectedRoute.BaseCoinCost);
+        _gameWorld.GetPlayer().ModifyCoins(-adjustedCoinCost);
         _gameWorld.GetPlayer().SpendStamina(adjustedStaminaCost);
+
+        // Record route usage for discovery mechanics
+        RecordRouteUsage(selectedRoute.Id);
 
         // Advance time
         AdvanceTimeBlocks(selectedRoute.TimeBlockCost);
@@ -131,6 +125,9 @@
         List<RouteOption> availableRoutes = new List<RouteOption>();
         Location fromLocation = LocationRepository.GetLocation(fromLocationId);
 
+        // If location doesn't exist, return empty list
+        if (fromLocation == null) return availableRoutes;
+
         // Find connection to destination
         LocationConnection connection = fromLocation.Connections.Find(c => c.DestinationLocationId == toLocationId);
         if (connection == null) return availableRoutes;
@@ -142,7 +139,15 @@
                 continue;
 
             // Check departure times
-            if (route.DepartureTime != null && route.DepartureTime > _gameWorld.WorldState.CurrentTimeWindow)
+            if (route.DepartureTime != null && route.DepartureTime != _gameWorld.WorldState.CurrentTimeWindow)
+                continue;
+                
+            // Check if route is temporarily blocked
+            if (_gameWorld.WorldState.IsRouteBlocked(route.Id))
+                continue;
+                
+            // Check if route is blocked by weather
+            if (route.IsBlockedByWeather(_gameWorld.WorldState.CurrentWeather))
                 continue;
 
             // Check if player has required items for this route type
@@ -207,8 +212,15 @@
     public int CalculateStaminaCost(RouteOption route)
     {
         int totalWeight = CalculateCurrentWeight(_gameWorld);
-        int staminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
+        WeatherCondition currentWeather = _gameWorld.WorldState.CurrentWeather;
+        int staminaCost = route.CalculateStaminaCost(totalWeight, currentWeather);
         return staminaCost;
+    }
+    
+    public int CalculateCoinCost(RouteOption route)
+    {
+        WeatherCondition currentWeather = _gameWorld.WorldState.CurrentWeather;
+        return route.CalculateCoinCost(currentWeather);
     }
 
     // Add a helper method for UI display
@@ -223,331 +235,87 @@
     }
     public bool CanTravel(RouteOption route)
     {
-        bool canTravel = _gameWorld.GetPlayer().Coins >= route.BaseCoinCost &&
+        bool canTravel = _gameWorld.GetPlayer().Coins >= CalculateCoinCost(route) &&
                _gameWorld.GetPlayer().Stamina >= CalculateStaminaCost(route);
 
         return canTravel;
     }
-
+    
     /// <summary>
-    /// Gets comprehensive comparison data for all available routes between two locations.
-    /// Includes cost-benefit analysis, efficiency scoring, and resource requirements.
+    /// Record route usage for discovery mechanics
     /// </summary>
-    public List<RouteComparisonData> GetRouteComparisonData(string fromLocationId, string toLocationId)
+    public void RecordRouteUsage(string routeId)
     {
-        List<RouteComparisonData> comparisonData = new List<RouteComparisonData>();
-        List<RouteOption> routes = GetAvailableRoutes(fromLocationId, toLocationId);
-        
-        if (routes.Count == 0)
+        // Find the route and increment usage count
+        foreach (Location location in _gameWorld.WorldState.locations)
         {
-            return comparisonData;
-        }
-
-        int currentWeight = CalculateCurrentWeight(_gameWorld);
-        
-        foreach (RouteOption route in routes)
-        {
-            RouteComparisonData comparison = new RouteComparisonData(route);
-            
-            // Calculate costs
-            comparison.AdjustedStaminaCost = route.CalculateWeightAdjustedStaminaCost(currentWeight);
-            comparison.WeightPenalty = comparison.AdjustedStaminaCost - route.BaseStaminaCost;
-            comparison.TotalCost = route.BaseCoinCost + comparison.AdjustedStaminaCost;
-            
-            // Calculate efficiency score (lower is better for costs, higher is better for efficiency)
-            double timeEfficiency = 5.0 / Math.Max(route.TimeBlockCost, 1);
-            double costEfficiency = 20.0 / Math.Max(comparison.TotalCost, 1);
-            comparison.EfficiencyScore = (timeEfficiency + costEfficiency) / 2.0;
-            
-            // Check affordability
-            comparison.CanAfford = _gameWorld.GetPlayer().Coins >= route.BaseCoinCost && 
-                                   _gameWorld.GetPlayer().Stamina >= comparison.AdjustedStaminaCost;
-            
-            // Calculate arrival time
-            comparison.ArrivalTime = CalculateArrivalTimeDisplay(_gameWorld.WorldState.CurrentTimeWindow, route.TimeBlockCost);
-            
-            // Generate cost-benefit analysis
-            comparison.CostBenefitAnalysis = GenerateCostBenefitAnalysis(route, comparison, currentWeight);
-            
-            // Generate resource breakdown
-            comparison.ResourceBreakdown = $"Coins: {route.BaseCoinCost}, Stamina: {comparison.AdjustedStaminaCost}, Time: {route.TimeBlockCost} blocks";
-            
-            // Generate recommendation
-            comparison.Recommendation = GenerateRouteRecommendation(route, comparison);
-            
-            comparisonData.Add(comparison);
-        }
-        
-        // Sort by efficiency score (descending - higher is better)
-        comparisonData.Sort((a, b) => b.EfficiencyScore.CompareTo(a.EfficiencyScore));
-        
-        return comparisonData;
-    }
-
-    /// <summary>
-    /// Gets an optimal route recommendation based on player resources and optimization strategy.
-    /// </summary>
-    public RouteRecommendation GetOptimalRouteRecommendation(string fromLocationId, string toLocationId, OptimizationStrategy strategy)
-    {
-        List<RouteOption> routes = GetAvailableRoutes(fromLocationId, toLocationId);
-        
-        if (routes.Count == 0)
-        {
-            return null;
-        }
-
-        RouteOption optimalRoute = null;
-        string justification = "";
-        double efficiencyScore = 0;
-        
-        switch (strategy)
-        {
-            case OptimizationStrategy.Efficiency:
-                optimalRoute = FindMostEfficientRoute(routes, out efficiencyScore);
-                justification = "Recommended for optimal balance of cost, time, and stamina efficiency.";
-                break;
-                
-            case OptimizationStrategy.CheapestCost:
-                optimalRoute = FindCheapestRoute(routes);
-                justification = "Recommended as the most affordable option that conserves coins.";
-                efficiencyScore = CalculateRouteEfficiency(optimalRoute);
-                break;
-                
-            case OptimizationStrategy.LeastStamina:
-                optimalRoute = FindLeastStaminaRoute(routes);
-                justification = "Recommended to conserve stamina and maintain energy for other activities.";
-                efficiencyScore = CalculateRouteEfficiency(optimalRoute);
-                break;
-                
-            case OptimizationStrategy.FastestTime:
-                optimalRoute = FindFastestRoute(routes);
-                justification = "Recommended for fastest arrival time to maximize remaining day.";
-                efficiencyScore = CalculateRouteEfficiency(optimalRoute);
-                break;
-                
-            default:
-                optimalRoute = routes.FirstOrDefault();
-                justification = "Default route recommendation.";
-                efficiencyScore = CalculateRouteEfficiency(optimalRoute);
-                break;
-        }
-        
-        if (optimalRoute == null)
-        {
-            return null;
-        }
-        
-        RouteRecommendation recommendation = new RouteRecommendation(optimalRoute, strategy);
-        recommendation.Justification = justification;
-        recommendation.EfficiencyScore = efficiencyScore;
-        recommendation.ResourceAnalysis = GenerateResourceAnalysis(optimalRoute);
-        recommendation.AlternativeOptions = GenerateAlternativeOptions(routes, optimalRoute);
-        
-        return recommendation;
-    }
-
-    /// <summary>
-    /// Calculates the arrival time display string for a given route
-    /// </summary>
-    private string CalculateArrivalTimeDisplay(TimeBlocks currentTime, int timeBlockCost)
-    {
-        int finalTimeBlockValue = ((int)currentTime + timeBlockCost) % 5;
-        int daysLater = ((int)currentTime + timeBlockCost) / 5;
-
-        TimeBlocks arrivalTimeBlock = (TimeBlocks)finalTimeBlockValue;
-
-        if (daysLater == 0)
-        {
-            return arrivalTimeBlock.ToString();
-        }
-        else if (daysLater == 1)
-        {
-            return $"Tomorrow {arrivalTimeBlock}";
-        }
-        else
-        {
-            return $"{daysLater} days later, {arrivalTimeBlock}";
-        }
-    }
-
-    /// <summary>
-    /// Generates cost-benefit analysis text for a route
-    /// </summary>
-    private string GenerateCostBenefitAnalysis(RouteOption route, RouteComparisonData comparison, int currentWeight)
-    {
-        string analysis = $"{route.Name}: ";
-        
-        if (route.BaseCoinCost == 0)
-        {
-            analysis += "Free travel, ";
-        }
-        else
-        {
-            analysis += $"{route.BaseCoinCost} coins, ";
-        }
-        
-        if (comparison.WeightPenalty > 0)
-        {
-            analysis += $"{comparison.AdjustedStaminaCost} stamina (includes +{comparison.WeightPenalty} weight penalty), ";
-        }
-        else
-        {
-            analysis += $"{comparison.AdjustedStaminaCost} stamina, ";
-        }
-        
-        analysis += $"{route.TimeBlockCost} time blocks. ";
-        
-        if (comparison.EfficiencyScore > 3.0)
-        {
-            analysis += "Excellent efficiency.";
-        }
-        else if (comparison.EfficiencyScore > 2.0)
-        {
-            analysis += "Good efficiency.";
-        }
-        else if (comparison.EfficiencyScore > 1.0)
-        {
-            analysis += "Moderate efficiency.";
-        }
-        else
-        {
-            analysis += "Low efficiency.";
-        }
-        
-        return analysis;
-    }
-
-    /// <summary>
-    /// Generates a recommendation text for a specific route
-    /// </summary>
-    private string GenerateRouteRecommendation(RouteOption route, RouteComparisonData comparison)
-    {
-        if (!comparison.CanAfford)
-        {
-            return "Cannot afford - insufficient coins or stamina.";
-        }
-        
-        if (comparison.EfficiencyScore > 3.0)
-        {
-            return "Highly recommended - excellent value.";
-        }
-        else if (comparison.EfficiencyScore > 2.0)
-        {
-            return "Recommended - good balance of cost and speed.";
-        }
-        else if (route.BaseCoinCost == 0)
-        {
-            return "Budget option - free but slower.";
-        }
-        else
-        {
-            return "Consider alternatives if available.";
-        }
-    }
-
-    /// <summary>
-    /// Finds the most efficient route based on overall efficiency score
-    /// </summary>
-    private RouteOption FindMostEfficientRoute(List<RouteOption> routes, out double bestEfficiency)
-    {
-        RouteOption bestRoute = null;
-        bestEfficiency = 0;
-        
-        foreach (RouteOption route in routes)
-        {
-            double efficiency = CalculateRouteEfficiency(route);
-            if (efficiency > bestEfficiency && CanTravel(route))
+            foreach (LocationConnection connection in location.Connections)
             {
-                bestEfficiency = efficiency;
-                bestRoute = route;
+                foreach (RouteOption route in connection.RouteOptions)
+                {
+                    if (route.Id == routeId)
+                    {
+                        route.UsageCount++;
+                        
+                        // Check if this unlocks any new routes
+                        CheckForRouteUnlocks(route);
+                        return;
+                    }
+                }
             }
         }
-        
-        // If no affordable routes, return the most efficient affordable one
-        if (bestRoute == null)
+    }
+    
+    /// <summary>
+    /// Check if route usage unlocks new routes
+    /// </summary>
+    private void CheckForRouteUnlocks(RouteOption usedRoute)
+    {
+        foreach (Location location in _gameWorld.WorldState.locations)
         {
-            bestRoute = routes.FirstOrDefault();
-            bestEfficiency = CalculateRouteEfficiency(bestRoute);
+            foreach (LocationConnection connection in location.Connections)
+            {
+                foreach (RouteOption route in connection.RouteOptions)
+                {
+                    if (!route.IsDiscovered && route.UnlockCondition != null)
+                    {
+                        RouteUnlockCondition condition = route.UnlockCondition;
+                        
+                        // Check if required route usage count is met
+                        if (condition.RequiredRouteUsage == usedRoute.Id && 
+                            usedRoute.UsageCount >= condition.RequiredUsageCount)
+                        {
+                            route.IsDiscovered = true;
+                        }
+                    }
+                }
+            }
         }
-        
-        return bestRoute;
     }
 
-    /// <summary>
-    /// Finds the cheapest route by coin cost
-    /// </summary>
-    private RouteOption FindCheapestRoute(List<RouteOption> routes)
-    {
-        return routes.Where(r => CanTravel(r))
-                    .OrderBy(r => r.BaseCoinCost)
-                    .FirstOrDefault() ?? routes.OrderBy(r => r.BaseCoinCost).FirstOrDefault();
-    }
+    // ❌ REMOVED: GetRouteComparisonData method
+    // This method violated game design principles by providing automated optimization
+    // Players should manually evaluate routes based on their own strategic thinking
 
-    /// <summary>
-    /// Finds the route with least stamina cost
-    /// </summary>
-    private RouteOption FindLeastStaminaRoute(List<RouteOption> routes)
-    {
-        return routes.Where(r => CanTravel(r))
-                    .OrderBy(r => CalculateStaminaCost(r))
-                    .FirstOrDefault() ?? routes.OrderBy(r => CalculateStaminaCost(r)).FirstOrDefault();
-    }
+    // ❌ REMOVED: GetOptimalRouteRecommendation method
+    // This method violated game design principles by solving optimization puzzles for players
+    // Players should evaluate routes manually and make their own strategic decisions
 
-    /// <summary>
-    /// Finds the fastest route by time cost
-    /// </summary>
-    private RouteOption FindFastestRoute(List<RouteOption> routes)
-    {
-        return routes.Where(r => CanTravel(r))
-                    .OrderBy(r => r.TimeBlockCost)
-                    .FirstOrDefault() ?? routes.OrderBy(r => r.TimeBlockCost).FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Calculates efficiency score for a route
-    /// </summary>
-    private double CalculateRouteEfficiency(RouteOption route)
-    {
-        if (route == null) return 0;
-        
-        int totalCost = route.BaseCoinCost + CalculateStaminaCost(route);
-        double timeEfficiency = 5.0 / Math.Max(route.TimeBlockCost, 1);
-        double costEfficiency = 20.0 / Math.Max(totalCost, 1);
-        return (timeEfficiency + costEfficiency) / 2.0;
-    }
-
-    /// <summary>
-    /// Generates resource analysis for a route recommendation
-    /// </summary>
-    private string GenerateResourceAnalysis(RouteOption route)
-    {
-        if (route == null) return "";
-        
-        int staminaCost = CalculateStaminaCost(route);
-        return $"This route requires {route.BaseCoinCost} coins and {staminaCost} stamina, " +
-               $"taking {route.TimeBlockCost} time blocks to complete.";
-    }
-
-    /// <summary>
-    /// Generates alternative options text for a route recommendation
-    /// </summary>
-    private string GenerateAlternativeOptions(List<RouteOption> allRoutes, RouteOption selectedRoute)
-    {
-        List<RouteOption> alternatives = allRoutes.Where(r => r != selectedRoute).ToList();
-        
-        if (alternatives.Count == 0)
-        {
-            return "No alternative routes available.";
-        }
-        
-        if (alternatives.Count == 1)
-        {
-            RouteOption alt = alternatives[0];
-            return $"Alternative: {alt.Name} - {alt.BaseCoinCost} coins, {CalculateStaminaCost(alt)} stamina, {alt.TimeBlockCost} time blocks.";
-        }
-        
-        return $"{alternatives.Count} alternative routes available with different cost/time trade-offs.";
-    }
+    // ❌ REMOVED: All automated optimization helper methods
+    // These methods violated game design principles by providing automated analysis
+    // Players should manually inspect route properties and make their own decisions
+    // 
+    // Removed methods:
+    // - CalculateArrivalTimeDisplay
+    // - GenerateCostBenefitAnalysis  
+    // - GenerateRouteRecommendation
+    // - FindMostEfficientRoute
+    // - FindCheapestRoute
+    // - FindLeastStaminaRoute
+    // - FindFastestRoute
+    // - CalculateRouteEfficiency
+    // - GenerateResourceAnalysis
+    // - GenerateAlternativeOptions
 
 }
 

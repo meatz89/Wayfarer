@@ -4,14 +4,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## DOCUMENTATION GUIDELINES
 
-**CRITICAL WORKFLOW REMINDERS:**
-1. ✅ **ALWAYS read existing 'claude.md' first** - Understand current architecture state
-2. ✅ **ALWAYS update 'claude.md' after discovering new information** - Maintain comprehensive documentation  
-3. ✅ **NEVER proceed without updating documentation** - When new insights are discovered
-4. ✅ **Document architectural changes immediately** - Track all relationships and patterns
-5. ✅ **VERIFY DOCUMENTATION IN EVERY COMMIT** - Follow post-commit validation workflow
-6. 🧹 **KEEP CLAUDE.MD HIGH-LEVEL** - This should contain architectural patterns, core systems, and essential guidance. Do NOT add detailed session progress notes, step-by-step fixes, or temporary status updates. Move those to separate session notes or remove them after completion.
-7. 📋 **SESSION PROGRESS TRACKING** - All current progress, session handoffs, and next steps should be documented in `session-handoff.md`, not in this file. Reference that file for current status.
+### **NEW SESSION STARTUP CHECKLIST**
+**CRITICAL**: Every new session must follow this exact sequence:
+
+1. ✅ **READ CLAUDE.MD FIRST** - Understand architectural patterns and game design principles
+2. ✅ **READ SESSION-HANDOFF.MD** - Get current progress, discoveries, and immediate next steps
+3. ✅ **READ IMPLEMENTATION-PLAN-REVISED.MD** - Understand feature priorities and requirements
+4. ✅ **READ USERSTORIES.MD** - Understand game design requirements and anti-patterns
+5. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
+
+### **DOCUMENTATION ARCHITECTURE**
+
+**CLAUDE.MD** (This file) - **ARCHITECTURAL REFERENCE**
+- Core architectural patterns and principles
+- Game design principles and constraints
+- Code writing guidelines and standards
+- High-level system overview
+- Key file locations and responsibilities
+- **NEVER** add session progress, temporary fixes, or detailed implementation notes
+
+**SESSION-HANDOFF.MD** - **CURRENT SESSION STATE**
+- Current progress and completed features
+- Critical discoveries and constraints from user feedback
+- Technical implementation patterns learned
+- Immediate next priorities and blockers
+- Test execution status
+- Files that need attention
+- **UPDATE THIS EVERY SESSION** with new discoveries and progress
+
+**IMPLEMENTATION-PLAN-REVISED.MD** - **FEATURE ROADMAP**
+- POC feature priorities and requirements
+- Game design goals for each feature
+- Success criteria and anti-patterns to avoid
+- Technical complexity estimates
+- Dependencies between features
+
+**USERSTORIES.MD** - **GAME DESIGN REQUIREMENTS**
+- User-facing feature requirements
+- Game vs app design principles
+- Examples of good vs bad implementations
+- Player experience goals
+
+### **DOCUMENTATION MAINTENANCE RULES**
+
+1. ✅ **ALWAYS update session-handoff.md** - Document all discoveries, progress, and next steps
+2. ✅ **ONLY update claude.md** - When architectural patterns change or new principles are discovered
+3. ✅ **NEVER add temporary status** - Session progress goes in session-handoff.md, not claude.md
+4. ✅ **Document user feedback immediately** - Critical constraints and discoveries go in session-handoff.md
+5. ✅ **Keep files focused** - Each file has a specific purpose and audience
+6. ✅ **Reference related files** - Always point to where related information can be found
 
 ## DEVELOPMENT GUIDELINES
 
@@ -82,8 +123,9 @@ All APIs must be location-aware and consistent:
 
 ### CURRENT POC STATUS
 - ✅ **Foundation Systems**: Time blocks, stamina constraints, dynamic pricing complete
-- 🎯 **Next Priority**: Contract system with time pressure and deadline mechanics
-- 📋 **Remaining Systems**: Route conditions, discovery/progression
+- ✅ **Contract System**: Time-pressured delivery contracts with deadline enforcement
+- ✅ **Route Condition Variations**: Weather/time/event-based route changes with strategic depth
+- 📋 **Remaining Systems**: Discovery/progression system, code style cleanup
 - ❌ **Rejected Features**: Automated planning tools, profit calculators, optimization assistants
 
 ### KEY LOCATIONS IN CODEBASE
@@ -96,12 +138,14 @@ All APIs must be location-aware and consistent:
 - `src/Content/LocationRepository.cs` - Stateless location data access
 - `src/Content/ActionRepository.cs` - Stateless action data access  
 - `src/Content/ItemRepository.cs` - Stateless item data access
+- `src/Game/MainSystem/ContractRepository.cs` - Stateless contract data access
 
 #### **Business Logic**
 - `src/GameState/TravelManager.cs` - Travel and routing logic
 - `src/GameState/MarketManager.cs` - Trading and pricing logic
 - `src/GameState/TradeManager.cs` - Transaction processing
 - `src/GameState/RestManager.cs` - Rest and recovery logic
+- `src/Game/MainSystem/ContractSystem.cs` - Contract management and completion logic
 
 #### **Service Configuration**
 - `src/ServiceConfiguration.cs` - Dependency injection setup
@@ -110,6 +154,8 @@ All APIs must be location-aware and consistent:
 - `src/Pages/MainGameplayView.razor` - Main game screen coordinator
 - `src/Pages/Market.razor` - Trading interface
 - `src/Pages/TravelSelection.razor` - Travel planning interface
+- `src/Pages/ContractUI.razor` - Contract display and completion interface
+- `src/Pages/RestUI.razor` - Rest and recovery interface
 
 ### TESTING APPROACH
 
@@ -138,3 +184,52 @@ Always write failing tests before fixing bugs to ensure proper understanding and
 - AI services are optional for economic functionality
 - Use nullable dependencies and factory patterns for services that might not be available
 - Test configuration should provide minimal viable services only
+
+## GAME SYSTEMS REFERENCE
+
+### CONTRACT SYSTEM (`src/GameState/Contract.cs`, `src/Game/MainSystem/ContractSystem.cs`)
+
+#### **Core Architecture**
+- **Contract**: Time-bound delivery contracts with item/location requirements
+- **ContractRepository**: Stateless access to contract data with availability filtering
+- **ContractSystem**: Business logic for completion, failure detection, and time pressure
+- **Integration**: Fully integrated with TimeManager for deadline enforcement
+
+#### **Key Features**
+- **Time Pressure**: Contracts have StartDay/DueDay deadlines creating urgency
+- **Completion Requirements**: Must be at DestinationLocation with RequiredItems
+- **Automatic Failure**: Contracts fail when CurrentDay > DueDay
+- **Contract Chaining**: UnlocksContractIds/LocksContractIds for dependency management
+- **Payment System**: Coins awarded on completion, penalties applied on failure
+
+#### **Game Design Alignment**
+- **Time Optimization**: Players must balance travel time vs contract deadlines
+- **Resource Management**: Contract payments drive economic decisions
+- **Discovery**: No automatic contract suggestions - players choose from available pool
+- **Meaningful Choices**: Accept contracts vs explore other opportunities
+
+#### **Current Implementation Status**
+- ✅ **Core System**: Complete with full time pressure mechanics
+- ✅ **UI Integration**: Functional contract display and completion interface
+- ✅ **Test Coverage**: Comprehensive test suite for deadline enforcement
+- ✅ **Content Loading**: JSON template system for contract configuration
+- ⚠️ **Enhancement Ready**: Foundation solid for advanced time pressure features
+
+### TIME MANAGEMENT SYSTEM (`src/GameState/TimeManager.cs`)
+
+#### **Core Structure**
+- **Daily Limit**: 5 time blocks per day (MaxDailyTimeBlocks)
+- **Time Windows**: Dawn, Morning, Afternoon, Evening, Night
+- **Constraint Enforcement**: Actions consume time blocks, creating strategic pressure
+- **New Day Reset**: Time blocks reset on day advancement
+
+#### **Integration Points**
+- **Contract System**: Deadline enforcement based on CurrentDay
+- **Travel System**: Routes consume time blocks, affecting contract viability
+- **Rest System**: Recovery requires time block consumption
+- **Action System**: All major actions consume time resources
+
+#### **Game Design Impact**
+- **Strategic Pressure**: Limited time blocks force prioritization decisions
+- **Contract Urgency**: Time pressure makes deadline planning critical
+- **Resource Scarcity**: Time as a finite resource creates meaningful choices
