@@ -83,14 +83,55 @@ public static class ServiceConfiguration
         // Core economic systems
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
-        services.AddSingleton<ActionGenerator>(); // Economic-only version (no AI)
+        // ActionGenerator excluded for economic POC (AI-dependent)
         services.AddSingleton<ContractSystem>();
+        services.AddSingleton<LocationPropertyManager>();
         services.AddSingleton<ActionProcessor>();
         services.AddSingleton<MessageSystem>();
-        services.AddSingleton<GameWorldManager>();
+        services.AddSingleton<GameWorldManager>(serviceProvider =>
+        {
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var itemRepository = serviceProvider.GetRequiredService<ItemRepository>();
+            var encounterFactory = serviceProvider.GetRequiredService<EncounterFactory>();
+            var persistentChangeProcessor = serviceProvider.GetRequiredService<PersistentChangeProcessor>();
+            var locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
+            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
+            var actionFactory = serviceProvider.GetRequiredService<ActionFactory>();
+            var actionRepository = serviceProvider.GetRequiredService<ActionRepository>();
+            var locationRepository = serviceProvider.GetRequiredService<LocationRepository>();
+            var travelManager = serviceProvider.GetRequiredService<TravelManager>();
+            var marketManager = serviceProvider.GetRequiredService<MarketManager>();
+            var tradeManager = serviceProvider.GetRequiredService<TradeManager>();
+            var contractSystem = serviceProvider.GetRequiredService<ContractSystem>();
+            var restManager = serviceProvider.GetRequiredService<RestManager>();
+            // ActionGenerator is null for economic POC
+            var playerProgression = serviceProvider.GetRequiredService<PlayerProgression>();
+            var actionProcessor = serviceProvider.GetRequiredService<ActionProcessor>();
+            var contentLoader = serviceProvider.GetRequiredService<GameWorldInitializer>();
+            var choiceProjectionService = serviceProvider.GetRequiredService<ChoiceProjectionService>();
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            var logger = serviceProvider.GetRequiredService<ILogger<GameWorldManager>>();
+            
+            return new GameWorldManager(
+                gameWorld, itemRepository, encounterFactory, persistentChangeProcessor,
+                locationSystem, messageSystem, actionFactory, actionRepository,
+                locationRepository, travelManager, marketManager, tradeManager,
+                contractSystem, restManager, null, // ActionGenerator is null for economic POC
+                playerProgression, actionProcessor, contentLoader,
+                choiceProjectionService, configuration, logger);
+        });
         
         // Required by GameWorldManager but minimal for economic POC
-        services.AddSingleton<EncounterFactory>();
+        services.AddSingleton<EncounterFactory>(serviceProvider => 
+        {
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var choiceProjectionService = serviceProvider.GetRequiredService<ChoiceProjectionService>();
+            var logger = serviceProvider.GetRequiredService<ILogger<EncounterFactory>>();
+            
+            // Use the economic constructor (no AI dependencies)
+            return new EncounterFactory(gameWorld, choiceProjectionService, logger);
+        });
+        
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<ChoiceProjectionService>();

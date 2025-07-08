@@ -11,7 +11,7 @@
 
     private EncounterFactory encounterFactory;
     private MessageSystem messageSystem;
-    private ActionGenerator actionGenerator;
+    private ActionGenerator? actionGenerator;
     private ActionFactory actionFactory;
     private ActionProcessor actionProcessor;
     private LocationSystem locationSystem;
@@ -35,7 +35,7 @@
                        LocationRepository locationRepository, TravelManager travelManager,
                        MarketManager marketManager, TradeManager tradeManager, 
                        ContractSystem contractSystem, RestManager restManager,
-                       ActionGenerator actionGenerator, PlayerProgression playerProgression,
+                       ActionGenerator? actionGenerator, PlayerProgression playerProgression,
                        ActionProcessor actionProcessor, GameWorldInitializer contentLoader,
                        ChoiceProjectionService choiceProjectionService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
@@ -476,20 +476,6 @@
     public GameWorldSnapshot GetGameSnapshot()
     {
         return new GameWorldSnapshot(_gameWorld);
-    }
-
-    private void SaveGame()
-    {
-        try
-        {
-            contentLoader.SaveGame(_gameWorld);
-            messageSystem.AddSystemMessage("Game saved successfully");
-        }
-        catch (Exception ex)
-        {
-            messageSystem.AddSystemMessage($"Failed to save game: {ex.Message}");
-            Console.WriteLine($"Error saving game: {ex}");
-        }
     }
 
     private void GameOver()
