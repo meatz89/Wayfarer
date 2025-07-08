@@ -1,0 +1,58 @@
+[
+	{
+		"id": "warm_by_hearth",
+		"name": "Warm by Hearth",
+		"description": "Rest by the warm hearth to recover your physical stamina.",
+		"locationSpotId": "hearth",
+		"timeWindows": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": "PHYSICAL",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTags": [ "INTERIOR" ],
+		"domainTags": [ "LABOR" ]
+	},
+	{
+		"id": "browse_books",
+		"name": "Browse Books",
+		"description": "Peruse the library's collection to refresh your mental faculties.",
+		"locationSpotId": "library",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": "INTELLECTUAL",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTags": [ "QUIET", "INTERIOR" ],
+		"domainTags": [ "KNOWLEDGE" ]
+	},
+	{
+		"id": "join_conversation",
+		"name": "Join Tavern Conversation",
+		"description": "Engage in casual conversation with other patrons.",
+		"locationSpotId": "tavern",
+		"timeWindows": [ "Afternoon", "Evening", "Night" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": "SOCIAL",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTags": [ "CROWDED", "INTERIOR" ],
+		"domainTags": [ "SOCIAL" ]
+	},
+	{
+		"id": "rent_room",
+		"name": "Rent Room",
+		"description": "Secure lodging for the night.",
+		"locationSpotId": "innkeeper",
+		"timeWindows": [ "Morning", "Afternoon", "Evening" ],
+		"actionPointCost": 1,
+		"silverCost": 5,
+		"refreshCardType": null,
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTags": [ "INTERIOR" ],
+		"domainTags": [ "COMMERCE" ]
+	}
+]

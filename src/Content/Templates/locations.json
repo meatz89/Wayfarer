@@ -1,0 +1,30 @@
+[
+	{
+		"id": "dusty_flagon",
+		"name": "The Dusty Flagon",
+		"description": "A moderately sized, somewhat dilapidated inn situated within an implied larger medieval market town.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "QUIET", "INTERIOR" ],
+			"afternoon": [ "WELL-LIT", "CROWDED", "INTERIOR" ],
+			"evening": [ "SHADOWY", "CROWDED", "INTERIOR" ],
+			"night": [ "DARK", "QUIET", "INTERIOR" ]
+		},
+		"domainTags": [ "SOCIAL", "LABOR" ],
+		"locationSpots": [ "innkeeper", "hearth", "common_room", "inn_room", "tavern" ],
+		"connectedTo": [ "town_square" ]
+	},
+	{
+		"id": "town_square",
+		"name": "Town Square",
+		"description": "The bustling center of the town where merchants, travelers, and locals gather for commerce and news.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "URBAN", "COMMERCE" ],
+			"afternoon": [ "WELL-LIT", "CROWDED", "COMMERCE" ],
+			"evening": [ "SHADOWY", "CROWDED", "URBAN" ],
+			"night": [ "DARK", "QUIET", "URBAN" ]
+		},
+		"domainTags": [ "COMMERCE", "KNOWLEDGE" ],
+		"locationSpots": [ "marketplace", "library", "market_stall" ],
+		"connectedTo": [ "dusty_flagon" ]
+	}
+]

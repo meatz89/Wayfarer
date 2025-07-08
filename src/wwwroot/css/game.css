@@ -1,0 +1,360 @@
+
+/* ==================== Base Styles & Variables ==================== */
+:root {
+    /* Primary Colors */
+    --parchment: #F2E8D5;
+    --oak-dark: #5D4037;
+    --oak-mid: #8D6E63;
+    --leather: #A87D5F;
+    --charcoal: #3E3E3E;
+    /* Secondary Colors */
+    --moss: #606C38;
+    --clay: #BC6C25;
+    --rust: #9E2A2B;
+    --slate: #556573;
+    --parchment-dark: #E8DCBE;
+    /* UI Element Colors */
+    --bg-dark: #2C2622;
+    --bg-panel: #3D3229;
+    --bg-card: #4d3c36;
+    --bg-active: #6E5C4E;
+    --border-active: #8D7766;
+    /* Text Colors (for dark backgrounds) */
+    --text-primary: #F2E8D5;
+    --text-secondary: #DCD3BC;
+    --text-muted: #857D6B;
+    /* Text Colors (for light backgrounds) */
+    --text-dark-primary: #2A2016;
+    --text-dark-secondary: #65513C;
+    --text-dark-muted: #95826A;
+    /* Resource Colors */
+    --resource-health: #9E2A2B;
+    --resource-coins: #DAA520;
+    --resource-food: var(--moss);
+    --resource-stamina: #BC6C25;
+    --resource-spirit: #556573;
+    --resource-focus: #7D7045;
+    /* Status Colors */
+    --positive: var(--moss);
+    --negative: #9E2A2B;
+    --neutral: #8D7766;
+    --special: #BC6C25;
+    /* Tag Colors */
+    --approach-tag: var(--moss);
+    --focus-tag: #7D7045;
+    --narrative-tag: #856A67;
+    --strategic-tag: #8B6E52;
+    /* Font Settings */
+    --font-primary: 'Cinzel', serif;
+    --font-secondary: 'Lora', 'Georgia', serif;
+    --font-tertiary: 'EB Garamond', serif;
+}
+
+html body * {
+    cursor: url('/images/cursors/cursor.png'), default !important;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    overflow: hidden;
+}
+
+/* Override for all potentially interactive elements with even higher specificity */
+html body a:not(.no-pointer),
+html body button:not(:disabled):not(.no-pointer),
+html body [role="button"]:not(.no-pointer),
+html body input[type="submit"]:not(:disabled):not(.no-pointer),
+html body input[type="button"]:not(:disabled):not(.no-pointer),
+html body input[type="reset"]:not(:disabled):not(.no-pointer),
+html body input[type="range"]:not(:disabled):not(.no-pointer),
+html body input[type="checkbox"]:not(:disabled):not(.no-pointer),
+html body input[type="radio"]:not(:disabled):not(.no-pointer),
+html body select:not(:disabled):not(.no-pointer),
+html body option:not(.no-pointer),
+html body label:not(.no-pointer),
+html body .action-button:not(:disabled):not(.no-pointer),
+html body .narrative-button:not(:disabled):not(.no-pointer),
+html body .creation-button:not(:disabled):not(.no-pointer),
+html body .resource-use-btn:not(:disabled):not(.no-pointer),
+html body .gender-option:not(.no-pointer),
+html body .toggle-button:not(.no-pointer),
+html body .wait-button:not(.no-pointer),
+html body .location-button:not(.no-pointer),
+html body .choice-option:not(.disabled):not(.no-pointer),
+html body .section-header.hover:not(.no-pointer),
+html body .name-generator:not(.no-pointer),
+html body .archetype-option:not(.no-pointer),
+html body .message-close:not(.no-pointer),
+html body .clickable:not(.no-pointer),
+html body [onclick]:not(.no-pointer),
+html body [class*="button"]:not(:disabled):not(.no-pointer),
+html body [class*="btn"]:not(:disabled):not(.no-pointer),
+html body [tabindex]:not([tabindex="-1"]):not(.no-pointer),
+html body summary:not(.no-pointer),
+html body details:not(.no-pointer),
+html body .action-message .message-close:not(.no-pointer),
+html body [class*="clickable"]:not(.no-pointer),
+html body [class*="selectable"]:not(.no-pointer),
+html body [class*="draggable"]:not(.no-pointer),
+html body [class*="hoverable"]:not(.no-pointer),
+html body [class*="interactive"]:not(.no-pointer) {
+    cursor: url('/images/cursors/pointer.png'), pointer !important;
+}
+
+/* Text input fields with specific selector to ensure it overrides */
+html body input[type="text"]:not(.no-text),
+html body input[type="password"]:not(.no-text),
+html body input[type="email"]:not(.no-text),
+html body input[type="number"]:not(.no-text),
+html body input[type="search"]:not(.no-text),
+html body input[type="tel"]:not(.no-text),
+html body input[type="url"]:not(.no-text),
+html body input[type="date"]:not(.no-text),
+html body input[type="datetime-local"]:not(.no-text),
+html body input[type="month"]:not(.no-text),
+html body input[type="week"]:not(.no-text),
+html body input[type="time"]:not(.no-text),
+html body input:not([type]):not(.no-text),
+html body textarea:not(.no-text) {
+    cursor: text !important;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Prevent the blue highlighting on mobile when tapping elements */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+    /* Remove focus outlines that might appear on click */
+    *:focus {
+        outline: none;
+    }
+
+/* Ensure images aren't draggable */
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+}
+
+/* For any SVG elements that might be on the page */
+svg, svg * {
+    cursor: url('/images/cursors/cursor.png'), default !important;
+}
+
+/* For any Thief DOM elements */
+:host, :root {
+    cursor: url('/images/cursors/cursor.png'), default !important;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    line-height: 1.5;
+    background-image: url("/images/subtle-parchment.png");
+    background-repeat: repeat;
+    overflow: hidden;
+}
+
+.game-status-bar {
+    background-color: var(--bg-card);
+    padding: 10px 20px;
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.location-card, .encounter-stage, .narrative-container, .sidebar-panel {
+    background-image: url("/images/subtle-texture.png");
+    background-repeat: repeat;
+    background-blend-mode: overlay;
+}
+
+/* ==================== Layout Components ==================== */
+.game-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.game-content {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.main-content {
+    flex: 3;
+    overflow-y: auto;
+}
+
+::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 3px;
+    background-image: url("/images/subtle-texture.png");
+    background-repeat: repeat;
+    background-blend-mode: overlay;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--leather);
+    border: 2px solid var(--oak-dark);
+    border-radius: 3px;
+    box-Thief: inset 0 0 4px rgba(0, 0, 0, 0.3);
+    background-image: url("/images/subtle-parchment.png");
+    background-repeat: repeat;
+    background-blend-mode: multiply;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--clay);
+    }
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--bg-panel);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--leather) var(--bg-panel);
+}
+
+.game-sidebar {
+    scrollbar-width: thin;
+}
+
+*:focus {
+    outline: none;
+}
+
+.game-sidebar {
+    flex: 1;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-width: 320px;
+    padding: 15px;
+    scrollbar-width: thin;
+}
+
+.sidebar {
+    min-width: 400px;
+}
+
+.sidebar-panel {
+    background-color: var(--bg-panel);
+    padding: 1rem;
+}
+
+.sidebar-section {
+    margin-bottom: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: margin-bottom 0.3s ease;
+}
+
+    .sidebar-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+.panel-title, .properties-header, .section-header {
+    font-family: var(--font-primary);
+    font-weight: normal;
+    letter-spacing: 0.05em;
+    color: var(--leather);
+    border-bottom: 1px solid var(--oak-mid);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+    color: var(--leather);
+    letter-spacing: 0.05em;
+}
+
+.hover {
+    cursor: pointer;
+}
+
+    .hover:hover {
+        background-color: var(--bg-active);
+    }
+
+.expand-icon {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.section-content {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    padding: 15px;
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, padding 0.3s ease;
+}
+
+.sidebar-section.collapsed .section-content {
+    max-height: 0;
+    padding: 0 15px;
+    overflow: hidden;
+    border: none;
+}
+
+.sidebar-section.expanded {
+    margin-bottom: 15px;
+}
+
+    .sidebar-section.expanded .section-header {
+        border-radius: 5px 5px 0 0;
+        border-bottom-color: transparent;
+    }
+
+    .sidebar-section.expanded .expand-icon {
+        transform: rotate(0deg);
+    }
+
+.sidebar-section.collapsed .expand-icon {
+    transform: rotate(-90deg);
+}

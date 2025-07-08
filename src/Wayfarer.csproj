@@ -1,0 +1,104 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+    
+	<ItemGroup>
+		<Compile Remove="Game\EncounterManager\**" />
+		<Compile Remove="Game\MainSystem\Builders\**" />
+		<Content Remove="Game\EncounterManager\**" />
+		<Content Remove="Game\MainSystem\Builders\**" />
+		<EmbeddedResource Remove="Game\EncounterManager\**" />
+		<EmbeddedResource Remove="Game\MainSystem\Builders\**" />
+		<None Remove="**/*.ps1" />
+		<None Remove="Game\EncounterManager\**" />
+		<None Remove="Game\MainSystem\Builders\**" />
+	</ItemGroup>
+    
+	<ItemGroup>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	  <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+	  <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+	</ItemGroup>
+    
+	<ItemGroup>
+	  <Folder Include="wwwroot\images\cursors\" />
+	  <Folder Include="wwwroot\music\forest\" />
+	</ItemGroup>
+    
+	<ItemGroup>
+		<Content Update="Content\Templates\actions.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\action_config.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\contracts.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\cards.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\gameWorld.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\locations.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\location_Spots.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="Content\Templates\locationProperties.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\female_Merchant.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\female_explorer.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\female_guard.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\female_merchant.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\female_Thief.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\female_scholar.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\male_Merchant.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\male_explorer.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\male_guard.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\male_merchant.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\male_Thief.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\characters\male_scholar.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\images\subtle-parchment.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+		<Content Update="wwwroot\images\subtle-texture.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+		<Content Update="wwwroot\js\scrollToBottom.js">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+</Project>

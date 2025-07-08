@@ -1,0 +1,134 @@
+[
+	{
+		"id": "basic_strength",
+		"name": "Persistent Labor",
+		"type": "PHYSICAL",
+		"primarySkill": "STRENGTH",
+		"staminaCost": 1,
+		"concentrationCost": 0,
+		"contextTag": "INTERIOR",
+		"approachTag": "THOROUGH",
+		"domainTag": "LABOR"
+	},
+	{
+		"id": "basic_endurance",
+		"name": "Steady Pace",
+		"type": "PHYSICAL",
+		"primarySkill": "ENDURANCE",
+		"staminaCost": 1,
+		"concentrationCost": 0,
+		"contextTag": "OUTDOOR",
+		"approachTag": "METHODICAL",
+		"domainTag": "TRAVEL"
+	},
+	{
+		"id": "basic_precision",
+		"name": "Careful Aim",
+		"type": "PHYSICAL",
+		"primarySkill": "PRECISION",
+		"staminaCost": 1,
+		"concentrationCost": 0,
+		"contextTag": "INTERIOR",
+		"approachTag": "CAUTIOUS",
+		"domainTag": "CRAFTING"
+	},
+	{
+		"id": "basic_agility",
+		"name": "Quick Step",
+		"type": "PHYSICAL",
+		"primarySkill": "AGILITY",
+		"staminaCost": 1,
+		"concentrationCost": 0,
+		"contextTag": "OUTDOOR",
+		"approachTag": "SWIFT",
+		"domainTag": "TRAVEL"
+	},
+	{
+		"id": "basic_analysis",
+		"name": "Methodical Reasoning",
+		"type": "INTELLECTUAL",
+		"primarySkill": "ANALYSIS",
+		"staminaCost": 0,
+		"concentrationCost": 1,
+		"contextTag": "QUIET",
+		"approachTag": "METHODICAL",
+		"domainTag": "INVESTIGATION"
+	},
+	{
+		"id": "basic_observation",
+		"name": "Attentive Gaze",
+		"type": "INTELLECTUAL",
+		"primarySkill": "OBSERVATION",
+		"staminaCost": 0,
+		"concentrationCost": 1,
+		"contextTag": "WELL-LIT",
+		"approachTag": "THOROUGH",
+		"domainTag": "INVESTIGATION"
+	},
+	{
+		"id": "basic_knowledge",
+		"name": "Recall Fact",
+		"type": "INTELLECTUAL",
+		"primarySkill": "KNOWLEDGE",
+		"staminaCost": 0,
+		"concentrationCost": 1,
+		"contextTag": "QUIET",
+		"approachTag": "METHODICAL",
+		"domainTag": "KNOWLEDGE"
+	},
+	{
+		"id": "basic_planning",
+		"name": "Strategic Outline",
+		"type": "INTELLECTUAL",
+		"primarySkill": "PLANNING",
+		"staminaCost": 0,
+		"concentrationCost": 1,
+		"contextTag": "QUIET",
+		"approachTag": "THOROUGH",
+		"domainTag": "COMMERCE"
+	},
+	{
+		"id": "basic_charm",
+		"name": "Friendly Demeanor",
+		"type": "SOCIAL",
+		"primarySkill": "CHARM",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTag": "CROWDED",
+		"approachTag": "BOLD",
+		"domainTag": "SOCIAL"
+	},
+	{
+		"id": "basic_persuasion",
+		"name": "Reasonable Argument",
+		"type": "SOCIAL",
+		"primarySkill": "PERSUASION",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTag": "INTERIOR",
+		"approachTag": "METHODICAL",
+		"domainTag": "COMMERCE"
+	},
+	{
+		"id": "basic_deception",
+		"name": "White Lie",
+		"type": "SOCIAL",
+		"primarySkill": "DECEPTION",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTag": "CROWDED",
+		"approachTag": "SWIFT",
+		"domainTag": "SOCIAL"
+	},
+	{
+		"id": "basic_intimidation",
+		"name": "Stern Glare",
+		"type": "SOCIAL",
+		"primarySkill": "INTIMIDATION",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTag": "INTERIOR",
+		"approachTag": "BOLD",
+		"domainTag": "SOCIAL"
+	}
+]

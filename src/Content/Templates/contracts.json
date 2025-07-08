@@ -1,0 +1,47 @@
+[
+	{
+		"id": "deliver_tools",
+		"description": "Deliver tools to the town carpenter",
+		"requiredItems": [ "tools" ],
+		"requiredLocations": [],
+		"destinationLocation": "town_square",
+		"startDay": 1,
+		"dueDay": 3,
+		"payment": 15,
+		"failurePenalty": "Loss of reputation with craftsmen",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [ "carpenter_special" ],
+		"locksContractIds": []
+	},
+	{
+		"id": "herb_delivery",
+		"description": "Collect herbs for the innkeeper",
+		"requiredItems": [ "herbs" ],
+		"requiredLocations": [],
+		"destinationLocation": "dusty_flagon",
+		"startDay": 1,
+		"dueDay": 2,
+		"payment": 5,
+		"failurePenalty": "No free lodging tonight",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [],
+		"locksContractIds": []
+	},
+	{
+		"id": "carpenter_special",
+		"description": "Special job from the carpenter",
+		"requiredItems": [ "tools", "rope" ],
+		"requiredLocations": [ "town_square" ],
+		"destinationLocation": "town_square",
+		"startDay": 2,
+		"dueDay": 4,
+		"payment": 25,
+		"failurePenalty": "Loss of future contracts",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [],
+		"locksContractIds": []
+	}
+]

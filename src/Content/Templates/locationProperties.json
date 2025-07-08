@@ -1,0 +1,181 @@
+[
+	{
+		"propertyId": "WELL-LIT",
+		"category": "CONTEXT",
+		"skillModifiers": {
+			"OBSERVATION": 1,
+			"PRECISION": 1
+		},
+		"oppositeTag": "DARK"
+	},
+	{
+		"propertyId": "DARK",
+		"category": "CONTEXT",
+		"skillModifiers": {
+			"OBSERVATION": -1,
+			"PRECISION": -1
+		},
+		"oppositeTag": "WELL-LIT"
+	},
+	{
+		"propertyId": "CROWDED",
+		"category": "CONTEXT",
+		"skillModifiers": {
+			"CHARM": 1,
+			"OBSERVATION": -1,
+			"ANALYSIS": -1
+		},
+		"oppositeTag": "QUIET"
+	},
+	{
+		"propertyId": "QUIET",
+		"category": "CONTEXT",
+		"skillModifiers": {
+			"ANALYSIS": 1,
+			"OBSERVATION": 1,
+			"CHARM": -1
+		},
+		"oppositeTag": "CROWDED"
+	},
+	{
+		"propertyId": "INTERIOR",
+		"category": "CONTEXT",
+		"skillModifiers": {
+			"PRECISION": 1
+		},
+		"oppositeTag": "OUTDOOR"
+	},
+	{
+		"propertyId": "OUTDOOR",
+		"category": "CONTEXT",
+		"skillModifiers": {
+			"ENDURANCE": 1
+		},
+		"oppositeTag": "INTERIOR"
+	},
+	{
+		"propertyId": "URBAN",
+		"category": "CONTEXT",
+		"skillModifiers": {
+			"CHARM": 1,
+			"PERSUASION": 1
+		},
+		"oppositeTag": null
+	},
+	{
+		"propertyId": "COMMERCE",
+		"category": "DOMAIN",
+		"skillModifiers": {
+			"PERSUASION": 1
+		},
+		"oppositeTag": null
+	},
+	{
+		"propertyId": "THOROUGH",
+		"category": "APPROACH",
+		"skillModifiers": {
+			"OBSERVATION": 1,
+			"KNOWLEDGE": 1
+		},
+		"oppositeTag": "SWIFT"
+	},
+	{
+		"propertyId": "SWIFT",
+		"category": "APPROACH",
+		"skillModifiers": {
+			"AGILITY": 1,
+			"DECEPTION": 1
+		},
+		"oppositeTag": "THOROUGH"
+	},
+	{
+		"propertyId": "BOLD",
+		"category": "APPROACH",
+		"skillModifiers": {
+			"INTIMIDATION": 1,
+			"CHARM": 1
+		},
+		"oppositeTag": "CAUTIOUS"
+	},
+	{
+		"propertyId": "CAUTIOUS",
+		"category": "APPROACH",
+		"skillModifiers": {
+			"PRECISION": 1,
+			"ANALYSIS": 1
+		},
+		"oppositeTag": "BOLD"
+	},
+	{
+		"propertyId": "METHODICAL",
+		"category": "APPROACH",
+		"skillModifiers": {
+			"PLANNING": 1,
+			"ANALYSIS": 1
+		},
+		"oppositeTag": "DIRECT"
+	},
+	{
+		"propertyId": "DIRECT",
+		"category": "APPROACH",
+		"skillModifiers": {
+			"STRENGTH": 1,
+			"INTIMIDATION": 1
+		},
+		"oppositeTag": "METHODICAL"
+	},
+	{
+		"propertyId": "CRAFTING",
+		"category": "DOMAIN",
+		"skillModifiers": {
+			"PRECISION": 1,
+			"STRENGTH": 1
+		},
+		"oppositeTag": null
+	},
+	{
+		"propertyId": "LABOR",
+		"category": "DOMAIN",
+		"skillModifiers": {
+			"STRENGTH": 1,
+			"ENDURANCE": 1
+		},
+		"oppositeTag": null
+	},
+	{
+		"propertyId": "INVESTIGATION",
+		"category": "DOMAIN",
+		"skillModifiers": {
+			"OBSERVATION": 1,
+			"ANALYSIS": 1
+		},
+		"oppositeTag": null
+	},
+	{
+		"propertyId": "KNOWLEDGE",
+		"category": "DOMAIN",
+		"skillModifiers": {
+			"KNOWLEDGE": 1,
+			"ANALYSIS": 1
+		},
+		"oppositeTag": null
+	},
+	{
+		"propertyId": "TRAVEL",
+		"category": "DOMAIN",
+		"skillModifiers": {
+			"ENDURANCE": 1,
+			"AGILITY": 1
+		},
+		"oppositeTag": null
+	},
+	{
+		"propertyId": "SOCIAL",
+		"category": "DOMAIN",
+		"skillModifiers": {
+			"CHARM": 1,
+			"PERSUASION": 1
+		},
+		"oppositeTag": null
+	}
+]

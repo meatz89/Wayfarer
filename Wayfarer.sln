@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wayfarer", "src\Wayfarer.csproj", "{83236461-9C12-4FC4-A28B-39A1F48D6EAC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{83236461-9C12-4FC4-A28B-39A1F48D6EAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83236461-9C12-4FC4-A28B-39A1F48D6EAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83236461-9C12-4FC4-A28B-39A1F48D6EAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83236461-9C12-4FC4-A28B-39A1F48D6EAC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5653E98A-7BF4-4F26-B645-54A36E726FE1}
+	EndGlobalSection
+EndGlobal

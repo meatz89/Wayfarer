@@ -1,0 +1,71 @@
+﻿ @inherits TravelSelectionBase
+
+@inject GameWorldManager GameManager
+@inject TravelManager TravelManager
+
+<div class="world-map-container">
+    <div class="travel-status">
+        @{
+            int totalWeight1 = GameManager.CalculateTotalWeight();
+            string weightClass = totalWeight1 <= 3 ? "" :
+            (totalWeight1 <= 6 ? "warning" : "danger");
+            string weightStatus = totalWeight1 <= 3 ? "Light load" :
+            (totalWeight1 <= 6 ? "Medium load (+1 stamina)" :
+            "Heavy load (+2 stamina)");
+            int coinWeight = GameWorld.GetPlayer().Coins / 10;
+        }
+        <div class="weight-status @weightClass">
+            <span>Current load: @weightStatus (@totalWeight1 weight units)</span>
+        </div>
+        <div class="resource-status">
+            <span>Coins: @GameWorld.GetPlayer().Coins <span class="coin-weight">(@coinWeight weight)</span></span>
+            <span>Stamina: @GameWorld.GetPlayer().Stamina</span>
+        </div>
+    </div>
+
+    <div class="locations-grid">
+        @foreach (var location in GetTravelableLocations())
+        {
+            <div class="location-card">
+                <div class="location-name">
+                    @location.Name @(location.Id == CurrentLocation.Id ? "(Current)" : "")
+                </div>
+                <div class="location-routes">
+                    @{
+                        var routes = TravelManager.GetAvailableRoutes(CurrentLocation.Id, location.Id);
+                        int totalWeight = GameManager.CalculateTotalWeight();
+                    }
+                    @foreach (var route in routes)
+                    {
+                        int adjustedStaminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
+                        string arrivalTime = CalculateArrivalTimeBlock(GameWorld.CurrentTimeBlock, route.TimeBlockCost);
+                        bool canAfford = route.CanTravel(ItemRepository, GameWorld.GetPlayer(), totalWeight);
+
+                        <div class="route-option @(!canAfford ? "disabled" : "")">
+                            <div class="route-name">@route.Name</div>
+                            <div class="route-details">
+                                <span>@route.BaseCoinCost coins</span>
+                                <span>@adjustedStaminaCost stamina @(route.BaseStaminaCost != adjustedStaminaCost ? $"(base {route.BaseStaminaCost} + weight penalty)" : "")</span>
+                                <span>Arrives: @arrivalTime</span>
+                                @if (route.DepartureTime.HasValue)
+                                {
+                                    <span>Departs: @route.DepartureTime</span>
+                                }
+                                @if (route.RequiredRouteTypes.Any())
+                                {
+                                    <span>Requires: @string.Join(", ", route.RequiredRouteTypes)</span>
+                                }
+                                <span>Max items: @route.MaxItemCapacity</span>
+                            </div>
+                            <button class="travel-button"
+                                    disabled="@(!canAfford)"
+                                    @onclick="() => OnTravelRoute.InvokeAsync(route)">
+                                Travel
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

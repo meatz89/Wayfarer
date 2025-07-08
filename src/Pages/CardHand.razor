@@ -1,0 +1,108 @@
+﻿@* CardHand.razor *@
+<div class="card-hand-container">
+    @if (CardHighlightService.IsHighlightModeActive && CardHighlightService._highlightMode == HighlightMode.Refresh)
+    {
+        <div class="refresh-mode-indicator">
+            <span>Select an exhausted @CardHighlightService.TargetCardType.ToString() card to refresh</span>
+            <button class="cancel-button" @onclick="CancelRefreshMode">Cancel</button>
+        </div>
+    }
+    <div class="card-hand">
+        @foreach (var card in PlayerCards)
+        {
+            bool isSelected = CardSelectionService.SelectedCard == card;
+            bool isHighlighted = CardHighlightService.ShouldHighlightCard(card);
+            <div class="card @GetCardTypeClass(card.Category) @(card.IsExhausted ? "exhausted" : "") @(isSelected ? "selected" : "") @(isHighlighted ? "highlighted" : "")"
+                 @onclick="() => HandleCardClick(card)"
+                 title="@card.Name">
+                <div class="card-content">
+                    <div class="card-name">@card.Name</div>
+                    @if (card.IsExhausted)
+                    {
+                        <div class="exhausted-overlay"></div>
+                    }
+                    @if (isSelected)
+                    {
+                        <div class="selection-indicator">✓</div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Inject] private CardHighlightService CardHighlightService { get; set; }
+    [Inject] private CardSelectionService CardSelectionService { get; set; }
+    [Inject] private GameWorldManager GameWorldManager { get; set; }
+    [Inject] private MessageSystem MessageSystem { get; set; }
+
+    [Parameter] public List<SkillCard> PlayerCards { get; set; }
+    [Parameter] public EventCallback<SkillCard> OnCardRefreshed { get; set; }
+
+    protected override void OnInitialized()
+    {
+        CardSelectionService.OnStateChanged += StateHasChanged;
+        CardHighlightService.OnHighlightModeChanged += StateHasChanged;
+    }
+
+    private string GetCardTypeClass(SkillCategories type)
+    {
+        return type switch
+        {
+            SkillCategories.Physical => "physical",
+            SkillCategories.Intellectual => "intellectual",
+            SkillCategories.Social => "social",
+            _ => ""
+        };
+    }
+
+    private async Task HandleCardClick(SkillCard card)
+    {
+        if (CardHighlightService.IsHighlightModeActive)
+        {
+            if (CardHighlightService.ShouldHighlightCard(card))
+            {
+                if (CardHighlightService._highlightMode == HighlightMode.Refresh)
+                {
+                    await OnCardRefreshed.InvokeAsync(card);
+                }
+                else
+                {
+                    SelectCard(card);
+                }
+                CardHighlightService.DeactivateHighlightMode();
+            }
+        }
+        else
+        {
+            SelectCard(card);
+        }
+    }
+    
+    private void SelectCard(SkillCard card)
+    {
+        if (!card.IsExhausted)
+        {
+            if (CardSelectionService.SelectedCard == card)
+            {
+                CardSelectionService.Reset();
+            }
+            else
+            {
+                CardSelectionService.SelectedCard = card;
+            }
+        }
+    }
+
+    private void CancelRefreshMode()
+    {
+        CardHighlightService.DeactivateHighlightMode();
+    }
+
+    public void Dispose()
+    {
+        CardSelectionService.OnStateChanged -= StateHasChanged;
+        CardHighlightService.OnHighlightModeChanged -= StateHasChanged;
+    }
+}

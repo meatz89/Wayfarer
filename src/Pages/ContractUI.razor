@@ -1,0 +1,67 @@
+﻿@* ContractUI.razor *@
+@inject GameWorldManager GameWorldManager
+@inject GameWorld GameWorld
+
+<div class="contracts-list">
+    @if (GameWorld.ActiveContracts.Any())
+    {
+        @foreach (var contract in GameWorld.ActiveContracts)
+        {
+            bool canComplete = contract.CanComplete(GameWorld.GetPlayer(), GameWorld.CurrentLocation.Id);
+            int daysRemaining = contract.DueDay - GameWorld.CurrentDay;
+
+            <div class="contract-card">
+                <div class="contract-header">
+                    <span class="contract-name">@contract.Description</span>
+                    <span class="contract-time @(daysRemaining <= 1 ? "urgent" : "")">
+                        @(daysRemaining > 0 ? $"{daysRemaining} days remaining" : "Due today!")
+                    </span>
+                </div>
+
+                <div class="contract-details">
+                    <div class="detail">
+                        <span class="detail-label">Delivery to:</span>
+                        <span class="detail-value">@contract.DestinationLocation</span>
+                    </div>
+
+                    @if (contract.RequiredItems.Any())
+                    {
+                        <div class="detail">
+                            <span class="detail-label">Required items:</span>
+                            <span class="detail-value">@string.Join(", ", contract.RequiredItems)</span>
+                        </div>
+                    }
+
+                    <div class="detail">
+                        <span class="detail-label">Payment:</span>
+                        <span class="detail-value">@contract.Payment coins</span>
+                    </div>
+                </div>
+
+                @if (canComplete)
+                {
+                    <button class="complete-button"
+                            @onclick="() => CompleteContract(contract)">
+                        Complete Contract
+                    </button>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="no-contracts">
+            No contracts available at this time.
+        </div>
+    }
+</div>
+
+@code {
+    private void CompleteContract(Contract contract)
+    {
+        // Simulate contract completion
+        GameWorld.GetPlayer().ModifyCoins(contract.Payment);
+        contract.IsCompleted = true;
+        StateHasChanged();
+    }
+}

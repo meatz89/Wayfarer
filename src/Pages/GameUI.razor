@@ -1,0 +1,26 @@
+﻿@page "/"
+@using Wayfarer.UIHelpers
+@inherits ComponentBase
+
+<div class="game-container">
+    
+    @if (CurrentScreen == CurrentViews.MissingReferences)
+    {
+        <MissingReferences OnMissingReferencesResolved="ResolvedMissingReferences" />
+    }
+    else if (CurrentScreen == CurrentViews.CharacterScreen)
+    {
+        <CharacterCreation OnCharacterCreated="HandleCharacterCreated" />
+    }
+    else
+    {
+        <MainGameplayView />
+    }
+    <MusicSelector />
+    <MusicPlayer />
+</div>
+
+<LoadingIndicator IsVisible="@LoadingStateService.IsLoading"
+                  Message="@LoadingStateService.Message"
+                  ShowProgress="true"
+                  Progress="@LoadingStateService.Progress" />

@@ -1,0 +1,21 @@
+{
+	"CurrentLocationId": "dusty_flagon",
+	"CurrentLocationSpotId": "hearth",
+	"CurrentDay": 1,
+	"CurrentTimeHours": 6,
+	"Player": {
+		"Name": null,
+		"Gender": null,
+		"Archetype": null,
+		"Coins": 5,
+		"MaxActionPoints": 10,
+		"ActionPoints": 0,
+		"MaxStamina": 12,
+		"StaminaPoints": 12,
+		"MaxHealth": 10,
+		"Health": 10,
+		"Level": 1,
+		"CurrentXP": 0,
+		"InventoryItems": []
+	}
+}

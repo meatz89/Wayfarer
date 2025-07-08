@@ -1,0 +1,70 @@
+﻿
+/* ==================== Time System ==================== */
+.time-display {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 5px 10px;
+	border-radius: 4px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	font-family: var(--font-primary);
+	color: var(--text-primary);
+	font-size: 1.1rem;
+	transition: all 0.3s ease;
+}
+
+.time-morning {
+	background-color: #5d4e3b; /* Darker, less yellow brown */
+	border-color: #6d5c45;
+	color: #f5eddf;
+}
+
+.time-afternoon {
+	background-color: #a87d5f; /* Match leather variable */
+	border-color: #bc6c25;
+	color: var(--parchment);
+}
+
+.time-evening {
+	background-color: #665270; /* More purple/blue, less red */
+	border-color: #7d6387;
+	color: #f5eddf;
+}
+
+.time-night {
+	background-color: #343137; /* Deep indigo-black - keeping as is */
+	border-color: #48464e;
+	color: #b2a9c7;
+}
+
+/* Add a subtle glow effect to the time icon */
+.time-icon {
+	display: inline-block;
+	margin-right: 5px;
+	transition: transform 0.3s ease;
+}
+
+.time-morning .time-icon,
+.time-afternoon .time-icon {
+	text-Thief: 0 0 5px rgba(255, 242, 180, 0.7);
+}
+
+.time-evening .time-icon {
+	text-Thief: 0 0 5px rgba(180, 170, 220, 0.7);
+}
+
+.time-night .time-icon {
+	text-Thief: 0 0 5px rgba(180, 215, 255, 0.7);
+}
+
+/* Add a bit of spacing for the time elements */
+.time-text {
+	margin-right: 5px;
+}
+
+.time-hours {
+	font-family: var(--font-secondary);
+	font-size: 0.9em;
+	opacity: 0.9;
+}

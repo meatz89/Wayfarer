@@ -1,0 +1,60 @@
+﻿/* Action Headers and Approaches */
+.action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.action-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    background-color: var(--bg-active);
+    border: 1px solid var(--oak-mid);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .action-header.expanded {
+        background-color: var(--leather);
+        border-radius: 5px 5px 0 0;
+        border-bottom: none;
+    }
+
+    .action-header:hover {
+        background-color: var(--leather);
+    }
+
+.action-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.action-title {
+    font-family: var(--font-primary);
+    color: var(--text-primary);
+    font-weight: normal;
+}
+
+.action-type {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.action-toggle-icon {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.positive {
+    color: var(--positive);
+}
+
+.negative {
+    color: var(--negative);
+}

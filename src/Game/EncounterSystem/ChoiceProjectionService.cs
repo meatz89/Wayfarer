@@ -1,0 +1,159 @@
+﻿public class ChoiceProjectionService
+{
+    private static readonly Random _random = new Random(); 
+    private readonly Player player;
+
+    public ChoiceProjectionService(GameWorld gameWorld)
+    {
+        this.player = gameWorld.GetPlayer();
+    }
+
+    public ChoiceProjection ProjectChoice(EncounterChoice choice, EncounterState state)
+    {
+        ChoiceProjection projection = new ChoiceProjection(choice);
+
+        // Check if player can afford this choice
+        projection.IsAffordable = state.FocusPoints >= choice.FocusCost;
+        projection.IsAffordableFocus = projection.IsAffordable;
+
+        // Process skill options
+        SkillOptionProjection skillProjection = ProjectSkillOption(choice, state, player);
+        projection.SkillOption = skillProjection;
+
+        return projection;
+    }
+
+    private SkillOptionProjection ProjectSkillOption(EncounterChoice choice, EncounterState state, Player player)
+    {
+        SkillOptionProjection projection = new SkillOptionProjection();
+        if(!choice.RequiresSkillCheck)
+        {
+            projection.SkillName = "None";
+            projection.IsAvailable = true;
+            projection.IsUntrained = false;
+            projection.EffectiveLevel = 1;
+            projection.ChoiceSuccess = true;
+            return projection;
+        }
+
+        var option = choice.SkillOption;
+
+        projection.SkillName = option.SkillName;
+        projection.Difficulty = option.Difficulty;
+
+        SkillCard card = FindCardByName(player.AvailableCards, option.SkillName);
+
+        SkillCheckResolver resolver = new SkillCheckResolver();
+        SkillCheckResult skillCheckResult = resolver.Resolve(option, state);
+
+        if (card != null && !card.IsExhausted)
+        {
+            // Player has the card and it's not exhausted
+            projection.IsAvailable = true;
+            projection.IsUntrained = false;
+            projection.EffectiveLevel = card.GetEffectiveLevel(state);
+        }
+        else
+        {
+            // Untrained attempt
+            projection.IsAvailable = true; // Still available, but untrained
+            projection.IsUntrained = true;
+            projection.EffectiveLevel = 1; // Base level for untrained
+        }
+
+        // Calculate success chance
+        projection.ChoiceSuccess = DetermineChoiceSuccess(choice, projection, state, player);
+
+        return projection;
+    }
+
+    private bool DetermineChoiceSuccess(EncounterChoice choice, SkillOptionProjection projection, EncounterState state, Player player)
+    {
+        SkillOption skillCheck = choice.SkillOption;
+
+        // Find matching skill card
+        SkillCard card = FindCardByName(player.AvailableCards, skillCheck.SkillName);
+        bool isUntrained = (card == null || card.IsExhausted);
+
+        int effectiveLevel = 0;
+        int difficulty = GetDifficulty(projection.Difficulty);
+
+        if (!isUntrained && card != null)
+        {
+            effectiveLevel = card.GetEffectiveLevel(state);
+            card.Exhaust();
+        }
+        else
+        {
+            difficulty += 1; // +1 difficulty for untrained
+        }
+
+        // Apply modifier
+        effectiveLevel += state.GetNextCheckModifier();
+
+        var successChance = CalculateSuccessChance(effectiveLevel, difficulty);
+        int random = _random.Next(100); // Use shared Random instance
+        bool success = successChance >= random;
+
+        return success;
+    }
+
+    private int GetDifficulty(string difficulty)
+    {
+        //Easy=0, Standard=1, Hard=2, Exceptional=3
+        switch (difficulty)
+        {
+            case "Easy":
+                return 0;
+            case "Standard":
+                return 1;
+            case "Hard":
+                return 2;
+            case "Exceptional":
+                return 3;
+            default:
+                return 1; // Default to Standard
+        }
+    }
+
+    private int CalculateSuccessChance(int effectiveLevel, int difficulty)
+    {
+        int difference = effectiveLevel - difficulty;
+
+        if (difference >= 2) return 95;
+        if (difference == 1) return 75;
+        if (difference == 0) return 50;
+        if (difference == -1) return 40;
+        return 30; // Not impossible, but very unlikely
+    }
+
+
+    private SkillCard FindCardByName(List<SkillCard> cards, string name)
+    {
+        foreach (SkillCard card in cards)
+        {
+            if (card.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && !card.IsExhausted)
+            {
+                return card;
+            }
+        }
+        return null;
+    }
+
+    private EffectProjection ProjectEffect(IMechanicalEffect effect, EncounterState state)
+    {
+        if (effect == null)
+        {
+            return new EffectProjection() { MechanicalDescription = "No mechanical Effect", NarrativeEffect = "No Narrative Effect" };
+        }
+
+        EffectProjection projection = new EffectProjection();
+        projection.NarrativeEffect = effect.ToString();
+
+        effect.Apply(state);
+
+        projection.MechanicalDescription = effect.GetDescriptionForPlayer();
+
+        return projection;
+    }
+}
