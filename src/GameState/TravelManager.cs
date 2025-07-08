@@ -1,6 +1,7 @@
 ﻿public class TravelManager
 {
     private readonly GameWorld _gameWorld;
+    private readonly TimeManager _timeManager;
     // ✅ REMOVED: cached worldState reference - Read from GameWorld when needed
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
@@ -10,6 +11,7 @@
 
     public TravelManager(
         GameWorld gameWorld,
+        TimeManager timeManager,
         LocationSystem locationSystem,
         ActionRepository actionRepository,
         LocationRepository locationRepository,
@@ -18,6 +20,7 @@
         )
     {
         _gameWorld = gameWorld;
+        _timeManager = timeManager;
         // ✅ REMOVED: cached worldState assignment
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
@@ -102,7 +105,8 @@
 
     private void AdvanceTimeBlocks(int timeBlockCost)
     {
-        // TODO: Implement time advancement through TimeManager
+        // Consume time blocks through TimeManager
+        _timeManager.ConsumeTimeBlock(timeBlockCost);
     }
 
     private void ApplyDiscoveryBonus(Location location)

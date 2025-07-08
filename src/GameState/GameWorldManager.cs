@@ -21,6 +21,7 @@
     private TradeManager tradeManager;
     private ContractSystem contractSystem;
     private RestManager restManager;
+    private TimeManager timeManager;
     private GameWorldInitializer contentLoader;
     private List<Contract> availableContracts = new List<Contract>();
     
@@ -34,7 +35,7 @@
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
                        MarketManager marketManager, TradeManager tradeManager, 
-                       ContractSystem contractSystem, RestManager restManager,
+                       ContractSystem contractSystem, RestManager restManager, TimeManager timeManager,
                        ActionGenerator? actionGenerator, PlayerProgression playerProgression,
                        ActionProcessor actionProcessor, GameWorldInitializer contentLoader,
                        ChoiceProjectionService choiceProjectionService,
@@ -53,6 +54,7 @@
         this.tradeManager = tradeManager;
         this.contractSystem = contractSystem;
         this.restManager = restManager;
+        this.timeManager = timeManager;
         this.actionGenerator = actionGenerator;
         this.actionProcessor = actionProcessor;
         this.contentLoader = contentLoader;
@@ -333,13 +335,21 @@
             return;
         }
 
+        // Check time block constraints
+        if (!timeManager.ValidateTimeBlockAction(route.TimeBlockCost))
+        {
+            throw new InvalidOperationException($"Cannot travel: Not enough time blocks remaining. Route requires {route.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
+        }
+
         // Apply costs
         int timeCost = route.GetActualTimeCost();
         int staminaCost = travelManager.CalculateStaminaCost(route);
 
         player.SpendStamina(staminaCost);
         player.ModifyCoins(route.BaseCoinCost);
-        // TODO: Implement time advancement through TimeManager
+        
+        // Consume time blocks
+        timeManager.ConsumeTimeBlock(route.TimeBlockCost);
 
         int seed = _gameWorld.WorldState.CurrentDay + player.GetHashCode();
         EncounterContext encounterContext = route.GetEncounter(seed);
@@ -548,6 +558,12 @@
         
         if (option != null)
         {
+            // Validate time block availability before attempting rest
+            if (!timeManager.ValidateTimeBlockAction(option.TimeBlockCost))
+            {
+                throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
+            }
+            
             restManager.Rest(option);
         }
     }

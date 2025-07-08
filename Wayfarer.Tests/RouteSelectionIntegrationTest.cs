@@ -56,7 +56,8 @@ namespace Wayfarer.Tests
             locationRepository.AddLocation(townSquare);
             locationRepository.AddLocation(dustyFlagon);
 
-            TravelManager travelManager = new TravelManager(gameWorld, null, null, locationRepository, null, itemRepository);
+            TimeManager timeManager = new TimeManager(player, gameWorld.WorldState);
+            TravelManager travelManager = new TravelManager(gameWorld, timeManager, null, null, locationRepository, null, itemRepository);
 
             // Act
             List<RouteComparisonData> comparisonData = travelManager.GetRouteComparisonData("town_square", "dusty_flagon");
@@ -116,7 +117,8 @@ namespace Wayfarer.Tests
             locationRepository.AddLocation(townSquare);
             locationRepository.AddLocation(dustyFlagon);
 
-            TravelManager travelManager = new TravelManager(gameWorld, null, null, locationRepository, null, itemRepository);
+            TimeManager timeManager = new TimeManager(player, gameWorld.WorldState);
+            TravelManager travelManager = new TravelManager(gameWorld, timeManager, null, null, locationRepository, null, itemRepository);
 
             // Act
             RouteRecommendation recommendation = travelManager.GetOptimalRouteRecommendation(
