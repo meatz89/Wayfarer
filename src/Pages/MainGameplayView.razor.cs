@@ -196,6 +196,33 @@ public partial class MainGameplayView : ComponentBase
         return GameWorld.WorldState.CurrentLocation;
     }
 
+    /// <summary>
+    /// Validates that all required game data is ready for UI interaction.
+    /// MainGameplayView is the single authority on data readiness.
+    /// </summary>
+    public bool IsGameDataReady()
+    {
+        // Check that core game state is initialized
+        if (GameWorld?.WorldState == null)
+            return false;
+
+        // Check that current location is properly loaded
+        var currentLocation = GameWorld.WorldState.CurrentLocation;
+        if (currentLocation == null || string.IsNullOrEmpty(currentLocation.Id) || string.IsNullOrEmpty(currentLocation.Name))
+            return false;
+
+        // Check that items are loaded (required for Market functionality)
+        if (GameWorld.WorldState.Items == null || !GameWorld.WorldState.Items.Any())
+            return false;
+
+        // Check that player is initialized
+        var player = GameWorld.GetPlayer();
+        if (player == null || !player.IsInitialized)
+            return false;
+
+        return true;
+    }
+
     public LocationSpot GetCurrentSpot()
     {
         return GameWorld.WorldState.CurrentLocationSpot;

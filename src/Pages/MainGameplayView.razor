@@ -65,9 +65,16 @@
                     </div>
                 </div>
                 <div class="map-container">
-                    <AreaMap CurrentLocation="@GetCurrentLocation()"
-                             Locations="@Locations"
-                             OnTravel="@HandleTravelStart" />
+                    @if (IsGameDataReady())
+                    {
+                        <AreaMap CurrentLocation="@GetCurrentLocation()"
+                                 Locations="@Locations"
+                                 OnTravel="@HandleTravelStart" />
+                    }
+                    else
+                    {
+                        <div class="loading-message">Loading map data...</div>
+                    }
                 </div>
                 break;
 
@@ -129,7 +136,14 @@
                         </div>
                     </div>
                     <div class="market-container">
-                        <Market Location="@GetCurrentLocation()" />
+                        @if (IsGameDataReady())
+                        {
+                            <Market Location="@GetCurrentLocation()" />
+                        }
+                        else
+                        {
+                            <div class="loading-message">Loading market data...</div>
+                        }
                     </div>
                     break;
 
@@ -145,9 +159,16 @@
                         </div>
                     </div>
                     <div class="rest-container">
-                        <RestUI 
-                            Location="@GetCurrentLocation()"
-                            OnRestComplete="HandleRestComplete" />
+                        @if (IsGameDataReady())
+                        {
+                            <RestUI 
+                                Location="@GetCurrentLocation()"
+                                OnRestComplete="HandleRestComplete" />
+                        }
+                        else
+                        {
+                            <div class="loading-message">Loading rest options...</div>
+                        }
                     </div>
                     break;
 
@@ -163,7 +184,14 @@
                         </div>
                     </div>
                     <div class="contracts-container">
-                        <ContractUI />
+                        @if (IsGameDataReady())
+                        {
+                            <ContractUI />
+                        }
+                        else
+                        {
+                            <div class="loading-message">Loading contracts...</div>
+                        }
                     </div>
                     break;
         }
