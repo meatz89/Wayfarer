@@ -2,6 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## AUTO-DOCUMENTATION MANDATE
+
+**CRITICAL WORKFLOW REMINDERS:**
+1. ✅ **ALWAYS read existing 'claude.md' first** - Understand current architecture state
+2. ✅ **ALWAYS update 'claude.md' after discovering new information** - Maintain comprehensive documentation  
+3. ✅ **NEVER proceed without updating documentation** - When new insights are discovered
+4. ✅ **Document architectural changes immediately** - Track all relationships and patterns
+
+**UPDATE TRIGGERS (always update claude.md when):**
+- Discovering new files or components
+- Understanding new relationships between classes  
+- Identifying architectural patterns
+- Finding integration issues
+- Implementing new features
+- Discovering technical debt
+- Understanding JSON content structure
+- Mapping UI-backend connections
+
+**MANDATORY SECTIONS TO MAINTAIN:**
+- Current Architecture Overview
+- Codebase Analysis & Relationships
+- Integration Mapping (UI ↔ Backend)
+- Implementation Status (Features vs. Planned)
+- Session History & Architectural Decisions
+
 ## Development Commands
 
 ### Build and Run
@@ -29,6 +54,36 @@ docker-compose up -d
 # Initialize the model (run once)
 docker exec -it build_ollama_1 /app/scripts/init-model.sh
 ```
+
+## CODEBASE ANALYSIS (Updated This Session)
+
+### Contract System Architecture Discovery
+**Key Files & Relationships:**
+- `src/GameState/Contract.cs` - Core contract data model with time management
+- `src/Game/MainSystem/ContractSystem.cs` - Contract formatting and management 
+- `src/Pages/ContractUI.razor` - Complete UI with time pressure visualization
+- `src/Content/Templates/contracts.json` - Contract definitions with penalties
+
+**Contract System Features (ALREADY IMPLEMENTED):**
+✅ **Time Management**: `StartDay`, `DueDay`, deadline tracking  
+✅ **Requirements Validation**: Items + locations via `CanComplete()`  
+✅ **Penalty System**: `FailurePenalty` field defined in JSON templates  
+✅ **Payment System**: Coin rewards on completion  
+✅ **UI Time Pressure**: Days remaining display with urgency styling  
+✅ **Completion Logic**: Full validation and reward processing
+
+**Design Patterns Identified:**
+- **State Machine**: Contract states (available → active → completed/failed)
+- **Validation Chain**: Item + location + timing requirements 
+- **Template System**: JSON-driven contract definitions
+- **Dependency Injection**: ContractSystem, ContractRepository properly registered
+
+### Service Registration Analysis (`src/ServiceConfiguration.cs`)
+✅ **Properly Configured Services:**
+- MarketManager (Singleton) - Dynamic pricing engine
+- TradeManager (Singleton) - Delegates to MarketManager  
+- ContractSystem (Singleton) - Contract management
+- All repository layers (Singleton) - Data access
 
 ## Architecture Overview
 
@@ -177,10 +232,15 @@ When working with AI features:
 - **Core Resource Management**: Time, stamina, coins, inventory weight penalties
 - **AI Narrative System**: Ollama/Gemma integration with encounter generation
 
-### 🔄 **Partially Implemented**
-- **Contract System**: Basic structure exists, needs deadline/penalty enforcement
-- **Market UI**: Basic trading interface, needs integration with dynamic pricing
+### ✅ **Recently Completed (Latest Session)**
+- **Market System Integration**: TradeManager now uses MarketManager for dynamic pricing
+- **Market UI Enhancement**: UI displays location-specific prices with arbitrage opportunities
+- **Dynamic Pricing Display**: Market.razor integrated with MarketManager backend services
+- **Contract System Analysis**: Discovered complete contract implementation (was incorrectly marked as incomplete)
+
+### 🔄 **Partially Implemented** 
 - **Inventory Management**: 3-slot limit enforced, needs weight penalty UI updates
+- **Contract Failure Logic**: Penalty enforcement needs implementation in game flow
 
 ### ❌ **Missing/Needs Enhancement**
 - **Advanced Market Analysis**: Profit calculator tools for trading decisions
@@ -214,12 +274,20 @@ int totalWeight = GameManager.CalculateTotalWeight();
 string weightStatus = UI calculated from weight values
 ```
 
-#### **3. Market.razor ↔ MarketManager**
+#### **3. Market.razor ↔ MarketManager ↔ TradeManager**
 ```csharp
-// Trading operations (discovered in codebase)
-MarketManager handles location-specific pricing
-ArbitrageOpportunity provides profit calculations
-Frontend displays buy/sell prices per location
+// Complete market integration (RECENTLY IMPLEMENTED)
+@inject MarketManager MarketManager
+@inject TradeManager TradeManager
+
+// Dynamic pricing integration
+var items = MarketManager.GetAvailableItems(Location.Id);
+bool canBuy = MarketManager.CanBuyItem(item.Id, Location.Id);
+var opportunities = MarketManager.GetArbitrageOpportunities(fromLocation, toLocation);
+
+// TradeManager delegates to MarketManager for location-aware pricing
+TradeManager.BuyItem(item) → MarketManager.BuyItem(itemId, locationId)
+TradeManager.SellItem(item) → MarketManager.SellItem(itemId, locationId)
 ```
 
 #### **4. Dependency Injection Pattern**
@@ -256,19 +324,30 @@ All UI components use `@inject` for backend service access:
 3. **UI Integration**: Direct service injection pattern with reactive updates
 4. **Resource Management**: Weight penalties properly integrated across travel system
 
+### **Latest Session Achievements (Market Integration + Analysis)**
+1. **TradeManager Refactoring**: Updated to delegate all pricing operations to MarketManager
+2. **Market UI Integration**: Replaced static pricing with dynamic MarketManager calls
+3. **Arbitrage Display**: Added real-time profitable trading opportunity visualization
+4. **Service Layer Integration**: Complete backend-frontend integration for dynamic pricing
+5. **Contract System Discovery**: Found complete contract implementation with time pressure UI
+6. **Architecture Documentation**: Updated priorities based on actual vs. perceived implementation status
+
 ### **Key Integration Points Identified**
 - UI components directly inject and call backend services
 - State changes flow through GameWorld and GameWorldManager
 - RouteComparisonData provides rich UI display data
 - MarketManager enables location-aware pricing decisions
+- **TradeManager ↔ MarketManager**: Service delegation pattern for location-specific pricing
 
 ## Next Priorities
 
-### **High Priority Integration Enhancements**
-1. **Market UI Enhancement**: Integrate dynamic pricing display with arbitrage opportunities
-2. **Contract System UI**: Add time pressure visualization and deadline warnings  
+### **High Priority Integration Enhancements** (Updated After Analysis)
+1. ~~**Market UI Enhancement**: Integrate dynamic pricing display with arbitrage opportunities~~ ✅ **COMPLETED**
+2. ~~**Contract System UI**: Add time pressure visualization and deadline warnings~~ ✅ **ALREADY IMPLEMENTED**  
 3. **Route-Market Integration**: Combine travel decisions with trading opportunities
 4. **Advanced Inventory UI**: Show weight penalties and capacity management
+5. ~~**Service Configuration Audit**: Ensure all MarketManager dependencies are properly registered~~ ✅ **VERIFIED**
+6. **Contract Failure Enforcement**: Implement automatic failure detection and penalty application
 
 ### **Technical Debt & Improvements**
 1. **Error Handling**: Add try-catch blocks for service calls in UI components
