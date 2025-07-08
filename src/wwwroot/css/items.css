@@ -78,8 +78,8 @@
 	border: 1px solid var(--slate);
 }
 
-/* Market Items */
-.market-container {
+/* UI Container Panels */
+.market-container, .rest-container, .contracts-container {
 	background-color: var(--bg-panel);
 	border: 1px solid var(--oak-dark);
 	border-radius: 5px;
@@ -306,4 +306,154 @@
 .enables {
 	color: var(--moss);
 	font-size: 0.9em;
+}
+
+/* Rest Screen Styles */
+.rest-options {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.rest-option {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 5px;
+	padding: 15px;
+	transition: all 0.2s ease;
+}
+
+.rest-option:hover {
+	background-color: var(--bg-active);
+}
+
+.option-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+.option-name {
+	font-family: var(--font-primary);
+	color: var(--leather);
+	font-size: 1.1em;
+	letter-spacing: 0.05em;
+}
+
+.option-cost {
+	font-family: var(--font-secondary);
+	color: var(--resource-coins);
+	font-weight: bold;
+}
+
+.option-benefits {
+	margin-bottom: 12px;
+}
+
+.benefit {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 5px;
+}
+
+.benefit-label {
+	color: var(--text-secondary);
+}
+
+.benefit-value {
+	color: var(--text-primary);
+	font-weight: bold;
+}
+
+.special-benefit .benefit-value {
+	color: var(--moss);
+}
+
+.rest-button {
+	background-color: var(--bg-active);
+	color: var(--text-primary);
+	border: 1px solid var(--oak-dark);
+	border-radius: 3px;
+	padding: 8px 15px;
+	font-family: var(--font-secondary);
+	transition: all 0.2s ease;
+	cursor: url('/images/cursors/pointer.png'), pointer !important;
+	width: 100%;
+}
+
+.rest-button:hover {
+	background-color: var(--oak-mid);
+}
+
+.rest-button:disabled {
+	background-color: var(--bg-panel);
+	color: var(--text-muted);
+	cursor: url('/images/cursors/cursor.png'), default !important;
+}
+
+/* Contract Screen Styles */
+.contracts-list {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.contract-item {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 5px;
+	padding: 15px;
+	transition: all 0.2s ease;
+}
+
+.contract-item:hover {
+	background-color: var(--bg-active);
+}
+
+.contract-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+.contract-title {
+	font-family: var(--font-primary);
+	color: var(--leather);
+	font-size: 1.1em;
+	letter-spacing: 0.05em;
+}
+
+.contract-payment {
+	font-family: var(--font-secondary);
+	color: var(--resource-coins);
+	font-weight: bold;
+}
+
+.contract-description {
+	color: var(--text-secondary);
+	margin-bottom: 12px;
+	line-height: 1.4;
+}
+
+.contract-button {
+	background-color: var(--bg-active);
+	color: var(--text-primary);
+	border: 1px solid var(--oak-dark);
+	border-radius: 3px;
+	padding: 8px 15px;
+	font-family: var(--font-secondary);
+	transition: all 0.2s ease;
+	cursor: url('/images/cursors/pointer.png'), pointer !important;
+}
+
+.contract-button:hover {
+	background-color: var(--oak-mid);
+}
+
+.contract-button:disabled {
+	background-color: var(--bg-panel);
+	color: var(--text-muted);
+	cursor: url('/images/cursors/cursor.png'), default !important;
 }

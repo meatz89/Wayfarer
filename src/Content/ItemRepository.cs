@@ -22,10 +22,6 @@
         return _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Name == name);
     }
 
-    public Item GetItem(string itemId)
-    {
-        return GetItemById(itemId);
-    }
 
     public List<Item> GetAllItems()
     {

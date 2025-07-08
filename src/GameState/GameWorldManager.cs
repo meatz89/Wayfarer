@@ -550,6 +550,87 @@
     }
 
     /// <summary>
+    /// Get available travel routes between locations (UI read-only access)
+    /// </summary>
+    public List<RouteOption> GetAvailableRoutes(string fromLocationId, string toLocationId)
+    {
+        return travelManager.GetAvailableRoutes(fromLocationId, toLocationId);
+    }
+
+    /// <summary>
+    /// Check if player can travel on a specific route (UI validation)
+    /// </summary>
+    public bool CanTravelRoute(RouteOption route)
+    {
+        return travelManager.CanTravel(route);
+    }
+
+    /// <summary>
+    /// Get available market items for UI display
+    /// </summary>
+    public List<Item> GetAvailableMarketItems(string locationId)
+    {
+        return marketManager.GetAvailableItems(locationId);
+    }
+
+    /// <summary>
+    /// Check if player can buy item (UI validation)
+    /// </summary>
+    public bool CanBuyMarketItem(string itemId, string locationId)
+    {
+        return marketManager.CanBuyItem(itemId, locationId);
+    }
+
+    /// <summary>
+    /// Get arbitrage opportunities for UI display
+    /// </summary>
+    public List<ArbitrageOpportunity> GetArbitrageOpportunities(string fromLocationId, string toLocationId)
+    {
+        return marketManager.GetArbitrageOpportunities(fromLocationId, toLocationId);
+    }
+
+    /// <summary>
+    /// Complete a contract action through gateway
+    /// </summary>
+    public void CompleteContract(Contract contract)
+    {
+        // Apply contract completion effects
+        _gameWorld.GetPlayer().ModifyCoins(contract.Payment);
+
+        // If this contract unlocks others, make them available
+        if (contract.UnlocksContractIds.Any())
+        {
+            foreach (string contractId in contract.UnlocksContractIds)
+            {
+                // TODO: Add contract repository dependency to GameWorldManager constructor
+                // Contract unlockedContract = contractRepository.GetContract(contractId);
+                // if (unlockedContract != null)
+                // {
+                //     unlockedContract.StartDay = _gameWorld.CurrentDay;
+                //     unlockedContract.DueDay = _gameWorld.CurrentDay + 5; // Arbitrary due date
+                // }
+            }
+        }
+
+        // If this contract locks others, make them unavailable
+        if (contract.LocksContractIds.Any())
+        {
+            foreach (string contractId in contract.LocksContractIds)
+            {
+                // TODO: Add contract repository dependency to GameWorldManager constructor
+                // Contract lockedContract = contractRepository.GetContract(contractId);
+                // if (lockedContract != null)
+                // {
+                //     lockedContract.IsFailed = true;
+                // }
+            }
+        }
+
+        // Mark contract as completed
+        contract.IsCompleted = true;
+    }
+
+    /// <summary>
     /// Calculate total inventory weight for UI display
     /// </summary>
     public int CalculateTotalWeight()
@@ -562,7 +643,7 @@
         {
             if (!string.IsNullOrEmpty(itemName))
             {
-                var item = itemRepository.GetItem(itemName);
+                var item = itemRepository.GetItemById(itemName);
                 if (item != null)
                 {
                     totalWeight += item.Weight;

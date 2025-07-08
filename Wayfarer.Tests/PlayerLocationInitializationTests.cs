@@ -29,7 +29,7 @@ namespace Wayfarer.Tests
             services.AddLogging();
             
             // Use the economic-only service configuration
-            services.ConfigureEconomicServices();
+            services.ConfigureTestServices();
             
             return services.BuildServiceProvider();
         }

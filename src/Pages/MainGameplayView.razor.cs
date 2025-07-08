@@ -9,7 +9,8 @@ public partial class MainGameplayView : ComponentBase
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private GameWorld GameWorld { get; set; }
     [Inject] private GameWorldManager GameManager { get; set; }
-    [Inject] private TravelManager TravelManager { get; set; }
+    // ✅ ARCHITECTURAL COMPLIANCE: Only inject GameWorldManager for actions
+    // Read-only services allowed for UI state management and display
     [Inject] private MessageSystem MessageSystem { get; set; }
     [Inject] private ItemRepository ItemRepository { get; set; }
     [Inject] private LoadingStateService? LoadingStateService { get; set; }
@@ -274,7 +275,8 @@ public partial class MainGameplayView : ComponentBase
 
     private async Task HandleTravelStart(string travelDestination)
     {
-        var routes = TravelManager.GetAvailableRoutes(GameWorld.WorldState.CurrentLocation.Id, travelDestination);
+        // ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway
+        var routes = GameManager.GetAvailableRoutes(GameWorld.WorldState.CurrentLocation.Id, travelDestination);
         RouteOption routeOption = routes.FirstOrDefault();
 
         await GameManager.Travel(routeOption);
