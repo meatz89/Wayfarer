@@ -565,9 +565,9 @@
     /// <summary>
     /// Get market pricing information for UI display
     /// </summary>
-    public object GetMarketData(string locationId)
+    public List<Item> GetMarketData(string locationId)
     {
-        return marketManager.GetLocationPricing(locationId);
+        return marketManager.GetAvailableItems(locationId);
     }
 
     /// <summary>
@@ -602,12 +602,13 @@
         return marketManager.CanBuyItem(itemId, locationId);
     }
 
+
     /// <summary>
-    /// Get arbitrage opportunities for UI display
+    /// Get item price at a specific location
     /// </summary>
-    public List<ArbitrageOpportunity> GetArbitrageOpportunities(string fromLocationId, string toLocationId)
+    public int GetItemPrice(string locationId, string itemId, bool isBuyPrice)
     {
-        return marketManager.GetArbitrageOpportunities(fromLocationId, toLocationId);
+        return marketManager.GetItemPrice(locationId, itemId, isBuyPrice);
     }
 
     /// <summary>

@@ -56,12 +56,18 @@ public class MarketManager
                 break;
             case "dusty_flagon":
                 pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1); // Cheaper at tavern
-                pricing.SellPrice = item.SellPrice + 1; // Better selling price
+                pricing.SellPrice = Math.Max(1, item.SellPrice); // Standard selling price
                 break;
             default:
                 pricing.BuyPrice = item.BuyPrice;
                 pricing.SellPrice = item.SellPrice;
                 break;
+        }
+        
+        // Ensure buy price is always higher than sell price for valid trading
+        if (pricing.BuyPrice <= pricing.SellPrice)
+        {
+            pricing.BuyPrice = pricing.SellPrice + 1;
         }
 
         return pricing;
@@ -178,38 +184,6 @@ public class MarketManager
         };
     }
 
-    /// <summary>
-    /// Calculate arbitrage opportunities between two locations.
-    /// </summary>
-    /// <param name="fromLocation">Location to buy from</param>
-    /// <param name="toLocation">Location to sell to</param>
-    /// <returns>List of profitable arbitrage opportunities, sorted by profit descending</returns>
-    public List<ArbitrageOpportunity> GetArbitrageOpportunities(string fromLocation, string toLocation)
-    {
-        List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
-        
-        var allItems = _gameWorld.WorldState.Items ?? new List<Item>();
-            
-        foreach (var item in allItems)
-        {
-            int buyPrice = GetItemPrice(fromLocation, item.Id, true);
-            int sellPrice = GetItemPrice(toLocation, item.Id, false);
-            
-            if (buyPrice > 0 && sellPrice > 0 && sellPrice > buyPrice)
-            {
-                opportunities.Add(new ArbitrageOpportunity
-                {
-                    ItemId = item.Id,
-                    BuyPrice = buyPrice,
-                    SellPrice = sellPrice,
-                    Profit = sellPrice - buyPrice,
-                    ProfitMargin = ((float)(sellPrice - buyPrice) / buyPrice) * 100
-                });
-            }
-        }
-        
-        return opportunities.OrderByDescending(o => o.Profit).ToList();
-    }
 
     /// <summary>
     /// Check if player can buy a specific item at a specific location.
@@ -271,19 +245,5 @@ public class MarketManager
     }
 
 
-    /// <summary>
-    /// Get location pricing data for UI display
-    /// </summary>
-    public object GetLocationPricing(string locationId)
-    {
-        var availableItems = GetAvailableItems(locationId);
-        return availableItems.Select(item => new {
-            ItemId = item.Id,
-            Name = item.Name,
-            BuyPrice = item.BuyPrice,
-            SellPrice = item.SellPrice,
-            IsAvailable = item.IsAvailable
-        }).ToList();
-    }
 
 }
