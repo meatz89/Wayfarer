@@ -1,0 +1,19 @@
+# Dockerfile.ollama-gemma
+FROM ollama/ollama:rocm
+
+# Set working directory
+WORKDIR /app
+
+# Copy startup and initialization scripts
+COPY ./startup.sh /app/
+COPY ./init-model.sh /app/
+RUN chmod +x /app/startup.sh /app/init-model.sh
+
+# Create directory for models
+RUN mkdir -p /root/.ollama/models
+
+# Start Ollama, pull the model, and stop Ollama
+RUN /app/init-model.sh
+
+# Set the entrypoint to start Ollama when container runs
+ENTRYPOINT ["/app/startup.sh"]

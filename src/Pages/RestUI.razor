@@ -1,0 +1,79 @@
+﻿@* RestUI.razor *@
+@inject GameWorldManager GameWorldManager
+@inject GameWorld GameWorld
+@inject RestManager RestManager
+
+<div class="rest-options">
+    <div class="rest-option">
+        <div class="option-header">
+            <span class="option-name">Camp Outside</span>
+            <span class="option-cost">Free</span>
+        </div>
+        <div class="option-benefits">
+            <div class="benefit">
+                <span class="benefit-label">Stamina Recovery:</span>
+                <span class="benefit-value">+2</span>
+            </div>
+            <div class="benefit special-benefit">
+                <span class="benefit-label">Special:</span>
+                <span class="benefit-value">Enables dawn departure</span>
+            </div>
+        </div>
+        <button class="rest-button" @onclick='() => Rest("camp")'>
+            Rest Here
+        </button>
+    </div>
+
+    <div class="rest-option">
+        <div class="option-header">
+            <span class="option-name">Inn Room</span>
+            <span class="option-cost">2 coins</span>
+        </div>
+        <div class="option-benefits">
+            <div class="benefit">
+                <span class="benefit-label">Stamina Recovery:</span>
+                <span class="benefit-value">+4</span>
+            </div>
+            <div class="benefit special-benefit">
+                <span class="benefit-label">Special:</span>
+                <span class="benefit-value">Provides market rumors</span>
+            </div>
+        </div>
+        <button class="rest-button"
+                disabled="@(GameWorld.GetPlayer().Coins < 2)"
+                @onclick='() => Rest("inn")'>
+            Rest Here
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Location Location { get; set; }
+    [Parameter] public EventCallback OnRestComplete { get; set; }
+
+    private async Task Rest(string option)
+    {
+        // Simulate resting
+        if (option == "inn")
+        {
+            GameWorld.GetPlayer().ModifyCoins(-2);
+            GameWorld.GetPlayer().Stamina += 4;
+        }
+        else // camp
+        {
+            GameWorld.GetPlayer().Stamina += 2;
+        }
+
+        // Advance to next day
+        GameWorld.CurrentDay++;
+        GameWorld.CurrentTimeBlock = option == "camp" ? TimeBlocks.Dawn : TimeBlocks.Morning;
+
+        // Refresh cards
+        foreach (var card in GameWorld.GetPlayer().GetAllAvailableCards())
+        {
+            GameWorld.GetPlayer().RefreshCard(card);
+        }
+
+        await OnRestComplete.InvokeAsync();
+    }
+}

@@ -1,0 +1,25 @@
+﻿@if (HasObjective())
+{
+    <div class="game-status-bar">
+        <div class="current-objective">
+            <div class="objective-title">Current Objective:</div>
+            <div class="objective-text">@GetCurrentObjectiveText()</div>
+        </div>
+    </div>
+}
+
+@code {
+    [Inject] private GameWorld GameWorld { get; set; }
+    [Parameter] public int StateVersion { get; set; }
+
+    public bool HasObjective()
+    {
+        return false;    
+    }
+
+    public string GetCurrentObjectiveText()
+    {
+        string objective = "Current Objective";
+        return objective;
+    }
+}

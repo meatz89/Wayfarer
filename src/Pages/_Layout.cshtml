@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <!-- Add to _Host.cshtml or index.html head section -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+    <link href="css/game.css" rel="stylesheet" />
+    <link href="css/actions.css" rel="stylesheet" />
+    <link href="css/approaches.css" rel="stylesheet" />
+    <link href="css/grids.css" rel="stylesheet" />
+    <link href="css/containers.css" rel="stylesheet" />
+    <link href="css/ui-components.css" rel="stylesheet" />
+    <link href="css/encounter.css" rel="stylesheet" />
+    <link href="css/stats-resources.css" rel="stylesheet" />
+    <link href="css/text-styles.css" rel="stylesheet" />
+    <link href="css/time-system.css" rel="stylesheet" />
+    <link href="css/tooltip.css" rel="stylesheet" />
+    <link href="css/character-creation.css" rel="stylesheet" />
+    <link href="css/badges.css" rel="stylesheet" />
+    <link href="css/cards.css" rel="stylesheet" />
+    <link href="css/content-warning.css" rel="stylesheet" />
+    <link href="css/save.css" rel="stylesheet" />
+    <link href="css/items.css" rel="stylesheet" />
+    <link href="css/loading.css" rel="stylesheet" />
+    <link href="css/music-player.css" rel="stylesheet" />
+
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    @RenderBody()
+    <div id="blazor-error-ui" style="display:none">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.server.js"></script>
+
+    <script src="js/main.js"></script>
+    <script src="js/scrollToBottom.js"></script>
+    <script src="js/loading-animation.js"></script>
+    <script src="js/dragdrop.js"></script>
+    <script src="js/tooltip.js"></script>
+    <script src="js/audioControl.js"></script>
+</body>
+</html>

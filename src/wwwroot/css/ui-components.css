@@ -1,0 +1,182 @@
+﻿
+/* ==================== UI Components ==================== */
+/* Buttons */
+.action-button, .narrative-button, .creation-button, .resource-use-btn {
+	background-color: var(--leather);
+	color: var(--parchment);
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
+	font-family: var(--font-primary);
+	letter-spacing: 0.05em;
+	transition: all 0.2s ease;
+}
+
+.action-button {
+	padding: 8px 12px;
+	width: 100%;
+	margin-top: 8px;
+}
+
+.narrative-button {
+	padding: 12px 30px;
+	font-size: 1.1rem;
+}
+
+.encounter-result-item {
+	background-color: var(--bg-active);
+	color: var(--text-primary);
+	border-radius: 3px;
+	padding: 5px 25px 5px 25px;
+}
+
+.resource-use-btn {
+	padding: 2px 6px;
+	font-size: 0.8rem;
+	margin-left: auto;
+}
+
+	.action-button:hover:not(:disabled),
+	.narrative-button:hover,
+	.creation-button:hover:not(:disabled),
+	.resource-use-btn:hover:not(:disabled) {
+		background-color: var(--clay);
+		transform: translateY(-2px);
+		box-Thief: 0 4px 8px rgba(0, 0, 0, 0.2);
+	}
+
+	.action-button:disabled,
+	.creation-button:disabled,
+	.resource-use-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		background-color: var(--text-muted);
+	}
+
+/* Toggle buttons */
+.toggle-button, .wait-button {
+	background-color: var(--bg-active);
+	border: 1px solid var(--oak-mid);
+	color: var(--text-primary);
+	padding: 8px 16px;
+	border-radius: 3px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: var(--font-primary);
+	letter-spacing: 0.05em;
+	width: 150px;
+	display: flex;
+	flex-direction: column-reverse;
+	margin: 5px;
+}
+
+	.toggle-button:hover, .wait-button:hover {
+		background-color: var(--leather);
+	}
+
+	.toggle-button.active {
+		background-color: var(--leather);
+		border: 1px solid var(--clay);
+	}
+
+/* Cards */
+.location-card {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 5px;
+	padding: 1rem;
+	transition: all 0.2s ease;
+	position: relative;
+}
+
+	.location-card.current {
+		background-color: var(--bg-active);
+		border: 2px solid var(--leather);
+		box-Thief: 0 0 15px rgba(168, 125, 95, 0.3);
+	}
+
+.location-name {
+	font-family: var(--font-primary);
+	color: var(--parchment);
+	font-size: 1.2rem;
+	margin-bottom: 0.5rem;
+	border-bottom: 1px solid var(--oak-mid);
+	padding-bottom: 0.3rem;
+}
+
+/* Location elements */
+.location {
+	display: flex;
+	flex-flow: column;
+	margin-bottom: 1rem;
+}
+
+.location-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--oak-mid);
+}
+
+.location-title {
+	font-family: var(--font-primary);
+	color: var(--text-primary);
+	font-size: 1.5rem;
+	margin: 0;
+	font-weight: normal;
+}
+
+.location-actions {
+	display: flex;
+	gap: 10px;
+}
+
+.location-button {
+	background-color: var(--leather);
+	color: var(--parchment);
+	border: none;
+	padding: 8px 15px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-family: var(--font-primary);
+	letter-spacing: 0.05em;
+	transition: all 0.2s ease;
+}
+
+	.location-button:hover {
+		background-color: var(--clay);
+		transform: translateY(-2px);
+	}
+
+.location-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.location-spot-properties {
+	margin-bottom: 1rem;
+}
+
+/* Property tags */
+.property-tag {
+	display: inline-flex;
+	align-items: center;
+	margin: 3px;
+	padding: 5px 10px;
+	border-radius: 3px;
+	background: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	font-size: 0.85em;
+	color: var(--text-secondary);
+}
+
+.property-icon {
+	margin-right: 5px;
+}
+
+/* Map toggle */
+.map-toggle {
+	display: flex;
+}

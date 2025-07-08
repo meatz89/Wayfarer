@@ -1,0 +1,118 @@
+﻿@* MarketUI.razor *@
+@inject GameWorldManager GameManager
+@inject ItemRepository ItemRepository
+
+<div class="market-container">
+    <h2>@Location.Name Market</h2>
+
+    <div class="player-status">
+        @{
+            int totalWeight = GameManager.CalculateTotalWeight();
+            int coinWeight = GameWorld.GetPlayer().Coins / 10;
+            string weightStatus = totalWeight <= 3 ? "Light load" :
+            (totalWeight <= 6 ? "Medium load (+1 stamina)" :
+            "Heavy load (+2 stamina)");
+        }
+        <div class="coins">
+            <span>Coins: @GameWorld.GetPlayer().Coins</span>
+            <span>(Weight: @coinWeight)</span>
+        </div>
+        <div class="weight">
+            <span>Load: @weightStatus (@totalWeight weight units)</span>
+        </div>
+    </div>
+
+    <div class="market-table">
+        <div class="table-header">
+            <div class="item-name">Item</div>
+            <div class="item-weight">Weight</div>
+            <div class="item-buy">Buy</div>
+            <div class="item-sell">Sell</div>
+            <div class="item-actions">Actions</div>
+        </div>
+
+        @foreach (Item item in Location.MarketItems)
+        {
+            Player playerState = GameWorld.GetPlayer();
+            bool canBuy = playerState.Coins >= item.BuyPrice &&
+            playerState.Inventory.HasFreeSlot();
+            bool canSell = playerState.Inventory.HasItem(item.Name);
+
+            <div class="market-item">
+                <div class="item-name">
+                    @item.Name
+                    @if (item.InventorySlots > 1)
+                    {
+                        <span class="bulk-item">(@item.InventorySlots slots)</span>
+                    }
+                    @if (item.EnabledRouteTypes.Any())
+                    {
+                        <span class="route-enabler">
+                            (@item.RouteTypesDescription)
+                        </span>
+                    }
+                </div>
+                <div class="item-weight">@item.Weight (@item.WeightDescription)</div>
+                <div class="item-buy">@item.BuyPrice coins</div>
+                <div class="item-sell">@item.SellPrice coins</div>
+                <div class="item-actions">
+                    <button class="buy-button"
+                            disabled="@(!canBuy)"
+                            @onclick="() => BuyItem(item)">
+                        Buy
+                    </button>
+                    <button class="sell-button"
+                            disabled="@(!canSell)"
+                            @onclick="() => SellItem(item)">
+                        Sell
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="inventory-preview">
+        <h3>Your Inventory</h3>
+        <div class="inventory-items">
+            @for (int i = 0; i < GameWorld.GetPlayer().Inventory.ItemSlots.Length; i++)
+            {
+                string itemName = GameWorld.GetPlayer().Inventory.ItemSlots[i];
+                int index = i;
+
+                <div class="inventory-slot @(itemName == null ? "empty" : "")">
+                    @if (itemName != null)
+                    {
+                        Item item = ItemRepository.GetItemByName(itemName);
+                        <div class="item-details">
+                            <span class="item-name">@itemName</span>
+                            <span class="item-weight">Weight: @item.Weight</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <span>Empty</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Location Location { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
+    [Inject] public TradeManager TradeManager { get; set; }
+
+    private void BuyItem(Item item)
+    {
+        TradeManager.BuyItem(item);
+        StateHasChanged();
+    }
+
+    private void SellItem(Item item)
+    {
+        TradeManager.SellItem(item);
+        StateHasChanged();
+    }
+
+}

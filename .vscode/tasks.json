@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/BlazorRPG.sln",
+                "${workspaceFolder}/Wayfarer.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/BlazorRPG.sln",
+                "${workspaceFolder}/Wayfarer.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/BlazorRPG.sln"
+                "${workspaceFolder}/Wayfarer.sln"
             ],
             "problemMatcher": "$msCompile"
         }

@@ -1,0 +1,35 @@
+﻿@* AreaMap.razor *@
+@inject GameWorldManager ActionManager
+@inject GameWorld GameWorld
+
+<div class="area-map-container">
+    <div class="locations-grid">
+        @foreach (var location in GetTravelableLocations())
+        {
+            <div class="location-card reachable">
+                <div class="location-name">
+                    @location.Name @(location.Id == CurrentLocation.Id ? "(Current)" : "")
+                </div>
+
+                <button class="action-button"
+                        @onclick="() => OnTravel.InvokeAsync(location.Id)">
+                    TRAVEL
+                </button>
+            </div>
+        }
+    </div>
+</div>
+@code {
+    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Parameter] public Location CurrentLocation { get; set; }
+    [Parameter] public List<Location> Locations { get; set; }
+    [Parameter] public EventCallback<string> OnTravel { get; set; }
+
+    private List<Location> GetTravelableLocations()
+    {
+        List<Location> enumerable = Locations.Where(loc =>
+            GameWorldManager.CanTravelTo(loc.Id)).ToList();
+
+        return enumerable;
+    }
+}

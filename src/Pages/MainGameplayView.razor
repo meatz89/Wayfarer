@@ -1,0 +1,339 @@
+﻿@using Wayfarer.UIHelpers
+<ObjectiveView StateVersion="@StateVersion" />
+
+<div class="game-status-bar">
+    <div class="player-status">
+
+        <CardHand PlayerCards="@PlayerState.AvailableCards" OnCardRefreshed="HandleCardRefreshed" />
+
+        <div class="status-item">
+            <span class="status-label">Stamina</span>
+            <span class="status-value">
+                @Stamina
+            </span>
+            <span class="danger">
+                @(TurnActionPoints * -1)
+            </span>
+        </div>
+
+        <div class="status-item">
+            <span class="status-label">Concentration</span>
+            <span class="status-value">
+                @Concentration
+            </span>
+            <span class="danger">
+                @(TurnActionPoints * -1)
+            </span>
+        </div>
+    </div>
+
+    <div class="game-info">
+        <div class="time-display @StyleHelper.GetTimeBlocksStyle(CurrentTime)">
+            <span class="time-icon">@StyleHelper.GetIconForTimeWindow(CurrentTime)</span>
+            <span class="time-text">@CurrentTime.ToString()</span>
+            <span class="time-hours">@CurrentHour:00</span>
+        </div>
+    </div>
+</div>
+
+<div class="game-content">
+    <!-- Main content area -->
+    <div class="main-content">
+        @switch (CurrentScreen)
+        {
+            case CurrentViews.EncounterScreen:
+                <EncounterView EncounterManager="EncounterManager"
+                               OnEncounterCompleted="OnEncounterCompleted"
+                               @key="StateVersion" />
+                break;
+
+            case CurrentViews.NarrativeScreen:
+                <NarrativeView LocationName="@SelectedLocation"
+                               OnNarrativeCompleted="OnNarrativeCompleted"
+                               EncounterResult="@EncounterResult" />
+                break;
+
+            case CurrentViews.MapScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">@GetCurrentLocation().Id</h2>
+                        <div class="location-actions">
+                            <button class="location-button" @onclick="SwitchToTravelScreen">
+                                Travel 🗺️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="map-container">
+                    <AreaMap CurrentLocation="@GetCurrentLocation()"
+                             Locations="@Locations"
+                             OnTravel="@HandleTravelStart" />
+                </div>
+                break;
+
+            case CurrentViews.LocationScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">@GetCurrentLocation()?.Name</h2>
+                        <div class="location-actions">
+                            <button class="location-button" @onclick="SwitchToTravelScreen">
+                                Travel 🗺️
+                            </button>
+                            <button class="location-button" @onclick="SwitchToMarketScreen">
+                                Market 💰
+                            </button>
+                            <button class="location-button" @onclick="SwitchToRestScreen">
+                                Rest 🛏️
+                            </button>
+                            <button class="location-button" @onclick="SwitchToContractScreen">
+                                Contracts 📜
+                            </button>
+                        </div>
+                    </div>
+
+                    <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
+                                     CurrentSpot="@CurrentSpot"
+                                     OnSpotSelected="@HandleSpotSelection"
+                                     OnActionSelected="@HandleActionSelection" />
+                </div>
+                break;
+
+                case CurrentViews.TravelScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Travel from @GetCurrentLocation()?.Name</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="travel-container">
+                        <TravelSelectionWithWeight 
+                            CurrentLocation="@GetCurrentLocation()"
+                            Locations="@Locations"
+                            OnTravelRoute="@HandleTravelRoute" />
+                    </div>
+                    break;
+
+                case CurrentViews.MarketScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">@GetCurrentLocation()?.Name Market</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="market-container">
+                        <MarketUI Location="@GetCurrentLocation()" />
+                    </div>
+                    break;
+
+                case CurrentViews.RestScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Rest in @GetCurrentLocation()?.Name</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rest-container">
+                        <RestUI 
+                            Location="@GetCurrentLocation()"
+                            OnRestComplete="HandleRestComplete" />
+                    </div>
+                    break;
+
+                case CurrentViews.ContractScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Contracts</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contracts-container">
+                        <ContractUI />
+                    </div>
+                    break;
+        }
+    </div>
+
+    @if (CurrentScreen == CurrentViews.LocationScreen)
+    {
+        <div class="game-sidebar" @ref="SidebarRef">
+            <div class="sidebar-section expanded">
+                <div class="section-header" id="section-character">
+                    <span>Character</span>
+                </div>
+
+                <div class="section-content">
+                    <div class="archetype-portrait">
+                        <img src=@GetArchetypePortrait() />
+                    </div>
+
+                    <div class="player-character">
+                        <div class="character-detail">
+                            <span class="detail-label">Name:</span>
+                            <span class="detail-value">@PlayerState.Name</span>
+                        </div>
+                        <div class="character-detail">
+                            <span class="detail-label">Level:</span>
+                            <span class="detail-value">@PlayerState.Level</span>
+                        </div>
+                        <div class="character-detail">
+                            <span class="detail-label">Experience:</span>
+                            <span class="detail-value">@PlayerState.CurrentXP / @PlayerState.XPToNextLevel</span>
+                        </div>
+                        <div class="player-archetype">
+                            <span class="archetype-icon">@StyleHelper.GetArchetypeIcon(PlayerState.Archetype)</span>
+                            <span class="archetype-name">@PlayerState.Archetype</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section @(ExpandedSections[SidebarSections.skills] ? "expanded" : "collapsed")">
+                <div class="section-header hover" id="section-skills" @onclick="() => ToggleSection(SidebarSections.skills)">
+                    <span>Skills</span>
+                    <span class="expand-icon">@(ExpandedSections[SidebarSections.skills] ? "▼" : "►")</span>
+                </div>
+
+                @if (ExpandedSections[SidebarSections.skills])
+                {
+                    <div class="section-content">
+                        <div class="skills-grid">
+                            @foreach (var skill in new[]
+                                                {
+                                        (SkillTypes.BruteForce, "", "Brute Force")
+                                        })
+                            {
+                                var type = skill.Item1;
+                                var icon = skill.Item2;
+                                var label = skill.Item3;
+                                var lvl = PlayerState.Skills.GetLevelForSkill(type);
+                                var xp = PlayerState.Skills.GetXPForSkill(type);
+                                var next = PlayerState.Skills.GetXPToNextForSkill(type);
+                                var pct = next > 0 ? (double)xp / next * 100 : 0;
+                                <div class="player-skill">
+                                    <span class="skill-icon">@icon</span>
+                                    <span class="skill-label">@label</span>
+                                    <div class="skill-bar">
+                                        <span class="skill-level-left">Lv @lvl</span>
+                                        <div class="skill-progress">
+                                            <div class="skill-progress-inner" style="width:@pct%"> </div>
+                                        </div>
+                                        <span class="skill-xp-right">@xp/@next</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="sidebar-section @(ExpandedSections[SidebarSections.resources] ? "expanded" : "collapsed")">
+                <div class="section-header hover" id="section-resources" @onclick="() => ToggleSection(SidebarSections.resources)">
+                    <span>Resources</span>
+                    <span class="expand-icon">@(ExpandedSections[SidebarSections.resources] ? "▼" : "►")</span>
+                </div>
+
+                @if (ExpandedSections[SidebarSections.resources])
+                {
+                    <div class="section-content">
+                        <div class="resource-grid">
+                            <div class="player-resource">
+                                <span class="resource-icon" style="color: var(--resource-coins)">💰</span>
+                                <span class="resource-label">Coins</span>
+                                <span class="resource-value">@PlayerState.Coins</span>
+                            </div>
+
+                            <div class="player-resource">
+                                <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
+                                <span class="resource-label">Food</span>
+                                <span class="resource-value">@PlayerState.Food</span>
+                                @if (PlayerState.Food > 0)
+                                {
+                                    <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="sidebar-section @(ExpandedSections[SidebarSections.inventory] ? "expanded" : "collapsed")">
+                <div class="section-header hover" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
+                    <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Size)</span>
+                    <span class="expand-icon">@(ExpandedSections[SidebarSections.inventory] ? "▼" : "►")</span>
+                </div>
+
+                @if (ExpandedSections[SidebarSections.inventory])
+                {
+                    <div class="section-content">
+                        @{
+                            int totalWeight = GameManager.CalculateTotalWeight();
+                            int coinWeight = PlayerState.Coins / 10;
+                            string weightStatus = totalWeight <= 3 ? "Light load" :
+                            (totalWeight <= 6 ? "Medium load (+1 stamina)" :
+                            "Heavy load (+2 stamina)");
+                        }
+                        <div class="weight-info">
+                            <span>Total Weight: @totalWeight (@weightStatus)</span>
+                            <span>Coin Weight: @coinWeight</span>
+                        </div>
+
+                        <div class="inventory-grid">
+                            @foreach (var itemName in PlayerState.Inventory.ItemSlots)
+                            {
+                                if (itemName != null)
+                                {
+                                    Item item = ItemRepository.GetItemByName(itemName);
+                                    <div class="inventory-item" title="@itemName">
+                                        <span class="item-icon">🧰</span>
+                                        <span class="item-name">@itemName</span>
+                                        <span class="item-weight">Weight: @item.Weight</span>
+                                        @if (item.EnabledRouteTypes.Any())
+                                        {
+                                            <span class="item-routes">Enables: @string.Join(", ", item.EnabledRouteTypes)</span>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@if (ShowTooltip && HoveredAction != null)
+{
+    <div class="tooltip" style="left: @(MouseX + 10)px; top: @(MouseY + 10)px">
+        <ActionPreview CurrentAction="@HoveredAction"
+                       Player="@PlayerState" />
+    </div>
+}
+
+@if (ShowActionMessage)
+{
+    <div class="action-message @(ActionMessageType)">
+        <div class="message-content">
+            @foreach (var message in ActionMessages)
+            {
+                <div class="message-item">@message</div>
+            }
+        </div>
+        <button class="message-close" @onclick="DismissActionMessage">✕</button>
+    </div>
+}

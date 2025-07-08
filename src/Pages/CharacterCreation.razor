@@ -1,0 +1,264 @@
+﻿<div class="character-container">
+    <h4>Choose Your Gender</h4>
+    <div class="gender-toggle">
+        <button class="gender-option @(selectedGender == Genders.Male ? "selected" : "")"
+        @onclick="() => SelectGender(Genders.Male)">
+            <span><i class="fas fa-mars icon-spacing"></i> Male</span>
+        </button>
+        <button class="gender-option @(selectedGender == Genders.Female ? "selected" : "")"
+        @onclick="() => SelectGender(Genders.Female)">
+            <span><i class="fas fa-venus icon-spacing"></i> Female</span>
+        </button>
+    </div>
+
+    <h4>Choose Your Profession</h4>
+    <div class="archetype-selection">
+        <div class="archetype-options">
+            @foreach (Professions archetype in Enum.GetValues(typeof(Professions)))
+            {
+                <div class="archetype-option @(selectedArchetype == archetype ? "selected" : "")"
+                @onclick="() => SelectArchetype(archetype)">
+                    <span class="archetype-name">@FormatArchetypeName(archetype)</span>
+                    <span class="archetype-brief">@GetShortDescription(archetype)</span>
+                </div>
+            }
+        </div>
+
+        <div class="archetype-details">
+            @if (selectedArchetype != null)
+            {
+                <div class="archetype-portrait portrait-high">
+                    <img class="@(changingImage ? "changing" : "")"
+                    src="@GetArchetypeImage(selectedArchetype)"
+                    alt="@FormatArchetypeName(selectedArchetype)" />
+                </div>
+                <div class="archetype-content @(changingContent ? "changing" : "")">
+                    <h3 class="archetype-title">@FormatArchetypeName(selectedArchetype)</h3>
+                    <p class="archetype-description">@GetArchetypeDescription(selectedArchetype)</p>
+
+                    <div class="starting-items">
+                        <strong>Starting Items:</strong>
+                        <div class="items-list">
+                            @foreach (string item in GetStartingItems(selectedArchetype))
+                            {
+                                <div class="item">@item</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="tooltip-section">
+        <h4>Choose Your Name</h4>
+        <div class="player-stat">
+            <span class="stat-label">Your Name</span>
+            <div class="name-input-container">
+                <input id="playerName" @bind="playerName" class="character-input" placeholder="Enter your name..." />
+                <button class="name-generator" @onclick="GenerateRandomName" title="Generate random name">
+                    <i class="fas fa-dice"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-button-container">
+        <button class="narrative-button" @onclick="CreateCharacter" disabled="@(!IsValid())">
+            Begin Your Journey
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<Player> OnCharacterCreated { get; set; }
+    [Inject] protected GameWorld GameWorld { get; set; }
+
+    private string playerName;
+    private Professions selectedArchetype = Professions.Warrior;
+    private Genders selectedGender = Genders.Male;
+    private bool changingImage = false;
+    private bool changingContent = false;
+    private System.Threading.Timer transitionTimer;
+
+    // Name pools
+    private static List<string> MaleNames = new List<string> {
+        "Alistair", "Bram", "Cedric", "Duncan", "Edmund", "Farley", "Gareth",
+        "Hadrian", "Irving", "Jasper", "Leofric", "Nathaniel", "Oswald", 
+        "Percival", "Silas", "Tristan", "Wesley"
+    };
+
+    private static List<string> FemaleNames = new List<string> {
+        "Adeline", "Beatrice", "Cecily", "Eloise", "Fiona", "Gwendolyn",
+        "Imogen", "Josephine", "Katerina", "Lenore", "Matilda", "Nora",
+        "Ophelia", "Sophia", "Tabitha", "Victoria"
+    };
+
+    protected override void OnInitialized()
+    {
+        // Set initial random name based on default gender
+        GenerateRandomName();
+    }
+
+    private void SelectGender(Genders gender)
+    {
+        if (selectedGender == gender) return;
+
+        // Start transition
+        StartTransition();
+
+        // Update gender
+        selectedGender = gender;
+
+        // Generate a new name appropriate for the gender
+        GenerateRandomName();
+    }
+
+    private void SelectArchetype(Professions archetype)
+    {
+        if (selectedArchetype == archetype) return;
+
+        // Start transition
+        StartTransition();
+
+        // Update archetype
+        selectedArchetype = archetype;
+    }
+
+    private void StartTransition()
+    {
+        // Start image fade out
+        changingImage = true;
+        changingContent = true;
+        StateHasChanged();
+
+        // Schedule transition to end
+        transitionTimer?.Dispose();
+        transitionTimer = new System.Threading.Timer(_ =>
+        {
+            // This callback runs on a different thread, so we need InvokeAsync
+            InvokeAsync(() =>
+            {
+                changingImage = false;
+                changingContent = false;
+                StateHasChanged();
+            });
+        }, null, 300, Timeout.Infinite);
+    }
+
+    public void GenerateRandomName()
+    {
+        Random random = new Random();
+        playerName = selectedGender == Genders.Male
+            ? MaleNames[random.Next(MaleNames.Count)]
+            : FemaleNames[random.Next(FemaleNames.Count)];
+    }
+
+    private string GetShortDescription(Professions archetype)
+    {
+        // Return a shortened version of the description (just first sentence or two)
+        string fullDesc = GetArchetypeDescription(archetype);
+        int endPos = fullDesc.IndexOf('.');
+
+        if (endPos > 0 && endPos < fullDesc.Length - 1)
+            return fullDesc.Substring(0, endPos + 1);
+        else
+            return fullDesc;
+    }
+
+    private bool IsValid()
+    {
+        return !string.IsNullOrWhiteSpace(playerName);
+    }
+
+    private async Task CreateCharacter()
+    {
+        // Set player name, archetype, and gender
+        GameWorld.GetPlayer().Initialize(playerName, selectedArchetype, selectedGender);
+
+        // Notify parent component that character creation is complete
+        await OnCharacterCreated.InvokeAsync(GameWorld.GetPlayer());
+    }
+
+    private string FormatArchetypeName(Professions archetype)
+    {
+        // Convert enum name to a formatted string (e.g., "WarriorType" to "Warrior Type")
+        return System.Text.RegularExpressions.Regex.Replace(
+            archetype.ToString(),
+            "([A-Z])",
+            " $1",
+            System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
+    }
+
+    private string GetArchetypeImage(Professions archetype)
+    {
+        string selectedGenderString = selectedGender.ToString().ToLower();
+        string imagePath = $"/images/characters/{selectedGenderString}_{selectedArchetype.ToString().ToLower()}.png";
+        return imagePath;
+    }
+
+    private string GetArchetypeDescription(Professions archetype)
+    {
+        return archetype switch
+        {
+            Professions.Warrior => "With hands scarred from a thousand labors and eyes that measure the weight of a blade in a single glance, you navigate the world through sheer physical mastery. While scholars debate ancient texts, you've been busy building, breaking, and reshaping the world with calloused hands and unyielding determination. You speak through action and demonstration—a fact that leaves nobles both impressed by your capabilities and puzzled by your blunt manner. Villages whisper your name when trouble looms, though fine society might find your unvarnished honesty somewhat... abrasive.",
+            Professions.Scholar => "The world reveals its secrets to those who know how to look—and you've spent a lifetime perfecting that art. Where others see coincidence, you discern patterns; where they hear noise, you detect meaning. Your mind dissects problems with surgical precision, though your body might protest at carrying your ever-growing collection of notes and reference materials. You've learned enough social graces to secure patronage and share your insights, though you occasionally catch yourself analyzing conversations rather than participating in them. Ink stains your fingers permanently, a badge of honor in your personal war against ignorance.",
+            Professions.Courtier => "You dance through social waters with the same effortless grace that others struggle to walk a straight line. Your laugh can disarm a hostile room; your whispered suggestion can redirect the course of a kingdom. Court intrigue is your battlefield, reputation your weapon, and influence your treasure. You've maintained just enough physical capability to keep up appearances—whether that's dancing until dawn or deftly handling a decorative dueling blade. What you perceive, you perceive through the lens of human ambition and desire, finding that understanding people renders understanding abstract ideas largely unnecessary. After all, in your world, perception is reality.",
+            Professions.Ranger => "The road speaks to you in a language urban dwellers have forgotten—the crack of a twig that signals danger, the subtle change in wind that promises rain. Your body has been shaped by the wilderness—lean, efficient, purposeful. Though no philosopher, you've picked up enough charm and common sense to trade in villages and share stories by campfires, making you a welcome sight at remote settlements. What you miss in scholarly understanding, you make up for in practical knowledge—how to find water, mend what's broken, and reach destinations others consider unreachable. The rhythm of your footfalls matches the pulse of wild places better than any book-learned theory.",
+            Professions.Thief => "Your gaze has always cut deeper than others', perceiving the threads that connect seemingly random events. You notice patterns in starlight, significance in a falling leaf, meaning in coincidence. People find your insights either mesmerizing or deeply unsettling—there seems to be no middle ground. The physical world receives your grudging participation; you've learned enough to sustain your body, though your mind constantly wanders to more interesting realms. Social niceties often feel like rituals in a language you never quite mastered, leaving you isolated yet strangely content in that solitude. Some call you sage, others call you madman—you find both labels equally amusing.",
+            Professions.Merchant => "Words flow from your lips like fine wine—sometimes sweet, sometimes sharp, but always potent. Where warriors see problems to overcome through force, you see knots to untangle through carefully chosen phrases. Your greatest weapon is the perfectly timed silence, your finest armor the disarming smile. Though you might struggle to lift a blacksmith's hammer, you've learned to wield something far more powerful—the desires and fears that drive all human interaction. Courts and councils value your mediation; merchants seek your negotiation skills. Your greatest victory is when others believe your subtle guidance was their own idea all along.",
+            _ => "An undefined soul wandering uncertain roads"
+        };
+    }
+
+    private List<string> GetStartingItems(Professions archetype)
+    {
+        return archetype switch
+        {
+            Professions.Warrior => new List<string>
+        {
+            "Warrior's Maintenance Kit",
+            "Sturdy Gloves",
+            "Meditation Stone",
+            "Traveler's Guidebook"
+        },
+            Professions.Scholar => new List<string>
+        {
+            "Research Journal",
+            "Reading Spectacles",
+            "Herbal Tea Set",
+            "Sturdy Walking Staff"
+        },
+            Professions.Courtier => new List<string>
+        {
+            "Formal Attire",
+            "Perfumed Handkerchief",
+            "Silver Flask",
+            "Traveler's Guide to Local Customs"
+        },
+            Professions.Ranger => new List<string>
+        {
+            "Journeyman's Boots",
+            "Hunting Kit",
+            "Weather-Resistant Cloak",
+            "Tavern Token Collection"
+        },
+            Professions.Thief => new List<string>
+        {
+            "Knive",
+            "Lockpick",
+            "Herbal Bundle",
+            "Sturdy Work Gloves"
+        },
+            Professions.Merchant => new List<string>
+        {
+            "Merchantic Seal",
+            "Writing Kit",
+            "Quality Wine",
+            "Traveler's Satchel"
+        },
+            _ => new List<string> { "Rations" }
+        };
+    }
+
+}
