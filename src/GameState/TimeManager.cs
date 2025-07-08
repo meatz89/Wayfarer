@@ -1,11 +1,19 @@
 ﻿public class TimeManager
 {
     public const int TimeDayStart = 6;
+    public const int MaxDailyTimeBlocks = 5;
+    
     private Player player;
     private WorldState worldState;
+    private int usedTimeBlocks = 0;
 
     public int CurrentTimeHours { get; private set; }
     public TimeBlocks CurrentTimeBlock { get; private set; }
+    
+    // Time block constraint properties
+    public int UsedTimeBlocks => usedTimeBlocks;
+    public int RemainingTimeBlocks => MaxDailyTimeBlocks - usedTimeBlocks;
+    public bool CanPerformTimeBlockAction => usedTimeBlocks < MaxDailyTimeBlocks;
 
     public TimeManager(Player player, WorldState worldState)
     {
@@ -21,6 +29,7 @@
 
     public void AdvanceTime(int duration)
     {
+        ConsumeTimeBlock(duration);
         SetNewTime(CurrentTimeHours + duration);
     }
 
@@ -70,6 +79,7 @@
 
     public void StartNewDay()
     {
+        usedTimeBlocks = 0; // Reset time blocks for new day
         worldState.CurrentDay++;
         SetNewTime(TimeDayStart);
     }
@@ -94,5 +104,32 @@
         }
 
         return timeWindow;
+    }
+    
+    /// <summary>
+    /// Consumes the specified number of time blocks for actions.
+    /// Enforces the daily limit of 5 time blocks.
+    /// </summary>
+    /// <param name="blocks">Number of time blocks to consume</param>
+    /// <throws>InvalidOperationException if exceeding daily limit</throws>
+    public void ConsumeTimeBlock(int blocks)
+    {
+        if (usedTimeBlocks + blocks > MaxDailyTimeBlocks)
+        {
+            throw new InvalidOperationException($"Cannot exceed daily time block limit of {MaxDailyTimeBlocks}. Attempting to consume {blocks} blocks but only {RemainingTimeBlocks} remaining.");
+        }
+        
+        usedTimeBlocks += blocks;
+    }
+    
+    /// <summary>
+    /// Validates whether the specified number of time blocks can be consumed
+    /// without exceeding the daily limit.
+    /// </summary>
+    /// <param name="blocks">Number of time blocks to validate</param>
+    /// <returns>True if the action can be performed, false otherwise</returns>
+    public bool ValidateTimeBlockAction(int blocks)
+    {
+        return usedTimeBlocks + blocks <= MaxDailyTimeBlocks;
     }
 }
