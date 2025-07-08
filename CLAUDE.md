@@ -61,10 +61,20 @@ Wayfarer is a **resource management RPG** where every decision has cascading con
 
 #### 5. **Main Game Systems** (`src/Game/MainSystem/`)
 - **LocationSystem**: Manages locations and location spots
-- **TravelManager**: Handles route options and travel mechanics
-- **TimeManager**: Tracks time progression and daily cycles
-- **Inventory**: Limited inventory slots (3 items)
+- **TravelManager**: Enhanced route options with cost-benefit analysis
+- **TimeManager**: Tracks time progression and daily cycles (5 blocks/day constraint)
+- **Inventory**: Limited inventory slots (3 items) with weight penalties
 - **ContractSystem**: Timed delivery contracts with deadlines
+
+#### 6. **Market & Trading System** (`src/GameState/`)
+- **MarketManager**: Location-specific dynamic pricing with arbitrage opportunities
+- **ArbitrageOpportunity**: Data structure for profitable trading routes
+- **TradeManager**: Handles buy/sell operations with location-aware pricing
+
+#### 7. **Route Selection Enhancement** (`src/GameState/`)
+- **RouteComparisonData**: Comprehensive route analysis with efficiency scoring
+- **RouteRecommendation**: Strategic route suggestions based on optimization strategy
+- **OptimizationStrategy**: Multiple approaches (Efficiency, CheapestCost, LeastStamina, FastestTime)
 
 ### Core Resource Systems
 - **Time**: Actions consume time blocks (dawn/morning/afternoon/evening/night)
@@ -157,3 +167,111 @@ When working with AI features:
 2. Update prompt templates in Data/Prompts/
 3. Test AI response parsing thoroughly
 4. Consider memory/context implications
+
+## Implementation Status
+
+### ✅ **Completed Systems (Priority 1-3)**
+- **Time Block Constraint System**: Full daily limit enforcement (5 blocks/day)
+- **Dynamic Location-Based Pricing**: MarketManager with arbitrage opportunities
+- **Enhanced Route Selection Interface**: Cost-benefit analysis with optimization strategies
+- **Core Resource Management**: Time, stamina, coins, inventory weight penalties
+- **AI Narrative System**: Ollama/Gemma integration with encounter generation
+
+### 🔄 **Partially Implemented**
+- **Contract System**: Basic structure exists, needs deadline/penalty enforcement
+- **Market UI**: Basic trading interface, needs integration with dynamic pricing
+- **Inventory Management**: 3-slot limit enforced, needs weight penalty UI updates
+
+### ❌ **Missing/Needs Enhancement**
+- **Advanced Market Analysis**: Profit calculator tools for trading decisions
+- **Route Optimization Integration**: Combining travel with market opportunities
+- **Advanced Contract UI**: Time pressure visualization and penalty warnings
+
+## Integration Map: UI-Backend Connections
+
+### **Frontend-Backend Data Flow Architecture**
+
+#### **1. TravelSelection.razor ↔ TravelManager**
+```csharp
+// Frontend calls backend methods
+var routeComparisons = TravelManager.GetRouteComparisonData(fromId, toId);
+var recommendation = TravelManager.GetOptimalRouteRecommendation(fromId, toId, strategy);
+
+// Data flows:
+Frontend: RouteOption selection → Backend: RouteComparisonData calculation
+Frontend: Strategy selection → Backend: RouteRecommendation generation
+Frontend: Travel button → Backend: TravelManager.TravelToLocation()
+```
+
+#### **2. MainGameplayView.razor ↔ GameWorldManager**
+```csharp
+// State synchronization pattern
+[Inject] private GameWorldManager GameManager { get; set; }
+[Inject] private GameWorld GameWorld { get; set; }
+
+// Weight calculations flow to UI
+int totalWeight = GameManager.CalculateTotalWeight();
+string weightStatus = UI calculated from weight values
+```
+
+#### **3. Market.razor ↔ MarketManager**
+```csharp
+// Trading operations (discovered in codebase)
+MarketManager handles location-specific pricing
+ArbitrageOpportunity provides profit calculations
+Frontend displays buy/sell prices per location
+```
+
+#### **4. Dependency Injection Pattern**
+All UI components use `@inject` for backend service access:
+- `GameWorldManager`: Primary game state orchestrator
+- `TravelManager`: Route and travel operations  
+- `MarketManager`: Trading and pricing operations
+- `ItemRepository`: Item data and operations
+- `GameWorld`: Direct state access for display
+
+### **State Management Architecture**
+
+#### **UI State Updates**
+- **Reactive Updates**: UI components inject services and call methods directly
+- **Polling Pattern**: Some components use StateVersion tracking for updates
+- **Event-Driven**: Button clicks → backend method calls → state changes → UI refresh
+
+#### **Data Binding Patterns**
+```csharp
+// Direct property binding to GameWorld
+@GameWorld.GetPlayer().Coins
+@GameWorld.CurrentTimeBlock
+
+// Service method calls for calculated values  
+@GameManager.CalculateTotalWeight()
+@TravelManager.GetRouteComparisonData()
+```
+
+## Session Progress
+
+### **Recent Architectural Discoveries**
+1. **Route Selection System**: Full TDD implementation with efficiency scoring algorithms
+2. **Market System**: Dynamic pricing with arbitrage opportunity calculations
+3. **UI Integration**: Direct service injection pattern with reactive updates
+4. **Resource Management**: Weight penalties properly integrated across travel system
+
+### **Key Integration Points Identified**
+- UI components directly inject and call backend services
+- State changes flow through GameWorld and GameWorldManager
+- RouteComparisonData provides rich UI display data
+- MarketManager enables location-aware pricing decisions
+
+## Next Priorities
+
+### **High Priority Integration Enhancements**
+1. **Market UI Enhancement**: Integrate dynamic pricing display with arbitrage opportunities
+2. **Contract System UI**: Add time pressure visualization and deadline warnings  
+3. **Route-Market Integration**: Combine travel decisions with trading opportunities
+4. **Advanced Inventory UI**: Show weight penalties and capacity management
+
+### **Technical Debt & Improvements**
+1. **Error Handling**: Add try-catch blocks for service calls in UI components
+2. **Loading States**: Implement loading indicators for backend operations
+3. **State Management**: Consider more efficient update patterns for complex calculations
+4. **Testing**: Add integration tests for UI-backend data flow
