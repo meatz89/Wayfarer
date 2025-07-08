@@ -9,6 +9,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. ✅ **ALWAYS update 'claude.md' after discovering new information** - Maintain comprehensive documentation  
 3. ✅ **NEVER proceed without updating documentation** - When new insights are discovered
 4. ✅ **Document architectural changes immediately** - Track all relationships and patterns
+5. ✅ **VERIFY DOCUMENTATION IN EVERY COMMIT** - Follow post-commit validation workflow
+
+**POST-COMMIT VALIDATION WORKFLOW:**
+```bash
+# After each commit, verify that claude.md was also updated:
+git log --oneline -2  # Should show both code and doc updates
+
+# If claude.md wasn't updated, update it before continuing
+# Always commit code and documentation together
+```
 
 **UPDATE TRIGGERS (always update claude.md when):**
 - Discovering new files or components
