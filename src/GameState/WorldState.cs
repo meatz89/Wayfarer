@@ -15,6 +15,12 @@
     public int CurrentDay { get; set; } = 1;
     public TimeBlocks CurrentTimeWindow { get; set; }
     public int CurrentTimeHours { get; set; }
+    
+    // Weather conditions (no seasons - game timeframe is only days/weeks)
+    public WeatherCondition CurrentWeather { get; set; } = WeatherCondition.Clear;
+    
+    // Route blocking system
+    private Dictionary<string, int> TemporaryRouteBlocks { get; } = new Dictionary<string, int>();
 
     // New properties
     public List<Item> Items { get; set; } = new List<Item>();
@@ -94,6 +100,31 @@
     public List<Contract> GetContracts()
     {
         return contracts;
+    }
+    
+    /// <summary>
+    /// Add a temporary route block that expires after specified days
+    /// </summary>
+    public void AddTemporaryRouteBlock(string routeId, int daysBlocked)
+    {
+        TemporaryRouteBlocks[routeId] = CurrentDay + daysBlocked;
+    }
+    
+    /// <summary>
+    /// Check if a route is temporarily blocked
+    /// </summary>
+    public bool IsRouteBlocked(string routeId)
+    {
+        if (TemporaryRouteBlocks.TryGetValue(routeId, out int unblockDay))
+        {
+            if (CurrentDay >= unblockDay)
+            {
+                TemporaryRouteBlocks.Remove(routeId);
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
 }

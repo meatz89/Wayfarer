@@ -1,4 +1,29 @@
 ﻿
+public enum WeatherCondition
+{
+    Clear,
+    Rain,
+    Snow,
+    Fog
+}
+
+// Seasons removed - game timeframe is only days/weeks, not months/seasons
+
+public class RouteModification
+{
+    public int StaminaCostModifier { get; set; } = 0;
+    public int CoinCostModifier { get; set; } = 0;
+    public bool BlocksRoute { get; set; } = false;
+}
+
+public class RouteUnlockCondition
+{
+    public string? RequiredRouteUsage { get; set; }
+    public int RequiredUsageCount { get; set; }
+    public string? RequiredItem { get; set; }
+    public int RequiredPlayerLevel { get; set; }
+}
+
 public class RouteOption
 {
     public string Id { get; set; }
@@ -14,6 +39,13 @@ public class RouteOption
     public List<string> RequiredRouteTypes { get; set; } = new List<string>();
     public int MaxItemCapacity { get; set; } = 3;
     public string Description { get; set; }
+    
+    // Route condition variations
+    public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
+    public RouteUnlockCondition? UnlockCondition { get; set; }
+    
+    // Route discovery tracking
+    public int UsageCount { get; set; } = 0;
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
     {
@@ -90,6 +122,50 @@ public class RouteOption
         }
 
         return adjustedStaminaCost;
+    }
+    
+    /// <summary>
+    /// Calculate stamina cost with weather modifications
+    /// </summary>
+    public int CalculateStaminaCost(int totalWeight, WeatherCondition weather)
+    {
+        int baseCost = CalculateWeightAdjustedStaminaCost(totalWeight);
+        
+        if (WeatherModifications.TryGetValue(weather, out RouteModification? modification))
+        {
+            baseCost += modification.StaminaCostModifier;
+        }
+        
+        return baseCost;
+    }
+    
+    /// <summary>
+    /// Calculate coin cost with weather modifications
+    /// </summary>
+    public int CalculateCoinCost(WeatherCondition weather)
+    {
+        int baseCost = BaseCoinCost;
+        
+        if (WeatherModifications.TryGetValue(weather, out RouteModification? modification))
+        {
+            baseCost += modification.CoinCostModifier;
+        }
+        
+        return baseCost;
+    }
+    
+    // Season availability removed - game timeframe is only days/weeks
+    
+    /// <summary>
+    /// Check if route is blocked by weather
+    /// </summary>
+    public bool IsBlockedByWeather(WeatherCondition weather)
+    {
+        if (WeatherModifications.TryGetValue(weather, out RouteModification? modification))
+        {
+            return modification.BlocksRoute;
+        }
+        return false;
     }
 
     internal EncounterContext GetEncounter(int seed)

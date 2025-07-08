@@ -4,6 +4,20 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- Code Analysis Configuration -->
+    <AnalysisLevel>latest</AnalysisLevel>
+    <CodeAnalysisRuleSet>wayfarer.ruleset</CodeAnalysisRuleSet>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>All</AnalysisMode>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <WarningsNotAsErrors />
+    
+    <!-- Enforce code quality -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
     
 	<ItemGroup>
@@ -22,6 +36,28 @@
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
 	  <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+	  
+	  <!-- Code Analysis and Linting -->
+	  <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.8.14">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="SonarAnalyzer.CSharp" Version="9.12.0.78982">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Roslynator.Analyzers" Version="4.12.0">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
 	</ItemGroup>
     
 	<ItemGroup>

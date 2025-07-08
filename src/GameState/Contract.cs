@@ -13,10 +13,23 @@
     public bool IsFailed { get; set; } = false;
     public List<string> UnlocksContractIds { get; set; } = new List<string>();
     public List<string> LocksContractIds { get; set; } = new List<string>();
+    
+    // Time pressure enhancements
+    public List<TimeBlocks> AvailableTimeBlocks { get; set; } = new List<TimeBlocks>();
+    public int CompletedDay { get; set; } = -1; // Day when contract was completed
 
     public bool IsAvailable(int currentDay, TimeBlocks currentTimeBlock)
     {
-        return !IsCompleted && !IsFailed && currentDay >= StartDay && currentDay <= DueDay;
+        bool basicAvailability = !IsCompleted && !IsFailed && currentDay >= StartDay && currentDay <= DueDay;
+        
+        // If no specific time blocks are required, available anytime
+        if (!AvailableTimeBlocks.Any())
+        {
+            return basicAvailability;
+        }
+        
+        // Check if current time block is in the allowed list
+        return basicAvailability && AvailableTimeBlocks.Contains(currentTimeBlock);
     }
 
     public bool CanComplete(Player player, string currentLocationId)

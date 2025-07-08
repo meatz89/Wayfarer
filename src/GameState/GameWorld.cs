@@ -66,6 +66,12 @@
     {
         return CurrentDay >= DeadlineDay;
     }
+
+    public void SetCurrentLocation(Location location)
+    {
+        CurrentLocation = location;
+        WorldState.SetCurrentLocation(location, null);
+    }
 }
 
 
