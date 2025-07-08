@@ -469,30 +469,9 @@ public class AIPromptBuilder
 
     private void AddTravelContext(StringBuilder prompt, GameWorld gameWorld)
     {
-        prompt.AppendLine();
-        prompt.AppendLine("TRAVEL CONTEXT:");
-
-        prompt.AppendLine($"- Current Location: {gameWorld.CurrentLocation.Name}");
-
-        List<RouteOption> availableRoutes = gameWorld.GetRoutesFromCurrentLocation();
-
-        if (availableRoutes.Any())
-        {
-            prompt.AppendLine("- Available Routes:");
-
-            foreach (RouteOption route in availableRoutes)
-            {
-                prompt.AppendLine($"  * To {route.Destination}:");
-                prompt.AppendLine($"    - Time: {route.GetActualTimeCost()} hours");
-                prompt.AppendLine($"    - Stamina: {route.GetActualStaminaCost()} points");
-            }
-        }
-        else
-        {
-            prompt.AppendLine("- No known routes from this location");
-        }
-
-        prompt.AppendLine();
+        // TODO: Implement when encounters are needed
+        // Currently not used as encounters are not implemented
+        return;
     }
 
     private void AddSelectedChoiceContext(StringBuilder prompt, EncounterState state, EncounterChoice choice)

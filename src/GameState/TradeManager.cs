@@ -20,7 +20,7 @@
     public bool CanBuyItem(Item item)
     {
         // Get current location for location-aware pricing
-        string currentLocationId = gameWorld.CurrentLocation.Id;
+        string currentLocationId = gameWorld.WorldState.CurrentLocation.Id;
         
         // Delegate to MarketManager for location-aware pricing
         return marketManager.CanBuyItem(item.Id ?? item.Name, currentLocationId);
@@ -34,7 +34,7 @@
     public void BuyItem(Item item)
     {
         // Get current location for location-aware pricing
-        string currentLocationId = gameWorld.CurrentLocation.Id;
+        string currentLocationId = gameWorld.WorldState.CurrentLocation.Id;
         
         // Delegate to MarketManager for location-aware pricing and transactions
         marketManager.BuyItem(item.Id ?? item.Name, currentLocationId);
@@ -43,10 +43,30 @@
     public void SellItem(Item item)
     {
         // Get current location for location-aware pricing
-        string currentLocationId = gameWorld.CurrentLocation.Id;
+        string currentLocationId = gameWorld.WorldState.CurrentLocation.Id;
         
         // Delegate to MarketManager for location-aware pricing and transactions
         marketManager.SellItem(item.Name, currentLocationId);
+    }
+
+    public void BuyItem(string itemId, string locationId)
+    {
+        // Get item from repository
+        Item item = itemRepository.GetItem(itemId);
+        if (item == null) return;
+        
+        // Delegate to MarketManager for location-aware pricing and transactions
+        marketManager.BuyItem(itemId, locationId);
+    }
+
+    public void SellItem(string itemId, string locationId)
+    {
+        // Get item from repository
+        Item item = itemRepository.GetItem(itemId);
+        if (item == null) return;
+        
+        // Delegate to MarketManager for location-aware pricing and transactions
+        marketManager.SellItem(itemId, locationId);
     }
 
     public void DropItem(Item item)

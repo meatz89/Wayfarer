@@ -5,9 +5,9 @@
 /// </summary>
 public class MarketManager
 {
-    private GameWorld gameWorld;
-    private LocationSystem LocationSystem;
-    private Dictionary<string, Dictionary<string, LocationPricing>> locationPricing;
+    private readonly GameWorld _gameWorld;
+    private readonly LocationSystem _locationSystem;
+    // ✅ REMOVED: private Dictionary locationPricing - No local state allowed
 
     /// <summary>
     /// Represents pricing information for an item at a specific location
@@ -22,38 +22,54 @@ public class MarketManager
 
     public MarketManager(GameWorld gameWorld, LocationSystem locationSystem)
     {
-        this.gameWorld = gameWorld;
-        LocationSystem = locationSystem;
-        InitializeLocationPricing();
+        _gameWorld = gameWorld;
+        _locationSystem = locationSystem;
+        // ✅ REMOVED: InitializeLocationPricing() - No initialization of local state
     }
 
     /// <summary>
-    /// Initialize location-specific pricing for all items at all locations.
-    /// Creates arbitrage opportunities between locations.
+    /// ✅ STATELESS: Get dynamic pricing for an item at a location
+    /// Calculates pricing based on location and item properties from GameWorld
     /// </summary>
-    private void InitializeLocationPricing()
+    private LocationPricing GetDynamicPricing(string locationId, string itemId)
     {
-        locationPricing = new Dictionary<string, Dictionary<string, LocationPricing>>
+        // Get base item data from GameWorld
+        var item = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
+        if (item == null)
         {
-            ["town_square"] = new Dictionary<string, LocationPricing>
-            {
-                ["herbs"] = new LocationPricing { BuyPrice = 3, SellPrice = 2, SupplyLevel = 1.2f, IsAvailable = true },
-                ["tools"] = new LocationPricing { BuyPrice = 8, SellPrice = 6, SupplyLevel = 0.8f, IsAvailable = true },
-                ["rope"] = new LocationPricing { BuyPrice = 7, SellPrice = 4, SupplyLevel = 0.9f, IsAvailable = true },
-                ["food"] = new LocationPricing { BuyPrice = 4, SellPrice = 2, SupplyLevel = 0.7f, IsAvailable = true }
-            },
-            ["dusty_flagon"] = new Dictionary<string, LocationPricing>
-            {
-                ["herbs"] = new LocationPricing { BuyPrice = 2, SellPrice = 4, SupplyLevel = 1.8f, IsAvailable = true },
-                ["food"] = new LocationPricing { BuyPrice = 1, SellPrice = 3, SupplyLevel = 2.0f, IsAvailable = true },
-                ["tools"] = new LocationPricing { BuyPrice = 12, SellPrice = 8, SupplyLevel = 0.3f, IsAvailable = true },
-                ["rope"] = new LocationPricing { BuyPrice = 9, SellPrice = 5, SupplyLevel = 0.5f, IsAvailable = false }
-            }
+            return new LocationPricing { BuyPrice = 0, SellPrice = 0, IsAvailable = false };
+        }
+
+        // Calculate location-specific pricing dynamically
+        var pricing = new LocationPricing
+        {
+            IsAvailable = true,
+            SupplyLevel = 1.0f
         };
+
+        // Location-specific pricing logic (replace hardcoded with dynamic calculation)
+        switch (locationId)
+        {
+            case "town_square":
+                pricing.BuyPrice = item.BuyPrice + 1; // Slightly more expensive in town
+                pricing.SellPrice = item.SellPrice;
+                break;
+            case "dusty_flagon":
+                pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1); // Cheaper at tavern
+                pricing.SellPrice = item.SellPrice + 1; // Better selling price
+                break;
+            default:
+                pricing.BuyPrice = item.BuyPrice;
+                pricing.SellPrice = item.SellPrice;
+                break;
+        }
+
+        return pricing;
     }
 
     /// <summary>
-    /// Get the price for a specific item at a specific location.
+    /// ✅ STATELESS: Get the price for a specific item at a specific location.
+    /// Calculates pricing dynamically from GameWorld data.
     /// </summary>
     /// <param name="locationId">The location ID</param>
     /// <param name="itemId">The item ID</param>
@@ -61,15 +77,10 @@ public class MarketManager
     /// <returns>Price in coins, or -1 if item not available at location</returns>
     public int GetItemPrice(string locationId, string itemId, bool isBuyPrice)
     {
-        if (locationPricing.ContainsKey(locationId) && 
-            locationPricing[locationId].ContainsKey(itemId))
-        {
-            LocationPricing pricing = locationPricing[locationId][itemId];
-            if (!pricing.IsAvailable) return -1; // Item not available
-            
-            return isBuyPrice ? pricing.BuyPrice : pricing.SellPrice;
-        }
-        return -1; // Item not found
+        var pricing = GetDynamicPricing(locationId, itemId);
+        if (!pricing.IsAvailable) return -1;
+        
+        return isBuyPrice ? pricing.BuyPrice : pricing.SellPrice;
     }
 
     /// <summary>
@@ -81,15 +92,16 @@ public class MarketManager
     {
         List<Item> availableItems = new List<Item>();
         
-        if (locationPricing.ContainsKey(locationId))
+        // Get all items from GameWorld and create location-specific versions
+        var allItems = _gameWorld.WorldState.Items ?? new List<Item>();
+        
+        foreach (var baseItem in allItems)
         {
-            foreach (KeyValuePair<string, LocationPricing> itemPricing in locationPricing[locationId])
+            var pricing = GetDynamicPricing(locationId, baseItem.Id);
+            if (pricing.IsAvailable)
             {
-                if (itemPricing.Value.IsAvailable)
-                {
-                    Item item = CreateItemWithLocationPricing(itemPricing.Key, locationId);
-                    availableItems.Add(item);
-                }
+                var item = CreateItemWithLocationPricing(baseItem.Id, locationId);
+                availableItems.Add(item);
             }
         }
         
@@ -101,19 +113,20 @@ public class MarketManager
     /// </summary>
     private Item CreateItemWithLocationPricing(string itemId, string locationId)
     {
-        LocationPricing pricing = locationPricing[locationId][itemId];
+        LocationPricing pricing = GetDynamicPricing(locationId, itemId);
+        var baseItem = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
         
         return new Item
         {
             Id = itemId,
-            Name = itemId, // For now, use ID as name
+            Name = baseItem?.Name ?? itemId,
             BuyPrice = pricing.BuyPrice,
             SellPrice = pricing.SellPrice,
             IsAvailable = pricing.IsAvailable,
-            Weight = GetDefaultWeight(itemId),
-            InventorySlots = 1,
+            Weight = baseItem?.Weight ?? GetDefaultWeight(itemId),
+            InventorySlots = baseItem?.InventorySlots ?? 1,
             LocationId = locationId,
-            Description = GetDefaultDescription(itemId)
+            Description = baseItem?.Description ?? GetDefaultDescription(itemId)
         };
     }
 
@@ -157,27 +170,23 @@ public class MarketManager
     {
         List<ArbitrageOpportunity> opportunities = new List<ArbitrageOpportunity>();
         
-        if (!locationPricing.ContainsKey(fromLocation) || !locationPricing.ContainsKey(toLocation))
-            return opportunities;
+        var allItems = _gameWorld.WorldState.Items ?? new List<Item>();
             
-        foreach (string itemId in locationPricing[fromLocation].Keys)
+        foreach (var item in allItems)
         {
-            if (locationPricing[toLocation].ContainsKey(itemId))
+            int buyPrice = GetItemPrice(fromLocation, item.Id, true);
+            int sellPrice = GetItemPrice(toLocation, item.Id, false);
+            
+            if (buyPrice > 0 && sellPrice > 0 && sellPrice > buyPrice)
             {
-                int buyPrice = GetItemPrice(fromLocation, itemId, true);
-                int sellPrice = GetItemPrice(toLocation, itemId, false);
-                
-                if (buyPrice > 0 && sellPrice > 0 && sellPrice > buyPrice)
+                opportunities.Add(new ArbitrageOpportunity
                 {
-                    opportunities.Add(new ArbitrageOpportunity
-                    {
-                        ItemId = itemId,
-                        BuyPrice = buyPrice,
-                        SellPrice = sellPrice,
-                        Profit = sellPrice - buyPrice,
-                        ProfitMargin = ((float)(sellPrice - buyPrice) / buyPrice) * 100
-                    });
-                }
+                    ItemId = item.Id,
+                    BuyPrice = buyPrice,
+                    SellPrice = sellPrice,
+                    Profit = sellPrice - buyPrice,
+                    ProfitMargin = ((float)(sellPrice - buyPrice) / buyPrice) * 100
+                });
             }
         }
         
@@ -192,7 +201,7 @@ public class MarketManager
     /// <returns>True if player can afford and has inventory space</returns>
     public bool CanBuyItem(string itemId, string locationId)
     {
-        Player player = gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         int buyPrice = GetItemPrice(locationId, itemId, true);
         
         if (buyPrice <= 0) return false; // Item not available
@@ -213,7 +222,7 @@ public class MarketManager
     {
         if (!CanBuyItem(itemId, locationId)) return false;
         
-        Player player = gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         int buyPrice = GetItemPrice(locationId, itemId, true);
         
         player.Coins -= buyPrice;
@@ -230,7 +239,7 @@ public class MarketManager
     /// <returns>True if sale successful</returns>
     public bool SellItem(string itemId, string locationId)
     {
-        Player player = gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         
         if (!player.Inventory.HasItem(itemId)) return false;
         
@@ -248,7 +257,7 @@ public class MarketManager
     /// </summary>
     public bool CanBuyItem(Item item)
     {
-        Player player = gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
 
         // Check if player has enough money
         if (player.Coins < item.BuyPrice) return false;
@@ -261,11 +270,26 @@ public class MarketManager
     }
 
     /// <summary>
+    /// Get location pricing data for UI display
+    /// </summary>
+    public object GetLocationPricing(string locationId)
+    {
+        var availableItems = GetAvailableItems(locationId);
+        return availableItems.Select(item => new {
+            ItemId = item.Id,
+            Name = item.Name,
+            BuyPrice = item.BuyPrice,
+            SellPrice = item.SellPrice,
+            IsAvailable = item.IsAvailable
+        }).ToList();
+    }
+
+    /// <summary>
     /// Legacy method for backward compatibility - delegates to new location-aware method
     /// </summary>
     public void BuyItem(Item item)
     {
-        Player player = gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
 
         // Deduct cost
         player.Coins -= item.BuyPrice;

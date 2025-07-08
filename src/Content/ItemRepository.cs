@@ -1,16 +1,12 @@
 ﻿public class ItemRepository
 {
-    private List<Item> _items = new List<Item>();
-    private GameWorld gameWorld;
+    private readonly GameWorld _gameWorld;
 
     public ItemRepository(GameWorld gameWorld)
     {
-        this.gameWorld = gameWorld;
-        // Load items from GameWorld instead of hardcoding
-        _items = gameWorld.WorldState.Items ?? new List<Item>();
+        _gameWorld = gameWorld;
         
-        // If no items are loaded, this means there's a problem with JSON loading
-        if (!_items.Any())
+        if (_gameWorld.WorldState.Items == null || !_gameWorld.WorldState.Items.Any())
         {
             Console.WriteLine("WARNING: No items loaded from GameWorld. JSON loading may have failed.");
         }
@@ -18,28 +14,34 @@
 
     public Item GetItemById(string id)
     {
-        return _items.FirstOrDefault(i => i.Id == id);
+        return _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == id);
     }
 
     public Item GetItemByName(string name)
     {
-        return _items.FirstOrDefault(i => i.Name == name);
+        return _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Name == name);
+    }
+
+    public Item GetItem(string itemId)
+    {
+        return GetItemById(itemId);
     }
 
     public List<Item> GetAllItems()
     {
-        return _items;
+        return _gameWorld.WorldState.Items ?? new List<Item>();
     }
 
     public List<Item> GetItemsForLocation(string locationId, string spotId = null)
     {
+        var items = _gameWorld.WorldState.Items ?? new List<Item>();
         if (spotId != null)
         {
-            return _items.Where(i => i.LocationId == locationId && i.SpotId == spotId).ToList();
+            return items.Where(i => i.LocationId == locationId && i.SpotId == spotId).ToList();
         }
         else
         {
-            return _items.Where(i => i.LocationId == locationId).ToList();
+            return items.Where(i => i.LocationId == locationId).ToList();
         }
     }
 }
