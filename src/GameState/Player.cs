@@ -16,19 +16,19 @@
     // Resources
     public int Coins { get; set; } = 10;
     public int ActionPoints { get; set; } = 18;
-    public int Stamina { get; set; } = 10;
+    public int Stamina { get; set; } = 6;
     public int Concentration { get; set; } = 10;
     public int Reputation { get; set; } = 0;
     public int Health { get; set; }
     public int Food { get; set; }
 
     public int MaxActionPoints { get; set; } = 4;
-    public int MaxStamina { get; set; } = 12;
+    public int MaxStamina { get; set; } = 6;
     public int MaxConcentration { get; set; }
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
 
-    public Inventory Inventory { get; set; } = new Inventory(10);
+    public Inventory Inventory { get; set; } = new Inventory(6);
 
     // Relationships with characters
     public RelationshipList Relationships { get; set; } = new();
