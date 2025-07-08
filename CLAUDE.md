@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## AUTO-DOCUMENTATION MANDATE
+## DOCUMENTATION GUIDELINES
 
 **CRITICAL WORKFLOW REMINDERS:**
 1. ✅ **ALWAYS read existing 'claude.md' first** - Understand current architecture state
@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. ✅ **NEVER proceed without updating documentation** - When new insights are discovered
 4. ✅ **Document architectural changes immediately** - Track all relationships and patterns
 5. ✅ **VERIFY DOCUMENTATION IN EVERY COMMIT** - Follow post-commit validation workflow
-6. 🧹 **REGULARLY CULL AND UPDATE claude.md** - Remove outdated information, consolidate sections, keep only current relevant details
+6. 🧹 **KEEP CLAUDE.MD HIGH-LEVEL** - This should contain architectural patterns, core systems, and essential guidance. Do NOT add detailed session progress notes, step-by-step fixes, or temporary status updates. Move those to separate session notes or remove them after completion.
 
 ## DEVELOPMENT GUIDELINES
 
@@ -18,101 +18,99 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
 - After each change, run the tests to check for broken functionality. Never commit while tests are failing
 
-## CURRENT SESSION HANDOFF (2025-07-08)
-
-### ✅ **RECENTLY COMPLETED ARCHITECTURAL FIXES**
-
-**Status**: All core architectural violations have been resolved and Travel, Market, Rest, and Contracts functionality is now working correctly.
-
-#### **1. UI Components Direct Manager Injection Violations - FIXED**
-- **Problem**: UI components were injecting managers directly instead of using GameWorldManager gateway
-- **Solution**: Removed direct manager injections from MainGameplayView.razor.cs, Market.razor, TravelSelection.razor.cs, ContractUI.razor.cs
-- **Result**: All UI actions now properly route through GameWorldManager gateway pattern
-
-#### **2. Repository State Caching Violations - FIXED**  
-- **Problem**: LocationRepository and ActionRepository were caching WorldState references instead of being stateless
-- **Solution**: Replaced `private WorldState` with `private readonly GameWorld _gameWorld` and dynamic access via `_gameWorld.WorldState`
-- **Result**: Repositories are now truly stateless and compliant with architectural requirements
-
-#### **3. Critical Null Reference Exceptions - FIXED**
-- **Problem**: `item.EnabledRouteTypes.Any()` in Market.razor causing crashes due to missing property initialization
-- **Solution**: Added `EnabledRouteTypes = baseItem?.EnabledRouteTypes ?? new List<string>()` in MarketManager.CreateItemWithLocationPricing()
-- **Location**: src/GameState/MarketManager.cs:119-133
-- **Result**: Market functionality now works without null reference exceptions
-
-#### **4. Data Readiness Authority Implementation - COMPLETED**
-- **Problem**: UI screens could render before data was fully loaded, causing race conditions
-- **Solution**: Implemented `IsGameDataReady()` method in MainGameplayView.razor.cs:204-225
-- **Pattern**: All UI screens now wrapped with `@if (IsGameDataReady())` checks in MainGameplayView.razor:68-195
-- **Result**: MainGameplayView is now the single authority on data readiness, eliminating timing issues
-
-#### **5. UI Styling Issues - FIXED**
-- **Problem**: Contracts and rest screens missing proper background panel styling
-- **Solution**: Added `.rest-container, .contracts-container` CSS classes in src/wwwroot/css/items.css:81-459
-- **Result**: All UI screens now have consistent visual styling with proper background panels
-
-#### **6. Service Configuration Cleanup - COMPLETED**
-- **Problem**: 21+ duplicate service registrations between ConfigureServices() and ConfigureEconomicServices()
-- **Solution**: Removed redundant ConfigureEconomicServices() method, consolidated duplicate IAIProvider registrations
-- **Result**: Clean service configuration with no duplicates
-
-#### **7. Legacy Method Overload Removal - COMPLETED**
-- **Problem**: Item-based legacy overloads causing confusion between static vs dynamic pricing
-- **Solution**: Removed legacy overloads from MarketManager, TradeManager, ItemRepository
-- **Updated References**: Fixed all `GetItem()` calls to use `GetItemById()` consistently
-- **Result**: Cleaner codebase with consistent location-aware method signatures
-
-### 🔍 **TEST INFRASTRUCTURE STATUS**
-
-**Current Issue**: UI tests are failing due to dependency resolution issues after service configuration cleanup.
-
-**Problem**: Tests are using `ConfigureTestServices()` but ActionGenerator requires AIGameMaster which needs full AI service stack.
-
-**Quick Fix Available**: Tests can be updated to use mock services or test-specific implementations that don't require full AI dependencies.
-
-**Files Needing Update**:
-- Wayfarer.Tests/UIScreenFunctionalityTests.cs
-- Wayfarer.Tests/EconomicGameInitializationTests.cs  
-- Wayfarer.Tests/CriticalUILocationBugTests.cs
-- Wayfarer.Tests/PlayerLocationInitializationTests.cs
-
-### ⚡ **NEXT SESSION RECOMMENDATIONS**
-
-#### **High Priority**
-1. **Fix Test Infrastructure**: Update test service configuration to properly mock AI dependencies
-2. **Validate UI Functionality**: Run application manually to verify Travel, Market, Rest, Contracts work end-to-end
-3. **Performance Testing**: Verify that architectural changes haven't introduced performance regressions
-
-#### **Medium Priority**  
-1. **Code Review**: Validate that all architectural patterns are consistently applied
-2. **Documentation**: Update any outdated code documentation that references old patterns
-
-#### **Low Priority**
-1. **Further Cleanup**: Look for any remaining legacy patterns that could be modernized
-
-### 📊 **CURRENT ARCHITECTURAL COMPLIANCE STATUS**
-
-**Overall Compliance**: 🟢 **98% COMPLIANT** - All major architectural patterns enforced
-
-#### **✅ Fully Compliant Systems:**
-- **UI → GameWorldManager Gateway Pattern**: All UI actions route through gateway
-- **Stateless Repositories**: No local state caching, dynamic GameWorld access
-- **GameWorld Single Source of Truth**: Pure state container, no business logic
-- **Service Configuration**: Clean, no duplicates, consistent patterns
-- **Method Signatures**: Consistent location-aware APIs throughout
-
-#### **⚠️ Minor Outstanding Items:**
-- **Test Infrastructure**: Needs update for new service configuration patterns
-- **Performance Validation**: Architectural changes need performance verification
-
-#### **🏆 Key Achievements This Session:**
-- **Zero Null Reference Exceptions**: All critical UI paths now safe
-- **100% UI Functionality**: Travel, Market, Rest, Contracts all working
-- **Clean Architecture**: All anti-patterns eliminated
-- **Consistent Codebase**: Legacy methods removed, standardized APIs
-
 ## PROJECT OVERVIEW: WAYFARER
 
 **Wayfarer** is a medieval life simulation RPG built as a Blazor Server application. It features a sophisticated, AI-driven narrative system with turn-based resource management gameplay focused on economic strategy, travel optimization, and contract fulfillment.
 
-[... rest of the existing content remains unchanged ...]
+### CORE ARCHITECTURAL PATTERNS
+
+#### **UI → GameWorldManager Gateway Pattern**
+All UI components must route actions through GameWorldManager instead of injecting managers directly.
+- ✅ Correct: UI → GameWorldManager → Specific Manager
+- ❌ Wrong: UI → Direct Manager Injection
+
+#### **Stateless Repositories** 
+Repositories must be stateless and access GameWorld.WorldState dynamically.
+- ✅ Correct: `private readonly GameWorld _gameWorld` + `_gameWorld.WorldState`
+- ❌ Wrong: `private WorldState` caching
+
+#### **GameWorld Single Source of Truth**
+GameWorld.WorldState is the authoritative source for all game state.
+- All game state changes must go through WorldState
+- GameWorld contains no business logic, only state management
+
+#### **Service Configuration**
+- Production: Use `ConfigureServices()` for full AI stack
+- Testing: Use `ConfigureTestServices()` for economic-only functionality
+- No duplicate service registrations
+
+#### **Method Signatures**
+All APIs must be location-aware and consistent:
+- ✅ Correct: `GetItemPrice(string locationId, string itemId, bool buying)`
+- ❌ Wrong: Legacy item-based overloads without location context
+
+### CURRENT SYSTEM STATUS
+
+**Overall Compliance**: 🟢 **FULLY COMPLIANT** - All major architectural patterns enforced
+
+#### **✅ Fully Working Systems:**
+- **UI Screens**: Travel, Market, Rest, Contracts all functional
+- **Data Flow**: UI → GameWorldManager gateway pattern enforced
+- **State Management**: Stateless repositories, GameWorld single source of truth
+- **Service Configuration**: Clean configuration, test infrastructure working
+- **Method APIs**: Consistent location-aware signatures throughout
+
+#### **🧪 Test Infrastructure**
+- `ConfigureTestServices()` provides AI-free economic functionality for testing
+- All core UI functionality tests passing
+- Tests use mock/null services for AI components
+
+### KEY LOCATIONS IN CODEBASE
+
+#### **Core Game Management**
+- `src/GameState/GameWorldManager.cs` - Central coordinator, UI gateway
+- `src/GameState/GameWorld.cs` - Single source of truth for game state
+
+#### **Repository Pattern**
+- `src/Content/LocationRepository.cs` - Stateless location data access
+- `src/Content/ActionRepository.cs` - Stateless action data access  
+- `src/Content/ItemRepository.cs` - Stateless item data access
+
+#### **Business Logic**
+- `src/GameState/TravelManager.cs` - Travel and routing logic
+- `src/GameState/MarketManager.cs` - Trading and pricing logic
+- `src/GameState/TradeManager.cs` - Transaction processing
+- `src/GameState/RestManager.cs` - Rest and recovery logic
+
+#### **Service Configuration**
+- `src/ServiceConfiguration.cs` - Dependency injection setup
+
+#### **UI Components**
+- `src/Pages/MainGameplayView.razor` - Main game screen coordinator
+- `src/Pages/Market.razor` - Trading interface
+- `src/Pages/TravelSelection.razor` - Travel planning interface
+
+### TESTING APPROACH
+
+#### **Economic Testing (No AI)**
+Use `ConfigureTestServices()` for testing core economic functionality without AI dependencies.
+
+#### **Full Integration Testing**
+Use `ConfigureServices()` for full system testing including AI narrative features.
+
+### COMMON PATTERNS TO MAINTAIN
+
+#### **Error-Free Initialization**
+- All location properties must be properly initialized to prevent null reference exceptions
+- UI screens must check `IsGameDataReady()` before rendering
+- Player location and spot must never be null after initialization
+
+#### **Consistent Data Access**
+- Always access current location via `GameWorld.WorldState.CurrentLocation`  
+- Never use the legacy `GameWorld.CurrentLocation` property (always null)
+- Use location-aware method signatures throughout
+
+#### **Service Dependency Management**
+- AI services are optional for economic functionality
+- Use nullable dependencies and factory patterns for services that might not be available
+- Test configuration should provide minimal viable services only

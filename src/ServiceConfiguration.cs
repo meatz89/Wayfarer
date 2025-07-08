@@ -79,13 +79,16 @@ public static class ServiceConfiguration
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
-        services.AddSingleton<ActionGenerator>();
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<ContractSystem>();
         services.AddSingleton<ActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
+        
+        // Register ActionGenerator as null for tests
+        services.AddSingleton<ActionGenerator?>(serviceProvider => null);
+        
         services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
@@ -104,7 +107,15 @@ public static class ServiceConfiguration
 
         // Minimal AI services for testing
         services.AddSingleton<ChoiceProjectionService>();
-        services.AddSingleton<EncounterFactory>();
+        
+        // Register EncounterFactory without AI dependencies
+        services.AddSingleton<EncounterFactory>(serviceProvider =>
+        {
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var choiceProjectionService = serviceProvider.GetRequiredService<ChoiceProjectionService>();
+            var logger = serviceProvider.GetRequiredService<ILogger<EncounterFactory>>();
+            return new EncounterFactory(gameWorld, choiceProjectionService, logger);
+        });
 
         return services;
     }
