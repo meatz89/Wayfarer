@@ -2,6 +2,15 @@
 
 public class ContractSystem
 {
+    private GameWorld gameWorld;
+    private MessageSystem messageSystem;
+
+    public ContractSystem(GameWorld gameWorld, MessageSystem messageSystem)
+    {
+        this.gameWorld = gameWorld;
+        this.messageSystem = messageSystem;
+    }
+
     public string FormatActiveContracts(List<Contract> contracts)
     {
         StringBuilder sb = new StringBuilder();
@@ -17,4 +26,52 @@ public class ContractSystem
         return sb.ToString();
     }
 
+    public bool CompleteContract(Contract contract)
+    {
+        Player player = gameWorld.GetPlayer();
+        
+        if (!contract.CanComplete(player, gameWorld.CurrentLocation.Id))
+        {
+            return false;
+        }
+
+        // Remove required items from inventory
+        foreach (string requiredItem in contract.RequiredItems)
+        {
+            player.Inventory.RemoveItem(requiredItem);
+        }
+
+        // Award payment
+        player.ModifyCoins(contract.Payment);
+        
+        // Mark contract as completed
+        contract.IsCompleted = true;
+        
+        // Remove from active contracts
+        gameWorld.ActiveContracts.Remove(contract);
+        
+        // Add success message
+        messageSystem.AddSystemMessage($"Contract '{contract.Description}' completed! Received {contract.Payment} coins.");
+        
+        return true;
+    }
+
+    public List<Contract> GetActiveContracts()
+    {
+        return gameWorld.ActiveContracts?.ToList() ?? new List<Contract>();
+    }
+
+    public void CheckForFailedContracts()
+    {
+        var failedContracts = gameWorld.ActiveContracts
+            .Where(c => c.DueDay < gameWorld.CurrentDay && !c.IsCompleted)
+            .ToList();
+
+        foreach (var contract in failedContracts)
+        {
+            contract.IsFailed = true;
+            gameWorld.ActiveContracts.Remove(contract);
+            messageSystem.AddSystemMessage($"Contract '{contract.Description}' failed! {contract.FailurePenalty}");
+        }
+    }
 }

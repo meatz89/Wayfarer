@@ -140,19 +140,21 @@
             File.ReadAllText(Path.Combine(templatePath, "gameWorld.json")),
             locations, spots, actions, cards);
 
-        // Add items to the game world
+        // Add items to the game world - items are now loaded from JSON
         if (gameWorld.WorldState.Items == null)
         {
             gameWorld.WorldState.Items = new List<Item>();
-
-            items = new List<Item>
-            {
-                new Item { Id = "herbs", Name = "Herbs", Weight = 1, BuyPrice = 2, SellPrice = 1, LocationId = "town_square", SpotId = "marketplace" },
-                new Item { Id = "tools", Name = "Tools", Weight = 3, BuyPrice = 8, SellPrice = 4, LocationId = "town_square", SpotId = "marketplace" },
-                new Item { Id = "rope", Name = "Rope", Weight = 2, BuyPrice = 6, SellPrice = 3, EnabledRouteTypes = new List<string> { "MountainPass" }, LocationId = "town_square", SpotId = "marketplace" }
-            };
         }
-        gameWorld.WorldState.Items.AddRange(items);
+        
+        // Only add items if they were successfully loaded from JSON
+        if (items.Any())
+        {
+            gameWorld.WorldState.Items.AddRange(items);
+        }
+        else
+        {
+            Console.WriteLine("WARNING: No items loaded from JSON templates. Check items.json file.");
+        }
 
         // Initialize player inventory if not already initialized
         if (gameWorld.GetPlayer().Inventory == null)

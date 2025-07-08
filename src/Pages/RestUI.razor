@@ -53,25 +53,13 @@
 
     private async Task Rest(string option)
     {
-        // Simulate resting
-        if (option == "inn")
+        // Use RestManager for proper architecture
+        var availableOptions = RestManager.GetAvailableRestOptions();
+        var selectedOption = availableOptions.FirstOrDefault(o => o.Id == option);
+        
+        if (selectedOption != null)
         {
-            GameWorld.GetPlayer().ModifyCoins(-2);
-            GameWorld.GetPlayer().Stamina += 4;
-        }
-        else // camp
-        {
-            GameWorld.GetPlayer().Stamina += 2;
-        }
-
-        // Advance to next day
-        GameWorld.CurrentDay++;
-        GameWorld.CurrentTimeBlock = option == "camp" ? TimeBlocks.Dawn : TimeBlocks.Morning;
-
-        // Refresh cards
-        foreach (var card in GameWorld.GetPlayer().GetAllAvailableCards())
-        {
-            GameWorld.GetPlayer().RefreshCard(card);
+            RestManager.Rest(selectedOption);
         }
 
         await OnRestComplete.InvokeAsync();

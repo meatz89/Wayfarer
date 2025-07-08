@@ -1,23 +1,19 @@
 ﻿public class ItemRepository
 {
     private List<Item> _items = new List<Item>();
+    private GameWorld gameWorld;
 
-    public ItemRepository()
+    public ItemRepository(GameWorld gameWorld)
     {
-        // Initialize with standard items
-        _items = new List<Item>
+        this.gameWorld = gameWorld;
+        // Load items from GameWorld instead of hardcoding
+        _items = gameWorld.WorldState.Items ?? new List<Item>();
+        
+        // If no items are loaded, this means there's a problem with JSON loading
+        if (!_items.Any())
         {
-            new Item { Id = "herbs", Name = "Herbs", Weight = 1, BuyPrice = 2, SellPrice = 1 },
-            new Item { Id = "tools", Name = "Tools", Weight = 3, BuyPrice = 8, SellPrice = 4 },
-            new Item { Id = "rare_book", Name = "Rare Book", Weight = 1, BuyPrice = 15, SellPrice = 8 },
-            new Item { Id = "rope", Name = "Rope", Weight = 2, BuyPrice = 6, SellPrice = 3,
-                       EnabledRouteTypes = new List<string> { "MountainPass" } },
-            new Item { Id = "merchant_papers", Name = "Merchant Papers", Weight = 0, BuyPrice = 10, SellPrice = 5,
-                       EnabledRouteTypes = new List<string> { "TradeCaravan" } },
-            new Item { Id = "lantern", Name = "Lantern", Weight = 1, BuyPrice = 4, SellPrice = 2,
-                       EnabledRouteTypes = new List<string> { "NightTravel" } },
-            new Item { Id = "iron_ingots", Name = "Iron Ingots", Weight = 6, BuyPrice = 5, SellPrice = 15, InventorySlots = 2 },
-        };
+            Console.WriteLine("WARNING: No items loaded from GameWorld. JSON loading may have failed.");
+        }
     }
 
     public Item GetItemById(string id)
