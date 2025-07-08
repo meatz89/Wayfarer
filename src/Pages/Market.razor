@@ -77,34 +77,7 @@
         }
     </div>
 
-    <div class="arbitrage-opportunities">
-        <h3>Trading Opportunities</h3>
-        @{
-            // Show arbitrage opportunities to other known locations
-            var otherLocations = new[] { "town_square", "dusty_flagon" }.Where(id => id != Location.Id);
-        }
-        @foreach (string otherLocationId in otherLocations)
-        {
-            @* ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway *@
-            var opportunities = GameManager.GetArbitrageOpportunities(Location.Id, otherLocationId);
-            if (opportunities.Any())
-            {
-                <div class="arbitrage-section">
-                    <h4>Profitable to @otherLocationId.Replace("_", " ")</h4>
-                    @foreach (var opportunity in opportunities.Take(3))
-                    {
-                        <div class="arbitrage-item">
-                            <span class="item-name">@opportunity.ItemId</span>
-                            <span class="profit-info">
-                                Buy @opportunity.BuyPrice → Sell @opportunity.SellPrice 
-                                (Profit: +@opportunity.Profit coins, @opportunity.ProfitMargin.ToString("F1")%)
-                            </span>
-                        </div>
-                    }
-                </div>
-            }
-        }
-    </div>
+    @* Players must discover profitable trades through exploration and memory *@
 
     <div class="inventory-preview">
         <h3>Your Inventory</h3>

@@ -15,10 +15,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## DEVELOPMENT GUIDELINES
 
+### GAME DESIGN PRINCIPLES (Critical for Games vs Apps)
+**Games create interactive optimization puzzles for the player to solve, not automated systems that solve everything for them.**
+
+- ✅ **GAMEPLAY IS IN THE PLAYER'S HEAD** - Fun comes from systems interacting in clever ways that create optimization challenges
+- ✅ **DISCOVERY IS GAMEPLAY** - Players must explore, experiment, and learn to find profitable trades, efficient routes, optimal strategies
+- ❌ **NO AUTOMATED CONVENIENCES** - Don't create `GetProfitableItems()` or `GetBestRoute()` methods that solve the puzzle for the player
+- ❌ **NO GAMEPLAY SHORTCUTS** - No "Trading Opportunities" UI panels that tell players exactly what to do
+- ✅ **EMERGENT COMPLEXITY** - Simple systems (pricing, time blocks, stamina) that interact to create deep strategic decisions
+- ✅ **MEANINGFUL CHOICES** - Every decision should involve sacrificing something valuable (time vs money vs stamina)
+- ✅ **PLAYER AGENCY** - Players discover patterns, build mental models, develop personal strategies through exploration
+
+**Example**: Instead of showing "Buy herbs at town_square (4 coins) → Sell at dusty_flagon (5 coins) = 1 profit", let players discover this by visiting locations, checking prices, and building their own understanding of the market.
+
 ### CODE WRITING PRINCIPLES
 - Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
 - After each change, run the tests to check for broken functionality. Never commit while tests are failing
 - **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
+- You must run all tests and execute the game and do quick smoke tests before every commit
 
 ### FRONTEND PERFORMANCE PRINCIPLES
 - **NEVER use caching in frontend components** - Components should be stateless and reactive
