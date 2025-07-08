@@ -17,6 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### CODE WRITING PRINCIPLES
 - Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
 - After each change, run the tests to check for broken functionality. Never commit while tests are failing
+- **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
 
 ## PROJECT OVERVIEW: WAYFARER
 
