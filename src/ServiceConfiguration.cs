@@ -42,6 +42,7 @@ public static class ServiceConfiguration
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
+        services.AddSingleton<RestManager>();
 
         services.AddScoped<MusicService>();
 

@@ -1,11 +1,14 @@
 ﻿@* ContractUI.razor *@
-@inject GameWorldManager GameWorldManager
+@inject ContractSystem ContractSystem
 @inject GameWorld GameWorld
 
 <div class="contracts-list">
-    @if (GameWorld.ActiveContracts.Any())
+    @{
+        var activeContracts = ContractSystem.GetActiveContracts();
+    }
+    @if (activeContracts.Any())
     {
-        @foreach (var contract in GameWorld.ActiveContracts)
+        @foreach (var contract in activeContracts)
         {
             bool canComplete = contract.CanComplete(GameWorld.GetPlayer(), GameWorld.CurrentLocation.Id);
             int daysRemaining = contract.DueDay - GameWorld.CurrentDay;
@@ -59,9 +62,11 @@
 @code {
     private void CompleteContract(Contract contract)
     {
-        // Simulate contract completion
-        GameWorld.GetPlayer().ModifyCoins(contract.Payment);
-        contract.IsCompleted = true;
-        StateHasChanged();
+        // Use ContractSystem for proper architecture
+        bool success = ContractSystem.CompleteContract(contract);
+        if (success)
+        {
+            StateHasChanged();
+        }
     }
 }

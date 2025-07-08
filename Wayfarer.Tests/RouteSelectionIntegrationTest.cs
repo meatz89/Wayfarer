@@ -20,7 +20,7 @@ namespace Wayfarer.Tests
             gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
 
             LocationRepository locationRepository = new LocationRepository(gameWorld);
-            ItemRepository itemRepository = new ItemRepository();
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
 
             // Create test locations with routes
             Location townSquare = new Location("town_square", "Town Square");
@@ -91,7 +91,7 @@ namespace Wayfarer.Tests
             gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
 
             LocationRepository locationRepository = new LocationRepository(gameWorld);
-            ItemRepository itemRepository = new ItemRepository();
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
 
             // Create test locations with routes
             Location townSquare = new Location("town_square", "Town Square");
