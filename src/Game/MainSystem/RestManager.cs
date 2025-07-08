@@ -8,13 +8,12 @@
 
     public RestManager(
         GameWorld gameWorld, 
-        TimeManager timeManager,
         LocationRepository locationRepository,
         MessageSystem messageSystem,
         ContractRepository contractRepository)
     {
         this.gameWorld = gameWorld;
-        this.timeManager = timeManager;
+        this.timeManager = gameWorld.TimeManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
         this.contractRepository = contractRepository;

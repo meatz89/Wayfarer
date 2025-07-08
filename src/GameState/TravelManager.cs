@@ -11,7 +11,6 @@
 
     public TravelManager(
         GameWorld gameWorld,
-        TimeManager timeManager,
         LocationSystem locationSystem,
         ActionRepository actionRepository,
         LocationRepository locationRepository,
@@ -20,7 +19,7 @@
         )
     {
         _gameWorld = gameWorld;
-        _timeManager = timeManager;
+        _timeManager = gameWorld.TimeManager;
         // ✅ REMOVED: cached worldState assignment
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;

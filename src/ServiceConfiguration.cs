@@ -39,7 +39,7 @@ public static class ServiceConfiguration
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
         
-        services.AddSingleton<TimeManager>();
+        // TimeManager is created and managed by GameWorld, not DI container
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
@@ -95,7 +95,7 @@ public static class ServiceConfiguration
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
         
-        services.AddSingleton<TimeManager>();
+        // TimeManager is created and managed by GameWorld, not DI container
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();

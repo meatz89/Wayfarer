@@ -35,7 +35,7 @@
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
                        MarketManager marketManager, TradeManager tradeManager, 
-                       ContractSystem contractSystem, RestManager restManager, TimeManager timeManager,
+                       ContractSystem contractSystem, RestManager restManager,
                        ActionGenerator? actionGenerator, PlayerProgression playerProgression,
                        ActionProcessor actionProcessor, GameWorldInitializer contentLoader,
                        ChoiceProjectionService choiceProjectionService,
@@ -54,7 +54,7 @@
         this.tradeManager = tradeManager;
         this.contractSystem = contractSystem;
         this.restManager = restManager;
-        this.timeManager = timeManager;
+        this.timeManager = gameWorld.TimeManager;
         this.actionGenerator = actionGenerator;
         this.actionProcessor = actionProcessor;
         this.contentLoader = contentLoader;
