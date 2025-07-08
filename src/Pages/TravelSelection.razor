@@ -32,34 +32,56 @@
                 </div>
                 <div class="location-routes">
                     @{
-                        var routes = TravelManager.GetAvailableRoutes(CurrentLocation.Id, location.Id);
-                        int totalWeight = GameManager.CalculateTotalWeight();
+                        var routeComparisons = TravelManager.GetRouteComparisonData(CurrentLocation.Id, location.Id);
+                        var recommendation = routeComparisons.Count > 0 ? 
+                            TravelManager.GetOptimalRouteRecommendation(CurrentLocation.Id, location.Id, OptimizationStrategy.Efficiency) : null;
                     }
-                    @foreach (var route in routes)
+                    
+                    @if (recommendation != null)
                     {
-                        int adjustedStaminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
-                        string arrivalTime = CalculateArrivalTimeBlock(GameWorld.CurrentTimeBlock, route.TimeBlockCost);
-                        bool canAfford = route.CanTravel(ItemRepository, GameWorld.GetPlayer(), totalWeight);
-
-                        <div class="route-option @(!canAfford ? "disabled" : "")">
-                            <div class="route-name">@route.Name</div>
+                        <div class="route-recommendation">
+                            <strong>Recommended:</strong> @recommendation.RecommendedRoute.Name - @recommendation.Justification
+                        </div>
+                    }
+                    
+                    @foreach (var comparison in routeComparisons)
+                    {
+                        <div class="route-option @(!comparison.CanAfford ? "disabled" : "") @(recommendation?.RecommendedRoute == comparison.Route ? "recommended" : "")">
+                            <div class="route-header">
+                                <div class="route-name">
+                                    @comparison.Route.Name
+                                    @if (recommendation?.RecommendedRoute == comparison.Route)
+                                    {
+                                        <span class="recommended-badge">★ Recommended</span>
+                                    }
+                                </div>
+                                <div class="efficiency-score">
+                                    Efficiency: @comparison.EfficiencyScore.ToString("F1")/5
+                                </div>
+                            </div>
                             <div class="route-details">
-                                <span>@route.BaseCoinCost coins</span>
-                                <span>@adjustedStaminaCost stamina @(route.BaseStaminaCost != adjustedStaminaCost ? $"(base {route.BaseStaminaCost} + weight penalty)" : "")</span>
-                                <span>Arrives: @arrivalTime</span>
-                                @if (route.DepartureTime.HasValue)
+                                <div class="cost-breakdown">
+                                    <span>@comparison.Route.BaseCoinCost coins</span>
+                                    <span>@comparison.AdjustedStaminaCost stamina @(comparison.WeightPenalty > 0 ? $"(+{comparison.WeightPenalty} weight penalty)" : "")</span>
+                                    <span>Arrives: @comparison.ArrivalTime</span>
+                                </div>
+                                <div class="analysis">
+                                    <div class="cost-benefit">@comparison.CostBenefitAnalysis</div>
+                                    <div class="recommendation-text">@comparison.Recommendation</div>
+                                </div>
+                                @if (comparison.Route.DepartureTime.HasValue)
                                 {
-                                    <span>Departs: @route.DepartureTime</span>
+                                    <span>Departs: @comparison.Route.DepartureTime</span>
                                 }
-                                @if (route.RequiredRouteTypes.Any())
+                                @if (comparison.Route.RequiredRouteTypes.Any())
                                 {
-                                    <span>Requires: @string.Join(", ", route.RequiredRouteTypes)</span>
+                                    <span>Requires: @string.Join(", ", comparison.Route.RequiredRouteTypes)</span>
                                 }
-                                <span>Max items: @route.MaxItemCapacity</span>
+                                <span>Max items: @comparison.Route.MaxItemCapacity</span>
                             </div>
                             <button class="travel-button"
-                                    disabled="@(!canAfford)"
-                                    @onclick="() => OnTravelRoute.InvokeAsync(route)">
+                                    disabled="@(!comparison.CanAfford)"
+                                    @onclick="() => OnTravelRoute.InvokeAsync(comparison.Route)">
                                 Travel
                             </button>
                         </div>
