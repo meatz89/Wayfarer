@@ -1,8 +1,8 @@
-﻿using BlazorRPG.UIHelpers;
+﻿using Wayfarer.UIHelpers;
 using Microsoft.AspNetCore.Components;
 using System.Timers;
 
-namespace BlazorRPG.Pages
+namespace Wayfarer.Pages
 {
     public partial class MusicPlayer : ComponentBase, IDisposable
     {

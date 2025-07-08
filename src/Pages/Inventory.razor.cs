@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace BlazorRPG.Pages
+namespace Wayfarer.Pages
 {
     public partial class InventoryBase : ComponentBase
     {

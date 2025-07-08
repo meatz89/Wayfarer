@@ -1,4 +1,4 @@
-﻿using BlazorRPG.UIHelpers;
+﻿using Wayfarer.UIHelpers;
 
 public static class ServiceConfiguration
 {

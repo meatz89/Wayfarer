@@ -1,8 +1,8 @@
-﻿using BlazorRPG.UIHelpers;
+﻿using Wayfarer.UIHelpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace BlazorRPG.Pages;
+namespace Wayfarer.Pages;
 
 public partial class MainGameplayView : ComponentBase
 {
