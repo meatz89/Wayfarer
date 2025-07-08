@@ -11,6 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. ✅ **Document architectural changes immediately** - Track all relationships and patterns
 5. ✅ **VERIFY DOCUMENTATION IN EVERY COMMIT** - Follow post-commit validation workflow
 6. 🧹 **KEEP CLAUDE.MD HIGH-LEVEL** - This should contain architectural patterns, core systems, and essential guidance. Do NOT add detailed session progress notes, step-by-step fixes, or temporary status updates. Move those to separate session notes or remove them after completion.
+7. 📋 **SESSION PROGRESS TRACKING** - All current progress, session handoffs, and next steps should be documented in `session-handoff.md`, not in this file. Reference that file for current status.
 
 ## DEVELOPMENT GUIDELINES
 
@@ -58,21 +59,9 @@ All APIs must be location-aware and consistent:
 
 ### CURRENT SYSTEM STATUS
 
+**For current progress, session handoffs, and next steps, see:** `session-handoff.md`
+
 **Overall Compliance**: 🟢 **FULLY COMPLIANT** - All major architectural patterns enforced
-
-#### **✅ Fully Working Systems:**
-- **Travel System**: Complete end-to-end functionality with proper inventory validation and player location sync
-- **UI Screens**: Travel, Market, Rest, Contracts all functional
-- **Data Flow**: UI → GameWorldManager gateway pattern enforced
-- **State Management**: Stateless repositories, GameWorld single source of truth
-- **Service Configuration**: Clean configuration, test infrastructure working
-- **Method APIs**: Consistent location-aware signatures throughout
-
-#### **🧪 Test Infrastructure**
-- `ConfigureTestServices()` provides AI-free economic functionality for testing
-- All core UI functionality tests passing, including travel functionality
-- Tests use mock/null services for AI components
-- Travel tests verify end-to-end location changes and resource consumption
 
 ### KEY LOCATIONS IN CODEBASE
 
@@ -107,13 +96,15 @@ Use `ConfigureTestServices()` for testing core economic functionality without AI
 #### **Full Integration Testing**
 Use `ConfigureServices()` for full system testing including AI narrative features.
 
+#### **Test-Driven Development**
+Always write failing tests before fixing bugs to ensure proper understanding and validation.
+
 ### COMMON PATTERNS TO MAINTAIN
 
 #### **Error-Free Initialization**
 - All location properties must be properly initialized to prevent null reference exceptions
 - UI screens must check `IsGameDataReady()` before rendering
 - Player location and spot must never be null after initialization
-- Travel system properly syncs Player.CurrentLocation with GameWorld.WorldState.CurrentLocation
 
 #### **Consistent Data Access**
 - Always access current location via `GameWorld.WorldState.CurrentLocation`  
@@ -124,10 +115,3 @@ Use `ConfigureServices()` for full system testing including AI narrative feature
 - AI services are optional for economic functionality
 - Use nullable dependencies and factory patterns for services that might not be available
 - Test configuration should provide minimal viable services only
-
-#### **Travel System Implementation**
-- **Inventory Validation**: `RouteOption.CanTravel()` checks non-empty inventory slots against transport capacity
-- **Player Location Sync**: Travel updates both `GameWorld.WorldState.CurrentLocation` and `Player.CurrentLocation`
-- **Destination Handling**: Travel automatically assigns appropriate LocationSpots at destination
-- **Resource Consumption**: Travel properly consumes stamina and coins based on route requirements
-- **Route Availability**: `TravelManager.CanTravelTo()` accurately checks if routes exist between locations
