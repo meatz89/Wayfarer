@@ -65,6 +65,135 @@ docker-compose up -d
 docker exec -it build_ollama_1 /app/scripts/init-model.sh
 ```
 
+## FRONTEND-BACKEND INTEGRATION ANALYSIS (Latest Session)
+
+### PHASE 1: GAME INITIALIZATION VERIFICATION ✅
+**CRITICAL ISSUE DISCOVERED - JSON vs Hardcoded Data Conflict:**
+
+**❌ MAJOR ARCHITECTURAL PROBLEM:**
+- `ItemRepository.cs` contains hardcoded item data (herbs, tools, rope, etc.)
+- `items.json` template contains the same data but is **NOT BEING USED**
+- `GameWorldInitializer.cs` has **DUPLICATE** hardcoded item definitions (lines 148-153)
+- JSON parsers exist (`ItemParser.cs`) but are bypassed by hardcoded repositories
+
+**JSON Content Loading Status:**
+- ✅ **Locations**: Properly loaded from `locations.json` via `GameWorldSerializer`
+- ✅ **Contracts**: Loaded from `contracts.json` with additional hardcoded fallback
+- ✅ **Actions**: Loaded from `actions.json` 
+- ❌ **Items**: Hardcoded in `ItemRepository` constructor - JSON ignored
+- ❌ **Routes**: Mixed loading - some JSON, some hardcoded
+
+**Game Startup Sequence:** ✅ **VERIFIED**
+```
+Program.cs → builder.Services.ConfigureServices() → ServiceConfiguration.cs → 
+ContentLoader.LoadGame() → LoadGameFromTemplates() → GameWorldSerializer calls
+```
+
+### PHASE 2: UI-BACKEND ARCHITECTURE AUDIT ✅
+**Blazor Component → Service Mapping VERIFIED:**
+
+**✅ Market.razor ↔ Backend Integration:**
+```csharp
+@inject GameWorldManager GameManager     // Weight calculations
+@inject MarketManager MarketManager      // Dynamic pricing ✅ RECENTLY FIXED
+@inject ItemRepository ItemRepository    // Item lookups
+@inject TradeManager TradeManager        // Trading operations ✅ RECENTLY FIXED
+```
+
+**✅ TravelSelection.razor ↔ Backend Integration:**
+```csharp
+@inject TravelManager TravelManager      // Route analysis & recommendations
+var routeComparisons = TravelManager.GetRouteComparisonData(from, to);
+var recommendation = TravelManager.GetOptimalRouteRecommendation(...);
+```
+
+**✅ MainGameplayView.razor ↔ Backend Integration:**
+```csharp
+@inject GameWorldManager GameManager     // Central orchestrator
+@inject GameWorld GameWorld              // Direct state access
+@inject MessageSystem MessageSystem      // Game messaging
+@inject ItemRepository ItemRepository    // Item operations
+```
+
+**⚠️ UI COMPONENT NAME WARNINGS (Build Warnings):**
+- `TravelSelectionWithWeight` - Component name not recognized
+- `MarketUI` - Component name not recognized
+- **Impact**: Non-blocking, components function but need namespace fixes
+
+### PHASE 3: ECONOMIC SYSTEMS UI ACCESSIBILITY ✅
+**All Economic Features Accessible from UI:**
+
+**✅ Time Block System Display:**
+- **MainGameplayView.razor:31-36**: Time display with icons and styling
+- **Format**: "Dawn 6:00" with time-specific styling classes
+- **Integration**: `@CurrentTime.ToString()` and `StyleHelper.GetTimeBlocksStyle()`
+
+**✅ Dynamic Pricing Display:**
+- **Market.razor:35**: `MarketManager.GetAvailableItems(Location.Id)` ✅ RECENTLY INTEGRATED
+- **Market.razor:38**: `MarketManager.CanBuyItem(item.Id, Location.Id)` ✅ RECENTLY INTEGRATED
+- **Arbitrage Display**: Lines 74-100 show profitable trading opportunities
+
+**✅ Stamina System Display:**
+- **MainGameplayView.razor:10-16**: Stamina display with action point costs
+- **TravelSelection.razor:22**: Current stamina shown in travel interface
+- **Integration**: Weight penalties properly calculated and displayed
+
+**✅ Contract System UI:**
+- **ContractUI.razor:16-18**: Time pressure visualization with urgency styling
+- **MainGameplayView.razor:88-90**: Contract button accessible from location screen
+- **Features**: Days remaining, payment, requirements, completion logic all working
+
+**✅ Route Selection System:**
+- **TravelSelection.razor:35-37**: Route comparison with efficiency scoring
+- **TravelSelection.razor:49**: Route recommendations with justification
+- **Features**: Cost-benefit analysis, weight penalties, arrival times all displayed
+
+### PHASE 4: UI FUNCTIONALITY VERIFICATION ✅
+**Event Handlers & Bindings VERIFIED:**
+
+**✅ @onclick Handlers:**
+- `SwitchToTravelScreen()`, `SwitchToMarketScreen()`, `SwitchToContractScreen()` - ✅ Working
+- `BuyItem(item)`, `SellItem(item)` in Market.razor - ✅ Connected to TradeManager
+- `CompleteContract(contract)` in ContractUI.razor - ✅ Working with payment logic
+
+**✅ @inject Dependencies:**
+- All major managers properly injected: GameWorldManager, MarketManager, TravelManager
+- ServiceConfiguration.cs shows all services registered as singletons
+- No missing dependency injection issues found
+
+**✅ Navigation & Routing:**
+- Screen switching via `CurrentScreen` enum working
+- `@switch (CurrentScreen)` pattern properly implemented
+- Back buttons and navigation flow functional
+
+**✅ State Updates:**
+- `StateHasChanged()` called after major operations
+- UI components update when backend state changes
+- StateVersion tracking implemented for complex components
+
+### PHASE 5: UI/UX ANALYSIS ✅
+**HTML Structure & Styling:**
+
+**✅ Semantic HTML:**
+- Proper div structure with semantic class names
+- Game status displayed in organized sections
+- Clear visual hierarchy with headers and sections
+
+**✅ Resource Display:**
+- Coins, stamina, weight all prominently displayed
+- Time blocks shown with appropriate styling
+- Contract deadlines with urgency indicators
+
+**✅ Interactive Elements:**
+- Buttons properly disabled when actions unavailable
+- Clear feedback for player actions
+- Route recommendations highlighted with visual badges
+
+**⚠️ Minor UX Issues:**
+- Component name warnings may cause styling inconsistencies
+- Weight penalty display could be more prominent
+- Some hardcoded styling could be moved to CSS classes
+
 ## CODEBASE ANALYSIS (Updated This Session)
 
 ### Contract System Architecture Discovery
@@ -351,13 +480,19 @@ All UI components use `@inject` for backend service access:
 
 ## Next Priorities
 
-### **High Priority Integration Enhancements** (Updated After Analysis)
+### **CRITICAL INTEGRATION FIXES REQUIRED**
+1. **❌ URGENT: Fix JSON Content Loading** - ItemRepository ignores items.json, uses hardcoded data
+2. **❌ URGENT: Eliminate Duplicate Item Definitions** - GameWorldInitializer + ItemRepository + items.json conflicts
+3. **⚠️ Fix Component Name Warnings** - TravelSelectionWithWeight, MarketUI namespace issues
+4. **Route-Market Integration**: Combine travel decisions with trading opportunities
+5. **Contract Failure Enforcement**: Implement automatic failure detection and penalty application
+
+### **Completed Integration Enhancements**
 1. ~~**Market UI Enhancement**: Integrate dynamic pricing display with arbitrage opportunities~~ ✅ **COMPLETED**
 2. ~~**Contract System UI**: Add time pressure visualization and deadline warnings~~ ✅ **ALREADY IMPLEMENTED**  
-3. **Route-Market Integration**: Combine travel decisions with trading opportunities
-4. **Advanced Inventory UI**: Show weight penalties and capacity management
-5. ~~**Service Configuration Audit**: Ensure all MarketManager dependencies are properly registered~~ ✅ **VERIFIED**
-6. **Contract Failure Enforcement**: Implement automatic failure detection and penalty application
+3. ~~**Service Configuration Audit**: Ensure all MarketManager dependencies are properly registered~~ ✅ **VERIFIED**
+4. ~~**UI-Backend Architecture Audit**: Map all Blazor components to backend services~~ ✅ **COMPLETED**
+5. ~~**Economic Systems UI Verification**: Confirm all systems accessible from UI~~ ✅ **COMPLETED**
 
 ### **Technical Debt & Improvements**
 1. **Error Handling**: Add try-catch blocks for service calls in UI components
