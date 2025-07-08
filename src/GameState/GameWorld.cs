@@ -34,6 +34,7 @@
     public string DeadlineReason { get; set; }
     public Guid GameInstanceId { get; set; }
     public RouteOption CurrentRouteOption { get; internal set; }
+    public TimeManager TimeManager { get; internal set; }
 
     public GameWorld()
     {
@@ -41,6 +42,9 @@
 
         Player = new Player();
         WorldState = new WorldState();
+
+        TimeManager = new TimeManager(Player, WorldState);
+
         ActionStateTracker = new ActionStateTracker();
         StreamingContentState = new StreamingContentState();
 

@@ -58,6 +58,7 @@
     {
         CurrentLocation = location;
         if (location == null) return;
+        CurrentLocationSpot = currentLocationSpot;
     }
 
     public void SetCurrentLocationSpot(LocationSpot locationSpot)
