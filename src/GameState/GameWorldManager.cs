@@ -474,14 +474,8 @@
 
     public void UpdateContracts()
     {
-        List<Contract> expiredContracts = new List<Contract>();
-
-        // Remove expired Contracts
-        foreach (Contract expired in expiredContracts)
-        {
-            _gameWorld.WorldState.ActiveContracts.Remove(expired);
-            _gameWorld.WorldState.FailedContracts.Add(expired);
-        }
+        // Check for failed contracts using ContractSystem
+        contractSystem.CheckForFailedContracts();
     }
 
     public bool CanTravelTo(string locationId)
