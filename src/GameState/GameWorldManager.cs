@@ -231,6 +231,8 @@
 
     private async Task<List<LocationAction>> CreateActions(Location location, LocationSpot locationSpot)
     {
+        // Location SPOT IS NULL HERE AFTER GAMESTART???
+
         List<LocationAction> locationActions = new List<LocationAction>();
         List<ActionDefinition> locationSpotActions = actionRepository.GetActionsForSpot(locationSpot.SpotID);
         for (int i = 0; i < locationSpotActions.Count; i++)

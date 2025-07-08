@@ -19,7 +19,8 @@
       "Bash(pkill:*)",
       "Bash(touch:*)",
       "Bash(dotnet run:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
