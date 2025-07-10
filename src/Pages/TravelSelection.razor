@@ -63,6 +63,19 @@
                                     <span>Terrain: @string.Join(", ", route.TerrainCategories.Select(c => c.ToString().Replace('_', ' ')))</span>
                                 }
                                 @{
+                                    var weatherEffects = GetWeatherTerrainEffects(route.TerrainCategories, CurrentWeather);
+                                }
+                                @if (weatherEffects.Any())
+                                {
+                                    <div class="weather-effects">
+                                        <strong>Weather Effects (@GetWeatherIcon(CurrentWeather) @CurrentWeather):</strong>
+                                        @foreach (var effect in weatherEffects)
+                                        {
+                                            <div class="weather-effect">@effect</div>
+                                        }
+                                    </div>
+                                }
+                                @{
                                     var requiredEquipment = GetRequiredEquipment(route.TerrainCategories);
                                     var recommendedEquipment = GetRecommendedEquipment(route.TerrainCategories);
                                 }

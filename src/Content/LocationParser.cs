@@ -32,6 +32,57 @@ public static class LocationParser
             location.NightProperties = GetStringArrayFromProperty(envProps, "night");
         }
 
+        // Parse social categorical properties
+        string socialExpectationStr = GetStringProperty(root, "socialExpectation", "");
+        if (Enum.TryParse<Social_Expectation>(socialExpectationStr, out Social_Expectation socialExpectation))
+        {
+            location.SocialExpectation = socialExpectation;
+        }
+
+        string accessLevelStr = GetStringProperty(root, "accessLevel", "");
+        if (Enum.TryParse<Access_Level>(accessLevelStr, out Access_Level accessLevel))
+        {
+            location.AccessLevel = accessLevel;
+        }
+
+        // Parse required social classes
+        List<string> socialClassStrings = GetStringArray(root, "requiredSocialClasses");
+        foreach (string socialClassStr in socialClassStrings)
+        {
+            if (Enum.TryParse<Social_Class>(socialClassStr, out Social_Class socialClass))
+            {
+                location.RequiredSocialClasses.Add(socialClass);
+            }
+        }
+
+        // Parse available professions by time
+        if (root.TryGetProperty("availableProfessionsByTime", out JsonElement professionsByTime) &&
+            professionsByTime.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty timeProperty in professionsByTime.EnumerateObject())
+            {
+                if (Enum.TryParse<TimeBlocks>(timeProperty.Name, out TimeBlocks timeBlock))
+                {
+                    List<Professions> professions = new List<Professions>();
+                    if (timeProperty.Value.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (JsonElement professionElement in timeProperty.Value.EnumerateArray())
+                        {
+                            if (professionElement.ValueKind == JsonValueKind.String)
+                            {
+                                string professionStr = professionElement.GetString() ?? "";
+                                if (Enum.TryParse<Professions>(professionStr, out Professions profession))
+                                {
+                                    professions.Add(profession);
+                                }
+                            }
+                        }
+                    }
+                    location.AvailableProfessionsByTime[timeBlock] = professions;
+                }
+            }
+        }
+
         return location;
     }
 

@@ -7,7 +7,7 @@ namespace Wayfarer.Tests
     /// These tests validate the critical "5 time blocks per day" constraint
     /// that enables the economic simulation's core resource management gameplay.
     /// 
-    /// User Story: Daily Time Block Allocation (UserStories.md:16-32)
+    /// User Story: Daily Time Block Allocation (:16-32)
     /// Priority: CRITICAL - Foundation for all other systems
     /// </summary>
     public class TimeBlockConstraintTests

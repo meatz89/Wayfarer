@@ -11,7 +11,16 @@
 		},
 		"domainTags": [ "SOCIAL", "LABOR" ],
 		"locationSpots": [ "innkeeper", "hearth", "common_room", "inn_room", "tavern" ],
-		"connectedTo": [ "town_square" ]
+		"connectedTo": [ "town_square" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": ["Merchant"],
+			"Afternoon": ["Merchant"],
+			"Evening": ["Merchant"],
+			"Night": ["Merchant"]
+		}
 	},
 	{
 		"id": "town_square",
@@ -25,6 +34,15 @@
 		},
 		"domainTags": [ "COMMERCE", "KNOWLEDGE" ],
 		"locationSpots": [ "marketplace", "library", "market_stall" ],
-		"connectedTo": [ "dusty_flagon" ]
+		"connectedTo": [ "dusty_flagon" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": ["Merchant", "Craftsman", "Scholar"],
+			"Afternoon": ["Merchant", "Ranger"],
+			"Evening": ["Courtier"],
+			"Night": []
+		}
 	}
 ]
