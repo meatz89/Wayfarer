@@ -19,9 +19,9 @@ namespace Wayfarer.Tests
     /// 
     /// Tests validate complete initialization flow: Character creation → GameWorld setup → UI access
     /// </summary>
-    public class CriticalUILocationBugTests
+    public class LocationTests
     {
-        private IServiceProvider CreateEconomicServiceProvider()
+        private IServiceProvider CreateServiceProvider()
         {
             IServiceCollection services = new ServiceCollection();
 
@@ -34,9 +34,8 @@ namespace Wayfarer.Tests
                 .Build();
             services.AddSingleton(configuration);
             services.AddLogging();
-
-            // Use the economic-only service configuration
-            services.ConfigureTestServices();
+            
+            services.ConfigureServices();
 
             return services.BuildServiceProvider();
         }
@@ -47,7 +46,7 @@ namespace Wayfarer.Tests
             // VALIDATES: GameWorld.CurrentLocation properly delegates to WorldState.CurrentLocation
 
             // Arrange: Complete game initialization
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
 
@@ -79,7 +78,7 @@ namespace Wayfarer.Tests
             // VALIDATES: The UI delegation pattern works correctly in integration scenario
 
             // Arrange: Setup complete system as it would be after character creation
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
 
@@ -108,7 +107,7 @@ namespace Wayfarer.Tests
             // VALIDATES: The LocationSpotMap component crash is now fixed
 
             // Arrange: Setup services
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
 
@@ -132,7 +131,7 @@ namespace Wayfarer.Tests
             // VERIFICATION: Test that the fix works correctly
 
             // Arrange: Setup complete system
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
 
@@ -165,7 +164,7 @@ namespace Wayfarer.Tests
             // INTEGRATION TEST: Complete character creation → gameplay flow
 
             // Arrange: Setup services (simulates app startup)
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();
@@ -205,7 +204,7 @@ namespace Wayfarer.Tests
             // VERIFICATION: Ensure all location properties are synchronized
 
             // Arrange: Complete setup
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();

@@ -1,10 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using Xunit;
-
 namespace Wayfarer.Tests
 {
     /// <summary>
@@ -13,7 +9,7 @@ namespace Wayfarer.Tests
     /// </summary>
     public class UIScreenFunctionalityTests
     {
-        private IServiceProvider CreateEconomicServiceProvider()
+        private IServiceProvider CreateServiceProvider()
         {
             IServiceCollection services = new ServiceCollection();
 
@@ -27,8 +23,8 @@ namespace Wayfarer.Tests
             services.AddSingleton(configuration);
             services.AddLogging();
 
-            // Use the economic-only service configuration
-            services.ConfigureTestServices();
+                
+            services.ConfigureServices();
 
             return services.BuildServiceProvider();
         }
@@ -36,7 +32,7 @@ namespace Wayfarer.Tests
         private (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) InitializeGameToMainGameplay()
         {
             // Complete game initialization flow
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();
@@ -81,7 +77,7 @@ namespace Wayfarer.Tests
             // This tests what happens when user clicks "Travel" button
 
             // Get required services for TravelSelection
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             TravelManager travelManager = serviceProvider.GetRequiredService<TravelManager>();
             ItemRepository itemRepository = serviceProvider.GetRequiredService<ItemRepository>();
 
@@ -121,7 +117,7 @@ namespace Wayfarer.Tests
             // Act: Simulate Market component initialization
             // This tests what happens when user clicks "Market" button
 
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             MarketManager marketManager = serviceProvider.GetRequiredService<MarketManager>();
             ItemRepository itemRepository = serviceProvider.GetRequiredService<ItemRepository>();
 
@@ -158,7 +154,7 @@ namespace Wayfarer.Tests
             // Act: Simulate RestUI component initialization
             // This tests what happens when user clicks "Rest" button
 
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             RestManager restManager = serviceProvider.GetRequiredService<RestManager>();
 
             // Test Rest dependencies
@@ -188,7 +184,7 @@ namespace Wayfarer.Tests
             // Act: Simulate ContractUI component initialization
             // This tests what happens when user clicks "Contracts" button
 
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             ContractRepository contractRepository = serviceProvider.GetRequiredService<ContractRepository>();
 
             // Test Contract dependencies
@@ -214,7 +210,7 @@ namespace Wayfarer.Tests
             // Arrange
             (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
 
             // Act & Assert: Test that all screen components can be initialized without exceptions
 
@@ -252,7 +248,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             TravelManager travelManager = serviceProvider.GetRequiredService<TravelManager>();
 
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
@@ -286,7 +282,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             MarketManager marketManager = serviceProvider.GetRequiredService<MarketManager>();
 
             Location currentLocation = gameWorld.WorldState.CurrentLocation;

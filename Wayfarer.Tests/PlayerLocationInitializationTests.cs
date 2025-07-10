@@ -1,9 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.IO;
-using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -14,7 +10,7 @@ namespace Wayfarer.Tests
     /// </summary>
     public class PlayerLocationInitializationTests
     {
-        private IServiceProvider CreateEconomicServiceProvider()
+        private IServiceProvider CreateServiceProvider()
         {
             IServiceCollection services = new ServiceCollection();
 
@@ -28,8 +24,8 @@ namespace Wayfarer.Tests
             services.AddSingleton(configuration);
             services.AddLogging();
 
-            // Use the economic-only service configuration
-            services.ConfigureTestServices();
+            
+            services.ConfigureServices();
 
             return services.BuildServiceProvider();
         }
@@ -40,8 +36,8 @@ namespace Wayfarer.Tests
             // CRITICAL: Player.CurrentLocation must NEVER be null
             // Systems depend on this value being valid
 
-            // Arrange: Get economic services
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            // Arrange: Get  services
+            IServiceProvider serviceProvider = CreateServiceProvider();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
 
@@ -66,7 +62,7 @@ namespace Wayfarer.Tests
             // CRITICAL: Even during character creation, location values must be valid
 
             // Arrange: Setup services and initialize locations
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
 
@@ -89,7 +85,7 @@ namespace Wayfarer.Tests
             // CRITICAL: After StartGame(), player must have valid location state
 
             // Arrange: Setup complete system
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
@@ -123,7 +119,7 @@ namespace Wayfarer.Tests
             // CRITICAL: Player location spot must have available actions and be valid
 
             // Arrange: Setup system
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             ActionRepository actionRepository = serviceProvider.GetRequiredService<ActionRepository>();
@@ -154,7 +150,7 @@ namespace Wayfarer.Tests
             // CRITICAL: Player location must support all system operations without null exceptions
 
             // Arrange: Setup complete system
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
@@ -194,7 +190,7 @@ namespace Wayfarer.Tests
             // DOCUMENTS: Common operations that would fail with null locations
 
             // Arrange: Setup system
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
 

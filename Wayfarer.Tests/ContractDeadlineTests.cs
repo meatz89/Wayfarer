@@ -5,7 +5,7 @@ namespace Wayfarer.Tests
     /// <summary>
     /// Unit tests for Contract deadline enforcement system.
     /// These tests validate the time-bound delivery constraints that create urgency
-    /// and strategic decision-making in the economic simulation.
+    /// and strategic decision-making in the  simulation.
     /// 
     /// User Story: Contract Time Pressure ()
     /// Priority: MEDIUM - Adds strategic depth to time management
@@ -137,7 +137,7 @@ namespace Wayfarer.Tests
             Assert.Equal(1, daysRemaining);
 
             // Contract should still be available but urgent
-            Assert.True(contract.IsAvailable(gameWorld.CurrentDay, timeManager.GetCurrentTimeWindow()));
+            Assert.True(contract.IsAvailable(gameWorld.CurrentDay, timeManager.GetCurrentCurrentTimeBlock()));
         }
 
         /// <summary>

@@ -12,7 +12,7 @@ namespace Wayfarer.Tests
     /// </summary>
     public class TravelFunctionalityTests
     {
-        private IServiceProvider CreateEconomicServiceProvider()
+        private IServiceProvider CreateServiceProvider()
         {
             IServiceCollection services = new ServiceCollection();
 
@@ -27,14 +27,14 @@ namespace Wayfarer.Tests
             services.AddLogging();
 
             // Use the test service configuration
-            services.ConfigureTestServices();
+            services.ConfigureServices();
 
             return services.BuildServiceProvider();
         }
 
         private (GameWorld gameWorld, GameWorldManager gameWorldManager) InitializeGameForTravel()
         {
-            IServiceProvider serviceProvider = CreateEconomicServiceProvider();
+            IServiceProvider serviceProvider = CreateServiceProvider();
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();
