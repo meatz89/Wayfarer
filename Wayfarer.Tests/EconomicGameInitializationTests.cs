@@ -64,9 +64,10 @@ namespace Wayfarer.Tests
             Assert.NotNull(gameWorld.DiscoveredRoutes);
             Assert.True(gameWorld.DiscoveredRoutes.Count > 0, "Should load routes for travel options");
             
-            // Contracts for economic goals
-            Assert.NotNull(gameWorld.WorldState.Contracts);
-            Assert.True(gameWorld.WorldState.Contracts.Count > 0, "Should load contracts for economic objectives");
+            // Contracts for economic goals via ContractRepository
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.NotNull(contractRepository.GetAllContracts());
+            Assert.True(contractRepository.GetAllContracts().Count > 0, "Should load contracts for economic objectives");
             
             // Actions for basic economic activities
             Assert.NotNull(gameWorld.WorldState.actions);
@@ -268,12 +269,13 @@ namespace Wayfarer.Tests
             player.Archetype = Professions.Merchant;
             Location startLocation = locationSystem.Initialize().Result;
             
-            // Act: Check contract system for economic goals
-            Assert.NotNull(gameWorld.WorldState.Contracts);
-            Assert.True(gameWorld.WorldState.Contracts.Count > 0, "Should have contracts for economic goals");
+            // Act: Check contract system for economic goals via ContractRepository
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.NotNull(contractRepository.GetAllContracts());
+            Assert.True(contractRepository.GetAllContracts().Count > 0, "Should have contracts for economic goals");
             
             // Contracts should have economic properties
-            foreach (Contract contract in gameWorld.WorldState.Contracts)
+            foreach (Contract contract in contractRepository.GetAllContracts())
             {
                 Assert.NotNull(contract.Id);
                 Assert.NotNull(contract.Description);
@@ -341,7 +343,8 @@ namespace Wayfarer.Tests
             Assert.True(gameWorld.WorldState.actions.Count > 0);
             Assert.True(gameWorld.WorldState.Items.Count > 0);
             Assert.True(gameWorld.DiscoveredRoutes.Count > 0);
-            Assert.True(gameWorld.WorldState.Contracts.Count > 0);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.True(contractRepository.GetAllContracts().Count > 0);
             
             // 2. Player setup for economic gameplay
             Player player = gameWorld.GetPlayer();
@@ -417,7 +420,8 @@ namespace Wayfarer.Tests
             Assert.True(player.KnownLocations.Count > 0);
             Assert.True(gameWorld.WorldState.Items.Count > 0);
             Assert.True(gameWorld.DiscoveredRoutes.Count > 0);
-            Assert.True(gameWorld.WorldState.Contracts.Count > 0);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.True(contractRepository.GetAllContracts().Count > 0);
             
             // Ready for Economic POC Option A implementation:
             // - Time block constraint system ✅
