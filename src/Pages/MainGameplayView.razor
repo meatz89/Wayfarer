@@ -33,6 +33,10 @@
             <span class="time-text">@CurrentTime.ToString()</span>
             <span class="time-hours">@CurrentHour:00</span>
         </div>
+        <div class="weather-display">
+            <span class="weather-icon">@GetWeatherIcon(CurrentWeather)</span>
+            <span class="weather-text">@CurrentWeather.ToString()</span>
+        </div>
     </div>
 </div>
 
@@ -330,9 +334,9 @@
                                         <span class="item-icon">🧰</span>
                                         <span class="item-name">@itemName</span>
                                         <span class="item-weight">Weight: @item.Weight</span>
-                                        @if (item.EnabledRouteTypes.Any())
+                                        @if (item.Categories.Any() || item.ItemCategories.Any())
                                         {
-                                            <span class="item-routes">Enables: @string.Join(", ", item.EnabledRouteTypes)</span>
+                                            <span class="item-categories">@item.AllCategoriesDescription</span>
                                         }
                                     </div>
                                 }

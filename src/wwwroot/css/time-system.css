@@ -68,3 +68,30 @@
 	font-size: 0.9em;
 	opacity: 0.9;
 }
+
+/* ==================== Weather System ==================== */
+.weather-display {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 10px;
+	border-radius: 4px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	font-family: var(--font-primary);
+	color: var(--text-primary);
+	font-size: 1.0rem;
+	transition: all 0.3s ease;
+	margin-left: 10px;
+}
+
+.weather-icon {
+	display: inline-block;
+	font-size: 1.2em;
+	margin-right: 3px;
+}
+
+.weather-text {
+	font-size: 0.9em;
+	text-transform: capitalize;
+}

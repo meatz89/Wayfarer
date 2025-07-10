@@ -12,9 +12,9 @@ public partial class TravelSelectionBase : ComponentBase
     [Parameter] public EventCallback<string> OnTravel { get; set; }
     [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
 
-    public bool ShowEnablingItems => GameWorld.GetPlayer().Inventory.ItemSlots
+    public bool ShowEquipmentCategories => GameWorld.GetPlayer().Inventory.ItemSlots
         .Select(name => ItemRepository.GetItemByName(name))
-        .Any(item => item != null && item.EnabledRouteTypes.Any());
+        .Any(item => item != null && item.Categories.Any());
 
     protected override void OnInitialized()
     {
@@ -77,10 +77,10 @@ public partial class TravelSelectionBase : ComponentBase
 
             Console.WriteLine($"[{i + 1}] {route.Name} - {route.BaseCoinCost} coins, {staminaCostDisplay}{departureInfo}, arrives {arrivalTime}{affordabilityMarker}");
 
-            // Show required route types if any
-            if (route.RequiredRouteTypes.Count > 0)
+            // Show terrain categories if any
+            if (route.TerrainCategories.Count > 0)
             {
-                Console.WriteLine($"    Requires: {string.Join(", ", route.RequiredRouteTypes)}");
+                Console.WriteLine($"    Terrain: {string.Join(", ", route.TerrainCategories.Select(c => c.ToString().Replace('_', ' ')))}");
             }
         }
 
@@ -88,24 +88,24 @@ public partial class TravelSelectionBase : ComponentBase
         Console.WriteLine($"Current resources: {gameWorld.PlayerCoins} coins, {gameWorld.PlayerStamina} stamina");
         Console.WriteLine($"Current time: {gameWorld.CurrentTimeBlock}");
 
-        // Show items that enable routes
-        List<string> enablingItems = new List<string>();
+        // Show equipment categories
+        List<string> equipmentItems = new List<string>();
         foreach (string itemName in gameWorld.PlayerInventory.ItemSlots)
         {
             if (itemName != null)
             {
                 Item item = ItemRepository.GetItemByName(itemName);
-                if (item != null && item.EnabledRouteTypes.Count > 0)
+                if (item != null && item.Categories.Count > 0)
                 {
-                    enablingItems.Add($"{itemName} (enables {string.Join(", ", item.EnabledRouteTypes)})");
+                    equipmentItems.Add($"{itemName} ({string.Join(", ", item.Categories.Select(c => c.ToString().Replace('_', ' ')))})");
                 }
             }
         }
 
-        if (enablingItems.Count > 0)
+        if (equipmentItems.Count > 0)
         {
-            Console.WriteLine("Items that enable routes:");
-            foreach (string itemInfo in enablingItems)
+            Console.WriteLine("Equipment categories:");
+            foreach (string itemInfo in equipmentItems)
             {
                 Console.WriteLine($"- {itemInfo}");
             }
@@ -131,5 +131,60 @@ public partial class TravelSelectionBase : ComponentBase
         {
             return $"{daysLater} days later, {arrivalTimeBlock}";
         }
+    }
+
+    /// <summary>
+    /// Get equipment categories that are absolutely required for terrain types
+    /// </summary>
+    public List<EquipmentCategory> GetRequiredEquipment(List<TerrainCategory> terrainCategories)
+    {
+        List<EquipmentCategory> required = new List<EquipmentCategory>();
+        
+        foreach (TerrainCategory terrain in terrainCategories)
+        {
+            switch (terrain)
+            {
+                case TerrainCategory.Requires_Climbing:
+                    required.Add(EquipmentCategory.Climbing_Equipment);
+                    break;
+                case TerrainCategory.Requires_Water_Transport:
+                    required.Add(EquipmentCategory.Water_Transport);
+                    break;
+                case TerrainCategory.Requires_Permission:
+                    required.Add(EquipmentCategory.Special_Access);
+                    break;
+            }
+        }
+        
+        return required.Distinct().ToList();
+    }
+
+    /// <summary>
+    /// Get equipment categories that are recommended for terrain types
+    /// </summary>
+    public List<EquipmentCategory> GetRecommendedEquipment(List<TerrainCategory> terrainCategories)
+    {
+        List<EquipmentCategory> recommended = new List<EquipmentCategory>();
+        
+        foreach (TerrainCategory terrain in terrainCategories)
+        {
+            switch (terrain)
+            {
+                case TerrainCategory.Wilderness_Terrain:
+                    recommended.Add(EquipmentCategory.Navigation_Tools);
+                    break;
+                case TerrainCategory.Exposed_Weather:
+                    recommended.Add(EquipmentCategory.Weather_Protection);
+                    break;
+                case TerrainCategory.Heavy_Cargo_Route:
+                    recommended.Add(EquipmentCategory.Load_Distribution);
+                    break;
+                case TerrainCategory.Dark_Passage:
+                    recommended.Add(EquipmentCategory.Light_Source);
+                    break;
+            }
+        }
+        
+        return recommended.Distinct().ToList();
     }
 }
