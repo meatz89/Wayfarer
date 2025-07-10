@@ -568,29 +568,13 @@
 
     public bool SpendMoney(int amount)
     {
-        // Reputation affects costs
-        int actualCost = CalculateAdjustedCost(amount);
+        // Reputation no longer affects prices - emergent gameplay instead
+        // High reputation affects: contract availability, credit access, information sharing
+        
+        if (Coins < amount) return false;
 
-        if (Coins < actualCost) return false;
-
-        Coins -= actualCost;
+        Coins -= amount;
         return true;
-    }
-
-    private int CalculateAdjustedCost(int baseCost)
-    {
-        // Higher reputation means lower costs
-        float multiplier = 1.0f;
-
-        if (Reputation >= 75) multiplier = 0.8f;
-        else if (Reputation >= 50) multiplier = 0.9f;
-        else if (Reputation >= 25) multiplier = 0.95f;
-        else if (Reputation >= 0) multiplier = 1.0f;
-        else if (Reputation >= -25) multiplier = 1.1f;
-        else if (Reputation >= -50) multiplier = 1.25f;
-        else multiplier = 1.5f;
-
-        return (int)(baseCost * multiplier);
     }
 
     public int GetMaxItemCapacity()

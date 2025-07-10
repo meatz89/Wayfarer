@@ -1,14 +1,36 @@
 ﻿public class GameWorld
 {
-    public int CurrentDay { get; set; } = 1;
-    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Dawn;
+    public int CurrentDay 
+    { 
+        get => WorldState.CurrentDay; 
+        set => WorldState.CurrentDay = value; 
+    }
+    public TimeBlocks CurrentTimeBlock 
+    { 
+        get => WorldState.CurrentTimeWindow; 
+        set => WorldState.CurrentTimeWindow = value; 
+    }
+    public WeatherCondition CurrentWeather 
+    { 
+        get => WorldState.CurrentWeather; 
+        set => WorldState.CurrentWeather = value; 
+    }
     public int PlayerCoins { get; set; } = 2;
     public int PlayerStamina { get; set; } = 5;
     public Inventory PlayerInventory { get; private set; }
     public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
     public List<Location> Locations { get; set; } = new List<Location>();
 
-    public Location CurrentLocation { get; private set; }
+    public Location CurrentLocation 
+    { 
+        get => WorldState.CurrentLocation; 
+        private set => WorldState.SetCurrentLocation(value, WorldState.CurrentLocationSpot); 
+    }
+    public LocationSpot CurrentLocationSpot 
+    { 
+        get => WorldState.CurrentLocationSpot; 
+        set => WorldState.SetCurrentLocationSpot(value); 
+    }
 
     private Player Player;
     public WorldState WorldState { get; private set; }
@@ -67,11 +89,6 @@
         return CurrentDay >= DeadlineDay;
     }
 
-    public void SetCurrentLocation(Location location)
-    {
-        CurrentLocation = location;
-        WorldState.SetCurrentLocation(location, null);
-    }
 }
 
 

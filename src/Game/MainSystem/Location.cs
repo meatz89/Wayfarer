@@ -27,8 +27,7 @@ public class Location
     public int Depth { get; set; }
     public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
     public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
-    public int DiscoveryBonusXP { get; set; }
-    public int DiscoveryBonusCoins { get; set; }
+    // Discovery bonuses removed - new locations provide natural market opportunities instead
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }

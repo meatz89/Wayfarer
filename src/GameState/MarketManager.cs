@@ -7,7 +7,7 @@ public class MarketManager
 {
     private readonly GameWorld _gameWorld;
     private readonly LocationSystem _locationSystem;
-    // ✅ REMOVED: private Dictionary locationPricing - No local state allowed
+    private readonly ItemRepository _itemRepository;
 
     /// <summary>
     /// Represents pricing information for an item at a specific location
@@ -20,21 +20,21 @@ public class MarketManager
         public bool IsAvailable { get; set; }
     }
 
-    public MarketManager(GameWorld gameWorld, LocationSystem locationSystem)
+    public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
         _locationSystem = locationSystem;
-        // ✅ REMOVED: InitializeLocationPricing() - No initialization of local state
+        _itemRepository = itemRepository;
     }
 
     /// <summary>
-    /// ✅ STATELESS: Get dynamic pricing for an item at a location
+    /// Get dynamic pricing for an item at a location
     /// Calculates pricing based on location and item properties from GameWorld
     /// </summary>
     private LocationPricing GetDynamicPricing(string locationId, string itemId)
     {
-        // Get base item data from GameWorld
-        var item = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
+        // Get base item data from ItemRepository
+        var item = _itemRepository.GetItemById(itemId);
         if (item == null)
         {
             return new LocationPricing { BuyPrice = 0, SellPrice = 0, IsAvailable = false };
@@ -74,7 +74,7 @@ public class MarketManager
     }
 
     /// <summary>
-    /// ✅ STATELESS: Get the price for a specific item at a specific location.
+    /// Get the price for a specific item at a specific location.
     /// Calculates pricing dynamically from GameWorld data.
     /// </summary>
     /// <param name="locationId">The location ID</param>
@@ -133,7 +133,7 @@ public class MarketManager
             InventorySlots = baseItem?.InventorySlots ?? 1,
             LocationId = locationId,
             Description = baseItem?.Description ?? GetDefaultDescription(itemId),
-            EnabledRouteTypes = baseItem?.EnabledRouteTypes ?? new List<string>()
+            Categories = baseItem?.Categories ?? new List<EquipmentCategory>()
         };
     }
 

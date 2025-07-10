@@ -1,35 +1,131 @@
 ﻿public class ContractRepository
 {
-    private List<Contract> _contracts = new List<Contract>();
+    private readonly GameWorld _gameWorld;
 
-    public ContractRepository()
+    public ContractRepository(GameWorld gameWorld)
     {
-        // Initialize with contracts from game state
-        _contracts = GameWorld.AllContracts ?? new List<Contract>();
+        _gameWorld = gameWorld;
+
+        if (_gameWorld.WorldState.Contracts == null)
+        {
+            // Initialize contracts collection if null
+            var contractsField = typeof(WorldState).GetField("Contracts", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (contractsField != null)
+            {
+                contractsField.SetValue(_gameWorld.WorldState, new List<Contract>());
+            }
+        }
     }
+
+    #region Read Methods
 
     public List<Contract> GetAvailableContracts(int currentDay, TimeBlocks currentTimeBlock)
     {
-        return _contracts
+        return GetAllContracts()
             .Where(c => c.IsAvailable(currentDay, currentTimeBlock))
             .ToList();
     }
 
     public Contract GetContract(string id)
     {
-        return _contracts.FirstOrDefault(c => c.Id == id);
+        return GetAllContracts().FirstOrDefault(c => c.Id == id);
     }
+
+    public List<Contract> GetAllContracts()
+    {
+        return _gameWorld.WorldState.Contracts ?? new List<Contract>();
+    }
+
+    public List<Contract> GetActiveContracts()
+    {
+        return _gameWorld.WorldState.ActiveContracts ?? new List<Contract>();
+    }
+
+    public List<Contract> GetCompletedContracts()
+    {
+        return _gameWorld.WorldState.CompletedContracts ?? new List<Contract>();
+    }
+
+    public List<Contract> GetFailedContracts()
+    {
+        return _gameWorld.WorldState.FailedContracts ?? new List<Contract>();
+    }
+
+    #endregion
+
+    #region Write Methods
 
     public void AddContract(Contract contract)
     {
-        if (!_contracts.Any(c => c.Id == contract.Id))
+        var contracts = GetAllContracts();
+        if (!contracts.Any(c => c.Id == contract.Id))
         {
-            _contracts.Add(contract);
-            // Also add to the static list to ensure it's persisted
-            if (!GameWorld.AllContracts.Any(c => c.Id == contract.Id))
-            {
-                GameWorld.AllContracts.Add(contract);
-            }
+            contracts.Add(contract);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Contract with ID '{contract.Id}' already exists.");
         }
     }
+
+    public bool RemoveContract(string id)
+    {
+        var contracts = GetAllContracts();
+        Contract contract = contracts.FirstOrDefault(c => c.Id == id);
+        if (contract != null)
+        {
+            return contracts.Remove(contract);
+        }
+        return false;
+    }
+
+    public void ActivateContract(string contractId)
+    {
+        Contract contract = GetContract(contractId);
+        if (contract == null)
+        {
+            throw new InvalidOperationException($"Contract with ID '{contractId}' not found.");
+        }
+
+        var activeContracts = _gameWorld.WorldState.ActiveContracts;
+        if (!activeContracts.Any(c => c.Id == contractId))
+        {
+            activeContracts.Add(contract);
+        }
+    }
+
+    public void CompleteContract(string contractId)
+    {
+        // Remove from active
+        var activeContracts = _gameWorld.WorldState.ActiveContracts;
+        Contract contract = activeContracts.FirstOrDefault(c => c.Id == contractId);
+        if (contract != null)
+        {
+            activeContracts.Remove(contract);
+            _gameWorld.WorldState.CompletedContracts.Add(contract);
+        }
+    }
+
+    public void FailContract(string contractId)
+    {
+        // Remove from active
+        var activeContracts = _gameWorld.WorldState.ActiveContracts;
+        Contract contract = activeContracts.FirstOrDefault(c => c.Id == contractId);
+        if (contract != null)
+        {
+            activeContracts.Remove(contract);
+            _gameWorld.WorldState.FailedContracts.Add(contract);
+        }
+    }
+
+    public void ClearAllContracts()
+    {
+        GetAllContracts().Clear();
+        _gameWorld.WorldState.ActiveContracts.Clear();
+        _gameWorld.WorldState.CompletedContracts.Clear();
+        _gameWorld.WorldState.FailedContracts.Clear();
+    }
+
+    #endregion
 }

@@ -22,7 +22,8 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             LocationSystem locationSystem = CreateTestLocationSystem();
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
             
             // Act & Assert - Test Town Square pricing
             int herbsBuyPrice = marketManager.GetItemPrice("town_square", "herbs", true);
@@ -54,7 +55,8 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             LocationSystem locationSystem = CreateTestLocationSystem();
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
             
             // Act
             List<Item> availableItems = marketManager.GetAvailableItems("town_square");
@@ -80,7 +82,8 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             LocationSystem locationSystem = CreateTestLocationSystem();
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
             
             // Act - Player manually checks prices between locations (gameplay behavior)
             int herbsBuyPriceTown = marketManager.GetItemPrice("town_square", "herbs", true);
@@ -107,7 +110,8 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             LocationSystem locationSystem = CreateTestLocationSystem();
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
             
             // Act & Assert for multiple items and locations
             string[] locations = { "town_square", "dusty_flagon" };
@@ -147,7 +151,8 @@ namespace Wayfarer.Tests
             player.Coins = 100; // Give player enough money
             
             LocationSystem locationSystem = CreateTestLocationSystem();
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
             
             // Act
             string itemToBuy = "herbs";
@@ -180,7 +185,8 @@ namespace Wayfarer.Tests
             player.Inventory.AddItem("herbs"); // Give player an item to sell
             
             LocationSystem locationSystem = CreateTestLocationSystem();
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
             
             // Act
             string itemToSell = "herbs";
