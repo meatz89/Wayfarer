@@ -23,6 +23,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Key file locations and responsibilities
 - **NEVER** add session progress, temporary fixes, or detailed implementation notes
 
+**LOGICAL-SYSTEM-INTERACTIONS.MD** - **CRITICAL DESIGN GUIDELINES**
+- **MANDATORY**: Always follow these logical interaction principles
+- Replaces arbitrary math with logical system interactions
+- Design patterns for emergent constraints
+- Validation checklist for all implementations
+- **READ THIS BEFORE ANY SYSTEM CHANGES**
+
 **SESSION-HANDOFF.MD** - **CURRENT SESSION STATE**
 - Current progress and completed features
 - Critical discoveries and constraints from user feedback
@@ -56,6 +63,81 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## DEVELOPMENT GUIDELINES
 
+### **CRITICAL: LOGICAL SYSTEM INTERACTIONS**
+**🚨 MANDATORY: Before implementing ANY system changes, read and follow `LOGICAL-SYSTEM-INTERACTIONS.MD`**
+
+#### **System Interdependency Design Principles**
+
+**FUNDAMENTAL RULE: Always prefer system interdependencies over single mechanic modifiers**
+
+✅ **CORRECT: Entity Category-Based System Interactions**
+```csharp
+// Weather + Terrain + Equipment interactions create emergent constraints
+if (weather == WeatherCondition.Rain && 
+    terrain == TerrainCategory.Exposed_Weather && 
+    !playerEquipment.Contains(EquipmentCategory.Weather_Protection))
+    return RouteAccessResult.Blocked("Rain makes exposed terrain unsafe without protection");
+```
+
+❌ **WRONG: Single Mechanic Mathematical Modifiers**
+```csharp
+// Arbitrary math that doesn't involve system relationships
+efficiency *= weather == WeatherCondition.Rain ? 0.8f : 1.0f;
+staminaCost = (int)(baseCost * efficiency);
+```
+
+**Key Implementation Requirements:**
+
+1. **All entities must have unique types/categories**: Every entity (items, routes, locations, NPCs) should belong to meaningful categories that can interact with other system categories
+   - Items: `EquipmentCategory` (Climbing_Equipment, Weather_Protection, Navigation_Tools, etc.)
+   - Routes: `TerrainCategory` (Requires_Climbing, Exposed_Weather, Wilderness_Terrain, etc.)
+   - Locations: Geographic and social categories that affect NPC availability and trading
+   - NPCs: Profession and social categories that determine knowledge and schedules
+
+2. **Game rules should emerge from category interactions**: Instead of hardcoded bonuses/penalties, create logical relationships between categories
+   - Weather + Terrain → Access requirements
+   - Equipment + Terrain → Capability enablement  
+   - NPC Profession + Location Type → Service availability
+   - Time + NPC Schedule → Social interaction windows
+
+3. **Constraints should require multiple systems**: No single system should create arbitrary restrictions
+   - ✅ Good: "Mountain routes need climbing gear, but only accessible in good weather, and guides are only available on market days"
+   - ❌ Bad: "Mountain routes cost +50% stamina"
+
+4. **Categories enable discovery gameplay**: Players learn system relationships through experimentation
+   - Trying to travel in fog without navigation tools → blocked → learn navigation tools enable fog travel
+   - Attempting to trade with nobles without proper attire → blocked → learn social categories matter
+   - Weather changes block previously accessible routes → learn weather-terrain interactions
+
+5. **All entity categories must be visible in frontend UI**: For players to formulate strategies, they must be able to see and understand the categories that influence game rules
+   - Items must display their `EquipmentCategory` (Climbing_Equipment, Weather_Protection, etc.)
+   - Routes must show their `TerrainCategory` (Requires_Climbing, Exposed_Weather, etc.)
+   - Locations should indicate their geographic/social categories
+   - NPCs should reveal their profession and social categories through interaction
+   - Weather conditions and their effects on terrain types must be discoverable
+   - **Players cannot strategize about systems they cannot see or understand**
+
+**Core Design Rules:**
+- **NEVER** use arbitrary mathematical modifiers (efficiency multipliers, percentage bonuses, etc.)
+- **ALWAYS** implement logical blocking/enabling instead of sliding scale penalties
+- **REQUIRE** logical justification for all constraints based on system interactions
+- **ENSURE** all entity categories are visible and understandable in the UI
+- **VALIDATE** all designs against the logical interaction checklist
+
+**UI Visibility Requirements:**
+- **Strategic Information Access**: Players must be able to inspect all relevant categories and types that affect gameplay decisions
+- **Category Display**: Show equipment categories, terrain requirements, NPC professions, location types, etc.
+- **Relationship Hints**: When blocked, provide enough information for players to understand what systems are interacting
+- **No Hidden Mechanics**: Avoid invisible systems that affect gameplay without player awareness
+- **Discovery-Friendly**: Information should be discoverable through exploration and experimentation, not automatically revealed
+
+### CODE WRITING PRINCIPLES
+- Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
+- After each change, run the tests to check for broken functionality. Never commit while tests are failing
+- **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
+- You must run all tests and execute the game and do quick smoke tests before every commit
+- **Never keep legacy code for compatibility**
+
 ### GAME DESIGN PRINCIPLES (Critical for Games vs Apps)
 **Games create interactive optimization puzzles for the player to solve, not automated systems that solve everything for them.**
 
@@ -68,12 +150,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ **PLAYER AGENCY** - Players discover patterns, build mental models, develop personal strategies through exploration
 
 **Example**: Instead of showing "Buy herbs at town_square (4 coins) → Sell at dusty_flagon (5 coins) = 1 profit", let players discover this by visiting locations, checking prices, and building their own understanding of the market.
-
-### CODE WRITING PRINCIPLES
-- Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
-- After each change, run the tests to check for broken functionality. Never commit while tests are failing
-- **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
-- You must run all tests and execute the game and do quick smoke tests before every commit
 
 ### FRONTEND PERFORMANCE PRINCIPLES
 - **NEVER use caching in frontend components** - Components should be stateless and reactive
@@ -93,14 +169,31 @@ All UI components must route actions through GameWorldManager instead of injecti
 - ❌ Wrong: UI → Direct Manager Injection
 
 #### **Stateless Repositories** 
-Repositories must be stateless and access GameWorld.WorldState dynamically.
-- ✅ Correct: `private readonly GameWorld _gameWorld` + `_gameWorld.WorldState`
-- ❌ Wrong: `private WorldState` caching
+Repositories must be stateless and access GameWorld dynamically.
+- ✅ Correct: `private readonly GameWorld _gameWorld` + `_gameWorld.PropertyName`
+- ❌ Wrong: `private WorldState` caching or direct WorldState access
 
 #### **GameWorld Single Source of Truth**
-GameWorld.WorldState is the authoritative source for all game state.
-- All game state changes must go through WorldState
+GameWorld is the authoritative source for all game state.
+- **CRITICAL**: All game state must be accessed through GameWorld properties only
+- **NEVER** access `GameWorld.WorldState.Property` - always use `GameWorld.Property`
+- GameWorld.WorldState is for internal implementation only
+- All tests and business logic must use GameWorld properties
 - GameWorld contains no business logic, only state management
+
+#### **Repository-Based ID Resolution Pattern**
+Repositories are responsible for ID-to-object lookup, not initialization or business logic.
+- **GameWorldInitializer**: Only loads raw JSON data, no relationship building
+- **Repositories**: Provide `GetEntityById(string id)` methods for all lookups
+- **Business Logic**: Uses repositories to resolve IDs when needed for rules/mechanics
+- **NEVER** do direct LINQ lookups in business logic - always use repository methods
+- Validation of missing/invalid IDs handled at repository level
+
+**⚠️ CURRENT VIOLATIONS IDENTIFIED:**
+- **GameWorldInitializer.cs**: `ConnectLocationsToSpots()` and `ConnectRoutesToLocations()` methods violate separation of concerns
+- **MarketManager.cs**: Direct LINQ `_gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId)` instead of using ItemRepository
+- **Multiple files**: 10+ files contain direct LINQ lookups that should use repository methods
+- **TravelManager.cs**: Should use LocationRepository for location lookups instead of direct access
 
 #### **Service Configuration**
 - Production: Use `ConfigureServices()` for full AI stack
@@ -112,27 +205,215 @@ All APIs must be location-aware and consistent:
 - ✅ Correct: `GetItemPrice(string locationId, string itemId, bool buying)`
 - ❌ Wrong: Legacy item-based overloads without location context
 
-### CURRENT SYSTEM STATUS
+### PROJECT STATUS
 
-**For current progress, session handoffs, and next steps, see:** `session-handoff.md`
-**For implementation roadmap, see:** `implementation-plan-revised.md`
-**For game design requirements, see:** `UserStories.md`
+**Current progress and session handoffs:** `session-handoff.md`
+**Implementation roadmap:** `implementation-plan-revised.md`
+**Game design requirements:** `UserStories.md`
 
-**Overall Compliance**: 🟢 **FULLY COMPLIANT** - All major architectural patterns enforced
-**Game Design Compliance**: 🟢 **ALIGNED** - POC follows game vs app principles
+### GAME INITIALIZATION PIPELINE
 
-### CURRENT POC STATUS
-- ✅ **Foundation Systems**: Time blocks, stamina constraints, dynamic pricing complete
-- ✅ **Contract System**: Time-pressured delivery contracts with deadline enforcement
-- ✅ **Route Condition Variations**: Weather/time/event-based route changes with strategic depth
-- 📋 **Remaining Systems**: Discovery/progression system, code style cleanup
-- ❌ **Rejected Features**: Automated planning tools, profit calculators, optimization assistants
+#### **Critical Architecture Discovery: Proper JSON-to-GameWorld Flow**
+
+**MANDATORY INITIALIZATION SEQUENCE** - All tests and development must follow this exact pattern:
+
+```
+JSON Files → GameWorldSerializer (Parsers) → GameWorldInitializer → GameWorld → Repositories
+```
+
+**❌ WRONG: Manual Object Creation in Tests**
+```csharp
+// NEVER do this - bypasses the entire content system
+var gameWorld = new GameWorld();
+var location = new Location("test", "Test");
+gameWorld.Locations.Add(location);
+```
+
+**✅ CORRECT: Use GameWorldInitializer**
+```csharp
+// ALWAYS use this - follows production initialization flow
+GameWorldInitializer initializer = new GameWorldInitializer("Content");
+GameWorld gameWorld = initializer.LoadGame();
+```
+
+#### **JSON Content Files (src/Content/Templates/)**
+- `locations.json` - All game locations with properties
+- `location_spots.json` - Specific spots within locations  
+- `routes.json` - Travel routes with terrain categories and costs
+- `items.json` - All items with equipment and item categories
+- `contracts.json` - Available contracts with requirements
+- `actions.json` - Player actions available at locations
+- `gameWorld.json` - Initial game state configuration
+
+#### **Initialization Flow Details**
+
+**Phase 1: Content Loading**
+1. `GameWorldInitializer` reads all JSON files using `GameWorldSerializer`
+2. Entities are parsed with proper categories and relationships
+3. Content validation ensures data integrity
+
+**Phase 2: Entity Relationship Building**  
+1. Locations connected to LocationSpots via `LocationId`
+2. Routes connected to origin/destination locations  
+3. Contracts validated against existing locations
+4. Items categorized with `EquipmentCategory` and `ItemCategory`
+5. **ID Resolution Methods Called**: `ConnectLocationsToSpots()`, `ConnectRoutesToLocations()`
+
+**Phase 3: GameWorld Assembly**
+1. All content loaded into `GameWorld.WorldState` collections
+2. Player initialized with starting location and inventory
+3. `TimeManager` created and linked to `GameWorld`
+4. Current location and spot set (never null after initialization)
+
+**Phase 4: Repository Creation**
+1. Repositories created with `GameWorld` dependency
+2. All repositories access data through `GameWorld` (single source of truth)
+3. No direct `WorldState` access from business logic
+
+#### **ServiceConfiguration Integration**
+```csharp
+// Production initialization pattern (src/ServiceConfiguration.cs)
+GameWorldInitializer contentLoader = new GameWorldInitializer("Content");
+GameWorld gameWorld = contentLoader.LoadGame();
+services.AddSingleton(gameWorld);
+
+// Repositories depend on initialized GameWorld
+services.AddSingleton<LocationRepository>();
+services.AddSingleton<ItemRepository>();
+// etc.
+```
+
+#### **Testing Requirements**
+- **NEVER** manually create game objects in tests
+- **ALWAYS** use `GameWorldInitializer` for test setup
+- Tests must verify JSON content loads correctly into GameWorld
+- Integration tests must validate complete initialization pipeline
+
+#### **Critical Pattern: ID-based Serialization vs Object References**
+
+**FUNDAMENTAL ARCHITECTURE**: The game uses a dual-reference system for entity relationships:
+
+**JSON Serialization Layer (String IDs)**
+```json
+{
+  "routes": [
+    {
+      "id": "road_to_market",
+      "origin": "dusty_flagon",           // String ID reference
+      "destination": "town_square",       // String ID reference
+      "requiredItems": ["climbing_gear"]  // String ID references
+    }
+  ],
+  "contracts": [
+    {
+      "id": "deliver_tools",
+      "destinationLocation": "town_square", // String ID reference
+      "requiredItems": ["tools"]            // String ID references
+    }
+  ]
+}
+```
+
+**Runtime Code Layer (Object References)**
+```csharp
+public class RouteOption
+{
+    public string Origin { get; set; }        // String ID for serialization
+    public string Destination { get; set; }   // String ID for serialization
+    
+    // Runtime: Code resolves IDs to actual objects when needed
+    public Location GetOriginLocation(GameWorld gameWorld) =>
+        gameWorld.WorldState.locations.First(loc => loc.Id == Origin);
+    
+    public Location GetDestinationLocation(GameWorld gameWorld) =>
+        gameWorld.WorldState.locations.First(loc => loc.Id == Destination);
+}
+```
+
+**Key Principles:**
+
+1. **JSON Storage = String IDs Only**
+   - All relationships stored as string references in JSON
+   - Enables easy editing and version control of content files
+   - Prevents circular reference issues in serialization
+
+2. **Runtime Resolution = Object References**
+   - Code resolves string IDs to actual object instances when needed
+   - GameWorld provides lookup methods for ID-to-object resolution
+   - Business logic operates on actual objects, not IDs
+
+3. **Validation During Initialization**
+   - GameWorldInitializer validates all ID references resolve to real objects
+   - Broken references caught at startup, not during gameplay
+   - ConnectLocationsToSpots(), ConnectRoutesToLocations() establish relationships
+
+4. **Repository Pattern for Resolution**
+   - Repositories provide ID-to-object lookup methods
+   - `LocationRepository.GetLocationById(string id)`
+   - `ItemRepository.GetItemById(string id)`
+   - Consistent pattern across all entity types
+
+**Example Relationship Flows:**
+
+```csharp
+// Contract references destination by ID
+contract.DestinationLocation = "town_square";  // JSON storage
+
+// Runtime: Business logic resolves to actual object
+Location destination = locationRepository.GetLocationById(contract.DestinationLocation);
+bool canComplete = destination != null && player.CurrentLocation.Id == destination.Id;
+
+// Route references locations by ID  
+route.Origin = "dusty_flagon";
+route.Destination = "town_square";
+
+// Runtime: Travel system resolves to objects
+Location origin = gameWorld.GetLocationById(route.Origin);
+Location dest = gameWorld.GetLocationById(route.Destination);
+```
+
+**Benefits of This Pattern:**
+- **Data Integrity**: Validation ensures all references are valid
+- **Performance**: Object lookups cached, not repeated string searches
+- **Maintainability**: Content creators work with readable IDs in JSON
+- **Flexibility**: Can change object implementations without breaking serialization
+
+#### **Repository-Based ID Resolution Architecture**
+
+**PRINCIPLE**: ID-to-object resolution is the responsibility of repositories, not the initializer.
+
+**Architecture Pattern:**
+
+1. **JSON files contain string IDs** - Maintains clean serialization format
+2. **Entities keep string IDs** - For serialization and cross-references  
+3. **Repositories provide ID-to-object lookup** - This is their core responsibility
+4. **Business logic uses repositories for resolution** - When they need object references
+
+**Component Responsibilities:**
+
+- **GameWorldInitializer**: Loads raw JSON data into GameWorld collections only
+- **Repositories**: Provide `GetEntityById(string id)` methods for ID-to-object resolution
+- **Business Logic**: Uses repositories to resolve IDs to objects when needed for rules/mechanics
+- **GameWorld**: Single source of truth containing all loaded entities
+
+**Benefits:**
+- **Separation of Concerns**: Clear responsibility boundaries
+- **Single Responsibility**: Each component has one focused job
+- **Validation**: Repositories handle missing/invalid ID references
+- **Performance**: Repositories can implement caching strategies
+- **Testability**: Dependencies are explicit and mockable
+- **Maintainability**: Changes to lookup logic contained in repositories
 
 ### KEY LOCATIONS IN CODEBASE
 
 #### **Core Game Management**
 - `src/GameState/GameWorldManager.cs` - Central coordinator, UI gateway
 - `src/GameState/GameWorld.cs` - Single source of truth for game state
+- `src/Content/GameWorldInitializer.cs` - JSON content loading and game initialization
+
+#### **Content System**
+- `src/Content/GameWorldSerializer.cs` - JSON parsing and serialization
+- `src/Content/Templates/` - All JSON content files
 
 #### **Repository Pattern**
 - `src/Content/LocationRepository.cs` - Stateless location data access
@@ -157,17 +438,6 @@ All APIs must be location-aware and consistent:
 - `src/Pages/ContractUI.razor` - Contract display and completion interface
 - `src/Pages/RestUI.razor` - Rest and recovery interface
 
-### TESTING APPROACH
-
-#### **Economic Testing (No AI)**
-Use `ConfigureTestServices()` for testing core economic functionality without AI dependencies.
-
-#### **Full Integration Testing**
-Use `ConfigureServices()` for full system testing including AI narrative features.
-
-#### **Test-Driven Development**
-Always write failing tests before fixing bugs to ensure proper understanding and validation.
-
 ### COMMON PATTERNS TO MAINTAIN
 
 #### **Error-Free Initialization**
@@ -176,8 +446,7 @@ Always write failing tests before fixing bugs to ensure proper understanding and
 - Player location and spot must never be null after initialization
 
 #### **Consistent Data Access**
-- Always access current location via `GameWorld.WorldState.CurrentLocation`  
-- Never use the legacy `GameWorld.CurrentLocation` property (always null)
+- Access current location via `GameWorld.CurrentLocation` or `GameWorld.WorldState.CurrentLocation` (both delegate to WorldState)
 - Use location-aware method signatures throughout
 
 #### **Service Dependency Management**
@@ -185,51 +454,20 @@ Always write failing tests before fixing bugs to ensure proper understanding and
 - Use nullable dependencies and factory patterns for services that might not be available
 - Test configuration should provide minimal viable services only
 
-## GAME SYSTEMS REFERENCE
+# Development Principles: Emergent Design
 
-### CONTRACT SYSTEM (`src/GameState/Contract.cs`, `src/Game/MainSystem/ContractSystem.cs`)
+## Core Principle: Emergent Mechanics
+**Never hardcode restrictions or bonuses.** All gameplay constraints must emerge from mathematical interactions between simple atomic systems (time, stamina, coins, etc.). Players should experience strategic pressure through resource scarcity and efficiency trade-offs, not arbitrary limitations. If you're tempted to write `if (condition) { player.CanNotDoX = true; }` or add magic bonuses, instead create mathematical relationships that naturally discourage or encourage the behavior through consequences.
 
-#### **Core Architecture**
-- **Contract**: Time-bound delivery contracts with item/location requirements
-- **ContractRepository**: Stateless access to contract data with availability filtering
-- **ContractSystem**: Business logic for completion, failure detection, and time pressure
-- **Integration**: Fully integrated with TimeManager for deadline enforcement
+## Design Framework: Experience vs Mechanics vs Agency
+Always distinguish between three layers:
 
-#### **Key Features**
-- **Time Pressure**: Contracts have StartDay/DueDay deadlines creating urgency
-- **Completion Requirements**: Must be at DestinationLocation with RequiredItems
-- **Automatic Failure**: Contracts fail when CurrentDay > DueDay
-- **Contract Chaining**: UnlocksContractIds/LocksContractIds for dependency management
-- **Payment System**: Coins awarded on completion, penalties applied on failure
+**Player Experience**: What the player feels ("I can't afford to trade during rush deliveries")  
+**Hardcoded Mechanics**: What the code actually enforces (tight deadlines, travel time, resource costs)  
+**Player Agency**: What choices remain available (can still trade, but will miss deadline and lose payment)
 
-#### **Game Design Alignment**
-- **Time Optimization**: Players must balance travel time vs contract deadlines
-- **Resource Management**: Contract payments drive economic decisions
-- **Discovery**: No automatic contract suggestions - players choose from available pool
-- **Meaningful Choices**: Accept contracts vs explore other opportunities
+**Goal**: Complex strategic experiences should arise from simple mathematical rules interacting, not from programmed restrictions. Players should always retain choice, but face natural consequences that guide rational decision-making. The game should feel designed and intentional while being mathematically inevitable.
 
-#### **Current Implementation Status**
-- ✅ **Core System**: Complete with full time pressure mechanics
-- ✅ **UI Integration**: Functional contract display and completion interface
-- ✅ **Test Coverage**: Comprehensive test suite for deadline enforcement
-- ✅ **Content Loading**: JSON template system for contract configuration
-- ⚠️ **Enhancement Ready**: Foundation solid for advanced time pressure features
-
-### TIME MANAGEMENT SYSTEM (`src/GameState/TimeManager.cs`)
-
-#### **Core Structure**
-- **Daily Limit**: 5 time blocks per day (MaxDailyTimeBlocks)
-- **Time Windows**: Dawn, Morning, Afternoon, Evening, Night
-- **Constraint Enforcement**: Actions consume time blocks, creating strategic pressure
-- **New Day Reset**: Time blocks reset on day advancement
-
-#### **Integration Points**
-- **Contract System**: Deadline enforcement based on CurrentDay
-- **Travel System**: Routes consume time blocks, affecting contract viability
-- **Rest System**: Recovery requires time block consumption
-- **Action System**: All major actions consume time resources
-
-#### **Game Design Impact**
-- **Strategic Pressure**: Limited time blocks force prioritization decisions
-- **Contract Urgency**: Time pressure makes deadline planning critical
-- **Resource Scarcity**: Time as a finite resource creates meaningful choices
+## GAME INITIALIZATION
+- Ensure game initialization leverages JSON files, parsers, GameWorldInitialization, Repositories, and GameWorld classes
+- Create comprehensive tests to validate that all content from JSON files is correctly saved into GameWorld

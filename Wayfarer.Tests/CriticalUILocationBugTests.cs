@@ -40,9 +40,9 @@ namespace Wayfarer.Tests
         }
 
         [Fact]
-        public void GameWorldCurrentLocation_ShouldAlwaysBeNull_ProvingTheBug()
+        public void GameWorldCurrentLocation_ShouldDelegateToWorldState_BugFixed()
         {
-            // DOCUMENTS: GameWorld.CurrentLocation is never set anywhere in codebase
+            // DOCUMENTS: GameWorld.CurrentLocation now properly delegates to WorldState.CurrentLocation
             
             // Arrange: Complete game initialization
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
@@ -56,7 +56,7 @@ namespace Wayfarer.Tests
             Player player = gameWorld.GetPlayer();
             player.Initialize("Test Character", Professions.Merchant, Genders.Male);
             
-            // Act & Assert: Demonstrate the bug
+            // Act & Assert: Verify the bug is FIXED
             
             // These are correctly initialized:
             Assert.NotNull(gameWorld.WorldState.CurrentLocation);
@@ -64,16 +64,17 @@ namespace Wayfarer.Tests
             Assert.Equal("dusty_flagon", gameWorld.WorldState.CurrentLocation.Id);
             Assert.Equal("dusty_flagon", player.CurrentLocation.Id);
             
-            // This is always null (THE BUG):
-            Assert.Null(gameWorld.CurrentLocation);
+            // This is now properly delegated (BUG FIXED):
+            Assert.NotNull(gameWorld.CurrentLocation);
+            Assert.Equal("dusty_flagon", gameWorld.CurrentLocation.Id);
             
-            // This proves MainGameplayView.GetCurrentLocation() will return null
+            // This proves MainGameplayView.GetCurrentLocation() will return proper location
         }
 
         [Fact]
-        public void MainGameplayView_GetCurrentLocation_ShouldReturnNull_ReproducingCrash()
+        public void MainGameplayView_GetCurrentLocation_ShouldReturnValidLocation_CrashFixed()
         {
-            // REPRODUCES: The exact bug that causes UI crash
+            // VALIDATES: The UI crash bug is now fixed
             
             // Arrange: Setup complete system as it would be after character creation
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
@@ -90,20 +91,19 @@ namespace Wayfarer.Tests
             // Act: Simulate what MainGameplayView.GetCurrentLocation() does
             Location currentLocationFromUI = gameWorld.CurrentLocation;  // This is what the UI currently does
             
-            // Assert: This returns null, causing the crash
-            Assert.Null(currentLocationFromUI);
+            // Assert: This now returns a valid location, preventing the crash
+            Assert.NotNull(currentLocationFromUI);
+            Assert.Equal("dusty_flagon", currentLocationFromUI.Id);
             
-            // Demonstrate what would happen in LocationSpotMap.GetKnownSpots()
-            Assert.Throws<NullReferenceException>(() => {
-                // This is the exact line that crashes:
-                string locationId = currentLocationFromUI.Id;  // NullReferenceException here
-            });
+            // Demonstrate that LocationSpotMap.GetKnownSpots() will work correctly
+            string locationId = currentLocationFromUI.Id;  // No longer throws NullReferenceException
+            Assert.Equal("dusty_flagon", locationId);
         }
 
         [Fact]
-        public void LocationSpotMap_GetKnownSpots_ShouldCrash_WithNullCurrentLocation()
+        public void LocationSpotMap_GetKnownSpots_ShouldWork_WithValidCurrentLocation()
         {
-            // REPRODUCES: The exact crash in LocationSpotMap component
+            // VALIDATES: The LocationSpotMap component crash is now fixed
             
             // Arrange: Setup services
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
@@ -115,14 +115,13 @@ namespace Wayfarer.Tests
             Player player = gameWorld.GetPlayer();
             player.Initialize("Test Character", Professions.Merchant, Genders.Male);
             
-            // Act: Simulate LocationSpotMap.GetKnownSpots() with current broken implementation
-            Location nullLocation = gameWorld.CurrentLocation;  // This is null
+            // Act: Simulate LocationSpotMap.GetKnownSpots() with fixed implementation
+            Location validLocation = gameWorld.CurrentLocation;  // This is now valid
             
-            // Assert: This throws NullReferenceException (the actual crash)
-            Assert.Throws<NullReferenceException>(() => {
-                // This is the exact code that crashes in LocationSpotMap.GetKnownSpots():
-                var locationSpots = locationSystem.GetLocationSpots(nullLocation.Id);
-            });
+            // Assert: This no longer throws NullReferenceException (crash fixed)
+            Assert.NotNull(validLocation);
+            var locationSpots = locationSystem.GetLocationSpots(validLocation.Id);
+            Assert.NotNull(locationSpots);
         }
 
         [Fact]
@@ -222,10 +221,11 @@ namespace Wayfarer.Tests
             Assert.Equal(player.CurrentLocation.Id, gameWorld.WorldState.CurrentLocation.Id);
             Assert.Equal(player.CurrentLocationSpot.SpotID, gameWorld.WorldState.CurrentLocationSpot.SpotID);
             
-            // This should still be null (proving it's not used):
-            Assert.Null(gameWorld.CurrentLocation);
+            // This is now properly delegated (bug fixed):
+            Assert.NotNull(gameWorld.CurrentLocation);
+            Assert.Equal(startLocation.Id, gameWorld.CurrentLocation.Id);
             
-            // UI should use WorldState, not the null GameWorld property
+            // UI can now safely use GameWorld.CurrentLocation property
             Location correctUILocation = gameWorld.WorldState.CurrentLocation;
             Assert.NotNull(correctUILocation);
             Assert.Equal(startLocation.Id, correctUILocation.Id);
