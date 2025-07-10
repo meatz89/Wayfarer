@@ -4,11 +4,13 @@ public class ContractSystem
 {
     private GameWorld gameWorld;
     private MessageSystem messageSystem;
+    private ContractRepository contractRepository;
 
-    public ContractSystem(GameWorld gameWorld, MessageSystem messageSystem)
+    public ContractSystem(GameWorld gameWorld, MessageSystem messageSystem, ContractRepository contractRepository)
     {
         this.gameWorld = gameWorld;
         this.messageSystem = messageSystem;
+        this.contractRepository = contractRepository;
     }
 
     public string FormatActiveContracts(List<Contract> contracts)
@@ -129,7 +131,7 @@ public class ContractSystem
 
     public List<Contract> GetUrgentContracts(int daysThreshold = 1)
     {
-        return gameWorld.ActiveContracts
+        return contractRepository.GetActiveContracts()
             .Where(c => GetDaysRemaining(c) <= daysThreshold)
             .ToList();
     }
