@@ -182,11 +182,11 @@ namespace Wayfarer.Tests
             morningContract.AvailableTimeBlocks = new List<TimeBlocks> { TimeBlocks.Morning };
 
             // Act & Assert - Should work during morning
-            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
             Assert.True(morningContract.IsAvailable(1, TimeBlocks.Morning));
 
             // Act & Assert - Should fail during afternoon
-            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Afternoon;
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Afternoon;
             Assert.False(morningContract.IsAvailable(1, TimeBlocks.Afternoon));
         }
 
@@ -258,7 +258,7 @@ namespace Wayfarer.Tests
 
             // Set up basic world state
             gameWorld.WorldState.CurrentDay = 1;
-            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
             gameWorld.WorldState.SetCurrentLocation(new Location("town_square", "Town Square"), null);
 
             return gameWorld;

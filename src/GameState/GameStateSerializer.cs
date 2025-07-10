@@ -241,7 +241,7 @@ public static class GameWorldSerializer
             spotId = action.LocationSpotId,
 
             // Time windows (string list)
-            timeWindows = action.TimeWindows?.Select(tw => tw.ToString()).ToList(),
+            CurrentTimeBlocks = action.CurrentTimeBlocks?.Select(tw => tw.ToString()).ToList(),
 
             moveToLocation = action.MoveToLocation,
             moveToLocationSpot = action.MoveToLocationSpot

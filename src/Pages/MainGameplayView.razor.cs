@@ -81,7 +81,7 @@ public partial class MainGameplayView : ComponentBase
     {
         get
         {
-            return GameWorld.WorldState.CurrentTimeWindow;
+            return GameWorld.WorldState.CurrentTimeBlock;
         }
     }
 

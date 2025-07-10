@@ -20,7 +20,7 @@ namespace Wayfarer.Tests
             player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
             player.Coins = 100;
             player.Stamina = 10;
-            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
 
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
@@ -106,7 +106,7 @@ namespace Wayfarer.Tests
             player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
             player.Coins = 10; // Low coin count to avoid coin weight affecting stamina
             player.Stamina = 10;
-            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
 
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);

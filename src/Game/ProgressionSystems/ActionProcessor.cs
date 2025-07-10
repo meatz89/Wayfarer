@@ -54,7 +54,7 @@
 
         foreach (Location loc in allLocs)
         {
-            environmentalPropertyManager.UpdateLocationForTime(loc, worldState.CurrentTimeWindow);
+            environmentalPropertyManager.UpdateLocationForTime(loc, worldState.CurrentTimeBlock);
         }
     }
 

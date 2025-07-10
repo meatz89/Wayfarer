@@ -32,10 +32,10 @@ public static class ActionParser
         }
 
         // Parse time windows
-        if (root.TryGetProperty("timeWindows", out JsonElement timeWindowsElement) &&
-            timeWindowsElement.ValueKind == JsonValueKind.Array)
+        if (root.TryGetProperty("CurrentTimeBlocks", out JsonElement CurrentTimeBlocksElement) &&
+            CurrentTimeBlocksElement.ValueKind == JsonValueKind.Array)
         {
-            foreach (JsonElement windowElement in timeWindowsElement.EnumerateArray())
+            foreach (JsonElement windowElement in CurrentTimeBlocksElement.EnumerateArray())
             {
                 if (windowElement.ValueKind == JsonValueKind.String)
                 {
@@ -44,19 +44,19 @@ public static class ActionParser
                     {
                         if (Enum.TryParse(windowStr, true, out TimeBlocks windowType))
                         {
-                            action.TimeWindows.Add(windowType);
+                            action.CurrentTimeBlocks.Add(windowType);
                         }
                     }
                 }
             }
 
             // If no time windows are specified, default to all
-            if (action.TimeWindows.Count == 0)
+            if (action.CurrentTimeBlocks.Count == 0)
             {
-                action.TimeWindows.Add(TimeBlocks.Morning);
-                action.TimeWindows.Add(TimeBlocks.Afternoon);
-                action.TimeWindows.Add(TimeBlocks.Evening);
-                action.TimeWindows.Add(TimeBlocks.Night);
+                action.CurrentTimeBlocks.Add(TimeBlocks.Morning);
+                action.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
+                action.CurrentTimeBlocks.Add(TimeBlocks.Evening);
+                action.CurrentTimeBlocks.Add(TimeBlocks.Night);
             }
         }
 

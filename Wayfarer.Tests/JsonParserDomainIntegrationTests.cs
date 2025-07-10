@@ -314,7 +314,7 @@ namespace Wayfarer.Tests
             player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
 
             gameWorld.WorldState.CurrentDay = 1;
-            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
             gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
 
             return gameWorld;
