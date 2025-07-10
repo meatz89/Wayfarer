@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace Wayfarer.Tests;
 
 /// <summary>

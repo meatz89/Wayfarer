@@ -8,7 +8,7 @@ public enum CurrentViews
     NarrativeScreen,
     CharacterScreen,
     MissingReferences,
-    // New economic screens
+    // New  screens
     MarketScreen,
     RestScreen,
     ContractScreen,

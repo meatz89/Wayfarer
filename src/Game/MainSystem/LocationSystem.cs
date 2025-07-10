@@ -18,22 +18,22 @@ public class LocationSystem
 
         startLoc.LocationType = LocationTypes.Hub;
 
-        // FOR ECONOMIC POC: Make all locations known by default
+        // FOR  POC: Make all locations known by default
         // In full game, only locations with PlayerKnowledge=true would be known
         foreach (Location loc in allLocations)
         {
-            // Check PlayerKnowledge OR default to true for economic POC
-            bool shouldKnow = loc.PlayerKnowledge || true; // Economic POC: always true
+            // Check PlayerKnowledge OR default to true for  POC
+            bool shouldKnow = loc.PlayerKnowledge || true; //  POC: always true
 
             if (shouldKnow)
             {
                 gameWorld.GetPlayer().AddKnownLocation(loc.Id);
 
-                // Add all spots for known locations in economic POC
+                // Add all spots for known locations in  POC
                 foreach (LocationSpot spot in locationRepository.GetSpotsForLocation(loc.Id))
                 {
-                    // Check spot PlayerKnowledge OR default to true for economic POC
-                    bool shouldKnowSpot = spot.PlayerKnowledge || true; // Economic POC: always true
+                    // Check spot PlayerKnowledge OR default to true for  POC
+                    bool shouldKnowSpot = spot.PlayerKnowledge || true; //  POC: always true
 
                     if (shouldKnowSpot)
                     {

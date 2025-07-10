@@ -5,7 +5,7 @@ namespace Wayfarer.Tests
     /// <summary>
     /// Unit tests for Time Block constraint enforcement system.
     /// These tests validate the critical "5 time blocks per day" constraint
-    /// that enables the economic simulation's core resource management gameplay.
+    /// that enables the  simulation's core resource management gameplay.
     /// 
     /// User Story: Daily Time Block Allocation (:16-32)
     /// Priority: CRITICAL - Foundation for all other systems

@@ -25,7 +25,7 @@
         this.aiAvailable = true;
     }
 
-    // Economic constructor without AI services
+    //  constructor without AI services
     public EncounterFactory(
         GameWorld gameWorld,
         ChoiceProjectionService choiceProjectionService,
@@ -48,8 +48,8 @@
 
         if (!aiAvailable)
         {
-            logger.LogInformation("Economic POC: Skipping AI encounter generation for action: {ActionId}", locationAction.ActionId);
-            // Economic actions are processed instantly, no encounters
+            logger.LogInformation(" POC: Skipping AI encounter generation for action: {ActionId}", locationAction.ActionId);
+            //  actions are processed instantly, no encounters
             return null;
         }
 

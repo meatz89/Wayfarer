@@ -4,11 +4,11 @@ namespace Wayfarer.Tests
 {
     /// <summary>
     /// Test-driven development for Dynamic Location-Based Pricing System.
-    /// These tests validate the core economic simulation mechanic where items have
+    /// These tests validate the core  simulation mechanic where items have
     /// different buy/sell prices at different locations, creating arbitrage opportunities.
     /// 
     /// User Story: Location-Specific Pricing (:172-195)
-    /// Priority: CRITICAL - Core profit mechanism for economic simulation
+    /// Priority: CRITICAL - Core profit mechanism for  simulation
     /// </summary>
     public class DynamicLocationPricingTests
     {

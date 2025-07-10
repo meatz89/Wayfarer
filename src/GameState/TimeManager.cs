@@ -109,23 +109,6 @@
         return CurrentTimeBlock;
     }
 
-    public string PreviewTimeAdvancement(string CurrentTimeBlock)
-    {
-        switch (CurrentTimeBlock)
-        {
-            case TimeBlocks.Morning:
-                return CurrentTimeBlock == "Half" ? "Morning" : "Afternoon";
-            case TimeBlocks.Afternoon:
-                return CurrentTimeBlock == "Half" ? "Afternoon" : "Evening";
-            case TimeBlocks.Evening:
-                return CurrentTimeBlock == "Half" ? "Evening" : "Night";
-            case TimeBlocks.Night:
-                return CurrentTimeBlock == "Half" ? "Night" : "Morning";
-        }
-
-        return CurrentTimeBlock;
-    }
-
     /// <summary>
     /// Consumes the specified number of time blocks for actions.
     /// Enforces the daily limit of 5 time blocks.

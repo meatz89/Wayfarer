@@ -74,7 +74,7 @@ You must provide your response ONLY as a valid JSON object with the following st
         "illumination": "Bright/Thiefy/Dark",
         "population": "Crowded/Quiet/Isolated",
         "atmosphere": "Tense/Formal/Chaotic",
-        "economic": "Wealthy/Commercial/Humble",
+        "": "Wealthy/Commercial/Humble",
         "physical": "Confined/Expansive/Hazardous"
       }
     }

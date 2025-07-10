@@ -240,7 +240,7 @@
         {
             ActionDefinition actionTemplate = locationSpotActions[i];
 
-            // FOR ECONOMIC POC: Only use pre-defined actions from JSON
+            // FOR  POC: Only use pre-defined actions from JSON
             // Skip AI generation - use only what's loaded from templates
             if (actionTemplate == null)
             {
@@ -253,7 +253,7 @@
                     actionTemplate,
                     location.Id,
                     locationSpot.SpotID,
-                    ActionExecutionTypes.Instant); // Economic actions are instant, not encounters
+                    ActionExecutionTypes.Instant); //  actions are instant, not encounters
 
             locationActions.Add(locationAction);
         }
@@ -338,7 +338,7 @@
         // Check time block constraints
         if (!GameWorld.TimeManager.ValidateTimeBlockAction(route.TimeBlockCost))
         {
-            throw new InvalidOperationException($"Cannot travel: Not enough time blocks remaining. Route requires {route.TimeBlockCost} blocks, but only {gameWorld.TimeManager.RemainingTimeBlocks} available.");
+            throw new InvalidOperationException($"Cannot travel: Not enough time blocks remaining. Route requires {route.TimeBlockCost} blocks, but only {GameWorld.TimeManager.RemainingTimeBlocks} available.");
         }
 
         // Apply costs
@@ -557,9 +557,9 @@
         if (option != null)
         {
             // Validate time block availability before attempting rest
-            if (!gameWorld.TimeManager.ValidateTimeBlockAction(option.TimeBlockCost))
+            if (!GameWorld.TimeManager.ValidateTimeBlockAction(option.TimeBlockCost))
             {
-                throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {gameWorld.TimeManager.RemainingTimeBlocks} available.");
+                throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {GameWorld.TimeManager.RemainingTimeBlocks} available.");
             }
 
             restManager.Rest(option);
