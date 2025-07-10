@@ -24,17 +24,17 @@ public class LocationSystem
         {
             // Check PlayerKnowledge OR default to true for economic POC
             bool shouldKnow = loc.PlayerKnowledge || true; // Economic POC: always true
-            
+
             if (shouldKnow)
             {
                 gameWorld.GetPlayer().AddKnownLocation(loc.Id);
-                
+
                 // Add all spots for known locations in economic POC
                 foreach (LocationSpot spot in locationRepository.GetSpotsForLocation(loc.Id))
                 {
                     // Check spot PlayerKnowledge OR default to true for economic POC
                     bool shouldKnowSpot = spot.PlayerKnowledge || true; // Economic POC: always true
-                    
+
                     if (shouldKnowSpot)
                     {
                         gameWorld.GetPlayer().AddKnownLocationSpot(spot.SpotID);
@@ -51,7 +51,7 @@ public class LocationSystem
             player.CurrentLocation = startLoc;
             Console.WriteLine($"Set player CurrentLocation to: {startLoc.Id}");
         }
-        
+
         if (player.CurrentLocationSpot == null)
         {
             List<LocationSpot> startLocationSpots = GetLocationSpots(startLoc.Id);

@@ -25,13 +25,13 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
-            
+
             TimeManager timeManager = gameWorld.TimeManager;
             int initialTimeBlocks = timeManager.RemainingTimeBlocks;
-            
+
             // Act
             bool accepted = contractSystem.AcceptContract(contract);
-            
+
             // Assert
             Assert.True(accepted, "Contract should be accepted successfully");
             Assert.Equal(initialTimeBlocks - 1, timeManager.RemainingTimeBlocks);
@@ -50,19 +50,19 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
-            
+
             // Set up player at destination with required items
             Player player = gameWorld.GetPlayer();
             player.Inventory.AddItem("herbs");
             gameWorld.WorldState.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"), null);
             gameWorld.ActiveContracts.Add(contract);
-            
+
             TimeManager timeManager = gameWorld.TimeManager;
             int initialTimeBlocks = timeManager.RemainingTimeBlocks;
-            
+
             // Act
             bool completed = contractSystem.CompleteContract(contract);
-            
+
             // Assert
             Assert.True(completed, "Contract should be completed successfully");
             Assert.Equal(initialTimeBlocks - 1, timeManager.RemainingTimeBlocks);
@@ -81,23 +81,23 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5, payment: 10);
-            
+
             // Complete contract 2 days early (day 3 instead of day 5)
             gameWorld.WorldState.CurrentDay = 3;
             Player player = gameWorld.GetPlayer();
             player.Inventory.AddItem("herbs");
             gameWorld.WorldState.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"), null);
             gameWorld.ActiveContracts.Add(contract);
-            
+
             int initialCoins = player.Coins;
             int initialReputation = player.Reputation;
-            
+
             // Act
             bool completed = contractSystem.CompleteContract(contract);
-            
+
             // Assert
             Assert.True(completed, "Contract should be completed successfully");
-            
+
             // Emergent design: Payment is fixed, reputation improves for future opportunities
             Assert.Equal(initialCoins + contract.Payment, player.Coins); // No bonus, just contract payment
             Assert.Equal(initialReputation + 1, player.Reputation); // +1 reputation for on-time/early delivery
@@ -115,23 +115,23 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5, payment: 10);
-            
+
             // Complete contract 1 day late (day 6 instead of day 5)
             gameWorld.WorldState.CurrentDay = 6;
             Player player = gameWorld.GetPlayer();
             player.Inventory.AddItem("herbs");
             gameWorld.WorldState.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"), null);
             gameWorld.ActiveContracts.Add(contract);
-            
+
             int initialCoins = player.Coins;
             int initialReputation = player.Reputation;
-            
+
             // Act
             bool completed = contractSystem.CompleteContract(contract);
-            
+
             // Assert
             Assert.True(completed, "Late contracts can still be completed");
-            
+
             // Emergent design: Payment is fixed, reputation suffers for future opportunities
             Assert.Equal(initialCoins + contract.Payment, player.Coins); // Full payment still received
             Assert.Equal(initialReputation - 1, player.Reputation); // -1 reputation per day late
@@ -149,17 +149,17 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
-            
+
             // Exhaust all time blocks
             TimeManager timeManager = gameWorld.TimeManager;
             while (timeManager.RemainingTimeBlocks > 0)
             {
                 timeManager.ConsumeTimeBlock(1);
             }
-            
+
             // Act
             bool accepted = contractSystem.AcceptContract(contract);
-            
+
             // Assert
             Assert.False(accepted, "Cannot accept contract without time blocks");
             Assert.DoesNotContain(contract, gameWorld.ActiveContracts);
@@ -176,15 +176,15 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = CreateTestGameWorld();
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
-            
+
             // Contract only available during morning time block
             Contract morningContract = CreateTestContract(startDay: 1, dueDay: 5);
             morningContract.AvailableTimeBlocks = new List<TimeBlocks> { TimeBlocks.Morning };
-            
+
             // Act & Assert - Should work during morning
             gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
             Assert.True(morningContract.IsAvailable(1, TimeBlocks.Morning));
-            
+
             // Act & Assert - Should fail during afternoon
             gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Afternoon;
             Assert.False(morningContract.IsAvailable(1, TimeBlocks.Afternoon));
@@ -202,16 +202,16 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Player player = gameWorld.GetPlayer();
-            
+
             Contract contract = CreateTestContract(startDay: 1, dueDay: 2);
             gameWorld.ActiveContracts.Add(contract);
-            
+
             int initialReputation = player.Reputation;
-            
+
             // Act - Let contract expire
             gameWorld.WorldState.CurrentDay = 3; // Past due date
             contractSystem.CheckForFailedContracts();
-            
+
             // Assert
             Assert.True(contract.IsFailed, "Contract should be marked as failed");
             Assert.True(player.Reputation < initialReputation, "Reputation should decrease after failed contract");
@@ -228,19 +228,19 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = CreateTestGameWorld();
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
-            
+
             // Early game contract (day 5)
             gameWorld.WorldState.CurrentDay = 5;
             Contract earlyContract = contractSystem.GenerateContract();
-            
+
             // Late game contract (day 20)
             gameWorld.WorldState.CurrentDay = 20;
             Contract lateContract = contractSystem.GenerateContract();
-            
+
             // Assert
             int earlyDuration = earlyContract.DueDay - earlyContract.StartDay;
             int lateDuration = lateContract.DueDay - lateContract.StartDay;
-            
+
             Assert.True(lateDuration < earlyDuration, "Later contracts should have tighter deadlines");
             Assert.True(lateContract.Payment > earlyContract.Payment, "Later contracts should offer higher rewards");
         }
@@ -255,12 +255,12 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = new GameWorld();
             Player player = gameWorld.GetPlayer();
             player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
-            
+
             // Set up basic world state
             gameWorld.WorldState.CurrentDay = 1;
             gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
             gameWorld.WorldState.SetCurrentLocation(new Location("town_square", "Town Square"), null);
-            
+
             return gameWorld;
         }
 

@@ -1,5 +1,5 @@
-﻿using Wayfarer.UIHelpers;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
+using Wayfarer.UIHelpers;
 
 namespace Wayfarer.Pages;
 

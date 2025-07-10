@@ -21,7 +21,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
-            
+
             // Act & Assert - Contract should be available on days 1-5
             Assert.True(contract.IsAvailable(1, TimeBlocks.Morning));
             Assert.True(contract.IsAvailable(3, TimeBlocks.Afternoon));
@@ -37,7 +37,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             Contract contract = CreateTestContract(startDay: 3, dueDay: 7);
-            
+
             // Act & Assert - Contract should not be available on days 1-2
             Assert.False(contract.IsAvailable(1, TimeBlocks.Morning));
             Assert.False(contract.IsAvailable(2, TimeBlocks.Evening));
@@ -52,7 +52,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
-            
+
             // Act & Assert - Contract should not be available after day 5
             Assert.False(contract.IsAvailable(6, TimeBlocks.Morning));
             Assert.False(contract.IsAvailable(10, TimeBlocks.Evening));
@@ -68,7 +68,7 @@ namespace Wayfarer.Tests
             // Arrange
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
             contract.IsCompleted = true;
-            
+
             // Act & Assert - Completed contract should not be available even within time window
             Assert.False(contract.IsAvailable(3, TimeBlocks.Morning));
         }
@@ -83,7 +83,7 @@ namespace Wayfarer.Tests
             // Arrange
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
             contract.IsFailed = true;
-            
+
             // Act & Assert - Failed contract should not be available even within time window
             Assert.False(contract.IsAvailable(3, TimeBlocks.Morning));
         }
@@ -100,17 +100,17 @@ namespace Wayfarer.Tests
             MessageSystem messageSystem = new MessageSystem();
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
-            
+
             Contract contract1 = CreateTestContract("contract1", startDay: 1, dueDay: 3);
             Contract contract2 = CreateTestContract("contract2", startDay: 2, dueDay: 5);
-            
+
             gameWorld.ActiveContracts.Add(contract1);
             gameWorld.ActiveContracts.Add(contract2);
             gameWorld.CurrentDay = 4; // Day 4 - contract1 should fail, contract2 still active
-            
+
             // Act
             contractSystem.CheckForFailedContracts();
-            
+
             // Assert
             Assert.True(contract1.IsFailed);
             Assert.False(contract2.IsFailed);
@@ -128,14 +128,14 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             TimeManager timeManager = new TimeManager(gameWorld.GetPlayer(), gameWorld.WorldState);
-            
+
             Contract contract = CreateTestContract(startDay: 1, dueDay: 3);
             gameWorld.CurrentDay = 2; // One day before deadline
-            
+
             // Act & Assert
             int daysRemaining = contract.DueDay - gameWorld.CurrentDay;
             Assert.Equal(1, daysRemaining);
-            
+
             // Contract should still be available but urgent
             Assert.True(contract.IsAvailable(gameWorld.CurrentDay, timeManager.GetCurrentTimeWindow()));
         }
@@ -152,19 +152,19 @@ namespace Wayfarer.Tests
             MessageSystem messageSystem = new MessageSystem();
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
-            
+
             Contract urgentContract = CreateTestContract("urgent", startDay: 1, dueDay: 2);
             Contract normalContract = CreateTestContract("normal", startDay: 1, dueDay: 5);
             Contract laterContract = CreateTestContract("later", startDay: 3, dueDay: 10);
-            
+
             gameWorld.ActiveContracts.Add(urgentContract);
             gameWorld.ActiveContracts.Add(normalContract);
             gameWorld.ActiveContracts.Add(laterContract);
             gameWorld.CurrentDay = 3; // Day 3
-            
+
             // Act
             contractSystem.CheckForFailedContracts();
-            
+
             // Assert
             Assert.True(urgentContract.IsFailed); // Due day 2, now day 3
             Assert.False(normalContract.IsFailed); // Due day 5, still time
@@ -184,17 +184,17 @@ namespace Wayfarer.Tests
             MessageSystem messageSystem = new MessageSystem();
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
-            
+
             Contract contract = CreateTestContract("testContract", startDay: 1, dueDay: 2);
             contract.Description = "Deliver goods to Town Square";
             contract.FailurePenalty = "Lost reputation and 10 coin penalty";
-            
+
             gameWorld.ActiveContracts.Add(contract);
             gameWorld.CurrentDay = 3; // Past deadline
-            
+
             // Act
             contractSystem.CheckForFailedContracts();
-            
+
             // Assert
             ActionResultMessages messages = messageSystem.GetAndClearChanges();
             Assert.Single(messages.SystemMessages);
@@ -213,15 +213,15 @@ namespace Wayfarer.Tests
             // Arrange
             Contract contract = CreateTestContract(startDay: 1, dueDay: 3);
             contract.DestinationLocation = "distant_city";
-            
+
             // Simulate player on day 2 with 1 day remaining
             int currentDay = 2;
             int daysRemaining = contract.DueDay - currentDay;
-            
+
             // Act & Assert
             Assert.Equal(1, daysRemaining);
             Assert.True(contract.IsAvailable(currentDay, TimeBlocks.Morning));
-            
+
             // This creates urgency - player must travel and complete in 1 day
             // Integration with time block system means they have 5 time blocks to:
             // 1. Travel to destination (1+ time blocks depending on route)
@@ -266,10 +266,10 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = new GameWorld();
             Player player = gameWorld.GetPlayer();
             player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
-            
+
             gameWorld.CurrentDay = 1;
             gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
-            
+
             return gameWorld;
         }
 

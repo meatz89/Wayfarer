@@ -45,7 +45,7 @@
         LocationAction locationAction)
     {
         string situation = $"{locationAction.ActionId} ({locationAction.RequiredCardType} Action)";
-        
+
         if (!aiAvailable)
         {
             logger.LogInformation("Economic POC: Skipping AI encounter generation for action: {ActionId}", locationAction.ActionId);

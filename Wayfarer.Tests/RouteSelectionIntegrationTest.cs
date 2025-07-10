@@ -1,5 +1,5 @@
-using Xunit;
 using System.Collections.Generic;
+using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -33,28 +33,28 @@ namespace Wayfarer.Tests
             Location dustyFlagon = new Location("dusty_flagon", "Dusty Flagon");
 
             // Add route options
-            RouteOption walkRoute = new RouteOption 
-            { 
+            RouteOption walkRoute = new RouteOption
+            {
                 Id = "walk_route",
-                Name = "Walk", 
+                Name = "Walk",
                 Origin = "town_square",
                 Destination = "dusty_flagon",
-                BaseCoinCost = 0, 
-                BaseStaminaCost = 2, 
-                TimeBlockCost = 1, 
+                BaseCoinCost = 0,
+                BaseStaminaCost = 2,
+                TimeBlockCost = 1,
                 IsDiscovered = true,
                 Method = TravelMethods.Walking
             };
 
-            RouteOption cartRoute = new RouteOption 
-            { 
+            RouteOption cartRoute = new RouteOption
+            {
                 Id = "cart_route",
-                Name = "Cart", 
+                Name = "Cart",
                 Origin = "town_square",
                 Destination = "dusty_flagon",
-                BaseCoinCost = 5, 
-                BaseStaminaCost = 1, 
-                TimeBlockCost = 1, 
+                BaseCoinCost = 5,
+                BaseStaminaCost = 1,
+                TimeBlockCost = 1,
                 IsDiscovered = true,
                 Method = TravelMethods.Carriage
             };
@@ -85,12 +85,12 @@ namespace Wayfarer.Tests
                 Assert.True(route.BaseStaminaCost >= 0);
                 Assert.True(route.TimeBlockCost >= 0);
                 Assert.True(route.IsDiscovered);
-                
+
                 // Verify player can manually check costs
                 int coinCost = travelManager.CalculateCoinCost(route);
                 int staminaCost = travelManager.CalculateStaminaCost(route);
                 bool canAfford = travelManager.CanTravel(route);
-                
+
                 Assert.True(coinCost >= 0);
                 Assert.True(staminaCost >= 0);
                 Assert.True(canAfford); // Player should be able to afford these test routes
@@ -118,15 +118,15 @@ namespace Wayfarer.Tests
             Location townSquare = new Location("town_square", "Town Square");
             Location dustyFlagon = new Location("dusty_flagon", "Dusty Flagon");
 
-            RouteOption weatherRoute = new RouteOption 
-            { 
+            RouteOption weatherRoute = new RouteOption
+            {
                 Id = "weather_route",
-                Name = "Forest Path", 
+                Name = "Forest Path",
                 Origin = "town_square",
                 Destination = "dusty_flagon",
-                BaseCoinCost = 2, 
-                BaseStaminaCost = 3, 
-                TimeBlockCost = 1, 
+                BaseCoinCost = 2,
+                BaseStaminaCost = 3,
+                TimeBlockCost = 1,
                 IsDiscovered = true,
                 Method = TravelMethods.Walking,
                 WeatherModifications = new Dictionary<WeatherCondition, RouteModification>

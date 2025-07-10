@@ -1,19 +1,40 @@
 ﻿public class GameWorld
 {
-    public int CurrentDay 
-    { 
-        get => WorldState.CurrentDay; 
-        set => WorldState.CurrentDay = value; 
+    public int CurrentDay
+    {
+        get
+        {
+            return WorldState.CurrentDay;
+        }
+
+        set
+        {
+            WorldState.CurrentDay = value;
+        }
     }
-    public TimeBlocks CurrentTimeBlock 
-    { 
-        get => WorldState.CurrentTimeWindow; 
-        set => WorldState.CurrentTimeWindow = value; 
+    public TimeBlocks CurrentTimeBlock
+    {
+        get
+        {
+            return WorldState.CurrentTimeWindow;
+        }
+
+        set
+        {
+            WorldState.CurrentTimeWindow = value;
+        }
     }
-    public WeatherCondition CurrentWeather 
-    { 
-        get => WorldState.CurrentWeather; 
-        set => WorldState.CurrentWeather = value; 
+    public WeatherCondition CurrentWeather
+    {
+        get
+        {
+            return WorldState.CurrentWeather;
+        }
+
+        set
+        {
+            WorldState.CurrentWeather = value;
+        }
     }
     public int PlayerCoins { get; set; } = 2;
     public int PlayerStamina { get; set; } = 5;
@@ -21,15 +42,29 @@
     public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
     public List<Location> Locations { get; set; } = new List<Location>();
 
-    public Location CurrentLocation 
-    { 
-        get => WorldState.CurrentLocation; 
-        private set => WorldState.SetCurrentLocation(value, WorldState.CurrentLocationSpot); 
+    public Location CurrentLocation
+    {
+        get
+        {
+            return WorldState.CurrentLocation;
+        }
+
+        private set
+        {
+            WorldState.SetCurrentLocation(value, WorldState.CurrentLocationSpot);
+        }
     }
-    public LocationSpot CurrentLocationSpot 
-    { 
-        get => WorldState.CurrentLocationSpot; 
-        set => WorldState.SetCurrentLocationSpot(value); 
+    public LocationSpot CurrentLocationSpot
+    {
+        get
+        {
+            return WorldState.CurrentLocationSpot;
+        }
+
+        set
+        {
+            WorldState.SetCurrentLocationSpot(value);
+        }
     }
 
     private Player Player;
@@ -50,7 +85,7 @@
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
     public List<EncounterChoice> AvailableChoices { get; set; } = new List<EncounterChoice>();
-    
+
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
     public Guid GameInstanceId { get; set; }
@@ -59,7 +94,7 @@
 
     public GameWorld()
     {
-        if(GameInstanceId == Guid.Empty) GameInstanceId = Guid.NewGuid();
+        if (GameInstanceId == Guid.Empty) GameInstanceId = Guid.NewGuid();
 
         Player = new Player();
         WorldState = new WorldState();

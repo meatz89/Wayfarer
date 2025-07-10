@@ -32,23 +32,49 @@ public class NPC
     public string Role { get; set; }
     public string Description { get; set; }
     public string Location { get; set; }
-    
+
     // Categorical Properties for Logical System Interactions
     public Professions Profession { get; set; }
     public Social_Class SocialClass { get; set; }
     public Schedule AvailabilitySchedule { get; set; }
     public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
-    
+
     // Helper methods for UI display
-    public string ProfessionDescription => Profession.ToString().Replace('_', ' ');
-    public string SocialClassDescription => SocialClass.ToString().Replace('_', ' ');
-    public string ScheduleDescription => AvailabilitySchedule.ToString().Replace('_', ' ');
-    
-    public string ProvidedServicesDescription => ProvidedServices.Any()
+    public string ProfessionDescription
+    {
+        get
+        {
+            return Profession.ToString().Replace('_', ' ');
+        }
+    }
+
+    public string SocialClassDescription
+    {
+        get
+        {
+            return SocialClass.ToString().Replace('_', ' ');
+        }
+    }
+
+    public string ScheduleDescription
+    {
+        get
+        {
+            return AvailabilitySchedule.ToString().Replace('_', ' ');
+        }
+    }
+
+    public string ProvidedServicesDescription
+    {
+        get
+        {
+            return ProvidedServices.Any()
         ? $"Services: {string.Join(", ", ProvidedServices.Select(s => s.ToString().Replace('_', ' ')))}"
         : "No services available";
-    
+        }
+    }
+
     public bool IsAvailable(TimeBlocks currentTime)
     {
         return AvailabilitySchedule switch
@@ -61,12 +87,12 @@ public class NPC
             _ => false
         };
     }
-    
+
     public bool CanProvideService(ServiceTypes requestedService)
     {
         return ProvidedServices.Contains(requestedService);
     }
-    
+
     public bool MeetsLocationRequirements(Social_Expectation locationExpectation)
     {
         return locationExpectation switch

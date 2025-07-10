@@ -7,11 +7,11 @@ public static class ServiceConfiguration
         string contentDirectory = "Content";
 
         // Create GameWorldInitializer
-        GameWorldInitializer contentLoader = new GameWorldInitializer(contentDirectory);
-        services.AddSingleton(contentLoader);
+        GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(contentDirectory);
+        services.AddSingleton(gameWorldInitializer);
 
         // Load game state
-        GameWorld gameWorld = contentLoader.LoadGame();
+        GameWorld gameWorld = gameWorldInitializer.LoadGame();
         services.AddSingleton(gameWorld);
 
         // Register the content validator
@@ -38,7 +38,7 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
-        
+
         // TimeManager is created and managed by GameWorld, not DI container
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
@@ -62,11 +62,11 @@ public static class ServiceConfiguration
         string contentDirectory = "Content";
 
         // Create GameWorldInitializer
-        GameWorldInitializer contentLoader = new GameWorldInitializer(contentDirectory);
-        services.AddSingleton(contentLoader);
+        GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(contentDirectory);
+        services.AddSingleton(gameWorldInitializer);
 
         // Load game state
-        GameWorld gameWorld = contentLoader.LoadGame();
+        GameWorld gameWorld = gameWorldInitializer.LoadGame();
         services.AddSingleton(gameWorld);
 
         // Register the content validator
@@ -86,15 +86,15 @@ public static class ServiceConfiguration
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
-        
+
         // Register ActionGenerator as null for tests
         services.AddSingleton<ActionGenerator?>(serviceProvider => null);
-        
+
         services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
-        
+
         // TimeManager is created and managed by GameWorld, not DI container
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
@@ -109,13 +109,13 @@ public static class ServiceConfiguration
 
         // Minimal AI services for testing
         services.AddSingleton<ChoiceProjectionService>();
-        
+
         // Register EncounterFactory without AI dependencies
         services.AddSingleton<EncounterFactory>(serviceProvider =>
         {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var choiceProjectionService = serviceProvider.GetRequiredService<ChoiceProjectionService>();
-            var logger = serviceProvider.GetRequiredService<ILogger<EncounterFactory>>();
+            GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            ChoiceProjectionService choiceProjectionService = serviceProvider.GetRequiredService<ChoiceProjectionService>();
+            ILogger<EncounterFactory> logger = serviceProvider.GetRequiredService<ILogger<EncounterFactory>>();
             return new EncounterFactory(gameWorld, choiceProjectionService, logger);
         });
 

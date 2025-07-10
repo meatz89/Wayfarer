@@ -1,6 +1,6 @@
 ﻿public class ChoiceProjectionService
 {
-    private static readonly Random _random = new Random(); 
+    private static readonly Random _random = new Random();
     private readonly Player player;
 
     public ChoiceProjectionService(GameWorld gameWorld)
@@ -26,7 +26,7 @@
     private SkillOptionProjection ProjectSkillOption(EncounterChoice choice, EncounterState state, Player player)
     {
         SkillOptionProjection projection = new SkillOptionProjection();
-        if(!choice.RequiresSkillCheck)
+        if (!choice.RequiresSkillCheck)
         {
             projection.SkillName = "None";
             projection.IsAvailable = true;
@@ -36,7 +36,7 @@
             return projection;
         }
 
-        var option = choice.SkillOption;
+        SkillOption option = choice.SkillOption;
 
         projection.SkillName = option.SkillName;
         projection.Difficulty = option.Difficulty;
@@ -91,7 +91,7 @@
         // Apply modifier
         effectiveLevel += state.GetNextCheckModifier();
 
-        var successChance = CalculateSuccessChance(effectiveLevel, difficulty);
+        int successChance = CalculateSuccessChance(effectiveLevel, difficulty);
         int random = _random.Next(100); // Use shared Random instance
         bool success = successChance >= random;
 

@@ -23,7 +23,7 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act & Assert
             Assert.Equal(5, TimeManager.MaxDailyTimeBlocks);
             Assert.Equal(0, timeManager.UsedTimeBlocks);
@@ -42,10 +42,10 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act
             timeManager.ConsumeTimeBlock(1);
-            
+
             // Assert
             Assert.Equal(1, timeManager.UsedTimeBlocks);
             Assert.Equal(4, timeManager.RemainingTimeBlocks);
@@ -63,13 +63,13 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act - Consume 4 time blocks
             timeManager.ConsumeTimeBlock(1);
             timeManager.ConsumeTimeBlock(1);
             timeManager.ConsumeTimeBlock(1);
             timeManager.ConsumeTimeBlock(1);
-            
+
             // Assert
             Assert.Equal(4, timeManager.UsedTimeBlocks);
             Assert.Equal(1, timeManager.RemainingTimeBlocks);
@@ -87,13 +87,13 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act - Consume all 5 time blocks
             for (int i = 0; i < 5; i++)
             {
                 timeManager.ConsumeTimeBlock(1);
             }
-            
+
             // Assert
             Assert.Equal(5, timeManager.UsedTimeBlocks);
             Assert.Equal(0, timeManager.RemainingTimeBlocks);
@@ -111,17 +111,17 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act - Consume all 5 time blocks
             for (int i = 0; i < 5; i++)
             {
                 timeManager.ConsumeTimeBlock(1);
             }
-            
+
             // Assert - 6th action should throw exception
             InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
                 () => timeManager.ConsumeTimeBlock(1));
-            
+
             Assert.Contains("Cannot exceed daily time block limit", exception.Message);
         }
 
@@ -136,16 +136,16 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act - Consume all time blocks then start new day
             for (int i = 0; i < 5; i++)
             {
                 timeManager.ConsumeTimeBlock(1);
             }
-            
+
             int dayBeforeReset = worldState.CurrentDay;
             timeManager.StartNewDay();
-            
+
             // Assert
             Assert.Equal(dayBeforeReset + 1, worldState.CurrentDay);
             Assert.Equal(0, timeManager.UsedTimeBlocks);
@@ -164,13 +164,13 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Consume 4 time blocks
             for (int i = 0; i < 4; i++)
             {
                 timeManager.ConsumeTimeBlock(1);
             }
-            
+
             // Act & Assert
             Assert.True(timeManager.ValidateTimeBlockAction(1)); // Can perform 1 more action
             Assert.False(timeManager.ValidateTimeBlockAction(2)); // Cannot perform 2 more actions
@@ -187,10 +187,10 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act - Consume 2 time blocks at once
             timeManager.ConsumeTimeBlock(2);
-            
+
             // Assert
             Assert.Equal(2, timeManager.UsedTimeBlocks);
             Assert.Equal(3, timeManager.RemainingTimeBlocks);
@@ -207,14 +207,14 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act - Consume 3 time blocks, leaving 2 remaining
             timeManager.ConsumeTimeBlock(3);
-            
+
             // Assert - Attempting to consume 3 more should fail
             InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
                 () => timeManager.ConsumeTimeBlock(3));
-            
+
             Assert.Contains("Cannot exceed daily time block limit", exception.Message);
         }
 
@@ -229,10 +229,10 @@ namespace Wayfarer.Tests
             Player player = CreateTestPlayer();
             WorldState worldState = CreateTestWorldState();
             TimeManager timeManager = new TimeManager(player, worldState);
-            
+
             // Act - Use existing AdvanceTime method (should consume time blocks)
             timeManager.AdvanceTime(2); // This should consume 2 time blocks
-            
+
             // Assert
             Assert.Equal(2, timeManager.UsedTimeBlocks);
             Assert.Equal(3, timeManager.RemainingTimeBlocks);

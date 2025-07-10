@@ -30,7 +30,7 @@
         // Get item from repository
         Item item = itemRepository.GetItemById(itemId);
         if (item == null) return;
-        
+
         // Delegate to MarketManager for location-aware pricing and transactions
         marketManager.BuyItem(itemId, locationId);
     }
@@ -40,7 +40,7 @@
         // Get item from repository
         Item item = itemRepository.GetItemById(itemId);
         if (item == null) return;
-        
+
         // Delegate to MarketManager for location-aware pricing and transactions
         marketManager.SellItem(itemId, locationId);
     }

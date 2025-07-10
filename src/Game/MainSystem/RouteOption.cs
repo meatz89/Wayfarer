@@ -42,7 +42,7 @@ public enum TerrainCategory
     Requires_Climbing,
     Requires_Water_Transport,
     Requires_Permission,
-    
+
     // Conditional requirements (weather-dependent or warning-based)
     Wilderness_Terrain,    // Dangerous without navigation tools, blocked in fog/snow
     Exposed_Weather,       // Blocked in bad weather without protection
@@ -82,11 +82,11 @@ public class RouteOption
     public List<TerrainCategory> TerrainCategories { get; set; } = new List<TerrainCategory>();
     public int MaxItemCapacity { get; set; } = 3;
     public string Description { get; set; }
-    
+
     // Route condition variations
     public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
     public RouteUnlockCondition? UnlockCondition { get; set; }
-    
+
     // Route discovery tracking
     public int UsageCount { get; set; } = 0;
 
@@ -98,18 +98,18 @@ public class RouteOption
         {
             return false;
         }
-        
+
         // Calculate realistic costs without efficiency modifiers
         int staminaCost = CalculateLogicalStaminaCost(totalWeight, player.Inventory.ItemSlots.Count(i => i != null && i != string.Empty));
         int coinCost = BaseCoinCost;
 
         // Check if player has enough resources
-        if (player.Coins < coinCost) 
+        if (player.Coins < coinCost)
         {
             return false;
         }
 
-        if (player.Stamina < staminaCost) 
+        if (player.Stamina < staminaCost)
         {
             return false;
         }
@@ -124,7 +124,7 @@ public class RouteOption
     {
         List<EquipmentCategory> playerEquipment = GetPlayerEquipmentCategories(itemRepository, player);
         List<string> warnings = new List<string>();
-        
+
         // Check hard requirements first
         foreach (TerrainCategory terrain in TerrainCategories)
         {
@@ -145,17 +145,17 @@ public class RouteOption
                     break;
             }
         }
-        
+
         // Check weather-terrain interactions
         foreach (TerrainCategory terrain in TerrainCategories)
         {
             RouteAccessResult weatherCheck = CheckWeatherTerrainInteraction(terrain, weather, playerEquipment);
             if (!weatherCheck.IsAllowed)
                 return weatherCheck;
-            
+
             warnings.AddRange(weatherCheck.Warnings);
         }
-        
+
         // Check conditional requirements that create warnings
         foreach (TerrainCategory terrain in TerrainCategories)
         {
@@ -175,10 +175,10 @@ public class RouteOption
                     break;
             }
         }
-        
+
         return warnings.Any() ? RouteAccessResult.Allowed(warnings) : RouteAccessResult.Allowed();
     }
-    
+
     /// <summary>
     /// Check weather and terrain interactions for logical blocking
     /// </summary>
@@ -190,20 +190,20 @@ public class RouteOption
                 if (terrain == TerrainCategory.Exposed_Weather && !playerEquipment.Contains(EquipmentCategory.Weather_Protection))
                     return RouteAccessResult.Blocked("Exposed terrain unsafe in rain without weather protection");
                 break;
-                
+
             case WeatherCondition.Snow:
                 if (terrain == TerrainCategory.Exposed_Weather && !playerEquipment.Contains(EquipmentCategory.Weather_Protection))
                     return RouteAccessResult.Blocked("Exposed terrain impassable in snow without weather protection");
                 if (terrain == TerrainCategory.Wilderness_Terrain && !playerEquipment.Contains(EquipmentCategory.Navigation_Tools))
                     return RouteAccessResult.Blocked("Wilderness routes too dangerous in snow without navigation tools");
                 break;
-                
+
             case WeatherCondition.Fog:
                 if (terrain == TerrainCategory.Wilderness_Terrain && !playerEquipment.Contains(EquipmentCategory.Navigation_Tools))
                     return RouteAccessResult.Blocked("Cannot navigate wilderness in fog without proper tools");
                 break;
         }
-        
+
         return RouteAccessResult.Allowed();
     }
 
@@ -233,7 +233,7 @@ public class RouteOption
 
         return adjustedStaminaCost;
     }
-    
+
     /// <summary>
     /// Calculate stamina cost based on logical factors - no efficiency multipliers
     /// </summary>
@@ -241,23 +241,23 @@ public class RouteOption
     {
         int itemCount = player.Inventory.ItemSlots.Count(i => i != null && i != string.Empty);
         int baseCost = CalculateLogicalStaminaCost(totalWeight, itemCount);
-        
+
         // Apply weather modifications
         if (WeatherModifications.TryGetValue(weather, out RouteModification? modification))
         {
             baseCost += modification.StaminaCostModifier;
         }
-        
+
         return Math.Max(1, baseCost);
     }
-    
+
     /// <summary>
     /// Calculate stamina cost using logical factors instead of efficiency multipliers
     /// </summary>
     private int CalculateLogicalStaminaCost(int totalWeight, int itemCount)
     {
         int staminaCost = BaseStaminaCost;
-        
+
         // Physical weight penalties (realistic cargo limitations)
         if (totalWeight >= 4 && totalWeight <= 6)
         {
@@ -267,17 +267,17 @@ public class RouteOption
         {
             staminaCost += 2; // Heavy load
         }
-        
+
         // Overload penalties (instead of blocking - player choice with consequences)
         if (itemCount > MaxItemCapacity)
         {
             int overload = itemCount - MaxItemCapacity;
             staminaCost += overload * 1; // +1 stamina per item over capacity
         }
-        
+
         return Math.Max(1, staminaCost);
     }
-    
+
     /// <summary>
     /// Calculate coin cost - weather does not affect cost
     /// </summary>
@@ -285,9 +285,9 @@ public class RouteOption
     {
         return BaseCoinCost;
     }
-    
+
     // Season availability removed - game timeframe is only days/weeks
-    
+
     /// <summary>
     /// Check if route is blocked by weather - DEPRECATED, always returns false
     /// Weather now affects difficulty, not availability
@@ -297,14 +297,14 @@ public class RouteOption
         return false; // Weather never blocks routes, only makes them harder
     }
 
-    
+
     /// <summary>
     /// Get all equipment categories from player's inventory
     /// </summary>
     private List<EquipmentCategory> GetPlayerEquipmentCategories(ItemRepository itemRepository, Player player)
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
-        
+
         foreach (string itemName in player.Inventory.ItemSlots)
         {
             if (itemName != null)
@@ -316,11 +316,11 @@ public class RouteOption
                 }
             }
         }
-        
+
         return categories.Distinct().ToList();
     }
-    
-    
+
+
     internal EncounterContext GetEncounter(int seed)
     {
         return null;

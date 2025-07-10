@@ -49,7 +49,7 @@
         List<ChoiceTemplate> choiceTemplates = GetAllTemplates();
         ChoiceTemplate? choiceTemplate = choiceTemplates.FirstOrDefault(t => t.TemplateName == id.ToString());
 
-        if(choiceTemplate == null)
+        if (choiceTemplate == null)
         {
             return new NoEffect();
         }

@@ -5,12 +5,12 @@
     public ItemRepository(GameWorld gameWorld)
     {
         _gameWorld = gameWorld;
-        
+
         if (_gameWorld.WorldState.Items == null)
         {
             _gameWorld.WorldState.Items = new List<Item>();
         }
-        
+
         if (!_gameWorld.WorldState.Items.Any())
         {
             Console.WriteLine("WARNING: No items loaded from GameWorld. JSON loading may have failed.");
@@ -36,7 +36,7 @@
 
     public List<Item> GetItemsForLocation(string locationId, string spotId = null)
     {
-        var items = _gameWorld.WorldState.Items ?? new List<Item>();
+        List<Item> items = _gameWorld.WorldState.Items ?? new List<Item>();
         if (spotId != null)
         {
             return items.Where(i => i.LocationId == locationId && i.SpotId == spotId).ToList();

@@ -2,18 +2,38 @@
 {
     public const int TimeDayStart = 6;
     public const int MaxDailyTimeBlocks = 5;
-    
+
     private Player player;
     private WorldState worldState;
     private int usedTimeBlocks = 0;
 
     public int CurrentTimeHours { get; private set; }
     public TimeBlocks CurrentTimeBlock { get; private set; }
-    
+
     // Time block constraint properties
-    public int UsedTimeBlocks => usedTimeBlocks;
-    public int RemainingTimeBlocks => MaxDailyTimeBlocks - usedTimeBlocks;
-    public bool CanPerformTimeBlockAction => usedTimeBlocks < MaxDailyTimeBlocks;
+    public int UsedTimeBlocks
+    {
+        get
+        {
+            return usedTimeBlocks;
+        }
+    }
+
+    public int RemainingTimeBlocks
+    {
+        get
+        {
+            return MaxDailyTimeBlocks - usedTimeBlocks;
+        }
+    }
+
+    public bool CanPerformTimeBlockAction
+    {
+        get
+        {
+            return usedTimeBlocks < MaxDailyTimeBlocks;
+        }
+    }
 
     public TimeManager(Player player, WorldState worldState)
     {
@@ -105,7 +125,7 @@
 
         return timeWindow;
     }
-    
+
     /// <summary>
     /// Consumes the specified number of time blocks for actions.
     /// Enforces the daily limit of 5 time blocks.
@@ -118,10 +138,10 @@
         {
             throw new InvalidOperationException($"Cannot exceed daily time block limit of {MaxDailyTimeBlocks}. Attempting to consume {blocks} blocks but only {RemainingTimeBlocks} remaining.");
         }
-        
+
         usedTimeBlocks += blocks;
     }
-    
+
     /// <summary>
     /// Validates whether the specified number of time blocks can be consumed
     /// without exceeding the daily limit.

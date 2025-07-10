@@ -219,7 +219,7 @@ public class EncounterChoiceResponseParser
             requiresSkillCheck = false;
         else if (requiresSkillCheckElement.ValueKind == JsonValueKind.String)
         {
-            var str = requiresSkillCheckElement.GetString();
+            string? str = requiresSkillCheckElement.GetString();
             if (bool.TryParse(str, out bool parsed))
                 requiresSkillCheck = parsed;
         }
@@ -297,13 +297,13 @@ public class EncounterChoiceResponseParser
         {
             EnsureFileExists(filePath);
 
-            var lines = File.ReadAllLines(filePath).ToList();
+            List<string> lines = File.ReadAllLines(filePath).ToList();
             bool found = false;
             for (int i = 0; i < lines.Count; i++)
             {
                 // Match "value" or "value|count"
-                var line = lines[i];
-                var parts = line.Split('|');
+                string line = lines[i];
+                string[] parts = line.Split('|');
                 if (parts[0] == value)
                 {
                     int count = 1;
@@ -343,7 +343,7 @@ public class EncounterChoiceResponseParser
         {
             EnsureFileExists(filePath);
 
-            var lines = File.ReadAllLines(filePath);
+            string[] lines = File.ReadAllLines(filePath);
             if (!lines.Contains(entry))
             {
                 File.AppendAllText(filePath, entry + Environment.NewLine);
@@ -356,7 +356,7 @@ public class EncounterChoiceResponseParser
     }
     private bool TryGetJsonProperty(JsonElement element, string[] propertyNames, out JsonElement value)
     {
-        foreach (var name in propertyNames)
+        foreach (string name in propertyNames)
         {
             if (element.TryGetProperty(name, out value))
                 return true;
@@ -367,14 +367,14 @@ public class EncounterChoiceResponseParser
 
     private string GetStringProperty(JsonElement element, params string[] propertyNames)
     {
-        if (TryGetJsonProperty(element, propertyNames, out var value))
+        if (TryGetJsonProperty(element, propertyNames, out JsonElement value))
             return value.GetString();
         return null;
     }
 
     private int? GetIntProperty(JsonElement element, params string[] propertyNames)
     {
-        if (TryGetJsonProperty(element, propertyNames, out var value) && value.ValueKind == JsonValueKind.Number)
+        if (TryGetJsonProperty(element, propertyNames, out JsonElement value) && value.ValueKind == JsonValueKind.Number)
             return value.GetInt32();
         return null;
     }
