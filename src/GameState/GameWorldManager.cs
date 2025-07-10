@@ -408,6 +408,10 @@
     {
         Location location = locationRepository.GetCurrentLocation();
         LocationSpot locationSpot = locationRepository.GetSpot(location.Id, locationSpotId);
+        if (locationSpot == null)
+        {
+            return false;
+        }
         bool canMove = !locationSpot.IsClosed;
 
         return canMove;

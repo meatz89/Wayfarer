@@ -30,6 +30,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Validation checklist for all implementations
 - **READ THIS BEFORE ANY SYSTEM CHANGES**
 
+**GAME-ARCHITECTURE.MD** - **CRITICAL ARCHITECTURAL PATTERNS**
+- **MANDATORY**: System dependency patterns and failure modes discovered through debugging
+- Time window initialization requirements and location spot dependencies
+- Repository pattern compliance and single source of truth enforcement
+- JSON content parsing validation and enum matching requirements
+- Test architecture compliance patterns
+- **READ THIS BEFORE ANY SYSTEM MODIFICATIONS**
+- **CONTINUOUSLY UPDATE**: Add new architectural findings, dependency discoveries, and failure patterns as they are discovered
+- **NEVER LOSE KNOWLEDGE**: Document all critical debugging discoveries to prevent repeating the same architectural mistakes
+
 **SESSION-HANDOFF.MD** - **CURRENT SESSION STATE**
 - Current progress and completed features
 - Critical discoveries and constraints from user feedback
