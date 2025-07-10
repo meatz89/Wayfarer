@@ -21,7 +21,9 @@
       "Bash(dotnet run:*)",
       "Bash(mkdir:*)",
       "Bash(ls:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet clean:*)"
     ],
     "deny": []
   }
