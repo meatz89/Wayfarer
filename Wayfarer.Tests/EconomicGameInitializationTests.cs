@@ -65,8 +65,8 @@ namespace Wayfarer.Tests
             Assert.True(gameWorld.DiscoveredRoutes.Count > 0, "Should load routes for travel options");
             
             // Contracts for economic goals
-            Assert.NotNull(GameWorld.AllContracts);
-            Assert.True(GameWorld.AllContracts.Count > 0, "Should load contracts for economic objectives");
+            Assert.NotNull(gameWorld.WorldState.Contracts);
+            Assert.True(gameWorld.WorldState.Contracts.Count > 0, "Should load contracts for economic objectives");
             
             // Actions for basic economic activities
             Assert.NotNull(gameWorld.WorldState.actions);
@@ -269,11 +269,11 @@ namespace Wayfarer.Tests
             Location startLocation = locationSystem.Initialize().Result;
             
             // Act: Check contract system for economic goals
-            Assert.NotNull(GameWorld.AllContracts);
-            Assert.True(GameWorld.AllContracts.Count > 0, "Should have contracts for economic goals");
+            Assert.NotNull(gameWorld.WorldState.Contracts);
+            Assert.True(gameWorld.WorldState.Contracts.Count > 0, "Should have contracts for economic goals");
             
             // Contracts should have economic properties
-            foreach (Contract contract in GameWorld.AllContracts)
+            foreach (Contract contract in gameWorld.WorldState.Contracts)
             {
                 Assert.NotNull(contract.Id);
                 Assert.NotNull(contract.Description);
@@ -341,7 +341,7 @@ namespace Wayfarer.Tests
             Assert.True(gameWorld.WorldState.actions.Count > 0);
             Assert.True(gameWorld.WorldState.Items.Count > 0);
             Assert.True(gameWorld.DiscoveredRoutes.Count > 0);
-            Assert.True(GameWorld.AllContracts.Count > 0);
+            Assert.True(gameWorld.WorldState.Contracts.Count > 0);
             
             // 2. Player setup for economic gameplay
             Player player = gameWorld.GetPlayer();
@@ -417,7 +417,7 @@ namespace Wayfarer.Tests
             Assert.True(player.KnownLocations.Count > 0);
             Assert.True(gameWorld.WorldState.Items.Count > 0);
             Assert.True(gameWorld.DiscoveredRoutes.Count > 0);
-            Assert.True(GameWorld.AllContracts.Count > 0);
+            Assert.True(gameWorld.WorldState.Contracts.Count > 0);
             
             // Ready for Economic POC Option A implementation:
             // - Time block constraint system ✅

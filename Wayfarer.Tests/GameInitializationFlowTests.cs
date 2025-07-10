@@ -69,8 +69,8 @@ namespace Wayfarer.Tests
             Assert.True(gameWorld.DiscoveredRoutes.Count > 0, "Should load routes from routes.json");
             
             // Contracts loaded from contracts.json
-            Assert.NotNull(GameWorld.AllContracts);
-            Assert.True(GameWorld.AllContracts.Count > 0, "Should load contracts from contracts.json");
+            Assert.NotNull(gameWorld.WorldState.Contracts);
+            Assert.True(gameWorld.WorldState.Contracts.Count > 0, "Should load contracts from contracts.json");
         }
 
         [Fact]
@@ -296,11 +296,11 @@ namespace Wayfarer.Tests
             // Assert: Global contracts should be loaded
             
             // Global contracts should be loaded
-            Assert.NotNull(GameWorld.AllContracts);
-            Assert.True(GameWorld.AllContracts.Count > 0, "Should have contracts loaded from JSON");
+            Assert.NotNull(gameWorld.WorldState.Contracts);
+            Assert.True(gameWorld.WorldState.Contracts.Count > 0, "Should have contracts loaded from JSON");
             
             // Each contract should be properly configured
-            foreach (Contract contract in GameWorld.AllContracts)
+            foreach (Contract contract in gameWorld.WorldState.Contracts)
             {
                 Assert.NotNull(contract.Id);
                 Assert.NotNull(contract.Description);
@@ -441,7 +441,7 @@ namespace Wayfarer.Tests
             Assert.True(actions.Count > 0);
             
             // Contracts should be loaded
-            Assert.True(GameWorld.AllContracts.Count > 0);
+            Assert.True(gameWorld.WorldState.Contracts.Count > 0);
             
             // Travel system should work
             LocationRepository locationRepository = serviceProvider.GetRequiredService<LocationRepository>();

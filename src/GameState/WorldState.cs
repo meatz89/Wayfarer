@@ -13,7 +13,7 @@
 
     // Game time
     public int CurrentDay { get; set; } = 1;
-    public TimeBlocks CurrentTimeWindow { get; set; }
+    public TimeBlocks CurrentTimeWindow { get; set; } = TimeBlocks.Morning;
     public int CurrentTimeHours { get; set; }
     
     // Weather conditions (no seasons - game timeframe is only days/weeks)

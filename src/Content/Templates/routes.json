@@ -10,7 +10,7 @@
 		"timeBlockCost": 1,
 		"departureTime": null,
 		"isDiscovered": true,
-		"terrainCategories": [],
+		"terrainCategories": ["Exposed_Weather"],
 		"maxItemCapacity": 3,
 		"description": "A short walk through the quiet streets to the town square."
 	},

@@ -117,7 +117,10 @@
         gameWorld.DiscoveredRoutes.AddRange(routes);
 
         // Add contracts to the game world
-        GameWorld.AllContracts = contracts;
+        foreach (Contract contract in contracts)
+        {
+            gameWorld.WorldState.Contracts.Add(contract);
+        }
 
         // CRITICAL: Ensure Player.CurrentLocation and CurrentLocationSpot are NEVER null
         // Systems depend on these values being valid
