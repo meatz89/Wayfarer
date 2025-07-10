@@ -213,7 +213,7 @@
     public void RecordRouteUsage(string routeId)
     {
         // Find the route and increment usage count
-        foreach (Location location in _gameWorld.WorldState.locations)
+        foreach (Location location in LocationRepository.GetAllLocations())
         {
             foreach (LocationConnection connection in location.Connections)
             {
@@ -237,7 +237,7 @@
     /// </summary>
     private void CheckForRouteUnlocks(RouteOption usedRoute)
     {
-        foreach (Location location in _gameWorld.WorldState.locations)
+        foreach (Location location in LocationRepository.GetAllLocations())
         {
             foreach (LocationConnection connection in location.Connections)
             {

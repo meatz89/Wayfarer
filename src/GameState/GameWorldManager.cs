@@ -427,7 +427,7 @@
 
     public void UpdateAvailableContracts()
     {
-        foreach (Contract contract in _gameWorld.WorldState.ActiveContracts)
+        foreach (Contract contract in contractSystem.GetActiveContracts())
         {
             if (contract.IsAvailable(_gameWorld.WorldState.CurrentDay, _gameWorld.WorldState.CurrentTimeWindow))
             {

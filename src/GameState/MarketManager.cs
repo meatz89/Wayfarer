@@ -98,8 +98,8 @@ public class MarketManager
     {
         List<Item> availableItems = new List<Item>();
         
-        // Get all items from GameWorld and create location-specific versions
-        var allItems = _gameWorld.WorldState.Items ?? new List<Item>();
+        // Get all items from ItemRepository and create location-specific versions
+        var allItems = _itemRepository.GetAllItems();
         
         foreach (var baseItem in allItems)
         {
@@ -120,7 +120,7 @@ public class MarketManager
     private Item CreateItemWithLocationPricing(string itemId, string locationId)
     {
         LocationPricing pricing = GetDynamicPricing(locationId, itemId);
-        var baseItem = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
+        var baseItem = _itemRepository.GetItemById(itemId);
         
         return new Item
         {

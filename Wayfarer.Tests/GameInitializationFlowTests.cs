@@ -296,12 +296,13 @@ namespace Wayfarer.Tests
             
             // Assert: Global contracts should be loaded
             
-            // Global contracts should be loaded
-            Assert.NotNull(gameWorld.WorldState.Contracts);
-            Assert.True(gameWorld.WorldState.Contracts.Count > 0, "Should have contracts loaded from JSON");
+            // Global contracts should be loaded via ContractRepository
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.NotNull(contractRepository.GetAllContracts());
+            Assert.True(contractRepository.GetAllContracts().Count > 0, "Should have contracts loaded from JSON");
             
             // Each contract should be properly configured
-            foreach (Contract contract in gameWorld.WorldState.Contracts)
+            foreach (Contract contract in contractRepository.GetAllContracts())
             {
                 Assert.NotNull(contract.Id);
                 Assert.NotNull(contract.Description);
@@ -441,8 +442,9 @@ namespace Wayfarer.Tests
             List<ActionDefinition> actions = actionRepository.GetActionsForSpot(player.CurrentLocationSpot.SpotID);
             Assert.True(actions.Count > 0);
             
-            // Contracts should be loaded
-            Assert.True(gameWorld.WorldState.Contracts.Count > 0);
+            // Contracts should be loaded via ContractRepository
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.True(contractRepository.GetAllContracts().Count > 0);
             
             // Travel system should work
             LocationRepository locationRepository = serviceProvider.GetRequiredService<LocationRepository>();
