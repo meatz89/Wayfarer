@@ -9,8 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. ✅ **READ CLAUDE.MD FIRST** - Understand architectural patterns and game design principles
 2. ✅ **READ SESSION-HANDOFF.MD** - Get current progress, discoveries, and immediate next steps
-3. ✅ **READ INTENDED-GAMEPLAY.MD** - Get intended gameplay vision
-4. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
+3. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
+4. ✅ **READ USERSTORIES.MD** - Game design requirements and anti-patterns
+5. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
 
 ### **DOCUMENTATION ARCHITECTURE**
 
@@ -239,8 +240,9 @@ All APIs must be location-aware and consistent:
 ### PROJECT STATUS
 
 **Current progress and session handoffs:** `session-handoff.md`
-**Implementation roadmap:** `implementation-plan-revised.md`
 **Game design requirements:** `UserStories.md`
+**Logical interaction principles:** `LOGICAL-SYSTEM-INTERACTIONS.md`
+**Architectural patterns and discoveries:** `GAME-ARCHITECTURE.md`
 
 ### GAME INITIALIZATION PIPELINE
 
