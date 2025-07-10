@@ -4,7 +4,7 @@
     Climbing_Equipment,
     Water_Transport,
     Special_Access,
-    
+
     // Efficiency categories (soft modifiers)
     Navigation_Tools,
     Weather_Protection,
@@ -39,29 +39,47 @@ public class Item
     public string SpotId { get; set; }
     public string Description { get; set; }
 
-    public string WeightDescription => Weight switch
+    public string WeightDescription
     {
-        0 => "Weightless",
-        1 => "Light",
-        2 => "Medium",
-        3 => "Heavy",
-        _ => $"Very Heavy ({Weight})"
-    };
+        get
+        {
+            return Weight switch
+            {
+                0 => "Weightless",
+                1 => "Light",
+                2 => "Medium",
+                3 => "Heavy",
+                _ => $"Very Heavy ({Weight})"
+            };
+        }
+    }
 
     // Helper properties for UI display
-    public string EquipmentCategoriesDescription => Categories.Any()
+    public string EquipmentCategoriesDescription
+    {
+        get
+        {
+            return Categories.Any()
         ? $"Equipment: {string.Join(", ", Categories.Select(c => c.ToString().Replace('_', ' ')))}"
         : "";
+        }
+    }
 
-    public string ItemCategoriesDescription => ItemCategories.Any()
+    public string ItemCategoriesDescription
+    {
+        get
+        {
+            return ItemCategories.Any()
         ? $"Item: {string.Join(", ", ItemCategories.Select(c => c.ToString().Replace('_', ' ')))}"
         : "";
+        }
+    }
 
     public string AllCategoriesDescription
     {
         get
         {
-            var descriptions = new List<string>();
+            List<string> descriptions = new List<string>();
             if (!string.IsNullOrEmpty(EquipmentCategoriesDescription))
                 descriptions.Add(EquipmentCategoriesDescription);
             if (!string.IsNullOrEmpty(ItemCategoriesDescription))
@@ -71,9 +89,29 @@ public class Item
     }
 
     // Determine if this is primarily equipment or other item types
-    public bool IsPrimaryEquipment => Categories.Any() && !ItemCategories.Any();
-    public bool IsPrimaryItem => ItemCategories.Any() && !Categories.Any();
-    public bool IsHybridItem => Categories.Any() && ItemCategories.Any();
+    public bool IsPrimaryEquipment
+    {
+        get
+        {
+            return Categories.Any() && !ItemCategories.Any();
+        }
+    }
+
+    public bool IsPrimaryItem
+    {
+        get
+        {
+            return ItemCategories.Any() && !Categories.Any();
+        }
+    }
+
+    public bool IsHybridItem
+    {
+        get
+        {
+            return Categories.Any() && ItemCategories.Any();
+        }
+    }
 
     public bool IsAvailable { get; internal set; }
 }

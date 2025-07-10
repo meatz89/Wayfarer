@@ -8,7 +8,7 @@ public class NPCCategoricalSystemTests
     public void NPC_Should_Have_Profession_And_Social_Class_Properties()
     {
         // Arrange & Act
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC",
@@ -25,7 +25,7 @@ public class NPCCategoricalSystemTests
     public void NPC_Should_Have_Schedule_For_Availability()
     {
         // Arrange & Act
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC",
@@ -52,7 +52,7 @@ public class NPCCategoricalSystemTests
         Schedule npcSchedule, TimeBlocks currentTime, bool expectedAvailable)
     {
         // Arrange
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC",
@@ -70,7 +70,7 @@ public class NPCCategoricalSystemTests
     public void NPC_Should_Track_Provided_Services()
     {
         // Arrange
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC",
@@ -91,7 +91,7 @@ public class NPCCategoricalSystemTests
         ServiceTypes requestedService, bool expectedCanProvide)
     {
         // Arrange
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC",
@@ -122,7 +122,7 @@ public class NPCCategoricalSystemTests
         Social_Class npcSocialClass, Social_Expectation locationExpectation, bool expectedMeetsRequirements)
     {
         // Arrange
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC",
@@ -140,7 +140,7 @@ public class NPCCategoricalSystemTests
     public void NPC_Should_Have_Default_Relationship_As_Neutral()
     {
         // Arrange & Act
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC"
@@ -154,7 +154,7 @@ public class NPCCategoricalSystemTests
     public void NPC_Should_Provide_Readable_Description_Properties()
     {
         // Arrange
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC",
@@ -175,7 +175,7 @@ public class NPCCategoricalSystemTests
     public void NPC_Should_Show_No_Services_Available_When_Empty()
     {
         // Arrange
-        var npc = new NPC
+        NPC npc = new NPC
         {
             ID = "test_npc",
             Name = "Test NPC",

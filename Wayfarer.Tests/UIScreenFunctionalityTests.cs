@@ -1,9 +1,9 @@
-using Xunit;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -16,7 +16,7 @@ namespace Wayfarer.Tests
         private IServiceProvider CreateEconomicServiceProvider()
         {
             IServiceCollection services = new ServiceCollection();
-            
+
             // Add configuration
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
@@ -26,10 +26,10 @@ namespace Wayfarer.Tests
                 .Build();
             services.AddSingleton(configuration);
             services.AddLogging();
-            
+
             // Use the economic-only service configuration
             services.ConfigureTestServices();
-            
+
             return services.BuildServiceProvider();
         }
 
@@ -40,17 +40,17 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
             GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();
-            
+
             // Initialize location system
             Location startLocation = locationSystem.Initialize().Result;
-            
+
             // Character creation
             Player player = gameWorld.GetPlayer();
             player.Initialize("Test Character", Professions.Merchant, Genders.Male);
-            
+
             // Start game (what happens when "Begin Your Journey" is clicked)
             gameWorldManager.StartGame();
-            
+
             return (gameWorld, locationSystem, gameWorldManager);
         }
 
@@ -58,11 +58,11 @@ namespace Wayfarer.Tests
         public void MainGameplay_ShouldHaveValidLocationAfterInitialization()
         {
             // Arrange & Act
-            var (gameWorld, locationSystem, gameWorldManager) = InitializeGameToMainGameplay();
-            
+            (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
+
             // Simulate MainGameplayView.GetCurrentLocation()
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
-            
+
             // Assert: Location should be valid for UI rendering
             Assert.NotNull(currentLocation);
             Assert.Equal("dusty_flagon", currentLocation.Id);
@@ -74,34 +74,35 @@ namespace Wayfarer.Tests
         public void TravelScreen_ShouldHaveValidDependencies()
         {
             // Arrange
-            var (gameWorld, locationSystem, gameWorldManager) = InitializeGameToMainGameplay();
+            (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
-            
+
             // Act: Simulate TravelSelection component initialization
             // This tests what happens when user clicks "Travel" button
-            
+
             // Get required services for TravelSelection
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
             TravelManager travelManager = serviceProvider.GetRequiredService<TravelManager>();
             ItemRepository itemRepository = serviceProvider.GetRequiredService<ItemRepository>();
-            
+
             // Test TravelSelection dependencies
             Assert.NotNull(currentLocation);
             Assert.NotNull(travelManager);
             Assert.NotNull(itemRepository);
-            
+
             // Test GetTravelableLocations functionality
             List<Location> allLocations = gameWorldManager.GetPlayerKnownLocations();
             Assert.NotNull(allLocations);
             Assert.NotEmpty(allLocations);
-            
+
             // Test route availability
-            Exception routeException = Record.Exception(() => {
-                foreach (var location in allLocations)
+            Exception routeException = Record.Exception(() =>
+            {
+                foreach (Location location in allLocations)
                 {
                     if (location.Id != currentLocation.Id)
                     {
-                        var routes = travelManager.GetAvailableRoutes(currentLocation.Id, location.Id);
+                        List<RouteOption> routes = travelManager.GetAvailableRoutes(currentLocation.Id, location.Id);
                         // Routes may be empty but should not throw exceptions
                         Assert.NotNull(routes);
                     }
@@ -114,31 +115,32 @@ namespace Wayfarer.Tests
         public void MarketScreen_ShouldHaveValidDependencies()
         {
             // Arrange
-            var (gameWorld, locationSystem, gameWorldManager) = InitializeGameToMainGameplay();
+            (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
-            
+
             // Act: Simulate Market component initialization
             // This tests what happens when user clicks "Market" button
-            
+
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
             MarketManager marketManager = serviceProvider.GetRequiredService<MarketManager>();
             ItemRepository itemRepository = serviceProvider.GetRequiredService<ItemRepository>();
-            
+
             // Test Market dependencies
             Assert.NotNull(currentLocation);
             Assert.NotNull(marketManager);
             Assert.NotNull(itemRepository);
-            
+
             // Test market functionality
-            Exception marketException = Record.Exception(() => {
-                var availableItems = marketManager.GetAvailableItems(currentLocation.Id);
+            Exception marketException = Record.Exception(() =>
+            {
+                List<Item> availableItems = marketManager.GetAvailableItems(currentLocation.Id);
                 Assert.NotNull(availableItems);
-                
+
                 // Test player inventory access
                 Player player = gameWorld.GetPlayer();
                 Assert.NotNull(player.Inventory);
                 Assert.NotNull(player.Inventory.ItemSlots);
-                
+
                 // Test weight calculation
                 int totalWeight = gameWorldManager.CalculateTotalWeight();
                 Assert.True(totalWeight >= 0);
@@ -150,24 +152,25 @@ namespace Wayfarer.Tests
         public void RestScreen_ShouldHaveValidDependencies()
         {
             // Arrange
-            var (gameWorld, locationSystem, gameWorldManager) = InitializeGameToMainGameplay();
+            (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
-            
+
             // Act: Simulate RestUI component initialization
             // This tests what happens when user clicks "Rest" button
-            
+
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
             RestManager restManager = serviceProvider.GetRequiredService<RestManager>();
-            
+
             // Test Rest dependencies
             Assert.NotNull(currentLocation);
             Assert.NotNull(restManager);
-            
+
             // Test rest functionality
-            Exception restException = Record.Exception(() => {
-                var restOptions = restManager.GetAvailableRestOptions();
+            Exception restException = Record.Exception(() =>
+            {
+                List<RestOption> restOptions = restManager.GetAvailableRestOptions();
                 Assert.NotNull(restOptions);
-                
+
                 // Test player resource access
                 Player player = gameWorld.GetPlayer();
                 Assert.True(player.Coins >= 0);
@@ -180,22 +183,23 @@ namespace Wayfarer.Tests
         public void ContractScreen_ShouldHaveValidDependencies()
         {
             // Arrange
-            var (gameWorld, locationSystem, gameWorldManager) = InitializeGameToMainGameplay();
-            
+            (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
+
             // Act: Simulate ContractUI component initialization
             // This tests what happens when user clicks "Contracts" button
-            
+
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
             ContractRepository contractRepository = serviceProvider.GetRequiredService<ContractRepository>();
-            
+
             // Test Contract dependencies
             Assert.NotNull(contractRepository);
-            
+
             // Test contract functionality
-            Exception contractException = Record.Exception(() => {
-                var availableContracts = contractRepository.GetAvailableContracts(gameWorld.CurrentDay, gameWorld.CurrentTimeBlock);
+            Exception contractException = Record.Exception(() =>
+            {
+                List<Contract> availableContracts = contractRepository.GetAvailableContracts(gameWorld.CurrentDay, gameWorld.CurrentTimeBlock);
                 Assert.NotNull(availableContracts);
-                
+
                 // Test game world time properties
                 Assert.True(gameWorld.CurrentDay > 0);
                 // Time block can be Dawn - that's valid, just verify it's a proper enum value
@@ -208,33 +212,33 @@ namespace Wayfarer.Tests
         public void AllScreens_ShouldNotThrowNullReferenceExceptions()
         {
             // Arrange
-            var (gameWorld, locationSystem, gameWorldManager) = InitializeGameToMainGameplay();
+            (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
-            
+
             // Act & Assert: Test that all screen components can be initialized without exceptions
-            
+
             // Test Travel screen components
             Assert.NotNull(currentLocation);
-            var travelManager = serviceProvider.GetRequiredService<TravelManager>();
+            TravelManager travelManager = serviceProvider.GetRequiredService<TravelManager>();
             Assert.NotNull(travelManager);
-            
+
             // Test Market screen components
-            var marketManager = serviceProvider.GetRequiredService<MarketManager>();
+            MarketManager marketManager = serviceProvider.GetRequiredService<MarketManager>();
             Assert.NotNull(marketManager);
-            
+
             // Test Rest screen components
-            var restManager = serviceProvider.GetRequiredService<RestManager>();
+            RestManager restManager = serviceProvider.GetRequiredService<RestManager>();
             Assert.NotNull(restManager);
-            
+
             // Test Contract screen components
-            var contractRepository = serviceProvider.GetRequiredService<ContractRepository>();
+            ContractRepository contractRepository = serviceProvider.GetRequiredService<ContractRepository>();
             Assert.NotNull(contractRepository);
-            
+
             // Test that GetCurrentLocation() returns valid data for all screens
             Assert.NotNull(currentLocation.Id);
             Assert.NotNull(currentLocation.Name);
-            
+
             // Test player state is valid for all screens
             Player player = gameWorld.GetPlayer();
             Assert.NotNull(player);
@@ -247,25 +251,26 @@ namespace Wayfarer.Tests
         public void TravelScreen_ShouldHandleUserInteractions()
         {
             // Arrange
-            var (gameWorld, locationSystem, gameWorldManager) = InitializeGameToMainGameplay();
+            (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
             TravelManager travelManager = serviceProvider.GetRequiredService<TravelManager>();
-            
+
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
             List<Location> knownLocations = gameWorldManager.GetPlayerKnownLocations();
-            
+
             // Act: Test travel interactions
-            foreach (var destination in knownLocations)
+            foreach (Location destination in knownLocations)
             {
                 if (destination.Id != currentLocation.Id)
                 {
                     // Test getting routes to destination
-                    Exception routeException = Record.Exception(() => {
-                        var routes = travelManager.GetAvailableRoutes(currentLocation.Id, destination.Id);
-                        
+                    Exception routeException = Record.Exception(() =>
+                    {
+                        List<RouteOption> routes = travelManager.GetAvailableRoutes(currentLocation.Id, destination.Id);
+
                         if (routes.Any())
                         {
-                            var firstRoute = routes.First();
+                            RouteOption firstRoute = routes.First();
                             // Test route validation
                             bool canTravel = travelManager.CanTravel(firstRoute);
                             // Should not throw exceptions
@@ -280,25 +285,26 @@ namespace Wayfarer.Tests
         public void MarketScreen_ShouldHandleTradeInteractions()
         {
             // Arrange
-            var (gameWorld, locationSystem, gameWorldManager) = InitializeGameToMainGameplay();
+            (GameWorld gameWorld, LocationSystem locationSystem, GameWorldManager gameWorldManager) = InitializeGameToMainGameplay();
             IServiceProvider serviceProvider = CreateEconomicServiceProvider();
             MarketManager marketManager = serviceProvider.GetRequiredService<MarketManager>();
-            
+
             Location currentLocation = gameWorld.WorldState.CurrentLocation;
-            
+
             // Act: Test market interactions
-            Exception tradeException = Record.Exception(() => {
-                var availableItems = marketManager.GetAvailableItems(currentLocation.Id);
-                
-                foreach (var item in availableItems.Take(3)) // Test first few items
+            Exception tradeException = Record.Exception(() =>
+            {
+                List<Item> availableItems = marketManager.GetAvailableItems(currentLocation.Id);
+
+                foreach (Item? item in availableItems.Take(3)) // Test first few items
                 {
                     // Test buy validation
                     bool canBuy = marketManager.CanBuyItem(item.Id ?? item.Name, currentLocation.Id);
-                    
+
                     // Test sell validation  
                     Player player = gameWorld.GetPlayer();
                     bool canSell = player.Inventory.HasItem(item.Name);
-                    
+
                     // Should not throw exceptions during validation
                 }
             });

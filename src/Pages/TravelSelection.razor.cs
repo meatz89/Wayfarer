@@ -12,11 +12,23 @@ public partial class TravelSelectionBase : ComponentBase
     [Parameter] public EventCallback<string> OnTravel { get; set; }
     [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
 
-    public bool ShowEquipmentCategories => GameWorld.GetPlayer().Inventory.ItemSlots
+    public bool ShowEquipmentCategories
+    {
+        get
+        {
+            return GameWorld.GetPlayer().Inventory.ItemSlots
         .Select(name => ItemRepository.GetItemByName(name))
         .Any(item => item != null && item.Categories.Any());
-        
-    public WeatherCondition CurrentWeather => GameWorld.CurrentWeather;
+        }
+    }
+
+    public WeatherCondition CurrentWeather
+    {
+        get
+        {
+            return GameWorld.CurrentWeather;
+        }
+    }
 
     protected override void OnInitialized()
     {
@@ -141,7 +153,7 @@ public partial class TravelSelectionBase : ComponentBase
     public List<EquipmentCategory> GetRequiredEquipment(List<TerrainCategory> terrainCategories)
     {
         List<EquipmentCategory> required = new List<EquipmentCategory>();
-        
+
         foreach (TerrainCategory terrain in terrainCategories)
         {
             switch (terrain)
@@ -157,7 +169,7 @@ public partial class TravelSelectionBase : ComponentBase
                     break;
             }
         }
-        
+
         return required.Distinct().ToList();
     }
 
@@ -167,7 +179,7 @@ public partial class TravelSelectionBase : ComponentBase
     public List<EquipmentCategory> GetRecommendedEquipment(List<TerrainCategory> terrainCategories)
     {
         List<EquipmentCategory> recommended = new List<EquipmentCategory>();
-        
+
         foreach (TerrainCategory terrain in terrainCategories)
         {
             switch (terrain)
@@ -186,14 +198,14 @@ public partial class TravelSelectionBase : ComponentBase
                     break;
             }
         }
-        
+
         return recommended.Distinct().ToList();
     }
-    
+
     public List<string> GetWeatherTerrainEffects(List<TerrainCategory> terrainCategories, WeatherCondition weather)
     {
         List<string> effects = new List<string>();
-        
+
         foreach (TerrainCategory terrain in terrainCategories)
         {
             switch (weather)
@@ -202,28 +214,28 @@ public partial class TravelSelectionBase : ComponentBase
                     if (terrain == TerrainCategory.Exposed_Weather)
                         effects.Add("☔ Exposed terrain unsafe in rain - requires weather protection");
                     break;
-                    
+
                 case WeatherCondition.Snow:
                     if (terrain == TerrainCategory.Exposed_Weather)
                         effects.Add("❄️ Exposed terrain impassable in snow - requires weather protection");
                     if (terrain == TerrainCategory.Wilderness_Terrain)
                         effects.Add("🌨️ Wilderness routes dangerous in snow - requires navigation tools");
                     break;
-                    
+
                 case WeatherCondition.Fog:
                     if (terrain == TerrainCategory.Wilderness_Terrain)
                         effects.Add("🌫️ Cannot navigate wilderness in fog - requires navigation tools");
                     break;
-                    
+
                 case WeatherCondition.Clear:
                     // No special effects for clear weather
                     break;
             }
         }
-        
+
         return effects.Distinct().ToList();
     }
-    
+
     public string GetWeatherIcon(WeatherCondition weather)
     {
         return weather switch

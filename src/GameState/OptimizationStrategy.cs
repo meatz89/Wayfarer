@@ -8,22 +8,22 @@ public enum OptimizationStrategy
     /// Optimize for overall efficiency (balanced cost, time, and stamina)
     /// </summary>
     Efficiency,
-    
+
     /// <summary>
     /// Minimize coin cost
     /// </summary>
     CheapestCost,
-    
+
     /// <summary>
     /// Minimize stamina expenditure
     /// </summary>
     LeastStamina,
-    
+
     /// <summary>
     /// Minimize travel time
     /// </summary>
     FastestTime,
-    
+
     /// <summary>
     /// Maximize safety and reliability
     /// </summary>

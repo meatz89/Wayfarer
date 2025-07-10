@@ -211,7 +211,7 @@ public class AIPromptBuilder
     {
         string template = promptTemplates[LOCATION_GENERATION_MD];
 
-        string content = 
+        string content =
             template
             .Replace("{characterArchetype}", input.CharacterArchetype)
             .Replace("{locationName}", input.TravelDestination)
@@ -231,7 +231,7 @@ public class AIPromptBuilder
     {
         string template = promptTemplates[ACTION_GENERATION_MD];
 
-        string content = 
+        string content =
             template
             .Replace("{ACTIONNAME}", context.ActionId)
             .Replace("{SPOT_NAME}", context.SpotName)
@@ -401,10 +401,10 @@ public class AIPromptBuilder
 
         MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameWorld.GetGameInstanceId());
         List<string> memories = memoryFileAccess.GetAllMemories().Result;
-        
+
         if (memories.Any())
         {
-            foreach (var memory in memories)
+            foreach (string memory in memories)
             {
                 prompt.AppendLine($"- {memory}");
             }
@@ -413,7 +413,7 @@ public class AIPromptBuilder
         {
             prompt.AppendLine("- No memories available.");
         }
-        
+
         prompt.AppendLine();
     }
 
@@ -423,7 +423,7 @@ public class AIPromptBuilder
 
         prompt.AppendLine("ENCOUNTER GOAL CONTEXT:");
 
-        var outcome = state.EncounterOutcome;
+        BeatOutcomes outcome = state.EncounterOutcome;
 
         string encounterGoal = context.LocationAction.ObjectiveDescription;
         prompt.AppendLine(encounterGoal);
@@ -481,8 +481,8 @@ public class AIPromptBuilder
         prompt.AppendLine("SELECTED CHOICE:");
         prompt.AppendLine($"{choice.NarrativeText}");
 
-        var success = state.LastBeatOutcome == BeatOutcomes.Success;
-        if(success)
+        bool success = state.LastBeatOutcome == BeatOutcomes.Success;
+        if (success)
         {
             prompt.AppendLine("RESULT: Success");
             //prompt.AppendLine($"{choice.SuccessNarrative}");
@@ -560,7 +560,7 @@ public class AIPromptBuilder
 
     private static string BuildFinalContent(string template, StringBuilder prompt)
     {
-        var content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
+        string content = template.Replace("{PROMPT_CONTEXT}", prompt.ToString());
 
         StringBuilder finalContent = new StringBuilder();
         foreach (string line in template.Split(@"\n"))

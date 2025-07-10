@@ -9,7 +9,7 @@
     private GameWorld _gameWorld;
     public List<EncounterChoice> Choices = new List<EncounterChoice>();
     public bool _isAwaitingAIResponse = false;
-    
+
     public bool _isAvailable = true;
 
     public EncounterManager(
@@ -141,7 +141,7 @@
         // Determine success
         ChoiceProjection projection = _projectionService.ProjectChoice(selectedChoice, _state);
         bool success = projection.SkillOption.ChoiceSuccess;
-            
+
         // Generate reaction - will automatically begin streaming
         _isAwaitingAIResponse = true;
 
@@ -183,7 +183,7 @@
             ProgressGained = progressGained,
             IsEncounterComplete = _state.IsEncounterComplete
         };
-        
+
         _state.LastBeatOutcome = outcome.Outcome;
         _state.LastChoiceNarrative = selectedChoice.NarrativeText;
 
@@ -232,7 +232,7 @@
 
         effect.Apply(state);
     }
-    
+
     private SkillCard FindCardByName(List<SkillCard> cards, string name)
     {
         foreach (SkillCard card in cards)

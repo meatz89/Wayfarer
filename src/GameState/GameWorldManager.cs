@@ -3,8 +3,14 @@
     private bool _useMemory;
     private bool _processStateChanges;
     private readonly GameWorld _gameWorld;
-    
-    public GameWorld GameWorld => _gameWorld;
+
+    public GameWorld GameWorld
+    {
+        get
+        {
+            return _gameWorld;
+        }
+    }
 
     private ActionRepository actionRepository;
     private ItemRepository itemRepository;
@@ -22,22 +28,22 @@
     private ContractSystem contractSystem;
     private RestManager restManager;
     private TimeManager timeManager;
-    private GameWorldInitializer contentLoader;
+    private GameWorldInitializer gameWorldInitializer;
     private List<Contract> availableContracts = new List<Contract>();
-    
+
     private bool isAiAvailable = true;
 
     private readonly ILogger<GameWorldManager> logger;
 
-    public GameWorldManager(GameWorld gameWorld, 
+    public GameWorldManager(GameWorld gameWorld,
                        ItemRepository itemRepository, EncounterFactory encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
                        MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
-                       MarketManager marketManager, TradeManager tradeManager, 
+                       MarketManager marketManager, TradeManager tradeManager,
                        ContractSystem contractSystem, RestManager restManager,
                        ActionGenerator? actionGenerator, PlayerProgression playerProgression,
-                       ActionProcessor actionProcessor, GameWorldInitializer contentLoader,
+                       ActionProcessor actionProcessor, GameWorldInitializer gameWorldInitializer,
                        ChoiceProjectionService choiceProjectionService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
@@ -57,7 +63,7 @@
         this.timeManager = gameWorld.TimeManager;
         this.actionGenerator = actionGenerator;
         this.actionProcessor = actionProcessor;
-        this.contentLoader = contentLoader;
+        this.gameWorldInitializer = gameWorldInitializer;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -72,7 +78,7 @@
         Location startingLocation = await locationSystem.Initialize();
         _gameWorld.WorldState.RecordLocationVisit(startingLocation.Id);
         travelManager.StartLocationTravel(startingLocation.Id);
-        
+
         // Preserve the location spot that was set by LocationSystem.Initialize()
         LocationSpot currentSpot = _gameWorld.GetPlayer().CurrentLocationSpot;
         _gameWorld.WorldState.SetCurrentLocation(startingLocation, currentSpot);
@@ -113,7 +119,7 @@
 
     public async Task NextEncounterBeat()
     {
-        if(!isAiAvailable)
+        if (!isAiAvailable)
         {
             return;
         }
@@ -238,11 +244,11 @@
     {
         List<LocationAction> locationActions = new List<LocationAction>();
         List<ActionDefinition> locationSpotActions = actionRepository.GetActionsForSpot(locationSpot.SpotID);
-        
+
         for (int i = 0; i < locationSpotActions.Count; i++)
         {
             ActionDefinition actionTemplate = locationSpotActions[i];
-            
+
             // FOR ECONOMIC POC: Only use pre-defined actions from JSON
             // Skip AI generation - use only what's loaded from templates
             if (actionTemplate == null)
@@ -350,7 +356,7 @@
 
         player.SpendStamina(staminaCost);
         player.ModifyCoins(route.BaseCoinCost);
-        
+
         // Consume time blocks
         timeManager.ConsumeTimeBlock(route.TimeBlockCost);
 
@@ -365,17 +371,17 @@
         else
         {
             // Arrived safely
-            var destination = locationRepository.GetLocation(route.Destination);
-            
+            Location destination = locationRepository.GetLocation(route.Destination);
+
             // Find the first available location spot for the destination
-            var destinationSpot = locationSystem.GetLocationSpots(destination.Id).FirstOrDefault();
-            
+            LocationSpot? destinationSpot = locationSystem.GetLocationSpots(destination.Id).FirstOrDefault();
+
             _gameWorld.WorldState.SetCurrentLocation(destination, destinationSpot);
-            
+
             // Also update the Player's location to keep them in sync
             player.CurrentLocation = destination;
             player.CurrentLocationSpot = destinationSpot;
-            
+
             await Update_gameWorld();
         }
     }
@@ -511,7 +517,7 @@
     }
 
     // ACTION GATEWAY METHODS
-    
+
     /// <summary>
     /// Execute trading actions (buy/sell items at markets)
     /// </summary>
@@ -540,9 +546,9 @@
     /// </summary>
     public void ExecuteContractAction(string contractId, string action)
     {
-        var contracts = contractSystem.GetActiveContracts();
-        var contract = contracts.FirstOrDefault(c => c.Id == contractId);
-        
+        List<Contract> contracts = contractSystem.GetActiveContracts();
+        Contract? contract = contracts.FirstOrDefault(c => c.Id == contractId);
+
         if (contract != null && action == "complete")
         {
             contractSystem.CompleteContract(contract);
@@ -554,9 +560,9 @@
     /// </summary>
     public void ExecuteRestAction(string restOptionId)
     {
-        var restOptions = restManager.GetAvailableRestOptions();
-        var option = restOptions.FirstOrDefault(r => r.Id == restOptionId);
-        
+        List<RestOption> restOptions = restManager.GetAvailableRestOptions();
+        RestOption? option = restOptions.FirstOrDefault(r => r.Id == restOptionId);
+
         if (option != null)
         {
             // Validate time block availability before attempting rest
@@ -564,7 +570,7 @@
             {
                 throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
             }
-            
+
             restManager.Rest(option);
         }
     }
@@ -664,25 +670,25 @@
     /// </summary>
     public int CalculateTotalWeight()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         int totalWeight = 0;
-        
+
         // Add item weights
-        foreach (var itemName in player.Inventory.ItemSlots)
+        foreach (string itemName in player.Inventory.ItemSlots)
         {
             if (!string.IsNullOrEmpty(itemName))
             {
-                var item = itemRepository.GetItemById(itemName);
+                Item item = itemRepository.GetItemById(itemName);
                 if (item != null)
                 {
                     totalWeight += item.Weight;
                 }
             }
         }
-        
+
         // Add coin weight (coins have weight)
         totalWeight += player.Coins / 10;
-        
+
         return totalWeight;
     }
 }

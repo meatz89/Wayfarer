@@ -1,6 +1,6 @@
-﻿using Wayfarer.UIHelpers;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Wayfarer.UIHelpers;
 
 namespace Wayfarer.Pages;
 
@@ -27,7 +27,7 @@ public partial class MainGameplayView : ComponentBase
     public int Stamina { get; private set; } = 0;
     public int Concentration { get; private set; } = 0;
     public Location CurrentLocation { get; private set; }
-    
+
     public Player PlayerState
     {
         get
@@ -92,7 +92,7 @@ public partial class MainGameplayView : ComponentBase
             return GameWorld.WorldState.CurrentTimeHours;
         }
     }
-    
+
     public WeatherCondition CurrentWeather
     {
         get
@@ -150,7 +150,7 @@ public partial class MainGameplayView : ComponentBase
             {
                 StateVersion++;  // Force re-render of EncounterView
             }
-        
+
             oldSnapshot = snapshot;
         }
     }
@@ -210,7 +210,7 @@ public partial class MainGameplayView : ComponentBase
             return false;
 
         // Check that current location is properly loaded
-        var currentLocation = GameWorld.WorldState.CurrentLocation;
+        Location currentLocation = GameWorld.WorldState.CurrentLocation;
         if (currentLocation == null || string.IsNullOrEmpty(currentLocation.Id) || string.IsNullOrEmpty(currentLocation.Name))
             return false;
 
@@ -219,7 +219,7 @@ public partial class MainGameplayView : ComponentBase
             return false;
 
         // Check that player is initialized
-        var player = GameWorld.GetPlayer();
+        Player player = GameWorld.GetPlayer();
         if (player == null || !player.IsInitialized)
             return false;
 
@@ -278,7 +278,7 @@ public partial class MainGameplayView : ComponentBase
     private async Task HandleTravelStart(string travelDestination)
     {
         // ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway
-        var routes = GameManager.GetAvailableRoutes(GameWorld.WorldState.CurrentLocation.Id, travelDestination);
+        List<RouteOption> routes = GameManager.GetAvailableRoutes(GameWorld.WorldState.CurrentLocation.Id, travelDestination);
         RouteOption routeOption = routes.FirstOrDefault();
 
         await GameManager.Travel(routeOption);
@@ -403,7 +403,7 @@ public partial class MainGameplayView : ComponentBase
             }
         }
     }
-    
+
     /// <summary>
     /// Get weather icon for UI display
     /// </summary>

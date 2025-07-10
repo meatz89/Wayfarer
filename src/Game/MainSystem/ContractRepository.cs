@@ -9,7 +9,7 @@
         if (_gameWorld.WorldState.Contracts == null)
         {
             // Initialize contracts collection if null
-            var contractsField = typeof(WorldState).GetField("Contracts", 
+            System.Reflection.FieldInfo? contractsField = typeof(WorldState).GetField("Contracts",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (contractsField != null)
             {
@@ -58,7 +58,7 @@
 
     public void AddContract(Contract contract)
     {
-        var contracts = GetAllContracts();
+        List<Contract> contracts = GetAllContracts();
         if (!contracts.Any(c => c.Id == contract.Id))
         {
             contracts.Add(contract);
@@ -71,7 +71,7 @@
 
     public bool RemoveContract(string id)
     {
-        var contracts = GetAllContracts();
+        List<Contract> contracts = GetAllContracts();
         Contract contract = contracts.FirstOrDefault(c => c.Id == id);
         if (contract != null)
         {
@@ -88,7 +88,7 @@
             throw new InvalidOperationException($"Contract with ID '{contractId}' not found.");
         }
 
-        var activeContracts = _gameWorld.WorldState.ActiveContracts;
+        List<Contract> activeContracts = _gameWorld.WorldState.ActiveContracts;
         if (!activeContracts.Any(c => c.Id == contractId))
         {
             activeContracts.Add(contract);
@@ -98,7 +98,7 @@
     public void CompleteContract(string contractId)
     {
         // Remove from active
-        var activeContracts = _gameWorld.WorldState.ActiveContracts;
+        List<Contract> activeContracts = _gameWorld.WorldState.ActiveContracts;
         Contract contract = activeContracts.FirstOrDefault(c => c.Id == contractId);
         if (contract != null)
         {
@@ -110,7 +110,7 @@
     public void FailContract(string contractId)
     {
         // Remove from active
-        var activeContracts = _gameWorld.WorldState.ActiveContracts;
+        List<Contract> activeContracts = _gameWorld.WorldState.ActiveContracts;
         Contract contract = activeContracts.FirstOrDefault(c => c.Id == contractId);
         if (contract != null)
         {

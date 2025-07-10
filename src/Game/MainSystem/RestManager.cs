@@ -7,7 +7,7 @@
     private ContractRepository contractRepository;
 
     public RestManager(
-        GameWorld gameWorld, 
+        GameWorld gameWorld,
         LocationRepository locationRepository,
         MessageSystem messageSystem,
         ContractRepository contractRepository)

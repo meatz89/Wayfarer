@@ -199,21 +199,6 @@ Repositories MUST be completely stateless and only delegate to GameWorld - NO da
 4. **UI components MUST use repositories, never GameWorld properties**
 5. **GameWorld properties exist ONLY for repository implementation**
 
-**Pattern Examples:**
-```csharp
-// ✅ CORRECT: Test using repository
-Assert.NotEmpty(contractRepository.GetAllContracts());
-
-// ❌ WRONG: Test accessing GameWorld directly
-Assert.NotEmpty(gameWorld.Contracts); // VIOLATES ARCHITECTURE
-
-// ✅ CORRECT: Business logic using repository
-var contracts = _contractRepository.GetAvailableContracts();
-
-// ❌ WRONG: Business logic accessing GameWorld directly  
-var contracts = _gameWorld.Contracts.Where(...); // VIOLATES ARCHITECTURE
-```
-
 #### **Repository-Based ID Resolution Pattern**
 Repositories are responsible for ID-to-object lookup, not initialization or business logic.
 - **GameWorldInitializer**: Only loads raw JSON data, no relationship building
@@ -232,11 +217,6 @@ Repositories are responsible for ID-to-object lookup, not initialization or busi
 - Production: Use `ConfigureServices()` for full AI stack
 - Testing: Use `ConfigureTestServices()` for economic-only functionality
 - No duplicate service registrations
-
-#### **Method Signatures**
-All APIs must be location-aware and consistent:
-- ✅ Correct: `GetItemPrice(string locationId, string itemId, bool buying)`
-- ❌ Wrong: Legacy item-based overloads without location context
 
 ### PROJECT STATUS
 
@@ -307,8 +287,8 @@ GameWorld gameWorld = initializer.LoadGame();
 #### **ServiceConfiguration Integration**
 ```csharp
 // Production initialization pattern (src/ServiceConfiguration.cs)
-GameWorldInitializer contentLoader = new GameWorldInitializer("Content");
-GameWorld gameWorld = contentLoader.LoadGame();
+GameWorldInitializer gameWorldInitializer = new GameWorldInitializer("Content");
+GameWorld gameWorld = gameWorldInitializer.LoadGame();
 services.AddSingleton(gameWorld);
 
 // Repositories depend on initialized GameWorld

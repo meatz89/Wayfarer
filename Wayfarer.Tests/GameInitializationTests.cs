@@ -15,11 +15,11 @@ public class GameInitializationTests
     public void WorldState_SetCurrentLocation_ShouldSetBothLocationAndSpot()
     {
         // Arrange
-        var gameWorld = new GameWorld();
-        var location = new Location("test_location", "Test Location");
-        var spot = new LocationSpot("test_spot", "Test Spot") 
-        { 
-            LocationId = "test_location" 
+        GameWorld gameWorld = new GameWorld();
+        Location location = new Location("test_location", "Test Location");
+        LocationSpot spot = new LocationSpot("test_spot", "Test Spot")
+        {
+            LocationId = "test_location"
         };
 
         // Act - This was the broken method that we fixed
@@ -35,10 +35,10 @@ public class GameInitializationTests
     public void WorldState_SetCurrentLocation_WithNullLocation_ShouldNotSetSpot()
     {
         // Arrange
-        var gameWorld = new GameWorld();
-        var spot = new LocationSpot("test_spot", "Test Spot") 
-        { 
-            LocationId = "test_location" 
+        GameWorld gameWorld = new GameWorld();
+        LocationSpot spot = new LocationSpot("test_spot", "Test Spot")
+        {
+            LocationId = "test_location"
         };
 
         // Act
@@ -53,8 +53,8 @@ public class GameInitializationTests
     public void WorldState_SetCurrentLocation_WithNullSpot_ShouldSetLocationButNotSpot()
     {
         // Arrange
-        var gameWorld = new GameWorld();
-        var location = new Location("test_location", "Test Location");
+        GameWorld gameWorld = new GameWorld();
+        Location location = new Location("test_location", "Test Location");
 
         // Act
         gameWorld.WorldState.SetCurrentLocation(location, null);
@@ -68,15 +68,15 @@ public class GameInitializationTests
     public void WorldState_SetCurrentLocation_OverwriteExistingSpot_ShouldWork()
     {
         // Arrange
-        var gameWorld = new GameWorld();
-        var location1 = new Location("location1", "Location 1");
-        var location2 = new Location("location2", "Location 2");
-        var spot1 = new LocationSpot("spot1", "Spot 1") { LocationId = "location1" };
-        var spot2 = new LocationSpot("spot2", "Spot 2") { LocationId = "location2" };
+        GameWorld gameWorld = new GameWorld();
+        Location location1 = new Location("location1", "Location 1");
+        Location location2 = new Location("location2", "Location 2");
+        LocationSpot spot1 = new LocationSpot("spot1", "Spot 1") { LocationId = "location1" };
+        LocationSpot spot2 = new LocationSpot("spot2", "Spot 2") { LocationId = "location2" };
 
         // Act - Set first location/spot
         gameWorld.WorldState.SetCurrentLocation(location1, spot1);
-        
+
         // Verify first assignment
         Assert.Equal(location1, gameWorld.WorldState.CurrentLocation);
         Assert.Equal(spot1, gameWorld.WorldState.CurrentLocationSpot);
@@ -94,10 +94,10 @@ public class GameInitializationTests
     public void WorldState_SetCurrentLocation_EnsuresSpotMatchesLocation()
     {
         // Arrange
-        var gameWorld = new GameWorld();
-        var location = new Location("correct_location", "Correct Location");
-        var spot = new LocationSpot("test_spot", "Test Spot") 
-        { 
+        GameWorld gameWorld = new GameWorld();
+        Location location = new Location("correct_location", "Correct Location");
+        LocationSpot spot = new LocationSpot("test_spot", "Test Spot")
+        {
             LocationId = "correct_location"  // Spot should match location
         };
 

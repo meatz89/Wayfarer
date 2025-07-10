@@ -92,7 +92,7 @@
         {
             gameWorld.WorldState.Items = new List<Item>();
         }
-        
+
         // Only add items if they were successfully loaded from JSON
         if (items.Any())
         {

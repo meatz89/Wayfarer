@@ -49,10 +49,10 @@
         string conversationId = GetConversationId(context);
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
-        var gameInstanceId = context.GameWorld.GameInstanceId;
+        Guid gameInstanceId = context.GameWorld.GameInstanceId;
         MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameInstanceId);
         List<string> memoryContent = await memoryFileAccess.GetAllMemories();
-        var memory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
+        string memory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
 
         AIPrompt prompt = _promptBuilder.BuildIntroductionPrompt(context, state, memory);
         MessageType messageType = MessageType.Introduction;
@@ -66,7 +66,7 @@
             _contextManager.UpdateSystemMessage(conversationId, systemMessage);
         }
 
-        List<IResponseStreamWatcher> watchers = 
+        List<IResponseStreamWatcher> watchers =
         [
             new StreamingContentStateWatcher(_gameWorld.StreamingContentState)
         ];
@@ -289,10 +289,10 @@
         string conversationId = GetConversationId(context);
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
-        var gameInstanceId = context.GameWorld.GameInstanceId;
+        Guid gameInstanceId = context.GameWorld.GameInstanceId;
         MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameInstanceId);
         List<string> memoryContent = await memoryFileAccess.GetAllMemories();
-        var oldMemory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
+        string oldMemory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
         MemoryConsolidationInput input = new()
         {
             OldMemory = oldMemory

@@ -570,7 +570,7 @@
     {
         // Reputation no longer affects prices - emergent gameplay instead
         // High reputation affects: contract availability, credit access, information sharing
-        
+
         if (Coins < amount) return false;
 
         Coins -= amount;

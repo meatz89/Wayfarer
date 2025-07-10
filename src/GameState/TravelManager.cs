@@ -50,12 +50,12 @@
 
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
         RouteOption? selectedRoute = routes.FirstOrDefault(r => r.Method == method);
-        
+
         if (selectedRoute == null) return null;
 
         return selectedRoute;
     }
-    
+
     public void TravelToLocation(string travelLocation, string locationSpotName, RouteOption selectedRoute)
     {
         // Calculate actual costs with weather and weight modifications
@@ -125,11 +125,11 @@
             // Check departure times
             if (route.DepartureTime != null && route.DepartureTime != _gameWorld.WorldState.CurrentTimeWindow)
                 continue;
-                
+
             // Check if route is temporarily blocked
             if (_gameWorld.WorldState.IsRouteBlocked(route.Id))
                 continue;
-                
+
             // Weather no longer blocks routes - it affects efficiency instead
 
             // Check if route is accessible using logical blocking system
@@ -174,7 +174,7 @@
         int staminaCost = route.CalculateStaminaCost(totalWeight, currentWeather, ItemRepository, _gameWorld.GetPlayer());
         return staminaCost;
     }
-    
+
     public int CalculateCoinCost(RouteOption route)
     {
         WeatherCondition currentWeather = _gameWorld.CurrentWeather;
@@ -198,7 +198,7 @@
 
         return canTravel;
     }
-    
+
     /// <summary>
     /// Get route access information for UI display
     /// </summary>
@@ -206,7 +206,7 @@
     {
         return route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _gameWorld.CurrentWeather);
     }
-    
+
     /// <summary>
     /// Record route usage for discovery mechanics
     /// </summary>
@@ -222,7 +222,7 @@
                     if (route.Id == routeId)
                     {
                         route.UsageCount++;
-                        
+
                         // Check if this unlocks any new routes
                         CheckForRouteUnlocks(route);
                         return;
@@ -231,7 +231,7 @@
             }
         }
     }
-    
+
     /// <summary>
     /// Check if route usage unlocks new routes
     /// </summary>
@@ -246,9 +246,9 @@
                     if (!route.IsDiscovered && route.UnlockCondition != null)
                     {
                         RouteUnlockCondition condition = route.UnlockCondition;
-                        
+
                         // Check if required route usage count is met
-                        if (condition.RequiredRouteUsage == usedRoute.Id && 
+                        if (condition.RequiredRouteUsage == usedRoute.Id &&
                             usedRoute.UsageCount >= condition.RequiredUsageCount)
                         {
                             route.IsDiscovered = true;

@@ -9,7 +9,13 @@ namespace Wayfarer.Pages
         // ✅ ARCHITECTURAL COMPLIANCE: ContractRepository allowed for read-only UI data binding
         [Inject] public ContractRepository ContractRepository { get; set; }
 
-        public List<Contract> AvailableContracts => ContractRepository.GetAvailableContracts(GameWorld.CurrentDay, GameWorld.CurrentTimeBlock);
+        public List<Contract> AvailableContracts
+        {
+            get
+            {
+                return ContractRepository.GetAvailableContracts(GameWorld.CurrentDay, GameWorld.CurrentTimeBlock);
+            }
+        }
 
         public void CompleteContract(Contract contract)
         {

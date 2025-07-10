@@ -15,10 +15,10 @@
     public int CurrentDay { get; set; } = 1;
     public TimeBlocks CurrentTimeWindow { get; set; } = TimeBlocks.Morning;
     public int CurrentTimeHours { get; set; }
-    
+
     // Weather conditions (no seasons - game timeframe is only days/weeks)
     public WeatherCondition CurrentWeather { get; set; } = WeatherCondition.Clear;
-    
+
     // Route blocking system
     private Dictionary<string, int> TemporaryRouteBlocks { get; } = new Dictionary<string, int>();
 
@@ -101,7 +101,7 @@
     {
         return contracts;
     }
-    
+
     /// <summary>
     /// Add a temporary route block that expires after specified days
     /// </summary>
@@ -109,7 +109,7 @@
     {
         TemporaryRouteBlocks[routeId] = CurrentDay + daysBlocked;
     }
-    
+
     /// <summary>
     /// Check if a route is temporarily blocked
     /// </summary>
