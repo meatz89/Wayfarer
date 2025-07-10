@@ -20,14 +20,30 @@ public static class ItemParser
             BuyPrice = GetIntProperty(root, "buyPrice", 0),
             SellPrice = GetIntProperty(root, "sellPrice", 0),
             InventorySlots = GetIntProperty(root, "inventorySlots", 1),
-            IsContraband = GetBoolProperty(root, "isContraband", false),
             LocationId = GetStringProperty(root, "locationId", ""),
             SpotId = GetStringProperty(root, "spotId", ""),
             Description = GetStringProperty(root, "description", ""),
         };
 
-        // Parse enabled route types
-        item.EnabledRouteTypes = GetStringArray(root, "enabledRouteTypes");
+        // Parse equipment categories
+        List<string> equipmentCategoryStrings = GetStringArray(root, "categories");
+        foreach (string categoryStr in equipmentCategoryStrings)
+        {
+            if (Enum.TryParse<EquipmentCategory>(categoryStr, out EquipmentCategory category))
+            {
+                item.Categories.Add(category);
+            }
+        }
+
+        // Parse item categories
+        List<string> itemCategoryStrings = GetStringArray(root, "itemCategories");
+        foreach (string categoryStr in itemCategoryStrings)
+        {
+            if (Enum.TryParse<ItemCategory>(categoryStr, out ItemCategory itemCategory))
+            {
+                item.ItemCategories.Add(itemCategory);
+            }
+        }
 
         return item;
     }

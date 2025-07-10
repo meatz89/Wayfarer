@@ -293,7 +293,7 @@ public static class GameWorldSerializer
             timeBlockCost = route.TimeBlockCost,
             departureTime = route.DepartureTime?.ToString(),
             isDiscovered = route.IsDiscovered,
-            requiredRouteTypes = route.RequiredRouteTypes,
+            terrainCategories = route.TerrainCategories.Select(c => c.ToString()).ToList(),
             maxItemCapacity = route.MaxItemCapacity,
             description = route.Description
         }).ToList();
@@ -311,8 +311,7 @@ public static class GameWorldSerializer
             buyPrice = item.BuyPrice,
             sellPrice = item.SellPrice,
             inventorySlots = item.InventorySlots,
-            enabledRouteTypes = item.EnabledRouteTypes,
-            isContraband = item.IsContraband,
+            categories = item.Categories.Select(c => c.ToString()).ToList(),
             locationId = item.LocationId,
             spotId = item.SpotId,
             description = item.Description

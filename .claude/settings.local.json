@@ -20,7 +20,8 @@
       "Bash(touch:*)",
       "Bash(dotnet run:*)",
       "Bash(mkdir:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

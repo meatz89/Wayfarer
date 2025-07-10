@@ -104,7 +104,7 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = new GameWorld();
             Player player = gameWorld.GetPlayer();
             player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
-            player.Coins = 100;
+            player.Coins = 10; // Low coin count to avoid coin weight affecting stamina
             player.Stamina = 10;
             gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
 
@@ -147,12 +147,12 @@ namespace Wayfarer.Tests
             TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository);
 
             // Act & Assert - Clear weather
-            gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
+            gameWorld.CurrentWeather = WeatherCondition.Clear;
             int clearWeatherCost = travelManager.CalculateStaminaCost(weatherRoute);
             Assert.Equal(3, clearWeatherCost); // Base cost
 
             // Act & Assert - Rainy weather
-            gameWorld.WorldState.CurrentWeather = WeatherCondition.Rain;
+            gameWorld.CurrentWeather = WeatherCondition.Rain;
             int rainyWeatherCost = travelManager.CalculateStaminaCost(weatherRoute);
             Assert.Equal(5, rainyWeatherCost); // Base cost + 2 penalty
 

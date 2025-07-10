@@ -52,7 +52,7 @@ namespace Wayfarer.Tests
             // Set up player at destination with required items
             Player player = gameWorld.GetPlayer();
             player.Inventory.AddItem("herbs");
-            gameWorld.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"));
+            gameWorld.WorldState.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"), null);
             gameWorld.ActiveContracts.Add(contract);
             
             TimeManager timeManager = gameWorld.TimeManager;
@@ -68,11 +68,11 @@ namespace Wayfarer.Tests
         }
 
         /// <summary>
-        /// Test that early delivery provides bonus payment
-        /// Acceptance Criteria: Players rewarded for efficient planning and execution
+        /// Test that early delivery provides reputation benefit (not payment bonus)
+        /// Acceptance Criteria: Players rewarded for efficient planning through reputation
         /// </summary>
         [Fact]
-        public void EarlyDelivery_Should_Provide_BonusPayment()
+        public void EarlyDelivery_Should_Provide_ReputationBonus()
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
@@ -83,10 +83,11 @@ namespace Wayfarer.Tests
             gameWorld.WorldState.CurrentDay = 3;
             Player player = gameWorld.GetPlayer();
             player.Inventory.AddItem("herbs");
-            gameWorld.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"));
+            gameWorld.WorldState.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"), null);
             gameWorld.ActiveContracts.Add(contract);
             
             int initialCoins = player.Coins;
+            int initialReputation = player.Reputation;
             
             // Act
             bool completed = contractSystem.CompleteContract(contract);
@@ -94,19 +95,17 @@ namespace Wayfarer.Tests
             // Assert
             Assert.True(completed, "Contract should be completed successfully");
             
-            // Early delivery bonus: 20% bonus per day early (2 days * 20% = 40% bonus)
-            int expectedBonus = (int)(contract.Payment * 0.2f * 2); // 2 days early
-            int expectedTotal = contract.Payment + expectedBonus;
-            
-            Assert.Equal(initialCoins + expectedTotal, player.Coins);
+            // Emergent design: Payment is fixed, reputation improves for future opportunities
+            Assert.Equal(initialCoins + contract.Payment, player.Coins); // No bonus, just contract payment
+            Assert.Equal(initialReputation + 1, player.Reputation); // +1 reputation for on-time/early delivery
         }
 
         /// <summary>
-        /// Test that late delivery reduces payment
-        /// Acceptance Criteria: Failure consequences create meaningful risk
+        /// Test that late delivery reduces reputation (not payment)
+        /// Acceptance Criteria: Failure consequences create meaningful risk through reputation
         /// </summary>
         [Fact]
-        public void LateDelivery_Should_Reduce_Payment()
+        public void LateDelivery_Should_Reduce_Reputation()
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
@@ -117,10 +116,11 @@ namespace Wayfarer.Tests
             gameWorld.WorldState.CurrentDay = 6;
             Player player = gameWorld.GetPlayer();
             player.Inventory.AddItem("herbs");
-            gameWorld.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"));
+            gameWorld.WorldState.SetCurrentLocation(new Location(contract.DestinationLocation, "Test Location"), null);
             gameWorld.ActiveContracts.Add(contract);
             
             int initialCoins = player.Coins;
+            int initialReputation = player.Reputation;
             
             // Act
             bool completed = contractSystem.CompleteContract(contract);
@@ -128,11 +128,9 @@ namespace Wayfarer.Tests
             // Assert
             Assert.True(completed, "Late contracts can still be completed");
             
-            // Late delivery penalty: 50% penalty per day late (1 day * 50% = 50% penalty)
-            int expectedPenalty = (int)(contract.Payment * 0.5f * 1); // 1 day late
-            int expectedPayment = Math.Max(1, contract.Payment - expectedPenalty); // Minimum 1 coin
-            
-            Assert.Equal(initialCoins + expectedPayment, player.Coins);
+            // Emergent design: Payment is fixed, reputation suffers for future opportunities
+            Assert.Equal(initialCoins + contract.Payment, player.Coins); // Full payment still received
+            Assert.Equal(initialReputation - 1, player.Reputation); // -1 reputation per day late
         }
 
         /// <summary>
@@ -253,7 +251,7 @@ namespace Wayfarer.Tests
             // Set up basic world state
             gameWorld.WorldState.CurrentDay = 1;
             gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
-            gameWorld.SetCurrentLocation(new Location("town_square", "Town Square"));
+            gameWorld.WorldState.SetCurrentLocation(new Location("town_square", "Town Square"), null);
             
             return gameWorld;
         }

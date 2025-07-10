@@ -47,8 +47,15 @@ public static class RouteOptionParser
             }
         }
 
-        // Parse required route types
-        route.RequiredRouteTypes = GetStringArray(root, "requiredRouteTypes");
+        // Parse terrain categories
+        List<string> categoryStrings = GetStringArray(root, "terrainCategories");
+        foreach (string categoryStr in categoryStrings)
+        {
+            if (Enum.TryParse<TerrainCategory>(categoryStr, out TerrainCategory category))
+            {
+                route.TerrainCategories.Add(category);
+            }
+        }
 
         return route;
     }

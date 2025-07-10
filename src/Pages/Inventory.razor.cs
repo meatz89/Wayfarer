@@ -36,9 +36,9 @@ namespace Wayfarer.Pages
 
                     if (item != null)
                     {
-                        if (item.EnabledRouteTypes.Count > 0)
+                        if (item.Categories.Count > 0)
                         {
-                            specialProperties += $" - Enables {string.Join(", ", item.EnabledRouteTypes)}";
+                            specialProperties += $" - {string.Join(", ", item.Categories.Select(c => c.ToString().Replace('_', ' ')))}";
                         }
                     }
 

@@ -72,7 +72,10 @@
         Location startingLocation = await locationSystem.Initialize();
         _gameWorld.WorldState.RecordLocationVisit(startingLocation.Id);
         travelManager.StartLocationTravel(startingLocation.Id);
-        _gameWorld.WorldState.SetCurrentLocation(startingLocation, null);
+        
+        // Preserve the location spot that was set by LocationSystem.Initialize()
+        LocationSpot currentSpot = _gameWorld.GetPlayer().CurrentLocationSpot;
+        _gameWorld.WorldState.SetCurrentLocation(startingLocation, currentSpot);
 
         Location currentLocation = _gameWorld.WorldState.CurrentLocation;
         if (_gameWorld.WorldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)

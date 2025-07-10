@@ -264,8 +264,8 @@ namespace Wayfarer.Tests
             Player player = gameWorld.GetPlayer();
             player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
             
-            gameWorld.WorldState.CurrentDay = 1;
-            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
+            gameWorld.CurrentDay = 1;
+            gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
             
             return gameWorld;
         }

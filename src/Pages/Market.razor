@@ -51,10 +51,13 @@
                     {
                         <span class="bulk-item">(@item.InventorySlots slots)</span>
                     }
-                    @if (item.EnabledRouteTypes.Any())
+                    @if (item.Categories.Any() || item.ItemCategories.Any())
                     {
-                        <span class="route-enabler">
-                            (@item.RouteTypesDescription)
+                        <span class="item-categories">
+                            @if (!string.IsNullOrEmpty(item.AllCategoriesDescription))
+                            {
+                                <text>(@item.AllCategoriesDescription)</text>
+                            }
                         </span>
                     }
                 </div>

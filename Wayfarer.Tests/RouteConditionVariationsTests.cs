@@ -40,39 +40,55 @@ namespace Wayfarer.Tests
         }
 
         /// <summary>
-        /// Test that routes have weather-based modifications
-        /// Acceptance Criteria: Weather conditions affect route costs and availability
+        /// Test that weather interacts with terrain to create logical blocking/access conditions
+        /// Acceptance Criteria: Weather-terrain interactions block access based on logical requirements, not arbitrary modifiers
         /// </summary>
         [Fact]
-        public void Route_Should_Modify_Costs_Based_On_Weather()
+        public void Route_Should_Create_Logical_Access_Conditions_Based_On_Weather()
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            TravelManager travelManager = CreateTravelManager(gameWorld);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            Player player = gameWorld.GetPlayer();
+            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
+
+            // Create exposed weather route that requires weather protection in bad conditions
+            RouteOption exposedRoute = CreateTestRoute("mountain_pass", baseCost: 5, baseStamina: 2);
+            exposedRoute.TerrainCategories = new List<TerrainCategory> { TerrainCategory.Exposed_Weather };
+
+            // Act & Assert - Clear weather allows access
+            RouteAccessResult clearResult = exposedRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Clear);
+            Assert.True(clearResult.IsAllowed);
+            Assert.Empty(clearResult.BlockingReason);
             
-            RouteOption route = CreateTestRoute("forest_path", baseCost: 5, baseStamina: 2);
-            route.WeatherModifications = new Dictionary<WeatherCondition, RouteModification>
+            // Act & Assert - Rain blocks access without weather protection
+            RouteAccessResult rainResult = exposedRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Rain);
+            Assert.False(rainResult.IsAllowed);
+            Assert.Contains("weather protection", rainResult.BlockingReason.ToLower());
+            
+            // Act & Assert - Snow blocks access without weather protection  
+            RouteAccessResult snowResult = exposedRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Snow);
+            Assert.False(snowResult.IsAllowed);
+            Assert.Contains("weather protection", snowResult.BlockingReason.ToLower());
+
+            // Act & Assert - With weather protection, rain allows access
+            Item weatherGear = new Item
             {
-                { WeatherCondition.Rain, new RouteModification { StaminaCostModifier = 1, CoinCostModifier = 0 } },
-                { WeatherCondition.Snow, new RouteModification { StaminaCostModifier = 2, CoinCostModifier = 1 } }
+                Id = "weather_cloak",
+                Name = "Weather Cloak",
+                Categories = new List<EquipmentCategory> { EquipmentCategory.Weather_Protection },
+                LocationId = "town_square",
+                SpotId = "marketplace",
+                Weight = 1,
+                BuyPrice = 10,
+                SellPrice = 5,
+                InventorySlots = 1
             };
-            
-            // Act & Assert - Clear weather (no modification)
-            gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
-            int clearStamina = travelManager.CalculateStaminaCost(route);
-            Assert.Equal(2, clearStamina);
-            
-            // Act & Assert - Rain increases stamina cost
-            gameWorld.WorldState.CurrentWeather = WeatherCondition.Rain;
-            int rainStamina = travelManager.CalculateStaminaCost(route);
-            Assert.Equal(3, rainStamina); // 2 + 1
-            
-            // Act & Assert - Snow increases both stamina and coin cost
-            gameWorld.WorldState.CurrentWeather = WeatherCondition.Snow;
-            int snowStamina = travelManager.CalculateStaminaCost(route);
-            int snowCoinCost = travelManager.CalculateCoinCost(route);
-            Assert.Equal(4, snowStamina); // 2 + 2
-            Assert.Equal(6, snowCoinCost); // 5 + 1
+            itemRepository.AddItem(weatherGear);
+            player.Inventory.AddItem("Weather Cloak");
+
+            RouteAccessResult protectedRainResult = exposedRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Rain);
+            Assert.True(protectedRainResult.IsAllowed);
         }
 
         /// <summary>
@@ -171,8 +187,8 @@ namespace Wayfarer.Tests
         }
 
         /// <summary>
-        /// Test that route conditions affect player decision-making
-        /// Acceptance Criteria: Players must adapt strategies based on changing conditions
+        /// Test that route conditions create logical access patterns and strategic decisions
+        /// Acceptance Criteria: Players must choose equipment and routes based on logical terrain-weather interactions
         /// </summary>
         [Fact]
         public void Route_Conditions_Should_Create_Strategic_Decisions()
@@ -180,35 +196,50 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             TravelManager travelManager = CreateTravelManager(gameWorld);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            Player player = gameWorld.GetPlayer();
+            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
             
-            // Fast but weather-dependent route
+            // Fast but weather-sensitive route (blocked in bad weather without equipment)
             RouteOption fastRoute = CreateTestRoute("river_crossing", baseCost: 10, baseStamina: 1, timeBlocks: 1);
-            fastRoute.WeatherModifications = new Dictionary<WeatherCondition, RouteModification>
-            {
-                { WeatherCondition.Rain, new RouteModification { StaminaCostModifier = 5 } } // Dangerous in rain
-            };
+            fastRoute.TerrainCategories = new List<TerrainCategory> { TerrainCategory.Exposed_Weather };
             
-            // Slow but reliable route
+            // Slow but reliable route (always accessible)
             RouteOption reliableRoute = CreateTestRoute("safe_road", baseCost: 5, baseStamina: 3, timeBlocks: 2);
             
             AddRouteToLocation(gameWorld, "town_square", "destination", fastRoute);
             AddRouteToLocation(gameWorld, "town_square", "destination", reliableRoute);
             
-            // Act & Assert - Clear weather: fast route is better
-            gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
+            // Act & Assert - Clear weather: both routes accessible
             List<RouteOption> clearRoutes = travelManager.GetAvailableRoutes("town_square", "destination");
             Assert.Contains(fastRoute, clearRoutes);
             Assert.Contains(reliableRoute, clearRoutes);
             
-            int fastCostClear = travelManager.CalculateStaminaCost(fastRoute);
-            int reliableCostClear = travelManager.CalculateStaminaCost(reliableRoute);
-            Assert.True(fastCostClear < reliableCostClear); // Fast route is more efficient
-            
-            // Act & Assert - Rain: reliable route becomes better
+            // Act & Assert - Rain: fast route blocked without equipment, reliable route still accessible
             gameWorld.WorldState.CurrentWeather = WeatherCondition.Rain;
-            int fastCostRain = travelManager.CalculateStaminaCost(fastRoute);
-            int reliableCostRain = travelManager.CalculateStaminaCost(reliableRoute);
-            Assert.True(fastCostRain > reliableCostRain); // Reliable route is now more efficient
+            List<RouteOption> rainRoutes = travelManager.GetAvailableRoutes("town_square", "destination");
+            Assert.DoesNotContain(fastRoute, rainRoutes); // Blocked by weather
+            Assert.Contains(reliableRoute, rainRoutes); // Still accessible
+            
+            // Act & Assert - With weather gear, fast route becomes accessible again
+            Item weatherGear = new Item
+            {
+                Id = "rain_cloak",
+                Name = "Rain Cloak",
+                Categories = new List<EquipmentCategory> { EquipmentCategory.Weather_Protection },
+                LocationId = "town_square",
+                SpotId = "marketplace",
+                Weight = 1,
+                BuyPrice = 15,
+                SellPrice = 7,
+                InventorySlots = 1
+            };
+            itemRepository.AddItem(weatherGear);
+            player.Inventory.AddItem("Rain Cloak");
+            
+            List<RouteOption> equippedRainRoutes = travelManager.GetAvailableRoutes("town_square", "destination");
+            Assert.Contains(fastRoute, equippedRainRoutes); // Now accessible with equipment
+            Assert.Contains(reliableRoute, equippedRainRoutes); // Reliable route still accessible
         }
 
         /// <summary>
@@ -248,8 +279,8 @@ namespace Wayfarer.Tests
         }
 
         /// <summary>
-        /// Test that route discovery creates gameplay depth
-        /// Acceptance Criteria: Players learn route patterns through experience
+        /// Test that route discovery creates gameplay depth through logical system interactions
+        /// Acceptance Criteria: Players learn terrain-weather-equipment relationships through exploration
         /// </summary>
         [Fact]
         public void Route_Discovery_Should_Create_Learning_Gameplay()
@@ -257,27 +288,47 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             TravelManager travelManager = CreateTravelManager(gameWorld);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
             Player player = gameWorld.GetPlayer();
+            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
             
-            RouteOption route = CreateTestRoute("forest_path");
-            route.WeatherModifications = new Dictionary<WeatherCondition, RouteModification>
+            // Create wilderness route that has logical interactions with weather and equipment
+            RouteOption wildernessRoute = CreateTestRoute("forest_path");
+            wildernessRoute.TerrainCategories = new List<TerrainCategory> { TerrainCategory.Wilderness_Terrain };
+            
+            // Act - Player can access route in clear weather
+            RouteAccessResult clearResult = wildernessRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Clear);
+            Assert.True(clearResult.IsAllowed);
+            
+            // Act - Player discovers route becomes blocked in fog without navigation tools
+            RouteAccessResult fogResult = wildernessRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Fog);
+            Assert.False(fogResult.IsAllowed);
+            Assert.Contains("wilderness", fogResult.BlockingReason.ToLower());
+            
+            // Act - Player learns navigation tools enable access in dangerous conditions
+            Item compass = new Item
             {
-                { WeatherCondition.Rain, new RouteModification { StaminaCostModifier = 2 } }
+                Id = "compass",
+                Name = "Compass",
+                Categories = new List<EquipmentCategory> { EquipmentCategory.Navigation_Tools },
+                LocationId = "town_square",
+                SpotId = "marketplace",
+                Weight = 1,
+                BuyPrice = 12,
+                SellPrice = 6,
+                InventorySlots = 1
             };
+            itemRepository.AddItem(compass);
+            player.Inventory.AddItem("Compass");
             
-            // Act - First time using route in rain (player doesn't know about penalty)
-            gameWorld.WorldState.CurrentWeather = WeatherCondition.Rain;
-            int initialStamina = player.Stamina;
-            int expectedCost = travelManager.CalculateStaminaCost(route);
+            RouteAccessResult equippedFogResult = wildernessRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Fog);
+            Assert.True(equippedFogResult.IsAllowed);
             
-            // Assert - Player experiences the actual cost (learning through gameplay)
-            Assert.True(expectedCost > route.BaseStaminaCost);
-            
-            // Game should NOT tell player "this route is more expensive in rain"
-            // Player must learn this through experience and remember it
-            Assert.False(HasProperty(route, "WeatherWarning"));
-            Assert.False(HasProperty(route, "ConditionAlert"));
-            Assert.False(HasProperty(route, "CostExplanation"));
+            // Game should NOT tell player "buy navigation tools for wilderness routes"
+            // Player must discover these relationships through exploration
+            Assert.False(HasProperty(wildernessRoute, "EquipmentSuggestion"));
+            Assert.False(HasProperty(wildernessRoute, "WeatherWarning"));
+            Assert.False(HasProperty(wildernessRoute, "TerrainTips"));
         }
 
         #region Helper Methods
@@ -298,7 +349,7 @@ namespace Wayfarer.Tests
             locationRepository.AddLocation(startLocation);
             
             // Set player location - player must always be at exactly one location
-            gameWorld.SetCurrentLocation(startLocation);
+            gameWorld.WorldState.SetCurrentLocation(startLocation, null);
             
             return gameWorld;
         }

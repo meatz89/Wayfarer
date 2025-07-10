@@ -51,38 +51,29 @@ public class ContractSystem
             player.Inventory.RemoveItem(requiredItem);
         }
 
-        // Calculate payment with early/late delivery adjustments
-        int currentDay = gameWorld.WorldState.CurrentDay;
+        // Natural market dynamics: urgent contracts pay more upfront
+        // No arbitrary bonuses/penalties - reputation affects future opportunities
+        int currentDay = gameWorld.CurrentDay;
         contract.CompletedDay = currentDay;
         int daysDifference = currentDay - contract.DueDay;
         
+        // Payment is fixed by market demand when contract is offered
         int finalPayment = contract.Payment;
-        string paymentMessage;
+        string paymentMessage = "Contract completed";
         
-        if (daysDifference < 0) // Early delivery
+        // Track reliability for future contract opportunities (not price modifiers)
+        if (daysDifference <= 0) // On-time or early
         {
-            int daysEarly = Math.Abs(daysDifference);
-            int bonus = (int)(contract.Payment * 0.2f * daysEarly); // 20% bonus per day early
-            finalPayment += bonus;
-            paymentMessage = $"Early delivery bonus: +{bonus} coins";
-            
-            // Reputation bonus for early delivery
-            player.Reputation += daysEarly;
+            player.Reputation += 1; // Builds trust for better contracts
+            if (daysDifference < 0)
+            {
+                paymentMessage = "Early delivery - merchant impressed";
+            }
         }
-        else if (daysDifference > 0) // Late delivery
+        else // Late delivery
         {
-            int daysLate = daysDifference;
-            int penalty = (int)(contract.Payment * 0.5f * daysLate); // 50% penalty per day late
-            finalPayment = Math.Max(1, finalPayment - penalty); // Minimum 1 coin
-            paymentMessage = $"Late delivery penalty: -{penalty} coins";
-            
-            // Reputation penalty for late delivery
-            player.Reputation -= daysLate * 2;
-        }
-        else // On-time delivery
-        {
-            paymentMessage = "On-time delivery";
-            player.Reputation += 1; // Small reputation bonus for reliability
+            player.Reputation -= daysDifference; // Affects future contract availability
+            paymentMessage = "Late delivery - merchant disappointed";
         }
 
         // Award payment
@@ -108,7 +99,7 @@ public class ContractSystem
     public void CheckForFailedContracts()
     {
         var failedContracts = gameWorld.ActiveContracts
-            .Where(c => c.DueDay < gameWorld.WorldState.CurrentDay && !c.IsCompleted)
+            .Where(c => c.DueDay < gameWorld.CurrentDay && !c.IsCompleted)
             .ToList();
 
         foreach (var contract in failedContracts)
@@ -116,23 +107,23 @@ public class ContractSystem
             contract.IsFailed = true;
             gameWorld.ActiveContracts.Remove(contract);
             
-            // Apply reputation penalty for failed contracts
+            // Natural consequences: failed contracts affect future opportunities
             Player player = gameWorld.GetPlayer();
-            player.Reputation -= 5; // Significant reputation penalty
+            player.Reputation -= 3; // Affects future contract availability, not arbitrary penalty
             
-            messageSystem.AddSystemMessage($"Contract '{contract.Description}' failed! {contract.FailurePenalty} (-5 reputation)");
+            messageSystem.AddSystemMessage($"Contract '{contract.Description}' failed! {contract.FailurePenalty}");
         }
     }
 
     public int GetDaysRemaining(Contract contract)
     {
-        return Math.Max(0, contract.DueDay - gameWorld.WorldState.CurrentDay);
+        return Math.Max(0, contract.DueDay - gameWorld.CurrentDay);
     }
 
     public List<Contract> GetContractsExpiringToday()
     {
         return gameWorld.ActiveContracts
-            .Where(c => c.DueDay == gameWorld.WorldState.CurrentDay)
+            .Where(c => c.DueDay == gameWorld.CurrentDay)
             .ToList();
     }
 
@@ -153,7 +144,7 @@ public class ContractSystem
         }
 
         // Check if contract is available at current time
-        if (!contract.IsAvailable(gameWorld.WorldState.CurrentDay, gameWorld.WorldState.CurrentTimeWindow))
+        if (!contract.IsAvailable(gameWorld.CurrentDay, gameWorld.CurrentTimeBlock))
         {
             messageSystem.AddSystemMessage("Contract not available at this time");
             return false;
@@ -172,7 +163,7 @@ public class ContractSystem
     public Contract GenerateContract()
     {
         // Generate difficulty-scaled contract based on current day
-        int currentDay = gameWorld.WorldState.CurrentDay;
+        int currentDay = gameWorld.CurrentDay;
         int difficultyScaling = Math.Max(1, currentDay / 5); // Increases every 5 days
         
         int baseDuration = 5 - Math.Min(2, difficultyScaling); // Shorter deadlines as game progresses

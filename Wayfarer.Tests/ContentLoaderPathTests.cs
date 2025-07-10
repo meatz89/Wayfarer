@@ -9,28 +9,28 @@ namespace Wayfarer.Tests
         [Fact]
         public void ContentLoader_CurrentConfiguration_CorrectPath()
         {
-            // The current configuration in ServiceConfiguration uses "content" 
-            // but when run from src/, this resolves to src/content/
-            string contentDirectory = "content";
+            // The current configuration in ServiceConfiguration uses "Content" 
+            // which resolves correctly from the test bin directory where files are copied
+            string contentDirectory = "Content";
             string expectedTemplatePath = Path.Combine(contentDirectory, "Templates");
             
-            // When running from /mnt/c/git/wayfarer/src, this should look for:
-            // /mnt/c/git/wayfarer/src/content/Templates/
+            // When running tests from bin directory, this should look for:
+            // bin/Debug/net8.0/Content/Templates/ (files are copied by build process)
             
-            Assert.False(Directory.Exists(expectedTemplatePath), 
-                $"Expected path {expectedTemplatePath} should NOT exist from src directory");
+            Assert.True(Directory.Exists(expectedTemplatePath), 
+                $"Expected path {expectedTemplatePath} should exist from test bin directory");
         }
 
         [Fact]
         public void ContentLoader_ActualFilesLocation_Verification()
         {
-            // The files are actually at src/Content/Templates/
+            // The files are copied to Content/Templates/ in the test bin directory by the build process
             string actualContentPath = "Content";
             string actualTemplatePath = Path.Combine(actualContentPath, "Templates");
             
-            // This should exist when running from src/ directory
+            // This should exist when running from test bin directory
             Assert.True(Directory.Exists(actualTemplatePath), 
-                $"Actual path {actualTemplatePath} should exist from src directory");
+                $"Actual path {actualTemplatePath} should exist from test bin directory");
             
             // Verify key files exist
             string locationsFile = Path.Combine(actualTemplatePath, "locations.json");
@@ -44,7 +44,7 @@ namespace Wayfarer.Tests
         public void GameWorldInitializer_WithCorrectPath_ShouldLoadSuccessfully()
         {
             // Test that GameWorldInitializer works with the correct path
-            string correctContentDirectory = "Content"; // Capital C to match actual directory
+            string correctContentDirectory = "Content"; // Correct path from test bin directory
             GameWorldInitializer contentLoader = new GameWorldInitializer(correctContentDirectory);
             
             // This should succeed
@@ -59,8 +59,8 @@ namespace Wayfarer.Tests
         [Fact]
         public void GameWorldInitializer_WithWrongPath_ShouldFail()
         {
-            // Test that GameWorldInitializer fails with the current configured path
-            string wrongContentDirectory = "content"; // lowercase c, doesn't exist from src/
+            // Test that GameWorldInitializer fails with a wrong path
+            string wrongContentDirectory = "wrong_path"; // Path that doesn't exist
             GameWorldInitializer contentLoader = new GameWorldInitializer(wrongContentDirectory);
             
             // This should throw because the path doesn't exist
@@ -71,21 +71,17 @@ namespace Wayfarer.Tests
         }
 
         [Fact]
-        public void ServiceConfiguration_PathMismatch_Issue()
+        public void ServiceConfiguration_PathConfiguration_IsCorrect()
         {
-            // This test documents the exact issue in ServiceConfiguration.cs line 7
-            string configuredPath = "content"; // from ServiceConfiguration.cs line 7
-            string actualPath = "Content";     // where files actually exist
+            // This test validates that the path configuration works correctly
+            string configuredPath = "Content"; // from ServiceConfiguration.cs
             
-            Assert.NotEqual(configuredPath, actualPath);
-            
-            // When running from src/, the configured path resolves to src/content/
-            // But files are at src/Content/
+            // When running from test bin directory, the configured path should resolve correctly
             string resolvedConfiguredPath = Path.Combine(Directory.GetCurrentDirectory(), configuredPath);
-            string resolvedActualPath = Path.Combine(Directory.GetCurrentDirectory(), actualPath);
+            string templatesPath = Path.Combine(resolvedConfiguredPath, "Templates");
             
-            Assert.False(Directory.Exists(resolvedConfiguredPath));
-            Assert.True(Directory.Exists(resolvedActualPath));
+            Assert.True(Directory.Exists(resolvedConfiguredPath), $"Configured path {resolvedConfiguredPath} should exist");
+            Assert.True(Directory.Exists(templatesPath), $"Templates path {templatesPath} should exist");
         }
     }
 }
