@@ -1,14 +1,14 @@
-﻿public class TimeWindows
+﻿public class CurrentTimeBlocks
 {
-    public static TimeWindows None = new TimeWindows() { Values = new List<TimeBlocks>() };
-    public static TimeWindows All = new TimeWindows() { Values = new List<TimeBlocks>() { TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night } };
-    public static TimeWindows Morning = new TimeWindows() { Values = new List<TimeBlocks>() { TimeBlocks.Morning } };
-    public static TimeWindows Afternoon = new TimeWindows() { Values = new List<TimeBlocks>() { TimeBlocks.Afternoon } };
-    public static TimeWindows Evening = new TimeWindows() { Values = new List<TimeBlocks>() { TimeBlocks.Evening } };
+    public static CurrentTimeBlocks None = new CurrentTimeBlocks() { Values = new List<TimeBlocks>() };
+    public static CurrentTimeBlocks All = new CurrentTimeBlocks() { Values = new List<TimeBlocks>() { TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night } };
+    public static CurrentTimeBlocks Morning = new CurrentTimeBlocks() { Values = new List<TimeBlocks>() { TimeBlocks.Morning } };
+    public static CurrentTimeBlocks Afternoon = new CurrentTimeBlocks() { Values = new List<TimeBlocks>() { TimeBlocks.Afternoon } };
+    public static CurrentTimeBlocks Evening = new CurrentTimeBlocks() { Values = new List<TimeBlocks>() { TimeBlocks.Evening } };
 
     public List<TimeBlocks> Values { get; set; } = new List<TimeBlocks>();
 
-    public TimeWindows()
+    public CurrentTimeBlocks()
     {
         Values = new List<TimeBlocks>();
     }

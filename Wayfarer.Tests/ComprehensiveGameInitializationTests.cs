@@ -190,7 +190,7 @@ namespace Wayfarer.Tests
 
             // GameWorld should have properties that delegate to WorldState
             Assert.Equal(gameWorld.WorldState.CurrentDay, gameWorld.CurrentDay);
-            Assert.Equal(gameWorld.WorldState.CurrentTimeWindow, gameWorld.CurrentTimeBlock);
+            Assert.Equal(gameWorld.WorldState.CurrentTimeBlock, gameWorld.CurrentTimeBlock);
             Assert.Equal(gameWorld.WorldState.CurrentWeather, gameWorld.CurrentWeather);
 
             // Verify player initialization
@@ -270,7 +270,7 @@ namespace Wayfarer.Tests
             TimeBlocks originalTimeBlock = gameWorld.CurrentTimeBlock;
             gameWorld.CurrentTimeBlock = TimeBlocks.Evening;
             Assert.Equal(TimeBlocks.Evening, gameWorld.CurrentTimeBlock);
-            Assert.Equal(TimeBlocks.Evening, gameWorld.WorldState.CurrentTimeWindow);
+            Assert.Equal(TimeBlocks.Evening, gameWorld.WorldState.CurrentTimeBlock);
 
             // Test CurrentWeather delegation
             WeatherCondition originalWeather = gameWorld.CurrentWeather;

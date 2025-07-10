@@ -215,7 +215,7 @@ namespace Wayfarer.Tests
 
             // Set up basic world state
             gameWorld.WorldState.CurrentDay = 1;
-            gameWorld.WorldState.CurrentTimeWindow = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
 
             // Add test items to world state
             gameWorld.WorldState.Items = new List<Item>

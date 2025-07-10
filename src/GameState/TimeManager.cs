@@ -44,7 +44,7 @@
     public void SetNewTime(int hours)
     {
         CurrentTimeHours = hours;
-        UpdateTimeWindow();
+        UpdateCurrentTimeBlock();
     }
 
     public void AdvanceTime(int duration)
@@ -58,7 +58,7 @@
         return CurrentTimeHours;
     }
 
-    public void UpdateTimeWindow()
+    public void UpdateCurrentTimeBlock()
     {
         int maxAP = player.MaxActionPoints;
         int currentAP = player.CurrentActionPoints();
@@ -77,7 +77,7 @@
 
         CurrentTimeHours = newHour;
 
-        // Now update TimeWindow based on newHour
+        // Now update CurrentTimeBlock based on newHour
         TimeBlocks newWindow;
         if (newHour >= TimeDayStart && newHour < 12)
             newWindow = TimeBlocks.Morning;
@@ -104,26 +104,26 @@
         SetNewTime(TimeDayStart);
     }
 
-    public TimeBlocks GetCurrentTimeWindow()
+    public TimeBlocks GetCurrentCurrentTimeBlock()
     {
         return CurrentTimeBlock;
     }
 
-    public string PreviewTimeAdvancement(string timeWindow)
+    public string PreviewTimeAdvancement(string CurrentTimeBlock)
     {
         switch (CurrentTimeBlock)
         {
             case TimeBlocks.Morning:
-                return timeWindow == "Half" ? "Morning" : "Afternoon";
+                return CurrentTimeBlock == "Half" ? "Morning" : "Afternoon";
             case TimeBlocks.Afternoon:
-                return timeWindow == "Half" ? "Afternoon" : "Evening";
+                return CurrentTimeBlock == "Half" ? "Afternoon" : "Evening";
             case TimeBlocks.Evening:
-                return timeWindow == "Half" ? "Evening" : "Night";
+                return CurrentTimeBlock == "Half" ? "Evening" : "Night";
             case TimeBlocks.Night:
-                return timeWindow == "Half" ? "Night" : "Morning";
+                return CurrentTimeBlock == "Half" ? "Night" : "Morning";
         }
 
-        return timeWindow;
+        return CurrentTimeBlock;
     }
 
     /// <summary>

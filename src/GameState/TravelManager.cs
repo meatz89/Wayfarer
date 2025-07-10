@@ -123,7 +123,7 @@
                 continue;
 
             // Check departure times
-            if (route.DepartureTime != null && route.DepartureTime != _gameWorld.WorldState.CurrentTimeWindow)
+            if (route.DepartureTime != null && route.DepartureTime != _gameWorld.WorldState.CurrentTimeBlock)
                 continue;
 
             // Check if route is temporarily blocked

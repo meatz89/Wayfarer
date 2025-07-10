@@ -257,7 +257,7 @@ namespace Wayfarer.Tests
         {
             WorldState worldState = new WorldState();
             worldState.CurrentDay = 1;
-            worldState.CurrentTimeWindow = TimeBlocks.Dawn;
+            worldState.CurrentTimeBlock = TimeBlocks.Dawn;
             return worldState;
         }
 

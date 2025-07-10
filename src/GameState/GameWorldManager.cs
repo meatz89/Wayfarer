@@ -16,8 +16,6 @@
     private ItemRepository itemRepository;
 
     private EncounterFactory encounterFactory;
-    private MessageSystem messageSystem;
-    private ActionGenerator? actionGenerator;
     private ActionFactory actionFactory;
     private ActionProcessor actionProcessor;
     private LocationSystem locationSystem;
@@ -27,8 +25,6 @@
     private TradeManager tradeManager;
     private ContractSystem contractSystem;
     private RestManager restManager;
-    private TimeManager timeManager;
-    private GameWorldInitializer gameWorldInitializer;
     private List<Contract> availableContracts = new List<Contract>();
 
     private bool isAiAvailable = true;
@@ -38,12 +34,11 @@
     public GameWorldManager(GameWorld gameWorld,
                        ItemRepository itemRepository, EncounterFactory encounterSystem,
                        PersistentChangeProcessor evolutionSystem, LocationSystem locationSystem,
-                       MessageSystem messageSystem, ActionFactory actionFactory, ActionRepository actionRepository,
+                       ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
                        MarketManager marketManager, TradeManager tradeManager,
                        ContractSystem contractSystem, RestManager restManager,
-                       ActionGenerator? actionGenerator, PlayerProgression playerProgression,
-                       ActionProcessor actionProcessor, GameWorldInitializer gameWorldInitializer,
+                       PlayerProgression playerProgression, ActionProcessor actionProcessor,
                        ChoiceProjectionService choiceProjectionService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
@@ -51,7 +46,6 @@
         this.itemRepository = itemRepository;
         this.encounterFactory = encounterSystem;
         this.locationSystem = locationSystem;
-        this.messageSystem = messageSystem;
         this.actionFactory = actionFactory;
         this.actionRepository = actionRepository;
         this.locationRepository = locationRepository;
@@ -60,10 +54,7 @@
         this.tradeManager = tradeManager;
         this.contractSystem = contractSystem;
         this.restManager = restManager;
-        this.timeManager = gameWorld.TimeManager;
-        this.actionGenerator = actionGenerator;
         this.actionProcessor = actionProcessor;
-        this.gameWorldInitializer = gameWorldInitializer;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -73,7 +64,7 @@
     {
         _gameWorld.GetPlayer().HealFully();
 
-        // TODO: Implement time management through TimeManager
+        // TODO: Implement time management through gameWorld.TimeManager
 
         Location startingLocation = await locationSystem.Initialize();
         _gameWorld.WorldState.RecordLocationVisit(startingLocation.Id);
@@ -345,9 +336,9 @@
         }
 
         // Check time block constraints
-        if (!timeManager.ValidateTimeBlockAction(route.TimeBlockCost))
+        if (!GameWorld.TimeManager.ValidateTimeBlockAction(route.TimeBlockCost))
         {
-            throw new InvalidOperationException($"Cannot travel: Not enough time blocks remaining. Route requires {route.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
+            throw new InvalidOperationException($"Cannot travel: Not enough time blocks remaining. Route requires {route.TimeBlockCost} blocks, but only {gameWorld.TimeManager.RemainingTimeBlocks} available.");
         }
 
         // Apply costs
@@ -358,7 +349,7 @@
         player.ModifyCoins(route.BaseCoinCost);
 
         // Consume time blocks
-        timeManager.ConsumeTimeBlock(route.TimeBlockCost);
+        GameWorld.TimeManager.ConsumeTimeBlock(route.TimeBlockCost);
 
         int seed = _gameWorld.WorldState.CurrentDay + player.GetHashCode();
         EncounterContext encounterContext = route.GetEncounter(seed);
@@ -435,7 +426,7 @@
     {
         foreach (Contract contract in contractSystem.GetActiveContracts())
         {
-            if (contract.IsAvailable(_gameWorld.WorldState.CurrentDay, _gameWorld.WorldState.CurrentTimeWindow))
+            if (contract.IsAvailable(_gameWorld.WorldState.CurrentDay, _gameWorld.WorldState.CurrentTimeBlock))
             {
                 if (!availableContracts.Contains(contract))
                 {
@@ -566,9 +557,9 @@
         if (option != null)
         {
             // Validate time block availability before attempting rest
-            if (!timeManager.ValidateTimeBlockAction(option.TimeBlockCost))
+            if (!gameWorld.TimeManager.ValidateTimeBlockAction(option.TimeBlockCost))
             {
-                throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
+                throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {gameWorld.TimeManager.RemainingTimeBlocks} available.");
             }
 
             restManager.Rest(option);

@@ -45,9 +45,9 @@
     {
         List<IRequirement> requirements = new();
         // Time window requirement
-        if (template.TimeWindows != null && template.TimeWindows.Count > 0)
+        if (template.CurrentTimeBlocks != null && template.CurrentTimeBlocks.Count > 0)
         {
-            requirements.Add(new TimeWindowRequirement(template.TimeWindows));
+            requirements.Add(new CurrentTimeBlockRequirement(template.CurrentTimeBlocks));
         }
         return requirements;
     }

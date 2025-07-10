@@ -13,7 +13,7 @@
 
     // Game time
     public int CurrentDay { get; set; } = 1;
-    public TimeBlocks CurrentTimeWindow { get; set; } = TimeBlocks.Morning;
+    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
     public int CurrentTimeHours { get; set; }
 
     // Weather conditions (no seasons - game timeframe is only days/weeks)
@@ -29,7 +29,11 @@
     // Current location tracking
     public Location CurrentLocation { get; private set; }
     public LocationSpot CurrentLocationSpot { get; private set; }
+
+    // Card tracking
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
+
+    // Contract tracking
     public List<Contract> CompletedContracts { get; set; } = new List<Contract>();
     public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
     public List<Contract> FailedContracts { get; set; } = new List<Contract>();

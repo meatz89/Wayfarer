@@ -16,12 +16,12 @@
     {
         get
         {
-            return WorldState.CurrentTimeWindow;
+            return WorldState.CurrentTimeBlock;
         }
 
         set
         {
-            WorldState.CurrentTimeWindow = value;
+            WorldState.CurrentTimeBlock = value;
         }
     }
     public WeatherCondition CurrentWeather
