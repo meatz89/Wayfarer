@@ -1,0 +1,144 @@
+# LOGICAL SYSTEM INTERACTIONS
+
+**CRITICAL DESIGN GUIDELINES - MANDATORY FOR ALL IMPLEMENTATIONS**
+
+This document defines the core principle that replaces arbitrary mathematical modifiers with logical system interactions in Wayfarer. All game mechanics must emerge from entity category relationships, not hardcoded bonuses or penalties.
+
+## FUNDAMENTAL DESIGN PRINCIPLE
+
+### **Entity Category-Based System Interactions**
+
+**CORE RULE: Always prefer system interdependencies over single mechanic modifiers**
+
+✅ **CORRECT: Logical Category Interactions**
+```csharp
+// Weather + Terrain + Equipment interactions create emergent constraints
+if (weather == WeatherCondition.Rain && 
+    terrain == TerrainCategory.Exposed_Weather && 
+    !playerEquipment.Contains(EquipmentCategory.Weather_Protection))
+    return RouteAccessResult.Blocked("Rain makes exposed terrain unsafe without protection");
+```
+
+❌ **WRONG: Arbitrary Mathematical Modifiers**
+```csharp
+// Arbitrary math that doesn't involve system relationships
+efficiency *= weather == WeatherCondition.Rain ? 0.8f : 1.0f;
+staminaCost = (int)(baseCost * efficiency);
+```
+
+## ENTITY CATEGORIZATION SYSTEM
+
+### **Items (Multiple Categories Per Item)**
+- **EquipmentCategory**: [Climbing_Equipment, Weather_Protection, Navigation_Tools, Water_Transport, Permission_Documents]
+- **ItemCategory**: [Tools, Food, Materials, Luxury_Goods, Information]
+- **Social_Signal**: [Commoner, Merchant, Artisan, Noble, Foreign]
+- **Size**: [Tiny, Small, Medium, Large, Massive]
+- **Fragility**: [Sturdy, Standard, Delicate, Fragile]
+
+### **Routes (Multiple Categories Per Route)**
+- **TerrainCategory**: [Requires_Climbing, Wilderness_Terrain, Exposed_Weather, Dark_Passage, Requires_Water_Transport, Requires_Permission]
+- **Difficulty**: [Easy, Moderate, Challenging, Extreme]
+- **Access_Level**: [Public, Private, Guild_Only, Noble_Only]
+- **Traffic**: [Busy, Moderate, Quiet, Abandoned]
+
+### **Locations (Multiple Categories Per Location)**
+- **Function**: [Commerce, Crafting, Social, Official, Residential]
+- **Access_Level**: [Public, Semi_Private, Private, Restricted]
+- **Social_Expectation**: [Any, Merchant_Class, Noble_Class, Professional]
+- **Service_Type**: [Trade, Repair, Information, Lodging, Authority]
+
+### **NPCs (Multiple Categories Per NPC)**
+- **Social_Class**: [Commoner, Merchant, Craftsman, Minor_Noble, Major_Noble]
+- **Profession**: [Trader, Smith, Guard, Official, Farmer, Guide]
+- **Schedule**: [Morning, Afternoon, Evening, Always, Market_Days]
+- **Relationship**: [Helpful, Neutral, Wary, Hostile]
+
+## LOGICAL INTERACTION RULES
+
+### **Equipment-Terrain Interactions**
+1. **TerrainCategory.Requires_Climbing** + No EquipmentCategory.Climbing_Equipment = Route Blocked
+2. **TerrainCategory.Wilderness_Terrain** + No EquipmentCategory.Navigation_Tools = Route Blocked (in fog/snow)
+3. **TerrainCategory.Exposed_Weather** + Weather.Rain + No EquipmentCategory.Weather_Protection = Route Blocked
+4. **TerrainCategory.Dark_Passage** + No EquipmentCategory.Navigation_Tools = Route Blocked
+5. **TerrainCategory.Requires_Water_Transport** + No EquipmentCategory.Water_Transport = Route Blocked
+6. **TerrainCategory.Requires_Permission** + No EquipmentCategory.Permission_Documents = Route Blocked
+
+### **Weather-Terrain Interactions**
+1. **Weather.Rain** + TerrainCategory.Exposed_Weather = Requires Weather_Protection
+2. **Weather.Snow** + TerrainCategory.Wilderness_Terrain = Requires Navigation_Tools
+3. **Weather.Fog** + TerrainCategory.Wilderness_Terrain = Requires Navigation_Tools
+4. **Weather.Clear** = No additional equipment requirements
+
+### **Social-Access Interactions**
+1. **Location.Social_Expectation.Noble_Class** + Player.Social_Signal.Commoner = Entry Denied
+2. **NPC.Social_Class.Noble** + Player.Social_Signal.Commoner = Limited Services
+3. **Location.Access_Level.Private** + NPC.Relationship.Not_Helpful = Access Refused
+4. **NPC.Profession.Trader** + NPC.Relationship.Helpful = Shares Market Information
+
+### **Size-Transport Interactions**
+1. **Item.Size.Large** + No Transport = +1 Stamina Cost
+2. **Item.Size.Massive** + No Transport = Route Blocked (cannot carry)
+3. **Multiple Large Items** = Progressive stamina penalties
+
+## IMPLEMENTATION REQUIREMENTS
+
+### **1. All Entities Must Have Categories**
+Every entity (items, routes, locations, NPCs) must belong to meaningful categories that can interact with other system categories.
+
+### **2. Game Rules Emerge from Category Relationships**
+Instead of hardcoded bonuses/penalties, create logical relationships between categories:
+- Weather + Terrain → Access requirements
+- Equipment + Terrain → Capability enablement  
+- NPC Profession + Location Type → Service availability
+- Time + NPC Schedule → Social interaction windows
+
+### **3. Constraints Require Multiple Systems**
+No single system should create arbitrary restrictions:
+- ✅ Good: "Mountain routes need climbing gear, but only accessible in good weather, and guides are only available on market days"
+- ❌ Bad: "Mountain routes cost +50% stamina"
+
+### **4. Categories Enable Discovery Gameplay**
+Players learn system relationships through experimentation:
+- Trying to travel in fog without navigation tools → blocked → learn navigation tools enable fog travel
+- Attempting to trade with nobles without proper attire → blocked → learn social categories matter
+- Weather changes block previously accessible routes → learn weather-terrain interactions
+
+### **5. All Categories Must Be Visible in UI**
+For players to formulate strategies, they must see and understand the categories that influence game rules:
+- Items must display their EquipmentCategory and ItemCategory
+- Routes must show their TerrainCategory and requirements
+- Locations should indicate their access requirements
+- NPCs should reveal their profession and social categories
+- Weather conditions and terrain effects must be discoverable
+
+## VALIDATION CHECKLIST
+
+Before implementing any game mechanic, verify:
+
+1. ✅ **Logical Justification**: Can you explain the constraint using real-world logic?
+2. ✅ **Category-Based**: Does the rule involve interactions between entity categories?
+3. ✅ **No Arbitrary Math**: Are you avoiding percentage bonuses or efficiency multipliers?
+4. ✅ **Multiple Systems**: Does the constraint involve at least 2 different systems?
+5. ✅ **Player Visibility**: Can players see and understand the categories involved?
+6. ✅ **Discovery Gameplay**: Will players learn these relationships through experimentation?
+
+## CORE DESIGN RULES
+
+- **NEVER** use arbitrary mathematical modifiers (efficiency multipliers, percentage bonuses, etc.)
+- **ALWAYS** implement logical blocking/enabling instead of sliding scale penalties
+- **REQUIRE** logical justification for all constraints based on system interactions
+- **ENSURE** all entity categories are visible and understandable in the UI
+- **VALIDATE** all designs against the logical interaction checklist
+
+## PLAYER EXPERIENCE TARGET
+
+**Instead of**: "I can't use this route because my climbing skill isn't high enough"
+**Target**: "I can't use this route because it goes through mountain terrain and I don't have climbing equipment"
+
+**Instead of**: "This NPC won't talk to me because my reputation is too low"  
+**Target**: "This noble won't see me because I'm not dressed appropriately for their social class"
+
+**Instead of**: "I can't carry this item because it's too heavy"
+**Target**: "I can carry this massive item, but it takes up 2 inventory slots and I'll need a cart if I want to travel efficiently"
+
+Every constraint emerges from **logical categorical connections** that players intuitively understand, creating complex strategic experiences through simple, obvious rules rather than hidden mathematical systems.
