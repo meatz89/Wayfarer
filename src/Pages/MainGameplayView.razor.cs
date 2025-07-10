@@ -92,6 +92,14 @@ public partial class MainGameplayView : ComponentBase
             return GameWorld.WorldState.CurrentTimeHours;
         }
     }
+    
+    public WeatherCondition CurrentWeather
+    {
+        get
+        {
+            return GameWorld.CurrentWeather;
+        }
+    }
 
     public List<Location> Locations
     {
@@ -394,5 +402,20 @@ public partial class MainGameplayView : ComponentBase
                 StateHasChanged();
             }
         }
+    }
+    
+    /// <summary>
+    /// Get weather icon for UI display
+    /// </summary>
+    private string GetWeatherIcon(WeatherCondition weather)
+    {
+        return weather switch
+        {
+            WeatherCondition.Clear => "☀️",
+            WeatherCondition.Rain => "🌧️",
+            WeatherCondition.Snow => "❄️",
+            WeatherCondition.Fog => "🌫️",
+            _ => "❓"
+        };
     }
 }

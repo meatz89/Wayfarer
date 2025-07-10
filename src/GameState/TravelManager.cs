@@ -31,7 +31,7 @@
     public bool CanTravelTo(string locationId)
     {
         Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = _gameWorld.WorldState.CurrentLocation;
+        Location currentLocation = _gameWorld.CurrentLocation;
 
         if (destination == null || currentLocation == null)
             return false;
@@ -44,7 +44,7 @@
     public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
     {
         Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = _gameWorld.WorldState.CurrentLocation;
+        Location currentLocation = _gameWorld.CurrentLocation;
 
         // Find the appropriate route
 
@@ -83,16 +83,13 @@
 
         _gameWorld.WorldState.SetCurrentLocation(targetLocation, locSpot);
 
-        string? currentLocation = _gameWorld.WorldState.CurrentLocation?.Id;
+        string? currentLocation = _gameWorld.CurrentLocation?.Id;
 
         bool isFirstVisit = _gameWorld.WorldState.IsFirstVisit(targetLocation.Id);
         if (isFirstVisit)
         {
             _gameWorld.WorldState.RecordLocationVisit(targetLocation.Id);
-            if (targetLocation != null)
-            {
-                ApplyDiscoveryBonus(targetLocation);
-            }
+            // Discovery bonuses removed - new locations provide natural opportunities through different markets
         }
     }
 
@@ -102,23 +99,10 @@
         _timeManager.ConsumeTimeBlock(timeBlockCost);
     }
 
-    private void ApplyDiscoveryBonus(Location location)
-    {
-        // Only apply bonus if location has values set
-        if (location.DiscoveryBonusXP > 0 || location.DiscoveryBonusCoins > 0)
-        {
-            // Award XP
-            int xpBonus = location.DiscoveryBonusXP;
-            _gameWorld.GetPlayer().AddExperiencePoints(xpBonus);
-
-            // Award coins
-            int coinBonus = location.DiscoveryBonusCoins;
-            if (coinBonus > 0)
-            {
-                _gameWorld.GetPlayer().AddCoins(coinBonus);
-            }
-        }
-    }
+    // Discovery bonuses removed - emergent gameplay provides rewards through:
+    // - New market prices for arbitrage
+    // - Different contract opportunities
+    // - Unique items available at new locations
 
     public List<RouteOption> GetAvailableRoutes(string fromLocationId, string toLocationId)
     {
@@ -146,37 +130,11 @@
             if (_gameWorld.WorldState.IsRouteBlocked(route.Id))
                 continue;
                 
-            // Check if route is blocked by weather
-            if (route.IsBlockedByWeather(_gameWorld.WorldState.CurrentWeather))
-                continue;
+            // Weather no longer blocks routes - it affects efficiency instead
 
-            // Check if player has required items for this route type
-            bool hasRequiredItems = true;
-            foreach (string requiredRouteType in route.RequiredRouteTypes)
-            {
-                // Check if any inventory item enables this route type
-                bool routeTypeEnabled = false;
-                foreach (string itemName in _gameWorld.GetPlayer().Inventory.ItemSlots)
-                {
-                    if (itemName != null)
-                    {
-                        Item item = ItemRepository.GetItemByName(itemName);
-                        if (item != null && item.EnabledRouteTypes.Contains(requiredRouteType))
-                        {
-                            routeTypeEnabled = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!routeTypeEnabled)
-                {
-                    hasRequiredItems = false;
-                    break;
-                }
-            }
-
-            if (hasRequiredItems)
+            // Check if route is accessible using logical blocking system
+            RouteAccessResult accessResult = route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _gameWorld.CurrentWeather);
+            if (accessResult.IsAllowed)
             {
                 availableRoutes.Add(route);
             }
@@ -212,14 +170,14 @@
     public int CalculateStaminaCost(RouteOption route)
     {
         int totalWeight = CalculateCurrentWeight(_gameWorld);
-        WeatherCondition currentWeather = _gameWorld.WorldState.CurrentWeather;
-        int staminaCost = route.CalculateStaminaCost(totalWeight, currentWeather);
+        WeatherCondition currentWeather = _gameWorld.CurrentWeather;
+        int staminaCost = route.CalculateStaminaCost(totalWeight, currentWeather, ItemRepository, _gameWorld.GetPlayer());
         return staminaCost;
     }
     
     public int CalculateCoinCost(RouteOption route)
     {
-        WeatherCondition currentWeather = _gameWorld.WorldState.CurrentWeather;
+        WeatherCondition currentWeather = _gameWorld.CurrentWeather;
         return route.CalculateCoinCost(currentWeather);
     }
 
@@ -239,6 +197,14 @@
                _gameWorld.GetPlayer().Stamina >= CalculateStaminaCost(route);
 
         return canTravel;
+    }
+    
+    /// <summary>
+    /// Get route access information for UI display
+    /// </summary>
+    public RouteAccessResult GetRouteAccessInfo(RouteOption route)
+    {
+        return route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _gameWorld.CurrentWeather);
     }
     
     /// <summary>

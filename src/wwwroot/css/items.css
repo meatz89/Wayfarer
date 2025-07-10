@@ -226,6 +226,11 @@
 		background-color: var(--bg-panel);
 	}
 
+	.route-option.blocked {
+		border-left: 3px solid var(--rust);
+		background-color: rgba(158, 42, 43, 0.1);
+	}
+
 .route-name {
 	font-family: var(--font-primary);
 	color: var(--leather);
@@ -235,11 +240,65 @@
 }
 
 .route-details {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
+	display: flex;
+	flex-direction: column;
 	gap: 5px;
 	margin-bottom: 10px;
 	color: var(--text-secondary);
+}
+
+.cost-breakdown {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 5px;
+	margin-bottom: 5px;
+}
+
+/* Equipment requirement indicators */
+.equipment-required {
+	background-color: rgba(158, 42, 43, 0.15);
+	border: 1px solid var(--rust);
+	border-radius: 3px;
+	padding: 4px 8px;
+	margin: 2px 0;
+	font-size: 0.85em;
+	font-family: var(--font-tertiary);
+	color: var(--rust);
+}
+
+.equipment-recommended {
+	background-color: rgba(188, 108, 37, 0.15);
+	border: 1px solid var(--clay);
+	border-radius: 3px;
+	padding: 4px 8px;
+	margin: 2px 0;
+	font-size: 0.85em;
+	font-family: var(--font-tertiary);
+	color: var(--clay);
+}
+
+/* Route access status indicators */
+.route-blocked {
+	background-color: rgba(158, 42, 43, 0.2);
+	border: 1px solid var(--rust);
+	border-radius: 3px;
+	padding: 6px 10px;
+	margin: 5px 0;
+	font-size: 0.9em;
+	font-family: var(--font-secondary);
+	color: var(--rust);
+	font-weight: bold;
+}
+
+.route-warning {
+	background-color: rgba(188, 108, 37, 0.2);
+	border: 1px solid var(--clay);
+	border-radius: 3px;
+	padding: 6px 10px;
+	margin: 5px 0;
+	font-size: 0.9em;
+	font-family: var(--font-secondary);
+	color: var(--clay);
 }
 
 .travel-button {
