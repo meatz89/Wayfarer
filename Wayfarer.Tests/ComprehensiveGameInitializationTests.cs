@@ -56,9 +56,10 @@ namespace Wayfarer.Tests
             Assert.NotNull(gameWorld.DiscoveredRoutes);
             Assert.NotEmpty(gameWorld.DiscoveredRoutes);
             
-            // Verify contracts loaded from contracts.json
-            Assert.NotNull(gameWorld.WorldState.Contracts);
-            Assert.NotEmpty(gameWorld.WorldState.Contracts);
+            // Verify contracts loaded from contracts.json via ContractRepository
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.NotNull(contractRepository.GetAllContracts());
+            Assert.NotEmpty(contractRepository.GetAllContracts());
             
             // Verify actions loaded from actions.json
             Assert.NotNull(gameWorld.WorldState.actions);
@@ -160,10 +161,11 @@ namespace Wayfarer.Tests
             GameWorldInitializer initializer = new GameWorldInitializer(TestContentDirectory);
             GameWorld gameWorld = initializer.LoadGame();
 
-            // Assert - Verify contracts loaded with complete data
-            Assert.NotEmpty(gameWorld.WorldState.Contracts);
+            // Assert - Verify contracts loaded with complete data via ContractRepository
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.NotEmpty(contractRepository.GetAllContracts());
             
-            var contract = gameWorld.WorldState.Contracts.FirstOrDefault();
+            var contract = contractRepository.GetAllContracts().FirstOrDefault();
             Assert.NotNull(contract);
             Assert.NotNull(contract.Id);
             Assert.NotNull(contract.Description);

@@ -46,7 +46,6 @@
     // New resource properties
     public int Money { get; set; }
     public int Condition { get; set; }
-    public static List<Contract> AllContracts { get; set; } = new List<Contract>();
 
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }

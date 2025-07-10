@@ -26,33 +26,122 @@ public TimeBlocks CurrentTimeWindow { get; set; }
 
 ### **Repository Pattern Single Source of Truth**
 
-**CRITICAL FINDING**: All game state access must go through `GameWorld.WorldState`, never through static properties or direct field access.
+**CRITICAL ARCHITECTURAL PRINCIPLE**: All game state access MUST go through entity repositories, never through direct GameWorld property access.
 
-**Root Cause**: Legacy static properties like `GameWorld.AllContracts` create dual state management and break the single source of truth pattern.
+**Root Cause**: Direct access to `gameWorld.Contracts`, `gameWorld.Items`, etc. breaks encapsulation and makes testing/mocking impossible.
 
-**Solution**: Always use instance properties through GameWorld.WorldState.
+**MANDATORY PATTERN**: Repository-Mediated Access Only
 
 ```csharp
-// CORRECT: Repository Pattern
-public List<Contract> GetAllContracts()
+// ✅ CORRECT: Repository Pattern - ALL access through repositories
+public class ContractSystem 
 {
-    return _gameWorld.WorldState.Contracts ?? new List<Contract>();
+    private readonly ContractRepository _contractRepository;
+    
+    public List<Contract> GetAvailableContracts() 
+    {
+        return _contractRepository.GetAllContracts()
+            .Where(c => c.IsAvailable())
+            .ToList();
+    }
 }
 
-// WRONG: Static Property Access
-return GameWorld.AllContracts;
-
-// CORRECT: Content Loading
-foreach (Contract contract in contracts)
+// ✅ CORRECT: Repository implementation - STATELESS, GameWorld delegation only
+public class ContractRepository 
 {
-    gameWorld.WorldState.Contracts.Add(contract);
+    private readonly GameWorld _gameWorld; // ONLY dependency - NO state storage
+    
+    public List<Contract> GetAllContracts() 
+    {
+        return _gameWorld.WorldState.Contracts ?? new List<Contract>(); // Direct GameWorld delegation
+    }
+    
+    // CRITICAL: Repository has NO private fields for data storage
+    // ALL data comes from GameWorld on every method call
 }
 
-// WRONG: Static Assignment
-GameWorld.AllContracts = contracts;
+// ❌ WRONG: Direct GameWorld property access
+public class ContractSystem 
+{
+    private readonly GameWorld _gameWorld;
+    
+    public List<Contract> GetAvailableContracts() 
+    {
+        return _gameWorld.Contracts.Where(c => c.IsAvailable()).ToList(); // VIOLATES ARCHITECTURE
+    }
+}
+
+// ❌ WRONG: Test accessing GameWorld properties directly  
+Assert.NotEmpty(gameWorld.Contracts); // VIOLATES ARCHITECTURE
+
+// ✅ CORRECT: Test using repository
+Assert.NotEmpty(contractRepository.GetAllContracts());
 ```
 
-**Impact**: Violating this pattern causes test failures and runtime null reference exceptions when UI components can't access properly initialized game state.
+**ARCHITECTURAL ENFORCEMENT RULES**:
+
+1. **ONLY repositories may access GameWorld.WorldState properties**
+2. **Business logic MUST use repositories, never GameWorld properties**  
+3. **Tests MUST use repositories, never GameWorld properties**
+4. **UI components MUST use repositories, never GameWorld properties**
+5. **GameWorld properties exist ONLY for repository implementation**
+
+**Impact**: This pattern ensures proper separation of concerns, enables testing with mocks, and prevents tight coupling between business logic and data storage.
+
+---
+
+### **Repository Statelessness Requirement**
+
+**CRITICAL PRINCIPLE**: Repositories MUST be completely stateless and only delegate to GameWorld - NO data storage or caching allowed.
+
+**MANDATORY REPOSITORY PATTERN**:
+
+```csharp
+// ✅ CORRECT: Stateless repository - only GameWorld dependency
+public class ItemRepository 
+{
+    private readonly GameWorld _gameWorld; // ONLY allowed private field
+    
+    public ItemRepository(GameWorld gameWorld) 
+    {
+        _gameWorld = gameWorld;
+    }
+    
+    public List<Item> GetAllItems() 
+    {
+        return _gameWorld.WorldState.Items ?? new List<Item>(); // Direct delegation every call
+    }
+    
+    public Item GetItemById(string id) 
+    {
+        return GetAllItems().FirstOrDefault(i => i.Id == id); // Uses delegation method
+    }
+}
+
+// ❌ WRONG: Repository with state storage or caching
+public class ItemRepository 
+{
+    private readonly GameWorld _gameWorld;
+    private List<Item> _cachedItems; // VIOLATES STATELESS PRINCIPLE
+    private Dictionary<string, Item> _itemCache; // VIOLATES STATELESS PRINCIPLE
+    
+    public List<Item> GetAllItems() 
+    {
+        if (_cachedItems == null) // WRONG - no caching allowed
+            _cachedItems = _gameWorld.WorldState.Items;
+        return _cachedItems;
+    }
+}
+```
+
+**ENFORCEMENT RULES**:
+1. **Repository classes may ONLY have `private readonly GameWorld _gameWorld` field**
+2. **NO caching, NO state storage, NO private collections**
+3. **Every method call must access GameWorld.WorldState directly**
+4. **Repositories are pure delegation layers to GameWorld**
+5. **If caching is needed, implement it in GameWorld, not repositories**
+
+**Rationale**: Stateless repositories ensure that all game state changes are immediately visible to all components, prevent stale data issues, and maintain GameWorld as the true single source of truth.
 
 ---
 

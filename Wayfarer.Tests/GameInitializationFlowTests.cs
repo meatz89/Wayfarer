@@ -68,9 +68,10 @@ namespace Wayfarer.Tests
             Assert.NotNull(gameWorld.DiscoveredRoutes);
             Assert.True(gameWorld.DiscoveredRoutes.Count > 0, "Should load routes from routes.json");
             
-            // Contracts loaded from contracts.json
-            Assert.NotNull(gameWorld.WorldState.Contracts);
-            Assert.True(gameWorld.WorldState.Contracts.Count > 0, "Should load contracts from contracts.json");
+            // Contracts loaded from contracts.json via ContractRepository
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            Assert.NotNull(contractRepository.GetAllContracts());
+            Assert.True(contractRepository.GetAllContracts().Count > 0, "Should load contracts from contracts.json");
         }
 
         [Fact]

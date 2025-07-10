@@ -9,9 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. ✅ **READ CLAUDE.MD FIRST** - Understand architectural patterns and game design principles
 2. ✅ **READ SESSION-HANDOFF.MD** - Get current progress, discoveries, and immediate next steps
-3. ✅ **READ IMPLEMENTATION-PLAN-REVISED.MD** - Understand feature priorities and requirements
-4. ✅ **READ USERSTORIES.MD** - Understand game design requirements and anti-patterns
-5. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
+3. ✅ **READ INTENDED-GAMEPLAY.MD** - Get intended gameplay vision
+4. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
 
 ### **DOCUMENTATION ARCHITECTURE**
 
@@ -179,17 +178,39 @@ All UI components must route actions through GameWorldManager instead of injecti
 - ❌ Wrong: UI → Direct Manager Injection
 
 #### **Stateless Repositories** 
-Repositories must be stateless and access GameWorld dynamically.
-- ✅ Correct: `private readonly GameWorld _gameWorld` + `_gameWorld.PropertyName`
+Repositories MUST be completely stateless and only delegate to GameWorld - NO data storage or caching allowed.
+- ✅ Correct: `private readonly GameWorld _gameWorld` (ONLY allowed private field)
+- ✅ Correct: Every method accesses `_gameWorld.WorldState.Property` directly
+- ❌ Wrong: `private List<Entity> _cachedEntities` or any state storage
 - ❌ Wrong: `private WorldState` caching or direct WorldState access
+- ❌ Wrong: Any private fields other than GameWorld dependency
 
-#### **GameWorld Single Source of Truth**
-GameWorld is the authoritative source for all game state.
-- **CRITICAL**: All game state must be accessed through GameWorld properties only
-- **NEVER** access `GameWorld.WorldState.Property` - always use `GameWorld.Property`
-- GameWorld.WorldState is for internal implementation only
-- All tests and business logic must use GameWorld properties
-- GameWorld contains no business logic, only state management
+**ENFORCEMENT**: Repository classes may ONLY have `private readonly GameWorld _gameWorld` field. All data comes from GameWorld on every method call.
+
+#### **Repository-Mediated Access Only (CRITICAL ARCHITECTURAL PRINCIPLE)**
+**ALL game state access MUST go through entity repositories - NEVER through direct GameWorld property access.**
+
+**MANDATORY ENFORCEMENT RULES:**
+1. **ONLY repositories may access GameWorld.WorldState properties**
+2. **Business logic MUST use repositories, never GameWorld properties**  
+3. **Tests MUST use repositories, never GameWorld properties**
+4. **UI components MUST use repositories, never GameWorld properties**
+5. **GameWorld properties exist ONLY for repository implementation**
+
+**Pattern Examples:**
+```csharp
+// ✅ CORRECT: Test using repository
+Assert.NotEmpty(contractRepository.GetAllContracts());
+
+// ❌ WRONG: Test accessing GameWorld directly
+Assert.NotEmpty(gameWorld.Contracts); // VIOLATES ARCHITECTURE
+
+// ✅ CORRECT: Business logic using repository
+var contracts = _contractRepository.GetAvailableContracts();
+
+// ❌ WRONG: Business logic accessing GameWorld directly  
+var contracts = _gameWorld.Contracts.Where(...); // VIOLATES ARCHITECTURE
+```
 
 #### **Repository-Based ID Resolution Pattern**
 Repositories are responsible for ID-to-object lookup, not initialization or business logic.
