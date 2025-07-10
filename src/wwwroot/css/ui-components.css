@@ -155,6 +155,72 @@
 	cursor: not-allowed;
 }
 
+/* Location Info Panel */
+.location-info-panel {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 12px 15px;
+	margin-bottom: 15px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 15px;
+	font-family: var(--font-secondary);
+}
+
+.location-access-info,
+.location-social-info,
+.location-requirement-info,
+.location-professions-info {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.location-info-panel .info-label {
+	color: var(--text-muted);
+	font-size: 0.9rem;
+}
+
+.location-info-panel .info-value {
+	color: var(--text-primary);
+	font-weight: 500;
+}
+
+/* Access Level Color Coding */
+.access-Public {
+	color: var(--positive);
+}
+
+.access-Semi_Private {
+	color: var(--neutral);
+}
+
+.access-Private {
+	color: var(--special);
+}
+
+.access-Restricted {
+	color: var(--negative);
+}
+
+/* Social Expectation Color Coding */
+.social-Any {
+	color: var(--positive);
+}
+
+.social-Merchant_Class {
+	color: var(--resource-coins);
+}
+
+.social-Noble_Class {
+	color: var(--special);
+}
+
+.social-Professional {
+	color: var(--neutral);
+}
+
 .location-spot-properties {
 	margin-bottom: 1rem;
 }

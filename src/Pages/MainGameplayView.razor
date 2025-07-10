@@ -102,6 +102,39 @@
                         </div>
                     </div>
 
+                    @{
+                        var currentLocation = GetCurrentLocation();
+                        if (currentLocation != null)
+                        {
+                            <div class="location-info-panel">
+                                <div class="location-access-info">
+                                    <span class="info-label">Access Level:</span>
+                                    <span class="info-value access-@currentLocation.AccessLevel">@currentLocation.AccessLevelDescription</span>
+                                </div>
+                                <div class="location-social-info">
+                                    <span class="info-label">Social Expectation:</span>
+                                    <span class="info-value social-@currentLocation.SocialExpectation">@currentLocation.SocialExpectationDescription</span>
+                                </div>
+                                @if (currentLocation.RequiredSocialClasses.Any())
+                                {
+                                    <div class="location-requirement-info">
+                                        <span class="info-label">@currentLocation.RequiredSocialClassesDescription</span>
+                                    </div>
+                                }
+                                @{
+                                    var availableProfessions = currentLocation.GetAvailableProfessions(CurrentTime);
+                                    if (availableProfessions.Any())
+                                    {
+                                        <div class="location-professions-info">
+                                            <span class="info-label">Available Services:</span>
+                                            <span class="info-value">@string.Join(", ", availableProfessions.Select(p => p.ToString().Replace('_', ' ')))</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                    }
+
                     <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
                                      CurrentSpot="@CurrentSpot"
                                      OnSpotSelected="@HandleSpotSelection"
