@@ -7,7 +7,7 @@ namespace Wayfarer.Tests
     /// These tests validate the time-bound delivery constraints that create urgency
     /// and strategic decision-making in the economic simulation.
     /// 
-    /// User Story: Contract Time Pressure (UserStories.md)
+    /// User Story: Contract Time Pressure ()
     /// Priority: MEDIUM - Adds strategic depth to time management
     /// </summary>
     public class ContractDeadlineTests
@@ -98,7 +98,8 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             MessageSystem messageSystem = new MessageSystem();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
             
             Contract contract1 = CreateTestContract("contract1", startDay: 1, dueDay: 3);
             Contract contract2 = CreateTestContract("contract2", startDay: 2, dueDay: 5);
@@ -149,7 +150,8 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             MessageSystem messageSystem = new MessageSystem();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
             
             Contract urgentContract = CreateTestContract("urgent", startDay: 1, dueDay: 2);
             Contract normalContract = CreateTestContract("normal", startDay: 1, dueDay: 5);
@@ -180,7 +182,8 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             MessageSystem messageSystem = new MessageSystem();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
             
             Contract contract = CreateTestContract("testContract", startDay: 1, dueDay: 2);
             contract.Description = "Deliver goods to Town Square";

@@ -22,7 +22,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem());
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
             
             TimeManager timeManager = gameWorld.TimeManager;
@@ -46,7 +47,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem());
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
             
             // Set up player at destination with required items
@@ -76,7 +78,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem());
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5, payment: 10);
             
             // Complete contract 2 days early (day 3 instead of day 5)
@@ -109,7 +112,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem());
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5, payment: 10);
             
             // Complete contract 1 day late (day 6 instead of day 5)
@@ -142,7 +146,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem());
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
             
             // Exhaust all time blocks
@@ -169,7 +174,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem());
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             
             // Contract only available during morning time block
             Contract morningContract = CreateTestContract(startDay: 1, dueDay: 5);
@@ -193,7 +199,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem());
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             Player player = gameWorld.GetPlayer();
             
             Contract contract = CreateTestContract(startDay: 1, dueDay: 2);
@@ -219,7 +226,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem());
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
             
             // Early game contract (day 5)
             gameWorld.WorldState.CurrentDay = 5;

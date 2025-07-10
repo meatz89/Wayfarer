@@ -7,7 +7,7 @@ namespace Wayfarer.Tests
     /// These tests validate the core economic simulation mechanic where items have
     /// different buy/sell prices at different locations, creating arbitrage opportunities.
     /// 
-    /// User Story: Location-Specific Pricing (UserStories.md:172-195)
+    /// User Story: Location-Specific Pricing (:172-195)
     /// Priority: CRITICAL - Core profit mechanism for economic simulation
     /// </summary>
     public class DynamicLocationPricingTests

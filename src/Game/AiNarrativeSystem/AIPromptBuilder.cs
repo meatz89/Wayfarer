@@ -324,7 +324,7 @@ public class AIPromptBuilder
         {
             prompt.AppendLine($"- Current NPC: {context.TargetNPC.Name}");
             prompt.AppendLine($"  * Role: {context.TargetNPC.Role}");
-            prompt.AppendLine($"  * Attitude: {context.TargetNPC.Attitude}");
+            prompt.AppendLine($"  * Relationship: {context.TargetNPC.PlayerRelationship}");
         }
 
         // Get player status

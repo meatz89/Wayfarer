@@ -9,9 +9,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. ✅ **READ CLAUDE.MD FIRST** - Understand architectural patterns and game design principles
 2. ✅ **READ SESSION-HANDOFF.MD** - Get current progress, discoveries, and immediate next steps
-3. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
-4. ✅ **READ USERSTORIES.MD** - Game design requirements and anti-patterns
-5. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
+3. ✅ **READ INTENDED-GAMEPLAY.md** - Acquire a deep understanding of what we want the game experience to feel like for the player
+4. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
+5. ✅ **READ USERSTORIES.MD** - Game design requirements and anti-patterns
+6. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
 
 ### **DOCUMENTATION ARCHITECTURE**
 

@@ -1,0 +1,74 @@
+[
+	{
+		"id": "innkeeper_marcus",
+		"name": "Marcus the Innkeeper",
+		"role": "Innkeeper",
+		"description": "A jovial man who runs the Dusty Flagon with warmth and efficiency.",
+		"location": "dusty_flagon",
+		"profession": "Merchant",
+		"socialClass": "Merchant",
+		"availabilitySchedule": "Always",
+		"providedServices": ["Lodging", "Rest", "Information"],
+		"playerRelationship": "Neutral"
+	},
+	{
+		"id": "merchant_elena",
+		"name": "Elena the Trader",
+		"role": "Merchant",
+		"description": "A shrewd businesswoman who knows the value of every item that passes through town.",
+		"location": "town_square",
+		"profession": "Merchant",
+		"socialClass": "Merchant",
+		"availabilitySchedule": "Market_Days",
+		"providedServices": ["Trade", "Information"],
+		"playerRelationship": "Neutral"
+	},
+	{
+		"id": "blacksmith_johan",
+		"name": "Johan the Blacksmith",
+		"role": "Blacksmith",
+		"description": "A skilled craftsman who can repair equipment and provide climbing gear.",
+		"location": "town_square",
+		"profession": "Craftsman",
+		"socialClass": "Craftsman",
+		"availabilitySchedule": "Morning",
+		"providedServices": ["EquipmentRepair", "Trade"],
+		"playerRelationship": "Neutral"
+	},
+	{
+		"id": "guide_sara",
+		"name": "Sara the Guide",
+		"role": "Mountain Guide",
+		"description": "An experienced ranger who knows the dangerous mountain paths.",
+		"location": "town_square",
+		"profession": "Ranger",
+		"socialClass": "Craftsman",
+		"availabilitySchedule": "Afternoon",
+		"providedServices": ["Information", "Training"],
+		"playerRelationship": "Neutral"
+	},
+	{
+		"id": "noble_aldric",
+		"name": "Lord Aldric",
+		"role": "Local Noble",
+		"description": "A minor noble who controls trade permissions for certain routes.",
+		"location": "town_square",
+		"profession": "Courtier",
+		"socialClass": "Minor_Noble",
+		"availabilitySchedule": "Evening",
+		"providedServices": ["Information", "Services"],
+		"playerRelationship": "Neutral"
+	},
+	{
+		"id": "scholar_beatrice",
+		"name": "Beatrice the Scholar",
+		"role": "Librarian",
+		"description": "A learned woman who trades in rare books and ancient knowledge.",
+		"location": "town_square",
+		"profession": "Scholar",
+		"socialClass": "Craftsman",
+		"availabilitySchedule": "Morning",
+		"providedServices": ["Trade", "Information"],
+		"playerRelationship": "Neutral"
+	}
+]
