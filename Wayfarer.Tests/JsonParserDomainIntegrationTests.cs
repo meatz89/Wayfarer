@@ -220,8 +220,7 @@ namespace Wayfarer.Tests
             Player player = gameWorld.GetPlayer();
             ItemRepository itemRepository = new ItemRepository(gameWorld);
 
-            // Add items using repository methods (proper architecture)
-            itemRepository.AddItems(items);
+            // Items are already loaded from JSON by TestGameWorldInitializer, no need to add them again
 
             // Test route access without equipment
             foreach (RouteOption route in climbingRoutes)
@@ -234,7 +233,7 @@ namespace Wayfarer.Tests
             // Test route access with equipment
             foreach (Item climbingItem in climbingItems)
             {
-                player.Inventory.AddItem(climbingItem.Name);
+                player.Inventory.AddItem(climbingItem.Id);
 
                 foreach (RouteOption route in climbingRoutes)
                 {
@@ -243,7 +242,7 @@ namespace Wayfarer.Tests
                     Assert.True(canAccess);
                 }
 
-                player.Inventory.RemoveItem(climbingItem.Name);
+                player.Inventory.RemoveItem(climbingItem.Id);
             }
         }
 
@@ -314,15 +313,12 @@ namespace Wayfarer.Tests
 
         private GameWorld CreateTestGameWorld()
         {
-            GameWorld gameWorld = new GameWorld();
-            Player player = gameWorld.GetPlayer();
-            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
-
-            gameWorld.WorldState.CurrentDay = 1;
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
-            gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
-
-            return gameWorld;
+            // Use the superior test pattern for consistent initialization
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(50))
+                .WithTimeState(t => t.Day(1).TimeBlock(TimeBlocks.Morning));
+                
+            return TestGameWorldInitializer.CreateTestWorld(scenario);
         }
 
         private TravelManager CreateTravelManager(GameWorld gameWorld)
