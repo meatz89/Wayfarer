@@ -52,7 +52,13 @@ public class ContractRepository
     /// </summary>
     public ContractCompletionResult GetContractStatus(string contractId)
     {
-        Contract contract = _gameWorld.ActiveContracts?.FirstOrDefault(c => c.Id == contractId);
+        // Ensure ActiveContracts is initialized before accessing
+        if (_gameWorld.ActiveContracts == null)
+        {
+            _gameWorld.ActiveContracts = new List<Contract>();
+        }
+        
+        Contract contract = _gameWorld.ActiveContracts.FirstOrDefault(c => c != null && c.Id == contractId);
         if (contract == null)
         {
             // Check if contract exists in world state but not active

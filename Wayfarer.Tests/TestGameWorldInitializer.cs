@@ -1,4 +1,5 @@
 using Wayfarer.Game.MainSystem;
+using System.IO;
 
 namespace Wayfarer.Tests;
 
@@ -118,43 +119,46 @@ public static class TestGameWorldInitializer
             }
         });
         
-        // Add basic test items
-        gameWorld.WorldState.Items.AddRange(new[]
+        // Load items from JSON file like production GameWorldInitializer
+        List<Item> items = new List<Item>();
+        string itemsFilePath = Path.Combine("Content", "Templates", "items.json");
+        if (File.Exists(itemsFilePath))
         {
-            new Item
+            items = GameWorldSerializer.DeserializeItems(
+                File.ReadAllText(itemsFilePath));
+            gameWorld.WorldState.Items.AddRange(items);
+            Console.WriteLine($"Loaded {items.Count} items from JSON templates.");
+        }
+        else
+        {
+            Console.WriteLine($"WARNING: items.json not found at {itemsFilePath}. Using basic test items.");
+            // Fallback to basic test items
+            gameWorld.WorldState.Items.AddRange(new[]
             {
-                Id = "herbs",
-                Name = "Herbs",
-                BuyPrice = 8,
-                SellPrice = 6,
-                Weight = 1,
-                Description = "Common medicinal herbs",
-                Categories = new List<EquipmentCategory>(),
-                ItemCategories = new List<ItemCategory> { ItemCategory.Trade_Goods }
-            },
-            new Item
-            {
-                Id = "tools",
-                Name = "Tools",
-                BuyPrice = 15,
-                SellPrice = 12,
-                Weight = 3,
-                Description = "Basic craftsman tools",
-                Categories = new List<EquipmentCategory>(),
-                ItemCategories = new List<ItemCategory> { ItemCategory.Finished_Goods }
-            },
-            new Item
-            {
-                Id = "rare_materials",
-                Name = "Rare Materials",
-                BuyPrice = 50,
-                SellPrice = 40,
-                Weight = 2,
-                Description = "Precious crafting materials",
-                Categories = new List<EquipmentCategory>(),
-                ItemCategories = new List<ItemCategory> { ItemCategory.Raw_Materials }
-            }
-        });
+                new Item
+                {
+                    Id = "herbs",
+                    Name = "Herbs",
+                    BuyPrice = 8,
+                    SellPrice = 6,
+                    Weight = 1,
+                    Description = "Common medicinal herbs",
+                    Categories = new List<EquipmentCategory>(),
+                    ItemCategories = new List<ItemCategory> { ItemCategory.Trade_Goods }
+                },
+                new Item
+                {
+                    Id = "tools",
+                    Name = "Tools",
+                    BuyPrice = 15,
+                    SellPrice = 12,
+                    Weight = 3,
+                    Description = "Basic craftsman tools",
+                    Categories = new List<EquipmentCategory>(),
+                    ItemCategories = new List<ItemCategory> { ItemCategory.Finished_Goods }
+                }
+            });
+        }
         
         // Set basic game state
         gameWorld.WorldState.CurrentDay = 1;

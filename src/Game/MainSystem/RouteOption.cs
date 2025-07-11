@@ -305,11 +305,11 @@ public class RouteOption
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
 
-        foreach (string itemName in player.Inventory.ItemSlots)
+        foreach (string itemId in player.Inventory.ItemSlots)
         {
-            if (itemName != null)
+            if (itemId != null && itemId != string.Empty)
             {
-                Item item = itemRepository.GetItemByName(itemName);
+                Item item = itemRepository.GetItemById(itemId);
                 if (item != null)
                 {
                     categories.AddRange(item.Categories);

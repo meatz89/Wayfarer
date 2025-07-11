@@ -37,9 +37,9 @@ namespace Wayfarer.Tests
             ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
             ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
-            // Create test locations with routes
-            Location townSquare = new Location("town_square", "Town Square");
-            Location dustyFlagon = new Location("dusty_flagon", "Dusty Flagon");
+            // Get existing locations from loaded JSON data
+            Location townSquare = locationRepository.GetLocation("town_square");
+            Location dustyFlagon = locationRepository.GetLocation("dusty_flagon");
 
             // Add route options
             RouteOption walkRoute = new RouteOption
@@ -74,8 +74,7 @@ namespace Wayfarer.Tests
                 RouteOptions = new List<RouteOption> { walkRoute, cartRoute }
             });
 
-            locationRepository.AddLocation(townSquare);
-            locationRepository.AddLocation(dustyFlagon);
+            // Locations already exist from JSON loading, no need to add them again
 
             ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
             TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression);
@@ -153,8 +152,7 @@ namespace Wayfarer.Tests
                 RouteOptions = new List<RouteOption> { weatherRoute }
             });
 
-            locationRepository.AddLocation(townSquare);
-            locationRepository.AddLocation(dustyFlagon);
+            // Locations already exist from JSON loading, no need to add them again
 
             ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
             TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression);
