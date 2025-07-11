@@ -45,6 +45,25 @@ public static class ItemParser
             }
         }
 
+        // Parse enhanced categorical properties
+        string sizeStr = GetStringProperty(root, "size", "Medium");
+        if (Enum.TryParse<SizeCategory>(sizeStr, out SizeCategory size))
+        {
+            item.Size = size;
+        }
+
+        string fragilityStr = GetStringProperty(root, "fragility", "Standard");
+        if (Enum.TryParse<FragilityCategory>(fragilityStr, out FragilityCategory fragility))
+        {
+            item.Fragility = fragility;
+        }
+
+        string socialSignalStr = GetStringProperty(root, "socialSignaling", "Commoner");
+        if (Enum.TryParse<SocialSignal>(socialSignalStr, out SocialSignal socialSignal))
+        {
+            item.SocialSignaling = socialSignal;
+        }
+
         return item;
     }
 

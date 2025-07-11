@@ -1,4 +1,6 @@
-﻿public class WorldState
+﻿using Wayfarer.Game.MainSystem;
+
+public class WorldState
 {
     // Core data collections
     public List<Location> locations { get; private set; } = new();
@@ -25,6 +27,7 @@
     // New properties
     public List<Item> Items { get; set; } = new List<Item>();
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
+    public List<Information> Informations { get; set; } = new List<Information>();
 
     // Current location tracking
     public Location CurrentLocation { get; private set; }

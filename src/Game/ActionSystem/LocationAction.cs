@@ -1,4 +1,6 @@
-﻿public record LocationAction
+﻿using Wayfarer.Game.ActionSystem;
+
+public record LocationAction
 {
     public string ActionId { get; set; }
     public string Name { get; set; }
@@ -13,7 +15,15 @@
     public string LocationSpotId { get; set; }
 
     public List<IRequirement> Requirements { get; set; } = new();
+    public List<IMechanicalEffect> Effects { get; set; } = new();
     public int ActionPointCost { get; set; }
+    public int SilverCost { get; set; }
+    public SkillCategories RefreshCardType { get; set; }
+    public int StaminaCost { get; set; }
+    public int ConcentrationCost { get; set; }
+
+    // Categorical properties
+    public PhysicalDemand PhysicalDemand { get; set; } = PhysicalDemand.None;
 
     public int Difficulty { get; set; } = 1;
     public List<ApproachDefinition> Approaches { get; set; } = new List<ApproachDefinition>();

@@ -1,8 +1,4 @@
-# USER STORIES - WAYFARER GAME DESIGN REQUIREMENTS
-
-This document defines the user-facing feature requirements and game design principles for Wayfarer, focusing on the distinction between game design vs application design.
-
-## CORE GAME DESIGN PRINCIPLES
+﻿# WAYFARER USER STORIES
 
 ### **Games vs Apps: Fundamental Difference**
 
@@ -20,192 +16,273 @@ This document defines the user-facing feature requirements and game design princ
 - **NO GAMEPLAY SHORTCUTS** - No "Trading Opportunities" UI panels that tell players exactly what to do
 - **NO OPTIMIZATION AUTOMATION** - Never show "Buy herbs at town_square (4 coins) → Sell at dusty_flagon (5 coins) = 1 profit"
 
-## USER STORIES BY CATEGORY
+## PLAYER EXPERIENCE TARGET
 
-### **Strategic Trading System**
+**Instead of**: "I can't use this route because my climbing skill isn't high enough"
+**Target**: "I can't use this route because it goes through [Mountain] terrain and I don't have [Climbing] equipment"
 
-**As a merchant player, I want to discover profitable trade routes through exploration and experimentation, so that I can develop my own trading strategies.**
-
-**Implementation Requirements:**
-- Markets show current item prices without automation suggestions
-- No "profitable opportunities" indicators or automated trade route suggestions
-- Price differences discovered through manual exploration and memory
-- Market information must be gathered by visiting locations personally
-
-**Success Criteria:**
-- Players build mental models of market patterns
-- Profitable trades discovered through player exploration, not system recommendations
-- Strategic decisions involve resource trade-offs (time vs profit vs risk)
-
-**Anti-Pattern Example:** ❌ Trading Opportunities panel showing "Buy herbs at market → Sell at tavern = 50% profit"
-**Correct Example:** ✅ Player visits market, notes herb prices, visits tavern, discovers price difference, develops trading strategy
+**Instead of**: "I can't carry this item because it's too heavy"
+**Target**: "I can carry this [Heavy] item, but it blocks [Cart] transport and takes 2 inventory slots from my 5-slot limit"
 
 ---
 
-### **Logical Equipment System**
+## EQUIPMENT AND ROUTE ACCESS
 
-**As a player, I want equipment to enable or block specific activities based on logical real-world relationships, so that I can understand and plan for requirements intuitively.**
+### **Logical Equipment Requirements**
+
+**As a player, I want route access determined by equipment categories and terrain categories, so that I can plan equipment loadouts based on logical real-world requirements.**
 
 **Implementation Requirements:**
-- Equipment categories determine capability access, not stat bonuses
-- Clear logical relationships between equipment types and terrain requirements
-- Visual indicators show equipment categories and their effects on route access
-- No arbitrary level requirements or hidden modifiers
+- [Mountain] routes require [Climbing] equipment category
+- [River] routes require [Navigation] equipment category  
+- [Urban] routes require [Social_Signal] equipment matching district category
+- Equipment categories visible in route interface
+- Clear blocking messages when requirements not met
+
+**Player Thought Process:**
+"I want to reach the mountain village. The route shows [Mountain] terrain requiring [Climbing] equipment. I have [Navigation] and [Social_Merchant] equipment but no [Climbing]. I need to visit the [Workshop] to commission [Climbing] gear, but that requires 3 days crafting time and I have a contract due in 2 days. Do I take the longer [Road] route that's cart-compatible, or delay the contract to get proper equipment?"
 
 **Success Criteria:**
 - Players understand equipment value through logical necessity
 - Route planning involves equipment strategy decisions
-- All equipment-terrain relationships are discoverable and logical
-
-**Anti-Pattern Example:** ❌ "Requires level 5 to use mountain routes"
-**Correct Example:** ✅ "Mountain terrain requires climbing equipment for safe passage"
+- All terrain-equipment relationships discoverable through logical inspection
 
 ---
 
-### **Time Pressure Contract System**
+### **Transport Compatibility Logic**
 
-**As a player, I want contracts with meaningful deadlines that create strategic pressure around time management, so that I must balance urgency vs thoroughness.**
+**As a player, I want transport methods limited by logical physical constraints, so that I understand why certain combinations don't work.**
 
 **Implementation Requirements:**
-- Contracts have clear deadlines that affect payment/reputation
-- Time blocks consumed by travel, work, and contract completion
-- Late delivery consequences affect future opportunities, not arbitrary penalties
-- Players can still attempt late deliveries but face reputation consequences
+- [Cart] transport blocks [Mountain] and [Forest] terrain categories
+- [Boat] transport only works on [River] routes
+- [Heavy] equipment blocks [Boat] and [Caravan] transport
+- Transport options show compatibility before selection
+- Clear explanations for blocked combinations
+
+**Player Thought Process:**
+"I have [Heavy] [Trade_Tools] and want to take the fast [Caravan] to [Crossbridge]. The interface shows [Caravan] transport is blocked by [Heavy] equipment. I can either drop the [Trade_Tools] and lose crafting opportunities, or use [Walking] transport which costs 2 stamina and takes 2 time periods instead of 1. The [Trade_Tools] might be needed for a [Craftsman] contract worth 12 coins. Is the time savings worth losing that opportunity?"
 
 **Success Criteria:**
-- Strategic decisions about which contracts to prioritize
-- Time pressure creates meaningful trade-offs between speed and profit
-- Reputation system affects contract availability naturally
-
-**Anti-Pattern Example:** ❌ "-50% payment penalty for late delivery"
-**Correct Example:** ✅ "Late delivery reduces reputation with client, affecting future contract offers"
+- Transport limitations feel logical and understandable
+- Players make strategic decisions about equipment vs transport efficiency
+- No arbitrary "you can't do this" without clear logical reason
 
 ---
 
-### **Weather-Terrain Interaction System**
+## SOCIAL SYSTEMS AND NPC INTERACTION
 
-**As a player, I want weather and terrain to create logical constraints that I can understand and plan around, so that I can make informed decisions about travel timing and equipment.**
+### **NPC Schedule Logic**
+
+**As a player, I want NPCs available at logical times based on their profession, so that I can plan my daily schedule around realistic availability.**
 
 **Implementation Requirements:**
-- Weather affects terrain accessibility based on logical relationships
-- Equipment requirements change based on weather-terrain combinations
-- All interactions visible and understandable in UI
-- No arbitrary efficiency modifiers or hidden calculations
+- [Merchant] NPCs available during [Market] hours: [Morning] and [Afternoon]
+- [Craftsman] NPCs available during [Workshop] hours: [Morning] through [Evening]
+- [Traveler] NPCs available at [Tavern] during [Evening] and [Night]
+- Schedule conflicts create strategic time management decisions
+
+**Player Thought Process:**
+"I need to commission [Climbing] gear from the [Craftsman] (available [Morning] to [Evening]), negotiate better prices with the [Merchant] (available [Morning] and [Afternoon]), and learn about mountain routes from the [Traveler] (available [Evening] at [Tavern]). I have 5 time periods but also need 1 period for travel to the mountain village. That's 4 activities needing 5 periods - something has to be cut or delayed."
 
 **Success Criteria:**
-- Players learn weather patterns through experience
-- Route planning considers weather forecasts and equipment needs
-- Strategic decisions about timing vs equipment investment
-
-**Anti-Pattern Example:** ❌ "Rain reduces travel efficiency by 20%"
-**Correct Example:** ✅ "Rain blocks exposed mountain routes unless you have weather protection equipment"
+- Scheduling conflicts create meaningful daily planning puzzles
+- NPC availability follows logical professional patterns
+- Players develop time management strategies
 
 ---
 
-### **Social Access System**
+## CONTRACT AND DEADLINE SYSTEMS
 
-**As a player, I want social interactions to depend on logical factors like appearance and reputation, so that I can understand and plan for social requirements.**
+### **Deadline Pressure Without Arbitrary Penalties**
+
+**As a player, I want contract deadlines to create strategic pressure through logical consequences, not arbitrary mathematical penalties.**
 
 **Implementation Requirements:**
-- Social access based on visible equipment categories (clothing, status symbols)
-- NPC interactions depend on logical social class expectations
-- Relationship building through consistent positive interactions
-- All social requirements discoverable through logical trial and error
+- Failed contracts damage relationship with issuing [NPC_Category]
+- [Hostile] relationships block future contract access from that category
+- No percentage-based payment reductions
+- Deadline pressure comes from opportunity cost and relationship consequences
+- Contract requirements clearly state time and equipment needs
+
+**Player Thought Process:**
+"I have a [Rush] contract due tomorrow requiring [Mountain] route access. I don't have [Climbing] equipment and the [Craftsman] needs 2 days to make it. Alternative: take the [Road] route (3 time periods vs 1), but that means working tonight to earn travel money and arriving exhausted. Do I sacrifice future opportunities or present efficiency?"
 
 **Success Criteria:**
-- Players understand social requirements through clear feedback
-- Investment in appropriate equipment/appearance opens new opportunities
-- Social strategy becomes part of economic planning
-
-**Anti-Pattern Example:** ❌ "Requires reputation level 10 to enter noble district"
-**Correct Example:** ✅ "Noble district requires appropriate attire to pass the doorkeeper"
+- Deadline pressure creates strategic decisions about prioritization
+- Consequences affect future opportunities, not arbitrary punishment
+- Players understand relationship stakes clearly
 
 ---
 
-### **Information Discovery System**
+### **Contract Complexity Through Equipment Requirements**
 
-**As a player, I want to gather useful information through exploration and NPC interaction, so that I can make better strategic decisions without automated assistance.**
+**As a player, I want contracts to require specific equipment categories, so that contract selection becomes part of equipment strategy.**
 
 **Implementation Requirements:**
-- NPCs provide information based on their profession and relationship
-- Market conditions, route hazards, and opportunities discovered through conversation
-- No automated information gathering or market analysis tools
-- Information quality depends on NPC trust and expertise
+- [Merchant] contracts require [Trade_Tools] for optimal completion
+- [Craftsman] contracts require [Workshop] access and [Trade_Tools]
+- [Exploration] contracts require [Navigation] and terrain-specific equipment
+- Contract requirements visible before acceptance
+
+**Player Thought Process:**
+"Three available contracts: [Merchant] contract (12 coins, requires [Trade_Tools]), [Exploration] contract (8 coins + bonuses, requires [Navigation] + [Climbing] equipment). I have [Trade_Tools] and [Navigation] but no [Climbing]. The [Merchant] contract is immediately doable. The [Exploration] contract needs 1 equipment piece. Which investment path creates the best long-term opportunities?"
 
 **Success Criteria:**
-- Players build information networks through NPC relationships
-- Strategic value in talking to different types of NPCs
-- Information gathering becomes part of business strategy
+- Equipment decisions integrate with contract strategy
+- Players evaluate equipment ROI across multiple contracts
+- Contract requirements drive equipment acquisition planning
 
-**Anti-Pattern Example:** ❌ "Market Analysis" screen showing all profitable trades
-**Correct Example:** ✅ "Trader NPCs share price information when you build relationships with them"
+---
 
-## DESIGN VALIDATION CHECKLIST
+## INFORMATION AND DISCOVERY SYSTEMS
 
-For every feature implementation, verify:
+### **Professional Information Networks**
 
-1. ✅ **Player Agency**: Does this feature require player decision-making and strategy?
-2. ✅ **Logical Basis**: Are all constraints based on understandable real-world logic?
-3. ✅ **Discovery Gameplay**: Will players learn and improve through experimentation?
-4. ✅ **No Automation**: Does this avoid solving puzzles for the player?
-5. ✅ **Meaningful Choices**: Do decisions involve sacrificing something valuable?
-6. ✅ **Emergent Complexity**: Do simple rules create interesting strategic depth?
+**As a player, I want to learn information through logical professional channels, so that I can build information networks that make strategic sense.**
 
-## PLAYER EXPERIENCE GOALS
+**Implementation Requirements:**
+- [Merchant] NPCs share [Price_Data] when relationship is [Helpful]
+- [Traveler] NPCs share [Route_Conditions] when approached with [Social_Traveler] equipment
+- [Local] NPCs share [Area_Specific] information when encountered at appropriate locations
+- Information quality depends on NPC expertise category, not arbitrary reputation numbers
+- No automated information gathering tools
 
-### **Short-term (Single Session)**
-- Player discovers 2-3 new pieces of useful information through exploration
-- Makes 1-2 strategic decisions involving resource trade-offs
-- Learns something new about how game systems interact
+**Player Thought Process:**
+"I want [Price_Data] for [Grain] trading. [Merchant] NPCs know prices but I need [Helpful] relationship first. Building that relationship requires completing [Merchant] contracts or having [Social_Merchant] equipment during encounters. I currently have [Social_Traveler] equipment which blocks [Merchant] encounters but enables [Route_Information] gathering. Do I change equipment to build [Merchant] networks, or use [Traveler] information to find efficient routes that reduce transport costs?"
 
-### **Medium-term (Several Sessions)**
-- Develops personal trading routes and strategies
-- Builds relationship networks with useful NPCs
-- Understands equipment and social requirements for different activities
+**Success Criteria:**
+- Information gathering requires strategic network building
+- Professional NPCs provide logically appropriate information types
+- Equipment choices affect information access
 
-### **Long-term (Campaign)**
-- Becomes expert at optimizing time/resource management
-- Discovers advanced strategies through system mastery
-- Develops unique personal approach to economic success
+---
 
-## ANTI-PATTERN EXAMPLES TO AVOID
+### **Location-Based Discovery**
 
-### ❌ **Automated Optimization**
-- "Best Route" calculators
-- "Profitable Opportunities" panels
-- Automatic market analysis tools
-- Route efficiency comparisons
+**As a player, I want to discover opportunities through logical location exploration, not automated quest systems.**
 
-### ❌ **Arbitrary Restrictions**
-- Level requirements for activities
-- Stat thresholds for equipment
-- Hidden modifiers and calculations
-- Percentage-based bonuses/penalties
+**Implementation Requirements:**
+- [Tavern] locations contain [Traveler] NPCs with [Route_Information]
+- [Workshop] locations enable [Equipment_Commissioning] and [Craft_Opportunities]
+- [Market] locations provide [Trade_Opportunities] and [Price_Information]
+- Discovery requires appropriate equipment and timing
 
-### ❌ **Gameplay Shortcuts**
-- Quest markers showing optimal paths
-- Automatic inventory management
-- Simplified decision-making interfaces
-- Progress bars for non-skill activities
+**Player Thought Process:**
+"I'm in a new town and need to discover opportunities. [Tavern] visit could reveal routes but costs 2 coins and 1 time period. [Workshop] visit might have equipment or contracts but needs [Trade_Tools] for full access. [Market] visit provides trade information but only during [Morning] and [Afternoon]. I have 3 time periods and [Social_Merchant] equipment. Which locations give the best information ROI for my current situation?"
 
-## SUCCESS METRICS
+**Success Criteria:**
+- Location exploration drives opportunity discovery
+- Players develop location visit strategies based on equipment and goals
+- No automated opportunity detection
 
-### **Engagement Indicators**
-- Players discuss strategies and discoveries
-- Multiple viable approaches to challenges
-- Player-generated optimization content
-- Questions about system mechanics
+---
 
-### **Learning Indicators**
-- Players experiment with different equipment combinations
-- Strategic planning visible in player behavior
-- Adaptation to changing game conditions
-- Development of personal playstyles
+## INVENTORY AND RESOURCE MANAGEMENT
+
+### **Categorical Inventory Constraints**
+
+**As a player, I want inventory limitations based on logical item categories, not arbitrary carrying capacity numbers.**
+
+**Implementation Requirements:**
+- Items have size categories: [Portable] (1 slot), [Heavy] (2 slots), [Bulk] (3 slots)
+- Base inventory: 5 slots
+- [Cart] transport adds 2 slots but blocks [Mountain] routes
+- [Heavy] items block certain transport methods
+- Inventory decisions affect transport and route strategy
+
+**Player Thought Process:**
+"I found [Bulk] [Trade_Goods] worth 15 coins but they take 3 slots. I have [Climbing] equipment (1 slot), [Navigation] equipment (1 slot), and [Social_Merchant] equipment (1 slot). That's 6 slots needed but only 5 available. I could drop [Climbing] equipment but that blocks [Mountain] routes. I could use [Cart] transport for +2 slots but that limits route choices and costs 2 coins. Do I sacrifice equipment flexibility, pay transport costs, or miss the trading opportunity?"
+
+**Success Criteria:**
+- Inventory decisions create strategic equipment trade-offs
+- Slot limitations drive transport and route decisions
+- No arbitrary weight/strength calculations
+
+---
+
+## TIME AND SCHEDULING SYSTEMS
+
+### **Period-Based Activity Planning**
+
+**As a player, I want daily scheduling based on logical time period constraints, not arbitrary action point systems.**
+
+**Implementation Requirements:**
+- Day divided into 5 periods: [Dawn], [Morning], [Afternoon], [Evening], [Night]
+- Each significant activity consumes 1 period
+- NPC availability tied to logical professional schedules
+- Transport schedules operate on period system
+- No action point regeneration or management mini-games
+
+**Player Thought Process:**
+"[Caravan] departs at [Dawn], [Market] operates [Morning] and [Afternoon]. I need to buy [Trade_Goods] at [Market], and catch [Dawn] [Caravan] tomorrow. That requires [Afternoon] market visit + [Evening] manor visit + staying overnight + [Dawn] departure. Can't do everything today - what's the optimal sequence?"
+
+**Success Criteria:**
+- Scheduling creates natural strategic pressure
+- Time periods feel like logical day segments
+- Players develop daily planning strategies
+
+---
+
+### **Transport Schedule Integration**
+
+**As a player, I want transport schedules that create logical timing constraints, not arbitrary cooldowns.**
+
+**Implementation Requirements:**
+- [Caravan] departs [Dawn] daily from major towns
+- [Boat] schedules depend on [River] conditions and [Weather]
+- [Cart] available for rental during [Workshop] hours
+- Missing scheduled transport means waiting until next availability
+- No "speed up" options or arbitrary delay mechanics
+
+**Player Thought Process:**
+"I need to reach [Millbrook] for a contract due tomorrow [Evening]. [Caravan] leaves [Dawn] (arrives [Morning], costs 3 coins, 0 stamina). [Walking] takes [Afternoon] + [Evening] (arrives [Night], costs 0 coins, 3 stamina). Missing [Dawn] [Caravan] means [Walking] is only option, but arriving [Night] means no [Evening] work opportunities. Do I spend money for time efficiency, or accept reduced opportunities to save coins?"
+
+**Success Criteria:**
+- Transport timing drives strategic resource allocation
+- Schedule conflicts create meaningful transportation decisions
+- No arbitrary waiting penalties
+
+---
+
+## LOCATION AND WORLD SYSTEMS
+
+### **Logical Location Access**
+
+**As a player, I want location access based on categorical prerequisites, not arbitrary unlocking systems.**
+
+**Implementation Requirements:**
+- [Workshop] areas accessible with [Trade_Tools] or [Craftsman] relationship
+- Access requirements visible before attempting entry
+
+**Player Thought Process:**
+"I want to access [Guild_Hall] for exclusive [Merchant] contracts. Entry requires [Guild_Token] (costs 20 coins) or [Helpful] relationship with [Guild_Master]. Building [Guild_Master] relationship requires completing [Merchant] contracts, but I need [Guild_Hall] access to get good [Merchant] contracts. Catch-22. Alternative: pay 20 coins for immediate access, but that uses money needed for [Equipment] upgrades. Do I invest in network access or capability expansion?"
+
+**Success Criteria:**
+- Location access drives relationship and equipment investment
+- Prerequisites create logical progression challenges
+- No arbitrary level-gating or hidden requirements
+
+---
+
+## SUCCESS METRICS AND VALIDATION
 
 ### **Strategic Depth Indicators**
-- Decisions have meaningful long-term consequences
-- Multiple factors influence optimal choices
-- Trade-offs exist between different approaches
-- Mastery requires understanding system interactions
+- Players discuss equipment loadout strategies
+- Multiple viable approaches to achieving goals
+- Scheduling and resource allocation become optimization puzzles
+- Equipment categories drive strategic decisions
 
-The goal is creating a game where the fun comes from the player's strategic thinking and discovery, not from automated systems that solve challenges for them.
+### **Logical Consistency Validation**
+- All constraints explainable through real-world logic
+- Category interactions follow intuitive patterns
+- No hidden mathematical modifiers affecting outcomes
+- Equipment and terrain relationships obvious to players
+
+### **Player Agency Confirmation**
+- Players discover optimization strategies through experimentation
+- Multiple solutions exist for most challenges
+- Game systems respond to player planning and preparation
+- Success comes from strategic thinking, not automated assistance
+
+The goal is creating a game where strategic depth emerges from logical categorical interactions, making every decision feel like solving an interesting optimization puzzle rather than navigating arbitrary game restrictions.
