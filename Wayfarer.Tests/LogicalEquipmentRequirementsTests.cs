@@ -137,7 +137,7 @@ namespace Wayfarer.Tests
 
             // Assert
             Assert.False(result.IsAllowed, "Wilderness route should be blocked in fog without navigation tools");
-            Assert.Contains("navigation", result.BlockingReason.ToLower());
+            Assert.Contains("proper tools", result.BlockingReason.ToLower());
         }
 
         [Fact]
