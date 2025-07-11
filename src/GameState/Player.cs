@@ -190,6 +190,10 @@ public class Player
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
+        
+        // Set max values that match initial values
+        MaxConcentration = 10; // Match initial Concentration = 10
+        MaxHealth = 10; // Set reasonable default for MaxHealth
 
         AvailableCards = new List<SkillCard>();
 

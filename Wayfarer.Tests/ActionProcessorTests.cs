@@ -115,8 +115,8 @@ public class ActionExecutionTests
         // === VERIFY USING DIRECT GAMEWORLD ACCESS ===
         Assert.Equal(initialCoins - 5, player.Coins);
         Assert.Equal(initialStamina - 3, player.Stamina);
-        // Concentration is clamped by MaxConcentration which is 0, so it stays at 0 regardless of cost
-        Assert.Equal(0, player.Concentration);
+        // Concentration should decrease by the cost amount
+        Assert.Equal(initialConcentration - 2, player.Concentration);
     }
 
     [Fact]
@@ -236,9 +236,10 @@ public class ActionExecutionTests
             ActionId = "valid_action",
             Name = "Valid Action",
             ActionPointCost = 1,
-            SilverCost = 1, // Player should have sufficient resources
+            SilverCost = 1, // Player should have sufficient resources (50 coins)
             StaminaCost = 1,
-            ConcentrationCost = 1
+            ConcentrationCost = 1,
+            Requirements = new List<IRequirement>() // Ensure no blocking requirements
         };
 
         // Act & Assert
