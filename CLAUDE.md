@@ -74,28 +74,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## DEVELOPMENT GUIDELINES
 
-### **CRITICAL: LOGICAL SYSTEM INTERACTIONS**
-**🚨 MANDATORY: Before implementing ANY system changes, read and follow `LOGICAL-SYSTEM-INTERACTIONS.MD`**
-
-#### **System Interdependency Design Principles**
-
-**FUNDAMENTAL RULE: Always prefer system interdependencies over single mechanic modifiers**
-
-✅ **CORRECT: Entity Category-Based System Interactions**
-```csharp
-// Weather + Terrain + Equipment interactions create emergent constraints
-if (weather == WeatherCondition.Rain && 
-    terrain == TerrainCategory.Exposed_Weather && 
-    !playerEquipment.Contains(EquipmentCategory.Weather_Protection))
-    return RouteAccessResult.Blocked("Rain makes exposed terrain unsafe without protection");
-```
-
-❌ **WRONG: Single Mechanic Mathematical Modifiers**
-```csharp
-// Arbitrary math that doesn't involve system relationships
-efficiency *= weather == WeatherCondition.Rain ? 0.8f : 1.0f;
-staminaCost = (int)(baseCost * efficiency);
-```
 
 **Key Implementation Requirements:**
 

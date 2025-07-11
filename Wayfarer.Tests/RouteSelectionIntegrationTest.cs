@@ -25,7 +25,7 @@ namespace Wayfarer.Tests
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
-            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld);
+            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, new ItemRepository(gameWorld));
             ItemRepository itemRepository = new ItemRepository(gameWorld);
 
             // Create test locations with routes
@@ -111,7 +111,7 @@ namespace Wayfarer.Tests
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
-            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld);
+            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, new ItemRepository(gameWorld));
             ItemRepository itemRepository = new ItemRepository(gameWorld);
 
             // Create test locations with weather-sensitive route

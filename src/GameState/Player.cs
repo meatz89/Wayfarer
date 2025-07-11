@@ -1,4 +1,7 @@
-﻿public class Player
+﻿using Wayfarer.Game.ActionSystem;
+using Wayfarer.Game.MainSystem;
+
+public class Player
 {
     // Core identity
     public string Name { get; set; }
@@ -23,10 +26,13 @@
     public int Food { get; set; }
 
     public int MaxActionPoints { get; set; } = 4;
-    public int MaxStamina { get; set; } = 6;
+    public int MaxStamina { get; set; } = 10;  // Changed to 10 to match 0-10 scale
     public int MaxConcentration { get; set; }
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
+
+    // Categorical Physical State
+    public PhysicalCondition CurrentPhysicalCondition { get; private set; } = PhysicalCondition.Good;
 
     public Inventory Inventory { get; set; } = new Inventory(6);
 
@@ -57,7 +63,7 @@
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
     public int CurrentDay { get; private set; }
 
-    public List<InformationItem> KnownInformation { get; private set; } = new List<InformationItem>();
+    public List<Information> KnownInformation { get; private set; } = new List<Information>();
 
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
 
@@ -111,22 +117,27 @@
         }
     }
 
-    public void LearnInformation(InformationItem item)
+    public void LearnInformation(Information information)
     {
-        if (!KnownInformation.Any(i => i.Key == item.Key))
+        if (!KnownInformation.Any(i => i.Id == information.Id))
         {
-            KnownInformation.Add(item);
+            KnownInformation.Add(information);
         }
     }
 
-    public bool KnowsInformation(string key)
+    public bool KnowsInformation(string id)
     {
-        return KnownInformation.Any(i => i.Key == key);
+        return KnownInformation.Any(i => i.Id == id);
     }
 
-    public List<InformationItem> GetInformationByTag(string tag)
+    public List<Information> GetInformationByType(InformationType type)
     {
-        return KnownInformation.Where(i => i.Tags.Contains(tag)).ToList();
+        return KnownInformation.Where(i => i.Type == type).ToList();
+    }
+
+    public List<Information> GetInformationAboutLocation(string locationId)
+    {
+        return KnownInformation.Where(i => i.IsAbout(locationId)).ToList();
     }
 
     public void AddMemory(string key, string description, int importance, int expirationDays = -1)
@@ -387,10 +398,7 @@
         this.Stamina = newStamina;
     }
 
-    public void ModifyStamina(int amount)
-    {
-        this.Stamina += amount;
-    }
+    // ModifyStamina moved to categorical stamina system section below
 
     public bool HasNonExhaustedCardOfType(SkillCategories requiredCardType)
     {
@@ -585,5 +593,129 @@
     public bool HasVisitedLocation(string requiredLocation)
     {
         return false;
+    }
+
+    // === CATEGORICAL STAMINA SYSTEM ===
+    // Implementation of deterministic categorical stamina states with hard gates
+
+    /// <summary>
+    /// Modifies stamina and updates categorical physical condition
+    /// </summary>
+    public bool ModifyStamina(int amount)
+    {
+        int newStamina = Math.Clamp(Stamina + amount, 0, MaxStamina);
+        if (newStamina != Stamina)
+        {
+            Stamina = newStamina;
+            UpdatePhysicalCondition();
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Updates the categorical physical condition based on current stamina level
+    /// </summary>
+    private void UpdatePhysicalCondition()
+    {
+        CurrentPhysicalCondition = Stamina switch
+        {
+            >= 9 => PhysicalCondition.Excellent,   // 9-10: Peak performance
+            >= 7 => PhysicalCondition.Good,        // 7-8: Normal condition  
+            >= 5 => PhysicalCondition.Tired,       // 5-6: Somewhat fatigued
+            >= 3 => PhysicalCondition.Exhausted,   // 3-4: Significantly fatigued
+            >= 1 => PhysicalCondition.Injured,     // 1-2: Physical impairment
+            _ => PhysicalCondition.Sick             // 0: Complete exhaustion
+        };
+    }
+
+    /// <summary>
+    /// Checks if player meets stamina requirements for categorical actions
+    /// </summary>
+    public bool CanPerformStaminaAction(PhysicalDemand physicalDemand)
+    {
+        return physicalDemand switch
+        {
+            PhysicalDemand.None => true,                    // Anyone can perform non-physical actions
+            PhysicalDemand.Light => Stamina >= 2,           // Requires 2+ stamina
+            PhysicalDemand.Moderate => Stamina >= 4,        // Requires 4+ stamina  
+            PhysicalDemand.Heavy => Stamina >= 6,           // Requires 6+ stamina
+            PhysicalDemand.Extreme => Stamina >= 8,         // Requires 8+ stamina
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Checks if player can perform dangerous route travel (requires 4+ stamina)
+    /// </summary>
+    public bool CanPerformDangerousTravel()
+    {
+        return Stamina >= 4;
+    }
+
+    /// <summary>
+    /// Checks if player can perform noble social encounters (requires 3+ stamina)
+    /// </summary>
+    public bool CanPerformNobleSocialEncounter()
+    {
+        return Stamina >= 3;
+    }
+
+    /// <summary>
+    /// Applies categorical stamina recovery based on lodging type
+    /// </summary>
+    public void ApplyCategoricalStaminaRecovery(string lodgingCategory)
+    {
+        int recoveryAmount = lodgingCategory.ToLower() switch
+        {
+            "rough" => 2,           // Rough lodging grants 2 points
+            "common" => 4,          // Common lodging grants 4 points
+            "private" => 6,         // Private lodging grants 6 points
+            "noble" => 8,           // Noble invitation grants 8 points
+            "noble_invitation" => 8,
+            _ => 2                  // Default to rough recovery
+        };
+
+        ModifyStamina(recoveryAmount);
+    }
+
+    /// <summary>
+    /// Applies categorical stamina costs for different action types
+    /// </summary>
+    public bool ApplyCategoricalStaminaCost(PhysicalDemand physicalDemand)
+    {
+        int staminaCost = physicalDemand switch
+        {
+            PhysicalDemand.None => 0,       // No stamina cost
+            PhysicalDemand.Light => 1,      // Light work costs 1 stamina
+            PhysicalDemand.Moderate => 2,   // Moderate work costs 2 stamina
+            PhysicalDemand.Heavy => 3,      // Heavy work costs 3 stamina
+            PhysicalDemand.Extreme => 4,    // Extreme work costs 4 stamina
+            _ => 0
+        };
+
+        if (Stamina >= staminaCost)
+        {
+            ModifyStamina(-staminaCost);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Gets description of current physical condition for UI display
+    /// </summary>
+    public string GetPhysicalConditionDescription()
+    {
+        return CurrentPhysicalCondition switch
+        {
+            PhysicalCondition.Excellent => "Excellent - Peak physical performance",
+            PhysicalCondition.Good => "Good - Normal physical condition",
+            PhysicalCondition.Tired => "Tired - Somewhat fatigued, limited heavy work",
+            PhysicalCondition.Exhausted => "Exhausted - Significantly fatigued, no heavy work",
+            PhysicalCondition.Injured => "Injured - Physical impairment, basic actions only",
+            PhysicalCondition.Sick => "Sick - Complete exhaustion, rest required",
+            _ => "Unknown condition"
+        };
     }
 }

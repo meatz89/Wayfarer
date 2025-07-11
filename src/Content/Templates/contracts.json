@@ -43,5 +43,194 @@
 		"isFailed": false,
 		"unlocksContractIds": [],
 		"locksContractIds": []
+	},
+	{
+		"id": "mountain_exploration",
+		"description": "Survey the treacherous mountain peaks for valuable mineral deposits",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "mountain_summit", 
+		"startDay": 1,
+		"dueDay": 5,
+		"payment": 80,
+		"failurePenalty": "Risk of injury and equipment loss",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [ "mining_rights" ],
+		"locksContractIds": [],
+		"requiredEquipmentCategories": [ "Climbing_Equipment", "Weather_Protection" ],
+		"requiredToolCategories": [ "Measurement_Tools", "Safety_Equipment" ],
+		"requiredSocialStanding": "Professional",
+		"physicalRequirement": "Heavy",
+		"requiredInformation": [
+			{
+				"requiredType": "Route_Conditions",
+				"minimumQuality": "Verified",
+				"minimumFreshness": "Current"
+			}
+		],
+		"requiredKnowledge": "Professional",
+		"category": "Exploration",
+		"priority": "High",
+		"riskLevel": "Moderate"
+	},
+	{
+		"id": "noble_court_audience",
+		"description": "Represent merchant interests at the monthly noble court session",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "royal_court",
+		"startDay": 3,
+		"dueDay": 3,
+		"payment": 120,
+		"failurePenalty": "Loss of merchant guild standing",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [ "royal_commission" ],
+		"locksContractIds": [],
+		"requiredEquipmentCategories": [ "Social_Signaling" ],
+		"requiredToolCategories": [ "Documentation", "Social_Attire" ],
+		"requiredSocialStanding": "Minor_Noble",
+		"physicalRequirement": "None",
+		"requiredInformation": [
+			{
+				"requiredType": "Social_Gossip",
+				"minimumQuality": "Reliable",
+				"minimumFreshness": "Current"
+			},
+			{
+				"requiredType": "Political_News",
+				"minimumQuality": "Verified",
+				"minimumFreshness": "Recent"
+			}
+		],
+		"requiredKnowledge": "Cultural",
+		"category": "Diplomatic",
+		"priority": "Critical",
+		"riskLevel": "Low"
+	},
+	{
+		"id": "urgent_trade_negotiation",
+		"description": "Emergency negotiation to secure grain supplies before winter shortage",
+		"requiredItems": [ "gold_coins" ],
+		"requiredLocations": [],
+		"destinationLocation": "merchant_guild",
+		"startDay": 2,
+		"dueDay": 2,
+		"payment": 200,
+		"failurePenalty": "Town faces food shortage crisis",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [],
+		"locksContractIds": [],
+		"requiredEquipmentCategories": [],
+		"requiredToolCategories": [ "Trade_Samples", "Documentation" ],
+		"requiredSocialStanding": "Merchant_Class",
+		"physicalRequirement": "Light",
+		"requiredInformation": [
+			{
+				"requiredType": "Market_Intelligence",
+				"minimumQuality": "Expert",
+				"minimumFreshness": "Breaking"
+			},
+			{
+				"requiredType": "Resource_Availability",
+				"minimumQuality": "Reliable",
+				"minimumFreshness": "Current"
+			}
+		],
+		"requiredKnowledge": "Commercial",
+		"category": "Emergency",
+		"priority": "Urgent",
+		"riskLevel": "High"
+	},
+	{
+		"id": "artisan_masterwork",
+		"description": "Create a masterwork piece for the guild's annual exhibition",
+		"requiredItems": [ "rare_materials" ],
+		"requiredLocations": [ "workshop" ],
+		"destinationLocation": "workshop",
+		"startDay": 1,
+		"dueDay": 7,
+		"payment": 150,
+		"failurePenalty": "Loss of artisan guild membership",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [ "guild_mastery" ],
+		"locksContractIds": [],
+		"requiredEquipmentCategories": [],
+		"requiredToolCategories": [ "Specialized_Equipment", "Quality_Materials", "Crafting_Supplies" ],
+		"requiredSocialStanding": "Artisan_Class",
+		"physicalRequirement": "Moderate",
+		"requiredInformation": [
+			{
+				"requiredType": "Professional_Knowledge",
+				"minimumQuality": "Expert",
+				"minimumFreshness": "Recent"
+			}
+		],
+		"requiredKnowledge": "Master",
+		"category": "Craftsman",
+		"priority": "Standard",
+		"riskLevel": "Low"
+	},
+	{
+		"id": "dangerous_ruins_exploration",
+		"description": "Investigate ancient ruins rumored to contain valuable artifacts",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "ancient_ruins",
+		"startDay": 4,
+		"dueDay": 6,
+		"payment": 300,
+		"failurePenalty": "Possible death or permanent injury",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [ "archaeologist_expedition" ],
+		"locksContractIds": [],
+		"requiredEquipmentCategories": [ "Light_Source", "Navigation_Tools", "Climbing_Equipment" ],
+		"requiredToolCategories": [ "Safety_Equipment", "Specialized_Equipment" ],
+		"requiredSocialStanding": "Professional",
+		"physicalRequirement": "Extreme",
+		"requiredInformation": [
+			{
+				"requiredType": "Location_Secrets",
+				"minimumQuality": "Verified",
+				"minimumFreshness": "Recent"
+			},
+			{
+				"requiredType": "Route_Conditions", 
+				"minimumQuality": "Reliable",
+				"minimumFreshness": "Current"
+			}
+		],
+		"requiredKnowledge": "Advanced",
+		"category": "Exploration",
+		"priority": "High",
+		"riskLevel": "Extreme"
+	},
+	{
+		"id": "simple_message_delivery",
+		"description": "Deliver a simple message to the local blacksmith",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "smithy",
+		"startDay": 1,
+		"dueDay": 1,
+		"payment": 3,
+		"failurePenalty": "Minor reputation loss",
+		"isCompleted": false,
+		"isFailed": false,
+		"unlocksContractIds": [],
+		"locksContractIds": [],
+		"requiredEquipmentCategories": [],
+		"requiredToolCategories": [],
+		"requiredSocialStanding": "Any",
+		"physicalRequirement": "None",
+		"requiredInformation": [],
+		"requiredKnowledge": "None",
+		"category": "General",
+		"priority": "Low",
+		"riskLevel": "None"
 	}
 ]

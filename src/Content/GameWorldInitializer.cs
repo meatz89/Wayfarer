@@ -1,4 +1,7 @@
-﻿public class GameWorldInitializer
+﻿using Wayfarer.Game.MainSystem;
+using Wayfarer.Content;
+
+public class GameWorldInitializer
 {
     private string _contentDirectory;
 
@@ -101,6 +104,38 @@
         else
         {
             Console.WriteLine("WARNING: No items loaded from JSON templates. Check items.json file.");
+        }
+
+        // Load information
+        List<Information> informations = new List<Information>();
+        string informationsFilePath = Path.Combine(templatePath, "informations.json");
+        if (File.Exists(informationsFilePath))
+        {
+            try
+            {
+                informations = InformationParser.ParseInformationArray(
+                    File.ReadAllText(informationsFilePath));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed to load informations from JSON: {ex.Message}");
+            }
+        }
+
+        // Add information to the game world
+        if (gameWorld.WorldState.Informations == null)
+        {
+            gameWorld.WorldState.Informations = new List<Information>();
+        }
+
+        if (informations.Any())
+        {
+            gameWorld.WorldState.Informations.AddRange(informations);
+            Console.WriteLine($"Loaded {informations.Count} information entries from JSON templates.");
+        }
+        else
+        {
+            Console.WriteLine("INFO: No information loaded from JSON templates. Create informations.json file to add information content.");
         }
 
         // Initialize player inventory if not already initialized

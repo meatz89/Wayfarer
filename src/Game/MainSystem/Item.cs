@@ -1,4 +1,6 @@
-﻿public enum EquipmentCategory
+﻿using Wayfarer.Game.ActionSystem;
+
+public enum EquipmentCategory
 {
     // Required categories (hard requirements)
     Climbing_Equipment,
@@ -25,6 +27,37 @@ public enum ItemCategory
     Services            // Intangible offerings
 }
 
+public enum SizeCategory
+{
+    Tiny,      // Fits in pocket, no transport concerns
+    Small,     // Single hand carry, minimal impact
+    Medium,    // Two-handed carry, some transport consideration
+    Large,     // Requires special transport planning or stamina cost
+    Massive    // Blocks route access without proper transport
+}
+
+public enum FragilityCategory
+{
+    Sturdy,    // Resistant to rough handling and weather
+    Standard,  // Normal item durability
+    Delicate,  // Requires careful handling
+    Fragile    // High risk of damage during rough travel
+}
+
+public enum SocialSignal
+{
+    Vagrant,        // Clearly destitute appearance
+    Commoner,       // Basic working-class signaling
+    Merchant,       // Commercial credentials and status
+    Artisan,        // Professional craftsperson standing
+    Minor_Noble,    // Lower nobility appearance
+    Major_Noble,    // High nobility status
+    Foreign,        // Clearly from another region/culture
+    Clergy,         // Religious figure status
+    Scholar,        // Academic/learned appearance
+    Professional    // Specialized professional credentials
+}
+
 public class Item
 {
     public string Id { get; set; }
@@ -35,6 +68,12 @@ public class Item
     public int InventorySlots { get; set; } = 1;
     public List<EquipmentCategory> Categories { get; set; } = new List<EquipmentCategory>();
     public List<ItemCategory> ItemCategories { get; set; } = new List<ItemCategory>();
+    
+    // Enhanced Categorical Properties
+    public SizeCategory Size { get; set; } = SizeCategory.Medium;
+    public FragilityCategory Fragility { get; set; } = FragilityCategory.Standard;
+    public SocialSignal SocialSignaling { get; set; } = SocialSignal.Commoner;
+    
     public string LocationId { get; set; }
     public string SpotId { get; set; }
     public string Description { get; set; }
@@ -75,6 +114,30 @@ public class Item
         }
     }
 
+    public string SizeCategoryDescription
+    {
+        get
+        {
+            return $"Size: {Size.ToString()}";
+        }
+    }
+
+    public string FragilityCategoryDescription
+    {
+        get
+        {
+            return $"Fragility: {Fragility.ToString()}";
+        }
+    }
+
+    public string SocialSignalingDescription
+    {
+        get
+        {
+            return $"Social Signaling: {SocialSignaling.ToString().Replace('_', ' ')}";
+        }
+    }
+
     public string AllCategoriesDescription
     {
         get
@@ -84,6 +147,9 @@ public class Item
                 descriptions.Add(EquipmentCategoriesDescription);
             if (!string.IsNullOrEmpty(ItemCategoriesDescription))
                 descriptions.Add(ItemCategoriesDescription);
+            descriptions.Add(SizeCategoryDescription);
+            descriptions.Add(FragilityCategoryDescription);
+            descriptions.Add(SocialSignalingDescription);
             return string.Join(" • ", descriptions);
         }
     }
@@ -111,6 +177,35 @@ public class Item
         {
             return Categories.Any() && ItemCategories.Any();
         }
+    }
+
+    // Categorical matching helper methods
+    public bool HasEquipmentCategory(EquipmentCategory equipmentCategory)
+    {
+        return Categories.Contains(equipmentCategory);
+    }
+
+    public bool HasToolCategory(ToolCategory toolCategory)
+    {
+        // ToolCategory now represents non-equipment tool needs
+        // This would be used for checking if item can fulfill general tool requirements
+        // For now, return false since items don't directly map to these general categories
+        return false;
+    }
+
+    public bool IsSizeCategory(SizeCategory sizeCategory)
+    {
+        return Size == sizeCategory;
+    }
+
+    public bool IsFragilityCategory(FragilityCategory fragilityCategory)
+    {
+        return Fragility == fragilityCategory;
+    }
+
+    public bool HasSocialSignal(SocialSignal socialSignal)
+    {
+        return SocialSignaling == socialSignal;
     }
 
     public bool IsAvailable { get; internal set; }

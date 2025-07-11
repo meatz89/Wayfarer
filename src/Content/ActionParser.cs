@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Game.ActionSystem;
 
 public static class ActionParser
 {
@@ -68,6 +69,9 @@ public static class ActionParser
         action.MoveToLocation = GetStringProperty(root, "moveToLocation", null);
         action.MoveToLocationSpot = GetStringProperty(root, "moveToLocationSpot", null);
 
+        // Parse categorical properties
+        ParseCategoricalProperties(root, action);
+
         return action;
     }
 
@@ -116,5 +120,116 @@ public static class ActionParser
         }
 
         return results;
+    }
+
+    private static void ParseCategoricalProperties(JsonElement root, ActionDefinition action)
+    {
+        // Parse physical demand
+        string physicalDemand = GetStringProperty(root, "physicalDemand", "None");
+        if (Enum.TryParse(physicalDemand, true, out PhysicalDemand demand))
+        {
+            action.PhysicalDemand = demand;
+        }
+
+        // Parse social requirement
+        string socialRequirement = GetStringProperty(root, "socialRequirement", "Any");
+        if (Enum.TryParse(socialRequirement, true, out SocialRequirement social))
+        {
+            action.SocialRequirement = social;
+        }
+
+        // Parse knowledge requirement
+        string knowledgeRequirement = GetStringProperty(root, "knowledgeRequirement", "None");
+        if (Enum.TryParse(knowledgeRequirement, true, out KnowledgeRequirement knowledge))
+        {
+            action.KnowledgeRequirement = knowledge;
+        }
+
+        // Parse time investment
+        string timeInvestment = GetStringProperty(root, "timeInvestment", "Standard");
+        if (Enum.TryParse(timeInvestment, true, out TimeInvestment time))
+        {
+            action.TimeInvestment = time;
+        }
+
+        // Parse tool requirements array
+        if (root.TryGetProperty("toolRequirements", out JsonElement toolsElement) &&
+            toolsElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement toolElement in toolsElement.EnumerateArray())
+            {
+                if (toolElement.ValueKind == JsonValueKind.String)
+                {
+                    string toolStr = toolElement.GetString();
+                    if (!string.IsNullOrEmpty(toolStr))
+                    {
+                        // Try to parse as ToolCategory first
+                        if (Enum.TryParse(toolStr, true, out ToolCategory tool))
+                        {
+                            action.ToolRequirements.Add(tool);
+                        }
+                        // If that fails, try to parse as EquipmentCategory
+                        else if (Enum.TryParse(toolStr, true, out EquipmentCategory equipment))
+                        {
+                            action.EquipmentRequirements.Add(equipment);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Parse equipment requirements array (if explicitly specified)
+        if (root.TryGetProperty("equipmentRequirements", out JsonElement equipmentElement) &&
+            equipmentElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement equipElement in equipmentElement.EnumerateArray())
+            {
+                if (equipElement.ValueKind == JsonValueKind.String)
+                {
+                    string equipStr = equipElement.GetString();
+                    if (!string.IsNullOrEmpty(equipStr) && 
+                        Enum.TryParse(equipStr, true, out EquipmentCategory equipment))
+                    {
+                        action.EquipmentRequirements.Add(equipment);
+                    }
+                }
+            }
+        }
+
+        // Parse environment requirements array
+        if (root.TryGetProperty("environmentRequirements", out JsonElement envElement) &&
+            envElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement envRequirement in envElement.EnumerateArray())
+            {
+                if (envRequirement.ValueKind == JsonValueKind.String)
+                {
+                    string envStr = envRequirement.GetString();
+                    if (!string.IsNullOrEmpty(envStr) && 
+                        Enum.TryParse(envStr, true, out EnvironmentCategory env))
+                    {
+                        action.EnvironmentRequirements.Add(env);
+                    }
+                }
+            }
+        }
+
+        // Parse effect categories array
+        if (root.TryGetProperty("effectCategories", out JsonElement effectsElement) &&
+            effectsElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement effectElement in effectsElement.EnumerateArray())
+            {
+                if (effectElement.ValueKind == JsonValueKind.String)
+                {
+                    string effectStr = effectElement.GetString();
+                    if (!string.IsNullOrEmpty(effectStr) && 
+                        Enum.TryParse(effectStr, true, out EffectCategory effect))
+                    {
+                        action.EffectCategories.Add(effect);
+                    }
+                }
+            }
+        }
     }
 }

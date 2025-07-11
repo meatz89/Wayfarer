@@ -26,14 +26,81 @@ efficiency *= weather == WeatherCondition.Rain ? 0.8f : 1.0f;
 staminaCost = (int)(baseCost * efficiency);
 ```
 
+## IMPLEMENTED CATEGORICAL SYSTEMS ✅
+
+### **Contract Categorical System - COMPLETE**
+
+**IMPLEMENTED**: Contracts with comprehensive categorical requirements for strategic planning.
+
+#### **Contract Requirement Categories ✅**
+- **Equipment Categories**: Climbing_Equipment, Navigation_Tools, Weather_Protection, Social_Signaling
+- **Tool Categories**: Specialized_Equipment, Quality_Materials, Trade_Samples, Documentation
+- **Social Requirements**: Commoner, Merchant_Class, Professional, Minor_Noble, Major_Noble
+- **Physical Demands**: None, Light, Moderate, Heavy, Extreme (with stamina thresholds)
+- **Information Requirements**: Categorical type, quality, and freshness prerequisites
+- **Knowledge Requirements**: Basic, Professional, Advanced, Expert, Master levels
+
+#### **Contract Category Interactions ✅**
+```csharp
+// CORRECT: Multiple categorical prerequisites creating strategic complexity
+var explorationContract = new Contract {
+    RequiredEquipmentCategories = { EquipmentCategory.Navigation_Tools, EquipmentCategory.Weather_Protection },
+    RequiredSocialStanding = SocialRequirement.Professional,
+    PhysicalRequirement = PhysicalDemand.Heavy,
+    RequiredInformation = { new InformationRequirementData(InformationType.Route_Conditions, InformationQuality.Verified) },
+    Category = ContractCategory.Exploration,
+    Priority = ContractPriority.High,
+    RiskLevel = ContractRisk.Moderate
+};
+
+// Contract validation provides detailed strategic information
+ContractAccessResult result = contract.GetAccessResult(player, currentLocation);
+// Returns: CanAccept, CanComplete, AcceptanceBlockers, CompletionBlockers, MissingRequirements
+```
+
+### **Physical Demand Categorical System - COMPLETE**
+
+**IMPLEMENTED**: Hard categorical gates replacing arbitrary mathematical penalties.
+
+#### **Stamina Categorical Gates ✅**
+```csharp
+// CORRECT: Hard categorical thresholds
+public bool CanPerformStaminaAction(PhysicalDemand demand) =>
+    demand switch {
+        PhysicalDemand.None => true,
+        PhysicalDemand.Light => Stamina >= 2,
+        PhysicalDemand.Moderate => Stamina >= 4,
+        PhysicalDemand.Heavy => Stamina >= 6,
+        PhysicalDemand.Extreme => Stamina >= 8,
+        _ => false
+    };
+
+// WRONG: Sliding scale penalties
+// efficiency = Stamina / MaxStamina; // FORBIDDEN PATTERN
+```
+
+#### **Recovery Based on Demand Categories ✅**
+```csharp
+// CORRECT: Recovery based on activity category
+private int GetPhysicalRecoveryAmount(PhysicalDemand demand) =>
+    demand switch {
+        PhysicalDemand.None => 2,      // Rest activities provide recovery
+        PhysicalDemand.Light => 1,     // Light activity with some recovery
+        PhysicalDemand.Moderate => 0,  // No recovery during moderate work
+        PhysicalDemand.Heavy => 0,     // No recovery during heavy work
+        PhysicalDemand.Extreme => 0,   // No recovery during extreme exertion
+        _ => 0
+    };
+```
+
 ## ENTITY CATEGORIZATION SYSTEM
 
-### **Items (Multiple Categories Per Item)**
-- **EquipmentCategory**: [Climbing_Equipment, Weather_Protection, Navigation_Tools, Water_Transport, Permission_Documents]
-- **ItemCategory**: [Tools, Food, Materials, Luxury_Goods, Information]
-- **Social_Signal**: [Commoner, Merchant, Artisan, Noble, Foreign]
-- **Size**: [Tiny, Small, Medium, Large, Massive]
-- **Fragility**: [Sturdy, Standard, Delicate, Fragile]
+### **Items (Multiple Categories Per Item) - ENHANCED ✅**
+- **EquipmentCategory**: [Climbing_Equipment, Weather_Protection, Navigation_Tools, Social_Signaling, Permission_Documents]
+- **ToolCategory**: [Specialized_Equipment, Quality_Materials, Trade_Samples, Documentation, Measurement_Tools]
+- **Size**: [Tiny, Small, Medium, Large, Massive] (affects transport and inventory slots)
+- **Fragility**: [Sturdy, Standard, Delicate, Fragile] (affects travel risk and durability)
+- **SocialSignaling**: Context-dependent enhancement/blocking of social interactions
 
 ### **Routes (Multiple Categories Per Route)**
 - **TerrainCategory**: [Requires_Climbing, Wilderness_Terrain, Exposed_Weather, Dark_Passage, Requires_Water_Transport, Requires_Permission]
