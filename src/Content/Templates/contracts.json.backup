@@ -34,6 +34,9 @@
 	{
 		"id": "herb_delivery",
 		"description": "Collect herbs for the innkeeper",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 1,
 		"dueDay": 2,
 		"payment": 5,
@@ -66,6 +69,9 @@
 	{
 		"id": "carpenter_special",
 		"description": "Special job from the carpenter",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 2,
 		"dueDay": 4,
 		"payment": 25,
@@ -91,6 +97,9 @@
 	{
 		"id": "mountain_exploration",
 		"description": "Survey the treacherous mountain peaks for valuable mineral deposits",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 1,
 		"dueDay": 5,
 		"payment": 80,
@@ -122,6 +131,9 @@
 	{
 		"id": "noble_court_audience",
 		"description": "Represent merchant interests at the monthly noble court session",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 3,
 		"dueDay": 3,
 		"payment": 120,
@@ -158,6 +170,9 @@
 	{
 		"id": "urgent_trade_negotiation",
 		"description": "Emergency negotiation to secure grain supplies before winter shortage",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 2,
 		"dueDay": 2,
 		"payment": 200,
@@ -201,6 +216,9 @@
 	{
 		"id": "artisan_masterwork",
 		"description": "Create a masterwork piece for the guild's annual exhibition",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 1,
 		"dueDay": 7,
 		"payment": 150,
@@ -239,6 +257,9 @@
 	{
 		"id": "dangerous_ruins_exploration",
 		"description": "Investigate ancient ruins rumored to contain valuable artifacts",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 4,
 		"dueDay": 6,
 		"payment": 300,
@@ -275,6 +296,9 @@
 	{
 		"id": "simple_message_delivery",
 		"description": "Deliver a simple message to the local blacksmith",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 1,
 		"dueDay": 1,
 		"payment": 3,
@@ -300,6 +324,9 @@
 	{
 		"id": "deliver_silk_to_millbrook",
 		"description": "Deliver silk bolts to Millbrook by any means necessary",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 1,
 		"dueDay": 3,
 		"payment": 20,
@@ -332,6 +359,9 @@
 	{
 		"id": "acquire_climbing_gear",
 		"description": "Obtain climbing equipment from any source",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 1,
 		"dueDay": 2,
 		"payment": 10,
@@ -364,6 +394,9 @@
 	{
 		"id": "meet_guild_master",
 		"description": "Speak with the Guild Master about membership opportunities",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 2,
 		"dueDay": 4,
 		"payment": 30,
@@ -389,6 +422,9 @@
 	{
 		"id": "scout_mountain_pass",
 		"description": "Travel to the mountain pass to assess route conditions",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 1,
 		"dueDay": 3,
 		"payment": 25,
@@ -414,6 +450,9 @@
 	{
 		"id": "organize_warehouse_inventory",
 		"description": "Help organize the merchant warehouse inventory",
+		"requiredItems": [],
+		"requiredLocations": [],
+		"destinationLocation": "",
 		"startDay": 1,
 		"dueDay": 2,
 		"payment": 15,

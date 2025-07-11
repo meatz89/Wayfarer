@@ -187,17 +187,19 @@
 
     private void GenerateExclusiveContract()
     {
-        // For POC, create a special high-value contract
+        // For POC, create a special high-value contract using new completion action pattern
         Contract exclusiveContract = new Contract
         {
             Id = $"exclusive_{gameWorld.CurrentDay}",
             Description = "Exclusive Merchant Opportunity",
-            RequiredItems = new List<string> { "Tools" },
-            DestinationLocation = "Crossbridge",
             StartDay = gameWorld.CurrentDay,
             DueDay = gameWorld.CurrentDay + 3,
             Payment = 25,
-            FailurePenalty = "Reputation loss with Merchant Guild"
+            FailurePenalty = "Reputation loss with Merchant Guild",
+            RequiredTransactions = new List<ContractTransaction>
+            {
+                new ContractTransaction("Tools", "Crossbridge", TransactionType.Sell, 1)
+            }
         };
 
         contractRepository.AddContract(exclusiveContract);

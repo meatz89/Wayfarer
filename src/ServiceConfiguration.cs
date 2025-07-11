@@ -1,4 +1,5 @@
 ﻿using Wayfarer.UIHelpers;
+using Wayfarer.Game.MainSystem;
 
 public static class ServiceConfiguration
 {
@@ -22,6 +23,10 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<ContractRepository>();
+        
+        // Register contract services
+        services.AddSingleton<ContractValidationService>();
+        services.AddSingleton<ContractProgressionService>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();

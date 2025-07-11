@@ -1,13 +1,14 @@
 using Xunit;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests
 {
     /// <summary>
     /// Unit tests for Contract deadline enforcement system.
     /// These tests validate the time-bound delivery constraints that create urgency
-    /// and strategic decision-making in the  simulation.
+    /// and strategic decision-making in the simulation.
     /// 
-    /// User Story: Contract Time Pressure ()
+    /// User Story: Contract Time Pressure
     /// Priority: MEDIUM - Adds strategic depth to time management
     /// </summary>
     public class ContractDeadlineTests
@@ -19,8 +20,24 @@ namespace Wayfarer.Tests
         [Fact]
         public void Contract_Should_Be_Available_Within_Time_Window()
         {
-            // Arrange
-            Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithTimeState(t => t.Day(1))
+                .WithContracts(c => c.Add("test_contract")
+                    .RequiresVisit("test_location")
+                    .WithDescription("Test contract")
+                    .Build());
+
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            ContractRepository contractRepo = new ContractRepository(gameWorld);
+            
+            Contract? contract = contractRepo.GetContract("test_contract");
+            Assert.NotNull(contract);
+            
+            // Set specific start and due dates
+            contract.StartDay = 1;
+            contract.DueDay = 5;
 
             // Act & Assert - Contract should be available on days 1-5
             Assert.True(contract.IsAvailable(1, TimeBlocks.Morning));
@@ -35,8 +52,23 @@ namespace Wayfarer.Tests
         [Fact]
         public void Contract_Should_Not_Be_Available_Before_Start_Date()
         {
-            // Arrange
-            Contract contract = CreateTestContract(startDay: 3, dueDay: 7);
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithContracts(c => c.Add("test_contract")
+                    .RequiresVisit("test_location")
+                    .WithDescription("Test contract")
+                    .Build());
+
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            ContractRepository contractRepo = new ContractRepository(gameWorld);
+            
+            Contract? contract = contractRepo.GetContract("test_contract");
+            Assert.NotNull(contract);
+            
+            // Set specific start and due dates
+            contract.StartDay = 3;
+            contract.DueDay = 7;
 
             // Act & Assert - Contract should not be available on days 1-2
             Assert.False(contract.IsAvailable(1, TimeBlocks.Morning));
@@ -50,8 +82,23 @@ namespace Wayfarer.Tests
         [Fact]
         public void Contract_Should_Not_Be_Available_After_Due_Date()
         {
-            // Arrange
-            Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithContracts(c => c.Add("test_contract")
+                    .RequiresVisit("test_location")
+                    .WithDescription("Test contract")
+                    .Build());
+
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            ContractRepository contractRepo = new ContractRepository(gameWorld);
+            
+            Contract? contract = contractRepo.GetContract("test_contract");
+            Assert.NotNull(contract);
+            
+            // Set specific start and due dates
+            contract.StartDay = 1;
+            contract.DueDay = 5;
 
             // Act & Assert - Contract should not be available after day 5
             Assert.False(contract.IsAvailable(6, TimeBlocks.Morning));
@@ -65,8 +112,22 @@ namespace Wayfarer.Tests
         [Fact]
         public void Contract_Should_Not_Be_Available_When_Completed()
         {
-            // Arrange
-            Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithContracts(c => c.Add("test_contract")
+                    .RequiresVisit("test_location")
+                    .WithDescription("Test contract")
+                    .Build());
+
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            ContractRepository contractRepo = new ContractRepository(gameWorld);
+            
+            Contract? contract = contractRepo.GetContract("test_contract");
+            Assert.NotNull(contract);
+            
+            contract.StartDay = 1;
+            contract.DueDay = 5;
             contract.IsCompleted = true;
 
             // Act & Assert - Completed contract should not be available even within time window
@@ -80,8 +141,22 @@ namespace Wayfarer.Tests
         [Fact]
         public void Contract_Should_Not_Be_Available_When_Failed()
         {
-            // Arrange
-            Contract contract = CreateTestContract(startDay: 1, dueDay: 5);
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithContracts(c => c.Add("test_contract")
+                    .RequiresVisit("test_location")
+                    .WithDescription("Test contract")
+                    .Build());
+
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            ContractRepository contractRepo = new ContractRepository(gameWorld);
+            
+            Contract? contract = contractRepo.GetContract("test_contract");
+            Assert.NotNull(contract);
+            
+            contract.StartDay = 1;
+            contract.DueDay = 5;
             contract.IsFailed = true;
 
             // Act & Assert - Failed contract should not be available even within time window
@@ -95,18 +170,37 @@ namespace Wayfarer.Tests
         [Fact]
         public void ContractSystem_Should_Identify_Failed_Contracts_After_Deadline()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            MessageSystem messageSystem = new MessageSystem();
-            ContractRepository contractRepository = new ContractRepository(gameWorld);
-            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithTimeState(t => t.Day(4))
+                .WithContracts(c => c
+                    .Add("contract1")
+                        .RequiresVisit("test_location")
+                        .WithDescription("Contract 1")
+                        .Build()
+                    .Add("contract2")
+                        .RequiresVisit("test_location")
+                        .WithDescription("Contract 2")
+                        .Build());
 
-            Contract contract1 = CreateTestContract("contract1", startDay: 1, dueDay: 3);
-            Contract contract2 = CreateTestContract("contract2", startDay: 2, dueDay: 5);
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
+            
+            Contract? contract1 = contractRepository.GetContract("contract1");
+            Contract? contract2 = contractRepository.GetContract("contract2");
+            Assert.NotNull(contract1);
+            Assert.NotNull(contract2);
+            
+            // Set specific dates
+            contract1.StartDay = 1;
+            contract1.DueDay = 3;
+            contract2.StartDay = 2;
+            contract2.DueDay = 5;
 
             gameWorld.ActiveContracts.Add(contract1);
             gameWorld.ActiveContracts.Add(contract2);
-            gameWorld.CurrentDay = 4; // Day 4 - contract1 should fail, contract2 still active
 
             // Act
             contractSystem.CheckForFailedContracts();
@@ -125,19 +219,31 @@ namespace Wayfarer.Tests
         [Fact]
         public void Contract_Deadline_Should_Integrate_With_Time_Block_System()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            TimeManager timeManager = new TimeManager(gameWorld.GetPlayer(), gameWorld.WorldState);
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithTimeState(t => t.Day(2))
+                .WithContracts(c => c.Add("test_contract")
+                    .RequiresVisit("test_location")
+                    .WithDescription("Test contract")
+                    .Build());
 
-            Contract contract = CreateTestContract(startDay: 1, dueDay: 3);
-            gameWorld.CurrentDay = 2; // One day before deadline
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            TimeManager timeManager = gameWorld.TimeManager;
+            ContractRepository contractRepo = new ContractRepository(gameWorld);
+            
+            Contract? contract = contractRepo.GetContract("test_contract");
+            Assert.NotNull(contract);
+            
+            contract.StartDay = 1;
+            contract.DueDay = 3;
 
             // Act & Assert
-            int daysRemaining = contract.DueDay - gameWorld.CurrentDay;
+            int daysRemaining = contract.DueDay - gameWorld.WorldState.CurrentDay;
             Assert.Equal(1, daysRemaining);
 
             // Contract should still be available but urgent
-            Assert.True(contract.IsAvailable(gameWorld.CurrentDay, timeManager.GetCurrentCurrentTimeBlock()));
+            Assert.True(contract.IsAvailable(gameWorld.WorldState.CurrentDay, timeManager.GetCurrentCurrentTimeBlock()));
         }
 
         /// <summary>
@@ -147,20 +253,47 @@ namespace Wayfarer.Tests
         [Fact]
         public void ContractSystem_Should_Handle_Multiple_Contracts_With_Different_Deadlines()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            MessageSystem messageSystem = new MessageSystem();
-            ContractRepository contractRepository = new ContractRepository(gameWorld);
-            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithTimeState(t => t.Day(3))
+                .WithContracts(c => c
+                    .Add("urgent")
+                        .RequiresVisit("test_location")
+                        .WithDescription("Urgent contract")
+                        .Build()
+                    .Add("normal")
+                        .RequiresVisit("test_location")
+                        .WithDescription("Normal contract")
+                        .Build()
+                    .Add("later")
+                        .RequiresVisit("test_location")
+                        .WithDescription("Later contract")
+                        .Build());
 
-            Contract urgentContract = CreateTestContract("urgent", startDay: 1, dueDay: 2);
-            Contract normalContract = CreateTestContract("normal", startDay: 1, dueDay: 5);
-            Contract laterContract = CreateTestContract("later", startDay: 3, dueDay: 10);
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository);
+            
+            Contract? urgentContract = contractRepository.GetContract("urgent");
+            Contract? normalContract = contractRepository.GetContract("normal");
+            Contract? laterContract = contractRepository.GetContract("later");
+            
+            Assert.NotNull(urgentContract);
+            Assert.NotNull(normalContract);
+            Assert.NotNull(laterContract);
+            
+            // Set specific dates
+            urgentContract.StartDay = 1;
+            urgentContract.DueDay = 2;
+            normalContract.StartDay = 1;
+            normalContract.DueDay = 5;
+            laterContract.StartDay = 3;
+            laterContract.DueDay = 10;
 
             gameWorld.ActiveContracts.Add(urgentContract);
             gameWorld.ActiveContracts.Add(normalContract);
             gameWorld.ActiveContracts.Add(laterContract);
-            gameWorld.CurrentDay = 3; // Day 3
 
             // Act
             contractSystem.CheckForFailedContracts();
@@ -179,18 +312,28 @@ namespace Wayfarer.Tests
         [Fact]
         public void ContractSystem_Should_Generate_Failure_Messages()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithTimeState(t => t.Day(3))
+                .WithContracts(c => c.Add("testContract")
+                    .RequiresVisit("town_square")
+                    .WithDescription("Deliver goods to Town Square")
+                    .Build());
+
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             MessageSystem messageSystem = new MessageSystem();
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository);
-
-            Contract contract = CreateTestContract("testContract", startDay: 1, dueDay: 2);
-            contract.Description = "Deliver goods to Town Square";
+            
+            Contract? contract = contractRepository.GetContract("testContract");
+            Assert.NotNull(contract);
+            
+            contract.StartDay = 1;
+            contract.DueDay = 2;
             contract.FailurePenalty = "Lost reputation and 10 coin penalty";
 
             gameWorld.ActiveContracts.Add(contract);
-            gameWorld.CurrentDay = 3; // Past deadline
 
             // Act
             contractSystem.CheckForFailedContracts();
@@ -210,17 +353,29 @@ namespace Wayfarer.Tests
         [Fact]
         public void Contract_Deadline_Should_Create_Time_Pressure_For_Travel_Planning()
         {
-            // Arrange
-            Contract contract = CreateTestContract(startDay: 1, dueDay: 3);
-            contract.DestinationLocation = "distant_city";
+            // Arrange - Using new superior test pattern
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p.StartAt("town_square"))
+                .WithTimeState(t => t.Day(2))
+                .WithLocations(l => l.Add("distant_city").WithDescription("A distant city").Build())
+                .WithContracts(c => c.Add("test_contract")
+                    .RequiresVisit("distant_city")
+                    .WithDescription("Delivery to distant city")
+                    .Build());
 
-            // Simulate player on day 2 with 1 day remaining
-            int currentDay = 2;
-            int daysRemaining = contract.DueDay - currentDay;
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            ContractRepository contractRepo = new ContractRepository(gameWorld);
+            
+            Contract? contract = contractRepo.GetContract("test_contract");
+            Assert.NotNull(contract);
+            
+            contract.StartDay = 1;
+            contract.DueDay = 3;
 
             // Act & Assert
+            int daysRemaining = contract.DueDay - gameWorld.WorldState.CurrentDay;
             Assert.Equal(1, daysRemaining);
-            Assert.True(contract.IsAvailable(currentDay, TimeBlocks.Morning));
+            Assert.True(contract.IsAvailable(gameWorld.WorldState.CurrentDay, TimeBlocks.Morning));
 
             // This creates urgency - player must travel and complete in 1 day
             // Integration with time block system means they have 5 time blocks to:
@@ -228,51 +383,5 @@ namespace Wayfarer.Tests
             // 2. Acquire required items if needed (1+ time blocks)
             // 3. Complete the contract (usually free action)
         }
-
-        #region Helper Methods
-
-        /// <summary>
-        /// Creates a test contract with specified parameters
-        /// </summary>
-        private static Contract CreateTestContract(int startDay = 1, int dueDay = 5)
-        {
-            return CreateTestContract($"test_contract_{startDay}_{dueDay}", startDay, dueDay);
-        }
-
-        /// <summary>
-        /// Creates a test contract with specified ID and dates
-        /// </summary>
-        private static Contract CreateTestContract(string id, int startDay, int dueDay)
-        {
-            return new Contract
-            {
-                Id = id,
-                Description = $"Test contract {id}",
-                StartDay = startDay,
-                DueDay = dueDay,
-                Payment = 50,
-                FailurePenalty = "Test penalty",
-                DestinationLocation = "test_location",
-                RequiredItems = new List<string>(),
-                RequiredLocations = new List<string>()
-            };
-        }
-
-        /// <summary>
-        /// Creates a test game world with basic configuration
-        /// </summary>
-        private static GameWorld CreateTestGameWorld()
-        {
-            GameWorld gameWorld = new GameWorld();
-            Player player = gameWorld.GetPlayer();
-            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
-
-            gameWorld.CurrentDay = 1;
-            gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
-
-            return gameWorld;
-        }
-
-        #endregion
     }
 }

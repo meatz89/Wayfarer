@@ -306,9 +306,18 @@ namespace Wayfarer.Tests
             {
                 Assert.NotNull(contract.Id);
                 Assert.NotNull(contract.Description);
-                Assert.NotNull(contract.DestinationLocation);
                 Assert.True(contract.Payment > 0);
                 Assert.True(contract.DueDay > 0);
+                
+                // Verify completion action pattern (at least one completion requirement)
+                bool hasCompletionRequirement = 
+                    contract.RequiredTransactions.Count > 0 ||
+                    contract.RequiredDestinations.Count > 0 ||
+                    contract.RequiredNPCConversations.Count > 0 ||
+                    contract.RequiredLocationActions.Count > 0;
+                
+                
+                Assert.True(hasCompletionRequirement, $"Contract {contract.Id} should have at least one completion requirement");
             }
         }
 

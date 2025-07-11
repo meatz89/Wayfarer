@@ -326,9 +326,6 @@ public static class GameWorldSerializer
         {
             id = contract.Id,
             description = contract.Description,
-            requiredItems = contract.RequiredItems,
-            requiredLocations = contract.RequiredLocations,
-            destinationLocation = contract.DestinationLocation,
             startDay = contract.StartDay,
             dueDay = contract.DueDay,
             payment = contract.Payment,

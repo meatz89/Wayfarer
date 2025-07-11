@@ -1,7 +1,10 @@
-﻿public class TravelManager
+﻿using Wayfarer.Game.MainSystem;
+
+public class TravelManager
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
+    private readonly ContractProgressionService _contractProgressionService;
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
     public LocationRepository LocationRepository { get; }
@@ -14,11 +17,13 @@
         ActionRepository actionRepository,
         LocationRepository locationRepository,
         ActionFactory actionFactory,
-        ItemRepository itemRepository
+        ItemRepository itemRepository,
+        ContractProgressionService contractProgressionService
         )
     {
         _gameWorld = gameWorld;
         _timeManager = gameWorld.TimeManager;
+        _contractProgressionService = contractProgressionService;
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
         this.LocationRepository = locationRepository;
@@ -80,6 +85,9 @@
         }));
 
         _gameWorld.WorldState.SetCurrentLocation(targetLocation, locSpot);
+
+        // Check for contract progression based on arrival at destination
+        _contractProgressionService.CheckTravelProgression(targetLocation.Id, _gameWorld.GetPlayer());
 
         string? currentLocation = _gameWorld.CurrentLocation?.Id;
 

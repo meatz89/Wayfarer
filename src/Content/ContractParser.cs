@@ -16,17 +16,26 @@ public static class ContractParser
         {
             Id = GetStringProperty(root, "id", ""),
             Description = GetStringProperty(root, "description", ""),
-            DestinationLocation = GetStringProperty(root, "destinationLocation", ""),
             StartDay = GetIntProperty(root, "startDay", 1),
             DueDay = GetIntProperty(root, "dueDay", 5),
             Payment = GetIntProperty(root, "payment", 0),
             FailurePenalty = GetStringProperty(root, "failurePenalty", ""),
             IsCompleted = GetBoolProperty(root, "isCompleted", false),
             IsFailed = GetBoolProperty(root, "isFailed", false),
-            RequiredItems = GetStringArray(root, "requiredItems"),
-            RequiredLocations = GetStringArray(root, "requiredLocations"),
             UnlocksContractIds = GetStringArray(root, "unlocksContractIds"),
-            LocksContractIds = GetStringArray(root, "locksContractIds")
+            LocksContractIds = GetStringArray(root, "locksContractIds"),
+            
+            // Completion action pattern properties
+            RequiredDestinations = GetStringArray(root, "requiredDestinations"),
+            RequiredTransactions = GetTransactionArray(root, "requiredTransactions"),
+            RequiredNPCConversations = GetStringArray(root, "requiredNPCConversations"),
+            RequiredLocationActions = GetStringArray(root, "requiredLocationActions"),
+            
+            // Initialize completed action tracking
+            CompletedDestinations = new HashSet<string>(),
+            CompletedTransactions = new List<ContractTransaction>(),
+            CompletedNPCConversations = new HashSet<string>(),
+            CompletedLocationActions = new HashSet<string>()
         };
 
         return contract;
@@ -79,6 +88,33 @@ public static class ContractParser
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         results.Add(value);
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+    
+    private static List<ContractTransaction> GetTransactionArray(JsonElement element, string propertyName)
+    {
+        List<ContractTransaction> results = new List<ContractTransaction>();
+
+        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
+            arrayElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement item in arrayElement.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.Object)
+                {
+                    string itemId = GetStringProperty(item, "itemId", "");
+                    string locationId = GetStringProperty(item, "locationId", "");
+                    string transactionTypeStr = GetStringProperty(item, "transactionType", "Sell");
+                    int quantity = GetIntProperty(item, "quantity", 1);
+                    
+                    if (Enum.TryParse<TransactionType>(transactionTypeStr, out TransactionType transactionType))
+                    {
+                        results.Add(new ContractTransaction(itemId, locationId, transactionType, quantity));
                     }
                 }
             }

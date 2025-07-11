@@ -3,10 +3,10 @@
 public class WorldState
 {
     // Core data collections
-    public List<Location> locations { get; private set; } = new();
-    public List<LocationSpot> locationSpots { get; private set; } = new();
-    public List<ActionDefinition> actions { get; private set; } = new();
-    public List<Contract> Contracts { get; private set; } = new();
+    public List<Location> locations { get; set; } = new();
+    public List<LocationSpot> locationSpots { get; set; } = new();
+    public List<ActionDefinition> actions { get; set; } = new();
+    public List<Contract> Contracts { get; set; } = new();
     private List<NPC> characters { get; set; } = new();
     private List<Contract> contracts { get; set; } = new();
 
@@ -30,8 +30,8 @@ public class WorldState
     public List<Information> Informations { get; set; } = new List<Information>();
 
     // Current location tracking
-    public Location CurrentLocation { get; private set; }
-    public LocationSpot CurrentLocationSpot { get; private set; }
+    public Location CurrentLocation { get; set; }
+    public LocationSpot CurrentLocationSpot { get; set; }
 
     // Card tracking
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();

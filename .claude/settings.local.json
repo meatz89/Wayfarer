@@ -23,7 +23,8 @@
       "Bash(ls:*)",
       "Bash(cp:*)",
       "Bash(dotnet restore:*)",
-      "Bash(dotnet clean:*)"
+      "Bash(dotnet clean:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

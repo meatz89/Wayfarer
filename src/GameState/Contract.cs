@@ -4,9 +4,6 @@ public class Contract
 {
     public string Id { get; set; }
     public string Description { get; set; }
-    public List<string> RequiredItems { get; set; } = new List<string>();
-    public List<string> RequiredLocations { get; set; } = new List<string>();
-    public string DestinationLocation { get; set; }
     public int StartDay { get; set; }
     public int DueDay { get; set; }
     public int Payment { get; set; }
@@ -67,6 +64,118 @@ public class Contract
     /// </summary>
     public ContractRisk RiskLevel { get; set; } = ContractRisk.Low;
 
+    // === BASIC ACTION REQUIREMENTS ===
+    
+    /// <summary>
+    /// Locations that must be visited to complete this contract
+    /// </summary>
+    public List<string> RequiredDestinations { get; set; } = new List<string>();
+    
+    /// <summary>
+    /// Market transactions (buy/sell) required to complete this contract
+    /// </summary>
+    public List<ContractTransaction> RequiredTransactions { get; set; } = new List<ContractTransaction>();
+    
+    /// <summary>
+    /// NPCs that must be talked to for this contract
+    /// </summary>
+    public List<string> RequiredNPCConversations { get; set; } = new List<string>();
+    
+    /// <summary>
+    /// Specific location actions that must be performed
+    /// </summary>
+    public List<string> RequiredLocationActions { get; set; } = new List<string>();
+    
+    // === PROGRESS TRACKING ===
+    
+    /// <summary>
+    /// Destinations that have been visited
+    /// </summary>
+    public HashSet<string> CompletedDestinations { get; set; } = new HashSet<string>();
+    
+    /// <summary>
+    /// Transactions that have been completed
+    /// </summary>
+    public List<ContractTransaction> CompletedTransactions { get; set; } = new List<ContractTransaction>();
+    
+    /// <summary>
+    /// NPCs that have been talked to
+    /// </summary>
+    public HashSet<string> CompletedNPCConversations { get; set; } = new HashSet<string>();
+    
+    /// <summary>
+    /// Location actions that have been performed
+    /// </summary>
+    public HashSet<string> CompletedLocationActions { get; set; } = new HashSet<string>();
+
+    /// <summary>
+    /// Calculate completion progress as percentage (0.0 to 1.0)
+    /// </summary>
+    public float CalculateProgress()
+    {
+        int totalRequirements = 0;
+        int completedRequirements = 0;
+
+        // Count destination requirements
+        totalRequirements += RequiredDestinations.Count;
+        completedRequirements += CompletedDestinations.Count;
+
+        // Count transaction requirements
+        totalRequirements += RequiredTransactions.Count;
+        completedRequirements += CompletedTransactions.Count;
+
+        // Count NPC conversation requirements
+        totalRequirements += RequiredNPCConversations.Count;
+        completedRequirements += CompletedNPCConversations.Count;
+
+        // Count location action requirements
+        totalRequirements += RequiredLocationActions.Count;
+        completedRequirements += CompletedLocationActions.Count;
+
+
+        return totalRequirements > 0 ? (float)completedRequirements / totalRequirements : 1.0f;
+    }
+
+    /// <summary>
+    /// Check if all basic action requirements are completed
+    /// </summary>
+    public bool AreBasicActionRequirementsCompleted()
+    {
+        // Check all destinations visited
+        if (!RequiredDestinations.All(dest => CompletedDestinations.Contains(dest)))
+            return false;
+
+        // Check all transactions completed
+        if (!RequiredTransactions.All(req => CompletedTransactions.Any(comp => 
+            comp.ItemId == req.ItemId && comp.LocationId == req.LocationId && comp.TransactionType == req.TransactionType)))
+            return false;
+
+        // Check all NPCs talked to
+        if (!RequiredNPCConversations.All(npc => CompletedNPCConversations.Contains(npc)))
+            return false;
+
+        // Check all location actions performed
+        if (!RequiredLocationActions.All(action => CompletedLocationActions.Contains(action)))
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Check if contract is fully completed (including legacy requirements)
+    /// </summary>
+    public bool IsFullyCompleted()
+    {
+        // Check basic action requirements
+        if (!AreBasicActionRequirementsCompleted())
+            return false;
+
+        // Check legacy requirements (simplified for now)
+        // TODO: Integrate legacy validation with ContractValidationService
+
+        return true;
+    }
+
     public bool IsAvailable(int currentDay, TimeBlocks currentTimeBlock)
     {
         bool basicAvailability = !IsCompleted && !IsFailed && currentDay >= StartDay && currentDay <= DueDay;
@@ -97,31 +206,10 @@ public class Contract
         List<string> completionBlockers = new List<string>();
         List<string> missingRequirements = new List<string>();
 
-        // === BASIC REQUIREMENTS ===
-        
-        // Check destination location requirement
-        if (currentLocationId != DestinationLocation)
-        {
-            completionBlockers.Add($"Must be at {DestinationLocation} to complete contract");
-        }
-
-        // Check required items (legacy system)
-        foreach (string requiredItem in RequiredItems)
-        {
-            if (Array.IndexOf(player.Inventory.ItemSlots, requiredItem) == -1)
-            {
-                completionBlockers.Add($"Missing required item: {requiredItem}");
-            }
-        }
-
-        // Check required locations (legacy system)
-        foreach (string requiredLocation in RequiredLocations)
-        {
-            if (!player.HasVisitedLocation(requiredLocation))
-            {
-                completionBlockers.Add($"Must visit {requiredLocation} before completing contract");
-            }
-        }
+        // === COMPLETION ACTIONS VALIDATION ===
+        // NOTE: Completion actions (transactions, destinations, conversations, location actions) 
+        // are validated by ContractProgressionService, not here.
+        // This method only checks PREREQUISITES (social standing, equipment, etc.)
 
         // === CATEGORICAL REQUIREMENTS ===
 
@@ -426,4 +514,57 @@ public class Contract
     {
         return levels.Max();
     }
+}
+
+/// <summary>
+/// Represents a market transaction requirement for contract completion
+/// </summary>
+public class ContractTransaction
+{
+    public string ItemId { get; set; } = "";
+    public string LocationId { get; set; } = "";
+    public TransactionType TransactionType { get; set; }
+    public int Quantity { get; set; } = 1;
+    public int? MinPrice { get; set; } // Minimum price for sell transactions
+    public int? MaxPrice { get; set; } // Maximum price for buy transactions
+    
+    public ContractTransaction() { }
+    
+    public ContractTransaction(string itemId, string locationId, TransactionType transactionType, int quantity = 1)
+    {
+        ItemId = itemId;
+        LocationId = locationId;
+        TransactionType = transactionType;
+        Quantity = quantity;
+    }
+    
+    /// <summary>
+    /// Check if this transaction matches the requirement
+    /// </summary>
+    public bool Matches(string itemId, string locationId, TransactionType transactionType, int quantity, int price)
+    {
+        if (ItemId != itemId || LocationId != locationId || TransactionType != transactionType)
+            return false;
+            
+        if (quantity < Quantity)
+            return false;
+            
+        // Check price constraints
+        if (TransactionType == TransactionType.Buy && MaxPrice.HasValue && price > MaxPrice.Value)
+            return false;
+            
+        if (TransactionType == TransactionType.Sell && MinPrice.HasValue && price < MinPrice.Value)
+            return false;
+            
+        return true;
+    }
+}
+
+/// <summary>
+/// Types of market transactions
+/// </summary>
+public enum TransactionType
+{
+    Buy,
+    Sell
 }

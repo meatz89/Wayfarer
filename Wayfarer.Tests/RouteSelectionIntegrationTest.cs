@@ -1,32 +1,41 @@
 using System.Collections.Generic;
 using Xunit;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests
 {
     /// <summary>
-    /// Simple integration test to verify Route Selection Interface functionality.
-    /// This test verifies that basic route functionality works correctly without automation.
-    /// 
-    /// IMPORTANT: This test now follows game design principles - no automated optimization!
+    /// Route selection tests using the superior test pattern.
+    /// Tests route functionality using TestGameWorldInitializer and real GameWorld objects.
+    /// Follows game design principles - no automated optimization!
     /// </summary>
     public class RouteSelectionIntegrationTest
     {
         [Fact]
         public void TravelManager_GetAvailableRoutes_Should_Return_Valid_Routes()
         {
-            // Arrange
-            GameWorld gameWorld = new GameWorld();
-            Player player = gameWorld.GetPlayer();
-            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
-            player.Coins = 100;
-            player.Stamina = 10;
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
-
+            // === SETUP WITH NEW TEST PATTERN ===
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p
+                    .StartAt("dusty_flagon")
+                    .WithCoins(100)
+                    .WithStamina(10))
+                .WithTimeState(t => t
+                    .Day(1)
+                    .TimeBlock(TimeBlocks.Morning));
+            
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            
+            // Create repositories using new pattern
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
-            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
-            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, new ItemRepository(gameWorld));
             ItemRepository itemRepository = new ItemRepository(gameWorld);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            
+            // Create services with proper dependencies
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
             // Create test locations with routes
             Location townSquare = new Location("town_square", "Town Square");
@@ -68,7 +77,8 @@ namespace Wayfarer.Tests
             locationRepository.AddLocation(townSquare);
             locationRepository.AddLocation(dustyFlagon);
 
-            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression);
 
             // Act
             List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes("town_square", "dusty_flagon");
@@ -110,9 +120,11 @@ namespace Wayfarer.Tests
 
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
-            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
-            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, new ItemRepository(gameWorld));
             ItemRepository itemRepository = new ItemRepository(gameWorld);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
             // Create test locations with weather-sensitive route
             Location townSquare = new Location("town_square", "Town Square");
@@ -144,7 +156,8 @@ namespace Wayfarer.Tests
             locationRepository.AddLocation(townSquare);
             locationRepository.AddLocation(dustyFlagon);
 
-            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression);
 
             // Act & Assert - Clear weather
             gameWorld.CurrentWeather = WeatherCondition.Clear;
