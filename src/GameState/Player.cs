@@ -66,6 +66,8 @@ public class Player
     public List<Information> KnownInformation { get; private set; } = new List<Information>();
 
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
+    
+    public List<string> KnownContracts { get; private set; } = new List<string>();
 
     public List<Goal> ActiveGoals { get; private set; } = new List<Goal>();
     public List<Goal> CompletedGoals { get; private set; } = new List<Goal>();
@@ -122,6 +124,14 @@ public class Player
         if (!KnownInformation.Any(i => i.Id == information.Id))
         {
             KnownInformation.Add(information);
+        }
+    }
+
+    public void DiscoverContract(string contractId)
+    {
+        if (!KnownContracts.Contains(contractId))
+        {
+            KnownContracts.Add(contractId);
         }
     }
 
@@ -477,6 +487,7 @@ public class Player
         clone.DiscoveredLocationIds = [.. this.DiscoveredLocationIds];
         clone.KnownLocations = [.. this.KnownLocations];
         clone.KnownLocationSpots = [.. this.KnownLocationSpots];
+        clone.KnownContracts = [.. this.KnownContracts];
 
         // Deep copy of travel methods
         clone.UnlockedTravelMethods = [.. this.UnlockedTravelMethods];

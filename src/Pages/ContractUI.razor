@@ -1,4 +1,6 @@
 ﻿@inherits ContractUIBase
+@using Wayfarer.Game.MainSystem
+@using Wayfarer.Game.ActionSystem
 
 @* ContractUI.razor *@
 @inject GameWorld GameWorld
@@ -10,8 +12,9 @@
     {
         @foreach (var contract in AvailableContracts)
         {
-            bool canComplete = contract.CanComplete(GameWorld.GetPlayer(), GameWorld.CurrentLocation.Id);
+            var contractStatus = ContractRepository.GetContractStatus(contract.Id);
             int daysRemaining = contract.DueDay - GameWorld.CurrentDay;
+            bool canComplete = contractStatus.Status == ContractStatus.Completed;
 
             <div class="contract-card">
                 <div class="contract-header">
@@ -21,23 +24,148 @@
                     </span>
                 </div>
 
-                <div class="contract-details">
-                    <div class="detail">
-                        <span class="detail-label">Delivery to:</span>
-                        <span class="detail-value">@contract.DestinationLocation</span>
+                <!-- PROGRESS TRACKING SECTION -->
+                <div class="contract-progress">
+                    <div class="progress-header">
+                        <span class="progress-label">Progress: @((int)(contractStatus.ProgressPercentage * 100))%</span>
+                        <span class="progress-status @contractStatus.Status.ToString().ToLower()">@contractStatus.Status</span>
                     </div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: @((int)(contractStatus.ProgressPercentage * 100))%"></div>
+                    </div>
+                </div>
 
-                    @if (contract.RequiredItems.Any())
+                <!-- COMPLETION REQUIREMENTS SECTION -->
+                <div class="contract-requirements">
+                    @if (contract.RequiredTransactions.Any())
                     {
-                        <div class="detail">
-                            <span class="detail-label">Required items:</span>
-                            <span class="detail-value">@string.Join(", ", contract.RequiredItems)</span>
+                        <div class="requirement-section">
+                            <h4 class="requirement-title">Required Transactions:</h4>
+                            @foreach (var transaction in contract.RequiredTransactions)
+                            {
+                                bool isCompleted = contractStatus.CompletedTransactions.Any(ct => 
+                                    ct.ItemId == transaction.ItemId && 
+                                    ct.LocationId == transaction.LocationId && 
+                                    ct.TransactionType == transaction.TransactionType);
+                                
+                                <div class="requirement-item @(isCompleted ? "completed" : "pending")">
+                                    <span class="requirement-icon">@(isCompleted ? "✓" : "○")</span>
+                                    <span class="requirement-text">
+                                        @transaction.TransactionType @transaction.ItemId at @transaction.LocationId
+                                        @if (transaction.Quantity > 1) { <text> (x@transaction.Quantity)</text> }
+                                    </span>
+                                </div>
+                            }
                         </div>
                     }
 
+                    @if (contract.RequiredDestinations.Any())
+                    {
+                        <div class="requirement-section">
+                            <h4 class="requirement-title">Required Destinations:</h4>
+                            @foreach (var destination in contract.RequiredDestinations)
+                            {
+                                bool isVisited = contractStatus.CompletedDestinations.Contains(destination);
+                                
+                                <div class="requirement-item @(isVisited ? "completed" : "pending")">
+                                    <span class="requirement-icon">@(isVisited ? "✓" : "○")</span>
+                                    <span class="requirement-text">Visit @destination</span>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (contract.RequiredNPCConversations.Any())
+                    {
+                        <div class="requirement-section">
+                            <h4 class="requirement-title">Required Conversations:</h4>
+                            @foreach (var npc in contract.RequiredNPCConversations)
+                            {
+                                bool hasSpoken = contractStatus.CompletedNPCConversations.Contains(npc);
+                                
+                                <div class="requirement-item @(hasSpoken ? "completed" : "pending")">
+                                    <span class="requirement-icon">@(hasSpoken ? "✓" : "○")</span>
+                                    <span class="requirement-text">Speak with @npc</span>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (contract.RequiredLocationActions.Any())
+                    {
+                        <div class="requirement-section">
+                            <h4 class="requirement-title">Required Actions:</h4>
+                            @foreach (var action in contract.RequiredLocationActions)
+                            {
+                                bool isCompleted = contractStatus.CompletedLocationActions.Contains(action);
+                                
+                                <div class="requirement-item @(isCompleted ? "completed" : "pending")">
+                                    <span class="requirement-icon">@(isCompleted ? "✓" : "○")</span>
+                                    <span class="requirement-text">Perform @action</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- CATEGORICAL REQUIREMENTS SECTION -->
+                @if (contract.RequiredEquipmentCategories.Any() || 
+                     contract.RequiredToolCategories.Any() || 
+                     contract.RequiredSocialStanding != SocialRequirement.Any ||
+                     contract.PhysicalRequirement != PhysicalDemand.None)
+                {
+                    <div class="categorical-requirements">
+                        <h4 class="requirement-title">Prerequisites:</h4>
+                        
+                        @if (contract.RequiredEquipmentCategories.Any())
+                        {
+                            <div class="category-requirement">
+                                <span class="category-label">Equipment:</span>
+                                <span class="category-list">@string.Join(", ", contract.RequiredEquipmentCategories.Select(ec => ec.ToString().Replace("_", " ")))</span>
+                            </div>
+                        }
+                        
+                        @if (contract.RequiredToolCategories.Any())
+                        {
+                            <div class="category-requirement">
+                                <span class="category-label">Tools:</span>
+                                <span class="category-list">@string.Join(", ", contract.RequiredToolCategories.Select(tc => tc.ToString().Replace("_", " ")))</span>
+                            </div>
+                        }
+                        
+                        @if (contract.RequiredSocialStanding != SocialRequirement.Any)
+                        {
+                            <div class="category-requirement">
+                                <span class="category-label">Social Standing:</span>
+                                <span class="category-list">@contract.RequiredSocialStanding.ToString().Replace("_", " ")</span>
+                            </div>
+                        }
+                        
+                        @if (contract.PhysicalRequirement != PhysicalDemand.None)
+                        {
+                            <div class="category-requirement">
+                                <span class="category-label">Physical Demand:</span>
+                                <span class="category-list">@contract.PhysicalRequirement.ToString()</span>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="contract-details">
                     <div class="detail">
                         <span class="detail-label">Payment:</span>
                         <span class="detail-value">@contract.Payment coins</span>
+                    </div>
+                    
+                    <div class="detail">
+                        <span class="detail-label">Category:</span>
+                        <span class="detail-value">@contract.Category</span>
+                    </div>
+                    
+                    <div class="detail">
+                        <span class="detail-label">Priority:</span>
+                        <span class="detail-value">@contract.Priority</span>
                     </div>
                 </div>
 
@@ -47,6 +175,12 @@
                             @onclick="() => CompleteContract(contract)">
                         Complete Contract
                     </button>
+                }
+                else if (contractStatus.Status == ContractStatus.Active)
+                {
+                    <div class="contract-status">
+                        <span class="status-text">In Progress - Complete the required actions above</span>
+                    </div>
                 }
             </div>
         }

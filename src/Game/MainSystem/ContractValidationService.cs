@@ -31,34 +31,6 @@ public class ContractValidationService
 
         // === BASIC REQUIREMENTS ===
         
-        // Check destination location requirement
-        if (!string.IsNullOrEmpty(contract.DestinationLocation) && currentLocationId != contract.DestinationLocation)
-        {
-            completionBlockers.Add($"Must be at {contract.DestinationLocation} to complete contract");
-        }
-
-        // Check required items (legacy system)
-        foreach (string requiredItemId in contract.RequiredItems)
-        {
-            if (Array.IndexOf(player.Inventory.ItemSlots, requiredItemId) == -1)
-            {
-                // Get item name for better UX
-                Item item = _itemRepository.GetItemById(requiredItemId);
-                string itemName = item?.Name ?? requiredItemId;
-                completionBlockers.Add($"Missing required item: {itemName}");
-                missingRequirements.Add($"Requires item: {itemName}");
-            }
-        }
-
-        // Check required locations (legacy system)
-        foreach (string requiredLocation in contract.RequiredLocations)
-        {
-            if (!player.HasVisitedLocation(requiredLocation))
-            {
-                completionBlockers.Add($"Must visit {requiredLocation} before completing contract");
-                missingRequirements.Add($"Must visit location: {requiredLocation}");
-            }
-        }
 
         // === CATEGORICAL REQUIREMENTS ===
 

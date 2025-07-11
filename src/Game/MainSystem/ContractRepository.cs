@@ -1,4 +1,6 @@
-﻿public class ContractRepository
+﻿using Wayfarer.Game.MainSystem;
+
+public class ContractRepository
 {
     private readonly GameWorld _gameWorld;
 
@@ -39,7 +41,91 @@
 
     public List<Contract> GetActiveContracts()
     {
-        return _gameWorld.WorldState.ActiveContracts ?? new List<Contract>();
+        return _gameWorld.ActiveContracts?.ToList() ?? new List<Contract>();
+    }
+
+    // ===== QUERY METHODS FOR STATE INSPECTION =====
+    // These methods provide state inspection capabilities for both production and testing
+
+    /// <summary>
+    /// Get detailed completion status for a specific contract
+    /// </summary>
+    public ContractCompletionResult GetContractStatus(string contractId)
+    {
+        Contract contract = _gameWorld.ActiveContracts?.FirstOrDefault(c => c.Id == contractId);
+        if (contract == null)
+        {
+            // Check if contract exists in world state but not active
+            contract = GetContract(contractId);
+            if (contract == null)
+            {
+                return new ContractCompletionResult 
+                { 
+                    ContractId = contractId, 
+                    Status = ContractStatus.NotFound,
+                    ProgressPercentage = 0f
+                };
+            }
+            
+            return new ContractCompletionResult 
+            { 
+                ContractId = contractId, 
+                Status = contract.IsCompleted ? ContractStatus.Completed : 
+                        contract.IsFailed ? ContractStatus.Failed : ContractStatus.NotActive,
+                ProgressPercentage = contract.CalculateProgress(),
+                CompletedTransactions = contract.CompletedTransactions.ToList(),
+                CompletedDestinations = contract.CompletedDestinations.ToList(),
+                CompletedNPCConversations = contract.CompletedNPCConversations.ToList(),
+                CompletedLocationActions = contract.CompletedLocationActions.ToList()
+            };
+        }
+
+        return new ContractCompletionResult 
+        { 
+            ContractId = contractId, 
+            Status = contract.IsCompleted ? ContractStatus.Completed : 
+                    contract.IsFailed ? ContractStatus.Failed : ContractStatus.Active,
+            ProgressPercentage = contract.CalculateProgress(),
+            CompletedTransactions = contract.CompletedTransactions.ToList(),
+            CompletedDestinations = contract.CompletedDestinations.ToList(),
+            CompletedNPCConversations = contract.CompletedNPCConversations.ToList(),
+            CompletedLocationActions = contract.CompletedLocationActions.ToList()
+        };
+    }
+
+    /// <summary>
+    /// Check if a specific contract is available to accept
+    /// </summary>
+    public bool IsContractAvailable(string contractId)
+    {
+        Contract contract = GetContract(contractId);
+        if (contract == null) return false;
+        
+        bool isAlreadyActive = _gameWorld.ActiveContracts?.Any(c => c.Id == contractId) ?? false;
+        if (isAlreadyActive) return false;
+        
+        return contract.IsAvailable(_gameWorld.CurrentDay, _gameWorld.WorldState.CurrentTimeBlock);
+    }
+
+    /// <summary>
+    /// Get contracts that are expiring soon
+    /// </summary>
+    public List<Contract> GetUrgentContracts(int daysThreshold = 1)
+    {
+        int currentDay = _gameWorld.CurrentDay;
+        return GetActiveContracts()
+            .Where(c => (c.DueDay - currentDay) <= daysThreshold && (c.DueDay - currentDay) >= 0)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get contracts expiring today
+    /// </summary>
+    public List<Contract> GetContractsExpiringToday()
+    {
+        return GetActiveContracts()
+            .Where(c => c.DueDay == _gameWorld.CurrentDay)
+            .ToList();
     }
 
     public List<Contract> GetCompletedContracts()

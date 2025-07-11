@@ -1,16 +1,19 @@
 using Xunit;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests
 {
     /// <summary>
-    /// Test-driven development for Dynamic Location-Based Pricing System.
-    /// These tests validate the core  simulation mechanic where items have
-    /// different buy/sell prices at different locations, creating arbitrage opportunities.
+    /// Market trading flow tests demonstrating the new superior test pattern.
+    /// Tests market trading functionality using repository-based architecture with declarative scenarios.
     /// 
-    /// User Story: Location-Specific Pricing (:172-195)
-    /// Priority: CRITICAL - Core profit mechanism for  simulation
+    /// Validates dynamic location-based pricing and trading workflows using:
+    /// - TestGameWorldInitializer for clean setup
+    /// - TestScenarioBuilder for declarative test data  
+    /// - MarketManager query methods for verification
+    /// - Direct GameWorld property access where appropriate
     /// </summary>
-    public class DynamicLocationPricingTests
+    public class MarketTradingFlowTests
     {
         /// <summary>
         /// Test that MarketManager initializes with location-specific pricing data
@@ -19,29 +22,53 @@ namespace Wayfarer.Tests
         [Fact]
         public void MarketManager_Should_Initialize_Location_Specific_Pricing()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            LocationSystem locationSystem = CreateTestLocationSystem();
+            // === SETUP WITH NEW TEST PATTERN ===
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p
+                    .StartAt("town_square")
+                    .WithCoins(100))
+                .WithTimeState(t => t
+                    .Day(1)
+                    .TimeBlock(TimeBlocks.Morning));
+            
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            
+            // Create repositories using new pattern
+            LocationRepository locationRepository = new LocationRepository(gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            
+            // Create services with proper dependencies
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(
+                contractRepository, itemRepository, locationRepository);
+            
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
 
-            // Act & Assert - Test Town Square pricing
-            int herbsBuyPrice = marketManager.GetItemPrice("town_square", "herbs", true);
-            int herbsSellPrice = marketManager.GetItemPrice("town_square", "herbs", false);
-
-            Assert.True(herbsBuyPrice > 0, "Herbs should have a valid buy price at town_square");
-            Assert.True(herbsSellPrice > 0, "Herbs should have a valid sell price at town_square");
-            Assert.True(herbsBuyPrice > herbsSellPrice, "Buy price should be higher than sell price");
-
-            // Act & Assert - Test Dusty Flagon pricing (should be different)
-            int herbsBuyPriceDusty = marketManager.GetItemPrice("dusty_flagon", "herbs", true);
-            int herbsSellPriceDusty = marketManager.GetItemPrice("dusty_flagon", "herbs", false);
-
-            Assert.True(herbsBuyPriceDusty > 0, "Herbs should have a valid buy price at dusty_flagon");
-            Assert.True(herbsSellPriceDusty > 0, "Herbs should have a valid sell price at dusty_flagon");
-
-            // Prices should be different between locations (this is what creates arbitrage)
-            bool pricesAreDifferent = (herbsBuyPrice != herbsBuyPriceDusty) || (herbsSellPrice != herbsSellPriceDusty);
+            // === VERIFY USING ENHANCED MARKETMANAGER QUERY METHODS ===
+            // Use the new query methods that provide comprehensive market information
+            List<MarketPriceInfo> herbPrices = marketManager.GetItemMarketPrices("herbs");
+            
+            Assert.NotEmpty(herbPrices);
+            
+            // Find town square and dusty flagon pricing
+            MarketPriceInfo townSquareHerbs = herbPrices.FirstOrDefault(p => p.LocationId == "town_square");
+            MarketPriceInfo dustyFlagonHerbs = herbPrices.FirstOrDefault(p => p.LocationId == "dusty_flagon");
+            
+            Assert.NotNull(townSquareHerbs);
+            Assert.NotNull(dustyFlagonHerbs);
+            
+            // Verify pricing structure
+            Assert.True(townSquareHerbs.BuyPrice > 0, "Herbs should have a valid buy price at town_square");
+            Assert.True(townSquareHerbs.SellPrice > 0, "Herbs should have a valid sell price at town_square");
+            Assert.True(townSquareHerbs.BuyPrice > townSquareHerbs.SellPrice, "Buy price should be higher than sell price");
+            
+            Assert.True(dustyFlagonHerbs.BuyPrice > 0, "Herbs should have a valid buy price at dusty_flagon");
+            Assert.True(dustyFlagonHerbs.SellPrice > 0, "Herbs should have a valid sell price at dusty_flagon");
+            
+            // Verify arbitrage opportunities exist (prices differ between locations)
+            bool pricesAreDifferent = (townSquareHerbs.BuyPrice != dustyFlagonHerbs.BuyPrice) || 
+                                     (townSquareHerbs.SellPrice != dustyFlagonHerbs.SellPrice);
             Assert.True(pricesAreDifferent, "Prices should differ between locations to create arbitrage opportunities");
         }
 
@@ -52,11 +79,28 @@ namespace Wayfarer.Tests
         [Fact]
         public void MarketManager_Should_Return_Available_Items_With_Location_Pricing()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            LocationSystem locationSystem = CreateTestLocationSystem();
+            // === SETUP WITH NEW TEST PATTERN ===
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p
+                    .StartAt("town_square")
+                    .WithCoins(100))
+                .WithTimeState(t => t
+                    .Day(1)
+                    .TimeBlock(TimeBlocks.Morning));
+            
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            
+            // Create repositories using new pattern
+            LocationRepository locationRepository = new LocationRepository(gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            
+            // Create services with proper dependencies
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(
+                contractRepository, itemRepository, locationRepository);
+            
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
 
             // Act
             List<Item> availableItems = marketManager.GetAvailableItems("town_square");
@@ -79,11 +123,28 @@ namespace Wayfarer.Tests
         [Fact]
         public void MarketManager_Should_Allow_Manual_Profit_Discovery()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            LocationSystem locationSystem = CreateTestLocationSystem();
+            // === SETUP WITH NEW TEST PATTERN ===
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p
+                    .StartAt("town_square")
+                    .WithCoins(100))
+                .WithTimeState(t => t
+                    .Day(1)
+                    .TimeBlock(TimeBlocks.Morning));
+            
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            
+            // Create repositories using new pattern
+            LocationRepository locationRepository = new LocationRepository(gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            
+            // Create services with proper dependencies
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(
+                contractRepository, itemRepository, locationRepository);
+            
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
 
             // Act - Player manually checks prices between locations (gameplay behavior)
             int herbsBuyPriceTown = marketManager.GetItemPrice("town_square", "herbs", true);
@@ -107,11 +168,28 @@ namespace Wayfarer.Tests
         [Fact]
         public void MarketManager_Should_Have_Different_Buy_And_Sell_Prices()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            LocationSystem locationSystem = CreateTestLocationSystem();
+            // === SETUP WITH NEW TEST PATTERN ===
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p
+                    .StartAt("town_square")
+                    .WithCoins(100))
+                .WithTimeState(t => t
+                    .Day(1)
+                    .TimeBlock(TimeBlocks.Morning));
+            
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            
+            // Create repositories using new pattern
+            LocationRepository locationRepository = new LocationRepository(gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            
+            // Create services with proper dependencies
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(
+                contractRepository, itemRepository, locationRepository);
+            
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
 
             // Act & Assert for multiple items and locations
             string[] locations = { "town_square", "dusty_flagon" };
@@ -145,14 +223,29 @@ namespace Wayfarer.Tests
         [Fact]
         public void MarketManager_Should_Allow_Buying_Items_At_Location_Prices()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            Player player = gameWorld.GetPlayer();
-            player.Coins = 100; // Give player enough money
-
-            LocationSystem locationSystem = CreateTestLocationSystem();
+            // === SETUP WITH NEW TEST PATTERN ===
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p
+                    .StartAt("town_square")
+                    .WithCoins(100))
+                .WithTimeState(t => t
+                    .Day(1)
+                    .TimeBlock(TimeBlocks.Morning));
+            
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            
+            // Create repositories using new pattern
+            LocationRepository locationRepository = new LocationRepository(gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            
+            // Create services with proper dependencies
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(
+                contractRepository, itemRepository, locationRepository);
+            
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
+            Player player = gameWorld.GetPlayer();
 
             // Act
             string itemToBuy = "herbs";
@@ -178,15 +271,30 @@ namespace Wayfarer.Tests
         [Fact]
         public void MarketManager_Should_Allow_Selling_Items_At_Location_Prices()
         {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            Player player = gameWorld.GetPlayer();
-            player.Coins = 50;
-            player.Inventory.AddItem("herbs"); // Give player an item to sell
-
-            LocationSystem locationSystem = CreateTestLocationSystem();
+            // === SETUP WITH NEW TEST PATTERN ===
+            var scenario = new TestScenarioBuilder()
+                .WithPlayer(p => p
+                    .StartAt("dusty_flagon")
+                    .WithCoins(50)
+                    .WithItem("herbs")) // Give player an item to sell
+                .WithTimeState(t => t
+                    .Day(1)
+                    .TimeBlock(TimeBlocks.Morning));
+            
+            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+            
+            // Create repositories using new pattern
+            LocationRepository locationRepository = new LocationRepository(gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            
+            // Create services with proper dependencies
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(
+                contractRepository, itemRepository, locationRepository);
+            
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
+            Player player = gameWorld.GetPlayer();
 
             // Act
             string itemToSell = "herbs";
@@ -202,44 +310,6 @@ namespace Wayfarer.Tests
             Assert.False(player.Inventory.HasItem(itemToSell), "Player should no longer have the sold item");
         }
 
-        #region Helper Methods
-
-        /// <summary>
-        /// Creates a test game world with basic configuration and test items
-        /// </summary>
-        private static GameWorld CreateTestGameWorld()
-        {
-            GameWorld gameWorld = new GameWorld();
-            Player player = gameWorld.GetPlayer();
-            player.Initialize("TestPlayer", Professions.Merchant, Genders.Male);
-
-            // Set up basic world state
-            gameWorld.WorldState.CurrentDay = 1;
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
-
-            // Add test items to world state
-            gameWorld.WorldState.Items = new List<Item>
-            {
-                new Item { Id = "herbs", Name = "herbs", BuyPrice = 5, SellPrice = 3, Weight = 1, Description = "Common herbs" },
-                new Item { Id = "tools", Name = "tools", BuyPrice = 15, SellPrice = 12, Weight = 3, Description = "Basic tools" },
-                new Item { Id = "rope", Name = "rope", BuyPrice = 8, SellPrice = 6, Weight = 2, Description = "Strong rope" },
-                new Item { Id = "food", Name = "food", BuyPrice = 4, SellPrice = 2, Weight = 1, Description = "Fresh provisions" }
-            };
-
-            return gameWorld;
-        }
-
-        /// <summary>
-        /// Creates a test location system with required locations
-        /// </summary>
-        private static LocationSystem CreateTestLocationSystem()
-        {
-            GameWorld gameWorld = new GameWorld();
-            LocationRepository locationRepository = new LocationRepository(gameWorld);
-            return new LocationSystem(gameWorld, locationRepository);
-        }
-
-        #endregion
     }
 
 }

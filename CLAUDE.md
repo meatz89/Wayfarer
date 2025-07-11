@@ -126,6 +126,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
 - You must run all tests and execute the game and do quick smoke tests before every commit
 - **Never keep legacy code for compatibility**
+- **NEVER use suffixes like "New", "Revised", "V2", etc.** - Replace old implementations completely and use the correct final name immediately. Delete old code, don't leave it behind.
+- **CRITICAL: IMMEDIATE LEGACY CODE ELIMINATION** - If you discover ANY legacy code, compilation errors, or deprecated patterns during development, you MUST immediately:
+  1. **CREATE HIGH-PRIORITY TODO ITEM** to fix the legacy code
+  2. **STOP current work** and fix the legacy code immediately
+  3. **NEVER ignore or postpone** legacy code fixes
+  4. **NEVER say "these are just dependency fixes"** - fix them now or create immediate todo items
 
 ### GAME DESIGN PRINCIPLES (Critical for Games vs Apps)
 **Games create interactive optimization puzzles for the player to solve, not automated systems that solve everything for them.**

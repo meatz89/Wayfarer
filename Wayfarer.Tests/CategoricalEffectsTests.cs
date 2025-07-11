@@ -1,14 +1,28 @@
 using Xunit;
 using Wayfarer.Game.ActionSystem;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests;
 
+/// <summary>
+/// Categorical effects tests using the superior test pattern.
+/// Tests effect application using synchronous test setup and real GameWorld objects.
+/// </summary>
 public class CategoricalEffectsTests
 {
     private GameWorld CreateTestGameWorld()
     {
-        GameWorldInitializer initializer = new GameWorldInitializer("Content");
-        return initializer.LoadGame();
+        var scenario = new TestScenarioBuilder()
+            .WithPlayer(p => p
+                .StartAt("dusty_flagon")
+                .WithCoins(50)
+                .WithStamina(3)
+                .WithActionPoints(10))
+            .WithTimeState(t => t
+                .Day(1)
+                .TimeBlock(TimeBlocks.Morning));
+        
+        return TestGameWorldInitializer.CreateTestWorld(scenario);
     }
 
     [Fact]
@@ -124,7 +138,11 @@ public class CategoricalEffectsTests
         GameWorld gameWorld = CreateTestGameWorld();
         ActionRepository actionRepository = new ActionRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository);
+        // Create repositories using new pattern
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+        
+        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
         var actionDef = new ActionDefinition("rest_action", "Rest by Fire", "hearth")
         {
@@ -150,7 +168,11 @@ public class CategoricalEffectsTests
         GameWorld gameWorld = CreateTestGameWorld();
         ActionRepository actionRepository = new ActionRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository);
+        // Create repositories using new pattern
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+        
+        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
         var actionDef = new ActionDefinition("social_action", "Attend Court", "throne_room")
         {
@@ -176,7 +198,11 @@ public class CategoricalEffectsTests
         GameWorld gameWorld = CreateTestGameWorld();
         ActionRepository actionRepository = new ActionRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository);
+        // Create repositories using new pattern
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+        
+        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
         // Create actions with different physical demands
         var lightAction = new ActionDefinition("light_action", "Light Reading", "library")
@@ -215,7 +241,11 @@ public class CategoricalEffectsTests
         GameWorld gameWorld = CreateTestGameWorld();
         ActionRepository actionRepository = new ActionRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository);
+        // Create repositories using new pattern
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+        
+        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
         var merchantAction = new ActionDefinition("merchant_action", "Trade Meeting", "market")
         {

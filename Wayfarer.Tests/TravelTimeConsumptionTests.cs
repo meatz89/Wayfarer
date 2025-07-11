@@ -1,4 +1,5 @@
 using Xunit;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests;
 
@@ -16,13 +17,18 @@ public class TravelTimeConsumptionTests
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
         LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
         TravelManager travelManager = new TravelManager(
             gameWorld,
             new LocationSystem(gameWorld, locationRepository),
             new ActionRepository(gameWorld),
             locationRepository,
-            new ActionFactory(new ActionRepository(gameWorld), gameWorld, new ItemRepository(gameWorld)),
-            new ItemRepository(gameWorld)
+            new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
+            itemRepository,
+            contractProgression
         );
 
         int initialTimeBlocks = gameWorld.TimeManager.UsedTimeBlocks;
@@ -58,13 +64,19 @@ public class TravelTimeConsumptionTests
         int blocksToAdvance = 2;
 
         // Get access to the private method through reflection
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
         var travelManager = new TravelManager(
             gameWorld,
-            new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
+            new LocationSystem(gameWorld, locationRepository),
             new ActionRepository(gameWorld),
-            new LocationRepository(gameWorld),
-            new ActionFactory(new ActionRepository(gameWorld), gameWorld, new ItemRepository(gameWorld)),
-            new ItemRepository(gameWorld)
+            locationRepository,
+            new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
+            itemRepository,
+            contractProgression
         );
 
         // We can't directly test the private AdvanceTimeBlocks method,
@@ -89,13 +101,18 @@ public class TravelTimeConsumptionTests
         }
 
         LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
         TravelManager travelManager = new TravelManager(
             gameWorld,
             new LocationSystem(gameWorld, locationRepository),
             new ActionRepository(gameWorld),
             locationRepository,
-            new ActionFactory(new ActionRepository(gameWorld), gameWorld, new ItemRepository(gameWorld)),
-            new ItemRepository(gameWorld)
+            new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
+            itemRepository,
+            contractProgression
         );
 
         // Find a route that would exceed the daily limit

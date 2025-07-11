@@ -1,29 +1,52 @@
 using Xunit;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests;
 
-public class ActionProcessorTests
+/// <summary>
+/// Action execution tests demonstrating the new superior test pattern.
+/// Tests action processing using repository-based architecture with direct GameWorld access.
+/// </summary>
+public class ActionExecutionTests
 {
     private GameWorld CreateTestGameWorld()
     {
-        GameWorldInitializer initializer = new GameWorldInitializer("Content");
-        return initializer.LoadGame();
+        var scenario = new TestScenarioBuilder()
+            .WithPlayer(p => p
+                .StartAt("dusty_flagon")
+                .WithCoins(50)
+                .WithStamina(10)
+                .WithActionPoints(18))
+            .WithTimeState(t => t
+                .Day(1)
+                .TimeBlock(TimeBlocks.Morning));
+        
+        return TestGameWorldInitializer.CreateTestWorld(scenario);
     }
 
     [Fact]
     public void ProcessAction_Should_Consume_Time_Blocks()
     {
-        // Arrange
+        // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
+        
+        // Create repositories using new pattern
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        
+        // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
+        ContractProgressionService contractProgression = new ContractProgressionService(
+            contractRepository, itemRepository, locationRepository);
+        
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
-            new LocationPropertyManager(new LocationSystem(gameWorld, new LocationRepository(gameWorld))),
-            new LocationRepository(gameWorld),
-            messageSystem
+            new LocationPropertyManager(new LocationSystem(gameWorld, locationRepository)),
+            locationRepository,
+            messageSystem,
+            contractProgression
         );
 
         LocationAction testAction = new LocationAction
@@ -41,7 +64,7 @@ public class ActionProcessorTests
         // Act
         actionProcessor.ProcessAction(testAction);
 
-        // Assert
+        // === VERIFY USING DIRECT GAMEWORLD ACCESS ===
         int finalTimeBlocks = gameWorld.TimeManager.UsedTimeBlocks;
         Assert.Equal(initialTimeBlocks + 2, finalTimeBlocks);
     }
@@ -49,15 +72,26 @@ public class ActionProcessorTests
     [Fact]
     public void ProcessAction_Should_Apply_Resource_Costs()
     {
-        // Arrange
+        // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
+        
+        // Create repositories using new pattern
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        
+        // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
+        ContractProgressionService contractProgression = new ContractProgressionService(
+            contractRepository, itemRepository, locationRepository);
+        
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
-            new LocationPropertyManager(new LocationSystem(gameWorld, new LocationRepository(gameWorld))),
-            new LocationRepository(gameWorld),
-            messageSystem
+            new LocationPropertyManager(new LocationSystem(gameWorld, locationRepository)),
+            locationRepository,
+            messageSystem,
+            contractProgression
         );
 
         Player player = gameWorld.GetPlayer();
@@ -78,7 +112,7 @@ public class ActionProcessorTests
         // Act
         actionProcessor.ProcessAction(testAction);
 
-        // Assert
+        // === VERIFY USING DIRECT GAMEWORLD ACCESS ===
         Assert.Equal(initialCoins - 5, player.Coins);
         Assert.Equal(initialStamina - 3, player.Stamina);
         // Concentration is clamped by MaxConcentration which is 0, so it stays at 0 regardless of cost
@@ -88,15 +122,26 @@ public class ActionProcessorTests
     [Fact]
     public void CanExecute_Should_Block_Actions_With_Insufficient_Resources()
     {
-        // Arrange
+        // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
+        
+        // Create repositories using new pattern
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        
+        // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
+        ContractProgressionService contractProgression = new ContractProgressionService(
+            contractRepository, itemRepository, locationRepository);
+        
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
-            new LocationPropertyManager(new LocationSystem(gameWorld, new LocationRepository(gameWorld))),
-            new LocationRepository(gameWorld),
-            messageSystem
+            new LocationPropertyManager(new LocationSystem(gameWorld, locationRepository)),
+            locationRepository,
+            messageSystem,
+            contractProgression
         );
 
         Player player = gameWorld.GetPlayer();
@@ -119,15 +164,26 @@ public class ActionProcessorTests
     [Fact]
     public void CanExecute_Should_Block_Actions_With_Insufficient_Time_Blocks()
     {
-        // Arrange
+        // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
+        
+        // Create repositories using new pattern
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        
+        // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
+        ContractProgressionService contractProgression = new ContractProgressionService(
+            contractRepository, itemRepository, locationRepository);
+        
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
-            new LocationPropertyManager(new LocationSystem(gameWorld, new LocationRepository(gameWorld))),
-            new LocationRepository(gameWorld),
-            messageSystem
+            new LocationPropertyManager(new LocationSystem(gameWorld, locationRepository)),
+            locationRepository,
+            messageSystem,
+            contractProgression
         );
 
         // Consume all available time blocks
@@ -153,15 +209,26 @@ public class ActionProcessorTests
     [Fact]
     public void CanExecute_Should_Allow_Valid_Actions()
     {
-        // Arrange
+        // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
+        
+        // Create repositories using new pattern
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        
+        // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
+        ContractProgressionService contractProgression = new ContractProgressionService(
+            contractRepository, itemRepository, locationRepository);
+        
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
-            new LocationPropertyManager(new LocationSystem(gameWorld, new LocationRepository(gameWorld))),
-            new LocationRepository(gameWorld),
-            messageSystem
+            new LocationPropertyManager(new LocationSystem(gameWorld, locationRepository)),
+            locationRepository,
+            messageSystem,
+            contractProgression
         );
 
         LocationAction validAction = new LocationAction
@@ -181,15 +248,26 @@ public class ActionProcessorTests
     [Fact]
     public void ProcessAction_Should_Apply_Card_Refresh_Effects()
     {
-        // Arrange
+        // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
+        
+        // Create repositories using new pattern
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ItemRepository itemRepository = new ItemRepository(gameWorld);
+        
+        // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
+        ContractProgressionService contractProgression = new ContractProgressionService(
+            contractRepository, itemRepository, locationRepository);
+        
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
-            new LocationPropertyManager(new LocationSystem(gameWorld, new LocationRepository(gameWorld))),
-            new LocationRepository(gameWorld),
-            messageSystem
+            new LocationPropertyManager(new LocationSystem(gameWorld, locationRepository)),
+            locationRepository,
+            messageSystem,
+            contractProgression
         );
 
         LocationAction refreshAction = new LocationAction

@@ -1,5 +1,6 @@
 using Xunit;
 using Wayfarer.Game.ActionSystem;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests;
 
@@ -279,7 +280,9 @@ public class CategoricalRequirementsTests
         GameWorld gameWorld = CreateTestGameWorld();
         ActionRepository actionRepository = new ActionRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository);
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
+        ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+        ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
         // Create action definition with categorical requirements
         var actionDef = new ActionDefinition("test_action", "Test Action", "test_spot")

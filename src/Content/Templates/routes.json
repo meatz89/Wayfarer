@@ -88,5 +88,50 @@
 		"terrainCategories": [],
 		"maxItemCapacity": 6,
 		"description": "Fast but expensive - premium travel service."
+	},
+	{
+		"id": "town_to_mountain_summit_path",
+		"name": "Mountain Trail",
+		"origin": "town_square",
+		"destination": "mountain_summit",
+		"method": "Walking",
+		"baseCoinCost": 0,
+		"baseStaminaCost": 4,
+		"timeBlockCost": 2,
+		"departureTime": null,
+		"isDiscovered": true,
+		"terrainCategories": ["Requires_Climbing", "Exposed_Weather"],
+		"maxItemCapacity": 2,
+		"description": "Treacherous mountain path requiring climbing equipment and weather protection."
+	},
+	{
+		"id": "town_to_workshop_shortcut",
+		"name": "Dark Alley",
+		"origin": "town_square",
+		"destination": "workshop",
+		"method": "Walking",
+		"baseCoinCost": 0,
+		"baseStaminaCost": 1,
+		"timeBlockCost": 1,
+		"departureTime": null,
+		"isDiscovered": true,
+		"terrainCategories": ["Dark_Passage"],
+		"maxItemCapacity": 3,
+		"description": "Quick shortcut through dark passages - dangerous without light source."
+	},
+	{
+		"id": "workshop_to_mountain_summit_pack",
+		"name": "Heavy Supply Route",
+		"origin": "workshop",
+		"destination": "mountain_summit",
+		"method": "Pack_Animal",
+		"baseCoinCost": 12,
+		"baseStaminaCost": 2,
+		"timeBlockCost": 2,
+		"departureTime": null,
+		"isDiscovered": false,
+		"terrainCategories": ["Heavy_Cargo_Route", "Wilderness_Terrain", "Requires_Climbing"],
+		"maxItemCapacity": 10,
+		"description": "Specialized route for heavy equipment delivery requiring multiple categories of gear."
 	}
 ]

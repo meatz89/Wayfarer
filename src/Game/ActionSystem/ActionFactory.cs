@@ -5,14 +5,20 @@ public class ActionFactory
 {
     private WorldState worldState;
     private ItemRepository itemRepository;
+    private ContractRepository contractRepository;
+    private ContractValidationService contractValidationService;
 
     public ActionFactory(
         ActionRepository actionRepository,
         GameWorld gameWorld,
-        ItemRepository itemRepository)
+        ItemRepository itemRepository,
+        ContractRepository contractRepository,
+        ContractValidationService contractValidationService)
     {
         this.worldState = gameWorld.WorldState;
         this.itemRepository = itemRepository;
+        this.contractRepository = contractRepository;
+        this.contractValidationService = contractValidationService;
     }
 
     public LocationAction CreateActionFromTemplate(
@@ -194,7 +200,9 @@ public class ActionFactory
             effects.Add(new ContractDiscoveryEffect(
                 contractDiscovery.NPCId,
                 contractDiscovery.ContractCategory,
-                contractDiscovery.MaxContractsRevealed));
+                contractDiscovery.MaxContractsRevealed,
+                contractRepository,
+                contractValidationService));
         }
         
         return effects;

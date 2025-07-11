@@ -1,4 +1,6 @@
-﻿public class GameWorldManager
+﻿using Wayfarer.Game.MainSystem;
+
+public class GameWorldManager
 {
     private bool _useMemory;
     private bool _processStateChanges;
@@ -637,24 +639,8 @@
                 // }
             }
         }
-
-        // If this contract locks others, make them unavailable
-        if (contract.LocksContractIds.Any())
-        {
-            foreach (string contractId in contract.LocksContractIds)
-            {
-                // TODO: Add contract repository dependency to GameWorldManager constructor
-                // Contract lockedContract = contractRepository.GetContract(contractId);
-                // if (lockedContract != null)
-                // {
-                //     lockedContract.IsFailed = true;
-                // }
-            }
-        }
-
-        // Mark contract as completed
-        contract.IsCompleted = true;
     }
+
 
     /// <summary>
     /// Calculate total inventory weight for UI display

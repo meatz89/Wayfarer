@@ -59,19 +59,6 @@ public class GameWorldInitializer
             contracts = GameWorldSerializer.DeserializeContracts(
                 File.ReadAllText(contractsFilePath));
 
-            contracts.Add(
-                new Contract
-                {
-                    Id = "deliver_tools",
-                    Description = "Deliver tools to the town carpenter",
-                    RequiredItems = new List<string> { "tools" },
-                    DestinationLocation = "town_square",
-                    StartDay = 1,
-                    DueDay = 3,
-                    Payment = 15,
-                    FailurePenalty = "Loss of reputation with craftsmen"
-                }
-            );
         }
 
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(

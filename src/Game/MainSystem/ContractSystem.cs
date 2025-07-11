@@ -22,7 +22,7 @@ public class ContractSystem
 
         foreach (Contract? contract in contracts)
         {
-            sb.AppendLine($"- {contract.Id}: {contract.Description} (at {contract.DestinationLocation})");
+            sb.AppendLine($"- {contract.Id}: {contract.Description}");
         }
 
         return sb.ToString();
@@ -47,11 +47,9 @@ public class ContractSystem
         // Consume time block for contract completion
         gameWorld.TimeManager.ConsumeTimeBlock(1);
 
-        // Remove required items from inventory
-        foreach (string requiredItem in contract.RequiredItems)
-        {
-            player.Inventory.RemoveItem(requiredItem);
-        }
+        // NOTE: Items are no longer removed here - they are consumed during completion actions
+        // (e.g., selling items for delivery contracts is handled by MarketManager)
+        // This follows the "only check completion actions" principle
 
         // Natural market dynamics: urgent contracts pay more upfront
         // No arbitrary bonuses/penalties - reputation affects future opportunities
@@ -175,14 +173,31 @@ public class ContractSystem
         {
             Id = $"generated_{currentDay}_{Guid.NewGuid().ToString("N")[0..8]}",
             Description = $"Generated delivery contract (Day {currentDay})",
-            RequiredItems = new List<string> { "herbs" }, // Simple for now
-            DestinationLocation = "dusty_flagon",
             StartDay = currentDay,
             DueDay = currentDay + baseDuration,
             Payment = basePayment,
             FailurePenalty = "Loss of reputation",
             IsCompleted = false,
-            IsFailed = false
+            IsFailed = false,
+            // New completion action format
+            RequiredTransactions = new List<ContractTransaction>
+            {
+                new ContractTransaction
+                {
+                    ItemId = "herbs",
+                    LocationId = "dusty_flagon",
+                    TransactionType = TransactionType.Sell,
+                    Quantity = 1
+                }
+            },
+            RequiredDestinations = new List<string>(),
+            RequiredNPCConversations = new List<string>(),
+            RequiredLocationActions = new List<string>(),
+            // Initialize completion tracking
+            CompletedDestinations = new HashSet<string>(),
+            CompletedTransactions = new List<ContractTransaction>(),
+            CompletedNPCConversations = new HashSet<string>(),
+            CompletedLocationActions = new HashSet<string>()
         };
     }
 }

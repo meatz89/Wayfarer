@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using Xunit;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests
 {
@@ -140,7 +141,9 @@ namespace Wayfarer.Tests
             // Add parsed items using repository methods (proper architecture)
             itemRepository.AddItems(parsedItems);
             LocationSystem locationSystem = new LocationSystem(gameWorld, new LocationRepository(gameWorld));
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, new LocationRepository(gameWorld));
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
 
             // Verify ItemRepository can find items
             foreach (Item item in parsedItems)
@@ -258,7 +261,9 @@ namespace Wayfarer.Tests
             ItemRepository itemRepository = new ItemRepository(gameWorld);
             TravelManager travelManager = CreateTravelManager(gameWorld);
             LocationSystem locationSystem = new LocationSystem(gameWorld, new LocationRepository(gameWorld));
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, new LocationRepository(gameWorld));
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
 
             Player player = gameWorld.GetPlayer();
             player.Coins = 100; // Start with some money
@@ -325,16 +330,20 @@ namespace Wayfarer.Tests
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
-            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, new ItemRepository(gameWorld));
             ItemRepository itemRepository = new ItemRepository(gameWorld);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
             return new TravelManager(
                 gameWorld,
                 locationSystem,
                 actionRepository,
                 locationRepository,
                 actionFactory,
-                itemRepository
+                itemRepository,
+                contractProgression
             );
         }
 

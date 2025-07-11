@@ -1,4 +1,5 @@
 using Xunit;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests
 {
@@ -359,17 +360,21 @@ namespace Wayfarer.Tests
             // This would normally be injected, but for testing we create a minimal version
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
-            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
-            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, new ItemRepository(gameWorld));
             ItemRepository itemRepository = new ItemRepository(gameWorld);
+            ContractRepository contractRepository = new ContractRepository(gameWorld);
+            ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
+            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
             return new TravelManager(
                 gameWorld,
                 locationSystem,
                 actionRepository,
                 locationRepository,
                 actionFactory,
-                itemRepository
+                itemRepository,
+                contractProgression
             );
         }
 

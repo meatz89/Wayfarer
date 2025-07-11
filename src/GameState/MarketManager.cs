@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using Wayfarer.Game.MainSystem;
+
+/// <summary>
 /// Manages location-specific item pricing and trading operations.
 /// Implements dynamic pricing system that creates arbitrage opportunities
 /// between different locations for strategic trading gameplay.
@@ -8,6 +10,7 @@ public class MarketManager
     private readonly GameWorld _gameWorld;
     private readonly LocationSystem _locationSystem;
     private readonly ItemRepository _itemRepository;
+    private readonly ContractProgressionService _contractProgressionService;
 
     /// <summary>
     /// Represents pricing information for an item at a specific location
@@ -20,11 +23,13 @@ public class MarketManager
         public bool IsAvailable { get; set; }
     }
 
-    public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository)
+    public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
+                        ContractProgressionService contractProgressionService)
     {
         _gameWorld = gameWorld;
         _locationSystem = locationSystem;
         _itemRepository = itemRepository;
+        _contractProgressionService = contractProgressionService;
     }
 
     /// <summary>
@@ -220,6 +225,9 @@ public class MarketManager
         player.Coins -= buyPrice;
         player.Inventory.AddItem(itemId);
 
+        // Check for contract progression based on purchase
+        _contractProgressionService.CheckMarketProgression(itemId, locationId, TransactionType.Buy, 1, buyPrice, player);
+
         return true;
     }
 
@@ -241,9 +249,209 @@ public class MarketManager
         player.Inventory.RemoveItem(itemId);
         player.Coins += sellPrice;
 
+        // Check for contract progression based on sale
+        _contractProgressionService.CheckMarketProgression(itemId, locationId, TransactionType.Sell, 1, sellPrice, player);
+
         return true;
     }
 
+    // ===== QUERY METHODS FOR STATE INSPECTION =====
+    // These methods provide market data inspection capabilities for both production and testing
 
+    /// <summary>
+    /// Get current market prices for an item at all locations.
+    /// Useful for UI trading screens and testing market scenarios.
+    /// </summary>
+    public List<MarketPriceInfo> GetItemMarketPrices(string itemId)
+    {
+        var prices = new List<MarketPriceInfo>();
+        
+        // Get all locations
+        List<Location> locations = _gameWorld.WorldState.locations ?? new List<Location>();
+        
+        foreach (Location location in locations)
+        {
+            LocationPricing pricing = GetDynamicPricing(location.Id, itemId);
+            
+            if (pricing.IsAvailable) // Only include locations that have this item
+            {
+                prices.Add(new MarketPriceInfo
+                {
+                    LocationId = location.Id,
+                    LocationName = location.Name,
+                    ItemId = itemId,
+                    BuyPrice = pricing.BuyPrice,
+                    SellPrice = pricing.SellPrice,
+                    CanBuy = CanBuyItem(itemId, location.Id),
+                    SupplyLevel = pricing.SupplyLevel
+                });
+            }
+        }
+        
+        return prices;
+    }
 
+    /// <summary>
+    /// Try to execute a buy action and return detailed result.
+    /// Provides better error handling and state tracking than the boolean BuyItem method.
+    /// </summary>
+    public TradeActionResult TryBuyItem(string itemId, string locationId)
+    {
+        try
+        {
+            Player player = _gameWorld.GetPlayer();
+            int coinsBefore = player.Coins;
+            bool hadItemBefore = player.Inventory.HasItem(itemId);
+            
+            // Get price before attempting purchase
+            int buyPrice = GetItemPrice(locationId, itemId, true);
+            
+            // Attempt the purchase
+            bool success = BuyItem(itemId, locationId);
+            
+            if (success)
+            {
+                int coinsAfter = player.Coins;
+                bool hasItemAfter = player.Inventory.HasItem(itemId);
+                
+                return new TradeActionResult
+                {
+                    Success = true,
+                    Action = "buy",
+                    ItemId = itemId,
+                    LocationId = locationId,
+                    CoinsBefore = coinsBefore,
+                    CoinsAfter = coinsAfter,
+                    CoinsChanged = coinsAfter - coinsBefore,
+                    HadItemBefore = hadItemBefore,
+                    HasItemAfter = hasItemAfter,
+                    ErrorMessage = null,
+                    TransactionPrice = buyPrice
+                };
+            }
+            else
+            {
+                return new TradeActionResult
+                {
+                    Success = false,
+                    Action = "buy",
+                    ItemId = itemId,
+                    LocationId = locationId,
+                    ErrorMessage = "Purchase failed - insufficient funds or item not available"
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            return new TradeActionResult
+            {
+                Success = false,
+                Action = "buy",
+                ItemId = itemId,
+                LocationId = locationId,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    /// <summary>
+    /// Try to execute a sell action and return detailed result.
+    /// Provides better error handling and state tracking than the boolean SellItem method.
+    /// </summary>
+    public TradeActionResult TrySellItem(string itemId, string locationId)
+    {
+        try
+        {
+            Player player = _gameWorld.GetPlayer();
+            int coinsBefore = player.Coins;
+            bool hadItemBefore = player.Inventory.HasItem(itemId);
+            
+            // Get price before attempting sale
+            int sellPrice = GetItemPrice(locationId, itemId, false);
+            
+            // Attempt the sale
+            bool success = SellItem(itemId, locationId);
+            
+            if (success)
+            {
+                int coinsAfter = player.Coins;
+                bool hasItemAfter = player.Inventory.HasItem(itemId);
+                
+                return new TradeActionResult
+                {
+                    Success = true,
+                    Action = "sell",
+                    ItemId = itemId,
+                    LocationId = locationId,
+                    CoinsBefore = coinsBefore,
+                    CoinsAfter = coinsAfter,
+                    CoinsChanged = coinsAfter - coinsBefore,
+                    HadItemBefore = hadItemBefore,
+                    HasItemAfter = hasItemAfter,
+                    ErrorMessage = null,
+                    TransactionPrice = sellPrice
+                };
+            }
+            else
+            {
+                return new TradeActionResult
+                {
+                    Success = false,
+                    Action = "sell",
+                    ItemId = itemId,
+                    LocationId = locationId,
+                    ErrorMessage = "Sale failed - item not in inventory or not sellable at this location"
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            return new TradeActionResult
+            {
+                Success = false,
+                Action = "sell",
+                ItemId = itemId,
+                LocationId = locationId,
+                ErrorMessage = ex.Message
+            };
+        }
+    }
+
+    /// <summary>
+    /// Get profit potential for an item across all locations.
+    /// Useful for UI trading analysis and testing arbitrage scenarios.
+    /// </summary>
+    public MarketArbitrageInfo GetArbitrageOpportunities(string itemId)
+    {
+        List<MarketPriceInfo> allPrices = GetItemMarketPrices(itemId);
+        
+        if (allPrices.Count < 2)
+        {
+            return new MarketArbitrageInfo
+            {
+                ItemId = itemId,
+                BestBuyLocation = null,
+                BestSellLocation = null,
+                MaxProfit = 0,
+                AllPrices = allPrices
+            };
+        }
+        
+        // Find best buy location (lowest buy price)
+        MarketPriceInfo bestBuy = allPrices.Where(p => p.CanBuy).OrderBy(p => p.BuyPrice).FirstOrDefault();
+        
+        // Find best sell location (highest sell price)
+        MarketPriceInfo bestSell = allPrices.OrderByDescending(p => p.SellPrice).FirstOrDefault();
+        
+        int maxProfit = (bestBuy != null && bestSell != null) ? bestSell.SellPrice - bestBuy.BuyPrice : 0;
+        
+        return new MarketArbitrageInfo
+        {
+            ItemId = itemId,
+            BestBuyLocation = bestBuy,
+            BestSellLocation = bestSell,
+            MaxProfit = maxProfit,
+            AllPrices = allPrices
+        };
+    }
 }
