@@ -58,7 +58,7 @@ public enum EnvironmentCategory
     Private_Space,       // Quiet, private area required
     Good_Light,          // Adequate lighting needed
     Quiet,               // Low noise environment
-    Weather_Protected,   // Shelter from rain/wind needed
+    Weather_public,   // Shelter from rain/wind needed
     Specific_Location,   // Unique location requirement
     Hearth,              // Requires fireplace or heating
     Library,             // Books and study materials available
@@ -154,22 +154,6 @@ public enum PhysicalCondition
     Injured,      // Physical impairment
     Sick,         // Illness affecting performance
     Recovered     // Recently recovered from exertion
-}
-
-/// <summary>
-/// Player's current social signaling through appearance/equipment
-/// </summary>
-public enum SocialSignalLevel
-{
-    Vagrant,        // Clearly destitute appearance
-    Commoner,       // Basic working-class appearance
-    Merchant,       // Well-dressed trader appearance
-    Artisan,        // Professional craftsperson appearance
-    Minor_Noble,    // Lower nobility appearance
-    Major_Noble,    // High nobility appearance
-    Foreign,        // Clearly from another region/culture
-    Clergy,         // Religious figure appearance
-    Scholar         // Academic/learned appearance
 }
 
 /// <summary>

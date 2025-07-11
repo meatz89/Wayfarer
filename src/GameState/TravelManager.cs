@@ -2,7 +2,6 @@
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
-    // ✅ REMOVED: cached worldState reference - Read from GameWorld when needed
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
     public LocationRepository LocationRepository { get; }
@@ -20,7 +19,6 @@
     {
         _gameWorld = gameWorld;
         _timeManager = gameWorld.TimeManager;
-        // ✅ REMOVED: cached worldState assignment
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
         this.LocationRepository = locationRepository;

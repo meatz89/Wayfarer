@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Components;
 
-public partial class TravelSelectionBase : ComponentBase
+public class TravelSelectionBase : ComponentBase
 {
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameWorldManager GameWorldManager { get; set; }
-    // ✅ ARCHITECTURAL COMPLIANCE: Only inject GameWorldManager for actions
     // ItemRepository allowed for read-only UI data binding
     [Inject] public ItemRepository ItemRepository { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
@@ -44,7 +43,6 @@ public partial class TravelSelectionBase : ComponentBase
 
     public void ShowRouteOptions(GameWorld gameWorld, string destinationName, string destinationId)
     {
-        // ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway
         List<RouteOption> availableRoutes = GameWorldManager.GetAvailableRoutes(CurrentLocation.Id, destinationId);
 
         Console.WriteLine($"=== Travel to {destinationName} ===");
@@ -55,7 +53,6 @@ public partial class TravelSelectionBase : ComponentBase
             return;
         }
 
-        // ✅ ARCHITECTURAL COMPLIANCE: Use GameWorldManager for weight calculation
         int totalWeight = GameWorldManager.CalculateTotalWeight();
         string weightStatus = totalWeight <= 3 ? "Light load" :
                                 (totalWeight <= 6 ? "Medium load (+1 stamina cost)" : "Heavy load (+2 stamina cost)");
@@ -86,7 +83,6 @@ public partial class TravelSelectionBase : ComponentBase
                 $"{adjustedStaminaCost} stamina (base {route.BaseStaminaCost} + weight penalty)";
 
             string departureInfo = route.DepartureTime.HasValue ? $", departs at {route.DepartureTime}" : "";
-            // ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway
             string affordabilityMarker = GameWorldManager.CanTravelRoute(route) ? "" : " (Cannot afford)";
 
             Console.WriteLine($"[{i + 1}] {route.Name} - {route.BaseCoinCost} coins, {staminaCostDisplay}{departureInfo}, arrives {arrivalTime}{affordabilityMarker}");

@@ -1,6 +1,5 @@
 ﻿public class ActionRepository
 {
-    // ✅ ARCHITECTURAL COMPLIANCE: Stateless repository with GameWorld DI
     private readonly GameWorld _gameWorld;
 
     public ActionRepository(GameWorld gameWorld)

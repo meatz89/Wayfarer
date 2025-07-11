@@ -183,38 +183,9 @@ public class ContractValidationService
         return ValidationResult.Invalid($"Missing required tool category: {categoryName}");
     }
 
-    /// <summary>
-    /// Determines if an item fulfills a tool category requirement
-    /// </summary>
     private bool ItemFulfillsToolCategory(Item item, ToolCategory category)
     {
-        // Map ToolCategory to item properties and categories
-        return category switch
-        {
-            ToolCategory.Basic_Tools => item.HasEquipmentCategory(EquipmentCategory.Basic_Tools) || 
-                                      item.ItemCategory == ItemCategory.Tools,
-            ToolCategory.Specialized_Equipment => item.HasEquipmentCategory(EquipmentCategory.Specialized_Tools) ||
-                                                item.ItemCategory == ItemCategory.Professional_Equipment,
-            ToolCategory.Quality_Materials => item.ItemCategory == ItemCategory.Materials && 
-                                             item.Name.ToLower().Contains("quality"),
-            ToolCategory.Documentation => item.ItemCategory == ItemCategory.Documents ||
-                                        item.Name.ToLower().Contains("permit") ||
-                                        item.Name.ToLower().Contains("contract"),
-            ToolCategory.Trade_Samples => item.ItemCategory == ItemCategory.Trade_Goods &&
-                                        item.Name.ToLower().Contains("sample"),
-            ToolCategory.Writing_Materials => item.ItemCategory == ItemCategory.Tools &&
-                                            (item.Name.ToLower().Contains("ink") ||
-                                             item.Name.ToLower().Contains("quill") ||
-                                             item.Name.ToLower().Contains("parchment")),
-            ToolCategory.Measurement_Tools => item.HasEquipmentCategory(EquipmentCategory.Measurement_Tools),
-            ToolCategory.Safety_Equipment => item.HasEquipmentCategory(EquipmentCategory.Safety_Equipment),
-            ToolCategory.Social_Attire => item.HasEquipmentCategory(EquipmentCategory.Social_Signaling) &&
-                                        item.SocialSignaling == SocialSignalLevel.Artisan || 
-                                        item.SocialSignaling >= SocialSignalLevel.Professional,
-            ToolCategory.Crafting_Supplies => item.ItemCategory == ItemCategory.Materials ||
-                                            item.ItemCategory == ItemCategory.Crafting_Components,
-            _ => false
-        };
+        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -231,11 +202,8 @@ public class ContractValidationService
         // Get reputation-based social level
         SocialRequirement reputationLevel = GetReputationSocialLevel(player.GetReputationLevel());
         
-        // Get equipment-based social level using proper Item.SocialSignaling
-        SocialRequirement equipmentLevel = GetEquipmentSocialLevel(player);
-        
         // Take the highest social level from all sources
-        SocialRequirement playerSocialLevel = GetHighestSocialLevel(archetypeLevel, reputationLevel, equipmentLevel);
+        SocialRequirement playerSocialLevel = GetHighestSocialLevel(archetypeLevel, reputationLevel);
         
         if (playerSocialLevel >= requirement)
         {
@@ -245,38 +213,6 @@ public class ContractValidationService
         string requiredLevel = requirement.ToString().Replace("_", " ");
         string currentLevel = playerSocialLevel.ToString().Replace("_", " ");
         return ValidationResult.Invalid($"Requires {requiredLevel} social standing (current: {currentLevel})");
-    }
-
-    /// <summary>
-    /// Gets equipment-based social level using proper Item.SocialSignaling property
-    /// </summary>
-    private SocialRequirement GetEquipmentSocialLevel(Player player)
-    {
-        SocialSignalLevel highestSignal = SocialSignalLevel.Vagrant;
-
-        foreach (string itemId in player.Inventory.ItemSlots)
-        {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            Item item = _itemRepository.GetItemById(itemId);
-            if (item?.SocialSignaling > highestSignal)
-            {
-                highestSignal = item.SocialSignaling;
-            }
-        }
-
-        // Map SocialSignalLevel to SocialRequirement
-        return highestSignal switch
-        {
-            SocialSignalLevel.Major_Noble => SocialRequirement.Major_Noble,
-            SocialSignalLevel.Minor_Noble => SocialRequirement.Minor_Noble,
-            SocialSignalLevel.Scholar => SocialRequirement.Professional,
-            SocialSignalLevel.Clergy => SocialRequirement.Professional,
-            SocialSignalLevel.Artisan => SocialRequirement.Professional,
-            SocialSignalLevel.Merchant => SocialRequirement.Merchant_Class,
-            SocialSignalLevel.Commoner => SocialRequirement.Commoner,
-            _ => SocialRequirement.Any
-        };
     }
 
     /// <summary>

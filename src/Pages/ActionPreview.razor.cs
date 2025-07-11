@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-public partial class ActionPreviewBase : ComponentBase
+public class ActionPreviewBase : ComponentBase
 {
     [Parameter] public UserActionOption CurrentAction { get; set; }
     [Parameter] public ApproachDefinition CurrentApproach { get; set; }
@@ -8,7 +8,7 @@ public partial class ActionPreviewBase : ComponentBase
     [Parameter] public EventCallback<bool> OnActionConfirmed { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
-    protected string GetCardCostClass(SkillCategories costType)
+    public string GetCardCostClass(SkillCategories costType)
     {
         return costType switch
         {

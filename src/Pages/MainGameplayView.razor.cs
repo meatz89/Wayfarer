@@ -4,29 +4,28 @@ using Wayfarer.UIHelpers;
 
 namespace Wayfarer.Pages;
 
-public partial class MainGameplayView : ComponentBase
+public class MainGameplayViewBase : ComponentBase
 {
-    [Inject] private IJSRuntime JSRuntime { get; set; }
-    [Inject] private GameWorld GameWorld { get; set; }
-    [Inject] private GameWorldManager GameManager { get; set; }
-    // ✅ ARCHITECTURAL COMPLIANCE: Only inject GameWorldManager for actions
+    [Inject] public IJSRuntime JSRuntime { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
+    [Inject] public GameWorldManager GameManager { get; set; }
     // Read-only services allowed for UI state management and display
-    [Inject] private MessageSystem MessageSystem { get; set; }
-    [Inject] private ItemRepository ItemRepository { get; set; }
-    [Inject] private LoadingStateService? LoadingStateService { get; set; }
-    [Inject] private CardHighlightService CardRefreshService { get; set; }
+    [Inject] public MessageSystem MessageSystem { get; set; }
+    [Inject] public ItemRepository ItemRepository { get; set; }
+    [Inject] public LoadingStateService? LoadingStateService { get; set; }
+    [Inject] public CardHighlightService CardRefreshService { get; set; }
 
 
-    private int StateVersion = 0;
+    public int StateVersion = 0;
     public EncounterManager EncounterManager = null;
     public EncounterResult EncounterResult;
 
     // Navigation State
-    public string SelectedLocation { get; private set; }
-    public TimeBlocks CurrentTimeBlock { get; private set; }
-    public int Stamina { get; private set; } = 0;
-    public int Concentration { get; private set; } = 0;
-    public Location CurrentLocation { get; private set; }
+    public string SelectedLocation { get; set; }
+    public TimeBlocks CurrentTimeBlock { get; set; }
+    public int Stamina { get; set; } = 0;
+    public int Concentration { get; set; } = 0;
+    public Location CurrentLocation { get; set; }
 
     public Player PlayerState
     {
@@ -39,17 +38,17 @@ public partial class MainGameplayView : ComponentBase
     // Tooltip State
     public bool ShowTooltip = false;
     public UserActionOption HoveredAction;
-    private double MouseX;
-    private double MouseY;
+    public double MouseX;
+    public double MouseY;
 
     // Action Message State
-    private bool ShowActionMessage = false;
-    private string ActionMessageType = "success";
-    private List<string> ActionMessages = new List<string>();
+    public bool ShowActionMessage = false;
+    public string ActionMessageType = "success";
+    public List<string> ActionMessages = new List<string>();
     public ElementReference SidebarRef;
 
 
-    public bool HasApLeft { get; private set; }
+    public bool HasApLeft { get; set; }
     public bool HasNoApLeft
     {
         get
@@ -67,8 +66,8 @@ public partial class MainGameplayView : ComponentBase
         }
     }
 
-    public BeatOutcome BeatOutcome { get; private set; }
-    public CurrentViews CurrentScreen { get; private set; } = CurrentViews.LocationScreen;
+    public BeatOutcome BeatOutcome { get; set; }
+    public CurrentViews CurrentScreen { get; set; } = CurrentViews.LocationScreen;
 
     public LocationSpot CurrentSpot
     {
@@ -109,7 +108,7 @@ public partial class MainGameplayView : ComponentBase
         }
     }
 
-    private Dictionary<SidebarSections, bool> ExpandedSections = new Dictionary<SidebarSections, bool>
+    public Dictionary<SidebarSections, bool> ExpandedSections = new Dictionary<SidebarSections, bool>
     {
         { SidebarSections.skills, false },
         { SidebarSections.resources, false },
@@ -134,9 +133,9 @@ public partial class MainGameplayView : ComponentBase
         });
     }
 
-    private GameWorldSnapshot oldSnapshot;
+    public GameWorldSnapshot oldSnapshot;
 
-    private void PollGameState()
+    public void PollGameState()
     {
         GameWorldSnapshot snapshot = GameManager.GetGameSnapshot();
         CurrentTimeBlock = snapshot.CurrentTimeBlock;
@@ -163,32 +162,32 @@ public partial class MainGameplayView : ComponentBase
         StateHasChanged();
     }
 
-    private void SwitchToMarketScreen()
+    public void SwitchToMarketScreen()
     {
         CurrentScreen = CurrentViews.MarketScreen;
         StateHasChanged();
     }
 
-    private void SwitchToRestScreen()
+    public void SwitchToRestScreen()
     {
         CurrentScreen = CurrentViews.RestScreen;
         StateHasChanged();
     }
 
-    private void SwitchToContractScreen()
+    public void SwitchToContractScreen()
     {
         CurrentScreen = CurrentViews.ContractScreen;
         StateHasChanged();
     }
 
-    private async Task HandleTravelRoute(RouteOption route)
+    public async Task HandleTravelRoute(RouteOption route)
     {
         await GameManager.Travel(route);
         CurrentScreen = CurrentViews.LocationScreen;
         UpdateState();
     }
 
-    private async Task HandleRestComplete()
+    public async Task HandleRestComplete()
     {
         CurrentScreen = CurrentViews.LocationScreen;
         UpdateState();
@@ -231,19 +230,19 @@ public partial class MainGameplayView : ComponentBase
         return GameWorld.WorldState.CurrentLocationSpot;
     }
 
-    private async Task HandleSpotSelection(LocationSpot locationSpot)
+    public async Task HandleSpotSelection(LocationSpot locationSpot)
     {
         await GameManager.MoveToLocationSpot(locationSpot.SpotID);
         UpdateState();
     }
 
-    private async Task StartNewDay()
+    public async Task StartNewDay()
     {
         await GameManager.StartNewDay();
         UpdateState();
     }
 
-    private async Task HandleActionSelection(UserActionOption action)
+    public async Task HandleActionSelection(UserActionOption action)
     {
         if (action.IsDisabled) return;
 
@@ -261,7 +260,7 @@ public partial class MainGameplayView : ComponentBase
         UpdateState();
     }
 
-    private async Task OnEncounterCompleted(BeatOutcome result)
+    public async Task OnEncounterCompleted(BeatOutcome result)
     {
         // Process action completion
         await GameManager.ProcessActionCompletion();
@@ -275,9 +274,8 @@ public partial class MainGameplayView : ComponentBase
         UpdateState();
     }
 
-    private async Task HandleTravelStart(string travelDestination)
+    public async Task HandleTravelStart(string travelDestination)
     {
-        // ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway
         List<RouteOption> routes = GameManager.GetAvailableRoutes(GameWorld.WorldState.CurrentLocation.Id, travelDestination);
         RouteOption routeOption = routes.FirstOrDefault();
 
@@ -287,7 +285,7 @@ public partial class MainGameplayView : ComponentBase
         UpdateState();
     }
 
-    private async Task OnNarrativeCompleted()
+    public async Task OnNarrativeCompleted()
     {
         BeatOutcome = null;
 
@@ -295,13 +293,13 @@ public partial class MainGameplayView : ComponentBase
         UpdateState();
     }
 
-    private async Task UseResource(ActionNames actionName)
+    public async Task UseResource(ActionNames actionName)
     {
         CurrentScreen = CurrentViews.LocationScreen;
         UpdateState();
     }
 
-    private async Task HandleCardRefreshed(SkillCard card)
+    public async Task HandleCardRefreshed(SkillCard card)
     {
         await GameManager.RefreshCard(card);
         MessageSystem.AddSystemMessage($"Refreshed {card.Name} card");
@@ -316,7 +314,7 @@ public partial class MainGameplayView : ComponentBase
         StateHasChanged();
     }
 
-    private void DisplayActionMessages()
+    public void DisplayActionMessages()
     {
         ActionMessages = GetResultMessages();
 
@@ -337,7 +335,7 @@ public partial class MainGameplayView : ComponentBase
         }
     }
 
-    private void DismissActionMessage()
+    public void DismissActionMessage()
     {
         ShowActionMessage = false;
     }
@@ -370,7 +368,7 @@ public partial class MainGameplayView : ComponentBase
         return portraitPath;
     }
 
-    private string FormatItemName(Item itemType)
+    public string FormatItemName(Item itemType)
     {
         return System.Text.RegularExpressions.Regex.Replace(
             itemType.ToString(),
@@ -379,7 +377,7 @@ public partial class MainGameplayView : ComponentBase
             System.Text.RegularExpressions.RegexOptions.Compiled).Trim();
     }
 
-    private async Task ToggleSection(SidebarSections sectionName)
+    public async Task ToggleSection(SidebarSections sectionName)
     {
         if (ExpandedSections.ContainsKey(sectionName))
         {
@@ -407,7 +405,7 @@ public partial class MainGameplayView : ComponentBase
     /// <summary>
     /// Get weather icon for UI display
     /// </summary>
-    private string GetWeatherIcon(WeatherCondition weather)
+    public string GetWeatherIcon(WeatherCondition weather)
     {
         return weather switch
         {

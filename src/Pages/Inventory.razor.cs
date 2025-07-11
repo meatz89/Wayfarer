@@ -2,7 +2,7 @@
 
 namespace Wayfarer.Pages
 {
-    public partial class InventoryBase : ComponentBase
+    public class InventoryBase : ComponentBase
     {
         [Inject] public TravelManager TravelManager { get; set; }
         [Inject] public ItemRepository ItemRepository { get; set; }

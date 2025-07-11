@@ -2,15 +2,15 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-public partial class EncounterViewBase : ComponentBase
+public class EncounterViewBase : ComponentBase
 {
     [Inject] public IJSRuntime JSRuntime { get; set; }
-    [Inject] protected GameWorldManager GameWorldManager { get; set; }
+    [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Parameter] public EventCallback<BeatOutcome> OnEncounterCompleted { get; set; }
     [Parameter] public EncounterManager EncounterManager { get; set; }
 
     // State
-    protected GameWorldSnapshot currentSnapshot;
+    public GameWorldSnapshot currentSnapshot;
 
     // Tooltip state
     public EncounterChoice hoveredChoice;
@@ -35,7 +35,7 @@ public partial class EncounterViewBase : ComponentBase
         }
     }
 
-    protected async Task MakeChoice(string choiceId)
+    public async Task MakeChoice(string choiceId)
     {
         HideTooltip();
 
@@ -54,7 +54,7 @@ public partial class EncounterViewBase : ComponentBase
         }
     }
 
-    protected void ShowTooltip(MouseEventArgs e, EncounterChoice choice)
+    public void ShowTooltip(MouseEventArgs e, EncounterChoice choice)
     {
         hoveredChoice = choice;
         showTooltip = true;
@@ -62,7 +62,7 @@ public partial class EncounterViewBase : ComponentBase
         tooltipY = e.ClientY - 300;
     }
 
-    protected void HideTooltip()
+    public void HideTooltip()
     {
         if (showTooltip)
         {

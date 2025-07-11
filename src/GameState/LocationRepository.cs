@@ -1,6 +1,5 @@
 ﻿public class LocationRepository
 {
-    // ✅ ARCHITECTURAL COMPLIANCE: Stateless repository with GameWorld DI
     private readonly GameWorld _gameWorld;
 
     public LocationRepository(GameWorld gameWorld)
