@@ -1,7 +1,6 @@
 ﻿@* MarketUI.razor *@
 @inject GameWorld GameWorld
 @inject GameWorldManager GameManager
-@* ✅ ARCHITECTURAL COMPLIANCE: Only inject GameWorldManager for actions *@
 @* MarketManager removed - all actions through GameWorldManager *@
 @* ItemRepository allowed for read-only UI data binding *@
 @inject ItemRepository ItemRepository
@@ -35,7 +34,6 @@
             <div class="item-actions">Actions</div>
         </div>
 
-        @* ✅ ARCHITECTURAL COMPLIANCE: Route through GameWorldManager gateway *@
         @foreach (Item item in GameManager.GetAvailableMarketItems(Location.Id))
         {
             if (item == null) continue;
@@ -121,8 +119,6 @@
 
 @code {
     [Parameter] public Location Location { get; set; }
-    // ✅ REMOVED: Duplicate GameWorld injection - already injected at top
-    // ✅ REMOVED: Direct TradeManager injection - use GameWorldManager gateway
 
     private void BuyItem(Item item)
     {

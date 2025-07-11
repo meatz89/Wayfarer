@@ -87,8 +87,8 @@ namespace Wayfarer.Tests
             itemRepository.AddItem(weatherGear);
             player.Inventory.AddItem("Weather Cloak");
 
-            RouteAccessResult protectedRainResult = exposedRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Rain);
-            Assert.True(protectedRainResult.IsAllowed);
+            RouteAccessResult publicRainResult = exposedRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Rain);
+            Assert.True(publicRainResult.IsAllowed);
         }
 
         /// <summary>

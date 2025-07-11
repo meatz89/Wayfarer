@@ -3,13 +3,13 @@ using Wayfarer.UIHelpers;
 
 namespace Wayfarer.Pages;
 
-public partial class GameUI : ComponentBase
+public class GameUIBase : ComponentBase
 {
-    [Inject] private ContentValidator ContentValidator { get; set; }
-    [Inject] private GameWorld GameWorld { get; set; }
-    [Inject] private GameWorldManager GameWorldManager { get; set; }
+    [Inject] public ContentValidator ContentValidator { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
+    [Inject] public GameWorldManager GameWorldManager { get; set; }
 
-    public CurrentViews CurrentScreen { get; private set; } = CurrentViews.CharacterScreen;
+    public CurrentViews CurrentScreen { get; set; } = CurrentViews.CharacterScreen;
 
     public Player PlayerState
     {
@@ -19,7 +19,7 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    [Inject] private LoadingStateService LoadingStateService { get; set; }
+    [Inject] public LoadingStateService LoadingStateService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,7 +40,7 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    private async Task ResolvedMissingReferences()
+    public async Task ResolvedMissingReferences()
     {
         if (!PlayerState.IsInitialized)
         {
@@ -53,13 +53,13 @@ public partial class GameUI : ComponentBase
         }
     }
 
-    private async Task InitializeGame()
+    public async Task InitializeGame()
     {
         CurrentScreen = CurrentViews.CharacterScreen;
         StateHasChanged();
     }
 
-    private async Task HandleCharacterCreated(Player player)
+    public async Task HandleCharacterCreated(Player player)
     {
         CurrentScreen = CurrentViews.LocationScreen;
         await GameWorldManager.StartGame();

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-public partial class EncounterChoiceTooltipBase : ComponentBase
+public class EncounterChoiceTooltipBase : ComponentBase
 {
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
@@ -8,18 +8,14 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
     [Parameter] public double tooltipX { get; set; }
     [Parameter] public double tooltipY { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-    }
-
-    protected string GetSkillCheckInfo(EncounterChoice choice)
+    public string GetSkillCheckInfo(EncounterChoice choice)
     {
         string skillInfo = "";
         skillInfo += choice.SkillOption.ToString();
         return skillInfo;
     }
 
-    protected string GetProgressInfo(EncounterChoice choice)
+    public string GetProgressInfo(EncounterChoice choice)
     {
         // Get the choice projection to show accurate progress information
         ChoiceProjection projection = Preview;
@@ -44,7 +40,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return effects.Count > 0 ? $"Positive: {string.Join(", ", effects)}" : "Positive: Minimal effect";
     }
 
-    protected List<EffectItem> GetPositiveEffectsAsList(EncounterChoice option, ChoiceProjection projection)
+    public List<EffectItem> GetPositiveEffectsAsList(EncounterChoice option, ChoiceProjection projection)
     {
         List<EffectItem> effects = new List<EffectItem>();
 
@@ -62,7 +58,7 @@ public partial class EncounterChoiceTooltipBase : ComponentBase
         return effects;
     }
 
-    protected int GetPlayerSkillLevel(SkillTypes skill)
+    public int GetPlayerSkillLevel(SkillTypes skill)
     {
         return GameWorld.GetPlayer().GetSkillLevel(skill);
     }

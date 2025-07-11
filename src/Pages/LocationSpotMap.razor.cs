@@ -3,31 +3,31 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Wayfarer.Pages;
 
-public partial class LocationSpotMap : ComponentBase
+public class LocationSpotMapBase : ComponentBase
 {
-    [Inject] private GameWorldManager GameWorldManager { get; set; }
-    [Inject] private GameWorld GameWorld { get; set; }
-    [Inject] private LocationSystem LocationSystem { get; set; }
-    [Inject] private CardSelectionService DragDropService { get; set; }
-    [Inject] private CardHighlightService CardHighlightService { get; set; }
+    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
+    [Inject] public LocationSystem LocationSystem { get; set; }
+    [Inject] public CardSelectionService DragDropService { get; set; }
+    [Inject] public CardHighlightService CardHighlightService { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
     [Parameter] public EventCallback<LocationSpot> OnSpotSelected { get; set; }
     [Parameter] public EventCallback<UserActionOption> OnActionSelected { get; set; }
 
-    private bool showTooltip;
-    private UserActionOption selectedAction = null;
-    private ApproachDefinition hoveredApproach = null;
-    private double mouseX;
-    private double mouseY;
+    public bool showTooltip;
+    public UserActionOption selectedAction = null;
+    public ApproachDefinition hoveredApproach = null;
+    public double mouseX;
+    public double mouseY;
 
     protected override void OnInitialized()
     {
         DragDropService.OnStateChanged += StateHasChanged;
     }
 
-    private async Task HandleApproachSelection(UserActionOption action, ApproachDefinition approach)
+    public async Task HandleApproachSelection(UserActionOption action, ApproachDefinition approach)
     {
         bool isCompatible = DragDropService.IsValidDropTarget(approach.RequiredCardType);
         if (isCompatible)
@@ -38,7 +38,7 @@ public partial class LocationSpotMap : ComponentBase
         await SelectApproach(action, approach);
     }
 
-    private async Task HandleActionSelection(UserActionOption action)
+    public async Task HandleActionSelection(UserActionOption action)
     {
         showTooltip = false;
 
@@ -47,7 +47,7 @@ public partial class LocationSpotMap : ComponentBase
         selectedAction = null;
     }
 
-    private void ActivateHighlightMode(SkillCategories cardType)
+    public void ActivateHighlightMode(SkillCategories cardType)
     {
         if (CardHighlightService.IsHighlightModeActive)
         {
@@ -64,13 +64,13 @@ public partial class LocationSpotMap : ComponentBase
         DragDropService.OnStateChanged -= StateHasChanged;
     }
 
-    private bool IsValidCardForApproach(SkillCategories requiredCardType)
+    public bool IsValidCardForApproach(SkillCategories requiredCardType)
     {
         bool isValidTarget = DragDropService.IsValidDropTarget(requiredCardType);
         return true;
     }
 
-    private string GetCardTypeClass(SkillCategories type)
+    public string GetCardTypeClass(SkillCategories type)
     {
         return type switch
         {
@@ -81,7 +81,7 @@ public partial class LocationSpotMap : ComponentBase
         };
     }
 
-    private void ToggleActionApproaches(UserActionOption action)
+    public void ToggleActionApproaches(UserActionOption action)
     {
         if (selectedAction?.locationAction.ActionId == action.locationAction.ActionId)
         {
@@ -93,7 +93,7 @@ public partial class LocationSpotMap : ComponentBase
         }
     }
 
-    private async Task SelectApproach(UserActionOption action, ApproachDefinition approach)
+    public async Task SelectApproach(UserActionOption action, ApproachDefinition approach)
     {
         showTooltip = false;
 
@@ -110,7 +110,7 @@ public partial class LocationSpotMap : ComponentBase
         selectedAction = null;
     }
 
-    private void HandleShowApproachTooltip(UserActionOption action, ApproachDefinition approach, MouseEventArgs e)
+    public void HandleShowApproachTooltip(UserActionOption action, ApproachDefinition approach, MouseEventArgs e)
     {
         selectedAction = action;
         hoveredApproach = approach;
@@ -119,7 +119,7 @@ public partial class LocationSpotMap : ComponentBase
         showTooltip = true;
     }
 
-    private void HandleHideTooltip()
+    public void HandleHideTooltip()
     {
         hoveredApproach = null;
         showTooltip = false;

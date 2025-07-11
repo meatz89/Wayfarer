@@ -381,7 +381,7 @@ public class EnvironmentRequirement : IRequirement
             EnvironmentCategory.Private_Space => IsPrivateSpace(location, spot),
             EnvironmentCategory.Good_Light => HasGoodLight(gameWorld),
             EnvironmentCategory.Quiet => IsQuietEnvironment(location),
-            EnvironmentCategory.Weather_Protected => IsWeatherProtected(spot),
+            EnvironmentCategory.Weather_public => IsWeatherpublic(spot),
             EnvironmentCategory.Specific_Location => true, // Handled by location-specific logic
             EnvironmentCategory.Hearth => HasHearth(spot),
             EnvironmentCategory.Library => IsLibrary(spot),
@@ -439,7 +439,7 @@ public class EnvironmentRequirement : IRequirement
                !location.Id.Contains("tavern");
     }
 
-    private bool IsWeatherProtected(LocationSpot spot)
+    private bool IsWeatherpublic(LocationSpot spot)
     {
         return IsIndoorSpot(spot) || 
                spot.SpotID.Contains("covered") ||
