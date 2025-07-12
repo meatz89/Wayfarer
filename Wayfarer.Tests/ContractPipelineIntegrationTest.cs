@@ -44,7 +44,8 @@ public class ContractPipelineIntegrationTest
         MarketManager market = new MarketManager(gameWorld, 
             new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
             new ItemRepository(gameWorld),
-            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)));
+            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
+            new NPCRepository(gameWorld));
         
         // === VERIFY INITIAL STATE ===
         // Using repository query methods (useful for production too)
@@ -158,7 +159,8 @@ public class ContractPipelineIntegrationTest
         MarketManager market = new MarketManager(gameWorld, 
             new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
             new ItemRepository(gameWorld),
-            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)));
+            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
+            new NPCRepository(gameWorld));
         
         // Accept contract
         Contract herbContract = contracts.GetContract("herb_delivery");
@@ -242,7 +244,8 @@ public class ContractPipelineIntegrationTest
         MarketManager market = new MarketManager(gameWorld, 
             new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
             new ItemRepository(gameWorld),
-            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)));
+            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
+            new NPCRepository(gameWorld));
         ContractProgressionService progression = new ContractProgressionService(
             contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld));
         

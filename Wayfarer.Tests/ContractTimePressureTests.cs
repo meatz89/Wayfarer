@@ -71,7 +71,7 @@ namespace Wayfarer.Tests
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, progressionService);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, progressionService, new NPCRepository(gameWorld));
             
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);

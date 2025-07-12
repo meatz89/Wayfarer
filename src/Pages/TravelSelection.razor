@@ -96,6 +96,18 @@
                                     </div>
                                 }
                                 <span>Max items: @route.MaxItemCapacity</span>
+                                @if (route.DepartureTime.HasValue)
+                                {
+                                    <div class="departure-time">
+                                        🕐 Departs: @route.DepartureTime.Value.ToString().Replace('_', ' ')
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="departure-time">
+                                        🕐 Available anytime
+                                    </div>
+                                }
                                 @if (!accessInfo.IsAllowed)
                                 {
                                     <div class="route-blocked">🚫 @accessInfo.BlockingReason</div>

@@ -143,7 +143,7 @@ namespace Wayfarer.Tests
             LocationSystem locationSystem = new LocationSystem(gameWorld, new LocationRepository(gameWorld));
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, new LocationRepository(gameWorld));
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
 
             // Verify ItemRepository can find items
             foreach (Item item in parsedItems)
@@ -264,7 +264,7 @@ namespace Wayfarer.Tests
             LocationSystem locationSystem = new LocationSystem(gameWorld, new LocationRepository(gameWorld));
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, new LocationRepository(gameWorld));
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
 
             Player player = gameWorld.GetPlayer();
             player.Coins = 100; // Start with some money

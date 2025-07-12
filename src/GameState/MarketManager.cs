@@ -11,6 +11,7 @@ public class MarketManager
     private readonly LocationSystem _locationSystem;
     private readonly ItemRepository _itemRepository;
     private readonly ContractProgressionService _contractProgressionService;
+    private readonly NPCRepository _npcRepository;
 
     /// <summary>
     /// Represents pricing information for an item at a specific location
@@ -24,12 +25,13 @@ public class MarketManager
     }
 
     public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
-                        ContractProgressionService contractProgressionService)
+                        ContractProgressionService contractProgressionService, NPCRepository npcRepository)
     {
         _gameWorld = gameWorld;
         _locationSystem = locationSystem;
         _itemRepository = itemRepository;
         _contractProgressionService = contractProgressionService;
+        _npcRepository = npcRepository;
     }
 
     /// <summary>
@@ -41,6 +43,15 @@ public class MarketManager
         // Get base item data from ItemRepository
         Item item = _itemRepository.GetItemById(itemId);
         if (item == null)
+        {
+            return new LocationPricing { BuyPrice = 0, SellPrice = 0, IsAvailable = false };
+        }
+
+        // Check if market is available based on NPC schedules
+        TimeBlocks currentTime = _gameWorld.WorldState.CurrentTimeBlock;
+        bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
+        
+        if (!marketAvailable)
         {
             return new LocationPricing { BuyPrice = 0, SellPrice = 0, IsAvailable = false };
         }
@@ -502,6 +513,58 @@ public class MarketManager
             int requiredSlots = item.GetRequiredSlots();
             
             return $"Cannot fit: needs {requiredSlots} slot{(requiredSlots > 1 ? "s" : "")}, only {maxSlots - usedSlots} available";
+        }
+    }
+    
+    /// <summary>
+    /// Check if market trading is available at a location during the current time
+    /// </summary>
+    private bool IsMarketAvailableAtLocation(string locationId, TimeBlocks currentTime)
+    {
+        // Get NPCs who provide Trade services at this location
+        List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocationAndTime(locationId, currentTime)
+            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .ToList();
+            
+        // Market is available if at least one trade NPC is present
+        return tradeNPCs.Any();
+    }
+    
+    /// <summary>
+    /// Get market availability status for UI display
+    /// </summary>
+    public string GetMarketAvailabilityStatus(string locationId)
+    {
+        TimeBlocks currentTime = _gameWorld.WorldState.CurrentTimeBlock;
+        bool isAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
+        
+        if (isAvailable)
+        {
+            return "Market Open";
+        }
+        else
+        {
+            // Find when market will be available next
+            List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocation(locationId)
+                .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+                .ToList();
+                
+            if (!tradeNPCs.Any())
+            {
+                return "No traders at this location";
+            }
+            
+            // Find next available time
+            List<TimeBlocks> allTimes = new List<TimeBlocks> { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
+            foreach (TimeBlocks time in allTimes)
+            {
+                if (tradeNPCs.Any(npc => npc.IsAvailable(time)))
+                {
+                    return $"Market opens at {time.ToString().Replace('_', ' ')}";
+                }
+            }
+            
+            return "Market closed";
         }
     }
 }
