@@ -50,6 +50,7 @@ public static class ServiceConfiguration
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
+        services.AddSingleton<TransportCompatibilityValidator>();
 
         services.AddScoped<MusicService>();
 

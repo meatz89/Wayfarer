@@ -29,11 +29,11 @@ public enum ItemCategory
 
 public enum SizeCategory
 {
-    Tiny,      // Fits in pocket, no transport concerns
-    Small,     // Single hand carry, minimal impact
-    Medium,    // Two-handed carry, some transport consideration
-    Large,     // Requires special transport planning or stamina cost
-    Massive    // Blocks route access without proper transport
+    Tiny,      // Fits in pocket, no transport concerns (1 slot)
+    Small,     // Single hand carry, minimal impact (1 slot)
+    Medium,    // Two-handed carry, some transport consideration (1 slot)
+    Large,     // Requires special transport planning or stamina cost (2 slots)
+    Massive    // Blocks route access without proper transport (3 slots)
 }
 
 public enum FragilityCategory
@@ -209,4 +209,28 @@ public class Item
     }
 
     public bool IsAvailable { get; internal set; }
+
+    /// <summary>
+    /// Get the number of inventory slots this item requires based on its size category
+    /// </summary>
+    public int GetRequiredSlots()
+    {
+        return Size switch
+        {
+            SizeCategory.Tiny => 1,
+            SizeCategory.Small => 1,
+            SizeCategory.Medium => 1,
+            SizeCategory.Large => 2,
+            SizeCategory.Massive => 3,
+            _ => 1
+        };
+    }
+
+    /// <summary>
+    /// Check if this item is considered heavy for transport restrictions
+    /// </summary>
+    public bool IsHeavyForTransport()
+    {
+        return Size == SizeCategory.Large || Size == SizeCategory.Massive;
+    }
 }

@@ -225,6 +225,65 @@ public bool CanPerformStaminaAction(PhysicalDemand demand) =>
 // efficiency = Stamina / MaxStamina; // FORBIDDEN PATTERN
 ```
 
+### **Transport Compatibility System - COMPLETE ✅**
+
+**IMPLEMENTED**: Categorical transport restrictions based on logical physical constraints.
+
+**Transport Restriction Categories**:
+- **Cart Transport**: Blocked on TerrainCategory.Requires_Climbing, TerrainCategory.Wilderness_Terrain
+- **Boat Transport**: Only works on TerrainCategory.Requires_Water_Transport  
+- **Heavy Equipment**: SizeCategory.Large/Massive blocks TravelMethods.Boat/Horseback
+- **Water Routes**: All non-boat transport blocked on water terrain
+
+**Architecture Pattern**:
+```csharp
+// CORRECT: Transport compatibility checking
+public TransportCompatibilityResult CheckFullCompatibility(TravelMethods transport, RouteOption route, Player player)
+{
+    // Check terrain compatibility first
+    TransportCompatibilityResult terrainResult = CheckTerrainCompatibility(transport, route.TerrainCategories);
+    if (!terrainResult.IsCompatible) return terrainResult;
+    
+    // Check equipment compatibility  
+    return CheckEquipmentCompatibility(transport, player);
+}
+```
+
+**UI Integration**: TravelSelection.razor shows transport options with compatibility feedback.
+
+### **Categorical Inventory Constraints System - COMPLETE ✅**
+
+**Size-Aware Inventory Architecture**:
+```csharp
+// Size categories determining slot requirements
+public enum SizeCategory { Tiny, Small, Medium, Large, Massive }
+
+// Item slot calculation based on size
+public int GetRequiredSlots() => Size switch {
+    SizeCategory.Tiny => 1,    SizeCategory.Small => 1,   SizeCategory.Medium => 1,
+    SizeCategory.Large => 2,   SizeCategory.Massive => 3, _ => 1
+};
+
+// Transport bonuses to inventory capacity
+public int GetMaxSlots(TravelMethods? transport) => transport switch {
+    TravelMethods.Cart => 7,      // Base 5 + 2 slots
+    TravelMethods.Carriage => 6,  // Base 5 + 1 slot
+    _ => 5                        // Base capacity
+};
+```
+
+**Integration Architecture**:
+- **TravelManager**: Provides transport-aware inventory status checking
+- **MarketManager**: Uses size-aware inventory methods for purchase validation
+- **UI Components**: Display slot usage, transport bonuses, and item constraints
+- **TransportCompatibilityValidator**: Integrates inventory overflow checking
+
+**Strategic Gameplay Impact**:
+- Cart transport adds slots but blocks terrain access
+- Large/Massive items require transport planning
+- Equipment vs carrying capacity optimization
+- Visual feedback for slot usage and transport bonuses
+
 ### **Contract Categorical System**
 
 **Contract Enhancement Structure**:

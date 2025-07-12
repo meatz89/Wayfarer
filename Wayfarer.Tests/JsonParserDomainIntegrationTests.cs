@@ -371,7 +371,8 @@ namespace Wayfarer.Tests
                 locationRepository,
                 actionFactory,
                 itemRepository,
-                contractProgression
+                contractProgression,
+                new TransportCompatibilityValidator(itemRepository)
             );
         }
 

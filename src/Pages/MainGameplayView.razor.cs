@@ -187,6 +187,13 @@ public class MainGameplayViewBase : ComponentBase
         UpdateState();
     }
 
+    public async Task HandleTravelWithTransport((RouteOption route, TravelMethods transport) travelData)
+    {
+        await GameManager.TravelWithTransport(travelData.route, travelData.transport);
+        CurrentScreen = CurrentViews.LocationScreen;
+        UpdateState();
+    }
+
     public async Task HandleRestComplete()
     {
         CurrentScreen = CurrentViews.LocationScreen;

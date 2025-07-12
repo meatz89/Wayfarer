@@ -2,5 +2,7 @@
 {
     Walking,
     Horseback,
-    Carriage
+    Carriage,
+    Cart,
+    Boat
 }

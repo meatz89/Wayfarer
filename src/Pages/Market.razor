@@ -15,6 +15,9 @@
             string weightStatus = totalWeight <= 3 ? "Light load" :
             (totalWeight <= 6 ? "Medium load (+1 stamina)" :
             "Heavy load (+2 stamina)");
+            
+            // Get inventory status
+            string inventoryStatus = GameManager.GetInventoryStatusForMarket();
         }
         <div class="coins">
             <span>Coins: @GameWorld.GetPlayer().Coins</span>
@@ -23,14 +26,18 @@
         <div class="weight">
             <span>Load: @weightStatus (@totalWeight weight units)</span>
         </div>
+        <div class="inventory-status">
+            <span>@inventoryStatus</span>
+        </div>
     </div>
 
     <div class="market-table">
         <div class="table-header">
             <div class="item-name">Item</div>
-            <div class="item-weight">Weight</div>
+            <div class="item-size">Size</div>
             <div class="item-buy">Buy</div>
             <div class="item-sell">Sell</div>
+            <div class="item-constraints">Inventory</div>
             <div class="item-actions">Actions</div>
         </div>
 
@@ -45,10 +52,6 @@
             <div class="market-item">
                 <div class="item-name">
                     @item.Name
-                    @if (item.InventorySlots > 1)
-                    {
-                        <span class="bulk-item">(@item.InventorySlots slots)</span>
-                    }
                     @if (item.Categories.Any() || item.ItemCategories.Any())
                     {
                         <span class="item-categories">
@@ -59,9 +62,14 @@
                         </span>
                     }
                 </div>
-                <div class="item-weight">@item.Weight (@item.WeightDescription)</div>
+                <div class="item-size">
+                    @item.Size (@item.GetRequiredSlots() slot@(item.GetRequiredSlots() > 1 ? "s" : ""))
+                </div>
                 <div class="item-buy">@item.BuyPrice coins</div>
                 <div class="item-sell">@item.SellPrice coins</div>
+                <div class="item-constraints">
+                    @GameManager.GetInventoryConstraintMessage(item.Id)
+                </div>
                 <div class="item-actions">
                     <button class="buy-button"
                             disabled="@(!canBuy)"
