@@ -29,25 +29,26 @@ public class NPCCategoricalSystemTests
         {
             ID = "test_npc",
             Name = "Test NPC",
-            AvailabilitySchedule = Schedule.Morning
+            AvailabilitySchedule = Schedule.Market_Hours
         };
 
         // Assert
-        Assert.Equal(Schedule.Morning, npc.AvailabilitySchedule);
+        Assert.Equal(Schedule.Market_Hours, npc.AvailabilitySchedule);
     }
 
     [Theory]
-    [InlineData(Schedule.Morning, TimeBlocks.Morning, true)]
-    [InlineData(Schedule.Morning, TimeBlocks.Afternoon, false)]
-    [InlineData(Schedule.Afternoon, TimeBlocks.Afternoon, true)]
-    [InlineData(Schedule.Afternoon, TimeBlocks.Morning, false)]
-    [InlineData(Schedule.Evening, TimeBlocks.Evening, true)]
+    [InlineData(Schedule.Market_Hours, TimeBlocks.Morning, true)]
+    [InlineData(Schedule.Market_Hours, TimeBlocks.Afternoon, true)]
+    [InlineData(Schedule.Market_Hours, TimeBlocks.Evening, false)]
+    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Dawn, true)]
+    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Morning, true)]
+    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Afternoon, true)]
+    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Evening, false)]
+    [InlineData(Schedule.Evening_Only, TimeBlocks.Evening, true)]
+    [InlineData(Schedule.Evening_Only, TimeBlocks.Morning, false)]
     [InlineData(Schedule.Always, TimeBlocks.Morning, true)]
     [InlineData(Schedule.Always, TimeBlocks.Afternoon, true)]
     [InlineData(Schedule.Always, TimeBlocks.Evening, true)]
-    [InlineData(Schedule.Market_Days, TimeBlocks.Morning, true)]
-    [InlineData(Schedule.Market_Days, TimeBlocks.Afternoon, true)]
-    [InlineData(Schedule.Market_Days, TimeBlocks.Evening, false)]
     public void NPC_IsAvailable_Should_Return_Correct_Availability_Based_On_Schedule(
         Schedule npcSchedule, TimeBlocks currentTime, bool expectedAvailable)
     {
@@ -160,14 +161,14 @@ public class NPCCategoricalSystemTests
             Name = "Test NPC",
             Profession = Professions.Merchant,
             SocialClass = Social_Class.Minor_Noble,
-            AvailabilitySchedule = Schedule.Market_Days,
+            AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Information }
         };
 
         // Act & Assert
         Assert.Equal("Merchant", npc.ProfessionDescription);
         Assert.Equal("Minor Noble", npc.SocialClassDescription);
-        Assert.Equal("Market Days", npc.ScheduleDescription);
+        Assert.Equal("Market Hours", npc.ScheduleDescription);
         Assert.Contains("Services: Trade, Information", npc.ProvidedServicesDescription);
     }
 

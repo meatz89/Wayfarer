@@ -135,7 +135,7 @@ public class CurrentTimeBlockRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
-        TimeBlocks currentWindow = gameWorld.TimeManager.GetCurrentCurrentTimeBlock();
+        TimeBlocks currentWindow = gameWorld.TimeManager.GetCurrentTimeBlock();
         return AllowedWindows.Contains(currentWindow);
     }
 

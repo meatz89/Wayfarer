@@ -66,7 +66,6 @@ public class TravelSelectionBase : ComponentBase
         for (int i = 0; i < availableRoutes.Count; i++)
         {
             RouteOption route = availableRoutes[i];
-            string arrivalTime = CalculateArrivalTimeBlock(gameWorld.CurrentTimeBlock, route.TimeBlockCost);
 
             // Calculate adjusted stamina cost
             int adjustedStaminaCost = route.BaseStaminaCost;
@@ -86,7 +85,7 @@ public class TravelSelectionBase : ComponentBase
             string departureInfo = route.DepartureTime.HasValue ? $", departs at {route.DepartureTime}" : "";
             string affordabilityMarker = GameWorldManager.CanTravelRoute(route) ? "" : " (Cannot afford)";
 
-            Console.WriteLine($"[{i + 1}] {route.Name} - {route.BaseCoinCost} coins, {staminaCostDisplay}{departureInfo}, arrives {arrivalTime}{affordabilityMarker}");
+            Console.WriteLine($"[{i + 1}] {route.Name} - {route.BaseCoinCost} coins, {staminaCostDisplay}{departureInfo}{affordabilityMarker}");
 
             // Show terrain categories if any
             if (route.TerrainCategories.Count > 0)
@@ -97,7 +96,6 @@ public class TravelSelectionBase : ComponentBase
 
         Console.WriteLine();
         Console.WriteLine($"Current resources: {gameWorld.PlayerCoins} coins, {gameWorld.PlayerStamina} stamina");
-        Console.WriteLine($"Current time: {gameWorld.CurrentTimeBlock}");
 
         // Show equipment categories
         List<string> equipmentItems = new List<string>();
@@ -123,26 +121,6 @@ public class TravelSelectionBase : ComponentBase
         }
     }
 
-    public string CalculateArrivalTimeBlock(TimeBlocks currentTimeBlock, int timeBlocksToAdvance)
-    {
-        int finalTimeBlockValue = ((int)currentTimeBlock + timeBlocksToAdvance) % 5;
-        int daysLater = ((int)currentTimeBlock + timeBlocksToAdvance) / 5;
-
-        TimeBlocks arrivalTimeBlock = (TimeBlocks)finalTimeBlockValue;
-
-        if (daysLater == 0)
-        {
-            return arrivalTimeBlock.ToString();
-        }
-        else if (daysLater == 1)
-        {
-            return $"Tomorrow {arrivalTimeBlock}";
-        }
-        else
-        {
-            return $"{daysLater} days later, {arrivalTimeBlock}";
-        }
-    }
 
     /// <summary>
     /// Get equipment categories that are absolutely required for terrain types

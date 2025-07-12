@@ -97,6 +97,14 @@ public class TestScenarioBuilder
             configurator(gameWorld);
         }
     }
+    
+    /// <summary>
+    /// Build the scenario (returns this for fluent API consistency)
+    /// </summary>
+    public TestScenarioBuilder Build()
+    {
+        return this;
+    }
 }
 
 /// <summary>
@@ -388,6 +396,7 @@ public class TimeBuilder
     private TimeBlocks _timeBlock = TimeBlocks.Morning;
     private WeatherCondition _weather = WeatherCondition.Clear;
     private int _usedTimeBlocks = 0;
+    private int? _explicitHour = null;
     
     public TimeBuilder Day(int day)
     {
@@ -398,6 +407,25 @@ public class TimeBuilder
     public TimeBuilder TimeBlock(TimeBlocks timeBlock)
     {
         _timeBlock = timeBlock;
+        return this;
+    }
+    
+    public TimeBuilder Hour(int hour)
+    {
+        _explicitHour = hour;
+        // Also set the corresponding time block for consistency
+        // Dawn: 6-8, Morning: 9-11, Afternoon: 12-15, Evening: 16-19, Night: 20-5
+        if (hour >= 6 && hour < 9)
+            _timeBlock = TimeBlocks.Dawn;
+        else if (hour >= 9 && hour < 12)
+            _timeBlock = TimeBlocks.Morning;
+        else if (hour >= 12 && hour < 16)
+            _timeBlock = TimeBlocks.Afternoon;
+        else if (hour >= 16 && hour < 20)
+            _timeBlock = TimeBlocks.Evening;
+        else
+            _timeBlock = TimeBlocks.Night;
+            
         return this;
     }
     
@@ -416,11 +444,22 @@ public class TimeBuilder
     public void ApplyToGameWorld(GameWorld gameWorld)
     {
         gameWorld.WorldState.CurrentDay = _day;
-        gameWorld.WorldState.CurrentTimeBlock = _timeBlock;
         gameWorld.WorldState.CurrentWeather = _weather;
         
-        // Set used time blocks in TimeManager if needed
-        // Note: This might require additional TimeManager methods
+        // Use explicit hour if set, otherwise calculate from time block
+        int targetHour = _explicitHour ?? _timeBlock switch
+        {
+            TimeBlocks.Dawn => 6,      // 6:00 AM
+            TimeBlocks.Morning => 9,   // 9:00 AM  
+            TimeBlocks.Afternoon => 12, // 12:00 PM
+            TimeBlocks.Evening => 16,   // 4:00 PM
+            TimeBlocks.Night => 20,     // 8:00 PM
+            _ => 6
+        };
+        
+        // Use TimeManager to set time properly
+        var timeManager = new TimeManager(gameWorld.GetPlayer(), gameWorld.WorldState);
+        timeManager.SetNewTime(targetHour);
     }
 }
 

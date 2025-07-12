@@ -244,7 +244,7 @@ namespace Wayfarer.Tests
             Assert.Equal(1, daysRemaining);
 
             // Contract should still be available but urgent
-            Assert.True(contract.IsAvailable(gameWorld.WorldState.CurrentDay, timeManager.GetCurrentCurrentTimeBlock()));
+            Assert.True(contract.IsAvailable(gameWorld.WorldState.CurrentDay, timeManager.GetCurrentTimeBlock()));
         }
 
         /// <summary>

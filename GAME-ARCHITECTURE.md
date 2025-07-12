@@ -4,6 +4,47 @@ This document captures critical architectural discoveries and patterns that must
 
 ## CORE ARCHITECTURAL PATTERNS
 
+### **NO FUNC/ACTION/PREDICATE DELEGATES - CONCRETE TYPES ONLY**
+
+**FUNDAMENTAL PRINCIPLE**: Main application code must never use `Func<>`, `Action<>`, `Predicate<>` or similar delegate types. Use concrete interfaces and classes for maintainability, testability, and clarity.
+
+**Architectural Rationale**:
+- **Maintainability**: Named interfaces are self-documenting and searchable
+- **Testability**: Concrete interfaces can be easily mocked and stubbed
+- **Clarity**: Intention is explicit rather than hidden in lambda expressions
+- **Refactoring**: IDE tools work better with concrete types than delegates
+- **Debugging**: Stack traces show concrete type names instead of generated delegate code
+
+**Implementation Pattern**:
+```csharp
+// ❌ FORBIDDEN: Using delegates in main code
+public List<RouteOption> FilterRoutes(Func<RouteOption, bool> predicate)
+{
+    return routes.Where(predicate).ToList();
+}
+
+// ✅ CORRECT: Use concrete interface
+public interface IRouteValidator
+{
+    bool IsValid(RouteOption route);
+}
+
+public List<RouteOption> FilterRoutes(IRouteValidator validator)
+{
+    return routes.Where(route => validator.IsValid(route)).ToList();
+}
+```
+
+**Allowed Exceptions**:
+- **Test Files**: Builder patterns and test setup may use delegates for convenience
+- **LINQ Methods**: Built-in LINQ operations like `.Where()`, `.Select()` are acceptable
+- **Event Handlers**: UI event handlers may use delegates when required by framework
+
+**Enforcement**:
+- Code reviews must catch delegate usage in main application code
+- Refactor existing delegate usage to concrete interfaces during maintenance
+- Create specific, named interfaces for each functional requirement
+
 ### **SYNCHRONOUS EXECUTION MODEL - NO CONCURRENCY**
 
 **FUNDAMENTAL ARCHITECTURE**: The game uses a purely synchronous execution model with no background operations, timers, or event-driven patterns.
@@ -44,6 +85,107 @@ await WaitForEventCompletion(); // NO - no events to wait for
    - This is an infrastructure boundary concern, not core game logic
    - Game mechanics continue to execute synchronously before and after AI calls
    - **Current Status**: Not implemented - focusing on non-AI game mechanics first
+
+### **TIME SYSTEM ARCHITECTURE - SINGLE TIME SOURCE**
+
+**FUNDAMENTAL DESIGN**: The game uses a single, linear time progression system where all time tracking derives from one authoritative time value.
+
+**Critical Architecture Principles**:
+
+1. **Single Time Authority**: `TimeManager.CurrentTimeHours` is the ONLY authoritative time value
+   - All other time representations derive from this value
+   - `TimeBlocks` enum (Morning/Afternoon/Evening/Night) calculated from hours, not stored separately
+   - No separate tracking of "time blocks consumed" - this is calculated from time progression
+
+2. **Time Blocks Are Internal Mechanics Only**:
+   - "Time blocks" represent action point consumption, not UI display concepts  
+   - Players see actual time progression: "Morning 6:00" → "Afternoon 14:00"
+   - UI should NEVER show "time blocks remaining (2/5)" - this violates player mental model
+
+3. **Time Progression Pattern**:
+   ```csharp
+   // ✅ CORRECT: Actions advance actual time
+   timeManager.ConsumeTimeBlock(1); // Advances CurrentTimeHours by calculated amount
+   // Result: "Morning 6:00" becomes "Morning 9:00" or "Afternoon 12:00"
+   
+   // ❌ WRONG: Separate time block tracking
+   usedTimeBlocks++; // This disconnects from actual time progression
+   ```
+
+4. **Five Time Blocks System**:
+   The game divides each day into exactly 5 time blocks that correspond to natural time periods:
+   
+   ```csharp
+   // ✅ CORRECT: 5 Time Blocks mapped to 24-hour day
+   public TimeBlocks GetCurrentTimeBlock() {
+       return CurrentTimeHours switch {
+           >= 6 and < 9 => TimeBlocks.Dawn,      // 6:00-8:59 (3 hours)
+           >= 9 and < 12 => TimeBlocks.Morning,   // 9:00-11:59 (3 hours) 
+           >= 12 and < 16 => TimeBlocks.Afternoon, // 12:00-15:59 (4 hours)
+           >= 16 and < 20 => TimeBlocks.Evening,   // 16:00-19:59 (4 hours)
+           >= 20 or < 6 => TimeBlocks.Night,      // 20:00-5:59 (10 hours)
+           _ => TimeBlocks.Night
+       };
+   }
+   ```
+   
+   **Critical Design Notes**:
+   - Exactly 5 time blocks per day (MaxDailyTimeBlocks = 5)
+   - Each action typically consumes 1 time block = ~3.6 hours of game time
+   - Night is longest period (10 hours) for rest and recovery
+   - Dawn/Morning are shorter active periods (3 hours each)
+   - Afternoon/Evening are medium active periods (4 hours each)
+
+**Time System Violations to Prevent**:
+- ❌ Displaying "time blocks remaining" in UI
+- ❌ Separate tracking of time blocks vs actual time
+- ❌ TimeBlocks enum stored as separate state
+- ❌ Actions that consume time blocks without advancing clock
+
+### **TRAVEL SYSTEM ARCHITECTURE - ROUTES ARE TRANSPORT METHODS**
+
+**FUNDAMENTAL DESIGN**: Each route defines exactly one transport method. Routes ARE the transport selection, not a separate layer.
+
+**Critical Architecture Principles**:
+
+1. **Routes Define Transport Methods**:
+   - "Walking Path" = walking transport method
+   - "Standard Cart" = cart transport method  
+   - "Express Coach" = premium carriage transport method
+   - Each route has exactly one `method` field in routes.json
+
+2. **No Separate Transport Selection**:
+   - Player chooses route: "Walking Path" or "Standard Cart" or "Express Coach"
+   - This IS the transport selection - no additional layer needed
+   - UI shows route names with their inherent transport characteristics
+
+3. **Route Selection Pattern**:
+   ```csharp
+   // ✅ CORRECT: Routes contain all transport information
+   var routes = GetAvailableRoutes(fromLocation, toLocation);
+   // Routes: [{"name": "Walking Path", "method": "Walking"}, {"name": "Standard Cart", "method": "Carriage"}]
+   
+   // ❌ WRONG: Separate transport selection on top of routes
+   var transports = GetAvailableTransportOptions(route); // This is redundant
+   ```
+
+4. **Travel UI Pattern**:
+   ```csharp
+   // ✅ CORRECT: Direct route selection
+   "Choose route to Town Square:"
+   - "Walking Path (0 coins, 2 stamina)" 
+   - "Standard Cart (4 coins, 1 stamina)"
+   - "Express Coach (8 coins, 0 stamina)"
+   
+   // ❌ WRONG: Double selection
+   "Choose route: Walking Path" → "Choose transport: Walking/Horseback/Cart"
+   ```
+
+**Travel System Violations to Prevent**:
+- ❌ `TravelMethods` enum separate from route definitions
+- ❌ Transport selection UI on top of route selection
+- ❌ Multiple transport options per route
+- ❌ "Transport compatibility" logic separate from route access logic
 
 ### **Repository Pattern Single Source of Truth**
 

@@ -104,7 +104,7 @@ public class NPCParserTests
             Assert.True(npc.SocialClass != default(Social_Class) || npc.SocialClass == Social_Class.Commoner,
                 $"NPC {npc.Name} has invalid social class: {npc.SocialClass}");
             // Schedule should be properly set
-            Assert.True(npc.AvailabilitySchedule != default(Schedule) || npc.AvailabilitySchedule == Schedule.Morning,
+            Assert.True(npc.AvailabilitySchedule != default(Schedule) || npc.AvailabilitySchedule == Schedule.Always,
                 $"NPC {npc.Name} has invalid schedule: {npc.AvailabilitySchedule}");
             Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship); // All should start neutral
         }

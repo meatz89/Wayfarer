@@ -195,7 +195,7 @@ public static class TestGameWorldInitializer
             Name = "Elena the Trader", 
             Location = "town_square",
             Profession = Professions.Merchant,
-            AvailabilitySchedule = Schedule.Market_Days,
+            AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
         });
         
@@ -205,7 +205,7 @@ public static class TestGameWorldInitializer
             Name = "Guild Artisan",
             Location = "workshop", 
             Profession = Professions.Merchant,
-            AvailabilitySchedule = Schedule.Market_Days,
+            AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.EquipmentRepair }
         });
         

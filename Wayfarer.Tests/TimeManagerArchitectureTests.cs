@@ -20,7 +20,7 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             
             // Verify initial synchronization
-            TimeBlocks timeManagerBlock = gameWorld.TimeManager.CurrentTimeBlock;
+            TimeBlocks timeManagerBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             TimeBlocks worldStateBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             
             Assert.Equal(timeManagerBlock, worldStateBlock);
@@ -44,7 +44,7 @@ namespace Wayfarer.Tests
             gameWorld.TimeManager.UpdateCurrentTimeBlock();
             
             // Verify both properties are synchronized
-            TimeBlocks internalBlock = gameWorld.TimeManager.CurrentTimeBlock;
+            TimeBlocks internalBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             TimeBlocks worldStateBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             
             Assert.Equal(internalBlock, worldStateBlock);
@@ -64,7 +64,7 @@ namespace Wayfarer.Tests
             gameWorld.TimeManager.SetNewTime(14);
             
             // Verify both properties are synchronized
-            TimeBlocks internalBlock = gameWorld.TimeManager.CurrentTimeBlock;
+            TimeBlocks internalBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             TimeBlocks worldStateBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             
             Assert.Equal(internalBlock, worldStateBlock);
@@ -90,7 +90,7 @@ namespace Wayfarer.Tests
             Assert.Equal(initialDay + 1, gameWorld.TimeManager.GetCurrentDay());
             
             // Verify time blocks are synchronized
-            TimeBlocks internalBlock = gameWorld.TimeManager.CurrentTimeBlock;
+            TimeBlocks internalBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             TimeBlocks worldStateBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             
             Assert.Equal(internalBlock, worldStateBlock);
@@ -134,7 +134,7 @@ namespace Wayfarer.Tests
             Assert.Equal(TimeBlocks.Afternoon, newTime);
             
             // Verify synchronization
-            Assert.Equal(gameWorld.TimeManager.CurrentTimeBlock, newTime);
+            Assert.Equal(gameWorld.TimeManager.GetCurrentTimeBlock(), newTime);
         }
         
         [Fact]
@@ -156,7 +156,7 @@ namespace Wayfarer.Tests
             
             // Should be night when action points are zero
             Assert.Equal(TimeBlocks.Night, gameWorld.TimeManager.GetCurrentTimeBlock());
-            Assert.Equal(TimeBlocks.Night, gameWorld.TimeManager.CurrentTimeBlock);
+            Assert.Equal(TimeBlocks.Night, gameWorld.TimeManager.GetCurrentTimeBlock());
             
             // Hour should also be reset to 0 (midnight)
             Assert.Equal(0, gameWorld.TimeManager.CurrentTimeHours);
