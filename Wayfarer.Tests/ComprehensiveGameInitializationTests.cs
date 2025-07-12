@@ -64,6 +64,12 @@ namespace Wayfarer.Tests
             // Verify actions loaded from actions.json
             Assert.NotNull(gameWorld.WorldState.actions);
             Assert.NotEmpty(gameWorld.WorldState.actions);
+
+            // Verify NPCs loaded from npcs.json
+            List<NPC> npcs = gameWorld.WorldState.GetCharacters();
+            Assert.NotNull(npcs);
+            Assert.NotEmpty(npcs);
+            Assert.True(npcs.Count >= 6, "Should have at least 6 NPCs from template file");
         }
 
         [Fact]

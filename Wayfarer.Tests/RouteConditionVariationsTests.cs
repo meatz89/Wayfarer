@@ -86,7 +86,7 @@ namespace Wayfarer.Tests
                 InventorySlots = 1
             };
             itemRepository.AddItem(weatherGear);
-            player.Inventory.AddItem("Weather Cloak");
+            player.Inventory.AddItem("weather_cloak");
 
             RouteAccessResult publicRainResult = exposedRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Rain);
             Assert.True(publicRainResult.IsAllowed);
@@ -236,7 +236,7 @@ namespace Wayfarer.Tests
                 InventorySlots = 1
             };
             itemRepository.AddItem(weatherGear);
-            player.Inventory.AddItem("Rain Cloak");
+            player.Inventory.AddItem("rain_cloak");
 
             List<RouteOption> equippedRainRoutes = travelManager.GetAvailableRoutes("town_square", "destination");
             Assert.Contains(fastRoute, equippedRainRoutes); // Now accessible with equipment
@@ -320,7 +320,7 @@ namespace Wayfarer.Tests
                 InventorySlots = 1
             };
             itemRepository.AddItem(compass);
-            player.Inventory.AddItem("Compass");
+            player.Inventory.AddItem("compass");
 
             RouteAccessResult equippedFogResult = wildernessRoute.CheckRouteAccess(itemRepository, player, WeatherCondition.Fog);
             Assert.True(equippedFogResult.IsAllowed);

@@ -220,7 +220,9 @@ namespace Wayfarer.Tests
             Player player = gameWorld.GetPlayer();
             ItemRepository itemRepository = new ItemRepository(gameWorld);
 
-            // Items are already loaded from JSON by TestGameWorldInitializer, no need to add them again
+            // Add parsed items and routes to the clean GameWorld for this integration test
+            itemRepository.AddItems(items);
+            // Note: Routes would need RouteRepository if available, but for this test we'll work with what we have
 
             // Test route access without equipment
             foreach (RouteOption route in climbingRoutes)
@@ -313,12 +315,42 @@ namespace Wayfarer.Tests
 
         private GameWorld CreateTestGameWorld()
         {
-            // Use the superior test pattern for consistent initialization
-            var scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(50))
-                .WithTimeState(t => t.Day(1).TimeBlock(TimeBlocks.Morning));
-                
-            return TestGameWorldInitializer.CreateTestWorld(scenario);
+            // Create clean GameWorld for JSON parsing tests - don't load JSON data since these tests 
+            // are specifically testing JSON parsing and want to control their own data loading
+            var gameWorld = new GameWorld();
+            
+            // Initialize basic collections but don't load from JSON
+            gameWorld.WorldState.locations = new List<Location>();
+            gameWorld.WorldState.Items = new List<Item>();
+            gameWorld.WorldState.Contracts = new List<Contract>();
+            
+            // Add minimal test locations needed for these tests
+            gameWorld.WorldState.locations.AddRange(new[]
+            {
+                new Location("dusty_flagon", "The Dusty Flagon"),
+                new Location("town_square", "Town Square"),
+                new Location("workshop", "Workshop")
+            });
+            
+            // Initialize player
+            Player player = gameWorld.GetPlayer();
+            player.Initialize("Test Player", Professions.Merchant, Genders.Male);
+            player.Coins = 50;
+            
+            // Set basic time state
+            gameWorld.WorldState.CurrentDay = 1;
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
+            gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
+            
+            // Set starting location
+            Location startLocation = gameWorld.WorldState.locations.First(l => l.Id == "dusty_flagon");
+            player.CurrentLocation = startLocation;
+            gameWorld.WorldState.SetCurrentLocation(startLocation, null);
+            
+            // Initialize empty contract list
+            gameWorld.ActiveContracts = new List<Contract>();
+            
+            return gameWorld;
         }
 
         private TravelManager CreateTravelManager(GameWorld gameWorld)

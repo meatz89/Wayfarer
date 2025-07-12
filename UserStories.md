@@ -70,28 +70,6 @@
 
 ---
 
-## SOCIAL SYSTEMS AND NPC INTERACTION
-
-### **NPC Schedule Logic**
-
-**As a player, I want NPCs available at logical times based on their profession, so that I can plan my daily schedule around realistic availability.**
-
-**Implementation Requirements:**
-- [Merchant] NPCs available during [Market] hours: [Morning] and [Afternoon]
-- [Craftsman] NPCs available during [Workshop] hours: [Morning] through [Evening]
-- [Traveler] NPCs available at [Tavern] during [Evening] and [Night]
-- Schedule conflicts create strategic time management decisions
-
-**Player Thought Process:**
-"I need to commission [Climbing] gear from the [Craftsman] (available [Morning] to [Evening]), negotiate better prices with the [Merchant] (available [Morning] and [Afternoon]), and learn about mountain routes from the [Traveler] (available [Evening] at [Tavern]). I have 5 time periods but also need 1 period for travel to the mountain village. That's 4 activities needing 5 periods - something has to be cut or delayed."
-
-**Success Criteria:**
-- Scheduling conflicts create meaningful daily planning puzzles
-- NPC availability follows logical professional patterns
-- Players develop time management strategies
-
----
-
 ## CONTRACT AND DEADLINE SYSTEMS
 
 ### **Deadline Pressure Without Arbitrary Penalties**
@@ -132,29 +110,6 @@
 - Equipment decisions integrate with contract strategy
 - Players evaluate equipment ROI across multiple contracts
 - Contract requirements drive equipment acquisition planning
-
----
-
-## INFORMATION AND DISCOVERY SYSTEMS
-
-### **Professional Information Networks**
-
-**As a player, I want to learn information through logical professional channels, so that I can build information networks that make strategic sense.**
-
-**Implementation Requirements:**
-- [Merchant] NPCs share [Price_Data] when relationship is [Helpful]
-- [Traveler] NPCs share [Route_Conditions] when approached with [Social_Traveler] equipment
-- [Local] NPCs share [Area_Specific] information when encountered at appropriate locations
-- Information quality depends on NPC expertise category, not arbitrary reputation numbers
-- No automated information gathering tools
-
-**Player Thought Process:**
-"I want [Price_Data] for [Grain] trading. [Merchant] NPCs know prices but I need [Helpful] relationship first. Building that relationship requires completing [Merchant] contracts or having [Social_Merchant] equipment during encounters. I currently have [Social_Traveler] equipment which blocks [Merchant] encounters but enables [Route_Information] gathering. Do I change equipment to build [Merchant] networks, or use [Traveler] information to find efficient routes that reduce transport costs?"
-
-**Success Criteria:**
-- Information gathering requires strategic network building
-- Professional NPCs provide logically appropriate information types
-- Equipment choices affect information access
 
 ---
 

@@ -57,11 +57,11 @@ public class MarketManager
         {
             case "town_square":
                 pricing.BuyPrice = item.BuyPrice + 1; // Slightly more expensive in town
-                pricing.SellPrice = item.SellPrice;
+                pricing.SellPrice = item.SellPrice + 1; // Higher sell price in town
                 break;
             case "dusty_flagon":
                 pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1); // Cheaper at tavern
-                pricing.SellPrice = Math.Max(1, item.SellPrice); // Standard selling price
+                pricing.SellPrice = Math.Max(1, item.SellPrice - 1); // Lower sell price at tavern
                 break;
             default:
                 pricing.BuyPrice = item.BuyPrice;
