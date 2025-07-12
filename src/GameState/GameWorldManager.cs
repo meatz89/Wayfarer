@@ -654,17 +654,6 @@ public class GameWorldManager
         return marketManager.GetMarketAvailabilityStatus(locationId);
     }
     
-    /// <summary>
-    /// Get time blocks status for UI display
-    /// </summary>
-    public string GetTimeBlocksStatus()
-    {
-        int used = GameWorld.TimeManager.UsedTimeBlocks;
-        int remaining = GameWorld.TimeManager.RemainingTimeBlocks;
-        int total = TimeManager.MaxDailyTimeBlocks;
-        
-        return $"{remaining}/{total} time blocks remaining";
-    }
 
 
     /// <summary>

@@ -13,6 +13,7 @@ public class MarketManager
     private readonly ContractProgressionService _contractProgressionService;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
+    private readonly TimeManager _timeManager;
 
     /// <summary>
     /// Represents pricing information for an item at a specific location
@@ -35,6 +36,7 @@ public class MarketManager
         _contractProgressionService = contractProgressionService;
         _npcRepository = npcRepository;
         _locationRepository = locationRepository;
+        _timeManager = gameWorld.TimeManager;
     }
 
     /// <summary>
@@ -310,6 +312,9 @@ public class MarketManager
             return false;
         }
 
+        // Consume 1 time period per Period-Based Activity Planning user story
+        _timeManager.ConsumeTimeBlock(1);
+
         // Check for contract progression based on purchase
         _contractProgressionService.CheckMarketProgression(itemId, locationId, TransactionType.Buy, 1, buyPrice, player);
 
@@ -333,6 +338,9 @@ public class MarketManager
 
         player.Inventory.RemoveItem(itemId);
         player.Coins += sellPrice;
+
+        // Consume 1 time period per Period-Based Activity Planning user story
+        _timeManager.ConsumeTimeBlock(1);
 
         // Check for contract progression based on sale
         _contractProgressionService.CheckMarketProgression(itemId, locationId, TransactionType.Sell, 1, sellPrice, player);

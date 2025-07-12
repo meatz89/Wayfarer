@@ -30,7 +30,7 @@ namespace Wayfarer.Tests
                 Name = "Elena the Trader",
                 Location = "town_square",
                 Profession = Professions.Merchant,
-                AvailabilitySchedule = Schedule.Market_Days,
+                AvailabilitySchedule = Schedule.Market_Hours,
                 ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
             };
             

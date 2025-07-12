@@ -19,7 +19,7 @@
 		"location": "town_square",
 		"profession": "Merchant",
 		"socialClass": "Merchant",
-		"availabilitySchedule": "Market_Days",
+		"availabilitySchedule": "Market_Hours",
 		"providedServices": ["Trade", "Information"],
 		"playerRelationship": "Neutral"
 	},
@@ -31,7 +31,7 @@
 		"location": "town_square",
 		"profession": "Craftsman",
 		"socialClass": "Craftsman",
-		"availabilitySchedule": "Morning",
+		"availabilitySchedule": "Workshop_Hours",
 		"providedServices": ["EquipmentRepair", "Trade"],
 		"playerRelationship": "Neutral"
 	},
@@ -43,7 +43,7 @@
 		"location": "town_square",
 		"profession": "Ranger",
 		"socialClass": "Craftsman",
-		"availabilitySchedule": "Afternoon",
+		"availabilitySchedule": "Market_Hours",
 		"providedServices": ["Information", "Training"],
 		"playerRelationship": "Neutral"
 	},
@@ -55,7 +55,7 @@
 		"location": "town_square",
 		"profession": "Courtier",
 		"socialClass": "Minor_Noble",
-		"availabilitySchedule": "Evening",
+		"availabilitySchedule": "Evening_Only",
 		"providedServices": ["Information", "Services"],
 		"playerRelationship": "Neutral"
 	},
@@ -67,7 +67,7 @@
 		"location": "town_square",
 		"profession": "Scholar",
 		"socialClass": "Craftsman",
-		"availabilitySchedule": "Morning",
+		"availabilitySchedule": "Market_Hours",
 		"providedServices": ["Trade", "Information"],
 		"playerRelationship": "Neutral"
 	}

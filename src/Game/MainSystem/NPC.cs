@@ -9,11 +9,12 @@
 
 public enum Schedule
 {
-    Morning,
-    Afternoon,
-    Evening,
-    Always,
-    Market_Days
+    Always,           // Available all time periods (innkeepers, guards)
+    Market_Hours,     // Morning + Afternoon (traders, merchants)
+    Workshop_Hours,   // Dawn + Morning + Afternoon (craftsmen)
+    Evening_Only,     // Evening only (tavern keepers, entertainers)
+    Dawn_Only,        // Dawn only (early departing transport, farmers)
+    Night_Only        // Night only (guards, special services)
 }
 
 public enum NPCRelationship
@@ -79,11 +80,12 @@ public class NPC
     {
         return AvailabilitySchedule switch
         {
-            Schedule.Morning => currentTime == TimeBlocks.Morning,
-            Schedule.Afternoon => currentTime == TimeBlocks.Afternoon,
-            Schedule.Evening => currentTime == TimeBlocks.Evening,
             Schedule.Always => true,
-            Schedule.Market_Days => currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon,
+            Schedule.Market_Hours => currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon,
+            Schedule.Workshop_Hours => currentTime == TimeBlocks.Dawn || currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon,
+            Schedule.Evening_Only => currentTime == TimeBlocks.Evening,
+            Schedule.Dawn_Only => currentTime == TimeBlocks.Dawn,
+            Schedule.Night_Only => currentTime == TimeBlocks.Night,
             _ => false
         };
     }

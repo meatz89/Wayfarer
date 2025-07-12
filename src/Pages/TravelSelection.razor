@@ -56,7 +56,6 @@
                                 <div class="cost-breakdown">
                                     <span>@coinCost coins</span>
                                     <span>@staminaCost stamina</span>
-                                    <span>@route.TimeBlockCost time blocks</span>
                                 </div>
                                 @if (route.DepartureTime.HasValue)
                                 {
@@ -126,38 +125,10 @@
                             </div>
                             @if (accessInfo.IsAllowed && canAfford)
                             {
-                                <div class="transport-options">
-                                    <strong>Choose Transport:</strong>
-                                    @{
-                                        var transportOptions = TravelManager.GetAvailableTransportOptions(route);
-                                    }
-                                    @foreach (var transport in transportOptions)
-                                    {
-                                        <div class="transport-option @transport.GetCompatibilityCssClass()">
-                                            <button class="transport-button"
-                                                    disabled="@(!transport.IsCompatible)"
-                                                    @onclick="() => OnTravelWithTransport.InvokeAsync((route, transport.Method))">
-                                                @transport.Method
-                                                @if (transport.InventorySlots > 0)
-                                                {
-                                                    <span class="inventory-bonus">@transport.GetInventoryBonusDescription()</span>
-                                                }
-                                                @if (!transport.IsCompatible)
-                                                {
-                                                    <span class="transport-blocked">(@transport.BlockingReason)</span>
-                                                }
-                                                @if (transport.Warnings.Any())
-                                                {
-                                                    <span class="transport-warning">⚠️</span>
-                                                }
-                                            </button>
-                                            @foreach (var warning in transport.Warnings)
-                                            {
-                                                <div class="transport-warning-detail">@warning</div>
-                                            }
-                                        </div>
-                                    }
-                                </div>
+                                <button class="travel-button"
+                                        @onclick="() => OnTravelRoute.InvokeAsync(route)">
+                                    Travel via @route.Method
+                                </button>
                             }
                             else
                             {

@@ -33,11 +33,7 @@
     <div class="game-info">
         <div class="time-display @StyleHelper.GetTimeBlocksStyle(CurrentTime)">
             <span class="time-icon">@StyleHelper.GetIconForCurrentTimeBlock(CurrentTime)</span>
-            <span class="time-text">@CurrentTime.ToString()</span>
             <span class="time-hours">@CurrentHour:00</span>
-        </div>
-        <div class="time-blocks-status">
-            @GameManager.GetTimeBlocksStatus()
         </div>
         <div class="weather-display">
             <span class="weather-icon">@GetWeatherIcon(CurrentWeather)</span>
