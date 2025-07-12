@@ -427,7 +427,7 @@ public class EnvironmentRequirement : IRequirement
     private bool HasGoodLight(GameWorld gameWorld)
     {
         // Check time of day for natural light
-        var currentTime = gameWorld.TimeManager.CurrentTimeBlock;
+        var currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
         return currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon;
     }
 

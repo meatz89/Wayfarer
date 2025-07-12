@@ -122,4 +122,22 @@
 
         _gameWorld.WorldState.locationSpots.Add(spot);
     }
+
+    // Set current location and spot
+    public void SetCurrentLocation(Location location, LocationSpot spot)
+    {
+        _gameWorld.WorldState.SetCurrentLocation(location, spot);
+    }
+
+    // Record location visit
+    public void RecordLocationVisit(string locationId)
+    {
+        _gameWorld.WorldState.RecordLocationVisit(locationId);
+    }
+
+    // Check if this is the first visit to a location
+    public bool IsFirstVisit(string locationId)
+    {
+        return _gameWorld.WorldState.IsFirstVisit(locationId);
+    }
 }

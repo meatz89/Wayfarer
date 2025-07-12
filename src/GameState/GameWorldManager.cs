@@ -27,6 +27,7 @@ public class GameWorldManager
     private TradeManager tradeManager;
     private ContractSystem contractSystem;
     private RestManager restManager;
+    private NPCRepository npcRepository;
     private List<Contract> availableContracts = new List<Contract>();
 
     private bool isAiAvailable = true;
@@ -41,7 +42,7 @@ public class GameWorldManager
                        MarketManager marketManager, TradeManager tradeManager,
                        ContractSystem contractSystem, RestManager restManager,
                        PlayerProgression playerProgression, ActionProcessor actionProcessor,
-                       ChoiceProjectionService choiceProjectionService,
+                       ChoiceProjectionService choiceProjectionService, NPCRepository npcRepository,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -57,6 +58,7 @@ public class GameWorldManager
         this.contractSystem = contractSystem;
         this.restManager = restManager;
         this.actionProcessor = actionProcessor;
+        this.npcRepository = npcRepository;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -69,22 +71,22 @@ public class GameWorldManager
         // TODO: Implement time management through gameWorld.TimeManager
 
         Location startingLocation = await locationSystem.Initialize();
-        _gameWorld.WorldState.RecordLocationVisit(startingLocation.Id);
+        locationRepository.RecordLocationVisit(startingLocation.Id);
         travelManager.StartLocationTravel(startingLocation.Id);
 
         // Preserve the location spot that was set by LocationSystem.Initialize()
         LocationSpot currentSpot = _gameWorld.GetPlayer().CurrentLocationSpot;
-        _gameWorld.WorldState.SetCurrentLocation(startingLocation, currentSpot);
+        locationRepository.SetCurrentLocation(startingLocation, currentSpot);
 
-        Location currentLocation = _gameWorld.WorldState.CurrentLocation;
-        if (_gameWorld.WorldState.CurrentLocationSpot == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
+        Location currentLocation = locationRepository.GetCurrentLocation();
+        if (locationRepository.GetCurrentLocationSpot() == null && locationSystem.GetLocationSpots(currentLocation.Id).Any() == true)
         {
             Console.WriteLine("Current location spot is null despite spots existing - manually setting");
-            _gameWorld.WorldState.SetCurrentLocation(startingLocation, locationSystem.GetLocationSpots(currentLocation.Id).First());
+            locationRepository.SetCurrentLocation(startingLocation, locationSystem.GetLocationSpots(currentLocation.Id).First());
         }
 
         Location? currentLoc = currentLocation;
-        Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {_gameWorld.WorldState.CurrentLocationSpot?.SpotID}");
+        Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {locationRepository.GetCurrentLocationSpot()?.SpotID}");
 
         await Update_gameWorld();
     }
@@ -96,8 +98,8 @@ public class GameWorldManager
 
         UpdateAvailableContracts();
 
-        Location location = _gameWorld.WorldState.CurrentLocation;
-        LocationSpot locationSpot = _gameWorld.WorldState.CurrentLocationSpot;
+        Location location = locationRepository.GetCurrentLocation();
+        LocationSpot locationSpot = locationRepository.GetCurrentLocationSpot();
 
         List<LocationAction> locationActions = await CreateActions(location, locationSpot);
 
@@ -125,14 +127,14 @@ public class GameWorldManager
     {
         LocationAction locationAction = _gameWorld.ActionStateTracker.CurrentAction.locationAction;
 
-        Location location = _gameWorld.WorldState.CurrentLocation;
+        Location location = locationRepository.GetCurrentLocation();
         string locationId = location.Id;
         string locationName = location.Name;
 
-        string TimeBlocks = GetTimeBlocks(_gameWorld.WorldState.CurrentTimeHours);
+        string TimeBlocks = GetTimeBlocks(_gameWorld.TimeManager.GetCurrentTimeHours());
 
         LocationSpot? locationSpot = locationSystem.GetLocationSpot(
-            location.Id, _gameWorld.WorldState.CurrentLocationSpot.SpotID);
+            location.Id, locationRepository.GetCurrentLocationSpot().SpotID);
 
         int playerLevel = _gameWorld.GetPlayer().Level;
 
@@ -178,8 +180,8 @@ public class GameWorldManager
 
     public async Task<BeatOutcome> ProcessPlayerChoice(PlayerChoiceSelection playerChoice)
     {
-        Location location = _gameWorld.WorldState.CurrentLocation;
-        string? currentLocation = _gameWorld.WorldState.CurrentLocation?.Id;
+        Location location = locationRepository.GetCurrentLocation();
+        string? currentLocation = locationRepository.GetCurrentLocation()?.Id;
 
         if (string.IsNullOrWhiteSpace(currentLocation)) return null;
 
@@ -192,7 +194,7 @@ public class GameWorldManager
 
     public void ProcessEndEncounter(EncounterResult result)
     {
-        _gameWorld.WorldState.MarkEncounterCompleted(result.locationAction.ActionId);
+        actionRepository.MarkEncounterCompleted(result.locationAction.ActionId);
         _gameWorld.ActionStateTracker.CurrentEncounterResult = result;
 
         AIResponse AIResponse = result.AIResponse;
@@ -206,7 +208,7 @@ public class GameWorldManager
 
     private async Task<List<UserActionOption>> CreateUserActionsForLocationSpot(Location location, LocationSpot locationSpot, List<LocationAction> locationActions)
     {
-        string? currentLocation = _gameWorld.WorldState.CurrentLocation?.Id;
+        string? currentLocation = locationRepository.GetCurrentLocation()?.Id;
         if (string.IsNullOrWhiteSpace(currentLocation)) return new List<UserActionOption>();
 
         List<UserActionOption> options = new List<UserActionOption>();
@@ -317,7 +319,7 @@ public class GameWorldManager
         string location = locationAction.DestinationLocation;
         string locationSpot = locationAction.DestinationLocationSpot;
 
-        string fromLocationId = _gameWorld.WorldState.CurrentLocation.Id;
+        string fromLocationId = locationRepository.GetCurrentLocation().Id;
         RouteOption routeOption = travelManager.GetAvailableRoutes(fromLocationId, location).FirstOrDefault();
 
         if (!string.IsNullOrWhiteSpace(location))
@@ -353,7 +355,7 @@ public class GameWorldManager
         // Consume time blocks
         GameWorld.TimeManager.ConsumeTimeBlock(route.TimeBlockCost);
 
-        int seed = _gameWorld.WorldState.CurrentDay + player.GetHashCode();
+        int seed = _gameWorld.TimeManager.GetCurrentDay() + player.GetHashCode();
         EncounterContext encounterContext = route.GetEncounter(seed);
 
         if (encounterContext != null)
@@ -369,7 +371,7 @@ public class GameWorldManager
             // Find the first available location spot for the destination
             LocationSpot? destinationSpot = locationSystem.GetLocationSpots(destination.Id).FirstOrDefault();
 
-            _gameWorld.WorldState.SetCurrentLocation(destination, destinationSpot);
+            locationRepository.SetCurrentLocation(destination, destinationSpot);
 
             // Also update the Player's location to keep them in sync
             player.CurrentLocation = destination;
@@ -410,10 +412,10 @@ public class GameWorldManager
 
     public async Task MoveToLocationSpot(string locationSpotName)
     {
-        Location location = _gameWorld.WorldState.CurrentLocation;
+        Location location = locationRepository.GetCurrentLocation();
 
         LocationSpot locationSpot = locationSystem.GetLocationSpot(location.Id, locationSpotName);
-        _gameWorld.WorldState.SetCurrentLocation(location, locationSpot);
+        locationRepository.SetCurrentLocation(location, locationSpot);
 
         await Update_gameWorld();
     }
@@ -448,7 +450,7 @@ public class GameWorldManager
     {
         foreach (Contract contract in contractSystem.GetActiveContracts())
         {
-            if (contract.IsAvailable(_gameWorld.WorldState.CurrentDay, _gameWorld.WorldState.CurrentTimeBlock))
+            if (contract.IsAvailable(_gameWorld.TimeManager.GetCurrentDay(), _gameWorld.TimeManager.GetCurrentTimeBlock()))
             {
                 if (!availableContracts.Contains(contract))
                 {
@@ -480,7 +482,7 @@ public class GameWorldManager
         { };
 
         LocationAction action = actionFactory
-            .CreateActionFromTemplate(waitAction, _gameWorld.WorldState.CurrentLocation.Id, spotId, ActionExecutionTypes.Instant);
+            .CreateActionFromTemplate(waitAction, locationRepository.GetCurrentLocation().Id, spotId, ActionExecutionTypes.Instant);
 
         return action;
     }

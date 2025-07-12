@@ -12,6 +12,7 @@ public class MarketManager
     private readonly ItemRepository _itemRepository;
     private readonly ContractProgressionService _contractProgressionService;
     private readonly NPCRepository _npcRepository;
+    private readonly LocationRepository _locationRepository;
 
     /// <summary>
     /// Represents pricing information for an item at a specific location
@@ -25,13 +26,15 @@ public class MarketManager
     }
 
     public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
-                        ContractProgressionService contractProgressionService, NPCRepository npcRepository)
+                        ContractProgressionService contractProgressionService, NPCRepository npcRepository,
+                        LocationRepository locationRepository)
     {
         _gameWorld = gameWorld;
         _locationSystem = locationSystem;
         _itemRepository = itemRepository;
         _contractProgressionService = contractProgressionService;
         _npcRepository = npcRepository;
+        _locationRepository = locationRepository;
     }
 
     /// <summary>
@@ -48,7 +51,7 @@ public class MarketManager
         }
 
         // Check if market is available based on NPC schedules
-        TimeBlocks currentTime = _gameWorld.WorldState.CurrentTimeBlock;
+        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
         bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
         
         if (!marketAvailable)
@@ -114,20 +117,79 @@ public class MarketManager
     {
         List<Item> availableItems = new List<Item>();
 
-        // Get all items from ItemRepository and create location-specific versions
+        // Check market availability once upfront
+        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
+        
+        if (!marketAvailable)
+        {
+            return availableItems; // Return empty list if market is closed
+        }
+
+        // Get all items from ItemRepository
         List<Item> allItems = _itemRepository.GetAllItems();
 
         foreach (Item baseItem in allItems)
         {
-            LocationPricing pricing = GetDynamicPricing(locationId, baseItem.Id);
-            if (pricing.IsAvailable)
+            // Calculate location-specific pricing directly
+            LocationPricing pricing = CalculateLocationPricing(baseItem, locationId);
+            
+            // Create item with location-specific pricing
+            Item locationItem = new Item
             {
-                Item item = CreateItemWithLocationPricing(baseItem.Id, locationId);
-                availableItems.Add(item);
-            }
+                Id = baseItem.Id,
+                Name = baseItem.Name,
+                BuyPrice = pricing.BuyPrice,
+                SellPrice = pricing.SellPrice,
+                IsAvailable = true, // We know it's available since market is open
+                Weight = baseItem.Weight,
+                InventorySlots = baseItem.InventorySlots,
+                LocationId = locationId,
+                Description = baseItem.Description,
+                Categories = baseItem.Categories
+            };
+            
+            availableItems.Add(locationItem);
         }
 
         return availableItems;
+    }
+
+    /// <summary>
+    /// Calculate location-specific pricing for an item (simplified version)
+    /// </summary>
+    private LocationPricing CalculateLocationPricing(Item baseItem, string locationId)
+    {
+        LocationPricing pricing = new LocationPricing
+        {
+            IsAvailable = true,
+            SupplyLevel = 1.0f
+        };
+
+        // Location-specific pricing logic
+        switch (locationId)
+        {
+            case "town_square":
+                pricing.BuyPrice = baseItem.BuyPrice + 1;
+                pricing.SellPrice = baseItem.SellPrice + 1;
+                break;
+            case "dusty_flagon":
+                pricing.BuyPrice = Math.Max(1, baseItem.BuyPrice - 1);
+                pricing.SellPrice = Math.Max(1, baseItem.SellPrice - 1);
+                break;
+            default:
+                pricing.BuyPrice = baseItem.BuyPrice;
+                pricing.SellPrice = baseItem.SellPrice;
+                break;
+        }
+
+        // Ensure buy price is always higher than sell price
+        if (pricing.BuyPrice <= pricing.SellPrice)
+        {
+            pricing.BuyPrice = pricing.SellPrice + 1;
+        }
+
+        return pricing;
     }
 
     /// <summary>
@@ -290,7 +352,7 @@ public class MarketManager
         var prices = new List<MarketPriceInfo>();
         
         // Get all locations
-        List<Location> locations = _gameWorld.WorldState.locations ?? new List<Location>();
+        List<Location> locations = _locationRepository.GetAllLocations() ?? new List<Location>();
         
         foreach (Location location in locations)
         {
@@ -535,7 +597,7 @@ public class MarketManager
     /// </summary>
     public string GetMarketAvailabilityStatus(string locationId)
     {
-        TimeBlocks currentTime = _gameWorld.WorldState.CurrentTimeBlock;
+        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
         bool isAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
         
         if (isAvailable)

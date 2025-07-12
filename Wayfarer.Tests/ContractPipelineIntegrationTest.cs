@@ -41,11 +41,13 @@ public class ContractPipelineIntegrationTest
         
         // Same repositories as production would use
         ContractRepository contracts = new ContractRepository(gameWorld);
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
         MarketManager market = new MarketManager(gameWorld, 
-            new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
+            new LocationSystem(gameWorld, locationRepository),
             new ItemRepository(gameWorld),
-            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
-            new NPCRepository(gameWorld));
+            new ContractProgressionService(contracts, new ItemRepository(gameWorld), locationRepository),
+            new NPCRepository(gameWorld),
+            locationRepository);
         
         // === VERIFY INITIAL STATE ===
         // Using repository query methods (useful for production too)
@@ -156,11 +158,13 @@ public class ContractPipelineIntegrationTest
         
         GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
         ContractRepository contracts = new ContractRepository(gameWorld);
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
         MarketManager market = new MarketManager(gameWorld, 
-            new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
+            new LocationSystem(gameWorld, locationRepository),
             new ItemRepository(gameWorld),
-            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
-            new NPCRepository(gameWorld));
+            new ContractProgressionService(contracts, new ItemRepository(gameWorld), locationRepository),
+            new NPCRepository(gameWorld),
+            locationRepository);
         
         // Accept contract
         Contract herbContract = contracts.GetContract("herb_delivery");
@@ -241,11 +245,13 @@ public class ContractPipelineIntegrationTest
         
         GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
         ContractRepository contracts = new ContractRepository(gameWorld);
+        LocationRepository locationRepository = new LocationRepository(gameWorld);
         MarketManager market = new MarketManager(gameWorld, 
-            new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
+            new LocationSystem(gameWorld, locationRepository),
             new ItemRepository(gameWorld),
-            new ContractProgressionService(contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
-            new NPCRepository(gameWorld));
+            new ContractProgressionService(contracts, new ItemRepository(gameWorld), locationRepository),
+            new NPCRepository(gameWorld),
+            locationRepository);
         ContractProgressionService progression = new ContractProgressionService(
             contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld));
         

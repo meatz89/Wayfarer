@@ -6,6 +6,7 @@ public class TravelManager
     private readonly TimeManager _timeManager;
     private readonly ContractProgressionService _contractProgressionService;
     private readonly TransportCompatibilityValidator _transportValidator;
+    private readonly RouteRepository _routeRepository;
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
     public LocationRepository LocationRepository { get; }
@@ -20,13 +21,15 @@ public class TravelManager
         ActionFactory actionFactory,
         ItemRepository itemRepository,
         ContractProgressionService contractProgressionService,
-        TransportCompatibilityValidator transportValidator
+        TransportCompatibilityValidator transportValidator,
+        RouteRepository routeRepository
         )
     {
         _gameWorld = gameWorld;
         _timeManager = gameWorld.TimeManager;
         _contractProgressionService = contractProgressionService;
         _transportValidator = transportValidator;
+        _routeRepository = routeRepository;
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
         this.LocationRepository = locationRepository;
@@ -37,7 +40,7 @@ public class TravelManager
     public bool CanTravelTo(string locationId)
     {
         Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = _gameWorld.CurrentLocation;
+        Location currentLocation = LocationRepository.GetCurrentLocation();
 
         if (destination == null || currentLocation == null)
             return false;
@@ -50,7 +53,7 @@ public class TravelManager
     public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
     {
         Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = _gameWorld.CurrentLocation;
+        Location currentLocation = LocationRepository.GetCurrentLocation();
 
         // Find the appropriate route
 
@@ -87,17 +90,17 @@ public class TravelManager
             return ls.SpotID == locationSpotName;
         }));
 
-        _gameWorld.WorldState.SetCurrentLocation(targetLocation, locSpot);
+        LocationRepository.SetCurrentLocation(targetLocation, locSpot);
 
         // Check for contract progression based on arrival at destination
         _contractProgressionService.CheckTravelProgression(targetLocation.Id, _gameWorld.GetPlayer());
 
-        string? currentLocation = _gameWorld.CurrentLocation?.Id;
+        string? currentLocation = LocationRepository.GetCurrentLocation()?.Id;
 
-        bool isFirstVisit = _gameWorld.WorldState.IsFirstVisit(targetLocation.Id);
+        bool isFirstVisit = LocationRepository.IsFirstVisit(targetLocation.Id);
         if (isFirstVisit)
         {
-            _gameWorld.WorldState.RecordLocationVisit(targetLocation.Id);
+            LocationRepository.RecordLocationVisit(targetLocation.Id);
             // Discovery bonuses removed - new locations provide natural opportunities through different markets
         }
     }
@@ -132,17 +135,17 @@ public class TravelManager
                 continue;
 
             // Check departure times
-            if (route.DepartureTime != null && route.DepartureTime != _gameWorld.WorldState.CurrentTimeBlock)
+            if (route.DepartureTime != null && route.DepartureTime != _timeManager.GetCurrentTimeBlock())
                 continue;
 
             // Check if route is temporarily blocked
-            if (_gameWorld.WorldState.IsRouteBlocked(route.Id))
+            if (_routeRepository.IsRouteBlocked(route.Id))
                 continue;
 
             // Weather no longer blocks routes - it affects efficiency instead
 
             // Check if route is accessible using logical blocking system
-            RouteAccessResult accessResult = route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _gameWorld.CurrentWeather);
+            RouteAccessResult accessResult = route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
             if (accessResult.IsAllowed)
             {
                 availableRoutes.Add(route);
@@ -239,14 +242,14 @@ public class TravelManager
     public int CalculateStaminaCost(RouteOption route)
     {
         int totalWeight = CalculateCurrentWeight(_gameWorld);
-        WeatherCondition currentWeather = _gameWorld.CurrentWeather;
+        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
         int staminaCost = route.CalculateStaminaCost(totalWeight, currentWeather, ItemRepository, _gameWorld.GetPlayer());
         return staminaCost;
     }
 
     public int CalculateCoinCost(RouteOption route)
     {
-        WeatherCondition currentWeather = _gameWorld.CurrentWeather;
+        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
         return route.CalculateCoinCost(currentWeather);
     }
 
@@ -273,7 +276,7 @@ public class TravelManager
     /// </summary>
     public RouteAccessResult GetRouteAccessInfo(RouteOption route)
     {
-        return route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _gameWorld.CurrentWeather);
+        return route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
     }
 
     /// <summary>

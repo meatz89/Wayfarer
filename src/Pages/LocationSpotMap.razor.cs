@@ -139,13 +139,13 @@ public class LocationSpotMapBase : ComponentBase
 
     public List<NPC> GetAvailableNPCs()
     {
-        TimeBlocks currentTime = GameWorld.WorldState.CurrentTimeBlock;
+        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
         return NPCRepository.GetNPCsForLocationAndTime(CurrentLocation.Id, currentTime);
     }
 
     public List<NPC> GetAvailableNPCsForSpot(LocationSpot spot)
     {
-        TimeBlocks currentTime = GameWorld.WorldState.CurrentTimeBlock;
+        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
         return NPCRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
     }
 

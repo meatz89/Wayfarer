@@ -137,13 +137,27 @@ namespace Wayfarer.Tests
             // Act & Assert - ItemRepository and MarketManager can work with parsed items
             GameWorld gameWorld = CreateTestGameWorld();
             ItemRepository itemRepository = new ItemRepository(gameWorld);
+            NPCRepository npcRepository = new NPCRepository(gameWorld);
 
             // Add parsed items using repository methods (proper architecture)
             itemRepository.AddItems(parsedItems);
-            LocationSystem locationSystem = new LocationSystem(gameWorld, new LocationRepository(gameWorld));
+            
+            // Add NPCs for market functionality (required for market availability)
+            npcRepository.AddNPC(new NPC
+            {
+                ID = "test_trader",
+                Name = "Test Trader",
+                Location = "town_square",
+                Profession = Professions.Merchant,
+                AvailabilitySchedule = Schedule.Always,
+                ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
+            });
+
+            LocationRepository locationRepository = new LocationRepository(gameWorld);
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractRepository contractRepository = new ContractRepository(gameWorld);
-            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, new LocationRepository(gameWorld));
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, npcRepository, locationRepository);
 
             // Verify ItemRepository can find items
             foreach (Item item in parsedItems)
@@ -261,10 +275,11 @@ namespace Wayfarer.Tests
 
             ItemRepository itemRepository = new ItemRepository(gameWorld);
             TravelManager travelManager = CreateTravelManager(gameWorld);
-            LocationSystem locationSystem = new LocationSystem(gameWorld, new LocationRepository(gameWorld));
+            LocationRepository locationRepository = new LocationRepository(gameWorld);
+            LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractRepository contractRepository = new ContractRepository(gameWorld);
-            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, new LocationRepository(gameWorld));
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
             Player player = gameWorld.GetPlayer();
             player.Coins = 100; // Start with some money
@@ -364,6 +379,7 @@ namespace Wayfarer.Tests
             ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
             ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            RouteRepository routeRepository = new RouteRepository(gameWorld);
             return new TravelManager(
                 gameWorld,
                 locationSystem,
@@ -372,7 +388,8 @@ namespace Wayfarer.Tests
                 actionFactory,
                 itemRepository,
                 contractProgression,
-                new TransportCompatibilityValidator(itemRepository)
+                new TransportCompatibilityValidator(itemRepository),
+                routeRepository
             );
         }
 

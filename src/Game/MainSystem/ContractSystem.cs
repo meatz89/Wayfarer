@@ -5,12 +5,14 @@ public class ContractSystem
     private GameWorld gameWorld;
     private MessageSystem messageSystem;
     private ContractRepository contractRepository;
+    private LocationRepository locationRepository;
 
-    public ContractSystem(GameWorld gameWorld, MessageSystem messageSystem, ContractRepository contractRepository)
+    public ContractSystem(GameWorld gameWorld, MessageSystem messageSystem, ContractRepository contractRepository, LocationRepository locationRepository)
     {
         this.gameWorld = gameWorld;
         this.messageSystem = messageSystem;
         this.contractRepository = contractRepository;
+        this.locationRepository = locationRepository;
     }
 
     public string FormatActiveContracts(List<Contract> contracts)
@@ -39,7 +41,7 @@ public class ContractSystem
             return false;
         }
 
-        if (!contract.CanComplete(player, gameWorld.WorldState.CurrentLocation.Id))
+        if (!contract.CanComplete(player, locationRepository.GetCurrentLocation().Id))
         {
             return false;
         }

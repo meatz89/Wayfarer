@@ -24,6 +24,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<ContractRepository>();
+        services.AddSingleton<RouteRepository>();
         
         // Register contract services
         services.AddSingleton<ContractValidationService>();
