@@ -225,23 +225,16 @@ public class ContractCompletionTests
         // Act 1: Complete the transaction requirement
         contractProgressionService.CheckMarketProgression("rare_materials", "workshop", TransactionType.Sell, 1, 100, player);
         
-        // Assert 1: Contract not yet complete (still needs location action)
+        // Assert 1: Contract not yet complete (still needs destination)
         Assert.False(artisanContract.IsCompleted);
         Assert.Single(artisanContract.CompletedTransactions);
         
-        // Act 2: Complete the location action requirement
-        LocationAction masterworkAction = new LocationAction
-        {
-            ActionId = "create_masterwork",
-            Name = "Create Masterwork",
-            LocationId = "workshop",
-            LocationSpotId = "crafting_area"
-        };
-        contractProgressionService.CheckLocationActionProgression(masterworkAction, player);
+        // Act 2: Complete the destination requirement
+        contractProgressionService.CheckTravelProgression("mountain_summit", player);
         
         // Assert 2: Contract now complete (both requirements met)
         Assert.True(artisanContract.IsCompleted);
         Assert.Single(artisanContract.CompletedTransactions);
-        Assert.Single(artisanContract.CompletedLocationActions);
+        Assert.Single(artisanContract.CompletedDestinations);
     }
 }

@@ -109,7 +109,7 @@ namespace Wayfarer.Tests
             Assert.NotEmpty(availableItems);
             Assert.True(availableItems.Count >= 3, "Town square should have at least 3 tradeable items");
 
-            Item herbsItem = availableItems.FirstOrDefault(i => i.Name == "herbs");
+            Item herbsItem = availableItems.FirstOrDefault(i => i.Id == "herbs");
             Assert.NotNull(herbsItem);
             Assert.True(herbsItem.BuyPrice > 0, "Herbs should have valid buy price");
             Assert.True(herbsItem.SellPrice > 0, "Herbs should have valid sell price");

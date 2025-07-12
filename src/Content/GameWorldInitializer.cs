@@ -1,5 +1,6 @@
 ﻿using Wayfarer.Game.MainSystem;
 using Wayfarer.Content;
+using System.Text.Json;
 
 public class GameWorldInitializer
 {
@@ -93,6 +94,21 @@ public class GameWorldInitializer
             Console.WriteLine("WARNING: No items loaded from JSON templates. Check items.json file.");
         }
 
+        // Load NPCs
+        List<NPC> npcs = new List<NPC>();
+        string npcsFilePath = Path.Combine(templatePath, "npcs.json");
+        if (File.Exists(npcsFilePath))
+        {
+            try
+            {
+                npcs = ParseNPCArray(File.ReadAllText(npcsFilePath));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed to load NPCs from JSON: {ex.Message}");
+            }
+        }
+
         // Load information
         List<Information> informations = new List<Information>();
         string informationsFilePath = Path.Combine(templatePath, "informations.json");
@@ -108,6 +124,23 @@ public class GameWorldInitializer
                 Console.WriteLine($"ERROR: Failed to load informations from JSON: {ex.Message}");
             }
         }
+
+        // Add NPCs to the game world
+        if (npcs.Any())
+        {
+            foreach (NPC npc in npcs)
+            {
+                gameWorld.WorldState.AddCharacter(npc);
+            }
+            Console.WriteLine($"Loaded {npcs.Count} NPCs from JSON templates.");
+        }
+        else
+        {
+            Console.WriteLine("INFO: No NPCs loaded from JSON templates. Create npcs.json file to add NPC content.");
+        }
+
+        // Connect NPCs to their location spots
+        ConnectNPCsToLocationSpots(npcs, gameWorld.WorldState.locationSpots);
 
         // Add information to the game world
         if (gameWorld.WorldState.Informations == null)
@@ -253,6 +286,46 @@ public class GameWorldInitializer
         }
     }
 
+    // Helper method to connect NPCs to their location spots
+    private void ConnectNPCsToLocationSpots(List<NPC> npcs, List<LocationSpot> spots)
+    {
+        // Create mapping of NPCs to CHARACTER type location spots
+        var characterSpots = spots.Where(s => s.Type == LocationSpotTypes.CHARACTER).ToList();
+        
+        foreach (LocationSpot characterSpot in characterSpots)
+        {
+            // Try to find a matching NPC based on location and role/profession
+            NPC matchingNPC = null;
+            
+            // Strategy 1: Try to match by location and profession
+            if (characterSpot.SpotID == "innkeeper" && characterSpot.LocationId == "dusty_flagon")
+            {
+                matchingNPC = npcs.FirstOrDefault(n => n.Location == "dusty_flagon" && n.Profession == Professions.Merchant);
+            }
+            else if (characterSpot.SpotID == "market_stall" && characterSpot.LocationId == "town_square")
+            {
+                matchingNPC = npcs.FirstOrDefault(n => n.Location == "town_square" && n.Profession == Professions.Merchant);
+            }
+            
+            // Strategy 2: General location-based matching for other spots
+            if (matchingNPC == null)
+            {
+                matchingNPC = npcs.FirstOrDefault(n => n.Location == characterSpot.LocationId);
+            }
+            
+            // Connect the NPC to the spot
+            if (matchingNPC != null)
+            {
+                characterSpot.PrimaryNPC = matchingNPC;
+                Console.WriteLine($"Connected NPC '{matchingNPC.Name}' to location spot '{characterSpot.SpotID}' at {characterSpot.LocationId}");
+            }
+            else
+            {
+                Console.WriteLine($"WARNING: No matching NPC found for CHARACTER spot '{characterSpot.SpotID}' at {characterSpot.LocationId}");
+            }
+        }
+    }
+
     private GameWorld CreateInitialGameWorld()
     {
         GameWorld gameWorld = new GameWorld();
@@ -304,5 +377,21 @@ public class GameWorldInitializer
         }
 
         return locations;
+    }
+
+    private List<NPC> ParseNPCArray(string npcsJson)
+    {
+        List<NPC> npcs = new List<NPC>();
+        
+        using (JsonDocument doc = JsonDocument.Parse(npcsJson))
+        {
+            foreach (JsonElement npcElement in doc.RootElement.EnumerateArray())
+            {
+                NPC npc = NPCParser.ParseNPC(npcElement.GetRawText());
+                npcs.Add(npc);
+            }
+        }
+        
+        return npcs;
     }
 }

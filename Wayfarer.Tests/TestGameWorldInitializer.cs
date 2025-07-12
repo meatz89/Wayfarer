@@ -160,6 +160,21 @@ public static class TestGameWorldInitializer
             });
         }
         
+        // Load contracts from JSON file like production GameWorldInitializer
+        List<Contract> contracts = new List<Contract>();
+        string contractsFilePath = Path.Combine("Content", "Templates", "contracts.json");
+        if (File.Exists(contractsFilePath))
+        {
+            contracts = GameWorldSerializer.DeserializeContracts(
+                File.ReadAllText(contractsFilePath));
+            gameWorld.WorldState.Contracts.AddRange(contracts);
+            Console.WriteLine($"Loaded {contracts.Count} contracts from JSON templates.");
+        }
+        else
+        {
+            Console.WriteLine($"WARNING: contracts.json not found at {contractsFilePath}. Using empty contract list.");
+        }
+        
         // Set basic game state
         gameWorld.WorldState.CurrentDay = 1;
         gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;

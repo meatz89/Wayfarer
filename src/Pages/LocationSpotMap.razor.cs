@@ -8,6 +8,7 @@ public class LocationSpotMapBase : ComponentBase
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public LocationSystem LocationSystem { get; set; }
+    [Inject] public NPCRepository NPCRepository { get; set; }
     [Inject] public CardSelectionService DragDropService { get; set; }
     [Inject] public CardHighlightService CardHighlightService { get; set; }
 
@@ -134,6 +135,18 @@ public class LocationSpotMapBase : ComponentBase
     public Location GetLocation()
     {
         return LocationSystem.GetLocation(CurrentLocation.Id);
+    }
+
+    public List<NPC> GetAvailableNPCs()
+    {
+        TimeBlocks currentTime = GameWorld.WorldState.CurrentTimeBlock;
+        return NPCRepository.GetNPCsForLocationAndTime(CurrentLocation.Id, currentTime);
+    }
+
+    public List<NPC> GetAvailableNPCsForSpot(LocationSpot spot)
+    {
+        TimeBlocks currentTime = GameWorld.WorldState.CurrentTimeBlock;
+        return NPCRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
     }
 
 }
