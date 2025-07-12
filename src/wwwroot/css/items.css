@@ -72,6 +72,59 @@
 	font-style: italic;
 }
 
+/* Market Scheduling Status */
+.market-status {
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 5px;
+	padding: 10px 15px;
+	margin-bottom: 15px;
+	text-align: center;
+	font-family: var(--font-secondary);
+	font-weight: 600;
+}
+
+.market-open {
+	color: var(--forest);
+	background-color: rgba(76, 111, 68, 0.1);
+	padding: 8px 12px;
+	border-radius: 4px;
+	border: 1px solid var(--forest);
+}
+
+.market-closed {
+	color: var(--rust);
+	background-color: rgba(158, 42, 43, 0.1);
+	padding: 8px 12px;
+	border-radius: 4px;
+	border: 1px solid var(--rust);
+}
+
+/* Transport Scheduling */
+.departure-time {
+	font-size: 0.9em;
+	color: var(--text-secondary);
+	font-family: var(--font-secondary);
+	margin-top: 4px;
+	padding: 4px 8px;
+	background-color: var(--bg-card);
+	border-radius: 3px;
+	border: 1px solid var(--oak-light);
+}
+
+/* Time Block Status */
+.time-blocks-status {
+	font-size: 0.85em;
+	color: var(--text-secondary);
+	font-family: var(--font-secondary);
+	text-align: center;
+	margin-top: 4px;
+	padding: 3px 6px;
+	background-color: var(--bg-panel);
+	border-radius: 3px;
+	border: 1px solid var(--oak-light);
+}
+
 .item-weight {
 	font-size: 0.9em;
 	color: var(--text-secondary);

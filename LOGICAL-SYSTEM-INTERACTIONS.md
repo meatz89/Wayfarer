@@ -64,6 +64,52 @@ staminaCost = (int)(baseCost * efficiency);
 - Size-aware item acquisition planning
 - Multi-item strategic loadout decisions
 
+### **Period-Based Activity Planning System - COMPLETE ✅**
+
+**IMPLEMENTED**: Time-based categorical scheduling that creates strategic activity pressure and choice conflicts.
+
+**NPC Scheduling Categories**:
+- **Schedule.Morning**: Available Morning timeblock only
+- **Schedule.Afternoon**: Available Afternoon timeblock only  
+- **Schedule.Evening**: Available Evening timeblock only
+- **Schedule.Market_Days**: Available Morning/Afternoon (most traders)
+- **Schedule.Always**: Available all timeblocks (innkeepers, guards)
+
+**Transport Departure Scheduling**:
+- **RouteOption.DepartureTime**: Specific timeblock departure restrictions
+- **Express services**: Morning departures for time-efficient travel
+- **Regular services**: Multiple departure times throughout day
+- **Seasonal/weather-dependent**: Conditional scheduling based on conditions
+
+**Time Block Strategic Pressure**:
+- **Daily Limit**: 5 time blocks per day maximum
+- **Activity Consumption**: Every action (travel, trading, contracts) consumes time
+- **Scheduling Conflicts**: NPC availability vs transport schedules vs contract deadlines
+- **Resource vs Time Trade-offs**: Fast transport costs more but saves time
+
+**Player Strategic Decisions Created**:
+- **Morning Planning**: Which NPCs to visit during their availability windows
+- **Transport Timing**: Coordinating departure schedules with destination NPC availability
+- **Contract Deadlines**: Managing time pressure vs thorough preparation
+- **Activity Prioritization**: Limited daily actions force strategic choices
+
+**Implementation Details**:
+```csharp
+// NPC availability checking enforces scheduling
+bool isMarketOpen = _npcRepository.GetNPCsForLocationAndTime(locationId, currentTime)
+    .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+    .Any();
+
+// Transport schedules restrict route availability  
+List<RouteOption> availableRoutes = routes
+    .Where(r => !r.DepartureTime.HasValue || r.DepartureTime.Value == currentTime)
+    .ToList();
+
+// Time blocks create daily activity pressure
+if (timeManager.RemainingTimeBlocks == 0)
+    throw new InvalidOperationException("No time blocks remaining for today");
+```
+
 ### **Contract Categorical System - COMPLETE**
 
 **IMPLEMENTED**: Contracts with comprehensive categorical requirements for strategic planning.

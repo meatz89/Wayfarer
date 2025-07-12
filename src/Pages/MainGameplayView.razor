@@ -36,6 +36,9 @@
             <span class="time-text">@CurrentTime.ToString()</span>
             <span class="time-hours">@CurrentHour:00</span>
         </div>
+        <div class="time-blocks-status">
+            @GameManager.GetTimeBlocksStatus()
+        </div>
         <div class="weather-display">
             <span class="weather-icon">@GetWeatherIcon(CurrentWeather)</span>
             <span class="weather-text">@CurrentWeather.ToString()</span>

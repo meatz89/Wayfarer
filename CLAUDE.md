@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE BEFORE WRITING TO IT ⚠️**
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## DOCUMENTATION GUIDELINES
@@ -182,6 +184,46 @@ Repositories MUST be completely stateless and only delegate to GameWorld - NO da
 3. **Tests MUST use repositories, never GameWorld properties**
 4. **UI components MUST use repositories, never GameWorld properties**
 5. **GameWorld properties exist ONLY for repository implementation**
+6. **Test setup MUST use repositories for data creation, never direct WorldState access**
+
+**VIOLATION EXAMPLES - FORBIDDEN:**
+```csharp
+❌ gameWorld.WorldState.AddCharacter(npc);           // Direct WorldState access
+❌ gameWorld.WorldState.Items.Add(item);             // Direct collection access
+❌ var locations = gameWorld.WorldState.locations;   // Direct property access
+❌ gameWorld.WorldState.Contracts.AddRange(contracts); // Direct collection manipulation
+```
+
+**CORRECT PATTERNS - REQUIRED:**
+```csharp
+✅ npcRepository.AddNPC(npc);                        // Repository-mediated
+✅ itemRepository.AddItem(item);                     // Repository-mediated
+✅ var locations = locationRepository.GetAllLocations(); // Repository query
+✅ contractRepository.AddContracts(contracts);      // Repository-mediated
+```
+
+**TEST ARCHITECTURE - SPECIAL CASE:**
+Tests differ from production ONLY in GameWorld construction. The GameWorldManager → Repository → GameWorld flow remains identical:
+
+```csharp
+// ✅ CORRECT TEST PATTERN:
+// 1. Construct GameWorld differently (TestGameWorldInitializer vs GameWorldInitializer)
+GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+
+// 2. Use IDENTICAL repository access patterns as production
+NPCRepository npcRepository = new NPCRepository(gameWorld);
+npcRepository.AddNPC(testNPC);  // Repository-mediated, just like production
+
+// 3. GameWorldManager behavior is IDENTICAL to production
+GameWorldManager manager = new GameWorldManager(gameWorld, ...repositories...);
+```
+
+**THIS APPLIES TO ALL CODE - NO EXCEPTIONS:**
+- Production business logic
+- Test setup and teardown
+- UI component data access
+- Manager classes
+- Service classes
 
 #### **Repository-Based ID Resolution Pattern**
 Repositories are responsible for ID-to-object lookup, not initialization or business logic.

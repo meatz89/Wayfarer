@@ -7,6 +7,15 @@
 
 <div class="market-container">
     <h2>@Location.Name Market</h2>
+    
+    <div class="market-status">
+        @{
+            string marketStatus = GameManager.GetMarketAvailabilityStatus(Location.Id);
+        }
+        <span class="@(marketStatus.Contains("Open") ? "market-open" : "market-closed")">
+            @marketStatus
+        </span>
+    </div>
 
     <div class="player-status">
         @{

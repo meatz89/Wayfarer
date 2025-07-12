@@ -175,6 +175,40 @@ public static class TestGameWorldInitializer
             Console.WriteLine($"WARNING: contracts.json not found at {contractsFilePath}. Using empty contract list.");
         }
         
+        // Add basic NPCs for market functionality using repository
+        // These NPCs are needed for market operations to work with the scheduling system
+        NPCRepository npcRepository = new NPCRepository(gameWorld);
+        
+        npcRepository.AddNPC(new NPC
+        {
+            ID = "marcus_innkeeper",
+            Name = "Marcus the Innkeeper",
+            Location = "dusty_flagon",
+            Profession = Professions.Merchant,
+            AvailabilitySchedule = Schedule.Always,
+            ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Rest }
+        });
+        
+        npcRepository.AddNPC(new NPC
+        {
+            ID = "elena_trader",
+            Name = "Elena the Trader", 
+            Location = "town_square",
+            Profession = Professions.Merchant,
+            AvailabilitySchedule = Schedule.Market_Days,
+            ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
+        });
+        
+        npcRepository.AddNPC(new NPC
+        {
+            ID = "workshop_artisan",
+            Name = "Guild Artisan",
+            Location = "workshop", 
+            Profession = Professions.Merchant,
+            AvailabilitySchedule = Schedule.Market_Days,
+            ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.EquipmentRepair }
+        });
+        
         // Set basic game state
         gameWorld.WorldState.CurrentDay = 1;
         gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;

@@ -1,39 +1,39 @@
 # SESSION HANDOFF - 2025-07-12
 
-## Session Summary - Categorical Inventory Constraints Implementation Complete ✅🚀
+## Session Summary - Period-Based Activity Planning Implementation Complete ✅🚀
 
-This session successfully implemented the Categorical Inventory Constraints user story with full integration:
-1. **Size-Aware Inventory System** - Complete implementation of size-based slot system with transport bonuses ✅
-2. **Transport-Inventory Integration** - Cart/Carriage transport now provides inventory slot bonuses ✅  
-3. **Enhanced UI Experience** - Players see inventory constraints, slot usage, and transport bonuses ✅
-4. **Comprehensive Testing** - All 234 tests passing with new inventory system ✅
-5. **User Story Completion** - Inventory limitations based on logical item categories fully implemented ✅
+This session successfully implemented the Period-Based Activity Planning user story with full integration:
+1. **NPC Scheduling System** - Complete implementation of time-based NPC availability with Market_Days schedules ✅
+2. **Transport Departure Schedules** - Routes now have departure time restrictions creating scheduling conflicts ✅  
+3. **Time Block Strategic Pressure** - Enhanced UI showing time constraints and activity pressure ✅
+4. **Comprehensive Testing** - All tests passing including new SchedulingSystemTests validation ✅
+5. **User Story Completion** - Time-based activity planning with scheduling conflicts fully implemented ✅
 
 ## Current Progress Status
 
-**Test Count Progress**: 234/234 passing tests (PERFECT SCORE - maintained)
-- ✅ **Categorical Inventory Constraints** - Complete size-based inventory system with transport bonuses
-- ✅ **Transport-Inventory Integration** - Cart adds 2 slots, Carriage adds 1 slot with logical restrictions
-- ✅ **UI Inventory Display** - Market shows slot requirements, Travel shows inventory status with transport bonuses
-- ✅ **Size-Aware Trading** - Market validates item sizes against available inventory space
-- ✅ **Architecture Integration** - Inventory system follows existing categorical interaction patterns
+**Test Count Progress**: All tests passing including new SchedulingSystemTests (PERFECT SCORE - maintained)
+- ✅ **Period-Based Activity Planning** - Complete NPC scheduling and transport departure time system
+- ✅ **Time Block Strategic Pressure** - Daily activity limits creating meaningful planning decisions
+- ✅ **Market Scheduling Integration** - Markets close when no trading NPCs available at current time
+- ✅ **Transport Schedule Restrictions** - Routes filtered by departure time availability
+- ✅ **UI Scheduling Feedback** - Time blocks remaining, market status, departure times displayed
 
 ## Critical Features Implemented
 
-### **Categorical Inventory Constraints System - NEW ✅**
+### **Period-Based Activity Planning System - NEW ✅**
 
-**Implementation**: Complete size-based inventory system with transport bonuses creating strategic loadout decisions.
+**Implementation**: Complete time-based scheduling system with NPC availability and transport departure restrictions creating strategic activity pressure.
 
 **Core Components**:
-- **Size-Aware Inventory**: Items consume 1-3 slots based on SizeCategory (Tiny/Small/Medium=1, Large=2, Massive=3)
-- **Transport Inventory Bonuses**: Cart adds +2 slots, Carriage adds +1 slot, base capacity 5 slots
-- **Market Integration**: Purchase validation checks item size against available inventory space
-- **Travel Integration**: Transport selection shows inventory bonuses and capacity constraints
-- **UI Enhancements**: Slot usage display, transport bonuses, and item constraint messages
+- **NPC Scheduling**: NPCs have Schedule.Market_Days (Morning/Afternoon), Schedule.Always, or specific timeblock availability
+- **Market Availability**: Markets only open when trading NPCs are available, enforced by NPCRepository scheduling
+- **Transport Departure Times**: Routes have DepartureTime restrictions (e.g., express coach only departs Morning)
+- **Time Block Pressure**: 5 time blocks per day maximum, all actions consume time, creating daily planning pressure
+- **UI Integration**: Time blocks remaining shown, market availability status, departure time displays
 
-**Architecture Pattern**: Follows existing categorical interaction principles - logical blocking/enabling based on size categories and transport capabilities.
+**Architecture Pattern**: Follows existing categorical interaction principles - logical blocking/enabling based on time categories and NPC availability schedules.
 
-**Impact**: Players must optimize equipment loadouts vs transport choice vs carrying capacity, creating multi-dimensional strategic decisions about what to carry and how to travel.
+**Impact**: Players must coordinate NPC schedules, transport departure times, and contract deadlines within limited daily time blocks, creating multi-layered temporal strategic decisions.
 
 ### **Transport Compatibility Logic System - PREVIOUS ✅**
 
@@ -152,35 +152,33 @@ This session successfully implemented the Categorical Inventory Constraints user
 
 ## Files Modified This Session
 
-### **Market System Files**:
-- `src/GameState/MarketManager.cs` - Enhanced location-specific pricing logic
-- `src/Content/Templates/items.json` - Adjusted herb base pricing (buyPrice: 2→3)
-- `Wayfarer.Tests/Content/Templates/items.json` - Synchronized with production pricing
-
-### **Contract System Files**:
-- `src/Content/Templates/contracts.json` - Updated artisan_masterwork contract requirements
-- `Wayfarer.Tests/Content/Templates/contracts.json` - Synchronized contract structure
+### **Scheduling System Implementation**:
+- `src/GameState/MarketManager.cs` - Added NPCRepository dependency and market availability checking
+- `src/Pages/Market.razor` - Added market availability status display
+- `src/Pages/TravelSelection.razor` - Added departure time display for routes
+- `src/Pages/MainGameplayView.razor` - Added time blocks remaining display
 
 ### **Test Files**:
-- `Wayfarer.Tests/DynamicLocationPricingTests.cs` - Removed debug output
-- `Wayfarer.Tests/ContractPipelineIntegrationTest.cs` - Adjusted economic expectations
-- `Wayfarer.Tests/ContractCompletionTests.cs` - Updated to match contract requirement changes
+- `Wayfarer.Tests/SchedulingSystemTests.cs` - NEW comprehensive test file for scheduling system
+  - NPC schedule restrictions on market availability
+  - Transport departure time restrictions on route availability  
+  - Time block consumption and daily pressure validation
 
 ### **Documentation Files**:
-- `GAME-ARCHITECTURE.md` - Streamlined from 1300 to 260 lines
-- `session-handoff.md` - This update
+- `LOGICAL-SYSTEM-INTERACTIONS.md` - Added Period-Based Activity Planning system documentation
+- `session-handoff.md` - This update reflecting scheduling system implementation
 
 ## Next Session Priorities
 
 ### **Immediate (High Priority - Next Session)**
-1. **Run comprehensive smoke tests** - Verify all systems working correctly in actual gameplay
-2. **Commit current changes** - Git commit the complete test suite success and documentation improvements
+1. **Commit Period-Based Activity Planning Implementation** - Git commit the complete scheduling system with tests
+2. **Run comprehensive smoke tests** - Verify all scheduling systems working correctly in actual gameplay
 3. **Feature development planning** - Review UserStories.md for next highest-impact features
 
 ### **Strategic Feature Development (Medium Priority - Next 2-3 Sessions)**  
-1. **NPC Schedule Logic Implementation** - Second highest-impact UserStories.md feature (lines 76-92)
-2. **Transport Compatibility Logic** - Cart/boat/walking restrictions based on terrain and equipment
-3. **Information Currency System** - Strategic information trading and value degradation over time
+1. **Information Currency System** - Strategic information trading and value degradation over time (UserStories.md lines 94-118)
+2. **Social Standing Categories** - NPC interaction requirements based on social class (UserStories.md lines 120-138)
+3. **Contract Time Pressure Enhancement** - Enhanced deadline mechanics with cascading consequences (UserStories.md lines 140-158)
 
 ### **Technical Debt & Architecture (Low Priority - Ongoing)**
 1. **Repository pattern enforcement** - Continue eliminating remaining direct GameWorld property access
@@ -211,11 +209,11 @@ This session successfully implemented the Categorical Inventory Constraints user
 
 ## Session Achievements Summary
 
-✅ **Perfect Test Suite** - Achieved 214/214 passing tests (100% success rate)
-✅ **Market System Stability** - Fixed location-specific pricing and arbitrage opportunities
-✅ **Contract System Completeness** - Multi-requirement contract tracking working correctly  
-✅ **Documentation Optimization** - Streamlined architecture documentation by 80% while preserving essential knowledge
-✅ **Technical Debt Reduction** - Eliminated failing tests and improved system reliability
-✅ **Knowledge Consolidation** - Captured critical patterns and anti-patterns for future development
+✅ **Period-Based Activity Planning Complete** - Implemented comprehensive time-based scheduling system with NPC availability and transport departure restrictions
+✅ **Scheduling System Integration** - Market availability now enforces NPC schedules, transport selection shows departure times
+✅ **Time Block Strategic Pressure** - Daily activity limits creating meaningful planning decisions and resource management
+✅ **Comprehensive Testing** - Created SchedulingSystemTests with 3 passing tests validating all scheduling features
+✅ **UI Enhancement** - Added time blocks remaining, market status, and departure time displays throughout the game
+✅ **Documentation Update** - Updated LOGICAL-SYSTEM-INTERACTIONS.md with complete Period-Based Activity Planning documentation
 
-This session established a solid foundation with complete test coverage and optimized documentation, positioning the project for efficient future feature development and maintenance.
+This session successfully implemented a major user story feature that creates strategic depth through temporal constraints and scheduling conflicts, enhancing the game's optimization challenge with time-based categorical interactions.
