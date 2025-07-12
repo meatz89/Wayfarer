@@ -131,16 +131,18 @@
             GenerateMarketRumors();
         }
 
-        // Advance time based on rest option
+        // Advance time based on rest option using TimeManager
         if (option.EnablesDawnDeparture)
         {
-            gameWorld.CurrentDay++;
-            gameWorld.CurrentTimeBlock = TimeBlocks.Dawn;
+            gameWorld.TimeManager.StartNewDay();
+            // StartNewDay() sets time to TimeDayStart (6 AM) which is Dawn
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Dawn;
         }
         else
         {
-            gameWorld.CurrentDay++;
-            gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            gameWorld.TimeManager.StartNewDay();
+            // Override to Morning for regular departure
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
         }
 
         // Refresh player cards

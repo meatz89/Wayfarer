@@ -367,6 +367,7 @@ namespace Wayfarer.Tests
             ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
             ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            RouteRepository routeRepository = new RouteRepository(gameWorld);
             return new TravelManager(
                 gameWorld,
                 locationSystem,
@@ -375,7 +376,8 @@ namespace Wayfarer.Tests
                 actionFactory,
                 itemRepository,
                 contractProgression,
-                new TransportCompatibilityValidator(itemRepository)
+                new TransportCompatibilityValidator(itemRepository),
+                routeRepository
             );
         }
 

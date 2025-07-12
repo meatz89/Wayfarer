@@ -83,4 +83,10 @@
         };
         return action;
     }
+
+    // Mark encounter as completed
+    public void MarkEncounterCompleted(string actionId)
+    {
+        _gameWorld.WorldState.MarkEncounterCompleted(actionId);
+    }
 }

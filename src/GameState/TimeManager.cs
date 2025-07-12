@@ -39,12 +39,34 @@
     {
         this.player = player;
         this.worldState = worldState;
+        
+        // Initialize internal state to match WorldState
+        CurrentTimeBlock = worldState.CurrentTimeBlock;
     }
 
     public void SetNewTime(int hours)
     {
         CurrentTimeHours = hours;
-        UpdateCurrentTimeBlock();
+        UpdateTimeBlockFromHours(hours);
+    }
+    
+    /// <summary>
+    /// Calculate time block directly from hour value
+    /// </summary>
+    private void UpdateTimeBlockFromHours(int hours)
+    {
+        TimeBlocks newWindow;
+        if (hours >= TimeDayStart && hours < 12)
+            newWindow = TimeBlocks.Morning;
+        else if (hours >= 12 && hours < 18)
+            newWindow = TimeBlocks.Afternoon;
+        else if (hours >= 18 && hours < 24)
+            newWindow = TimeBlocks.Evening;
+        else
+            newWindow = TimeBlocks.Night;
+
+        CurrentTimeBlock = newWindow;
+        worldState.CurrentTimeBlock = newWindow;  // Keep WorldState synchronized
     }
 
     public void AdvanceTime(int duration)
@@ -89,11 +111,13 @@
             newWindow = TimeBlocks.Night;  // should never hit this because of cap
 
         CurrentTimeBlock = newWindow;
+        worldState.CurrentTimeBlock = newWindow;  // Keep WorldState synchronized
 
         if (currentAP == 0)
         {
             CurrentTimeHours = 0;
             CurrentTimeBlock = TimeBlocks.Night;
+            worldState.CurrentTimeBlock = TimeBlocks.Night;  // Keep WorldState synchronized
         }
     }
 
@@ -101,6 +125,10 @@
     {
         usedTimeBlocks = 0; // Reset time blocks for new day
         worldState.CurrentDay++;
+        
+        // Refresh action points for new day
+        player.ActionPoints = player.MaxActionPoints;
+        
         SetNewTime(TimeDayStart);
     }
 
@@ -134,5 +162,32 @@
     public bool ValidateTimeBlockAction(int blocks)
     {
         return usedTimeBlocks + blocks <= MaxDailyTimeBlocks;
+    }
+
+    /// <summary>
+    /// Get current time hours for GameWorldManager compatibility
+    /// </summary>
+    /// <returns>Current time hours</returns>
+    public int GetCurrentTimeHours()
+    {
+        return CurrentTimeHours;
+    }
+
+    /// <summary>
+    /// Get current day from WorldState
+    /// </summary>
+    /// <returns>Current day</returns>
+    public int GetCurrentDay()
+    {
+        return worldState.CurrentDay;
+    }
+
+    /// <summary>
+    /// Get current time block from WorldState
+    /// </summary>
+    /// <returns>Current time block</returns>
+    public TimeBlocks GetCurrentTimeBlock()
+    {
+        return worldState.CurrentTimeBlock;
     }
 }

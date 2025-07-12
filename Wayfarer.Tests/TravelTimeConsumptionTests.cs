@@ -21,6 +21,7 @@ public class TravelTimeConsumptionTests
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
         ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+        RouteRepository routeRepository = new RouteRepository(gameWorld);
         TravelManager travelManager = new TravelManager(
             gameWorld,
             new LocationSystem(gameWorld, locationRepository),
@@ -29,7 +30,8 @@ public class TravelTimeConsumptionTests
             new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
             itemRepository,
             contractProgression,
-            new TransportCompatibilityValidator(itemRepository)
+            new TransportCompatibilityValidator(itemRepository),
+            routeRepository
         );
 
         int initialTimeBlocks = gameWorld.TimeManager.UsedTimeBlocks;
@@ -70,6 +72,7 @@ public class TravelTimeConsumptionTests
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
         ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+        RouteRepository routeRepository = new RouteRepository(gameWorld);
         var travelManager = new TravelManager(
             gameWorld,
             new LocationSystem(gameWorld, locationRepository),
@@ -78,7 +81,8 @@ public class TravelTimeConsumptionTests
             new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
             itemRepository,
             contractProgression,
-            new TransportCompatibilityValidator(itemRepository)
+            new TransportCompatibilityValidator(itemRepository),
+            routeRepository
         );
 
         // We can't directly test the private AdvanceTimeBlocks method,
@@ -107,6 +111,7 @@ public class TravelTimeConsumptionTests
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
         ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+        RouteRepository routeRepository = new RouteRepository(gameWorld);
         TravelManager travelManager = new TravelManager(
             gameWorld,
             new LocationSystem(gameWorld, locationRepository),
@@ -115,7 +120,8 @@ public class TravelTimeConsumptionTests
             new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
             itemRepository,
             contractProgression,
-            new TransportCompatibilityValidator(itemRepository)
+            new TransportCompatibilityValidator(itemRepository),
+            routeRepository
         );
 
         // Find a route that would exceed the daily limit

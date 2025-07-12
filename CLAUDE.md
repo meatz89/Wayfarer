@@ -160,10 +160,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### CORE ARCHITECTURAL PATTERNS
 
-#### **UI → GameWorldManager Gateway Pattern**
+#### **UI Access Patterns (CRITICAL DISTINCTION)**
+
+**FOR ACTIONS (State Changes):**
 All UI components must route actions through GameWorldManager instead of injecting managers directly.
-- ✅ Correct: UI → GameWorldManager → Specific Manager
+- ✅ Correct: UI → GameWorldManager → Specific Manager (for actions like BuyItem, TravelTo, CompleteContract)
 - ❌ Wrong: UI → Direct Manager Injection
+
+**FOR QUERIES (Reading State):**
+All UI components must use repositories for data access instead of direct GameWorld property access.
+- ✅ Correct: UI → Repository → GameWorld.WorldState (for queries like GetCurrentLocation, GetAvailableItems)
+- ❌ Wrong: UI → GameWorld.WorldState (direct property access)
 
 #### **Stateless Repositories** 
 Repositories MUST be completely stateless and only delegate to GameWorld - NO data storage or caching allowed.
@@ -233,11 +240,6 @@ Repositories are responsible for ID-to-object lookup, not initialization or busi
 - **NEVER** do direct LINQ lookups in business logic - always use repository methods
 - Validation of missing/invalid IDs handled at repository level
 
-**⚠️ CURRENT VIOLATIONS IDENTIFIED:**
-- **GameWorldInitializer.cs**: `ConnectLocationsToSpots()` and `ConnectRoutesToLocations()` methods violate separation of concerns
-- **MarketManager.cs**: Direct LINQ `_gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId)` instead of using ItemRepository
-- **Multiple files**: 10+ files contain direct LINQ lookups that should use repository methods
-- **TravelManager.cs**: Should use LocationRepository for location lookups instead of direct access
 
 #### **Service Configuration**
 - Production: Use `ConfigureServices()` for full AI stack

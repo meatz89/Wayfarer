@@ -4,6 +4,47 @@ This document captures critical architectural discoveries and patterns that must
 
 ## CORE ARCHITECTURAL PATTERNS
 
+### **SYNCHRONOUS EXECUTION MODEL - NO CONCURRENCY**
+
+**FUNDAMENTAL ARCHITECTURE**: The game uses a purely synchronous execution model with no background operations, timers, or event-driven patterns.
+
+**Critical Discovery**: Tests were failing due to assumptions about timing and concurrency that don't exist in our architecture. The game executes linearly - when a method is called, it completes fully before returning.
+
+**Architectural Principles**:
+1. **No Background Tasks** - Everything executes in the calling thread
+2. **No Timers or Scheduling** - Game time advances only through explicit method calls
+3. **No Event Bus** - Direct method invocation only, no decoupled messaging
+4. **No Concurrent State Access** - Single-threaded model eliminates race conditions
+5. **Async/Await for I/O Only** - And always immediately awaited
+
+**Testing Implications**:
+```csharp
+// ✅ CORRECT: Tests can assume immediate, complete execution
+var result = manager.ExecuteAction();
+Assert.Equal(expected, result); // No timing issues possible
+
+// ❌ WRONG: Never needed in our architecture
+await Task.Delay(100); // NO - nothing runs in background
+await WaitForEventCompletion(); // NO - no events to wait for
+```
+
+**Debugging Benefits**:
+- **Linear execution flow** - Stack traces show complete call chain
+- **Predictable state changes** - No concurrent modifications
+- **Reproducible behavior** - Same inputs always produce same outputs
+- **Simple test setup** - No need for synchronization or mocking of time
+
+**Exceptions to Synchronous Model**:
+1. **Blazor UI Polling**:
+   - Blazor Server components poll GameWorld state because Blazor doesn't support push notifications
+   - This is purely a UI rendering concern - domain logic remains synchronous
+   
+2. **AI Service Integration** (Future):
+   - Long-running AI prompts will be awaited asynchronously to avoid blocking the UI
+   - This is an infrastructure boundary concern, not core game logic
+   - Game mechanics continue to execute synchronously before and after AI calls
+   - **Current Status**: Not implemented - focusing on non-AI game mechanics first
+
 ### **Repository Pattern Single Source of Truth**
 
 **CRITICAL PRINCIPLE**: All game state access MUST go through entity repositories, never through direct GameWorld property access.

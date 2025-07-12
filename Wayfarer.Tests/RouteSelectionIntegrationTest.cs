@@ -77,7 +77,8 @@ namespace Wayfarer.Tests
             // Locations already exist from JSON loading, no need to add them again
 
             ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
-            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression, new TransportCompatibilityValidator(itemRepository));
+            RouteRepository routeRepository = new RouteRepository(gameWorld);
+            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression, new TransportCompatibilityValidator(itemRepository), routeRepository);
 
             // Act
             List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes("town_square", "dusty_flagon");
@@ -155,7 +156,8 @@ namespace Wayfarer.Tests
             // Locations already exist from JSON loading, no need to add them again
 
             ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
-            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression, new TransportCompatibilityValidator(itemRepository));
+            RouteRepository routeRepository = new RouteRepository(gameWorld);
+            TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression, new TransportCompatibilityValidator(itemRepository), routeRepository);
 
             // Act & Assert - Clear weather
             gameWorld.CurrentWeather = WeatherCondition.Clear;

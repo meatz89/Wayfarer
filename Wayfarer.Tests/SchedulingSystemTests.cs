@@ -45,7 +45,7 @@ namespace Wayfarer.Tests
             ContractProgressionService contractProgression = new ContractProgressionService(
                 new ContractRepository(gameWorld), itemRepository, locationRepository);
             
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, npcRepository);
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, npcRepository, locationRepository);
 
             // === TEST NIGHT TIME (Market Closed) ===
             string nightStatus = marketManager.GetMarketAvailabilityStatus("town_square");
@@ -109,6 +109,7 @@ namespace Wayfarer.Tests
             ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
             ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
+            RouteRepository routeRepository = new RouteRepository(gameWorld);
             TravelManager travelManager = new TravelManager(gameWorld, 
                 new LocationSystem(gameWorld, locationRepository),
                 actionRepository,
@@ -116,7 +117,8 @@ namespace Wayfarer.Tests
                 actionFactory,
                 itemRepository,
                 new ContractProgressionService(contractRepository, itemRepository, locationRepository),
-                transportValidator);
+                transportValidator,
+                routeRepository);
 
             // === TEST AFTERNOON (Express Coach Not Available) ===
             List<RouteOption> afternoonRoutes = travelManager.GetAvailableRoutes("dusty_flagon", "town_square");

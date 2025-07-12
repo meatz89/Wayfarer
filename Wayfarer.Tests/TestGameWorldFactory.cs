@@ -227,7 +227,9 @@ public static class TestServiceConfiguration
         services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<ItemRepository>();
+        services.AddSingleton<NPCRepository>();
         services.AddSingleton<ContractRepository>();
+        services.AddSingleton<RouteRepository>();
         
         // Register contract services (same as production)
         services.AddSingleton<ContractValidationService>();
@@ -254,6 +256,7 @@ public static class TestServiceConfiguration
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
+        services.AddSingleton<TransportCompatibilityValidator>();
 
         // NOTE: We deliberately exclude AI services for testing:
         // - EncounterFactory (no AI dependency needed for core game logic tests)

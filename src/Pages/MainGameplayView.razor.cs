@@ -12,6 +12,7 @@ public class MainGameplayViewBase : ComponentBase
     // Read-only services allowed for UI state management and display
     [Inject] public MessageSystem MessageSystem { get; set; }
     [Inject] public ItemRepository ItemRepository { get; set; }
+    [Inject] public LocationRepository LocationRepository { get; set; }
     [Inject] public LoadingStateService? LoadingStateService { get; set; }
     [Inject] public CardHighlightService CardRefreshService { get; set; }
 
@@ -73,14 +74,14 @@ public class MainGameplayViewBase : ComponentBase
     {
         get
         {
-            return GameWorld.WorldState.CurrentLocationSpot;
+            return LocationRepository.GetCurrentLocationSpot();
         }
     }
     public TimeBlocks CurrentTime
     {
         get
         {
-            return GameWorld.WorldState.CurrentTimeBlock;
+            return GameWorld.TimeManager.GetCurrentTimeBlock();
         }
     }
 
@@ -88,7 +89,7 @@ public class MainGameplayViewBase : ComponentBase
     {
         get
         {
-            return GameWorld.WorldState.CurrentTimeHours;
+            return GameWorld.TimeManager.GetCurrentTimeHours();
         }
     }
 
@@ -202,7 +203,7 @@ public class MainGameplayViewBase : ComponentBase
 
     public Location GetCurrentLocation()
     {
-        return GameWorld.WorldState.CurrentLocation;
+        return LocationRepository.GetCurrentLocation();
     }
 
     /// <summary>
@@ -216,12 +217,12 @@ public class MainGameplayViewBase : ComponentBase
             return false;
 
         // Check that current location is properly loaded
-        Location currentLocation = GameWorld.WorldState.CurrentLocation;
+        Location currentLocation = LocationRepository.GetCurrentLocation();
         if (currentLocation == null || string.IsNullOrEmpty(currentLocation.Id) || string.IsNullOrEmpty(currentLocation.Name))
             return false;
 
         // Check that items are loaded (required for Market functionality)
-        if (GameWorld.WorldState.Items == null || !GameWorld.WorldState.Items.Any())
+        if (ItemRepository.GetAllItems() == null || !ItemRepository.GetAllItems().Any())
             return false;
 
         // Check that player is initialized
@@ -234,7 +235,7 @@ public class MainGameplayViewBase : ComponentBase
 
     public LocationSpot GetCurrentSpot()
     {
-        return GameWorld.WorldState.CurrentLocationSpot;
+        return LocationRepository.GetCurrentLocationSpot();
     }
 
     public async Task HandleSpotSelection(LocationSpot locationSpot)
@@ -283,7 +284,7 @@ public class MainGameplayViewBase : ComponentBase
 
     public async Task HandleTravelStart(string travelDestination)
     {
-        List<RouteOption> routes = GameManager.GetAvailableRoutes(GameWorld.WorldState.CurrentLocation.Id, travelDestination);
+        List<RouteOption> routes = GameManager.GetAvailableRoutes(LocationRepository.GetCurrentLocation().Id, travelDestination);
         RouteOption routeOption = routes.FirstOrDefault();
 
         await GameManager.Travel(routeOption);

@@ -43,7 +43,7 @@ namespace Wayfarer.Tests
             ContractProgressionService contractProgression = new ContractProgressionService(
                 contractRepository, itemRepository, locationRepository);
             
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
             // === VERIFY USING ENHANCED MARKETMANAGER QUERY METHODS ===
             // Use the new query methods that provide comprehensive market information
@@ -100,7 +100,7 @@ namespace Wayfarer.Tests
             ContractProgressionService contractProgression = new ContractProgressionService(
                 contractRepository, itemRepository, locationRepository);
             
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
             // Act
             List<Item> availableItems = marketManager.GetAvailableItems("town_square");
@@ -144,7 +144,7 @@ namespace Wayfarer.Tests
             ContractProgressionService contractProgression = new ContractProgressionService(
                 contractRepository, itemRepository, locationRepository);
             
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
             // Act - Player manually checks prices between locations (gameplay behavior)
             int herbsBuyPriceTown = marketManager.GetItemPrice("town_square", "herbs", true);
@@ -189,7 +189,7 @@ namespace Wayfarer.Tests
             ContractProgressionService contractProgression = new ContractProgressionService(
                 contractRepository, itemRepository, locationRepository);
             
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
             // Act & Assert for multiple items and locations
             string[] locations = { "town_square", "dusty_flagon" };
@@ -244,7 +244,7 @@ namespace Wayfarer.Tests
             ContractProgressionService contractProgression = new ContractProgressionService(
                 contractRepository, itemRepository, locationRepository);
             
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
             Player player = gameWorld.GetPlayer();
 
             // Act
@@ -293,7 +293,7 @@ namespace Wayfarer.Tests
             ContractProgressionService contractProgression = new ContractProgressionService(
                 contractRepository, itemRepository, locationRepository);
             
-            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld));
+            MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
             Player player = gameWorld.GetPlayer();
 
             // Act
