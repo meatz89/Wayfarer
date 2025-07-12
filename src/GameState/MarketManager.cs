@@ -204,7 +204,10 @@ public class MarketManager
         if (buyPrice <= 0) return false; // Item not available
 
         bool hasEnoughMoney = player.Coins >= buyPrice;
-        bool hasInventorySpace = player.Inventory.HasFreeSlot();
+        
+        // Check if inventory has space for this item considering its size
+        Item item = _itemRepository.GetItemById(itemId);
+        bool hasInventorySpace = item != null && player.Inventory.CanAddItem(item, _itemRepository);
 
         return hasEnoughMoney && hasInventorySpace;
     }
@@ -221,9 +224,18 @@ public class MarketManager
 
         Player player = _gameWorld.GetPlayer();
         int buyPrice = GetItemPrice(locationId, itemId, true);
+        Item item = _itemRepository.GetItemById(itemId);
 
         player.Coins -= buyPrice;
-        player.Inventory.AddItem(itemId);
+        
+        // Use size-aware inventory method
+        bool success = player.Inventory.AddItemWithSizeCheck(item, _itemRepository);
+        if (!success)
+        {
+            // Refund if inventory addition failed
+            player.Coins += buyPrice;
+            return false;
+        }
 
         // Check for contract progression based on purchase
         _contractProgressionService.CheckMarketProgression(itemId, locationId, TransactionType.Buy, 1, buyPrice, player);
@@ -453,5 +465,43 @@ public class MarketManager
             MaxProfit = maxProfit,
             AllPrices = allPrices
         };
+    }
+    
+    /// <summary>
+    /// Get current inventory status for market display
+    /// </summary>
+    public string GetInventoryStatusForMarket()
+    {
+        Player player = _gameWorld.GetPlayer();
+        Inventory inventory = player.Inventory;
+        
+        int usedSlots = inventory.GetUsedSlots(_itemRepository);
+        int maxSlots = inventory.GetMaxSlots(_itemRepository);
+        
+        return $"Inventory: {usedSlots}/{maxSlots} slots used";
+    }
+    
+    /// <summary>
+    /// Check if item can fit in inventory with size considerations
+    /// </summary>
+    public string GetInventoryConstraintMessage(string itemId)
+    {
+        Player player = _gameWorld.GetPlayer();
+        Item item = _itemRepository.GetItemById(itemId);
+        
+        if (item == null) return "Item not found";
+        
+        if (player.Inventory.CanAddItem(item, _itemRepository))
+        {
+            return $"Can fit ({item.GetRequiredSlots()} slot{(item.GetRequiredSlots() > 1 ? "s" : "")} required)";
+        }
+        else
+        {
+            int usedSlots = player.Inventory.GetUsedSlots(_itemRepository);
+            int maxSlots = player.Inventory.GetMaxSlots(_itemRepository);
+            int requiredSlots = item.GetRequiredSlots();
+            
+            return $"Cannot fit: needs {requiredSlots} slot{(requiredSlots > 1 ? "s" : "")}, only {maxSlots - usedSlots} available";
+        }
     }
 }

@@ -28,7 +28,8 @@ public class TravelTimeConsumptionTests
             locationRepository,
             new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
             itemRepository,
-            contractProgression
+            contractProgression,
+            new TransportCompatibilityValidator(itemRepository)
         );
 
         int initialTimeBlocks = gameWorld.TimeManager.UsedTimeBlocks;
@@ -76,7 +77,8 @@ public class TravelTimeConsumptionTests
             locationRepository,
             new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
             itemRepository,
-            contractProgression
+            contractProgression,
+            new TransportCompatibilityValidator(itemRepository)
         );
 
         // We can't directly test the private AdvanceTimeBlocks method,
@@ -112,7 +114,8 @@ public class TravelTimeConsumptionTests
             locationRepository,
             new ActionFactory(new ActionRepository(gameWorld), gameWorld, itemRepository, contractRepository, contractValidation),
             itemRepository,
-            contractProgression
+            contractProgression,
+            new TransportCompatibilityValidator(itemRepository)
         );
 
         // Find a route that would exceed the daily limit

@@ -5,6 +5,7 @@ public class TravelManager
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
     private readonly ContractProgressionService _contractProgressionService;
+    private readonly TransportCompatibilityValidator _transportValidator;
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
     public LocationRepository LocationRepository { get; }
@@ -18,12 +19,14 @@ public class TravelManager
         LocationRepository locationRepository,
         ActionFactory actionFactory,
         ItemRepository itemRepository,
-        ContractProgressionService contractProgressionService
+        ContractProgressionService contractProgressionService,
+        TransportCompatibilityValidator transportValidator
         )
     {
         _gameWorld = gameWorld;
         _timeManager = gameWorld.TimeManager;
         _contractProgressionService = contractProgressionService;
+        _transportValidator = transportValidator;
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
         this.LocationRepository = locationRepository;
@@ -149,6 +152,66 @@ public class TravelManager
         return availableRoutes;
     }
 
+    /// <summary>
+    /// Get available transport options for a route with compatibility information
+    /// </summary>
+    public List<TransportOption> GetAvailableTransportOptions(RouteOption route)
+    {
+        List<TransportOption> transportOptions = new List<TransportOption>();
+        Player player = _gameWorld.GetPlayer();
+
+        // Check each possible transport method
+        foreach (TravelMethods transport in Enum.GetValues<TravelMethods>())
+        {
+            TransportCompatibilityResult compatibility = _transportValidator.CheckFullCompatibility(transport, route, player);
+            
+            // Check inventory capacity with this transport method
+            InventoryCapacityResult inventoryResult = CheckInventoryCapacity(transport);
+            
+            // Combine transport and inventory compatibility
+            bool isFullyCompatible = compatibility.IsCompatible && inventoryResult.CanTravel;
+            string blockingReason = compatibility.BlockingReason;
+            if (isFullyCompatible && !string.IsNullOrEmpty(inventoryResult.Warning))
+            {
+                blockingReason = inventoryResult.Warning;
+            }
+            else if (!inventoryResult.CanTravel)
+            {
+                blockingReason = inventoryResult.BlockingReason;
+                isFullyCompatible = false;
+            }
+            
+            transportOptions.Add(new TransportOption
+            {
+                Method = transport,
+                IsCompatible = isFullyCompatible,
+                BlockingReason = blockingReason,
+                Warnings = compatibility.Warnings,
+                Route = route,
+                InventorySlots = GetTransportInventoryBonus(transport)
+            });
+        }
+
+        return transportOptions;
+    }
+
+    /// <summary>
+    /// Get all route-transport combinations with compatibility information
+    /// </summary>
+    public List<TransportOption> GetAvailableRouteTransportCombinations(string fromLocationId, string toLocationId)
+    {
+        List<TransportOption> allOptions = new List<TransportOption>();
+        List<RouteOption> availableRoutes = GetAvailableRoutes(fromLocationId, toLocationId);
+
+        foreach (RouteOption route in availableRoutes)
+        {
+            List<TransportOption> transportOptions = GetAvailableTransportOptions(route);
+            allOptions.AddRange(transportOptions);
+        }
+
+        return allOptions;
+    }
+
 
     public int CalculateCurrentWeight(GameWorld _gameWorld)
     {
@@ -211,6 +274,69 @@ public class TravelManager
     public RouteAccessResult GetRouteAccessInfo(RouteOption route)
     {
         return route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _gameWorld.CurrentWeather);
+    }
+
+    /// <summary>
+    /// Check if player's current inventory can be carried with the specified transport method
+    /// </summary>
+    public InventoryCapacityResult CheckInventoryCapacity(TravelMethods transport)
+    {
+        Player player = _gameWorld.GetPlayer();
+        Inventory inventory = player.Inventory;
+        
+        int usedSlots = inventory.GetUsedSlots(ItemRepository);
+        int maxSlots = inventory.GetMaxSlots(ItemRepository, transport);
+        
+        bool canTravel = usedSlots <= maxSlots;
+        string warning = "";
+        string blockingReason = "";
+        
+        if (!canTravel)
+        {
+            blockingReason = $"Inventory overloaded: {usedSlots}/{maxSlots} slots used with {transport}";
+        }
+        else if (usedSlots == maxSlots)
+        {
+            warning = $"Inventory full: {usedSlots}/{maxSlots} slots used";
+        }
+        
+        return new InventoryCapacityResult
+        {
+            CanTravel = canTravel,
+            UsedSlots = usedSlots,
+            MaxSlots = maxSlots,
+            Warning = warning,
+            BlockingReason = blockingReason,
+            Transport = transport
+        };
+    }
+    
+    /// <summary>
+    /// Get inventory slot bonus provided by transport method
+    /// </summary>
+    public int GetTransportInventoryBonus(TravelMethods transport)
+    {
+        return transport switch
+        {
+            TravelMethods.Cart => 2,      // Cart adds 2 slots but blocks mountain routes
+            TravelMethods.Carriage => 1,  // Carriage adds modest storage
+            _ => 0                        // Walking, Horseback, Boat use base capacity
+        };
+    }
+    
+    /// <summary>
+    /// Get current inventory status with transport information
+    /// </summary>
+    public string GetInventoryStatusDescription(TravelMethods? transport = null)
+    {
+        Player player = _gameWorld.GetPlayer();
+        Inventory inventory = player.Inventory;
+        
+        int usedSlots = inventory.GetUsedSlots(ItemRepository);
+        int maxSlots = inventory.GetMaxSlots(ItemRepository, transport);
+        
+        string transportInfo = transport.HasValue ? $" with {transport}" : "";
+        return $"Inventory: {usedSlots}/{maxSlots} slots used{transportInfo}";
     }
 
     /// <summary>
@@ -289,5 +415,66 @@ public class TravelManager
     // - GenerateResourceAnalysis
     // - GenerateAlternativeOptions
 
+}
+
+/// <summary>
+/// Represents a transport option for a specific route with compatibility information
+/// </summary>
+public class TransportOption
+{
+    public TravelMethods Method { get; set; }
+    public bool IsCompatible { get; set; }
+    public string BlockingReason { get; set; } = "";
+    public List<string> Warnings { get; set; } = new List<string>();
+    public RouteOption Route { get; set; }
+    public int InventorySlots { get; set; } = 0; // Additional inventory slots provided by this transport
+
+    /// <summary>
+    /// Get display text for transport compatibility status
+    /// </summary>
+    public string GetCompatibilityDisplayText()
+    {
+        if (IsCompatible)
+            return "Available";
+        else
+            return BlockingReason;
+    }
+
+    /// <summary>
+    /// Get CSS class for UI styling based on compatibility
+    /// </summary>
+    public string GetCompatibilityCssClass()
+    {
+        return IsCompatible ? "transport-compatible" : "transport-blocked";
+    }
+    
+    /// <summary>
+    /// Get inventory bonus description for UI
+    /// </summary>
+    public string GetInventoryBonusDescription()
+    {
+        return InventorySlots > 0 ? $"+{InventorySlots} slots" : "";
+    }
+}
+
+/// <summary>
+/// Result of checking inventory capacity for a transport method
+/// </summary>
+public class InventoryCapacityResult
+{
+    public bool CanTravel { get; set; }
+    public int UsedSlots { get; set; }
+    public int MaxSlots { get; set; }
+    public string Warning { get; set; } = "";
+    public string BlockingReason { get; set; } = "";
+    public TravelMethods Transport { get; set; }
+    
+    /// <summary>
+    /// Get formatted capacity display string
+    /// </summary>
+    public string GetCapacityDisplayText()
+    {
+        return $"{UsedSlots}/{MaxSlots} slots";
+    }
 }
 

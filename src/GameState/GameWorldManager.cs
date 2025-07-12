@@ -379,6 +379,26 @@ public class GameWorldManager
         }
     }
 
+    public async Task TravelWithTransport(RouteOption route, TravelMethods transport)
+    {
+        // Check transport compatibility first
+        Player player = _gameWorld.GetPlayer();
+        List<TransportOption> transportOptions = travelManager.GetAvailableTransportOptions(route);
+        TransportOption selectedTransport = transportOptions.FirstOrDefault(t => t.Method == transport);
+        
+        if (selectedTransport == null || !selectedTransport.IsCompatible)
+        {
+            string reason = selectedTransport?.BlockingReason ?? "Transport method not available";
+            throw new InvalidOperationException($"Cannot use {transport} transport: {reason}");
+        }
+
+        // For now, use the existing Travel method with the route
+        // In a future iteration, we could modify TravelManager to accept transport method
+        // and calculate costs dynamically based on transport choice
+        await Travel(route);
+    }
+
+
     public ChoiceProjection GetChoicePreview(EncounterChoice choiceOption)
     {
         EncounterManager encounterManager = _gameWorld.ActionStateTracker.CurrentEncounterManager;
@@ -606,6 +626,22 @@ public class GameWorldManager
     public bool CanBuyMarketItem(string itemId, string locationId)
     {
         return marketManager.CanBuyItem(itemId, locationId);
+    }
+    
+    /// <summary>
+    /// Get inventory status for market display
+    /// </summary>
+    public string GetInventoryStatusForMarket()
+    {
+        return marketManager.GetInventoryStatusForMarket();
+    }
+    
+    /// <summary>
+    /// Get inventory constraint message for an item
+    /// </summary>
+    public string GetInventoryConstraintMessage(string itemId)
+    {
+        return marketManager.GetInventoryConstraintMessage(itemId);
     }
 
 

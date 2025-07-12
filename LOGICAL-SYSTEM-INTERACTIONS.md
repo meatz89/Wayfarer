@@ -28,6 +28,42 @@ staminaCost = (int)(baseCost * efficiency);
 
 ## IMPLEMENTED CATEGORICAL SYSTEMS ✅
 
+### **Transport Compatibility System - COMPLETE ✅**
+
+**IMPLEMENTED**: Categorical transport restrictions based on logical physical constraints.
+
+**Transport Restriction Rules**:
+- **Cart Transport**: Blocked on mountain/wilderness terrain (TerrainCategory.Requires_Climbing, Wilderness_Terrain)
+- **Boat Transport**: Only works on water routes (TerrainCategory.Requires_Water_Transport)
+- **Heavy Equipment**: Large/Massive items block boat and horseback transport
+- **Water Routes**: All non-boat transport blocked on water terrain
+
+**Player Strategic Decisions Created**:
+- Equipment loadout vs transport efficiency trade-offs
+- Route planning based on transport compatibility
+- Inventory management affecting transport options
+
+### **Categorical Inventory Constraints System - COMPLETE ✅**
+
+**IMPLEMENTED**: Size-based inventory system with transport bonuses creating strategic loadout decisions.
+
+**Inventory Size Categories**:
+- **Tiny/Small/Medium**: 1 slot each (standard items)
+- **Large**: 2 slots (bulky equipment, blocks some transport)
+- **Massive**: 3 slots (major cargo, requires transport planning)
+
+**Transport Inventory Bonuses**:
+- **Base Inventory**: 5 slots (walking capacity)
+- **Cart Transport**: +2 slots but blocks mountain/wilderness routes
+- **Carriage Transport**: +1 slot with route flexibility
+- **Walking/Horseback/Boat**: Use base capacity
+
+**Player Strategic Decisions Created**:
+- Equipment vs carrying capacity trade-offs
+- Transport choice affecting available inventory space
+- Size-aware item acquisition planning
+- Multi-item strategic loadout decisions
+
 ### **Contract Categorical System - COMPLETE**
 
 **IMPLEMENTED**: Contracts with comprehensive categorical requirements for strategic planning.
@@ -143,9 +179,11 @@ private int GetPhysicalRecoveryAmount(PhysicalDemand demand) =>
 4. **NPC.Profession.Trader** + NPC.Relationship.Helpful = Shares Market Information
 
 ### **Size-Transport Interactions**
-1. **Item.Size.Large** + No Transport = +1 Stamina Cost
-2. **Item.Size.Massive** + No Transport = Route Blocked (cannot carry)
-3. **Multiple Large Items** = Progressive stamina penalties
+1. **Item.Size.Large** + TravelMethods.Boat/Horseback = Transport Blocked (too bulky)
+2. **Item.Size.Massive** + No Transport = Cannot carry (requires transport)
+3. **TravelMethods.Cart** = +2 inventory slots but blocks mountain routes
+4. **TravelMethods.Carriage** = +1 inventory slot with route flexibility
+5. **Base Inventory** = 5 slots, expandable only through transport bonuses
 
 ## IMPLEMENTATION REQUIREMENTS
 

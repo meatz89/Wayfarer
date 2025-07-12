@@ -10,6 +10,7 @@ public class TravelSelectionBase : ComponentBase
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback<string> OnTravel { get; set; }
     [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
+    [Parameter] public EventCallback<(RouteOption route, TravelMethods transport)> OnTravelWithTransport { get; set; }
 
     public bool ShowEquipmentCategories
     {

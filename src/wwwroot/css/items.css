@@ -41,6 +41,37 @@
 	color: var(--text-secondary);
 }
 
+/* Inventory Status Styles */
+.inventory-status {
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 5px;
+	padding: 8px 12px;
+	margin-top: 8px;
+	font-family: var(--font-secondary);
+	color: var(--text-primary);
+	font-size: 0.95em;
+}
+
+.inventory-bonus {
+	color: var(--forest);
+	font-size: 0.85em;
+	margin-left: 6px;
+	font-weight: 500;
+}
+
+.item-size {
+	font-size: 0.9em;
+	color: var(--text-secondary);
+	font-family: var(--font-secondary);
+}
+
+.item-constraints {
+	font-size: 0.85em;
+	color: var(--text-secondary);
+	font-style: italic;
+}
+
 .item-weight {
 	font-size: 0.9em;
 	color: var(--text-secondary);
@@ -515,4 +546,106 @@
 	background-color: var(--bg-panel);
 	color: var(--text-muted);
 	cursor: url('/images/cursors/cursor.png'), default !important;
+}
+
+/* ==================== Transport Compatibility Styles ==================== */
+
+/* Transport options container */
+.transport-options {
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-dark);
+	border-radius: 5px;
+	padding: 10px;
+	margin-top: 8px;
+}
+
+.transport-options strong {
+	color: var(--leather);
+	font-family: var(--font-primary);
+	display: block;
+	margin-bottom: 8px;
+	font-size: 0.95em;
+	letter-spacing: 0.05em;
+}
+
+/* Individual transport option */
+.transport-option {
+	margin-bottom: 6px;
+	padding: 4px 0;
+}
+
+.transport-option:last-child {
+	margin-bottom: 0;
+}
+
+/* Transport buttons */
+.transport-button {
+	background-color: var(--bg-active);
+	color: var(--text-primary);
+	border: 1px solid var(--oak-mid);
+	border-radius: 3px;
+	padding: 6px 12px;
+	font-family: var(--font-secondary);
+	font-size: 0.9em;
+	margin-right: 8px;
+	min-width: 80px;
+	transition: all 0.2s ease;
+	cursor: url('/images/cursors/pointer.png'), pointer !important;
+}
+
+.transport-button:hover {
+	background-color: var(--oak-mid);
+	border-color: var(--border-active);
+}
+
+.transport-button:disabled {
+	background-color: var(--bg-panel);
+	color: var(--text-muted);
+	border-color: var(--text-muted);
+	cursor: url('/images/cursors/cursor.png'), default !important;
+	opacity: 0.6;
+}
+
+/* Transport compatibility status styles */
+.transport-compatible .transport-button {
+	border-color: var(--moss);
+	background-color: rgba(96, 108, 56, 0.2);
+}
+
+.transport-compatible .transport-button:hover {
+	background-color: var(--moss);
+	color: var(--text-primary);
+}
+
+.transport-blocked .transport-button {
+	border-color: var(--rust);
+	background-color: rgba(158, 42, 43, 0.2);
+	color: var(--text-secondary);
+}
+
+.transport-blocked .transport-button:hover {
+	background-color: rgba(158, 42, 43, 0.3);
+}
+
+/* Transport status indicators */
+.transport-blocked {
+	color: var(--rust);
+	font-size: 0.8em;
+	font-style: italic;
+}
+
+.transport-warning {
+	color: var(--clay);
+	font-size: 0.85em;
+}
+
+/* Transport warning details */
+.transport-warning-detail {
+	background-color: rgba(188, 108, 37, 0.15);
+	border-left: 3px solid var(--clay);
+	padding: 4px 8px;
+	margin: 4px 0;
+	font-size: 0.8em;
+	color: var(--clay);
+	border-radius: 0 3px 3px 0;
 }
