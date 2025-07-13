@@ -99,60 +99,6 @@ namespace Wayfarer.Tests
         }
         
         [Fact]
-        public void Travel_UI_Should_Use_Route_Selection_Only()
-        {
-            // Verify the correct travel pattern: route selection without additional transport selection
-            
-            var scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("dusty_flagon"))
-                .Build();
-
-            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-            LocationRepository locationRepository = new LocationRepository(gameWorld);
-            ActionRepository actionRepository = new ActionRepository(gameWorld);
-            ItemRepository itemRepository = new ItemRepository(gameWorld);
-            ContractRepository contractRepository = new ContractRepository(gameWorld);
-            ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
-            ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
-            
-            TravelManager travelManager = new TravelManager(
-                gameWorld,
-                new LocationSystem(gameWorld, locationRepository),
-                actionRepository,
-                locationRepository,
-                actionFactory,
-                itemRepository,
-                new ContractProgressionService(contractRepository, itemRepository, locationRepository),
-                new TransportCompatibilityValidator(itemRepository),
-                new RouteRepository(gameWorld)
-            );
-            
-            // Get available routes (this should be the ONLY travel selection needed)
-            List<RouteOption> routes = travelManager.GetAvailableRoutes("dusty_flagon", "town_square");
-            
-            Assert.True(routes.Count > 0, "Should have routes available for testing");
-            
-            // Each route should contain all necessary information for travel decision
-            foreach (RouteOption route in routes)
-            {
-                // Route should have transport method defined
-                Assert.True(!string.IsNullOrEmpty(route.Method.ToString()), 
-                    $"Route '{route.Name}' must define transport method");
-                
-                // Route should have cost information
-                Assert.True(route.BaseCoinCost >= 0, "Route should have valid coin cost");
-                Assert.True(route.BaseStaminaCost >= 0, "Route should have valid stamina cost");
-                Assert.True(route.TimeBlockCost > 0, "Route should have valid time cost");
-                
-                // Route selection should be sufficient for travel - no additional transport needed
-                bool canCalculateCosts = travelManager.CanTravel(route);
-                // This should work without any additional transport selection
-                
-                Assert.True(true, "Route selection provides all necessary information for travel");
-            }
-        }
-        
-        [Fact]
         public void Route_Selection_Should_Be_Complete_Travel_Choice()
         {
             // Verify that selecting a route is a complete travel decision

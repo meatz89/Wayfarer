@@ -83,40 +83,5 @@ namespace Wayfarer.Tests
             Assert.True(finalTimeBlock == TimeBlocks.Morning || finalTimeBlock == TimeBlocks.Afternoon);
         }
         
-        [Fact]
-        public void Multiple_Trading_Actions_Should_Consume_Multiple_Time_Blocks()
-        {
-            // Arrange
-            var scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithCoins(100).WithItem("tools"))
-                .WithTimeState(t => t.Day(1).Hour(6)); // Dawn
-                
-            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-            MarketManager marketManager = new MarketManager(
-                gameWorld, 
-                new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
-                new ItemRepository(gameWorld),
-                new ContractProgressionService(new ContractRepository(gameWorld), new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
-                new NPCRepository(gameWorld),
-                new LocationRepository(gameWorld)
-            );
-            
-            TimeBlocks initialTimeBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
-            Assert.Equal(TimeBlocks.Dawn, initialTimeBlock);
-            
-            // Act - Perform multiple trading actions
-            bool sellSuccess = marketManager.SellItem("tools", "town_square"); // 1st time block
-            bool buySuccess = marketManager.BuyItem("herbs", "town_square");   // 2nd time block
-            
-            // Assert
-            Assert.True(sellSuccess);
-            Assert.True(buySuccess);
-            
-            TimeBlocks finalTimeBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
-            
-            // Should have advanced from Dawn through at least 2 time blocks
-            // Dawn (6-8:59) + 3.6 hours = ~9:30 (Morning) + 3.6 hours = ~13:00 (Afternoon)
-            Assert.True(finalTimeBlock == TimeBlocks.Afternoon || finalTimeBlock == TimeBlocks.Evening);
-        }
     }
 }

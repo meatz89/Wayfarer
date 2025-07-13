@@ -86,9 +86,11 @@ public class MarketManager
         }
 
         // Ensure buy price is always higher than sell price for valid trading
-        if (pricing.BuyPrice <= pricing.SellPrice)
+        // Maintain at least 15% spread for economic gameplay (buy price 15% higher than sell price)
+        int minimumBuyPrice = (int)Math.Ceiling(pricing.SellPrice * 1.15);
+        if (pricing.BuyPrice < minimumBuyPrice)
         {
-            pricing.BuyPrice = pricing.SellPrice + 1;
+            pricing.BuyPrice = minimumBuyPrice;
         }
 
         return pricing;
