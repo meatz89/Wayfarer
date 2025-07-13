@@ -457,9 +457,8 @@ public class TimeBuilder
             _ => 6
         };
         
-        // Use TimeManager to set time properly
-        var timeManager = new TimeManager(gameWorld.GetPlayer(), gameWorld.WorldState);
-        timeManager.SetNewTime(targetHour);
+        // Use the existing TimeManager from GameWorld
+        gameWorld.TimeManager.SetNewTime(targetHour);
     }
 }
 

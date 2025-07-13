@@ -113,6 +113,7 @@ public class MainGameplayViewBase : ComponentBase
     {
         { SidebarSections.skills, false },
         { SidebarSections.resources, false },
+        { SidebarSections.strategic, false },
         { SidebarSections.inventory, false },
         { SidebarSections.status, false }
     };
@@ -423,5 +424,97 @@ public class MainGameplayViewBase : ComponentBase
             WeatherCondition.Fog => "🌫️",
             _ => "❓"
         };
+    }
+
+    /// <summary>
+    /// Analyze overall strategic status for sidebar display
+    /// </summary>
+    public PlayerStrategicOverview AnalyzePlayerStrategicStatus()
+    {
+        var overview = new PlayerStrategicOverview();
+        
+        // Analyze current equipment capabilities
+        var currentEquipment = GetCurrentEquipmentCategories();
+        overview.EquipmentCapabilities = currentEquipment.Select(cat => cat.ToString().Replace('_', ' ')).ToList();
+        
+        // Analyze route accessibility (simplified for now)
+        overview.AccessibleRoutes = 3; // Placeholder - would calculate based on actual routes
+        overview.BlockedRoutes = 2; // Placeholder - would calculate based on blocked routes
+        
+        // Identify critical missing equipment
+        var allEquipmentCategories = Enum.GetValues<EquipmentCategory>().ToList();
+        var missingCategories = allEquipmentCategories.Where(cat => !currentEquipment.Contains(cat)).ToList();
+        overview.CriticalMissingEquipment = missingCategories.Take(3).Select(cat => cat.ToString().Replace('_', ' ')).ToList();
+        
+        // Analyze contract readiness (simplified for now)
+        overview.ReadyContracts = 2; // Placeholder - would calculate based on actual contracts
+        overview.PendingContracts = 1; // Placeholder - would calculate based on pending contracts
+        overview.UrgentContracts = 0; // Placeholder - would calculate based on urgent contracts
+        
+        return overview;
+    }
+
+    /// <summary>
+    /// Analyze time awareness and recommendations
+    /// </summary>
+    public TimeAwarenessAnalysis AnalyzeTimeAwareness()
+    {
+        var analysis = new TimeAwarenessAnalysis();
+        var currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        var currentDay = GameWorld.CurrentDay;
+        
+        // Analyze current time status
+        analysis.CurrentStatus = $"{currentTime.ToString().Replace('_', ' ')} - Day {currentDay}";
+        
+        // Generate time-based recommendations
+        if (currentTime == TimeBlocks.Dawn || currentTime == TimeBlocks.Morning)
+        {
+            analysis.Recommendation = "Optimal time for travel and contracts";
+        }
+        else if (currentTime == TimeBlocks.Afternoon)
+        {
+            analysis.Recommendation = "Good time for trading and social activities";
+        }
+        else if (currentTime == TimeBlocks.Evening)
+        {
+            analysis.Recommendation = "Markets closing soon - consider rest";
+        }
+        else
+        {
+            analysis.Recommendation = "Night time - limited activities available";
+        }
+        
+        return analysis;
+    }
+
+    /// <summary>
+    /// Get current equipment categories owned by player
+    /// </summary>
+    private List<EquipmentCategory> GetCurrentEquipmentCategories()
+    {
+        var ownedCategories = new List<EquipmentCategory>();
+        
+        foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
+        {
+            if (itemName != null)
+            {
+                Item item = ItemRepository.GetItemByName(itemName);
+                if (item != null)
+                {
+                    ownedCategories.AddRange(item.Categories);
+                }
+            }
+        }
+        
+        return ownedCategories.Distinct().ToList();
+    }
+
+    /// <summary>
+    /// Check if player can complete a contract based on current status (simplified)
+    /// </summary>
+    private bool CanCompleteContract(Contract contract)
+    {
+        // Simplified implementation - would need actual contract checking logic
+        return true;
     }
 }

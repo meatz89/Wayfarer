@@ -258,6 +258,7 @@ Repositories are responsible for ID-to-object lookup, not initialization or busi
 **Logical interaction principles:** `LOGICAL-SYSTEM-INTERACTIONS.md`
 **Architectural patterns and discoveries:** `GAME-ARCHITECTURE.md`
 **UI styling patterns and conventions:** `STYLING-PATTERNS.md`
+**Strategic player experience validation testing:** `STRATEGIC-PLAYER-EXPERIENCE-VALIDATION.md`
 
 ### GAME INITIALIZATION PIPELINE
 

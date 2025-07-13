@@ -104,5 +104,223 @@
 		"preferredApproach": "METHODICAL",
 		"dislikedApproach": "SWIFT",
 		"domainExpertise": "LABOR"
+	},
+	{
+		"id": "summit_overlook",
+		"name": "Summit Overlook",
+		"type": "FEATURE",
+		"description": "A commanding view from the mountain peak, offering strategic vantage over surrounding routes and settlements.",
+		"initialState": "Wind whips across the exposed stone platform, the valley spread out far below.",
+		"locationId": "mountain_summit",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "EXPLORATION", "DANGEROUS" ]
+	},
+	{
+		"id": "mining_site",
+		"name": "Mountain Mining Site",
+		"type": "FEATURE",
+		"description": "A productive mineral extraction site with valuable ore deposits and mining equipment.",
+		"initialState": "Pickaxes and carts scattered around rich veins of ore glinting in the rock face.",
+		"locationId": "mountain_summit",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "LABOR", "DANGEROUS" ]
+	},
+	{
+		"id": "ferry_dock",
+		"name": "Ferry Landing",
+		"type": "FEATURE",
+		"description": "A sturdy wooden dock where the river ferry loads passengers and cargo for water transport.",
+		"initialState": "The ferry bobs gently at the dock, ropes creaking as water laps against the hull.",
+		"locationId": "riverside_settlement",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "TRANSPORT", "COMMERCE" ]
+	},
+	{
+		"id": "fishing_pier",
+		"name": "Fishing Pier",
+		"type": "FEATURE",
+		"description": "A weathered pier extending into the river where local fishermen bring their daily catch.",
+		"initialState": "Nets hang drying in the breeze while fishermen mend their gear and sort the day's catch.",
+		"locationId": "riverside_settlement",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "COMMERCE", "LABOR" ]
+	},
+	{
+		"id": "village_mill",
+		"name": "Village Watermill",
+		"type": "FEATURE",
+		"description": "An ancient watermill that grinds grain for the village, its great wheel turning steadily with the stream.",
+		"initialState": "The massive wooden wheel creaks rhythmically as water flows beneath, flour dust dancing in shafts of sunlight.",
+		"locationId": "millbrook",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "LABOR", "COMMERCE" ]
+	},
+	{
+		"id": "village_elder",
+		"name": "Village Elder",
+		"type": "CHARACTER",
+		"description": "A wise elderly woman who serves as Millbrook's leader and provides guidance to newcomers.",
+		"initialState": "Sitting on the porch of her cottage, offering advice and simple tasks to those seeking their path.",
+		"locationId": "millbrook",
+		"CurrentTimeBlocks": [ "Morning", "Evening" ],
+		"preferredApproach": "METHODICAL",
+		"dislikedApproach": "SWIFT",
+		"domainExpertise": "SOCIAL"
+	},
+	{
+		"id": "mill_pond",
+		"name": "Mill Pond",
+		"type": "FEATURE",
+		"description": "A peaceful pond formed by the mill dam, where villagers gather water and children sometimes play.",
+		"initialState": "Clear water reflects the sky, with ducks gliding between lily pads near the shore.",
+		"locationId": "millbrook",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "SOCIAL", "PEACEFUL" ]
+	},
+	{
+		"id": "harbor_master",
+		"name": "Harbor Master",
+		"type": "CHARACTER",
+		"description": "A stern maritime official who controls ship docking and manages port operations.",
+		"initialState": "Standing at his podium reviewing shipping manifests, his weathered hands marking schedules with precision.",
+		"locationId": "eastport",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"preferredApproach": "METHODICAL",
+		"dislikedApproach": "SWIFT",
+		"domainExpertise": "TRANSPORT"
+	},
+	{
+		"id": "customs_house",
+		"name": "Customs House",
+		"type": "FEATURE",
+		"description": "The official port authority building where cargo is inspected and trade permits are processed.",
+		"initialState": "Officials in uniform examine goods while merchants wait with ledgers and documentation.",
+		"locationId": "eastport",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "COMMERCE", "OFFICIAL" ]
+	},
+	{
+		"id": "maritime_tavern",
+		"name": "The Salty Anchor",
+		"type": "FEATURE",
+		"description": "A rough tavern where sailors gather to drink, gamble, and share tales of distant ports.",
+		"initialState": "Smoke-filled air heavy with sea shanties and the clink of dice, maps pinned to weathered walls.",
+		"locationId": "eastport",
+		"CurrentTimeBlocks": [ "Evening", "Night" ],
+		"domainTags": [ "SOCIAL", "INFORMATION" ]
+	},
+	{
+		"id": "exotic_market",
+		"name": "Exotic Goods Market",
+		"type": "FEATURE",
+		"description": "A specialized market where rare items from distant lands are bought and sold at premium prices.",
+		"initialState": "Colorful stalls display silk, spices, and strange artifacts while traders haggle in foreign tongues.",
+		"locationId": "eastport",
+		"CurrentTimeBlocks": [ "Afternoon", "Evening" ],
+		"domainTags": [ "COMMERCE", "LUXURY" ]
+	},
+	{
+		"id": "mine_entrance",
+		"name": "Iron Mine Entrance",
+		"type": "FEATURE",
+		"description": "The heavily reinforced entrance to the deep iron mines, with mine carts and equipment scattered about.",
+		"initialState": "Miners emerge blackened with ore dust, their lanterns flickering as they report the day's progress.",
+		"locationId": "ironhold",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "MINING", "DANGEROUS" ]
+	},
+	{
+		"id": "master_forge",
+		"name": "Master Forge",
+		"type": "FEATURE",
+		"description": "An exceptional smithy where master craftsmen create the finest weapons and equipment using rare mountain iron.",
+		"initialState": "Sparks fly as hammers ring against anvils, the air shimmering with heat from multiple forge fires.",
+		"locationId": "ironhold",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "CRAFTING", "EXPERTISE" ]
+	},
+	{
+		"id": "mining_office",
+		"name": "Mining Office",
+		"type": "CHARACTER",
+		"description": "The Mine Foreman who assigns mining contracts and manages the dangerous work in the deep tunnels.",
+		"initialState": "Studying geological charts while coordinating teams, his hard hat and lamp marking him as a seasoned professional.",
+		"locationId": "ironhold",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"preferredApproach": "METHODICAL",
+		"dislikedApproach": "SWIFT",
+		"domainExpertise": "MINING"
+	},
+	{
+		"id": "caravan_master",
+		"name": "Caravan Master",
+		"type": "CHARACTER",
+		"description": "An experienced coordinator who organizes transport schedules and knows every trade route in the region.",
+		"initialState": "Consulting route maps and coordinating departure times, surrounded by manifest scrolls and travel permits.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"preferredApproach": "METHODICAL",
+		"dislikedApproach": "SWIFT",
+		"domainExpertise": "TRANSPORT"
+	},
+	{
+		"id": "transport_depot",
+		"name": "Transport Depot",
+		"type": "FEATURE",
+		"description": "A busy staging area where caravans, carts, and pack animals prepare for journeys to distant locations.",
+		"initialState": "Drivers check harnesses while merchants load cargo, the air filled with the sounds of preparation.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "TRANSPORT", "COMMERCE" ]
+	},
+	{
+		"id": "trading_hall",
+		"name": "Trading Hall",
+		"type": "FEATURE",
+		"description": "A large hall where merchants conduct business deals and negotiate contracts for regional trade.",
+		"initialState": "Tables filled with samples and ledgers as traders from across the region negotiate prices and terms.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "COMMERCE", "NEGOTIATION" ]
+	},
+	{
+		"id": "route_board",
+		"name": "Route Information Board",
+		"type": "FEATURE",
+		"description": "A public board displaying current route conditions, weather warnings, and transport schedules.",
+		"initialState": "Covered with notices about road conditions, weather reports, and transport timetables updated throughout the day.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "INFORMATION", "PUBLIC" ]
+	},
+	{
+		"id": "artifact_chamber",
+		"name": "Ancient Artifact Chamber",
+		"type": "FEATURE",
+		"description": "A mysterious chamber filled with valuable relics from a forgotten civilization.",
+		"initialState": "Stone pedestals hold ancient artifacts that gleam with inner light, their purpose lost to time.",
+		"locationId": "ancient_ruins",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "EXPLORATION", "VALUABLE" ]
+	},
+	{
+		"id": "crumbling_altar",
+		"name": "Crumbling Altar",
+		"type": "FEATURE",
+		"description": "An ancient stone altar covered in indecipherable runes, radiating an aura of forgotten power.",
+		"initialState": "Weathered stone etched with symbols that seem to shift in the changing light, demanding careful study.",
+		"locationId": "ancient_ruins",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "MYSTERIOUS", "DANGEROUS" ]
+	},
+	{
+		"id": "hidden_passage",
+		"name": "Hidden Passage",
+		"type": "FEATURE",
+		"description": "A concealed entrance that leads deeper into the ruins, requiring special equipment to navigate safely.",
+		"initialState": "Stone blocks have shifted to reveal a narrow passage descending into darkness, ancient air stirring within.",
+		"locationId": "ancient_ruins",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "EXPLORATION", "DANGEROUS" ]
 	}
 ]
