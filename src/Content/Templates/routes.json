@@ -133,5 +133,50 @@
 		"terrainCategories": ["Heavy_Cargo_Route", "Wilderness_Terrain", "Requires_Climbing"],
 		"maxItemCapacity": 10,
 		"description": "Specialized route for heavy equipment delivery requiring multiple categories of gear."
+	},
+	{
+		"id": "town_to_riverside_ferry",
+		"name": "River Ferry",
+		"origin": "town_square",
+		"destination": "riverside_settlement",
+		"method": "Boat",
+		"baseCoinCost": 6,
+		"baseStaminaCost": 0,
+		"timeBlockCost": 1,
+		"departureTime": "Morning",
+		"isDiscovered": true,
+		"terrainCategories": ["Requires_Water_Transport"],
+		"maxItemCapacity": 4,
+		"description": "Ferry crossing depends on river conditions - Morning departure when weather permits."
+	},
+	{
+		"id": "riverside_to_town_ferry",
+		"name": "Return Ferry",
+		"origin": "riverside_settlement",
+		"destination": "town_square",
+		"method": "Boat",
+		"baseCoinCost": 6,
+		"baseStaminaCost": 0,
+		"timeBlockCost": 1,
+		"departureTime": "Afternoon",
+		"isDiscovered": true,
+		"terrainCategories": ["Requires_Water_Transport"],
+		"maxItemCapacity": 4,
+		"description": "Return ferry service - Afternoon departure when weather permits."
+	},
+	{
+		"id": "workshop_to_riverside_barge",
+		"name": "Cargo Barge",
+		"origin": "workshop",
+		"destination": "riverside_settlement",
+		"method": "Boat",
+		"baseCoinCost": 10,
+		"baseStaminaCost": 0,
+		"timeBlockCost": 1,
+		"departureTime": "Dawn",
+		"isDiscovered": false,
+		"terrainCategories": ["Requires_Water_Transport", "Heavy_Cargo_Route"],
+		"maxItemCapacity": 8,
+		"description": "Heavy cargo barge for equipment transport - Dawn departure only in good weather."
 	}
 ]

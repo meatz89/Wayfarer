@@ -70,5 +70,29 @@
 		"availabilitySchedule": "Market_Hours",
 		"providedServices": ["Trade", "Information"],
 		"playerRelationship": "Neutral"
+	},
+	{
+		"id": "traveler_magnus",
+		"name": "Magnus the Wanderer",
+		"role": "Traveling Merchant",
+		"description": "A weathered traveler who knows the secrets of distant routes and hidden passages.",
+		"location": "dusty_flagon",
+		"profession": "Traveler",
+		"socialClass": "Merchant",
+		"availabilitySchedule": "Evening_Only",
+		"providedServices": ["Information", "Route_Knowledge"],
+		"playerRelationship": "Neutral"
+	},
+	{
+		"id": "workshop_master_erik",
+		"name": "Master Erik",
+		"role": "Workshop Master",
+		"description": "A skilled craftsman who can commission specialized equipment and provide crafting opportunities.",
+		"location": "workshop",
+		"profession": "Master_Craftsman",
+		"socialClass": "Craftsman",
+		"availabilitySchedule": "Workshop_Hours",
+		"providedServices": ["Equipment_Commissioning", "Training", "Craft_Opportunities"],
+		"playerRelationship": "Neutral"
 	}
 ]

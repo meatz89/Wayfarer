@@ -82,5 +82,27 @@
 		"preferredApproach": "SWIFT",
 		"dislikedApproach": "METHODICAL",
 		"domainExpertise": "COMMERCE"
+	},
+	{
+		"id": "workshop_interior",
+		"name": "Workshop Interior",
+		"type": "FEATURE",
+		"description": "A well-equipped workspace with forges, workbenches, and specialized tools.",
+		"initialState": "The sound of hammering and the glow of forge fires fill the space.",
+		"locationId": "workshop",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "COMMERCE", "LABOR" ]
+	},
+	{
+		"id": "workshop_master",
+		"name": "Workshop Master",
+		"type": "CHARACTER",
+		"description": "The master craftsman who oversees equipment commissioning and training.",
+		"initialState": "Examining blueprints and discussing work with apprentices.",
+		"locationId": "workshop",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"preferredApproach": "METHODICAL",
+		"dislikedApproach": "SWIFT",
+		"domainExpertise": "LABOR"
 	}
 ]
