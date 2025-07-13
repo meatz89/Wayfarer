@@ -134,8 +134,12 @@ public class TravelManager
             if (!route.IsDiscovered)
                 continue;
 
-            // Check departure times
+            // Check departure times and weather-dependent boat schedules
             if (route.DepartureTime != null && route.DepartureTime != _timeManager.GetCurrentTimeBlock())
+                continue;
+                
+            // Check weather-dependent boat schedules
+            if (route.Method == TravelMethods.Boat && !IsBoatScheduleAvailable(route))
                 continue;
 
             // Check if route is temporarily blocked
@@ -312,6 +316,31 @@ public class TravelManager
             BlockingReason = blockingReason,
             Transport = transport
         };
+    }
+
+    /// <summary>
+    /// Check if boat schedule is available based on weather conditions and river state
+    /// </summary>
+    private bool IsBoatScheduleAvailable(RouteOption route)
+    {
+        // Boats can't operate in poor weather conditions
+        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
+        
+        // Block boat schedules during dangerous weather
+        if (currentWeather == WeatherCondition.Rain || currentWeather == WeatherCondition.Snow)
+        {
+            return false;
+        }
+        
+        // Boats need specific departure times (no always-available boat routes)
+        if (route.DepartureTime == null)
+        {
+            return false;
+        }
+        
+        // Additional river condition logic could be added here
+        // For now, boats depend on weather and scheduled departure times
+        return true;
     }
     
     /// <summary>

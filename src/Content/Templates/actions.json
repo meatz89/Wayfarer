@@ -302,5 +302,122 @@
 				"minimumSocialStanding": "Any"
 			}
 		]
+	},
+	{
+		"id": "ask_about_routes",
+		"name": "Ask About Routes",
+		"description": "Speak with the traveling merchant about distant routes and passage conditions.",
+		"locationSpotId": "tavern",
+		"CurrentTimeBlocks": [ "Evening", "Night" ],
+		"actionPointCost": 1,
+		"silverCost": 2,
+		"refreshCardType": "SOCIAL",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTags": [ "SOCIAL", "INFORMATION" ],
+		"domainTags": [ "SOCIAL" ],
+		"physicalDemand": "None",
+		"socialRequirement": "Commoner",
+		"toolRequirements": [],
+		"environmentRequirements": [ "Indoor", "Commercial_Setting" ],
+		"knowledgeRequirement": "None",
+		"timeInvestment": "Standard",
+		"effectCategories": [ "Information_Exchange", "Market_Intelligence" ],
+		"informationEffects": [
+			{
+				"informationId": "mountain_route_conditions",
+				"title": "Mountain Route Conditions",
+				"content": "Weather conditions and climbing equipment requirements for mountain passages.",
+				"type": "Route_Conditions",
+				"quality": "Reliable",
+				"freshness": "Current",
+				"source": "traveler_magnus",
+				"value": 15
+			}
+		]
+	},
+	{
+		"id": "commission_equipment",
+		"name": "Commission Equipment",
+		"description": "Request the workshop master to craft specialized equipment for your needs.",
+		"locationSpotId": "workshop_master",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": null,
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTags": [ "BUSINESS", "CRAFTING" ],
+		"domainTags": [ "COMMERCE", "LABOR" ],
+		"physicalDemand": "None",
+		"socialRequirement": "Any",
+		"toolRequirements": [ "Trade_Samples" ],
+		"environmentRequirements": [ "Workshop" ],
+		"knowledgeRequirement": "Basic",
+		"timeInvestment": "Extended",
+		"effectCategories": [ "Equipment_Access", "Economic_Investment" ]
+	},
+	{
+		"id": "explore_craft_opportunities",
+		"name": "Explore Craft Opportunities",
+		"description": "Investigate potential crafting contracts and apprenticeship opportunities.",
+		"locationSpotId": "workshop_interior",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": "INTELLECTUAL",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTags": [ "INVESTIGATION", "LEARNING" ],
+		"domainTags": [ "LABOR", "COMMERCE" ],
+		"physicalDemand": "Light",
+		"socialRequirement": "Any",
+		"toolRequirements": [ "Basic_Tools" ],
+		"environmentRequirements": [ "Workshop" ],
+		"knowledgeRequirement": "Basic",
+		"timeInvestment": "Standard",
+		"effectCategories": [ "Contract_Discovery", "Skill_Practice", "Equipment_Access" ],
+		"contractDiscoveryEffects": [
+			{
+				"npcId": "workshop_master_erik",
+				"contractCategory": "Craftsman",
+				"maxContractsRevealed": 2,
+				"requiresSocialStanding": false,
+				"minimumSocialStanding": "Any"
+			}
+		]
+	},
+	{
+		"id": "investigate_market_opportunities",
+		"name": "Investigate Market Opportunities",
+		"description": "Study market trends and trading opportunities, requiring commercial expertise.",
+		"locationSpotId": "marketplace",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"actionPointCost": 1,
+		"silverCost": 0,
+		"refreshCardType": "INTELLECTUAL",
+		"staminaCost": 0,
+		"concentrationCost": 0,
+		"contextTags": [ "INVESTIGATION", "BUSINESS" ],
+		"domainTags": [ "COMMERCE" ],
+		"physicalDemand": "None",
+		"socialRequirement": "Merchant_Class",
+		"toolRequirements": [ "Documentation", "Trade_Samples" ],
+		"environmentRequirements": [ "Commercial_Setting" ],
+		"knowledgeRequirement": "Commercial",
+		"timeInvestment": "Extended",
+		"effectCategories": [ "Market_Intelligence", "Information_Exchange", "Economic_Opportunity" ],
+		"informationEffects": [
+			{
+				"informationId": "trade_price_analysis",
+				"title": "Current Trade Price Analysis",
+				"content": "Detailed analysis of item values and profitable trading opportunities.",
+				"type": "Market_Intelligence",
+				"quality": "Expert",
+				"freshness": "Current",
+				"source": "market_analysis",
+				"value": 25
+			}
+		]
 	}
 ]
