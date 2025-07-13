@@ -1,4 +1,4 @@
-﻿@using Wayfarer.UIHelpers
+@using Wayfarer.UIHelpers
 
 @inherits MainGameplayViewBase
 
@@ -339,6 +339,112 @@
                     </div>
                 }
             </div>
+
+            <div class="sidebar-section @(ExpandedSections[SidebarSections.strategic] ? "expanded" : "collapsed")">
+                <div class="section-header hover" id="section-strategic" @onclick="() => ToggleSection(SidebarSections.strategic)">
+                    <span>Strategic Overview</span>
+                    <span class="expand-icon">@(ExpandedSections[SidebarSections.strategic] ? "▼" : "►")</span>
+                </div>
+
+                @if (ExpandedSections[SidebarSections.strategic])
+                {
+                    <div class="section-content">
+                        @{
+                            var strategicOverview = AnalyzePlayerStrategicStatus();
+                            var timeAnalysis = AnalyzeTimeAwareness();
+                        }
+                        
+                        <div class="strategic-status-grid">
+                            <!-- Time Awareness Section -->
+                            <div class="strategic-item time-awareness">
+                                <div class="strategic-header">
+                                    <span class="strategic-icon">⏰</span>
+                                    <span class="strategic-label">Time Awareness</span>
+                                </div>
+                                <div class="strategic-content">
+                                    <div class="time-status">@timeAnalysis.CurrentStatus</div>
+                                    <div class="time-recommendation">@timeAnalysis.Recommendation</div>
+                                </div>
+                            </div>
+
+                            <!-- Equipment Capabilities Section -->
+                            <div class="strategic-item equipment-capabilities">
+                                <div class="strategic-header">
+                                    <span class="strategic-icon">⚔️</span>
+                                    <span class="strategic-label">Equipment Status</span>
+                                </div>
+                                <div class="strategic-content">
+                                    @if (strategicOverview.EquipmentCapabilities.Any())
+                                    {
+                                        <div class="capabilities-summary">
+                                            <span class="capability-count">@strategicOverview.EquipmentCapabilities.Count capabilities</span>
+                                        </div>
+                                        <div class="capability-list">
+                                            @foreach (var capability in strategicOverview.EquipmentCapabilities.Take(3))
+                                            {
+                                                <div class="capability-item">@capability</div>
+                                            }
+                                            @if (strategicOverview.EquipmentCapabilities.Count > 3)
+                                            {
+                                                <div class="capability-more">+@(strategicOverview.EquipmentCapabilities.Count - 3) more...</div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="no-capabilities">No specialized equipment</div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Accessibility Status Section -->
+                            <div class="strategic-item route-accessibility">
+                                <div class="strategic-header">
+                                    <span class="strategic-icon">🛤️</span>
+                                    <span class="strategic-label">Route Access</span>
+                                </div>
+                                <div class="strategic-content">
+                                    <div class="access-summary">
+                                        <span class="accessible-count">@strategicOverview.AccessibleRoutes accessible</span>
+                                        <span class="blocked-count">@strategicOverview.BlockedRoutes blocked</span>
+                                    </div>
+                                    @if (strategicOverview.CriticalMissingEquipment.Any())
+                                    {
+                                        <div class="missing-equipment">
+                                            <div class="missing-label">Critical gaps:</div>
+                                            @foreach (var missing in strategicOverview.CriticalMissingEquipment.Take(2))
+                                            {
+                                                <div class="missing-item">@missing</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Contract Readiness Section -->
+                            <div class="strategic-item contract-readiness">
+                                <div class="strategic-header">
+                                    <span class="strategic-icon">📜</span>
+                                    <span class="strategic-label">Contract Readiness</span>
+                                </div>
+                                <div class="strategic-content">
+                                    <div class="readiness-summary">
+                                        <span class="ready-count">@strategicOverview.ReadyContracts ready</span>
+                                        <span class="pending-count">@strategicOverview.PendingContracts pending</span>
+                                    </div>
+                                    @if (strategicOverview.UrgentContracts > 0)
+                                    {
+                                        <div class="urgent-contracts">
+                                            <span class="urgent-indicator">⚠️ @strategicOverview.UrgentContracts urgent</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
             <div class="sidebar-section @(ExpandedSections[SidebarSections.inventory] ? "expanded" : "collapsed")">
                 <div class="section-header hover" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
                     <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Size)</span>

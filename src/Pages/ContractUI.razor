@@ -6,6 +6,7 @@
 @inject GameWorld GameWorld
 @inject GameWorldManager GameManager
 @inject ContractSystem ContractSystem
+@inject ItemRepository ItemRepository
 
 <div class="contracts-list">
     @if (AvailableContracts.Any())
@@ -33,6 +34,76 @@
                     
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: @((int)(contractStatus.ProgressPercentage * 100))%"></div>
+                    </div>
+                </div>
+
+                <!-- STRATEGIC CONTRACT ANALYSIS SECTION -->
+                @{
+                    var contractAnalysis = AnalyzeContractStrategicValue(contract);
+                    var timeAnalysis = AnalyzeContractTimePressure(contract, daysRemaining);
+                    var synergyAnalysis = AnalyzeContractSynergy(contract);
+                }
+                
+                <div class="strategic-analysis-container">
+                    <div class="strategic-section">
+                        <h3>📊 Strategic Contract Analysis</h3>
+                        
+                        <div class="strategic-overview">
+                            <div class="time-pressure-indicator @timeAnalysis.PressureLevel.ToLower()">
+                                @timeAnalysis.Icon @timeAnalysis.Description
+                            </div>
+                        </div>
+
+                        @if (contractAnalysis.EquipmentInvestmentNeeded.Any())
+                        {
+                            <div class="equipment-investment-analysis">
+                                <h4>💡 Equipment Investment Analysis</h4>
+                                <div class="investment-opportunities">
+                                    @foreach (var investment in contractAnalysis.EquipmentInvestmentNeeded.Take(3))
+                                    {
+                                        <div class="contract-investment-opportunity">
+                                            <div class="equipment-info">
+                                                <span class="equipment-name">@investment.Category.ToString().Replace('_', ' ')</span>
+                                                <span class="investment-benefit">@investment.Benefit</span>
+                                            </div>
+                                            <div class="available-items">Items: @string.Join(", ", investment.AvailableItems.Select(i => i.Name))</div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (synergyAnalysis.SynergyContracts.Any())
+                        {
+                            <div class="contract-synergy-analysis">
+                                <h4>🔗 Contract Synergy Opportunities</h4>
+                                <div class="synergy-hints">
+                                    @foreach (var synergy in synergyAnalysis.SynergyContracts.Take(2))
+                                    {
+                                        <div class="synergy-hint">
+                                            <div class="synergy-contract">@synergy.ContractDescription</div>
+                                            <div class="synergy-benefit">@synergy.SharedBenefit</div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (contractAnalysis.RouteEnablementOpportunities.Any())
+                        {
+                            <div class="route-enablement-analysis">
+                                <h4>🛤️ Route Access Benefits</h4>
+                                <div class="route-benefits">
+                                    @foreach (var route in contractAnalysis.RouteEnablementOpportunities.Take(3))
+                                    {
+                                        <div class="route-benefit">
+                                            <span class="route-name">@route.RouteName</span>
+                                            <span class="enablement-reason">@route.EnablementReason</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
 
@@ -192,3 +263,189 @@
         </div>
     }
 </div>
+
+@code {
+    /// <summary>
+    /// Analyze strategic value and equipment needs for a contract
+    /// </summary>
+    public ContractStrategicAnalysis AnalyzeContractStrategicValue(Contract contract)
+    {
+        var analysis = new ContractStrategicAnalysis();
+        var currentEquipment = GetCurrentEquipmentCategories();
+        
+        // Analyze equipment investment needs
+        var missingEquipment = contract.RequiredEquipmentCategories.Where(req => !currentEquipment.Contains(req)).ToList();
+        
+        foreach (var category in missingEquipment)
+        {
+            var availableItems = GetAvailableItemsForCategory(category);
+            if (availableItems.Any())
+            {
+                analysis.EquipmentInvestmentNeeded.Add(new ContractEquipmentInvestment
+                {
+                    Category = category,
+                    Benefit = GetEquipmentBenefit(category),
+                    AvailableItems = availableItems
+                });
+            }
+        }
+        
+        // Analyze route enablement opportunities
+        foreach (var destination in contract.RequiredDestinations)
+        {
+            var routeBenefits = GetRouteEnablementBenefits(destination, contract.RequiredEquipmentCategories);
+            analysis.RouteEnablementOpportunities.AddRange(routeBenefits);
+        }
+        
+        return analysis;
+    }
+
+    /// <summary>
+    /// Analyze time pressure for contract completion
+    /// </summary>
+    public ContractTimePressure AnalyzeContractTimePressure(Contract contract, int daysRemaining)
+    {
+        var analysis = new ContractTimePressure();
+        
+        if (daysRemaining <= 0)
+        {
+            analysis.PressureLevel = "Critical";
+            analysis.Icon = "🔥";
+            analysis.Description = "Contract overdue! Immediate action required";
+        }
+        else if (daysRemaining == 1)
+        {
+            analysis.PressureLevel = "High";
+            analysis.Icon = "⚠️";
+            analysis.Description = "Due tomorrow - prioritize completion";
+        }
+        else if (daysRemaining <= 3)
+        {
+            analysis.PressureLevel = "Medium";
+            analysis.Icon = "🕔";
+            analysis.Description = $"{daysRemaining} days remaining - plan completion soon";
+        }
+        else
+        {
+            analysis.PressureLevel = "Low";
+            analysis.Icon = "📅";
+            analysis.Description = $"{daysRemaining} days remaining - time for strategic planning";
+        }
+        
+        return analysis;
+    }
+
+    /// <summary>
+    /// Analyze synergy opportunities with other contracts
+    /// </summary>
+    public ContractSynergyAnalysis AnalyzeContractSynergy(Contract contract)
+    {
+        var analysis = new ContractSynergyAnalysis();
+        
+        // Find contracts with shared destinations or equipment requirements
+        foreach (var otherContract in AvailableContracts.Where(c => c.Id != contract.Id))
+        {
+            var sharedDestinations = contract.RequiredDestinations.Intersect(otherContract.RequiredDestinations).ToList();
+            var sharedEquipment = contract.RequiredEquipmentCategories.Intersect(otherContract.RequiredEquipmentCategories).ToList();
+            
+            if (sharedDestinations.Any() || sharedEquipment.Any())
+            {
+                string benefit = "";
+                if (sharedDestinations.Any())
+                {
+                    benefit += $"Shared destinations: {string.Join(", ", sharedDestinations)}";
+                }
+                if (sharedEquipment.Any())
+                {
+                    if (!string.IsNullOrEmpty(benefit)) benefit += " + ";
+                    benefit += $"Shared equipment: {string.Join(", ", sharedEquipment.Select(e => e.ToString().Replace('_', ' ')))}";
+                }
+                
+                analysis.SynergyContracts.Add(new ContractSynergy
+                {
+                    ContractDescription = otherContract.Description,
+                    SharedBenefit = benefit
+                });
+            }
+        }
+        
+        return analysis;
+    }
+
+    /// <summary>
+    /// Get current equipment categories owned by player
+    /// </summary>
+    private List<EquipmentCategory> GetCurrentEquipmentCategories()
+    {
+        var ownedCategories = new List<EquipmentCategory>();
+        
+        foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
+        {
+            if (itemName != null)
+            {
+                Item item = ItemRepository.GetItemByName(itemName);
+                if (item != null)
+                {
+                    ownedCategories.AddRange(item.Categories);
+                }
+            }
+        }
+        
+        return ownedCategories.Distinct().ToList();
+    }
+
+    /// <summary>
+    /// Get available items for a specific equipment category
+    /// </summary>
+    private List<Item> GetAvailableItemsForCategory(EquipmentCategory category)
+    {
+        var currentLocation = GameWorld.CurrentLocation;
+        var allMarketItems = GameManager.GetAvailableMarketItems(currentLocation.Id);
+        return allMarketItems.Where(i => i.Categories.Contains(category)).ToList();
+    }
+
+    /// <summary>
+    /// Get benefit description for equipment category
+    /// </summary>
+    private string GetEquipmentBenefit(EquipmentCategory category)
+    {
+        return category switch
+        {
+            EquipmentCategory.Climbing_Equipment => "Enables mountain terrain access",
+            EquipmentCategory.Navigation_Tools => "Enables wilderness navigation",
+            EquipmentCategory.Weather_Protection => "Enables all-weather travel",
+            EquipmentCategory.Water_Transport => "Enables river route access",
+            EquipmentCategory.Special_Access => "Enables restricted area access",
+            _ => "Enhances travel capabilities"
+        };
+    }
+
+    /// <summary>
+    /// Get route enablement benefits for a destination
+    /// </summary>
+    private List<RouteEnablementBenefit> GetRouteEnablementBenefits(string destination, List<EquipmentCategory> requiredEquipment)
+    {
+        var benefits = new List<RouteEnablementBenefit>();
+        
+        // Simplified analysis - in full implementation would check actual routes
+        if (requiredEquipment.Contains(EquipmentCategory.Climbing_Equipment))
+        {
+            benefits.Add(new RouteEnablementBenefit
+            {
+                RouteName = $"Mountain routes to {destination}",
+                EnablementReason = "Climbing equipment enables safer mountain travel"
+            });
+        }
+        
+        if (requiredEquipment.Contains(EquipmentCategory.Navigation_Tools))
+        {
+            benefits.Add(new RouteEnablementBenefit
+            {
+                RouteName = $"Wilderness paths to {destination}",
+                EnablementReason = "Navigation tools enable off-road shortcuts"
+            });
+        }
+        
+        return benefits;
+    }
+}

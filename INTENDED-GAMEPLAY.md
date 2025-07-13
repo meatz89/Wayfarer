@@ -9,20 +9,18 @@ Each entity should have **multiple categorical properties**, and simple logical 
 **Function Categories**: [Climbing, Navigation, Social, Crafting, Protection, Information]
 **Material Categories**: [Metal, Leather, Cloth, Paper, Wood, Glass]  
 **Size Categories**: [Tiny, Small, Medium, Large, Massive]
-**Social_Signal Categories**: [Commoner, Merchant, Artisan, Noble, Foreign]
 **Fragility Categories**: [Sturdy, Standard, Delicate, Fragile]
 
 ### ROUTES (Multiple Categories Per Route)
 
 **Terrain Categories**: [Forest, Mountain, River, Road, Urban, Desert]
-**Access Categories**: [Public, Private, Guild_Only, Noble_Only]
 **Difficulty Categories**: [Easy, Moderate, Challenging, Extreme]
 **Width Categories**: [Narrow_Path, Standard, Wide_Road, Open]
 **Traffic Categories**: [Busy, Moderate, Quiet, Abandoned]
 
 ### NPCS (Multiple Categories Per NPC)
 
-**Social_Class Categories**: [Commoner, Merchant, Craftsman, Minor_Noble, Major_Noble]
+**Social_Class Categories**: [Commoner, Merchant, Craftsman]
 **Profession Categories**: [Trader, Smith, Guard, Official, Farmer]
 **Location_Preference Categories**: [Market, Workshop, Tavern, Manor, Street]
 **Time_Available Categories**: [Morning, Afternoon, Evening, Always, Special_Events]
@@ -32,7 +30,7 @@ Each entity should have **multiple categorical properties**, and simple logical 
 
 **Function Categories**: [Commerce, Crafting, Social, Official, Residential]
 **Access_Level Categories**: [Public, Semi_Private, Private, Restricted]
-**Social_Expectation Categories**: [Any, Merchant_Class, Noble_Class, Professional]
+**Social_Expectation Categories**: [Any, Merchant_Class, Professional]
 **Service_Type Categories**: [Trade, Repair, Information, Lodging, Authority]
 
 ## SIMPLE LOGICAL RULES CONNECTING SYSTEMS
@@ -47,11 +45,6 @@ Each entity should have **multiple categorical properties**, and simple logical 
 - **Transport [Boat] + Terrain [Not_River]** = Cannot Use
 - **Size [Large] Items + Transport [Walking]** = Severe stamina penalty
 
-### Social-Access Rules
-- **NPC Social_Class [Noble] + Player Social_Signal [Commoner]** = Limited service options
-- **Location Social_Expectation [Noble_Class] + Player Appearance [Common]** = Entry denied by doorkeepers
-- **Access [Private] + Relationship_Memory [Not_Helpful]** = Owner refuses access
-
 ### Material-Condition Rules
 - **Material [Paper] + Rough Travel** = Fragility damage risk
 - **Material [Metal] + Size [Large]** = Heavy (affects stamina/transport)
@@ -64,18 +57,7 @@ Each entity should have **multiple categorical properties**, and simple logical 
 
 ## CONCRETE WAYFARER EXAMPLES
 
-### Example 1: The Noble's Commission
-**Scenario**: Lady Meredith offers high-paying commission
-
-**System Interactions**:
-- **NPC Category**: Social_Class [Major_Noble]
-- **Location Category**: Access_Level [Private], Social_Expectation [Noble_Class]  
-- **Player Equipment**: Social_Signal [Commoner] clothing
-- **Rule**: Social_Expectation [Noble_Class] + Player Social_Signal [Commoner] = Doorkeeper denies entry
-
-**Player Experience**: "I need appropriate attire to even meet Lady Meredith. The tailor can make noble clothing, but requires expensive materials..."
-
-### Example 2: The Mountain Shortcut
+### Example 1: The Mountain Shortcut
 **Scenario**: Discovered route cuts travel time in half
 
 **System Interactions**:
@@ -88,7 +70,7 @@ Each entity should have **multiple categorical properties**, and simple logical 
 
 **Player Experience**: "This shortcut would save a day, but I need climbing gear AND I can't bring the cart. Do I prioritize speed or cargo capacity?"
 
-### Example 3: The Fragile Cargo
+### Example 2: The Fragile Cargo
 **Scenario**: Valuable glassware trade opportunity
 
 **System Interactions**:
@@ -96,15 +78,12 @@ Each entity should have **multiple categorical properties**, and simple logical 
 - **Route Options**: Mountain path (rough) or river route (smooth but longer)
 - **Rules**: 
   - Material [Glass] + Fragility [Fragile] + Rough Travel = High damage risk
-  - Social_Signal [Luxury] + NPC Social_Class [Noble] = Premium prices
 
 **Player Experience**: "Glassware sells for triple to nobles, but the mountain route might shatter it. River route is safer but takes longer and costs transport fees..."
 
 ## ACTIONABLE DESIGN CHANGES FOR WAYFARER
 
 ### 1. Replace All Numerical Modifiers with Categorical Rules
-**Instead of**: "+2 reputation bonus with nobles"
-**Create**: Social_Signal [Noble] equipment + NPC Social_Class [Noble] = Access to exclusive services
 
 ### 2. Give Every Item Multiple Categories
 **Instead of**: "Fine Cloak" with arbitrary stats
@@ -140,9 +119,6 @@ Each entity should have **multiple categorical properties**, and simple logical 
 
 **Current**: "I can't use this route because my climbing skill isn't high enough"
 **Target**: "I can't use this route because it goes through mountain terrain and I don't have climbing equipment"
-
-**Current**: "This NPC won't talk to me because my reputation is too low"  
-**Target**: "This noble won't see me because I'm not dressed appropriately for their social class"
 
 **Current**: "I can't carry this item because it's too heavy"
 **Target**: "I can carry this massive item, but it takes up 2 inventory slots and I'll need a cart if I want to travel efficiently"

@@ -542,6 +542,15 @@
 	gap: 15px;
 }
 
+.contract-card {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 5px;
+	padding: 15px;
+	margin-bottom: 15px;
+	transition: all 0.2s ease;
+}
+
 .contract-item {
 	background-color: var(--bg-card);
 	border: 1px solid var(--oak-mid);
@@ -701,4 +710,687 @@
 	font-size: 0.8em;
 	color: var(--clay);
 	border-radius: 0 3px 3px 0;
+}
+
+/* Strategic Analysis Section */
+.strategic-analysis-container {
+	margin: 15px 0;
+}
+
+.strategic-section {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-dark);
+	border-radius: 5px;
+	padding: 15px;
+	background-image: url("/images/subtle-texture.png");
+	background-repeat: repeat;
+	background-blend-mode: overlay;
+}
+
+.strategic-section h3 {
+	font-family: var(--font-primary);
+	color: var(--leather);
+	font-size: 1.2em;
+	margin-bottom: 15px;
+	letter-spacing: 0.05em;
+	border-bottom: 1px solid var(--oak-mid);
+	padding-bottom: 5px;
+}
+
+.strategic-section h4 {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-size: 1em;
+	margin: 12px 0 8px 0;
+	font-weight: 600;
+}
+
+.strategic-overview {
+	margin-bottom: 15px;
+}
+
+.route-summary {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.accessible-routes {
+	color: var(--moss);
+	font-family: var(--font-tertiary);
+	font-weight: 600;
+}
+
+.blocked-routes {
+	color: var(--rust);
+	font-family: var(--font-tertiary);
+	font-weight: 600;
+}
+
+/* Current Equipment Summary */
+.current-equipment-summary {
+	margin-bottom: 15px;
+}
+
+.equipment-categories {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.equipment-category.owned {
+	background-color: rgba(96, 108, 56, 0.2);
+	border: 1px solid var(--moss);
+	border-radius: 12px;
+	padding: 3px 8px;
+	font-size: 0.8em;
+	font-family: var(--font-tertiary);
+	color: var(--moss);
+	font-weight: 500;
+}
+
+.no-equipment {
+	background-color: rgba(158, 42, 43, 0.1);
+	border: 1px solid var(--rust);
+	border-radius: 3px;
+	padding: 8px 12px;
+	font-family: var(--font-tertiary);
+	color: var(--rust);
+	font-style: italic;
+}
+
+/* Equipment Investment Analysis */
+.equipment-investment-analysis {
+	margin-bottom: 15px;
+}
+
+.investment-opportunities {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.investment-opportunity {
+	background-color: rgba(188, 108, 37, 0.1);
+	border: 1px solid var(--clay);
+	border-radius: 5px;
+	padding: 10px;
+	transition: background-color 0.2s ease;
+}
+
+.investment-opportunity:hover {
+	background-color: rgba(188, 108, 37, 0.15);
+}
+
+.equipment-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 4px;
+}
+
+.equipment-name {
+	font-family: var(--font-secondary);
+	color: var(--clay);
+	font-weight: 600;
+}
+
+.routes-unlocked {
+	font-family: var(--font-tertiary);
+	color: var(--text-secondary);
+	font-size: 0.9em;
+}
+
+.unlocked-routes {
+	font-family: var(--font-tertiary);
+	color: var(--text-muted);
+	font-size: 0.85em;
+	line-height: 1.3;
+}
+
+/* Blocked Routes Summary */
+.blocked-routes-summary {
+	margin-bottom: 10px;
+}
+
+.blocked-routes-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.blocked-route-item {
+	background-color: rgba(158, 42, 43, 0.08);
+	border-left: 3px solid var(--rust);
+	padding: 8px 10px;
+	border-radius: 0 3px 3px 0;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.blocked-route-item .route-name {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-weight: 500;
+	font-size: 0.9em;
+}
+
+.missing-equipment, .weather-blocked {
+	font-family: var(--font-tertiary);
+	color: var(--rust);
+	font-size: 0.8em;
+}
+
+.more-blocked {
+	font-family: var(--font-tertiary);
+	color: var(--text-muted);
+	font-size: 0.8em;
+	text-align: center;
+	padding: 5px;
+	font-style: italic;
+}
+
+/* Market Strategic Analysis */
+.market-summary {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+	margin-bottom: 15px;
+}
+
+.equipment-items, .route-enabling-items, .contract-relevant-items {
+	font-family: var(--font-tertiary);
+	font-weight: 600;
+	color: var(--text-secondary);
+	font-size: 0.9em;
+}
+
+/* Equipment Investment Grid */
+.investment-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 12px;
+	margin: 10px 0;
+}
+
+.equipment-investment-card {
+	background-color: rgba(188, 108, 37, 0.1);
+	border: 1px solid var(--clay);
+	border-radius: 6px;
+	padding: 12px;
+	transition: all 0.2s ease;
+}
+
+.equipment-investment-card:hover {
+	background-color: rgba(188, 108, 37, 0.15);
+	transform: translateY(-1px);
+}
+
+.equipment-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.equipment-category {
+	font-family: var(--font-secondary);
+	color: var(--clay);
+	font-weight: 600;
+	font-size: 0.95em;
+}
+
+.investment-value {
+	font-family: var(--font-tertiary);
+	color: var(--text-secondary);
+	font-size: 0.8em;
+	font-style: italic;
+}
+
+.available-items {
+	font-family: var(--font-tertiary);
+	color: var(--text-secondary);
+	font-size: 0.85em;
+	margin-bottom: 6px;
+	line-height: 1.3;
+}
+
+.strategic-benefits {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.routes-benefit, .contracts-benefit {
+	font-family: var(--font-tertiary);
+	color: var(--moss);
+	font-size: 0.8em;
+	font-weight: 500;
+}
+
+.no-opportunities {
+	background-color: rgba(96, 108, 56, 0.1);
+	border: 1px solid var(--moss);
+	border-radius: 3px;
+	padding: 10px;
+	font-family: var(--font-tertiary);
+	color: var(--moss);
+	text-align: center;
+	font-style: italic;
+}
+
+/* Category Filter Section */
+.category-filter-section {
+	margin: 15px 0;
+}
+
+.category-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.category-filter {
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 15px;
+	padding: 4px 12px;
+	font-family: var(--font-tertiary);
+	color: var(--text-secondary);
+	font-size: 0.8em;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.category-filter:hover {
+	background-color: var(--bg-active);
+	border-color: var(--leather);
+}
+
+.category-filter.active {
+	background-color: var(--moss);
+	border-color: var(--moss);
+	color: var(--parchment);
+	font-weight: 600;
+}
+
+/* Trade Opportunities */
+.trade-opportunities {
+	margin-top: 15px;
+}
+
+.opportunity-indicators {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.trade-indicator {
+	background-color: rgba(96, 108, 56, 0.1);
+	border-left: 3px solid var(--moss);
+	padding: 8px 12px;
+	border-radius: 0 3px 3px 0;
+}
+
+.trade-indicator .item-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 3px;
+}
+
+.trade-indicator .item-name {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-weight: 500;
+	font-size: 0.9em;
+}
+
+.trade-indicator .opportunity-type {
+	font-family: var(--font-tertiary);
+	color: var(--moss);
+	font-size: 0.8em;
+	font-weight: 600;
+}
+
+.trade-indicator .opportunity-detail {
+	font-family: var(--font-tertiary);
+	color: var(--text-muted);
+	font-size: 0.8em;
+	line-height: 1.3;
+}
+
+/* Market Item Strategic Value Indicators */
+.market-item.high-strategic-value {
+	border-left: 3px solid var(--clay);
+	background-color: rgba(188, 108, 37, 0.05);
+}
+
+.strategic-value-indicators {
+	margin-top: 6px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.strategic-indicator {
+	background-color: rgba(188, 108, 37, 0.15);
+	border: 1px solid var(--clay);
+	border-radius: 10px;
+	padding: 2px 6px;
+	font-family: var(--font-tertiary);
+	font-size: 0.75em;
+	color: var(--clay);
+	font-weight: 500;
+}
+
+.strategic-indicator.equipment {
+	background-color: rgba(96, 108, 56, 0.15);
+	border-color: var(--moss);
+	color: var(--moss);
+}
+
+/* Contract Strategic Analysis */
+.contract-strategic-analysis {
+	margin: 15px 0;
+}
+
+/* Time Pressure Indicators */
+.time-pressure-indicator {
+	padding: 8px 12px;
+	border-radius: 5px;
+	margin-bottom: 15px;
+	font-family: var(--font-secondary);
+	font-weight: 600;
+	text-align: center;
+}
+
+.time-pressure-indicator.critical {
+	background-color: rgba(158, 42, 43, 0.2);
+	border: 1px solid var(--rust);
+	color: var(--rust);
+}
+
+.time-pressure-indicator.high {
+	background-color: rgba(188, 108, 37, 0.2);
+	border: 1px solid var(--clay);
+	color: var(--clay);
+}
+
+.time-pressure-indicator.medium {
+	background-color: rgba(85, 101, 115, 0.15);
+	border: 1px solid var(--slate);
+	color: var(--slate);
+}
+
+.time-pressure-indicator.low {
+	background-color: rgba(96, 108, 56, 0.15);
+	border: 1px solid var(--moss);
+	color: var(--moss);
+}
+
+/* Contract Equipment Investment */
+.contract-investment-opportunity {
+	background-color: rgba(188, 108, 37, 0.1);
+	border: 1px solid var(--clay);
+	border-radius: 5px;
+	padding: 10px;
+	margin-bottom: 8px;
+	transition: background-color 0.2s ease;
+}
+
+.contract-investment-opportunity:hover {
+	background-color: rgba(188, 108, 37, 0.15);
+}
+
+.contract-investment-opportunity .equipment-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 4px;
+}
+
+.contract-investment-opportunity .equipment-name {
+	font-family: var(--font-secondary);
+	color: var(--clay);
+	font-weight: 600;
+}
+
+.contract-investment-opportunity .investment-benefit {
+	font-family: var(--font-tertiary);
+	color: var(--text-secondary);
+	font-size: 0.85em;
+	font-style: italic;
+}
+
+.contract-investment-opportunity .available-items {
+	font-family: var(--font-tertiary);
+	color: var(--text-muted);
+	font-size: 0.8em;
+	line-height: 1.3;
+}
+
+/* Contract Synergy Analysis */
+.contract-synergy-analysis {
+	margin-bottom: 15px;
+}
+
+.synergy-hints {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.synergy-hint {
+	background-color: rgba(96, 108, 56, 0.1);
+	border-left: 3px solid var(--moss);
+	padding: 8px 10px;
+	border-radius: 0 3px 3px 0;
+}
+
+.synergy-hint .synergy-contract {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-weight: 500;
+	font-size: 0.9em;
+	margin-bottom: 3px;
+}
+
+.synergy-hint .synergy-benefit {
+	font-family: var(--font-tertiary);
+	color: var(--moss);
+	font-size: 0.8em;
+	line-height: 1.3;
+}
+
+/* Route Enablement Analysis */
+.route-enablement-analysis {
+	margin-bottom: 15px;
+}
+
+.route-benefits {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.route-benefit {
+	background-color: rgba(85, 101, 115, 0.1);
+	border-left: 3px solid var(--slate);
+	padding: 6px 10px;
+	border-radius: 0 3px 3px 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.route-benefit .route-name {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-weight: 500;
+	font-size: 0.85em;
+}
+
+.route-benefit .enablement-reason {
+	font-family: var(--font-tertiary);
+	color: var(--slate);
+	font-size: 0.8em;
+	line-height: 1.3;
+}
+
+/* Strategic Overview Sidebar */
+.strategic-status-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.strategic-item {
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 5px;
+	padding: 8px;
+	transition: background-color 0.2s ease;
+}
+
+.strategic-item:hover {
+	background-color: var(--bg-active);
+}
+
+.strategic-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.strategic-icon {
+	font-size: 0.9em;
+}
+
+.strategic-label {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-weight: 600;
+	font-size: 0.85em;
+}
+
+.strategic-content {
+	font-family: var(--font-tertiary);
+	font-size: 0.8em;
+	line-height: 1.3;
+}
+
+/* Time Awareness */
+.time-awareness .strategic-content {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.time-status {
+	color: var(--text-primary);
+	font-weight: 500;
+}
+
+.time-recommendation {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+/* Equipment Capabilities */
+.capabilities-summary {
+	margin-bottom: 4px;
+}
+
+.capability-count {
+	color: var(--moss);
+	font-weight: 500;
+}
+
+.capability-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.capability-item {
+	color: var(--text-secondary);
+	font-size: 0.75em;
+	padding-left: 8px;
+}
+
+.capability-more {
+	color: var(--text-muted);
+	font-size: 0.7em;
+	padding-left: 8px;
+	font-style: italic;
+}
+
+.no-capabilities {
+	color: var(--rust);
+	font-style: italic;
+}
+
+/* Route Accessibility */
+.access-summary {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.accessible-count {
+	color: var(--moss);
+	font-weight: 500;
+}
+
+.blocked-count {
+	color: var(--rust);
+	font-weight: 500;
+}
+
+.missing-equipment {
+	margin-top: 4px;
+}
+
+.missing-label {
+	color: var(--text-secondary);
+	font-size: 0.75em;
+	margin-bottom: 2px;
+}
+
+.missing-item {
+	color: var(--clay);
+	font-size: 0.7em;
+	padding-left: 8px;
+}
+
+/* Contract Readiness */
+.readiness-summary {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.ready-count {
+	color: var(--moss);
+	font-weight: 500;
+}
+
+.pending-count {
+	color: var(--text-secondary);
+	font-weight: 500;
+}
+
+.urgent-contracts {
+	margin-top: 4px;
+}
+
+.urgent-indicator {
+	color: var(--rust);
+	font-weight: 600;
+	font-size: 0.75em;
 }

@@ -2,6 +2,7 @@
 {
     skills,
     resources,
+    strategic,
     inventory,
     status
 }
