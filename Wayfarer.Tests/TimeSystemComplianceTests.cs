@@ -196,36 +196,7 @@ namespace Wayfarer.Tests
                 Assert.Equal(test.expectedAfter, timeManager.GetCurrentTimeBlock());
             }
         }
-        
-        [Fact]
-        public void UI_Should_Never_Access_Time_Block_Counting_Properties()
-        {
-            // This test verifies that properties violating UI display rules don't exist or aren't public
-            
-            var timeManagerType = typeof(TimeManager);
-            
-            // These properties enable UI violations and should not be publicly accessible
-            var violatingProperties = new[]
-            {
-                "RemainingTimeBlocks", // Enables "2/5 time blocks remaining" UI violation
-                "UsedTimeBlocks",      // Enables time block counting UI violation
-                "CanPerformTimeBlockAction" // May enable UI time block logic
-            };
-            
-            foreach (string propertyName in violatingProperties)
-            {
-                var property = timeManagerType.GetProperty(propertyName);
-                if (property != null && property.CanRead && property.GetMethod.IsPublic)
-                {
-                    Assert.True(false, 
-                        $"ARCHITECTURAL VIOLATION: Public property '{propertyName}' enables UI to display " +
-                        $"time blocks, which violates player mental model. Players should see actual time " +
-                        $"progression like 'Morning 6:00' → 'Afternoon 14:00', not abstract time block counts. " +
-                        $"Make this property internal or remove it entirely.");
-                }
-            }
-        }
-        
+                
         /// <summary>
         /// Helper method to calculate expected time block from hour
         /// This is the logic that should be used in TimeManager

@@ -71,6 +71,9 @@ namespace Wayfarer.Tests
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             
+            // Set initial time to afternoon (13:00 = Afternoon time block 12:00-15:59)
+            gameWorld.TimeManager.SetNewTime(13);
+            
             // Manually add route with departure time for testing
             var expressRoute = new RouteOption
             {
@@ -126,7 +129,7 @@ namespace Wayfarer.Tests
             Assert.False(expressAvailable, "Express coach should not be available in afternoon");
             
             // === CHANGE TO MORNING (Express Coach Available) ===
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
+            gameWorld.TimeManager.SetNewTime(10); // Set to 10 AM = Morning time block (9:00-11:59)
             List<RouteOption> morningRoutes = travelManager.GetAvailableRoutes("dusty_flagon", "town_square");
             bool expressAvailableMorning = morningRoutes.Any(r => r.Id == "express_coach");
             Assert.True(expressAvailableMorning, "Express coach should be available in morning");

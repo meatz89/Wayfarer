@@ -26,19 +26,10 @@ public class TimeManager
 
     public int CurrentTimeHours { get; private set; }
 
-    // Calculate time blocks from actual time progression
-    private int CalculateUsedTimeBlocks()
-    {
-        // Calculate how many time blocks have been used based on time progression
-        int hoursAdvanced = CurrentTimeHours - TimeDayStart;
-        if (hoursAdvanced < 0) hoursAdvanced = 0; // Handle overnight/new day cases
-        
-        // Each time block represents roughly 3.6 hours (18 hours / 5 blocks)
-        double hoursPerTimeBlock = 18.0 / MaxDailyTimeBlocks;
-        return Math.Min((int)(hoursAdvanced / hoursPerTimeBlock), MaxDailyTimeBlocks);
-    }
+    // Track time blocks used during the day - resets each day
+    private int _usedTimeBlocks = 0;
 
-    public int UsedTimeBlocks => CalculateUsedTimeBlocks();
+    public int UsedTimeBlocks => _usedTimeBlocks;
     
     public int RemainingTimeBlocks => Math.Max(0, MaxDailyTimeBlocks - UsedTimeBlocks);
     
@@ -63,9 +54,11 @@ public class TimeManager
         worldState.CurrentTimeBlock = GetCurrentTimeBlock();
     }
 
-    public void AdvanceTime(int hours)
+    public void AdvanceTime(int timeBlocksToAdvance)
     {
-        SetNewTime(CurrentTimeHours + hours);
+        // For backward compatibility, AdvanceTime parameter represents time blocks, not clock hours
+        // Use ConsumeTimeBlock to ensure proper tracking
+        ConsumeTimeBlock(timeBlocksToAdvance);
     }
 
     public int GetCurrentHour()
@@ -102,6 +95,9 @@ public class TimeManager
     {
         worldState.CurrentDay++;
         
+        // Reset time blocks for the new day
+        _usedTimeBlocks = 0;
+        
         // Reset time to dawn - no action point regeneration per Period-Based Activity Planning user story
         SetNewTime(TimeDayStart);
     }
@@ -115,10 +111,13 @@ public class TimeManager
     /// <throws>InvalidOperationException if exceeding daily limit</throws>
     public void ConsumeTimeBlock(int blocks)
     {
-        if (UsedTimeBlocks + blocks > MaxDailyTimeBlocks)
+        if (_usedTimeBlocks + blocks > MaxDailyTimeBlocks)
         {
             throw new InvalidOperationException($"Cannot exceed daily time block limit of {MaxDailyTimeBlocks}. Attempting to consume {blocks} blocks but only {RemainingTimeBlocks} remaining.");
         }
+
+        // Track the time block consumption
+        _usedTimeBlocks += blocks;
 
         // Calculate hours to advance based on time blocks
         double hoursPerTimeBlock = 18.0 / MaxDailyTimeBlocks; // 18 hours (6 AM to midnight) / 5 blocks = 3.6 hours per block

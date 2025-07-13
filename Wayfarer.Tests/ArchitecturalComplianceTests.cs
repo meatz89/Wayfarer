@@ -74,18 +74,18 @@ namespace Wayfarer.Tests
             // Test various hours to ensure TimeBlocks are calculated correctly
             var testCases = new[]
             {
-                (hour: 6, expected: TimeBlocks.Morning),
-                (hour: 9, expected: TimeBlocks.Morning),
-                (hour: 11, expected: TimeBlocks.Morning),
-                (hour: 12, expected: TimeBlocks.Afternoon),
-                (hour: 15, expected: TimeBlocks.Afternoon),
-                (hour: 17, expected: TimeBlocks.Afternoon),
-                (hour: 18, expected: TimeBlocks.Evening),
-                (hour: 21, expected: TimeBlocks.Evening),
-                (hour: 23, expected: TimeBlocks.Evening),
-                (hour: 0, expected: TimeBlocks.Night),
-                (hour: 3, expected: TimeBlocks.Night),
-                (hour: 5, expected: TimeBlocks.Night)
+                (hour: 6, expected: TimeBlocks.Dawn),        // 6:00-8:59 Dawn
+                (hour: 8, expected: TimeBlocks.Dawn),        // 6:00-8:59 Dawn  
+                (hour: 9, expected: TimeBlocks.Morning),     // 9:00-11:59 Morning
+                (hour: 11, expected: TimeBlocks.Morning),    // 9:00-11:59 Morning
+                (hour: 12, expected: TimeBlocks.Afternoon),  // 12:00-15:59 Afternoon
+                (hour: 15, expected: TimeBlocks.Afternoon),  // 12:00-15:59 Afternoon
+                (hour: 16, expected: TimeBlocks.Evening),    // 16:00-19:59 Evening
+                (hour: 19, expected: TimeBlocks.Evening),    // 16:00-19:59 Evening
+                (hour: 20, expected: TimeBlocks.Night),      // 20:00-5:59 Night
+                (hour: 23, expected: TimeBlocks.Night),      // 20:00-5:59 Night
+                (hour: 0, expected: TimeBlocks.Night),       // 20:00-5:59 Night
+                (hour: 5, expected: TimeBlocks.Night)        // 20:00-5:59 Night
             };
             
             foreach (var (hour, expected) in testCases)
