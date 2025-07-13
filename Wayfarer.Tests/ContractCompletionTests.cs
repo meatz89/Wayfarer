@@ -24,57 +24,63 @@ public class ContractCompletionTests
     }
 
     [Fact]
-    public void DeliverToolsContract_CompletesOnSellAction_NotOnHavingTools()
+    public void TradingPostSuppliesContract_CompletesOnSellAction_NotOnHavingTools()
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractProgressionService contractProgressionService = CreateContractProgressionService(gameWorld);
         Player player = gameWorld.GetPlayer();
         
-        // Add the deliver_tools contract to active contracts
-        Contract deliverToolsContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "deliver_tools");
-        Assert.NotNull(deliverToolsContract);
-        gameWorld.ActiveContracts.Add(deliverToolsContract);
+        // Add the trading_post_supplies contract to active contracts using repository pattern
+        Contract tradingPostContract = contractRepository.GetContract("trading_post_supplies");
+        Assert.NotNull(tradingPostContract);
+        gameWorld.ActiveContracts.Add(tradingPostContract);
         
         // CRITICAL: Player doesn't need to have tools beforehand
         player.Inventory.Clear();
         Assert.False(player.Inventory.HasItem("tools"));
         
-        // Act: Player sells tools at town_square (completion action)
-        contractProgressionService.CheckMarketProgression("tools", "town_square", TransactionType.Sell, 1, 10, player);
+        // First complete the destination requirement
+        contractProgressionService.CheckTravelProgression("crossbridge", player);
         
-        // Assert: Contract should complete based on the sell action alone
-        Assert.True(deliverToolsContract.IsCompleted);
+        // Then complete the transaction requirement
+        contractProgressionService.CheckMarketProgression("tools", "crossbridge", TransactionType.Sell, 1, 10, player);
+        
+        // Assert: Contract should complete after both requirements are met
+        Assert.True(tradingPostContract.IsCompleted);
     }
 
     [Fact]
-    public void DeliverToolsContract_DoesNotComplete_OnJustHavingTools()
+    public void TradingPostSuppliesContract_DoesNotComplete_OnJustHavingTools()
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractProgressionService contractProgressionService = CreateContractProgressionService(gameWorld);
         Player player = gameWorld.GetPlayer();
         
-        Contract deliverToolsContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "deliver_tools");
-        Assert.NotNull(deliverToolsContract);
-        gameWorld.ActiveContracts.Add(deliverToolsContract);
+        Contract tradingPostContract = contractRepository.GetContract("trading_post_supplies");
+        Assert.NotNull(tradingPostContract);
+        gameWorld.ActiveContracts.Add(tradingPostContract);
         
         // Act: Player has tools but doesn't perform completion action
         player.Inventory.AddItem("tools");
         
         // Assert: Contract should NOT complete just from having tools
-        Assert.False(deliverToolsContract.IsCompleted);
+        Assert.False(tradingPostContract.IsCompleted);
     }
 
     [Fact]
-    public void MountainExplorationContract_CompletesOnArrival_NotOnHavingEquipment()
+    public void MountainAccessContract_CompletesOnArrival_NotOnHavingEquipment()
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractProgressionService contractProgressionService = CreateContractProgressionService(gameWorld);
         Player player = gameWorld.GetPlayer();
         
-        Contract mountainContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "mountain_exploration");
+        Contract mountainContract = contractRepository.GetContract("mountain_access_test");
         Assert.NotNull(mountainContract);
         gameWorld.ActiveContracts.Add(mountainContract);
         
@@ -83,10 +89,10 @@ public class ContractCompletionTests
         Assert.False(player.Inventory.HasItem("climbing_gear"));
         Assert.False(player.Inventory.HasItem("weather_protection"));
         
-        // Act: Player arrives at mountain_summit (completion action)
-        contractProgressionService.CheckTravelProgression("mountain_summit", player);
+        // Act: Player arrives at ironhold (completion action per contract requirements)
+        contractProgressionService.CheckTravelProgression("ironhold", player);
         
-        // Assert: Contract should complete based on arrival alone
+        // Assert: Contract should complete based on arrival alone (this contract only requires destination)
         Assert.True(mountainContract.IsCompleted);
     }
 
@@ -95,17 +101,19 @@ public class ContractCompletionTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractProgressionService contractProgressionService = CreateContractProgressionService(gameWorld);
         Player player = gameWorld.GetPlayer();
         
-        Contract messageContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "simple_message_delivery");
+        Contract messageContract = contractRepository.GetContract("village_herb_delivery");
         Assert.NotNull(messageContract);
         gameWorld.ActiveContracts.Add(messageContract);
         
-        // Act: Player talks to blacksmith (completion action)
-        contractProgressionService.CheckNPCConversationProgression("blacksmith", player);
+        // Act: Complete both destination and transaction requirements
+        contractProgressionService.CheckTravelProgression("millbrook", player);
+        contractProgressionService.CheckMarketProgression("herbs", "millbrook", TransactionType.Sell, 1, 5, player);
         
-        // Assert: Contract should complete based on conversation alone
+        // Assert: Contract should complete after both requirements are met
         Assert.True(messageContract.IsCompleted);
     }
 
@@ -114,10 +122,11 @@ public class ContractCompletionTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractProgressionService contractProgressionService = CreateContractProgressionService(gameWorld);
         Player player = gameWorld.GetPlayer();
         
-        Contract carpenterContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "carpenter_special");
+        Contract carpenterContract = contractRepository.GetContract("dark_passage_navigation");
         Assert.NotNull(carpenterContract);
         gameWorld.ActiveContracts.Add(carpenterContract);
         
@@ -126,19 +135,10 @@ public class ContractCompletionTests
         Assert.False(player.Inventory.HasItem("tools"));
         Assert.False(player.Inventory.HasItem("rope"));
         
-        // Create a mock location action for testing
-        LocationAction carpenterAction = new LocationAction
-        {
-            ActionId = "complete_carpenter_job",
-            Name = "Complete Carpenter Job",
-            LocationId = "town_square",
-            LocationSpotId = "workshop"
-        };
+        // Act: Player travels to workshop (this contract only requires destination)
+        contractProgressionService.CheckTravelProgression("workshop", player);
         
-        // Act: Player performs the completion action
-        contractProgressionService.CheckLocationActionProgression(carpenterAction, player);
-        
-        // Assert: Contract should complete based on action alone
+        // Assert: Contract should complete based on destination alone
         Assert.True(carpenterContract.IsCompleted);
     }
 
@@ -147,10 +147,11 @@ public class ContractCompletionTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractProgressionService contractProgressionService = CreateContractProgressionService(gameWorld);
         Player player = gameWorld.GetPlayer();
         
-        Contract tradeContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "urgent_trade_negotiation");
+        Contract tradeContract = contractRepository.GetContract("maritime_trade");
         Assert.NotNull(tradeContract);
         gameWorld.ActiveContracts.Add(tradeContract);
         
@@ -158,10 +159,13 @@ public class ContractCompletionTests
         player.ModifyCoins(-player.Coins); // Remove all coins
         Assert.Equal(0, player.Coins);
         
-        // Act: Player sells gold_coins at merchant_guild (completion action)
-        contractProgressionService.CheckMarketProgression("gold_coins", "merchant_guild", TransactionType.Sell, 1, 50, player);
+        // Act: Complete all requirements for maritime_trade
+        contractProgressionService.CheckTravelProgression("eastport", player);
+        contractProgressionService.CheckTravelProgression("crossbridge", player);
+        contractProgressionService.CheckMarketProgression("exotic_spices", "eastport", TransactionType.Buy, 1, 20, player);
+        contractProgressionService.CheckMarketProgression("exotic_spices", "crossbridge", TransactionType.Sell, 1, 30, player);
         
-        // Assert: Contract should complete based on the transaction alone
+        // Assert: Contract should complete based on all transactions
         Assert.True(tradeContract.IsCompleted);
     }
 
@@ -170,13 +174,14 @@ public class ContractCompletionTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractProgressionService contractProgressionService = CreateContractProgressionService(gameWorld);
         Player player = gameWorld.GetPlayer();
         
-        // Add multiple contracts
-        Contract toolsContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "deliver_tools");
-        Contract messageContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "simple_message_delivery");
-        Contract mountainContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "mountain_exploration");
+        // Add multiple contracts using repository pattern - using existing contract IDs
+        Contract toolsContract = contractRepository.GetContract("trading_post_supplies");
+        Contract messageContract = contractRepository.GetContract("village_herb_delivery");
+        Contract mountainContract = contractRepository.GetContract("mountain_access_test");
         
         Assert.NotNull(toolsContract);
         Assert.NotNull(messageContract);
@@ -184,8 +189,9 @@ public class ContractCompletionTests
         
         gameWorld.ActiveContracts.AddRange(new[] { toolsContract, messageContract, mountainContract });
         
-        // Act 1: Complete message delivery
-        contractProgressionService.CheckNPCConversationProgression("blacksmith", player);
+        // Act 1: Complete herb delivery (destination + transaction)
+        contractProgressionService.CheckTravelProgression("millbrook", player);
+        contractProgressionService.CheckMarketProgression("herbs", "millbrook", TransactionType.Sell, 1, 5, player);
         
         // Assert 1: Only message contract completes
         Assert.True(messageContract.IsCompleted);
@@ -193,15 +199,16 @@ public class ContractCompletionTests
         Assert.False(mountainContract.IsCompleted);
         
         // Act 2: Complete mountain exploration
-        contractProgressionService.CheckTravelProgression("mountain_summit", player);
+        contractProgressionService.CheckTravelProgression("ironhold", player);
         
         // Assert 2: Mountain contract also completes, tools still incomplete
         Assert.True(messageContract.IsCompleted);
         Assert.True(mountainContract.IsCompleted);
         Assert.False(toolsContract.IsCompleted);
         
-        // Act 3: Complete tools delivery
-        contractProgressionService.CheckMarketProgression("tools", "town_square", TransactionType.Sell, 1, 10, player);
+        // Act 3: Complete tools delivery (destination + transaction)
+        contractProgressionService.CheckTravelProgression("crossbridge", player);
+        contractProgressionService.CheckMarketProgression("tools", "crossbridge", TransactionType.Sell, 1, 10, player);
         
         // Assert 3: All contracts now complete
         Assert.True(messageContract.IsCompleted);
@@ -214,27 +221,30 @@ public class ContractCompletionTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
+        ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractProgressionService contractProgressionService = CreateContractProgressionService(gameWorld);
         Player player = gameWorld.GetPlayer();
         
-        // Find a contract with multiple completion requirements (like artisan_masterwork)
-        Contract artisanContract = gameWorld.WorldState.Contracts?.FirstOrDefault(c => c.Id == "artisan_masterwork");
+        // Find a contract with multiple completion requirements (village_wine_trade)
+        Contract artisanContract = contractRepository.GetContract("village_wine_trade");
         Assert.NotNull(artisanContract);
         gameWorld.ActiveContracts.Add(artisanContract);
         
-        // Act 1: Complete the transaction requirement
-        contractProgressionService.CheckMarketProgression("rare_materials", "workshop", TransactionType.Sell, 1, 100, player);
+        // Act 1: Complete one destination
+        contractProgressionService.CheckTravelProgression("millbrook", player);
         
-        // Assert 1: Contract not yet complete (still needs destination)
+        // Assert 1: Contract not yet complete (still needs other requirements)
         Assert.False(artisanContract.IsCompleted);
-        Assert.Single(artisanContract.CompletedTransactions);
-        
-        // Act 2: Complete the destination requirement
-        contractProgressionService.CheckTravelProgression("mountain_summit", player);
-        
-        // Assert 2: Contract now complete (both requirements met)
-        Assert.True(artisanContract.IsCompleted);
-        Assert.Single(artisanContract.CompletedTransactions);
         Assert.Single(artisanContract.CompletedDestinations);
+        
+        // Act 2: Complete remaining requirements
+        contractProgressionService.CheckTravelProgression("eastport", player);
+        contractProgressionService.CheckMarketProgression("wine_barrel", "millbrook", TransactionType.Buy, 1, 25, player);
+        contractProgressionService.CheckMarketProgression("wine_barrel", "eastport", TransactionType.Sell, 1, 35, player);
+        
+        // Assert 2: Contract now complete (all requirements met)
+        Assert.True(artisanContract.IsCompleted);
+        Assert.Equal(2, artisanContract.CompletedTransactions.Count);
+        Assert.Equal(2, artisanContract.CompletedDestinations.Count);
     }
 }

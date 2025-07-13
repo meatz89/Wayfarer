@@ -333,8 +333,44 @@ services.AddSingleton<ItemRepository>();
 ```
 
 #### **Testing Requirements**
+
+**CRITICAL TESTING ISOLATION PRINCIPLE:**
+- **NEVER** use production JSON content in tests
+- **ALWAYS** create test-specific JSON data for each test class
+- **EACH test class should have its own isolated test data** - never depend on shared production content
+- **Tests must validate system logic, not production data integrity**
+
+**MANDATORY TEST DATA ISOLATION:**
+1. **Create TestGameWorldInitializer** that uses test-specific content directories
+2. **Each test file creates its own minimal JSON data** for the specific scenarios being tested
+3. **Test data should be minimal and focused** - only include entities needed for the specific test
+4. **Production content changes should NEVER break tests**
+5. **Tests validate that contract logic works, not that specific game contracts work**
+
+**Examples of Proper Test Isolation:**
+```csharp
+// ❌ WRONG: Using production contracts.json
+Contract herbContract = contracts.GetContract("village_herb_delivery"); // Depends on production data
+
+// ✅ CORRECT: Test-specific contract data
+var testContracts = new[] {
+    new Contract {
+        Id = "test_travel_contract",
+        RequiredDestinations = ["test_destination"],
+        RequiredTransactions = []
+    }
+};
+TestGameWorldInitializer.CreateWithContracts(testContracts);
+```
+
+**Test Data Organization:**
+- `Tests/TestData/` directory for all test-specific JSON files
+- Each test class has its own data subdirectory
+- Minimal, focused data sets that test specific system behaviors
+- No coupling to production content that could change
+
 - **NEVER** manually create game objects in tests
-- **ALWAYS** use `GameWorldInitializer` for test setup
+- **ALWAYS** use `TestGameWorldInitializer` for test setup
 - Tests must verify JSON content loads correctly into GameWorld
 - Integration tests must validate complete initialization pipeline
 

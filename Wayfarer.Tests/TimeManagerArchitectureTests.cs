@@ -94,7 +94,7 @@ namespace Wayfarer.Tests
             TimeBlocks worldStateBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
             
             Assert.Equal(internalBlock, worldStateBlock);
-            Assert.Equal(TimeBlocks.Morning, worldStateBlock); // StartNewDay should set to morning
+            Assert.Equal(TimeBlocks.Dawn, worldStateBlock); // StartNewDay sets to TimeDayStart=6 which is Dawn
         }
         
         [Fact]

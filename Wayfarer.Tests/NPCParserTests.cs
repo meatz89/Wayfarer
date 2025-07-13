@@ -136,13 +136,16 @@ public class NPCParserTests
         // Assert - Test categorical system methods work correctly
         foreach (NPC npc in npcs)
         {
-            // Test availability checking
+            // Test availability checking across all time blocks
+            bool availableInDawn = npc.IsAvailable(TimeBlocks.Dawn);
             bool availableInMorning = npc.IsAvailable(TimeBlocks.Morning);
             bool availableInAfternoon = npc.IsAvailable(TimeBlocks.Afternoon);
             bool availableInEvening = npc.IsAvailable(TimeBlocks.Evening);
+            bool availableInNight = npc.IsAvailable(TimeBlocks.Night);
 
-            // At least one time should be available (or always available)
-            Assert.True(availableInMorning || availableInAfternoon || availableInEvening || npc.AvailabilitySchedule == Schedule.Always);
+            // At least one time should be available
+            Assert.True(availableInDawn || availableInMorning || availableInAfternoon || availableInEvening || availableInNight,
+                $"NPC {npc.Name} (ID: {npc.ID}) with schedule {npc.AvailabilitySchedule} is not available at any time: Dawn={availableInDawn}, Morning={availableInMorning}, Afternoon={availableInAfternoon}, Evening={availableInEvening}, Night={availableInNight}");
 
             // Test service provision
             foreach (ServiceTypes service in npc.ProvidedServices)
