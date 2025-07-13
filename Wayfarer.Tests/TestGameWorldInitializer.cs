@@ -119,19 +119,19 @@ public static class TestGameWorldInitializer
             }
         });
         
-        // Load items from JSON file like production GameWorldInitializer
+        // Load items from TEST-SPECIFIC JSON file - NEVER use production content
         List<Item> items = new List<Item>();
-        string itemsFilePath = Path.Combine("Content", "Templates", "items.json");
-        if (File.Exists(itemsFilePath))
+        string testItemsFilePath = Path.Combine("Wayfarer.Tests", "Content", "Templates", "items.json");
+        if (File.Exists(testItemsFilePath))
         {
             items = GameWorldSerializer.DeserializeItems(
-                File.ReadAllText(itemsFilePath));
+                File.ReadAllText(testItemsFilePath));
             gameWorld.WorldState.Items.AddRange(items);
-            Console.WriteLine($"Loaded {items.Count} items from JSON templates.");
+            Console.WriteLine($"Loaded {items.Count} items from TEST templates.");
         }
         else
         {
-            Console.WriteLine($"WARNING: items.json not found at {itemsFilePath}. Using basic test items.");
+            Console.WriteLine($"WARNING: TEST items.json not found at {testItemsFilePath}. Using basic test items.");
             // Fallback to basic test items
             gameWorld.WorldState.Items.AddRange(new[]
             {
@@ -160,19 +160,19 @@ public static class TestGameWorldInitializer
             });
         }
         
-        // Load contracts from JSON file like production GameWorldInitializer
+        // Load contracts from TEST-SPECIFIC JSON file - NEVER use production content
         List<Contract> contracts = new List<Contract>();
-        string contractsFilePath = Path.Combine("Content", "Templates", "contracts.json");
-        if (File.Exists(contractsFilePath))
+        string testContractsFilePath = Path.Combine("Wayfarer.Tests", "Content", "Templates", "contracts.json");
+        if (File.Exists(testContractsFilePath))
         {
             contracts = GameWorldSerializer.DeserializeContracts(
-                File.ReadAllText(contractsFilePath));
+                File.ReadAllText(testContractsFilePath));
             gameWorld.WorldState.Contracts.AddRange(contracts);
-            Console.WriteLine($"Loaded {contracts.Count} contracts from JSON templates.");
+            Console.WriteLine($"Loaded {contracts.Count} contracts from TEST templates.");
         }
         else
         {
-            Console.WriteLine($"WARNING: contracts.json not found at {contractsFilePath}. Using empty contract list.");
+            Console.WriteLine($"WARNING: TEST contracts.json not found at {testContractsFilePath}. Using empty contract list.");
         }
         
         // Add basic NPCs for market functionality using repository

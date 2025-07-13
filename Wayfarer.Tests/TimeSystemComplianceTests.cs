@@ -146,7 +146,7 @@ namespace Wayfarer.Tests
             
             // Set to late in day
             timeManager.SetNewTime(22); // 10:00 PM
-            Assert.Equal(TimeBlocks.Evening, timeManager.GetCurrentTimeBlock());
+            Assert.Equal(TimeBlocks.Night, timeManager.GetCurrentTimeBlock());
             
             int initialDay = timeManager.GetCurrentDay();
             
@@ -155,11 +155,11 @@ namespace Wayfarer.Tests
             
             // Assert - Should reset to dawn
             Assert.Equal(6, timeManager.GetCurrentTimeHours()); // TimeDayStart = 6
-            Assert.Equal(TimeBlocks.Morning, timeManager.GetCurrentTimeBlock());
+            Assert.Equal(TimeBlocks.Dawn, timeManager.GetCurrentTimeBlock());
             Assert.Equal(initialDay + 1, timeManager.GetCurrentDay());
             
-            // Action points should be refreshed
-            Assert.Equal(18, gameWorld.GetPlayer().CurrentActionPoints());
+            // Action points should NOT be regenerated per Period-Based Activity Planning user story
+            Assert.Equal(0, gameWorld.GetPlayer().CurrentActionPoints());
         }
         
         [Fact]
@@ -178,8 +178,8 @@ namespace Wayfarer.Tests
             var boundaryTests = new[]
             {
                 (hour: 11, expectedBefore: TimeBlocks.Morning, expectedAfter: TimeBlocks.Afternoon),
-                (hour: 17, expectedBefore: TimeBlocks.Afternoon, expectedAfter: TimeBlocks.Evening),
-                (hour: 23, expectedBefore: TimeBlocks.Evening, expectedAfter: TimeBlocks.Night)
+                (hour: 15, expectedBefore: TimeBlocks.Afternoon, expectedAfter: TimeBlocks.Evening),
+                (hour: 19, expectedBefore: TimeBlocks.Evening, expectedAfter: TimeBlocks.Night)
             };
             
             foreach (var test in boundaryTests)
@@ -205,10 +205,11 @@ namespace Wayfarer.Tests
         {
             return hour switch
             {
-                >= 6 and < 12 => TimeBlocks.Morning,
-                >= 12 and < 18 => TimeBlocks.Afternoon,  
-                >= 18 and < 24 => TimeBlocks.Evening,
-                _ => TimeBlocks.Night
+                >= 6 and < 9 => TimeBlocks.Dawn,      // 6:00-8:59 (3 hours)
+                >= 9 and < 12 => TimeBlocks.Morning,   // 9:00-11:59 (3 hours)
+                >= 12 and < 16 => TimeBlocks.Afternoon, // 12:00-15:59 (4 hours)
+                >= 16 and < 20 => TimeBlocks.Evening,   // 16:00-19:59 (4 hours)
+                _ => TimeBlocks.Night                   // 20:00-5:59 (10 hours)
             };
         }
         

@@ -106,6 +106,7 @@ public class ContractPipelineIntegrationTest
         
         // === SELL ITEMS (COMPLETION ACTION) ===
         // Player sells herbs at town_square - THIS completes the contract
+        // herb_delivery contract requires selling herbs at town_square (not millbrook)
         
         // Execute sale using enhanced method
         TradeActionResult sellResult = market.TrySellItem("herbs", "town_square");
@@ -202,28 +203,31 @@ public class ContractPipelineIntegrationTest
         ContractProgressionService progression = new ContractProgressionService(
             contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld));
         
-        // Accept contract
-        Contract explorationContract = contracts.GetContract("mountain_exploration");
-        gameWorld.ActiveContracts.Add(explorationContract);
+        // Accept contract - scout_mountain_pass is perfect for travel-only testing
+        // Only requires travel to mountain_pass, no transactions needed
+        Contract scoutContract = contracts.GetContract("scout_mountain_pass");
+        gameWorld.ActiveContracts.Add(scoutContract);
         
         // Verify initial state
-        ContractCompletionResult initialStatus = contracts.GetContractStatus("mountain_exploration");
+        ContractCompletionResult initialStatus = contracts.GetContractStatus("scout_mountain_pass");
         Assert.Equal(ContractStatus.Active, initialStatus.Status);
         Assert.Empty(initialStatus.CompletedDestinations);
         
-        // Travel to destination
+        // Travel to destination - need to add mountain_pass location for test
         Player player = gameWorld.GetPlayer();
-        Location mountainSummit = gameWorld.WorldState.locations.First(l => l.Id == "mountain_summit");
-        player.CurrentLocation = mountainSummit;
-        gameWorld.WorldState.SetCurrentLocation(mountainSummit, null);
+        var mountainPass = new Location("mountain_pass", "Mountain Pass") { Description = "A treacherous mountain passage" };
+        gameWorld.WorldState.locations.Add(mountainPass);
+        
+        player.CurrentLocation = mountainPass;
+        gameWorld.WorldState.SetCurrentLocation(mountainPass, null);
         
         // Check progression - this should complete the contract
-        progression.CheckTravelProgression("mountain_summit", player);
+        progression.CheckTravelProgression("mountain_pass", player);
         
         // Contract completes immediately upon arrival
-        ContractCompletionResult finalStatus = contracts.GetContractStatus("mountain_exploration");
+        ContractCompletionResult finalStatus = contracts.GetContractStatus("scout_mountain_pass");
         Assert.Equal(ContractStatus.Completed, finalStatus.Status);
-        Assert.Contains("mountain_summit", finalStatus.CompletedDestinations);
+        Assert.Contains("mountain_pass", finalStatus.CompletedDestinations);
         
         // This shows travel-based contracts complete on arrival, regardless of:
         // - How the player got there
@@ -255,7 +259,7 @@ public class ContractPipelineIntegrationTest
         ContractProgressionService progression = new ContractProgressionService(
             contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld));
         
-        // Accept contract
+        // Accept contract - artisan_masterwork has both transaction and destination requirements
         Contract complexContract = contracts.GetContract("artisan_masterwork");
         gameWorld.ActiveContracts.Add(complexContract);
         
