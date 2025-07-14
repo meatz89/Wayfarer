@@ -24,7 +24,7 @@ public interface ILocationProperty
     string GetPropertyType();
     string GetPropertyValue();
 }
-public class Illumination : ILocationProperty, IEquatable<Illumination>
+public sealed class Illumination : ILocationProperty, IEquatable<Illumination>
 {
     public static ILocationProperty Any
     {
@@ -86,7 +86,7 @@ public class Illumination : ILocationProperty, IEquatable<Illumination>
     }
 }
 
-public class Population : ILocationProperty, IEquatable<Population>
+public sealed class Population : ILocationProperty, IEquatable<Population>
 {
     public static ILocationProperty Any
     {
@@ -148,7 +148,7 @@ public class Population : ILocationProperty, IEquatable<Population>
     }
 }
 
-public class Physical : ILocationProperty, IEquatable<Physical>
+public sealed class Physical : ILocationProperty, IEquatable<Physical>
 {
     public static ILocationProperty Any
     {
@@ -210,7 +210,7 @@ public class Physical : ILocationProperty, IEquatable<Physical>
     }
 }
 
-public class Atmosphere : ILocationProperty, IEquatable<Atmosphere>
+public sealed class Atmosphere : ILocationProperty, IEquatable<Atmosphere>
 {
     public static ILocationProperty Any
     {

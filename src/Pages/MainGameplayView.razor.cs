@@ -144,7 +144,7 @@ public class MainGameplayViewBase : ComponentBase
         Stamina = snapshot.Stamina;
         Concentration = snapshot.Concentration;
 
-        if (oldSnapshot == null | !snapshot.IsEqualTo(oldSnapshot))
+        if (oldSnapshot == null || !snapshot.IsEqualTo(oldSnapshot))
         {
             // You need to update EncounterManager state and force StateHasChanged for ALL screens
             if (CurrentScreen == CurrentViews.EncounterScreen)
