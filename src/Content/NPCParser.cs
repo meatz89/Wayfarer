@@ -54,6 +54,10 @@ public static class NPCParser
             npc.PlayerRelationship = relationship;
         }
 
+        // Parse contract categories
+        List<string> contractCategories = GetStringArray(root, "contractCategories");
+        npc.ContractCategories = contractCategories;
+
         return npc;
     }
 
