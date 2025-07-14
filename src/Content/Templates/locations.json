@@ -10,7 +10,7 @@
 			"night": [ "DARK", "QUIET", "RURAL" ]
 		},
 		"domainTags": [ "SOCIAL", "COMMERCE" ],
-		"locationSpots": [ "market", "tavern", "workshop" ],
+		"locationSpots": [ "millbrook_market", "millbrook_tavern", "millbrook_workshop" ],
 		"connectedTo": [ "thornwood", "crossbridge" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
@@ -33,7 +33,7 @@
 			"night": [ "DARK", "PEACEFUL", "RURAL" ]
 		},
 		"domainTags": [ "RESOURCES", "LABOR" ],
-		"locationSpots": [ "logging_camp", "tavern" ],
+		"locationSpots": [ "thornwood_logging_camp", "thornwood_tavern" ],
 		"connectedTo": [ "millbrook", "crossbridge" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
@@ -56,7 +56,7 @@
 			"night": [ "DARK", "QUIET", "COMMERCE" ]
 		},
 		"domainTags": [ "COMMERCE", "TRANSPORT", "STRATEGIC" ],
-		"locationSpots": [ "market", "workshop", "dock" ],
+		"locationSpots": [ "crossbridge_market", "crossbridge_workshop", "crossbridge_dock" ],
 		"connectedTo": [ "millbrook", "thornwood" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",

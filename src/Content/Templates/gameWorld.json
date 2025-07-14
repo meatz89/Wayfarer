@@ -1,6 +1,6 @@
 {
 	"CurrentLocationId": "millbrook",
-	"CurrentLocationSpotId": "market",
+	"CurrentLocationSpotId": "millbrook_market",
 	"CurrentDay": 1,
 	"CurrentTimeHours": 6,
 	"Player": {
@@ -16,11 +16,6 @@
 		"Health": 10,
 		"Level": 1,
 		"CurrentXP": 0,
-		"InventoryItems": [
-			{
-				"itemId": "trade_tools",
-				"quantity": 1
-			}
-		]
+		"InventoryItems": ["trade_tools"]
 	}
 }

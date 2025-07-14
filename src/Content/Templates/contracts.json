@@ -1,487 +1,99 @@
 [
 	{
-		"id": "village_herb_delivery",
-		"description": "Deliver medicinal herbs to the village elder in Millbrook",
-		"startDay": 1,
-		"dueDay": 2,
-		"payment": 8,
-		"failurePenalty": "Village loses trust in your reliability",
+		"id": "rush_delivery",
+		"description": "Rush delivery contract - transport goods quickly with tight deadlines",
+		"contractType": "Rush",
+		"basePayment": 15,
+		"baseDuration": 1,
+		"failurePenalty": "Reputation damage and payment loss",
 		"isCompleted": false,
 		"isFailed": false,
-		"unlocksContractIds": [ "village_wine_trade" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Tutorial",
-		"priority": "Standard",
-		"riskLevel": "None",
-		"requiredDestinations": ["millbrook"],
+		"priority": "High",
+		"riskLevel": "High",
+		"requiredEquipmentCategories": ["Climbing_Equipment"],
+		"requiredDestinations": ["crossbridge", "thornwood"],
 		"requiredTransactions": [
 			{
 				"itemId": "herbs",
-				"locationId": "millbrook",
-				"transactionType": "Sell",
+				"locationId": "thornwood",
+				"transactionType": "Buy",
 				"quantity": 1
-			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "trading_post_supplies",
-		"description": "Deliver craft tools to the Crossbridge trading post by dawn",
-		"startDay": 1,
-		"dueDay": 2,
-		"payment": 15,
-		"failurePenalty": "Miss morning caravan departure schedules",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "caravan_coordination" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "Light",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Tutorial",
-		"priority": "Standard",
-		"riskLevel": "None",
-		"requiredDestinations": ["crossbridge"],
-		"requiredTransactions": [
+			},
 			{
-				"itemId": "tools",
+				"itemId": "herbs",
 				"locationId": "crossbridge",
 				"transactionType": "Sell",
 				"quantity": 1
 			}
 		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		"description_detailed": "High-pressure delivery requiring mountain routes and climbing equipment. Tight deadline creates scheduling conflicts with equipment investment."
 	},
 	{
-		"id": "dark_passage_navigation",
-		"description": "Test the workshop shortcut through dark alleys during night hours",
-		"startDay": 1,
-		"dueDay": 3,
-		"payment": 12,
-		"failurePenalty": "Route remains unverified for other travelers",
+		"id": "standard_trade",
+		"description": "Standard trade contract - reliable income with moderate requirements",
+		"contractType": "Standard",
+		"basePayment": 8,
+		"baseDuration": 3,
+		"failurePenalty": "Moderate reputation impact",
 		"isCompleted": false,
 		"isFailed": false,
-		"unlocksContractIds": [ "night_courier" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Light_Source" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Equipment_Training",
-		"priority": "Standard",
+		"priority": "Medium",
 		"riskLevel": "Low",
-		"requiredDestinations": ["workshop"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "mountain_access_test",
-		"description": "Establish safe climbing route to Ironhold fortress with proper equipment",
-		"startDay": 2,
-		"dueDay": 4,
-		"payment": 25,
-		"failurePenalty": "Mountain routes remain hazardous for trade caravans",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "mining_survey", "mountain_supply_route" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Climbing_Equipment", "Weather_Protection" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "Moderate",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Equipment_Training",
-		"priority": "Standard",
-		"riskLevel": "Moderate",
-		"requiredDestinations": ["ironhold"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "ferry_service_evaluation",
-		"description": "Test ferry connections between riverside settlement and Eastport harbor",
-		"startDay": 2,
-		"dueDay": 4,
-		"payment": 20,
-		"failurePenalty": "Water transport reliability remains questionable",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "maritime_trade", "coastal_exploration" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Water_Transport" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Equipment_Training",
-		"priority": "Standard",
-		"riskLevel": "Low",
-		"requiredDestinations": ["eastport", "riverside_settlement"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "village_wine_trade",
-		"description": "Transport Millbrook vintage wine to Eastport exotic market for premium prices",
-		"startDay": 3,
-		"dueDay": 5,
-		"payment": 35,
-		"failurePenalty": "Wine spoils and trading reputation suffers",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "luxury_merchant" ],
-		"locksContractIds": [],
 		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Merchant",
-		"physicalRequirement": "Light",
-		"requiredInformation": [],
-		"requiredKnowledge": "Commercial",
-		"category": "Trade",
-		"priority": "Standard",
-		"riskLevel": "Low",
-		"requiredDestinations": ["millbrook", "eastport"],
+		"requiredDestinations": ["millbrook", "crossbridge"],
 		"requiredTransactions": [
 			{
-				"itemId": "wine_barrel",
+				"itemId": "cloth",
 				"locationId": "millbrook",
 				"transactionType": "Buy",
 				"quantity": 1
 			},
 			{
-				"itemId": "wine_barrel",
-				"locationId": "eastport",
+				"itemId": "cloth",
+				"locationId": "crossbridge",
 				"transactionType": "Sell",
 				"quantity": 1
 			}
 		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		"description_detailed": "Steady income opportunity using cart-compatible routes. Balances reliability with reasonable deadlines."
 	},
 	{
-		"id": "mining_survey",
-		"description": "Conduct comprehensive mineral survey of mountain summit and ancient ruins",
-		"startDay": 3,
-		"dueDay": 6,
-		"payment": 60,
-		"failurePenalty": "Mining rights assigned to competing prospectors",
+		"id": "craft_workshop",
+		"description": "Craft contract - requires workshop access and trade tools",
+		"contractType": "Craft",
+		"basePayment": 12,
+		"baseDuration": 2,
+		"failurePenalty": "Workshop access restricted",
 		"isCompleted": false,
 		"isFailed": false,
-		"unlocksContractIds": [ "ruins_excavation", "mining_operation" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Climbing_Equipment", "Weather_Protection", "Navigation_Tools" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Professional",
-		"physicalRequirement": "Heavy",
-		"requiredInformation": [
-			{
-				"requiredType": "Route_Conditions",
-				"minimumQuality": "Reliable",
-				"minimumFreshness": "Current"
-			}
-		],
-		"requiredKnowledge": "Professional",
-		"category": "Exploration",
-		"priority": "High",
-		"riskLevel": "Moderate",
-		"requiredDestinations": ["mountain_summit", "ironhold"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "maritime_trade",
-		"description": "Establish exotic spice trade route between Eastport and inland markets",
-		"startDay": 4,
-		"dueDay": 6,
-		"payment": 45,
-		"failurePenalty": "Exotic traders seek other partnerships",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "ocean_expedition" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Water_Transport", "Social_Signaling" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Merchant",
-		"physicalRequirement": "Light",
-		"requiredInformation": [
-			{
-				"requiredType": "Market_Intelligence",
-				"minimumQuality": "Reliable",
-				"minimumFreshness": "Current"
-			}
-		],
-		"requiredKnowledge": "Commercial",
-		"category": "Trade",
-		"priority": "High",
+		"priority": "Medium",
 		"riskLevel": "Low",
-		"requiredDestinations": ["eastport", "crossbridge"],
+		"requiredEquipmentCategories": ["Trade_Tools"],
+		"requiredDestinations": ["millbrook"],
 		"requiredTransactions": [
 			{
-				"itemId": "exotic_spices",
-				"locationId": "eastport",
+				"itemId": "pottery",
+				"locationId": "millbrook",
 				"transactionType": "Buy",
-				"quantity": 1
-			},
-			{
-				"itemId": "exotic_spices",
-				"locationId": "crossbridge",
-				"transactionType": "Sell",
 				"quantity": 1
 			}
 		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		"description_detailed": "Workshop-based crafting requiring Trade Tools. Creates inventory slot pressure due to large item production."
 	},
 	{
-		"id": "night_courier",
-		"description": "Emergency overnight delivery of urgent documents to multiple locations",
-		"startDay": 4,
-		"dueDay": 5,
-		"payment": 50,
-		"failurePenalty": "Critical diplomatic communications delayed",
+		"id": "exploration_survey",
+		"description": "Exploration contract - discover new routes and survey terrain",
+		"contractType": "Exploration",
+		"basePayment": 6,
+		"baseDuration": 5,
+		"failurePenalty": "Route discovery opportunities lost",
 		"isCompleted": false,
 		"isFailed": false,
-		"unlocksContractIds": [ "diplomatic_mission" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Light_Source", "Navigation_Tools" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Professional",
-		"physicalRequirement": "Moderate",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Emergency",
-		"priority": "Urgent",
-		"riskLevel": "Moderate",
-		"requiredDestinations": ["workshop", "crossbridge", "riverside_settlement"],
+		"priority": "Low",
+		"riskLevel": "Medium",
+		"requiredEquipmentCategories": ["Navigation_Tools"],
+		"requiredDestinations": ["thornwood"],
 		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "caravan_coordination",
-		"description": "Coordinate multi-location supply chain for mining operation startup",
-		"startDay": 5,
-		"dueDay": 7,
-		"payment": 75,
-		"failurePenalty": "Mining operation startup severely delayed",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "master_trader" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Load_Distribution", "Social_Signaling" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Merchant",
-		"physicalRequirement": "Moderate",
-		"requiredInformation": [
-			{
-				"requiredType": "Route_Conditions",
-				"minimumQuality": "Verified",
-				"minimumFreshness": "Current"
-			},
-			{
-				"requiredType": "Transport_Schedules",
-				"minimumQuality": "Reliable",
-				"minimumFreshness": "Current"
-			}
-		],
-		"requiredKnowledge": "Commercial",
-		"category": "Complex",
-		"priority": "High",
-		"riskLevel": "Low",
-		"requiredDestinations": ["crossbridge", "ironhold", "workshop"],
-		"requiredTransactions": [
-			{
-				"itemId": "tools",
-				"locationId": "crossbridge",
-				"transactionType": "Buy",
-				"quantity": 2
-			},
-			{
-				"itemId": "tools",
-				"locationId": "ironhold",
-				"transactionType": "Sell",
-				"quantity": 2
-			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "ruins_excavation",
-		"description": "Lead archaeological expedition to ancient ruins requiring specialized preparation",
-		"startDay": 6,
-		"dueDay": 9,
-		"payment": 120,
-		"failurePenalty": "Ruins access restricted by territorial claims",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "artifact_trade" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Climbing_Equipment", "Light_Source", "Navigation_Tools", "Weather_Protection" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Professional",
-		"physicalRequirement": "Extreme",
-		"requiredInformation": [
-			{
-				"requiredType": "Location_Secrets",
-				"minimumQuality": "Verified",
-				"minimumFreshness": "Recent"
-			},
-			{
-				"requiredType": "Route_Conditions",
-				"minimumQuality": "Expert",
-				"minimumFreshness": "Current"
-			}
-		],
-		"requiredKnowledge": "Advanced",
-		"category": "Exploration",
-		"priority": "Critical",
-		"riskLevel": "Extreme",
-		"requiredDestinations": ["ancient_ruins", "mountain_summit"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "ocean_expedition",
-		"description": "Dangerous voyage to exotic islands for rare artifact recovery",
-		"startDay": 7,
-		"dueDay": 12,
-		"payment": 200,
-		"failurePenalty": "Expedition ship lost to storms or pirates",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "trade_empire" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Water_Transport", "Navigation_Tools", "Weather_Protection" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Merchant",
-		"physicalRequirement": "Heavy",
-		"requiredInformation": [
-			{
-				"requiredType": "Maritime_Conditions",
-				"minimumQuality": "Expert",
-				"minimumFreshness": "Breaking"
-			},
-			{
-				"requiredType": "Ocean_Navigation",
-				"minimumQuality": "Master",
-				"minimumFreshness": "Current"
-			}
-		],
-		"requiredKnowledge": "Master",
-		"category": "Extreme",
-		"priority": "Critical",
-		"riskLevel": "Extreme",
-		"requiredDestinations": ["eastport"],
-		"requiredTransactions": [
-			{
-				"itemId": "star_charts",
-				"locationId": "eastport",
-				"transactionType": "Buy",
-				"quantity": 1
-			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "diplomatic_mission",
-		"description": "High-stakes diplomatic negotiation requiring noble credentials and perfect timing",
-		"startDay": 8,
-		"dueDay": 9,
-		"payment": 150,
-		"failurePenalty": "Regional trade alliance collapses",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "regional_governor" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Social_Signaling" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Noble",
-		"physicalRequirement": "None",
-		"requiredInformation": [
-			{
-				"requiredType": "Political_Intelligence",
-				"minimumQuality": "Expert",
-				"minimumFreshness": "Breaking"
-			},
-			{
-				"requiredType": "Social_Protocols",
-				"minimumQuality": "Master",
-				"minimumFreshness": "Current"
-			}
-		],
-		"requiredKnowledge": "Diplomatic",
-		"category": "Extreme",
-		"priority": "Critical",
-		"riskLevel": "High",
-		"requiredDestinations": ["eastport"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
-	},
-	{
-		"id": "mountain_supply_route",
-		"description": "Establish permanent heavy cargo route to mountain mining operations",
-		"startDay": 5,
-		"dueDay": 8,
-		"payment": 85,
-		"failurePenalty": "Mining operations remain isolated and inefficient",
-		"isCompleted": false,
-		"isFailed": false,
-		"unlocksContractIds": [ "mining_operation" ],
-		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Climbing_Equipment", "Load_Distribution", "Weather_Protection" ],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Professional",
-		"physicalRequirement": "Heavy",
-		"requiredInformation": [
-			{
-				"requiredType": "Route_Conditions",
-				"minimumQuality": "Reliable",
-				"minimumFreshness": "Current"
-			}
-		],
-		"requiredKnowledge": "Professional",
-		"category": "Complex",
-		"priority": "High",
-		"riskLevel": "Moderate",
-		"requiredDestinations": ["crossbridge", "ironhold"],
-		"requiredTransactions": [
-			{
-				"itemId": "masterwork_tools",
-				"locationId": "crossbridge",
-				"transactionType": "Buy",
-				"quantity": 1
-			},
-			{
-				"itemId": "masterwork_tools",
-				"locationId": "ironhold",
-				"transactionType": "Sell",
-				"quantity": 1
-			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		"description_detailed": "Long-term exploration requiring Navigation Tools. Lower immediate payment but discovery bonus potential."
 	}
 ]
