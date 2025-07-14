@@ -4,6 +4,201 @@ This document captures critical architectural discoveries and patterns that must
 
 ## CORE ARCHITECTURAL PATTERNS
 
+### CODE WRITING PRINCIPLES
+- Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
+- After each change, run the tests to check for broken functionality. Never commit while tests are failing
+- **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
+- You must run all tests and execute the game and do quick smoke tests before every commit
+- **Never keep legacy code for compatibility**
+- **NEVER use suffixes like "New", "Revised", "V2", etc.** - Replace old implementations completely and use the correct final name immediately. Delete old code, don't leave it behind.
+- **CRITICAL: NEVER USE REFLECTION** - If you find ANY reflection usage in the codebase:
+  1. **IMMEDIATELY create highest priority TODO** to remove the reflection
+  2. **STOP all other work** - reflection makes code unmaintainable and breaks refactoring
+  3. **Fix it properly** - make fields public, add proper accessors, or redesign the architecture
+  4. **NO EXCEPTIONS** - There is never a valid reason to use reflection in production code
+- **CRITICAL: IMMEDIATE LEGACY CODE ELIMINATION** - If you discover ANY legacy code, compilation errors, or deprecated patterns during development, you MUST immediately:
+  1. **CREATE HIGH-PRIORITY TODO ITEM** to fix the legacy code
+  2. **STOP current work** and fix the legacy code immediately
+  3. **NEVER ignore or postpone** legacy code fixes
+  4. **NEVER say "these are just dependency fixes"** - fix them now or create immediate todo items
+- **CRITICAL: ARCHITECTURAL BUG DISCOVERY** - If you discover architectural bugs (e.g., duplicate state storage, inconsistent data access patterns), you MUST:
+  1. **IMMEDIATELY create highest priority TODO** to fix the architectural issue
+  2. **STOP all other work** - architectural bugs corrupt the entire system
+  3. **NEVER work around architectural bugs** - fix them at the source
+  4. **Document the fix in GAME-ARCHITECTURE.md** for future reference
+
+
+### CORE ARCHITECTURAL PATTERNS
+
+#### **UI Access Patterns (CRITICAL DISTINCTION)**
+
+**FOR ACTIONS (State Changes):**
+All UI components must route actions through GameWorldManager instead of injecting managers directly.
+- ✅ Correct: UI → GameWorldManager → Specific Manager (for actions like BuyItem, TravelTo, CompleteContract)
+- ❌ Wrong: UI → Direct Manager Injection
+
+**FOR QUERIES (Reading State):**
+All UI components must use repositories for data access instead of direct GameWorld property access.
+- ✅ Correct: UI → Repository → GameWorld.WorldState (for queries like GetCurrentLocation, GetAvailableItems)
+- ❌ Wrong: UI → GameWorld.WorldState (direct property access)
+
+#### **Stateless Repositories** 
+Repositories MUST be completely stateless and only delegate to GameWorld - NO data storage or caching allowed.
+- ✅ Correct: `private readonly GameWorld _gameWorld` (ONLY allowed private field)
+- ✅ Correct: Every method accesses `_gameWorld.WorldState.Property` directly
+- ❌ Wrong: `private List<Entity> _cachedEntities` or any state storage
+- ❌ Wrong: `private WorldState` caching or direct WorldState access
+- ❌ Wrong: Any private fields other than GameWorld dependency
+
+**ENFORCEMENT**: Repository classes may ONLY have `private readonly GameWorld _gameWorld` field. All data comes from GameWorld on every method call.
+
+#### **Repository-Mediated Access Only (CRITICAL ARCHITECTURAL PRINCIPLE)**
+**ALL game state access MUST go through entity repositories - NEVER through direct GameWorld property access.**
+
+**MANDATORY ENFORCEMENT RULES:**
+1. **ONLY repositories may access GameWorld.WorldState properties**
+2. **Business logic MUST use repositories, never GameWorld properties**  
+3. **Tests MUST use repositories, never GameWorld properties**
+4. **UI components MUST use repositories, never GameWorld properties**
+5. **GameWorld properties exist ONLY for repository implementation**
+6. **Test setup MUST use repositories for data creation, never direct WorldState access**
+
+**VIOLATION EXAMPLES - FORBIDDEN:**
+```csharp
+❌ gameWorld.WorldState.AddCharacter(npc);           // Direct WorldState access
+❌ gameWorld.WorldState.Items.Add(item);             // Direct collection access
+❌ var locations = gameWorld.WorldState.locations;   // Direct property access
+❌ gameWorld.WorldState.Contracts.AddRange(contracts); // Direct collection manipulation
+```
+
+**CORRECT PATTERNS - REQUIRED:**
+```csharp
+✅ npcRepository.AddNPC(npc);                        // Repository-mediated
+✅ itemRepository.AddItem(item);                     // Repository-mediated
+✅ var locations = locationRepository.GetAllLocations(); // Repository query
+✅ contractRepository.AddContracts(contracts);      // Repository-mediated
+```
+
+**TEST ARCHITECTURE - SPECIAL CASE:**
+Tests differ from production ONLY in GameWorld construction. The GameWorldManager → Repository → GameWorld flow remains identical:
+
+```csharp
+// ✅ CORRECT TEST PATTERN:
+// 1. Construct GameWorld differently (TestGameWorldInitializer vs GameWorldInitializer)
+GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+
+// 2. Use IDENTICAL repository access patterns as production
+NPCRepository npcRepository = new NPCRepository(gameWorld);
+npcRepository.AddNPC(testNPC);  // Repository-mediated, just like production
+
+// 3. GameWorldManager behavior is IDENTICAL to production
+GameWorldManager manager = new GameWorldManager(gameWorld, ...repositories...);
+```
+
+**THIS APPLIES TO ALL CODE - NO EXCEPTIONS:**
+- Production business logic
+- Test setup and teardown
+- UI component data access
+- Manager classes
+- Service classes
+
+#### **Repository-Based ID Resolution Pattern**
+Repositories are responsible for ID-to-object lookup, not initialization or business logic.
+- **GameWorldInitializer**: Only loads raw JSON data, no relationship building
+- **Repositories**: Provide `GetEntityById(string id)` methods for all lookups
+- **Business Logic**: Uses repositories to resolve IDs when needed for rules/mechanics
+- **NEVER** do direct LINQ lookups in business logic - always use repository methods
+- Validation of missing/invalid IDs handled at repository level
+
+
+#### **Service Configuration**
+- Production: Use `ConfigureServices()` for full AI stack
+- Testing: Use `ConfigureTestServices()` for economic-only functionality
+- No duplicate service registrations
+
+#### **Testing Requirements**
+
+**CRITICAL TESTING ISOLATION PRINCIPLE:**
+- **NEVER** use production JSON content in tests
+- **ALWAYS** create test-specific JSON data for each test class
+- **EACH test class should have its own isolated test data** - never depend on shared production content
+- **Tests must validate system logic, not production data integrity**
+
+**MANDATORY TEST DATA ISOLATION:**
+1. **Create TestGameWorldInitializer** that uses test-specific content directories
+2. **Each test file creates its own minimal JSON data** for the specific scenarios being tested
+3. **Test data should be minimal and focused** - only include entities needed for the specific test
+4. **Production content changes should NEVER break tests**
+5. **Tests validate that contract logic works, not that specific game contracts work**
+
+**Examples of Proper Test Isolation:**
+```csharp
+// ❌ WRONG: Using production contracts.json
+Contract herbContract = contracts.GetContract("village_herb_delivery"); // Depends on production data
+
+// ✅ CORRECT: Test-specific contract data
+var testContracts = new[] {
+    new Contract {
+        Id = "test_travel_contract",
+        RequiredDestinations = ["test_destination"],
+        RequiredTransactions = []
+    }
+};
+TestGameWorldInitializer.CreateWithContracts(testContracts);
+```
+
+**Test Data Organization:**
+- `Tests/TestData/` directory for all test-specific JSON files
+- Each test class has its own data subdirectory
+- Minimal, focused data sets that test specific system behaviors
+- No coupling to production content that could change
+
+- **NEVER** manually create game objects in tests
+- **ALWAYS** use `TestGameWorldInitializer` for test setup
+- Tests must verify JSON content loads correctly into GameWorld
+- Integration tests must validate complete initialization pipeline
+
+#### **Critical Pattern: ID-based Serialization vs Object References**
+
+**FUNDAMENTAL ARCHITECTURE**: The game uses a dual-reference system for entity relationships:
+
+**JSON Serialization Layer (String IDs)**
+```json
+{
+  "routes": [
+    {
+      "id": "road_to_market",
+      "origin": "dusty_flagon",           // String ID reference
+      "destination": "town_square",       // String ID reference
+      "requiredItems": ["climbing_gear"]  // String ID references
+    }
+  ],
+  "contracts": [
+    {
+      "id": "deliver_tools",
+      "destinationLocation": "town_square", // String ID reference
+      "requiredItems": ["tools"]            // String ID references
+    }
+  ]
+}
+```
+
+**Runtime Code Layer (Object References)**
+```csharp
+public class RouteOption
+{
+    public string Origin { get; set; }        // String ID for serialization
+    public string Destination { get; set; }   // String ID for serialization
+    
+    // Runtime: Code resolves IDs to actual objects when needed
+    public Location GetOriginLocation(GameWorld gameWorld) =>
+        gameWorld.WorldState.locations.First(loc => loc.Id == Origin);
+    
+    public Location GetDestinationLocation(GameWorld gameWorld) =>
+        gameWorld.WorldState.locations.First(loc => loc.Id == Destination);
+}
+```
+
 ### **NO FUNC/ACTION/PREDICATE DELEGATES - CONCRETE TYPES ONLY**
 
 **FUNDAMENTAL PRINCIPLE**: Main application code must never use `Func<>`, `Action<>`, `Predicate<>` or similar delegate types. Use concrete interfaces and classes for maintainability, testability, and clarity.
