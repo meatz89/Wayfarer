@@ -36,28 +36,6 @@ public enum SizeCategory
     Massive    // Blocks route access without proper transport (3 slots)
 }
 
-public enum FragilityCategory
-{
-    Sturdy,    // Resistant to rough handling and weather
-    Standard,  // Normal item durability
-    Delicate,  // Requires careful handling
-    Fragile    // High risk of damage during rough travel
-}
-
-public enum SocialSignal
-{
-    Vagrant,        // Clearly destitute appearance
-    Commoner,       // Basic working-class signaling
-    Merchant,       // Commercial credentials and status
-    Artisan,        // Professional craftsperson standing
-    Minor_Noble,    // Lower nobility appearance
-    Major_Noble,    // High nobility status
-    Foreign,        // Clearly from another region/culture
-    Clergy,         // Religious figure status
-    Scholar,        // Academic/learned appearance
-    Professional    // Specialized professional credentials
-}
-
 public class Item
 {
     public string Id { get; set; }
@@ -68,12 +46,10 @@ public class Item
     public int InventorySlots { get; set; } = 1;
     public List<EquipmentCategory> Categories { get; set; } = new List<EquipmentCategory>();
     public List<ItemCategory> ItemCategories { get; set; } = new List<ItemCategory>();
-    
+
     // Enhanced Categorical Properties
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
-    public FragilityCategory Fragility { get; set; } = FragilityCategory.Standard;
-    public SocialSignal SocialSignaling { get; set; } = SocialSignal.Commoner;
-    
+
     public string LocationId { get; set; }
     public string SpotId { get; set; }
     public string Description { get; set; }
@@ -121,23 +97,6 @@ public class Item
             return $"Size: {Size.ToString()}";
         }
     }
-
-    public string FragilityCategoryDescription
-    {
-        get
-        {
-            return $"Fragility: {Fragility.ToString()}";
-        }
-    }
-
-    public string SocialSignalingDescription
-    {
-        get
-        {
-            return $"Social Signaling: {SocialSignaling.ToString().Replace('_', ' ')}";
-        }
-    }
-
     public string AllCategoriesDescription
     {
         get
@@ -148,8 +107,6 @@ public class Item
             if (!string.IsNullOrEmpty(ItemCategoriesDescription))
                 descriptions.Add(ItemCategoriesDescription);
             descriptions.Add(SizeCategoryDescription);
-            descriptions.Add(FragilityCategoryDescription);
-            descriptions.Add(SocialSignalingDescription);
             return string.Join(" • ", descriptions);
         }
     }
@@ -196,16 +153,6 @@ public class Item
     public bool IsSizeCategory(SizeCategory sizeCategory)
     {
         return Size == sizeCategory;
-    }
-
-    public bool IsFragilityCategory(FragilityCategory fragilityCategory)
-    {
-        return Fragility == fragilityCategory;
-    }
-
-    public bool HasSocialSignal(SocialSignal socialSignal)
-    {
-        return SocialSignaling == socialSignal;
     }
 
     public bool IsAvailable { get; internal set; }

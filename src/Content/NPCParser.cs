@@ -28,13 +28,6 @@ public static class NPCParser
             npc.Profession = profession;
         }
 
-        // Parse social class
-        string socialClassStr = GetStringProperty(root, "socialClass", "");
-        if (Enum.TryParse<Social_Class>(socialClassStr, out Social_Class socialClass))
-        {
-            npc.SocialClass = socialClass;
-        }
-
         // Parse availability schedule
         string scheduleStr = GetStringProperty(root, "availabilitySchedule", "");
         if (Enum.TryParse<Schedule>(scheduleStr, out Schedule schedule))

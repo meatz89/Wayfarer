@@ -14,7 +14,7 @@ public class ContractProgressionService
     private readonly LocationRepository _locationRepository;
 
     public ContractProgressionService(
-        ContractRepository contractRepository, 
+        ContractRepository contractRepository,
         ItemRepository itemRepository,
         LocationRepository locationRepository)
     {
@@ -29,35 +29,42 @@ public class ContractProgressionService
     public void CheckLocationActionProgression(LocationAction action, Player player)
     {
         List<Contract> activeContracts = _contractRepository.GetActiveContracts();
-        
+
         foreach (Contract contract in activeContracts)
         {
             bool progressMade = false;
-            
-            // Check if this action is required by the contract
-            if (contract.RequiredLocationActions.Contains(action.ActionId))
+
+            // NEW: Check ContractStep system first
+            if (contract.CompletionSteps.Any())
             {
-                if (!contract.CompletedLocationActions.Contains(action.ActionId))
+                LocationActionContext locationActionContext = new LocationActionContext
                 {
-                    contract.CompletedLocationActions.Add(action.ActionId);
-                    progressMade = true;
-                }
-            }
-            
-            // Check if action involves talking to required NPCs
-            if (IsNPCConversationAction(action))
-            {
-                string npcId = ExtractNPCFromAction(action);
-                if (!string.IsNullOrEmpty(npcId) && contract.RequiredNPCConversations.Contains(npcId))
+                    ActionId = action.ActionId,
+                    LocationId = action.LocationId,
+                    LocationSpotId = action.LocationSpotId
+                };
+
+                progressMade = contract.CheckStepCompletion(player, action.LocationId, locationActionContext);
+
+                // Also check for NPC conversations embedded in location actions
+                if (IsNPCConversationAction(action))
                 {
-                    if (!contract.CompletedNPCConversations.Contains(npcId))
+                    string npcId = ExtractNPCFromAction(action);
+                    if (!string.IsNullOrEmpty(npcId))
                     {
-                        contract.CompletedNPCConversations.Add(npcId);
-                        progressMade = true;
+                        ConversationContext conversationContext = new ConversationContext
+                        {
+                            NPCId = npcId,
+                            LocationId = action.LocationId
+                        };
+
+                        if (contract.CheckStepCompletion(player, action.LocationId, conversationContext))
+                        {
+                            progressMade = true;
+                        }
                     }
                 }
             }
-            
             // Check for contract completion
             if (progressMade && contract.IsFullyCompleted())
             {
@@ -72,22 +79,17 @@ public class ContractProgressionService
     public void CheckTravelProgression(string destinationLocationId, Player player)
     {
         List<Contract> activeContracts = _contractRepository.GetActiveContracts();
-        
+
         foreach (Contract contract in activeContracts)
         {
             bool progressMade = false;
-            
-            // Check if this destination is required by the contract
-            if (contract.RequiredDestinations.Contains(destinationLocationId))
+
+            // NEW: Check ContractStep system first
+            if (contract.CompletionSteps.Any())
             {
-                if (!contract.CompletedDestinations.Contains(destinationLocationId))
-                {
-                    contract.CompletedDestinations.Add(destinationLocationId);
-                    progressMade = true;
-                }
+                progressMade = contract.CheckStepCompletion(player, destinationLocationId);
             }
-            
-            
+
             // Check for contract completion
             if (progressMade && contract.IsFullyCompleted())
             {
@@ -99,35 +101,30 @@ public class ContractProgressionService
     /// <summary>
     /// Check if a market transaction progresses any active contracts
     /// </summary>
-    public void CheckMarketProgression(string itemId, string locationId, TransactionType transactionType, 
+    public void CheckMarketProgression(string itemId, string locationId, TransactionType transactionType,
                                      int quantity, int price, Player player)
     {
         List<Contract> activeContracts = _contractRepository.GetActiveContracts();
-        
+
         foreach (Contract contract in activeContracts)
         {
             bool progressMade = false;
-            
-            // Check transaction requirements
-            foreach (ContractTransaction requirement in contract.RequiredTransactions)
+
+            // NEW: Check ContractStep system first
+            if (contract.CompletionSteps.Any())
             {
-                if (requirement.Matches(itemId, locationId, transactionType, quantity, price))
+                TransactionContext transactionContext = new TransactionContext
                 {
-                    // Check if this transaction is already completed
-                    bool alreadyCompleted = contract.CompletedTransactions.Any(completed =>
-                        completed.ItemId == requirement.ItemId &&
-                        completed.LocationId == requirement.LocationId &&
-                        completed.TransactionType == requirement.TransactionType);
-                    
-                    if (!alreadyCompleted)
-                    {
-                        contract.CompletedTransactions.Add(new ContractTransaction(
-                            itemId, locationId, transactionType, quantity));
-                        progressMade = true;
-                    }
-                }
+                    ItemId = itemId,
+                    LocationId = locationId,
+                    TransactionType = transactionType,
+                    Quantity = quantity,
+                    Price = price
+                };
+
+                progressMade = contract.CheckStepCompletion(player, locationId, transactionContext);
             }
-            
+
             // Check for contract completion
             if (progressMade && contract.IsFullyCompleted())
             {
@@ -142,17 +139,16 @@ public class ContractProgressionService
     public void CheckInformationProgression(Information information, Player player)
     {
         List<Contract> activeContracts = _contractRepository.GetActiveContracts();
-        
+
         foreach (Contract contract in activeContracts)
         {
             bool progressMade = false;
-            
+
             // Check information requirements
             foreach (InformationRequirementData requirement in contract.RequiredInformation)
             {
                 if (information.Type == requirement.RequiredType &&
-                    information.Quality >= requirement.MinimumQuality &&
-                    information.Freshness >= requirement.MinimumFreshness)
+                    information.Quality >= requirement.MinimumQuality)
                 {
                     // Information requirement satisfied
                     progressMade = true;
@@ -160,7 +156,7 @@ public class ContractProgressionService
                     // contract validation will check this automatically
                 }
             }
-            
+
             // Check for contract completion
             if (progressMade && contract.IsFullyCompleted())
             {
@@ -177,22 +173,22 @@ public class ContractProgressionService
         Contract contract = _contractRepository.GetContract(contractId);
         if (contract == null)
             return new ContractProgressInfo { ContractId = contractId, IsFound = false };
-        
-        return new ContractProgressInfo
+
+        ContractProgressInfo progressInfo = new ContractProgressInfo
         {
             ContractId = contractId,
             IsFound = true,
-            ProgressPercentage = contract.CalculateProgress(),
-            IsCompleted = contract.IsFullyCompleted(),
-            CompletedDestinations = contract.CompletedDestinations.ToList(),
-            RemainingDestinations = contract.RequiredDestinations.Except(contract.CompletedDestinations).ToList(),
-            CompletedTransactions = contract.CompletedTransactions.ToList(),
-            RemainingTransactions = contract.RequiredTransactions.Except(contract.CompletedTransactions).ToList(),
-            CompletedNPCConversations = contract.CompletedNPCConversations.ToList(),
-            RemainingNPCConversations = contract.RequiredNPCConversations.Except(contract.CompletedNPCConversations).ToList(),
-            CompletedLocationActions = contract.CompletedLocationActions.ToList(),
-            RemainingLocationActions = contract.RequiredLocationActions.Except(contract.CompletedLocationActions).ToList()
+            IsCompleted = contract.IsFullyCompleted()
         };
+
+        // NEW: Use ContractStep system if available
+        if (contract.CompletionSteps.Any())
+        {
+            progressInfo.CompletionSteps = contract.GetCompletionRequirements();
+            progressInfo.RemainingSteps = contract.GetRemainingRequirements();
+        }
+
+        return progressInfo;
     }
 
     /// <summary>
@@ -207,24 +203,26 @@ public class ContractProgressionService
     /// <summary>
     /// Check if having a conversation with an NPC progresses any active contracts
     /// </summary>
-    public void CheckNPCConversationProgression(string npcId, Player player)
+    public void CheckNPCConversationProgression(string npcId, string locationId, Player player)
     {
         List<Contract> activeContracts = _contractRepository.GetActiveContracts();
-        
+
         foreach (Contract contract in activeContracts)
         {
             bool progressMade = false;
-            
-            // Check if this NPC conversation is required by the contract
-            if (contract.RequiredNPCConversations.Contains(npcId))
+
+            // NEW: Check ContractStep system first
+            if (contract.CompletionSteps.Any())
             {
-                if (!contract.CompletedNPCConversations.Contains(npcId))
+                ConversationContext conversationContext = new ConversationContext
                 {
-                    contract.CompletedNPCConversations.Add(npcId);
-                    progressMade = true;
-                }
+                    NPCId = npcId,
+                    LocationId = locationId
+                };
+
+                progressMade = contract.CheckStepCompletion(player, locationId, conversationContext);
             }
-            
+
             // Check for contract completion
             if (progressMade && contract.IsFullyCompleted())
             {
@@ -238,10 +236,10 @@ public class ContractProgressionService
         // Mark contract as completed
         contract.IsCompleted = true;
         contract.CompletedDay = GetCurrentDay(); // TODO: Get from TimeManager
-        
+
         // Move from active to completed
         _contractRepository.CompleteContract(contract.Id);
-        
+
         // TODO: Apply contract completion rewards
         // TODO: Update player reputation
         // TODO: Trigger contract completion effects
@@ -251,7 +249,7 @@ public class ContractProgressionService
     {
         // Check if action name/description indicates NPC conversation
         string actionName = action.Name.ToLower();
-        return actionName.Contains("talk") || actionName.Contains("speak") || 
+        return actionName.Contains("talk") || actionName.Contains("speak") ||
                actionName.Contains("discuss") || actionName.Contains("negotiate");
     }
 
@@ -265,7 +263,7 @@ public class ContractProgressionService
             return "market_trader";
         if (action.LocationSpotId.Contains("guard"))
             return "town_guard";
-        
+
         // Default to location spot ID for NPC identification
         return action.LocationSpotId;
     }
@@ -284,22 +282,9 @@ public class ContractProgressInfo
 {
     public string ContractId { get; set; } = "";
     public bool IsFound { get; set; }
-    public float ProgressPercentage { get; set; }
     public bool IsCompleted { get; set; }
-    
-    // Destination progress
-    public List<string> CompletedDestinations { get; set; } = new();
-    public List<string> RemainingDestinations { get; set; } = new();
-    
-    // Transaction progress
-    public List<ContractTransaction> CompletedTransactions { get; set; } = new();
-    public List<ContractTransaction> RemainingTransactions { get; set; } = new();
-    
-    // NPC conversation progress
-    public List<string> CompletedNPCConversations { get; set; } = new();
-    public List<string> RemainingNPCConversations { get; set; } = new();
-    
-    // Location action progress
-    public List<string> CompletedLocationActions { get; set; } = new();
-    public List<string> RemainingLocationActions { get; set; } = new();
+
+    // NEW: ContractStep system progress
+    public List<ContractStepRequirement> CompletionSteps { get; set; } = new();
+    public List<ContractStepRequirement> RemainingSteps { get; set; } = new();
 }

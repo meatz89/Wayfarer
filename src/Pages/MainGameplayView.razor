@@ -109,20 +109,6 @@
                         if (currentLocation != null)
                         {
                             <div class="location-info-panel">
-                                <div class="location-access-info">
-                                    <span class="info-label">Access Level:</span>
-                                    <span class="info-value access-@currentLocation.AccessLevel">@currentLocation.AccessLevelDescription</span>
-                                </div>
-                                <div class="location-social-info">
-                                    <span class="info-label">Social Expectation:</span>
-                                    <span class="info-value social-@currentLocation.SocialExpectation">@currentLocation.SocialExpectationDescription</span>
-                                </div>
-                                @if (currentLocation.RequiredSocialClasses.Any())
-                                {
-                                    <div class="location-requirement-info">
-                                        <span class="info-label">@currentLocation.RequiredSocialClassesDescription</span>
-                                    </div>
-                                }
                                 @{
                                     var availableProfessions = currentLocation.GetAvailableProfessions(CurrentTime);
                                     if (availableProfessions.Any())

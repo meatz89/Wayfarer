@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text.Json;
-using Xunit;
 using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -141,7 +141,7 @@ namespace Wayfarer.Tests
 
             // Add parsed items using repository methods (proper architecture)
             itemRepository.AddItems(parsedItems);
-            
+
             // Add NPCs for market functionality (required for market availability)
             npcRepository.AddNPC(new NPC
             {
@@ -332,13 +332,13 @@ namespace Wayfarer.Tests
         {
             // Create clean GameWorld for JSON parsing tests - don't load JSON data since these tests 
             // are specifically testing JSON parsing and want to control their own data loading
-            var gameWorld = new GameWorld();
-            
+            GameWorld gameWorld = new GameWorld();
+
             // Initialize basic collections but don't load from JSON
             gameWorld.WorldState.locations = new List<Location>();
             gameWorld.WorldState.Items = new List<Item>();
             gameWorld.WorldState.Contracts = new List<Contract>();
-            
+
             // Add minimal test locations needed for these tests
             gameWorld.WorldState.locations.AddRange(new[]
             {
@@ -346,25 +346,25 @@ namespace Wayfarer.Tests
                 new Location("town_square", "Town Square"),
                 new Location("workshop", "Workshop")
             });
-            
+
             // Initialize player
             Player player = gameWorld.GetPlayer();
             player.Initialize("Test Player", Professions.Merchant, Genders.Male);
             player.Coins = 50;
-            
+
             // Set basic time state
             gameWorld.WorldState.CurrentDay = 1;
             gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
             gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
-            
+
             // Set starting location
             Location startLocation = gameWorld.WorldState.locations.First(l => l.Id == "dusty_flagon");
             player.CurrentLocation = startLocation;
             gameWorld.WorldState.SetCurrentLocation(startLocation, null);
-            
+
             // Initialize empty contract list
-            gameWorld.ActiveContracts = new List<Contract>();
-            
+            gameWorld.WorldState.ActiveContracts = new List<Contract>();
+
             return gameWorld;
         }
 

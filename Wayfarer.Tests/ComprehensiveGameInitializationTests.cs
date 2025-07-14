@@ -161,41 +161,6 @@ namespace Wayfarer.Tests
         }
 
         [Fact]
-        public void GameWorldInitializer_Should_Load_Contracts_With_Proper_Data()
-        {
-            // Arrange & Act
-            GameWorldInitializer initializer = new GameWorldInitializer(TestContentDirectory);
-            GameWorld gameWorld = initializer.LoadGame();
-
-            // Assert - Verify contracts loaded with complete data via ContractRepository
-            ContractRepository contractRepository = new ContractRepository(gameWorld);
-            Assert.NotEmpty(contractRepository.GetAllContracts());
-
-            Contract? contract = contractRepository.GetAllContracts().FirstOrDefault();
-            Assert.NotNull(contract);
-            Assert.NotNull(contract.Id);
-            Assert.NotNull(contract.Description);
-            Assert.True(contract.Payment > 0);
-            Assert.True(contract.DueDay > 0);
-
-            // Verify completion action pattern (at least one completion requirement)
-            bool hasCompletionRequirement = 
-                contract.RequiredTransactions.Count > 0 ||
-                contract.RequiredDestinations.Count > 0 ||
-                contract.RequiredNPCConversations.Count > 0 ||
-                contract.RequiredLocationActions.Count > 0;
-            Assert.True(hasCompletionRequirement, $"Contract {contract.Id} should have at least one completion requirement");
-
-            // Verify any destination requirements reference valid locations
-            foreach (string destinationId in contract.RequiredDestinations)
-            {
-                bool destinationExists = gameWorld.WorldState.locations
-                    .Any(loc => loc.Id == destinationId);
-                Assert.True(destinationExists, $"Contract destination {destinationId} should reference a valid location");
-            }
-        }
-
-        [Fact]
         public void GameWorldInitializer_Should_Create_GameWorld_As_Single_Source_Of_Truth()
         {
             // Arrange & Act

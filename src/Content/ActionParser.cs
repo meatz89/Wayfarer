@@ -131,13 +131,6 @@ public static class ActionParser
             action.PhysicalDemand = demand;
         }
 
-        // Parse social requirement
-        string socialRequirement = GetStringProperty(root, "socialRequirement", "Any");
-        if (Enum.TryParse(socialRequirement, true, out SocialRequirement social))
-        {
-            action.SocialRequirement = social;
-        }
-
         // Parse knowledge requirement
         string knowledgeRequirement = GetStringProperty(root, "knowledgeRequirement", "None");
         if (Enum.TryParse(knowledgeRequirement, true, out KnowledgeRequirement knowledge))
@@ -187,28 +180,10 @@ public static class ActionParser
                 if (equipElement.ValueKind == JsonValueKind.String)
                 {
                     string equipStr = equipElement.GetString();
-                    if (!string.IsNullOrEmpty(equipStr) && 
+                    if (!string.IsNullOrEmpty(equipStr) &&
                         Enum.TryParse(equipStr, true, out EquipmentCategory equipment))
                     {
                         action.EquipmentRequirements.Add(equipment);
-                    }
-                }
-            }
-        }
-
-        // Parse environment requirements array
-        if (root.TryGetProperty("environmentRequirements", out JsonElement envElement) &&
-            envElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement envRequirement in envElement.EnumerateArray())
-            {
-                if (envRequirement.ValueKind == JsonValueKind.String)
-                {
-                    string envStr = envRequirement.GetString();
-                    if (!string.IsNullOrEmpty(envStr) && 
-                        Enum.TryParse(envStr, true, out EnvironmentCategory env))
-                    {
-                        action.EnvironmentRequirements.Add(env);
                     }
                 }
             }
@@ -223,7 +198,7 @@ public static class ActionParser
                 if (effectElement.ValueKind == JsonValueKind.String)
                 {
                     string effectStr = effectElement.GetString();
-                    if (!string.IsNullOrEmpty(effectStr) && 
+                    if (!string.IsNullOrEmpty(effectStr) &&
                         Enum.TryParse(effectStr, true, out EffectCategory effect))
                     {
                         action.EffectCategories.Add(effect);

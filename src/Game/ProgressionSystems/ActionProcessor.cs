@@ -50,47 +50,47 @@ public class ActionProcessor
     public void ProcessAction(LocationAction action)
     {
         Player player = gameWorld.GetPlayer();
-        
+
         // Apply action point cost
         player.ApplyActionPointCost(action.ActionPointCost);
-        
+
         // Apply resource costs
         if (action.SilverCost > 0)
         {
             player.ModifyCoins(-action.SilverCost);
         }
-        
+
         if (action.StaminaCost > 0)
         {
             player.SpendStamina(action.StaminaCost);
         }
-        
+
         // Apply categorical stamina costs based on physical demand
         if (action.PhysicalDemand != PhysicalDemand.None)
         {
             player.ApplyCategoricalStaminaCost(action.PhysicalDemand);
         }
-        
+
         if (action.ConcentrationCost > 0)
         {
             player.ModifyConcentration(-action.ConcentrationCost);
         }
-        
+
         // Consume time blocks based on action point cost
         if (action.ActionPointCost > 0)
         {
             gameWorld.TimeManager.ConsumeTimeBlock(action.ActionPointCost);
         }
-        
+
         // Apply refresh card effects
         if (action.RefreshCardType != SkillCategories.None)
         {
             ApplyCardRefresh(action.RefreshCardType);
         }
-        
+
         // Apply categorical effects
         ApplyCategoricalEffects(action.Effects);
-        
+
         // Check for contract progression
         contractProgressionService.CheckLocationActionProgression(action, player);
     }
@@ -109,7 +109,7 @@ public class ActionProcessor
     public bool CanExecute(LocationAction action)
     {
         Player player = gameWorld.GetPlayer();
-        
+
         // Check basic requirements
         foreach (IRequirement requirement in action.Requirements)
         {
@@ -118,23 +118,23 @@ public class ActionProcessor
                 return false; // Requirement not met
             }
         }
-        
+
         // Check resource requirements
         if (action.SilverCost > 0 && player.Coins < action.SilverCost)
         {
             return false; // Insufficient coins
         }
-        
+
         if (action.StaminaCost > 0 && player.Stamina < action.StaminaCost)
         {
             return false; // Insufficient stamina
         }
-        
+
         if (action.ConcentrationCost > 0 && player.Concentration < action.ConcentrationCost)
         {
             return false; // Insufficient concentration
         }
-        
+
         // Check time block availability
         if (action.ActionPointCost > 0 && !gameWorld.TimeManager.ValidateTimeBlockAction(action.ActionPointCost))
         {
@@ -170,7 +170,7 @@ public class ActionProcessor
         EncounterState encounterState = new EncounterState(player, 5, 8, 10);
 
         // Apply each categorical effect
-        foreach (var effect in effects)
+        foreach (IMechanicalEffect effect in effects)
         {
             try
             {

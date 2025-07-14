@@ -26,32 +26,26 @@ public class ActionDefinition
     // === CATEGORICAL SYSTEM PROPERTIES ===
     // Physical requirements
     public PhysicalDemand PhysicalDemand { get; set; } = PhysicalDemand.None;
-    
-    // Social access requirements
-    public SocialRequirement SocialRequirement { get; set; } = SocialRequirement.Any;
-    
+
     // Tool and equipment requirements
     public List<ToolCategory> ToolRequirements { get; set; } = new List<ToolCategory>();
     public List<EquipmentCategory> EquipmentRequirements { get; set; } = new List<EquipmentCategory>();
-    
-    // Environmental requirements
-    public List<EnvironmentCategory> EnvironmentRequirements { get; set; } = new List<EnvironmentCategory>();
-    
+
     // Knowledge and skill requirements
     public KnowledgeRequirement KnowledgeRequirement { get; set; } = KnowledgeRequirement.None;
-    
+
     // Information requirements
     public List<InformationRequirementData> InformationRequirements { get; set; } = new List<InformationRequirementData>();
-    
+
     // Time investment category
     public TimeInvestment TimeInvestment { get; set; } = TimeInvestment.Standard;
-    
+
     // Effects produced by this action
     public List<EffectCategory> EffectCategories { get; set; } = new List<EffectCategory>();
-    
+
     // Information effects provided by this action
     public List<InformationEffectData> InformationEffects { get; set; } = new List<InformationEffectData>();
-    
+
     // Contract discovery effects provided by this action
     public List<ContractDiscoveryEffectData> ContractDiscoveryEffects { get; set; } = new List<ContractDiscoveryEffectData>();
 

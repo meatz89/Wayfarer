@@ -24,7 +24,7 @@ public static class InformationParser
         string id = GetStringProperty(root, "id", "");
         string title = GetStringProperty(root, "title", "");
         string typeStr = GetStringProperty(root, "type", "Market_Intelligence");
-        
+
         if (!Enum.TryParse<InformationType>(typeStr, out InformationType type))
         {
             type = InformationType.Market_Intelligence; // Default fallback
@@ -47,12 +47,6 @@ public static class InformationParser
         if (Enum.TryParse<InformationQuality>(qualityStr, out InformationQuality quality))
         {
             information.Quality = quality;
-        }
-
-        string freshnessStr = GetStringProperty(root, "freshness", "Current");
-        if (Enum.TryParse<InformationFreshness>(freshnessStr, out InformationFreshness freshness))
-        {
-            information.Freshness = freshness;
         }
 
         // Parse related entity arrays
@@ -80,7 +74,7 @@ public static class InformationParser
     public static List<Information> ParseInformationArray(string json)
     {
         List<Information> informationList = new List<Information>();
-        
+
         JsonDocumentOptions options = new JsonDocumentOptions
         {
             AllowTrailingCommas = true
@@ -169,7 +163,6 @@ public static class InformationParser
         {
             InformationType.Market_Intelligence => 3,      // Market prices change frequently
             InformationType.Route_Conditions => 7,        // Travel conditions relatively stable
-            InformationType.Social_Gossip => 14,          // Social news has medium lifespan
             InformationType.Professional_Knowledge => 30,  // Professional knowledge more stable
             InformationType.Location_Secrets => 90,       // Secrets don't change often
             InformationType.Political_News => 7,          // Political situations change

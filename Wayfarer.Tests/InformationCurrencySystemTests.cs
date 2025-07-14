@@ -1,7 +1,7 @@
-using Xunit;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.Game.ActionSystem;
 using Wayfarer.Content;
+using Wayfarer.Game.ActionSystem;
+using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -23,12 +23,11 @@ namespace Wayfarer.Tests
             // Verify specific sample information was loaded
             Information? grainPrices = gameWorld.WorldState.Informations
                 .FirstOrDefault(info => info.Id == "grain_prices_millbrook");
-            
+
             Assert.NotNull(grainPrices);
             Assert.Equal("Current Grain Prices at Millbrook Market", grainPrices.Title);
             Assert.Equal(InformationType.Market_Intelligence, grainPrices.Type);
             Assert.Equal(InformationQuality.Expert, grainPrices.Quality);
-            Assert.Equal(InformationFreshness.Current, grainPrices.Freshness);
         }
 
         [Fact]
@@ -47,7 +46,6 @@ namespace Wayfarer.Tests
             Assert.Equal("Mountain Pass Weather Conditions", information.Title);
             Assert.Equal(InformationType.Route_Conditions, information.Type);
             Assert.Equal(InformationQuality.Verified, information.Quality);
-            Assert.Equal(InformationFreshness.Breaking, information.Freshness);
         }
 
         [Fact]
@@ -60,15 +58,13 @@ namespace Wayfarer.Tests
 
             // Act - Find all market intelligence information
             List<Information> marketInfo = repository.FindInformationMatching(
-                InformationType.Market_Intelligence, 
-                InformationQuality.Reliable, 
-                InformationFreshness.Recent);
+                InformationType.Market_Intelligence,
+                InformationQuality.Reliable);
 
             // Assert
             Assert.NotEmpty(marketInfo);
             Assert.All(marketInfo, info => Assert.Equal(InformationType.Market_Intelligence, info.Type));
             Assert.All(marketInfo, info => Assert.True(info.Quality >= InformationQuality.Reliable));
-            Assert.All(marketInfo, info => Assert.True(info.Freshness >= InformationFreshness.Recent));
         }
 
         [Fact]
@@ -87,10 +83,10 @@ namespace Wayfarer.Tests
             // Assert
             Assert.NotNull(expertInfo);
             Assert.NotNull(rumorInfo);
-            
+
             int expertValue = expertInfo.CalculateCurrentValue();
             int rumorValue = rumorInfo.CalculateCurrentValue();
-            
+
             Assert.True(expertValue > rumorValue, "Expert information should be more valuable than rumors");
         }
 
@@ -108,7 +104,7 @@ namespace Wayfarer.Tests
             // Assert
             Assert.NotNull(routeInfo);
             Assert.NotEmpty(routeInfo.RelatedLocationIds);
-            
+
             // Route information should reference related locations
             Assert.Contains(routeInfo.RelatedLocationIds, locId => !string.IsNullOrEmpty(locId));
         }
@@ -119,11 +115,10 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorldInitializer initializer = new GameWorldInitializer("Content");
             GameWorld gameWorld = initializer.LoadGame();
-            
+
             InformationRequirement requirement = new InformationRequirement(
                 InformationType.Market_Intelligence,
                 InformationQuality.Reliable,
-                InformationFreshness.Current,
                 null);
 
             // Act
@@ -140,19 +135,17 @@ namespace Wayfarer.Tests
             GameWorldInitializer initializer = new GameWorldInitializer("Content");
             GameWorld gameWorld = initializer.LoadGame();
             Player player = gameWorld.GetPlayer();
-            
+
             Information marketInfo = new Information("test_market_info", "Test Market Info", InformationType.Market_Intelligence)
             {
                 Quality = InformationQuality.Expert,
-                Freshness = InformationFreshness.Current
             };
-            
+
             player.KnownInformation.Add(marketInfo);
 
             InformationRequirement requirement = new InformationRequirement(
                 InformationType.Market_Intelligence,
                 InformationQuality.Reliable,
-                InformationFreshness.Current,
                 null);
 
             // Act
@@ -167,11 +160,10 @@ namespace Wayfarer.Tests
         {
             // Arrange
             Player player = new Player();
-            
+
             Information newInfo = new Information("new_secret", "New Secret", InformationType.Location_Secrets)
             {
                 Quality = InformationQuality.Verified,
-                Freshness = InformationFreshness.Current,
                 Content = "A hidden cache of supplies"
             };
 

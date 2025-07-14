@@ -228,8 +228,8 @@ public class TravelSelectionBase : ComponentBase
     /// </summary>
     public List<EquipmentCategory> GetCurrentEquipmentCategories()
     {
-        var ownedCategories = new List<EquipmentCategory>();
-        
+        List<EquipmentCategory> ownedCategories = new List<EquipmentCategory>();
+
         foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
         {
             if (itemName != null)
@@ -241,7 +241,7 @@ public class TravelSelectionBase : ComponentBase
                 }
             }
         }
-        
+
         return ownedCategories.Distinct().ToList();
     }
 
@@ -250,29 +250,29 @@ public class TravelSelectionBase : ComponentBase
     /// </summary>
     public RouteStrategicAnalysis AnalyzeRouteAccessibility()
     {
-        var analysis = new RouteStrategicAnalysis();
-        var currentEquipment = GetCurrentEquipmentCategories();
-        var allRoutes = new List<RouteOption>();
-        
+        RouteStrategicAnalysis analysis = new RouteStrategicAnalysis();
+        List<EquipmentCategory> currentEquipment = GetCurrentEquipmentCategories();
+        List<RouteOption> allRoutes = new List<RouteOption>();
+
         // Collect all routes from all destinations
-        foreach (var location in GetTravelableLocations())
+        foreach (Location location in GetTravelableLocations())
         {
-            var routes = GameWorldManager.GetAvailableRoutes(CurrentLocation.Id, location.Id);
+            List<RouteOption> routes = GameWorldManager.GetAvailableRoutes(CurrentLocation.Id, location.Id);
             allRoutes.AddRange(routes);
         }
-        
-        foreach (var route in allRoutes)
+
+        foreach (RouteOption route in allRoutes)
         {
-            var requiredEquipment = GetRequiredEquipment(route.TerrainCategories);
-            var recommendedEquipment = GetRecommendedEquipment(route.TerrainCategories);
-            var weatherEffects = GetWeatherTerrainEffects(route.TerrainCategories, CurrentWeather);
-            
+            List<EquipmentCategory> requiredEquipment = GetRequiredEquipment(route.TerrainCategories);
+            List<EquipmentCategory> recommendedEquipment = GetRecommendedEquipment(route.TerrainCategories);
+            List<string> weatherEffects = GetWeatherTerrainEffects(route.TerrainCategories, CurrentWeather);
+
             // Check if route is accessible with current equipment
             bool hasAllRequired = requiredEquipment.All(req => currentEquipment.Contains(req));
-            bool hasWeatherProtection = !weatherEffects.Any() || 
+            bool hasWeatherProtection = !weatherEffects.Any() ||
                                       weatherEffects.All(effect => HasEquipmentForWeatherEffect(effect, currentEquipment));
-            
-            var routeStatus = new RouteAccessibilityStatus
+
+            RouteAccessibilityStatus routeStatus = new RouteAccessibilityStatus
             {
                 Route = route,
                 IsAccessibleNow = hasAllRequired && hasWeatherProtection,
@@ -280,16 +280,16 @@ public class TravelSelectionBase : ComponentBase
                 MissingRecommendedEquipment = recommendedEquipment.Where(rec => !currentEquipment.Contains(rec)).ToList(),
                 WeatherBlocked = weatherEffects.Any() && !hasWeatherProtection
             };
-            
+
             if (routeStatus.IsAccessibleNow)
                 analysis.AccessibleRoutes.Add(routeStatus);
             else
                 analysis.BlockedRoutes.Add(routeStatus);
         }
-        
+
         // Calculate equipment investment opportunities
         analysis.EquipmentInvestmentOpportunities = CalculateEquipmentInvestmentOpportunities(analysis.BlockedRoutes);
-        
+
         return analysis;
     }
 
@@ -299,34 +299,34 @@ public class TravelSelectionBase : ComponentBase
             return currentEquipment.Contains(EquipmentCategory.Weather_Protection);
         if (weatherEffect.Contains("navigation tools"))
             return currentEquipment.Contains(EquipmentCategory.Navigation_Tools);
-        
+
         return true; // Unknown effects assumed handled
     }
 
     private List<EquipmentInvestmentOpportunity> CalculateEquipmentInvestmentOpportunities(List<RouteAccessibilityStatus> blockedRoutes)
     {
-        var opportunities = new List<EquipmentInvestmentOpportunity>();
-        var equipmentCounts = new Dictionary<EquipmentCategory, int>();
-        
+        List<EquipmentInvestmentOpportunity> opportunities = new List<EquipmentInvestmentOpportunity>();
+        Dictionary<EquipmentCategory, int> equipmentCounts = new Dictionary<EquipmentCategory, int>();
+
         // Count how many routes each missing equipment would unlock
-        foreach (var routeStatus in blockedRoutes)
+        foreach (RouteAccessibilityStatus routeStatus in blockedRoutes)
         {
-            foreach (var missingEquipment in routeStatus.MissingRequiredEquipment)
+            foreach (EquipmentCategory missingEquipment in routeStatus.MissingRequiredEquipment)
             {
                 if (!equipmentCounts.ContainsKey(missingEquipment))
                     equipmentCounts[missingEquipment] = 0;
                 equipmentCounts[missingEquipment]++;
             }
         }
-        
+
         // Create investment opportunities for equipment that unlocks multiple routes
-        foreach (var kvp in equipmentCounts.Where(x => x.Value > 0))
+        foreach (KeyValuePair<EquipmentCategory, int> kvp in equipmentCounts.Where(x => x.Value > 0))
         {
-            var blockedRoutesUnlocked = blockedRoutes
+            List<string> blockedRoutesUnlocked = blockedRoutes
                 .Where(r => r.MissingRequiredEquipment.Contains(kvp.Key))
                 .Select(r => r.Route.Name)
                 .ToList();
-                
+
             opportunities.Add(new EquipmentInvestmentOpportunity
             {
                 Equipment = kvp.Key,
@@ -334,7 +334,7 @@ public class TravelSelectionBase : ComponentBase
                 RouteNames = blockedRoutesUnlocked
             });
         }
-        
+
         return opportunities.OrderByDescending(o => o.RoutesUnlocked).ToList();
     }
 }

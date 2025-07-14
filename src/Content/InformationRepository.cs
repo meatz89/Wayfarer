@@ -1,5 +1,5 @@
-using Wayfarer.Game.MainSystem;
 using Wayfarer.Game.ActionSystem;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Content;
 
@@ -53,16 +53,6 @@ public class InformationRepository
     }
 
     /// <summary>
-    /// Get information by minimum freshness level
-    /// </summary>
-    public List<Information> GetInformationByFreshness(InformationFreshness minimumFreshness)
-    {
-        return _gameWorld.WorldState.Informations
-            .Where(info => info.Freshness >= minimumFreshness)
-            .ToList();
-    }
-
-    /// <summary>
     /// Get information about a specific location
     /// </summary>
     public List<Information> GetLocationInformation(string locationId)
@@ -97,11 +87,10 @@ public class InformationRepository
     /// </summary>
     public List<Information> FindInformationMatching(
         InformationType? requiredType = null,
-        InformationQuality? minimumQuality = null,
-        InformationFreshness? minimumFreshness = null)
+        InformationQuality? minimumQuality = null)
     {
         return _gameWorld.WorldState.Informations
-            .Where(info => info.MeetsRequirements(requiredType, minimumQuality, minimumFreshness))
+            .Where(info => info.MeetsRequirements(requiredType, minimumQuality))
             .ToList();
     }
 
@@ -132,7 +121,7 @@ public class InformationRepository
     public void AddInformation(Information information)
     {
         if (information == null) return;
-        
+
         // Avoid duplicates
         if (!_gameWorld.WorldState.Informations.Any(info => info.Id == information.Id))
         {
@@ -146,8 +135,8 @@ public class InformationRepository
     public void AddInformationRange(List<Information> informationList)
     {
         if (informationList == null) return;
-        
-        foreach (var information in informationList)
+
+        foreach (Information information in informationList)
         {
             AddInformation(information);
         }
@@ -156,18 +145,15 @@ public class InformationRepository
     /// <summary>
     /// Update information quality/freshness in WorldState
     /// </summary>
-    public void UpdateInformation(string id, InformationQuality? newQuality = null, 
-                                InformationFreshness? newFreshness = null, string? newSource = null)
+    public void UpdateInformation(string id, InformationQuality? newQuality = null,
+                                string? newSource = null)
     {
-        var information = GetInformationById(id);
+        Information? information = GetInformationById(id);
         if (information == null) return;
 
         if (newQuality.HasValue)
             information.Quality = newQuality.Value;
-            
-        if (newFreshness.HasValue)
-            information.Freshness = newFreshness.Value;
-            
+
         if (!string.IsNullOrEmpty(newSource))
             information.Source = newSource;
     }
@@ -177,21 +163,10 @@ public class InformationRepository
     /// </summary>
     public void RemoveInformation(string id)
     {
-        var information = GetInformationById(id);
+        Information? information = GetInformationById(id);
         if (information != null)
         {
             _gameWorld.WorldState.Informations.Remove(information);
-        }
-    }
-
-    /// <summary>
-    /// Update freshness for all information based on time passage
-    /// </summary>
-    public void UpdateAllInformationFreshness(int daysPassed)
-    {
-        foreach (var information in _gameWorld.WorldState.Informations)
-        {
-            information.UpdateFreshness(daysPassed);
         }
     }
 

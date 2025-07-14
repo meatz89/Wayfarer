@@ -1,6 +1,6 @@
-using Xunit;
-using Wayfarer.Game.MainSystem;
 using Wayfarer.Game.ActionSystem;
+using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests;
 
@@ -10,29 +10,29 @@ public class SuboptimalPlayPunishmentTests
     public void InformationNeglect_Should_Lead_To_Preventable_Losses()
     {
         // Test that ignoring information gathering leads to avoidable negative outcomes
-        
-        var scenario = new TestScenarioBuilder()
+
+        TestScenarioBuilder scenario = new TestScenarioBuilder()
             .WithPlayer(p => p.StartAt("crossbridge").WithCoins(130))
             .WithTimeState(t => t.Day(1).TimeBlock(TimeBlocks.Morning));
-        
+
         // === INFORMATION-NEGLECTING STRATEGY ===
         GameWorld neglectfulWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-        var neglectfulStrategy = new InformationNeglectStrategy(
+        InformationNeglectStrategy neglectfulStrategy = new InformationNeglectStrategy(
             informationInvestment: InformationInvestment.None,
             riskAssessment: RiskAssessment.None,
             marketResearch: MarketResearch.None,
             routeIntelligence: RouteIntelligence.None);
-        
+
         // === INFORMATION-AWARE STRATEGY ===
         GameWorld informedWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-        var informedStrategy = new InformationNeglectStrategy(
+        InformationNeglectStrategy informedStrategy = new InformationNeglectStrategy(
             informationInvestment: InformationInvestment.Adequate,
             riskAssessment: RiskAssessment.Thorough,
             marketResearch: MarketResearch.Comprehensive,
             routeIntelligence: RouteIntelligence.Current);
-        
+
         // Scenario with information that could prevent losses
-        var riskScenario = new InformationRichScenario
+        InformationRichScenario riskScenario = new InformationRichScenario
         {
             AvailableWarnings = new List<InformationWarning>
             {
@@ -47,39 +47,39 @@ public class SuboptimalPlayPunishmentTests
                 new InformationOpportunity { Type = "exclusive_contract", Cost = 12, ProfitPotential = 60 }
             }
         };
-        
+
         // === EXECUTE STRATEGIES ===
-        var neglectfulResults = ExecuteInformationStrategy(neglectfulWorld, neglectfulStrategy, riskScenario, days: 7);
-        var informedResults = ExecuteInformationStrategy(informedWorld, informedStrategy, riskScenario, days: 7);
-        
+        InformationNeglectResults neglectfulResults = ExecuteInformationStrategy(neglectfulWorld, neglectfulStrategy, riskScenario, days: 7);
+        InformationNeglectResults informedResults = ExecuteInformationStrategy(informedWorld, informedStrategy, riskScenario, days: 7);
+
         // === VALIDATION: PREVENTABLE LOSSES ===
         // Information neglect should lead to losses that informed strategy avoids
         Assert.True(neglectfulResults.PreventableLosses > 60,
             "Information neglect should lead to 60+ in preventable losses");
-        
+
         Assert.True(informedResults.PreventableLosses < neglectfulResults.PreventableLosses * 0.3,
             "Informed strategy should prevent 70%+ of losses");
-        
+
         // === VALIDATION: MISSED OPPORTUNITIES ===
         // Neglectful strategy should miss profitable opportunities
         Assert.True(neglectfulResults.MissedOpportunityValue > 50,
             "Information neglect should miss 50+ in opportunity value");
-        
+
         Assert.True(informedResults.MissedOpportunityValue < neglectfulResults.MissedOpportunityValue * 0.4,
             "Informed strategy should miss 60% fewer opportunities");
-        
+
         // === VALIDATION: RISK EXPOSURE ===
         // Neglectful strategy should have higher risk exposure
         Assert.True(neglectfulResults.RiskExposureScore > informedResults.RiskExposureScore * 2.5,
             "Information neglect should increase risk exposure by 150%+");
-        
+
         // Should experience more negative surprise events
         Assert.True(neglectfulResults.NegativeSurpriseEvents > informedResults.NegativeSurpriseEvents * 3,
             "Information neglect should lead to 3x more negative surprises");
-        
+
         // === VALIDATION: INFORMATION ROI ===
         // Information investment should provide clear positive ROI
-        var informationROI = (informedResults.TotalValue - neglectfulResults.TotalValue) / informedResults.InformationCost;
+        double informationROI = (informedResults.TotalValue - neglectfulResults.TotalValue) / informedResults.InformationCost;
         Assert.True(informationROI > 3.0,
             "Information investment should provide 300%+ ROI through loss prevention and opportunity capture");
     }
@@ -88,157 +88,157 @@ public class SuboptimalPlayPunishmentTests
 
     private SuboptimalResults ExecuteSuboptimalStrategy(GameWorld gameWorld, SuboptimalDecisionStrategy strategy, int days)
     {
-        var results = new SuboptimalResults();
-        var initialEfficiency = CalculateBaselineEfficiency(gameWorld);
-        
+        SuboptimalResults results = new SuboptimalResults();
+        double initialEfficiency = CalculateBaselineEfficiency(gameWorld);
+
         for (int day = 1; day <= days; day++)
         {
             // Make poor decisions based on strategy
-            var poorDecisions = strategy.MakePoorDecisions(gameWorld, day);
+            List<PoorDecision> poorDecisions = strategy.MakePoorDecisions(gameWorld, day);
             results.TotalPoorDecisions += poorDecisions.Count;
-            
+
             // Calculate immediate negative consequences
-            var immediateConsequences = strategy.CalculateImmediateConsequences(poorDecisions);
+            double immediateConsequences = strategy.CalculateImmediateConsequences(poorDecisions);
             results.ImmediateNegativeConsequences += immediateConsequences;
-            
+
             // Calculate cascade effects
-            var cascadeEffects = strategy.CalculateCascadeEffects(gameWorld, poorDecisions, day);
+            double cascadeEffects = strategy.CalculateCascadeEffects(gameWorld, poorDecisions, day);
             results.CascadeEffects += cascadeEffects;
-            
+
             // Update efficiency
-            var dailyEfficiency = strategy.CalculateDailyEfficiency(gameWorld, poorDecisions);
+            double dailyEfficiency = strategy.CalculateDailyEfficiency(gameWorld, poorDecisions);
             results.DailyEfficiencies.Add(dailyEfficiency);
-            
+
             gameWorld.TimeManager.StartNewDay();
         }
-        
+
         results.FinalEfficiency = results.DailyEfficiencies.LastOrDefault();
         results.EfficiencyDegradation = (initialEfficiency - results.FinalEfficiency) / initialEfficiency;
         results.RecoveryDifficulty = strategy.CalculateRecoveryDifficulty(results);
         results.TotalValue = results.DailyEfficiencies.Sum();
-        
+
         return results;
     }
 
     private RecoveryResults ExecuteRecoveryStrategy(GameWorld gameWorld, RecoveryStrategy strategy, SuboptimalResults initialState, int days)
     {
-        var results = new RecoveryResults();
+        RecoveryResults results = new RecoveryResults();
         results.InitialEfficiency = initialState.FinalEfficiency;
-        
+
         for (int day = 1; day <= days; day++)
         {
             // Investment in recovery
-            var recoveryInvestment = strategy.MakeRecoveryInvestment(gameWorld, day);
+            RecoveryInvestmentDetails recoveryInvestment = strategy.MakeRecoveryInvestment(gameWorld, day);
             results.RecoveryCost += recoveryInvestment.Cost;
             results.OpportunityCostPaid += recoveryInvestment.OpportunityCost;
-            
+
             // Calculate recovery progress
-            var recoveryProgress = strategy.CalculateRecoveryProgress(gameWorld, recoveryInvestment);
+            double recoveryProgress = strategy.CalculateRecoveryProgress(gameWorld, recoveryInvestment);
             results.RecoveryProgress += recoveryProgress;
-            
+
             // Calculate optimization interference
-            var optimizationInterference = strategy.CalculateOptimizationInterference(recoveryInvestment);
+            double optimizationInterference = strategy.CalculateOptimizationInterference(recoveryInvestment);
             results.OptimizationTimeInterfered += optimizationInterference;
-            
+
             gameWorld.TimeManager.StartNewDay();
         }
-        
+
         results.FinalEfficiency = results.InitialEfficiency + results.RecoveryProgress;
-        
+
         return results;
     }
 
     private EquipmentInvestmentResults ExecuteEquipmentInvestmentStrategy(GameWorld gameWorld, EquipmentInvestmentDecisionStrategy strategy, List<EquipmentOption> options, int evaluationDays)
     {
-        var results = new EquipmentInvestmentResults();
-        
+        EquipmentInvestmentResults results = new EquipmentInvestmentResults();
+
         // Make equipment investment decisions
-        var investments = strategy.MakeInvestmentDecisions(gameWorld, options);
+        List<EquipmentOption> investments = strategy.MakeInvestmentDecisions(gameWorld, options);
         results.InitialInvestment = investments.Sum(i => i.Cost);
-        
+
         // Evaluate strategic consequences over time
         for (int day = 1; day <= evaluationDays; day++)
         {
             // Calculate available strategic options
-            var strategicOptions = strategy.CalculateAvailableStrategicOptions(gameWorld, investments);
+            int strategicOptions = strategy.CalculateAvailableStrategicOptions(gameWorld, investments);
             results.AvailableStrategicOptions = Math.Min(results.AvailableStrategicOptions, strategicOptions);
-            
+
             // Calculate foreclosed opportunities
-            var forelosedValue = strategy.CalculateForelosedOpportunities(gameWorld, investments, day);
+            double forelosedValue = strategy.CalculateForelosedOpportunities(gameWorld, investments, day);
             results.ForelosedOpportunityValue += forelosedValue;
-            
+
             // Calculate adaptability
-            var adaptability = strategy.CalculateAdaptability(gameWorld, investments);
+            double adaptability = strategy.CalculateAdaptability(gameWorld, investments);
             results.AdaptabilityScore = Math.Min(results.AdaptabilityScore, adaptability);
-            
+
             // Check for forced suboptimal choices
-            var forcedChoices = strategy.CountForcedSuboptimalChoices(gameWorld, investments);
+            int forcedChoices = strategy.CountForcedSuboptimalChoices(gameWorld, investments);
             results.SuboptimalChoicesForced += forcedChoices;
-            
+
             gameWorld.TimeManager.StartNewDay();
         }
-        
+
         results.SunkCostPressure = strategy.CalculateSunkCostPressure(investments);
         results.CorrectionCost = strategy.CalculateCorrectionCost(gameWorld, investments);
-        
+
         return results;
     }
 
     private InformationNeglectResults ExecuteInformationStrategy(GameWorld gameWorld, InformationNeglectStrategy strategy, InformationRichScenario scenario, int days)
     {
-        var results = new InformationNeglectResults();
-        
+        InformationNeglectResults results = new InformationNeglectResults();
+
         for (int day = 1; day <= days; day++)
         {
             // Information investment decisions
-            var informationInvestment = strategy.MakeInformationInvestment(gameWorld, scenario, day);
+            InformationInvestmentDetails informationInvestment = strategy.MakeInformationInvestment(gameWorld, scenario, day);
             results.InformationCost += informationInvestment.Cost;
-            
+
             // Calculate preventable losses
-            var preventableLosse = strategy.CalculatePreventableLosses(gameWorld, scenario, informationInvestment);
+            double preventableLosse = strategy.CalculatePreventableLosses(gameWorld, scenario, informationInvestment);
             results.PreventableLosses += preventableLosse;
-            
+
             // Calculate missed opportunities
-            var missedOpportunities = strategy.CalculateMissedOpportunities(gameWorld, scenario, informationInvestment);
+            double missedOpportunities = strategy.CalculateMissedOpportunities(gameWorld, scenario, informationInvestment);
             results.MissedOpportunityValue += missedOpportunities;
-            
+
             // Calculate risk exposure
-            var riskExposure = strategy.CalculateRiskExposure(gameWorld, informationInvestment);
+            double riskExposure = strategy.CalculateRiskExposure(gameWorld, informationInvestment);
             results.RiskExposureScore += riskExposure;
-            
+
             // Track negative surprises
-            var surprises = strategy.CountNegativeSurprises(gameWorld, informationInvestment);
+            int surprises = strategy.CountNegativeSurprises(gameWorld, informationInvestment);
             results.NegativeSurpriseEvents += surprises;
-            
+
             gameWorld.TimeManager.StartNewDay();
         }
-        
+
         results.TotalValue = strategy.CalculateTotalValue(gameWorld, results);
-        
+
         return results;
     }
 
     private CompoundNegligenceResults ExecuteCompoundNegligenceStrategy(GameWorld gameWorld, CompoundNegligenceStrategy strategy, int days)
     {
-        var results = new CompoundNegligenceResults();
-        
+        CompoundNegligenceResults results = new CompoundNegligenceResults();
+
         for (int day = 1; day <= days; day++)
         {
             // Calculate negligence effects
-            var negligenceEffects = strategy.CalculateNegligenceEffects(gameWorld, day);
+            NegligenceEffects negligenceEffects = strategy.CalculateNegligenceEffects(gameWorld, day);
             results.SynergisticNegativeEffects += negligenceEffects.SynergisticEffects;
             results.SystemFailureCascades += negligenceEffects.SystemFailures;
-            
+
             // Calculate value
-            var dailyValue = strategy.CalculateDailyValue(gameWorld, negligenceEffects);
+            double dailyValue = strategy.CalculateDailyValue(gameWorld, negligenceEffects);
             results.DailyValues.Add(dailyValue);
-            
+
             gameWorld.TimeManager.StartNewDay();
         }
-        
+
         results.TotalValue = results.DailyValues.Sum();
         results.RecoveryTimeRequired = strategy.CalculateRecoveryTimeRequired(results);
-        
+
         return results;
     }
 
@@ -258,7 +258,7 @@ public class SuboptimalDecisionStrategy
     public int PoorDecisionCount { get; }
     public RecoveryAttempts RecoveryAttempts { get; }
     public LearningRate LearningRate { get; }
-    
+
     public SuboptimalDecisionStrategy(DecisionQuality decisionQuality, int poorDecisionCount, RecoveryAttempts recoveryAttempts, LearningRate learningRate)
     {
         DecisionQuality = decisionQuality;
@@ -266,12 +266,12 @@ public class SuboptimalDecisionStrategy
         RecoveryAttempts = recoveryAttempts;
         LearningRate = learningRate;
     }
-    
-    public List<PoorDecision> MakePoorDecisions(GameWorld gameWorld, int day) 
-    { 
-        return Enumerable.Range(1, Math.Min(PoorDecisionCount, day)).Select(i => new PoorDecision { Impact = (int)DecisionQuality * -10 }).ToList(); 
+
+    public List<PoorDecision> MakePoorDecisions(GameWorld gameWorld, int day)
+    {
+        return Enumerable.Range(1, Math.Min(PoorDecisionCount, day)).Select(i => new PoorDecision { Impact = (int)DecisionQuality * -10 }).ToList();
     }
-    
+
     public double CalculateImmediateConsequences(List<PoorDecision> decisions) { return decisions.Sum(d => Math.Abs(d.Impact)); }
     public double CalculateCascadeEffects(GameWorld gameWorld, List<PoorDecision> decisions, int day) { return decisions.Count * day * (int)DecisionQuality; }
     public double CalculateDailyEfficiency(GameWorld gameWorld, List<PoorDecision> decisions) { return 100 - decisions.Sum(d => Math.Abs(d.Impact)); }
@@ -283,19 +283,19 @@ public class RecoveryStrategy
     public RecoveryInvestment RecoveryInvestment { get; }
     public RecoveryTimeHorizon RecoveryTimeHorizon { get; }
     public RecoveryApproach RecoveryApproach { get; }
-    
+
     public RecoveryStrategy(RecoveryInvestment recoveryInvestment, RecoveryTimeHorizon recoveryTimeHorizon, RecoveryApproach recoveryApproach)
     {
         RecoveryInvestment = recoveryInvestment;
         RecoveryTimeHorizon = recoveryTimeHorizon;
         RecoveryApproach = recoveryApproach;
     }
-    
-    public RecoveryInvestmentDetails MakeRecoveryInvestment(GameWorld gameWorld, int day) 
-    { 
-        return new RecoveryInvestmentDetails { Cost = (int)RecoveryInvestment * 20, OpportunityCost = (int)RecoveryInvestment * 10 }; 
+
+    public RecoveryInvestmentDetails MakeRecoveryInvestment(GameWorld gameWorld, int day)
+    {
+        return new RecoveryInvestmentDetails { Cost = (int)RecoveryInvestment * 20, OpportunityCost = (int)RecoveryInvestment * 10 };
     }
-    
+
     public double CalculateRecoveryProgress(GameWorld gameWorld, RecoveryInvestmentDetails investment) { return investment.Cost * 0.1; }
     public double CalculateOptimizationInterference(RecoveryInvestmentDetails investment) { return investment.OpportunityCost * 0.02; }
 }
@@ -306,7 +306,7 @@ public class EquipmentInvestmentDecisionStrategy
     public EquipmentResearch EquipmentResearch { get; }
     public FutureNeedsConsideration FutureNeedsConsideration { get; }
     public BudgetManagement BudgetManagement { get; }
-    
+
     public EquipmentInvestmentDecisionStrategy(InvestmentApproach investmentApproach, EquipmentResearch equipmentResearch, FutureNeedsConsideration futureNeedsConsideration, BudgetManagement budgetManagement)
     {
         InvestmentApproach = investmentApproach;
@@ -314,32 +314,32 @@ public class EquipmentInvestmentDecisionStrategy
         FutureNeedsConsideration = futureNeedsConsideration;
         BudgetManagement = budgetManagement;
     }
-    
-    public List<EquipmentOption> MakeInvestmentDecisions(GameWorld gameWorld, List<EquipmentOption> options) 
-    { 
-        return InvestmentApproach == InvestmentApproach.Impulsive ? options.Take(1).ToList() : options.Skip(1).Take(1).ToList(); 
+
+    public List<EquipmentOption> MakeInvestmentDecisions(GameWorld gameWorld, List<EquipmentOption> options)
+    {
+        return InvestmentApproach == InvestmentApproach.Impulsive ? options.Take(1).ToList() : options.Skip(1).Take(1).ToList();
     }
-    
-    public int CalculateAvailableStrategicOptions(GameWorld gameWorld, List<EquipmentOption> investments) 
-    { 
-        return investments.All(i => i.Utility == "universal") ? 10 : 4; 
+
+    public int CalculateAvailableStrategicOptions(GameWorld gameWorld, List<EquipmentOption> investments)
+    {
+        return investments.All(i => i.Utility == "universal") ? 10 : 4;
     }
-    
-    public double CalculateForelosedOpportunities(GameWorld gameWorld, List<EquipmentOption> investments, int day) 
-    { 
-        return investments.Any(i => i.Utility.Contains("only")) ? day * 5 : 0; 
+
+    public double CalculateForelosedOpportunities(GameWorld gameWorld, List<EquipmentOption> investments, int day)
+    {
+        return investments.Any(i => i.Utility.Contains("only")) ? day * 5 : 0;
     }
-    
-    public double CalculateAdaptability(GameWorld gameWorld, List<EquipmentOption> investments) 
-    { 
-        return investments.All(i => i.Utility == "universal") ? 1.0 : 0.3; 
+
+    public double CalculateAdaptability(GameWorld gameWorld, List<EquipmentOption> investments)
+    {
+        return investments.All(i => i.Utility == "universal") ? 1.0 : 0.3;
     }
-    
-    public int CountForcedSuboptimalChoices(GameWorld gameWorld, List<EquipmentOption> investments) 
-    { 
-        return investments.Count(i => i.Utility.Contains("only")); 
+
+    public int CountForcedSuboptimalChoices(GameWorld gameWorld, List<EquipmentOption> investments)
+    {
+        return investments.Count(i => i.Utility.Contains("only"));
     }
-    
+
     public double CalculateSunkCostPressure(List<EquipmentOption> investments) { return investments.Sum(i => i.Cost) / 100.0; }
     public double CalculateCorrectionCost(GameWorld gameWorld, List<EquipmentOption> investments) { return investments.Sum(i => i.Cost) * 0.8; }
 }
@@ -350,7 +350,7 @@ public class InformationNeglectStrategy
     public RiskAssessment RiskAssessment { get; }
     public MarketResearch MarketResearch { get; }
     public RouteIntelligence RouteIntelligence { get; }
-    
+
     public InformationNeglectStrategy(InformationInvestment informationInvestment, RiskAssessment riskAssessment, MarketResearch marketResearch, RouteIntelligence routeIntelligence)
     {
         InformationInvestment = informationInvestment;
@@ -358,22 +358,22 @@ public class InformationNeglectStrategy
         MarketResearch = marketResearch;
         RouteIntelligence = routeIntelligence;
     }
-    
-    public InformationInvestmentDetails MakeInformationInvestment(GameWorld gameWorld, InformationRichScenario scenario, int day) 
-    { 
-        return new InformationInvestmentDetails { Cost = (int)InformationInvestment * 5 }; 
+
+    public InformationInvestmentDetails MakeInformationInvestment(GameWorld gameWorld, InformationRichScenario scenario, int day)
+    {
+        return new InformationInvestmentDetails { Cost = (int)InformationInvestment * 5 };
     }
-    
-    public double CalculatePreventableLosses(GameWorld gameWorld, InformationRichScenario scenario, InformationInvestmentDetails investment) 
-    { 
-        return investment.Cost == 0 ? scenario.AvailableWarnings.Sum(w => w.LossPrevention) : scenario.AvailableWarnings.Sum(w => w.LossPrevention) * 0.2; 
+
+    public double CalculatePreventableLosses(GameWorld gameWorld, InformationRichScenario scenario, InformationInvestmentDetails investment)
+    {
+        return investment.Cost == 0 ? scenario.AvailableWarnings.Sum(w => w.LossPrevention) : scenario.AvailableWarnings.Sum(w => w.LossPrevention) * 0.2;
     }
-    
-    public double CalculateMissedOpportunities(GameWorld gameWorld, InformationRichScenario scenario, InformationInvestmentDetails investment) 
-    { 
-        return investment.Cost == 0 ? scenario.AvailableOpportunities.Sum(o => o.ProfitPotential) : scenario.AvailableOpportunities.Sum(o => o.ProfitPotential) * 0.3; 
+
+    public double CalculateMissedOpportunities(GameWorld gameWorld, InformationRichScenario scenario, InformationInvestmentDetails investment)
+    {
+        return investment.Cost == 0 ? scenario.AvailableOpportunities.Sum(o => o.ProfitPotential) : scenario.AvailableOpportunities.Sum(o => o.ProfitPotential) * 0.3;
     }
-    
+
     public double CalculateRiskExposure(GameWorld gameWorld, InformationInvestmentDetails investment) { return investment.Cost == 0 ? 10 : 3; }
     public int CountNegativeSurprises(GameWorld gameWorld, InformationInvestmentDetails investment) { return investment.Cost == 0 ? 1 : 0; }
     public double CalculateTotalValue(GameWorld gameWorld, InformationNeglectResults results) { return 200 - results.PreventableLosses - results.MissedOpportunityValue - results.InformationCost; }
@@ -385,7 +385,7 @@ public class CompoundNegligenceStrategy
     public bool PlanningNeglect { get; }
     public bool EquipmentNeglect { get; }
     public bool TimeManagementNeglect { get; }
-    
+
     public CompoundNegligenceStrategy(bool informationNeglect, bool planningNeglect, bool equipmentNeglect, bool timeManagementNeglect)
     {
         InformationNeglect = informationNeglect;
@@ -393,13 +393,13 @@ public class CompoundNegligenceStrategy
         EquipmentNeglect = equipmentNeglect;
         TimeManagementNeglect = timeManagementNeglect;
     }
-    
-    public NegligenceEffects CalculateNegligenceEffects(GameWorld gameWorld, int day) 
-    { 
-        var neglectCount = (InformationNeglect ? 1 : 0) + (PlanningNeglect ? 1 : 0) + (EquipmentNeglect ? 1 : 0) + (TimeManagementNeglect ? 1 : 0);
-        return new NegligenceEffects { SynergisticEffects = neglectCount * neglectCount * day, SystemFailures = neglectCount > 2 ? 1 : 0 }; 
+
+    public NegligenceEffects CalculateNegligenceEffects(GameWorld gameWorld, int day)
+    {
+        int neglectCount = (InformationNeglect ? 1 : 0) + (PlanningNeglect ? 1 : 0) + (EquipmentNeglect ? 1 : 0) + (TimeManagementNeglect ? 1 : 0);
+        return new NegligenceEffects { SynergisticEffects = neglectCount * neglectCount * day, SystemFailures = neglectCount > 2 ? 1 : 0 };
     }
-    
+
     public double CalculateDailyValue(GameWorld gameWorld, NegligenceEffects effects) { return Math.Max(10, 100 - effects.SynergisticEffects); }
     public int CalculateRecoveryTimeRequired(CompoundNegligenceResults results) { return (int)(results.SynergisticNegativeEffects / 10); }
 }

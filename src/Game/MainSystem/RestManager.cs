@@ -198,10 +198,6 @@
             DueDay = gameWorld.CurrentDay + 3,
             Payment = 25,
             FailurePenalty = "Reputation loss with Merchant Guild",
-            RequiredTransactions = new List<ContractTransaction>
-            {
-                new ContractTransaction("Tools", "Crossbridge", TransactionType.Sell, 1)
-            }
         };
 
         contractRepository.AddContract(exclusiveContract);

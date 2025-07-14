@@ -1,5 +1,5 @@
-﻿using Wayfarer.UIHelpers;
-using Wayfarer.Game.MainSystem;
+﻿using Wayfarer.Game.MainSystem;
+using Wayfarer.UIHelpers;
 
 public static class ServiceConfiguration
 {
@@ -25,7 +25,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<ContractRepository>();
         services.AddSingleton<RouteRepository>();
-        
+
         // Register contract services
         services.AddSingleton<ContractValidationService>();
         services.AddSingleton<ContractProgressionService>();

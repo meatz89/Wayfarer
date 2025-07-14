@@ -1,5 +1,5 @@
-using Wayfarer.Game.MainSystem;
 using System.IO;
+using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests;
 
@@ -22,28 +22,28 @@ public static class TestGameWorldInitializer
     /// </summary>
     public static GameWorld CreateSimpleTestWorld()
     {
-        var gameWorld = new GameWorld();
-        
+        GameWorld gameWorld = new GameWorld();
+
         // Initialize with basic test data
         SetupBasicTestData(gameWorld);
-        
+
         return gameWorld;
     }
-    
+
     /// <summary>
     /// Create a test GameWorld from a declarative test scenario.
     /// This is the primary method for test setup - allows complete control over game state.
     /// </summary>
     public static GameWorld CreateTestWorld(TestScenarioBuilder scenario)
     {
-        var gameWorld = new GameWorld();
-        
+        GameWorld gameWorld = new GameWorld();
+
         // Apply scenario configuration to game world
         scenario.ApplyToGameWorld(gameWorld);
-        
+
         return gameWorld;
     }
-    
+
     /// <summary>
     /// Create a test GameWorld with specific player starting conditions.
     /// Useful for tests that need specific player state without full scenario building.
@@ -54,16 +54,16 @@ public static class TestGameWorldInitializer
         int stamina = 10,
         List<string>? inventory = null)
     {
-        var gameWorld = new GameWorld();
-        
+        GameWorld gameWorld = new GameWorld();
+
         // Set up basic world data
         SetupBasicTestData(gameWorld);
-        
+
         // Configure player
         Player player = gameWorld.GetPlayer();
         player.Coins = coins;
         player.Stamina = stamina;
-        
+
         // Add inventory items
         if (inventory != null)
         {
@@ -72,7 +72,7 @@ public static class TestGameWorldInitializer
                 player.Inventory.AddItem(item);
             }
         }
-        
+
         // Set player location
         if (!string.IsNullOrEmpty(startLocationId))
         {
@@ -83,10 +83,10 @@ public static class TestGameWorldInitializer
                 gameWorld.WorldState.SetCurrentLocation(startLocation, null); // TODO: Set appropriate spot
             }
         }
-        
+
         return gameWorld;
     }
-    
+
     /// <summary>
     /// Setup basic test data that most tests will need.
     /// Provides minimal viable game content for testing core functionality.
@@ -99,7 +99,7 @@ public static class TestGameWorldInitializer
         gameWorld.WorldState.Routes = new List<RouteOption>();
         gameWorld.WorldState.Items = new List<Item>();
         gameWorld.WorldState.Contracts = new List<Contract>();
-        
+
         // Load locations from TEST-SPECIFIC JSON file - NEVER use production content
         List<Location> locations = new List<Location>();
         string testLocationsFilePath = Path.Combine("Content", "Templates", "locations.json");
@@ -134,7 +134,7 @@ public static class TestGameWorldInitializer
                 }
             });
         }
-        
+
         // Load location spots from TEST-SPECIFIC JSON file
         List<LocationSpot> locationSpots = new List<LocationSpot>();
         string testLocationSpotsFilePath = Path.Combine("Content", "Templates", "location_spots.json");
@@ -149,7 +149,7 @@ public static class TestGameWorldInitializer
         {
             Console.WriteLine($"WARNING: TEST location_spots.json not found at {testLocationSpotsFilePath}. Using basic test spots.");
         }
-        
+
         // Load routes from TEST-SPECIFIC JSON file
         List<RouteOption> routes = new List<RouteOption>();
         string testRoutesFilePath = Path.Combine("Content", "Templates", "routes.json");
@@ -164,7 +164,7 @@ public static class TestGameWorldInitializer
         {
             Console.WriteLine($"WARNING: TEST routes.json not found at {testRoutesFilePath}. Using basic test routes.");
         }
-        
+
         // Load items from TEST-SPECIFIC JSON file - NEVER use production content
         List<Item> items = new List<Item>();
         string testItemsFilePath = Path.Combine("Content", "Templates", "items.json");
@@ -205,7 +205,7 @@ public static class TestGameWorldInitializer
                 }
             });
         }
-        
+
         // Load contracts from TEST-SPECIFIC JSON file - NEVER use production content
         List<Contract> contracts = new List<Contract>();
         string testContractsFilePath = Path.Combine("Content", "Templates", "contracts.json");
@@ -220,11 +220,11 @@ public static class TestGameWorldInitializer
         {
             Console.WriteLine($"WARNING: TEST contracts.json not found at {testContractsFilePath}. Using empty contract list.");
         }
-        
+
         // Add basic NPCs for market functionality using repository
         // These NPCs are needed for market operations to work with the scheduling system
         NPCRepository npcRepository = new NPCRepository(gameWorld);
-        
+
         npcRepository.AddNPC(new NPC
         {
             ID = "marcus_innkeeper",
@@ -234,45 +234,55 @@ public static class TestGameWorldInitializer
             AvailabilitySchedule = Schedule.Always,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Rest }
         });
-        
+
         npcRepository.AddNPC(new NPC
         {
             ID = "elena_trader",
-            Name = "Elena the Trader", 
+            Name = "Elena the Trader",
             Location = "town_square",
             Profession = Professions.Merchant,
             AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
         });
-        
+
         npcRepository.AddNPC(new NPC
         {
             ID = "workshop_artisan",
             Name = "Guild Artisan",
-            Location = "workshop", 
+            Location = "workshop",
             Profession = Professions.Merchant,
             AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.EquipmentRepair }
         });
-        
+
+        npcRepository.AddNPC(new NPC
+        {
+            ID = "millbrook_merchant",
+            Name = "Village Merchant",
+            Location = "millbrook",
+            Profession = Professions.Merchant,
+            AvailabilitySchedule = Schedule.Market_Hours,
+            ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
+        });
+
         // Set basic game state
         gameWorld.WorldState.CurrentDay = 1;
         gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
         gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
-        
+
         // Initialize player at default location
         Player player = gameWorld.GetPlayer();
         player.Initialize("Test Player", Professions.Merchant, Genders.Male);
-        
+
         // Set starting location
         Location startLocation = gameWorld.WorldState.locations.First(l => l.Id == "dusty_flagon");
         player.CurrentLocation = startLocation;
         gameWorld.WorldState.SetCurrentLocation(startLocation, null);
-        
-        // Initialize empty contract list
-        gameWorld.ActiveContracts = new List<Contract>();
+
+        // Initialize empty active contract list
+        gameWorld.WorldState.ActiveContracts = new List<Contract>();
     }
-    
+
     /// <summary>
     /// Add a test contract to the game world.
     /// Utility method for adding contracts without full scenario building.
@@ -283,10 +293,10 @@ public static class TestGameWorldInitializer
         {
             gameWorld.WorldState.Contracts = new List<Contract>();
         }
-        
+
         gameWorld.WorldState.Contracts.Add(contract);
     }
-    
+
     /// <summary>
     /// Add a test item to the game world.
     /// Utility method for adding items without full scenario building.
@@ -297,10 +307,10 @@ public static class TestGameWorldInitializer
         {
             gameWorld.WorldState.Items = new List<Item>();
         }
-        
+
         gameWorld.WorldState.Items.Add(item);
     }
-    
+
     /// <summary>
     /// Add a test location to the game world.
     /// Utility method for adding locations without full scenario building.
@@ -311,7 +321,7 @@ public static class TestGameWorldInitializer
         {
             gameWorld.WorldState.locations = new List<Location>();
         }
-        
+
         gameWorld.WorldState.locations.Add(location);
     }
 }

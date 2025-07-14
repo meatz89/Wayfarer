@@ -1,20 +1,4 @@
-﻿public enum Social_Expectation
-{
-    Any,
-    Merchant_Class,
-    Noble_Class,
-    Professional
-}
-
-public enum Access_Level
-{
-    Public,
-    Semi_Private,
-    Private,
-    Restricted
-}
-
-public class Location
+﻿public class Location
 {
     public string Id { get; set; }
     public string Name { get; private set; }
@@ -49,9 +33,6 @@ public class Location
     public List<LocationSpot> AvailableSpots { get; set; } = new List<LocationSpot>();
 
     // Categorical Properties for NPC-Location Logical System Interactions
-    public Social_Expectation SocialExpectation { get; set; } = Social_Expectation.Any;
-    public Access_Level AccessLevel { get; set; } = Access_Level.Public;
-    public List<Social_Class> RequiredSocialClasses { get; set; } = new List<Social_Class>();
     public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
 
     // Time-based properties
@@ -78,20 +59,6 @@ public class Location
         Name = name;
     }
 
-    // Helper methods for categorical system interactions
-    public bool CanNPCAccessLocation(NPC npc)
-    {
-        // Check social expectations
-        if (!npc.MeetsLocationRequirements(SocialExpectation))
-            return false;
-
-        // Check specific social class requirements
-        if (RequiredSocialClasses.Any() && !RequiredSocialClasses.Contains(npc.SocialClass))
-            return false;
-
-        return true;
-    }
-
     public bool IsProfessionAvailable(Professions profession, TimeBlocks currentTime)
     {
         if (!AvailableProfessionsByTime.ContainsKey(currentTime))
@@ -107,30 +74,4 @@ public class Location
             : new List<Professions>();
     }
 
-    // Helper properties for UI display
-    public string SocialExpectationDescription
-    {
-        get
-        {
-            return SocialExpectation.ToString().Replace('_', ' ');
-        }
-    }
-
-    public string AccessLevelDescription
-    {
-        get
-        {
-            return AccessLevel.ToString().Replace('_', ' ');
-        }
-    }
-
-    public string RequiredSocialClassesDescription
-    {
-        get
-        {
-            return RequiredSocialClasses.Any()
-        ? $"Required: {string.Join(", ", RequiredSocialClasses.Select(c => c.ToString().Replace('_', ' ')))}"
-        : "No social restrictions";
-        }
-    }
 }

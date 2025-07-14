@@ -9,8 +9,6 @@
 		"categories": [],
 		"itemCategories": [ "Raw_Materials", "Perishable" ],
 		"size": "Small",
-		"fragility": "Delicate",
-		"socialSignaling": "Commoner",
 		"locationId": "millbrook",
 		"spotId": "village_mill",
 		"description": "Common medicinal herbs gathered from village gardens, useful for remedies and cooking."
@@ -25,8 +23,6 @@
 		"categories": [],
 		"itemCategories": [ "Finished_Goods", "Trade_Goods" ],
 		"size": "Medium",
-		"fragility": "Sturdy",
-		"socialSignaling": "Artisan",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "Quality tools essential for various trades and repairs, valued by craftsmen."
@@ -41,8 +37,6 @@
 		"categories": [ "Climbing_Equipment" ],
 		"itemCategories": [ "Equipment", "Trade_Goods" ],
 		"size": "Medium",
-		"fragility": "Standard",
-		"socialSignaling": "Explorer",
 		"locationId": "workshop",
 		"spotId": "workshop_interior",
 		"description": "Strong hemp rope essential for mountain climbing and securing loads on treacherous paths."
@@ -57,8 +51,6 @@
 		"categories": [ "Climbing_Equipment" ],
 		"itemCategories": [ "Equipment", "Specialized" ],
 		"size": "Medium",
-		"fragility": "Standard",
-		"socialSignaling": "Professional",
 		"locationId": "ironhold",
 		"spotId": "master_forge",
 		"description": "Professional climbing harness required for the most dangerous mountain routes and mining work."
@@ -73,8 +65,6 @@
 		"categories": [ "Light_Source" ],
 		"itemCategories": [ "Equipment", "Consumable" ],
 		"size": "Small",
-		"fragility": "Delicate",
-		"socialSignaling": "Traveler",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "Reliable oil lantern essential for navigating dark passages and underground areas."
@@ -89,8 +79,6 @@
 		"categories": [ "Light_Source" ],
 		"itemCategories": [ "Equipment", "Consumable" ],
 		"size": "Small",
-		"fragility": "Standard",
-		"socialSignaling": "Commoner",
 		"locationId": "millbrook",
 		"spotId": "village_mill",
 		"description": "Simple resin torch providing basic illumination for short journeys through dark areas."
@@ -105,8 +93,6 @@
 		"categories": [ "Navigation_Tools" ],
 		"itemCategories": [ "Equipment", "Precision" ],
 		"size": "Small",
-		"fragility": "Delicate",
-		"socialSignaling": "Explorer",
 		"locationId": "crossbridge",
 		"spotId": "trading_hall",
 		"description": "Precision compass essential for wilderness navigation and preventing dangerous detours."
@@ -121,8 +107,6 @@
 		"categories": [ "Navigation_Tools" ],
 		"itemCategories": [ "Equipment", "Specialized" ],
 		"size": "Small",
-		"fragility": "Fragile",
-		"socialSignaling": "Scholar",
 		"locationId": "eastport",
 		"spotId": "harbor_master",
 		"description": "Advanced navigation charts required for deep sea voyages and ocean exploration."
@@ -137,8 +121,6 @@
 		"categories": [ "Weather_Protection" ],
 		"itemCategories": [ "Equipment", "Clothing" ],
 		"size": "Medium",
-		"fragility": "Standard",
-		"socialSignaling": "Traveler",
 		"locationId": "workshop",
 		"spotId": "workshop_interior",
 		"description": "Heavy-duty cloak providing protection against harsh weather on exposed routes."
@@ -153,8 +135,6 @@
 		"categories": [ "Weather_Protection", "Climbing_Equipment" ],
 		"itemCategories": [ "Equipment", "Survival" ],
 		"size": "Large",
-		"fragility": "Standard",
-		"socialSignaling": "Professional",
 		"locationId": "ironhold",
 		"spotId": "master_forge",
 		"description": "Complete mountain survival kit combining weather protection and climbing safety equipment."
@@ -169,8 +149,6 @@
 		"categories": [ "Water_Transport" ],
 		"itemCategories": [ "Services", "Documentation" ],
 		"size": "Tiny",
-		"fragility": "Fragile",
-		"socialSignaling": "Traveler",
 		"locationId": "riverside_settlement",
 		"spotId": "ferry_dock",
 		"description": "Official ferry pass granting access to water transport routes and maritime services."
@@ -185,8 +163,6 @@
 		"categories": [ "Water_Transport" ],
 		"itemCategories": [ "Services", "Documentation" ],
 		"size": "Tiny",
-		"fragility": "Fragile",
-		"socialSignaling": "Merchant",
 		"locationId": "eastport",
 		"spotId": "customs_house",
 		"description": "Advanced maritime license required for deep sea voyages and exotic island trade."
@@ -201,8 +177,6 @@
 		"categories": [ "Load_Distribution" ],
 		"itemCategories": [ "Equipment", "Professional" ],
 		"size": "Medium",
-		"fragility": "Sturdy",
-		"socialSignaling": "Porter",
 		"locationId": "crossbridge",
 		"spotId": "transport_depot",
 		"description": "Professional load distribution harness enabling efficient transport of heavy cargo."
@@ -217,8 +191,6 @@
 		"categories": [ "Social_Signaling" ],
 		"itemCategories": [ "Documentation", "Luxury" ],
 		"size": "Tiny",
-		"fragility": "Precious",
-		"socialSignaling": "Noble",
 		"locationId": "eastport",
 		"spotId": "customs_house",
 		"description": "Official noble seal granting access to high-society contracts and exclusive trading opportunities."
@@ -233,8 +205,6 @@
 		"categories": [ "Social_Signaling" ],
 		"itemCategories": [ "Documentation", "Services" ],
 		"size": "Tiny",
-		"fragility": "Fragile",
-		"socialSignaling": "Merchant",
 		"locationId": "crossbridge",
 		"spotId": "trading_hall",
 		"description": "Official merchant credentials enabling access to professional trade caravans and commercial contracts."
@@ -249,8 +219,6 @@
 		"categories": [],
 		"itemCategories": [ "Luxury_Items", "Perishable" ],
 		"size": "Large",
-		"fragility": "Fragile",
-		"socialSignaling": "Merchant",
 		"locationId": "millbrook",
 		"spotId": "village_mill",
 		"description": "Fine vintage wine highly valued in port cities and trading posts, fragile but profitable."
@@ -265,8 +233,6 @@
 		"categories": [],
 		"itemCategories": [ "Luxury_Items", "Exotic" ],
 		"size": "Small",
-		"fragility": "Delicate",
-		"socialSignaling": "Merchant",
 		"locationId": "eastport",
 		"spotId": "exotic_market",
 		"description": "Rare spices from distant islands, extremely valuable in inland markets but expensive to acquire."
@@ -281,8 +247,6 @@
 		"categories": [],
 		"itemCategories": [ "Raw_Materials", "Heavy" ],
 		"size": "Large",
-		"fragility": "Sturdy",
-		"socialSignaling": "Miner",
 		"locationId": "ironhold",
 		"spotId": "mine_entrance",
 		"description": "High-quality iron ore from mountain mines, essential for advanced weapon and tool crafting."
@@ -297,8 +261,6 @@
 		"categories": [],
 		"itemCategories": [ "Luxury_Items", "Precious" ],
 		"size": "Tiny",
-		"fragility": "Precious",
-		"socialSignaling": "Noble",
 		"locationId": "ancient_ruins",
 		"spotId": "artifact_chamber",
 		"description": "Ancient gems discovered in forgotten ruins, extremely valuable to collectors and nobles."
@@ -313,8 +275,6 @@
 		"categories": [],
 		"itemCategories": [ "Artifacts", "Mysterious" ],
 		"size": "Medium",
-		"fragility": "Precious",
-		"socialSignaling": "Scholar",
 		"locationId": "ancient_ruins",
 		"spotId": "artifact_chamber",
 		"description": "Mysterious artifact from a lost civilization, incredibly valuable to scholars and collectors."
@@ -329,8 +289,6 @@
 		"categories": [],
 		"itemCategories": [ "Trade_Goods", "Professional" ],
 		"size": "Medium",
-		"fragility": "Standard",
-		"socialSignaling": "Fisher",
 		"locationId": "riverside_settlement",
 		"spotId": "fishing_pier",
 		"description": "Quality fishing nets valued by coastal communities and fishing operations."
@@ -345,8 +303,6 @@
 		"categories": [],
 		"itemCategories": [ "Masterwork", "Professional" ],
 		"size": "Large",
-		"fragility": "Sturdy",
-		"socialSignaling": "Master_Craftsman",
 		"locationId": "ironhold",
 		"spotId": "master_forge",
 		"description": "Exceptional tools forged from mountain iron, essential for the most demanding crafting projects."
@@ -361,8 +317,6 @@
 		"categories": [],
 		"itemCategories": [ "Luxury_Items", "Textiles" ],
 		"size": "Small",
-		"fragility": "Delicate",
-		"socialSignaling": "Noble",
 		"locationId": "eastport",
 		"spotId": "exotic_market",
 		"description": "Luxurious silk cloth from exotic lands, highly prized by nobles and wealthy merchants."
@@ -377,8 +331,6 @@
 		"categories": [],
 		"itemCategories": [ "Consumable", "Survival" ],
 		"size": "Small",
-		"fragility": "Standard",
-		"socialSignaling": "Traveler",
 		"locationId": "crossbridge",
 		"spotId": "transport_depot",
 		"description": "Essential provisions for long journeys, reducing stamina costs during extended travel."

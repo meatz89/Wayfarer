@@ -49,12 +49,6 @@ public class NPCRepository
         return npcs.Where(n => n.Profession == profession).ToList();
     }
 
-    public List<NPC> GetNPCsBySocialClass(Social_Class socialClass)
-    {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.SocialClass == socialClass).ToList();
-    }
-
     public List<NPC> GetNPCsProvidingService(ServiceTypes service)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
@@ -74,12 +68,12 @@ public class NPCRepository
     {
         List<LocationSpot> spots = _gameWorld.WorldState.locationSpots ?? new List<LocationSpot>();
         LocationSpot spot = spots.FirstOrDefault(s => s.SpotID == locationSpotId);
-        
+
         if (spot?.PrimaryNPC != null && spot.PrimaryNPC.IsAvailable(currentTime))
         {
             return new List<NPC> { spot.PrimaryNPC };
         }
-        
+
         return new List<NPC>();
     }
 
@@ -90,12 +84,12 @@ public class NPCRepository
     {
         List<LocationSpot> spots = _gameWorld.WorldState.locationSpots ?? new List<LocationSpot>();
         LocationSpot spot = spots.FirstOrDefault(s => s.SpotID == locationSpotId);
-        
+
         if (spot?.PrimaryNPC != null && spot.PrimaryNPC.IsAvailable(currentTime))
         {
             return spot.PrimaryNPC;
         }
-        
+
         return null;
     }
 

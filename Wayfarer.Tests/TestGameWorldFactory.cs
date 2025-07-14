@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wayfarer.Game.MainSystem;
 
@@ -21,10 +21,10 @@ public static class TestGameWorldFactory
     public static GameWorldManager CreateCompleteGameWorldManager(string contentDirectory = "Content")
     {
         // Build service collection with test configuration
-        var services = new ServiceCollection();
-        
+        ServiceCollection services = new ServiceCollection();
+
         // Add minimal configuration for testing
-        var configuration = new ConfigurationBuilder()
+        IConfigurationRoot configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string>
             {
                 {"DefaultAIProvider", "Test"}, // Use test provider to avoid AI dependencies
@@ -32,24 +32,24 @@ public static class TestGameWorldFactory
             })
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
-        
+
         // Add logging for test debugging
         services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Warning));
-        
+
         // Configure test services - same as production but without AI services
         services.ConfigureTestServices(contentDirectory);
-        
+
         // Build service provider and get GameWorldManager
         using ServiceProvider serviceProvider = services.BuildServiceProvider();
         GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();
-        
+
         // Initialize the game world (same as production startup)
         // Note: We skip initialization for tests to avoid async complexity
         // Tests should use the pre-loaded game world from GameWorldInitializer
-        
+
         return gameWorldManager;
     }
-    
+
     /// <summary>
     /// Creates a GameWorldManager with custom contracts for contract-specific testing.
     /// Useful for testing specific contract scenarios without modifying JSON files.
@@ -60,19 +60,19 @@ public static class TestGameWorldFactory
     public static GameWorldManager CreateContractTestManager(List<Contract> customContracts, string contentDirectory = "Content")
     {
         GameWorldManager gameManager = CreateCompleteGameWorldManager(contentDirectory);
-        
+
         // Add custom contracts to the game world
         foreach (Contract contract in customContracts)
         {
             gameManager.GameWorld.WorldState.Contracts?.Add(contract);
         }
-        
+
         // Update available contracts to include custom ones
         gameManager.UpdateAvailableContracts();
-        
+
         return gameManager;
     }
-    
+
     /// <summary>
     /// Creates a GameWorldManager with custom items for market testing.
     /// Useful for testing market scenarios with specific item configurations.
@@ -83,16 +83,16 @@ public static class TestGameWorldFactory
     public static GameWorldManager CreateMarketTestManager(List<Item> customItems, string contentDirectory = "Content")
     {
         GameWorldManager gameManager = CreateCompleteGameWorldManager(contentDirectory);
-        
+
         // Add custom items to the game world
         foreach (Item item in customItems)
         {
             gameManager.GameWorld.WorldState.Items?.Add(item);
         }
-        
+
         return gameManager;
     }
-    
+
     /// <summary>
     /// Creates a GameWorldManager with custom locations for travel testing.
     /// Useful for testing travel scenarios with specific location configurations.
@@ -103,16 +103,16 @@ public static class TestGameWorldFactory
     public static GameWorldManager CreateTravelTestManager(List<Location> customLocations, string contentDirectory = "Content")
     {
         GameWorldManager gameManager = CreateCompleteGameWorldManager(contentDirectory);
-        
+
         // Add custom locations to the game world
         foreach (Location location in customLocations)
         {
             gameManager.GameWorld.WorldState.locations?.Add(location);
         }
-        
+
         return gameManager;
     }
-    
+
     /// <summary>
     /// Helper method to create a simple test contract for testing purposes.
     /// Follows the "only check completion actions" principle.
@@ -124,10 +124,10 @@ public static class TestGameWorldFactory
     /// <param name="daysToComplete">Number of days to complete (default: 5)</param>
     /// <returns>Contract configured for testing</returns>
     public static Contract CreateTestContract(
-        string contractId, 
-        string description, 
-        ContractTransaction requiredTransaction, 
-        int payment = 10, 
+        string contractId,
+        string description,
+        ContractTransaction requiredTransaction,
+        int payment = 10,
         int daysToComplete = 5)
     {
         return new Contract
@@ -140,23 +140,9 @@ public static class TestGameWorldFactory
             FailurePenalty = "Loss of reputation",
             IsCompleted = false,
             IsFailed = false,
-            
-            // New completion action format (only check completion actions)
-            RequiredTransactions = new List<ContractTransaction> { requiredTransaction },
-            RequiredDestinations = new List<string>(),
-            RequiredNPCConversations = new List<string>(),
-            RequiredLocationActions = new List<string>(),
-            
-            // Initialize completion tracking
-            CompletedDestinations = new HashSet<string>(),
-            CompletedTransactions = new List<ContractTransaction>(),
-            CompletedNPCConversations = new HashSet<string>(),
-            CompletedLocationActions = new HashSet<string>(),
-            
-            // Legacy fields removed - now using completion action pattern only
         };
     }
-    
+
     /// <summary>
     /// Helper method to create a simple test item for market testing.
     /// </summary>
@@ -180,7 +166,7 @@ public static class TestGameWorldFactory
             Categories = new List<EquipmentCategory>()
         };
     }
-    
+
     /// <summary>
     /// Helper method to create a simple test location for travel testing.
     /// </summary>
@@ -230,7 +216,7 @@ public static class TestServiceConfiguration
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<ContractRepository>();
         services.AddSingleton<RouteRepository>();
-        
+
         // Register contract services (same as production)
         services.AddSingleton<ContractValidationService>();
         services.AddSingleton<ContractProgressionService>();
@@ -262,7 +248,7 @@ public static class TestServiceConfiguration
         // - EncounterFactory (no AI dependency needed for core game logic tests)
         // - ChoiceProjectionService (no AI dependency needed for basic functionality tests)
         // - IAIProvider (not needed for game logic testing)
-        
+
         // If specific tests need AI services, they can create mock implementations or use a test AI provider
 
         return services;

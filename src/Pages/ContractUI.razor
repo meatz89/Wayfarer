@@ -1,12 +1,8 @@
-﻿@inherits ContractUIBase
+﻿@using Wayfarer.Game.ActionSystem
 @using Wayfarer.Game.MainSystem
-@using Wayfarer.Game.ActionSystem
+@inherits ContractUIBase
 
 @* ContractUI.razor *@
-@inject GameWorld GameWorld
-@inject GameWorldManager GameManager
-@inject ContractSystem ContractSystem
-@inject ItemRepository ItemRepository
 
 <div class="contracts-list">
     @if (AvailableContracts.Any())
@@ -37,143 +33,58 @@
                     </div>
                 </div>
 
-                <!-- STRATEGIC CONTRACT ANALYSIS SECTION -->
-                @{
-                    var contractAnalysis = AnalyzeContractStrategicValue(contract);
-                    var timeAnalysis = AnalyzeContractTimePressure(contract, daysRemaining);
-                    var synergyAnalysis = AnalyzeContractSynergy(contract);
-                }
-                
-                <div class="strategic-analysis-container">
-                    <div class="strategic-section">
-                        <h3>📊 Strategic Contract Analysis</h3>
-                        
-                        <div class="strategic-overview">
-                            <div class="time-pressure-indicator @timeAnalysis.PressureLevel.ToLower()">
-                                @timeAnalysis.Icon @timeAnalysis.Description
-                            </div>
-                        </div>
-
-                        @if (contractAnalysis.EquipmentInvestmentNeeded.Any())
-                        {
-                            <div class="equipment-investment-analysis">
-                                <h4>💡 Equipment Investment Analysis</h4>
-                                <div class="investment-opportunities">
-                                    @foreach (var investment in contractAnalysis.EquipmentInvestmentNeeded.Take(3))
-                                    {
-                                        <div class="contract-investment-opportunity">
-                                            <div class="equipment-info">
-                                                <span class="equipment-name">@investment.Category.ToString().Replace('_', ' ')</span>
-                                                <span class="investment-benefit">@investment.Benefit</span>
-                                            </div>
-                                            <div class="available-items">Items: @string.Join(", ", investment.AvailableItems.Select(i => i.Name))</div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-
-                        @if (synergyAnalysis.SynergyContracts.Any())
-                        {
-                            <div class="contract-synergy-analysis">
-                                <h4>🔗 Contract Synergy Opportunities</h4>
-                                <div class="synergy-hints">
-                                    @foreach (var synergy in synergyAnalysis.SynergyContracts.Take(2))
-                                    {
-                                        <div class="synergy-hint">
-                                            <div class="synergy-contract">@synergy.ContractDescription</div>
-                                            <div class="synergy-benefit">@synergy.SharedBenefit</div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-
-                        @if (contractAnalysis.RouteEnablementOpportunities.Any())
-                        {
-                            <div class="route-enablement-analysis">
-                                <h4>🛤️ Route Access Benefits</h4>
-                                <div class="route-benefits">
-                                    @foreach (var route in contractAnalysis.RouteEnablementOpportunities.Take(3))
-                                    {
-                                        <div class="route-benefit">
-                                            <span class="route-name">@route.RouteName</span>
-                                            <span class="enablement-reason">@route.EnablementReason</span>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
 
                 <!-- COMPLETION REQUIREMENTS SECTION -->
                 <div class="contract-requirements">
-                    @if (contract.RequiredTransactions.Any())
+                    @if (contract.CompletionSteps.Any())
                     {
+                        <!-- NEW: ContractStep system display -->
                         <div class="requirement-section">
-                            <h4 class="requirement-title">Required Transactions:</h4>
-                            @foreach (var transaction in contract.RequiredTransactions)
+                            <h4 class="requirement-title">Contract Steps:</h4>
+                            @foreach (var step in contract.CompletionSteps.OrderBy(s => s.OrderHint))
                             {
-                                bool isCompleted = contractStatus.CompletedTransactions.Any(ct => 
-                                    ct.ItemId == transaction.ItemId && 
-                                    ct.LocationId == transaction.LocationId && 
-                                    ct.TransactionType == transaction.TransactionType);
+                                var stepRequirement = step.GetRequirement();
                                 
-                                <div class="requirement-item @(isCompleted ? "completed" : "pending")">
-                                    <span class="requirement-icon">@(isCompleted ? "✓" : "○")</span>
-                                    <span class="requirement-text">
-                                        @transaction.TransactionType @transaction.ItemId at @transaction.LocationId
-                                        @if (transaction.Quantity > 1) { <text> (x@transaction.Quantity)</text> }
-                                    </span>
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    @if (contract.RequiredDestinations.Any())
-                    {
-                        <div class="requirement-section">
-                            <h4 class="requirement-title">Required Destinations:</h4>
-                            @foreach (var destination in contract.RequiredDestinations)
-                            {
-                                bool isVisited = contractStatus.CompletedDestinations.Contains(destination);
-                                
-                                <div class="requirement-item @(isVisited ? "completed" : "pending")">
-                                    <span class="requirement-icon">@(isVisited ? "✓" : "○")</span>
-                                    <span class="requirement-text">Visit @destination</span>
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    @if (contract.RequiredNPCConversations.Any())
-                    {
-                        <div class="requirement-section">
-                            <h4 class="requirement-title">Required Conversations:</h4>
-                            @foreach (var npc in contract.RequiredNPCConversations)
-                            {
-                                bool hasSpoken = contractStatus.CompletedNPCConversations.Contains(npc);
-                                
-                                <div class="requirement-item @(hasSpoken ? "completed" : "pending")">
-                                    <span class="requirement-icon">@(hasSpoken ? "✓" : "○")</span>
-                                    <span class="requirement-text">Speak with @npc</span>
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    @if (contract.RequiredLocationActions.Any())
-                    {
-                        <div class="requirement-section">
-                            <h4 class="requirement-title">Required Actions:</h4>
-                            @foreach (var action in contract.RequiredLocationActions)
-                            {
-                                bool isCompleted = contractStatus.CompletedLocationActions.Contains(action);
-                                
-                                <div class="requirement-item @(isCompleted ? "completed" : "pending")">
-                                    <span class="requirement-icon">@(isCompleted ? "✓" : "○")</span>
-                                    <span class="requirement-text">Perform @action</span>
+                                <div class="requirement-item step-item @(step.IsCompleted ? "completed" : "pending") @(step.IsRequired ? "required" : "optional")">
+                                    <div class="step-header">
+                                        <span class="requirement-icon">@(step.IsCompleted ? "✅" : step.IsRequired ? "🔲" : "🔳")</span>
+                                        <span class="step-description">@step.Description</span>
+                                        @if (!step.IsRequired)
+                                        {
+                                            <span class="optional-badge">Optional</span>
+                                        }
+                                    </div>
+                                    
+                                    <div class="step-details">
+                                        @switch (stepRequirement.Type)
+                                        {
+                                            case ContractStepType.Travel:
+                                                <span class="step-detail">📍 Travel to @stepRequirement.TargetLocationId</span>
+                                                break;
+                                            case ContractStepType.Transaction:
+                                                <span class="step-detail">
+                                                    💰 @stepRequirement.TransactionType @stepRequirement.ItemId at @stepRequirement.TargetLocationId
+                                                    @if (stepRequirement.Quantity > 1) { <text> (x@stepRequirement.Quantity)</text> }
+                                                    @if (stepRequirement.MaxPrice.HasValue) { <text> (max: @stepRequirement.MaxPrice coins)</text> }
+                                                    @if (stepRequirement.MinPrice.HasValue) { <text> (min: @stepRequirement.MinPrice coins)</text> }
+                                                </span>
+                                                break;
+                                            case ContractStepType.Conversation:
+                                                <span class="step-detail">
+                                                    💬 Speak with @stepRequirement.RequiredNPCId
+                                                    @if (!string.IsNullOrEmpty(stepRequirement.TargetLocationId)) { <text> at @stepRequirement.TargetLocationId</text> }
+                                                </span>
+                                                break;
+                                            case ContractStepType.LocationAction:
+                                                <span class="step-detail">⚡ Perform @stepRequirement.RequiredActionId at @stepRequirement.TargetLocationId</span>
+                                                break;
+                                            case ContractStepType.Equipment:
+                                                <span class="step-detail">
+                                                    🎒 Obtain: @string.Join(", ", stepRequirement.RequiredEquipmentCategories.Select(cat => cat.ToString().Replace("_", " ")))
+                                                </span>
+                                                break;
+                                        }
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -183,7 +94,6 @@
                 <!-- CATEGORICAL REQUIREMENTS SECTION -->
                 @if (contract.RequiredEquipmentCategories.Any() || 
                      contract.RequiredToolCategories.Any() || 
-                     contract.RequiredSocialStanding != SocialRequirement.Any ||
                      contract.PhysicalRequirement != PhysicalDemand.None)
                 {
                     <div class="categorical-requirements">
@@ -202,14 +112,6 @@
                             <div class="category-requirement">
                                 <span class="category-label">Tools:</span>
                                 <span class="category-list">@string.Join(", ", contract.RequiredToolCategories.Select(tc => tc.ToString().Replace("_", " ")))</span>
-                            </div>
-                        }
-                        
-                        @if (contract.RequiredSocialStanding != SocialRequirement.Any)
-                        {
-                            <div class="category-requirement">
-                                <span class="category-label">Social Standing:</span>
-                                <span class="category-list">@contract.RequiredSocialStanding.ToString().Replace("_", " ")</span>
                             </div>
                         }
                         
@@ -263,189 +165,3 @@
         </div>
     }
 </div>
-
-@code {
-    /// <summary>
-    /// Analyze strategic value and equipment needs for a contract
-    /// </summary>
-    public ContractStrategicAnalysis AnalyzeContractStrategicValue(Contract contract)
-    {
-        var analysis = new ContractStrategicAnalysis();
-        var currentEquipment = GetCurrentEquipmentCategories();
-        
-        // Analyze equipment investment needs
-        var missingEquipment = contract.RequiredEquipmentCategories.Where(req => !currentEquipment.Contains(req)).ToList();
-        
-        foreach (var category in missingEquipment)
-        {
-            var availableItems = GetAvailableItemsForCategory(category);
-            if (availableItems.Any())
-            {
-                analysis.EquipmentInvestmentNeeded.Add(new ContractEquipmentInvestment
-                {
-                    Category = category,
-                    Benefit = GetEquipmentBenefit(category),
-                    AvailableItems = availableItems
-                });
-            }
-        }
-        
-        // Analyze route enablement opportunities
-        foreach (var destination in contract.RequiredDestinations)
-        {
-            var routeBenefits = GetRouteEnablementBenefits(destination, contract.RequiredEquipmentCategories);
-            analysis.RouteEnablementOpportunities.AddRange(routeBenefits);
-        }
-        
-        return analysis;
-    }
-
-    /// <summary>
-    /// Analyze time pressure for contract completion
-    /// </summary>
-    public ContractTimePressure AnalyzeContractTimePressure(Contract contract, int daysRemaining)
-    {
-        var analysis = new ContractTimePressure();
-        
-        if (daysRemaining <= 0)
-        {
-            analysis.PressureLevel = "Critical";
-            analysis.Icon = "🔥";
-            analysis.Description = "Contract overdue! Immediate action required";
-        }
-        else if (daysRemaining == 1)
-        {
-            analysis.PressureLevel = "High";
-            analysis.Icon = "⚠️";
-            analysis.Description = "Due tomorrow - prioritize completion";
-        }
-        else if (daysRemaining <= 3)
-        {
-            analysis.PressureLevel = "Medium";
-            analysis.Icon = "🕔";
-            analysis.Description = $"{daysRemaining} days remaining - plan completion soon";
-        }
-        else
-        {
-            analysis.PressureLevel = "Low";
-            analysis.Icon = "📅";
-            analysis.Description = $"{daysRemaining} days remaining - time for strategic planning";
-        }
-        
-        return analysis;
-    }
-
-    /// <summary>
-    /// Analyze synergy opportunities with other contracts
-    /// </summary>
-    public ContractSynergyAnalysis AnalyzeContractSynergy(Contract contract)
-    {
-        var analysis = new ContractSynergyAnalysis();
-        
-        // Find contracts with shared destinations or equipment requirements
-        foreach (var otherContract in AvailableContracts.Where(c => c.Id != contract.Id))
-        {
-            var sharedDestinations = contract.RequiredDestinations.Intersect(otherContract.RequiredDestinations).ToList();
-            var sharedEquipment = contract.RequiredEquipmentCategories.Intersect(otherContract.RequiredEquipmentCategories).ToList();
-            
-            if (sharedDestinations.Any() || sharedEquipment.Any())
-            {
-                string benefit = "";
-                if (sharedDestinations.Any())
-                {
-                    benefit += $"Shared destinations: {string.Join(", ", sharedDestinations)}";
-                }
-                if (sharedEquipment.Any())
-                {
-                    if (!string.IsNullOrEmpty(benefit)) benefit += " + ";
-                    benefit += $"Shared equipment: {string.Join(", ", sharedEquipment.Select(e => e.ToString().Replace('_', ' ')))}";
-                }
-                
-                analysis.SynergyContracts.Add(new ContractSynergy
-                {
-                    ContractDescription = otherContract.Description,
-                    SharedBenefit = benefit
-                });
-            }
-        }
-        
-        return analysis;
-    }
-
-    /// <summary>
-    /// Get current equipment categories owned by player
-    /// </summary>
-    private List<EquipmentCategory> GetCurrentEquipmentCategories()
-    {
-        var ownedCategories = new List<EquipmentCategory>();
-        
-        foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
-        {
-            if (itemName != null)
-            {
-                Item item = ItemRepository.GetItemByName(itemName);
-                if (item != null)
-                {
-                    ownedCategories.AddRange(item.Categories);
-                }
-            }
-        }
-        
-        return ownedCategories.Distinct().ToList();
-    }
-
-    /// <summary>
-    /// Get available items for a specific equipment category
-    /// </summary>
-    private List<Item> GetAvailableItemsForCategory(EquipmentCategory category)
-    {
-        var currentLocation = GameWorld.CurrentLocation;
-        var allMarketItems = GameManager.GetAvailableMarketItems(currentLocation.Id);
-        return allMarketItems.Where(i => i.Categories.Contains(category)).ToList();
-    }
-
-    /// <summary>
-    /// Get benefit description for equipment category
-    /// </summary>
-    private string GetEquipmentBenefit(EquipmentCategory category)
-    {
-        return category switch
-        {
-            EquipmentCategory.Climbing_Equipment => "Enables mountain terrain access",
-            EquipmentCategory.Navigation_Tools => "Enables wilderness navigation",
-            EquipmentCategory.Weather_Protection => "Enables all-weather travel",
-            EquipmentCategory.Water_Transport => "Enables river route access",
-            EquipmentCategory.Special_Access => "Enables restricted area access",
-            _ => "Enhances travel capabilities"
-        };
-    }
-
-    /// <summary>
-    /// Get route enablement benefits for a destination
-    /// </summary>
-    private List<RouteEnablementBenefit> GetRouteEnablementBenefits(string destination, List<EquipmentCategory> requiredEquipment)
-    {
-        var benefits = new List<RouteEnablementBenefit>();
-        
-        // Simplified analysis - in full implementation would check actual routes
-        if (requiredEquipment.Contains(EquipmentCategory.Climbing_Equipment))
-        {
-            benefits.Add(new RouteEnablementBenefit
-            {
-                RouteName = $"Mountain routes to {destination}",
-                EnablementReason = "Climbing equipment enables safer mountain travel"
-            });
-        }
-        
-        if (requiredEquipment.Contains(EquipmentCategory.Navigation_Tools))
-        {
-            benefits.Add(new RouteEnablementBenefit
-            {
-                RouteName = $"Wilderness paths to {destination}",
-                EnablementReason = "Navigation tools enable off-road shortcuts"
-            });
-        }
-        
-        return benefits;
-    }
-}

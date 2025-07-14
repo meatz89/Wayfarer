@@ -1,5 +1,5 @@
-using Xunit;
 using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests
 {

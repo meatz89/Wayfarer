@@ -181,8 +181,6 @@ private int GetPhysicalRecoveryAmount(PhysicalDemand demand) =>
 - **EquipmentCategory**: [Climbing_Equipment, Weather_Protection, Navigation_Tools, Social_Signaling, Permission_Documents]
 - **ToolCategory**: [Specialized_Equipment, Quality_Materials, Trade_Samples, Documentation, Measurement_Tools]
 - **Size**: [Tiny, Small, Medium, Large, Massive] (affects transport and inventory slots)
-- **Fragility**: [Sturdy, Standard, Delicate, Fragile] (affects travel risk and durability)
-- **SocialSignaling**: Context-dependent enhancement/blocking of social interactions
 
 ### **Routes (Multiple Categories Per Route)**
 - **TerrainCategory**: [Requires_Climbing, Wilderness_Terrain, Exposed_Weather, Dark_Passage, Requires_Water_Transport, Requires_Permission]

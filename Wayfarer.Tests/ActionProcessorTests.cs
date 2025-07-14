@@ -1,5 +1,5 @@
-using Xunit;
 using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests;
 
@@ -11,7 +11,7 @@ public class ActionExecutionTests
 {
     private GameWorld CreateTestGameWorld()
     {
-        var scenario = new TestScenarioBuilder()
+        TestScenarioBuilder scenario = new TestScenarioBuilder()
             .WithPlayer(p => p
                 .StartAt("dusty_flagon")
                 .WithCoins(50)
@@ -20,7 +20,7 @@ public class ActionExecutionTests
             .WithTimeState(t => t
                 .Day(1)
                 .TimeBlock(TimeBlocks.Morning));
-        
+
         return TestGameWorldInitializer.CreateTestWorld(scenario);
     }
 
@@ -29,17 +29,17 @@ public class ActionExecutionTests
     {
         // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
-        
+
         // Create repositories using new pattern
         LocationRepository locationRepository = new LocationRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        
+
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
             contractRepository, itemRepository, locationRepository);
-        
+
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
@@ -74,17 +74,17 @@ public class ActionExecutionTests
     {
         // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
-        
+
         // Create repositories using new pattern
         LocationRepository locationRepository = new LocationRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        
+
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
             contractRepository, itemRepository, locationRepository);
-        
+
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
@@ -124,17 +124,17 @@ public class ActionExecutionTests
     {
         // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
-        
+
         // Create repositories using new pattern
         LocationRepository locationRepository = new LocationRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        
+
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
             contractRepository, itemRepository, locationRepository);
-        
+
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
@@ -145,7 +145,7 @@ public class ActionExecutionTests
         );
 
         Player player = gameWorld.GetPlayer();
-        
+
         // Create action that costs more than player has
         LocationAction expensiveAction = new LocationAction
         {
@@ -166,17 +166,17 @@ public class ActionExecutionTests
     {
         // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
-        
+
         // Create repositories using new pattern
         LocationRepository locationRepository = new LocationRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        
+
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
             contractRepository, itemRepository, locationRepository);
-        
+
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
@@ -211,17 +211,17 @@ public class ActionExecutionTests
     {
         // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
-        
+
         // Create repositories using new pattern
         LocationRepository locationRepository = new LocationRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        
+
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
             contractRepository, itemRepository, locationRepository);
-        
+
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),
@@ -251,17 +251,17 @@ public class ActionExecutionTests
     {
         // === SETUP WITH NEW TEST PATTERN ===
         GameWorld gameWorld = CreateTestGameWorld();
-        
+
         // Create repositories using new pattern
         LocationRepository locationRepository = new LocationRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        
+
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
             contractRepository, itemRepository, locationRepository);
-        
+
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
             new PlayerProgression(gameWorld, messageSystem),

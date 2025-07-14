@@ -1,5 +1,5 @@
-using Xunit;
 using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests;
 
@@ -35,11 +35,11 @@ public class TravelTimeConsumptionTests
         );
 
         int initialTimeBlocks = gameWorld.TimeManager.UsedTimeBlocks;
-        
+
         // Find a valid route from the JSON data
         string currentLocationId = gameWorld.CurrentLocation.Id;
         List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes(currentLocationId, "town_square");
-        
+
         // Skip test if no routes available (this should not happen with proper test data)
         if (!availableRoutes.Any())
         {
@@ -73,7 +73,7 @@ public class TravelTimeConsumptionTests
         ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
         ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
         RouteRepository routeRepository = new RouteRepository(gameWorld);
-        var travelManager = new TravelManager(
+        TravelManager travelManager = new TravelManager(
             gameWorld,
             new LocationSystem(gameWorld, locationRepository),
             new ActionRepository(gameWorld),
@@ -99,7 +99,7 @@ public class TravelTimeConsumptionTests
     {
         // Arrange
         GameWorld gameWorld = CreateTestGameWorld();
-        
+
         // Consume all available time blocks except 1
         while (gameWorld.TimeManager.UsedTimeBlocks < TimeManager.MaxDailyTimeBlocks - 1)
         {
@@ -127,7 +127,7 @@ public class TravelTimeConsumptionTests
         // Find a route that would exceed the daily limit
         string currentLocationId = gameWorld.CurrentLocation.Id;
         List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes(currentLocationId, "town_square");
-        
+
         if (!availableRoutes.Any())
         {
             Assert.True(false, "No available routes found for testing");
@@ -135,7 +135,7 @@ public class TravelTimeConsumptionTests
         }
 
         RouteOption testRoute = availableRoutes.First();
-        
+
         // If the route costs more than 1 time block, it should throw an exception
         if (testRoute.TimeBlockCost > 1)
         {

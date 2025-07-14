@@ -1,13 +1,4 @@
-﻿public enum Social_Class
-{
-    Commoner,
-    Merchant,
-    Craftsman,
-    Minor_Noble,
-    Major_Noble
-}
-
-public enum Schedule
+﻿public enum Schedule
 {
     Always,           // Available all time periods (innkeepers, guards)
     Market_Hours,     // Morning + Afternoon (traders, merchants)
@@ -44,7 +35,6 @@ public class NPC
 
     // Categorical Properties for Logical System Interactions
     public Professions Profession { get; set; }
-    public Social_Class SocialClass { get; set; }
     public Schedule AvailabilitySchedule { get; set; }
     public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
@@ -55,14 +45,6 @@ public class NPC
         get
         {
             return Profession.ToString().Replace('_', ' ');
-        }
-    }
-
-    public string SocialClassDescription
-    {
-        get
-        {
-            return SocialClass.ToString().Replace('_', ' ');
         }
     }
 
@@ -109,17 +91,5 @@ public class NPC
     public bool CanProvideService(ServiceTypes requestedService)
     {
         return ProvidedServices.Contains(requestedService);
-    }
-
-    public bool MeetsLocationRequirements(Social_Expectation locationExpectation)
-    {
-        return locationExpectation switch
-        {
-            Social_Expectation.Any => true,
-            Social_Expectation.Merchant_Class => SocialClass >= Social_Class.Merchant,
-            Social_Expectation.Noble_Class => SocialClass >= Social_Class.Minor_Noble,
-            Social_Expectation.Professional => SocialClass >= Social_Class.Craftsman,
-            _ => false
-        };
     }
 }

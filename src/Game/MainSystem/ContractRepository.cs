@@ -55,7 +55,7 @@ public class ContractRepository
         {
             _gameWorld.WorldState.ActiveContracts = new List<Contract>();
         }
-        
+
         Contract contract = _gameWorld.WorldState.ActiveContracts.FirstOrDefault(c => c != null && c.Id == contractId);
         if (contract == null)
         {
@@ -63,37 +63,27 @@ public class ContractRepository
             contract = GetContract(contractId);
             if (contract == null)
             {
-                return new ContractCompletionResult 
-                { 
-                    ContractId = contractId, 
+                return new ContractCompletionResult
+                {
+                    ContractId = contractId,
                     Status = ContractStatus.NotFound,
                     ProgressPercentage = 0f
                 };
             }
-            
-            return new ContractCompletionResult 
-            { 
-                ContractId = contractId, 
-                Status = contract.IsCompleted ? ContractStatus.Completed : 
+
+            return new ContractCompletionResult
+            {
+                ContractId = contractId,
+                Status = contract.IsCompleted ? ContractStatus.Completed :
                         contract.IsFailed ? ContractStatus.Failed : ContractStatus.NotActive,
-                ProgressPercentage = contract.CalculateProgress(),
-                CompletedTransactions = contract.CompletedTransactions.ToList(),
-                CompletedDestinations = contract.CompletedDestinations.ToList(),
-                CompletedNPCConversations = contract.CompletedNPCConversations.ToList(),
-                CompletedLocationActions = contract.CompletedLocationActions.ToList()
             };
         }
 
-        return new ContractCompletionResult 
-        { 
-            ContractId = contractId, 
-            Status = contract.IsCompleted ? ContractStatus.Completed : 
+        return new ContractCompletionResult
+        {
+            ContractId = contractId,
+            Status = contract.IsCompleted ? ContractStatus.Completed :
                     contract.IsFailed ? ContractStatus.Failed : ContractStatus.Active,
-            ProgressPercentage = contract.CalculateProgress(),
-            CompletedTransactions = contract.CompletedTransactions.ToList(),
-            CompletedDestinations = contract.CompletedDestinations.ToList(),
-            CompletedNPCConversations = contract.CompletedNPCConversations.ToList(),
-            CompletedLocationActions = contract.CompletedLocationActions.ToList()
         };
     }
 
@@ -104,10 +94,10 @@ public class ContractRepository
     {
         Contract contract = GetContract(contractId);
         if (contract == null) return false;
-        
+
         bool isAlreadyActive = _gameWorld.WorldState.ActiveContracts?.Any(c => c.Id == contractId) ?? false;
         if (isAlreadyActive) return false;
-        
+
         return contract.IsAvailable(_gameWorld.CurrentDay, _gameWorld.WorldState.CurrentTimeBlock);
     }
 

@@ -1,5 +1,5 @@
-using Wayfarer.Game.ActionSystem;
 using Wayfarer.Content;
+using Wayfarer.Game.ActionSystem;
 
 namespace Wayfarer.Game.MainSystem;
 
@@ -30,7 +30,7 @@ public class ContractValidationService
         List<string> warnings = new List<string>();
 
         // === BASIC REQUIREMENTS ===
-        
+
 
         // === CATEGORICAL REQUIREMENTS ===
 
@@ -55,16 +55,6 @@ public class ContractValidationService
                 string categoryName = toolCategory.ToString().Replace("_", " ");
                 missingRequirements.Add($"Requires {categoryName} tools");
                 completionBlockers.Add(toolResult.ErrorMessage);
-            }
-        }
-
-        // Social standing validation
-        if (contract.RequiredSocialStanding != SocialRequirement.Any)
-        {
-            ValidationResult socialResult = ValidateSocialRequirement(player, contract.RequiredSocialStanding);
-            if (!socialResult.IsValid)
-            {
-                acceptanceBlockers.Add(socialResult.ErrorMessage);
             }
         }
 
@@ -161,41 +151,13 @@ public class ContractValidationService
     }
 
     /// <summary>
-    /// Validates social standing requirements using proper equipment social signaling
-    /// </summary>
-    private ValidationResult ValidateSocialRequirement(Player player, SocialRequirement requirement)
-    {
-        if (requirement == SocialRequirement.Any)
-            return ValidationResult.Valid();
-
-        // Get base social level from player archetype
-        SocialRequirement archetypeLevel = GetArchetypeSocialLevel(player.Archetype);
-        
-        // Get reputation-based social level
-        SocialRequirement reputationLevel = GetReputationSocialLevel(player.GetReputationLevel());
-        
-        // Take the highest social level from all sources
-        SocialRequirement playerSocialLevel = GetHighestSocialLevel(archetypeLevel, reputationLevel);
-        
-        if (playerSocialLevel >= requirement)
-        {
-            return ValidationResult.Valid();
-        }
-
-        string requiredLevel = requirement.ToString().Replace("_", " ");
-        string currentLevel = playerSocialLevel.ToString().Replace("_", " ");
-        return ValidationResult.Invalid($"Requires {requiredLevel} social standing (current: {currentLevel})");
-    }
-
-    /// <summary>
     /// Validates information requirements against player's known information
     /// </summary>
     private ValidationResult ValidateInformationRequirement(Player player, InformationRequirementData requirement)
     {
-        bool hasMatchingInfo = player.KnownInformation.Any(info => 
+        bool hasMatchingInfo = player.KnownInformation.Any(info =>
             info.Type == requirement.RequiredType &&
             info.Quality >= requirement.MinimumQuality &&
-            info.Freshness >= requirement.MinimumFreshness &&
             (string.IsNullOrEmpty(requirement.SpecificInformationId) || info.Id == requirement.SpecificInformationId));
 
         if (hasMatchingInfo)
@@ -218,20 +180,14 @@ public class ContractValidationService
 
         // Get base knowledge level from player archetype
         KnowledgeRequirement archetypeLevel = GetArchetypeKnowledgeLevel(player.Archetype);
-        
-        // Get knowledge level from information collection
-        KnowledgeRequirement informationLevel = GetInformationKnowledgeLevel(player);
-        
-        // Take the highest knowledge level from all sources
-        KnowledgeRequirement playerKnowledgeLevel = GetHighestKnowledgeLevel(archetypeLevel, informationLevel);
-        
-        if (playerKnowledgeLevel >= requirement)
+
+        if (archetypeLevel >= requirement)
         {
             return ValidationResult.Valid();
         }
 
         string requiredLevel = requirement.ToString().Replace("_", " ");
-        string currentLevel = playerKnowledgeLevel.ToString().Replace("_", " ");
+        string currentLevel = archetypeLevel.ToString().Replace("_", " ");
         return ValidationResult.Invalid($"Requires {requiredLevel} knowledge level (current: {currentLevel})");
     }
 
@@ -241,7 +197,7 @@ public class ContractValidationService
         {
             warnings.Add($"High risk contract - failure may result in equipment loss or injury");
         }
-        
+
         if (contract.Priority >= ContractPriority.Urgent)
         {
             warnings.Add($"Urgent contract - severe reputation consequences for failure");
@@ -260,66 +216,16 @@ public class ContractValidationService
         };
     }
 
-    // Helper methods from original Contract implementation
-    private SocialRequirement GetArchetypeSocialLevel(Professions archetype)
-    {
-        return archetype switch
-        {
-            Professions.Courtier => SocialRequirement.Minor_Noble,
-            Professions.Scholar => SocialRequirement.Professional,
-            Professions.Merchant => SocialRequirement.Merchant_Class,
-            Professions.Warrior => SocialRequirement.Commoner,
-            Professions.Ranger => SocialRequirement.Commoner,
-            Professions.Thief => SocialRequirement.Any,
-            _ => SocialRequirement.Any
-        };
-    }
-    
-    private SocialRequirement GetReputationSocialLevel(ReputationLevel reputation)
-    {
-        return reputation switch
-        {
-            ReputationLevel.Revered => SocialRequirement.Minor_Noble,
-            ReputationLevel.Respected => SocialRequirement.Professional,
-            ReputationLevel.Trusted => SocialRequirement.Merchant_Class,
-            ReputationLevel.Neutral => SocialRequirement.Commoner,
-            _ => SocialRequirement.Any
-        };
-    }
-    
-    private SocialRequirement GetHighestSocialLevel(params SocialRequirement[] levels)
-    {
-        return levels.Max();
-    }
-
     private KnowledgeRequirement GetArchetypeKnowledgeLevel(Professions archetype)
     {
         return archetype switch
         {
-            Professions.Scholar => KnowledgeRequirement.Expert,
-            Professions.Courtier => KnowledgeRequirement.Advanced,
             Professions.Merchant => KnowledgeRequirement.Commercial,
-            Professions.Warrior => KnowledgeRequirement.Professional,
             Professions.Ranger => KnowledgeRequirement.Local,
-            Professions.Thief => KnowledgeRequirement.Basic,
             _ => KnowledgeRequirement.None
         };
     }
-    
-    private KnowledgeRequirement GetInformationKnowledgeLevel(Player player)
-    {
-        int expertCount = player.KnownInformation.Count(i => i.Quality >= InformationQuality.Expert);
-        int verifiedCount = player.KnownInformation.Count(i => i.Quality >= InformationQuality.Verified);
-        int totalCount = player.KnownInformation.Count;
-        
-        if (expertCount >= 3) return KnowledgeRequirement.Expert;
-        if (expertCount >= 1 || verifiedCount >= 5) return KnowledgeRequirement.Advanced;
-        if (verifiedCount >= 2 || totalCount >= 8) return KnowledgeRequirement.Professional;
-        if (totalCount >= 4) return KnowledgeRequirement.Basic;
-        
-        return KnowledgeRequirement.None;
-    }
-    
+
     private KnowledgeRequirement GetHighestKnowledgeLevel(params KnowledgeRequirement[] levels)
     {
         return levels.Max();
@@ -340,6 +246,13 @@ public class ValidationResult
         ErrorMessage = errorMessage;
     }
 
-    public static ValidationResult Valid() => new ValidationResult(true);
-    public static ValidationResult Invalid(string errorMessage) => new ValidationResult(false, errorMessage);
+    public static ValidationResult Valid()
+    {
+        return new ValidationResult(true);
+    }
+
+    public static ValidationResult Invalid(string errorMessage)
+    {
+        return new ValidationResult(false, errorMessage);
+    }
 }

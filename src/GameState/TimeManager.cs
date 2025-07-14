@@ -29,17 +29,35 @@ public class TimeManager
     // Track time blocks used during the day - resets each day
     private int _usedTimeBlocks = 0;
 
-    public int UsedTimeBlocks => _usedTimeBlocks;
-    
-    public int RemainingTimeBlocks => Math.Max(0, MaxDailyTimeBlocks - UsedTimeBlocks);
-    
-    public bool CanPerformTimeBlockAction => UsedTimeBlocks < MaxDailyTimeBlocks;
+    public int UsedTimeBlocks
+    {
+        get
+        {
+            return _usedTimeBlocks;
+        }
+    }
+
+    public int RemainingTimeBlocks
+    {
+        get
+        {
+            return Math.Max(0, MaxDailyTimeBlocks - UsedTimeBlocks);
+        }
+    }
+
+    public bool CanPerformTimeBlockAction
+    {
+        get
+        {
+            return UsedTimeBlocks < MaxDailyTimeBlocks;
+        }
+    }
 
     public TimeManager(Player player, WorldState worldState)
     {
         this.player = player;
         this.worldState = worldState;
-        
+
         // Initialize time to start of day if not set
         if (CurrentTimeHours == 0)
         {
@@ -54,17 +72,6 @@ public class TimeManager
         worldState.CurrentTimeBlock = GetCurrentTimeBlock();
     }
 
-    public void AdvanceTime(int timeBlocksToAdvance)
-    {
-        // For backward compatibility, AdvanceTime parameter represents time blocks, not clock hours
-        // Use ConsumeTimeBlock to ensure proper tracking
-        ConsumeTimeBlock(timeBlocksToAdvance);
-    }
-
-    public int GetCurrentHour()
-    {
-        return CurrentTimeHours;
-    }
 
     public void UpdateCurrentTimeBlock()
     {
@@ -94,10 +101,10 @@ public class TimeManager
     public void StartNewDay()
     {
         worldState.CurrentDay++;
-        
+
         // Reset time blocks for the new day
         _usedTimeBlocks = 0;
-        
+
         // Reset time to dawn - no action point regeneration per Period-Based Activity Planning user story
         SetNewTime(TimeDayStart);
     }
@@ -122,16 +129,16 @@ public class TimeManager
         // Calculate hours to advance based on time blocks
         double hoursPerTimeBlock = 18.0 / MaxDailyTimeBlocks; // 18 hours (6 AM to midnight) / 5 blocks = 3.6 hours per block
         int hoursToAdvance = (int)Math.Ceiling(blocks * hoursPerTimeBlock);
-        
+
         // Advance the actual clock time
         int newHour = CurrentTimeHours + hoursToAdvance;
-        
+
         // Cap at end of day (midnight)
         if (newHour >= 24)
         {
             newHour = 23; // Stay at 11 PM to avoid day overflow
         }
-        
+
         SetNewTime(newHour);
     }
 
