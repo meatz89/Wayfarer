@@ -124,18 +124,18 @@ public class FoodRequirement : IRequirement
     }
 }
 
-public class TimeWindowRequirement : IRequirement
+public class CurrentTimeBlockRequirement : IRequirement
 {
     public List<TimeBlocks> AllowedWindows { get; }
 
-    public TimeWindowRequirement(List<TimeBlocks> allowedWindows)
+    public CurrentTimeBlockRequirement(List<TimeBlocks> allowedWindows)
     {
         AllowedWindows = allowedWindows;
     }
 
     public bool IsMet(GameWorld gameWorld)
     {
-        TimeBlocks currentWindow = gameWorld.TimeManager.GetCurrentTimeWindow();
+        TimeBlocks currentWindow = gameWorld.TimeManager.GetCurrentTimeBlock();
         return AllowedWindows.Contains(currentWindow);
     }
 

@@ -138,7 +138,7 @@ public static class GameWorldSerializer
 
                 if (currentSpot != null)
                 {
-                    gameWorld.SetCurrentLocation(currentLocation, currentSpot);
+                    gameWorld.WorldState.SetCurrentLocation(currentLocation, currentSpot);
                 }
             }
         }
@@ -241,7 +241,7 @@ public static class GameWorldSerializer
             spotId = action.LocationSpotId,
 
             // Time windows (string list)
-            timeWindows = action.TimeWindows?.Select(tw => tw.ToString()).ToList(),
+            CurrentTimeBlocks = action.CurrentTimeBlocks?.Select(tw => tw.ToString()).ToList(),
 
             moveToLocation = action.MoveToLocation,
             moveToLocationSpot = action.MoveToLocationSpot
@@ -293,7 +293,7 @@ public static class GameWorldSerializer
             timeBlockCost = route.TimeBlockCost,
             departureTime = route.DepartureTime?.ToString(),
             isDiscovered = route.IsDiscovered,
-            requiredRouteTypes = route.RequiredRouteTypes,
+            terrainCategories = route.TerrainCategories.Select(c => c.ToString()).ToList(),
             maxItemCapacity = route.MaxItemCapacity,
             description = route.Description
         }).ToList();
@@ -311,8 +311,7 @@ public static class GameWorldSerializer
             buyPrice = item.BuyPrice,
             sellPrice = item.SellPrice,
             inventorySlots = item.InventorySlots,
-            enabledRouteTypes = item.EnabledRouteTypes,
-            isContraband = item.IsContraband,
+            categories = item.Categories.Select(c => c.ToString()).ToList(),
             locationId = item.LocationId,
             spotId = item.SpotId,
             description = item.Description
@@ -327,9 +326,6 @@ public static class GameWorldSerializer
         {
             id = contract.Id,
             description = contract.Description,
-            requiredItems = contract.RequiredItems,
-            requiredLocations = contract.RequiredLocations,
-            destinationLocation = contract.DestinationLocation,
             startDay = contract.StartDay,
             dueDay = contract.DueDay,
             payment = contract.Payment,

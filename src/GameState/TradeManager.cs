@@ -2,52 +2,47 @@
 {
     private GameWorld gameWorld;
     private ItemRepository itemRepository;
+    private MarketManager marketManager;
 
-    public TradeManager(GameWorld gameWorld, ItemRepository itemRepository)
+    public TradeManager(GameWorld gameWorld, ItemRepository itemRepository, MarketManager marketManager)
     {
         this.gameWorld = gameWorld;
         this.itemRepository = itemRepository;
+        this.marketManager = marketManager;
     }
 
     public List<Item> GetAvailableItems(string locationId, string spotId)
     {
-        return itemRepository.GetItemsForLocation(locationId, spotId);
+        // Use MarketManager for dynamic pricing instead of static repository data
+        return marketManager.GetAvailableItems(locationId);
     }
 
-    public bool CanBuyItem(Item item)
-    {
-        Player player = gameWorld.GetPlayer();
-        bool hasEnoughMoney = player.Coins >= item.BuyPrice;
-        bool hasInventorySpace = player.Inventory.HasFreeSlot();
-
-        return hasEnoughMoney && hasInventorySpace;
-    }
 
     public bool CanSellItem(string itemName)
     {
         return gameWorld.GetPlayer().Inventory.HasItem(itemName);
     }
 
-    public void BuyItem(Item item)
+
+
+    public void BuyItem(string itemId, string locationId)
     {
-        Player player = gameWorld.GetPlayer();
+        // Get item from repository
+        Item item = itemRepository.GetItemById(itemId);
+        if (item == null) return;
 
-        // Deduct cost
-        player.Coins -= item.BuyPrice;
-
-        // Add to inventory
-        player.Inventory.AddItem(item.Name);
+        // Delegate to MarketManager for location-aware pricing and transactions
+        marketManager.BuyItem(itemId, locationId);
     }
 
-    public void SellItem(Item item)
+    public void SellItem(string itemId, string locationId)
     {
-        Player player = gameWorld.GetPlayer();
+        // Get item from repository
+        Item item = itemRepository.GetItemById(itemId);
+        if (item == null) return;
 
-        // Add money
-        player.Coins += item.SellPrice;
-
-        // Remove from inventory
-        player.Inventory.RemoveItem(item.Name);
+        // Delegate to MarketManager for location-aware pricing and transactions
+        marketManager.SellItem(itemId, locationId);
     }
 
     public void DropItem(Item item)

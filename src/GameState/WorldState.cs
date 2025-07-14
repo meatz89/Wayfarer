@@ -1,29 +1,41 @@
-﻿public class WorldState
+﻿using Wayfarer.Game.MainSystem;
+
+public class WorldState
 {
     // Core data collections
-    public List<Location> locations { get; private set; } = new();
-    public List<LocationSpot> locationSpots { get; private set; } = new();
-    public List<ActionDefinition> actions { get; private set; } = new();
-    public List<Contract> Contracts { get; private set; } = new();
+    public List<Location> locations { get; set; } = new();
+    public List<LocationSpot> locationSpots { get; set; } = new();
+    public List<ActionDefinition> actions { get; set; } = new();
+    public List<Contract> Contracts { get; set; } = new();
     private List<NPC> characters { get; set; } = new();
-    private List<Contract> contracts { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
     public List<string> CompletedEncounters { get; } = new List<string>();
 
     // Game time
     public int CurrentDay { get; set; } = 1;
-    public TimeBlocks CurrentTimeWindow { get; set; }
+    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
     public int CurrentTimeHours { get; set; }
+
+    // Weather conditions (no seasons - game timeframe is only days/weeks)
+    public WeatherCondition CurrentWeather { get; set; } = WeatherCondition.Clear;
+
+    // Route blocking system
+    private Dictionary<string, int> TemporaryRouteBlocks { get; } = new Dictionary<string, int>();
 
     // New properties
     public List<Item> Items { get; set; } = new List<Item>();
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
+    public List<Information> Informations { get; set; } = new List<Information>();
 
     // Current location tracking
-    public Location CurrentLocation { get; private set; }
-    public LocationSpot CurrentLocationSpot { get; private set; }
+    public Location CurrentLocation { get; set; }
+    public LocationSpot CurrentLocationSpot { get; set; }
+
+    // Card tracking
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
+
+    // Contract tracking
     public List<Contract> CompletedContracts { get; set; } = new List<Contract>();
     public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
     public List<Contract> FailedContracts { get; set; } = new List<Contract>();
@@ -58,6 +70,7 @@
     {
         CurrentLocation = location;
         if (location == null) return;
+        CurrentLocationSpot = currentLocationSpot;
     }
 
     public void SetCurrentLocationSpot(LocationSpot locationSpot)
@@ -80,19 +93,36 @@
         characters.Add(character);
     }
 
-    public void AddOpportunity(Contract opp)
-    {
-        contracts.Add(opp);
-    }
 
     public List<NPC> GetCharacters()
     {
         return characters;
     }
 
-    public List<Contract> GetContracts()
+
+    /// <summary>
+    /// Add a temporary route block that expires after specified days
+    /// </summary>
+    public void AddTemporaryRouteBlock(string routeId, int daysBlocked)
     {
-        return contracts;
+        TemporaryRouteBlocks[routeId] = CurrentDay + daysBlocked;
+    }
+
+    /// <summary>
+    /// Check if a route is temporarily blocked
+    /// </summary>
+    public bool IsRouteBlocked(string routeId)
+    {
+        if (TemporaryRouteBlocks.TryGetValue(routeId, out int unblockDay))
+        {
+            if (CurrentDay >= unblockDay)
+            {
+                TemporaryRouteBlocks.Remove(routeId);
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
 }

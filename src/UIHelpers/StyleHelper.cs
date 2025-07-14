@@ -50,7 +50,7 @@ public static class StyleHelper
             .Replace("Types", "");
     }
 
-    public static string GetIconForTimeWindow(TimeBlocks time)
+    public static string GetIconForCurrentTimeBlock(TimeBlocks time)
     {
         return time switch
         {

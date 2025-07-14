@@ -1,16 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-public partial class NarrativeViewBase : ComponentBase
+public class NarrativeViewBase : ComponentBase
 {
     [Inject] public GameWorld GameWorld { get; set; }
     [Parameter] public string LocationName { get; set; }
     [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
     [Parameter] public EncounterResult EncounterResult { get; set; }
     [Parameter] public bool ShowResult { get; set; } = true;
-
-    protected override void OnParametersSet()
-    {
-    }
 
     public bool HasPostEncounterEvolution()
     {

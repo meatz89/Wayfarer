@@ -4,6 +4,50 @@ root = true
 # C# files
 [*.cs]
 
+#### Nullable Reference Type Warnings ####
+
+# CS8618: Non-nullable field must contain a non-null value when exiting constructor
+dotnet_diagnostic.CS8618.severity = none
+
+# CS8625: Cannot convert null literal to non-nullable reference type
+dotnet_diagnostic.CS8625.severity = none
+
+# CS8600: Converting null literal or possible null value to non-nullable type
+dotnet_diagnostic.CS8600.severity = none
+
+# CS8603: Possible null reference return
+dotnet_diagnostic.CS8603.severity = none
+
+# CS8604: Possible null reference argument
+dotnet_diagnostic.CS8604.severity = none
+
+# CS8601: Possible null reference assignment
+dotnet_diagnostic.CS8601.severity = none
+
+# CS8602: Dereference of a possibly null reference
+dotnet_diagnostic.CS8602.severity = none
+
+# CS8767: Nullability of reference types in type of parameter doesn't match implicitly implemented member
+dotnet_diagnostic.CS8767.severity = none
+
+# CS8765: Nullability of type of parameter doesn't match overridden member
+dotnet_diagnostic.CS8765.severity = none
+
+# General nullable reference warnings
+dotnet_diagnostic.CS8619.severity = none
+dotnet_diagnostic.CS8620.severity = none
+dotnet_diagnostic.CS8622.severity = none
+dotnet_diagnostic.CS8629.severity = none
+dotnet_diagnostic.CS8632.severity = none
+dotnet_diagnostic.CS8633.severity = none
+dotnet_diagnostic.CS8634.severity = none
+
+# CS1998: This async method lacks 'await' operators and will run synchronously
+dotnet_diagnostic.CS1998.severity = none
+
+# CS0108: Member hides inherited member; use the new keyword if hiding was intended
+dotnet_diagnostic.CS0108.severity = none
+
 #### Core EditorConfig Options ####
 
 # Indentation and spacing
@@ -116,7 +160,7 @@ csharp_style_conditional_delegate_call = true
 # Modifier preferences
 csharp_prefer_static_anonymous_function = true
 csharp_prefer_static_local_function = true
-csharp_preferred_modifier_order = public,private,protected,public,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
+csharp_preferred_modifier_order = public,private,public,public,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 csharp_style_prefer_readonly_struct = true
 csharp_style_prefer_readonly_struct_member = true
 
@@ -221,15 +265,15 @@ dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
 # Symbol specifications
 
 dotnet_naming_symbols.interface.applicable_kinds = interface
-dotnet_naming_symbols.interface.applicable_accessibilities = public, public, private, protected, protected_public, private_protected
+dotnet_naming_symbols.interface.applicable_accessibilities = public, public, private, public, public_public, private_public
 dotnet_naming_symbols.interface.required_modifiers = 
 
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum
-dotnet_naming_symbols.types.applicable_accessibilities = public, public, private, protected, protected_public, private_protected
+dotnet_naming_symbols.types.applicable_accessibilities = public, public, private, public, public_public, private_public
 dotnet_naming_symbols.types.required_modifiers = 
 
 dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
-dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, public, private, protected, protected_public, private_protected
+dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, public, private, public, public_public, private_public
 dotnet_naming_symbols.non_field_members.required_modifiers = 
 
 # Naming styles
@@ -246,6 +290,24 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 
 # IDE0053: Use block body for lambda expression
 dotnet_diagnostic.IDE0053.severity = silent
+
+# CA1002: Do not expose generic lists
+dotnet_diagnostic.CA1002.severity = none
+
+# CA1304: Specify CultureInfo
+dotnet_diagnostic.CA1304.severity = none
+
+# S1481: Unused local variables should be removed
+dotnet_diagnostic.S1481.severity = none
+
+# CA1311: Specify a culture or use an invariant version
+dotnet_diagnostic.CA1311.severity = none
+
+# CA1307: Specify StringComparison for clarity
+dotnet_diagnostic.CA1307.severity = none
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = none
 
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion

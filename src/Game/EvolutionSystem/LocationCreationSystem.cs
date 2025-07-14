@@ -136,7 +136,7 @@
 
             KnownLocations = this.locationSystem.FormatLocations(allLocations),
             KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
-            ActiveContracts = OpportunitySystem.FormatActiveContracts(worldState.GetContracts()),
+            ActiveContracts = OpportunitySystem.FormatActiveContracts(worldState.Contracts),
 
             CurrentLocationSpots = this.locationSystem.FormatLocationSpots(worldState.CurrentLocation),
             ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),

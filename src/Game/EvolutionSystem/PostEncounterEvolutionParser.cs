@@ -170,8 +170,7 @@ public class PostEncounterEvolutionParser
                 Depth = locDef.Depth,
                 LocationType = ParseLocationType(locDef.LocationType),
                 AvailableServices = ParseServices(locDef.AvailableServices),
-                DiscoveryBonusXP = locDef.DiscoveryBonusXP,
-                DiscoveryBonusCoins = locDef.DiscoveryBonusCoins,
+                // Discovery bonuses removed - emergent opportunities instead
                 HasBeenVisited = false,
                 VisitCount = 0,
                 ConnectedLocationIds = locDef.ConnectedTo

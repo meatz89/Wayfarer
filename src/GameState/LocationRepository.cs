@@ -1,25 +1,25 @@
 ﻿public class LocationRepository
 {
-    private WorldState worldState;
+    private readonly GameWorld _gameWorld;
 
     public LocationRepository(GameWorld gameWorld)
     {
-        worldState = gameWorld.WorldState;
+        _gameWorld = gameWorld;
     }
 
     public Location GetCurrentLocation()
     {
-        return worldState.CurrentLocation;
+        return _gameWorld.WorldState.CurrentLocation;
     }
 
     public LocationSpot GetCurrentLocationSpot()
     {
-        return worldState.CurrentLocationSpot;
+        return _gameWorld.WorldState.CurrentLocationSpot;
     }
 
     public Location GetLocation(string locationId)
     {
-        Location location = worldState.locations.FirstOrDefault(l =>
+        Location location = _gameWorld.WorldState.locations.FirstOrDefault(l =>
         {
             return l.Id.Equals(locationId, StringComparison.OrdinalIgnoreCase);
         });
@@ -32,9 +32,9 @@
 
     public Location GetLocationByName(string locationName)
     {
-        Location location = worldState.locations.FirstOrDefault(l =>
+        Location location = _gameWorld.WorldState.locations.FirstOrDefault(l =>
         {
-            return l.Id.Equals(locationName, StringComparison.OrdinalIgnoreCase);
+            return l.Name.Equals(locationName, StringComparison.OrdinalIgnoreCase);
         });
 
         if (location != null)
@@ -45,7 +45,7 @@
 
     public List<Location> GetAllLocations()
     {
-        return worldState.locations;
+        return _gameWorld.WorldState.locations;
     }
 
     public List<LocationSpot> GetSpotsForLocation(string locationId)
@@ -57,7 +57,7 @@
     public LocationSpot GetSpot(string locationId, string spotId)
     {
         Location location = GetLocation(locationId);
-        if (location == null) location = worldState.CurrentLocation;
+        if (location == null) location = _gameWorld.WorldState.CurrentLocation;
         LocationSpot spot = location.AvailableSpots.FirstOrDefault(s => s.SpotID == spotId);
 
         return spot;
@@ -65,7 +65,7 @@
 
     public List<Location> GetConnectedLocations(string currentLocation)
     {
-        return worldState.locations
+        return _gameWorld.WorldState.locations
             .Where(l =>
             {
                 return l.ConnectedLocationIds.Contains(currentLocation);
@@ -73,7 +73,7 @@
             .ToList();
     }
 
-    // Additional methods remain largely unchanged, just using _worldState instead
+    // Additional methods remain largely unchanged, just using __gameWorld.WorldState instead
     public bool CanLocationSpotLevelUp(string locationName, string spotName)
     {
         LocationSpot spot = GetSpot(locationName, spotName);
@@ -90,7 +90,7 @@
 
     public List<LocationSpot> GetSpotsReadyToLevelUp()
     {
-        return worldState.locationSpots
+        return _gameWorld.WorldState.locationSpots
             .Where(spot =>
             {
                 return spot.CurrentSpotXP >= spot.XPToNextLevel;
@@ -101,25 +101,43 @@
     // Add a location to the world
     public void AddLocation(Location location)
     {
-        if (worldState.locations.Any(l =>
+        if (_gameWorld.WorldState.locations.Any(l =>
         {
             return l.Id.Equals(location.Id, StringComparison.OrdinalIgnoreCase);
         }))
             throw new InvalidOperationException($"Location '{location.Id}' already exists.");
 
-        worldState.locations.Add(location);
+        _gameWorld.WorldState.locations.Add(location);
     }
 
     // Add a location spot to the world
     public void AddLocationSpot(LocationSpot spot)
     {
-        if (worldState.locationSpots.Any((Func<LocationSpot, bool>)(s =>
+        if (_gameWorld.WorldState.locationSpots.Any((Func<LocationSpot, bool>)(s =>
         {
             return (bool)(s.LocationId.Equals(spot.LocationId, StringComparison.OrdinalIgnoreCase) &&
                         s.SpotID.Equals((string)spot.SpotID, StringComparison.OrdinalIgnoreCase));
         })))
             throw new InvalidOperationException($"Spot '{spot.SpotID}' already exists in '{spot.LocationId}'.");
 
-        worldState.locationSpots.Add(spot);
+        _gameWorld.WorldState.locationSpots.Add(spot);
+    }
+
+    // Set current location and spot
+    public void SetCurrentLocation(Location location, LocationSpot spot)
+    {
+        _gameWorld.WorldState.SetCurrentLocation(location, spot);
+    }
+
+    // Record location visit
+    public void RecordLocationVisit(string locationId)
+    {
+        _gameWorld.WorldState.RecordLocationVisit(locationId);
+    }
+
+    // Check if this is the first visit to a location
+    public bool IsFirstVisit(string locationId)
+    {
+        return _gameWorld.WorldState.IsFirstVisit(locationId);
     }
 }

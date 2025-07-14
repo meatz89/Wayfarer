@@ -1,4 +1,7 @@
-﻿@using Wayfarer.UIHelpers
+@using Wayfarer.UIHelpers
+
+@inherits MainGameplayViewBase
+
 <ObjectiveView StateVersion="@StateVersion" />
 
 <div class="game-status-bar">
@@ -29,9 +32,12 @@
 
     <div class="game-info">
         <div class="time-display @StyleHelper.GetTimeBlocksStyle(CurrentTime)">
-            <span class="time-icon">@StyleHelper.GetIconForTimeWindow(CurrentTime)</span>
-            <span class="time-text">@CurrentTime.ToString()</span>
+            <span class="time-icon">@StyleHelper.GetIconForCurrentTimeBlock(CurrentTime)</span>
             <span class="time-hours">@CurrentHour:00</span>
+        </div>
+        <div class="weather-display">
+            <span class="weather-icon">@GetWeatherIcon(CurrentWeather)</span>
+            <span class="weather-text">@CurrentWeather.ToString()</span>
         </div>
     </div>
 </div>
@@ -65,9 +71,16 @@
                     </div>
                 </div>
                 <div class="map-container">
-                    <AreaMap CurrentLocation="@GetCurrentLocation()"
-                             Locations="@Locations"
-                             OnTravel="@HandleTravelStart" />
+                    @if (IsGameDataReady())
+                    {
+                        <AreaMap CurrentLocation="@GetCurrentLocation()"
+                                 Locations="@Locations"
+                                 OnTravel="@HandleTravelStart" />
+                    }
+                    else
+                    {
+                        <div class="loading-message">Loading map data...</div>
+                    }
                 </div>
                 break;
 
@@ -91,6 +104,25 @@
                         </div>
                     </div>
 
+                    @{
+                        var currentLocation = GetCurrentLocation();
+                        if (currentLocation != null)
+                        {
+                            <div class="location-info-panel">
+                                @{
+                                    var availableProfessions = currentLocation.GetAvailableProfessions(CurrentTime);
+                                    if (availableProfessions.Any())
+                                    {
+                                        <div class="location-professions-info">
+                                            <span class="info-label">Available Services:</span>
+                                            <span class="info-value">@string.Join(", ", availableProfessions.Select(p => p.ToString().Replace('_', ' ')))</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                    }
+
                     <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
                                      CurrentSpot="@CurrentSpot"
                                      OnSpotSelected="@HandleSpotSelection"
@@ -110,10 +142,11 @@
                         </div>
                     </div>
                     <div class="travel-container">
-                        <TravelSelectionWithWeight 
+                        <TravelSelection 
                             CurrentLocation="@GetCurrentLocation()"
                             Locations="@Locations"
-                            OnTravelRoute="@HandleTravelRoute" />
+                            OnTravelRoute="@HandleTravelRoute"
+                            OnTravelWithTransport="@HandleTravelWithTransport" />
                     </div>
                     break;
 
@@ -129,7 +162,14 @@
                         </div>
                     </div>
                     <div class="market-container">
-                        <MarketUI Location="@GetCurrentLocation()" />
+                        @if (IsGameDataReady())
+                        {
+                            <Market Location="@GetCurrentLocation()" />
+                        }
+                        else
+                        {
+                            <div class="loading-message">Loading market data...</div>
+                        }
                     </div>
                     break;
 
@@ -145,9 +185,16 @@
                         </div>
                     </div>
                     <div class="rest-container">
-                        <RestUI 
-                            Location="@GetCurrentLocation()"
-                            OnRestComplete="HandleRestComplete" />
+                        @if (IsGameDataReady())
+                        {
+                            <RestUI 
+                                Location="@GetCurrentLocation()"
+                                OnRestComplete="HandleRestComplete" />
+                        }
+                        else
+                        {
+                            <div class="loading-message">Loading rest options...</div>
+                        }
                     </div>
                     break;
 
@@ -163,7 +210,14 @@
                         </div>
                     </div>
                     <div class="contracts-container">
-                        <ContractUI />
+                        @if (IsGameDataReady())
+                        {
+                            <ContractUI />
+                        }
+                        else
+                        {
+                            <div class="loading-message">Loading contracts...</div>
+                        }
                     </div>
                     break;
         }
@@ -271,6 +325,112 @@
                     </div>
                 }
             </div>
+
+            <div class="sidebar-section @(ExpandedSections[SidebarSections.strategic] ? "expanded" : "collapsed")">
+                <div class="section-header hover" id="section-strategic" @onclick="() => ToggleSection(SidebarSections.strategic)">
+                    <span>Strategic Overview</span>
+                    <span class="expand-icon">@(ExpandedSections[SidebarSections.strategic] ? "▼" : "►")</span>
+                </div>
+
+                @if (ExpandedSections[SidebarSections.strategic])
+                {
+                    <div class="section-content">
+                        @{
+                            var strategicOverview = AnalyzePlayerStrategicStatus();
+                            var timeAnalysis = AnalyzeTimeAwareness();
+                        }
+                        
+                        <div class="strategic-status-grid">
+                            <!-- Time Awareness Section -->
+                            <div class="strategic-item time-awareness">
+                                <div class="strategic-header">
+                                    <span class="strategic-icon">⏰</span>
+                                    <span class="strategic-label">Time Awareness</span>
+                                </div>
+                                <div class="strategic-content">
+                                    <div class="time-status">@timeAnalysis.CurrentStatus</div>
+                                    <div class="time-recommendation">@timeAnalysis.Recommendation</div>
+                                </div>
+                            </div>
+
+                            <!-- Equipment Capabilities Section -->
+                            <div class="strategic-item equipment-capabilities">
+                                <div class="strategic-header">
+                                    <span class="strategic-icon">⚔️</span>
+                                    <span class="strategic-label">Equipment Status</span>
+                                </div>
+                                <div class="strategic-content">
+                                    @if (strategicOverview.EquipmentCapabilities.Any())
+                                    {
+                                        <div class="capabilities-summary">
+                                            <span class="capability-count">@strategicOverview.EquipmentCapabilities.Count capabilities</span>
+                                        </div>
+                                        <div class="capability-list">
+                                            @foreach (var capability in strategicOverview.EquipmentCapabilities.Take(3))
+                                            {
+                                                <div class="capability-item">@capability</div>
+                                            }
+                                            @if (strategicOverview.EquipmentCapabilities.Count > 3)
+                                            {
+                                                <div class="capability-more">+@(strategicOverview.EquipmentCapabilities.Count - 3) more...</div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="no-capabilities">No specialized equipment</div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Accessibility Status Section -->
+                            <div class="strategic-item route-accessibility">
+                                <div class="strategic-header">
+                                    <span class="strategic-icon">🛤️</span>
+                                    <span class="strategic-label">Route Access</span>
+                                </div>
+                                <div class="strategic-content">
+                                    <div class="access-summary">
+                                        <span class="accessible-count">@strategicOverview.AccessibleRoutes accessible</span>
+                                        <span class="blocked-count">@strategicOverview.BlockedRoutes blocked</span>
+                                    </div>
+                                    @if (strategicOverview.CriticalMissingEquipment.Any())
+                                    {
+                                        <div class="missing-equipment">
+                                            <div class="missing-label">Critical gaps:</div>
+                                            @foreach (var missing in strategicOverview.CriticalMissingEquipment.Take(2))
+                                            {
+                                                <div class="missing-item">@missing</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Contract Readiness Section -->
+                            <div class="strategic-item contract-readiness">
+                                <div class="strategic-header">
+                                    <span class="strategic-icon">📜</span>
+                                    <span class="strategic-label">Contract Readiness</span>
+                                </div>
+                                <div class="strategic-content">
+                                    <div class="readiness-summary">
+                                        <span class="ready-count">@strategicOverview.ReadyContracts ready</span>
+                                        <span class="pending-count">@strategicOverview.PendingContracts pending</span>
+                                    </div>
+                                    @if (strategicOverview.UrgentContracts > 0)
+                                    {
+                                        <div class="urgent-contracts">
+                                            <span class="urgent-indicator">⚠️ @strategicOverview.UrgentContracts urgent</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
             <div class="sidebar-section @(ExpandedSections[SidebarSections.inventory] ? "expanded" : "collapsed")">
                 <div class="section-header hover" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
                     <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Size)</span>
@@ -302,9 +462,9 @@
                                         <span class="item-icon">🧰</span>
                                         <span class="item-name">@itemName</span>
                                         <span class="item-weight">Weight: @item.Weight</span>
-                                        @if (item.EnabledRouteTypes.Any())
+                                        @if (item.Categories.Any() || item.ItemCategories.Any())
                                         {
-                                            <span class="item-routes">Enables: @string.Join(", ", item.EnabledRouteTypes)</span>
+                                            <span class="item-categories">@item.AllCategoriesDescription</span>
                                         }
                                     </div>
                                 }

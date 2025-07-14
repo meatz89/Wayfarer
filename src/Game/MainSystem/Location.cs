@@ -1,5 +1,4 @@
-﻿
-public class Location
+﻿public class Location
 {
     public string Id { get; set; }
     public string Name { get; private set; }
@@ -27,12 +26,14 @@ public class Location
     public int Depth { get; set; }
     public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
     public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
-    public int DiscoveryBonusXP { get; set; }
-    public int DiscoveryBonusCoins { get; set; }
+    // Discovery bonuses removed - new locations provide natural market opportunities instead
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
     public bool PlayerKnowledge { get; set; }
     public List<LocationSpot> AvailableSpots { get; set; } = new List<LocationSpot>();
+
+    // Categorical Properties for NPC-Location Logical System Interactions
+    public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
 
     // Time-based properties
     public Dictionary<TimeBlocks, List<FlagStates>> TimeStateFlags { get; private set; }
@@ -57,4 +58,20 @@ public class Location
         Id = id;
         Name = name;
     }
+
+    public bool IsProfessionAvailable(Professions profession, TimeBlocks currentTime)
+    {
+        if (!AvailableProfessionsByTime.ContainsKey(currentTime))
+            return false;
+
+        return AvailableProfessionsByTime[currentTime].Contains(profession);
+    }
+
+    public List<Professions> GetAvailableProfessions(TimeBlocks currentTime)
+    {
+        return AvailableProfessionsByTime.ContainsKey(currentTime)
+            ? AvailableProfessionsByTime[currentTime]
+            : new List<Professions>();
+    }
+
 }

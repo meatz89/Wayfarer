@@ -31,10 +31,10 @@ public class WorldStateInputBuilder
 
         int currentStamina = player.Stamina;
 
-        var gameInstanceId = gameWorld.GameInstanceId;
+        Guid gameInstanceId = gameWorld.GameInstanceId;
         MemoryFileAccess memoryFileAccess = new MemoryFileAccess(gameInstanceId);
         List<string> memoryContent = await memoryFileAccess.GetAllMemories();
-        var memory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
+        string memory = string.Join("\n", memoryContent.Where(x => !string.IsNullOrWhiteSpace(x)).Take(5));
 
         string knownCharacters = CharacterSystem.FormatKnownCharacters(worldState.GetCharacters());
         List<NPC> allCharacters = worldState.GetCharacters();

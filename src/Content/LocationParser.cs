@@ -32,6 +32,34 @@ public static class LocationParser
             location.NightProperties = GetStringArrayFromProperty(envProps, "night");
         }
 
+        // Parse available professions by time
+        if (root.TryGetProperty("availableProfessionsByTime", out JsonElement professionsByTime) &&
+            professionsByTime.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty timeProperty in professionsByTime.EnumerateObject())
+            {
+                if (Enum.TryParse<TimeBlocks>(timeProperty.Name, out TimeBlocks timeBlock))
+                {
+                    List<Professions> professions = new List<Professions>();
+                    if (timeProperty.Value.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (JsonElement professionElement in timeProperty.Value.EnumerateArray())
+                        {
+                            if (professionElement.ValueKind == JsonValueKind.String)
+                            {
+                                string professionStr = professionElement.GetString() ?? "";
+                                if (Enum.TryParse<Professions>(professionStr, out Professions profession))
+                                {
+                                    professions.Add(profession);
+                                }
+                            }
+                        }
+                    }
+                    location.AvailableProfessionsByTime[timeBlock] = professions;
+                }
+            }
+        }
+
         return location;
     }
 
@@ -62,23 +90,23 @@ public static class LocationParser
         };
 
         // Parse time windows
-        List<string> timeWindowStrings = GetStringArray(root, "timeWindows");
+        List<string> CurrentTimeBlockStrings = GetStringArray(root, "CurrentTimeBlocks");
 
-        foreach (string windowString in timeWindowStrings)
+        foreach (string windowString in CurrentTimeBlockStrings)
         {
             if (Enum.TryParse(windowString, true, out TimeBlocks window))
             {
-                spot.TimeWindows.Add(window);
+                spot.CurrentTimeBlocks.Add(window);
             }
         }
 
-        if (timeWindowStrings.Count == 0)
+        if (CurrentTimeBlockStrings.Count == 0)
         {
             // Add all time windows as default
-            spot.TimeWindows.Add(TimeBlocks.Morning);
-            spot.TimeWindows.Add(TimeBlocks.Afternoon);
-            spot.TimeWindows.Add(TimeBlocks.Evening);
-            spot.TimeWindows.Add(TimeBlocks.Night);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Morning);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
+            spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
         }
 
         return spot;

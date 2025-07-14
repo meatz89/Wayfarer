@@ -2,7 +2,7 @@
 
 namespace Wayfarer.Pages
 {
-    public partial class InventoryBase : ComponentBase
+    public class InventoryBase : ComponentBase
     {
         [Inject] public TravelManager TravelManager { get; set; }
         [Inject] public ItemRepository ItemRepository { get; set; }
@@ -36,9 +36,9 @@ namespace Wayfarer.Pages
 
                     if (item != null)
                     {
-                        if (item.EnabledRouteTypes.Count > 0)
+                        if (item.Categories.Count > 0)
                         {
-                            specialProperties += $" - Enables {string.Join(", ", item.EnabledRouteTypes)}";
+                            specialProperties += $" - {string.Join(", ", item.Categories.Select(c => c.ToString().Replace('_', ' ')))}";
                         }
                     }
 

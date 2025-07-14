@@ -1,35 +1,79 @@
-﻿public class TimeManager
+/// <summary>
+/// TimeManager manages the game's time system with exactly 5 time blocks per day.
+/// 
+/// ARCHITECTURAL PRINCIPLE: Single Time Source Authority
+/// - CurrentTimeHours is the ONLY authoritative time value
+/// - All other time representations (TimeBlocks enum) are calculated from hours
+/// - Time blocks are internal action mechanics - players see actual time progression
+/// 
+/// FIVE TIME BLOCKS SYSTEM:
+/// - Dawn: 6:00-8:59 (3 hours) - Early morning activities
+/// - Morning: 9:00-11:59 (3 hours) - Prime morning activities  
+/// - Afternoon: 12:00-15:59 (4 hours) - Midday activities
+/// - Evening: 16:00-19:59 (4 hours) - Late day activities
+/// - Night: 20:00-5:59 (10 hours) - Rest and recovery period
+/// 
+/// Each action typically consumes 1 time block = ~3.6 hours of game time.
+/// Players see time progression like "Dawn 6:00" → "Morning 9:00" → "Afternoon 14:00"
+/// </summary>
+public class TimeManager
 {
     public const int TimeDayStart = 6;
+    public const int MaxDailyTimeBlocks = 5; // Must match TimeBlocks enum count
+
     private Player player;
     private WorldState worldState;
 
     public int CurrentTimeHours { get; private set; }
-    public TimeBlocks CurrentTimeBlock { get; private set; }
+
+    // Track time blocks used during the day - resets each day
+    private int _usedTimeBlocks = 0;
+
+    public int UsedTimeBlocks
+    {
+        get
+        {
+            return _usedTimeBlocks;
+        }
+    }
+
+    public int RemainingTimeBlocks
+    {
+        get
+        {
+            return Math.Max(0, MaxDailyTimeBlocks - UsedTimeBlocks);
+        }
+    }
+
+    public bool CanPerformTimeBlockAction
+    {
+        get
+        {
+            return UsedTimeBlocks < MaxDailyTimeBlocks;
+        }
+    }
 
     public TimeManager(Player player, WorldState worldState)
     {
         this.player = player;
         this.worldState = worldState;
+
+        // Initialize time to start of day if not set
+        if (CurrentTimeHours == 0)
+        {
+            CurrentTimeHours = TimeDayStart;
+        }
     }
 
     public void SetNewTime(int hours)
     {
         CurrentTimeHours = hours;
-        UpdateTimeWindow();
+        // Update WorldState to stay synchronized
+        worldState.CurrentTimeBlock = GetCurrentTimeBlock();
     }
 
-    public void AdvanceTime(int duration)
-    {
-        SetNewTime(CurrentTimeHours + duration);
-    }
 
-    public int GetCurrentHour()
-    {
-        return CurrentTimeHours;
-    }
-
-    public void UpdateTimeWindow()
+    public void UpdateCurrentTimeBlock()
     {
         int maxAP = player.MaxActionPoints;
         int currentAP = player.CurrentActionPoints();
@@ -46,53 +90,102 @@
         if (newHour >= 24)
             newHour = 23;  // Cap to prevent overflow, last action sits near midnight
 
-        CurrentTimeHours = newHour;
-
-        // Now update TimeWindow based on newHour
-        TimeBlocks newWindow;
-        if (newHour >= TimeDayStart && newHour < 12)
-            newWindow = TimeBlocks.Morning;
-        else if (newHour >= 12 && newHour < 18)
-            newWindow = TimeBlocks.Afternoon;
-        else if (newHour >= 18 && newHour < 24)
-            newWindow = TimeBlocks.Evening;
-        else
-            newWindow = TimeBlocks.Night;  // should never hit this because of cap
-
-        CurrentTimeBlock = newWindow;
+        SetNewTime(newHour);
 
         if (currentAP == 0)
         {
-            CurrentTimeHours = 0;
-            CurrentTimeBlock = TimeBlocks.Night;
+            SetNewTime(0); // Midnight when no action points left
         }
     }
 
     public void StartNewDay()
     {
         worldState.CurrentDay++;
+
+        // Reset time blocks for the new day
+        _usedTimeBlocks = 0;
+
+        // Reset time to dawn - no action point regeneration per Period-Based Activity Planning user story
         SetNewTime(TimeDayStart);
     }
 
-    public TimeBlocks GetCurrentTimeWindow()
-    {
-        return CurrentTimeBlock;
-    }
 
-    public string PreviewTimeAdvancement(string timeWindow)
+    /// <summary>
+    /// Consumes the specified number of time blocks by advancing actual clock time.
+    /// This is the core fix: time block consumption must advance the clock.
+    /// </summary>
+    /// <param name="blocks">Number of time blocks to consume</param>
+    /// <throws>InvalidOperationException if exceeding daily limit</throws>
+    public void ConsumeTimeBlock(int blocks)
     {
-        switch (CurrentTimeBlock)
+        if (_usedTimeBlocks + blocks > MaxDailyTimeBlocks)
         {
-            case TimeBlocks.Morning:
-                return timeWindow == "Half" ? "Morning" : "Afternoon";
-            case TimeBlocks.Afternoon:
-                return timeWindow == "Half" ? "Afternoon" : "Evening";
-            case TimeBlocks.Evening:
-                return timeWindow == "Half" ? "Evening" : "Night";
-            case TimeBlocks.Night:
-                return timeWindow == "Half" ? "Night" : "Morning";
+            throw new InvalidOperationException($"Cannot exceed daily time block limit of {MaxDailyTimeBlocks}. Attempting to consume {blocks} blocks but only {RemainingTimeBlocks} remaining.");
         }
 
-        return timeWindow;
+        // Track the time block consumption
+        _usedTimeBlocks += blocks;
+
+        // Calculate hours to advance based on time blocks
+        double hoursPerTimeBlock = 18.0 / MaxDailyTimeBlocks; // 18 hours (6 AM to midnight) / 5 blocks = 3.6 hours per block
+        int hoursToAdvance = (int)Math.Ceiling(blocks * hoursPerTimeBlock);
+
+        // Advance the actual clock time
+        int newHour = CurrentTimeHours + hoursToAdvance;
+
+        // Cap at end of day (midnight)
+        if (newHour >= 24)
+        {
+            newHour = 23; // Stay at 11 PM to avoid day overflow
+        }
+
+        SetNewTime(newHour);
+    }
+
+    /// <summary>
+    /// Validates whether the specified number of time blocks can be consumed
+    /// without exceeding the daily limit.
+    /// </summary>
+    /// <param name="blocks">Number of time blocks to validate</param>
+    /// <returns>True if the action can be performed, false otherwise</returns>
+    public bool ValidateTimeBlockAction(int blocks)
+    {
+        return UsedTimeBlocks + blocks <= MaxDailyTimeBlocks;
+    }
+
+    /// <summary>
+    /// Get current time hours for GameWorldManager compatibility
+    /// </summary>
+    /// <returns>Current time hours</returns>
+    public int GetCurrentTimeHours()
+    {
+        return CurrentTimeHours;
+    }
+
+    /// <summary>
+    /// Get current day from WorldState
+    /// </summary>
+    /// <returns>Current day</returns>
+    public int GetCurrentDay()
+    {
+        return worldState.CurrentDay;
+    }
+
+    /// <summary>
+    /// Get current time block calculated from current hour.
+    /// This is the core architectural fix: TimeBlocks calculated, not stored.
+    /// Maps 24 hours to 5 time blocks: Dawn, Morning, Afternoon, Evening, Night
+    /// </summary>
+    /// <returns>Current time block</returns>
+    public TimeBlocks GetCurrentTimeBlock()
+    {
+        return CurrentTimeHours switch
+        {
+            >= 6 and < 9 => TimeBlocks.Dawn,      // 6:00-8:59 (3 hours)
+            >= 9 and < 12 => TimeBlocks.Morning,   // 9:00-11:59 (3 hours)
+            >= 12 and < 16 => TimeBlocks.Afternoon, // 12:00-15:59 (4 hours)
+            >= 16 and < 20 => TimeBlocks.Evening,   // 16:00-19:59 (4 hours)
+            _ => TimeBlocks.Night                   // 20:00-5:59 (10 hours) - covers >= 20 or < 6
+        };
     }
 }

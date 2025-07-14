@@ -1,7 +1,12 @@
-﻿public class TravelManager
+﻿using Wayfarer.Game.MainSystem;
+
+public class TravelManager
 {
-    public GameWorld gameWorld { get; }
-    public WorldState worldState { get; }
+    private readonly GameWorld _gameWorld;
+    private readonly TimeManager _timeManager;
+    private readonly ContractProgressionService _contractProgressionService;
+    private readonly TransportCompatibilityValidator _transportValidator;
+    private readonly RouteRepository _routeRepository;
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
     public LocationRepository LocationRepository { get; }
@@ -14,11 +19,17 @@
         ActionRepository actionRepository,
         LocationRepository locationRepository,
         ActionFactory actionFactory,
-        ItemRepository itemRepository
+        ItemRepository itemRepository,
+        ContractProgressionService contractProgressionService,
+        TransportCompatibilityValidator transportValidator,
+        RouteRepository routeRepository
         )
     {
-        this.gameWorld = gameWorld;
-        this.worldState = gameWorld.WorldState;
+        _gameWorld = gameWorld;
+        _timeManager = gameWorld.TimeManager;
+        _contractProgressionService = contractProgressionService;
+        _transportValidator = transportValidator;
+        _routeRepository = routeRepository;
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
         this.LocationRepository = locationRepository;
@@ -29,47 +40,43 @@
     public bool CanTravelTo(string locationId)
     {
         Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = gameWorld.WorldState.CurrentLocation;
+        Location currentLocation = LocationRepository.GetCurrentLocation();
+
+        if (destination == null || currentLocation == null)
+            return false;
 
         // Check if any route exists and is available
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
-        RouteOption? routeOption = routes.FirstOrDefault();
-        return true;
+        return routes.Any();
     }
 
     public RouteOption StartLocationTravel(string locationId, TravelMethods method = TravelMethods.Walking)
     {
         Location destination = LocationRepository.GetLocation(locationId);
-        Location currentLocation = gameWorld.WorldState.CurrentLocation;
+        Location currentLocation = LocationRepository.GetCurrentLocation();
 
         // Find the appropriate route
 
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
         RouteOption? selectedRoute = routes.FirstOrDefault(r => r.Method == method);
-        
+
         if (selectedRoute == null) return null;
 
         return selectedRoute;
     }
-    
+
     public void TravelToLocation(string travelLocation, string locationSpotName, RouteOption selectedRoute)
     {
-        int totalWeight = CalculateCurrentWeight(gameWorld);
-        int adjustedStaminaCost = selectedRoute.BaseStaminaCost;
-
-        // Apply weight penalties
-        if (totalWeight >= 4 && totalWeight <= 6)
-        {
-            adjustedStaminaCost += 1;
-        }
-        else if (totalWeight >= 7)
-        {
-            adjustedStaminaCost += 2;
-        }
+        // Calculate actual costs with weather and weight modifications
+        int adjustedStaminaCost = CalculateStaminaCost(selectedRoute);
+        int adjustedCoinCost = CalculateCoinCost(selectedRoute);
 
         // Deduct costs
-        gameWorld.PlayerCoins -= selectedRoute.BaseCoinCost;
-        gameWorld.PlayerStamina -= adjustedStaminaCost;
+        _gameWorld.GetPlayer().ModifyCoins(-adjustedCoinCost);
+        _gameWorld.GetPlayer().SpendStamina(adjustedStaminaCost);
+
+        // Record route usage for discovery mechanics
+        RecordRouteUsage(selectedRoute.Id);
 
         // Advance time
         AdvanceTimeBlocks(selectedRoute.TimeBlockCost);
@@ -83,48 +90,39 @@
             return ls.SpotID == locationSpotName;
         }));
 
-        gameWorld.SetCurrentLocation(targetLocation, locSpot);
+        LocationRepository.SetCurrentLocation(targetLocation, locSpot);
 
-        string? currentLocation = worldState.CurrentLocation?.Id;
+        // Check for contract progression based on arrival at destination
+        _contractProgressionService.CheckTravelProgression(targetLocation.Id, _gameWorld.GetPlayer());
 
-        bool isFirstVisit = worldState.IsFirstVisit(targetLocation.Id);
+        string? currentLocation = LocationRepository.GetCurrentLocation()?.Id;
+
+        bool isFirstVisit = LocationRepository.IsFirstVisit(targetLocation.Id);
         if (isFirstVisit)
         {
-            worldState.RecordLocationVisit(targetLocation.Id);
-            if (targetLocation != null)
-            {
-                ApplyDiscoveryBonus(targetLocation);
-            }
+            LocationRepository.RecordLocationVisit(targetLocation.Id);
+            // Discovery bonuses removed - new locations provide natural opportunities through different markets
         }
     }
 
     private void AdvanceTimeBlocks(int timeBlockCost)
     {
-        gameWorld.AdvanceTime(timeBlockCost);
+        // Consume time blocks through TimeManager
+        _timeManager.ConsumeTimeBlock(timeBlockCost);
     }
 
-    private void ApplyDiscoveryBonus(Location location)
-    {
-        // Only apply bonus if location has values set
-        if (location.DiscoveryBonusXP > 0 || location.DiscoveryBonusCoins > 0)
-        {
-            // Award XP
-            int xpBonus = location.DiscoveryBonusXP;
-            gameWorld.GetPlayer().AddExperiencePoints(xpBonus);
-
-            // Award coins
-            int coinBonus = location.DiscoveryBonusCoins;
-            if (coinBonus > 0)
-            {
-                gameWorld.GetPlayer().AddCoins(coinBonus);
-            }
-        }
-    }
+    // Discovery bonuses removed - emergent gameplay provides rewards through:
+    // - New market prices for arbitrage
+    // - Different contract opportunities
+    // - Unique items available at new locations
 
     public List<RouteOption> GetAvailableRoutes(string fromLocationId, string toLocationId)
     {
         List<RouteOption> availableRoutes = new List<RouteOption>();
         Location fromLocation = LocationRepository.GetLocation(fromLocationId);
+
+        // If location doesn't exist, return empty list
+        if (fromLocation == null) return availableRoutes;
 
         // Find connection to destination
         LocationConnection connection = fromLocation.Connections.Find(c => c.DestinationLocationId == toLocationId);
@@ -136,37 +134,23 @@
             if (!route.IsDiscovered)
                 continue;
 
-            // Check departure times
-            if (route.DepartureTime != null && route.DepartureTime > gameWorld.CurrentTimeBlock)
+            // Check departure times and weather-dependent boat schedules
+            if (route.DepartureTime != null && route.DepartureTime != _timeManager.GetCurrentTimeBlock())
                 continue;
 
-            // Check if player has required items for this route type
-            bool hasRequiredItems = true;
-            foreach (string requiredRouteType in route.RequiredRouteTypes)
-            {
-                // Check if any inventory item enables this route type
-                bool routeTypeEnabled = false;
-                foreach (string itemName in gameWorld.PlayerInventory.ItemSlots)
-                {
-                    if (itemName != null)
-                    {
-                        Item item = ItemRepository.GetItemByName(itemName);
-                        if (item != null && item.EnabledRouteTypes.Contains(requiredRouteType))
-                        {
-                            routeTypeEnabled = true;
-                            break;
-                        }
-                    }
-                }
+            // Check weather-dependent boat schedules
+            if (route.Method == TravelMethods.Boat && !IsBoatScheduleAvailable(route))
+                continue;
 
-                if (!routeTypeEnabled)
-                {
-                    hasRequiredItems = false;
-                    break;
-                }
-            }
+            // Check if route is temporarily blocked
+            if (_routeRepository.IsRouteBlocked(route.Id))
+                continue;
 
-            if (hasRequiredItems)
+            // Weather no longer blocks routes - it affects efficiency instead
+
+            // Check if route is accessible using logical blocking system
+            RouteAccessResult accessResult = route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
+            if (accessResult.IsAllowed)
             {
                 availableRoutes.Add(route);
             }
@@ -176,12 +160,14 @@
     }
 
 
-    public int CalculateCurrentWeight(GameWorld gameWorld)
+
+
+    public int CalculateCurrentWeight(GameWorld _gameWorld)
     {
         int totalWeight = 0;
 
         // Calculate item weight
-        foreach (string itemName in gameWorld.GetPlayer().Inventory.ItemSlots)
+        foreach (string itemName in _gameWorld.GetPlayer().Inventory.ItemSlots)
         {
             if (itemName != null)
             {
@@ -194,16 +180,23 @@
         }
 
         // Add coin weight (10 coins = 1 weight unit)
-        totalWeight += gameWorld.GetPlayer().Coins / 10;
+        totalWeight += _gameWorld.GetPlayer().Coins / 10;
 
         return totalWeight;
     }
 
     public int CalculateStaminaCost(RouteOption route)
     {
-        int totalWeight = CalculateCurrentWeight(gameWorld);
-        int staminaCost = route.CalculateWeightAdjustedStaminaCost(totalWeight);
+        int totalWeight = CalculateCurrentWeight(_gameWorld);
+        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
+        int staminaCost = route.CalculateStaminaCost(totalWeight, currentWeather, ItemRepository, _gameWorld.GetPlayer());
         return staminaCost;
+    }
+
+    public int CalculateCoinCost(RouteOption route)
+    {
+        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
+        return route.CalculateCoinCost(currentWeather);
     }
 
     // Add a helper method for UI display
@@ -218,11 +211,115 @@
     }
     public bool CanTravel(RouteOption route)
     {
-        bool canTravel = gameWorld.PlayerCoins >= route.BaseCoinCost &&
-               gameWorld.PlayerStamina >= CalculateStaminaCost(route);
+        bool canTravel = _gameWorld.GetPlayer().Coins >= CalculateCoinCost(route) &&
+               _gameWorld.GetPlayer().Stamina >= CalculateStaminaCost(route);
 
         return canTravel;
     }
 
+    /// <summary>
+    /// Get route access information for UI display
+    /// </summary>
+    public RouteAccessResult GetRouteAccessInfo(RouteOption route)
+    {
+        return route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
+    }
+
+
+    /// <summary>
+    /// Check if boat schedule is available based on weather conditions and river state
+    /// </summary>
+    private bool IsBoatScheduleAvailable(RouteOption route)
+    {
+        // Boats can't operate in poor weather conditions
+        WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
+
+        // Block boat schedules during dangerous weather
+        if (currentWeather == WeatherCondition.Rain || currentWeather == WeatherCondition.Snow)
+        {
+            return false;
+        }
+
+        // Boats need specific departure times (no always-available boat routes)
+        if (route.DepartureTime == null)
+        {
+            return false;
+        }
+
+        // Additional river condition logic could be added here
+        // For now, boats depend on weather and scheduled departure times
+        return true;
+    }
+
+
+    /// <summary>
+    /// Get current inventory status with transport information
+    /// </summary>
+    public string GetInventoryStatusDescription(TravelMethods? transport = null)
+    {
+        Player player = _gameWorld.GetPlayer();
+        Inventory inventory = player.Inventory;
+
+        int usedSlots = inventory.GetUsedSlots(ItemRepository);
+        int maxSlots = inventory.GetMaxSlots(ItemRepository, transport);
+
+        string transportInfo = transport.HasValue ? $" with {transport}" : "";
+        return $"Inventory: {usedSlots}/{maxSlots} slots used{transportInfo}";
+    }
+
+    /// <summary>
+    /// Record route usage for discovery mechanics
+    /// </summary>
+    public void RecordRouteUsage(string routeId)
+    {
+        // Find the route and increment usage count
+        foreach (Location location in LocationRepository.GetAllLocations())
+        {
+            foreach (LocationConnection connection in location.Connections)
+            {
+                foreach (RouteOption route in connection.RouteOptions)
+                {
+                    if (route.Id == routeId)
+                    {
+                        route.UsageCount++;
+
+                        // Check if this unlocks any new routes
+                        CheckForRouteUnlocks(route);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check if route usage unlocks new routes
+    /// </summary>
+    private void CheckForRouteUnlocks(RouteOption usedRoute)
+    {
+        foreach (Location location in LocationRepository.GetAllLocations())
+        {
+            foreach (LocationConnection connection in location.Connections)
+            {
+                foreach (RouteOption route in connection.RouteOptions)
+                {
+                    if (!route.IsDiscovered && route.UnlockCondition != null)
+                    {
+                        RouteUnlockCondition condition = route.UnlockCondition;
+
+                        // Check if required route usage count is met
+                        if (condition.RequiredRouteUsage == usedRoute.Id &&
+                            usedRoute.UsageCount >= condition.RequiredUsageCount)
+                        {
+                            route.IsDiscovered = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
 }
+
 

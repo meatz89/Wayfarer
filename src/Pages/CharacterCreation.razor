@@ -72,7 +72,7 @@
 
 @code {
     [Parameter] public EventCallback<Player> OnCharacterCreated { get; set; }
-    [Inject] protected GameWorld GameWorld { get; set; }
+    [Inject] public GameWorld GameWorld { get; set; }
 
     private string playerName;
     private Professions selectedArchetype = Professions.Warrior;

@@ -1,9 +1,6 @@
-﻿public partial class EncounterChoiceTooltipBase
+﻿public class EffectItem
 {
-    protected class EffectItem
-    {
-        public int Value { get; set; }
-        public string Description { get; set; }
-        public bool IsProgressEffect { get; set; }
-    }
+    public int Value { get; set; }
+    public string Description { get; set; }
+    public bool IsProgressEffect { get; set; }
 }

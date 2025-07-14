@@ -1,69 +1,20 @@
-﻿public class ContentLoader
+﻿using System.Text.Json;
+using Wayfarer.Content;
+using Wayfarer.Game.MainSystem;
+
+public class GameWorldInitializer
 {
     private string _contentDirectory;
-    private string _saveFolder = "Saves";
 
-    public ContentLoader(string contentDirectory)
+    public GameWorldInitializer(string contentDirectory)
     {
         _contentDirectory = contentDirectory;
-        EnsureSaveDirectoryExists();
-    }
-
-    private void EnsureSaveDirectoryExists()
-    {
-        string savePath = Path.Combine(_contentDirectory, _saveFolder);
-        if (!Directory.Exists(savePath))
-        {
-            Directory.CreateDirectory(savePath);
-        }
     }
 
     public GameWorld LoadGame()
     {
-        string savePath = Path.Combine(_contentDirectory, _saveFolder);
         GameWorld gameWorld = CreateInitialGameWorld();
-
-        bool shouldLoad = false;
-
-        // Check if save files exist
-        if (Directory.Exists(savePath) && shouldLoad)
-        {
-            gameWorld = LoadGameFromSaveFile(savePath);
-        }
-        else
-        {
-            return LoadGameFromTemplates();
-
-        }
-
-        return gameWorld;
-    }
-
-    private static GameWorld LoadGameFromSaveFile(string savePath)
-    {
-        GameWorld gameWorld;
-        // Load content from save files
-        List<Location> locations = GameWorldSerializer.DeserializeLocations(
-            File.ReadAllText(Path.Combine(savePath, "locations.json")));
-
-        List<LocationSpot> spots = GameWorldSerializer.DeserializeLocationSpots(
-            File.ReadAllText(Path.Combine(savePath, "locationSpots.json")));
-
-        List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
-            File.ReadAllText(Path.Combine(savePath, "actions.json")));
-
-        List<Contract> contracts = GameWorldSerializer.DeserializeContracts(
-            File.ReadAllText(Path.Combine(savePath, "Contracts.json")));
-
-        // Load cards if available
-        List<SkillCard> cards = new List<SkillCard>();
-        string cardsFilePath = Path.Combine(savePath, "cards.json");
-
-        // Load game state using the loaded content
-        gameWorld = GameWorldSerializer.DeserializeGameWorld(
-            File.ReadAllText(Path.Combine(savePath, "gameWorld.json")),
-            locations, spots, actions, cards);
-        return gameWorld;
+        return LoadGameFromTemplates();
     }
 
     private GameWorld LoadGameFromTemplates()
@@ -109,19 +60,6 @@
             contracts = GameWorldSerializer.DeserializeContracts(
                 File.ReadAllText(contractsFilePath));
 
-            contracts.Add(
-                new Contract
-                {
-                    Id = "deliver_tools",
-                    Description = "Deliver tools to the town carpenter",
-                    RequiredItems = new List<string> { "tools" },
-                    DestinationLocation = "town_square",
-                    StartDay = 1,
-                    DueDay = 3,
-                    Payment = 15,
-                    FailurePenalty = "Loss of reputation with craftsmen"
-                }
-            );
         }
 
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
@@ -140,19 +78,85 @@
             File.ReadAllText(Path.Combine(templatePath, "gameWorld.json")),
             locations, spots, actions, cards);
 
-        // Add items to the game world
+        // Add items to the game world - items are now loaded from JSON
         if (gameWorld.WorldState.Items == null)
         {
             gameWorld.WorldState.Items = new List<Item>();
-
-            items = new List<Item>
-            {
-                new Item { Id = "herbs", Name = "Herbs", Weight = 1, BuyPrice = 2, SellPrice = 1, LocationId = "town_square", SpotId = "marketplace" },
-                new Item { Id = "tools", Name = "Tools", Weight = 3, BuyPrice = 8, SellPrice = 4, LocationId = "town_square", SpotId = "marketplace" },
-                new Item { Id = "rope", Name = "Rope", Weight = 2, BuyPrice = 6, SellPrice = 3, EnabledRouteTypes = new List<string> { "MountainPass" }, LocationId = "town_square", SpotId = "marketplace" }
-            };
         }
-        gameWorld.WorldState.Items.AddRange(items);
+
+        // Only add items if they were successfully loaded from JSON
+        if (items.Any())
+        {
+            gameWorld.WorldState.Items.AddRange(items);
+        }
+        else
+        {
+            Console.WriteLine("WARNING: No items loaded from JSON templates. Check items.json file.");
+        }
+
+        // Load NPCs
+        List<NPC> npcs = new List<NPC>();
+        string npcsFilePath = Path.Combine(templatePath, "npcs.json");
+        if (File.Exists(npcsFilePath))
+        {
+            try
+            {
+                npcs = ParseNPCArray(File.ReadAllText(npcsFilePath));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed to load NPCs from JSON: {ex.Message}");
+            }
+        }
+
+        // Load information
+        List<Information> informations = new List<Information>();
+        string informationsFilePath = Path.Combine(templatePath, "informations.json");
+        if (File.Exists(informationsFilePath))
+        {
+            try
+            {
+                informations = InformationParser.ParseInformationArray(
+                    File.ReadAllText(informationsFilePath));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed to load informations from JSON: {ex.Message}");
+            }
+        }
+
+        // Add NPCs to the game world
+        if (npcs.Any())
+        {
+            foreach (NPC npc in npcs)
+            {
+                gameWorld.WorldState.AddCharacter(npc);
+            }
+            Console.WriteLine($"Loaded {npcs.Count} NPCs from JSON templates.");
+        }
+        else
+        {
+            Console.WriteLine("INFO: No NPCs loaded from JSON templates. Create npcs.json file to add NPC content.");
+        }
+
+        // Connect NPCs to their location spots
+        ConnectNPCsToLocationSpots(npcs, gameWorld.WorldState.locationSpots);
+
+        // Add information to the game world
+        if (gameWorld.WorldState.Informations == null)
+        {
+            gameWorld.WorldState.Informations = new List<Information>();
+        }
+
+        if (informations.Any())
+        {
+            gameWorld.WorldState.Informations.AddRange(informations);
+            Console.WriteLine($"Loaded {informations.Count} information entries from JSON templates.");
+        }
+        else
+        {
+            Console.WriteLine("INFO: No information loaded from JSON templates. Create informations.json file to add information content.");
+        }
 
         // Initialize player inventory if not already initialized
         if (gameWorld.GetPlayer().Inventory == null)
@@ -168,10 +172,60 @@
         gameWorld.DiscoveredRoutes.AddRange(routes);
 
         // Add contracts to the game world
+        foreach (Contract contract in contracts)
+        {
+            gameWorld.WorldState.Contracts.Add(contract);
+        }
 
-        GameWorld.AllContracts = contracts;
+        // CRITICAL: Ensure Player.CurrentLocation and CurrentLocationSpot are NEVER null
+        // Systems depend on these values being valid
+        InitializePlayerLocation(gameWorld);
 
         return gameWorld;
+    }
+
+    /// <summary>
+    /// CRITICAL: Ensure Player.CurrentLocation and CurrentLocationSpot are NEVER null
+    /// Systems depend on these values being valid at all times
+    /// </summary>
+    private void InitializePlayerLocation(GameWorld gameWorld)
+    {
+        Player player = gameWorld.GetPlayer();
+        WorldState worldState = gameWorld.WorldState;
+
+        // If WorldState has current location but Player doesn't, sync them
+        if (worldState.CurrentLocation != null && player.CurrentLocation == null)
+        {
+            player.CurrentLocation = worldState.CurrentLocation;
+            Console.WriteLine($"Set player CurrentLocation to: {worldState.CurrentLocation.Id}");
+        }
+
+        if (worldState.CurrentLocationSpot != null && player.CurrentLocationSpot == null)
+        {
+            player.CurrentLocationSpot = worldState.CurrentLocationSpot;
+            Console.WriteLine($"Set player CurrentLocationSpot to: {worldState.CurrentLocationSpot.SpotID}");
+        }
+
+        // If neither has location, set to first available location
+        if (player.CurrentLocation == null && worldState.locations.Any())
+        {
+            Location firstLocation = worldState.locations.First();
+            LocationSpot firstSpot = worldState.locationSpots.FirstOrDefault(s => s.LocationId == firstLocation.Id);
+
+            if (firstSpot != null)
+            {
+                player.CurrentLocation = firstLocation;
+                player.CurrentLocationSpot = firstSpot;
+                worldState.SetCurrentLocation(firstLocation, firstSpot);
+                Console.WriteLine($"FALLBACK: Set player location to: {firstLocation.Id}, spot: {firstSpot.SpotID}");
+            }
+        }
+
+        // Final validation - these should NEVER be null
+        if (player.CurrentLocation == null || player.CurrentLocationSpot == null)
+        {
+            throw new InvalidOperationException("CRITICAL: Player location initialization failed. CurrentLocation and CurrentLocationSpot must never be null.");
+        }
     }
 
     // Helper method to connect routes to locations
@@ -232,71 +286,43 @@
         }
     }
 
-    public void SaveGame(GameWorld gameWorld)
+    // Helper method to connect NPCs to their location spots
+    private void ConnectNPCsToLocationSpots(List<NPC> npcs, List<LocationSpot> spots)
     {
-        try
+        // Create mapping of NPCs to CHARACTER type location spots
+        List<LocationSpot> characterSpots = spots.Where(s => s.Type == LocationSpotTypes.CHARACTER).ToList();
+
+        foreach (LocationSpot characterSpot in characterSpots)
         {
-            string savePath = Path.Combine(_contentDirectory, _saveFolder);
-            if (!Directory.Exists(savePath))
+            // Try to find a matching NPC based on location and role/profession
+            NPC matchingNPC = null;
+
+            // Strategy 1: Try to match by location and profession
+            if (characterSpot.SpotID == "innkeeper" && characterSpot.LocationId == "dusty_flagon")
             {
-                CopyTemplateToSave();
+                matchingNPC = npcs.FirstOrDefault(n => n.Location == "dusty_flagon" && n.Profession == Professions.Merchant);
+            }
+            else if (characterSpot.SpotID == "market_stall" && characterSpot.LocationId == "town_square")
+            {
+                matchingNPC = npcs.FirstOrDefault(n => n.Location == "town_square" && n.Profession == Professions.Merchant);
             }
 
-            // Serialize and save all content
-            File.WriteAllText(
-                Path.Combine(savePath, "gameWorld.json"),
-                GameWorldSerializer.SerializeGameWorld(gameWorld));
+            // Strategy 2: General location-based matching for other spots
+            if (matchingNPC == null)
+            {
+                matchingNPC = npcs.FirstOrDefault(n => n.Location == characterSpot.LocationId);
+            }
 
-            File.WriteAllText(
-                Path.Combine(savePath, "locations.json"),
-                GameWorldSerializer.SerializeLocations(gameWorld.WorldState.locations));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "location_spots.json"),
-                GameWorldSerializer.SerializeLocationSpots(gameWorld.WorldState.locationSpots));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "actions.json"),
-                GameWorldSerializer.SerializeActions(gameWorld.WorldState.actions));
-
-            // Save the new content types
-            File.WriteAllText(
-                Path.Combine(savePath, "items.json"),
-                GameWorldSerializer.SerializeItems(gameWorld.WorldState.Items));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "routes.json"),
-                GameWorldSerializer.SerializeRouteOptions(gameWorld.DiscoveredRoutes));
-
-            File.WriteAllText(
-                Path.Combine(savePath, "contracts.json"),
-                GameWorldSerializer.SerializeContracts(GameWorld.AllContracts));
-
-            Console.WriteLine("Game saved successfully");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error saving game: {ex.Message}");
-            throw; // Rethrow so caller can handle it
-        }
-    }
-
-    private void CopyTemplateToSave()
-    {
-        string templatePath = Path.Combine(_contentDirectory, "Templates");
-        string savePath = Path.Combine(_contentDirectory, _saveFolder);
-
-        File.Copy(Path.Combine(templatePath, "gameWorld.json"), Path.Combine(savePath, "gameWorld.json"), true);
-        File.Copy(Path.Combine(templatePath, "locations.json"), Path.Combine(savePath, "locations.json"), true);
-        File.Copy(Path.Combine(templatePath, "location_spots.json"), Path.Combine(savePath, "locationSpots.json"), true);
-        File.Copy(Path.Combine(templatePath, "basic_actions.json"), Path.Combine(savePath, "actions.json"), true);
-        File.Copy(Path.Combine(templatePath, "basic_Contracts.json"), Path.Combine(savePath, "Contracts.json"), true);
-
-        // Copy cards.json if it exists
-        string templateCardsPath = Path.Combine(templatePath, "cards.json");
-        if (File.Exists(templateCardsPath))
-        {
-            File.Copy(templateCardsPath, Path.Combine(savePath, "cards.json"), true);
+            // Connect the NPC to the spot
+            if (matchingNPC != null)
+            {
+                characterSpot.PrimaryNPC = matchingNPC;
+                Console.WriteLine($"Connected NPC '{matchingNPC.Name}' to location spot '{characterSpot.SpotID}' at {characterSpot.LocationId}");
+            }
+            else
+            {
+                Console.WriteLine($"WARNING: No matching NPC found for CHARACTER spot '{characterSpot.SpotID}' at {characterSpot.LocationId}");
+            }
         }
     }
 
@@ -351,5 +377,21 @@
         }
 
         return locations;
+    }
+
+    private List<NPC> ParseNPCArray(string npcsJson)
+    {
+        List<NPC> npcs = new List<NPC>();
+
+        using (JsonDocument doc = JsonDocument.Parse(npcsJson))
+        {
+            foreach (JsonElement npcElement in doc.RootElement.EnumerateArray())
+            {
+                NPC npc = NPCParser.ParseNPC(npcElement.GetRawText());
+                npcs.Add(npc);
+            }
+        }
+
+        return npcs;
     }
 }

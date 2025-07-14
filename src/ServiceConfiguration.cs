@@ -1,17 +1,18 @@
-﻿using Wayfarer.UIHelpers;
+﻿using Wayfarer.Game.MainSystem;
+using Wayfarer.UIHelpers;
 
 public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
-        string contentDirectory = "content";
+        string contentDirectory = "Content";
 
-        // Create ContentLoader
-        ContentLoader  contentLoader = new ContentLoader (contentDirectory);
-        services.AddSingleton(contentLoader);
+        // Create GameWorldInitializer
+        GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(contentDirectory);
+        services.AddSingleton(gameWorldInitializer);
 
         // Load game state
-        GameWorld gameWorld = contentLoader.LoadGame();
+        GameWorld gameWorld = gameWorldInitializer.LoadGame();
         services.AddSingleton(gameWorld);
 
         // Register the content validator
@@ -21,7 +22,13 @@ public static class ServiceConfiguration
         services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<ItemRepository>();
+        services.AddSingleton<NPCRepository>();
         services.AddSingleton<ContractRepository>();
+        services.AddSingleton<RouteRepository>();
+
+        // Register contract services
+        services.AddSingleton<ContractValidationService>();
+        services.AddSingleton<ContractProgressionService>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
@@ -38,10 +45,13 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
         services.AddSingleton<LocationPropertyManager>();
-        
+
+        // TimeManager is created and managed by GameWorld, not DI container
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
+        services.AddSingleton<RestManager>();
+        services.AddSingleton<TransportCompatibilityValidator>();
 
         services.AddScoped<MusicService>();
 
@@ -79,9 +89,7 @@ public static class ServiceConfiguration
             switch (defaultProvider.ToLower())
             {
                 case "ollama":
-                    services.AddSingleton<IAIProvider, OllamaProvider>();
-                    break;
-                default: // Default to ollama
+                default:
                     services.AddSingleton<IAIProvider, OllamaProvider>();
                     break;
             }

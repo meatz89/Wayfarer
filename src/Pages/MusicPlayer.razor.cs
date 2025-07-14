@@ -1,70 +1,68 @@
-﻿using Wayfarer.UIHelpers;
-using Microsoft.AspNetCore.Components;
-using System.Timers;
+﻿using Microsoft.AspNetCore.Components;
+using Wayfarer.UIHelpers;
 
-namespace Wayfarer.Pages
+namespace Wayfarer.Pages;
+
+public class MusicPlayerBase : ComponentBase, IDisposable
 {
-    public partial class MusicPlayer : ComponentBase, IDisposable
+    [Inject] public MusicService MusicService { get; set; }
+
+    public string _formattedCurrentPosition = "0:00";
+    public string _formattedDuration = "0:00";
+    public System.Timers.Timer _uiTimer;
+
+    protected override void OnInitialized()
     {
-        [Inject] private MusicService MusicService { get; set; }
+        MusicService.OnQueueChanged += StateHasChanged;
+        MusicService.OnPlaybackStateChanged += StateHasChanged;
+        MusicService.OnPositionChanged += UpdatePosition;
 
-        private string _formattedCurrentPosition = "0:00";
-        private string _formattedDuration = "0:00";
-        private System.Timers.Timer _uiTimer;
-
-        protected override void OnInitialized()
-        {
-            MusicService.OnQueueChanged += StateHasChanged;
-            MusicService.OnPlaybackStateChanged += StateHasChanged;
-            MusicService.OnPositionChanged += UpdatePosition;
-
-            _uiTimer = new System.Timers.Timer(1000);
-            _uiTimer.Elapsed += async (sender, e) =>
-            {
-                if (MusicService.IsPlaying)
-                {
-                    await InvokeAsync(() =>
-                    {
-                        MusicService.IncrementPosition(TimeSpan.FromSeconds(1));
-                        UpdatePosition(MusicService.CurrentPosition);
-                    });
-                }
-            };
-            _uiTimer.Start();
-        }
-
-        private void UpdatePosition(TimeSpan position)
-        {
-            _formattedCurrentPosition = FormatTimeSpan(position);
-            InvokeAsync(StateHasChanged);
-        }
-
-        private string FormatTimeSpan(TimeSpan timeSpan)
-        {
-            return $"{(int)timeSpan.TotalMinutes}:{timeSpan.Seconds:00}";
-        }
-
-        private async Task TogglePlayPauseAsync()
+        _uiTimer = new System.Timers.Timer(1000);
+        _uiTimer.Elapsed += async (sender, e) =>
         {
             if (MusicService.IsPlaying)
-                await MusicService.PauseAsync();
-            else
-                await MusicService.PlayAsync();
-        }
+            {
+                await InvokeAsync(() =>
+                {
+                    MusicService.IncrementPosition(TimeSpan.FromSeconds(1));
+                    UpdatePosition(MusicService.CurrentPosition);
+                });
+            }
+        };
+        _uiTimer.Start();
+    }
 
-        private async Task NextTrackAsync()
-        {
-            await MusicService.PlayNextTrackAsync();
-        }
+    public void UpdatePosition(TimeSpan position)
+    {
+        _formattedCurrentPosition = FormatTimeSpan(position);
+        InvokeAsync(StateHasChanged);
+    }
 
-        public void Dispose()
-        {
-            _uiTimer?.Stop();
-            _uiTimer?.Dispose();
+    public string FormatTimeSpan(TimeSpan timeSpan)
+    {
+        return $"{(int)timeSpan.TotalMinutes}:{timeSpan.Seconds:00}";
+    }
 
-            MusicService.OnQueueChanged -= StateHasChanged;
-            MusicService.OnPlaybackStateChanged -= StateHasChanged;
-            MusicService.OnPositionChanged -= UpdatePosition;
-        }
+    public async Task TogglePlayPauseAsync()
+    {
+        if (MusicService.IsPlaying)
+            await MusicService.PauseAsync();
+        else
+            await MusicService.PlayAsync();
+    }
+
+    public async Task NextTrackAsync()
+    {
+        await MusicService.PlayNextTrackAsync();
+    }
+
+    public void Dispose()
+    {
+        _uiTimer?.Stop();
+        _uiTimer?.Dispose();
+
+        MusicService.OnQueueChanged -= StateHasChanged;
+        MusicService.OnPlaybackStateChanged -= StateHasChanged;
+        MusicService.OnPositionChanged -= UpdatePosition;
     }
 }

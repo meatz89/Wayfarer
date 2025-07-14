@@ -180,4 +180,92 @@
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Calculate the total number of slots currently used, considering item sizes
+    /// </summary>
+    public int GetUsedSlots(ItemRepository itemRepository)
+    {
+        int usedSlots = 0;
+
+        foreach (string itemId in ItemSlots)
+        {
+            if (!string.IsNullOrEmpty(itemId))
+            {
+                Item item = itemRepository.GetItemById(itemId);
+                if (item != null)
+                {
+                    usedSlots += item.GetRequiredSlots();
+                }
+                else
+                {
+                    // Fallback for items not found in repository
+                    usedSlots += 1;
+                }
+            }
+        }
+
+        return usedSlots;
+    }
+
+    /// <summary>
+    /// Check if there's enough space to add an item considering its size
+    /// </summary>
+    public bool CanAddItem(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    {
+        if (item == null) return false;
+
+        int requiredSlots = item.GetRequiredSlots();
+        int usedSlots = GetUsedSlots(itemRepository);
+        int maxSlots = GetMaxSlots(itemRepository, currentTransport);
+
+        return (usedSlots + requiredSlots) <= maxSlots;
+    }
+
+    /// <summary>
+    /// Get the maximum number of slots available (base capacity + transport bonuses)
+    /// </summary>
+    public int GetMaxSlots(ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    {
+        // Base inventory: 5 slots as specified in UserStories.md
+        int baseSlots = 5;
+
+        // Add transport bonuses
+        if (currentTransport.HasValue)
+        {
+            switch (currentTransport.Value)
+            {
+                case TravelMethods.Cart:
+                    baseSlots += 2; // Cart adds 2 slots but blocks mountain routes
+                    break;
+                case TravelMethods.Carriage:
+                    baseSlots += 1; // Carriage adds modest storage
+                    break;
+                    // Walking, Horseback, Boat use base capacity
+            }
+        }
+
+        return baseSlots;
+    }
+
+    /// <summary>
+    /// Get available slot space
+    /// </summary>
+    public int GetAvailableSlots(ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    {
+        return GetMaxSlots(itemRepository, currentTransport) - GetUsedSlots(itemRepository);
+    }
+
+    /// <summary>
+    /// Add item with size-aware slot checking
+    /// </summary>
+    public bool AddItemWithSizeCheck(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    {
+        if (!CanAddItem(item, itemRepository, currentTransport))
+        {
+            return false;
+        }
+
+        return AddItem(item.Id);
+    }
+
 }

@@ -1,17 +1,19 @@
 ﻿public class RestManager
 {
     private GameWorld gameWorld;
+    private TimeManager timeManager;
     private LocationRepository locationRepository;
     private MessageSystem messageSystem;
     private ContractRepository contractRepository;
 
     public RestManager(
-        GameWorld gameWorld, 
+        GameWorld gameWorld,
         LocationRepository locationRepository,
         MessageSystem messageSystem,
         ContractRepository contractRepository)
     {
         this.gameWorld = gameWorld;
+        this.timeManager = gameWorld.TimeManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
         this.contractRepository = contractRepository;
@@ -90,8 +92,17 @@
     {
         Player player = gameWorld.GetPlayer();
 
+        // Validate time block availability
+        if (!timeManager.ValidateTimeBlockAction(option.TimeBlockCost))
+        {
+            throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
+        }
+
         // Deduct cost
         player.ModifyCoins(-option.CoinCost);
+
+        // Consume time blocks
+        timeManager.ConsumeTimeBlock(option.TimeBlockCost);
 
         // Recover stamina
         player.Stamina += option.StaminaRecovery;
@@ -120,16 +131,18 @@
             GenerateMarketRumors();
         }
 
-        // Advance time based on rest option
+        // Advance time based on rest option using TimeManager
         if (option.EnablesDawnDeparture)
         {
-            gameWorld.CurrentDay++;
-            gameWorld.CurrentTimeBlock = TimeBlocks.Dawn;
+            gameWorld.TimeManager.StartNewDay();
+            // StartNewDay() sets time to TimeDayStart (6 AM) which is Dawn
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Dawn;
         }
         else
         {
-            gameWorld.CurrentDay++;
-            gameWorld.CurrentTimeBlock = TimeBlocks.Morning;
+            gameWorld.TimeManager.StartNewDay();
+            // Override to Morning for regular departure
+            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
         }
 
         // Refresh player cards
@@ -176,17 +189,15 @@
 
     private void GenerateExclusiveContract()
     {
-        // For POC, create a special high-value contract
+        // For POC, create a special high-value contract using new completion action pattern
         Contract exclusiveContract = new Contract
         {
             Id = $"exclusive_{gameWorld.CurrentDay}",
             Description = "Exclusive Merchant Opportunity",
-            RequiredItems = new List<string> { "Tools" },
-            DestinationLocation = "Crossbridge",
             StartDay = gameWorld.CurrentDay,
             DueDay = gameWorld.CurrentDay + 3,
             Payment = 25,
-            FailurePenalty = "Reputation loss with Merchant Guild"
+            FailurePenalty = "Reputation loss with Merchant Guild",
         };
 
         contractRepository.AddContract(exclusiveContract);

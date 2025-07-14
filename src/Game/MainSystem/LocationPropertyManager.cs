@@ -8,27 +8,27 @@
         this.locationSystem = locationSystem;
     }
 
-    public void UpdateLocationForTime(Location location, TimeBlocks timeWindow)
+    public void UpdateLocationForTime(Location location, TimeBlocks CurrentTimeBlock)
     {
-        UpdateEnvironmentalProperties(location, timeWindow);
+        UpdateEnvironmentalProperties(location, CurrentTimeBlock);
 
         List<LocationSpot> locationSpots = locationSystem.GetLocationSpots(location.Id);
-        SetClosed(locationSpots, timeWindow);
+        SetClosed(locationSpots, CurrentTimeBlock);
     }
 
-    private void SetClosed(List<LocationSpot> locationSpots, TimeBlocks timeWindow)
+    private void SetClosed(List<LocationSpot> locationSpots, TimeBlocks CurrentTimeBlock)
     {
         foreach (LocationSpot spot in locationSpots)
         {
-            spot.IsClosed = !spot.TimeWindows.Contains(timeWindow);
+            spot.IsClosed = !spot.CurrentTimeBlocks.Contains(CurrentTimeBlock);
         }
     }
 
-    private static void UpdateEnvironmentalProperties(Location location, TimeBlocks timeWindow)
+    private static void UpdateEnvironmentalProperties(Location location, TimeBlocks CurrentTimeBlock)
     {
         List<string> properties;
 
-        switch (timeWindow)
+        switch (CurrentTimeBlock)
         {
             case TimeBlocks.Morning:
                 properties = location.MorningProperties;

@@ -155,6 +155,72 @@
 	cursor: not-allowed;
 }
 
+/* Location Info Panel */
+.location-info-panel {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 12px 15px;
+	margin-bottom: 15px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 15px;
+	font-family: var(--font-secondary);
+}
+
+.location-access-info,
+.location-social-info,
+.location-requirement-info,
+.location-professions-info {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.location-info-panel .info-label {
+	color: var(--text-muted);
+	font-size: 0.9rem;
+}
+
+.location-info-panel .info-value {
+	color: var(--text-primary);
+	font-weight: 500;
+}
+
+/* Access Level Color Coding */
+.access-Public {
+	color: var(--positive);
+}
+
+.access-Semi_Private {
+	color: var(--neutral);
+}
+
+.access-Private {
+	color: var(--special);
+}
+
+.access-Restricted {
+	color: var(--negative);
+}
+
+/* Social Expectation Color Coding */
+.social-Any {
+	color: var(--positive);
+}
+
+.social-Merchant_Class {
+	color: var(--resource-coins);
+}
+
+.social-Noble_Class {
+	color: var(--special);
+}
+
+.social-Professional {
+	color: var(--neutral);
+}
+
 .location-spot-properties {
 	margin-bottom: 1rem;
 }
@@ -179,4 +245,62 @@
 /* Map toggle */
 .map-toggle {
 	display: flex;
+}
+
+/* NPC Components */
+.npcs-section {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 10px;
+	margin-top: 10px;
+}
+
+.npcs-header {
+	font-family: var(--font-primary);
+	color: var(--leather);
+	font-size: 0.95rem;
+	margin-bottom: 8px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid var(--oak-mid);
+	letter-spacing: 0.05em;
+}
+
+.npc-card {
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-dark);
+	border-radius: 3px;
+	padding: 8px 10px;
+	margin-bottom: 6px;
+	transition: all 0.2s ease;
+}
+
+	.npc-card:last-child {
+		margin-bottom: 0;
+	}
+
+	.npc-card:hover {
+		background-color: var(--bg-active);
+		border-color: var(--leather);
+	}
+
+.npc-name {
+	font-family: var(--font-secondary);
+	color: var(--text-primary);
+	font-weight: 500;
+	font-size: 0.9rem;
+	margin-bottom: 2px;
+}
+
+.npc-profession {
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+	margin-bottom: 3px;
+	font-style: italic;
+}
+
+.npc-services {
+	color: var(--text-muted);
+	font-size: 0.75rem;
+	line-height: 1.3;
 }

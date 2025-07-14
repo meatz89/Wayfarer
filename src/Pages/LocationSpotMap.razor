@@ -1,5 +1,9 @@
-﻿@using Wayfarer.UIHelpers
+﻿@inherits LocationSpotMapBase
+
+@using Wayfarer.UIHelpers
+
 @* LocationSpotMap.razor *@
+
 <div class="locations-grid">
     @foreach (LocationSpot spot in GetKnownSpots())
     {
@@ -19,6 +23,30 @@
                     @spot.Name @(spot.IsClosed ? "(Closed)" : "")
                 </div>
                 <div class="location-type">@spot.Description</div>
+
+                @* Show available NPCs at this specific spot *@
+                @{
+                    var spotNPCs = GetAvailableNPCsForSpot(spot);
+                }
+                @if (spotNPCs.Any())
+                {
+                    <div class="npcs-section">
+                        <div class="npcs-header">People Here:</div>
+                        @foreach (var npc in spotNPCs)
+                        {
+                            <div class="npc-card">
+                                <div class="npc-name">@npc.Name</div>
+                                <div class="npc-profession">@npc.Profession.ToString().Replace("_", " ")</div>
+                                @if (npc.ProvidedServices.Any())
+                                {
+                                    <div class="npc-services">
+                                        Services: @string.Join(", ", npc.ProvidedServices.Select(s => s.ToString().Replace("_", " ")))
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
 
         @if (spot.SpotID == CurrentSpot.SpotID)
         {

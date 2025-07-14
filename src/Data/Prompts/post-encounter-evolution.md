@@ -51,7 +51,7 @@
   * Illumination: Bright, Thiefy, Dark
   * Population: Crowded, Quiet, Isolated
   * Atmosphere: Tense, Formal, Chaotic
-  * Economic: Wealthy, Commercial, Humble
+  * : Wealthy, Commercial, Humble
   * Physical: Confined, Expansive, Hazardous
  
 ## Response Format

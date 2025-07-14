@@ -18,17 +18,48 @@ public class LocationSystem
 
         startLoc.LocationType = LocationTypes.Hub;
 
-        foreach (Location? loc in allLocations.Where(l =>
+        // FOR  POC: Make all locations known by default
+        // In full game, only locations with PlayerKnowledge=true would be known
+        foreach (Location loc in allLocations)
         {
-            return l.PlayerKnowledge;
-        }))
-        {
-            gameWorld.GetPlayer().AddKnownLocation(loc.Id);
-            foreach (LocationSpot? spot in locationRepository.GetSpotsForLocation(loc.Id).Where(s =>
+            // Check PlayerKnowledge OR default to true for  POC
+            bool shouldKnow = loc.PlayerKnowledge || true; //  POC: always true
+
+            if (shouldKnow)
             {
-                return s.PlayerKnowledge;
-            }))
-                gameWorld.GetPlayer().AddKnownLocationSpot(spot.SpotID);
+                gameWorld.GetPlayer().AddKnownLocation(loc.Id);
+
+                // Add all spots for known locations in  POC
+                foreach (LocationSpot spot in locationRepository.GetSpotsForLocation(loc.Id))
+                {
+                    // Check spot PlayerKnowledge OR default to true for  POC
+                    bool shouldKnowSpot = spot.PlayerKnowledge || true; //  POC: always true
+
+                    if (shouldKnowSpot)
+                    {
+                        gameWorld.GetPlayer().AddKnownLocationSpot(spot.SpotID);
+                    }
+                }
+            }
+        }
+
+        // CRITICAL: Ensure player always has valid current location and spot
+        // Systems depend on these never being null
+        Player player = gameWorld.GetPlayer();
+        if (player.CurrentLocation == null)
+        {
+            player.CurrentLocation = startLoc;
+            Console.WriteLine($"Set player CurrentLocation to: {startLoc.Id}");
+        }
+
+        if (player.CurrentLocationSpot == null)
+        {
+            List<LocationSpot> startLocationSpots = GetLocationSpots(startLoc.Id);
+            if (startLocationSpots.Any())
+            {
+                player.CurrentLocationSpot = startLocationSpots.First();
+                Console.WriteLine($"Set player CurrentLocationSpot to: {player.CurrentLocationSpot.SpotID}");
+            }
         }
 
         return GetLocation(startLoc.Id);

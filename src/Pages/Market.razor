@@ -1,9 +1,21 @@
 ﻿@* MarketUI.razor *@
+@inject GameWorld GameWorld
 @inject GameWorldManager GameManager
+@* MarketManager removed - all actions through GameWorldManager *@
+@* ItemRepository allowed for read-only UI data binding *@
 @inject ItemRepository ItemRepository
 
 <div class="market-container">
     <h2>@Location.Name Market</h2>
+    
+    <div class="market-status">
+        @{
+            string marketStatus = GameManager.GetMarketAvailabilityStatus(Location.Id);
+        }
+        <span class="@(marketStatus.Contains("Open") ? "market-open" : "market-closed")">
+            @marketStatus
+        </span>
+    </div>
 
     <div class="player-status">
         @{
@@ -12,6 +24,9 @@
             string weightStatus = totalWeight <= 3 ? "Light load" :
             (totalWeight <= 6 ? "Medium load (+1 stamina)" :
             "Heavy load (+2 stamina)");
+            
+            // Get inventory status
+            string inventoryStatus = GameManager.GetInventoryStatusForMarket();
         }
         <div class="coins">
             <span>Coins: @GameWorld.GetPlayer().Coins</span>
@@ -20,41 +35,150 @@
         <div class="weight">
             <span>Load: @weightStatus (@totalWeight weight units)</span>
         </div>
+        <div class="inventory-status">
+            <span>@inventoryStatus</span>
+        </div>
+    </div>
+
+    @* Strategic Market Analysis Section *@
+    @{
+        var marketAnalysis = AnalyzeMarketStrategicValue();
+        var currentEquipment = GetCurrentEquipmentCategories();
+        var categoryFilter = GetSelectedCategoryFilter();
+    }
+    
+    <div class="strategic-analysis-container">
+        <div class="strategic-section">
+            <h3>🏪 Strategic Market Analysis</h3>
+            
+            <div class="strategic-overview">
+                <div class="market-summary">
+                    <span class="equipment-items">⚔️ @marketAnalysis.EquipmentItems.Count equipment items</span>
+                    <span class="route-enabling-items">🛤️ @marketAnalysis.RouteEnablingItems.Count route-enabling items</span>
+                    <span class="contract-relevant-items">📜 @marketAnalysis.ContractRelevantItems.Count contract-relevant items</span>
+                </div>
+            </div>
+
+            <div class="equipment-investment-opportunities">
+                <h4>💡 Equipment Investment Opportunities</h4>
+                @if (marketAnalysis.EquipmentInvestmentOpportunities.Any())
+                {
+                    <div class="investment-grid">
+                        @foreach (var opportunity in marketAnalysis.EquipmentInvestmentOpportunities.Take(4))
+                        {
+                            <div class="equipment-investment-card">
+                                <div class="equipment-header">
+                                    <span class="equipment-category">@opportunity.Category.ToString().Replace('_', ' ')</span>
+                                    <span class="investment-value">@opportunity.StrategicValue</span>
+                                </div>
+                                <div class="available-items">
+                                    @string.Join(", ", opportunity.AvailableItems.Select(i => i.Name))
+                                </div>
+                                <div class="strategic-benefits">
+                                    @if (opportunity.RoutesUnlocked > 0)
+                                    {
+                                        <span class="routes-benefit">🛤️ Unlocks @opportunity.RoutesUnlocked routes</span>
+                                    }
+                                    @if (opportunity.ContractsEnabled > 0)
+                                    {
+                                        <span class="contracts-benefit">📜 Enables @opportunity.ContractsEnabled contracts</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="no-opportunities">All strategic equipment categories already owned</div>
+                }
+            </div>
+
+            <div class="category-filter-section">
+                <h4>🏷️ Equipment Category Filter</h4>
+                <div class="category-filters">
+                    <button class="category-filter @(categoryFilter == "All" ? "active" : "")" 
+                            @onclick='() => SetCategoryFilter("All")'>All Items</button>
+                    @foreach (var category in GetAvailableEquipmentCategories())
+                    {
+                        <button class="category-filter @(categoryFilter == category.ToString() ? "active" : "")"
+                                @onclick='() => SetCategoryFilter(category.ToString())'>
+                            @category.ToString().Replace('_', ' ')
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @if (marketAnalysis.TradeOpportunityIndicators.Any())
+            {
+                <div class="trade-opportunities">
+                    <h4>📈 Trade Opportunity Indicators</h4>
+                    <div class="opportunity-indicators">
+                        @foreach (var indicator in marketAnalysis.TradeOpportunityIndicators.Take(3))
+                        {
+                            <div class="trade-indicator">
+                                <div class="item-info">
+                                    <span class="item-name">@indicator.ItemName</span>
+                                    <span class="opportunity-type">@indicator.OpportunityType</span>
+                                </div>
+                                <div class="opportunity-detail">@indicator.Description</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 
     <div class="market-table">
         <div class="table-header">
             <div class="item-name">Item</div>
-            <div class="item-weight">Weight</div>
+            <div class="item-size">Size</div>
             <div class="item-buy">Buy</div>
             <div class="item-sell">Sell</div>
+            <div class="item-constraints">Inventory</div>
             <div class="item-actions">Actions</div>
         </div>
 
-        @foreach (Item item in Location.MarketItems)
+        @foreach (Item item in GetFilteredMarketItems())
         {
+            if (item == null) continue;
+            
             Player playerState = GameWorld.GetPlayer();
-            bool canBuy = playerState.Coins >= item.BuyPrice &&
-            playerState.Inventory.HasFreeSlot();
+            bool canBuy = GameManager.CanBuyMarketItem(item.Id ?? item.Name, Location.Id);
             bool canSell = playerState.Inventory.HasItem(item.Name);
 
-            <div class="market-item">
+            var itemStrategicValue = GetItemStrategicValue(item);
+            <div class="market-item @(itemStrategicValue.IsHighValue ? "high-strategic-value" : "")">
                 <div class="item-name">
                     @item.Name
-                    @if (item.InventorySlots > 1)
+                    @if (item.Categories.Any() || item.ItemCategories.Any())
                     {
-                        <span class="bulk-item">(@item.InventorySlots slots)</span>
-                    }
-                    @if (item.EnabledRouteTypes.Any())
-                    {
-                        <span class="route-enabler">
-                            (@item.RouteTypesDescription)
+                        <span class="item-categories">
+                            @if (!string.IsNullOrEmpty(item.AllCategoriesDescription))
+                            {
+                                <text>(@item.AllCategoriesDescription)</text>
+                            }
                         </span>
                     }
+                    @if (itemStrategicValue.IsHighValue)
+                    {
+                        <div class="strategic-value-indicators">
+                            @foreach (var indicator in itemStrategicValue.ValueIndicators)
+                            {
+                                <span class="strategic-indicator @indicator.Type.ToLower()">@indicator.Icon @indicator.Description</span>
+                            }
+                        </div>
+                    }
                 </div>
-                <div class="item-weight">@item.Weight (@item.WeightDescription)</div>
+                <div class="item-size">
+                    @item.Size (@item.GetRequiredSlots() slot@(item.GetRequiredSlots() > 1 ? "s" : ""))
+                </div>
                 <div class="item-buy">@item.BuyPrice coins</div>
                 <div class="item-sell">@item.SellPrice coins</div>
+                <div class="item-constraints">
+                    @GameManager.GetInventoryConstraintMessage(item.Id)
+                </div>
                 <div class="item-actions">
                     <button class="buy-button"
                             disabled="@(!canBuy)"
@@ -71,6 +195,8 @@
         }
     </div>
 
+    @* Players must discover profitable trades through exploration and memory *@
+
     <div class="inventory-preview">
         <h3>Your Inventory</h3>
         <div class="inventory-items">
@@ -83,10 +209,20 @@
                     @if (itemName != null)
                     {
                         Item item = ItemRepository.GetItemByName(itemName);
-                        <div class="item-details">
-                            <span class="item-name">@itemName</span>
-                            <span class="item-weight">Weight: @item.Weight</span>
-                        </div>
+                        if (item != null)
+                        {
+                            <div class="item-details">
+                                <span class="item-name">@itemName</span>
+                                <span class="item-weight">Weight: @item.Weight</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="item-details">
+                                <span class="item-name">@itemName</span>
+                                <span class="item-weight">Weight: Unknown</span>
+                            </div>
+                        }
                     }
                     else
                     {
@@ -100,19 +236,249 @@
 
 @code {
     [Parameter] public Location Location { get; set; }
-    [Inject] public GameWorld GameWorld { get; set; }
-    [Inject] public TradeManager TradeManager { get; set; }
+    
+    private string _selectedCategoryFilter = "All";
 
     private void BuyItem(Item item)
     {
-        TradeManager.BuyItem(item);
+        GameManager.ExecuteTradeAction(item.Id ?? item.Name, "buy", Location.Id);
         StateHasChanged();
     }
 
     private void SellItem(Item item)
     {
-        TradeManager.SellItem(item);
+        GameManager.ExecuteTradeAction(item.Id ?? item.Name, "sell", Location.Id);
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Get all equipment categories currently owned by the player
+    /// </summary>
+    public List<EquipmentCategory> GetCurrentEquipmentCategories()
+    {
+        var ownedCategories = new List<EquipmentCategory>();
+        
+        foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
+        {
+            if (itemName != null)
+            {
+                Item item = ItemRepository.GetItemByName(itemName);
+                if (item != null)
+                {
+                    ownedCategories.AddRange(item.Categories);
+                }
+            }
+        }
+        
+        return ownedCategories.Distinct().ToList();
+    }
+
+    /// <summary>
+    /// Analyze strategic value of items available in this market
+    /// </summary>
+    public MarketStrategicAnalysis AnalyzeMarketStrategicValue()
+    {
+        var analysis = new MarketStrategicAnalysis();
+        var allMarketItems = GameManager.GetAvailableMarketItems(Location.Id);
+        var currentEquipment = GetCurrentEquipmentCategories();
+        
+        // Categorize available items
+        analysis.EquipmentItems = allMarketItems.Where(i => i.Categories.Any()).ToList();
+        analysis.RouteEnablingItems = allMarketItems.Where(i => i.Categories.Any(c => 
+            c == EquipmentCategory.Climbing_Equipment || 
+            c == EquipmentCategory.Navigation_Tools ||
+            c == EquipmentCategory.Weather_Protection ||
+            c == EquipmentCategory.Water_Transport)).ToList();
+        analysis.ContractRelevantItems = allMarketItems.Where(i => i.Categories.Any()).ToList();
+        
+        // Calculate equipment investment opportunities
+        var missingCategories = Enum.GetValues<EquipmentCategory>()
+            .Where(cat => !currentEquipment.Contains(cat))
+            .ToList();
+            
+        foreach (var category in missingCategories)
+        {
+            var availableItems = allMarketItems.Where(i => i.Categories.Contains(category)).ToList();
+            if (availableItems.Any())
+            {
+                var opportunity = new MarketEquipmentOpportunity
+                {
+                    Category = category,
+                    AvailableItems = availableItems,
+                    RoutesUnlocked = CalculateRoutesUnlockedByCategory(category),
+                    ContractsEnabled = CalculateContractsEnabledByCategory(category),
+                    StrategicValue = GetStrategicValueDescription(category)
+                };
+                analysis.EquipmentInvestmentOpportunities.Add(opportunity);
+            }
+        }
+        
+        // Sort opportunities by strategic value
+        analysis.EquipmentInvestmentOpportunities = analysis.EquipmentInvestmentOpportunities
+            .OrderByDescending(o => o.RoutesUnlocked + o.ContractsEnabled)
+            .ToList();
+            
+        // Generate trade opportunity indicators
+        analysis.TradeOpportunityIndicators = GenerateTradeOpportunityIndicators(allMarketItems);
+        
+        return analysis;
+    }
+
+    private int CalculateRoutesUnlockedByCategory(EquipmentCategory category)
+    {
+        // Simplified calculation - in full implementation would check actual blocked routes
+        return category switch
+        {
+            EquipmentCategory.Climbing_Equipment => 3,
+            EquipmentCategory.Navigation_Tools => 2,
+            EquipmentCategory.Weather_Protection => 4,
+            EquipmentCategory.Water_Transport => 2,
+            _ => 1
+        };
+    }
+
+    private int CalculateContractsEnabledByCategory(EquipmentCategory category)
+    {
+        // Simplified calculation - in full implementation would check actual contract requirements
+        return category switch
+        {
+            EquipmentCategory.Climbing_Equipment => 2,
+            EquipmentCategory.Navigation_Tools => 3,
+            EquipmentCategory.Weather_Protection => 2,
+            _ => 1
+        };
+    }
+
+    private string GetStrategicValueDescription(EquipmentCategory category)
+    {
+        return category switch
+        {
+            EquipmentCategory.Climbing_Equipment => "High Value - Mountain Access",
+            EquipmentCategory.Navigation_Tools => "High Value - Wilderness Routes",
+            EquipmentCategory.Weather_Protection => "Critical - Weather Safety",
+            EquipmentCategory.Water_Transport => "Specialized - River Routes",
+            _ => "Moderate Value"
+        };
+    }
+
+    private List<TradeOpportunityIndicator> GenerateTradeOpportunityIndicators(List<Item> items)
+    {
+        var indicators = new List<TradeOpportunityIndicator>();
+        
+        // Look for items that enable strategic capabilities
+        foreach (var item in items.Where(i => i.Categories.Any()).Take(3))
+        {
+            var currentEquipment = GetCurrentEquipmentCategories();
+            var newCategories = item.Categories.Where(c => !currentEquipment.Contains(c)).ToList();
+            
+            if (newCategories.Any())
+            {
+                indicators.Add(new TradeOpportunityIndicator
+                {
+                    ItemName = item.Name,
+                    OpportunityType = "New Capability",
+                    Description = $"Enables {string.Join(", ", newCategories.Select(c => c.ToString().Replace('_', ' ')))}"
+                });
+            }
+        }
+        
+        return indicators;
+    }
+
+    /// <summary>
+    /// Get strategic value assessment for a specific item
+    /// </summary>
+    public ItemStrategicValue GetItemStrategicValue(Item item)
+    {
+        var value = new ItemStrategicValue();
+        var currentEquipment = GetCurrentEquipmentCategories();
+        
+        foreach (var category in item.Categories)
+        {
+            if (!currentEquipment.Contains(category))
+            {
+                value.IsHighValue = true;
+                
+                var indicator = new StrategicValueIndicator
+                {
+                    Type = "Equipment",
+                    Icon = GetCategoryIcon(category),
+                    Description = GetCategoryBenefit(category)
+                };
+                value.ValueIndicators.Add(indicator);
+            }
+        }
+        
+        return value;
+    }
+
+    private string GetCategoryIcon(EquipmentCategory category)
+    {
+        return category switch
+        {
+            EquipmentCategory.Climbing_Equipment => "🧗",
+            EquipmentCategory.Navigation_Tools => "🧭",
+            EquipmentCategory.Weather_Protection => "🌦️",
+            EquipmentCategory.Water_Transport => "⛵",
+            EquipmentCategory.Special_Access => "🔑",
+            _ => "⚔️"
+        };
+    }
+
+    private string GetCategoryBenefit(EquipmentCategory category)
+    {
+        return category switch
+        {
+            EquipmentCategory.Climbing_Equipment => "Mountain routes",
+            EquipmentCategory.Navigation_Tools => "Wilderness navigation", 
+            EquipmentCategory.Weather_Protection => "Weather safety",
+            EquipmentCategory.Water_Transport => "River access",
+            EquipmentCategory.Special_Access => "Restricted areas",
+            _ => "Enhanced capability"
+        };
+    }
+
+    /// <summary>
+    /// Get available equipment categories in the current market
+    /// </summary>
+    public List<EquipmentCategory> GetAvailableEquipmentCategories()
+    {
+        var allItems = GameManager.GetAvailableMarketItems(Location.Id);
+        return allItems.SelectMany(i => i.Categories).Distinct().ToList();
+    }
+
+    /// <summary>
+    /// Get currently selected category filter
+    /// </summary>
+    public string GetSelectedCategoryFilter()
+    {
+        return _selectedCategoryFilter;
+    }
+
+    /// <summary>
+    /// Set category filter for market items
+    /// </summary>
+    public void SetCategoryFilter(string category)
+    {
+        _selectedCategoryFilter = category;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Get market items filtered by selected category
+    /// </summary>
+    public List<Item> GetFilteredMarketItems()
+    {
+        var allItems = GameManager.GetAvailableMarketItems(Location.Id);
+        
+        if (_selectedCategoryFilter == "All")
+            return allItems;
+            
+        if (Enum.TryParse<EquipmentCategory>(_selectedCategoryFilter, out var category))
+        {
+            return allItems.Where(i => i.Categories.Contains(category)).ToList();
+        }
+        
+        return allItems;
+    }
 }

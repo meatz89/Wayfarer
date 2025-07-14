@@ -1,0 +1,153 @@
+
+namespace Wayfarer.Tests;
+
+public class NPCCategoricalSystemTests
+{
+    [Fact]
+    public void NPC_Should_Have_Profession_Properties()
+    {
+        // Arrange & Act
+        NPC npc = new NPC
+        {
+            ID = "test_npc",
+            Name = "Test NPC",
+            Profession = Professions.Merchant,
+        };
+
+        // Assert
+        Assert.Equal(Professions.Merchant, npc.Profession);
+    }
+
+    [Fact]
+    public void NPC_Should_Have_Schedule_For_Availability()
+    {
+        // Arrange & Act
+        NPC npc = new NPC
+        {
+            ID = "test_npc",
+            Name = "Test NPC",
+            AvailabilitySchedule = Schedule.Market_Hours
+        };
+
+        // Assert
+        Assert.Equal(Schedule.Market_Hours, npc.AvailabilitySchedule);
+    }
+
+    [Theory]
+    [InlineData(Schedule.Market_Hours, TimeBlocks.Morning, true)]
+    [InlineData(Schedule.Market_Hours, TimeBlocks.Afternoon, true)]
+    [InlineData(Schedule.Market_Hours, TimeBlocks.Evening, false)]
+    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Dawn, true)]
+    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Morning, true)]
+    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Afternoon, true)]
+    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Evening, false)]
+    [InlineData(Schedule.Evening_Only, TimeBlocks.Evening, true)]
+    [InlineData(Schedule.Evening_Only, TimeBlocks.Morning, false)]
+    [InlineData(Schedule.Always, TimeBlocks.Morning, true)]
+    [InlineData(Schedule.Always, TimeBlocks.Afternoon, true)]
+    [InlineData(Schedule.Always, TimeBlocks.Evening, true)]
+    public void NPC_IsAvailable_Should_Return_Correct_Availability_Based_On_Schedule(
+        Schedule npcSchedule, TimeBlocks currentTime, bool expectedAvailable)
+    {
+        // Arrange
+        NPC npc = new NPC
+        {
+            ID = "test_npc",
+            Name = "Test NPC",
+            AvailabilitySchedule = npcSchedule
+        };
+
+        // Act
+        bool isAvailable = npc.IsAvailable(currentTime);
+
+        // Assert
+        Assert.Equal(expectedAvailable, isAvailable);
+    }
+
+    [Fact]
+    public void NPC_Should_Track_Provided_Services()
+    {
+        // Arrange
+        NPC npc = new NPC
+        {
+            ID = "test_npc",
+            Name = "Test NPC",
+            ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Information }
+        };
+
+        // Act & Assert
+        Assert.Contains(ServiceTypes.Trade, npc.ProvidedServices);
+        Assert.Contains(ServiceTypes.Information, npc.ProvidedServices);
+        Assert.DoesNotContain(ServiceTypes.Healing, npc.ProvidedServices);
+    }
+
+    [Theory]
+    [InlineData(ServiceTypes.Trade, true)]
+    [InlineData(ServiceTypes.Information, true)]
+    [InlineData(ServiceTypes.Healing, false)]
+    public void NPC_CanProvideService_Should_Return_Correct_Service_Availability(
+        ServiceTypes requestedService, bool expectedCanProvide)
+    {
+        // Arrange
+        NPC npc = new NPC
+        {
+            ID = "test_npc",
+            Name = "Test NPC",
+            ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Information }
+        };
+
+        // Act
+        bool canProvide = npc.CanProvideService(requestedService);
+
+        // Assert
+        Assert.Equal(expectedCanProvide, canProvide);
+    }
+
+    [Fact]
+    public void NPC_Should_Have_Default_Relationship_As_Neutral()
+    {
+        // Arrange & Act
+        NPC npc = new NPC
+        {
+            ID = "test_npc",
+            Name = "Test NPC"
+        };
+
+        // Assert
+        Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship);
+    }
+
+    [Fact]
+    public void NPC_Should_Provide_Readable_Description_Properties()
+    {
+        // Arrange
+        NPC npc = new NPC
+        {
+            ID = "test_npc",
+            Name = "Test NPC",
+            Profession = Professions.Merchant,
+            AvailabilitySchedule = Schedule.Market_Hours,
+            ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Information }
+        };
+
+        // Act & Assert
+        Assert.Equal("Merchant", npc.ProfessionDescription);
+        Assert.Equal("Market Hours", npc.ScheduleDescription);
+        Assert.Contains("Services: Trade, Information", npc.ProvidedServicesDescription);
+    }
+
+    [Fact]
+    public void NPC_Should_Show_No_Services_Available_When_Empty()
+    {
+        // Arrange
+        NPC npc = new NPC
+        {
+            ID = "test_npc",
+            Name = "Test NPC",
+            ProvidedServices = new List<ServiceTypes>()
+        };
+
+        // Act & Assert
+        Assert.Equal("No services available", npc.ProvidedServicesDescription);
+    }
+}

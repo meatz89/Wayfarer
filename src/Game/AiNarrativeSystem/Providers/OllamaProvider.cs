@@ -91,7 +91,7 @@ public class OllamaProvider : IAIProvider
                 response.EnsureSuccessStatusCode();
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 string content = OllamaResponseParser.ExtractMessageContent(jsonResponse);
-                
+
                 _logger?.LogInformation($"Received response from Ollama API ({content.Length} chars)");
 
                 return content;
@@ -190,14 +190,14 @@ public class OllamaProvider : IAIProvider
         }
         return finalResponse;
     }
-    
+
     public async Task<bool> IsAvailableAsync()
     {
         try
         {
             string healthEndpoint = $"{_baseUrl}/api/tags";
-            using var request = new HttpRequestMessage(HttpMethod.Get, healthEndpoint);
-            using var response = await _httpClient.SendAsync(request);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthEndpoint);
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
                 _logger?.LogWarning($"Ollama health check failed: {response.StatusCode}");
@@ -206,12 +206,12 @@ public class OllamaProvider : IAIProvider
             string json = await response.Content.ReadAsStringAsync();
             if (!string.IsNullOrEmpty(_modelName))
             {
-                using var doc = JsonDocument.Parse(json);
-                if (doc.RootElement.TryGetProperty("models", out var modelsElement) && modelsElement.ValueKind == JsonValueKind.Array)
+                using JsonDocument doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("models", out JsonElement modelsElement) && modelsElement.ValueKind == JsonValueKind.Array)
                 {
-                    foreach (var model in modelsElement.EnumerateArray())
+                    foreach (JsonElement model in modelsElement.EnumerateArray())
                     {
-                        if (model.TryGetProperty("name", out var nameElement) && nameElement.GetString() == _modelName)
+                        if (model.TryGetProperty("name", out JsonElement nameElement) && nameElement.GetString() == _modelName)
                         {
                             return true;
                         }
