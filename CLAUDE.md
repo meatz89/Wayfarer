@@ -13,6 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. ✅ **READ GAME-ARCHITECTURE.md** - Acquire a deep understanding of the architecture guidelines and principles
 5. ✅ **READ INTENDED-GAMEPLAY.md** - Acquire a deep understanding of what we want the game experience to feel like for the player
 6. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
+6. ✅ **READ IMPLEMENTATION-PLAN.MD** - Our current roadmap to follow
 7. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
 
 ### **DOCUMENTATION MAINTENANCE RULES**

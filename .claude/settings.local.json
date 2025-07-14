@@ -28,7 +28,16 @@
       "Bash(cat:*)",
       "Bash(git restore:*)",
       "Bash(git checkout:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(\"Wayfarer.Tests/ComprehensiveGameInitializationTests.cs\" )",
+      "Bash(\"Wayfarer.Tests/JsonParserDomainIntegrationTests.cs\" )",
+      "Bash(\"Wayfarer.Tests/GameInitializationFlowTests.cs\" )",
+      "Bash(\"Wayfarer.Tests/UIScreenFunctionalityTests.cs\" )",
+      "Bash(\"Wayfarer.Tests/LocationTests.cs\" )",
+      "Bash(\"Wayfarer.Tests/TravelFunctionalityTests.cs\" )",
+      "Bash(\"Wayfarer.Tests/ContractCompletionTests.cs\" )",
+      "Bash(\"Wayfarer.Tests/DebugMarketTest.cs\" )",
+      "Bash(\"Wayfarer.Tests/SimpleMarketManagerTest.cs\")"
     ],
     "deny": []
   }
