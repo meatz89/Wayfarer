@@ -8,7 +8,6 @@ public class WorldState
     public List<ActionDefinition> actions { get; set; } = new();
     public List<Contract> Contracts { get; set; } = new();
     private List<NPC> characters { get; set; } = new();
-    private List<Contract> contracts { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
     public List<string> CompletedEncounters { get; } = new List<string>();
@@ -94,20 +93,12 @@ public class WorldState
         characters.Add(character);
     }
 
-    public void AddOpportunity(Contract opp)
-    {
-        contracts.Add(opp);
-    }
 
     public List<NPC> GetCharacters()
     {
         return characters;
     }
 
-    public List<Contract> GetContracts()
-    {
-        return contracts;
-    }
 
     /// <summary>
     /// Add a temporary route block that expires after specified days

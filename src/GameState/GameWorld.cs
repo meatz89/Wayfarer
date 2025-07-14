@@ -39,7 +39,6 @@
     public int PlayerCoins { get; set; } = 2;
     public int PlayerStamina { get; set; } = 5;
     public Inventory PlayerInventory { get; private set; }
-    public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
     public List<Location> Locations { get; set; } = new List<Location>();
 
     public Location CurrentLocation

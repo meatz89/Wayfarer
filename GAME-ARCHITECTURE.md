@@ -500,3 +500,85 @@ Before implementing any system changes:
 7. **❌ Parallel Validation Systems**: Never build new validation systems when IRequirement/IMechanicalEffect interfaces exist
 
 These patterns ensure system stability and prevent the cascade failures discovered during debugging sessions.
+
+## TEST ARCHITECTURE PATTERNS
+
+### **Test Isolation Principle**
+
+**MANDATORY REQUIREMENT**: Tests must NEVER use production JSON content. Each test class should have its own isolated test data.
+
+**Architecture Pattern**:
+```
+Production: src/Content/Templates/*.json
+Testing:    Wayfarer.Tests/Content/Templates/*.json
+```
+
+**Implementation**:
+```csharp
+// ✅ CORRECT: Test-specific data loading
+GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
+
+// ❌ WRONG: Using production content
+var gameWorld = new GameWorldInitializer("Content").LoadGame();
+```
+
+**MSBuild Configuration**:
+```xml
+<ItemGroup>
+  <Content Include="Content\Templates\*.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </Content>
+</ItemGroup>
+```
+
+**Benefits**:
+- Tests validate system logic, not production data integrity
+- Fast, reliable test execution
+- Systematic debugging capability
+- No brittleness from production content changes
+
+### **Repository Pattern Compliance in Tests**
+
+**CRITICAL PRINCIPLE**: Tests must follow the same access patterns as business logic.
+
+```csharp
+// ✅ CORRECT: Repository-mediated access
+LocationRepository locationRepo = new LocationRepository(gameWorld);
+Location workshop = locationRepo.GetLocation("workshop");
+
+// ❌ WRONG: Direct WorldState access
+Location workshop = gameWorld.WorldState.locations.First(l => l.Id == "workshop");
+```
+
+**Enforcement**: Tests should use repositories for all data access, never direct GameWorld.WorldState access.
+
+### **Test Data File Path Resolution**
+
+**CORRECT PATTERN**: Use MSBuild content copying instead of relative path navigation.
+
+```csharp
+// ✅ CORRECT: Simple relative paths after MSBuild copying
+string testFilePath = Path.Combine("Content", "Templates", "locations.json");
+
+// ❌ WRONG: Complex relative path navigation
+string testFilePath = Path.Combine("..", "..", "..", "..", "Wayfarer.Tests", "Content", "Templates", "locations.json");
+```
+
+**Architecture Benefits**:
+- Cross-platform compatible
+- Maintainable and standard .NET practice
+- Files automatically available in test output directory
+- Clean, simple path resolution
+
+### **Systematic Test Debugging Pattern**
+
+**PROVEN APPROACH**: Fix tests incrementally using controlled test data.
+
+1. **Identify** production JSON dependencies in failing tests
+2. **Create** minimal test-specific JSON data in `Wayfarer.Tests/Content/Templates/`
+3. **Configure** MSBuild to copy files to output directory
+4. **Update** TestGameWorldInitializer to load test files
+5. **Fix** test entity IDs to match test data
+6. **Debug** systematically one assertion at a time
+
+**Result**: Enables progression through test failures line by line with complete control over test data.

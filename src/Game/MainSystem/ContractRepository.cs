@@ -10,13 +10,11 @@ public class ContractRepository
 
         if (_gameWorld.WorldState.Contracts == null)
         {
-            // Initialize contracts collection if null
-            System.Reflection.FieldInfo? contractsField = typeof(WorldState).GetField("Contracts",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (contractsField != null)
-            {
-                contractsField.SetValue(_gameWorld.WorldState, new List<Contract>());
-            }
+            _gameWorld.WorldState.Contracts = new List<Contract>();
+        }
+        if (_gameWorld.WorldState.ActiveContracts == null)
+        {
+            _gameWorld.WorldState.ActiveContracts = new List<Contract>();
         }
     }
 
@@ -41,7 +39,7 @@ public class ContractRepository
 
     public List<Contract> GetActiveContracts()
     {
-        return _gameWorld.ActiveContracts?.ToList() ?? new List<Contract>();
+        return _gameWorld.WorldState.ActiveContracts?.ToList() ?? new List<Contract>();
     }
 
     // ===== QUERY METHODS FOR STATE INSPECTION =====
@@ -53,12 +51,12 @@ public class ContractRepository
     public ContractCompletionResult GetContractStatus(string contractId)
     {
         // Ensure ActiveContracts is initialized before accessing
-        if (_gameWorld.ActiveContracts == null)
+        if (_gameWorld.WorldState.ActiveContracts == null)
         {
-            _gameWorld.ActiveContracts = new List<Contract>();
+            _gameWorld.WorldState.ActiveContracts = new List<Contract>();
         }
         
-        Contract contract = _gameWorld.ActiveContracts.FirstOrDefault(c => c != null && c.Id == contractId);
+        Contract contract = _gameWorld.WorldState.ActiveContracts.FirstOrDefault(c => c != null && c.Id == contractId);
         if (contract == null)
         {
             // Check if contract exists in world state but not active
@@ -107,7 +105,7 @@ public class ContractRepository
         Contract contract = GetContract(contractId);
         if (contract == null) return false;
         
-        bool isAlreadyActive = _gameWorld.ActiveContracts?.Any(c => c.Id == contractId) ?? false;
+        bool isAlreadyActive = _gameWorld.WorldState.ActiveContracts?.Any(c => c.Id == contractId) ?? false;
         if (isAlreadyActive) return false;
         
         return contract.IsAvailable(_gameWorld.CurrentDay, _gameWorld.WorldState.CurrentTimeBlock);
@@ -185,6 +183,30 @@ public class ContractRepository
         {
             activeContracts.Add(contract);
         }
+    }
+
+    public void AddActiveContract(Contract contract)
+    {
+        if (contract == null)
+        {
+            throw new ArgumentNullException(nameof(contract));
+        }
+
+        List<Contract> activeContracts = _gameWorld.WorldState.ActiveContracts;
+        if (!activeContracts.Any(c => c.Id == contract.Id))
+        {
+            activeContracts.Add(contract);
+        }
+    }
+
+    public void RemoveActiveContract(Contract contract)
+    {
+        if (contract == null)
+        {
+            throw new ArgumentNullException(nameof(contract));
+        }
+
+        _gameWorld.WorldState.ActiveContracts.Remove(contract);
     }
 
     public void CompleteContract(string contractId)

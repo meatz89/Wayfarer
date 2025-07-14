@@ -85,7 +85,7 @@ public class ContractSystem
         contract.IsCompleted = true;
 
         // Remove from active contracts
-        gameWorld.ActiveContracts.Remove(contract);
+        contractRepository.RemoveActiveContract(contract);
 
         // Add success message
         messageSystem.AddSystemMessage($"Contract '{contract.Description}' completed! Received {finalPayment} coins. {paymentMessage}");
@@ -95,19 +95,19 @@ public class ContractSystem
 
     public List<Contract> GetActiveContracts()
     {
-        return gameWorld.ActiveContracts?.ToList() ?? new List<Contract>();
+        return contractRepository.GetActiveContracts();
     }
 
     public void CheckForFailedContracts()
     {
-        List<Contract> failedContracts = gameWorld.ActiveContracts
+        List<Contract> failedContracts = contractRepository.GetActiveContracts()
             .Where(c => c.DueDay < gameWorld.CurrentDay && !c.IsCompleted)
             .ToList();
 
         foreach (Contract? contract in failedContracts)
         {
             contract.IsFailed = true;
-            gameWorld.ActiveContracts.Remove(contract);
+            contractRepository.RemoveActiveContract(contract);
 
             // Natural consequences: failed contracts affect future opportunities
             Player player = gameWorld.GetPlayer();
@@ -124,7 +124,7 @@ public class ContractSystem
 
     public List<Contract> GetContractsExpiringToday()
     {
-        return gameWorld.ActiveContracts
+        return contractRepository.GetActiveContracts()
             .Where(c => c.DueDay == gameWorld.CurrentDay)
             .ToList();
     }
@@ -156,7 +156,7 @@ public class ContractSystem
         gameWorld.TimeManager.ConsumeTimeBlock(1);
 
         // Add to active contracts
-        gameWorld.ActiveContracts.Add(contract);
+        contractRepository.AddActiveContract(contract);
 
         messageSystem.AddSystemMessage($"Accepted contract: {contract.Description}");
         return true;
