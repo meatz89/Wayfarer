@@ -13,21 +13,6 @@ public enum PhysicalDemand
 }
 
 /// <summary>
-/// Social standing or permissions required to perform an action
-/// </summary>
-public enum SocialRequirement
-{
-    Any,                // Anyone can perform this action
-    Commoner,          // Basic citizenship required
-    Merchant_Class,    // Commercial credentials needed
-    Artisan_Class,     // Guild membership or craft training
-    Minor_Noble,       // Noble status or special permission
-    Major_Noble,       // High noble rank or royal access
-    Guild_Member,      // Specific guild membership required
-    Professional       // Professional credentials in relevant field
-}
-
-/// <summary>
 /// Categories of tools or equipment needed for actions (non-overlapping with EquipmentCategory)
 /// </summary>
 public enum ToolCategory
@@ -46,44 +31,16 @@ public enum ToolCategory
 }
 
 /// <summary>
-/// Environmental conditions required for actions
-/// </summary>
-public enum EnvironmentCategory
-{
-    Any,                  // Can be performed anywhere
-    Indoor,              // Requires enclosed space
-    Outdoor,             // Must be performed outside
-    Workshop,            // Specialized crafting space needed
-    Commercial_Setting,  // Market, shop, or trade location
-    Private_Space,       // Quiet, private area required
-    Good_Light,          // Adequate lighting needed
-    Quiet,               // Low noise environment
-    Weather_public,   // Shelter from rain/wind needed
-    Specific_Location,   // Unique location requirement
-    Hearth,              // Requires fireplace or heating
-    Library,             // Books and study materials available
-    Market_Square,       // Active trading environment
-    Noble_Court,         // Formal court setting
-    Sacred_Space         // Religious or ceremonial location
-}
-
-/// <summary>
 /// Knowledge, skill level, or education required
 /// </summary>
 public enum KnowledgeRequirement
 {
     None,            // No special knowledge needed
-    Basic,           // Basic literacy and common knowledge
-    Professional,    // Trade or professional training
-    Advanced,        // Specialized expertise
-    Expert,          // Master-level knowledge
-    Master,          // Highest level of skill/knowledge
     Local,           // Specific local knowledge
     Commercial,      // Trade and business knowledge
     Academic,        // Scholarly education
     Technical,       // Engineering or technical skills
     Cultural,        // Social customs and etiquette
-    Legal           // Law and legal procedures
 }
 
 /// <summary>
@@ -119,7 +76,6 @@ public enum EffectCategory
     // Social Effects
     Relationship_Building, // Improve relations with NPCs
     Reputation_Change,     // Alter standing with groups
-    Social_Standing,       // Change social class perception
     Information_Exchange,  // Share or receive information
 
     // Economic Effects
@@ -131,7 +87,6 @@ public enum EffectCategory
 
     // Environmental Effects
     Location_Access,       // Unlock new areas or permissions
-    Environmental_Change,  // Alter the current location
     Weather_Protection,    // Shelter from weather effects
     Time_Advancement,      // Progress game time
 
@@ -183,17 +138,6 @@ public enum InformationQuality
     Authoritative  // From definitive, unquestionable source
 }
 
-/// <summary>
-/// How current and time-sensitive the information is
-/// </summary>
-public enum InformationFreshness
-{
-    Stale,      // Old information, may no longer be accurate
-    Recent,     // Information from last few days, mostly current
-    Current,    // Up-to-date information from today
-    Breaking,   // Very recent developments, high value
-    Real_Time   // Immediate, as-it-happens information
-}
 
 /// <summary>
 /// Data class for specifying information requirements in action definitions
@@ -202,17 +146,14 @@ public class InformationRequirementData
 {
     public InformationType RequiredType { get; set; }
     public InformationQuality MinimumQuality { get; set; } = InformationQuality.Reliable;
-    public InformationFreshness MinimumFreshness { get; set; } = InformationFreshness.Recent;
     public string SpecificInformationId { get; set; } = "";
-    
+
     public InformationRequirementData() { }
-    
-    public InformationRequirementData(InformationType type, InformationQuality quality = InformationQuality.Reliable, 
-                                     InformationFreshness freshness = InformationFreshness.Recent, string specificId = "")
+
+    public InformationRequirementData(InformationType type, InformationQuality quality = InformationQuality.Reliable, string specificId = "")
     {
         RequiredType = type;
         MinimumQuality = quality;
-        MinimumFreshness = freshness;
         SpecificInformationId = specificId;
     }
 }
@@ -227,7 +168,6 @@ public class InformationEffectData
     public string Content { get; set; } = "";
     public InformationType Type { get; set; }
     public InformationQuality Quality { get; set; } = InformationQuality.Reliable;
-    public InformationFreshness Freshness { get; set; } = InformationFreshness.Current;
     public string Source { get; set; } = "";
     public int Value { get; set; } = 10;
     public bool UpgradeExisting { get; set; } = false;
@@ -235,10 +175,10 @@ public class InformationEffectData
     public string NPCId { get; set; } = "";
     public List<string> RelatedItemIds { get; set; } = new();
     public List<string> RelatedLocationIds { get; set; } = new();
-    
+
     public InformationEffectData() { }
-    
-    public InformationEffectData(string id, string title, InformationType type, string content = "", 
+
+    public InformationEffectData(string id, string title, InformationType type, string content = "",
                                 InformationQuality quality = InformationQuality.Reliable, string source = "")
     {
         InformationId = id;
@@ -307,18 +247,18 @@ public class ActionAccessResult
 
     public static ActionAccessResult Blocked(string reason)
     {
-        return new ActionAccessResult 
-        { 
-            IsAllowed = false, 
+        return new ActionAccessResult
+        {
+            IsAllowed = false,
             BlockingReasons = new List<string> { reason }
         };
     }
 
     public static ActionAccessResult Blocked(List<string> reasons)
     {
-        return new ActionAccessResult 
-        { 
-            IsAllowed = false, 
+        return new ActionAccessResult
+        {
+            IsAllowed = false,
             BlockingReasons = reasons
         };
     }
@@ -353,9 +293,9 @@ public class ContractAccessResult
 
     public static ContractAccessResult AcceptanceBlocked(string reason)
     {
-        return new ContractAccessResult 
-        { 
-            CanAccept = false, 
+        return new ContractAccessResult
+        {
+            CanAccept = false,
             CanComplete = false,
             AcceptanceBlockers = new List<string> { reason }
         };
@@ -363,9 +303,9 @@ public class ContractAccessResult
 
     public static ContractAccessResult CompletionBlocked(string reason)
     {
-        return new ContractAccessResult 
-        { 
-            CanAccept = true, 
+        return new ContractAccessResult
+        {
+            CanAccept = true,
             CanComplete = false,
             CompletionBlockers = new List<string> { reason }
         };

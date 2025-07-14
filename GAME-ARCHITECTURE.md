@@ -385,8 +385,6 @@ public interface IMechanicalEffect
 **Item Categorical Dimensions**:
 - `EquipmentCategory`: Climbing_Equipment, Navigation_Tools, Weather_Protection, Social_Signaling, etc.
 - `Size`: Tiny → Small → Medium → Large → Massive (affects transport and inventory)
-- `Fragility`: Sturdy → Standard → Delicate → Fragile (affects travel risk)
-- `SocialSignaling`: Enhances/blocks social interactions based on context
 
 ### **Stamina Categorical System**
 
@@ -582,3 +580,239 @@ string testFilePath = Path.Combine("..", "..", "..", "..", "Wayfarer.Tests", "Co
 6. **Debug** systematically one assertion at a time
 
 **Result**: Enables progression through test failures line by line with complete control over test data.
+
+## CONTRACTSTEP SYSTEM ARCHITECTURE
+
+### **Unified Contract Completion Architecture**
+
+**FUNDAMENTAL DESIGN**: Replace fragmented contract requirement arrays with a unified, extensible ContractStep system.
+
+**Before (FRAGMENTED)**:
+```csharp
+// Multiple separate arrays for different requirement types
+public List<string> RequiredDestinations { get; set; }
+public List<ContractTransaction> RequiredTransactions { get; set; }
+public List<string> RequiredNPCConversations { get; set; }
+public List<string> RequiredLocationActions { get; set; }
+```
+
+**After (UNIFIED)**:
+```csharp
+// Single unified system for all contract requirements
+public List<ContractStep> CompletionSteps { get; set; }
+```
+
+### **Polymorphic Step Type System**
+
+**Architecture Pattern**: Abstract base class with concrete implementations for each step type.
+
+```csharp
+public abstract class ContractStep
+{
+    public string Id { get; set; }
+    public string Description { get; set; }
+    public bool IsCompleted { get; set; }
+    public bool IsRequired { get; set; } = true;
+    public int OrderHint { get; set; } = 0;
+    
+    public abstract bool CheckCompletion(Player player, string currentLocationId, object actionContext = null);
+    public abstract ContractStepRequirement GetRequirement();
+}
+```
+
+**Concrete Step Implementations**:
+- **TravelStep**: Requires traveling to specific location
+- **TransactionStep**: Requires buying/selling items with price constraints
+- **ConversationStep**: Requires talking to specific NPCs
+- **LocationActionStep**: Requires performing actions at locations
+- **EquipmentStep**: Requires obtaining equipment categories
+
+### **JSON Polymorphic Deserialization**
+
+**Type Discriminator Pattern**: JSON uses "type" field to determine concrete step class.
+
+```json
+{
+  "completionSteps": [
+    {
+      "type": "TravelStep",
+      "id": "travel_to_town",
+      "description": "Travel to town square",
+      "isRequired": true,
+      "orderHint": 1,
+      "requiredLocationId": "town_square"
+    },
+    {
+      "type": "TransactionStep",
+      "id": "buy_herbs",
+      "description": "Purchase herbs",
+      "isRequired": true,
+      "orderHint": 2,
+      "itemId": "herbs",
+      "locationId": "town_square",
+      "transactionType": "Buy",
+      "quantity": 1,
+      "maxPrice": 10
+    }
+  ]
+}
+```
+
+**Parser Implementation**:
+```csharp
+private static ContractStep ParseContractStep(JsonElement stepElement)
+{
+    string stepType = GetStringProperty(stepElement, "type", "");
+    
+    ContractStep step = stepType switch
+    {
+        "TravelStep" => new TravelStep { RequiredLocationId = GetStringProperty(stepElement, "requiredLocationId", "") },
+        "TransactionStep" => new TransactionStep { ItemId = GetStringProperty(stepElement, "itemId", "") },
+        "ConversationStep" => new ConversationStep { RequiredNPCId = GetStringProperty(stepElement, "requiredNPCId", "") },
+        "LocationActionStep" => new LocationActionStep { RequiredActionId = GetStringProperty(stepElement, "requiredActionId", "") },
+        "EquipmentStep" => new EquipmentStep { RequiredEquipmentCategories = GetEquipmentCategoryArray(stepElement, "requiredEquipmentCategories") },
+        _ => null
+    };
+}
+```
+
+### **Progress Calculation Enhancement**
+
+**Unified Progress Tracking**: Progress calculation based on required vs optional steps.
+
+```csharp
+public float CalculateProgress()
+{
+    if (CompletionSteps.Any())
+    {
+        var requiredSteps = CompletionSteps.Where(step => step.IsRequired).ToList();
+        if (!requiredSteps.Any()) return 1.0f;
+        
+        int completedRequired = requiredSteps.Count(step => step.IsCompleted);
+        return (float)completedRequired / requiredSteps.Count;
+    }
+    
+    // Fallback to legacy system for backward compatibility
+    // [legacy calculation code...]
+}
+```
+
+### **Action Context Integration**
+
+**Typed Context Objects**: Provide structured data for step completion validation.
+
+```csharp
+// Transaction context for marketplace actions
+public class TransactionContext
+{
+    public string ItemId { get; set; }
+    public string LocationId { get; set; }
+    public TransactionType TransactionType { get; set; }
+    public int Quantity { get; set; }
+    public int Price { get; set; }
+}
+
+// Usage in progression service
+var transactionContext = new TransactionContext
+{
+    ItemId = itemId,
+    LocationId = locationId,
+    TransactionType = transactionType,
+    Quantity = quantity,
+    Price = price
+};
+
+progressMade = contract.CheckStepCompletion(player, locationId, transactionContext);
+```
+
+### **Dual-System Compatibility**
+
+**Backward Compatibility Strategy**: Support both new ContractStep system and legacy arrays.
+
+```csharp
+// NEW: Check ContractStep system first
+if (contract.CompletionSteps.Any())
+{
+    progressMade = contract.CheckStepCompletion(player, destinationLocationId);
+}
+else
+{
+    // LEGACY: Fall back to old system for backward compatibility
+    if (contract.RequiredDestinations.Contains(destinationLocationId))
+    {
+        if (!contract.CompletedDestinations.Contains(destinationLocationId))
+        {
+            contract.CompletedDestinations.Add(destinationLocationId);
+            progressMade = true;
+        }
+    }
+}
+```
+
+**Legacy Property Deprecation**:
+```csharp
+[Obsolete("Use CompletionSteps with TravelStep instead")]
+public List<string> RequiredDestinations { get; set; } = new List<string>();
+
+[Obsolete("Use CompletionSteps with TransactionStep instead")]
+public List<ContractTransaction> RequiredTransactions { get; set; } = new List<ContractTransaction>();
+```
+
+### **UI Integration Architecture**
+
+**Step-Based Contract Display**: Enhanced UI showing individual step progress.
+
+```razor
+@if (contract.CompletionSteps.Any())
+{
+    <!-- NEW: ContractStep system display -->
+    <div class="requirement-section">
+        <h4 class="requirement-title">Contract Steps:</h4>
+        @foreach (var step in contract.CompletionSteps.OrderBy(s => s.OrderHint))
+        {
+            <div class="requirement-item step-item @(step.IsCompleted ? "completed" : "pending") @(step.IsRequired ? "required" : "optional")">
+                <div class="step-header">
+                    <span class="requirement-icon">@(step.IsCompleted ? "✅" : step.IsRequired ? "🔲" : "🔳")</span>
+                    <span class="step-description">@step.Description</span>
+                    @if (!step.IsRequired)
+                    {
+                        <span class="optional-badge">Optional</span>
+                    }
+                </div>
+                <!-- Step-specific details based on type -->
+            </div>
+        }
+    </div>
+}
+```
+
+### **ContractStep System Benefits**
+
+1. **Unified Architecture**: Single system replaces 4+ separate requirement arrays
+2. **Extensible Design**: Easy to add new step types via polymorphic pattern
+3. **Rich Progression**: Support for optional steps, order hints, detailed requirements
+4. **Type Safety**: Strongly typed action contexts and step validation
+5. **Enhanced UI**: Step-by-step progress visualization with meaningful feedback
+6. **Backward Compatibility**: Existing contracts continue working unchanged
+7. **JSON Flexibility**: Content creators can mix different step types in any order
+
+### **ContractStep Validation Checklist**
+
+Before implementing contract step changes:
+
+1. ✅ **Type Discriminator**: Ensure JSON "type" field matches C# class names exactly
+2. ✅ **Required vs Optional**: Properly handle progress calculation for mixed step types
+3. ✅ **Order Hints**: Support flexible step ordering without breaking logic
+4. ✅ **Action Contexts**: Provide appropriate context objects for step validation
+5. ✅ **Legacy Support**: Maintain dual-system compatibility during transition
+6. ✅ **UI Integration**: Display step progress with clear visual indicators
+7. ✅ **Repository Pattern**: Use repositories for all contract data access
+
+### **ContractStep Failure Patterns to Avoid**
+
+1. **❌ Direct Step Modification**: Never modify step completion status outside Contract methods
+2. **❌ Missing Type Discriminators**: Always include "type" field in JSON step definitions
+3. **❌ Hardcoded Step Validation**: Use polymorphic CheckCompletion() instead of switch statements
+4. **❌ Legacy System Bypass**: Always check CompletionSteps.Any() before falling back to legacy
+5. **❌ Context Mismatches**: Ensure action contexts match the step types that need them
+6. **❌ Progress Inconsistency**: Keep step completion status synchronized with progress calculation

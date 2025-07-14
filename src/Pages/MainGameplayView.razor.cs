@@ -431,26 +431,26 @@ public class MainGameplayViewBase : ComponentBase
     /// </summary>
     public PlayerStrategicOverview AnalyzePlayerStrategicStatus()
     {
-        var overview = new PlayerStrategicOverview();
-        
+        PlayerStrategicOverview overview = new PlayerStrategicOverview();
+
         // Analyze current equipment capabilities
-        var currentEquipment = GetCurrentEquipmentCategories();
+        List<EquipmentCategory> currentEquipment = GetCurrentEquipmentCategories();
         overview.EquipmentCapabilities = currentEquipment.Select(cat => cat.ToString().Replace('_', ' ')).ToList();
-        
+
         // Analyze route accessibility (simplified for now)
         overview.AccessibleRoutes = 3; // Placeholder - would calculate based on actual routes
         overview.BlockedRoutes = 2; // Placeholder - would calculate based on blocked routes
-        
+
         // Identify critical missing equipment
-        var allEquipmentCategories = Enum.GetValues<EquipmentCategory>().ToList();
-        var missingCategories = allEquipmentCategories.Where(cat => !currentEquipment.Contains(cat)).ToList();
+        List<EquipmentCategory> allEquipmentCategories = Enum.GetValues<EquipmentCategory>().ToList();
+        List<EquipmentCategory> missingCategories = allEquipmentCategories.Where(cat => !currentEquipment.Contains(cat)).ToList();
         overview.CriticalMissingEquipment = missingCategories.Take(3).Select(cat => cat.ToString().Replace('_', ' ')).ToList();
-        
+
         // Analyze contract readiness (simplified for now)
         overview.ReadyContracts = 2; // Placeholder - would calculate based on actual contracts
         overview.PendingContracts = 1; // Placeholder - would calculate based on pending contracts
         overview.UrgentContracts = 0; // Placeholder - would calculate based on urgent contracts
-        
+
         return overview;
     }
 
@@ -459,13 +459,13 @@ public class MainGameplayViewBase : ComponentBase
     /// </summary>
     public TimeAwarenessAnalysis AnalyzeTimeAwareness()
     {
-        var analysis = new TimeAwarenessAnalysis();
-        var currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
-        var currentDay = GameWorld.CurrentDay;
-        
+        TimeAwarenessAnalysis analysis = new TimeAwarenessAnalysis();
+        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        int currentDay = GameWorld.CurrentDay;
+
         // Analyze current time status
         analysis.CurrentStatus = $"{currentTime.ToString().Replace('_', ' ')} - Day {currentDay}";
-        
+
         // Generate time-based recommendations
         if (currentTime == TimeBlocks.Dawn || currentTime == TimeBlocks.Morning)
         {
@@ -483,7 +483,7 @@ public class MainGameplayViewBase : ComponentBase
         {
             analysis.Recommendation = "Night time - limited activities available";
         }
-        
+
         return analysis;
     }
 
@@ -492,8 +492,8 @@ public class MainGameplayViewBase : ComponentBase
     /// </summary>
     private List<EquipmentCategory> GetCurrentEquipmentCategories()
     {
-        var ownedCategories = new List<EquipmentCategory>();
-        
+        List<EquipmentCategory> ownedCategories = new List<EquipmentCategory>();
+
         foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
         {
             if (itemName != null)
@@ -505,7 +505,7 @@ public class MainGameplayViewBase : ComponentBase
                 }
             }
         }
-        
+
         return ownedCategories.Distinct().ToList();
     }
 

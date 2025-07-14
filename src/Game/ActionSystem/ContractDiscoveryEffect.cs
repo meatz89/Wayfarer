@@ -12,7 +12,7 @@ public class ContractDiscoveryEffect : IMechanicalEffect
     private readonly int _maxContractsRevealed;
     private readonly ContractRepository _contractRepository;
     private readonly ContractValidationService _contractValidationService;
-    
+
     public ContractDiscoveryEffect(string npcId, ContractCategory contractCategory, int maxContractsRevealed,
                                   ContractRepository contractRepository, ContractValidationService contractValidationService)
     {
@@ -26,11 +26,11 @@ public class ContractDiscoveryEffect : IMechanicalEffect
     public void Apply(EncounterState state)
     {
         Player player = state.Player;
-        
+
         // Get all available contracts matching the category (simplified - no time filtering for now)
         List<Contract> availableContracts = _contractRepository.GetAllContracts()
-            .Where(contract => 
-                !contract.IsCompleted && 
+            .Where(contract =>
+                !contract.IsCompleted &&
                 !contract.IsFailed &&
                 (_contractCategory == ContractCategory.General || contract.Category == _contractCategory))
             .ToList();
@@ -59,7 +59,7 @@ public class ContractDiscoveryEffect : IMechanicalEffect
 
         // Note: Message logging will be handled by the UI layer when contracts are discovered
     }
-    
+
     public string GetDescriptionForPlayer()
     {
         string categoryName = _contractCategory.ToString().Replace("_", " ");
@@ -75,11 +75,9 @@ public class ContractDiscoveryEffectData
     public string NPCId { get; set; } = "";
     public ContractCategory ContractCategory { get; set; } = ContractCategory.General;
     public int MaxContractsRevealed { get; set; } = 3;
-    public bool RequiresSocialStanding { get; set; } = false;
-    public SocialRequirement MinimumSocialStanding { get; set; } = SocialRequirement.Any;
-    
+
     public ContractDiscoveryEffectData() { }
-    
+
     public ContractDiscoveryEffectData(string npcId, ContractCategory category, int maxContracts = 3)
     {
         NPCId = npcId;

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Xunit;
 
 namespace Wayfarer.Tests;
 
@@ -34,7 +33,6 @@ public class NPCParserTests
         Assert.Equal("A jovial man who runs the Dusty Flagon with warmth and efficiency.", npc.Description);
         Assert.Equal("dusty_flagon", npc.Location);
         Assert.Equal(Professions.Merchant, npc.Profession);
-        Assert.Equal(Social_Class.Merchant, npc.SocialClass);
         Assert.Equal(Schedule.Always, npc.AvailabilitySchedule);
         Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship);
 
@@ -70,7 +68,6 @@ public class NPCParserTests
         Assert.Empty(npc.ProvidedServices);
         Assert.Equal(NPCRelationship.Helpful, npc.PlayerRelationship);
         Assert.Equal(Professions.Scholar, npc.Profession);
-        Assert.Equal(Social_Class.Craftsman, npc.SocialClass);
     }
 
     [Fact]
@@ -100,9 +97,6 @@ public class NPCParserTests
             // Profession should be properly set (not default initialized)
             Assert.True(npc.Profession != default(Professions) || npc.Profession == Professions.Warrior,
                 $"NPC {npc.Name} has invalid profession: {npc.Profession}");
-            // Social class should be properly set
-            Assert.True(npc.SocialClass != default(Social_Class) || npc.SocialClass == Social_Class.Commoner,
-                $"NPC {npc.Name} has invalid social class: {npc.SocialClass}");
             // Schedule should be properly set
             Assert.True(npc.AvailabilitySchedule != default(Schedule) || npc.AvailabilitySchedule == Schedule.Always,
                 $"NPC {npc.Name} has invalid schedule: {npc.AvailabilitySchedule}");
@@ -153,13 +147,8 @@ public class NPCParserTests
                 Assert.True(npc.CanProvideService(service));
             }
 
-            // Test social expectations
-            bool meetsAnyExpectation = npc.MeetsLocationRequirements(Social_Expectation.Any);
-            Assert.True(meetsAnyExpectation); // All NPCs should meet "Any" expectation
-
             // Test helper descriptions are not empty
             Assert.NotEmpty(npc.ProfessionDescription);
-            Assert.NotEmpty(npc.SocialClassDescription);
             Assert.NotEmpty(npc.ScheduleDescription);
         }
     }

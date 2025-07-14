@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Xunit;
 using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -15,7 +15,7 @@ namespace Wayfarer.Tests
         public void TravelManager_GetAvailableRoutes_Should_Return_Valid_Routes()
         {
             // === SETUP WITH NEW TEST PATTERN ===
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p
                     .StartAt("dusty_flagon")
                     .WithCoins(100)
@@ -23,15 +23,15 @@ namespace Wayfarer.Tests
                 .WithTimeState(t => t
                     .Day(1)
                     .TimeBlock(TimeBlocks.Morning));
-            
+
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-            
+
             // Create repositories using new pattern
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ActionRepository actionRepository = new ActionRepository(gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
             ContractRepository contractRepository = new ContractRepository(gameWorld);
-            
+
             // Create services with proper dependencies
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);

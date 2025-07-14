@@ -623,7 +623,7 @@ public class GameWorldManager
     {
         return marketManager.CanBuyItem(itemId, locationId);
     }
-    
+
     /// <summary>
     /// Get inventory status for market display
     /// </summary>
@@ -631,7 +631,7 @@ public class GameWorldManager
     {
         return marketManager.GetInventoryStatusForMarket();
     }
-    
+
     /// <summary>
     /// Get inventory constraint message for an item
     /// </summary>
@@ -639,7 +639,7 @@ public class GameWorldManager
     {
         return marketManager.GetInventoryConstraintMessage(itemId);
     }
-    
+
     /// <summary>
     /// Get market availability status for display
     /// </summary>
@@ -647,7 +647,7 @@ public class GameWorldManager
     {
         return marketManager.GetMarketAvailabilityStatus(locationId);
     }
-    
+
 
 
     /// <summary>

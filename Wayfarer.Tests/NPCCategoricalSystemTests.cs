@@ -1,11 +1,10 @@
-using Xunit;
 
 namespace Wayfarer.Tests;
 
 public class NPCCategoricalSystemTests
 {
     [Fact]
-    public void NPC_Should_Have_Profession_And_Social_Class_Properties()
+    public void NPC_Should_Have_Profession_Properties()
     {
         // Arrange & Act
         NPC npc = new NPC
@@ -13,12 +12,10 @@ public class NPCCategoricalSystemTests
             ID = "test_npc",
             Name = "Test NPC",
             Profession = Professions.Merchant,
-            SocialClass = Social_Class.Merchant
         };
 
         // Assert
         Assert.Equal(Professions.Merchant, npc.Profession);
-        Assert.Equal(Social_Class.Merchant, npc.SocialClass);
     }
 
     [Fact]
@@ -106,37 +103,6 @@ public class NPCCategoricalSystemTests
         Assert.Equal(expectedCanProvide, canProvide);
     }
 
-    [Theory]
-    [InlineData(Social_Class.Commoner, Social_Expectation.Any, true)]
-    [InlineData(Social_Class.Merchant, Social_Expectation.Any, true)]
-    [InlineData(Social_Class.Commoner, Social_Expectation.Merchant_Class, false)]
-    [InlineData(Social_Class.Merchant, Social_Expectation.Merchant_Class, true)]
-    [InlineData(Social_Class.Craftsman, Social_Expectation.Merchant_Class, true)]
-    [InlineData(Social_Class.Commoner, Social_Expectation.Professional, false)]
-    [InlineData(Social_Class.Craftsman, Social_Expectation.Professional, true)]
-    [InlineData(Social_Class.Merchant, Social_Expectation.Professional, false)]
-    [InlineData(Social_Class.Commoner, Social_Expectation.Noble_Class, false)]
-    [InlineData(Social_Class.Merchant, Social_Expectation.Noble_Class, false)]
-    [InlineData(Social_Class.Minor_Noble, Social_Expectation.Noble_Class, true)]
-    [InlineData(Social_Class.Major_Noble, Social_Expectation.Noble_Class, true)]
-    public void NPC_MeetsLocationRequirements_Should_Check_Social_Class_Against_Expectations(
-        Social_Class npcSocialClass, Social_Expectation locationExpectation, bool expectedMeetsRequirements)
-    {
-        // Arrange
-        NPC npc = new NPC
-        {
-            ID = "test_npc",
-            Name = "Test NPC",
-            SocialClass = npcSocialClass
-        };
-
-        // Act
-        bool meetsRequirements = npc.MeetsLocationRequirements(locationExpectation);
-
-        // Assert
-        Assert.Equal(expectedMeetsRequirements, meetsRequirements);
-    }
-
     [Fact]
     public void NPC_Should_Have_Default_Relationship_As_Neutral()
     {
@@ -160,14 +126,12 @@ public class NPCCategoricalSystemTests
             ID = "test_npc",
             Name = "Test NPC",
             Profession = Professions.Merchant,
-            SocialClass = Social_Class.Minor_Noble,
             AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Information }
         };
 
         // Act & Assert
         Assert.Equal("Merchant", npc.ProfessionDescription);
-        Assert.Equal("Minor Noble", npc.SocialClassDescription);
         Assert.Equal("Market Hours", npc.ScheduleDescription);
         Assert.Contains("Services: Trade, Information", npc.ProvidedServicesDescription);
     }

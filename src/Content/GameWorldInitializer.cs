@@ -1,6 +1,6 @@
-﻿using Wayfarer.Game.MainSystem;
+﻿using System.Text.Json;
 using Wayfarer.Content;
-using System.Text.Json;
+using Wayfarer.Game.MainSystem;
 
 public class GameWorldInitializer
 {
@@ -290,13 +290,13 @@ public class GameWorldInitializer
     private void ConnectNPCsToLocationSpots(List<NPC> npcs, List<LocationSpot> spots)
     {
         // Create mapping of NPCs to CHARACTER type location spots
-        var characterSpots = spots.Where(s => s.Type == LocationSpotTypes.CHARACTER).ToList();
-        
+        List<LocationSpot> characterSpots = spots.Where(s => s.Type == LocationSpotTypes.CHARACTER).ToList();
+
         foreach (LocationSpot characterSpot in characterSpots)
         {
             // Try to find a matching NPC based on location and role/profession
             NPC matchingNPC = null;
-            
+
             // Strategy 1: Try to match by location and profession
             if (characterSpot.SpotID == "innkeeper" && characterSpot.LocationId == "dusty_flagon")
             {
@@ -306,13 +306,13 @@ public class GameWorldInitializer
             {
                 matchingNPC = npcs.FirstOrDefault(n => n.Location == "town_square" && n.Profession == Professions.Merchant);
             }
-            
+
             // Strategy 2: General location-based matching for other spots
             if (matchingNPC == null)
             {
                 matchingNPC = npcs.FirstOrDefault(n => n.Location == characterSpot.LocationId);
             }
-            
+
             // Connect the NPC to the spot
             if (matchingNPC != null)
             {
@@ -382,7 +382,7 @@ public class GameWorldInitializer
     private List<NPC> ParseNPCArray(string npcsJson)
     {
         List<NPC> npcs = new List<NPC>();
-        
+
         using (JsonDocument doc = JsonDocument.Parse(npcsJson))
         {
             foreach (JsonElement npcElement in doc.RootElement.EnumerateArray())
@@ -391,7 +391,7 @@ public class GameWorldInitializer
                 npcs.Add(npc);
             }
         }
-        
+
         return npcs;
     }
 }

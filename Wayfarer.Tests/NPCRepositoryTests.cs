@@ -1,6 +1,3 @@
-using Xunit;
-using Wayfarer.Game.MainSystem;
-
 namespace Wayfarer.Tests
 {
     /// <summary>
@@ -59,7 +56,7 @@ namespace Wayfarer.Tests
             // Assert
             Assert.NotNull(dustyFlagonNPCs);
             Assert.NotEmpty(dustyFlagonNPCs);
-            
+
             // Verify all NPCs are indeed at dusty_flagon
             foreach (NPC npc in dustyFlagonNPCs)
             {
@@ -81,7 +78,7 @@ namespace Wayfarer.Tests
             // Assert
             Assert.NotNull(morningNPCs);
             Assert.NotNull(eveningNPCs);
-            
+
             // Verify all returned NPCs are actually available at the requested time
             foreach (NPC npc in morningNPCs)
             {
@@ -106,7 +103,7 @@ namespace Wayfarer.Tests
 
             // Assert
             Assert.NotNull(merchants);
-            
+
             // Verify all returned NPCs have the merchant profession
             foreach (NPC npc in merchants)
             {
@@ -126,11 +123,11 @@ namespace Wayfarer.Tests
 
             // Assert
             Assert.NotNull(lodgingProviders);
-            
+
             // Verify all returned NPCs provide lodging service
             foreach (NPC npc in lodgingProviders)
             {
-                Assert.True(npc.ProvidedServices.Contains(ServiceTypes.Lodging), 
+                Assert.True(npc.ProvidedServices.Contains(ServiceTypes.Lodging),
                     $"NPC {npc.Name} should provide lodging service");
             }
         }
@@ -147,12 +144,12 @@ namespace Wayfarer.Tests
 
             // Assert
             Assert.NotNull(availableNPCs);
-            
+
             // Verify all returned NPCs are at the location and available at the time
             foreach (NPC npc in availableNPCs)
             {
                 Assert.Equal("dusty_flagon", npc.Location);
-                Assert.True(npc.IsAvailable(TimeBlocks.Afternoon), 
+                Assert.True(npc.IsAvailable(TimeBlocks.Afternoon),
                     $"NPC {npc.Name} should be available in the afternoon");
             }
         }
@@ -163,14 +160,13 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             NPCRepository npcRepository = new NPCRepository(gameWorld);
-            
+
             NPC newNPC = new NPC
             {
                 ID = "test_npc",
                 Name = "Test NPC",
                 Location = "town_square",
                 Profession = Professions.Scholar,
-                SocialClass = Social_Class.Commoner,
                 AvailabilitySchedule = Schedule.Always
             };
 
@@ -190,7 +186,7 @@ namespace Wayfarer.Tests
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
             NPCRepository npcRepository = new NPCRepository(gameWorld);
-            
+
             // Get initial count
             int initialCount = npcRepository.GetAllNPCs().Count;
 
@@ -201,22 +197,6 @@ namespace Wayfarer.Tests
             Assert.True(removed);
             Assert.Equal(initialCount - 1, npcRepository.GetAllNPCs().Count);
             Assert.Null(npcRepository.GetNPCById("innkeeper_marcus"));
-        }
-
-        [Fact]
-        public void NPCRepository_Should_Get_NPCs_For_Location_Spot()
-        {
-            // Arrange
-            GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
-
-            // Act - Look for NPCs at the innkeeper spot (CHARACTER type location spot)
-            List<NPC> innkeeperSpotNPCs = npcRepository.GetNPCsForLocationSpotAndTime("innkeeper", TimeBlocks.Morning);
-
-            // Assert
-            Assert.NotNull(innkeeperSpotNPCs);
-            // Note: This test might find 0 or more NPCs depending on whether NPCs are connected to spots
-            // The connection happens in GameWorldInitializer.ConnectNPCsToLocationSpots
         }
 
         [Fact]

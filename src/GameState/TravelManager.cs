@@ -137,7 +137,7 @@ public class TravelManager
             // Check departure times and weather-dependent boat schedules
             if (route.DepartureTime != null && route.DepartureTime != _timeManager.GetCurrentTimeBlock())
                 continue;
-                
+
             // Check weather-dependent boat schedules
             if (route.Method == TravelMethods.Boat && !IsBoatScheduleAvailable(route))
                 continue;
@@ -233,25 +233,25 @@ public class TravelManager
     {
         // Boats can't operate in poor weather conditions
         WeatherCondition currentWeather = _routeRepository.GetCurrentWeather();
-        
+
         // Block boat schedules during dangerous weather
         if (currentWeather == WeatherCondition.Rain || currentWeather == WeatherCondition.Snow)
         {
             return false;
         }
-        
+
         // Boats need specific departure times (no always-available boat routes)
         if (route.DepartureTime == null)
         {
             return false;
         }
-        
+
         // Additional river condition logic could be added here
         // For now, boats depend on weather and scheduled departure times
         return true;
     }
-    
-    
+
+
     /// <summary>
     /// Get current inventory status with transport information
     /// </summary>
@@ -259,10 +259,10 @@ public class TravelManager
     {
         Player player = _gameWorld.GetPlayer();
         Inventory inventory = player.Inventory;
-        
+
         int usedSlots = inventory.GetUsedSlots(ItemRepository);
         int maxSlots = inventory.GetMaxSlots(ItemRepository, transport);
-        
+
         string transportInfo = transport.HasValue ? $" with {transport}" : "";
         return $"Inventory: {usedSlots}/{maxSlots} slots used{transportInfo}";
     }

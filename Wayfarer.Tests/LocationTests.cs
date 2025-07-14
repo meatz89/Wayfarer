@@ -34,7 +34,7 @@ namespace Wayfarer.Tests
                 .Build();
             services.AddSingleton(configuration);
             services.AddLogging();
-            
+
             services.ConfigureServices();
 
             return services.BuildServiceProvider();

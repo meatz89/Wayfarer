@@ -55,7 +55,7 @@ public class MarketManager
         // Check if market is available based on NPC schedules
         TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
         bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
-        
+
         if (!marketAvailable)
         {
             return new LocationPricing { BuyPrice = 0, SellPrice = 0, IsAvailable = false };
@@ -124,7 +124,7 @@ public class MarketManager
         // Check market availability once upfront
         TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
         bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
-        
+
         if (!marketAvailable)
         {
             return availableItems; // Return empty list if market is closed
@@ -137,7 +137,7 @@ public class MarketManager
         {
             // Calculate location-specific pricing directly
             LocationPricing pricing = CalculateLocationPricing(baseItem, locationId);
-            
+
             // Create item with location-specific pricing
             Item locationItem = new Item
             {
@@ -152,7 +152,7 @@ public class MarketManager
                 Description = baseItem.Description,
                 Categories = baseItem.Categories
             };
-            
+
             availableItems.Add(locationItem);
         }
 
@@ -281,7 +281,7 @@ public class MarketManager
         if (buyPrice <= 0) return false; // Item not available
 
         bool hasEnoughMoney = player.Coins >= buyPrice;
-        
+
         // Check if inventory has space for this item considering its size
         Item item = _itemRepository.GetItemById(itemId);
         bool hasInventorySpace = item != null && player.Inventory.CanAddItem(item, _itemRepository);
@@ -304,7 +304,7 @@ public class MarketManager
         Item item = _itemRepository.GetItemById(itemId);
 
         player.Coins -= buyPrice;
-        
+
         // Use size-aware inventory method
         bool success = player.Inventory.AddItemWithSizeCheck(item, _itemRepository);
         if (!success)
@@ -359,15 +359,15 @@ public class MarketManager
     /// </summary>
     public List<MarketPriceInfo> GetItemMarketPrices(string itemId)
     {
-        var prices = new List<MarketPriceInfo>();
-        
+        List<MarketPriceInfo> prices = new List<MarketPriceInfo>();
+
         // Get all locations
         List<Location> locations = _locationRepository.GetAllLocations() ?? new List<Location>();
-        
+
         foreach (Location location in locations)
         {
             LocationPricing pricing = GetDynamicPricing(location.Id, itemId);
-            
+
             if (pricing.IsAvailable) // Only include locations that have this item
             {
                 prices.Add(new MarketPriceInfo
@@ -382,7 +382,7 @@ public class MarketManager
                 });
             }
         }
-        
+
         return prices;
     }
 
@@ -397,18 +397,18 @@ public class MarketManager
             Player player = _gameWorld.GetPlayer();
             int coinsBefore = player.Coins;
             bool hadItemBefore = player.Inventory.HasItem(itemId);
-            
+
             // Get price before attempting purchase
             int buyPrice = GetItemPrice(locationId, itemId, true);
-            
+
             // Attempt the purchase
             bool success = BuyItem(itemId, locationId);
-            
+
             if (success)
             {
                 int coinsAfter = player.Coins;
                 bool hasItemAfter = player.Inventory.HasItem(itemId);
-                
+
                 return new TradeActionResult
                 {
                     Success = true,
@@ -460,18 +460,18 @@ public class MarketManager
             Player player = _gameWorld.GetPlayer();
             int coinsBefore = player.Coins;
             bool hadItemBefore = player.Inventory.HasItem(itemId);
-            
+
             // Get price before attempting sale
             int sellPrice = GetItemPrice(locationId, itemId, false);
-            
+
             // Attempt the sale
             bool success = SellItem(itemId, locationId);
-            
+
             if (success)
             {
                 int coinsAfter = player.Coins;
                 bool hasItemAfter = player.Inventory.HasItem(itemId);
-                
+
                 return new TradeActionResult
                 {
                     Success = true,
@@ -519,7 +519,7 @@ public class MarketManager
     public MarketArbitrageInfo GetArbitrageOpportunities(string itemId)
     {
         List<MarketPriceInfo> allPrices = GetItemMarketPrices(itemId);
-        
+
         if (allPrices.Count < 2)
         {
             return new MarketArbitrageInfo
@@ -531,15 +531,15 @@ public class MarketManager
                 AllPrices = allPrices
             };
         }
-        
+
         // Find best buy location (lowest buy price)
         MarketPriceInfo bestBuy = allPrices.Where(p => p.CanBuy).OrderBy(p => p.BuyPrice).FirstOrDefault();
-        
+
         // Find best sell location (highest sell price)
         MarketPriceInfo bestSell = allPrices.OrderByDescending(p => p.SellPrice).FirstOrDefault();
-        
+
         int maxProfit = (bestBuy != null && bestSell != null) ? bestSell.SellPrice - bestBuy.BuyPrice : 0;
-        
+
         return new MarketArbitrageInfo
         {
             ItemId = itemId,
@@ -549,7 +549,7 @@ public class MarketManager
             AllPrices = allPrices
         };
     }
-    
+
     /// <summary>
     /// Get current inventory status for market display
     /// </summary>
@@ -557,13 +557,13 @@ public class MarketManager
     {
         Player player = _gameWorld.GetPlayer();
         Inventory inventory = player.Inventory;
-        
+
         int usedSlots = inventory.GetUsedSlots(_itemRepository);
         int maxSlots = inventory.GetMaxSlots(_itemRepository);
-        
+
         return $"Inventory: {usedSlots}/{maxSlots} slots used";
     }
-    
+
     /// <summary>
     /// Check if item can fit in inventory with size considerations
     /// </summary>
@@ -571,9 +571,9 @@ public class MarketManager
     {
         Player player = _gameWorld.GetPlayer();
         Item item = _itemRepository.GetItemById(itemId);
-        
+
         if (item == null) return "Item not found";
-        
+
         if (player.Inventory.CanAddItem(item, _itemRepository))
         {
             return $"Can fit ({item.GetRequiredSlots()} slot{(item.GetRequiredSlots() > 1 ? "s" : "")} required)";
@@ -583,11 +583,11 @@ public class MarketManager
             int usedSlots = player.Inventory.GetUsedSlots(_itemRepository);
             int maxSlots = player.Inventory.GetMaxSlots(_itemRepository);
             int requiredSlots = item.GetRequiredSlots();
-            
+
             return $"Cannot fit: needs {requiredSlots} slot{(requiredSlots > 1 ? "s" : "")}, only {maxSlots - usedSlots} available";
         }
     }
-    
+
     /// <summary>
     /// Check if market trading is available at a location during the current time
     /// </summary>
@@ -597,11 +597,11 @@ public class MarketManager
         List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocationAndTime(locationId, currentTime)
             .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
             .ToList();
-            
+
         // Market is available if at least one trade NPC is present
         return tradeNPCs.Any();
     }
-    
+
     /// <summary>
     /// Get market availability status for UI display
     /// </summary>
@@ -609,7 +609,7 @@ public class MarketManager
     {
         TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
         bool isAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
-        
+
         if (isAvailable)
         {
             return "Market Open";
@@ -620,12 +620,12 @@ public class MarketManager
             List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocation(locationId)
                 .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
                 .ToList();
-                
+
             if (!tradeNPCs.Any())
             {
                 return "No traders at this location";
             }
-            
+
             // Find next available time
             List<TimeBlocks> allTimes = new List<TimeBlocks> { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
             foreach (TimeBlocks time in allTimes)
@@ -635,7 +635,7 @@ public class MarketManager
                     return $"Market opens at {time.ToString().Replace('_', ' ')}";
                 }
             }
-            
+
             return "Market closed";
         }
     }

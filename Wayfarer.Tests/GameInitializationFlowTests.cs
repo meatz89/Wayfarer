@@ -274,52 +274,6 @@ namespace Wayfarer.Tests
             }
         }
 
-        [Fact]
-        public void Step8_ContractSystem_ShouldProvideInitialContracts()
-        {
-            // DOCUMENTS: How contracts are available from game start
-
-            // Arrange: Setup complete game state
-            IServiceProvider serviceProvider = CreateServiceProvider();
-            GameWorldManager gameWorldManager = serviceProvider.GetRequiredService<GameWorldManager>();
-            GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            ContractSystem contractSystem = serviceProvider.GetRequiredService<ContractSystem>();
-
-            // Complete initialization
-            Player player = gameWorld.GetPlayer();
-            player.Archetype = Professions.Merchant;
-            gameWorldManager.StartGame();
-
-            // Act: Check contracts are loaded globally
-            // Note: ContractSystem may not have GetAvailableContracts method
-            // but contracts should be loaded in GameWorld.AllContracts
-
-            // Assert: Global contracts should be loaded
-
-            // Global contracts should be loaded via ContractRepository
-            ContractRepository contractRepository = new ContractRepository(gameWorld);
-            Assert.NotNull(contractRepository.GetAllContracts());
-            Assert.True(contractRepository.GetAllContracts().Count > 0, "Should have contracts loaded from JSON");
-
-            // Each contract should be properly configured
-            foreach (Contract contract in contractRepository.GetAllContracts())
-            {
-                Assert.NotNull(contract.Id);
-                Assert.NotNull(contract.Description);
-                Assert.True(contract.Payment > 0);
-                Assert.True(contract.DueDay > 0);
-                
-                // Verify completion action pattern (at least one completion requirement)
-                bool hasCompletionRequirement = 
-                    contract.RequiredTransactions.Count > 0 ||
-                    contract.RequiredDestinations.Count > 0 ||
-                    contract.RequiredNPCConversations.Count > 0 ||
-                    contract.RequiredLocationActions.Count > 0;
-                
-                
-                Assert.True(hasCompletionRequirement, $"Contract {contract.Id} should have at least one completion requirement");
-            }
-        }
 
         [Fact]
         public void Step9_TravelSystem_ShouldProvideRouteOptionsFromStartingLocation()

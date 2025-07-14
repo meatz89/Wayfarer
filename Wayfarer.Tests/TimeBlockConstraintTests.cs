@@ -231,7 +231,7 @@ namespace Wayfarer.Tests
             TimeManager timeManager = new TimeManager(player, worldState);
 
             // Act - Use existing AdvanceTime method (should consume time blocks)
-            timeManager.AdvanceTime(2); // This should consume 2 time blocks
+            timeManager.ConsumeTimeBlock(2); // This should consume 2 time blocks
 
             // Assert
             Assert.Equal(2, timeManager.UsedTimeBlocks);

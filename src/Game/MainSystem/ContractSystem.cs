@@ -181,25 +181,6 @@ public class ContractSystem
             FailurePenalty = "Loss of reputation",
             IsCompleted = false,
             IsFailed = false,
-            // New completion action format
-            RequiredTransactions = new List<ContractTransaction>
-            {
-                new ContractTransaction
-                {
-                    ItemId = "herbs",
-                    LocationId = "dusty_flagon",
-                    TransactionType = TransactionType.Sell,
-                    Quantity = 1
-                }
-            },
-            RequiredDestinations = new List<string>(),
-            RequiredNPCConversations = new List<string>(),
-            RequiredLocationActions = new List<string>(),
-            // Initialize completion tracking
-            CompletedDestinations = new HashSet<string>(),
-            CompletedTransactions = new List<ContractTransaction>(),
-            CompletedNPCConversations = new HashSet<string>(),
-            CompletedLocationActions = new HashSet<string>()
         };
     }
 }

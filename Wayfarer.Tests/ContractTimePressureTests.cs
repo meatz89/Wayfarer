@@ -1,4 +1,3 @@
-using Xunit;
 using Wayfarer.Game.MainSystem;
 
 namespace Wayfarer.Tests
@@ -22,10 +21,9 @@ namespace Wayfarer.Tests
         public void AcceptingContract_Should_Consume_TimeBlock()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
                 .WithContracts(c => c.Add("test_contract")
-                    .RequiresSell("herbs", "dusty_flagon")
                     .WithDescription("Test delivery contract")
                     .DueInDays(4)
                     .Build());
@@ -34,7 +32,7 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository);
-            
+
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);
 
@@ -47,7 +45,8 @@ namespace Wayfarer.Tests
             // Assert
             Assert.True(accepted, "Contract should be accepted successfully");
             Assert.Equal(initialTimeBlocks - 1, timeManager.RemainingTimeBlocks);
-            Assert.Contains(contract, gameWorld.ActiveContracts);
+            List<Contract> activeContracts = contractRepository.GetActiveContracts();
+            Assert.Contains(contract, activeContracts);
         }
 
         /// <summary>
@@ -58,10 +57,9 @@ namespace Wayfarer.Tests
         public void CompletingContract_Should_Consume_TimeBlock()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("dusty_flagon").WithItem("herbs"))
                 .WithContracts(c => c.Add("test_contract")
-                    .RequiresSell("herbs", "dusty_flagon")
                     .WithDescription("Test delivery contract")
                     .Build());
 
@@ -73,12 +71,12 @@ namespace Wayfarer.Tests
             ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, progressionService, new NPCRepository(gameWorld), locationRepository);
-            
+
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);
-            
+
             // Accept the contract first
-            gameWorld.ActiveContracts.Add(contract);
+            contractRepository.AddActiveContract(contract);
             Player player = gameWorld.GetPlayer();
             player.DiscoverContract(contract.Id);
 
@@ -94,7 +92,8 @@ namespace Wayfarer.Tests
             // Assert
             Assert.True(completed, "Contract should be completed successfully");
             Assert.Equal(initialTimeBlocks - 1, timeManager.RemainingTimeBlocks);
-            Assert.DoesNotContain(contract, gameWorld.ActiveContracts);
+            List<Contract> activeContracts = contractRepository.GetActiveContracts();
+            Assert.DoesNotContain(contract, activeContracts);
         }
 
         /// <summary>
@@ -105,11 +104,10 @@ namespace Wayfarer.Tests
         public void EarlyDelivery_Should_Provide_ReputationBonus()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("dusty_flagon").WithItem("herbs").WithCoins(0).WithReputation(5))
                 .WithTimeState(t => t.Day(3))
                 .WithContracts(c => c.Add("test_contract")
-                    .RequiresSell("herbs", "dusty_flagon")
                     .WithDescription("Test delivery contract")
                     .Pays(10)
                     .DueInDays(2) // Due on day 5 (start day 1 + 4 days)
@@ -122,13 +120,13 @@ namespace Wayfarer.Tests
             ItemRepository itemRepository2 = new ItemRepository(gameWorld);
             LocationRepository locationRepository2 = new LocationRepository(gameWorld);
             ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository2, locationRepository2);
-            
+
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);
             contract.StartDay = 1;
             contract.DueDay = 5;
-            
-            gameWorld.ActiveContracts.Add(contract);
+
+            contractRepository.AddActiveContract(contract);
             Player player = gameWorld.GetPlayer();
             player.DiscoverContract(contract.Id);
 
@@ -153,11 +151,10 @@ namespace Wayfarer.Tests
         public void LateDelivery_Should_Reduce_Reputation()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("dusty_flagon").WithItem("herbs").WithCoins(0).WithReputation(5))
                 .WithTimeState(t => t.Day(6)) // Late delivery
                 .WithContracts(c => c.Add("test_contract")
-                    .RequiresSell("herbs", "dusty_flagon")
                     .WithDescription("Test delivery contract")
                     .Pays(10)
                     .Build());
@@ -169,13 +166,13 @@ namespace Wayfarer.Tests
             ItemRepository itemRepository2 = new ItemRepository(gameWorld);
             LocationRepository locationRepository2 = new LocationRepository(gameWorld);
             ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository2, locationRepository2);
-            
+
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);
             contract.StartDay = 1;
             contract.DueDay = 5; // Due yesterday
-            
-            gameWorld.ActiveContracts.Add(contract);
+
+            contractRepository.AddActiveContract(contract);
             Player player = gameWorld.GetPlayer();
             player.DiscoverContract(contract.Id);
 
@@ -200,10 +197,9 @@ namespace Wayfarer.Tests
         public void ContractAcceptance_Should_Fail_Without_TimeBlocks()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square"))
                 .WithContracts(c => c.Add("test_contract")
-                    .RequiresSell("herbs", "dusty_flagon")
                     .WithDescription("Test delivery contract")
                     .Build());
 
@@ -211,7 +207,7 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository);
-            
+
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);
 
@@ -227,7 +223,8 @@ namespace Wayfarer.Tests
 
             // Assert
             Assert.False(accepted, "Cannot accept contract without time blocks");
-            Assert.DoesNotContain(contract, gameWorld.ActiveContracts);
+            List<Contract> activeContracts = contractRepository.GetActiveContracts();
+            Assert.DoesNotContain(contract, activeContracts);
         }
 
         /// <summary>
@@ -238,20 +235,19 @@ namespace Wayfarer.Tests
         public void Contract_Should_Respect_TimeWindow_Restrictions()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square"))
                 .WithTimeState(t => t.TimeBlock(TimeBlocks.Morning))
                 .WithContracts(c => c.Add("morning_contract")
-                    .RequiresSell("herbs", "dusty_flagon")
                     .WithDescription("Morning only contract")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             ContractRepository contractRepository = new ContractRepository(gameWorld);
-            
+
             Contract? contract = contractRepository.GetContract("morning_contract");
             Assert.NotNull(contract);
-            
+
             // Contract only available during morning time block
             contract.AvailableTimeBlocks = new List<TimeBlocks> { TimeBlocks.Morning };
 
@@ -271,11 +267,10 @@ namespace Wayfarer.Tests
         public void FailedContracts_Should_Affect_Reputation_And_FutureContracts()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithReputation(5))
                 .WithTimeState(t => t.Day(1))
                 .WithContracts(c => c.Add("test_contract")
-                    .RequiresSell("herbs", "dusty_flagon")
                     .WithDescription("Test delivery contract")
                     .Build());
 
@@ -284,13 +279,13 @@ namespace Wayfarer.Tests
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository);
             Player player = gameWorld.GetPlayer();
-            
+
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);
             contract.StartDay = 1;
             contract.DueDay = 2;
-            
-            gameWorld.ActiveContracts.Add(contract);
+
+            contractRepository.AddActiveContract(contract);
             player.DiscoverContract(contract.Id);
 
             int initialReputation = player.Reputation;
@@ -312,7 +307,7 @@ namespace Wayfarer.Tests
         public void Contract_Difficulty_Should_Scale_WithProgression()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square"))
                 .WithTimeState(t => t.Day(5));
 

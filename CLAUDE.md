@@ -87,14 +87,11 @@
 1. **All entities must have unique types/categories**: Every entity (items, routes, locations, NPCs) should belong to meaningful categories that can interact with other system categories
    - Items: `EquipmentCategory` (Climbing_Equipment, Weather_Protection, Navigation_Tools, etc.)
    - Routes: `TerrainCategory` (Requires_Climbing, Exposed_Weather, Wilderness_Terrain, etc.)
-   - Locations: Geographic and social categories that affect NPC availability and trading
-   - NPCs: Profession and social categories that determine knowledge and schedules
 
 2. **Game rules should emerge from category interactions**: Instead of hardcoded bonuses/penalties, create logical relationships between categories
    - Weather + Terrain → Access requirements
    - Equipment + Terrain → Capability enablement  
    - NPC Profession + Location Type → Service availability
-   - Time + NPC Schedule → Social interaction windows
 
 3. **Constraints should require multiple systems**: No single system should create arbitrary restrictions
    - ✅ Good: "Mountain routes need climbing gear, but only accessible in good weather, and guides are only available on market days"
@@ -102,14 +99,11 @@
 
 4. **Categories enable discovery gameplay**: Players learn system relationships through experimentation
    - Trying to travel in fog without navigation tools → blocked → learn navigation tools enable fog travel
-   - Attempting to trade with nobles without proper attire → blocked → learn social categories matter
    - Weather changes block previously accessible routes → learn weather-terrain interactions
 
 5. **All entity categories must be visible in frontend UI**: For players to formulate strategies, they must be able to see and understand the categories that influence game rules
    - Items must display their `EquipmentCategory` (Climbing_Equipment, Weather_Protection, etc.)
    - Routes must show their `TerrainCategory` (Requires_Climbing, Exposed_Weather, etc.)
-   - Locations should indicate their geographic/social categories
-   - NPCs should reveal their profession and social categories through interaction
    - Weather conditions and their effects on terrain types must be discoverable
    - **Players cannot strategize about systems they cannot see or understand**
 

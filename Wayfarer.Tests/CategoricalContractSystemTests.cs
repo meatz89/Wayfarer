@@ -1,6 +1,6 @@
-using Xunit;
 using Wayfarer.Game.ActionSystem;
 using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -10,26 +10,25 @@ namespace Wayfarer.Tests
         public void Contract_Should_Require_Equipment_Categories_For_Completion()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("mountain_summit").WithCoins(50))
                 .WithContracts(c => c.Add("mountain_expedition")
-                    .RequiresVisit("mountain_summit")
                     .WithDescription("Survey the mountain peaks")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
+
             // Get the contract
             Contract? contract = contractRepo.GetContract("mountain_expedition");
             Assert.NotNull(contract);
-            
+
             // Add categorical requirements (these would normally be in the contract definition)
-            contract.RequiredEquipmentCategories = new List<EquipmentCategory> 
-            { 
+            contract.RequiredEquipmentCategories = new List<EquipmentCategory>
+            {
                 EquipmentCategory.Climbing_Equipment,
-                EquipmentCategory.Weather_Protection 
+                EquipmentCategory.Weather_Protection
             };
 
             // Act
@@ -45,25 +44,24 @@ namespace Wayfarer.Tests
         public void Contract_Should_Require_Tool_Categories_For_Completion()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("workshop"))
                 .WithContracts(c => c.Add("crafting_commission")
-                    .RequiresAction("craft_specialized_tools")
                     .WithDescription("Create specialized tools")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
+
             Contract? contract = contractRepo.GetContract("crafting_commission");
             Assert.NotNull(contract);
-            
+
             // Add categorical requirements
-            contract.RequiredToolCategories = new List<ToolCategory> 
-            { 
+            contract.RequiredToolCategories = new List<ToolCategory>
+            {
                 ToolCategory.Specialized_Equipment,
-                ToolCategory.Quality_Materials 
+                ToolCategory.Quality_Materials
             };
 
             // Act
@@ -75,55 +73,25 @@ namespace Wayfarer.Tests
             Assert.Contains("Missing required tool category: Quality Materials", result.CompletionBlockers);
         }
 
-        [Fact]
-        public void Contract_Should_Require_Social_Standing_For_Acceptance()
-        {
-            // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("royal_court"))
-                .WithLocations(l => l.Add("royal_court").WithDescription("The royal court").Build())
-                .WithContracts(c => c.Add("noble_audience")
-                    .RequiresVisit("royal_court")
-                    .WithDescription("Attend court meeting")
-                    .Build());
-
-            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-            Player player = gameWorld.GetPlayer();
-            ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
-            Contract? contract = contractRepo.GetContract("noble_audience");
-            Assert.NotNull(contract);
-            
-            // Add social standing requirement
-            contract.RequiredSocialStanding = SocialRequirement.Minor_Noble;
-
-            // Act
-            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
-
-            // Assert
-            Assert.False(result.CanAccept, "Contract should not be acceptable without required social standing");
-            Assert.Contains("Requires Minor Noble social standing", result.AcceptanceBlockers);
-        }
 
         [Fact]
         public void Contract_Should_Require_Physical_Stamina_For_Completion()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("construction_site").WithStamina(2)) // Insufficient for Heavy
                 .WithLocations(l => l.Add("construction_site").WithDescription("Construction site").Build())
                 .WithContracts(c => c.Add("heavy_lifting")
-                    .RequiresAction("move_materials")
                     .WithDescription("Move construction materials")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
+
             Contract? contract = contractRepo.GetContract("heavy_lifting");
             Assert.NotNull(contract);
-            
+
             // Add physical requirement
             contract.PhysicalRequirement = PhysicalDemand.Heavy;
 
@@ -139,20 +107,19 @@ namespace Wayfarer.Tests
         public void Contract_Should_Allow_Completion_With_Sufficient_Stamina()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithStamina(6)) // Sufficient for Light
                 .WithContracts(c => c.Add("light_task")
-                    .RequiresVisit("town_square")
                     .WithDescription("Deliver message")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
+
             Contract? contract = contractRepo.GetContract("light_task");
             Assert.NotNull(contract);
-            
+
             // Add physical requirement
             contract.PhysicalRequirement = PhysicalDemand.Light;
 
@@ -168,28 +135,26 @@ namespace Wayfarer.Tests
         public void Contract_Should_Require_Information_For_Completion()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("merchant_guild"))
                 .WithLocations(l => l.Add("merchant_guild").WithDescription("Merchant Guild").Build())
                 .WithContracts(c => c.Add("informed_negotiation")
-                    .RequiresTalkTo("guild_master")
                     .WithDescription("Negotiate trade agreement")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
+
             Contract? contract = contractRepo.GetContract("informed_negotiation");
             Assert.NotNull(contract);
-            
+
             // Add information requirement
             contract.RequiredInformation = new List<InformationRequirementData>
             {
                 new InformationRequirementData(
                     InformationType.Market_Intelligence,
-                    InformationQuality.Reliable,
-                    InformationFreshness.Current)
+                    InformationQuality.Reliable)
             };
 
             // Act
@@ -204,35 +169,32 @@ namespace Wayfarer.Tests
         public void Contract_Should_Allow_Completion_With_Required_Information()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("merchant_guild"))
                 .WithLocations(l => l.Add("merchant_guild").WithDescription("Merchant Guild").Build())
                 .WithContracts(c => c.Add("informed_negotiation")
-                    .RequiresTalkTo("guild_master")
                     .WithDescription("Negotiate trade agreement")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
+
             Contract? contract = contractRepo.GetContract("informed_negotiation");
             Assert.NotNull(contract);
-            
+
             // Add information requirement
             contract.RequiredInformation = new List<InformationRequirementData>
             {
                 new InformationRequirementData(
                     InformationType.Market_Intelligence,
-                    InformationQuality.Reliable,
-                    InformationFreshness.Current)
+                    InformationQuality.Reliable)
             };
-            
+
             // Add required information to player
             Information marketInfo = new Information("market_data", "Current Market Prices", InformationType.Market_Intelligence)
             {
                 Quality = InformationQuality.Expert,
-                Freshness = InformationFreshness.Current
             };
             player.KnownInformation.Add(marketInfo);
 
@@ -244,32 +206,6 @@ namespace Wayfarer.Tests
             Assert.Empty(result.CompletionBlockers);
         }
 
-        [Fact]
-        public void Contract_Should_Block_Completion_With_Wrong_Location()
-        {
-            // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("dusty_flagon")) // Wrong location
-                .WithLocations(l => l.Add("secret_meeting_place").WithDescription("Secret meeting place").Build())
-                .WithContracts(c => c.Add("location_specific")
-                    .RequiresVisit("secret_meeting_place")
-                    .WithDescription("Meet at specific location")
-                    .Build());
-
-            GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-            Player player = gameWorld.GetPlayer();
-            ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
-            Contract? contract = contractRepo.GetContract("location_specific");
-            Assert.NotNull(contract);
-
-            // Act - Note: GetAccessResult no longer checks destination location
-            // Instead we check if player has visited the required destination
-            bool hasVisitedDestination = contract.CompletedDestinations.Contains("secret_meeting_place");
-
-            // Assert
-            Assert.False(hasVisitedDestination, "Contract should not be completable without visiting destination");
-        }
 
         [Fact]
         public void Contract_Categories_Should_Have_Meaningful_Values()
@@ -283,11 +219,11 @@ namespace Wayfarer.Tests
             Assert.Contains(ContractCategory.Merchant, categories);
             Assert.Contains(ContractCategory.Noble, categories);
             Assert.Contains(ContractCategory.Exploration, categories);
-            
+
             Assert.Contains(ContractPriority.Standard, priorities);
             Assert.Contains(ContractPriority.Urgent, priorities);
             Assert.Contains(ContractPriority.Critical, priorities);
-            
+
             Assert.Contains(ContractRisk.Low, risks);
             Assert.Contains(ContractRisk.High, risks);
             Assert.Contains(ContractRisk.Extreme, risks);
@@ -297,28 +233,24 @@ namespace Wayfarer.Tests
         public void Contract_Should_Allow_Complex_Categorical_Requirements()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("remote_location").WithStamina(8))
                 .WithLocations(l => l.Add("remote_location").WithDescription("Remote exploration site").Build())
                 .WithContracts(c => c.Add("complex_expedition")
-                    .RequiresVisit("remote_location")
-                    .RequiresAction("survey_area")
                     .WithDescription("Multi-faceted exploration mission")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
-            
+
             Contract? contract = contractRepo.GetContract("complex_expedition");
             Assert.NotNull(contract);
-            
+
             // Add complex categorical requirements
             contract.RequiredEquipmentCategories = new List<EquipmentCategory> { EquipmentCategory.Navigation_Tools };
             contract.RequiredToolCategories = new List<ToolCategory> { ToolCategory.Measurement_Tools };
-            contract.RequiredSocialStanding = SocialRequirement.Professional;
             contract.PhysicalRequirement = PhysicalDemand.Moderate;
-            contract.RequiredKnowledge = KnowledgeRequirement.Professional;
             contract.Category = ContractCategory.Exploration;
             contract.Priority = ContractPriority.High;
             contract.RiskLevel = ContractRisk.Moderate;
@@ -326,12 +258,11 @@ namespace Wayfarer.Tests
             {
                 new InformationRequirementData(InformationType.Route_Conditions, InformationQuality.Verified)
             };
-            
+
             // Add required information to player
             Information routeInfo = new Information("route_data", "Verified Route Info", InformationType.Route_Conditions)
             {
                 Quality = InformationQuality.Verified,
-                Freshness = InformationFreshness.Current
             };
             player.KnownInformation.Add(routeInfo);
 
@@ -339,9 +270,9 @@ namespace Wayfarer.Tests
             ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
 
             // Assert
-            // Should have some blockers due to placeholder implementations for equipment/social checks
+            // Should have some blockers due to placeholder implementations for equipment checks
             Assert.NotNull(result);
-            Assert.True(result.MissingRequirements.Count > 0 || result.AcceptanceBlockers.Count > 0, 
+            Assert.True(result.MissingRequirements.Count > 0 || result.AcceptanceBlockers.Count > 0,
                 "Complex contract should have categorical requirements to validate");
         }
     }

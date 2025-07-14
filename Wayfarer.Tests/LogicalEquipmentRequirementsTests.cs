@@ -1,5 +1,5 @@
-using Xunit;
 using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -16,7 +16,7 @@ namespace Wayfarer.Tests
         public void Mountain_Route_Should_Require_Climbing_Equipment()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithCoins(50));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -48,7 +48,7 @@ namespace Wayfarer.Tests
         public void Mountain_Route_Should_Allow_Access_With_Climbing_Equipment()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithItem("rope")); // rope has Climbing_Equipment category
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -79,7 +79,7 @@ namespace Wayfarer.Tests
         public void Dark_Passage_Should_Warn_Without_Light_Source()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square"));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -112,7 +112,7 @@ namespace Wayfarer.Tests
         public void Wilderness_Route_Should_Be_Blocked_In_Fog_Without_Navigation()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square"));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -144,7 +144,7 @@ namespace Wayfarer.Tests
         public void Wilderness_Route_Should_Allow_Access_In_Fog_With_Navigation()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithItem("compass")); // compass has Navigation_Tools category
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -175,7 +175,7 @@ namespace Wayfarer.Tests
         public void Complex_Route_Should_Require_Multiple_Equipment_Categories()
         {
             // Arrange - Using new superior test pattern
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("workshop"));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -190,11 +190,11 @@ namespace Wayfarer.Tests
                 Name = "Heavy Supply Route",
                 Origin = "workshop",
                 Destination = "mountain_summit",
-                TerrainCategories = new List<TerrainCategory> 
-                { 
-                    TerrainCategory.Heavy_Cargo_Route, 
-                    TerrainCategory.Wilderness_Terrain, 
-                    TerrainCategory.Requires_Climbing 
+                TerrainCategories = new List<TerrainCategory>
+                {
+                    TerrainCategory.Heavy_Cargo_Route,
+                    TerrainCategory.Wilderness_Terrain,
+                    TerrainCategory.Requires_Climbing
                 },
                 BaseStaminaCost = 2,
                 TimeBlockCost = 2
@@ -212,7 +212,7 @@ namespace Wayfarer.Tests
         public void Player_Should_Understand_Equipment_Strategy_Through_Route_Requirements()
         {
             // Arrange - Test the strategic planning scenario from UserStories.md
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithCoins(100));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -251,7 +251,7 @@ namespace Wayfarer.Tests
             // Assert - This creates the strategic decision described in UserStories.md
             Assert.False(mountainResult.IsAllowed, "Mountain route blocked without climbing equipment");
             Assert.True(roadResult.IsAllowed, "Road route available but takes longer");
-            
+
             // The player now faces the strategic choice mentioned in UserStories.md:
             // "Do I take the longer [Road] route that's cart-compatible, or delay the contract to get proper equipment?"
             Assert.True(mountainRoute.TimeBlockCost < roadRoute.TimeBlockCost, "Mountain route should be faster");

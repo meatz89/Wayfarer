@@ -186,7 +186,7 @@
     public int GetUsedSlots(ItemRepository itemRepository)
     {
         int usedSlots = 0;
-        
+
         foreach (string itemId in ItemSlots)
         {
             if (!string.IsNullOrEmpty(itemId))
@@ -203,7 +203,7 @@
                 }
             }
         }
-        
+
         return usedSlots;
     }
 
@@ -213,11 +213,11 @@
     public bool CanAddItem(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
     {
         if (item == null) return false;
-        
+
         int requiredSlots = item.GetRequiredSlots();
         int usedSlots = GetUsedSlots(itemRepository);
         int maxSlots = GetMaxSlots(itemRepository, currentTransport);
-        
+
         return (usedSlots + requiredSlots) <= maxSlots;
     }
 
@@ -228,7 +228,7 @@
     {
         // Base inventory: 5 slots as specified in UserStories.md
         int baseSlots = 5;
-        
+
         // Add transport bonuses
         if (currentTransport.HasValue)
         {
@@ -240,10 +240,10 @@
                 case TravelMethods.Carriage:
                     baseSlots += 1; // Carriage adds modest storage
                     break;
-                // Walking, Horseback, Boat use base capacity
+                    // Walking, Horseback, Boat use base capacity
             }
         }
-        
+
         return baseSlots;
     }
 
@@ -264,7 +264,7 @@
         {
             return false;
         }
-        
+
         return AddItem(item.Id);
     }
 

@@ -66,7 +66,7 @@ public class Player
     public List<Information> KnownInformation { get; private set; } = new List<Information>();
 
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
-    
+
     public List<string> KnownContracts { get; private set; } = new List<string>();
 
     public List<Goal> ActiveGoals { get; private set; } = new List<Goal>();
@@ -190,7 +190,7 @@ public class Player
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
-        
+
         // Set max values that match initial values
         MaxConcentration = 10; // Match initial Concentration = 10
         MaxHealth = 10; // Set reasonable default for MaxHealth

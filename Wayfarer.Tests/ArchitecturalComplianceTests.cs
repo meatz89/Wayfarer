@@ -1,6 +1,6 @@
-using Xunit;
-using Wayfarer.Game.MainSystem;
 using Wayfarer.Game.ActionSystem;
+using Wayfarer.Game.MainSystem;
+using Xunit;
 
 namespace Wayfarer.Tests
 {
@@ -21,35 +21,35 @@ namespace Wayfarer.Tests
         public void TimeSystem_Should_Follow_Proper_UI_Access_Patterns()
         {
             // Arrange
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-            
+
             // ✅ CORRECT: Business logic can access TimeManager directly through GameWorld
             TimeManager timeManager = gameWorld.TimeManager;
             int usedBlocks = timeManager.UsedTimeBlocks;
             int remainingBlocks = timeManager.RemainingTimeBlocks;
             bool canPerform = timeManager.CanPerformTimeBlockAction;
-            
+
             // ✅ CORRECT: Actual time values are always appropriate for UI
             int currentHour = timeManager.GetCurrentTimeHours();
             TimeBlocks currentTimeBlock = timeManager.GetCurrentTimeBlock();
-            
+
             // Verify business logic access works correctly
             Assert.True(usedBlocks >= 0, "Used time blocks should be non-negative");
             Assert.True(remainingBlocks >= 0, "Remaining time blocks should be non-negative");
             Assert.True(currentHour >= 0 && currentHour <= 24, "Current hour should be valid time");
             Assert.True(Enum.IsDefined(typeof(TimeBlocks), currentTimeBlock), "Current time block should be valid");
-            
+
             // Verify that TimeManager properties are accessible for business logic
             // This is correct architecture - business logic needs these properties
             // The UI architectural rule is about access patterns, not property visibility
             Assert.True(remainingBlocks <= TimeManager.MaxDailyTimeBlocks, "Remaining blocks should not exceed maximum");
             Assert.Equal(remainingBlocks + usedBlocks, TimeManager.MaxDailyTimeBlocks);
         }
-        
+
         /// <summary>
         /// ARCHITECTURAL RULE: TimeBlocks enum should ALWAYS be calculated from current hour
         /// NEVER store TimeBlocks as separate state - this causes desynchronization
@@ -58,15 +58,15 @@ namespace Wayfarer.Tests
         public void TimeSystem_Should_Calculate_TimeBlocks_From_Current_Hour()
         {
             // Arrange
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             TimeManager timeManager = gameWorld.TimeManager;
-            
+
             // Test various hours to ensure TimeBlocks are calculated correctly
-            var testCases = new[]
+            (int hour, TimeBlocks expected)[] testCases = new[]
             {
                 (hour: 6, expected: TimeBlocks.Dawn),        // 6:00-8:59 Dawn
                 (hour: 8, expected: TimeBlocks.Dawn),        // 6:00-8:59 Dawn  
@@ -81,18 +81,18 @@ namespace Wayfarer.Tests
                 (hour: 0, expected: TimeBlocks.Night),       // 20:00-5:59 Night
                 (hour: 5, expected: TimeBlocks.Night)        // 20:00-5:59 Night
             };
-            
-            foreach (var (hour, expected) in testCases)
+
+            foreach ((int hour, TimeBlocks expected) in testCases)
             {
                 // Act
                 timeManager.SetNewTime(hour);
-                
+
                 // Assert - TimeBlocks should be calculated from hour, not stored separately
                 TimeBlocks actual = timeManager.GetCurrentTimeBlock();
                 Assert.Equal(expected, actual);
             }
         }
-        
+
         /// <summary>
         /// ARCHITECTURAL RULE: Actions that consume time blocks MUST advance actual clock time
         /// Time block consumption without time advancement violates player mental model
@@ -101,30 +101,30 @@ namespace Wayfarer.Tests
         public void TimeSystem_Should_Advance_Clock_When_Consuming_Time_Blocks()
         {
             // Arrange
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             TimeManager timeManager = gameWorld.TimeManager;
-            
+
             // Set initial time
             timeManager.SetNewTime(6); // 6:00 AM
             int initialHour = timeManager.GetCurrentTimeHours();
-            
+
             // Act - Consume time blocks (representing actions)
             timeManager.ConsumeTimeBlock(1);
-            
+
             // Assert - Clock time should advance proportionally
             int finalHour = timeManager.GetCurrentTimeHours();
-            
-            Assert.True(finalHour > initialHour, 
+
+            Assert.True(finalHour > initialHour,
                 $"ARCHITECTURAL VIOLATION: ConsumeTimeBlock must advance actual clock time. " +
                 $"Started at {initialHour}:00, still at {finalHour}:00 after consuming time block. " +
                 $"Players expect 'Morning 6:00' → 'Morning 9:00' or 'Afternoon 12:00', " +
                 $"not disconnected time block tracking.");
         }
-        
+
         /// <summary>
         /// ARCHITECTURAL RULE: Routes define exactly one transport method
         /// NEVER allow multiple transport options per route - this violates the route concept
@@ -133,7 +133,7 @@ namespace Wayfarer.Tests
         public void TravelSystem_Should_Have_One_Transport_Method_Per_Route()
         {
             // Arrange
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("dusty_flagon"))
                 .Build();
 
@@ -144,7 +144,7 @@ namespace Wayfarer.Tests
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
             ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
-            
+
             TravelManager travelManager = new TravelManager(
                 gameWorld,
                 new LocationSystem(gameWorld, locationRepository),
@@ -156,40 +156,40 @@ namespace Wayfarer.Tests
                 new TransportCompatibilityValidator(itemRepository),
                 new RouteRepository(gameWorld)
             );
-            
+
             // Get routes between locations
             List<RouteOption> routes = travelManager.GetAvailableRoutes("dusty_flagon", "town_square");
-            
+
             // Assert - Each route should have exactly one method defined
             foreach (RouteOption route in routes)
             {
-                Assert.True(!string.IsNullOrEmpty(route.Method.ToString()), 
+                Assert.True(!string.IsNullOrEmpty(route.Method.ToString()),
                     $"Route '{route.Name}' must have exactly one transport method defined. " +
                     $"ARCHITECTURAL VIOLATION: Routes ARE the transport selection. " +
                     $"'Walking Path' = walking transport, 'Standard Cart' = cart transport.");
-                    
+
                 // Verify route names describe their transport method
-                Assert.True(IsRouteNameDescriptive(route.Name, route.Method), 
+                Assert.True(IsRouteNameDescriptive(route.Name, route.Method),
                     $"Route name '{route.Name}' should describe transport method '{route.Method}'. " +
                     $"ARCHITECTURAL RULE: Route names should make transport method obvious " +
                     $"(e.g., 'Walking Path', 'Standard Cart', 'Express Coach').");
             }
-            
+
             // ❌ FORBIDDEN: Check that no separate transport selection logic exists
             // If GetAvailableTransportOptions exists, it violates the architecture
-            var travelManagerType = typeof(TravelManager);
-            var getTransportOptionsMethod = travelManagerType.GetMethod("GetAvailableTransportOptions");
-            
+            Type travelManagerType = typeof(TravelManager);
+            System.Reflection.MethodInfo? getTransportOptionsMethod = travelManagerType.GetMethod("GetAvailableTransportOptions");
+
             if (getTransportOptionsMethod != null)
             {
-                Assert.True(false, 
+                Assert.True(false,
                     "ARCHITECTURAL VIOLATION: GetAvailableTransportOptions method should not exist. " +
                     "This enables separate transport selection on top of route selection, " +
                     "which violates the principle that routes ARE transport methods. " +
                     "Remove this method and related transport selection UI.");
             }
         }
-        
+
         /// <summary>
         /// ARCHITECTURAL RULE: Travel UI should show routes with inherent transport methods
         /// NEVER create separate transport selection UI on top of route selection
@@ -198,58 +198,58 @@ namespace Wayfarer.Tests
         public void TravelSystem_Should_Not_Have_Separate_Transport_Selection()
         {
             // This test verifies that the TravelMethods enum is not used for separate transport selection
-            
+
             // ❌ FORBIDDEN: TravelMethods enum should not be used independently of routes
             // If it exists and is used for UI selection, it violates the architecture
-            
-            var travelMethodsType = Type.GetType("TravelMethods") ?? Type.GetType("Wayfarer.TravelMethods");
-            
+
+            Type? travelMethodsType = Type.GetType("TravelMethods") ?? Type.GetType("Wayfarer.TravelMethods");
+
             if (travelMethodsType != null && travelMethodsType.IsEnum)
             {
                 // If TravelMethods exists as separate selection mechanism, this is wrong
-                var travelManagerType = typeof(TravelManager);
-                var getTransportMethodsMethod = travelManagerType.GetMethods()
+                Type travelManagerType = typeof(TravelManager);
+                System.Reflection.MethodInfo? getTransportMethodsMethod = travelManagerType.GetMethods()
                     .Where(m => m.Name.Contains("Transport") && m.ReturnType.IsArray)
                     .FirstOrDefault();
-                    
+
                 if (getTransportMethodsMethod != null)
                 {
-                    Assert.True(false, 
+                    Assert.True(false,
                         "ARCHITECTURAL VIOLATION: Separate transport method selection detected. " +
                         "TravelMethods enum should not be used for independent transport selection. " +
                         "Routes already define their transport method - this IS the transport selection. " +
                         "Remove transport selection UI and use route selection only.");
                 }
             }
-            
+
             // ✅ CORRECT PATTERN: Routes contain all transport information
-            var scenario = new TestScenarioBuilder()
+            TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("dusty_flagon"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             LocationRepository locationRepository = new LocationRepository(gameWorld);
-            
+
             // Verify routes have transport methods defined
             Location fromLocation = locationRepository.GetLocation("dusty_flagon");
             if (fromLocation?.Connections?.Any() == true)
             {
-                var connection = fromLocation.Connections.First();
+                LocationConnection connection = fromLocation.Connections.First();
                 if (connection.RouteOptions?.Any() == true)
                 {
-                    var route = connection.RouteOptions.First();
+                    RouteOption route = connection.RouteOptions.First();
                     Assert.True(!string.IsNullOrEmpty(route.Method.ToString()),
                         "Routes must have transport method defined - this IS the transport selection");
                 }
             }
         }
-        
+
         /// <summary>
         /// Helper method to verify route names describe their transport method
         /// </summary>
         private bool IsRouteNameDescriptive(string routeName, TravelMethods method)
         {
-            var descriptivePatterns = new Dictionary<TravelMethods, string[]>
+            Dictionary<TravelMethods, string[]> descriptivePatterns = new Dictionary<TravelMethods, string[]>
             {
                 { TravelMethods.Walking, new[] { "walking", "path", "foot" } },
                 { TravelMethods.Carriage, new[] { "cart", "carriage", "coach" } },
@@ -257,13 +257,13 @@ namespace Wayfarer.Tests
                 { TravelMethods.Cart, new[] { "cart", "wagon" } },
                 { TravelMethods.Boat, new[] { "boat", "ferry", "ship" } }
             };
-            
+
             if (descriptivePatterns.ContainsKey(method))
             {
-                return descriptivePatterns[method].Any(pattern => 
+                return descriptivePatterns[method].Any(pattern =>
                     routeName.ToLower().Contains(pattern.ToLower()));
             }
-            
+
             return true; // Default to true for unknown methods
         }
     }

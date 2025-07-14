@@ -9,7 +9,6 @@ Each entity should have **multiple categorical properties**, and simple logical 
 **Function Categories**: [Climbing, Navigation, Social, Crafting, Protection, Information]
 **Material Categories**: [Metal, Leather, Cloth, Paper, Wood, Glass]  
 **Size Categories**: [Tiny, Small, Medium, Large, Massive]
-**Fragility Categories**: [Sturdy, Standard, Delicate, Fragile]
 
 ### ROUTES (Multiple Categories Per Route)
 
@@ -46,7 +45,6 @@ Each entity should have **multiple categorical properties**, and simple logical 
 - **Size [Large] Items + Transport [Walking]** = Severe stamina penalty
 
 ### Material-Condition Rules
-- **Material [Paper] + Rough Travel** = Fragility damage risk
 - **Material [Metal] + Size [Large]** = Heavy (affects stamina/transport)
 - **Material [Cloth] + Social_Signal [Noble]** = Requires careful maintenance
 
@@ -73,12 +71,6 @@ Each entity should have **multiple categorical properties**, and simple logical 
 ### Example 2: The Fragile Cargo
 **Scenario**: Valuable glassware trade opportunity
 
-**System Interactions**:
-- **Item Categories**: Material [Glass], Fragility [Fragile], Size [Medium], Social_Signal [Luxury]
-- **Route Options**: Mountain path (rough) or river route (smooth but longer)
-- **Rules**: 
-  - Material [Glass] + Fragility [Fragile] + Rough Travel = High damage risk
-
 **Player Experience**: "Glassware sells for triple to nobles, but the mountain route might shatter it. River route is safer but takes longer and costs transport fees..."
 
 ## ACTIONABLE DESIGN CHANGES FOR WAYFARER
@@ -89,7 +81,6 @@ Each entity should have **multiple categorical properties**, and simple logical 
 **Instead of**: "Fine Cloak" with arbitrary stats
 **Create**: 
 - Function [Protection], Material [Wool], Size [Medium]
-- Social_Signal [Merchant], Fragility [Standard]
 - **Rules**: Enables cold weather travel, signals merchant status, takes inventory space
 
 ### 3. Make All Route Restrictions Logical

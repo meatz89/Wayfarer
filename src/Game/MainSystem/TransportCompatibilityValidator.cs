@@ -27,7 +27,7 @@ namespace Wayfarer.Game.MainSystem
                 {
                     if (terrain == TerrainCategory.Requires_Climbing)
                         return TransportCompatibilityResult.Blocked("Cart cannot navigate mountain terrain requiring climbing");
-                    
+
                     if (terrain == TerrainCategory.Wilderness_Terrain)
                         return TransportCompatibilityResult.Blocked("Cart cannot navigate rough wilderness terrain");
                 }

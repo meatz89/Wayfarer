@@ -9,8 +9,6 @@
 		"categories": [],
 		"itemCategories": [ "Raw_Materials", "Perishable" ],
 		"size": "Small",
-		"fragility": "Delicate",
-		"socialSignaling": "Commoner",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "Common herbs useful for cooking and basic remedies."
@@ -25,8 +23,6 @@
 		"categories": [],
 		"itemCategories": [ "Finished_Goods", "Trade_Goods" ],
 		"size": "Medium",
-		"fragility": "Sturdy",
-		"socialSignaling": "Artisan",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "Basic tools for various trades and repairs."
@@ -41,8 +37,6 @@
 		"categories": [ "Climbing_Equipment" ],
 		"itemCategories": [ "Trade_Goods" ],
 		"size": "Medium",
-		"fragility": "Standard",
-		"socialSignaling": "Commoner",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "Strong hemp rope, essential for climbing and securing loads."
@@ -57,8 +51,6 @@
 		"categories": [ "Special_Access" ],
 		"itemCategories": [ "Information", "Services" ],
 		"size": "Tiny",
-		"fragility": "Fragile",
-		"socialSignaling": "Merchant",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "Official documents that allow you to join trade caravans."
@@ -73,8 +65,6 @@
 		"categories": [ "Light_Source" ],
 		"itemCategories": [ "Finished_Goods" ],
 		"size": "Small",
-		"fragility": "Delicate",
-		"socialSignaling": "Commoner",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "A sturdy lantern that provides light for night travel."
@@ -89,8 +79,6 @@
 		"categories": [],
 		"itemCategories": [ "Luxury_Items", "Perishable" ],
 		"size": "Large",
-		"fragility": "Fragile",
-		"socialSignaling": "Merchant",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "Fine wine from a nearby vineyard, highly sought after in other regions."
@@ -105,8 +93,6 @@
 		"categories": [ "Navigation_Tools" ],
 		"itemCategories": [ "Finished_Goods" ],
 		"size": "Small",
-		"fragility": "Delicate",
-		"socialSignaling": "Explorer",
 		"locationId": "workshop",
 		"spotId": "main_floor",
 		"description": "Precision compass essential for wilderness navigation and avoiding getting lost."
@@ -121,8 +107,6 @@
 		"categories": [ "Weather_Protection" ],
 		"itemCategories": [ "Finished_Goods" ],
 		"size": "Medium",
-		"fragility": "Standard",
-		"socialSignaling": "Traveler",
 		"locationId": "workshop",
 		"spotId": "main_floor",
 		"description": "Heavy-duty cloak that protects against harsh weather conditions."
@@ -137,8 +121,6 @@
 		"categories": [ "Load_Distribution" ],
 		"itemCategories": [ "Finished_Goods" ],
 		"size": "Medium",
-		"fragility": "Sturdy",
-		"socialSignaling": "Porter",
 		"locationId": "workshop",
 		"spotId": "main_floor",
 		"description": "Specialized harness for distributing heavy loads efficiently during transport."
@@ -153,8 +135,6 @@
 		"categories": [ "Water_Transport" ],
 		"itemCategories": [ "Services" ],
 		"size": "Tiny",
-		"fragility": "Fragile",
-		"socialSignaling": "Traveler",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "Valid pass for ferry services across rivers and waterways."
@@ -169,8 +149,6 @@
 		"categories": [],
 		"itemCategories": [ "Raw_Materials", "Luxury_Items" ],
 		"size": "Medium",
-		"fragility": "Standard",
-		"socialSignaling": "Artisan",
 		"locationId": "workshop",
 		"spotId": "main_floor",
 		"description": "Precious materials needed for masterwork crafting."
@@ -185,8 +163,6 @@
 		"categories": [ "Climbing_Equipment" ],
 		"itemCategories": [ "Specialized_Equipment" ],
 		"size": "Large",
-		"fragility": "Sturdy",
-		"socialSignaling": "Explorer",
 		"locationId": "workshop",
 		"spotId": "main_floor",
 		"description": "Professional climbing equipment including ropes, anchors, and safety gear."
@@ -201,8 +177,6 @@
 		"categories": [],
 		"itemCategories": [ "Luxury_Items", "Trade_Goods" ],
 		"size": "Large",
-		"fragility": "Delicate",
-		"socialSignaling": "Merchant",
 		"locationId": "town_square",
 		"spotId": "marketplace",
 		"description": "High-quality silk fabric for fine clothing and decorations."
@@ -217,8 +191,6 @@
 		"categories": [],
 		"itemCategories": [ "Currency", "Luxury_Items" ],
 		"size": "Tiny",
-		"fragility": "Sturdy",
-		"socialSignaling": "Wealthy",
 		"locationId": "merchant_guild",
 		"spotId": "main_floor",
 		"description": "Pure gold coins used for high-value transactions."
@@ -233,8 +205,6 @@
 		"categories": [ "Navigation_Tools" ],
 		"itemCategories": [ "Specialized_Equipment" ],
 		"size": "Medium",
-		"fragility": "Delicate",
-		"socialSignaling": "Explorer",
 		"locationId": "workshop",
 		"spotId": "main_floor",
 		"description": "Compass, maps, and other tools essential for wilderness navigation."

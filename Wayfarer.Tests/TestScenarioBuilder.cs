@@ -17,72 +17,72 @@ namespace Wayfarer.Tests;
 public class TestScenarioBuilder
 {
     private readonly List<Action<GameWorld>> _configurators = new List<Action<GameWorld>>();
-    
+
     /// <summary>
     /// Configure player starting state
     /// </summary>
     public TestScenarioBuilder WithPlayer(Action<PlayerBuilder> playerConfig)
     {
-        var playerBuilder = new PlayerBuilder();
+        PlayerBuilder playerBuilder = new PlayerBuilder();
         playerConfig(playerBuilder);
-        
+
         _configurators.Add(gameWorld => playerBuilder.ApplyToPlayer(gameWorld.GetPlayer(), gameWorld));
-        
+
         return this;
     }
-    
+
     /// <summary>
     /// Configure contracts available in the game world
     /// </summary>
     public TestScenarioBuilder WithContracts(Action<ContractBuilder> contractConfig)
     {
-        var contractBuilder = new ContractBuilder();
+        ContractBuilder contractBuilder = new ContractBuilder();
         contractConfig(contractBuilder);
-        
+
         _configurators.Add(gameWorld => contractBuilder.ApplyToGameWorld(gameWorld));
-        
+
         return this;
     }
-    
+
     /// <summary>
     /// Configure time and weather state
     /// </summary>
     public TestScenarioBuilder WithTimeState(Action<TimeBuilder> timeConfig)
     {
-        var timeBuilder = new TimeBuilder();
+        TimeBuilder timeBuilder = new TimeBuilder();
         timeConfig(timeBuilder);
-        
+
         _configurators.Add(gameWorld => timeBuilder.ApplyToGameWorld(gameWorld));
-        
+
         return this;
     }
-    
+
     /// <summary>
     /// Configure additional items available in the world
     /// </summary>
     public TestScenarioBuilder WithItems(Action<ItemBuilder> itemConfig)
     {
-        var itemBuilder = new ItemBuilder();
+        ItemBuilder itemBuilder = new ItemBuilder();
         itemConfig(itemBuilder);
-        
+
         _configurators.Add(gameWorld => itemBuilder.ApplyToGameWorld(gameWorld));
-        
+
         return this;
     }
-    
+
     /// <summary>
     /// Configure additional locations in the world
     /// </summary>
     public TestScenarioBuilder WithLocations(Action<LocationBuilder> locationConfig)
     {
-        var locationBuilder = new LocationBuilder();
+        LocationBuilder locationBuilder = new LocationBuilder();
         locationConfig(locationBuilder);
-        
+
         _configurators.Add(gameWorld => locationBuilder.ApplyToGameWorld(gameWorld));
-        
+
         return this;
     }
-    
+
     /// <summary>
     /// Apply all configured settings to the game world
     /// </summary>
@@ -90,14 +90,14 @@ public class TestScenarioBuilder
     {
         // Start with basic test data
         TestGameWorldInitializer.SetupBasicTestData(gameWorld);
-        
+
         // Apply all custom configurations
-        foreach (var configurator in _configurators)
+        foreach (Action<GameWorld> configurator in _configurators)
         {
             configurator(gameWorld);
         }
     }
-    
+
     /// <summary>
     /// Build the scenario (returns this for fluent API consistency)
     /// </summary>
@@ -120,61 +120,61 @@ public class PlayerBuilder
     private int _reputation = 0;
     private readonly List<string> _inventory = new List<string>();
     private readonly List<string> _knownContracts = new List<string>();
-    
+
     public PlayerBuilder StartAt(string locationId)
     {
         _startLocationId = locationId;
         return this;
     }
-    
+
     public PlayerBuilder WithCoins(int coins)
     {
         _coins = coins;
         return this;
     }
-    
+
     public PlayerBuilder WithStamina(int stamina)
     {
         _stamina = stamina;
         return this;
     }
-    
+
     public PlayerBuilder WithActionPoints(int actionPoints)
     {
         _actionPoints = actionPoints;
         return this;
     }
-    
+
     public PlayerBuilder WithMaxActionPoints(int maxActionPoints)
     {
         _maxActionPoints = maxActionPoints;
         return this;
     }
-    
+
     public PlayerBuilder WithReputation(int reputation)
     {
         _reputation = reputation;
         return this;
     }
-    
+
     public PlayerBuilder WithItem(string itemId)
     {
         _inventory.Add(itemId);
         return this;
     }
-    
+
     public PlayerBuilder WithItems(params string[] itemIds)
     {
         _inventory.AddRange(itemIds);
         return this;
     }
-    
+
     public PlayerBuilder KnowsContract(string contractId)
     {
         _knownContracts.Add(contractId);
         return this;
     }
-    
+
     public void ApplyToPlayer(Player player, GameWorld gameWorld)
     {
         // Set basic stats
@@ -183,19 +183,19 @@ public class PlayerBuilder
         player.ActionPoints = _actionPoints;
         player.MaxActionPoints = _maxActionPoints;
         player.Reputation = _reputation;
-        
+
         // Add inventory items
         foreach (string item in _inventory)
         {
             player.Inventory.AddItem(item);
         }
-        
+
         // Add known contracts
         foreach (string contractId in _knownContracts)
         {
             player.DiscoverContract(contractId);
         }
-        
+
         // Set location
         Location? startLocation = gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == _startLocationId);
         if (startLocation != null)
@@ -212,7 +212,7 @@ public class PlayerBuilder
 public class ContractBuilder
 {
     private readonly List<Contract> _contracts = new List<Contract>();
-    
+
     /// <summary>
     /// Add a contract with manual ID specification
     /// </summary>
@@ -220,69 +220,20 @@ public class ContractBuilder
     {
         return new ContractSingleBuilder(this, contractId);
     }
-    
-    /// <summary>
-    /// Create a delivery contract that requires selling a specific item at a location
-    /// </summary>
-    public ContractSingleBuilder ForDelivery(string itemId, string locationId)
-    {
-        return new ContractSingleBuilder(this)
-            .RequiresSell(itemId, locationId, 1)
-            .WithDescription($"Deliver {itemId} to {locationId}");
-    }
-    
-    /// <summary>
-    /// Create a travel contract that requires visiting a specific location
-    /// </summary>
-    public ContractSingleBuilder ForTravel(string locationId)
-    {
-        return new ContractSingleBuilder(this)
-            .RequiresVisit(locationId)
-            .WithDescription($"Travel to {locationId}");
-    }
-    
-    /// <summary>
-    /// Create a trading contract that requires buying a specific item at a location
-    /// </summary>
-    public ContractSingleBuilder ForPurchase(string itemId, string locationId)
-    {
-        return new ContractSingleBuilder(this)
-            .RequiresBuy(itemId, locationId, 1)
-            .WithDescription($"Purchase {itemId} from {locationId}");
-    }
-    
-    /// <summary>
-    /// Create a conversation contract that requires talking to a specific NPC
-    /// </summary>
-    public ContractSingleBuilder ForConversation(string npcId)
-    {
-        return new ContractSingleBuilder(this)
-            .RequiresTalkTo(npcId)
-            .WithDescription($"Speak with {npcId}");
-    }
-    
-    /// <summary>
-    /// Create an action contract that requires performing a specific location action
-    /// </summary>
-    public ContractSingleBuilder ForAction(string actionId)
-    {
-        return new ContractSingleBuilder(this)
-            .RequiresAction(actionId)
-            .WithDescription($"Perform {actionId}");
-    }
-    
+
+
     internal void AddContract(Contract contract)
     {
         _contracts.Add(contract);
     }
-    
+
     public void ApplyToGameWorld(GameWorld gameWorld)
     {
         if (gameWorld.WorldState.Contracts == null)
         {
             gameWorld.WorldState.Contracts = new List<Contract>();
         }
-        
+
         gameWorld.WorldState.Contracts.AddRange(_contracts);
     }
 }
@@ -295,20 +246,20 @@ public class ContractSingleBuilder
     private readonly ContractBuilder _parent;
     private readonly Contract _contract;
     private static int _contractCounter = 1;
-    
+
     public ContractSingleBuilder(ContractBuilder parent, string contractId)
     {
         _parent = parent;
         _contract = CreateContract(contractId);
     }
-    
+
     public ContractSingleBuilder(ContractBuilder parent)
     {
         _parent = parent;
         string autoId = $"test_contract_{_contractCounter++}";
         _contract = CreateContract(autoId);
     }
-    
+
     private static Contract CreateContract(string contractId)
     {
         return new Contract
@@ -321,65 +272,27 @@ public class ContractSingleBuilder
             FailurePenalty = "Loss of reputation",
             IsCompleted = false,
             IsFailed = false,
-            RequiredTransactions = new List<ContractTransaction>(),
-            RequiredDestinations = new List<string>(),
-            RequiredNPCConversations = new List<string>(),
-            RequiredLocationActions = new List<string>(),
-            CompletedDestinations = new HashSet<string>(),
-            CompletedTransactions = new List<ContractTransaction>(),
-            CompletedNPCConversations = new HashSet<string>(),
-            CompletedLocationActions = new HashSet<string>()
         };
     }
-    
-    public ContractSingleBuilder RequiresSell(string itemId, string locationId, int quantity = 1)
-    {
-        _contract.RequiredTransactions.Add(new ContractTransaction(itemId, locationId, TransactionType.Sell, quantity));
-        return this;
-    }
-    
-    public ContractSingleBuilder RequiresBuy(string itemId, string locationId, int quantity = 1)
-    {
-        _contract.RequiredTransactions.Add(new ContractTransaction(itemId, locationId, TransactionType.Buy, quantity));
-        return this;
-    }
-    
-    public ContractSingleBuilder RequiresVisit(string locationId)
-    {
-        _contract.RequiredDestinations.Add(locationId);
-        return this;
-    }
-    
-    public ContractSingleBuilder RequiresTalkTo(string npcId)
-    {
-        _contract.RequiredNPCConversations.Add(npcId);
-        return this;
-    }
-    
-    public ContractSingleBuilder RequiresAction(string actionId)
-    {
-        _contract.RequiredLocationActions.Add(actionId);
-        return this;
-    }
-    
+
     public ContractSingleBuilder Pays(int payment)
     {
         _contract.Payment = payment;
         return this;
     }
-    
+
     public ContractSingleBuilder DueInDays(int days)
     {
         _contract.DueDay = _contract.StartDay + days;
         return this;
     }
-    
+
     public ContractSingleBuilder WithDescription(string description)
     {
         _contract.Description = description;
         return this;
     }
-    
+
     public ContractBuilder Build()
     {
         _parent.AddContract(_contract);
@@ -397,19 +310,19 @@ public class TimeBuilder
     private WeatherCondition _weather = WeatherCondition.Clear;
     private int _usedTimeBlocks = 0;
     private int? _explicitHour = null;
-    
+
     public TimeBuilder Day(int day)
     {
         _day = day;
         return this;
     }
-    
+
     public TimeBuilder TimeBlock(TimeBlocks timeBlock)
     {
         _timeBlock = timeBlock;
         return this;
     }
-    
+
     public TimeBuilder Hour(int hour)
     {
         _explicitHour = hour;
@@ -425,27 +338,27 @@ public class TimeBuilder
             _timeBlock = TimeBlocks.Evening;
         else
             _timeBlock = TimeBlocks.Night;
-            
+
         return this;
     }
-    
+
     public TimeBuilder Weather(WeatherCondition weather)
     {
         _weather = weather;
         return this;
     }
-    
+
     public TimeBuilder UsedTimeBlocks(int used)
     {
         _usedTimeBlocks = used;
         return this;
     }
-    
+
     public void ApplyToGameWorld(GameWorld gameWorld)
     {
         gameWorld.WorldState.CurrentDay = _day;
         gameWorld.WorldState.CurrentWeather = _weather;
-        
+
         // Use explicit hour if set, otherwise calculate from time block
         int targetHour = _explicitHour ?? _timeBlock switch
         {
@@ -456,7 +369,7 @@ public class TimeBuilder
             TimeBlocks.Night => 20,     // 8:00 PM
             _ => 6
         };
-        
+
         // Use the existing TimeManager from GameWorld
         gameWorld.TimeManager.SetNewTime(targetHour);
     }
@@ -468,24 +381,24 @@ public class TimeBuilder
 public class ItemBuilder
 {
     private readonly List<Item> _items = new List<Item>();
-    
+
     public ItemSingleBuilder Add(string itemId)
     {
         return new ItemSingleBuilder(this, itemId);
     }
-    
+
     internal void AddItem(Item item)
     {
         _items.Add(item);
     }
-    
+
     public void ApplyToGameWorld(GameWorld gameWorld)
     {
         if (gameWorld.WorldState.Items == null)
         {
             gameWorld.WorldState.Items = new List<Item>();
         }
-        
+
         gameWorld.WorldState.Items.AddRange(_items);
     }
 }
@@ -497,7 +410,7 @@ public class ItemSingleBuilder
 {
     private readonly ItemBuilder _parent;
     private readonly Item _item;
-    
+
     public ItemSingleBuilder(ItemBuilder parent, string itemId)
     {
         _parent = parent;
@@ -513,13 +426,13 @@ public class ItemSingleBuilder
             ItemCategories = new List<ItemCategory> { ItemCategory.Trade_Goods }
         };
     }
-    
+
     public ItemSingleBuilder WithName(string name)
     {
         _item.Name = name;
         return this;
     }
-    
+
     public ItemSingleBuilder SellsAt(string locationId, int price)
     {
         // Note: This would need integration with MarketManager pricing system
@@ -527,7 +440,7 @@ public class ItemSingleBuilder
         _item.SellPrice = price;
         return this;
     }
-    
+
     public ItemSingleBuilder BuysAt(string locationId, int price)
     {
         // Note: This would need integration with MarketManager pricing system
@@ -535,13 +448,13 @@ public class ItemSingleBuilder
         _item.BuyPrice = price;
         return this;
     }
-    
+
     public ItemSingleBuilder WithWeight(int weight)
     {
         _item.Weight = weight;
         return this;
     }
-    
+
     public ItemBuilder Build()
     {
         _parent.AddItem(_item);
@@ -555,24 +468,24 @@ public class ItemSingleBuilder
 public class LocationBuilder
 {
     private readonly List<Location> _locations = new List<Location>();
-    
+
     public LocationSingleBuilder Add(string locationId)
     {
         return new LocationSingleBuilder(this, locationId);
     }
-    
+
     internal void AddLocation(Location location)
     {
         _locations.Add(location);
     }
-    
+
     public void ApplyToGameWorld(GameWorld gameWorld)
     {
         if (gameWorld.WorldState.locations == null)
         {
             gameWorld.WorldState.locations = new List<Location>();
         }
-        
+
         gameWorld.WorldState.locations.AddRange(_locations);
     }
 }
@@ -584,7 +497,7 @@ public class LocationSingleBuilder
 {
     private readonly LocationBuilder _parent;
     private readonly Location _location;
-    
+
     public LocationSingleBuilder(LocationBuilder parent, string locationId)
     {
         _parent = parent;
@@ -593,20 +506,20 @@ public class LocationSingleBuilder
             Description = $"Test location: {locationId}"
         };
     }
-    
+
     public LocationSingleBuilder WithName(string name)
     {
         // Note: Location.Name is private set, so we can't change it after construction
         // This would require a different approach or constructor overload
         return this;
     }
-    
+
     public LocationSingleBuilder WithDescription(string description)
     {
         _location.Description = description;
         return this;
     }
-    
+
     public LocationBuilder Build()
     {
         _parent.AddLocation(_location);

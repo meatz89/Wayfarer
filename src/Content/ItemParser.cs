@@ -52,18 +52,6 @@ public static class ItemParser
             item.Size = size;
         }
 
-        string fragilityStr = GetStringProperty(root, "fragility", "Standard");
-        if (Enum.TryParse<FragilityCategory>(fragilityStr, out FragilityCategory fragility))
-        {
-            item.Fragility = fragility;
-        }
-
-        string socialSignalStr = GetStringProperty(root, "socialSignaling", "Commoner");
-        if (Enum.TryParse<SocialSignal>(socialSignalStr, out SocialSignal socialSignal))
-        {
-            item.SocialSignaling = socialSignal;
-        }
-
         return item;
     }
 
