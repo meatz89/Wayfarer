@@ -38,6 +38,9 @@ public class NPC
     public Schedule AvailabilitySchedule { get; set; }
     public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
+    
+    // Contract Generation Properties
+    public List<string> ContractCategories { get; set; } = new List<string>();
 
     // Helper methods for UI display
     public string ProfessionDescription

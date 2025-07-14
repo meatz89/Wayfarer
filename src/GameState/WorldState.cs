@@ -7,7 +7,7 @@ public class WorldState
     public List<LocationSpot> locationSpots { get; set; } = new();
     public List<ActionDefinition> actions { get; set; } = new();
     public List<Contract> Contracts { get; set; } = new();
-    private List<NPC> characters { get; set; } = new();
+    public List<NPC> NPCs { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
     public List<string> CompletedEncounters { get; } = new List<string>();
@@ -90,13 +90,13 @@ public class WorldState
 
     public void AddCharacter(NPC character)
     {
-        characters.Add(character);
+        NPCs.Add(character);
     }
 
 
     public List<NPC> GetCharacters()
     {
-        return characters;
+        return NPCs;
     }
 
 

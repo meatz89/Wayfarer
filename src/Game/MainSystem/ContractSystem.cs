@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Wayfarer.Game.MainSystem;
 
 public class ContractSystem
 {
@@ -6,6 +7,7 @@ public class ContractSystem
     private MessageSystem messageSystem;
     private ContractRepository contractRepository;
     private LocationRepository locationRepository;
+    private ContractGenerator contractGenerator;
 
     public ContractSystem(GameWorld gameWorld, MessageSystem messageSystem, ContractRepository contractRepository, LocationRepository locationRepository)
     {
@@ -13,6 +15,10 @@ public class ContractSystem
         this.messageSystem = messageSystem;
         this.contractRepository = contractRepository;
         this.locationRepository = locationRepository;
+        
+        // Initialize contract generator with templates from repository
+        List<Contract> contractTemplates = contractRepository.GetAllContracts();
+        this.contractGenerator = new ContractGenerator(contractTemplates, contractRepository);
     }
 
     public string FormatActiveContracts(List<Contract> contracts)
@@ -183,4 +189,116 @@ public class ContractSystem
             IsFailed = false,
         };
     }
+
+    // === RENEWABLE CONTRACT GENERATION SYSTEM ===
+
+    /// <summary>
+    /// Refresh daily contracts by generating new contracts from NPCs and removing expired ones
+    /// </summary>
+    public void RefreshDailyContracts()
+    {
+        int currentDay = gameWorld.CurrentDay;
+        
+        // Remove expired contracts that haven't been accepted
+        RemoveExpiredContracts();
+        
+        // Generate new contracts from NPCs
+        GenerateContractsFromNPCs(currentDay);
+        
+        messageSystem.AddSystemMessage($"Contract offerings refreshed for day {currentDay}");
+    }
+
+    /// <summary>
+    /// Generate renewable contracts from all NPCs based on their contract categories
+    /// </summary>
+    private void GenerateContractsFromNPCs(int currentDay)
+    {
+        List<NPC> npcs = gameWorld.WorldState.NPCs ?? new List<NPC>();
+        
+        foreach (NPC npc in npcs)
+        {
+            if (npc.ContractCategories != null && npc.ContractCategories.Any())
+            {
+                List<Contract> newContracts = contractGenerator.GenerateRenewableContracts(npc, currentDay);
+                
+                foreach (Contract contract in newContracts)
+                {
+                    try
+                    {
+                        contractRepository.AddContract(contract);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Contract already exists - skip (prevents duplicates)
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Remove contracts that have expired and were never accepted
+    /// </summary>
+    private void RemoveExpiredContracts()
+    {
+        int currentDay = gameWorld.CurrentDay;
+        List<Contract> allContracts = contractRepository.GetAllContracts();
+        
+        List<Contract> expiredContracts = allContracts
+            .Where(c => !c.IsCompleted && !c.IsFailed && c.DueDay < currentDay)
+            .Where(c => !contractRepository.GetActiveContracts().Any(ac => ac.Id == c.Id))
+            .ToList();
+
+        foreach (Contract expiredContract in expiredContracts)
+        {
+            contractRepository.RemoveContract(expiredContract.Id);
+        }
+    }
+
+    /// <summary>
+    /// Get available contracts from a specific NPC
+    /// </summary>
+    public List<Contract> GetAvailableContractsFromNPC(string npcId)
+    {
+        int currentDay = gameWorld.CurrentDay;
+        TimeBlocks currentTimeBlock = gameWorld.WorldState.CurrentTimeBlock;
+        
+        return contractRepository.GetAvailableContracts(currentDay, currentTimeBlock)
+            .Where(contract => contract.Id.StartsWith(npcId))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Check if contract generation is working properly (for testing/debugging)
+    /// </summary>
+    public ContractGenerationStatus GetContractGenerationStatus()
+    {
+        List<NPC> npcsWithContracts = gameWorld.WorldState.NPCs?
+            .Where(npc => npc.ContractCategories?.Any() == true)
+            .ToList() ?? new List<NPC>();
+
+        List<Contract> availableContracts = contractRepository.GetAvailableContracts(
+            gameWorld.CurrentDay, 
+            gameWorld.WorldState.CurrentTimeBlock);
+
+        return new ContractGenerationStatus
+        {
+            NPCsWithContractCategories = npcsWithContracts.Count,
+            TotalAvailableContracts = availableContracts.Count,
+            ContractTemplatesLoaded = contractGenerator.GetContractTemplates().Count,
+            LastRefreshDay = gameWorld.CurrentDay
+        };
+    }
+}
+
+/// <summary>
+/// Status information about contract generation system
+/// </summary>
+public class ContractGenerationStatus
+{
+    public int NPCsWithContractCategories { get; set; }
+    public int TotalAvailableContracts { get; set; }
+    public int ContractTemplatesLoaded { get; set; }
+    public int LastRefreshDay { get; set; }
 }
