@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+namespace Wayfarer.Content;
+
 public static class NPCParser
 {
     public static NPC ParseNPC(string json)
@@ -23,14 +25,14 @@ public static class NPCParser
 
         // Parse profession
         string professionStr = GetStringProperty(root, "profession", "");
-        if (Enum.TryParse<Professions>(professionStr, out Professions profession))
+        if (Enum.TryParse(professionStr, out Professions profession))
         {
             npc.Profession = profession;
         }
 
         // Parse availability schedule
         string scheduleStr = GetStringProperty(root, "availabilitySchedule", "");
-        if (Enum.TryParse<Schedule>(scheduleStr, out Schedule schedule))
+        if (Enum.TryParse(scheduleStr, out Schedule schedule))
         {
             npc.AvailabilitySchedule = schedule;
         }
@@ -39,7 +41,7 @@ public static class NPCParser
         List<string> serviceStrings = GetStringArray(root, "providedServices");
         foreach (string serviceStr in serviceStrings)
         {
-            if (Enum.TryParse<ServiceTypes>(serviceStr, out ServiceTypes service))
+            if (Enum.TryParse(serviceStr, out ServiceTypes service))
             {
                 npc.ProvidedServices.Add(service);
             }
@@ -47,7 +49,7 @@ public static class NPCParser
 
         // Parse player relationship
         string relationshipStr = GetStringProperty(root, "playerRelationship", "");
-        if (Enum.TryParse<NPCRelationship>(relationshipStr, out NPCRelationship relationship))
+        if (Enum.TryParse(relationshipStr, out NPCRelationship relationship))
         {
             npc.PlayerRelationship = relationship;
         }
