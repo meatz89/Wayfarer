@@ -2,73 +2,17 @@
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE BEFORE WRITING TO IT ⚠️**
 
-## PROJECT DOCUMENTATION
-
-### IMPLEMENTATION PLAN
-- **Current Content Strategy:** Detailed in `implementation-plan.md` - Strategic POC content design for 5-10 entities per JSON
-- **Content Philosophy:** Create minimal viable ecosystem demonstrating strategic optimization gameplay through meaningful trade-offs
-- **System Integration:** All JSON content must connect equipment categories, transport compatibility, location access, contract requirements, and time scheduling
-
-## DOCUMENTATION GUIDELINES
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ### **NEW SESSION STARTUP CHECKLIST**
 **CRITICAL**: Every new session must follow this exact sequence:
 
 1. ✅ **READ CLAUDE.MD FIRST** - Understand architectural patterns and game design principles
 2. ✅ **READ SESSION-HANDOFF.MD** - Get current progress, discoveries, and immediate next steps
-3. ✅ **READ INTENDED-GAMEPLAY.md** - Acquire a deep understanding of what we want the game experience to feel like for the player
-4. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
-5. ✅ **READ USERSTORIES.MD** - Game design requirements and anti-patterns
+3. ✅ **READ GAME-ARCHITECTURE.md** - Acquire a deep understanding of the architecture guidelines and principles
+4. ✅ **READ INTENDED-GAMEPLAY.md** - Acquire a deep understanding of what we want the game experience to feel like for the player
+5. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
 6. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
-
-### **DOCUMENTATION ARCHITECTURE**
-
-**CLAUDE.MD** (This file) - **ARCHITECTURAL REFERENCE**
-- Core architectural patterns and principles
-- Game design principles and constraints
-- Code writing guidelines and standards
-- High-level system overview
-- Key file locations and responsibilities
-- **NEVER** add session progress, temporary fixes, or detailed implementation notes
-
-**LOGICAL-SYSTEM-INTERACTIONS.MD** - **CRITICAL DESIGN GUIDELINES**
-- **MANDATORY**: Always follow these logical interaction principles
-- Replaces arbitrary math with logical system interactions
-- Design patterns for emergent constraints
-- Validation checklist for all implementations
-- **READ THIS BEFORE ANY SYSTEM CHANGES**
-
-**GAME-ARCHITECTURE.MD** - **CRITICAL ARCHITECTURAL PATTERNS**
-- **MANDATORY**: System dependency patterns and failure modes discovered through debugging
-- Time window initialization requirements and location spot dependencies
-- Repository pattern compliance and single source of truth enforcement
-- JSON content parsing validation and enum matching requirements
-- Test architecture compliance patterns
-- **READ THIS BEFORE ANY SYSTEM MODIFICATIONS**
-- **CONTINUOUSLY UPDATE**: Add new architectural findings, dependency discoveries, and failure patterns as they are discovered
-- **NEVER LOSE KNOWLEDGE**: Document all critical debugging discoveries to prevent repeating the same architectural mistakes
-
-**SESSION-HANDOFF.MD** - **CURRENT SESSION STATE**
-- Current progress and completed features
-- Critical discoveries and constraints from user feedback
-- Technical implementation patterns learned
-- Immediate next priorities and blockers
-- Test execution status
-- Files that need attention
-- **UPDATE THIS EVERY SESSION** with new discoveries and progress
-
-**IMPLEMENTATION-PLAN-REVISED.MD** - **FEATURE ROADMAP**
-- POC feature priorities and requirements
-- Game design goals for each feature
-- Success criteria and anti-patterns to avoid
-- Technical complexity estimates
-- Dependencies between features
-
-**USERSTORIES.MD** - **GAME DESIGN REQUIREMENTS**
-- User-facing feature requirements
-- Game vs app design principles
-- Examples of good vs bad implementations
-- Player experience goals
 
 ### **DOCUMENTATION MAINTENANCE RULES**
 
@@ -79,7 +23,152 @@
 5. ✅ **Keep files focused** - Each file has a specific purpose and audience
 6. ✅ **Reference related files** - Always point to where related information can be found
 
-## DEVELOPMENT GUIDELINES
+## PROJECT: WAYFARER
+
+**Wayfarer** is a medieval life simulation RPG built as a Blazor Server application (.NET 8.0). It features a sophisticated, AI-driven narrative system with turn-based resource management gameplay focused on economic strategy, travel optimization, and contract fulfillment.
+
+## COMMON DEVELOPMENT TASKS
+
+### Build, Run, and Test
+```bash
+# Build the project
+dotnet build
+
+# Run the application
+dotnet run --project src/Wayfarer.csproj
+
+# Run all tests
+dotnet test
+
+# Run specific test file
+dotnet test --filter "FullyQualifiedName~TestClassName"
+
+# Run with verbose output
+dotnet test --logger "console;verbosity=detailed"
+```
+
+### AI Service Setup (Optional)
+```bash
+# Default AI provider is Ollama (local)
+# Start Ollama service with docker-compose
+docker-compose up -d
+
+# Alternative: Configure other AI providers in appsettings.json
+```
+
+## HIGH-LEVEL ARCHITECTURE
+
+### Core Design Philosophy: Categorical Interconnection
+
+The game follows a **categorical interconnection** principle where gameplay emerges from logical system interactions rather than arbitrary mathematical modifiers:
+
+1. **All entities have unique types/categories** that interact with other system categories
+2. **Game rules emerge from category interactions** instead of hardcoded bonuses/penalties
+3. **Constraints require multiple systems** - no single system creates arbitrary restrictions
+4. **Categories enable discovery gameplay** - players learn through experimentation
+5. **All categories must be visible in UI** - players cannot strategize about invisible systems
+
+### Architectural Patterns
+
+#### Repository-Mediated Access (CRITICAL)
+**ALL game state access MUST go through entity repositories - NEVER through direct GameWorld property access.**
+
+```csharp
+// ❌ WRONG: Direct access
+gameWorld.WorldState.Items.Add(item);
+
+// ✅ CORRECT: Repository-mediated
+itemRepository.AddItem(item);
+```
+
+#### UI Access Patterns
+- **For Actions (State Changes)**: UI → GameWorldManager → Specific Manager
+- **For Queries (Reading State)**: UI → Repository → GameWorld.WorldState
+
+#### Stateless Repositories
+Repositories MUST be completely stateless and only delegate to GameWorld:
+- Only allowed field: `private readonly GameWorld _gameWorld`
+- No caching, no state storage
+- All data comes from GameWorld on every method call
+
+### Game Initialization Pipeline
+
+```
+JSON Files → GameWorldSerializer → GameWorldInitializer → GameWorld → Repositories
+```
+
+**Key JSON Content Files** (`src/Content/Templates/`):
+- `locations.json` - Game locations with properties
+- `location_spots.json` - Specific spots within locations
+- `routes.json` - Travel routes with terrain categories
+- `items.json` - Items with equipment/item categories
+- `contracts.json` - Available contracts
+- `actions.json` - Player actions at locations
+
+### Project Structure
+
+#### **Core Game Management**
+- `src/GameState/GameWorldManager.cs` - Central coordinator, UI gateway
+- `src/GameState/GameWorld.cs` - Single source of truth for game state
+- `src/Content/GameWorldInitializer.cs` - JSON content loading and game initialization
+
+#### **Content System**
+- `src/Content/GameWorldSerializer.cs` - JSON parsing and serialization
+- `src/Content/Templates/` - All JSON content files
+
+#### **Repository Pattern**
+- `src/Content/LocationRepository.cs` - Stateless location data access
+- `src/Content/ActionRepository.cs` - Stateless action data access  
+- `src/Content/ItemRepository.cs` - Stateless item data access
+- `src/Game/MainSystem/ContractRepository.cs` - Stateless contract data access
+
+#### **Business Logic**
+- `src/GameState/TravelManager.cs` - Travel and routing logic
+- `src/GameState/MarketManager.cs` - Trading and pricing logic
+- `src/GameState/TradeManager.cs` - Transaction processing
+- `src/GameState/RestManager.cs` - Rest and recovery logic
+- `src/Game/MainSystem/ContractSystem.cs` - Contract management and completion logic
+
+#### **Service Configuration**
+- `src/ServiceConfiguration.cs` - Dependency injection setup
+
+#### **UI Components**
+- `src/Pages/MainGameplayView.razor` - Main game screen coordinator
+- `src/Pages/Market.razor` - Trading interface
+- `src/Pages/TravelSelection.razor` - Travel planning interface
+- `src/Pages/ContractUI.razor` - Contract display and completion interface
+- `src/Pages/RestUI.razor` - Rest and recovery interface
+
+### Testing Architecture
+
+- **Framework**: xUnit
+- **Test Isolation**: Each test class uses its own JSON content
+- **NEVER use production JSON in tests** - create test-specific data
+- **Test Utilities**:
+  - `TestGameWorldInitializer` - Test world initialization
+  - `TestGameWorldFactory` - Test world creation
+  - `TestScenarioBuilder` - Scenario setup
+
+### Code Quality
+
+The project uses multiple code analyzers:
+- Microsoft.CodeAnalysis.Analyzers
+- Roslynator.Analyzers
+- SonarAnalyzer.CSharp
+
+Analysis is configured in `wayfarer.ruleset` with enforcement during build.
+
+### Key Design Principles
+
+1. **Emergent Mechanics**: Never hardcode restrictions. All constraints emerge from mathematical interactions between simple systems (time, stamina, coins).
+
+2. **Player Agency**: Players always retain choice but face natural consequences.
+
+3. **Discovery Through Play**: Systems are discoverable through experimentation, not tutorials.
+
+4. **Gameplay in Player's Head**: Fun comes from optimization puzzles, not automated conveniences.
+
+5. **No Hidden Mechanics**: All categories and relationships must be visible in UI.
 
 
 **Key Implementation Requirements:**
@@ -163,140 +252,6 @@
 - **Log at state changes, not at queries** - Debug messages should track mutations, not reads
 - **Use proper reactive patterns** - Let Blazor's change detection handle rendering optimization
 
-## PROJECT OVERVIEW: WAYFARER
-
-**Wayfarer** is a medieval life simulation RPG built as a Blazor Server application. It features a sophisticated, AI-driven narrative system with turn-based resource management gameplay focused on economic strategy, travel optimization, and contract fulfillment.
-
-### CORE ARCHITECTURAL PATTERNS
-
-#### **UI Access Patterns (CRITICAL DISTINCTION)**
-
-**FOR ACTIONS (State Changes):**
-All UI components must route actions through GameWorldManager instead of injecting managers directly.
-- ✅ Correct: UI → GameWorldManager → Specific Manager (for actions like BuyItem, TravelTo, CompleteContract)
-- ❌ Wrong: UI → Direct Manager Injection
-
-**FOR QUERIES (Reading State):**
-All UI components must use repositories for data access instead of direct GameWorld property access.
-- ✅ Correct: UI → Repository → GameWorld.WorldState (for queries like GetCurrentLocation, GetAvailableItems)
-- ❌ Wrong: UI → GameWorld.WorldState (direct property access)
-
-#### **Stateless Repositories** 
-Repositories MUST be completely stateless and only delegate to GameWorld - NO data storage or caching allowed.
-- ✅ Correct: `private readonly GameWorld _gameWorld` (ONLY allowed private field)
-- ✅ Correct: Every method accesses `_gameWorld.WorldState.Property` directly
-- ❌ Wrong: `private List<Entity> _cachedEntities` or any state storage
-- ❌ Wrong: `private WorldState` caching or direct WorldState access
-- ❌ Wrong: Any private fields other than GameWorld dependency
-
-**ENFORCEMENT**: Repository classes may ONLY have `private readonly GameWorld _gameWorld` field. All data comes from GameWorld on every method call.
-
-#### **Repository-Mediated Access Only (CRITICAL ARCHITECTURAL PRINCIPLE)**
-**ALL game state access MUST go through entity repositories - NEVER through direct GameWorld property access.**
-
-**MANDATORY ENFORCEMENT RULES:**
-1. **ONLY repositories may access GameWorld.WorldState properties**
-2. **Business logic MUST use repositories, never GameWorld properties**  
-3. **Tests MUST use repositories, never GameWorld properties**
-4. **UI components MUST use repositories, never GameWorld properties**
-5. **GameWorld properties exist ONLY for repository implementation**
-6. **Test setup MUST use repositories for data creation, never direct WorldState access**
-
-**VIOLATION EXAMPLES - FORBIDDEN:**
-```csharp
-❌ gameWorld.WorldState.AddCharacter(npc);           // Direct WorldState access
-❌ gameWorld.WorldState.Items.Add(item);             // Direct collection access
-❌ var locations = gameWorld.WorldState.locations;   // Direct property access
-❌ gameWorld.WorldState.Contracts.AddRange(contracts); // Direct collection manipulation
-```
-
-**CORRECT PATTERNS - REQUIRED:**
-```csharp
-✅ npcRepository.AddNPC(npc);                        // Repository-mediated
-✅ itemRepository.AddItem(item);                     // Repository-mediated
-✅ var locations = locationRepository.GetAllLocations(); // Repository query
-✅ contractRepository.AddContracts(contracts);      // Repository-mediated
-```
-
-**TEST ARCHITECTURE - SPECIAL CASE:**
-Tests differ from production ONLY in GameWorld construction. The GameWorldManager → Repository → GameWorld flow remains identical:
-
-```csharp
-// ✅ CORRECT TEST PATTERN:
-// 1. Construct GameWorld differently (TestGameWorldInitializer vs GameWorldInitializer)
-GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-
-// 2. Use IDENTICAL repository access patterns as production
-NPCRepository npcRepository = new NPCRepository(gameWorld);
-npcRepository.AddNPC(testNPC);  // Repository-mediated, just like production
-
-// 3. GameWorldManager behavior is IDENTICAL to production
-GameWorldManager manager = new GameWorldManager(gameWorld, ...repositories...);
-```
-
-**THIS APPLIES TO ALL CODE - NO EXCEPTIONS:**
-- Production business logic
-- Test setup and teardown
-- UI component data access
-- Manager classes
-- Service classes
-
-#### **Repository-Based ID Resolution Pattern**
-Repositories are responsible for ID-to-object lookup, not initialization or business logic.
-- **GameWorldInitializer**: Only loads raw JSON data, no relationship building
-- **Repositories**: Provide `GetEntityById(string id)` methods for all lookups
-- **Business Logic**: Uses repositories to resolve IDs when needed for rules/mechanics
-- **NEVER** do direct LINQ lookups in business logic - always use repository methods
-- Validation of missing/invalid IDs handled at repository level
-
-
-#### **Service Configuration**
-- Production: Use `ConfigureServices()` for full AI stack
-- Testing: Use `ConfigureTestServices()` for economic-only functionality
-- No duplicate service registrations
-
-### PROJECT STATUS
-
-**Current progress and session handoffs:** `session-handoff.md`
-**Game design requirements:** `UserStories.md`
-**Logical interaction principles:** `LOGICAL-SYSTEM-INTERACTIONS.md`
-**Architectural patterns and discoveries:** `GAME-ARCHITECTURE.md`
-**UI styling patterns and conventions:** `STYLING-PATTERNS.md`
-**Strategic player experience validation testing:** `STRATEGIC-PLAYER-EXPERIENCE-VALIDATION.md`
-
-### GAME INITIALIZATION PIPELINE
-
-#### **Critical Architecture Discovery: Proper JSON-to-GameWorld Flow**
-
-**MANDATORY INITIALIZATION SEQUENCE** - All tests and development must follow this exact pattern:
-
-```
-JSON Files → GameWorldSerializer (Parsers) → GameWorldInitializer → GameWorld → Repositories
-```
-
-**❌ WRONG: Manual Object Creation in Tests**
-```csharp
-// NEVER do this - bypasses the entire content system
-var gameWorld = new GameWorld();
-var location = new Location("test", "Test");
-gameWorld.Locations.Add(location);
-```
-
-**✅ CORRECT: Use GameWorldInitializer**
-```csharp
-// ALWAYS use this - follows production initialization flow
-GameWorldInitializer initializer = new GameWorldInitializer("Content");
-GameWorld gameWorld = initializer.LoadGame();
-```
-
-#### **JSON Content Files (src/Content/Templates/)**
-- `locations.json` - All game locations with properties
-- `location_spots.json` - Specific spots within locations  
-- `routes.json` - Travel routes with terrain categories and costs
-- `items.json` - All items with equipment and item categories
-- `contracts.json` - Available contracts with requirements
-- `actions.json` - Player actions available at locations
-- `gameWorld.json` - Initial game state configuration
 
 #### **Initialization Flow Details**
 
@@ -336,213 +291,6 @@ services.AddSingleton<ItemRepository>();
 // etc.
 ```
 
-#### **Testing Requirements**
-
-**CRITICAL TESTING ISOLATION PRINCIPLE:**
-- **NEVER** use production JSON content in tests
-- **ALWAYS** create test-specific JSON data for each test class
-- **EACH test class should have its own isolated test data** - never depend on shared production content
-- **Tests must validate system logic, not production data integrity**
-
-**MANDATORY TEST DATA ISOLATION:**
-1. **Create TestGameWorldInitializer** that uses test-specific content directories
-2. **Each test file creates its own minimal JSON data** for the specific scenarios being tested
-3. **Test data should be minimal and focused** - only include entities needed for the specific test
-4. **Production content changes should NEVER break tests**
-5. **Tests validate that contract logic works, not that specific game contracts work**
-
-**Examples of Proper Test Isolation:**
-```csharp
-// ❌ WRONG: Using production contracts.json
-Contract herbContract = contracts.GetContract("village_herb_delivery"); // Depends on production data
-
-// ✅ CORRECT: Test-specific contract data
-var testContracts = new[] {
-    new Contract {
-        Id = "test_travel_contract",
-        RequiredDestinations = ["test_destination"],
-        RequiredTransactions = []
-    }
-};
-TestGameWorldInitializer.CreateWithContracts(testContracts);
-```
-
-**Test Data Organization:**
-- `Tests/TestData/` directory for all test-specific JSON files
-- Each test class has its own data subdirectory
-- Minimal, focused data sets that test specific system behaviors
-- No coupling to production content that could change
-
-- **NEVER** manually create game objects in tests
-- **ALWAYS** use `TestGameWorldInitializer` for test setup
-- Tests must verify JSON content loads correctly into GameWorld
-- Integration tests must validate complete initialization pipeline
-
-#### **Critical Pattern: ID-based Serialization vs Object References**
-
-**FUNDAMENTAL ARCHITECTURE**: The game uses a dual-reference system for entity relationships:
-
-**JSON Serialization Layer (String IDs)**
-```json
-{
-  "routes": [
-    {
-      "id": "road_to_market",
-      "origin": "dusty_flagon",           // String ID reference
-      "destination": "town_square",       // String ID reference
-      "requiredItems": ["climbing_gear"]  // String ID references
-    }
-  ],
-  "contracts": [
-    {
-      "id": "deliver_tools",
-      "destinationLocation": "town_square", // String ID reference
-      "requiredItems": ["tools"]            // String ID references
-    }
-  ]
-}
-```
-
-**Runtime Code Layer (Object References)**
-```csharp
-public class RouteOption
-{
-    public string Origin { get; set; }        // String ID for serialization
-    public string Destination { get; set; }   // String ID for serialization
-    
-    // Runtime: Code resolves IDs to actual objects when needed
-    public Location GetOriginLocation(GameWorld gameWorld) =>
-        gameWorld.WorldState.locations.First(loc => loc.Id == Origin);
-    
-    public Location GetDestinationLocation(GameWorld gameWorld) =>
-        gameWorld.WorldState.locations.First(loc => loc.Id == Destination);
-}
-```
-
-**Key Principles:**
-
-1. **JSON Storage = String IDs Only**
-   - All relationships stored as string references in JSON
-   - Enables easy editing and version control of content files
-   - Prevents circular reference issues in serialization
-
-2. **Runtime Resolution = Object References**
-   - Code resolves string IDs to actual object instances when needed
-   - GameWorld provides lookup methods for ID-to-object resolution
-   - Business logic operates on actual objects, not IDs
-
-3. **Validation During Initialization**
-   - GameWorldInitializer validates all ID references resolve to real objects
-   - Broken references caught at startup, not during gameplay
-   - ConnectLocationsToSpots(), ConnectRoutesToLocations() establish relationships
-
-4. **Repository Pattern for Resolution**
-   - Repositories provide ID-to-object lookup methods
-   - `LocationRepository.GetLocationById(string id)`
-   - `ItemRepository.GetItemById(string id)`
-   - Consistent pattern across all entity types
-
-**Example Relationship Flows:**
-
-```csharp
-// Contract references destination by ID
-contract.DestinationLocation = "town_square";  // JSON storage
-
-// Runtime: Business logic resolves to actual object
-Location destination = locationRepository.GetLocationById(contract.DestinationLocation);
-bool canComplete = destination != null && player.CurrentLocation.Id == destination.Id;
-
-// Route references locations by ID  
-route.Origin = "dusty_flagon";
-route.Destination = "town_square";
-
-// Runtime: Travel system resolves to objects
-Location origin = gameWorld.GetLocationById(route.Origin);
-Location dest = gameWorld.GetLocationById(route.Destination);
-```
-
-**Benefits of This Pattern:**
-- **Data Integrity**: Validation ensures all references are valid
-- **Performance**: Object lookups cached, not repeated string searches
-- **Maintainability**: Content creators work with readable IDs in JSON
-- **Flexibility**: Can change object implementations without breaking serialization
-
-#### **Repository-Based ID Resolution Architecture**
-
-**PRINCIPLE**: ID-to-object resolution is the responsibility of repositories, not the initializer.
-
-**Architecture Pattern:**
-
-1. **JSON files contain string IDs** - Maintains clean serialization format
-2. **Entities keep string IDs** - For serialization and cross-references  
-3. **Repositories provide ID-to-object lookup** - This is their core responsibility
-4. **Business logic uses repositories for resolution** - When they need object references
-
-**Component Responsibilities:**
-
-- **GameWorldInitializer**: Loads raw JSON data into GameWorld collections only
-- **Repositories**: Provide `GetEntityById(string id)` methods for ID-to-object resolution
-- **Business Logic**: Uses repositories to resolve IDs to objects when needed for rules/mechanics
-- **GameWorld**: Single source of truth containing all loaded entities
-
-**Benefits:**
-- **Separation of Concerns**: Clear responsibility boundaries
-- **Single Responsibility**: Each component has one focused job
-- **Validation**: Repositories handle missing/invalid ID references
-- **Performance**: Repositories can implement caching strategies
-- **Testability**: Dependencies are explicit and mockable
-- **Maintainability**: Changes to lookup logic contained in repositories
-
-### KEY LOCATIONS IN CODEBASE
-
-#### **Core Game Management**
-- `src/GameState/GameWorldManager.cs` - Central coordinator, UI gateway
-- `src/GameState/GameWorld.cs` - Single source of truth for game state
-- `src/Content/GameWorldInitializer.cs` - JSON content loading and game initialization
-
-#### **Content System**
-- `src/Content/GameWorldSerializer.cs` - JSON parsing and serialization
-- `src/Content/Templates/` - All JSON content files
-
-#### **Repository Pattern**
-- `src/Content/LocationRepository.cs` - Stateless location data access
-- `src/Content/ActionRepository.cs` - Stateless action data access  
-- `src/Content/ItemRepository.cs` - Stateless item data access
-- `src/Game/MainSystem/ContractRepository.cs` - Stateless contract data access
-
-#### **Business Logic**
-- `src/GameState/TravelManager.cs` - Travel and routing logic
-- `src/GameState/MarketManager.cs` - Trading and pricing logic
-- `src/GameState/TradeManager.cs` - Transaction processing
-- `src/GameState/RestManager.cs` - Rest and recovery logic
-- `src/Game/MainSystem/ContractSystem.cs` - Contract management and completion logic
-
-#### **Service Configuration**
-- `src/ServiceConfiguration.cs` - Dependency injection setup
-
-#### **UI Components**
-- `src/Pages/MainGameplayView.razor` - Main game screen coordinator
-- `src/Pages/Market.razor` - Trading interface
-- `src/Pages/TravelSelection.razor` - Travel planning interface
-- `src/Pages/ContractUI.razor` - Contract display and completion interface
-- `src/Pages/RestUI.razor` - Rest and recovery interface
-
-### COMMON PATTERNS TO MAINTAIN
-
-#### **Error-Free Initialization**
-- All location properties must be properly initialized to prevent null reference exceptions
-- UI screens must check `IsGameDataReady()` before rendering
-- Player location and spot must never be null after initialization
-
-#### **Consistent Data Access**
-- Access current location via `GameWorld.CurrentLocation` or `GameWorld.WorldState.CurrentLocation` (both delegate to WorldState)
-- Use location-aware method signatures throughout
-
-#### **Service Dependency Management**
-- AI services are optional for economic functionality
-- Use nullable dependencies and factory patterns for services that might not be available
-- Test configuration should provide minimal viable services only
-
 # Development Principles: Emergent Design
 
 ## Core Principle: Emergent Mechanics
@@ -560,3 +308,9 @@ Always distinguish between three layers:
 ## GAME INITIALIZATION
 - Ensure game initialization leverages JSON files, parsers, GameWorldInitialization, Repositories, and GameWorld classes
 - Create comprehensive tests to validate that all content from JSON files is correctly saved into GameWorld
+
+### Important Documentation
+
+- `INTENDED-GAMEPLAY.md` - Game design philosophy and categorical systems
+- `LOGICAL-SYSTEM-INTERACTIONS.md` - System interaction guidelines
+- `/docs/` - Extensive game design documentation (40+ documents)
