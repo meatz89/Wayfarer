@@ -4,43 +4,11 @@ This document captures critical architectural discoveries and patterns that must
 
 ## CORE ARCHITECTURAL PATTERNS
 
-### CODE WRITING PRINCIPLES
-- Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
-- After each change, run the tests to check for broken functionality. Never commit while tests are failing
-- **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
-- You must run all tests and execute the game and do quick smoke tests before every commit
-- **Never keep legacy code for compatibility**
-- **NEVER use suffixes like "New", "Revised", "V2", etc.** - Replace old implementations completely and use the correct final name immediately. Delete old code, don't leave it behind.
-- **CRITICAL: NEVER USE REFLECTION** - If you find ANY reflection usage in the codebase:
-  1. **IMMEDIATELY create highest priority TODO** to remove the reflection
-  2. **STOP all other work** - reflection makes code unmaintainable and breaks refactoring
-  3. **Fix it properly** - make fields public, add proper accessors, or redesign the architecture
-  4. **NO EXCEPTIONS** - There is never a valid reason to use reflection in production code
-- **CRITICAL: IMMEDIATE LEGACY CODE ELIMINATION** - If you discover ANY legacy code, compilation errors, or deprecated patterns during development, you MUST immediately:
-  1. **CREATE HIGH-PRIORITY TODO ITEM** to fix the legacy code
-  2. **STOP current work** and fix the legacy code immediately
-  3. **NEVER ignore or postpone** legacy code fixes
-  4. **NEVER say "these are just dependency fixes"** - fix them now or create immediate todo items
-- **CRITICAL: ARCHITECTURAL BUG DISCOVERY** - If you discover architectural bugs (e.g., duplicate state storage, inconsistent data access patterns), you MUST:
-  1. **IMMEDIATELY create highest priority TODO** to fix the architectural issue
-  2. **STOP all other work** - architectural bugs corrupt the entire system
-  3. **NEVER work around architectural bugs** - fix them at the source
-  4. **Document the fix in GAME-ARCHITECTURE.md** for future reference
-
 
 ### CORE ARCHITECTURAL PATTERNS
 
-#### **UI Access Patterns (CRITICAL DISTINCTION)**
-
-**FOR ACTIONS (State Changes):**
-All UI components must route actions through GameWorldManager instead of injecting managers directly.
-- ✅ Correct: UI → GameWorldManager → Specific Manager (for actions like BuyItem, TravelTo, CompleteContract)
-- ❌ Wrong: UI → Direct Manager Injection
-
-**FOR QUERIES (Reading State):**
-All UI components must use repositories for data access instead of direct GameWorld property access.
-- ✅ Correct: UI → Repository → GameWorld.WorldState (for queries like GetCurrentLocation, GetAvailableItems)
-- ❌ Wrong: UI → GameWorld.WorldState (direct property access)
+#### **UI Access Patterns** 
+*See CLAUDE.md for UI access patterns overview.*
 
 #### **Stateless Repositories** 
 Repositories MUST be completely stateless and only delegate to GameWorld - NO data storage or caching allowed.
@@ -110,11 +78,6 @@ Repositories are responsible for ID-to-object lookup, not initialization or busi
 - **NEVER** do direct LINQ lookups in business logic - always use repository methods
 - Validation of missing/invalid IDs handled at repository level
 
-
-#### **Service Configuration**
-- Production: Use `ConfigureServices()` for full AI stack
-- Testing: Use `ConfigureTestServices()` for economic-only functionality
-- No duplicate service registrations
 
 #### **Testing Requirements**
 
