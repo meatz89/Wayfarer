@@ -5,18 +5,18 @@ public class WorldStateInputBuilder
     private GameWorld gameWorld;
     public LocationSystem LocationSystem { get; }
     public CharacterSystem CharacterSystem { get; }
-    public ContractSystem OpportunitySystem { get; }
+    public ContractSystem ContractSystem { get; }
 
     public WorldStateInputBuilder(
         GameWorld gameWorld,
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
-        ContractSystem OpportunitySystem)
+        ContractSystem contractSystem)
     {
         this.gameWorld = gameWorld;
         LocationSystem = locationSystem;
         CharacterSystem = characterSystem;
-        OpportunitySystem = OpportunitySystem;
+        ContractSystem = contractSystem;
     }
 
     public async Task<WorldStateInput> CreateWorldStateInput(string currentLocation)
