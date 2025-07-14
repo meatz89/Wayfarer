@@ -9,17 +9,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. ✅ **READ CLAUDE.MD FIRST** - Understand architectural patterns and game design principles
 2. ✅ **READ SESSION-HANDOFF.MD** - Get current progress, discoveries, and immediate next steps
-3. ✅ **READ GAME-ARCHITECTURE.md** - Acquire a deep understanding of the architecture guidelines and principles
-4. ✅ **READ INTENDED-GAMEPLAY.md** - Acquire a deep understanding of what we want the game experience to feel like for the player
-5. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
-6. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
+3. ✅ **READ POC-TARGET-DESIGN.md** - Understand the target POC structure and requirements
+4. ✅ **READ GAME-ARCHITECTURE.md** - Acquire a deep understanding of the architecture guidelines and principles
+5. ✅ **READ INTENDED-GAMEPLAY.md** - Acquire a deep understanding of what we want the game experience to feel like for the player
+6. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
+7. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
 
 ### **DOCUMENTATION MAINTENANCE RULES**
 
-1. ✅ **ALWAYS update session-handoff.md** - Document all discoveries, progress, and next steps
+1. ✅ **ALWAYS update SESSION-HANDOFF.md** - Document all discoveries, progress, and next steps
 2. ✅ **ONLY update claude.md** - When architectural patterns change or new principles are discovered
-3. ✅ **NEVER add temporary status** - Session progress goes in session-handoff.md, not claude.md
-4. ✅ **Document user feedback immediately** - Critical constraints and discoveries go in session-handoff.md
+3. ✅ **NEVER add temporary status** - Session progress goes in SESSION-HANDOFF.md, not claude.md
+4. ✅ **Document user feedback immediately** - Critical constraints and discoveries go in SESSION-HANDOFF.md
 5. ✅ **Keep files focused** - Each file has a specific purpose and audience
 6. ✅ **Reference related files** - Always point to where related information can be found
 
