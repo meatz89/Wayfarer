@@ -1,120 +1,5 @@
 [
 	{
-		"id": "dusty_flagon",
-		"name": "The Dusty Flagon",
-		"description": "A moderately sized, somewhat dilapidated inn situated within an implied larger medieval market town.",
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "QUIET", "INTERIOR" ],
-			"afternoon": [ "WELL-LIT", "CROWDED", "INTERIOR" ],
-			"evening": [ "SHADOWY", "CROWDED", "INTERIOR" ],
-			"night": [ "DARK", "QUIET", "INTERIOR" ]
-		},
-		"domainTags": [ "SOCIAL", "LABOR" ],
-		"locationSpots": [ "innkeeper", "hearth", "common_room", "inn_room", "tavern" ],
-		"connectedTo": [ "town_square" ],
-		"socialExpectation": "Any",
-		"accessLevel": "Public",
-		"requiredSocialClasses": [],
-		"availableProfessionsByTime": {
-			"Morning": ["Merchant"],
-			"Afternoon": ["Merchant"],
-			"Evening": ["Merchant"],
-			"Night": ["Merchant"]
-		}
-	},
-	{
-		"id": "town_square",
-		"name": "Town Square",
-		"description": "The bustling center of the town where merchants, travelers, and locals gather for commerce and news.",
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "URBAN", "COMMERCE" ],
-			"afternoon": [ "WELL-LIT", "CROWDED", "COMMERCE" ],
-			"evening": [ "SHADOWY", "CROWDED", "URBAN" ],
-			"night": [ "DARK", "QUIET", "URBAN" ]
-		},
-		"domainTags": [ "COMMERCE", "KNOWLEDGE" ],
-		"locationSpots": [ "marketplace", "library", "market_stall" ],
-		"connectedTo": [ "dusty_flagon" ],
-		"socialExpectation": "Any",
-		"accessLevel": "Public",
-		"requiredSocialClasses": [],
-		"availableProfessionsByTime": {
-			"Morning": ["Merchant", "Craftsman", "Scholar"],
-			"Afternoon": ["Merchant", "Ranger"],
-			"Evening": ["Courtier"],
-			"Night": []
-		}
-	},
-	{
-		"id": "workshop",
-		"name": "Master's Workshop",
-		"description": "A bustling crafting workshop where Master Erik oversees equipment commissioning and specialized tool creation.",
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "INDUSTRIAL", "INTERIOR" ],
-			"afternoon": [ "WELL-LIT", "BUSY", "INTERIOR" ],
-			"evening": [ "SHADOWY", "QUIET", "INTERIOR" ],
-			"night": [ "DARK", "CLOSED", "INTERIOR" ]
-		},
-		"domainTags": [ "LABOR", "COMMERCE" ],
-		"locationSpots": [ "workshop_interior", "workshop_master" ],
-		"connectedTo": [ "town_square", "mountain_summit", "riverside_settlement" ],
-		"socialExpectation": "Craftsman",
-		"accessLevel": "Professional",
-		"requiredSocialClasses": [],
-		"availableProfessionsByTime": {
-			"Morning": ["Master_Craftsman", "Craftsman"],
-			"Afternoon": ["Master_Craftsman", "Craftsman"],
-			"Evening": [],
-			"Night": []
-		}
-	},
-	{
-		"id": "mountain_summit",
-		"name": "Treacherous Peak",
-		"description": "A dangerous mountain summit that requires climbing expertise to reach, offering valuable mineral deposits and commanding views.",
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "EXPOSED", "DANGEROUS" ],
-			"afternoon": [ "WELL-LIT", "EXPOSED", "DANGEROUS" ],
-			"evening": [ "SHADOWY", "TREACHEROUS", "DANGEROUS" ],
-			"night": [ "DARK", "IMPASSABLE", "DANGEROUS" ]
-		},
-		"domainTags": [ "EXPLORATION", "DANGEROUS" ],
-		"locationSpots": [ "summit_overlook", "mining_site" ],
-		"connectedTo": [ "town_square", "workshop" ],
-		"socialExpectation": "Explorer",
-		"accessLevel": "Restricted",
-		"requiredSocialClasses": [ "Professional" ],
-		"availableProfessionsByTime": {
-			"Morning": ["Ranger"],
-			"Afternoon": ["Ranger"],
-			"Evening": [],
-			"Night": []
-		}
-	},
-	{
-		"id": "riverside_settlement",
-		"name": "River's Edge",
-		"description": "A small settlement along the river where ferries dock and fishing boats gather, serving as a transport hub for water routes.",
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "HUMID", "COMMERCE" ],
-			"afternoon": [ "WELL-LIT", "BUSY", "COMMERCE" ],
-			"evening": [ "SHADOWY", "QUIET", "RURAL" ],
-			"night": [ "DARK", "PEACEFUL", "RURAL" ]
-		},
-		"domainTags": [ "COMMERCE", "TRANSPORT" ],
-		"locationSpots": [ "ferry_dock", "fishing_pier" ],
-		"connectedTo": [ "town_square", "workshop", "eastport" ],
-		"socialExpectation": "Any",
-		"accessLevel": "Public",
-		"requiredSocialClasses": [],
-		"availableProfessionsByTime": {
-			"Morning": ["Ferryman", "Fisherman"],
-			"Afternoon": ["Ferryman", "Fisherman"],
-			"Evening": ["Fisherman"],
-			"Night": []
-		}
-	},
-	{
 		"id": "millbrook",
 		"name": "Millbrook Village",
 		"description": "A peaceful starting village centered around an old watermill, offering basic services and simple contracts for new adventurers.",
@@ -125,61 +10,38 @@
 			"night": [ "DARK", "QUIET", "RURAL" ]
 		},
 		"domainTags": [ "SOCIAL", "COMMERCE" ],
-		"locationSpots": [ "village_mill", "village_elder", "mill_pond" ],
-		"connectedTo": [ "town_square", "crossbridge" ],
+		"locationSpots": [ "market", "tavern", "workshop" ],
+		"connectedTo": [ "thornwood", "crossbridge" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],
 		"availableProfessionsByTime": {
-			"Morning": ["Miller", "Village_Elder"],
-			"Afternoon": ["Miller", "Merchant"],
-			"Evening": ["Village_Elder"],
+			"Morning": ["Market_Trader", "Workshop_Master", "Tavern_Keeper"],
+			"Afternoon": ["Market_Trader", "Workshop_Master", "Tavern_Keeper"],
+			"Evening": ["Tavern_Keeper"],
 			"Night": []
 		}
 	},
 	{
-		"id": "eastport",
-		"name": "Eastport Harbor",
-		"description": "A bustling coastal city where maritime traders dock exotic ships filled with rare goods and lucrative contracts.",
+		"id": "thornwood",
+		"name": "Thornwood Village",
+		"description": "A resource-rich settlement surrounded by dense forests, where loggers and gatherers provide raw materials for regional trade.",
 		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "SALTY", "COMMERCE" ],
-			"afternoon": [ "WELL-LIT", "CROWDED", "COMMERCE" ],
-			"evening": [ "SHADOWY", "BUSY", "MARITIME" ],
-			"night": [ "DARK", "DANGEROUS", "MARITIME" ]
+			"morning": [ "WELL-LIT", "FOREST", "RURAL" ],
+			"afternoon": [ "WELL-LIT", "BUSY", "RURAL" ],
+			"evening": [ "SHADOWY", "QUIET", "RURAL" ],
+			"night": [ "DARK", "PEACEFUL", "RURAL" ]
 		},
-		"domainTags": [ "COMMERCE", "MARITIME", "LUXURY" ],
-		"locationSpots": [ "harbor_master", "customs_house", "maritime_tavern", "exotic_market" ],
-		"connectedTo": [ "riverside_settlement", "crossbridge" ],
-		"socialExpectation": "Merchant",
-		"accessLevel": "Restricted",
-		"requiredSocialClasses": [ "Merchant" ],
+		"domainTags": [ "RESOURCES", "LABOR" ],
+		"locationSpots": [ "logging_camp", "tavern" ],
+		"connectedTo": [ "millbrook", "crossbridge" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
 		"availableProfessionsByTime": {
-			"Morning": ["Harbor_Master", "Ship_Captain"],
-			"Afternoon": ["Ship_Captain", "Exotic_Trader"],
-			"Evening": ["Ship_Captain", "Smuggler"],
-			"Night": ["Smuggler"]
-		}
-	},
-	{
-		"id": "ironhold",
-		"name": "Ironhold Fortress",
-		"description": "A fortified mountain settlement built around iron mines, where hardy miners extract valuable ore and skilled blacksmiths forge exceptional equipment.",
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "INDUSTRIAL", "MOUNTAIN" ],
-			"afternoon": [ "WELL-LIT", "BUSY", "INDUSTRIAL" ],
-			"evening": [ "SHADOWY", "QUIET", "MOUNTAIN" ],
-			"night": [ "DARK", "COLD", "MOUNTAIN" ]
-		},
-		"domainTags": [ "MINING", "CRAFTING", "DANGEROUS" ],
-		"locationSpots": [ "mine_entrance", "master_forge", "mining_office" ],
-		"connectedTo": [ "mountain_summit", "crossbridge" ],
-		"socialExpectation": "Professional",
-		"accessLevel": "Restricted",
-		"requiredSocialClasses": [ "Professional" ],
-		"availableProfessionsByTime": {
-			"Morning": ["Mine_Foreman", "Master_Smith"],
-			"Afternoon": ["Mine_Foreman", "Master_Smith"],
-			"Evening": ["Master_Smith"],
+			"Morning": ["Logger", "Herb_Gatherer", "Camp_Boss"],
+			"Afternoon": ["Logger", "Herb_Gatherer", "Camp_Boss"],
+			"Evening": ["Camp_Boss"],
 			"Night": []
 		}
 	},
@@ -194,38 +56,15 @@
 			"night": [ "DARK", "QUIET", "COMMERCE" ]
 		},
 		"domainTags": [ "COMMERCE", "TRANSPORT", "STRATEGIC" ],
-		"locationSpots": [ "caravan_master", "transport_depot", "trading_hall", "route_board" ],
-		"connectedTo": [ "millbrook", "eastport", "ironhold", "town_square" ],
+		"locationSpots": [ "market", "workshop", "dock" ],
+		"connectedTo": [ "millbrook", "thornwood" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],
 		"availableProfessionsByTime": {
-			"Morning": ["Caravan_Master", "Route_Planner"],
-			"Afternoon": ["Caravan_Master", "Merchant", "Route_Planner"],
-			"Evening": ["Merchant", "Information_Broker"],
-			"Night": ["Information_Broker"]
-		}
-	},
-	{
-		"id": "ancient_ruins",
-		"name": "Forgotten Sanctum",
-		"description": "Hidden ancient ruins discovered only by those with specific knowledge, containing valuable artifacts and dangerous exploration opportunities.",
-		"environmentalProperties": {
-			"morning": [ "SHADOWY", "MYSTERIOUS", "DANGEROUS" ],
-			"afternoon": [ "WELL-LIT", "MYSTERIOUS", "DANGEROUS" ],
-			"evening": [ "SHADOWY", "OMINOUS", "DANGEROUS" ],
-			"night": [ "DARK", "TREACHEROUS", "DANGEROUS" ]
-		},
-		"domainTags": [ "EXPLORATION", "DANGEROUS", "HIDDEN" ],
-		"locationSpots": [ "artifact_chamber", "crumbling_altar", "hidden_passage" ],
-		"connectedTo": [ "mountain_summit" ],
-		"socialExpectation": "Explorer",
-		"accessLevel": "Hidden",
-		"requiredSocialClasses": [ "Professional" ],
-		"availableProfessionsByTime": {
-			"Morning": ["Archaeologist"],
-			"Afternoon": ["Archaeologist"],
-			"Evening": [],
+			"Morning": ["Dock_Master", "Trade_Captain", "River_Worker"],
+			"Afternoon": ["Dock_Master", "Trade_Captain", "River_Worker"],
+			"Evening": ["Trade_Captain"],
 			"Night": []
 		}
 	}
