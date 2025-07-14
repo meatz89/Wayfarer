@@ -1,0 +1,58 @@
+[
+	{
+		"id": "dusty_flagon_main_room",
+		"name": "Main Room",
+		"locationId": "dusty_flagon",
+		"description": "The main common room of the inn",
+		"accessRequirements": []
+	},
+	{
+		"id": "town_square_marketplace",
+		"name": "Marketplace",
+		"locationId": "town_square",
+		"description": "The bustling marketplace where goods are traded",
+		"accessRequirements": []
+	},
+	{
+		"id": "workshop_main_floor",
+		"name": "Main Floor",
+		"locationId": "workshop",
+		"description": "The main working area of the artisan workshop",
+		"accessRequirements": []
+	},
+	{
+		"id": "mountain_pass_trail",
+		"name": "Mountain Trail",
+		"locationId": "mountain_pass",
+		"description": "The main trail through the mountain pass",
+		"accessRequirements": []
+	},
+	{
+		"id": "mountain_summit_peak",
+		"name": "Summit Peak",
+		"locationId": "mountain_summit",
+		"description": "The very top of the mountain",
+		"accessRequirements": []
+	},
+	{
+		"id": "millbrook_mill",
+		"name": "Mill",
+		"locationId": "millbrook",
+		"description": "The main mill building",
+		"accessRequirements": []
+	},
+	{
+		"id": "merchant_guild_hall",
+		"name": "Guild Hall",
+		"locationId": "merchant_guild",
+		"description": "The main hall of the merchant guild",
+		"accessRequirements": []
+	},
+	{
+		"id": "ancient_ruins_entrance",
+		"name": "Ruins Entrance",
+		"locationId": "ancient_ruins",
+		"description": "The entrance to the ancient ruins",
+		"accessRequirements": []
+	}
+]

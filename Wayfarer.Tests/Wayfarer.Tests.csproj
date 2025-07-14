@@ -24,4 +24,10 @@
     <ProjectReference Include="../src/Wayfarer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Content\Templates\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -95,33 +95,79 @@ public static class TestGameWorldInitializer
     {
         // Initialize collections
         gameWorld.WorldState.locations = new List<Location>();
+        gameWorld.WorldState.locationSpots = new List<LocationSpot>();
+        gameWorld.WorldState.Routes = new List<RouteOption>();
         gameWorld.WorldState.Items = new List<Item>();
         gameWorld.WorldState.Contracts = new List<Contract>();
         
-        // Add basic test locations
-        gameWorld.WorldState.locations.AddRange(new[]
+        // Load locations from TEST-SPECIFIC JSON file - NEVER use production content
+        List<Location> locations = new List<Location>();
+        string testLocationsFilePath = Path.Combine("Content", "Templates", "locations.json");
+        if (File.Exists(testLocationsFilePath))
         {
-            new Location("dusty_flagon", "The Dusty Flagon")
+            locations = GameWorldSerializer.DeserializeLocations(
+                File.ReadAllText(testLocationsFilePath));
+            gameWorld.WorldState.locations.AddRange(locations);
+            Console.WriteLine($"Loaded {locations.Count} locations from TEST templates.");
+        }
+        else
+        {
+            Console.WriteLine($"WARNING: TEST locations.json not found at {testLocationsFilePath}. Using basic test locations.");
+            // Fallback to basic test locations
+            gameWorld.WorldState.locations.AddRange(new[]
             {
-                Description = "A rustic tavern and trading post"
-            },
-            new Location("town_square", "Town Square")
-            {
-                Description = "The bustling center of commerce"
-            },
-            new Location("workshop", "Artisan Workshop")
-            {
-                Description = "A place for skilled craftswork"
-            },
-            new Location("mountain_summit", "Mountain Summit")
-            {
-                Description = "A high peak with commanding views"
-            }
-        });
+                new Location("dusty_flagon", "The Dusty Flagon")
+                {
+                    Description = "A rustic tavern and trading post"
+                },
+                new Location("town_square", "Town Square")
+                {
+                    Description = "The bustling center of commerce"
+                },
+                new Location("workshop", "Artisan Workshop")
+                {
+                    Description = "A place for skilled craftswork"
+                },
+                new Location("mountain_summit", "Mountain Summit")
+                {
+                    Description = "A high peak with commanding views"
+                }
+            });
+        }
+        
+        // Load location spots from TEST-SPECIFIC JSON file
+        List<LocationSpot> locationSpots = new List<LocationSpot>();
+        string testLocationSpotsFilePath = Path.Combine("Content", "Templates", "location_spots.json");
+        if (File.Exists(testLocationSpotsFilePath))
+        {
+            locationSpots = GameWorldSerializer.DeserializeLocationSpots(
+                File.ReadAllText(testLocationSpotsFilePath));
+            gameWorld.WorldState.locationSpots.AddRange(locationSpots);
+            Console.WriteLine($"Loaded {locationSpots.Count} location spots from TEST templates.");
+        }
+        else
+        {
+            Console.WriteLine($"WARNING: TEST location_spots.json not found at {testLocationSpotsFilePath}. Using basic test spots.");
+        }
+        
+        // Load routes from TEST-SPECIFIC JSON file
+        List<RouteOption> routes = new List<RouteOption>();
+        string testRoutesFilePath = Path.Combine("Content", "Templates", "routes.json");
+        if (File.Exists(testRoutesFilePath))
+        {
+            routes = GameWorldSerializer.DeserializeRouteOptions(
+                File.ReadAllText(testRoutesFilePath));
+            gameWorld.WorldState.Routes.AddRange(routes);
+            Console.WriteLine($"Loaded {routes.Count} routes from TEST templates.");
+        }
+        else
+        {
+            Console.WriteLine($"WARNING: TEST routes.json not found at {testRoutesFilePath}. Using basic test routes.");
+        }
         
         // Load items from TEST-SPECIFIC JSON file - NEVER use production content
         List<Item> items = new List<Item>();
-        string testItemsFilePath = Path.Combine("Wayfarer.Tests", "Content", "Templates", "items.json");
+        string testItemsFilePath = Path.Combine("Content", "Templates", "items.json");
         if (File.Exists(testItemsFilePath))
         {
             items = GameWorldSerializer.DeserializeItems(
@@ -162,7 +208,7 @@ public static class TestGameWorldInitializer
         
         // Load contracts from TEST-SPECIFIC JSON file - NEVER use production content
         List<Contract> contracts = new List<Contract>();
-        string testContractsFilePath = Path.Combine("Wayfarer.Tests", "Content", "Templates", "contracts.json");
+        string testContractsFilePath = Path.Combine("Content", "Templates", "contracts.json");
         if (File.Exists(testContractsFilePath))
         {
             contracts = GameWorldSerializer.DeserializeContracts(

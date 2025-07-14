@@ -54,13 +54,29 @@ public class ContractPipelineIntegrationTest
         Player player = gameWorld.GetPlayer();
         Assert.Equal(20, player.Coins);
         Assert.Equal("dusty_flagon", player.CurrentLocation?.Id);
+        
+        // Debug: Check what contracts are loaded
+        Console.WriteLine($"Total contracts loaded: {gameWorld.WorldState.Contracts.Count}");
+        foreach (var c in gameWorld.WorldState.Contracts)
+        {
+            Console.WriteLine($"Contract ID: {c.Id}, Available: {contracts.IsContractAvailable(c.Id)}");
+        }
+        
         Assert.True(contracts.IsContractAvailable("herb_delivery"));
         
         // === ACCEPT CONTRACT ===
         // Direct contract manipulation (simulates GameWorldManager.ExecuteContractAction)
         Contract herbContract = contracts.GetContract("herb_delivery");
         Assert.NotNull(herbContract);
-        gameWorld.ActiveContracts.Add(herbContract);
+        contracts.AddActiveContract(herbContract);
+        
+        // Debug: Check active contracts
+        var activeContracts = contracts.GetActiveContracts();
+        Console.WriteLine($"Active contracts count: {activeContracts.Count}");
+        foreach (var c in activeContracts)
+        {
+            Console.WriteLine($"Active contract ID: {c?.Id}");
+        }
         
         // Verify contract status using repository methods
         ContractCompletionResult contractStatus = contracts.GetContractStatus("herb_delivery");
@@ -70,8 +86,9 @@ public class ContractPipelineIntegrationTest
         // === FIRST TRAVEL - TO MARKET ===
         // Player travels to town_square to buy herbs (player choice, not contract requirement)
         
-        // Simulate travel (direct property access - GameWorld already provides this)
-        Location townSquare = gameWorld.WorldState.locations.First(l => l.Id == "town_square");
+        // Simulate travel using repository pattern
+        Location townSquare = locationRepository.GetLocation("town_square");
+        Assert.NotNull(townSquare); // Ensure test data is loaded correctly
         player.CurrentLocation = townSquare;
         gameWorld.WorldState.SetCurrentLocation(townSquare, null);
         
@@ -169,7 +186,7 @@ public class ContractPipelineIntegrationTest
         
         // Accept contract
         Contract herbContract = contracts.GetContract("herb_delivery");
-        gameWorld.ActiveContracts.Add(herbContract);
+        contracts.AddActiveContract(herbContract);
         
         // Verify setup
         Player player = gameWorld.GetPlayer();
@@ -206,18 +223,20 @@ public class ContractPipelineIntegrationTest
         // Accept contract - scout_mountain_pass is perfect for travel-only testing
         // Only requires travel to mountain_pass, no transactions needed
         Contract scoutContract = contracts.GetContract("scout_mountain_pass");
-        gameWorld.ActiveContracts.Add(scoutContract);
+        contracts.AddActiveContract(scoutContract);
         
         // Verify initial state
         ContractCompletionResult initialStatus = contracts.GetContractStatus("scout_mountain_pass");
         Assert.Equal(ContractStatus.Active, initialStatus.Status);
         Assert.Empty(initialStatus.CompletedDestinations);
         
-        // Travel to destination - need to add mountain_pass location for test
+        // Travel to destination - use repository to get the location
         Player player = gameWorld.GetPlayer();
-        var mountainPass = new Location("mountain_pass", "Mountain Pass") { Description = "A treacherous mountain passage" };
-        gameWorld.WorldState.locations.Add(mountainPass);
+        LocationRepository locationRepo = new LocationRepository(gameWorld);
+        Location mountainPass = locationRepo.GetLocation("mountain_pass");
+        Assert.NotNull(mountainPass); // Ensure test data is loaded correctly
         
+        // Set player location using proper business logic pattern
         player.CurrentLocation = mountainPass;
         gameWorld.WorldState.SetCurrentLocation(mountainPass, null);
         
@@ -261,7 +280,7 @@ public class ContractPipelineIntegrationTest
         
         // Accept contract - artisan_masterwork has both transaction and destination requirements
         Contract complexContract = contracts.GetContract("artisan_masterwork");
-        gameWorld.ActiveContracts.Add(complexContract);
+        contracts.AddActiveContract(complexContract);
         
         // Verify initial state
         ContractCompletionResult initialStatus = contracts.GetContractStatus("artisan_masterwork");
@@ -272,8 +291,10 @@ public class ContractPipelineIntegrationTest
         // === COMPLETE FIRST REQUIREMENT: TRANSACTION ===
         Player player = gameWorld.GetPlayer();
         
-        // Travel to workshop
-        Location workshop = gameWorld.WorldState.locations.First(l => l.Id == "workshop");
+        // Travel to workshop using repository pattern
+        LocationRepository locationRepo = new LocationRepository(gameWorld);
+        Location workshop = locationRepo.GetLocation("workshop");
+        Assert.NotNull(workshop); // Ensure test data is loaded correctly
         player.CurrentLocation = workshop;
         gameWorld.WorldState.SetCurrentLocation(workshop, null);
         
@@ -289,7 +310,8 @@ public class ContractPipelineIntegrationTest
         Assert.True(partialStatus.ProgressPercentage > 0f && partialStatus.ProgressPercentage < 1f);
         
         // === COMPLETE SECOND REQUIREMENT: DESTINATION ===
-        Location mountainSummit = gameWorld.WorldState.locations.First(l => l.Id == "mountain_summit");
+        Location mountainSummit = locationRepo.GetLocation("mountain_summit");
+        Assert.NotNull(mountainSummit); // Ensure test data is loaded correctly
         player.CurrentLocation = mountainSummit;
         gameWorld.WorldState.SetCurrentLocation(mountainSummit, null);
         
