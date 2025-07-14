@@ -71,7 +71,7 @@ The game follows a **categorical interconnection** principle where gameplay emer
 ### Architectural Patterns
 
 #### Repository-Mediated Access (CRITICAL)
-**ALL game state access MUST go through entity repositories - NEVER through direct GameWorld property access.**
+**ALL game state access MUST go through entity repositories.**
 
 ```csharp
 // ❌ WRONG: Direct access
@@ -86,10 +86,9 @@ itemRepository.AddItem(item);
 - **For Queries (Reading State)**: UI → Repository → GameWorld.WorldState
 
 #### Stateless Repositories
-Repositories MUST be completely stateless and only delegate to GameWorld:
-- Only allowed field: `private readonly GameWorld _gameWorld`
-- No caching, no state storage
-- All data comes from GameWorld on every method call
+Repositories MUST be completely stateless and only delegate to GameWorld.
+
+*See GAME-ARCHITECTURE.md for detailed enforcement rules and patterns.*
 
 ### Game Initialization Pipeline
 
@@ -144,10 +143,8 @@ JSON Files → GameWorldSerializer → GameWorldInitializer → GameWorld → Re
 - **Framework**: xUnit
 - **Test Isolation**: Each test class uses its own JSON content
 - **NEVER use production JSON in tests** - create test-specific data
-- **Test Utilities**:
-  - `TestGameWorldInitializer` - Test world initialization
-  - `TestGameWorldFactory` - Test world creation
-  - `TestScenarioBuilder` - Scenario setup
+
+*See GAME-ARCHITECTURE.md for detailed testing patterns and requirements.*
 
 ### Code Quality
 
@@ -161,54 +158,28 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 ### Key Design Principles
 
 1. **Emergent Mechanics**: Never hardcode restrictions. All constraints emerge from mathematical interactions between simple systems (time, stamina, coins).
-
 2. **Player Agency**: Players always retain choice but face natural consequences.
-
 3. **Discovery Through Play**: Systems are discoverable through experimentation, not tutorials.
-
 4. **Gameplay in Player's Head**: Fun comes from optimization puzzles, not automated conveniences.
-
 5. **No Hidden Mechanics**: All categories and relationships must be visible in UI.
 
+### Categorical Interconnection Requirements
 
-**Key Implementation Requirements:**
+**All entities must have unique types/categories** that interact with other system categories:
+- Items: `EquipmentCategory` (Climbing_Equipment, Weather_Protection, Navigation_Tools, etc.)
+- Routes: `TerrainCategory` (Requires_Climbing, Exposed_Weather, Wilderness_Terrain, etc.)
 
-1. **All entities must have unique types/categories**: Every entity (items, routes, locations, NPCs) should belong to meaningful categories that can interact with other system categories
-   - Items: `EquipmentCategory` (Climbing_Equipment, Weather_Protection, Navigation_Tools, etc.)
-   - Routes: `TerrainCategory` (Requires_Climbing, Exposed_Weather, Wilderness_Terrain, etc.)
-
-2. **Game rules should emerge from category interactions**: Instead of hardcoded bonuses/penalties, create logical relationships between categories
-   - Weather + Terrain → Access requirements
-   - Equipment + Terrain → Capability enablement  
-   - NPC Profession + Location Type → Service availability
-
-3. **Constraints should require multiple systems**: No single system should create arbitrary restrictions
-   - ✅ Good: "Mountain routes need climbing gear, but only accessible in good weather, and guides are only available on market days"
-   - ❌ Bad: "Mountain routes cost +50% stamina"
-
-4. **Categories enable discovery gameplay**: Players learn system relationships through experimentation
-   - Trying to travel in fog without navigation tools → blocked → learn navigation tools enable fog travel
-   - Weather changes block previously accessible routes → learn weather-terrain interactions
-
-5. **All entity categories must be visible in frontend UI**: For players to formulate strategies, they must be able to see and understand the categories that influence game rules
-   - Items must display their `EquipmentCategory` (Climbing_Equipment, Weather_Protection, etc.)
-   - Routes must show their `TerrainCategory` (Requires_Climbing, Exposed_Weather, etc.)
-   - Weather conditions and their effects on terrain types must be discoverable
-   - **Players cannot strategize about systems they cannot see or understand**
+**Game rules emerge from category interactions** instead of hardcoded bonuses/penalties:
+- Weather + Terrain → Access requirements
+- Equipment + Terrain → Capability enablement  
+- NPC Profession + Location Type → Service availability
 
 **Core Design Rules:**
 - **NEVER** use arbitrary mathematical modifiers (efficiency multipliers, percentage bonuses, etc.)
 - **ALWAYS** implement logical blocking/enabling instead of sliding scale penalties
-- **REQUIRE** logical justification for all constraints based on system interactions
 - **ENSURE** all entity categories are visible and understandable in the UI
-- **VALIDATE** all designs against the logical interaction checklist
 
-**UI Visibility Requirements:**
-- **Strategic Information Access**: Players must be able to inspect all relevant categories and types that affect gameplay decisions
-- **Category Display**: Show equipment categories, terrain requirements, NPC professions, location types, etc.
-- **Relationship Hints**: When blocked, provide enough information for players to understand what systems are interacting
-- **No Hidden Mechanics**: Avoid invisible systems that affect gameplay without player awareness
-- **Discovery-Friendly**: Information should be discoverable through exploration and experimentation, not automatically revealed
+*See GAME-ARCHITECTURE.md for detailed categorical system implementations.*
 
 ### CODE WRITING PRINCIPLES
 - Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
@@ -253,43 +224,7 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 - **Use proper reactive patterns** - Let Blazor's change detection handle rendering optimization
 
 
-#### **Initialization Flow Details**
-
-**Phase 1: Content Loading**
-1. `GameWorldInitializer` reads all JSON files using `GameWorldSerializer`
-2. Entities are parsed with proper categories and relationships
-3. Content validation ensures data integrity
-
-**Phase 2: Entity Relationship Building**  
-1. Locations connected to LocationSpots via `LocationId`
-2. Routes connected to origin/destination locations  
-3. Contracts validated against existing locations
-4. Items categorized with `EquipmentCategory` and `ItemCategory`
-5. **ID Resolution Methods Called**: `ConnectLocationsToSpots()`, `ConnectRoutesToLocations()`
-
-**Phase 3: GameWorld Assembly**
-1. All content loaded into `GameWorld.WorldState` collections
-2. Player initialized with starting location and inventory
-3. `TimeManager` created and linked to `GameWorld`
-4. Current location and spot set (never null after initialization)
-
-**Phase 4: Repository Creation**
-1. Repositories created with `GameWorld` dependency
-2. All repositories access data through `GameWorld` (single source of truth)
-3. No direct `WorldState` access from business logic
-
-#### **ServiceConfiguration Integration**
-```csharp
-// Production initialization pattern (src/ServiceConfiguration.cs)
-GameWorldInitializer gameWorldInitializer = new GameWorldInitializer("Content");
-GameWorld gameWorld = gameWorldInitializer.LoadGame();
-services.AddSingleton(gameWorld);
-
-// Repositories depend on initialized GameWorld
-services.AddSingleton<LocationRepository>();
-services.AddSingleton<ItemRepository>();
-// etc.
-```
+*See GAME-ARCHITECTURE.md for detailed initialization flow and system dependencies.*
 
 # Development Principles: Emergent Design
 
