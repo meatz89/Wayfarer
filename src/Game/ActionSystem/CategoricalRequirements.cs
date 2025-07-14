@@ -82,156 +82,22 @@ public class ToolCategoryRequirement : IRequirement
         return PlayerHasToolCategory(player, _requiredTool);
     }
 
+    private bool PlayerHasToolCategory(Player player, ToolCategory requiredTool)
+    {
+        throw new NotImplementedException();
+    }
+
     public string GetDescription()
     {
         return $"Requires {GetToolCategoryDescription(_requiredTool)}";
     }
 
-    private bool PlayerHasToolCategory(Player player, ToolCategory category)
+    private object GetToolCategoryDescription(ToolCategory requiredTool)
     {
-        return category switch
-        {
-            ToolCategory.None => true,
-            ToolCategory.Basic_Tools => HasBasicTools(player),
-            ToolCategory.Specialized_Equipment => HasSpecializedEquipment(player),
-            ToolCategory.Trade_Samples => HasTradeSamples(player),
-            ToolCategory.Documentation => HasDocumentation(player),
-            ToolCategory.Quality_Materials => HasQualityMaterials(player),
-            ToolCategory.Writing_Materials => HasWritingMaterials(player),
-            ToolCategory.Measurement_Tools => HasMeasurementTools(player),
-            ToolCategory.Safety_Equipment => HasSafetyEquipment(player),
-            ToolCategory.Social_Attire => HasSocialAttire(player),
-            ToolCategory.Crafting_Supplies => HasCraftingSupplies(player),
-            _ => false
-        };
-    }
-
-    private bool HasBasicTools(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("tools") ||
-                item.Contains("hammer") ||
-                item.Contains("knife")
-            ));
-    }
-
-    private bool HasSpecializedEquipment(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("specialized") ||
-                item.Contains("professional") ||
-                item.Contains("precision")
-            ));
-    }
-
-
-    private bool HasTradeSamples(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("sample") ||
-                item.Contains("quality") ||
-                item.Contains("fine")
-            ));
-    }
-
-    private bool HasDocumentation(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("document") ||
-                item.Contains("contract") ||
-                item.Contains("permit") ||
-                item.Contains("papers")
-            ));
-    }
-
-    private bool HasQualityMaterials(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("quality") ||
-                item.Contains("fine") ||
-                item.Contains("premium") ||
-                item.Contains("silk") ||
-                item.Contains("precious")
-            ));
-    }
-
-    private bool HasWritingMaterials(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("ink") ||
-                item.Contains("paper") ||
-                item.Contains("parchment") ||
-                item.Contains("quill")
-            ));
-    }
-
-    private bool HasMeasurementTools(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("scale") ||
-                item.Contains("ruler") ||
-                item.Contains("measure")
-            ));
-    }
-
-    private bool HasSafetyEquipment(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("protection") ||
-                item.Contains("safety") ||
-                item.Contains("armor") ||
-                item.Contains("shield")
-            ));
-    }
-
-    private bool HasSocialAttire(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("formal") ||
-                item.Contains("dress") ||
-                item.Contains("ceremonial") ||
-                item.Contains("attire")
-            ));
-    }
-
-    private bool HasCraftingSupplies(Player player)
-    {
-        return player.Inventory.ItemSlots.Any(item =>
-            item != null && (
-                item.Contains("material") ||
-                item.Contains("supply") ||
-                item.Contains("component") ||
-                item.Contains("ingredient")
-            ));
-    }
-
-    private string GetToolCategoryDescription(ToolCategory category)
-    {
-        return category switch
-        {
-            ToolCategory.Basic_Tools => "basic tools",
-            ToolCategory.Specialized_Equipment => "specialized equipment",
-            ToolCategory.Trade_Samples => "quality trade samples",
-            ToolCategory.Documentation => "proper documentation",
-            ToolCategory.Quality_Materials => "quality materials",
-            ToolCategory.Writing_Materials => "writing materials",
-            ToolCategory.Measurement_Tools => "measurement tools",
-            ToolCategory.Safety_Equipment => "safety equipment",
-            ToolCategory.Social_Attire => "appropriate social attire",
-            ToolCategory.Crafting_Supplies => "crafting supplies",
-            _ => category.ToString().Replace("_", " ").ToLower()
-        };
+        throw new NotImplementedException();
     }
 }
+
 
 /// <summary>
 /// Validates knowledge and skill requirements
@@ -262,9 +128,9 @@ public class KnowledgeLevelRequirement : IRequirement
         // In full categorical system, would check specific knowledge categories
         return requirement switch
         {
-            ActionSystem.KnowledgeRequirement.None => true,
-            ActionSystem.KnowledgeRequirement.Local => HasLocalKnowledge(player),
-            ActionSystem.KnowledgeRequirement.Cultural => HasCulturalKnowledge(player),
+            KnowledgeRequirement.None => true,
+            KnowledgeRequirement.Local => HasLocalKnowledge(player),
+            KnowledgeRequirement.Cultural => HasCulturalKnowledge(player),
             _ => false
         };
     }

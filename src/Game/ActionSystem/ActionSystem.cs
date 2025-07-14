@@ -1,5 +1,7 @@
 ﻿using System.Text;
 
+namespace Wayfarer.Game.ActionSystem;
+
 public class ActionSystem
 {
     private ActionRepository actionRepository;
@@ -13,6 +15,8 @@ public class ActionSystem
         this.actionRepository = actionRepository;
         this.locationSystem = locationSystem;
     }
+
+    public static object KnowledgeRequirement { get; internal set; }
 
     public string FormatExistingActions(List<Location> locations)
     {

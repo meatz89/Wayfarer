@@ -2,7 +2,6 @@
 {
     private EncounterContext _context;
     private EncounterState _state;
-    private LocationAction _locationAction;
     private AIGameMaster _aiGameMaster;
     private WorldStateInputBuilder _worldStateInputBuilder;
     private ChoiceProjectionService _projectionService;
@@ -23,7 +22,6 @@
     {
         _context = encounterContext;
         _state = state;
-        this._locationAction = locationAction;
         _projectionService = choiceProjectionService;
         _aiGameMaster = aiGameMaster;
         _worldStateInputBuilder = worldStateInputBuilder;

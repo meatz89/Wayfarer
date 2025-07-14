@@ -372,6 +372,15 @@ dotnet_diagnostic.S2589.severity = none
 # CA1869: Cache and reuse 'JsonSerializerOptions' instances
 dotnet_diagnostic.CA1869.severity = none
 
+# S4487: Unread "private" fields should be removed
+dotnet_diagnostic.S4487.severity = none
+
+# CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA1707.severity = none
+
+# RCS1102: Make class static
+dotnet_diagnostic.RCS1102.severity = none
+
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion

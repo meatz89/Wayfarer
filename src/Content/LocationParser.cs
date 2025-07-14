@@ -18,9 +18,9 @@ public static class LocationParser
         Location location = new Location(id, name)
         {
             Description = GetStringProperty(root, "description", ""),
-            ConnectedLocationIds = GetStringArray(root, "connectedTo"),
-            LocationSpotIds = GetStringArray(root, "locationSpots"),
-            DomainTags = GetStringArray(root, "domainTags")
+            ConnectedLocationIds = GetStringArrayFromProperty(root, "connectedTo"),
+            LocationSpotIds = GetStringArrayFromProperty(root, "locationSpots"),
+            DomainTags = GetStringArrayFromProperty(root, "domainTags")
         };
 
         if (root.TryGetProperty("environmentalProperties", out JsonElement envProps) &&
@@ -83,14 +83,14 @@ public static class LocationParser
             InitialState = GetStringProperty(root, "initialState", ""),
             LocationId = locationId,
             Type = Enum.Parse<LocationSpotTypes>(GetStringProperty(root, "type", "FEATURE"), true),
-            DomainTags = GetStringArray(root, "domainTags"),
+            DomainTags = GetStringArrayFromProperty(root, "domainTags"),
             PreferredApproach = GetStringProperty(root, "preferredApproach", null),
             DislikedApproach = GetStringProperty(root, "dislikedApproach", null),
             DomainExpertise = GetStringProperty(root, "domainExpertise", null)
         };
 
         // Parse time windows
-        List<string> CurrentTimeBlockStrings = GetStringArray(root, "CurrentTimeBlocks");
+        List<string> CurrentTimeBlockStrings = GetStringArrayFromProperty(root, "CurrentTimeBlocks");
 
         foreach (string windowString in CurrentTimeBlockStrings)
         {
@@ -144,28 +144,5 @@ public static class LocationParser
             return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
         }
         return defaultValue;
-    }
-
-    private static List<string> GetStringArray(JsonElement element, string propertyName)
-    {
-        List<string> results = new List<string>();
-
-        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
-            arrayElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement item in arrayElement.EnumerateArray())
-            {
-                if (item.ValueKind == JsonValueKind.String)
-                {
-                    string value = item.GetString() ?? string.Empty;
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        results.Add(value);
-                    }
-                }
-            }
-        }
-
-        return results;
     }
 }

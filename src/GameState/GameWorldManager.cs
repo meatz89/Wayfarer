@@ -1,6 +1,4 @@
-﻿using Wayfarer.Game.MainSystem;
-
-public class GameWorldManager
+﻿public class GameWorldManager
 {
     private bool _useMemory;
     private bool _processStateChanges;

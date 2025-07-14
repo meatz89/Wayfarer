@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Wayfarer.Content;
 
 namespace Wayfarer.Tests;
 
