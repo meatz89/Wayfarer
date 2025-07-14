@@ -2,7 +2,7 @@
 {
     private LocationSystem locationSystem;
     private CharacterSystem characterSystem;
-    private ContractSystem OpportunitySystem;
+    private ContractSystem ContractSystem;
     private GameWorld gameWorld;
     private ActionGenerator actionGenerator;
     private LocationRepository locationRepository;
@@ -26,7 +26,7 @@
     {
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
-        this.OpportunitySystem = contractSystem;
+        this.ContractSystem = contractSystem;
         this.gameWorld = gameWorld;
         this.actionGenerator = actionGenerator;
         this.locationRepository = locationRepository;
@@ -136,7 +136,7 @@
 
             KnownLocations = this.locationSystem.FormatLocations(allLocations),
             KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
-            ActiveContracts = OpportunitySystem.FormatActiveContracts(worldState.Contracts),
+            ActiveContracts = ContractSystem.FormatActiveContracts(worldState.Contracts),
 
             CurrentLocationSpots = this.locationSystem.FormatLocationSpots(worldState.CurrentLocation),
             ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
