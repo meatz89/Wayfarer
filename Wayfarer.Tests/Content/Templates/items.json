@@ -9,8 +9,8 @@
 		"categories": [],
 		"itemCategories": [ "Raw_Materials", "Perishable" ],
 		"size": "Small",
-		"locationId": "town_square",
-		"spotId": "marketplace",
+		"locationId": "test_travel_destination",
+		"spotId": "test_destination_spot",
 		"description": "Common herbs useful for cooking and basic remedies."
 	},
 	{

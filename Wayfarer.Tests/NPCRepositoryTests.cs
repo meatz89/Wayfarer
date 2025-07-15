@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Wayfarer.Tests
 {
     /// <summary>
@@ -7,8 +10,25 @@ namespace Wayfarer.Tests
     {
         private GameWorld CreateTestGameWorld()
         {
-            GameWorldInitializer initializer = new GameWorldInitializer("Content");
-            return initializer.LoadGame();
+            // Create test service provider with test content
+            IServiceCollection services = new ServiceCollection();
+            
+            // Add configuration
+            IConfiguration configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    {"DefaultAIProvider", "None"} // Disable AI
+                })
+                .Build();
+            services.AddSingleton(configuration);
+            services.AddLogging();
+            
+            // Use test service configuration
+            services.ConfigureTestServices("Content");
+            
+            // Build service provider and get GameWorld
+            using ServiceProvider serviceProvider = services.BuildServiceProvider();
+            return serviceProvider.GetRequiredService<GameWorld>();
         }
 
         [Fact]
@@ -35,12 +55,12 @@ namespace Wayfarer.Tests
             NPCRepository npcRepository = new NPCRepository(gameWorld);
 
             // Act
-            NPC marcus = npcRepository.GetNPCById("innkeeper_marcus");
+            NPC testMerchant = npcRepository.GetNPCById("test_merchant_npc");
 
             // Assert
-            Assert.NotNull(marcus);
-            Assert.Equal("innkeeper_marcus", marcus.ID);
-            Assert.Equal("Marcus the Innkeeper", marcus.Name);
+            Assert.NotNull(testMerchant);
+            Assert.Equal("test_merchant_npc", testMerchant.ID);
+            Assert.Equal("Test Merchant", testMerchant.Name);
         }
 
         [Fact]
@@ -50,17 +70,26 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = CreateTestGameWorld();
             NPCRepository npcRepository = new NPCRepository(gameWorld);
 
+            // Debug: Check all NPCs and their locations
+            List<NPC> allNPCs = npcRepository.GetAllNPCs();
+            Assert.True(allNPCs.Count > 0, $"No NPCs loaded! Expected at least 6 NPCs.");
+            foreach (var npc in allNPCs)
+            {
+                Assert.True(!string.IsNullOrEmpty(npc.Location), $"NPC {npc.Name} has empty Location!");
+            }
+
             // Act
-            List<NPC> dustyFlagonNPCs = npcRepository.GetNPCsForLocation("dusty_flagon");
+            List<NPC> testLocationNPCs = npcRepository.GetNPCsForLocation("test_start_location");
 
             // Assert
-            Assert.NotNull(dustyFlagonNPCs);
-            Assert.NotEmpty(dustyFlagonNPCs);
+            Assert.NotNull(testLocationNPCs);
+            Assert.NotEmpty(testLocationNPCs);
+            Assert.True(testLocationNPCs.Count >= 3, "Should have at least 3 NPCs at test_start_location");
 
-            // Verify all NPCs are indeed at dusty_flagon
-            foreach (NPC npc in dustyFlagonNPCs)
+            // Verify all NPCs are indeed at test_start_location
+            foreach (NPC npc in testLocationNPCs)
             {
-                Assert.Equal("dusty_flagon", npc.Location);
+                Assert.Equal("test_start_location", npc.Location);
             }
         }
 
@@ -140,15 +169,16 @@ namespace Wayfarer.Tests
             NPCRepository npcRepository = new NPCRepository(gameWorld);
 
             // Act
-            List<NPC> availableNPCs = npcRepository.GetNPCsForLocationAndTime("dusty_flagon", TimeBlocks.Afternoon);
+            List<NPC> availableNPCs = npcRepository.GetNPCsForLocationAndTime("test_start_location", TimeBlocks.Afternoon);
 
             // Assert
             Assert.NotNull(availableNPCs);
+            Assert.NotEmpty(availableNPCs); // test_merchant_npc and test_craftsman_npc should be available in afternoon
 
             // Verify all returned NPCs are at the location and available at the time
             foreach (NPC npc in availableNPCs)
             {
-                Assert.Equal("dusty_flagon", npc.Location);
+                Assert.Equal("test_start_location", npc.Location);
                 Assert.True(npc.IsAvailable(TimeBlocks.Afternoon),
                     $"NPC {npc.Name} should be available in the afternoon");
             }
@@ -190,13 +220,13 @@ namespace Wayfarer.Tests
             // Get initial count
             int initialCount = npcRepository.GetAllNPCs().Count;
 
-            // Act
-            bool removed = npcRepository.RemoveNPC("innkeeper_marcus");
+            // Act - remove a test NPC we know exists
+            bool removed = npcRepository.RemoveNPC("test_innkeeper_npc");
 
             // Assert
             Assert.True(removed);
             Assert.Equal(initialCount - 1, npcRepository.GetAllNPCs().Count);
-            Assert.Null(npcRepository.GetNPCById("innkeeper_marcus"));
+            Assert.Null(npcRepository.GetNPCById("test_innkeeper_npc"));
         }
 
         [Fact]

@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Wayfarer.Game.MainSystem;
 using Xunit;
 
@@ -7,8 +9,25 @@ public class TravelTimeConsumptionTests
 {
     private GameWorld CreateTestGameWorld()
     {
-        GameWorldInitializer initializer = new GameWorldInitializer("Content");
-        return initializer.LoadGame();
+        // Create test service provider with test content
+        IServiceCollection services = new ServiceCollection();
+        
+        // Add configuration
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                {"DefaultAIProvider", "None"} // Disable AI
+            })
+            .Build();
+        services.AddSingleton(configuration);
+        services.AddLogging();
+        
+        // Use test service configuration
+        services.ConfigureTestServices("Content");
+        
+        // Build service provider and get GameWorld
+        using ServiceProvider serviceProvider = services.BuildServiceProvider();
+        return serviceProvider.GetRequiredService<GameWorld>();
     }
 
     [Fact]
@@ -38,7 +57,7 @@ public class TravelTimeConsumptionTests
 
         // Find a valid route from the JSON data
         string currentLocationId = gameWorld.CurrentLocation.Id;
-        List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes(currentLocationId, "town_square");
+        List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes(currentLocationId, "test_travel_destination");
 
         // Skip test if no routes available (this should not happen with proper test data)
         if (!availableRoutes.Any())
@@ -51,7 +70,7 @@ public class TravelTimeConsumptionTests
         int expectedTimeBlockCost = testRoute.TimeBlockCost;
 
         // Act
-        travelManager.TravelToLocation("town_square", "main_square", testRoute);
+        travelManager.TravelToLocation("test_travel_destination", "test_destination_spot", testRoute);
 
         // Assert
         int finalTimeBlocks = gameWorld.TimeManager.UsedTimeBlocks;
@@ -126,7 +145,7 @@ public class TravelTimeConsumptionTests
 
         // Find a route that would exceed the daily limit
         string currentLocationId = gameWorld.CurrentLocation.Id;
-        List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes(currentLocationId, "town_square");
+        List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes(currentLocationId, "test_travel_destination");
 
         if (!availableRoutes.Any())
         {
@@ -141,14 +160,14 @@ public class TravelTimeConsumptionTests
         {
             // Act & Assert
             Assert.Throws<InvalidOperationException>(() =>
-                travelManager.TravelToLocation("town_square", "main_square", testRoute)
+                travelManager.TravelToLocation("test_travel_destination", "test_destination_spot", testRoute)
             );
         }
         else
         {
             // If route only costs 1 block, it should succeed
             int initialTimeBlocks = gameWorld.TimeManager.UsedTimeBlocks;
-            travelManager.TravelToLocation("town_square", "main_square", testRoute);
+            travelManager.TravelToLocation("test_travel_destination", "test_destination_spot", testRoute);
             Assert.Equal(initialTimeBlocks + 1, gameWorld.TimeManager.UsedTimeBlocks);
         }
     }

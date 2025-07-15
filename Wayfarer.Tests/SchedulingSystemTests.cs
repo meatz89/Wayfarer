@@ -15,7 +15,7 @@ namespace Wayfarer.Tests
             // === SETUP ===
             TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p
-                    .StartAt("town_square")
+                    .StartAt("test_start_location")
                     .WithCoins(100))
                 .WithTimeState(t => t
                     .Day(1)
@@ -28,7 +28,7 @@ namespace Wayfarer.Tests
             {
                 ID = "trader_elena",
                 Name = "Elena the Trader",
-                Location = "town_square",
+                Location = "test_start_location",
                 Profession = Professions.Merchant,
                 AvailabilitySchedule = Schedule.Market_Hours,
                 ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
@@ -48,12 +48,12 @@ namespace Wayfarer.Tests
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, npcRepository, locationRepository);
 
             // === TEST NIGHT TIME (Market Closed) ===
-            string nightStatus = marketManager.GetMarketAvailabilityStatus("town_square");
+            string nightStatus = marketManager.GetMarketAvailabilityStatus("test_start_location");
             Assert.Contains("opens at", nightStatus.ToLower());  // Market should be closed with next opening time
 
             // === CHANGE TO MORNING (Market Open) ===
             gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
-            string morningStatus = marketManager.GetMarketAvailabilityStatus("town_square");
+            string morningStatus = marketManager.GetMarketAvailabilityStatus("test_start_location");
             Assert.Contains("open", morningStatus.ToLower());  // Market should be open
         }
 
@@ -63,7 +63,7 @@ namespace Wayfarer.Tests
             // === SETUP ===
             TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p
-                    .StartAt("dusty_flagon")
+                    .StartAt("test_start_location")
                     .WithCoins(100))
                 .WithTimeState(t => t
                     .Day(1)
@@ -79,8 +79,8 @@ namespace Wayfarer.Tests
             {
                 Id = "express_coach",
                 Name = "Express Coach",
-                Origin = "dusty_flagon",
-                Destination = "town_square",
+                Origin = "test_start_location",
+                Destination = "test_travel_destination",
                 Method = TravelMethods.Carriage,
                 DepartureTime = TimeBlocks.Morning,
                 BaseCoinCost = 8,
@@ -91,16 +91,16 @@ namespace Wayfarer.Tests
             };
 
             // Add route to location connections
-            Location dustyFlagon = gameWorld.WorldState.locations.First(l => l.Id == "dusty_flagon");
-            LocationConnection? connection = dustyFlagon.Connections.FirstOrDefault(c => c.DestinationLocationId == "town_square");
+            Location startLocation = gameWorld.WorldState.locations.First(l => l.Id == "test_start_location");
+            LocationConnection? connection = startLocation.Connections.FirstOrDefault(c => c.DestinationLocationId == "test_travel_destination");
             if (connection == null)
             {
                 connection = new LocationConnection
                 {
-                    DestinationLocationId = "town_square",
+                    DestinationLocationId = "test_travel_destination",
                     RouteOptions = new List<RouteOption>()
                 };
-                dustyFlagon.Connections.Add(connection);
+                startLocation.Connections.Add(connection);
             }
             connection.RouteOptions.Add(expressRoute);
 
@@ -124,13 +124,13 @@ namespace Wayfarer.Tests
                 routeRepository);
 
             // === TEST AFTERNOON (Express Coach Not Available) ===
-            List<RouteOption> afternoonRoutes = travelManager.GetAvailableRoutes("dusty_flagon", "town_square");
+            List<RouteOption> afternoonRoutes = travelManager.GetAvailableRoutes("test_start_location", "test_travel_destination");
             bool expressAvailable = afternoonRoutes.Any(r => r.Id == "express_coach");
             Assert.False(expressAvailable, "Express coach should not be available in afternoon");
 
             // === CHANGE TO MORNING (Express Coach Available) ===
             gameWorld.TimeManager.SetNewTime(10); // Set to 10 AM = Morning time block (9:00-11:59)
-            List<RouteOption> morningRoutes = travelManager.GetAvailableRoutes("dusty_flagon", "town_square");
+            List<RouteOption> morningRoutes = travelManager.GetAvailableRoutes("test_start_location", "test_travel_destination");
             bool expressAvailableMorning = morningRoutes.Any(r => r.Id == "express_coach");
             Assert.True(expressAvailableMorning, "Express coach should be available in morning");
         }
@@ -141,7 +141,7 @@ namespace Wayfarer.Tests
             // === SETUP ===
             TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p
-                    .StartAt("dusty_flagon")
+                    .StartAt("test_start_location")
                     .WithCoins(100)
                     .WithStamina(10))
                 .WithTimeState(t => t

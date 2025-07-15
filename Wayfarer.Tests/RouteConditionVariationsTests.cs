@@ -30,12 +30,11 @@ namespace Wayfarer.Tests
             AddRouteToLocation(gameWorld, "town_square", "dusty_flagon", morningRoute);
 
             // Act & Assert - Available during morning
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
             List<RouteOption> morningRoutes = travelManager.GetAvailableRoutes("town_square", "dusty_flagon");
             Assert.Contains(morningRoute, morningRoutes);
 
             // Act & Assert - Not available during afternoon
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Afternoon;
+            gameWorld.TimeManager.SetNewTime(14); // 2:00 PM = Afternoon block
             List<RouteOption> afternoonRoutes = travelManager.GetAvailableRoutes("town_square", "dusty_flagon");
             Assert.DoesNotContain(morningRoute, afternoonRoutes);
         }
@@ -343,6 +342,9 @@ namespace Wayfarer.Tests
             gameWorld.WorldState.CurrentDay = 1;
             gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
             gameWorld.WorldState.CurrentWeather = WeatherCondition.Clear;
+
+            // Set time to morning (9:00 AM)
+            gameWorld.TimeManager.SetNewTime(9); // 9:00 AM = Morning block
 
             // Create and register the starting location
             Location startLocation = new Location("town_square", "Town Square");

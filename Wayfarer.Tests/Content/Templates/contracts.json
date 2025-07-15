@@ -39,9 +39,9 @@
 			{
 				"type": "TransactionStep",
 				"id": "sell_herbs",
-				"description": "Sell herbs at town square",
+				"description": "Sell herbs at test travel destination",
 				"itemId": "herbs",
-				"locationId": "town_square",
+				"locationId": "test_travel_destination",
 				"transactionType": "Sell",
 				"quantity": 1,
 				"isRequired": true,
@@ -332,8 +332,8 @@
 			{
 				"type": "TravelStep",
 				"id": "reach_mountain_pass",
-				"description": "Travel to mountain pass",
-				"requiredLocationId": "mountain_pass",
+				"description": "Travel to test restricted location",
+				"requiredLocationId": "test_restricted_location",
 				"isRequired": true,
 				"isCompleted": false
 			}
