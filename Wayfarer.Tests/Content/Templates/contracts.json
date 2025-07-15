@@ -10,26 +10,19 @@
 		"isFailed": false,
 		"unlocksContractIds": [ "carpenter_special" ],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "General",
-		"priority": "Standard",
-		"riskLevel": "None",
-		"requiredDestinations": [],
-		"requiredTransactions": [
+		"completionSteps": [
 			{
+				"type": "TransactionStep",
+				"id": "sell_tools",
+				"description": "Sell tools at town square",
 				"itemId": "tools",
 				"locationId": "town_square",
 				"transactionType": "Sell",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		]
 	},
 	{
 		"id": "herb_delivery",
@@ -42,26 +35,19 @@
 		"isFailed": false,
 		"unlocksContractIds": [],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "General",
-		"priority": "Standard",
-		"riskLevel": "None",
-		"requiredDestinations": [],
-		"requiredTransactions": [
+		"completionSteps": [
 			{
+				"type": "TransactionStep",
+				"id": "sell_herbs",
+				"description": "Sell herbs at town square",
 				"itemId": "herbs",
 				"locationId": "town_square",
 				"transactionType": "Sell",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		]
 	},
 	{
 		"id": "carpenter_special",
@@ -74,19 +60,17 @@
 		"isFailed": false,
 		"unlocksContractIds": [],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": ["Basic_Tools", "Safety_Equipment"],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "Moderate",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Craftsman",
-		"priority": "Standard",
-		"riskLevel": "Low",
-		"requiredDestinations": [],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": ["complete_carpenter_job"]
+		"completionSteps": [
+			{
+				"type": "LocationActionStep",
+				"id": "complete_carpenter_job",
+				"description": "Complete the carpenter job",
+				"requiredActionId": "complete_carpenter_job",
+				"requiredLocationId": "workshop",
+				"isRequired": true,
+				"isCompleted": false
+			}
+		]
 	},
 	{
 		"id": "mountain_exploration",
@@ -99,25 +83,24 @@
 		"isFailed": false,
 		"unlocksContractIds": [ "mining_rights" ],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Climbing_Equipment", "Weather_Protection" ],
-		"requiredToolCategories": [ "Measurement_Tools", "Safety_Equipment" ],
-		"requiredSocialStanding": "Professional",
-		"physicalRequirement": "Heavy",
-		"requiredInformation": [
+		"completionSteps": [
 			{
-				"requiredType": "Route_Conditions",
-				"minimumQuality": "Verified",
-				"minimumFreshness": "Current"
+				"type": "EquipmentStep",
+				"id": "equipment_check",
+				"description": "Have required climbing and weather protection equipment",
+				"requiredEquipmentCategories": [ "Climbing_Equipment", "Weather_Protection" ],
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TravelStep",
+				"id": "reach_summit",
+				"description": "Travel to mountain summit",
+				"requiredLocationId": "mountain_summit",
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredKnowledge": "Professional",
-		"category": "Exploration",
-		"priority": "High",
-		"riskLevel": "Moderate",
-		"requiredDestinations": ["mountain_summit"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		]
 	},
 	{
 		"id": "noble_court_audience",
@@ -130,30 +113,25 @@
 		"isFailed": false,
 		"unlocksContractIds": [ "royal_commission" ],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Social_Signaling" ],
-		"requiredToolCategories": [ "Documentation", "Social_Attire" ],
-		"requiredSocialStanding": "Minor_Noble",
-		"physicalRequirement": "None",
-		"requiredInformation": [
+		"completionSteps": [
 			{
-				"requiredType": "Social_Gossip",
-				"minimumQuality": "Reliable",
-				"minimumFreshness": "Current"
+				"type": "EquipmentStep",
+				"id": "social_equipment",
+				"description": "Have required social signaling equipment",
+				"requiredEquipmentCategories": [ "Social_Signaling" ],
+				"isRequired": true,
+				"isCompleted": false
 			},
 			{
-				"requiredType": "Political_News",
-				"minimumQuality": "Verified",
-				"minimumFreshness": "Recent"
+				"type": "LocationActionStep",
+				"id": "represent_interests",
+				"description": "Represent merchant interests at court",
+				"requiredActionId": "represent_merchant_interests",
+				"requiredLocationId": "noble_court",
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredKnowledge": "Cultural",
-		"category": "Diplomatic",
-		"priority": "Critical",
-		"riskLevel": "Low",
-		"requiredDestinations": [],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": ["represent_merchant_interests"]
+		]
 	},
 	{
 		"id": "urgent_trade_negotiation",
@@ -166,37 +144,19 @@
 		"isFailed": false,
 		"unlocksContractIds": [],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [ "Trade_Samples", "Documentation" ],
-		"requiredSocialStanding": "Merchant_Class",
-		"physicalRequirement": "Light",
-		"requiredInformation": [
+		"completionSteps": [
 			{
-				"requiredType": "Market_Intelligence",
-				"minimumQuality": "Expert",
-				"minimumFreshness": "Breaking"
-			},
-			{
-				"requiredType": "Resource_Availability",
-				"minimumQuality": "Reliable",
-				"minimumFreshness": "Current"
-			}
-		],
-		"requiredKnowledge": "Commercial",
-		"category": "Emergency",
-		"priority": "Urgent",
-		"riskLevel": "High",
-		"requiredDestinations": [],
-		"requiredTransactions": [
-			{
+				"type": "TransactionStep",
+				"id": "complete_negotiation",
+				"description": "Complete trade negotiation at merchant guild",
 				"itemId": "gold_coins",
 				"locationId": "merchant_guild",
 				"transactionType": "Sell",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		]
 	},
 	{
 		"id": "artisan_masterwork",
@@ -209,32 +169,27 @@
 		"isFailed": false,
 		"unlocksContractIds": [ "guild_mastery" ],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [ "Specialized_Equipment", "Quality_Materials", "Crafting_Supplies" ],
-		"requiredSocialStanding": "Artisan_Class",
-		"physicalRequirement": "Moderate",
-		"requiredInformation": [
+		"completionSteps": [
 			{
-				"requiredType": "Professional_Knowledge",
-				"minimumQuality": "Expert",
-				"minimumFreshness": "Recent"
-			}
-		],
-		"requiredKnowledge": "Master",
-		"category": "Craftsman",
-		"priority": "Standard",
-		"riskLevel": "Low",
-		"requiredDestinations": ["mountain_summit"],
-		"requiredTransactions": [
+				"type": "TravelStep",
+				"id": "travel_to_summit",
+				"description": "Travel to mountain summit for rare materials",
+				"requiredLocationId": "mountain_summit",
+				"isRequired": true,
+				"isCompleted": false
+			},
 			{
+				"type": "TransactionStep",
+				"id": "deliver_masterwork",
+				"description": "Deliver masterwork at workshop",
 				"itemId": "rare_materials",
 				"locationId": "workshop",
 				"transactionType": "Sell",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		]
 	},
 	{
 		"id": "dangerous_ruins_exploration",
@@ -247,30 +202,24 @@
 		"isFailed": false,
 		"unlocksContractIds": [ "archaeologist_expedition" ],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [ "Light_Source", "Navigation_Tools", "Climbing_Equipment" ],
-		"requiredToolCategories": [ "Safety_Equipment", "Specialized_Equipment" ],
-		"requiredSocialStanding": "Professional",
-		"physicalRequirement": "Extreme",
-		"requiredInformation": [
+		"completionSteps": [
 			{
-				"requiredType": "Location_Secrets",
-				"minimumQuality": "Verified",
-				"minimumFreshness": "Recent"
+				"type": "EquipmentStep",
+				"id": "exploration_equipment",
+				"description": "Have required exploration equipment",
+				"requiredEquipmentCategories": [ "Light_Source", "Navigation_Tools", "Climbing_Equipment" ],
+				"isRequired": true,
+				"isCompleted": false
 			},
 			{
-				"requiredType": "Route_Conditions", 
-				"minimumQuality": "Reliable",
-				"minimumFreshness": "Current"
+				"type": "TravelStep",
+				"id": "explore_ruins",
+				"description": "Travel to ancient ruins",
+				"requiredLocationId": "ancient_ruins",
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredKnowledge": "Advanced",
-		"category": "Exploration",
-		"priority": "High",
-		"riskLevel": "Extreme",
-		"requiredDestinations": ["ancient_ruins"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		]
 	},
 	{
 		"id": "simple_message_delivery",
@@ -283,19 +232,17 @@
 		"isFailed": false,
 		"unlocksContractIds": [],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "General",
-		"priority": "Low",
-		"riskLevel": "None",
-		"requiredDestinations": [],
-		"requiredTransactions": [],
-		"requiredNPCConversations": ["blacksmith"],
-		"requiredLocationActions": []
+		"completionSteps": [
+			{
+				"type": "ConversationStep",
+				"id": "talk_to_blacksmith",
+				"description": "Speak with the blacksmith",
+				"requiredNPCId": "blacksmith",
+				"requiredLocationId": "",
+				"isRequired": true,
+				"isCompleted": false
+			}
+		]
 	},
 	{
 		"id": "deliver_silk_to_millbrook",
@@ -308,26 +255,19 @@
 		"isFailed": false,
 		"unlocksContractIds": [],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "General",
-		"priority": "Standard",
-		"riskLevel": "None",
-		"requiredDestinations": [],
-		"requiredTransactions": [
+		"completionSteps": [
 			{
+				"type": "TransactionStep",
+				"id": "sell_silk_bolts",
+				"description": "Sell silk bolts at Millbrook",
 				"itemId": "silk_bolts",
 				"locationId": "millbrook",
 				"transactionType": "Sell",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		]
 	},
 	{
 		"id": "acquire_climbing_gear",
@@ -340,26 +280,19 @@
 		"isFailed": false,
 		"unlocksContractIds": ["mountain_exploration"],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "General",
-		"priority": "Standard",
-		"riskLevel": "None",
-		"requiredDestinations": [],
-		"requiredTransactions": [
+		"completionSteps": [
 			{
+				"type": "TransactionStep",
+				"id": "buy_climbing_gear",
+				"description": "Buy climbing gear from any location",
 				"itemId": "climbing_gear",
 				"locationId": "",
 				"transactionType": "Buy",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
-		],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		]
 	},
 	{
 		"id": "meet_guild_master",
@@ -372,19 +305,17 @@
 		"isFailed": false,
 		"unlocksContractIds": ["guild_membership"],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Professional",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Professional",
-		"priority": "Standard",
-		"riskLevel": "None",
-		"requiredDestinations": [],
-		"requiredTransactions": [],
-		"requiredNPCConversations": ["guild_master"],
-		"requiredLocationActions": []
+		"completionSteps": [
+			{
+				"type": "ConversationStep",
+				"id": "speak_with_guild_master",
+				"description": "Speak with the Guild Master",
+				"requiredNPCId": "guild_master",
+				"requiredLocationId": "",
+				"isRequired": true,
+				"isCompleted": false
+			}
+		]
 	},
 	{
 		"id": "scout_mountain_pass",
@@ -397,19 +328,16 @@
 		"isFailed": false,
 		"unlocksContractIds": [],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "None",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "Exploration",
-		"priority": "Standard",
-		"riskLevel": "Low",
-		"requiredDestinations": ["mountain_pass"],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": []
+		"completionSteps": [
+			{
+				"type": "TravelStep",
+				"id": "reach_mountain_pass",
+				"description": "Travel to mountain pass",
+				"requiredLocationId": "mountain_pass",
+				"isRequired": true,
+				"isCompleted": false
+			}
+		]
 	},
 	{
 		"id": "organize_warehouse_inventory",
@@ -422,18 +350,16 @@
 		"isFailed": false,
 		"unlocksContractIds": [],
 		"locksContractIds": [],
-		"requiredEquipmentCategories": [],
-		"requiredToolCategories": [],
-		"requiredSocialStanding": "Any",
-		"physicalRequirement": "Light",
-		"requiredInformation": [],
-		"requiredKnowledge": "None",
-		"category": "General",
-		"priority": "Standard",
-		"riskLevel": "None",
-		"requiredDestinations": [],
-		"requiredTransactions": [],
-		"requiredNPCConversations": [],
-		"requiredLocationActions": ["organize_inventory"]
+		"completionSteps": [
+			{
+				"type": "LocationActionStep",
+				"id": "organize_inventory",
+				"description": "Organize warehouse inventory",
+				"requiredActionId": "organize_inventory",
+				"requiredLocationId": "warehouse",
+				"isRequired": true,
+				"isCompleted": false
+			}
+		]
 	}
 ]

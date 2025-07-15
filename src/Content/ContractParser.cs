@@ -28,6 +28,12 @@ public static class ContractParser
             CompletionSteps = GetCompletionStepsArray(root, "completionSteps")
         };
 
+        Console.WriteLine($"[DEBUG] ContractParser: Parsed contract {contract.Id} with {contract.CompletionSteps.Count} completion steps");
+        foreach (ContractStep step in contract.CompletionSteps)
+        {
+            Console.WriteLine($"[DEBUG] ContractParser: Contract {contract.Id} has step {step.Id} (type={step.GetType().Name}, required={step.IsRequired})");
+        }
+
         return contract;
     }
 

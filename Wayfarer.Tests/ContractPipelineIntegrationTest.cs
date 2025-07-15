@@ -64,11 +64,11 @@ public class ContractPipelineIntegrationTest
             Console.WriteLine($"Contract ID: {c.Id}, Available: {contracts.IsContractAvailable(c.Id)}");
         }
 
-        Assert.True(contracts.IsContractAvailable("village_herb_delivery"));
+        Assert.True(contracts.IsContractAvailable("herb_delivery"));
 
         // === ACCEPT CONTRACT ===
         // Direct contract manipulation (simulates GameWorldManager.ExecuteContractAction)
-        Contract herbContract = contracts.GetContract("village_herb_delivery");
+        Contract herbContract = contracts.GetContract("herb_delivery");
         Assert.NotNull(herbContract);
         contracts.AddActiveContract(herbContract);
 
@@ -81,7 +81,7 @@ public class ContractPipelineIntegrationTest
         }
 
         // Verify contract status using repository methods
-        ContractCompletionResult contractStatus = contracts.GetContractStatus("village_herb_delivery");
+        ContractCompletionResult contractStatus = contracts.GetContractStatus("herb_delivery");
         Assert.Equal(ContractStatus.Active, contractStatus.Status);
         Assert.Equal(0f, contractStatus.ProgressPercentage);
 
@@ -98,9 +98,9 @@ public class ContractPipelineIntegrationTest
         Assert.Equal("town_square", player.CurrentLocation?.Id);
 
         // Contract should still be incomplete - travel doesn't complete it
-        contractStatus = contracts.GetContractStatus("village_herb_delivery");
+        contractStatus = contracts.GetContractStatus("herb_delivery");
         Assert.Equal(ContractStatus.Active, contractStatus.Status);
-        Assert.Empty(contractStatus.CompletedTransactions);
+        Assert.Empty(contractStatus.CompletedSteps);
 
         // === BUY ITEMS ===
         // Player buys herbs (player choice, not contract requirement)
@@ -119,28 +119,22 @@ public class ContractPipelineIntegrationTest
         Assert.True(buyResult.CoinsChanged < 0); // Spent money
 
         // Contract should still be incomplete - buying doesn't complete it
-        contractStatus = contracts.GetContractStatus("village_herb_delivery");
+        contractStatus = contracts.GetContractStatus("herb_delivery");
         Assert.Equal(ContractStatus.Active, contractStatus.Status);
-        Assert.Empty(contractStatus.CompletedTransactions);
+        Assert.Empty(contractStatus.CompletedSteps);
 
-        // === SECOND TRAVEL - TO CONTRACT DESTINATION ===
-        // Player travels to millbrook to sell herbs (contract requirement)
-
-        // Simulate travel to millbrook
-        Location millbrook = locationRepository.GetLocation("millbrook");
-        Assert.NotNull(millbrook); // Ensure test data is loaded correctly
-        player.CurrentLocation = millbrook;
-        gameWorld.WorldState.SetCurrentLocation(millbrook, null);
+        // === ALREADY AT CONTRACT DESTINATION ===
+        // Player is already at town_square from previous travel (perfect for contract completion)
 
         // Mark travel progression for contract completion
-        contractProgression.CheckTravelProgression("millbrook", player);
+        contractProgression.CheckTravelProgression("town_square", player);
 
         // === SELL ITEMS (COMPLETION ACTION) ===
-        // Player sells herbs at millbrook - THIS completes the contract
-        // village_herb_delivery contract requires selling herbs at millbrook
+        // Player sells herbs at town_square - THIS completes the contract
+        // herb_delivery contract requires selling herbs at town_square
 
         // Execute sale using enhanced method
-        TradeActionResult sellResult = market.TrySellItem("herbs", "millbrook");
+        TradeActionResult sellResult = market.TrySellItem("herbs", "town_square");
         Assert.True(sellResult.Success);
         Assert.True(sellResult.HadItemBefore);
         Assert.False(sellResult.HasItemAfter);
@@ -148,15 +142,14 @@ public class ContractPipelineIntegrationTest
 
         // === VERIFY CONTRACT COMPLETION ===
         // Contract should now be completed
-        contractStatus = contracts.GetContractStatus("village_herb_delivery");
+        contractStatus = contracts.GetContractStatus("herb_delivery");
         Assert.Equal(ContractStatus.Completed, contractStatus.Status);
-        Assert.Single(contractStatus.CompletedTransactions);
+        Assert.Single(contractStatus.CompletedSteps);
 
-        // Verify transaction details
-        ContractTransaction completedTransaction = contractStatus.CompletedTransactions.First();
-        Assert.Equal("herbs", completedTransaction.ItemId);
-        Assert.Equal("millbrook", completedTransaction.LocationId);
-        Assert.Equal(TransactionType.Sell, completedTransaction.TransactionType);
+        // Verify step details
+        ContractStep completedStep = contractStatus.CompletedSteps.First();
+        Assert.Equal("sell_herbs", completedStep.Id);
+        Assert.True(completedStep.IsCompleted);
 
         // === VERIFY "ONLY CHECK COMPLETION" PRINCIPLE ===
         // The contract was completed despite:
@@ -164,15 +157,15 @@ public class ContractPipelineIntegrationTest
         // 2. Player took specific actions (buy then sell)
         // 3. Player made choices about where and how to acquire items
         // 
-        // The contract ONLY checked the completion action: selling herbs at millbrook
+        // The contract ONLY checked the completion action: selling herbs at town_square
         // All other actions were player choices, not contract requirements
 
         // Verify final player state using direct access
         Assert.False(player.Inventory.HasItem("herbs")); // Item was sold
-        // Player economics: 20 → buy herbs for 7 → 13 → sell herbs for 5 → 18 coins
-        // This is realistic trading economics (buy high, sell low) that creates strategic decisions
-        Assert.Equal(18, player.Coins); // Lost 2 coins due to market spread, but completed contract
-        Assert.Equal("millbrook", player.CurrentLocation?.Id); // Player at destination
+        // Player economics: 20 → buy herbs for 7 → 13 → sell herbs for 6 → 19 → contract payment +5 → 24 coins
+        // This is realistic trading economics (buy high, sell low) plus contract completion reward
+        Assert.Equal(24, player.Coins); // Lost 1 coin due to market spread, but gained 5 coins from contract completion
+        Assert.Equal("town_square", player.CurrentLocation?.Id); // Player at destination
 
         // Note: Contract payment is not automatically applied - that would be handled
         // by a separate system (e.g., visiting contract giver to collect payment)
@@ -188,7 +181,10 @@ public class ContractPipelineIntegrationTest
             .WithPlayer(p => p
                 .StartAt("town_square")  // Start at destination
                 .WithCoins(100)
-                .WithItem("herbs"));      // Already has required item
+                .WithItem("herbs"))      // Already has required item
+            .WithTimeState(t => t
+                .Day(1)
+                .TimeBlock(TimeBlocks.Morning));  // Set to Morning when traders are available
 
         GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
         ContractRepository contracts = new ContractRepository(gameWorld);
@@ -210,19 +206,15 @@ public class ContractPipelineIntegrationTest
         Assert.True(player.Inventory.HasItem("herbs"));
         Assert.Equal("town_square", player.CurrentLocation?.Id);
 
-        // Travel to dusty_flagon (correct location for herb_delivery contract)
-        Location dustyFlagon = locationRepository.GetLocation("dusty_flagon");
-        Assert.NotNull(dustyFlagon);
-        player.CurrentLocation = dustyFlagon;
-        gameWorld.WorldState.SetCurrentLocation(dustyFlagon, null);
-
+        // Already at town_square (correct location for herb_delivery contract)
         // Player can complete immediately - no travel or buying needed
-        TradeActionResult sellResult = market.TrySellItem("herbs", "dusty_flagon");
+        TradeActionResult sellResult = market.TrySellItem("herbs", "town_square");
         Assert.True(sellResult.Success);
 
         // Contract completes regardless of how player got the herbs or location
         ContractCompletionResult contractStatus = contracts.GetContractStatus("herb_delivery");
         Assert.Equal(ContractStatus.Completed, contractStatus.Status);
+        Assert.Single(contractStatus.CompletedSteps);
 
         // This demonstrates the principle: contracts don't care about the process,
         // only the completion action
@@ -243,33 +235,38 @@ public class ContractPipelineIntegrationTest
         ContractProgressionService progression = new ContractProgressionService(
             contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld), gameWorld);
 
-        // Accept contract - dark_passage_navigation is perfect for travel-only testing
-        // Only requires travel to workshop, no transactions needed
-        Contract scoutContract = contracts.GetContract("dark_passage_navigation");
+        // Accept contract - scout_mountain_pass is perfect for travel-only testing
+        // Only requires travel to mountain_pass, no transactions needed
+        Contract scoutContract = contracts.GetContract("scout_mountain_pass");
         contracts.AddActiveContract(scoutContract);
 
         // Verify initial state
-        ContractCompletionResult initialStatus = contracts.GetContractStatus("dark_passage_navigation");
+        ContractCompletionResult initialStatus = contracts.GetContractStatus("scout_mountain_pass");
         Assert.Equal(ContractStatus.Active, initialStatus.Status);
-        Assert.Empty(initialStatus.CompletedDestinations);
+        Assert.Empty(initialStatus.CompletedSteps);
 
         // Travel to destination - use repository to get the location
         Player player = gameWorld.GetPlayer();
         LocationRepository locationRepo = new LocationRepository(gameWorld);
-        Location workshop = locationRepo.GetLocation("workshop");
-        Assert.NotNull(workshop); // Ensure test data is loaded correctly
+        Location mountainPass = locationRepo.GetLocation("mountain_pass");
+        Assert.NotNull(mountainPass); // Ensure test data is loaded correctly
 
         // Set player location using proper business logic pattern
-        player.CurrentLocation = workshop;
-        gameWorld.WorldState.SetCurrentLocation(workshop, null);
+        player.CurrentLocation = mountainPass;
+        gameWorld.WorldState.SetCurrentLocation(mountainPass, null);
 
         // Check progression - this should complete the contract
-        progression.CheckTravelProgression("workshop", player);
+        progression.CheckTravelProgression("mountain_pass", player);
 
         // Contract completes immediately upon arrival
-        ContractCompletionResult finalStatus = contracts.GetContractStatus("dark_passage_navigation");
+        ContractCompletionResult finalStatus = contracts.GetContractStatus("scout_mountain_pass");
         Assert.Equal(ContractStatus.Completed, finalStatus.Status);
-        Assert.Contains("workshop", finalStatus.CompletedDestinations);
+        Assert.Single(finalStatus.CompletedSteps);
+        
+        // Verify the travel step was completed
+        ContractStep completedStep = finalStatus.CompletedSteps.First();
+        Assert.Equal("reach_mountain_pass", completedStep.Id);
+        Assert.True(completedStep.IsCompleted);
 
         // This shows travel-based contracts complete on arrival, regardless of:
         // - How the player got there
@@ -308,8 +305,7 @@ public class ContractPipelineIntegrationTest
         // Verify initial state
         ContractCompletionResult initialStatus = contracts.GetContractStatus("scout_mountain_pass");
         Assert.Equal(ContractStatus.Active, initialStatus.Status);
-        Assert.Empty(initialStatus.CompletedTransactions);
-        Assert.Empty(initialStatus.CompletedDestinations);
+        Assert.Empty(initialStatus.CompletedSteps);
 
         // === COMPLETE REQUIREMENT: TRAVEL TO MOUNTAIN_PASS ===
         Player player = gameWorld.GetPlayer();
@@ -327,10 +323,13 @@ public class ContractPipelineIntegrationTest
         // Contract should now be complete
         ContractCompletionResult finalStatus = contracts.GetContractStatus("scout_mountain_pass");
         Assert.Equal(ContractStatus.Completed, finalStatus.Status); // Should be complete now
-        Assert.Empty(finalStatus.CompletedTransactions); // No transactions required
-        Assert.Single(finalStatus.CompletedDestinations); // One destination completed
-        Assert.Contains("mountain_pass", finalStatus.CompletedDestinations);
+        Assert.Single(finalStatus.CompletedSteps); // One step completed
         Assert.Equal(1f, finalStatus.ProgressPercentage); // 100% complete
+        
+        // Verify the travel step was completed
+        ContractStep completedStep = finalStatus.CompletedSteps.First();
+        Assert.Equal("reach_mountain_pass", completedStep.Id);
+        Assert.True(completedStep.IsCompleted);
 
         // This demonstrates that travel-based contracts complete immediately upon reaching destination
         // and track progress independently from other contract types

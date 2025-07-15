@@ -598,8 +598,12 @@ public class MarketManager
             .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
             .ToList();
 
+        Console.WriteLine($"[DEBUG] IsMarketAvailableAtLocation: location={locationId}, time={currentTime}, tradeNPCs={tradeNPCs.Count}");
+        
         // Market is available if at least one trade NPC is present
-        return tradeNPCs.Any();
+        bool available = tradeNPCs.Any();
+        Console.WriteLine($"[DEBUG] Market available at {locationId}: {available}");
+        return available;
     }
 
     /// <summary>

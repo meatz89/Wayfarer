@@ -96,21 +96,42 @@ public class TransactionStep : ContractStep
 
     public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null)
     {
-        if (IsCompleted) return true;
+        Console.WriteLine($"[DEBUG] TransactionStep {Id}: CheckCompletion called");
+        if (IsCompleted) 
+        {
+            Console.WriteLine($"[DEBUG] TransactionStep {Id}: Already completed");
+            return true;
+        }
 
         // ActionContext should be a transaction details object
-        if (actionContext is not TransactionContext transaction) return false;
+        if (actionContext is not TransactionContext transaction) 
+        {
+            Console.WriteLine($"[DEBUG] TransactionStep {Id}: ActionContext is not TransactionContext (got {actionContext?.GetType().Name})");
+            return false;
+        }
 
-        bool completed = transaction.ItemId == ItemId &&
-                        transaction.LocationId == LocationId &&
-                        transaction.TransactionType == TransactionType &&
-                        transaction.Quantity >= Quantity &&
-                        (MinPrice == null || transaction.Price >= MinPrice) &&
-                        (MaxPrice == null || transaction.Price <= MaxPrice);
+        Console.WriteLine($"[DEBUG] TransactionStep {Id}: Comparing transaction");
+        Console.WriteLine($"[DEBUG] TransactionStep {Id}: Expected - ItemId={ItemId}, LocationId={LocationId}, Type={TransactionType}, Qty={Quantity}");
+        Console.WriteLine($"[DEBUG] TransactionStep {Id}: Actual - ItemId={transaction.ItemId}, LocationId={transaction.LocationId}, Type={transaction.TransactionType}, Qty={transaction.Quantity}");
+
+        bool itemMatch = transaction.ItemId == ItemId;
+        bool locationMatch = transaction.LocationId == LocationId;
+        bool typeMatch = transaction.TransactionType == TransactionType;
+        bool quantityMatch = transaction.Quantity >= Quantity;
+        bool priceMatch = (MinPrice == null || transaction.Price >= MinPrice) && (MaxPrice == null || transaction.Price <= MaxPrice);
+
+        Console.WriteLine($"[DEBUG] TransactionStep {Id}: Matches - Item={itemMatch}, Location={locationMatch}, Type={typeMatch}, Quantity={quantityMatch}, Price={priceMatch}");
+
+        bool completed = itemMatch && locationMatch && typeMatch && quantityMatch && priceMatch;
 
         if (completed)
         {
+            Console.WriteLine($"[DEBUG] TransactionStep {Id}: COMPLETED! Setting IsCompleted=true");
             IsCompleted = true;
+        }
+        else
+        {
+            Console.WriteLine($"[DEBUG] TransactionStep {Id}: NOT completed");
         }
 
         return completed;

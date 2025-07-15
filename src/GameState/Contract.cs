@@ -69,16 +69,24 @@ public class Contract
     /// </summary>
     public bool CheckStepCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null)
     {
+        Console.WriteLine($"[DEBUG] Contract {Id}: CheckStepCompletion called with location={currentLocationId}, actionContext={actionContext?.GetType().Name}");
         bool anyCompleted = false;
 
-        foreach (ContractStep step in CompletionSteps.Where(s => !s.IsCompleted))
+        List<ContractStep> incompleteSteps = CompletionSteps.Where(s => !s.IsCompleted).ToList();
+        Console.WriteLine($"[DEBUG] Contract {Id}: Found {incompleteSteps.Count} incomplete steps out of {CompletionSteps.Count} total steps");
+
+        foreach (ContractStep step in incompleteSteps)
         {
-            if (step.CheckCompletion(player, currentLocationId, actionContext, itemRepository))
+            Console.WriteLine($"[DEBUG] Contract {Id}: Checking step {step.Id} (type={step.GetType().Name}, required={step.IsRequired})");
+            bool stepCompleted = step.CheckCompletion(player, currentLocationId, actionContext, itemRepository);
+            Console.WriteLine($"[DEBUG] Contract {Id}: Step {step.Id} completed: {stepCompleted}");
+            if (stepCompleted)
             {
                 anyCompleted = true;
             }
         }
 
+        Console.WriteLine($"[DEBUG] Contract {Id}: CheckStepCompletion returning {anyCompleted}");
         return anyCompleted;
     }
 
@@ -285,6 +293,17 @@ public class Contract
     {
         // Contract is fully completed when all required steps are completed
         // Optional steps (IsRequired = false) don't prevent completion
-        return CompletionSteps.Where(step => step.IsRequired).All(step => step.IsCompleted);
+        List<ContractStep> requiredSteps = CompletionSteps.Where(step => step.IsRequired).ToList();
+        List<ContractStep> completedRequiredSteps = requiredSteps.Where(step => step.IsCompleted).ToList();
+        
+        Console.WriteLine($"[DEBUG] Contract {Id}: IsFullyCompleted check - {completedRequiredSteps.Count}/{requiredSteps.Count} required steps completed");
+        foreach (ContractStep step in requiredSteps)
+        {
+            Console.WriteLine($"[DEBUG] Contract {Id}: Step {step.Id} (required={step.IsRequired}, completed={step.IsCompleted})");
+        }
+        
+        bool isCompleted = requiredSteps.All(step => step.IsCompleted);
+        Console.WriteLine($"[DEBUG] Contract {Id}: IsFullyCompleted returning {isCompleted}");
+        return isCompleted;
     }
 }
