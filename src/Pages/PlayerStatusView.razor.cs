@@ -1,9 +1,5 @@
-using Microsoft.AspNetCore.Components;
-using Wayfarer.UIHelpers;
+﻿using Microsoft.AspNetCore.Components;
 using Wayfarer.Game.ActionSystem;
-using Wayfarer.Game.MainSystem;
-
-namespace Wayfarer.Pages;
 
 public class PlayerStatusViewBase : ComponentBase
 {
@@ -137,7 +133,7 @@ public class PlayerStatusViewBase : ComponentBase
     public List<EquipmentCategory> GetCurrentEquipmentCategories()
     {
         var categories = new List<EquipmentCategory>();
-        
+
         foreach (string itemName in PlayerState.Inventory.ItemSlots)
         {
             if (itemName != null)
@@ -149,7 +145,7 @@ public class PlayerStatusViewBase : ComponentBase
                 }
             }
         }
-        
+
         return categories.Distinct().ToList();
     }
 
@@ -163,7 +159,7 @@ public class PlayerStatusViewBase : ComponentBase
         foreach (var route in allRoutes)
         {
             bool canAccess = true;
-            
+
             // Check terrain requirements
             foreach (var terrain in route.TerrainCategories)
             {
@@ -195,7 +191,6 @@ public class PlayerStatusViewBase : ComponentBase
             EquipmentCategory.Climbing_Equipment => "🧗",
             EquipmentCategory.Navigation_Tools => "🧭",
             EquipmentCategory.Weather_Protection => "☂️",
-            EquipmentCategory.Trade_Tools => "⚖️",
             EquipmentCategory.Light_Source => "🔦",
             _ => "🛠️"
         };
@@ -208,7 +203,6 @@ public class PlayerStatusViewBase : ComponentBase
             EquipmentCategory.Climbing_Equipment => "Enables mountain routes",
             EquipmentCategory.Navigation_Tools => "Enables wilderness routes",
             EquipmentCategory.Weather_Protection => "Travel in bad weather",
-            EquipmentCategory.Trade_Tools => "Better trading prices",
             EquipmentCategory.Light_Source => "Night travel enabled",
             _ => "Special capability"
         };
@@ -228,7 +222,6 @@ public class PlayerStatusViewBase : ComponentBase
             LocationTypes.Village => "🏚️",
             LocationTypes.Outpost => "🏕️",
             LocationTypes.Wilderness => "🌲",
-            LocationTypes.Dungeon => "🏚️",
             LocationTypes.Castle => "🏰",
             LocationTypes.Temple => "⛪",
             LocationTypes.Ruin => "🏛️",
@@ -239,7 +232,6 @@ public class PlayerStatusViewBase : ComponentBase
             LocationTypes.Mine => "⛏️",
             LocationTypes.Forest => "🌳",
             LocationTypes.Mountain => "⛰️",
-            LocationTypes.Desert => "🏜️",
             LocationTypes.Swamp => "🌿",
             LocationTypes.Beach => "🏖️",
             LocationTypes.River => "🏞️",
@@ -279,4 +271,22 @@ public class PlayerStatusViewBase : ComponentBase
             _ => "⭐"
         };
     }
+}
+
+// Supporting classes for player strategic overview
+public class PlayerStrategicOverview
+{
+    public List<string> EquipmentCapabilities { get; set; } = new();
+    public int AccessibleRoutes { get; set; }
+    public int BlockedRoutes { get; set; }
+    public List<string> CriticalMissingEquipment { get; set; } = new();
+    public int ReadyContracts { get; set; }
+    public int PendingContracts { get; set; }
+    public int UrgentContracts { get; set; }
+}
+
+public class TimeAwarenessAnalysis
+{
+    public string CurrentStatus { get; set; } = "";
+    public string Recommendation { get; set; } = "";
 }

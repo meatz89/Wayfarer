@@ -89,7 +89,7 @@ public class NPCParserTests
             Assert.NotNull(npc.ID);
             Assert.NotNull(npc.Name);
             // Profession should be properly set (not default initialized)
-            Assert.True(npc.Profession != default(Professions) || npc.Profession == Professions.Warrior,
+            Assert.True(npc.Profession != default(Professions) || npc.Profession == Professions.Soldier,
                 $"NPC {npc.Name} has invalid profession: {npc.Profession}");
             // Schedule should be properly set
             Assert.True(npc.AvailabilitySchedule != default(Schedule) || npc.AvailabilitySchedule == Schedule.Always,

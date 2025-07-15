@@ -1,6 +1,6 @@
 ﻿public enum Professions
 {
-    Warrior,
+    Soldier,
     Scholar,
     Courtier,
     Ranger,

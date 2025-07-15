@@ -14,5 +14,12 @@
     Etiquette,
     Negotiation,
     Acting,
-    Threatening
+    Threatening,
+    Finesse,
+    Endurance,
+    Knowledge,
+    Reasoning,
+    Charm,
+    Intimidation,
+    Deception
 }
