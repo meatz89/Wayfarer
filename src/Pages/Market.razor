@@ -11,10 +11,64 @@
     <div class="market-status">
         @{
             string marketStatus = GameManager.GetMarketAvailabilityStatus(Location.Id);
+            var currentTraders = GameManager.GetTradingNPCs(Location.Id).Where(npc => npc.IsAvailable(GameWorld.TimeManager.GetCurrentTimeBlock())).ToList();
+            var allTraders = GameManager.GetTradingNPCs(Location.Id);
         }
         <span class="@(marketStatus.Contains("Open") ? "market-open" : "market-closed")">
             @marketStatus
         </span>
+        
+        @* Show detailed trader information *@
+        <div class="trader-information">
+            <h4>🏪 Trading Information</h4>
+            
+            @if (currentTraders.Any())
+            {
+                <div class="current-traders">
+                    <div class="traders-header">Available Traders:</div>
+                    @foreach (var trader in currentTraders)
+                    {
+                        <div class="trader-card trader-available">
+                            <div class="trader-name">🟢 @trader.Name</div>
+                            <div class="trader-profession">@trader.Profession.ToString().Replace("_", " ")</div>
+                            <div class="trader-schedule">Schedule: @GameManager.GetNPCScheduleDescription(trader.AvailabilitySchedule)</div>
+                            <div class="trader-services">
+                                Services: @string.Join(", ", trader.ProvidedServices.Select(s => s.ToString().Replace("_", " ")))
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-current-traders">
+                    <div class="status-message">❌ No traders available right now</div>
+                    
+                    @if (allTraders.Any())
+                    {
+                        <div class="trader-schedules">
+                            <div class="schedules-header">Trader Schedules:</div>
+                            @foreach (var trader in allTraders)
+                            {
+                                <div class="trader-card trader-unavailable">
+                                    <div class="trader-name">🔴 @trader.Name</div>
+                                    <div class="trader-profession">@trader.Profession.ToString().Replace("_", " ")</div>
+                                    <div class="trader-schedule">Schedule: @GameManager.GetNPCScheduleDescription(trader.AvailabilitySchedule)</div>
+                                    <div class="trader-next-available">@GameManager.GetNextAvailableTime(trader)</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-traders">
+                            <strong>No traders at this location</strong>
+                            <div class="explanation">You cannot trade items here because no NPCs provide trading services.</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
     </div>
 
     <div class="player-status">

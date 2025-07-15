@@ -660,6 +660,101 @@
         return marketManager.GetMarketAvailabilityStatus(locationId);
     }
 
+    /// <summary>
+    /// Get detailed market status with trader information
+    /// </summary>
+    public string GetDetailedMarketStatus(string locationId)
+    {
+        return marketManager.GetDetailedMarketStatus(locationId);
+    }
+
+    /// <summary>
+    /// Get all NPCs who provide trading services at a location
+    /// </summary>
+    public List<NPC> GetTradingNPCs(string locationId)
+    {
+        return npcRepository.GetNPCsForLocation(locationId)
+            .Where(npc => npc.ProvidedServices.Contains(ServiceTypes.Trade))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get currently available NPCs at a location
+    /// </summary>
+    public List<NPC> GetCurrentlyAvailableNPCs(string locationId)
+    {
+        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        return npcRepository.GetNPCsForLocationAndTime(locationId, currentTime);
+    }
+
+    /// <summary>
+    /// Get NPCs providing a specific service
+    /// </summary>
+    public List<NPC> GetNPCsProvidingService(ServiceTypes service)
+    {
+        return npcRepository.GetNPCsProvidingService(service);
+    }
+
+    /// <summary>
+    /// Get human-readable schedule description for an NPC
+    /// </summary>
+    public string GetNPCScheduleDescription(Schedule schedule)
+    {
+        return schedule switch
+        {
+            Schedule.Always => "Always available",
+            Schedule.Market_Hours => "Morning, Afternoon",
+            Schedule.Workshop_Hours => "Dawn, Morning, Afternoon",
+            Schedule.Library_Hours => "Morning, Afternoon",
+            Schedule.Business_Hours => "Morning, Afternoon",
+            Schedule.Morning_Evening => "Morning, Evening",
+            Schedule.Morning_Afternoon => "Morning, Afternoon",
+            Schedule.Afternoon_Evening => "Afternoon, Evening",
+            Schedule.Evening_Only => "Evening only",
+            Schedule.Morning_Only => "Morning only",
+            Schedule.Afternoon_Only => "Afternoon only",
+            Schedule.Evening_Night => "Evening, Night",
+            Schedule.Dawn_Only => "Dawn only",
+            Schedule.Night_Only => "Night only",
+            _ => "Unknown schedule"
+        };
+    }
+
+    /// <summary>
+    /// Get next available time for an NPC
+    /// </summary>
+    public string GetNextAvailableTime(NPC npc)
+    {
+        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        
+        if (npc.IsAvailable(currentTime))
+        {
+            return "Available now";
+        }
+
+        // Check upcoming time blocks in order
+        List<TimeBlocks> timeBlocks = new List<TimeBlocks> 
+        { 
+            TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, 
+            TimeBlocks.Evening, TimeBlocks.Night 
+        };
+
+        // Start checking from the next time block
+        int currentIndex = timeBlocks.IndexOf(currentTime);
+        for (int i = 1; i <= timeBlocks.Count; i++)
+        {
+            int nextIndex = (currentIndex + i) % timeBlocks.Count;
+            TimeBlocks nextTime = timeBlocks[nextIndex];
+            
+            if (npc.IsAvailable(nextTime))
+            {
+                return $"Next available: {nextTime.ToString().Replace('_', ' ')}";
+            }
+        }
+
+        return "Never available";
+    }
+
 
 
     /// <summary>

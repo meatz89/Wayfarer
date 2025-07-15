@@ -251,6 +251,10 @@ public static class TestServiceConfiguration
         // - IAIProvider (not needed for game logic testing)
 
         // If specific tests need AI services, they can create mock implementations or use a test AI provider
+        
+        // Add stub implementations for services required by GameWorldManager but not needed for location tests
+        services.AddSingleton<EncounterFactory>(sp => null); // Null is OK for location initialization tests
+        services.AddSingleton<ChoiceProjectionService>(sp => null); // Null is OK for location initialization tests
 
         return services;
     }

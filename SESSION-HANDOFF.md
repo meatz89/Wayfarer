@@ -1,6 +1,32 @@
 # SESSION HANDOFF
 
-## CURRENT STATUS: PHASE 3 SESSION 6 COMPLETE
+## CURRENT STATUS: PHASE 1 - CRITICAL SYSTEM FIXES IN PROGRESS (45% COMPLETE)
+
+### **CURRENT SESSION PROGRESS: FIX CRITICAL TEST FAILURES**
+
+**✅ PlayerLocationInitializationTests Fixed (5/5 tests passing)**
+
+**Major Accomplishments**:
+- ✅ **Test Configuration Fixed**: Updated tests to use `ConfigureTestServices("Content")` instead of production configuration
+- ✅ **Test-Specific JSON Content Created**: Created isolated test JSON files with functionally meaningful names (test_start_location, test_travel_destination, etc.)
+- ✅ **JSON Field Names Corrected**: Fixed field names to match parser expectations ("locationSpots" not "locationSpotIds", "connectedTo" not "connectedLocationIds")
+- ✅ **Enum Values Fixed**: Changed invalid "RESTRICTED" LocationSpotType to valid "FEATURE" value
+- ✅ **Test Isolation Achieved**: Tests now use completely isolated test data, following GAME-ARCHITECTURE.md principles
+
+**Key Technical Fixes**:
+- Test content directory: `/mnt/c/git/wayfarer/Wayfarer.Tests/Content/Templates/`
+- gameWorld.json: Sets CurrentLocationId to "test_start_location" and CurrentLocationSpotId to "test_start_spot"
+- locations.json: Uses proper field names "locationSpots" and "connectedTo" with test-specific location IDs
+- location_spots.json: Uses correct format with "CurrentTimeBlocks" field and valid LocationSpotTypes enum values
+
+**Remaining Critical Test Failures**: 6 tests across 3 test classes:
+- ⏳ NPCRepositoryTests: 3 failures (CRUD operations broken)
+- ⏳ TravelTimeConsumptionTests: 2 failures (time consumption mechanics broken)  
+- ⏳ RouteConditionVariationsTests: 1 failure (route conditions not working)
+
+**Test Progress**: 233/239 tests passing (97.5% pass rate, up from 95.4%)
+
+## PREVIOUS SESSION STATUS: PHASE 3 SESSION 6 COMPLETE
 
 **Target Design**: Complete POC specification documented in `POC-TARGET-DESIGN.md`
 
@@ -391,4 +417,68 @@ TestScenarioBuilder scenario = new TestScenarioBuilder()
 
 **Remaining Work**: Fix market availability issue for comprehensive test coverage
 
-**Session Handoff Status**: ✅ MAJOR SUCCESS - Contract completion system fully refactored and operational
+## CURRENT SESSION: UI USABILITY IMPROVEMENTS - PHASE 1 COMPLETE
+
+### **CURRENT SESSION PROGRESS (PHASE 1 COMPLETE)**
+
+**✅ Critical UI Usability Improvements - Phase 1 Complete**
+
+**Major Problem Solved**: Players previously had NO way to understand basic game mechanics like:
+- When NPCs are available for services
+- Which NPCs provide which services  
+- Why markets are closed
+- How to plan activities across time blocks
+
+**Major Accomplishments**:
+- ✅ **Enhanced NPC Schedule Display**: LocationSpotMap now shows comprehensive NPC availability information
+- ✅ **Service Provider Information**: Market UI now clearly connects NPCs to trading services
+- ✅ **Enhanced Market Status**: Market UI shows detailed trader schedules and availability
+- ✅ **NPC Schedule Helper Methods**: GameWorldManager now provides all necessary schedule query methods
+- ✅ **Complete CSS Styling**: Added comprehensive styling for all new UI components
+
+**Technical Implementation Details**:
+
+**Files Modified**:
+- `src/Pages/LocationSpotMap.razor` - Enhanced NPC display with schedules and availability
+- `src/Pages/LocationSpotMap.razor.cs` - Added schedule helper methods and availability checks
+- `src/Pages/Market.razor` - Enhanced market status with trader information
+- `src/GameState/GameWorldManager.cs` - Added NPC schedule and availability query methods
+- `src/GameState/MarketManager.cs` - Added detailed market status and trader query methods
+- `src/wwwroot/css/ui-components.css` - Added NPC availability styling
+- `src/wwwroot/css/items.css` - Added trader information styling
+
+**New Features Implemented**:
+1. **NPC Schedule Display**: Shows "Schedule: Morning, Afternoon" for each NPC
+2. **Current Availability Status**: Shows "🟢 Available now" or "🔴 Next available: Morning"
+3. **Service Information**: Shows "Services: Trade, Rest" for each NPC
+4. **Action Availability**: Shows "💰 Can trade items" when NPC is available
+5. **Trader Information**: Market UI shows all traders and their schedules
+6. **Market Status**: Clear explanations of why markets are closed
+
+**Key Methods Added**:
+- `GetNPCScheduleDescription(Schedule)` - Human-readable schedule descriptions
+- `GetNextAvailableTime(NPC)` - Shows when NPC will be available next
+- `GetTradingNPCs(locationId)` - Gets all NPCs who provide trading services
+- `GetCurrentlyAvailableNPCs(locationId)` - Gets NPCs available right now
+- `GetDetailedMarketStatus(locationId)` - Enhanced market status with trader info
+
+**UI/UX Improvements**:
+- **Visual Indicators**: Green/red indicators for NPC availability
+- **Color Coding**: Available NPCs have green left border, unavailable have red
+- **Service Actions**: Clear icons showing what you can do with each NPC
+- **Schedule Information**: Human-readable "Morning, Afternoon" instead of technical codes
+- **Explanatory Text**: Clear explanations when markets are closed
+
+**Success Criteria Met**:
+Players can now answer these questions WITHOUT guessing:
+1. ✅ **"When can I trade?"** - Clear display of trading hours and which NPCs provide trading
+2. ✅ **"Who do I need to talk to for X?"** - Clear connection between NPCs and services
+3. ✅ **"Why is this closed?"** - Clear explanation of NPC availability requirements
+4. ✅ **"When will this be available?"** - Clear schedule information for planning
+
+**Next Steps** (Phase 2):
+- Add time-based service availability display to main gameplay view
+- Add comprehensive time block planning UI
+- Add reusable NPC availability component
+
+**Session Handoff Status**: ✅ MAJOR SUCCESS - UI usability critical improvements Phase 1 complete

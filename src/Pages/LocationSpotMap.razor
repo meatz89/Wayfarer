@@ -24,27 +24,84 @@
                 </div>
                 <div class="location-type">@spot.Description</div>
 
-                @* Show available NPCs at this specific spot *@
+                @* Show comprehensive NPC information for this spot *@
                 @{
-                    var spotNPCs = GetAvailableNPCsForSpot(spot);
+                    var allSpotNPCs = GetAllNPCsForSpot(spot);
+                    var availableNPCs = GetAvailableNPCsForSpot(spot);
+                    var currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
                 }
-                @if (spotNPCs.Any())
+                @if (allSpotNPCs.Any())
                 {
                     <div class="npcs-section">
-                        <div class="npcs-header">People Here:</div>
-                        @foreach (var npc in spotNPCs)
+                        <div class="npcs-header">People at this location:</div>
+                        @foreach (var npc in allSpotNPCs)
                         {
-                            <div class="npc-card">
-                                <div class="npc-name">@npc.Name</div>
-                                <div class="npc-profession">@npc.Profession.ToString().Replace("_", " ")</div>
+                            bool isCurrentlyAvailable = IsNPCCurrentlyAvailable(npc);
+                            <div class="npc-card @(isCurrentlyAvailable ? "npc-available" : "npc-unavailable")">
+                                <div class="npc-basic-info">
+                                    <div class="npc-name">@npc.Name</div>
+                                    <div class="npc-profession">@npc.Profession.ToString().Replace("_", " ")</div>
+                                </div>
+                                
+                                <div class="npc-schedule-info">
+                                    <div class="npc-availability">
+                                        <strong>Schedule:</strong> @GetNPCScheduleDescription(npc.AvailabilitySchedule)
+                                    </div>
+                                    <div class="npc-current-status @(isCurrentlyAvailable ? "status-available" : "status-unavailable")">
+                                        @if (isCurrentlyAvailable)
+                                        {
+                                            <span class="status-indicator">🟢</span>
+                                            <span>Available now</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-indicator">🔴</span>
+                                            <span>@GetNextAvailableTime(npc)</span>
+                                        }
+                                    </div>
+                                </div>
+                                
                                 @if (npc.ProvidedServices.Any())
                                 {
                                     <div class="npc-services">
-                                        Services: @string.Join(", ", npc.ProvidedServices.Select(s => s.ToString().Replace("_", " ")))
+                                        <strong>Services:</strong> @string.Join(", ", npc.ProvidedServices.Select(s => s.ToString().Replace("_", " ")))
+                                    </div>
+                                }
+                                
+                                @* Show what the player can do with this NPC *@
+                                @if (isCurrentlyAvailable)
+                                {
+                                    <div class="npc-actions">
+                                        @if (npc.ProvidedServices.Contains(ServiceTypes.Trade))
+                                        {
+                                            <span class="service-action">💰 Can trade items</span>
+                                        }
+                                        @if (npc.ProvidedServices.Contains(ServiceTypes.Rest))
+                                        {
+                                            <span class="service-action">🛏️ Can rest here</span>
+                                        }
+                                        @if (npc.ProvidedServices.Contains(ServiceTypes.EquipmentRepair))
+                                        {
+                                            <span class="service-action">🔧 Can repair equipment</span>
+                                        }
+                                        @if (npc.ProvidedServices.Contains(ServiceTypes.Information))
+                                        {
+                                            <span class="service-action">💬 Can provide information</span>
+                                        }
+                                        @if (npc.ProvidedServices.Contains(ServiceTypes.Training))
+                                        {
+                                            <span class="service-action">📚 Can provide training</span>
+                                        }
                                     </div>
                                 }
                             </div>
                         }
+                    </div>
+                }
+                else
+                {
+                    <div class="npcs-section">
+                        <div class="no-npcs">No people at this location</div>
                     </div>
                 }
 

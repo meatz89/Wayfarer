@@ -25,7 +25,7 @@ namespace Wayfarer.Tests
             services.AddLogging();
 
 
-            services.ConfigureServices();
+            services.ConfigureTestServices("Content");
 
             return services.BuildServiceProvider();
         }

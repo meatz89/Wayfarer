@@ -1,0 +1,21 @@
+{
+	"CurrentLocationId": "test_start_location",
+	"CurrentLocationSpotId": "test_start_spot",
+	"CurrentDay": 1,
+	"CurrentTimeHours": 6,
+	"Player": {
+		"Name": null,
+		"Gender": null,
+		"Archetype": null,
+		"Coins": 10,
+		"MaxActionPoints": 10,
+		"ActionPoints": 0,
+		"MaxStamina": 10,
+		"StaminaPoints": 10,
+		"MaxHealth": 10,
+		"Health": 10,
+		"Level": 1,
+		"CurrentXP": 0,
+		"InventoryItems": []
+	}
+}
