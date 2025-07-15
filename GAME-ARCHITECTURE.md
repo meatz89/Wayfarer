@@ -4,6 +4,47 @@ This document captures critical architectural discoveries and patterns that must
 
 ## CORE ARCHITECTURAL PATTERNS
 
+### **CRITICAL: CONTENT/LOGIC SEPARATION PRINCIPLE**
+
+**NEVER hardcode content IDs (location names, item names, NPC names, etc.) into business logic.**
+
+**FUNDAMENTAL RULE**: Content IDs must NEVER control program flow. Content is data, not logic.
+
+**VIOLATIONS - FORBIDDEN:**
+```csharp
+❌ switch (locationId) {
+    case "town_square": pricing.BuyPrice = item.BuyPrice + 1; break;
+    case "dusty_flagon": pricing.BuyPrice = item.BuyPrice - 1; break;
+}
+
+❌ if (itemId == "herbs") { /* special logic */ }
+❌ if (npcId == "elena_trader") { /* special behavior */ }
+❌ if (locationId.Contains("tavern")) { /* logic based on name */ }
+```
+
+**CORRECT PATTERNS - REQUIRED:**
+```csharp
+✅ switch (location.LocationType) {
+    case LocationType.Town: pricing.BuyPrice = item.BuyPrice + 1; break;
+    case LocationType.Tavern: pricing.BuyPrice = item.BuyPrice - 1; break;
+}
+
+✅ if (item.ItemCategory == ItemCategory.Herbs) { /* logic */ }
+✅ if (npc.Profession == Professions.Trader) { /* logic */ }
+✅ if (location.LocationType == LocationType.Tavern) { /* logic */ }
+```
+
+**ENFORCEMENT REQUIREMENTS:**
+1. **Business logic operates on entity properties/categories, NEVER on specific IDs**
+2. **Content IDs are for data reference only, not logic control**
+3. **All hardcoded content IDs in business logic are critical architectural violations**
+4. **Tests using production content IDs pollute business logic - use test categories/properties**
+
+**RATIONALE:**
+- Content should be configurable data, not part of code logic
+- Hardcoded content IDs make code unmaintainable and brittle
+- Content creators should be able to change IDs without breaking logic
+- Business logic should work with any content that has the right properties
 
 ### CORE ARCHITECTURAL PATTERNS
 

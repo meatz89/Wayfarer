@@ -29,25 +29,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Wayfarer** is a medieval life simulation RPG built as a Blazor Server application (.NET 8.0). It features a sophisticated, AI-driven narrative system with turn-based resource management gameplay focused on economic strategy, travel optimization, and contract fulfillment.
 
-## COMMON DEVELOPMENT TASKS
+## CORE GAME DESIGN PRINCIPLES
 
-### Build, Run, and Test
-```bash
-# Build the project
-dotnet build
+### Game Abstraction Through Indirect Resource Effects
 
-# Run the application
-dotnet run --project src/Wayfarer.csproj
+The game follows a **game abstraction** principle where real-world concepts become strategic mechanics through indirect resource interactions:
 
-# Run all tests
-dotnet test
+1. **Abstract concepts into game mechanics** - stamina becomes action cards, fatigue becomes card refresh rates
+2. **No direct system interactions** - systems only affect each other through resource modification (health → card refresh → capability)
+3. **Categorical requirements over modifiers** - need Physical Power 2 card vs +10% strength bonus
+4. **Resources create optimization puzzles** - hand management, allocation decisions, timing trade-offs
+5. **Progression through collection** - better cards/equipment vs arbitrary stat increases
 
-# Run specific test file
-dotnet test --filter "FullyQualifiedName~TestClassName"
+### Other Game Design Principles
+1. **Pure Categorical Logic**: Every constraint emerges from logical category interactions ([Mountain] terrain + missing [Climbing] equipment = route blocked), never arbitrary math.
+2. **Optimization Puzzles**: Each thought process shows real strategic problems - "I need 6 inventory slots but only have 5" or "I need 4 activities but only have 3 time periods."
+3. **Cascading Consequences**: Decisions ripple through multiple systems - choosing [Social_Noble] equipment enables [Manor] access but blocks [Tavern] relationships.
+4. **Discovery Gameplay**: Players must experiment to learn which equipment enables which routes, which NPCs provide which information, which timing creates which opportunities.
+5. **No Automation**: Zero "helpful" features that solve puzzles for players - no "best route calculators" or "profitable opportunity panels."
 
-# Run with verbose output
-dotnet test --logger "console;verbosity=detailed"
-```
+**The Player Experience Target**: 
+- "I can't take this route because I need [Climbing] equipment and it's not available until the [Craftsman] finishes my commission in 2 days"
+- "I want that [Noble] contract but I need [Social_Noble] equipment and [Evening] timing, which conflicts with my [Merchant] network building"
+- "This [Heavy] trade good is profitable but blocks [Caravan] transport, forcing [Walking] which costs stamina I need for work"
 
 ## HIGH-LEVEL ARCHITECTURE
 
@@ -206,6 +210,12 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
   2. **STOP all other work** - architectural bugs corrupt the entire system
   3. **NEVER work around architectural bugs** - fix them at the source
   4. **Document the fix in GAME-ARCHITECTURE.md** for future reference
+- **CRITICAL: CONTENT/LOGIC SEPARATION** - NEVER hardcode content IDs (location names, item names, NPC names, etc.) into business logic:
+  1. **CONTENT ≠ GAME LOGIC** - Content IDs must never control program flow
+  2. **NO HARDCODED CONTENT IDS** - Never use specific location names, item names, etc. in switch statements or conditionals
+  3. **USE PROPERTIES/CATEGORIES** - Business logic should operate on entity properties (LocationType, ItemCategory, etc.), not specific IDs
+  4. **CONTENT IS DATA** - Content should be configurable data, not part of the code logic
+  5. **VIOLATION IS CRITICAL** - Any hardcoded content ID in business logic is a critical architectural violation
 - **CRITICAL: NEVER USE STRING-BASED CATEGORY MAPPING** - Categories must be properly defined in JSON and parsed into enums/classes:
   1. **FORBIDDEN**: Mapping categories based on string matching in item IDs (e.g., `itemId.Contains("hammer")`)
   2. **REQUIRED**: Categories must be explicit properties in JSON files
