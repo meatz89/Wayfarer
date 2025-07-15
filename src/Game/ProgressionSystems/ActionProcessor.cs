@@ -136,9 +136,34 @@ public class ActionProcessor
 
     private void ApplyCardRefresh(SkillCategories cardType)
     {
-        // TODO: Implement card refresh logic based on refresh card type
-        // This would refresh cards of the specified skill category
-        messageSystem.AddSystemMessage($"Refreshed {cardType} cards");
+        // Card refresh implementation: restore cards of the specified skill category
+        // This provides strategic resource management through card availability
+        if (cardType == SkillCategories.None)
+        {
+            return; // No cards to refresh
+        }
+
+        // Find cards of the specified category in player's collection
+        List<SkillCard> playerCards = player.PlayerSkillCards?.Where(card => card.Category == cardType).ToList() ?? new List<SkillCard>();
+        
+        int refreshedCount = 0;
+        foreach (SkillCard card in playerCards)
+        {
+            if (card.IsExhausted)
+            {
+                card.Refresh();
+                refreshedCount++;
+            }
+        }
+
+        if (refreshedCount > 0)
+        {
+            messageSystem.AddSystemMessage($"Refreshed {refreshedCount} {cardType} cards");
+        }
+        else
+        {
+            messageSystem.AddSystemMessage($"No {cardType} cards needed refreshing");
+        }
     }
 
     private void ApplyCategoricalEffects(List<IMechanicalEffect> effects)
