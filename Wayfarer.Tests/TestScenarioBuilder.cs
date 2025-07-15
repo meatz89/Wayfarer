@@ -115,8 +115,6 @@ public class PlayerBuilder
     private string _startLocationId = "dusty_flagon";
     private int _coins = 50;
     private int _stamina = 10;
-    private int _actionPoints = 18;
-    private int _maxActionPoints = 18;
     private int _reputation = 0;
     private readonly List<string> _inventory = new List<string>();
     private readonly List<string> _knownContracts = new List<string>();
@@ -139,17 +137,7 @@ public class PlayerBuilder
         return this;
     }
 
-    public PlayerBuilder WithActionPoints(int actionPoints)
-    {
-        _actionPoints = actionPoints;
-        return this;
-    }
 
-    public PlayerBuilder WithMaxActionPoints(int maxActionPoints)
-    {
-        _maxActionPoints = maxActionPoints;
-        return this;
-    }
 
     public PlayerBuilder WithReputation(int reputation)
     {
@@ -180,8 +168,6 @@ public class PlayerBuilder
         // Set basic stats
         player.Coins = _coins;
         player.Stamina = _stamina;
-        player.ActionPoints = _actionPoints;
-        player.MaxActionPoints = _maxActionPoints;
         player.Reputation = _reputation;
 
         // Add inventory items

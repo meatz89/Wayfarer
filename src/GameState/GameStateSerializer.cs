@@ -22,8 +22,6 @@ public static class GameWorldSerializer
                 Gender = gameWorld.GetPlayer().IsInitialized ? gameWorld.GetPlayer().Gender.ToString() : null,
                 Archetype = gameWorld.GetPlayer().IsInitialized ? gameWorld.GetPlayer().Archetype.ToString() : null,
                 Coins = gameWorld.GetPlayer().Coins,
-                MaxActionPoints = gameWorld.GetPlayer().MaxActionPoints,
-                ActionPoints = gameWorld.GetPlayer().ActionPoints,
                 MaxStamina = gameWorld.GetPlayer().MaxStamina,
                 Stamina = gameWorld.GetPlayer().Stamina,
                 MaxHealth = gameWorld.GetPlayer().MaxHealth,
@@ -87,8 +85,6 @@ public static class GameWorldSerializer
 
             // Apply resources
             gameWorld.GetPlayer().Coins = serialized.Player.Coins;
-            gameWorld.GetPlayer().MaxActionPoints = serialized.Player.MaxActionPoints;
-            gameWorld.GetPlayer().ActionPoints = serialized.Player.ActionPoints;
             gameWorld.GetPlayer().MaxStamina = serialized.Player.MaxStamina;
             gameWorld.GetPlayer().Stamina = serialized.Player.Stamina;
             gameWorld.GetPlayer().MaxHealth = serialized.Player.MaxHealth;

@@ -63,7 +63,7 @@ public class MainGameplayViewBase : ComponentBase
     {
         get
         {
-            return PlayerState.MaxActionPoints;
+            return 0; // ActionPoints system removed
         }
     }
 

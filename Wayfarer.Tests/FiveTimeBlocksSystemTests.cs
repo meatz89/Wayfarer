@@ -66,7 +66,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -85,7 +85,7 @@ namespace Wayfarer.Tests
         {
             // Verify that all 24 hours map to exactly one of the 5 time blocks
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -119,7 +119,7 @@ namespace Wayfarer.Tests
         {
             // Verify the duration of each time block makes sense
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -159,7 +159,7 @@ namespace Wayfarer.Tests
         {
             // Test the exact boundary conditions between time blocks
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -192,7 +192,7 @@ namespace Wayfarer.Tests
         {
             // Verify that consuming all 5 time blocks progresses through different periods
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18).WithMaxActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -232,7 +232,7 @@ namespace Wayfarer.Tests
         {
             // Verify time block names align with natural time periods
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);

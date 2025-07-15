@@ -4,8 +4,6 @@
     public string Gender { get; set; }
     public string Archetype { get; set; }
     public int Coins { get; set; }
-    public int MaxActionPoints { get; set; }
-    public int ActionPoints { get; set; }
     public int MaxStamina { get; set; }
     public int Stamina { get; set; }
     public int MaxHealth { get; set; }

@@ -75,27 +75,10 @@ public class TimeManager
 
     public void UpdateCurrentTimeBlock()
     {
-        int maxAP = player.MaxActionPoints;
-        int currentAP = player.CurrentActionPoints();
-        int actionsUsed = maxAP - currentAP;
+        // Time blocks are managed directly, not based on action points
 
-        int activeDayStartHour = TimeDayStart;  // 6 AM
-        int activeDayEndHour = 24;   // Midnight
-        int activeDayHours = activeDayEndHour - activeDayStartHour;  // 18 hours
-
-        double hoursPerAP = activeDayHours / (double)maxAP;
-        double totalHoursAdvanced = actionsUsed * hoursPerAP;
-
-        int newHour = activeDayStartHour + (int)Math.Floor(totalHoursAdvanced);
-        if (newHour >= 24)
-            newHour = 23;  // Cap to prevent overflow, last action sits near midnight
-
-        SetNewTime(newHour);
-
-        if (currentAP == 0)
-        {
-            SetNewTime(0); // Midnight when no action points left
-        }
+        // Time progression is now handled by time blocks, not action points
+        // This method is kept for compatibility but doesn't need to do anything specific
     }
 
     public void StartNewDay()

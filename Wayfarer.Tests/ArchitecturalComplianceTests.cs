@@ -22,7 +22,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -59,7 +59,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -102,7 +102,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);

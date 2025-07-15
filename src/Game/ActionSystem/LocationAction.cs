@@ -16,7 +16,6 @@ public record LocationAction
 
     public List<IRequirement> Requirements { get; set; } = new();
     public List<IMechanicalEffect> Effects { get; set; } = new();
-    public int ActionPointCost { get; set; }
     public int SilverCost { get; set; }
     public SkillCategories RefreshCardType { get; set; }
     public int StaminaCost { get; set; }
