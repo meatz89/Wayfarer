@@ -13,6 +13,7 @@ public class MainGameplayViewBase : ComponentBase
     [Inject] public MessageSystem MessageSystem { get; set; }
     [Inject] public ItemRepository ItemRepository { get; set; }
     [Inject] public LocationRepository LocationRepository { get; set; }
+    [Inject] public NPCRepository NPCRepository { get; set; }
     [Inject] public LoadingStateService? LoadingStateService { get; set; }
     [Inject] public CardHighlightService CardRefreshService { get; set; }
 
@@ -516,5 +517,39 @@ public class MainGameplayViewBase : ComponentBase
     {
         // Simplified implementation - would need actual contract checking logic
         return true;
+    }
+
+    /// <summary>
+    /// Get icon for time block display
+    /// </summary>
+    public string GetTimeBlockIcon(TimeBlocks timeBlock)
+    {
+        return timeBlock switch
+        {
+            TimeBlocks.Dawn => "🌅",
+            TimeBlocks.Morning => "☀️",
+            TimeBlocks.Afternoon => "🌞",
+            TimeBlocks.Evening => "🌇",
+            TimeBlocks.Night => "🌙",
+            _ => "⏰"
+        };
+    }
+
+    /// <summary>
+    /// Get icon for service type display
+    /// </summary>
+    public string GetServiceIcon(ServiceTypes service)
+    {
+        return service switch
+        {
+            ServiceTypes.Rest => "🛌",
+            ServiceTypes.Trade => "🛒",
+            ServiceTypes.Healing => "❤️",
+            ServiceTypes.Information => "📖",
+            ServiceTypes.Training => "⚔️",
+            ServiceTypes.EquipmentRepair => "🔨",
+            ServiceTypes.FoodProduction => "🍲",
+            _ => "⚙️"
+        };
     }
 }

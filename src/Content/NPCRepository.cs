@@ -93,6 +93,67 @@ public class NPCRepository
         return null;
     }
 
+    /// <summary>
+    /// Get time block service planning data for UI display
+    /// </summary>
+    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string locationId)
+    {
+        var timeBlockPlan = new List<TimeBlockServiceInfo>();
+        var allTimeBlocks = Enum.GetValues<TimeBlocks>();
+        var locationNPCs = GetNPCsForLocation(locationId);
+
+        foreach (var timeBlock in allTimeBlocks)
+        {
+            var availableNPCs = locationNPCs.Where(npc => npc.IsAvailable(timeBlock)).ToList();
+            var availableServices = availableNPCs.SelectMany(npc => npc.ProvidedServices).Distinct().ToList();
+
+            timeBlockPlan.Add(new TimeBlockServiceInfo
+            {
+                TimeBlock = timeBlock,
+                AvailableNPCs = availableNPCs,
+                AvailableServices = availableServices,
+                IsCurrentTimeBlock = timeBlock == _gameWorld.TimeManager.GetCurrentTimeBlock()
+            });
+        }
+
+        return timeBlockPlan;
+    }
+
+    /// <summary>
+    /// Get all unique services available at a location across all time blocks
+    /// </summary>
+    public List<ServiceTypes> GetAllLocationServices(string locationId)
+    {
+        var locationNPCs = GetNPCsForLocation(locationId);
+        return locationNPCs.SelectMany(npc => npc.ProvidedServices).Distinct().ToList();
+    }
+
+    /// <summary>
+    /// Get service availability summary for a specific service across all time blocks
+    /// </summary>
+    public ServiceAvailabilityPlan GetServiceAvailabilityPlan(string locationId, ServiceTypes service)
+    {
+        var allTimeBlocks = Enum.GetValues<TimeBlocks>();
+        var locationNPCs = GetNPCsForLocation(locationId);
+        var serviceProviders = locationNPCs.Where(npc => npc.ProvidedServices.Contains(service)).ToList();
+
+        var availableTimeBlocks = new List<TimeBlocks>();
+        foreach (var timeBlock in allTimeBlocks)
+        {
+            if (serviceProviders.Any(npc => npc.IsAvailable(timeBlock)))
+            {
+                availableTimeBlocks.Add(timeBlock);
+            }
+        }
+
+        return new ServiceAvailabilityPlan
+        {
+            Service = service,
+            AvailableTimeBlocks = availableTimeBlocks,
+            ServiceProviders = serviceProviders
+        };
+    }
+
     #endregion
 
     #region Write Methods
