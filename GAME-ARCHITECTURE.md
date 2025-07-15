@@ -70,6 +70,27 @@ GameWorldManager manager = new GameWorldManager(gameWorld, ...repositories...);
 - Manager classes
 - Service classes
 
+#### **Test Configuration Pattern (CRITICAL)**
+**ALL tests MUST use ConfigureTestServices with test-specific content - NEVER production content.**
+
+**MANDATORY TEST PATTERNS:**
+```csharp
+// ✅ CORRECT: Use test-specific configuration
+services.ConfigureTestServices("Content");
+
+// ❌ WRONG: Using production configuration in tests
+services.ConfigureServices();
+
+// ❌ WRONG: Using GameWorldInitializer directly without service configuration
+GameWorldInitializer initializer = new GameWorldInitializer("Content");
+```
+
+**TEST CONTENT REQUIREMENTS:**
+1. **Test-specific JSON files** in `/Wayfarer.Tests/Content/Templates/`
+2. **Functionally meaningful names** (test_start_location, test_merchant_npc, not location1, npc1)
+3. **Isolated test data** - never depend on production content
+4. **Minimal viable data** - only include entities needed for specific tests
+
 #### **Repository-Based ID Resolution Pattern**
 Repositories are responsible for ID-to-object lookup, not initialization or business logic.
 - **GameWorldInitializer**: Only loads raw JSON data, no relationship building
@@ -669,6 +690,20 @@ Production: src/Content/Templates/*.json
 Testing:    Wayfarer.Tests/Content/Templates/*.json
 ```
 
+**Test Configuration Pattern**:
+```csharp
+// ✅ CORRECT: Use test-specific configuration
+services.ConfigureTestServices("Content");
+
+// ❌ WRONG: Using production configuration in tests
+services.ConfigureServices();
+```
+
+**Test JSON Naming Convention**:
+- Use functionally meaningful names that describe test purpose
+- Examples: `test_start_location`, `test_travel_destination`, `test_restricted_location`
+- Avoid numbered names like `test_location_1` that don't convey purpose
+
 **Implementation**:
 ```csharp
 // ✅ CORRECT: Test-specific data loading
@@ -685,6 +720,20 @@ var gameWorld = new GameWorldInitializer("Content").LoadGame();
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
 </ItemGroup>
+```
+
+**JSON Field Name Requirements**:
+- Location JSON: Use `"locationSpots"` not `"locationSpotIds"`
+- Location JSON: Use `"connectedTo"` not `"connectedLocationIds"`  
+- LocationSpot JSON: Use `"CurrentTimeBlocks"` with capital 'C'
+- LocationSpot JSON: `"type"` field must use valid `LocationSpotTypes` enum values (FEATURE, CHARACTER)
+
+**Stub Service Pattern for Tests**:
+When tests need services not relevant to the test scenario, provide null stubs:
+```csharp
+// In TestServiceConfiguration
+services.AddSingleton<EncounterFactory>(sp => null); // OK for non-AI tests
+services.AddSingleton<ChoiceProjectionService>(sp => null); // OK for non-AI tests
 ```
 
 **Benefits**:
@@ -974,3 +1023,55 @@ Before implementing contract step changes:
 4. **❌ Legacy System Bypass**: Always check CompletionSteps.Any() before falling back to legacy
 5. **❌ Context Mismatches**: Ensure action contexts match the step types that need them
 6. **❌ Progress Inconsistency**: Keep step completion status synchronized with progress calculation
+
+### **JSON Field Name Requirements (CRITICAL)**
+
+**ALL JSON files MUST use these exact field names - parsers are case-sensitive:**
+
+**NPCs.json Field Names:**
+- `locationId` (NOT location)
+- `spotId` (NOT locationSpot)
+- `services` (NOT providedServices)
+- `availabilitySchedule` (parsed to Schedule enum)
+- `contractCategories` (string array)
+
+**Locations.json Field Names:**
+- `locationSpots` (NOT locationSpotIds)
+- `connectedTo` (NOT connectedLocationIds)
+
+**Location_spots.json Field Names:**
+- `CurrentTimeBlocks` (array of TimeBlocks values)
+- `SpotType` (must be valid LocationSpotTypes enum: FEATURE or CHARACTER)
+
+**PARSER EXPECTATIONS:**
+```csharp
+// NPCParser expects:
+Location = GetStringProperty(root, "locationId", "");
+
+// LocationParser expects:
+location.LocationSpotIds = GetStringArray(root, "locationSpots");
+location.ConnectedLocationIds = GetStringArray(root, "connectedTo");
+```
+
+### **TimeManager Synchronization Pattern (CRITICAL)**
+
+**ALWAYS use TimeManager.SetNewTime() to change time - NEVER set WorldState.CurrentTimeBlock directly.**
+
+**WHY**: TimeManager calculates TimeBlocks from CurrentTimeHours. Setting WorldState.CurrentTimeBlock does NOT update the hours.
+
+```csharp
+// ❌ WRONG: Setting time block directly
+gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
+
+// ✅ CORRECT: Setting time through TimeManager
+gameWorld.TimeManager.SetNewTime(9); // 9:00 AM = Morning block
+
+// Time block mapping:
+// Dawn: 6:00-8:59 (hours 6-8)
+// Morning: 9:00-11:59 (hours 9-11)
+// Afternoon: 12:00-15:59 (hours 12-15)
+// Evening: 16:00-19:59 (hours 16-19)
+// Night: 20:00-5:59 (hours 20-23, 0-5)
+```
+
+**ENFORCEMENT**: TimeManager.GetCurrentTimeBlock() is the ONLY source of truth for current time block.

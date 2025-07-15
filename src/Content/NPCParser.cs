@@ -14,21 +14,33 @@ public static class NPCParser
         using JsonDocument doc = JsonDocument.Parse(json, options);
         JsonElement root = doc.RootElement;
 
+        string locationId = GetStringProperty(root, "locationId", "");
+        
         NPC npc = new NPC
         {
             ID = GetStringProperty(root, "id", ""),
             Name = GetStringProperty(root, "name", ""),
             Role = GetStringProperty(root, "name", ""), // Use name as role for current JSON structure
             Description = GetStringProperty(root, "description", ""),
-            Location = GetStringProperty(root, "locationId", ""), // Use locationId for location
+            Location = locationId, // Use locationId for location
         };
+        
+        Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{locationId}'");
 
         // Parse profession with mapping from JSON values to enum
         string professionStr = GetStringProperty(root, "profession", "");
         npc.Profession = MapProfessionFromJson(professionStr);
 
-        // Set default schedule based on profession (since not in JSON)
-        npc.AvailabilitySchedule = GetDefaultScheduleForProfession(npc.Profession);
+        // Parse schedule from JSON if available, otherwise use default based on profession
+        string scheduleStr = GetStringProperty(root, "availabilitySchedule", "");
+        if (!string.IsNullOrEmpty(scheduleStr))
+        {
+            npc.AvailabilitySchedule = ParseScheduleFromJson(scheduleStr);
+        }
+        else
+        {
+            npc.AvailabilitySchedule = GetDefaultScheduleForProfession(npc.Profession);
+        }
 
         // Parse services and map to ServiceTypes enum
         List<string> serviceStrings = GetStringArray(root, "services");
@@ -78,6 +90,28 @@ public static class NPCParser
             Professions.Ranger => Schedule.Morning_Afternoon,
             Professions.Scholar => Schedule.Library_Hours,
             _ => Schedule.Business_Hours
+        };
+    }
+
+    private static Schedule ParseScheduleFromJson(string scheduleStr)
+    {
+        return scheduleStr switch
+        {
+            "Always" => Schedule.Always,
+            "Market_Hours" => Schedule.Market_Hours,
+            "Workshop_Hours" => Schedule.Workshop_Hours,
+            "Library_Hours" => Schedule.Library_Hours,
+            "Business_Hours" => Schedule.Business_Hours,
+            "Morning_Evening" => Schedule.Morning_Evening,
+            "Morning_Afternoon" => Schedule.Morning_Afternoon,
+            "Afternoon_Evening" => Schedule.Afternoon_Evening,
+            "Evening_Only" => Schedule.Evening_Only,
+            "Morning_Only" => Schedule.Morning_Only,
+            "Afternoon_Only" => Schedule.Afternoon_Only,
+            "Evening_Night" => Schedule.Evening_Night,
+            "Dawn_Only" => Schedule.Dawn_Only,
+            "Night_Only" => Schedule.Night_Only,
+            _ => Schedule.Business_Hours // Default fallback
         };
     }
 

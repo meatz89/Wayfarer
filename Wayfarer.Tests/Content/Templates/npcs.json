@@ -1,0 +1,84 @@
+[
+	{
+		"id": "test_merchant_npc",
+		"name": "Test Merchant",
+		"profession": "Merchant",
+		"locationId": "test_start_location",
+		"spotId": "test_market_spot",
+		"contractCategories": ["Standard", "Rush"],
+		"availabilitySchedule": "Market_Hours",
+		"services": ["trade_goods", "delivery_contracts"],
+		"inventory": [
+			{ "itemId": "test_item_1", "quantity": 5 },
+			{ "itemId": "test_item_2", "quantity": 3 }
+		]
+	},
+	{
+		"id": "test_innkeeper_npc",
+		"name": "Test Innkeeper",
+		"profession": "Merchant",
+		"locationId": "test_start_location",
+		"spotId": "test_start_spot",
+		"contractCategories": ["Standard"],
+		"availabilitySchedule": "Always",
+		"services": ["rest_services", "labor_contracts"],
+		"inventory": []
+	},
+	{
+		"id": "test_scholar_npc",
+		"name": "Test Scholar",
+		"profession": "Scholar",
+		"locationId": "test_travel_destination",
+		"spotId": "test_destination_spot",
+		"contractCategories": ["Exploration"],
+		"availabilitySchedule": "Workshop_Hours",
+		"services": ["labor_contracts"],
+		"inventory": []
+	},
+	{
+		"id": "test_craftsman_npc",
+		"name": "Test Craftsman",
+		"profession": "Craftsman",
+		"locationId": "test_start_location",
+		"spotId": "test_market_spot",
+		"contractCategories": ["Craft"],
+		"availabilitySchedule": "Workshop_Hours",
+		"services": ["equipment_repair", "trade_goods"],
+		"inventory": [
+			{ "itemId": "test_item_3", "quantity": 2 }
+		]
+	},
+	{
+		"id": "test_destination_trader",
+		"name": "Test Destination Trader",
+		"profession": "Merchant",
+		"locationId": "test_travel_destination",
+		"spotId": "test_destination_spot",
+		"contractCategories": ["Standard"],
+		"availabilitySchedule": "Market_Hours",
+		"services": ["trade_goods"],
+		"inventory": []
+	},
+	{
+		"id": "test_evening_npc",
+		"name": "Test Evening Worker",
+		"profession": "Laborer",
+		"locationId": "test_travel_destination",
+		"spotId": "test_destination_spot",
+		"contractCategories": ["Standard"],
+		"availabilitySchedule": "Evening_Only",
+		"services": ["labor_contracts"],
+		"inventory": []
+	},
+	{
+		"id": "test_restricted_guard",
+		"name": "Test Guard",
+		"profession": "Soldier",
+		"locationId": "test_restricted_location",
+		"spotId": "test_restricted_spot",
+		"contractCategories": [],
+		"availabilitySchedule": "Always",
+		"services": ["labor_contracts"],
+		"inventory": []
+	}
+]

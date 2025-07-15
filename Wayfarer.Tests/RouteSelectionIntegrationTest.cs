@@ -17,7 +17,7 @@ namespace Wayfarer.Tests
             // === SETUP WITH NEW TEST PATTERN ===
             TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p
-                    .StartAt("dusty_flagon")
+                    .StartAt("test_start_location")
                     .WithCoins(100)
                     .WithStamina(10))
                 .WithTimeState(t => t
@@ -38,16 +38,16 @@ namespace Wayfarer.Tests
             ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
             // Get existing locations from loaded JSON data
-            Location townSquare = locationRepository.GetLocation("town_square");
-            Location dustyFlagon = locationRepository.GetLocation("dusty_flagon");
+            Location startLocation = locationRepository.GetLocation("test_start_location");
+            Location travelDestination = locationRepository.GetLocation("test_travel_destination");
 
             // Add route options
             RouteOption walkRoute = new RouteOption
             {
                 Id = "walk_route",
                 Name = "Walk",
-                Origin = "town_square",
-                Destination = "dusty_flagon",
+                Origin = "test_start_location",
+                Destination = "test_travel_destination",
                 BaseCoinCost = 0,
                 BaseStaminaCost = 2,
                 TimeBlockCost = 1,
@@ -59,8 +59,8 @@ namespace Wayfarer.Tests
             {
                 Id = "cart_route",
                 Name = "Cart",
-                Origin = "town_square",
-                Destination = "dusty_flagon",
+                Origin = "test_start_location",
+                Destination = "test_travel_destination",
                 BaseCoinCost = 5,
                 BaseStaminaCost = 1,
                 TimeBlockCost = 1,
@@ -68,9 +68,9 @@ namespace Wayfarer.Tests
                 Method = TravelMethods.Carriage
             };
 
-            townSquare.Connections.Add(new LocationConnection
+            startLocation.Connections.Add(new LocationConnection
             {
-                DestinationLocationId = "dusty_flagon",
+                DestinationLocationId = "test_travel_destination",
                 RouteOptions = new List<RouteOption> { walkRoute, cartRoute }
             });
 
@@ -81,7 +81,7 @@ namespace Wayfarer.Tests
             TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression, new TransportCompatibilityValidator(itemRepository), routeRepository);
 
             // Act
-            List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes("town_square", "dusty_flagon");
+            List<RouteOption> availableRoutes = travelManager.GetAvailableRoutes("test_start_location", "test_travel_destination");
 
             // Assert
             Assert.NotNull(availableRoutes);

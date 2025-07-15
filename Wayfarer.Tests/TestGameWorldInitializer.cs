@@ -36,7 +36,9 @@ public static class TestGameWorldInitializer
     /// </summary>
     public static GameWorld CreateTestWorld(TestScenarioBuilder scenario)
     {
-        GameWorld gameWorld = new GameWorld();
+        // Load test content from JSON files
+        GameWorldInitializer initializer = new GameWorldInitializer("Content");
+        GameWorld gameWorld = initializer.LoadGame();
 
         // Apply scenario configuration to game world
         scenario.ApplyToGameWorld(gameWorld);
@@ -274,8 +276,15 @@ public static class TestGameWorldInitializer
         Player player = gameWorld.GetPlayer();
         player.Initialize("Test Player", Professions.Merchant, Genders.Male);
 
-        // Set starting location
-        Location startLocation = gameWorld.WorldState.locations.First(l => l.Id == "dusty_flagon");
+        // Set starting location - use the first available location from test data
+        Location startLocation = gameWorld.WorldState.locations.FirstOrDefault();
+        if (startLocation == null)
+        {
+            // If no locations loaded from test data, create a minimal one
+            startLocation = new Location("test_location", "Test Location");
+            var locationRepo = new LocationRepository(gameWorld);
+            locationRepo.AddLocation(startLocation);
+        }
         player.CurrentLocation = startLocation;
         gameWorld.WorldState.SetCurrentLocation(startLocation, null);
 
