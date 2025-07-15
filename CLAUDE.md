@@ -205,6 +205,11 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
   2. **STOP all other work** - architectural bugs corrupt the entire system
   3. **NEVER work around architectural bugs** - fix them at the source
   4. **Document the fix in GAME-ARCHITECTURE.md** for future reference
+- **CRITICAL: NEVER USE STRING-BASED CATEGORY MAPPING** - Categories must be properly defined in JSON and parsed into enums/classes:
+  1. **FORBIDDEN**: Mapping categories based on string matching in item IDs (e.g., `itemId.Contains("hammer")`)
+  2. **REQUIRED**: Categories must be explicit properties in JSON files
+  3. **REQUIRED**: Parsers must map JSON category properties to proper enum values
+  4. **NO EXCEPTIONS** - String-based inference of categories violates the categorical design principle
 
 ### GAME DESIGN PRINCIPLES (Critical for Games vs Apps)
 **Games create interactive optimization puzzles for the player to solve, not automated systems that solve everything for them.**

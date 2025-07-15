@@ -93,7 +93,6 @@
 
                 <!-- CATEGORICAL REQUIREMENTS SECTION -->
                 @if (contract.RequiredEquipmentCategories.Any() || 
-                     contract.RequiredToolCategories.Any() || 
                      contract.PhysicalRequirement != PhysicalDemand.None)
                 {
                     <div class="categorical-requirements">
@@ -107,13 +106,6 @@
                             </div>
                         }
                         
-                        @if (contract.RequiredToolCategories.Any())
-                        {
-                            <div class="category-requirement">
-                                <span class="category-label">Tools:</span>
-                                <span class="category-list">@string.Join(", ", contract.RequiredToolCategories.Select(tc => tc.ToString().Replace("_", " ")))</span>
-                            </div>
-                        }
                         
                         @if (contract.PhysicalRequirement != PhysicalDemand.None)
                         {

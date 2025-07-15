@@ -46,17 +46,6 @@ public class ContractValidationService
             }
         }
 
-        // Tool category validation
-        foreach (ToolCategory toolCategory in contract.RequiredToolCategories)
-        {
-            ValidationResult toolResult = ValidateToolCategory(player, toolCategory);
-            if (!toolResult.IsValid)
-            {
-                string categoryName = toolCategory.ToString().Replace("_", " ");
-                missingRequirements.Add($"Requires {categoryName} tools");
-                completionBlockers.Add(toolResult.ErrorMessage);
-            }
-        }
 
         // Physical capability validation
         if (contract.PhysicalRequirement != PhysicalDemand.None)

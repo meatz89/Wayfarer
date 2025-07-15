@@ -46,6 +46,7 @@ public class Item
     public int InventorySlots { get; set; } = 1;
     public List<EquipmentCategory> Categories { get; set; } = new List<EquipmentCategory>();
     public List<ItemCategory> ItemCategories { get; set; } = new List<ItemCategory>();
+    public List<ToolCategory> ToolCategories { get; set; } = new List<ToolCategory>();
 
     // Enhanced Categorical Properties
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
@@ -90,6 +91,16 @@ public class Item
         }
     }
 
+    public string ToolCategoriesDescription
+    {
+        get
+        {
+            return ToolCategories.Any()
+        ? $"Tools: {string.Join(", ", ToolCategories.Select(c => c.ToString().Replace('_', ' ')))}"
+        : "";
+        }
+    }
+
     public string SizeCategoryDescription
     {
         get
@@ -106,6 +117,8 @@ public class Item
                 descriptions.Add(EquipmentCategoriesDescription);
             if (!string.IsNullOrEmpty(ItemCategoriesDescription))
                 descriptions.Add(ItemCategoriesDescription);
+            if (!string.IsNullOrEmpty(ToolCategoriesDescription))
+                descriptions.Add(ToolCategoriesDescription);
             descriptions.Add(SizeCategoryDescription);
             return string.Join(" • ", descriptions);
         }
@@ -136,6 +149,31 @@ public class Item
         }
     }
 
+    // Enhanced type helpers for Option 1 system
+    public bool IsTradeGood
+    {
+        get
+        {
+            return ItemCategories.Contains(ItemCategory.Trade_Goods);
+        }
+    }
+
+    public bool IsEquipment
+    {
+        get
+        {
+            return Categories.Any();
+        }
+    }
+
+    public bool IsTool
+    {
+        get
+        {
+            return ToolCategories.Any();
+        }
+    }
+
     // Categorical matching helper methods
     public bool HasEquipmentCategory(EquipmentCategory equipmentCategory)
     {
@@ -144,10 +182,7 @@ public class Item
 
     public bool HasToolCategory(ToolCategory toolCategory)
     {
-        // ToolCategory now represents non-equipment tool needs
-        // This would be used for checking if item can fulfill general tool requirements
-        // For now, return false since items don't directly map to these general categories
-        return false;
+        return ToolCategories.Contains(toolCategory);
     }
 
     public bool IsSizeCategory(SizeCategory sizeCategory)

@@ -24,10 +24,6 @@ public class Contract
     /// </summary>
     public List<EquipmentCategory> RequiredEquipmentCategories { get; set; } = new List<EquipmentCategory>();
 
-    /// <summary>
-    /// Tool categories needed for optimal contract completion
-    /// </summary>
-    public List<ToolCategory> RequiredToolCategories { get; set; } = new List<ToolCategory>();
 
     /// <summary>
     /// Physical demands of completing this contract
@@ -71,13 +67,13 @@ public class Contract
     /// <summary>
     /// Check if the player's action completes any contract steps
     /// </summary>
-    public bool CheckStepCompletion(Player player, string currentLocationId, object actionContext = null)
+    public bool CheckStepCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null)
     {
         bool anyCompleted = false;
 
         foreach (ContractStep step in CompletionSteps.Where(s => !s.IsCompleted))
         {
-            if (step.CheckCompletion(player, currentLocationId, actionContext))
+            if (step.CheckCompletion(player, currentLocationId, actionContext, itemRepository))
             {
                 anyCompleted = true;
             }
@@ -134,16 +130,16 @@ public class Contract
         return basicAvailability && AvailableTimeBlocks.Contains(currentTimeBlock);
     }
 
-    public bool CanComplete(Player player, string currentLocationId)
+    public bool CanComplete(Player player, string currentLocationId, ItemRepository itemRepository)
     {
-        ContractAccessResult result = GetAccessResult(player, currentLocationId);
+        ContractAccessResult result = GetAccessResult(player, currentLocationId, itemRepository);
         return result.CanComplete;
     }
 
     /// <summary>
     /// Provides detailed analysis of contract accessibility and completion requirements
     /// </summary>
-    public ContractAccessResult GetAccessResult(Player player, string currentLocationId)
+    public ContractAccessResult GetAccessResult(Player player, string currentLocationId, ItemRepository itemRepository)
     {
         ContractAccessResult result = new ContractAccessResult();
         List<string> acceptanceBlockers = new List<string>();
@@ -160,7 +156,7 @@ public class Contract
         // Check equipment category requirements
         foreach (EquipmentCategory equipmentCategory in RequiredEquipmentCategories)
         {
-            if (!PlayerHasEquipmentCategory(player, equipmentCategory))
+            if (!PlayerHasEquipmentCategory(player, equipmentCategory, itemRepository))
             {
                 string categoryName = equipmentCategory.ToString().Replace("_", " ");
                 missingRequirements.Add($"Requires {categoryName} equipment");
@@ -168,16 +164,6 @@ public class Contract
             }
         }
 
-        // Check tool category requirements
-        foreach (ToolCategory toolCategory in RequiredToolCategories)
-        {
-            if (!PlayerHasToolCategory(player, toolCategory))
-            {
-                string categoryName = toolCategory.ToString().Replace("_", " ");
-                missingRequirements.Add($"Requires {categoryName} tools");
-                completionBlockers.Add($"Missing required tool category: {categoryName}");
-            }
-        }
 
         // Check physical capability requirement
         if (PhysicalRequirement != PhysicalDemand.None)
@@ -220,91 +206,25 @@ public class Contract
         return result;
     }
 
-    private bool PlayerHasEquipmentCategory(Player player, EquipmentCategory category)
+    private bool PlayerHasEquipmentCategory(Player player, EquipmentCategory category, ItemRepository itemRepository)
     {
         // Check if player has any items with the required equipment category
-        // NOTE: This implementation assumes item IDs in inventory can be resolved to Item objects
-        // A proper implementation would need ItemRepository access for GetItemById()
-
-        // For now, implement basic logic based on common item naming patterns
-        // This is a temporary solution until proper repository access is established
-
-        string categoryName = category.ToString().ToLower();
-
+        // Uses proper repository access to get actual Item objects and check their categories
+        
         foreach (string itemId in player.Inventory.ItemSlots)
         {
             if (string.IsNullOrEmpty(itemId)) continue;
-
-            // Basic pattern matching for common equipment categories
-            // This is a simplified approach that should be replaced with proper Item object access
-            string itemIdLower = itemId.ToLower();
-
-            bool hasCategory = category switch
+            
+            Item item = itemRepository.GetItemById(itemId);
+            if (item?.HasEquipmentCategory(category) == true)
             {
-                EquipmentCategory.Climbing_Equipment => itemIdLower.Contains("rope") || itemIdLower.Contains("climbing") || itemIdLower.Contains("grapple"),
-                EquipmentCategory.Navigation_Tools => itemIdLower.Contains("compass") || itemIdLower.Contains("map") || itemIdLower.Contains("navigation"),
-                EquipmentCategory.Weather_Protection => itemIdLower.Contains("cloak") || itemIdLower.Contains("coat") || itemIdLower.Contains("weather"),
-                EquipmentCategory.Water_Transport => itemIdLower.Contains("boat") || itemIdLower.Contains("raft") || itemIdLower.Contains("ferry"),
-                EquipmentCategory.Light_Source => itemIdLower.Contains("torch") || itemIdLower.Contains("lantern") || itemIdLower.Contains("candle"),
-                _ => false
-            };
-
-            if (hasCategory) return true;
+                return true;
+            }
         }
-
+        
         return false;
-
-        // TODO: Replace with proper implementation:
-        // ItemRepository itemRepo = ...; // Need dependency injection
-        // foreach (string itemId in player.Inventory.ItemSlots)
-        // {
-        //     Item item = itemRepo.GetItemById(itemId);
-        //     if (item?.HasEquipmentCategory(category) == true) return true;
-        // }
-        // return false;
     }
 
-    private bool PlayerHasToolCategory(Player player, ToolCategory category)
-    {
-        // Check if player has any items with the required tool category
-        // NOTE: From Item.HasToolCategory(), tools are handled differently from equipment
-        // ToolCategory represents general tool needs, not specific item categories
-
-        // For now, implement basic logic based on common tool patterns
-        // This is a temporary solution until proper tool-item mapping is established
-
-        foreach (string itemId in player.Inventory.ItemSlots)
-        {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            string itemIdLower = itemId.ToLower();
-
-            bool hasTool = category switch
-            {
-                ToolCategory.Basic_Tools => itemIdLower.Contains("hammer") || itemIdLower.Contains("knife") || itemIdLower.Contains("tool"),
-                ToolCategory.Specialized_Equipment => itemIdLower.Contains("specialized") || itemIdLower.Contains("professional") || itemIdLower.Contains("master"),
-                ToolCategory.Quality_Materials => itemIdLower.Contains("silk") || itemIdLower.Contains("quality") || itemIdLower.Contains("fine"),
-                ToolCategory.Documentation => itemIdLower.Contains("permit") || itemIdLower.Contains("document") || itemIdLower.Contains("contract"),
-                ToolCategory.Trade_Samples => itemIdLower.Contains("sample") || itemIdLower.Contains("specimen") || itemIdLower.Contains("display"),
-                ToolCategory.Writing_Materials => itemIdLower.Contains("ink") || itemIdLower.Contains("quill") || itemIdLower.Contains("parchment"),
-                ToolCategory.Measurement_Tools => itemIdLower.Contains("scale") || itemIdLower.Contains("ruler") || itemIdLower.Contains("measure"),
-                ToolCategory.Safety_Equipment => itemIdLower.Contains("helmet") || itemIdLower.Contains("safety") || itemIdLower.Contains("protective"),
-                ToolCategory.Social_Attire => itemIdLower.Contains("formal") || itemIdLower.Contains("noble") || itemIdLower.Contains("dress"),
-                ToolCategory.Crafting_Supplies => itemIdLower.Contains("material") || itemIdLower.Contains("supplies") || itemIdLower.Contains("raw"),
-                _ => false
-            };
-
-            if (hasTool) return true;
-        }
-
-        return false;
-
-        // TODO: Replace with proper implementation:
-        // 1. Define mapping between Item properties and ToolCategory requirements
-        // 2. Either extend Item class with tool category mappings, or
-        // 3. Create a ToolMapping service that can determine if an Item fulfills a ToolCategory
-        // 4. Access ItemRepository to get actual Item objects for validation
-    }
 
     private bool PlayerHasRequiredInformation(Player player, InformationRequirementData requirement)
     {
@@ -363,7 +283,8 @@ public class Contract
 
     internal bool IsFullyCompleted()
     {
-        //TODO: check if contract is completed by checking all steps
-        return false;
+        // Contract is fully completed when all required steps are completed
+        // Optional steps (IsRequired = false) don't prevent completion
+        return CompletionSteps.Where(step => step.IsRequired).All(step => step.IsCompleted);
     }
 }

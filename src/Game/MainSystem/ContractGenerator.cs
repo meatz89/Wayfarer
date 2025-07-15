@@ -89,7 +89,6 @@ public class ContractGenerator
 
             // Copy categorical requirements from template
             RequiredEquipmentCategories = new List<EquipmentCategory>(template.RequiredEquipmentCategories),
-            RequiredToolCategories = new List<ToolCategory>(template.RequiredToolCategories),
             PhysicalRequirement = template.PhysicalRequirement,
             RequiredInformation = new List<InformationRequirementData>(template.RequiredInformation),
             RequiredKnowledge = template.RequiredKnowledge,

@@ -34,7 +34,7 @@ public abstract class ContractStep
     /// <summary>
     /// Check if the player's current action completes this step
     /// </summary>
-    public abstract bool CheckCompletion(Player player, string currentLocationId, object actionContext = null);
+    public abstract bool CheckCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null);
 
     /// <summary>
     /// Get detailed information about what the player needs to do to complete this step
@@ -57,7 +57,7 @@ public class TravelStep : ContractStep
 {
     public string RequiredLocationId { get; set; } = "";
 
-    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null)
+    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null)
     {
         if (IsCompleted) return true;
 
@@ -94,7 +94,7 @@ public class TransactionStep : ContractStep
     public int? MinPrice { get; set; }
     public int? MaxPrice { get; set; }
 
-    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null)
+    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null)
     {
         if (IsCompleted) return true;
 
@@ -141,7 +141,7 @@ public class ConversationStep : ContractStep
     public string RequiredNPCId { get; set; } = "";
     public string RequiredLocationId { get; set; } = ""; // Optional: NPC must be at specific location
 
-    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null)
+    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null)
     {
         if (IsCompleted) return true;
 
@@ -180,7 +180,7 @@ public class LocationActionStep : ContractStep
     public string RequiredActionId { get; set; } = "";
     public string RequiredLocationId { get; set; } = "";
 
-    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null)
+    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null)
     {
         if (IsCompleted) return true;
 
@@ -218,13 +218,13 @@ public class EquipmentStep : ContractStep
 {
     public List<EquipmentCategory> RequiredEquipmentCategories { get; set; } = new();
 
-    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null)
+    public override bool CheckCompletion(Player player, string currentLocationId, object actionContext = null, ItemRepository itemRepository = null)
     {
         if (IsCompleted) return true;
 
         // Check if player has all required equipment categories
         bool completed = RequiredEquipmentCategories.All(category =>
-            PlayerHasEquipmentCategory(player, category));
+            PlayerHasEquipmentCategory(player, category, itemRepository));
 
         if (completed)
         {
@@ -245,31 +245,28 @@ public class EquipmentStep : ContractStep
         };
     }
 
-    private bool PlayerHasEquipmentCategory(Player player, EquipmentCategory category)
+    private bool PlayerHasEquipmentCategory(Player player, EquipmentCategory category, ItemRepository itemRepository)
     {
-        // TODO: Implement proper equipment category checking
-        // This is a simplified implementation
-        string categoryName = category.ToString().ToLower();
-
+        // Check if player has any items with the required equipment category
+        // Uses proper repository access to get actual Item objects and check their categories
+        
+        if (itemRepository == null)
+        {
+            // If no ItemRepository is provided, cannot check equipment categories
+            return false;
+        }
+        
         foreach (string itemId in player.Inventory.ItemSlots)
         {
             if (string.IsNullOrEmpty(itemId)) continue;
-
-            string itemIdLower = itemId.ToLower();
-
-            bool hasCategory = category switch
+            
+            Item item = itemRepository.GetItemById(itemId);
+            if (item?.HasEquipmentCategory(category) == true)
             {
-                EquipmentCategory.Climbing_Equipment => itemIdLower.Contains("rope") || itemIdLower.Contains("climbing"),
-                EquipmentCategory.Navigation_Tools => itemIdLower.Contains("compass") || itemIdLower.Contains("map"),
-                EquipmentCategory.Weather_Protection => itemIdLower.Contains("cloak") || itemIdLower.Contains("coat"),
-                EquipmentCategory.Water_Transport => itemIdLower.Contains("boat") || itemIdLower.Contains("raft"),
-                EquipmentCategory.Light_Source => itemIdLower.Contains("torch") || itemIdLower.Contains("lantern"),
-                _ => false
-            };
-
-            if (hasCategory) return true;
+                return true;
+            }
         }
-
+        
         return false;
     }
 }

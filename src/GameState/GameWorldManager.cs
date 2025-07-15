@@ -26,6 +26,7 @@
     private ContractSystem contractSystem;
     private RestManager restManager;
     private NPCRepository npcRepository;
+    private ContractRepository contractRepository;
     private List<Contract> availableContracts = new List<Contract>();
 
     private bool isAiAvailable = true;
@@ -41,7 +42,8 @@
                        ContractSystem contractSystem, RestManager restManager,
                        PlayerProgression playerProgression, ActionProcessor actionProcessor,
                        ChoiceProjectionService choiceProjectionService, NPCRepository npcRepository,
-                       IConfiguration configuration, ILogger<GameWorldManager> logger)
+                       ContractRepository contractRepository, IConfiguration configuration,
+                       ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
         this.itemRepository = itemRepository;
@@ -57,6 +59,7 @@
         this.restManager = restManager;
         this.actionProcessor = actionProcessor;
         this.npcRepository = npcRepository;
+        this.contractRepository = contractRepository;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -66,7 +69,9 @@
     {
         _gameWorld.GetPlayer().HealFully();
 
-        // TODO: Implement time management through gameWorld.TimeManager
+        // Initialize time management - set to start of first day
+        _gameWorld.TimeManager.SetNewTime(TimeManager.TimeDayStart);  // 6:00 AM
+        _gameWorld.CurrentDay = 1; // Start on day 1
 
         Location startingLocation = await locationSystem.Initialize();
         locationRepository.RecordLocationVisit(startingLocation.Id);
@@ -309,6 +314,11 @@
         await HandlePlayerMoving(action);
         actionProcessor.ProcessAction(action);
 
+        // Check contract step completion after action processing
+        Player player = _gameWorld.GetPlayer();
+        string currentLocationId = locationRepository.GetCurrentLocation().Id;
+        contractSystem.CheckContractStepCompletion(player, currentLocationId, action);
+
         await Update_gameWorld();
     }
 
@@ -374,6 +384,9 @@
             // Also update the Player's location to keep them in sync
             player.CurrentLocation = destination;
             player.CurrentLocationSpot = destinationSpot;
+
+            // Check contract step completion after travel
+            contractSystem.CheckContractStepCompletion(player, destination.Id, route);
 
             await Update_gameWorld();
         }
@@ -538,6 +551,11 @@
         {
             tradeManager.SellItem(itemId, locationId);
         }
+
+        // Check contract step completion after trade
+        Player player = _gameWorld.GetPlayer();
+        string currentLocationId = locationRepository.GetCurrentLocation().Id;
+        contractSystem.CheckContractStepCompletion(player, currentLocationId, new { ItemId = itemId, Action = action, LocationId = locationId });
     }
 
     /// <summary>
@@ -659,25 +677,34 @@
     /// <summary>
     /// Complete a contract action through gateway
     /// </summary>
-    public void CompleteContract(Contract contract)
+    public bool CompleteContract(Contract contract)
     {
-        // Apply contract completion effects
-        _gameWorld.GetPlayer().ModifyCoins(contract.Payment);
+        // Use the proper ContractSystem to handle contract completion
+        return contractSystem.CompleteContract(contract);
+    }
 
-        // If this contract unlocks others, make them available
-        if (contract.UnlocksContractIds.Any())
-        {
-            foreach (string contractId in contract.UnlocksContractIds)
-            {
-                // TODO: Add contract repository dependency to GameWorldManager constructor
-                // Contract unlockedContract = contractRepository.GetContract(contractId);
-                // if (unlockedContract != null)
-                // {
-                //     unlockedContract.StartDay = _gameWorld.CurrentDay;
-                //     unlockedContract.DueDay = _gameWorld.CurrentDay + 5; // Arbitrary due date
-                // }
-            }
-        }
+    /// <summary>
+    /// Get all active contracts for UI display
+    /// </summary>
+    public List<Contract> GetActiveContracts()
+    {
+        return contractSystem.GetActiveContracts();
+    }
+
+    /// <summary>
+    /// Get urgent contracts (expiring soon) for UI display
+    /// </summary>
+    public List<Contract> GetUrgentContracts(int daysThreshold = 1)
+    {
+        return contractSystem.GetUrgentContracts(daysThreshold);
+    }
+
+    /// <summary>
+    /// Get contracts expiring today for UI display
+    /// </summary>
+    public List<Contract> GetContractsExpiringToday()
+    {
+        return contractSystem.GetContractsExpiringToday();
     }
 
 
