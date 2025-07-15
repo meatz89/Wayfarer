@@ -34,7 +34,7 @@ namespace Wayfarer.Tests
         }
 
         [Fact]
-        public void StartNewDay_Should_Not_Regenerate_Action_Points()
+        public void StartNewDay_Should_Reset_Time_Blocks()
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
@@ -42,18 +42,17 @@ namespace Wayfarer.Tests
                 .WithTimeState(t => t.Day(1).Hour(6));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-            Player player = gameWorld.GetPlayer();
             TimeManager timeManager = gameWorld.TimeManager;
 
-            // Set action points to some value
-            int initialActionPoints = player.ActionPoints;
-            int maxActionPoints = player.MaxActionPoints;
+            // Consume some time blocks
+            timeManager.ConsumeTimeBlock(2);
+            int usedTimeBlocks = timeManager.UsedTimeBlocks;
 
             // Act - Start new day
             timeManager.StartNewDay();
 
-            // Assert - Action points should NOT be regenerated per user story requirement
-            Assert.Equal(initialActionPoints, player.ActionPoints);
+            // Assert - Time blocks should be reset for new day
+            Assert.Equal(0, timeManager.UsedTimeBlocks);
             Assert.Equal(2, gameWorld.WorldState.CurrentDay);
             Assert.Equal(6, timeManager.CurrentTimeHours); // Should reset to Dawn (6 AM)
         }

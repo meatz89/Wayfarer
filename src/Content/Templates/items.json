@@ -120,9 +120,25 @@
 		"inventorySlots": 1,
 		"categories": [ "Trade_Tools" ],
 		"itemCategories": [ "Equipment" ],
+		"toolCategories": [ "Basic_Tools" ],
 		"size": "Small",
 		"locationId": "millbrook",
 		"spotId": "workshop",
 		"description": "Specialized tools for workshop access and craft contracts, enables professional opportunities."
+	},
+	{
+		"id": "basic_tools",
+		"name": "Basic Tools",
+		"weight": 1,
+		"buyPrice": 3,
+		"sellPrice": 2,
+		"inventorySlots": 1,
+		"categories": [],
+		"itemCategories": [ "Equipment" ],
+		"toolCategories": [ "Basic_Tools" ],
+		"size": "Small",
+		"locationId": "millbrook",
+		"spotId": "workshop",
+		"description": "Basic tools for common tasks and repairs."
 	}
 ]

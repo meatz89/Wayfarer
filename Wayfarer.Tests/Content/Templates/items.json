@@ -28,6 +28,21 @@
 		"description": "Basic tools for various trades and repairs."
 	},
 	{
+		"id": "basic_tools",
+		"name": "Basic Tools",
+		"weight": 1,
+		"buyPrice": 3,
+		"sellPrice": 2,
+		"inventorySlots": 1,
+		"categories": [],
+		"itemCategories": [ "Equipment" ],
+		"toolCategories": [ "Basic_Tools" ],
+		"size": "Small",
+		"locationId": "town_square",
+		"spotId": "marketplace",
+		"description": "Basic tools for common tasks and repairs."
+	},
+	{
 		"id": "rope",
 		"name": "Rope",
 		"weight": 2,

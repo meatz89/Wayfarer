@@ -34,25 +34,15 @@ public class ActionProcessor
     {
         Player player = gameWorld.GetPlayer();
 
-        int stamina = player.Stamina;
-        int turnAp = player.MaxActionPoints;
-
-        int newStamina = stamina - turnAp;
-        if (newStamina >= 0)
-        {
-            player.SetNewStamina(newStamina);
-        }
-
+        // Start new day through TimeManager
         gameWorld.TimeManager.StartNewDay();
-        gameWorld.GetPlayer().ModifyActionPoints(gameWorld.GetPlayer().MaxActionPoints);
     }
 
     public void ProcessAction(LocationAction action)
     {
         Player player = gameWorld.GetPlayer();
 
-        // Apply action point cost
-        player.ApplyActionPointCost(action.ActionPointCost);
+        // ActionPoints system removed - using time blocks and stamina instead
 
         // Apply resource costs
         if (action.SilverCost > 0)
@@ -76,11 +66,7 @@ public class ActionProcessor
             player.ModifyConcentration(-action.ConcentrationCost);
         }
 
-        // Consume time blocks based on action point cost
-        if (action.ActionPointCost > 0)
-        {
-            gameWorld.TimeManager.ConsumeTimeBlock(action.ActionPointCost);
-        }
+        // Time block consumption is handled by the action system based on action type
 
         // Apply refresh card effects
         if (action.RefreshCardType != SkillCategories.None)
@@ -135,11 +121,7 @@ public class ActionProcessor
             return false; // Insufficient concentration
         }
 
-        // Check time block availability
-        if (action.ActionPointCost > 0 && !gameWorld.TimeManager.ValidateTimeBlockAction(action.ActionPointCost))
-        {
-            return false; // Insufficient time blocks
-        }
+        // Time block validation is handled by the action system
 
         if (action.ActionExecutionType == ActionExecutionTypes.Encounter)
         {

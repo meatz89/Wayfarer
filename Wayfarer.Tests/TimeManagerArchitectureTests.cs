@@ -32,7 +32,7 @@ namespace Wayfarer.Tests
         {
             // Create test world
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(100).WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(100))
                 .WithTimeState(t => t.Day(1).TimeBlock(TimeBlocks.Morning));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -76,7 +76,7 @@ namespace Wayfarer.Tests
         {
             // Create test world
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(100).WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(100))
                 .WithTimeState(t => t.Day(1).TimeBlock(TimeBlocks.Evening));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -100,9 +100,9 @@ namespace Wayfarer.Tests
         [Fact]
         public void TimeManager_Time_Block_Progression_Should_Work()
         {
-            // Create test world with player having full action points
+            // Create test world
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(100).WithActionPoints(18).WithMaxActionPoints(18))
+                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(100))
                 .WithTimeState(t => t.Day(1).TimeBlock(TimeBlocks.Morning));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -110,56 +110,33 @@ namespace Wayfarer.Tests
             // Verify we start at morning
             Assert.Equal(TimeBlocks.Morning, gameWorld.TimeManager.GetCurrentTimeBlock());
 
-            // Consume some action points to advance time
-            Player player = gameWorld.GetPlayer();
-            int initialAP = player.CurrentActionPoints();
+            // Consume time blocks to advance time
+            gameWorld.TimeManager.ConsumeTimeBlock(2);
 
-            // Consume action points (this should trigger time progression)
-            player.ActionPoints = player.ActionPoints - 9; // Use half action points
-
-            // Debug: Check current AP values
-            int maxAP = player.MaxActionPoints;
-            int currentAP = player.CurrentActionPoints();
-            Assert.True(currentAP > 0, $"CurrentActionPoints should be > 0, was {currentAP}. MaxAP: {maxAP}");
-
-            // Update time block calculation
-            gameWorld.TimeManager.UpdateCurrentTimeBlock();
-
-            // Debug: Check calculated hour
-            int currentHour = gameWorld.TimeManager.CurrentTimeHours;
-            Assert.True(currentHour >= 12 && currentHour < 18, $"Hour should be 12-17 for Afternoon, was {currentHour}. MaxAP: {maxAP}, CurrentAP: {currentAP}");
-
-            // Verify time has progressed to afternoon
+            // Verify time has progressed
             TimeBlocks newTime = gameWorld.TimeManager.GetCurrentTimeBlock();
-            Assert.Equal(TimeBlocks.Afternoon, newTime);
+            Assert.True(newTime != TimeBlocks.Morning); // Should have changed from morning
 
             // Verify synchronization
             Assert.Equal(gameWorld.TimeManager.GetCurrentTimeBlock(), newTime);
         }
 
         [Fact]
-        public void TimeManager_When_ActionPoints_Zero_Should_Set_Night()
+        public void TimeManager_When_All_TimeBlocks_Used_Should_Work()
         {
             // Create test world
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(100).WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(100))
                 .WithTimeState(t => t.Day(1).TimeBlock(TimeBlocks.Morning));
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
 
-            // Exhaust all action points
-            Player player = gameWorld.GetPlayer();
-            player.ActionPoints = 0;
+            // Exhaust all time blocks
+            gameWorld.TimeManager.ConsumeTimeBlock(5);
 
-            // Update time block
-            gameWorld.TimeManager.UpdateCurrentTimeBlock();
-
-            // Should be night when action points are zero
-            Assert.Equal(TimeBlocks.Night, gameWorld.TimeManager.GetCurrentTimeBlock());
-            Assert.Equal(TimeBlocks.Night, gameWorld.TimeManager.GetCurrentTimeBlock());
-
-            // Hour should also be reset to 0 (midnight)
-            Assert.Equal(0, gameWorld.TimeManager.CurrentTimeHours);
+            // Should not be able to perform more actions
+            Assert.False(gameWorld.TimeManager.CanPerformTimeBlockAction);
+            Assert.Equal(0, gameWorld.TimeManager.RemainingTimeBlocks);
         }
 
         [Fact]

@@ -4,25 +4,6 @@
     string GetDescription();
 }
 
-public class ActionPointRequirement : IRequirement
-{
-    public int RequiredAmount { get; }
-
-    public ActionPointRequirement(int requiredAmount)
-    {
-        RequiredAmount = requiredAmount;
-    }
-
-    public bool IsMet(GameWorld gameWorld)
-    {
-        return gameWorld.GetPlayer().CurrentActionPoints() >= RequiredAmount;
-    }
-
-    public string GetDescription()
-    {
-        return $"Requires {RequiredAmount} Action Point(s)";
-    }
-}
 
 public class StaminaRequirement : IRequirement
 {

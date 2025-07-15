@@ -36,7 +36,6 @@ public class PlayerStateSnapshot
     public int Coins { get; set; }
     public int Stamina { get; set; }
     public int Concentration { get; set; }
-    public int ActionPoints { get; set; }
     public string CurrentLocationId { get; set; } = "";
     public string CurrentLocationSpotId { get; set; } = "";
     public List<string> InventoryItems { get; set; } = new List<string>();

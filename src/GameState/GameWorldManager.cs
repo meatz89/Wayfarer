@@ -496,10 +496,6 @@
     {
         //SaveGame();
 
-        if (_gameWorld.GetPlayer().CurrentActionPoints() == 0)
-        {
-            actionProcessor.ProcessTurnChange();
-        }
 
         UpdateContracts();
         await Update_gameWorld();

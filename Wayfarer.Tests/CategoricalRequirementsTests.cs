@@ -111,7 +111,8 @@ public class CategoricalRequirementsTests
         ActionDefinition actionDef = new ActionDefinition("test_action", "Test Action", "test_spot")
         {
             ToolRequirements = new List<ToolCategory> { ToolCategory.Basic_Tools },
-            ActionPointCost = 1
+            KnowledgeRequirement = KnowledgeRequirement.Local,
+            PhysicalDemand = PhysicalDemand.Light
         };
 
         // Act
@@ -120,11 +121,11 @@ public class CategoricalRequirementsTests
 
         // Assert
         Assert.NotNull(action.Requirements);
-        Assert.True(action.Requirements.Count > 4); // Should have categorical + numerical requirements
+        Assert.True(action.Requirements.Count >= 3); // Should have categorical requirements
 
         // Check for specific requirement types
         Assert.Contains(action.Requirements, r => r is ToolCategoryRequirement);
         Assert.Contains(action.Requirements, r => r is KnowledgeLevelRequirement);
-        Assert.Contains(action.Requirements, r => r is ActionPointRequirement);
+        Assert.Contains(action.Requirements, r => r is StaminaCategoricalRequirement);
     }
 }

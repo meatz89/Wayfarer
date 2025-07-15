@@ -48,14 +48,12 @@ public class ActionFactory
 
         locationAction.Requirements = CreateRequirements(template);
         locationAction.Effects = CreateEffects(template);
-        locationAction.ActionPointCost = template.ActionPointCost;
         locationAction.SilverCost = template.SilverCost;
         locationAction.RefreshCardType = template.RefreshCardType;
         locationAction.StaminaCost = template.StaminaCost;
         locationAction.ConcentrationCost = template.ConcentrationCost;
         locationAction.PhysicalDemand = template.PhysicalDemand;
 
-        locationAction.Requirements.Add(new ActionPointRequirement(template.ActionPointCost));
         return locationAction;
     }
 

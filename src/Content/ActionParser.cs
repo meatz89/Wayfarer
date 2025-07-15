@@ -16,7 +16,6 @@ public static class ActionParser
         ActionDefinition action = new ActionDefinition(id, name, spotId)
         {
             Description = description,
-            ActionPointCost = GetIntProperty(root, "actionPointCost", 1),
             SilverCost = GetIntProperty(root, "silverCost", 0),
             StaminaCost = GetIntProperty(root, "staminaCost", 0),
             ConcentrationCost = GetIntProperty(root, "concentrationCost", 0)

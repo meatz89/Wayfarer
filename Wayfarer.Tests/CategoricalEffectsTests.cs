@@ -17,7 +17,7 @@ public class CategoricalEffectsTests
                 .StartAt("dusty_flagon")
                 .WithCoins(50)
                 .WithStamina(3)
-                .WithActionPoints(10))
+)
             .WithTimeState(t => t
                 .Day(1)
                 .TimeBlock(TimeBlocks.Morning));
@@ -93,8 +93,7 @@ public class CategoricalEffectsTests
         ActionDefinition actionDef = new ActionDefinition("rest_action", "Rest by Fire", "hearth")
         {
             PhysicalDemand = PhysicalDemand.None, // Should provide recovery
-            EffectCategories = new List<EffectCategory> { EffectCategory.Physical_Recovery },
-            ActionPointCost = 1
+            EffectCategories = new List<EffectCategory> { EffectCategory.Physical_Recovery }
         };
 
         // Act
@@ -124,15 +123,13 @@ public class CategoricalEffectsTests
         ActionDefinition lightAction = new ActionDefinition("light_action", "Light Reading", "library")
         {
             PhysicalDemand = PhysicalDemand.Light,
-            EffectCategories = new List<EffectCategory> { EffectCategory.Physical_Recovery },
-            ActionPointCost = 1
+            EffectCategories = new List<EffectCategory> { EffectCategory.Physical_Recovery }
         };
 
         ActionDefinition noneAction = new ActionDefinition("none_action", "Meditation", "quiet_room")
         {
             PhysicalDemand = PhysicalDemand.None,
-            EffectCategories = new List<EffectCategory> { EffectCategory.Physical_Recovery },
-            ActionPointCost = 1
+            EffectCategories = new List<EffectCategory> { EffectCategory.Physical_Recovery }
         };
 
         // Act

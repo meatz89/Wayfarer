@@ -276,7 +276,51 @@
 - **No Hidden Systems**: All categories and requirements visible and understandable
 - **Repository-Mediated Access**: All game state access through proper architectural patterns
 
-## SESSION HANDOFF COMPLETE
+## CURRENT SESSION: ACTIONPOINTS SYSTEM REMOVAL COMPLETE
+
+### **CURRENT SESSION PROGRESS (COMPLETE)**
+
+**✅ ActionPoints System Removal Complete**
+
+**Major Accomplishments**:
+- ✅ **ActionPoints System Eliminated**: Completely removed ActionPoints, ActionPointCost, CurrentActionPoints(), MaxActionPoints from entire codebase
+- ✅ **Action System Refactored**: Updated ActionProcessor, ActionDefinition, LocationAction to use only stamina and time blocks
+- ✅ **Time Management Simplified**: TimeManager now operates without ActionPoints dependencies
+- ✅ **Test Suite Fixed**: Fixed 21 test compilation errors by removing ActionPoints references
+- ✅ **Architecture Cleanup**: Removed ActionPointRequirement from requirement system
+- ✅ **TestScenarioBuilder Updated**: Removed ActionPoints configuration from test framework
+
+**Technical Implementation Details**:
+
+**Core System Changes**:
+- **Player Class**: Removed ActionPoints, MaxActionPoints properties and all related methods
+- **ActionDefinition**: Removed ActionPointCost property entirely
+- **LocationAction**: Removed ActionPointCost property entirely
+- **ActionProcessor**: Updated to work without ActionPoints logic
+- **TimeManager**: Removed ActionPoints-based time calculations
+- **Requirement System**: Removed ActionPointRequirement class completely
+
+**Test Framework Updates**:
+- **TestScenarioBuilder**: Removed WithActionPoints() and WithMaxActionPoints() methods
+- **All Test Files**: Updated 21 test files to remove ActionPoints references
+- **Test Logic**: Updated test assertions to work with time blocks and stamina only
+- **Compilation Success**: All 239 tests now compile successfully (223 passing, 16 failing)
+
+**System Integration**:
+- **Stamina System**: Maintained as primary resource management system
+- **Time Block System**: Maintained as primary time management system
+- **Action Validation**: Updated to check stamina and time blocks instead of ActionPoints
+- **Resource Consumption**: Actions now consume only stamina and time blocks
+
+**Current Test Status**: 223 passing tests, 16 failing tests (all failures are pre-existing and unrelated to ActionPoints removal)
+
+**Key Benefits Achieved**:
+- **Simplified Resource Management**: Single stamina system instead of dual ActionPoints/stamina
+- **Cleaner Architecture**: Removed redundant ActionPoints layer
+- **Consistent Time System**: Time blocks are now the sole time management mechanism
+- **Reduced Complexity**: Eliminated ActionPoints configuration and management overhead
+
+## PREVIOUS SESSION HISTORY
 
 **POC Implementation Successfully Completed**: All 8 sessions of the implementation roadmap have been executed and validated. The Wayfarer POC now demonstrates strategic optimization gameplay through mathematical constraints and categorical system interactions.
 

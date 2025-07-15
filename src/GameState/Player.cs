@@ -18,14 +18,12 @@ public class Player
 
     // Resources
     public int Coins { get; set; } = 10;
-    public int ActionPoints { get; set; } = 18;
     public int Stamina { get; set; } = 6;
     public int Concentration { get; set; } = 10;
     public int Reputation { get; set; } = 0;
     public int Health { get; set; }
     public int Food { get; set; }
 
-    public int MaxActionPoints { get; set; } = 4;
     public int MaxStamina { get; set; } = 10;  // Changed to 10 to match 0-10 scale
     public int MaxConcentration { get; set; }
     public int MinHealth { get; set; }
@@ -391,21 +389,6 @@ public class Player
     {
     }
 
-    public void ApplyActionPointCost(int actionPointCost)
-    {
-        ActionPoints -= actionPointCost;
-    }
-
-    public int CurrentActionPoints()
-    {
-        return ActionPoints;
-    }
-
-    public void ModifyActionPoints(int amount)
-    {
-        int newActionPoints = Math.Clamp(ActionPoints + amount, 0, MaxActionPoints);
-        this.ActionPoints = newActionPoints;
-    }
 
     public void SetNewStamina(int newStamina)
     {
@@ -458,8 +441,6 @@ public class Player
         clone.Level = this.Level;
         clone.CurrentXP = this.CurrentXP;
         clone.XPToNextLevel = this.XPToNextLevel;
-        clone.MaxActionPoints = this.MaxActionPoints;
-        clone.ActionPoints = this.ActionPoints;
         clone.MaxStamina = this.MaxStamina;
         clone.Stamina = this.Stamina;
         clone.Coins = this.Coins;

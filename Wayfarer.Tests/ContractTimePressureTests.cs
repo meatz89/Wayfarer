@@ -22,7 +22,7 @@ namespace Wayfarer.Tests
         {
             // Arrange - Using new superior test pattern
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .WithContracts(c => c.Add("test_contract")
                     .WithDescription("Test delivery contract")
                     .DueInDays(4)

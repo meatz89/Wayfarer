@@ -6,7 +6,6 @@ public class ActionDefinition
     public string Name { get; set; }
     public string Description { get; set; }
     public string LocationSpotId { get; set; }
-    public int ActionPointCost { get; set; }
     public int SilverCost { get; set; }
     public SkillCategories RefreshCardType { get; set; }
     public int StaminaCost { get; set; }

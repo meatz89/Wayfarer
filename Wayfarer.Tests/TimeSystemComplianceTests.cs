@@ -22,7 +22,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -50,7 +50,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18).WithMaxActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -90,7 +90,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18).WithMaxActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -138,7 +138,7 @@ namespace Wayfarer.Tests
         {
             // Arrange
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(0).WithMaxActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -158,8 +158,8 @@ namespace Wayfarer.Tests
             Assert.Equal(TimeBlocks.Dawn, timeManager.GetCurrentTimeBlock());
             Assert.Equal(initialDay + 1, timeManager.GetCurrentDay());
 
-            // Action points should NOT be regenerated per Period-Based Activity Planning user story
-            Assert.Equal(0, gameWorld.GetPlayer().CurrentActionPoints());
+            // Time blocks should be reset for new day
+            Assert.Equal(0, timeManager.UsedTimeBlocks);
         }
 
         [Fact]
@@ -168,7 +168,7 @@ namespace Wayfarer.Tests
             // This test ensures TimeBlocks are always calculated, never cached
 
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -219,7 +219,7 @@ namespace Wayfarer.Tests
             // Verify that time progression makes sense for player actions
 
             TestScenarioBuilder scenario = new TestScenarioBuilder()
-                .WithPlayer(p => p.StartAt("town_square").WithActionPoints(18).WithMaxActionPoints(18))
+                .WithPlayer(p => p.StartAt("town_square"))
                 .Build();
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);

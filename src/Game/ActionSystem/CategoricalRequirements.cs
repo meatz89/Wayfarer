@@ -78,13 +78,30 @@ public class ToolCategoryRequirement : IRequirement
 
     public bool IsMet(GameWorld gameWorld)
     {
+        if (_requiredTool == ToolCategory.None)
+        {
+            return true; // None category is always met
+        }
+        
         Player player = gameWorld.GetPlayer();
         return PlayerHasToolCategory(player, _requiredTool);
     }
 
     private bool PlayerHasToolCategory(Player player, ToolCategory requiredTool)
     {
-        throw new NotImplementedException();
+        // Check if player has any item with the required tool category
+        foreach (string? itemId in player.Inventory.ItemSlots)
+        {
+            if (itemId != null)
+            {
+                Item? item = _itemRepository.GetItemById(itemId);
+                if (item != null && item.HasToolCategory(requiredTool))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public string GetDescription()
@@ -92,9 +109,14 @@ public class ToolCategoryRequirement : IRequirement
         return $"Requires {GetToolCategoryDescription(_requiredTool)}";
     }
 
-    private object GetToolCategoryDescription(ToolCategory requiredTool)
+    private string GetToolCategoryDescription(ToolCategory requiredTool)
     {
-        throw new NotImplementedException();
+        return requiredTool switch
+        {
+            ToolCategory.Basic_Tools => "basic tools",
+            ToolCategory.None => "no tools",
+            _ => requiredTool.ToString().Replace("_", " ").ToLower()
+        };
     }
 }
 
