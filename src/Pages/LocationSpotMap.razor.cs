@@ -23,6 +23,9 @@ public class LocationSpotMapBase : ComponentBase
     public double mouseX;
     public double mouseY;
 
+    // NPC expansion state management
+    private Dictionary<string, bool> _npcExpandedStates = new Dictionary<string, bool>();
+
     protected override void OnInitialized()
     {
         DragDropService.OnStateChanged += StateHasChanged;
@@ -226,6 +229,48 @@ public class LocationSpotMapBase : ComponentBase
     {
         TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
         return npc.IsAvailable(currentTime);
+    }
+
+    /// <summary>
+    /// Get expanded state for a specific NPC
+    /// </summary>
+    public bool GetNPCExpandedState(string npcId)
+    {
+        return _npcExpandedStates.ContainsKey(npcId) && _npcExpandedStates[npcId];
+    }
+
+    /// <summary>
+    /// Toggle expansion state for a specific NPC
+    /// </summary>
+    public void ToggleNPCExpansion(string npcId)
+    {
+        if (_npcExpandedStates.ContainsKey(npcId))
+        {
+            _npcExpandedStates[npcId] = !_npcExpandedStates[npcId];
+        }
+        else
+        {
+            _npcExpandedStates[npcId] = true;
+        }
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Get service icon for UI display
+    /// </summary>
+    public string GetServiceIcon(ServiceTypes service)
+    {
+        return service switch
+        {
+            ServiceTypes.Rest => "🛌",
+            ServiceTypes.Trade => "🛒",
+            ServiceTypes.Healing => "❤️",
+            ServiceTypes.Information => "📖",
+            ServiceTypes.Training => "⚔️",
+            ServiceTypes.EquipmentRepair => "🔨",
+            ServiceTypes.FoodProduction => "🍲",
+            _ => "⚙️"
+        };
     }
 
 }

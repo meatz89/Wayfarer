@@ -13,5 +13,7 @@ public enum CurrentViews
     RestScreen,
     ContractScreen,
     // Modified travel screen
-    TravelScreen
+    TravelScreen,
+    // Player status screen
+    PlayerStatusScreen
 }

@@ -1067,32 +1067,52 @@ Before implementing contract step changes:
 
 ### **JSON Field Name Requirements (CRITICAL)**
 
-**ALL JSON files MUST use these exact field names - parsers are case-sensitive:**
+**PARSER ARCHITECTURAL REQUIREMENT: ALL parsers MUST be case-insensitive to prevent fragile JSON-code coupling.**
 
-**NPCs.json Field Names:**
-- `locationId` (NOT location)
-- `spotId` (NOT locationSpot)
-- `services` (NOT providedServices)
-- `availabilitySchedule` (parsed to Schedule enum)
-- `contractCategories` (string array)
+**CRITICAL PRINCIPLE**: JSON field names should be case-insensitive to avoid parsing failures due to capitalization differences.
 
-**Locations.json Field Names:**
-- `locationSpots` (NOT locationSpotIds)
-- `connectedTo` (NOT connectedLocationIds)
+**JSON Field Names (Case-Insensitive):**
 
-**Location_spots.json Field Names:**
-- `CurrentTimeBlocks` (array of TimeBlocks values)
-- `SpotType` (must be valid LocationSpotTypes enum: FEATURE or CHARACTER)
+**NPCs.json Fields:**
+- `locationId` or `locationid` or `LocationId` (case-insensitive)
+- `spotId` or `spotid` or `SpotId` (case-insensitive)
+- `services` or `Services` (case-insensitive)
+- `availabilitySchedule` or `AvailabilitySchedule` (case-insensitive)
+- `contractCategories` or `ContractCategories` (case-insensitive)
 
-**PARSER EXPECTATIONS:**
+**Locations.json Fields:**
+- `locationSpots` or `LocationSpots` (case-insensitive)
+- `connectedTo` or `ConnectedTo` (case-insensitive)
+
+**Location_spots.json Fields:**
+- `currentTimeBlocks` or `CurrentTimeBlocks` (case-insensitive)
+- `spotType` or `SpotType` (case-insensitive)
+
+**PARSER IMPLEMENTATION REQUIREMENT:**
 ```csharp
-// NPCParser expects:
-Location = GetStringProperty(root, "locationId", "");
+// ✅ REQUIRED: Case-insensitive property lookup
+public static string GetStringProperty(JsonElement root, string propertyName, string defaultValue)
+{
+    // Must implement case-insensitive property lookup
+    foreach (var property in root.EnumerateObject())
+    {
+        if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+        {
+            return property.Value.GetString() ?? defaultValue;
+        }
+    }
+    return defaultValue;
+}
 
-// LocationParser expects:
-location.LocationSpotIds = GetStringArray(root, "locationSpots");
-location.ConnectedLocationIds = GetStringArray(root, "connectedTo");
+// ❌ FORBIDDEN: Case-sensitive property lookup
+root.GetProperty("locationId"); // Breaks if JSON has "LocationId"
 ```
+
+**ENFORCEMENT REQUIREMENTS:**
+1. **All parsers must use case-insensitive property lookup**
+2. **JSON creators can use any reasonable capitalization**
+3. **Parsers must not fail due to capitalization differences**
+4. **Property names should be meaningful, not tied to exact case**
 
 ### **TimeManager Synchronization Pattern (CRITICAL)**
 
@@ -1116,3 +1136,244 @@ gameWorld.TimeManager.SetNewTime(9); // 9:00 AM = Morning block
 ```
 
 **ENFORCEMENT**: TimeManager.GetCurrentTimeBlock() is the ONLY source of truth for current time block.
+
+## UI ARCHITECTURE PRINCIPLES
+
+### **CONTEXTUAL INFORMATION ARCHITECTURE**
+
+**FUNDAMENTAL RULE**: UI must show relevant information, not comprehensive information.
+
+**CONTEXTUAL DISPLAY REQUIREMENTS:**
+1. **Current Context Focus** - Show only information relevant to player's immediate situation
+2. **Progressive Disclosure** - Essential info first, detailed info on demand
+3. **Decision Support** - Present information that helps immediate decisions
+4. **Spatial Efficiency** - Use screen space effectively, avoid verbose displays
+
+**FORBIDDEN UI PATTERNS (Game Design Violations):**
+- ❌ **"Strategic Market Analysis" sections** - Violates NO AUTOMATED CONVENIENCES principle
+- ❌ **"Equipment Investment Opportunities"** - Tells players what to buy, removing discovery
+- ❌ **"Trade Opportunity Indicators"** - Automated system solving optimization puzzles
+- ❌ **"Profitable Items" lists** - Removes the challenge of finding profit opportunities
+- ❌ **"Best Route" recommendations** - Eliminates route planning gameplay
+- ❌ **Verbose NPC schedules** - Information overload that doesn't help decisions
+
+**REQUIRED UI PATTERNS:**
+- ✅ **Basic availability indicators** - Simple 🟢/🔴 status without detailed explanations
+- ✅ **Item categories for filtering** - Help players find what they're looking for
+- ✅ **Current status information** - What's happening right now
+- ✅ **Essential action information** - What the player can do immediately
+- ✅ **Click-to-expand details** - Full information available when specifically requested
+
+### **INFORMATION DENSITY GUIDELINES**
+
+**NPC Display Standards:**
+- **Main Location Screen**: 3-4 lines per NPC maximum
+- **Detailed View**: Full information only when specifically requested
+- **Visual Hierarchy**: Use icons and colors instead of text where possible
+
+**Market Display Standards:**
+- **No Strategic Sections**: Remove all "strategic analysis" components
+- **Simple Item Lists**: Basic item info (name, price, category)
+- **Trader Status**: Simple availability without verbose explanations
+
+**Time Planning Standards:**
+- **Contextual Display**: Show current + next 1-2 time blocks by default
+- **Compact Format**: Horizontal timeline instead of large cards
+- **On-Demand Expansion**: Full day view available when needed
+
+### **PROGRESSIVE DISCLOSURE IMPLEMENTATION**
+
+**Click-to-Expand Pattern:**
+```html
+<!-- Simple display by default -->
+<div class="npc-card-simple" @onclick="() => ExpandNPC(npc.Id)">
+    <span class="npc-name">@npc.Name</span>
+    <span class="npc-status">@GetAvailabilityIndicator(npc)</span>
+</div>
+
+<!-- Detailed view when expanded -->
+@if (expandedNPCId == npc.Id)
+{
+    <div class="npc-details">
+        <!-- Full NPC information -->
+    </div>
+}
+```
+
+**Context-Aware Information:**
+- **Market Context**: Show only available traders and their items
+- **Travel Context**: Show only accessible routes and their requirements
+- **Contract Context**: Show only NPCs who can provide contracts
+- **Time Context**: Show only current time block information unless specifically requested
+
+### **UI Component Architecture Patterns**
+
+**Component Structure Pattern:**
+```
+ComponentName.razor       // UI markup only
+ComponentName.razor.cs    // Logic in base class (ComponentNameBase)
+```
+
+**Benefits:**
+- Clean separation of markup and logic
+- Testable business logic in base classes
+- Type-safe parameter handling
+- Consistent component organization
+
+**Dependency Injection Pattern:**
+```csharp
+public class ComponentNameBase : ComponentBase
+{
+    [Inject] public GameWorld GameWorld { get; set; }
+    [Inject] public GameWorldManager GameManager { get; set; }
+    [Inject] public ItemRepository ItemRepository { get; set; }
+    // Only inject what the component needs
+}
+```
+
+**State Management Pattern:**
+```csharp
+// ❌ WRONG: Caching in components
+private List<Item> _cachedItems;
+
+// ✅ RIGHT: Always query fresh data
+public List<Item> GetFilteredItems()
+{
+    return ItemRepository.GetItemsByCategory(selectedCategory);
+}
+```
+
+### **UI Design Violations to Avoid**
+
+**Strategic Analysis Violations:**
+```csharp
+// ❌ FORBIDDEN: Methods that solve puzzles for players
+public RouteStrategicAnalysis AnalyzeRouteAccessibility()
+public List<EquipmentInvestmentOpportunity> CalculateInvestmentROI()
+public List<TradingOpportunity> FindProfitableRoutes()
+
+// ✅ ALLOWED: Simple capability checks
+public bool HasClimbingEquipment()
+public bool CanAccessRoute(RouteOption route)
+public List<Item> GetItemsInCategory(ItemCategory category)
+```
+
+**Information Overload Violations:**
+```razor
+<!-- ❌ WRONG: Showing everything at once -->
+<div class="npc-info">
+    <div>Name: @npc.Name</div>
+    <div>Profession: @npc.Profession</div>
+    <div>Schedule: @GetFullScheduleDescription(npc)</div>
+    <div>Services: @string.Join(", ", npc.Services)</div>
+    <div>Next Available: @GetNextAvailableTime(npc)</div>
+    <div>Contract Types: @string.Join(", ", npc.ContractCategories)</div>
+    <!-- 10+ more lines of details -->
+</div>
+
+<!-- ✅ RIGHT: Progressive disclosure -->
+<div class="npc-compact" @onclick="() => ToggleExpanded(npc.Id)">
+    <span class="npc-status">@GetStatusIcon(npc)</span>
+    <span class="npc-name">@npc.Name</span>
+    <span class="expand-indicator">▶</span>
+</div>
+```
+
+### **CSS Architecture Patterns**
+
+**Semantic Class Naming:**
+```css
+/* ✅ RIGHT: Purpose-based names */
+.travel-context { }
+.resource-warning { }
+.weight-penalty { }
+
+/* ❌ WRONG: Appearance-based names */
+.red-text { }
+.big-font { }
+.float-left { }
+```
+
+**Component-Scoped Organization:**
+```css
+/* Travel Planning Component */
+.travel-status { }
+.travel-resources { }
+.travel-context { }
+.route-option { }
+.route-blocked { }
+
+/* Market Trading Component */
+.trading-context { }
+.trading-resources { }
+.market-status { }
+.trader-info { }
+```
+
+### **Navigation Architecture**
+
+**Enum-Based Screen Management:**
+```csharp
+public enum CurrentViews
+{
+    LocationScreen,
+    MapScreen,
+    MarketScreen,
+    TravelScreen,
+    ContractScreen,
+    RestScreen,
+    PlayerStatusScreen,  // New screens follow same pattern
+    EncounterScreen,
+    NarrativeScreen
+}
+
+// Navigation method pattern
+public void SwitchToPlayerStatusScreen()
+{
+    CurrentScreen = CurrentViews.PlayerStatusScreen;
+    StateHasChanged();
+}
+```
+
+**Screen Integration Pattern:**
+```razor
+@switch (CurrentScreen)
+{
+    case CurrentViews.PlayerStatusScreen:
+        @if (IsGameDataReady())
+        {
+            <PlayerStatusView OnClose="() => CurrentScreen = CurrentViews.LocationScreen" />
+        }
+        else
+        {
+            <div class="loading-message">Loading...</div>
+        }
+        break;
+}
+```
+
+### **UI Performance Patterns**
+
+**StateHasChanged Usage:**
+```csharp
+// ✅ RIGHT: Only after state-changing operations
+private void BuyItem(Item item)
+{
+    GameManager.ExecuteTradeAction(item.Id, "buy", Location.Id);
+    StateHasChanged(); // UI needs to reflect purchase
+}
+
+// ❌ WRONG: In query methods
+public List<Item> GetAvailableItems()
+{
+    var items = ItemRepository.GetItemsAtLocation(Location.Id);
+    StateHasChanged(); // Don't do this!
+    return items;
+}
+```
+
+**Reactive Updates:**
+- Let Blazor's change detection handle rendering
+- Use @bind for two-way data binding
+- Minimize manual StateHasChanged() calls
+- Trust the framework's optimization

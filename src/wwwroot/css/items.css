@@ -1492,3 +1492,131 @@
 	font-weight: 600;
 	font-size: 0.75em;
 }
+
+/* Contextual Information Architecture */
+.trading-context {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 15px;
+	margin-bottom: 15px;
+}
+
+.trading-resources {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.resource-block {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 15px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-dark);
+	border-radius: 4px;
+	flex: 1;
+	min-width: 150px;
+}
+
+.resource-icon {
+	font-size: 1.5rem;
+}
+
+.resource-info {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.resource-main {
+	font-family: var(--font-secondary);
+	color: var(--text-primary);
+	font-weight: 600;
+	font-size: 0.95rem;
+}
+
+.resource-detail {
+	font-family: var(--font-tertiary);
+	color: var(--text-muted);
+	font-size: 0.8rem;
+}
+
+.context-warning {
+	margin-top: 10px;
+	padding: 8px 12px;
+	background-color: var(--bg-active);
+	border-left: 4px solid var(--special);
+	color: var(--special);
+	font-family: var(--font-secondary);
+	font-size: 0.9rem;
+	border-radius: 4px;
+}
+
+/* Travel Context Styles */
+.travel-context .resource-detail.warning {
+	color: var(--special);
+}
+
+.route-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.route-costs {
+	display: flex;
+	gap: 10px;
+}
+
+.cost-item {
+	font-family: var(--font-secondary);
+	font-size: 0.9rem;
+	color: var(--text-primary);
+}
+
+.cost-item.insufficient {
+	color: var(--negative);
+}
+
+.blocked-indicator {
+	color: var(--negative);
+	margin-left: 5px;
+}
+
+.route-terrain {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+	margin-bottom: 5px;
+}
+
+.terrain-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	padding: 2px 6px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 3px;
+	font-family: var(--font-tertiary);
+	font-size: 0.75rem;
+	color: var(--text-secondary);
+}
+
+.block-reason {
+	color: var(--negative);
+	font-family: var(--font-tertiary);
+	font-size: 0.85rem;
+	font-style: italic;
+	margin-top: 5px;
+}
+
+.departure-info {
+	font-family: var(--font-tertiary);
+	color: var(--text-muted);
+	font-size: 0.8rem;
+	margin-top: 5px;
+}

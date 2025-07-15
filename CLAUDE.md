@@ -235,6 +235,42 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 
 **Example**: Instead of showing "Buy herbs at town_square (4 coins) → Sell at dusty_flagon (5 coins) = 1 profit", let players discover this by visiting locations, checking prices, and building their own understanding of the market.
 
+### UI DESIGN PRINCIPLES (Critical for Game vs App UX)
+**UI should support discovery and decision-making, not replace player thinking or overwhelm with information.**
+
+#### **CONTEXTUAL INFORMATION PRINCIPLES**
+- ✅ **SHOW RELEVANT, NOT COMPREHENSIVE** - Display only information immediately relevant to player's current context
+- ✅ **PROGRESSIVE DISCLOSURE** - Start with essential info, allow drilling down for details when needed
+- ❌ **NO INFORMATION OVERLOAD** - Don't show all possible information at once
+- ❌ **NO STRATEGIC CATEGORIZATION** - Don't artificially separate information into "strategic" vs "non-strategic"
+
+#### **DECISION-FOCUSED DESIGN**
+- ✅ **DECISION SUPPORT** - Present information that helps players make immediate decisions
+- ✅ **CONTEXTUAL RELEVANCE** - Show information based on what the player is currently doing
+- ❌ **NO OPTIMIZATION HINTS** - Don't tell players what the "best" choice is
+- ❌ **NO AUTOMATED ANALYSIS** - Don't provide "Investment Opportunities" or "Trade Indicators"
+
+#### **SPATIAL EFFICIENCY**
+- ✅ **EFFICIENT SPACE USE** - Every pixel should serve a purpose
+- ✅ **VISUAL HIERARCHY** - Use icons, colors, and layout to convey information quickly
+- ❌ **NO VERBOSE TEXT** - Don't use 15+ lines of text when 3-4 lines suffice
+- ❌ **NO REDUNDANT SECTIONS** - Don't repeat the same information in multiple places
+
+#### **FORBIDDEN UI PATTERNS**
+- ❌ **"Strategic Market Analysis" sections** - Violates NO AUTOMATED CONVENIENCES principle
+- ❌ **"Equipment Investment Opportunities"** - Tells players what to buy, removing discovery
+- ❌ **"Trade Opportunity Indicators"** - Automated system solving optimization puzzles
+- ❌ **"Profitable Items" lists** - Removes the challenge of finding profit opportunities
+- ❌ **"Best Route" recommendations** - Eliminates route planning gameplay
+- ❌ **Verbose NPC schedules** - Information overload that doesn't help decisions
+
+#### **REQUIRED UI PATTERNS**
+- ✅ **Basic availability indicators** - Simple 🟢/🔴 status without detailed explanations
+- ✅ **Item categories for filtering** - Help players find what they're looking for
+- ✅ **Current status information** - What's happening right now
+- ✅ **Essential action information** - What the player can do immediately
+- ✅ **Click-to-expand details** - Full information available when specifically requested
+
 ### FRONTEND PERFORMANCE PRINCIPLES
 - **NEVER use caching in frontend components** - Components should be stateless and reactive
 - **Reduce queries by optimizing when objects actually change** - Focus on state change detection, not caching

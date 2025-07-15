@@ -49,6 +49,9 @@ public class MainGameplayViewBase : ComponentBase
     public List<string> ActionMessages = new List<string>();
     public ElementReference SidebarRef;
 
+    // Time Planning State
+    public bool showFullDayView = false;
+
 
     public bool HasApLeft { get; set; }
     public bool HasNoApLeft
@@ -180,6 +183,12 @@ public class MainGameplayViewBase : ComponentBase
     public void SwitchToContractScreen()
     {
         CurrentScreen = CurrentViews.ContractScreen;
+        StateHasChanged();
+    }
+
+    public void SwitchToPlayerStatusScreen()
+    {
+        CurrentScreen = CurrentViews.PlayerStatusScreen;
         StateHasChanged();
     }
 
