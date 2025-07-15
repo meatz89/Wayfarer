@@ -100,6 +100,104 @@
 	border: 1px solid var(--rust);
 }
 
+/* Trader Information */
+.trader-information {
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+
+.trader-information h4 {
+	color: var(--text-primary);
+	font-family: var(--font-secondary);
+	margin-bottom: 10px;
+	font-size: 1.1rem;
+}
+
+.current-traders, .trader-schedules {
+	margin-top: 10px;
+}
+
+.traders-header, .schedules-header {
+	color: var(--text-secondary);
+	font-family: var(--font-secondary);
+	font-size: 0.9rem;
+	margin-bottom: 8px;
+	font-weight: 500;
+}
+
+.trader-card {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 10px;
+	margin-bottom: 8px;
+}
+
+.trader-available {
+	border-left: 4px solid var(--forest);
+	background-color: rgba(76, 111, 68, 0.05);
+}
+
+.trader-unavailable {
+	border-left: 4px solid var(--rust);
+	background-color: rgba(158, 42, 43, 0.05);
+}
+
+.trader-name {
+	font-family: var(--font-secondary);
+	font-weight: 500;
+	color: var(--text-primary);
+	font-size: 0.9rem;
+	margin-bottom: 4px;
+}
+
+.trader-profession {
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+	margin-bottom: 4px;
+	font-style: italic;
+}
+
+.trader-schedule {
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+	margin-bottom: 4px;
+}
+
+.trader-services {
+	color: var(--text-muted);
+	font-size: 0.75rem;
+	margin-bottom: 4px;
+}
+
+.trader-next-available {
+	color: var(--rust);
+	font-size: 0.8rem;
+	font-weight: 500;
+}
+
+.no-current-traders {
+	margin-top: 10px;
+}
+
+.status-message {
+	color: var(--rust);
+	font-weight: 500;
+	margin-bottom: 10px;
+}
+
+.no-traders {
+	color: var(--text-muted);
+	font-style: italic;
+	text-align: center;
+	padding: 15px;
+}
+
+.no-traders .explanation {
+	margin-top: 5px;
+	font-size: 0.85rem;
+}
+
 /* Transport Scheduling */
 .departure-time {
 	font-size: 0.9em;

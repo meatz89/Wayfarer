@@ -643,4 +643,53 @@ public class MarketManager
             return "Market closed";
         }
     }
+
+    /// <summary>
+    /// Get detailed market status with trader information
+    /// </summary>
+    public string GetDetailedMarketStatus(string locationId)
+    {
+        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocation(locationId)
+            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .ToList();
+
+        if (!tradeNPCs.Any())
+        {
+            return "No traders at this location";
+        }
+
+        List<NPC> currentlyAvailable = tradeNPCs.Where(npc => npc.IsAvailable(currentTime)).ToList();
+
+        if (currentlyAvailable.Any())
+        {
+            var traderNames = string.Join(", ", currentlyAvailable.Select(npc => npc.Name));
+            return $"Market Open - Traders available: {traderNames}";
+        }
+        else
+        {
+            return "Market Closed - No traders available right now";
+        }
+    }
+
+    /// <summary>
+    /// Get all traders at a location regardless of availability
+    /// </summary>
+    public List<NPC> GetAllTraders(string locationId)
+    {
+        return _npcRepository.GetNPCsForLocation(locationId)
+            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get currently available traders at a location
+    /// </summary>
+    public List<NPC> GetCurrentTraders(string locationId)
+    {
+        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        return _npcRepository.GetNPCsForLocationAndTime(locationId, currentTime)
+            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .ToList();
+    }
 }
