@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Game.ActionSystem;
 
 public static class ItemParser
 {
@@ -42,6 +43,16 @@ public static class ItemParser
             if (Enum.TryParse<ItemCategory>(categoryStr, out ItemCategory itemCategory))
             {
                 item.ItemCategories.Add(itemCategory);
+            }
+        }
+
+        // Parse tool categories
+        List<string> toolCategoryStrings = GetStringArray(root, "toolCategories");
+        foreach (string categoryStr in toolCategoryStrings)
+        {
+            if (Enum.TryParse<ToolCategory>(categoryStr, out ToolCategory toolCategory))
+            {
+                item.ToolCategories.Add(toolCategory);
             }
         }
 

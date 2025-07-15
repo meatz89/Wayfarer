@@ -180,7 +180,8 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             LocationRepository locationRepository = new LocationRepository(gameWorld);
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository, itemRepository);
 
             Contract? contract1 = contractRepository.GetContract("contract1");
             Contract? contract2 = contractRepository.GetContract("contract2");
@@ -265,7 +266,8 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             LocationRepository locationRepository = new LocationRepository(gameWorld);
-            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository, itemRepository);
 
             Contract? urgentContract = contractRepository.GetContract("urgent");
             Contract? normalContract = contractRepository.GetContract("normal");
@@ -317,7 +319,8 @@ namespace Wayfarer.Tests
             MessageSystem messageSystem = new MessageSystem();
             ContractRepository contractRepository = new ContractRepository(gameWorld);
             LocationRepository locationRepository = new LocationRepository(gameWorld);
-            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository, locationRepository);
+            ItemRepository itemRepository = new ItemRepository(gameWorld);
+            ContractSystem contractSystem = new ContractSystem(gameWorld, messageSystem, contractRepository, locationRepository, itemRepository);
 
             Contract? contract = contractRepository.GetContract("testContract");
             Assert.NotNull(contract);

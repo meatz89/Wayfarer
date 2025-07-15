@@ -19,6 +19,7 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
+            ItemRepository itemRepo = new ItemRepository(gameWorld);
 
             // Get the contract
             Contract? contract = contractRepo.GetContract("mountain_expedition");
@@ -32,7 +33,7 @@ namespace Wayfarer.Tests
             };
 
             // Act
-            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
+            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id, itemRepo);
 
             // Assert
             Assert.False(result.CanComplete, "Contract should not be completable without required equipment");
@@ -41,36 +42,37 @@ namespace Wayfarer.Tests
         }
 
         [Fact]
-        public void Contract_Should_Require_Tool_Categories_For_Completion()
+        public void Contract_Should_Require_Navigation_Tools_For_Completion()
         {
             // Arrange - Using new superior test pattern
             TestScenarioBuilder scenario = new TestScenarioBuilder()
                 .WithPlayer(p => p.StartAt("workshop"))
-                .WithContracts(c => c.Add("crafting_commission")
-                    .WithDescription("Create specialized tools")
+                .WithContracts(c => c.Add("exploration_mission")
+                    .WithDescription("Survey wilderness areas")
                     .Build());
 
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
+            ItemRepository itemRepo = new ItemRepository(gameWorld);
 
-            Contract? contract = contractRepo.GetContract("crafting_commission");
+            Contract? contract = contractRepo.GetContract("exploration_mission");
             Assert.NotNull(contract);
 
             // Add categorical requirements
-            contract.RequiredToolCategories = new List<ToolCategory>
+            contract.RequiredEquipmentCategories = new List<EquipmentCategory>
             {
-                ToolCategory.Specialized_Equipment,
-                ToolCategory.Quality_Materials
+                EquipmentCategory.Navigation_Tools,
+                EquipmentCategory.Light_Source
             };
 
             // Act
-            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
+            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id, itemRepo);
 
             // Assert
-            Assert.False(result.CanComplete, "Contract should not be completable without required tools");
-            Assert.Contains("Missing required tool category: Specialized Equipment", result.CompletionBlockers);
-            Assert.Contains("Missing required tool category: Quality Materials", result.CompletionBlockers);
+            Assert.False(result.CanComplete, "Contract should not be completable without required equipment");
+            Assert.Contains("Missing required equipment category: Navigation Tools", result.CompletionBlockers);
+            Assert.Contains("Missing required equipment category: Light Source", result.CompletionBlockers);
         }
 
 
@@ -88,6 +90,7 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
+            ItemRepository itemRepo = new ItemRepository(gameWorld);
 
             Contract? contract = contractRepo.GetContract("heavy_lifting");
             Assert.NotNull(contract);
@@ -96,7 +99,7 @@ namespace Wayfarer.Tests
             contract.PhysicalRequirement = PhysicalDemand.Heavy;
 
             // Act
-            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
+            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id, itemRepo);
 
             // Assert
             Assert.False(result.CanComplete, "Contract should not be completable without sufficient stamina");
@@ -116,6 +119,7 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
+            ItemRepository itemRepo = new ItemRepository(gameWorld);
 
             Contract? contract = contractRepo.GetContract("light_task");
             Assert.NotNull(contract);
@@ -124,7 +128,7 @@ namespace Wayfarer.Tests
             contract.PhysicalRequirement = PhysicalDemand.Light;
 
             // Act
-            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
+            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id, itemRepo);
 
             // Assert
             Assert.True(result.CanComplete, "Contract should be completable with sufficient stamina");
@@ -145,6 +149,7 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
+            ItemRepository itemRepo = new ItemRepository(gameWorld);
 
             Contract? contract = contractRepo.GetContract("informed_negotiation");
             Assert.NotNull(contract);
@@ -158,7 +163,7 @@ namespace Wayfarer.Tests
             };
 
             // Act
-            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
+            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id, itemRepo);
 
             // Assert
             Assert.False(result.CanComplete, "Contract should not be completable without required information");
@@ -179,6 +184,7 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
+            ItemRepository itemRepo = new ItemRepository(gameWorld);
 
             Contract? contract = contractRepo.GetContract("informed_negotiation");
             Assert.NotNull(contract);
@@ -199,7 +205,7 @@ namespace Wayfarer.Tests
             player.KnownInformation.Add(marketInfo);
 
             // Act
-            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
+            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id, itemRepo);
 
             // Assert
             Assert.True(result.CanComplete, "Contract should be completable with required information");
@@ -243,13 +249,13 @@ namespace Wayfarer.Tests
             GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
             Player player = gameWorld.GetPlayer();
             ContractRepository contractRepo = new ContractRepository(gameWorld);
+            ItemRepository itemRepo = new ItemRepository(gameWorld);
 
             Contract? contract = contractRepo.GetContract("complex_expedition");
             Assert.NotNull(contract);
 
             // Add complex categorical requirements
             contract.RequiredEquipmentCategories = new List<EquipmentCategory> { EquipmentCategory.Navigation_Tools };
-            contract.RequiredToolCategories = new List<ToolCategory> { ToolCategory.Measurement_Tools };
             contract.PhysicalRequirement = PhysicalDemand.Moderate;
             contract.Category = ContractCategory.Exploration;
             contract.Priority = ContractPriority.High;
@@ -267,7 +273,7 @@ namespace Wayfarer.Tests
             player.KnownInformation.Add(routeInfo);
 
             // Act
-            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id);
+            ContractAccessResult result = contract.GetAccessResult(player, player.CurrentLocation.Id, itemRepo);
 
             // Assert
             // Should have some blockers due to placeholder implementations for equipment checks

@@ -7,14 +7,16 @@ public class ContractSystem
     private MessageSystem messageSystem;
     private ContractRepository contractRepository;
     private LocationRepository locationRepository;
+    private ItemRepository itemRepository;
     private ContractGenerator contractGenerator;
 
-    public ContractSystem(GameWorld gameWorld, MessageSystem messageSystem, ContractRepository contractRepository, LocationRepository locationRepository)
+    public ContractSystem(GameWorld gameWorld, MessageSystem messageSystem, ContractRepository contractRepository, LocationRepository locationRepository, ItemRepository itemRepository)
     {
         this.gameWorld = gameWorld;
         this.messageSystem = messageSystem;
         this.contractRepository = contractRepository;
         this.locationRepository = locationRepository;
+        this.itemRepository = itemRepository;
         
         // Initialize contract generator with templates from repository
         List<Contract> contractTemplates = contractRepository.GetAllContracts();
@@ -47,8 +49,15 @@ public class ContractSystem
             return false;
         }
 
-        if (!contract.CanComplete(player, locationRepository.GetCurrentLocation().Id))
+        if (!contract.CanComplete(player, locationRepository.GetCurrentLocation().Id, itemRepository))
         {
+            return false;
+        }
+
+        // Check if all required contract steps are completed
+        if (!contract.IsFullyCompleted())
+        {
+            messageSystem.AddSystemMessage("Contract cannot be completed - some steps are still incomplete");
             return false;
         }
 
@@ -92,6 +101,22 @@ public class ContractSystem
 
         // Remove from active contracts
         contractRepository.RemoveActiveContract(contract);
+
+        // If this contract unlocks others, make them available
+        if (contract.UnlocksContractIds.Any())
+        {
+            foreach (string contractId in contract.UnlocksContractIds)
+            {
+                Contract? unlockedContract = contractRepository.GetContract(contractId);
+                if (unlockedContract != null)
+                {
+                    unlockedContract.StartDay = gameWorld.CurrentDay;
+                    unlockedContract.DueDay = gameWorld.CurrentDay + 5; // Arbitrary due date
+                    contractRepository.AddActiveContract(unlockedContract);
+                    messageSystem.AddSystemMessage($"New contract unlocked: {unlockedContract.Description}");
+                }
+            }
+        }
 
         // Add success message
         messageSystem.AddSystemMessage($"Contract '{contract.Description}' completed! Received {finalPayment} coins. {paymentMessage}");
@@ -140,6 +165,36 @@ public class ContractSystem
         return contractRepository.GetActiveContracts()
             .Where(c => GetDaysRemaining(c) <= daysThreshold)
             .ToList();
+    }
+
+    /// <summary>
+    /// Check all active contracts for step completion based on player's current action
+    /// Should be called after player performs actions like traveling, trading, etc.
+    /// </summary>
+    public void CheckContractStepCompletion(Player player, string currentLocationId, object actionContext = null)
+    {
+        List<Contract> activeContracts = contractRepository.GetActiveContracts();
+        
+        foreach (Contract contract in activeContracts)
+        {
+            bool anyStepCompleted = contract.CheckStepCompletion(player, currentLocationId, actionContext, itemRepository);
+            
+            if (anyStepCompleted)
+            {
+                // Notify player about progress
+                int completedSteps = contract.CompletionSteps.Count(s => s.IsCompleted);
+                int totalSteps = contract.CompletionSteps.Count(s => s.IsRequired);
+                
+                if (contract.IsFullyCompleted())
+                {
+                    messageSystem.AddSystemMessage($"Contract '{contract.Description}' - All steps completed! You can now complete the contract.");
+                }
+                else
+                {
+                    messageSystem.AddSystemMessage($"Contract '{contract.Description}' - Step completed ({completedSteps}/{totalSteps})");
+                }
+            }
+        }
     }
 
     public bool AcceptContract(Contract contract)

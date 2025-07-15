@@ -20,14 +20,9 @@ public enum ToolCategory
     None,
     Basic_Tools,           // Simple hand tools
     Specialized_Equipment, // Professional equipment for specific trades
-    Trade_Samples,         // Quality goods to demonstrate in negotiations
     Documentation,         // Contracts, permits, credentials
-    Quality_Materials,     // Fine materials for crafting
     Writing_Materials,     // Ink, parchment, quills
-    Measurement_Tools,     // Scales, rulers, measuring devices
     Safety_Equipment,      // Protection gear for dangerous activities
-    Social_Attire,         // Appropriate clothing for social situations
-    Crafting_Supplies      // Raw materials and tools for creation
 }
 
 /// <summary>
@@ -138,58 +133,6 @@ public enum InformationQuality
     Authoritative  // From definitive, unquestionable source
 }
 
-
-/// <summary>
-/// Data class for specifying information requirements in action definitions
-/// </summary>
-public class InformationRequirementData
-{
-    public InformationType RequiredType { get; set; }
-    public InformationQuality MinimumQuality { get; set; } = InformationQuality.Reliable;
-    public string SpecificInformationId { get; set; } = "";
-
-    public InformationRequirementData() { }
-
-    public InformationRequirementData(InformationType type, InformationQuality quality = InformationQuality.Reliable, string specificId = "")
-    {
-        RequiredType = type;
-        MinimumQuality = quality;
-        SpecificInformationId = specificId;
-    }
-}
-
-/// <summary>
-/// Data class for specifying information effects in action definitions
-/// </summary>
-public class InformationEffectData
-{
-    public string InformationId { get; set; } = "";
-    public string Title { get; set; } = "";
-    public string Content { get; set; } = "";
-    public InformationType Type { get; set; }
-    public InformationQuality Quality { get; set; } = InformationQuality.Reliable;
-    public string Source { get; set; } = "";
-    public int Value { get; set; } = 10;
-    public bool UpgradeExisting { get; set; } = false;
-    public string LocationId { get; set; } = "";
-    public string NPCId { get; set; } = "";
-    public List<string> RelatedItemIds { get; set; } = new();
-    public List<string> RelatedLocationIds { get; set; } = new();
-
-    public InformationEffectData() { }
-
-    public InformationEffectData(string id, string title, InformationType type, string content = "",
-                                InformationQuality quality = InformationQuality.Reliable, string source = "")
-    {
-        InformationId = id;
-        Title = title;
-        Type = type;
-        Content = content;
-        Quality = quality;
-        Source = source;
-    }
-}
-
 /// <summary>
 /// Categories of contracts affecting NPC relationships and strategic progression
 /// </summary>
@@ -228,86 +171,4 @@ public enum ContractRisk
     Moderate,            // Some risk, possible equipment loss or injury
     High,                // Significant risk, high chance of negative consequences
     Extreme              // Major risk, severe consequences for failure
-}
-
-/// <summary>
-/// Result of checking whether a player can perform an action
-/// </summary>
-public class ActionAccessResult
-{
-    public bool IsAllowed { get; set; }
-    public List<string> BlockingReasons { get; set; } = new();
-    public List<string> Warnings { get; set; } = new();
-    public List<string> Requirements { get; set; } = new();
-
-    public static ActionAccessResult Allowed()
-    {
-        return new ActionAccessResult { IsAllowed = true };
-    }
-
-    public static ActionAccessResult Blocked(string reason)
-    {
-        return new ActionAccessResult
-        {
-            IsAllowed = false,
-            BlockingReasons = new List<string> { reason }
-        };
-    }
-
-    public static ActionAccessResult Blocked(List<string> reasons)
-    {
-        return new ActionAccessResult
-        {
-            IsAllowed = false,
-            BlockingReasons = reasons
-        };
-    }
-
-    public void AddWarning(string warning)
-    {
-        Warnings.Add(warning);
-    }
-
-    public void AddRequirement(string requirement)
-    {
-        Requirements.Add(requirement);
-    }
-}
-
-/// <summary>
-/// Result of checking whether a player can accept or complete a contract
-/// </summary>
-public class ContractAccessResult
-{
-    public bool CanAccept { get; set; }
-    public bool CanComplete { get; set; }
-    public List<string> AcceptanceBlockers { get; set; } = new();
-    public List<string> CompletionBlockers { get; set; } = new();
-    public List<string> MissingRequirements { get; set; } = new();
-    public List<string> Warnings { get; set; } = new();
-
-    public static ContractAccessResult Allowed()
-    {
-        return new ContractAccessResult { CanAccept = true, CanComplete = true };
-    }
-
-    public static ContractAccessResult AcceptanceBlocked(string reason)
-    {
-        return new ContractAccessResult
-        {
-            CanAccept = false,
-            CanComplete = false,
-            AcceptanceBlockers = new List<string> { reason }
-        };
-    }
-
-    public static ContractAccessResult CompletionBlocked(string reason)
-    {
-        return new ContractAccessResult
-        {
-            CanAccept = true,
-            CanComplete = false,
-            CompletionBlockers = new List<string> { reason }
-        };
-    }
 }
