@@ -122,7 +122,7 @@ namespace Wayfarer.Tests
                 locationRepository,
                 actionFactory,
                 itemRepository,
-                new ContractProgressionService(contractRepository, itemRepository, locationRepository),
+                new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld),
                 new TransportCompatibilityValidator(itemRepository),
                 new RouteRepository(gameWorld)
             );
@@ -172,7 +172,7 @@ namespace Wayfarer.Tests
                 locationRepository,
                 actionFactory,
                 itemRepository,
-                new ContractProgressionService(contractRepository, itemRepository, locationRepository),
+                new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld),
                 new TransportCompatibilityValidator(itemRepository),
                 new RouteRepository(gameWorld)
             );
@@ -217,7 +217,7 @@ namespace Wayfarer.Tests
                 locationRepository,
                 actionFactory,
                 itemRepository,
-                new ContractProgressionService(contractRepository, itemRepository, locationRepository),
+                new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld),
                 new TransportCompatibilityValidator(itemRepository),
                 new RouteRepository(gameWorld)
             );

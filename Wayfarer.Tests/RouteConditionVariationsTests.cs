@@ -366,7 +366,7 @@ namespace Wayfarer.Tests
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ActionFactory actionFactory = new ActionFactory(actionRepository, gameWorld, itemRepository, contractRepository, contractValidation);
 
-            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld);
             RouteRepository routeRepository = new RouteRepository(gameWorld);
             return new TravelManager(
                 gameWorld,

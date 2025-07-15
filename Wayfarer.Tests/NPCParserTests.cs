@@ -13,14 +13,11 @@ public class NPCParserTests
         {
             "id": "innkeeper_marcus",
             "name": "Marcus the Innkeeper",
-            "role": "Innkeeper",
             "description": "A jovial man who runs the Dusty Flagon with warmth and efficiency.",
-            "location": "dusty_flagon",
+            "locationId": "dusty_flagon",
             "profession": "Merchant",
-            "socialClass": "Merchant",
-            "availabilitySchedule": "Always",
-            "providedServices": ["Lodging", "Rest", "Information"],
-            "playerRelationship": "Neutral"
+            "services": ["rest_services", "labor_contracts"],
+            "contractCategories": ["Standard"]
         }
         """;
 
@@ -30,17 +27,16 @@ public class NPCParserTests
         // Assert
         Assert.Equal("innkeeper_marcus", npc.ID);
         Assert.Equal("Marcus the Innkeeper", npc.Name);
-        Assert.Equal("Innkeeper", npc.Role);
+        Assert.Equal("Marcus the Innkeeper", npc.Role); // Role is now set to name for current JSON structure
         Assert.Equal("A jovial man who runs the Dusty Flagon with warmth and efficiency.", npc.Description);
         Assert.Equal("dusty_flagon", npc.Location);
         Assert.Equal(Professions.Merchant, npc.Profession);
-        Assert.Equal(Schedule.Always, npc.AvailabilitySchedule);
+        Assert.Equal(Schedule.Market_Hours, npc.AvailabilitySchedule); // Default schedule for Merchant profession
         Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship);
 
-        Assert.Contains(ServiceTypes.Lodging, npc.ProvidedServices);
         Assert.Contains(ServiceTypes.Rest, npc.ProvidedServices);
-        Assert.Contains(ServiceTypes.Information, npc.ProvidedServices);
-        Assert.Equal(3, npc.ProvidedServices.Count);
+        Assert.Contains(ServiceTypes.Training, npc.ProvidedServices);
+        Assert.Equal(2, npc.ProvidedServices.Count);
     }
 
     [Fact]
@@ -51,14 +47,11 @@ public class NPCParserTests
         {
             "id": "test_npc",
             "name": "Test NPC",
-            "role": "Test Role",
             "description": "A test NPC",
-            "location": "test_location",
+            "locationId": "test_location",
             "profession": "Scholar",
-            "socialClass": "Craftsman",
-            "availabilitySchedule": "Morning",
-            "providedServices": [],
-            "playerRelationship": "Helpful"
+            "services": [],
+            "contractCategories": []
         }
         """;
 
@@ -67,7 +60,7 @@ public class NPCParserTests
 
         // Assert
         Assert.Empty(npc.ProvidedServices);
-        Assert.Equal(NPCRelationship.Helpful, npc.PlayerRelationship);
+        Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship); // All NPCs default to Neutral
         Assert.Equal(Professions.Scholar, npc.Profession);
     }
 

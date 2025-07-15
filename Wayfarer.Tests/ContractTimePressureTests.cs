@@ -69,7 +69,7 @@ namespace Wayfarer.Tests
             LocationRepository locationRepository = new LocationRepository(gameWorld);
             ItemRepository itemRepository = new ItemRepository(gameWorld);
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository, itemRepository);
-            ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld);
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, progressionService, new NPCRepository(gameWorld), locationRepository);
 
@@ -121,7 +121,7 @@ namespace Wayfarer.Tests
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository, itemRepository);
             ItemRepository itemRepository2 = new ItemRepository(gameWorld);
             LocationRepository locationRepository2 = new LocationRepository(gameWorld);
-            ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository2, locationRepository2);
+            ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository2, locationRepository2, gameWorld);
 
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);
@@ -168,7 +168,7 @@ namespace Wayfarer.Tests
             ContractSystem contractSystem = new ContractSystem(gameWorld, new MessageSystem(), contractRepository, locationRepository, itemRepository);
             ItemRepository itemRepository2 = new ItemRepository(gameWorld);
             LocationRepository locationRepository2 = new LocationRepository(gameWorld);
-            ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository2, locationRepository2);
+            ContractProgressionService progressionService = new ContractProgressionService(contractRepository, itemRepository2, locationRepository2, gameWorld);
 
             Contract? contract = contractRepository.GetContract("test_contract");
             Assert.NotNull(contract);

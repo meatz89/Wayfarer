@@ -223,7 +223,7 @@ namespace Wayfarer.Tests
 
             // Assert
             Assert.Contains(ContractCategory.Merchant, categories);
-            Assert.Contains(ContractCategory.Noble, categories);
+            Assert.Contains(ContractCategory.Diplomatic, categories);
             Assert.Contains(ContractCategory.Exploration, categories);
 
             Assert.Contains(ContractPriority.Standard, priorities);
