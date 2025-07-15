@@ -123,6 +123,77 @@
                         }
                     }
 
+                    @* Time Block Service Planning UI *@
+                    @{
+                        var timeBlockServicePlan = NPCRepository.GetTimeBlockServicePlan(currentLocation.Id);
+                    }
+                    <div class="time-block-planning-container">
+                        <div class="planning-header">
+                            <h4>📅 Daily Service Planning</h4>
+                            <div class="planning-description">Plan your activities across all time blocks</div>
+                        </div>
+                        
+                        <div class="time-block-grid">
+                            @foreach (var timeBlockInfo in timeBlockServicePlan)
+                            {
+                                <div class="time-block-card @(timeBlockInfo.IsCurrentTimeBlock ? "current-time-block" : "")">
+                                    <div class="time-block-header">
+                                        <div class="time-block-name">
+                                            <span class="time-icon">@GetTimeBlockIcon(timeBlockInfo.TimeBlock)</span>
+                                            @timeBlockInfo.TimeBlock.ToString()
+                                        </div>
+                                        @if (timeBlockInfo.IsCurrentTimeBlock)
+                                        {
+                                            <div class="current-indicator">● NOW</div>
+                                        }
+                                    </div>
+                                    
+                                    <div class="time-block-content">
+                                        @if (timeBlockInfo.AvailableServices.Any())
+                                        {
+                                            <div class="services-section">
+                                                <div class="services-header">Available Services:</div>
+                                                <div class="services-list">
+                                                    @foreach (var service in timeBlockInfo.AvailableServices)
+                                                    {
+                                                        <div class="service-tag">
+                                                            <span class="service-icon">@GetServiceIcon(service)</span>
+                                                            <span class="service-name">@service.ToString().Replace("_", " ")</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                            
+                                            @if (timeBlockInfo.AvailableNPCs.Any())
+                                            {
+                                                <div class="npcs-section">
+                                                    <div class="npcs-header">Available NPCs:</div>
+                                                    <div class="npcs-list">
+                                                        @foreach (var npc in timeBlockInfo.AvailableNPCs.Take(3))
+                                                        {
+                                                            <div class="npc-item">
+                                                                <span class="npc-name">@npc.Name</span>
+                                                                <span class="npc-profession">(@npc.Profession.ToString().Replace("_", " "))</span>
+                                                            </div>
+                                                        }
+                                                        @if (timeBlockInfo.AvailableNPCs.Count > 3)
+                                                        {
+                                                            <div class="more-npcs">+@(timeBlockInfo.AvailableNPCs.Count - 3) more</div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="no-services">No services available</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
                     <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
                                      CurrentSpot="@CurrentSpot"
                                      OnSpotSelected="@HandleSpotSelection"
