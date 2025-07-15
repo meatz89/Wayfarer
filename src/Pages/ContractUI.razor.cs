@@ -73,34 +73,5 @@ namespace Wayfarer.Pages
                 _ => "Enhances travel capabilities"
             };
         }
-
-        /// <summary>
-        /// Get route enablement benefits for a destination
-        /// </summary>
-        public List<RouteEnablementBenefit> GetRouteEnablementBenefits(string destination, List<EquipmentCategory> requiredEquipment)
-        {
-            List<RouteEnablementBenefit> benefits = new List<RouteEnablementBenefit>();
-
-            // Simplified analysis - in full implementation would check actual routes
-            if (requiredEquipment.Contains(EquipmentCategory.Climbing_Equipment))
-            {
-                benefits.Add(new RouteEnablementBenefit
-                {
-                    RouteName = $"Mountain routes to {destination}",
-                    EnablementReason = "Climbing equipment enables safer mountain travel"
-                });
-            }
-
-            if (requiredEquipment.Contains(EquipmentCategory.Navigation_Tools))
-            {
-                benefits.Add(new RouteEnablementBenefit
-                {
-                    RouteName = $"Wilderness paths to {destination}",
-                    EnablementReason = "Navigation tools enable off-road shortcuts"
-                });
-            }
-
-            return benefits;
-        }
     }
 }
