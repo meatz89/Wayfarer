@@ -43,7 +43,7 @@ namespace Wayfarer.Tests
             NPCRepository npcRepository = new NPCRepository(gameWorld);
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractProgressionService contractProgression = new ContractProgressionService(
-                new ContractRepository(gameWorld), itemRepository, locationRepository);
+                new ContractRepository(gameWorld), itemRepository, locationRepository, gameWorld);
 
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, npcRepository, locationRepository);
 
@@ -119,7 +119,7 @@ namespace Wayfarer.Tests
                 locationRepository,
                 actionFactory,
                 itemRepository,
-                new ContractProgressionService(contractRepository, itemRepository, locationRepository),
+                new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld),
                 transportValidator,
                 routeRepository);
 

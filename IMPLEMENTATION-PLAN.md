@@ -1,151 +1,422 @@
-  ⎿  Complete POC Implementation Plan
+# Wayfarer Action Card System Design
 
-     Overview
+## Core Design Philosophy
 
-     Execute the entire POC implementation according to the roadmap, with regular session handoffs and commits to preserve work history.
+**Game Abstraction Principle**: Abstract real-world concepts into **game mechanics** that create optimization puzzles through categorical relationships rather than narrative simulation.
 
-     Phase 1: Content Simplification (Sessions 1-3)
+**Indirect Effects Rule**: No system directly affects another system. All interactions occur through **resource modification** or **interaction space changes**.
 
-     Session 1: Core Content Replacement
+## Action Card System Overview
 
-     Goal: Replace complex JSON content with POC-targeted minimal content
+### Core Abstraction
+Replace stamina/energy points with **Action Cards** representing the character's physical, social, and mental capabilities.
 
-     Tasks:
-     1. Create new locations.json - 3 locations (Millbrook, Thornwood, Crossbridge) with POC-specified spots
-     2. Create new routes.json - 8 routes matching POC target design exactly
-     3. Create new items.json - 6 trade goods + 3 equipment items with POC pricing/slots
-     4. Update gameWorld.json - Set POC starting conditions (Millbrook, 12 coins, 4 slots)
-     5. Update SESSION-HANDOFF.md - Document progress and discoveries
-     6. Commit changes - "Phase 1.1: Replace core JSON content with POC specification"
+**Real-World Concept**: Human energy and focus capacity  
+**Game Abstraction**: Collectible cards with categorical requirements and power levels  
+**Strategic Layer**: Hand management, card allocation, and refresh timing decisions
 
-     Session 2: NPCs and Contracts
+### Card Categories & Power Levels
+- **Physical Cards**: Strength, Endurance, Agility, Precision
+- **Social Cards**: Charm, Persuasion, Deception, Leadership  
+- **Mental Cards**: Analysis, Observation, Planning, Knowledge
 
-     Goal: Implement POC NPC structure and contract system
+**Power Levels**: 1-3 (determines threshold requirements)
+- Power 1: Basic actions
+- Power 2: Skilled actions  
+- Power 3: Master-level actions
 
-     Tasks:
-     1. Create new npcs.json - 9 NPCs (3 per location) with POC roles
-     2. Create new contracts.json - 4 renewable contract templates (Rush, Standard, Craft, Exploration)
-     3. Create location_spots.json - Define spots for 3 locations
-     4. Test basic functionality - Ensure game loads and initializes properly
-     5. Update SESSION-HANDOFF.md - Document NPC/contract implementation
-     6. Commit changes - "Phase 1.2: Implement POC NPC and contract structure"
+### Hand Management Mechanics
+- **Hand Size**: 6 cards maximum
+- **Card Consumption**: Actions consume specific card types based on requirements
+- **Discard Pile**: Used cards go to discard pile
+- **Refresh System**: Rest action moves cards from discard pile back to hand
+- **Decision Layer**: Which cards to use vs which cards to save for future actions
 
-     Session 3: Content Validation and Cleanup
+## System Interactions Through Card Requirements
 
-     Goal: Validate all content works together and clean up issues
+### Travel System Integration
+**Route Requirements**:
+- **Mountain Routes**: Physical card (Power 2+)
+- **Social Routes**: Social card (Power 1+) 
+- **Navigation Routes**: Mental card (Power 2+)
+- **Complex Routes**: Multiple card types
 
-     Tasks:
-     1. Test game initialization - Verify all JSON content loads properly
-     2. Test route system - Confirm equipment requirements block/enable routes
-     3. Test inventory system - Validate slot constraints and transport bonuses
-     4. Fix any content issues - Resolve ID mismatches or missing references
-     5. Update SESSION-HANDOFF.md - Document validation results
-     6. Commit changes - "Phase 1.3: Validate and fix POC content integration"
+**Equipment Effects**:
+- **Climbing Gear**: Reduces Physical requirement from Power 2 to Power 1
+- **Navigation Tools**: Reduces Mental requirement from Power 2 to Power 1
+- **Fine Clothes**: Enables Social routes that require appearance
 
-     Phase 2: Contract Enhancement (Sessions 4-5)
+### Work System Integration
+**Contract Requirements**:
+- **Heavy Labor**: Physical card (Power 2+)
+- **Negotiation Work**: Social card (Power 1+)
+- **Planning Work**: Mental card (Power 2+)
+- **Complex Contracts**: Multiple card types + specific power levels
 
-     Session 4: Renewable Contract Generation
+**Payment Scaling**: Higher power requirements = higher payment
 
-     Goal: Implement renewable contract system
+### Market System Integration
+**Trading Actions**:
+- **Price Negotiation**: Social card (Power 1+)
+- **Market Research**: Mental card (Power 1+)
+- **Bulk Trading**: Physical card (Power 1+) for handling large items
 
-     Tasks:
-     1. Enhance ContractSystem.cs - Add renewable contract generation logic
-     2. Create contract templates - Link contract types to NPC roles and locations
-     3. Implement daily contract refresh - NPCs offer new contracts regularly
-     4. Test contract generation - Verify renewable contracts appear correctly
-     5. Update SESSION-HANDOFF.md - Document contract enhancement progress
-     6. Commit changes - "Phase 2.1: Implement renewable contract generation system"
+### Location System Integration
+**Access Requirements**:
+- **Workshop Entry**: Physical or Mental card (Power 1+)
+- **Tavern Negotiations**: Social card (Power 1+)
+- **Dangerous Locations**: Physical card (Power 2+)
 
-     Session 5: Market-Driven Contracts
+## Health Integration (Indirect Effects)
 
-     Goal: Link contracts to trade opportunities and market conditions
+### Health → Card Refresh Rate
+**The Only Direct Health Effect**:
+- Health 10: Refresh all discarded cards during rest
+- Health 7: Refresh 5 cards during rest
+- Health 4: Refresh 3 cards during rest  
+- Health 1: Refresh 1 card during rest
 
-     Tasks:
-     1. Add market-driven contract logic - Contracts based on price differentials
-     2. Implement reputation system - Contract availability based on performance
-     3. Add contract priority system - Rush contracts under time pressure
-     4. Test contract integration - Verify contracts create strategic choices
-     5. Update SESSION-HANDOFF.md - Document market integration
-     6. Commit changes - "Phase 2.2: Implement market-driven contract system"
+### Cascade Effects
+**Low Health → Fewer Cards Available → Fewer Actions Possible → Reduced Capability**
 
-     Phase 3: Mathematical Constraint Validation (Session 6)
+**No Direct Action Blocking**: Health never prevents actions directly, only affects resource availability through card refresh limitations.
 
-     Session 6: Constraint Testing and Balance
+### Health Loss Mechanics
+**Categorical Health Risks**:
+- **Dangerous Routes**: Risk 1 health loss without proper equipment
+- **Heavy Labor**: Risk 1 health loss when attempted at low health
+- **Protection Contracts**: Accept health risk for higher payment
 
-     Goal: Validate mathematical impossibilities create strategic tension
+**Health Recovery**:
+- **Rest Recovery**: +1 health per night at private lodging
+- **Healer Services**: +3 health for 5 coins + 1 time period
+- **Medicine Items**: Herbs (+1 health), Bandages (+2 health)
 
-     Tasks:
-     1. Test inventory constraints - Verify 7 slots needed vs 4 available creates tension
-     2. Test stamina constraints - Confirm 12+ stamina needed vs 10 available
-     3. Test time constraints - Validate multiple activities vs limited time blocks
-     4. Balance validation - Ensure economic balance creates strategic choices
-     5. Create POC validation tests - Write tests that confirm mathematical constraints
-     6. Update SESSION-HANDOFF.md - Document constraint validation results
-     7. Commit changes - "Phase 3: Validate mathematical constraints and game balance"
+## Equipment Integration (Card Bonuses)
 
-     Phase 4: POC Experience Testing (Sessions 7-8)
+### Equipment Grants Bonus Cards
+**While Equipped**:
+- **Climbing Gear**: +1 Physical card
+- **Fine Clothes**: +1 Social card
+- **Scholar's Tools**: +1 Mental card
+- **Master's Tools**: +1 Multi-type card (Physical+Mental)
 
-     Session 7: Player Journey Simulation
+### Strategic Equipment Choices
+**Equipment vs Cargo Trade-off**:
+- Equipment occupies inventory slots but provides card advantages
+- More cards = more action options = strategic flexibility
+- **Decision**: Immediate trading profit vs long-term capability enhancement
 
-     Goal: Test complete POC experience and strategic gameplay emergence
+## Progression System (Card Collection)
 
-     Tasks:
-     1. Test Day 1 breadcrumb - Simple delivery contract tutorial works
-     2. Test discovery system - Equipment requirements learned through route blocking
-     3. Test strategic dimensions - Route mastery, trade optimization, equipment investment
-     4. Test failure states - Equipment poverty, overspecialization traps
-     5. Update SESSION-HANDOFF.md - Document gameplay experience findings
-     6. Commit changes - "Phase 4.1: Test and validate POC gameplay experience"
+### Card Acquisition
+**Earn Cards Through Success**:
+- Complete physical contracts → Gain Physical cards
+- Complete social contracts → Gain Social cards  
+- Complete mental contracts → Gain Mental cards
+- Discover rare equipment → Gain unique cards
+- Build relationships with NPCs → Gain specialized cards
 
-     Session 8: Success Metrics and Final Validation
+### Card Quality Progression
+**Starting State**: All Power 1 cards
+**Progression Path**:
+- **Skilled Cards**: Power 2 (access to skilled actions)
+- **Master Cards**: Power 3 (unlock advanced actions)
+- **Combo Cards**: Multi-type (Physical+Social, Mental+Physical)
+- **Unique Cards**: Special abilities (route-specific, NPC-specific)
 
-     Goal: Confirm POC meets all design criteria and success metrics
+### Collection Strategy
+**Card Diversity vs Specialization**:
+- Generalist: Balanced collection across all types
+- Specialist: Focus on one type for deep capability
+- **Trade-off**: Broad capability vs specialized power
 
-     Tasks:
-     1. Test "Make 50 Coins in 14 Days" challenge - Verify achievable but difficult
-     2. Validate multiple strategies - Different approaches to same challenges
-     3. Test trade-off recognition - Players understand optimization is impossible
-     4. Test emergent complexity - Simple systems create deep strategic decisions
-     5. Final documentation update - Complete POC implementation documentation
-     6. Commit changes - "Phase 4.2: Final POC validation and documentation"
+## Strategic Decision Examples
 
-     Session Management Strategy
+### The Card Allocation Puzzle
+**Current Hand**: 2 Physical (Power 1), 2 Social (Power 2), 2 Mental (Power 1)
+**Available Actions**:
+- Mountain route (needs Physical Power 2) - **Impossible**
+- Negotiation work (needs Social Power 1) - **Possible**
+- Market research (needs Mental Power 1) - **Possible**
+- **Equipment Available**: Climbing gear (+1 Physical card)
 
-     Regular Session Handoffs
+**Strategic Decision**: Use Social card for negotiation work to earn money for climbing gear, or save Social card for better opportunity tomorrow?
 
-     - Update SESSION-HANDOFF.md after each session with:
-       - Progress made and tasks completed
-       - Technical discoveries and constraints found
-       - Issues encountered and solutions implemented
-       - Next session priorities and blockers
-       - Test results and validation outcomes
+### The Rest Timing Dilemma
+**Current State**: Health 6 (can refresh 4 cards), 3 cards in hand, 6 cards in discard
+**Tomorrow's Contract**: Needs Physical + Social cards
+**Discard Pile**: 3 Physical, 2 Social, 1 Mental
 
-     Commit Strategy
+**Strategic Decision**: Rest now to refresh needed cards, or push forward with current hand and risk having wrong cards tomorrow?
 
-     - Commit after each major milestone with descriptive messages
-     - Include SESSION-HANDOFF.md in each commit to preserve context
-     - Use descriptive commit messages that explain what was implemented
-     - Tag major phase completions for easy reference
+### The Equipment vs Cargo Trade-off
+**Inventory**: 4 slots available
+**Options**: Climbing gear (+1 Physical card) OR 2 trade goods (4 coin profit)
+**Context**: Going to mountain region with multiple route options
 
-     Risk Management
+**Strategic Decision**: Card advantage for route flexibility vs immediate profit potential?
 
-     - Test functionality after each change to catch integration issues early
-     - Maintain backup of working state through regular commits
-     - Document all architectural decisions for future reference
-     - Validate against POC target design at each phase completion
+## Elegant Scaling Properties
 
-     Success Criteria
+### Natural Scaling Through Card Economy
+- **More Cards**: More action options per day
+- **Better Cards**: Access to advanced actions and higher payments
+- **Equipment**: Card bonuses create strategic inventory choices
+- **Health**: Card availability creates capability management
 
-     - Technical: All systems work with POC content, no crashes or errors
-     - Design: Strategic optimization emerges, multiple viable strategies exist
-     - POC Validation: "Make 50 Coins in 14 Days" challenge demonstrates strategic gameplay
+### No Artificial Modifiers
+- **No Percentage Bonuses**: No +10% or -5% modifiers
+- **No Sliding Scales**: No gradual difficulty changes
+- **Pure Categorical**: Either have required cards or don't
+- **Clear Thresholds**: Power levels create definitive capability gates
 
-     Timeline
+### Compound Strategic Decisions
+**Every Resource Affects Card Economy**:
+- **Health Management**: Affects card refresh rate
+- **Equipment Strategy**: Affects card bonus optimization
+- **Time Management**: Affects card usage optimization
+- **Inventory Management**: Equipment vs cargo vs medicine trade-offs
 
-     - Total Sessions: 8 sessions
-     - Phase 1: 3 sessions (Content Simplification)
-     - Phase 2: 2 sessions (Contract Enhancement)
-     - Phase 3: 1 session (Constraint Validation)
-     - Phase 4: 2 sessions (Experience Testing)
+## Implementation Guidelines
 
-     This plan ensures systematic progress toward POC completion while maintaining development history and allowing for course corrections at each phase.
+### Card Requirements Definition
+**Action Template Structure**:
+```
+Action: "Mountain Route Travel"
+Requirements: Physical_Card(Power: 2) OR Physical_Card(Power: 1) + Climbing_Equipment
+Time_Cost: 1 period
+Health_Risk: 1 (without Weather_Protection)
+```
+
+### Equipment Card Bonuses
+**Equipment Template Structure**:
+```
+Equipment: "Climbing Gear"
+Inventory_Slots: 1
+Card_Bonus: +1 Physical_Card (while equipped)
+Route_Modifier: Mountain_Routes(Power: 2→1)
+```
+
+### Health-Card Refresh Matrix
+**Rest Action Logic**:
+```
+Card_Refresh_Count = min(Current_Health, Discard_Pile_Size)
+Available_Cards = Hand_Cards + Refreshed_Cards
+Max_Hand_Size = 6
+```
+
+This system transforms Wayfarer into a **tactical resource management game** where every decision involves optimizing card allocation across competing demands, creating deep strategic gameplay through simple categorical interactions.
+
+
+# Wayfarer System Changes: Game Abstraction Implementation
+
+## Core Changes Overview
+
+Transform simulation systems into game mechanics that create optimization puzzles through collectible resources and management decisions.
+
+## **1. REMOVE: Reputation System**
+
+### What to Remove
+- All reputation tracking (numerical values, faction standing)
+- Reputation-based contract access
+- Reputation-based price modifiers
+- Reputation-based NPC behavior changes
+
+### What Replaces It
+**Pure Transactional NPCs**: All NPC interactions based solely on:
+- Required action cards (Physical/Social/Mental + Power levels)
+- Required equipment categories
+- Required money payment
+- Required knowledge cards (see below)
+
+### Implementation Changes
+- Remove `ReputationManager` class
+- Remove reputation fields from `NPC` objects
+- Remove reputation checks from contract availability
+- Convert all reputation gates to card/equipment requirements
+
+**Example Transformation**:
+- **Before**: "Need 50+ Merchant reputation for bulk contracts"
+- **After**: "Need Social Power 2 card + Trade_Tools equipment for bulk contracts"
+
+## **2. REMOVE: Location Access System**
+
+### What to Remove
+- Location access restrictions
+- Social expectation requirements for entry
+- Locked/unlocked location states
+- Access-based progression gating
+
+### What Replaces It
+**Open World Access**: All locations accessible to all players, with natural barriers through:
+- Action requirements (need specific cards for location actions)
+- Equipment requirements (need tools for workshop actions)
+- Economic barriers (services cost money)
+- Time constraints (NPCs have schedules)
+
+### Implementation Changes
+- Remove `LocationAccess` validation
+- Remove access-level checking from location entry
+- Remove social standing requirements from location spots
+- All locations become immediately accessible
+
+**Example Transformation**:
+- **Before**: "Need Noble reputation to enter Manor"
+- **After**: "Manor accessible to all, but Noble contracts require Social Power 3 cards"
+
+## **3. ADD: Knowledge Card System**
+
+### Core Mechanics
+**Knowledge as Collectible Cards**: Transform abstract information into concrete game pieces
+
+**Card Categories**:
+- **Route Cards**: Enable specific route optimizations
+- **Market Cards**: Show current prices for specific goods
+- **Weather Cards**: Predict conditions affecting routes
+- **Technique Cards**: Improve specific action types
+
+### Card Properties
+- **Usage Limits**: Single-use, daily-use, or permanent
+- **Expiration**: Market cards expire after 1-2 days
+- **Collection Limits**: Maximum hand size for knowledge cards
+- **Acquisition Methods**: Earned through specific actions with NPCs
+
+### Implementation Structure
+```
+KnowledgeCard {
+  Type: Route/Market/Weather/Technique
+  Usage: SingleUse/DailyUse/Permanent
+  Expiration: Days remaining
+  Effect: Specific mechanical benefit
+  Acquisition: Source action/NPC
+}
+```
+
+### Strategic Examples
+**Route Weather Card (Single-Use)**:
+- **Acquisition**: Spend Social Power 1 + 2 coins with Traveler NPC
+- **Effect**: Reveals next day's weather for specific route
+- **Decision**: Use now for current planning vs save for future critical journey
+
+**Market Price Card (Expires in 2 days)**:
+- **Acquisition**: Spend Mental Power 1 + 1 time period at Market
+- **Effect**: Shows exact buy/sell prices for all goods at specific location
+- **Decision**: Travel to exploit prices vs hold card for future opportunities
+
+**Climbing Technique Card (Permanent)**:
+- **Acquisition**: Complete 3 mountain route contracts
+- **Effect**: Mountain routes require Physical Power 1 instead of Power 2
+- **Collection Strategy**: Long-term investment in route specialization
+
+## **4. ADD: Equipment Condition Token System**
+
+### Core Mechanics
+**Discrete Condition States**: Replace durability with token-based condition tracking
+
+**Condition Token Types**:
+- **Fresh Token**: Equipment works at full effectiveness
+- **Worn Token**: Equipment works but provides reduced benefits
+- **Damaged Token**: Equipment requires repair before use
+
+### Condition Change Triggers
+**Specific Actions Consume Condition**:
+- **Dangerous Routes**: Mountain/River routes consume 1 condition level
+- **Heavy Work**: Physical Power 3 actions consume 1 condition level
+- **Combat/Protection**: Guard contracts consume 1 condition level
+- **No Time Decay**: Equipment only degrades through usage
+
+### Repair System
+**Restoration Actions**:
+- **Workshop Repair**: Spend 2 coins + Physical Power 1 → restore 1 condition level
+- **Field Repair**: Spend repair kit item → restore 1 condition level
+- **Master Repair**: Spend 5 coins → restore to Fresh condition
+
+### Implementation Structure
+```
+EquipmentCondition {
+  Fresh: Full benefits
+  Worn: -1 Power level effectiveness
+  Damaged: Cannot use until repaired
+}
+
+ConditionTriggers {
+  DangerousRoute: -1 condition
+  HeavyWork: -1 condition  
+  CombatAction: -1 condition
+}
+```
+
+### Strategic Examples
+**Climbing Gear Condition Management**:
+- **Fresh Climbing Gear**: Enables Mountain Power 2 routes
+- **Worn Climbing Gear**: Requires Physical Power 3 for same routes
+- **Damaged Climbing Gear**: Cannot access mountain routes until repaired
+- **Decision**: Risk further damage for immediate route access vs repair first
+
+## **5. KEEP: Simple Money System**
+
+### Why Keep Money Unchanged
+- **Universal Understanding**: Players immediately understand coin economy
+- **Clear Purpose**: Buy equipment, pay for services, hire NPCs
+- **Authentic Abstraction**: Historically accurate for medieval setting
+- **Strategic Clarity**: Single currency prevents confusing token portfolio management
+
+### Money Integration with New Systems
+**Knowledge Card Economy**:
+- Buy information from NPCs using coins
+- No complex token exchanges needed
+
+**Equipment Repair Economy**:
+- Repair services cost coins
+- Repair items purchasable with coins
+
+**Action Card Economy**:
+- Equipment that grants bonus cards costs coins
+- No artificial token conversion needed
+
+## **Implementation Priority**
+
+### Phase 1: Remove Systems
+1. **Remove Reputation System**
+   - Delete reputation tracking code
+   - Convert reputation gates to card requirements
+   - Update NPC interaction logic
+
+2. **Remove Location Access**
+   - Delete access validation code
+   - Make all locations immediately accessible
+   - Update UI to remove access indicators
+
+### Phase 2: Add Game Systems
+3. **Implement Knowledge Cards**
+   - Create KnowledgeCard data structure
+   - Add knowledge hand management
+   - Create knowledge acquisition actions
+   - Implement card usage mechanics
+
+4. **Implement Condition Tokens**
+   - Replace equipment durability with condition states
+   - Add condition change triggers
+   - Implement repair actions
+   - Update equipment effectiveness based on condition
+
+## **Strategic Transformation Examples**
+
+### Before (Simulation Systems)
+**Scenario**: Player wants access to premium contracts
+- **Process**: Build reputation through grinding relationship activities
+- **Barriers**: Arbitrary numerical thresholds, unclear progression
+- **Decisions**: "Do I have enough reputation points?"
+
+### After (Game Systems)
+**Scenario**: Player wants access to premium contracts
+- **Process**: Collect required action cards + equipment + knowledge cards
+- **Barriers**: Concrete resource requirements, clear collection goals
+- **Decisions**: "Do I have Social Power 3 card + Noble Technique card + Market Intelligence card?"
+
+### Resource Management Transformation
+**Before**: Track reputation numbers, location access, durability percentages
+**After**: Manage action card hand, knowledge card collection, equipment condition tokens
+
+This creates **tactical resource allocation** across concrete game pieces rather than abstract simulation tracking, perfectly implementing the core design principle of game abstraction through indirect resource effects.

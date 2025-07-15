@@ -18,47 +18,93 @@ public static class NPCParser
         {
             ID = GetStringProperty(root, "id", ""),
             Name = GetStringProperty(root, "name", ""),
-            Role = GetStringProperty(root, "role", ""),
+            Role = GetStringProperty(root, "name", ""), // Use name as role for current JSON structure
             Description = GetStringProperty(root, "description", ""),
-            Location = GetStringProperty(root, "location", ""),
+            Location = GetStringProperty(root, "locationId", ""), // Use locationId for location
         };
 
-        // Parse profession
+        // Parse profession with mapping from JSON values to enum
         string professionStr = GetStringProperty(root, "profession", "");
-        if (Enum.TryParse(professionStr, out Professions profession))
-        {
-            npc.Profession = profession;
-        }
+        npc.Profession = MapProfessionFromJson(professionStr);
 
-        // Parse availability schedule
-        string scheduleStr = GetStringProperty(root, "availabilitySchedule", "");
-        if (Enum.TryParse(scheduleStr, out Schedule schedule))
-        {
-            npc.AvailabilitySchedule = schedule;
-        }
+        // Set default schedule based on profession (since not in JSON)
+        npc.AvailabilitySchedule = GetDefaultScheduleForProfession(npc.Profession);
 
-        // Parse provided services
-        List<string> serviceStrings = GetStringArray(root, "providedServices");
+        // Parse services and map to ServiceTypes enum
+        List<string> serviceStrings = GetStringArray(root, "services");
         foreach (string serviceStr in serviceStrings)
         {
-            if (Enum.TryParse(serviceStr, out ServiceTypes service))
+            ServiceTypes? mappedService = MapServiceFromJson(serviceStr);
+            if (mappedService.HasValue)
             {
-                npc.ProvidedServices.Add(service);
+                npc.ProvidedServices.Add(mappedService.Value);
             }
         }
 
-        // Parse player relationship
-        string relationshipStr = GetStringProperty(root, "playerRelationship", "");
-        if (Enum.TryParse(relationshipStr, out NPCRelationship relationship))
-        {
-            npc.PlayerRelationship = relationship;
-        }
+        // Set default player relationship
+        npc.PlayerRelationship = NPCRelationship.Neutral;
 
         // Parse contract categories
         List<string> contractCategories = GetStringArray(root, "contractCategories");
         npc.ContractCategories = contractCategories;
 
         return npc;
+    }
+
+    private static Professions MapProfessionFromJson(string jsonProfession)
+    {
+        return jsonProfession switch
+        {
+            "Craftsman" => Professions.Merchant, // Workshop Master
+            "Merchant" => Professions.Merchant,
+            "Innkeeper" => Professions.Merchant,
+            "Woodsman" => Professions.Ranger, // Logger
+            "Herbalist" => Professions.Ranger, // Herb Gatherer
+            "Foreman" => Professions.Warrior, // Camp Boss
+            "Harbor_Master" => Professions.Merchant, // Dock Master
+            "Merchant_Captain" => Professions.Merchant, // Trade Captain
+            "Laborer" => Professions.Warrior, // River Worker
+            "Scholar" => Professions.Scholar, // Test NPC
+            _ => Professions.Merchant // Default fallback
+        };
+    }
+
+    private static Schedule GetDefaultScheduleForProfession(Professions profession)
+    {
+        return profession switch
+        {
+            Professions.Merchant => Schedule.Market_Hours,
+            Professions.Warrior => Schedule.Workshop_Hours,
+            Professions.Ranger => Schedule.Morning_Afternoon,
+            Professions.Scholar => Schedule.Library_Hours,
+            _ => Schedule.Business_Hours
+        };
+    }
+
+    private static ServiceTypes? MapServiceFromJson(string jsonService)
+    {
+        return jsonService switch
+        {
+            "equipment_commissioning" => ServiceTypes.EquipmentRepair,
+            "workshop_contracts" => ServiceTypes.Training,
+            "trade_goods" => ServiceTypes.Trade,
+            "delivery_contracts" => ServiceTypes.Trading,
+            "rest_services" => ServiceTypes.Rest,
+            "labor_contracts" => ServiceTypes.Training,
+            "lumber_sales" => ServiceTypes.Trade,
+            "logging_contracts" => ServiceTypes.Training,
+            "herb_sales" => ServiceTypes.Trade,
+            "gathering_contracts" => ServiceTypes.Training,
+            "heavy_labor" => ServiceTypes.Training,
+            "equipment_repair" => ServiceTypes.EquipmentRepair,
+            "fish_sales" => ServiceTypes.Trade,
+            "dock_work" => ServiceTypes.Training,
+            "transport_contracts" => ServiceTypes.Trading,
+            "bulk_trade" => ServiceTypes.Trading,
+            "simple_labor" => ServiceTypes.Training,
+            "boat_maintenance" => ServiceTypes.EquipmentRepair,
+            _ => null // Unknown service
+        };
     }
 
     private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)

@@ -24,7 +24,7 @@ namespace Wayfarer.Tests
                 gameWorld,
                 new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
                 new ItemRepository(gameWorld),
-                new ContractProgressionService(new ContractRepository(gameWorld), new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
+                new ContractProgressionService(new ContractRepository(gameWorld), new ItemRepository(gameWorld), new LocationRepository(gameWorld), gameWorld),
                 new NPCRepository(gameWorld),
                 new LocationRepository(gameWorld)
             );
@@ -60,7 +60,7 @@ namespace Wayfarer.Tests
                 gameWorld,
                 new LocationSystem(gameWorld, new LocationRepository(gameWorld)),
                 new ItemRepository(gameWorld),
-                new ContractProgressionService(new ContractRepository(gameWorld), new ItemRepository(gameWorld), new LocationRepository(gameWorld)),
+                new ContractProgressionService(new ContractRepository(gameWorld), new ItemRepository(gameWorld), new LocationRepository(gameWorld), gameWorld),
                 new NPCRepository(gameWorld),
                 new LocationRepository(gameWorld)
             );

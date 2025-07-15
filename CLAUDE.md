@@ -49,16 +49,17 @@ dotnet test --filter "FullyQualifiedName~TestClassName"
 dotnet test --logger "console;verbosity=detailed"
 ```
 
-### AI Service Setup (Optional)
-```bash
-# Default AI provider is Ollama (local)
-# Start Ollama service with docker-compose
-docker-compose up -d
-
-# Alternative: Configure other AI providers in appsettings.json
-```
-
 ## HIGH-LEVEL ARCHITECTURE
+
+### Core Design Philosophy: Game Abstraction Through Indirect Resource Effects
+
+The game follows a **game abstraction** principle where real-world concepts become strategic mechanics through indirect resource interactions:
+
+1. **Abstract concepts into game mechanics** - stamina becomes action cards, fatigue becomes card refresh rates
+2. **No direct system interactions** - systems only affect each other through resource modification (health → card refresh → capability)
+3. **Categorical requirements over modifiers** - need Physical Power 2 card vs +10% strength bonus
+4. **Resources create optimization puzzles** - allocation decisions, timing trade-offs
+5. **Progression through collection** - better equipment vs arbitrary stat increases
 
 ### Core Design Philosophy: Categorical Interconnection
 

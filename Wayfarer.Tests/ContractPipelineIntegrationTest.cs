@@ -43,7 +43,7 @@ public class ContractPipelineIntegrationTest
         ContractRepository contracts = new ContractRepository(gameWorld);
         LocationRepository locationRepository = new LocationRepository(gameWorld);
         ItemRepository itemRepository = new ItemRepository(gameWorld);
-        ContractProgressionService contractProgression = new ContractProgressionService(contracts, itemRepository, locationRepository);
+        ContractProgressionService contractProgression = new ContractProgressionService(contracts, itemRepository, locationRepository, gameWorld);
         MarketManager market = new MarketManager(gameWorld,
             new LocationSystem(gameWorld, locationRepository),
             itemRepository,
@@ -196,7 +196,7 @@ public class ContractPipelineIntegrationTest
         MarketManager market = new MarketManager(gameWorld,
             new LocationSystem(gameWorld, locationRepository),
             new ItemRepository(gameWorld),
-            new ContractProgressionService(contracts, new ItemRepository(gameWorld), locationRepository),
+            new ContractProgressionService(contracts, new ItemRepository(gameWorld), locationRepository, gameWorld),
             new NPCRepository(gameWorld),
             locationRepository);
 
@@ -241,7 +241,7 @@ public class ContractPipelineIntegrationTest
         GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
         ContractRepository contracts = new ContractRepository(gameWorld);
         ContractProgressionService progression = new ContractProgressionService(
-            contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld));
+            contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld), gameWorld);
 
         // Accept contract - dark_passage_navigation is perfect for travel-only testing
         // Only requires travel to workshop, no transactions needed
@@ -294,11 +294,11 @@ public class ContractPipelineIntegrationTest
         MarketManager market = new MarketManager(gameWorld,
             new LocationSystem(gameWorld, locationRepository),
             new ItemRepository(gameWorld),
-            new ContractProgressionService(contracts, new ItemRepository(gameWorld), locationRepository),
+            new ContractProgressionService(contracts, new ItemRepository(gameWorld), locationRepository, gameWorld),
             new NPCRepository(gameWorld),
             locationRepository);
         ContractProgressionService progression = new ContractProgressionService(
-            contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld));
+            contracts, new ItemRepository(gameWorld), new LocationRepository(gameWorld), gameWorld);
 
         // Accept contract - scout_mountain_pass has destination requirement
         Contract complexContract = contracts.GetContract("scout_mountain_pass");

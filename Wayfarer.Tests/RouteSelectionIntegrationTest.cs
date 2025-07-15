@@ -76,7 +76,7 @@ namespace Wayfarer.Tests
 
             // Locations already exist from JSON loading, no need to add them again
 
-            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld);
             RouteRepository routeRepository = new RouteRepository(gameWorld);
             TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression, new TransportCompatibilityValidator(itemRepository), routeRepository);
 
@@ -155,7 +155,7 @@ namespace Wayfarer.Tests
 
             // Locations already exist from JSON loading, no need to add them again
 
-            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+            ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld);
             RouteRepository routeRepository = new RouteRepository(gameWorld);
             TravelManager travelManager = new TravelManager(gameWorld, locationSystem, actionRepository, locationRepository, actionFactory, itemRepository, contractProgression, new TransportCompatibilityValidator(itemRepository), routeRepository);
 

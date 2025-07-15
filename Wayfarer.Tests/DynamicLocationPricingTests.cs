@@ -41,7 +41,7 @@ namespace Wayfarer.Tests
             // Create services with proper dependencies
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractProgressionService contractProgression = new ContractProgressionService(
-                contractRepository, itemRepository, locationRepository);
+                contractRepository, itemRepository, locationRepository, gameWorld);
 
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
@@ -98,7 +98,7 @@ namespace Wayfarer.Tests
             // Create services with proper dependencies
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractProgressionService contractProgression = new ContractProgressionService(
-                contractRepository, itemRepository, locationRepository);
+                contractRepository, itemRepository, locationRepository, gameWorld);
 
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
@@ -142,7 +142,7 @@ namespace Wayfarer.Tests
             // Create services with proper dependencies
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractProgressionService contractProgression = new ContractProgressionService(
-                contractRepository, itemRepository, locationRepository);
+                contractRepository, itemRepository, locationRepository, gameWorld);
 
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
@@ -187,7 +187,7 @@ namespace Wayfarer.Tests
             // Create services with proper dependencies
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractProgressionService contractProgression = new ContractProgressionService(
-                contractRepository, itemRepository, locationRepository);
+                contractRepository, itemRepository, locationRepository, gameWorld);
 
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
 
@@ -242,7 +242,7 @@ namespace Wayfarer.Tests
             // Create services with proper dependencies
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractProgressionService contractProgression = new ContractProgressionService(
-                contractRepository, itemRepository, locationRepository);
+                contractRepository, itemRepository, locationRepository, gameWorld);
 
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
             Player player = gameWorld.GetPlayer();
@@ -291,7 +291,7 @@ namespace Wayfarer.Tests
             // Create services with proper dependencies
             LocationSystem locationSystem = new LocationSystem(gameWorld, locationRepository);
             ContractProgressionService contractProgression = new ContractProgressionService(
-                contractRepository, itemRepository, locationRepository);
+                contractRepository, itemRepository, locationRepository, gameWorld);
 
             MarketManager marketManager = new MarketManager(gameWorld, locationSystem, itemRepository, contractProgression, new NPCRepository(gameWorld), locationRepository);
             Player player = gameWorld.GetPlayer();

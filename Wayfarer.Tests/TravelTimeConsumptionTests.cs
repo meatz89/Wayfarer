@@ -20,7 +20,7 @@ public class TravelTimeConsumptionTests
         ItemRepository itemRepository = new ItemRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
-        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld);
         RouteRepository routeRepository = new RouteRepository(gameWorld);
         TravelManager travelManager = new TravelManager(
             gameWorld,
@@ -71,7 +71,7 @@ public class TravelTimeConsumptionTests
         ItemRepository itemRepository = new ItemRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
-        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld);
         RouteRepository routeRepository = new RouteRepository(gameWorld);
         TravelManager travelManager = new TravelManager(
             gameWorld,
@@ -110,7 +110,7 @@ public class TravelTimeConsumptionTests
         ItemRepository itemRepository = new ItemRepository(gameWorld);
         ContractRepository contractRepository = new ContractRepository(gameWorld);
         ContractValidationService contractValidation = new ContractValidationService(contractRepository, itemRepository);
-        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository);
+        ContractProgressionService contractProgression = new ContractProgressionService(contractRepository, itemRepository, locationRepository, gameWorld);
         RouteRepository routeRepository = new RouteRepository(gameWorld);
         TravelManager travelManager = new TravelManager(
             gameWorld,
