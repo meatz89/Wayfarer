@@ -10,20 +10,52 @@
 		"isFailed": false,
 		"priority": "High",
 		"riskLevel": "High",
-		"requiredEquipmentCategories": ["Climbing_Equipment"],
-		"requiredDestinations": ["crossbridge", "thornwood"],
-		"requiredTransactions": [
+		"completionSteps": [
 			{
+				"type": "EquipmentStep",
+				"id": "climbing_equipment",
+				"description": "Have required climbing equipment",
+				"requiredEquipmentCategories": ["Climbing_Equipment"],
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TravelStep",
+				"id": "travel_to_crossbridge",
+				"description": "Travel to crossbridge",
+				"requiredLocationId": "crossbridge",
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TravelStep",
+				"id": "travel_to_thornwood",
+				"description": "Travel to thornwood",
+				"requiredLocationId": "thornwood",
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TransactionStep",
+				"id": "buy_herbs",
+				"description": "Buy herbs at thornwood",
 				"itemId": "herbs",
 				"locationId": "thornwood",
 				"transactionType": "Buy",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			},
 			{
+				"type": "TransactionStep",
+				"id": "sell_herbs",
+				"description": "Sell herbs at crossbridge",
 				"itemId": "herbs",
 				"locationId": "crossbridge",
 				"transactionType": "Sell",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
 		],
 		"description_detailed": "High-pressure delivery requiring mountain routes and climbing equipment. Tight deadline creates scheduling conflicts with equipment investment."
@@ -39,20 +71,44 @@
 		"isFailed": false,
 		"priority": "Medium",
 		"riskLevel": "Low",
-		"requiredEquipmentCategories": [],
-		"requiredDestinations": ["millbrook", "crossbridge"],
-		"requiredTransactions": [
+		"completionSteps": [
 			{
+				"type": "TravelStep",
+				"id": "travel_to_millbrook",
+				"description": "Travel to millbrook",
+				"requiredLocationId": "millbrook",
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TravelStep",
+				"id": "travel_to_crossbridge",
+				"description": "Travel to crossbridge",
+				"requiredLocationId": "crossbridge",
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TransactionStep",
+				"id": "buy_cloth",
+				"description": "Buy cloth at millbrook",
 				"itemId": "cloth",
 				"locationId": "millbrook",
 				"transactionType": "Buy",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			},
 			{
+				"type": "TransactionStep",
+				"id": "sell_cloth",
+				"description": "Sell cloth at crossbridge",
 				"itemId": "cloth",
 				"locationId": "crossbridge",
 				"transactionType": "Sell",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
 		],
 		"description_detailed": "Steady income opportunity using cart-compatible routes. Balances reliability with reasonable deadlines."
@@ -68,14 +124,33 @@
 		"isFailed": false,
 		"priority": "Medium",
 		"riskLevel": "Low",
-		"requiredEquipmentCategories": ["Trade_Tools"],
-		"requiredDestinations": ["millbrook"],
-		"requiredTransactions": [
+		"completionSteps": [
 			{
+				"type": "EquipmentStep",
+				"id": "trade_tools",
+				"description": "Have required trade tools",
+				"requiredEquipmentCategories": ["Trade_Tools"],
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TravelStep",
+				"id": "travel_to_millbrook",
+				"description": "Travel to millbrook",
+				"requiredLocationId": "millbrook",
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TransactionStep",
+				"id": "buy_pottery",
+				"description": "Buy pottery at millbrook",
 				"itemId": "pottery",
 				"locationId": "millbrook",
 				"transactionType": "Buy",
-				"quantity": 1
+				"quantity": 1,
+				"isRequired": true,
+				"isCompleted": false
 			}
 		],
 		"description_detailed": "Workshop-based crafting requiring Trade Tools. Creates inventory slot pressure due to large item production."
@@ -91,9 +166,24 @@
 		"isFailed": false,
 		"priority": "Low",
 		"riskLevel": "Medium",
-		"requiredEquipmentCategories": ["Navigation_Tools"],
-		"requiredDestinations": ["thornwood"],
-		"requiredTransactions": [],
+		"completionSteps": [
+			{
+				"type": "EquipmentStep",
+				"id": "navigation_tools",
+				"description": "Have required navigation tools",
+				"requiredEquipmentCategories": ["Navigation_Tools"],
+				"isRequired": true,
+				"isCompleted": false
+			},
+			{
+				"type": "TravelStep",
+				"id": "travel_to_thornwood",
+				"description": "Travel to thornwood",
+				"requiredLocationId": "thornwood",
+				"isRequired": true,
+				"isCompleted": false
+			}
+		],
 		"description_detailed": "Long-term exploration requiring Navigation Tools. Lower immediate payment but discovery bonus potential."
 	}
 ]

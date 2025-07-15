@@ -50,19 +50,33 @@ public class ContractRepository
     /// </summary>
     public ContractCompletionResult GetContractStatus(string contractId)
     {
+        Console.WriteLine($"[DEBUG] ContractRepository.GetContractStatus called for contract {contractId}");
+        
         // Ensure ActiveContracts is initialized before accessing
         if (_gameWorld.WorldState.ActiveContracts == null)
         {
             _gameWorld.WorldState.ActiveContracts = new List<Contract>();
         }
 
+        // First check active contracts
         Contract contract = _gameWorld.WorldState.ActiveContracts.FirstOrDefault(c => c != null && c.Id == contractId);
+        Console.WriteLine($"[DEBUG] Contract {contractId} found in active contracts: {contract != null}");
+        
         if (contract == null)
         {
-            // Check if contract exists in world state but not active
+            // Check if contract exists in completed contracts
+            contract = GetCompletedContracts().FirstOrDefault(c => c != null && c.Id == contractId);
+            Console.WriteLine($"[DEBUG] Contract {contractId} found in completed contracts: {contract != null}");
+        }
+        
+        if (contract == null)
+        {
+            // Check if contract exists in world state but not active or completed
             contract = GetContract(contractId);
+            Console.WriteLine($"[DEBUG] Contract {contractId} found in world state: {contract != null}");
             if (contract == null)
             {
+                Console.WriteLine($"[DEBUG] Contract {contractId} not found anywhere");
                 return new ContractCompletionResult
                 {
                     ContractId = contractId,
@@ -71,19 +85,35 @@ public class ContractRepository
                 };
             }
 
+            Console.WriteLine($"[DEBUG] Contract {contractId} status: IsCompleted={contract.IsCompleted}, IsFailed={contract.IsFailed}");
             return new ContractCompletionResult
             {
                 ContractId = contractId,
                 Status = contract.IsCompleted ? ContractStatus.Completed :
                         contract.IsFailed ? ContractStatus.Failed : ContractStatus.NotActive,
+                ProgressPercentage = contract.IsCompleted ? 1f : 0f,
+                CompletedSteps = contract.CompletionSteps.Where(s => s.IsCompleted).ToList()
             };
         }
 
+        // Calculate progress based on completed steps
+        float progressPercentage = 0f;
+        if (contract.CompletionSteps.Any())
+        {
+            int totalSteps = contract.CompletionSteps.Count(s => s.IsRequired);
+            int completedSteps = contract.CompletionSteps.Count(s => s.IsRequired && s.IsCompleted);
+            progressPercentage = totalSteps > 0 ? (float)completedSteps / totalSteps : 0f;
+        }
+
+        Console.WriteLine($"[DEBUG] Contract {contractId} final status: IsCompleted={contract.IsCompleted}, Steps={contract.CompletionSteps.Count}, CompletedSteps={contract.CompletionSteps.Count(s => s.IsCompleted)}");
+        
         return new ContractCompletionResult
         {
             ContractId = contractId,
             Status = contract.IsCompleted ? ContractStatus.Completed :
                     contract.IsFailed ? ContractStatus.Failed : ContractStatus.Active,
+            ProgressPercentage = progressPercentage,
+            CompletedSteps = contract.CompletionSteps.Where(s => s.IsCompleted).ToList()
         };
     }
 

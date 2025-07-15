@@ -107,10 +107,14 @@ public class ContractProgressionService
     public void CheckMarketProgression(string itemId, string locationId, TransactionType transactionType,
                                      int quantity, int price, Player player)
     {
+        Console.WriteLine($"[DEBUG] CheckMarketProgression called: {itemId} at {locationId}, {transactionType}, qty={quantity}, price={price}");
+        
         List<Contract> activeContracts = _contractRepository.GetActiveContracts();
+        Console.WriteLine($"[DEBUG] Found {activeContracts.Count} active contracts");
 
         foreach (Contract contract in activeContracts)
         {
+            Console.WriteLine($"[DEBUG] Checking contract {contract.Id} with {contract.CompletionSteps.Count} steps");
             bool progressMade = false;
 
             // NEW: Check ContractStep system first
@@ -125,13 +129,25 @@ public class ContractProgressionService
                     Price = price
                 };
 
+                Console.WriteLine($"[DEBUG] Created TransactionContext: {transactionContext.ItemId}, {transactionContext.LocationId}, {transactionContext.TransactionType}");
                 progressMade = contract.CheckStepCompletion(player, locationId, transactionContext);
+                Console.WriteLine($"[DEBUG] Contract {contract.Id} progress made: {progressMade}");
+            }
+            else
+            {
+                Console.WriteLine($"[DEBUG] Contract {contract.Id} has no completion steps!");
             }
 
             // Check for contract completion
-            if (progressMade && contract.IsFullyCompleted())
+            if (progressMade)
             {
-                CompleteContract(contract);
+                bool isFullyCompleted = contract.IsFullyCompleted();
+                Console.WriteLine($"[DEBUG] Contract {contract.Id} is fully completed: {isFullyCompleted}");
+                if (isFullyCompleted)
+                {
+                    Console.WriteLine($"[DEBUG] Completing contract {contract.Id}");
+                    CompleteContract(contract);
+                }
             }
         }
     }
@@ -236,18 +252,24 @@ public class ContractProgressionService
 
     private void CompleteContract(Contract contract)
     {
+        Console.WriteLine($"[DEBUG] CompleteContract called for contract {contract.Id}");
+        
         // Mark contract as completed
         contract.IsCompleted = true;
         contract.CompletedDay = _gameWorld.TimeManager.GetCurrentDay();
+        Console.WriteLine($"[DEBUG] Contract {contract.Id}: Set IsCompleted=true, CompletedDay={contract.CompletedDay}");
 
         // Move from active to completed
         _contractRepository.CompleteContract(contract.Id);
+        Console.WriteLine($"[DEBUG] Contract {contract.Id}: Moved to completed contracts in repository");
 
         // Apply contract completion rewards
         Player player = _gameWorld.GetPlayer();
         if (contract.Payment > 0)
         {
+            int coinsBefore = player.Coins;
             player.ModifyCoins(contract.Payment);
+            Console.WriteLine($"[DEBUG] Contract {contract.Id}: Paid {contract.Payment} coins (player coins: {coinsBefore} -> {player.Coins})");
         }
 
         // Update player reputation based on contract completion
@@ -255,9 +277,13 @@ public class ContractProgressionService
         int daysEarly = contract.DueDay - contract.CompletedDay;
         if (daysEarly > 0)
         {
+            int reputationBefore = player.Reputation;
             player.Reputation += daysEarly; // 1 reputation per day early
+            Console.WriteLine($"[DEBUG] Contract {contract.Id}: Early completion bonus +{daysEarly} reputation (player reputation: {reputationBefore} -> {player.Reputation})");
         }
 
+        Console.WriteLine($"[DEBUG] Contract {contract.Id}: Completion processing finished");
+        
         // Trigger contract completion effects - using a message system if available
         // Note: Since GameWorld doesn't have MessageSystem, we'll skip the messages for now
         // This could be enhanced by injecting MessageSystem separately
