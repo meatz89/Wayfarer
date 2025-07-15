@@ -141,7 +141,6 @@ public enum ContractCategory
     General,              // Basic contracts available to all players
     Merchant,            // Trade-focused contracts, affect merchant relationships
     Craftsman,           // Craft and delivery contracts, affect artisan relationships
-    Noble,               // High-status contracts, affect noble relationships
     Exploration,         // Discovery and reconnaissance contracts
     Professional,        // Guild and professional organization contracts
     Emergency,           // Time-critical contracts with high stakes

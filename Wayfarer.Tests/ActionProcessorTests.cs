@@ -38,7 +38,7 @@ public class ActionExecutionTests
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
-            contractRepository, itemRepository, locationRepository);
+            contractRepository, itemRepository, locationRepository, gameWorld);
 
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
@@ -84,7 +84,7 @@ public class ActionExecutionTests
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
-            contractRepository, itemRepository, locationRepository);
+            contractRepository, itemRepository, locationRepository, gameWorld);
 
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
@@ -133,7 +133,7 @@ public class ActionExecutionTests
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
-            contractRepository, itemRepository, locationRepository);
+            contractRepository, itemRepository, locationRepository, gameWorld);
 
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
@@ -174,7 +174,7 @@ public class ActionExecutionTests
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
-            contractRepository, itemRepository, locationRepository);
+            contractRepository, itemRepository, locationRepository, gameWorld);
 
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
@@ -221,7 +221,7 @@ public class ActionExecutionTests
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
-            contractRepository, itemRepository, locationRepository);
+            contractRepository, itemRepository, locationRepository, gameWorld);
 
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,
@@ -260,7 +260,7 @@ public class ActionExecutionTests
         // Create services with proper dependencies
         MessageSystem messageSystem = new MessageSystem();
         ContractProgressionService contractProgression = new ContractProgressionService(
-            contractRepository, itemRepository, locationRepository);
+            contractRepository, itemRepository, locationRepository, gameWorld);
 
         ActionProcessor actionProcessor = new ActionProcessor(
             gameWorld,

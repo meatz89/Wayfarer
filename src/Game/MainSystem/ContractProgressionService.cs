@@ -12,15 +12,18 @@ public class ContractProgressionService
     private readonly ContractRepository _contractRepository;
     private readonly ItemRepository _itemRepository;
     private readonly LocationRepository _locationRepository;
+    private readonly GameWorld _gameWorld;
 
     public ContractProgressionService(
         ContractRepository contractRepository,
         ItemRepository itemRepository,
-        LocationRepository locationRepository)
+        LocationRepository locationRepository,
+        GameWorld gameWorld)
     {
         _contractRepository = contractRepository;
         _itemRepository = itemRepository;
         _locationRepository = locationRepository;
+        _gameWorld = gameWorld;
     }
 
     /// <summary>
@@ -235,14 +238,29 @@ public class ContractProgressionService
     {
         // Mark contract as completed
         contract.IsCompleted = true;
-        contract.CompletedDay = GetCurrentDay(); // TODO: Get from TimeManager
+        contract.CompletedDay = _gameWorld.TimeManager.GetCurrentDay();
 
         // Move from active to completed
         _contractRepository.CompleteContract(contract.Id);
 
-        // TODO: Apply contract completion rewards
-        // TODO: Update player reputation
-        // TODO: Trigger contract completion effects
+        // Apply contract completion rewards
+        Player player = _gameWorld.GetPlayer();
+        if (contract.Payment > 0)
+        {
+            player.ModifyCoins(contract.Payment);
+        }
+
+        // Update player reputation based on contract completion
+        // Early completion provides reputation bonus
+        int daysEarly = contract.DueDay - contract.CompletedDay;
+        if (daysEarly > 0)
+        {
+            player.Reputation += daysEarly; // 1 reputation per day early
+        }
+
+        // Trigger contract completion effects - using a message system if available
+        // Note: Since GameWorld doesn't have MessageSystem, we'll skip the messages for now
+        // This could be enhanced by injecting MessageSystem separately
     }
 
     private bool IsNPCConversationAction(LocationAction action)
@@ -270,8 +288,8 @@ public class ContractProgressionService
 
     private int GetCurrentDay()
     {
-        // TODO: Integrate with TimeManager to get actual current day
-        return 1;
+        // Integrate with TimeManager to get actual current day
+        return _gameWorld.TimeManager.GetCurrentDay();
     }
 }
 
