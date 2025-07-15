@@ -73,5 +73,21 @@ namespace Wayfarer.Pages
                 _ => "Enhances travel capabilities"
             };
         }
+
+        /// <summary>
+        /// Get concise step summary for display
+        /// </summary>
+        public string GetStepSummary(ContractStepRequirement stepRequirement)
+        {
+            return stepRequirement.Type switch
+            {
+                ContractStepType.Travel => $"Travel to {stepRequirement.TargetLocationId}",
+                ContractStepType.Transaction => $"{stepRequirement.TransactionType} {stepRequirement.ItemId} at {stepRequirement.TargetLocationId}",
+                ContractStepType.Conversation => $"Speak with {stepRequirement.RequiredNPCId}",
+                ContractStepType.LocationAction => $"Perform {stepRequirement.RequiredActionId}",
+                ContractStepType.Equipment => $"Obtain {string.Join(", ", stepRequirement.RequiredEquipmentCategories.Select(cat => cat.ToString().Replace("_", " ")))}",
+                _ => stepRequirement.ToString()
+            };
+        }
     }
 }

@@ -297,7 +297,9 @@
                     break;
                     
                 case CurrentViews.PlayerStatusScreen:
-                    <PlayerStatusView OnClose="() => CurrentScreen = CurrentViews.LocationScreen" />
+                    <div class="location-container">
+                        <PlayerStatusView OnClose="() => CurrentScreen = CurrentViews.LocationScreen" />
+                    </div>
                     break;
         }
     </div>
