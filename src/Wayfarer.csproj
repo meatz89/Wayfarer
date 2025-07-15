@@ -33,14 +33,6 @@
 	</ItemGroup>
     
 	<ItemGroup>
-	  <Compile Remove="Pages\PlayerStatusView.razor.cs" />
-	</ItemGroup>
-    
-	<ItemGroup>
-	  <Content Remove="Pages\PlayerStatusView.razor" />
-	</ItemGroup>
-    
-	<ItemGroup>
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
 	  <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
@@ -71,11 +63,6 @@
 	<ItemGroup>
 	  <Folder Include="wwwroot\images\cursors\" />
 	  <Folder Include="wwwroot\music\forest\" />
-	</ItemGroup>
-    
-	<ItemGroup>
-	  <None Include="Pages\PlayerStatusView.razor" />
-	  <None Include="Pages\PlayerStatusView.razor.cs" />
 	</ItemGroup>
     
 	<ItemGroup>

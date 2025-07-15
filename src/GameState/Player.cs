@@ -222,7 +222,7 @@ public class Player
 
         switch (archetype)
         {
-            case Professions.Warrior:
+            case Professions.Soldier:
                 InitializeGuard();
                 break;
             case Professions.Merchant:

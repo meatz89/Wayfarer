@@ -21,6 +21,11 @@ public class PlayerSkills
             Skills[type] = new SkillProgress();
     }
 
+    public List<SkillTypes> GetAllSkills()
+    {
+        return Skills.Keys.ToList();
+    }
+
     public int GetLevelForSkill(SkillTypes skillType)
     {
         return Skills[skillType].Level;

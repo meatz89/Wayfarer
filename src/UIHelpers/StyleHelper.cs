@@ -65,7 +65,7 @@ public static class StyleHelper
     {
         return archetype switch
         {
-            Professions.Warrior => "⚔️",
+            Professions.Soldier => "⚔️",
             Professions.Scholar => "📚",
             Professions.Thief => "🏹",
             Professions.Merchant => "🎵",

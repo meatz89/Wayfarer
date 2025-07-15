@@ -1,4 +1,4 @@
-@page "/player-status"
+﻿@using Wayfarer.Game.ActionSystem
 @inherits PlayerStatusViewBase
 
 <div class="player-status-container">
@@ -124,7 +124,7 @@
                                     <div class="item-name">@itemName</div>
                                     <div class="item-details">
                                         <span class="item-weight">Weight: @item.Weight</span>
-                                        @if (item.Size != ItemSize.Medium)
+                                        @if (item.Size != SizeCategory.Medium)
                                         {
                                             <span class="item-size">Size: @item.Size</span>
                                         }

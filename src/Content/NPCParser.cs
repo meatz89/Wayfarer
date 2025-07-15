@@ -72,10 +72,10 @@ public static class NPCParser
             "Innkeeper" => Professions.Merchant,
             "Woodsman" => Professions.Ranger, // Logger
             "Herbalist" => Professions.Ranger, // Herb Gatherer
-            "Foreman" => Professions.Warrior, // Camp Boss
+            "Foreman" => Professions.Soldier, // Camp Boss
             "Harbor_Master" => Professions.Merchant, // Dock Master
             "Merchant_Captain" => Professions.Merchant, // Trade Captain
-            "Laborer" => Professions.Warrior, // River Worker
+            "Laborer" => Professions.Soldier, // River Worker
             "Scholar" => Professions.Scholar, // Test NPC
             _ => Professions.Merchant // Default fallback
         };
@@ -86,7 +86,7 @@ public static class NPCParser
         return profession switch
         {
             Professions.Merchant => Schedule.Market_Hours,
-            Professions.Warrior => Schedule.Workshop_Hours,
+            Professions.Soldier => Schedule.Workshop_Hours,
             Professions.Ranger => Schedule.Morning_Afternoon,
             Professions.Scholar => Schedule.Library_Hours,
             _ => Schedule.Business_Hours

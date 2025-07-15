@@ -437,67 +437,6 @@ public class MainGameplayViewBase : ComponentBase
     }
 
     /// <summary>
-    /// Analyze overall strategic status for sidebar display
-    /// </summary>
-    public PlayerStrategicOverview AnalyzePlayerStrategicStatus()
-    {
-        PlayerStrategicOverview overview = new PlayerStrategicOverview();
-
-        // Analyze current equipment capabilities
-        List<EquipmentCategory> currentEquipment = GetCurrentEquipmentCategories();
-        overview.EquipmentCapabilities = currentEquipment.Select(cat => cat.ToString().Replace('_', ' ')).ToList();
-
-        // Analyze route accessibility (simplified for now)
-        overview.AccessibleRoutes = 3; // Placeholder - would calculate based on actual routes
-        overview.BlockedRoutes = 2; // Placeholder - would calculate based on blocked routes
-
-        // Identify critical missing equipment
-        List<EquipmentCategory> allEquipmentCategories = Enum.GetValues<EquipmentCategory>().ToList();
-        List<EquipmentCategory> missingCategories = allEquipmentCategories.Where(cat => !currentEquipment.Contains(cat)).ToList();
-        overview.CriticalMissingEquipment = missingCategories.Take(3).Select(cat => cat.ToString().Replace('_', ' ')).ToList();
-
-        // Analyze contract readiness (simplified for now)
-        overview.ReadyContracts = 2; // Placeholder - would calculate based on actual contracts
-        overview.PendingContracts = 1; // Placeholder - would calculate based on pending contracts
-        overview.UrgentContracts = 0; // Placeholder - would calculate based on urgent contracts
-
-        return overview;
-    }
-
-    /// <summary>
-    /// Analyze time awareness and recommendations
-    /// </summary>
-    public TimeAwarenessAnalysis AnalyzeTimeAwareness()
-    {
-        TimeAwarenessAnalysis analysis = new TimeAwarenessAnalysis();
-        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
-        int currentDay = GameWorld.CurrentDay;
-
-        // Analyze current time status
-        analysis.CurrentStatus = $"{currentTime.ToString().Replace('_', ' ')} - Day {currentDay}";
-
-        // Generate time-based recommendations
-        if (currentTime == TimeBlocks.Dawn || currentTime == TimeBlocks.Morning)
-        {
-            analysis.Recommendation = "Optimal time for travel and contracts";
-        }
-        else if (currentTime == TimeBlocks.Afternoon)
-        {
-            analysis.Recommendation = "Good time for trading and social activities";
-        }
-        else if (currentTime == TimeBlocks.Evening)
-        {
-            analysis.Recommendation = "Markets closing soon - consider rest";
-        }
-        else
-        {
-            analysis.Recommendation = "Night time - limited activities available";
-        }
-
-        return analysis;
-    }
-
-    /// <summary>
     /// Get current equipment categories owned by player
     /// </summary>
     private List<EquipmentCategory> GetCurrentEquipmentCategories()
