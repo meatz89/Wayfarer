@@ -1,0 +1,92 @@
+[
+	{
+		"id": "personal_letter",
+		"description": "A personal letter between friends",
+		"tokenType": "Trust",
+		"minDeadline": 3,
+		"maxDeadline": 5,
+		"minPayment": 3,
+		"maxPayment": 5
+	},
+	{
+		"id": "love_letter",
+		"description": "A romantic letter that must be delivered discreetly",
+		"tokenType": "Trust",
+		"minDeadline": 2,
+		"maxDeadline": 4,
+		"minPayment": 4,
+		"maxPayment": 7
+	},
+	{
+		"id": "trade_agreement",
+		"description": "Commercial correspondence about trade deals",
+		"tokenType": "Trade",
+		"minDeadline": 2,
+		"maxDeadline": 4,
+		"minPayment": 5,
+		"maxPayment": 8
+	},
+	{
+		"id": "merchant_invoice",
+		"description": "Invoice or payment notice between merchants",
+		"tokenType": "Trade",
+		"minDeadline": 3,
+		"maxDeadline": 6,
+		"minPayment": 4,
+		"maxPayment": 6
+	},
+	{
+		"id": "noble_invitation",
+		"description": "Formal invitation to a noble gathering",
+		"tokenType": "Noble",
+		"minDeadline": 4,
+		"maxDeadline": 7,
+		"minPayment": 8,
+		"maxPayment": 12
+	},
+	{
+		"id": "court_summons",
+		"description": "Official summons to appear at court",
+		"tokenType": "Noble",
+		"minDeadline": 2,
+		"maxDeadline": 3,
+		"minPayment": 10,
+		"maxPayment": 15
+	},
+	{
+		"id": "village_news",
+		"description": "Local news and gossip between villagers",
+		"tokenType": "Common",
+		"minDeadline": 5,
+		"maxDeadline": 8,
+		"minPayment": 2,
+		"maxPayment": 4
+	},
+	{
+		"id": "work_notice",
+		"description": "Notice about available work or labor",
+		"tokenType": "Common",
+		"minDeadline": 3,
+		"maxDeadline": 5,
+		"minPayment": 3,
+		"maxPayment": 5
+	},
+	{
+		"id": "secret_message",
+		"description": "Coded message that must not fall into wrong hands",
+		"tokenType": "Shadow",
+		"minDeadline": 2,
+		"maxDeadline": 3,
+		"minPayment": 12,
+		"maxPayment": 20
+	},
+	{
+		"id": "illicit_package",
+		"description": "Package with questionable contents",
+		"tokenType": "Shadow",
+		"minDeadline": 1,
+		"maxDeadline": 2,
+		"minPayment": 15,
+		"maxPayment": 25
+	}
+]

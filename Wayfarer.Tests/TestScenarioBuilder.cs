@@ -9,7 +9,6 @@ namespace Wayfarer.Tests;
 /// Example usage:
 /// var scenario = new TestScenarioBuilder()
 ///     .WithPlayer(p => p.StartAt("dusty_flagon").WithCoins(50).WithItem("herbs"))
-///     .WithContracts(c => c.Add("herb_delivery").RequiresSell("herbs", "town_square").Pays(10))
 ///     .WithTimeState(t => t.Day(1).TimeBlock(TimeBlocks.Morning));
 /// 
 /// GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
@@ -31,18 +30,6 @@ public class TestScenarioBuilder
         return this;
     }
 
-    /// <summary>
-    /// Configure contracts available in the game world
-    /// </summary>
-    public TestScenarioBuilder WithContracts(Action<ContractBuilder> contractConfig)
-    {
-        ContractBuilder contractBuilder = new ContractBuilder();
-        contractConfig(contractBuilder);
-
-        _configurators.Add(gameWorld => contractBuilder.ApplyToGameWorld(gameWorld));
-
-        return this;
-    }
 
     /// <summary>
     /// Configure time and weather state
@@ -117,7 +104,6 @@ public class PlayerBuilder
     private int _stamina = 10;
     private int _reputation = 0;
     private readonly List<string> _inventory = new List<string>();
-    private readonly List<string> _knownContracts = new List<string>();
 
     public PlayerBuilder StartAt(string locationId)
     {
@@ -157,11 +143,6 @@ public class PlayerBuilder
         return this;
     }
 
-    public PlayerBuilder KnowsContract(string contractId)
-    {
-        _knownContracts.Add(contractId);
-        return this;
-    }
 
     public void ApplyToPlayer(Player player, GameWorld gameWorld)
     {
@@ -176,11 +157,6 @@ public class PlayerBuilder
             player.Inventory.AddItem(item);
         }
 
-        // Add known contracts
-        foreach (string contractId in _knownContracts)
-        {
-            player.DiscoverContract(contractId);
-        }
 
         // Set location
         Location? startLocation = gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == _startLocationId);
@@ -195,96 +171,6 @@ public class PlayerBuilder
 /// <summary>
 /// Builder for contract configuration with convenient helper methods
 /// </summary>
-public class ContractBuilder
-{
-    private readonly List<Contract> _contracts = new List<Contract>();
-
-    /// <summary>
-    /// Add a contract with manual ID specification
-    /// </summary>
-    public ContractSingleBuilder Add(string contractId)
-    {
-        return new ContractSingleBuilder(this, contractId);
-    }
-
-
-    internal void AddContract(Contract contract)
-    {
-        _contracts.Add(contract);
-    }
-
-    public void ApplyToGameWorld(GameWorld gameWorld)
-    {
-        if (gameWorld.WorldState.Contracts == null)
-        {
-            gameWorld.WorldState.Contracts = new List<Contract>();
-        }
-
-        gameWorld.WorldState.Contracts.AddRange(_contracts);
-    }
-}
-
-/// <summary>
-/// Builder for a single contract
-/// </summary>
-public class ContractSingleBuilder
-{
-    private readonly ContractBuilder _parent;
-    private readonly Contract _contract;
-    private static int _contractCounter = 1;
-
-    public ContractSingleBuilder(ContractBuilder parent, string contractId)
-    {
-        _parent = parent;
-        _contract = CreateContract(contractId);
-    }
-
-    public ContractSingleBuilder(ContractBuilder parent)
-    {
-        _parent = parent;
-        string autoId = $"test_contract_{_contractCounter++}";
-        _contract = CreateContract(autoId);
-    }
-
-    private static Contract CreateContract(string contractId)
-    {
-        return new Contract
-        {
-            Id = contractId,
-            Description = $"Test contract: {contractId}",
-            StartDay = 1,
-            DueDay = 6,
-            Payment = 10,
-            FailurePenalty = "Loss of reputation",
-            IsCompleted = false,
-            IsFailed = false,
-        };
-    }
-
-    public ContractSingleBuilder Pays(int payment)
-    {
-        _contract.Payment = payment;
-        return this;
-    }
-
-    public ContractSingleBuilder DueInDays(int days)
-    {
-        _contract.DueDay = _contract.StartDay + days;
-        return this;
-    }
-
-    public ContractSingleBuilder WithDescription(string description)
-    {
-        _contract.Description = description;
-        return this;
-    }
-
-    public ContractBuilder Build()
-    {
-        _parent.AddContract(_contract);
-        return _parent;
-    }
-}
 
 /// <summary>
 /// Builder for time and weather state

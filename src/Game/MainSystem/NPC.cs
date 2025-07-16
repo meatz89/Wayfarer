@@ -1,4 +1,6 @@
-﻿public enum Schedule
+﻿using Wayfarer.GameState;
+
+public enum Schedule
 {
     Always,           // Available all time periods (innkeepers, guards)
     Market_Hours,     // Morning + Afternoon (traders, merchants)
@@ -41,6 +43,9 @@ public class NPC
     
     // Contract Generation Properties
     public List<string> ContractCategories { get; set; } = new List<string>();
+    
+    // Letter Queue Properties
+    public ConnectionType? LetterTokenType { get; set; }
 
     // Helper methods for UI display
     public string ProfessionDescription

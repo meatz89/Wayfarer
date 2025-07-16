@@ -1,4 +1,6 @@
-﻿public class GameWorldManager
+using Wayfarer.GameState;
+
+public class GameWorldManager
 {
     private bool _useMemory;
     private bool _processStateChanges;
@@ -23,11 +25,9 @@
     private TravelManager travelManager;
     private MarketManager marketManager;
     private TradeManager tradeManager;
-    private ContractSystem contractSystem;
     private RestManager restManager;
     private NPCRepository npcRepository;
-    private ContractRepository contractRepository;
-    private List<Contract> availableContracts = new List<Contract>();
+    private LetterQueueManager letterQueueManager;
 
     private bool isAiAvailable = true;
 
@@ -39,11 +39,11 @@
                        ActionFactory actionFactory, ActionRepository actionRepository,
                        LocationRepository locationRepository, TravelManager travelManager,
                        MarketManager marketManager, TradeManager tradeManager,
-                       ContractSystem contractSystem, RestManager restManager,
+                       RestManager restManager,
                        PlayerProgression playerProgression, ActionProcessor actionProcessor,
                        ChoiceProjectionService choiceProjectionService, NPCRepository npcRepository,
-                       ContractRepository contractRepository, IConfiguration configuration,
-                       ILogger<GameWorldManager> logger)
+                       LetterQueueManager letterQueueManager,
+                       IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
         this.itemRepository = itemRepository;
@@ -55,11 +55,10 @@
         this.travelManager = travelManager;
         this.marketManager = marketManager;
         this.tradeManager = tradeManager;
-        this.contractSystem = contractSystem;
         this.restManager = restManager;
         this.actionProcessor = actionProcessor;
         this.npcRepository = npcRepository;
-        this.contractRepository = contractRepository;
+        this.letterQueueManager = letterQueueManager;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -99,7 +98,6 @@
         _gameWorld.ActionStateTracker.ClearCurrentUserAction();
         actionProcessor.UpdateState();
 
-        UpdateAvailableContracts();
 
         Location location = locationRepository.GetCurrentLocation();
         LocationSpot locationSpot = locationRepository.GetCurrentLocationSpot();
@@ -314,10 +312,6 @@
         await HandlePlayerMoving(action);
         actionProcessor.ProcessAction(action);
 
-        // Check contract step completion after action processing
-        Player player = _gameWorld.GetPlayer();
-        string currentLocationId = locationRepository.GetCurrentLocation().Id;
-        contractSystem.CheckContractStepCompletion(player, currentLocationId, action);
 
         await Update_gameWorld();
     }
@@ -385,8 +379,6 @@
             player.CurrentLocation = destination;
             player.CurrentLocationSpot = destinationSpot;
 
-            // Check contract step completion after travel
-            contractSystem.CheckContractStepCompletion(player, destination.Id, route);
 
             await Update_gameWorld();
         }
@@ -451,23 +443,6 @@
         return "Night";
     }
 
-    public void UpdateAvailableContracts()
-    {
-        foreach (Contract contract in contractSystem.GetActiveContracts())
-        {
-            if (contract.IsAvailable(_gameWorld.TimeManager.GetCurrentDay(), _gameWorld.TimeManager.GetCurrentTimeBlock()))
-            {
-                if (!availableContracts.Contains(contract))
-                {
-                    availableContracts.Add(contract);
-                }
-            }
-            else
-            {
-                availableContracts.Remove(contract);
-            }
-        }
-    }
 
     public EncounterResult GetEncounterResultFor(LocationAction locationAction)
     {
@@ -497,14 +472,17 @@
         //SaveGame();
 
 
-        UpdateContracts();
+        ProcessDailyLetterQueue();
         await Update_gameWorld();
     }
 
-    public void UpdateContracts()
+    public void ProcessDailyLetterQueue()
     {
-        // Check for failed contracts using ContractSystem
-        contractSystem.CheckForFailedContracts();
+        // Process letter deadline countdown daily
+        letterQueueManager.ProcessDailyDeadlines();
+        
+        // Generate new letters for the day
+        letterQueueManager.GenerateDailyLetters();
     }
 
     public bool CanTravelTo(string locationId)
@@ -548,10 +526,6 @@
             tradeManager.SellItem(itemId, locationId);
         }
 
-        // Check contract step completion after trade
-        Player player = _gameWorld.GetPlayer();
-        string currentLocationId = locationRepository.GetCurrentLocation().Id;
-        contractSystem.CheckContractStepCompletion(player, currentLocationId, new { ItemId = itemId, Action = action, LocationId = locationId });
     }
 
     /// <summary>
@@ -562,19 +536,6 @@
         travelManager.StartLocationTravel(destinationId);
     }
 
-    /// <summary>
-    /// Execute contract-related actions (accept, complete, etc.)
-    /// </summary>
-    public void ExecuteContractAction(string contractId, string action)
-    {
-        List<Contract> contracts = contractSystem.GetActiveContracts();
-        Contract? contract = contracts.FirstOrDefault(c => c.Id == contractId);
-
-        if (contract != null && action == "complete")
-        {
-            contractSystem.CompleteContract(contract);
-        }
-    }
 
     /// <summary>
     /// Execute rest actions for stamina recovery
@@ -765,38 +726,6 @@
         return marketManager.GetItemPrice(locationId, itemId, isBuyPrice);
     }
 
-    /// <summary>
-    /// Complete a contract action through gateway
-    /// </summary>
-    public bool CompleteContract(Contract contract)
-    {
-        // Use the proper ContractSystem to handle contract completion
-        return contractSystem.CompleteContract(contract);
-    }
-
-    /// <summary>
-    /// Get all active contracts for UI display
-    /// </summary>
-    public List<Contract> GetActiveContracts()
-    {
-        return contractSystem.GetActiveContracts();
-    }
-
-    /// <summary>
-    /// Get urgent contracts (expiring soon) for UI display
-    /// </summary>
-    public List<Contract> GetUrgentContracts(int daysThreshold = 1)
-    {
-        return contractSystem.GetUrgentContracts(daysThreshold);
-    }
-
-    /// <summary>
-    /// Get contracts expiring today for UI display
-    /// </summary>
-    public List<Contract> GetContractsExpiringToday()
-    {
-        return contractSystem.GetContractsExpiringToday();
-    }
 
 
     /// <summary>

@@ -104,7 +104,7 @@ public class PostEncounterEvolutionParser
             NewActions = new List<NewAction>(),
             NewCharacters = flatResponse.Characters ?? new List<NPC>(),
             NewLocations = new List<Location>(),
-            NewContracts = flatResponse.Contracts ?? new List<Contract>()
+            // Contract system removed - using letter system instead
         };
 
         // Process action definitions

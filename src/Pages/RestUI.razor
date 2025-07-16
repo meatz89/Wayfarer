@@ -45,6 +45,30 @@
             Rest Here
         </button>
     </div>
+    
+    <div class="wait-section">
+        <h4>Wait</h4>
+        <p>Current Time: @GameWorld.TimeManager.CurrentTimeHours:00 (@GameWorld.TimeManager.GetCurrentTimeBlock())</p>
+        <p>Remaining Time Blocks: @GameWorld.TimeManager.RemainingTimeBlocks</p>
+        
+        <div class="wait-options">
+            <button class="btn btn-outline-secondary btn-sm" 
+                    disabled="@(!GameWorld.TimeManager.ValidateTimeBlockAction(1))"
+                    @onclick="() => WaitHours(1)">
+                Wait 1 Hour
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" 
+                    disabled="@(!GameWorld.TimeManager.ValidateTimeBlockAction(1))"
+                    @onclick="() => WaitHours(2)">
+                Wait 2 Hours  
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" 
+                    disabled="@(!GameWorld.TimeManager.ValidateTimeBlockAction(1))"
+                    @onclick="() => WaitHours(3)">
+                Wait 3 Hours
+            </button>
+        </div>
+    </div>
 </div>
 
 @code {
@@ -62,6 +86,12 @@
             RestManager.Rest(selectedOption);
         }
 
+        await OnRestComplete.InvokeAsync();
+    }
+    
+    private async Task WaitHours(int hours)
+    {
+        RestManager.Wait(hours);
         await OnRestComplete.InvokeAsync();
     }
 }

@@ -98,9 +98,6 @@
                             <button class="location-button" @onclick="SwitchToRestScreen">
                                 Rest 🛏️
                             </button>
-                            <button class="location-button" @onclick="SwitchToContractScreen">
-                                Contracts 📜
-                            </button>
                             <button class="location-button" @onclick="SwitchToPlayerStatusScreen">
                                 Character 👤
                             </button>
@@ -198,6 +195,9 @@
                         </div>
                     }
 
+                    @* Letter Queue Display - Minimal POC *@
+                    <LetterQueueDisplay />
+
                     <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
                                      CurrentSpot="@CurrentSpot"
                                      OnSpotSelected="@HandleSpotSelection"
@@ -273,28 +273,6 @@
                     </div>
                     break;
 
-                case CurrentViews.ContractScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Contracts</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
-                                    Back to Location
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="contracts-container">
-                        @if (IsGameDataReady())
-                        {
-                            <ContractUI />
-                        }
-                        else
-                        {
-                            <div class="loading-message">Loading contracts...</div>
-                        }
-                    </div>
-                    break;
                     
                 case CurrentViews.PlayerStatusScreen:
                     <div class="location-container">

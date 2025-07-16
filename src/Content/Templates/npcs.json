@@ -97,5 +97,41 @@
 		"personality": "Steady and dependable, takes pride in honest work and fair dealing.",
 		"services": ["simple_labor", "boat_maintenance"],
 		"contractCategories": ["Standard"]
+	},
+	{
+		"id": "elena_millbrook",
+		"name": "Elena",
+		"profession": "Merchant",
+		"locationId": "millbrook",
+		"spotId": "market",
+		"description": "A friendly merchant who often needs letters delivered. She values personal connections and trust.",
+		"personality": "Warm and trusting, values personal connections and remembers kindnesses.",
+		"services": ["trade_goods"],
+		"contractCategories": [],
+		"letterTokenType": "Trust"
+	},
+	{
+		"id": "marcus_thornwood",
+		"name": "Marcus",
+		"profession": "Merchant",
+		"locationId": "thornwood",
+		"spotId": "market",
+		"description": "A shrewd trader who deals in valuable goods and commercial correspondence.",
+		"personality": "Business-focused and practical, always looking for reliable couriers.",
+		"services": ["trade_goods"],
+		"contractCategories": [],
+		"letterTokenType": "Trade"
+	},
+	{
+		"id": "lord_ashford",
+		"name": "Lord Ashford",
+		"profession": "Scholar",
+		"locationId": "crossbridge",
+		"spotId": "library",
+		"description": "A minor noble who maintains correspondence with other aristocrats.",
+		"personality": "Formal and proper, expects discretion and promptness in deliveries.",
+		"services": [],
+		"contractCategories": [],
+		"letterTokenType": "Noble"
 	}
 ]

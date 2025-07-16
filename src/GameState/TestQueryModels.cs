@@ -9,8 +9,8 @@ public class ContractCompletionResult
     public string ContractId { get; set; } = "";
     public ContractStatus Status { get; set; }
     public float ProgressPercentage { get; set; }
-    public List<ContractStep> CompletedSteps { get; set; } = new List<ContractStep>();
-    public List<ContractTransaction> CompletedTransactions { get; set; } = new List<ContractTransaction>();
+    public List<string> CompletedSteps { get; set; } = new List<string>();
+    public List<string> CompletedTransactions { get; set; } = new List<string>();
     public List<string> CompletedDestinations { get; set; } = new List<string>();
     public List<string> CompletedNPCConversations { get; set; } = new List<string>();
     public List<string> CompletedLocationActions { get; set; } = new List<string>();

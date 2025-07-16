@@ -180,11 +180,6 @@ public class MainGameplayViewBase : ComponentBase
         StateHasChanged();
     }
 
-    public void SwitchToContractScreen()
-    {
-        CurrentScreen = CurrentViews.ContractScreen;
-        StateHasChanged();
-    }
 
     public void SwitchToPlayerStatusScreen()
     {
@@ -458,14 +453,6 @@ public class MainGameplayViewBase : ComponentBase
         return ownedCategories.Distinct().ToList();
     }
 
-    /// <summary>
-    /// Check if player can complete a contract based on current status (simplified)
-    /// </summary>
-    private bool CanCompleteContract(Contract contract)
-    {
-        // Simplified implementation - would need actual contract checking logic
-        return true;
-    }
 
     /// <summary>
     /// Get icon for time block display

@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wayfarer.Game.ActionSystem;
 using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
+using Wayfarer.Content;
 
 namespace Wayfarer.Tests;
 
@@ -51,28 +53,6 @@ public static class TestGameWorldFactory
         return gameWorldManager;
     }
 
-    /// <summary>
-    /// Creates a GameWorldManager with custom contracts for contract-specific testing.
-    /// Useful for testing specific contract scenarios without modifying JSON files.
-    /// </summary>
-    /// <param name="customContracts">List of contracts to add to the game world</param>
-    /// <param name="contentDirectory">Directory containing base JSON content</param>
-    /// <returns>GameWorldManager with custom contract configuration</returns>
-    public static GameWorldManager CreateContractTestManager(List<Contract> customContracts, string contentDirectory = "Content")
-    {
-        GameWorldManager gameManager = CreateCompleteGameWorldManager(contentDirectory);
-
-        // Add custom contracts to the game world
-        foreach (Contract contract in customContracts)
-        {
-            gameManager.GameWorld.WorldState.Contracts?.Add(contract);
-        }
-
-        // Update available contracts to include custom ones
-        gameManager.UpdateAvailableContracts();
-
-        return gameManager;
-    }
 
     /// <summary>
     /// Creates a GameWorldManager with custom items for market testing.
@@ -114,35 +94,6 @@ public static class TestGameWorldFactory
         return gameManager;
     }
 
-    /// <summary>
-    /// Helper method to create a simple test contract for testing purposes.
-    /// Follows the "only check completion actions" principle.
-    /// </summary>
-    /// <param name="contractId">Unique identifier for the contract</param>
-    /// <param name="description">Human-readable description</param>
-    /// <param name="requiredTransaction">The transaction that completes this contract</param>
-    /// <param name="payment">Payment amount for completion</param>
-    /// <param name="daysToComplete">Number of days to complete (default: 5)</param>
-    /// <returns>Contract configured for testing</returns>
-    public static Contract CreateTestContract(
-        string contractId,
-        string description,
-        ContractTransaction requiredTransaction,
-        int payment = 10,
-        int daysToComplete = 5)
-    {
-        return new Contract
-        {
-            Id = contractId,
-            Description = description,
-            StartDay = 1,
-            DueDay = 1 + daysToComplete,
-            Payment = payment,
-            FailurePenalty = "Loss of reputation",
-            IsCompleted = false,
-            IsFailed = false,
-        };
-    }
 
     /// <summary>
     /// Helper method to create a simple test item for market testing.
@@ -215,19 +166,15 @@ public static class TestServiceConfiguration
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
-        services.AddSingleton<ContractRepository>();
         services.AddSingleton<RouteRepository>();
+        services.AddSingleton<LetterTemplateRepository>();
 
-        // Register contract services (same as production)
-        services.AddSingleton<ContractValidationService>();
-        services.AddSingleton<ContractProgressionService>();
 
         // Register core game systems (same as production)
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
         services.AddSingleton<ActionGenerator>();
         services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<ContractSystem>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<ActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
@@ -244,6 +191,16 @@ public static class TestServiceConfiguration
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
         services.AddSingleton<TransportCompatibilityValidator>();
+        
+        // Letter Queue System (same as production)
+        services.AddSingleton<LetterQueueManager>(serviceProvider =>
+        {
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
+            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
+            return new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository);
+        });
+        services.AddSingleton<ConnectionTokenManager>();
 
         // NOTE: We deliberately exclude AI services for testing:
         // - EncounterFactory (no AI dependency needed for core game logic tests)

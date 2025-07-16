@@ -1,5 +1,6 @@
 ﻿using Wayfarer.Game.ActionSystem;
 using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 
 public class Player
 {
@@ -70,6 +71,11 @@ public class Player
     public List<Goal> ActiveGoals { get; private set; } = new List<Goal>();
     public List<Goal> CompletedGoals { get; private set; } = new List<Goal>();
     public List<Goal> FailedGoals { get; private set; } = new List<Goal>();
+
+    // Letter Queue System
+    public Letter[] LetterQueue { get; private set; } = new Letter[8];
+    public Dictionary<ConnectionType, int> ConnectionTokens { get; private set; } = new Dictionary<ConnectionType, int>();
+    public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
 
     public void AddGoal(Goal goal)
     {
@@ -195,6 +201,11 @@ public class Player
 
         AvailableCards = new List<SkillCard>();
 
+        // Initialize letter queue system
+        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+        {
+            ConnectionTokens[tokenType] = 0;
+        }
     }
 
     public void Initialize(string playerName, Professions selectedArchetype, Genders gender)

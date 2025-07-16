@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Wayfarer.Content;
 using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 
 public class GameWorldInitializer
 {
@@ -52,15 +53,7 @@ public class GameWorldInitializer
                 File.ReadAllText(itemsFilePath));
         }
 
-        // Load contracts
-        List<Contract> contracts = new List<Contract>();
-        string contractsFilePath = Path.Combine(templatePath, "contracts.json");
-        if (File.Exists(contractsFilePath))
-        {
-            contracts = GameWorldSerializer.DeserializeContracts(
-                File.ReadAllText(contractsFilePath));
-
-        }
+        // Contract system removed - using letter system instead
 
         List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
             File.ReadAllText(Path.Combine(templatePath, "actions.json")));
@@ -125,6 +118,22 @@ public class GameWorldInitializer
             }
         }
 
+        // Load letter templates
+        List<LetterTemplate> letterTemplates = new List<LetterTemplate>();
+        string letterTemplatesFilePath = Path.Combine(templatePath, "letter_templates.json");
+        if (File.Exists(letterTemplatesFilePath))
+        {
+            try
+            {
+                letterTemplates = ParseLetterTemplateArray(File.ReadAllText(letterTemplatesFilePath));
+                Console.WriteLine($"Loaded {letterTemplates.Count} letter templates from JSON.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed to load letter templates from JSON: {ex.Message}");
+            }
+        }
+
         // Add NPCs to the game world
         if (npcs.Any())
         {
@@ -158,6 +167,17 @@ public class GameWorldInitializer
             Console.WriteLine("INFO: No information loaded from JSON templates. Create informations.json file to add information content.");
         }
 
+        // Add letter templates to the game world
+        if (letterTemplates.Any())
+        {
+            gameWorld.WorldState.LetterTemplates.AddRange(letterTemplates);
+            Console.WriteLine($"Added {letterTemplates.Count} letter templates to game world.");
+        }
+        else
+        {
+            Console.WriteLine("INFO: No letter templates loaded. Create letter_templates.json file to add letter template content.");
+        }
+
         // Initialize player inventory if not already initialized
         if (gameWorld.GetPlayer().Inventory == null)
         {
@@ -171,11 +191,7 @@ public class GameWorldInitializer
         }
         gameWorld.DiscoveredRoutes.AddRange(routes);
 
-        // Add contracts to the game world
-        foreach (Contract contract in contracts)
-        {
-            gameWorld.WorldState.Contracts.Add(contract);
-        }
+        // Contract system removed - using letter system instead
 
         // CRITICAL: Ensure Player.CurrentLocation and CurrentLocationSpot are NEVER null
         // Systems depend on these values being valid
@@ -336,7 +352,7 @@ public class GameWorldInitializer
         locations = ConnectLocationsToSpots(locations, spots);
 
         List<ActionDefinition> actions = new List<ActionDefinition>();
-        List<Contract> comissions = new List<Contract>();
+        // Contract system removed - using letter system instead
 
         List<SkillCard> cards = new List<SkillCard>();
 
@@ -349,7 +365,7 @@ public class GameWorldInitializer
 
         gameWorld.WorldState.actions.Clear();
         gameWorld.WorldState.actions.AddRange(actions);
-        gameWorld.WorldState.Contracts.AddRange(comissions);
+        // Contract system removed - using letter system instead
 
         // Add cards to world state if applicable
         if (gameWorld.WorldState.AllCards != null)
@@ -393,5 +409,21 @@ public class GameWorldInitializer
         }
 
         return npcs;
+    }
+
+    private List<LetterTemplate> ParseLetterTemplateArray(string letterTemplatesJson)
+    {
+        List<LetterTemplate> templates = new List<LetterTemplate>();
+
+        using (JsonDocument doc = JsonDocument.Parse(letterTemplatesJson))
+        {
+            foreach (JsonElement templateElement in doc.RootElement.EnumerateArray())
+            {
+                LetterTemplate template = LetterTemplateParser.ParseLetterTemplate(templateElement.GetRawText());
+                templates.Add(template);
+            }
+        }
+
+        return templates;
     }
 }

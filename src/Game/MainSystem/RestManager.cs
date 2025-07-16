@@ -4,19 +4,16 @@
     private TimeManager timeManager;
     private LocationRepository locationRepository;
     private MessageSystem messageSystem;
-    private ContractRepository contractRepository;
 
     public RestManager(
         GameWorld gameWorld,
         LocationRepository locationRepository,
-        MessageSystem messageSystem,
-        ContractRepository contractRepository)
+        MessageSystem messageSystem)
     {
         this.gameWorld = gameWorld;
         this.timeManager = gameWorld.TimeManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
-        this.contractRepository = contractRepository;
     }
 
     public List<RestOption> GetAvailableRestOptions()
@@ -189,18 +186,29 @@
 
     private void GenerateExclusiveContract()
     {
-        // For POC, create a special high-value contract using new completion action pattern
-        Contract exclusiveContract = new Contract
+        // Contract functionality has been removed - using letter system instead
+        messageSystem.AddSystemMessage("Your connections have provided you with valuable information!");
+    }
+    
+    public void Wait(int hours)
+    {
+        if (hours <= 0) return;
+        
+        // Convert hours to time blocks (roughly 3.6 hours per block)
+        int timeBlocks = (int)Math.Ceiling(hours / 3.6);
+        
+        // Validate time block availability
+        if (!timeManager.ValidateTimeBlockAction(timeBlocks))
         {
-            Id = $"exclusive_{gameWorld.CurrentDay}",
-            Description = "Exclusive Merchant Opportunity",
-            StartDay = gameWorld.CurrentDay,
-            DueDay = gameWorld.CurrentDay + 3,
-            Payment = 25,
-            FailurePenalty = "Reputation loss with Merchant Guild",
-        };
-
-        contractRepository.AddContract(exclusiveContract);
-        messageSystem.AddSystemMessage("You've received an exclusive contract offer from a merchant connection!");
+            messageSystem.AddSystemMessage($"Cannot wait {hours} hours: insufficient time blocks remaining", SystemMessageTypes.Danger);
+            return;
+        }
+        
+        // Consume time blocks
+        timeManager.ConsumeTimeBlock(timeBlocks);
+        
+        // Show feedback
+        string timeDescription = hours == 1 ? "1 hour" : $"{hours} hours";
+        messageSystem.AddSystemMessage($"Waited {timeDescription}. Time advanced to {timeManager.CurrentTimeHours}:00", SystemMessageTypes.Info);
     }
 }

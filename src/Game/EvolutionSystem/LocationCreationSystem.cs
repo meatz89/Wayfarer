@@ -4,7 +4,6 @@ public class LocationCreationSystem
 {
     private LocationSystem locationSystem;
     private CharacterSystem characterSystem;
-    private ContractSystem ContractSystem;
     private GameWorld gameWorld;
     private ActionGenerator actionGenerator;
     private LocationRepository locationRepository;
@@ -16,7 +15,6 @@ public class LocationCreationSystem
     public LocationCreationSystem(
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
-        ContractSystem contractSystem,
         GameWorld gameWorld,
         ActionGenerator actionGenerator,
         LocationRepository locationRepository,
@@ -28,7 +26,6 @@ public class LocationCreationSystem
     {
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
-        this.ContractSystem = contractSystem;
         this.gameWorld = gameWorld;
         this.actionGenerator = actionGenerator;
         this.locationRepository = locationRepository;
@@ -138,7 +135,7 @@ public class LocationCreationSystem
 
             KnownLocations = this.locationSystem.FormatLocations(allLocations),
             KnownCharacters = characterSystem.FormatKnownCharacters(worldState.GetCharacters()),
-            ActiveContracts = ContractSystem.FormatActiveContracts(worldState.Contracts),
+            ActiveContracts = "", // Contract system removed
 
             CurrentLocationSpots = this.locationSystem.FormatLocationSpots(worldState.CurrentLocation),
             ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
