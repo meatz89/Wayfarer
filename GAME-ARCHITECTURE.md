@@ -2,6 +2,143 @@
 
 This document captures critical architectural discoveries and patterns that must be maintained for system stability and design consistency.
 
+## LETTER QUEUE SYSTEM ARCHITECTURE
+
+### **Core Letter Queue Components**
+
+**Letter Queue Manager**:
+- **Single Responsibility**: Manages 8-slot priority queue with position enforcement
+- **Repository Pattern**: Uses LetterRepository for all letter data access
+- **Queue Operations**: Add, remove, reorder, manipulate queue positions
+- **Deadline Management**: Daily countdown and expiration handling
+
+**Letter Entity Structure**:
+```csharp
+public class Letter {
+    public string Id { get; set; }
+    public string SenderId { get; set; }
+    public string RecipientId { get; set; }
+    public ConnectionType TokenType { get; set; }
+    public int Deadline { get; set; }
+    public int Payment { get; set; }
+    public int QueuePosition { get; set; }
+    public LetterSize Size { get; set; }
+    public bool IsFromPatron { get; set; }
+}
+```
+
+**Connection Token System**:
+- **Token Types**: Trust, Trade, Noble, Common, Shadow (enum)
+- **Token Storage**: Player state with token counts by type
+- **Token Operations**: Earn, spend, calculate gravity effects
+- **Repository Access**: All token operations through ConnectionTokenRepository
+
+**Standing Obligations System**:
+- **Permanent Modifiers**: Change queue behavior forever
+- **Benefit + Constraint**: Each obligation helps and restricts
+- **Queue Integration**: Modify letter entry position, delivery requirements
+- **Player State**: Track active obligations and their effects
+
+### **Letter Queue Repository Patterns**
+
+**LetterRepository**:
+```csharp
+public class LetterRepository {
+    private readonly GameWorld _gameWorld;
+    
+    public List<Letter> GetPlayerQueue() => _gameWorld.WorldState.Player.LetterQueue;
+    public void AddLetterToQueue(Letter letter) { /* Add to queue with position logic */ }
+    public void RemoveLetterFromQueue(string letterId) { /* Remove and shift positions */ }
+    public Letter GetLetterById(string id) { /* Standard repository lookup */ }
+    public void UpdateLetterPosition(string letterId, int newPosition) { /* Queue manipulation */ }
+}
+```
+
+**ConnectionTokenRepository**:
+```csharp
+public class ConnectionTokenRepository {
+    private readonly GameWorld _gameWorld;
+    
+    // Player's total tokens by type (for queue manipulation)
+    public Dictionary<ConnectionType, int> GetPlayerTokens() => _gameWorld.WorldState.Player.ConnectionTokens;
+    
+    // Tokens with specific NPC (for relationship screen)
+    public Dictionary<string, Dictionary<ConnectionType, int>> GetTokensByNPC() => _gameWorld.WorldState.Player.NPCTokens;
+    
+    // Get tokens player has with specific NPC
+    public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId) {
+        var npcTokens = _gameWorld.WorldState.Player.NPCTokens;
+        return npcTokens.ContainsKey(npcId) ? npcTokens[npcId] : new Dictionary<ConnectionType, int>();
+    }
+    
+    // Add tokens earned from specific NPC
+    public void AddTokens(ConnectionType type, int count, string npcId) {
+        // Add to player's total tokens
+        var playerTokens = _gameWorld.WorldState.Player.ConnectionTokens;
+        playerTokens[type] = playerTokens.GetValueOrDefault(type) + count;
+        
+        // Track tokens by NPC for relationship screen
+        var npcTokens = _gameWorld.WorldState.Player.NPCTokens;
+        if (!npcTokens.ContainsKey(npcId)) npcTokens[npcId] = new Dictionary<ConnectionType, int>();
+        npcTokens[npcId][type] = npcTokens[npcId].GetValueOrDefault(type) + count;
+    }
+    
+    // Spend tokens from player's total (not NPC-specific)
+    public bool SpendTokens(ConnectionType type, int count) {
+        var playerTokens = _gameWorld.WorldState.Player.ConnectionTokens;
+        if (playerTokens.GetValueOrDefault(type) >= count) {
+            playerTokens[type] -= count;
+            return true;
+        }
+        return false;
+    }
+    
+    // Calculate queue entry position based on NPC tokens
+    public int GetConnectionGravity(string npcId) {
+        var npcTokens = GetTokensWithNPC(npcId);
+        var totalTokens = npcTokens.Values.Sum();
+        
+        return totalTokens switch {
+            >= 5 => 6,  // Strong connection - high priority
+            >= 3 => 7,  // Moderate connection - slight boost
+            _ => 8      // Default - bottom of queue
+        };
+    }
+}
+```
+
+**StandingObligationRepository**:
+```csharp
+public class StandingObligationRepository {
+    private readonly GameWorld _gameWorld;
+    
+    public List<StandingObligation> GetPlayerObligations() => _gameWorld.WorldState.Player.StandingObligations;
+    public void AddObligation(StandingObligation obligation) { /* Permanent character change */ }
+    public bool HasObligation(string obligationId) { /* Check active obligations */ }
+}
+```
+
+### **Character Relationship Architecture**
+
+**NPC Relationship Memory**:
+- **Skip Tracking**: Last 3 skipped letters per NPC
+- **Delivery History**: Consistent delivery improves relationship
+- **Relationship Cooling**: Mathematical relationship degradation
+- **Location Binding**: NPCs exist at specific locations only
+
+**Character Relationship Repository**:
+```csharp
+public class CharacterRelationshipRepository {
+    private readonly GameWorld _gameWorld;
+    
+    public List<NPC> GetAllKnownNPCs() { /* All NPCs player has interacted with */ }
+    public NPC GetNPCAtLocation(string locationId) { /* Location-based lookup */ }
+    public RelationshipStatus GetRelationshipStatus(string npcId) { /* Current standing */ }
+    public void TrackLetterSkip(string npcId, string letterId) { /* Memory system */ }
+    public void TrackLetterDelivery(string npcId, string letterId) { /* Positive interaction */ }
+}
+```
+
 ## CORE ARCHITECTURAL PATTERNS
 
 ### **CRITICAL: CONTENT/LOGIC SEPARATION PRINCIPLE**
@@ -45,6 +182,14 @@ This document captures critical architectural discoveries and patterns that must
 - Hardcoded content IDs make code unmaintainable and brittle
 - Content creators should be able to change IDs without breaking logic
 - Business logic should work with any content that has the right properties
+
+**LETTER QUEUE SPECIFIC ENFORCEMENT:**
+- **NEVER** hardcode NPC IDs in queue logic: `if (senderId == "elena_trader")` ❌
+- **ALWAYS** use NPC properties: `if (npc.TokenType == ConnectionType.Trust)` ✅
+- **NEVER** hardcode letter IDs in business logic: `if (letterId == "patron_mission_1")` ❌
+- **ALWAYS** use letter properties: `if (letter.IsFromPatron)` ✅
+- **NEVER** hardcode obligation IDs: `if (obligationId == "nobles_courtesy")` ❌
+- **ALWAYS** use obligation properties: `if (obligation.AffectsNobleLetters)` ✅
 
 ### CORE ARCHITECTURAL PATTERNS
 
@@ -148,6 +293,238 @@ Repositories are responsible for ID-to-object lookup, not initialization or busi
 - **ALWAYS** create test-specific JSON data for each test class
 - **EACH test class should have its own isolated test data** - never depend on shared production content
 - **Tests must validate system logic, not production data integrity**
+
+### **Per-NPC Token Tracking Clarifications**
+
+**CRITICAL IMPLEMENTATION DETAILS:**
+
+**Token Ownership Model**:
+- **Player owns all tokens** - tokens are player resources, not NPC resources
+- **Tokens track relationship history** - earned from specific NPCs but spent from player pool
+- **NPC relationship display** - show tokens earned from each NPC for strategic planning
+- **Queue manipulation** - spend from player's total token pool, not NPC-specific pools
+
+**Data Structure Requirements**:
+```csharp
+public class Player {
+    // Total tokens available for queue manipulation
+    public Dictionary<ConnectionType, int> ConnectionTokens { get; set; } = new();
+    
+    // Track tokens earned from each NPC (for relationship screen)
+    public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; set; } = new();
+    
+    // Track relationship history with each NPC
+    public Dictionary<string, NPCRelationship> NPCRelationships { get; set; } = new();
+}
+
+public class NPCRelationship {
+    public string NPCId { get; set; }
+    public RelationshipStatus Status { get; set; }  // Warm, Neutral, Cold, Frozen
+    public List<string> SkippedLetters { get; set; } = new();  // Last 3 skipped letters
+    public List<string> DeliveredLetters { get; set; } = new();  // Delivery history
+    public DateTime LastInteraction { get; set; }
+}
+```
+
+**Connection Gravity Calculation**:
+- **Based on NPC-specific tokens** - tokens earned from specific NPC determine gravity
+- **Not affected by spending** - spending tokens for queue manipulation doesn't reduce NPC gravity
+- **Relationship depth indicator** - more tokens with NPC = stronger relationship = higher queue priority
+
+**Character Relationship Screen Display**:
+- **Per-NPC token counts** - show tokens earned from each specific NPC
+- **Relationship progression** - visual indicators of relationship strength
+- **Location information** - where to find each NPC for face-to-face interactions
+- **Interaction availability** - only available when at NPC's location
+
+**Queue Entry Position Logic**:
+```csharp
+public int GetLetterQueuePosition(Letter letter) {
+    // Special case: Patron letters always jump to slots 1-3
+    if (letter.IsFromPatron) {
+        return Random.Range(1, 3);
+    }
+    
+    // Calculate based on connection gravity with sender
+    var gravity = connectionTokenRepository.GetConnectionGravity(letter.SenderId);
+    
+    // Check for standing obligations that modify entry position
+    var obligations = standingObligationRepository.GetPlayerObligations();
+    foreach (var obligation in obligations) {
+        gravity = obligation.ModifyQueueEntry(letter.TokenType, gravity);
+    }
+    
+    return gravity;
+}
+```
+
+### **Letter Queue System Validation**
+
+**Queue Order Enforcement Tests**:
+```csharp
+// ✅ CORRECT: Test queue logic, not specific letter content
+[Test]
+public void DeliverLetter_WithoutTokens_RequiresPosition1() {
+    var letter = CreateTestLetter(position: 3);
+    var result = letterQueueManager.DeliverLetter(letter.Id, spendTokens: false);
+    Assert.That(result.Success, Is.False);
+    Assert.That(result.Message, Contains.Substring("Must deliver from position 1"));
+}
+
+// ❌ WRONG: Testing with production content
+[Test]
+public void DeliverLetter_ElenaLetter_RequiresPosition1() {
+    var result = letterQueueManager.DeliverLetter("elena_love_letter", spendTokens: false);
+    // This test depends on production content, violates isolation
+}
+```
+
+**Connection Token System Tests**:
+```csharp
+// ✅ CORRECT: Test token mechanics with categories
+[Test]
+public void SpendTokens_PurgeAction_Requires3AnyTokens() {
+    playerRepository.SetTokens(ConnectionType.Trust, 2);
+    playerRepository.SetTokens(ConnectionType.Trade, 1);
+    var result = letterQueueManager.PurgeLetter("test_letter");
+    Assert.That(result.Success, Is.True);
+    Assert.That(playerRepository.GetTotalTokens(), Is.EqualTo(0));
+}
+```
+
+**Standing Obligation System Tests**:
+```csharp
+// ✅ CORRECT: Test obligation mechanics with properties
+[Test]
+public void AddObligation_NoblesCourtesy_ModifiesNobleLetterBehavior() {
+    var obligation = CreateTestObligation(type: ObligationType.NobleCourtesy);
+    standingObligationRepository.AddObligation(obligation);
+    
+    var nobleLetter = CreateTestLetter(tokenType: ConnectionType.Noble);
+    letterQueueManager.AddLetterToQueue(nobleLetter);
+    
+    Assert.That(nobleLetter.QueuePosition, Is.EqualTo(5)); // Noble letters enter at 5
+}
+```
+
+**Character Relationship Tests**:
+```csharp
+// ✅ CORRECT: Test relationship mechanics with NPC properties
+[Test]
+public void SkipLetter_ThreeTimes_NPCStopsSendingLetters() {
+    var npc = CreateTestNPC(tokenType: ConnectionType.Trust);
+    var letters = CreateTestLetters(count: 3, senderId: npc.Id);
+    
+    foreach (var letter in letters) {
+        letterQueueManager.SkipLetter(letter.Id);
+    }
+    
+    var relationshipStatus = characterRelationshipRepository.GetRelationshipStatus(npc.Id);
+    Assert.That(relationshipStatus, Is.EqualTo(RelationshipStatus.Frozen));
+}
+```
+
+### **Letter Queue UI Architecture**
+
+**REQUIRED UI SCREENS:**
+
+**1. Letter Queue Screen** (Primary gameplay screen):
+- **8-Slot Visual Queue**: Positions 1-8 with letter details
+- **Deadline Countdown**: Days remaining with visual urgency indicators
+- **Queue Manipulation Actions**: Purge, Priority, Extend, Skip with token costs
+- **Standing Obligations Panel**: Current active obligations affecting queue
+- **Daily Queue Actions**: Morning swap, letter acceptance/rejection
+- **Token Balance Display**: Current connection tokens by type
+
+**2. Character Relationship Screen** (NPC management):
+- **NPC Overview**: All known NPCs with relationship standings
+- **Location Information**: Where each NPC can be found
+- **Per-NPC Token Display**: Connection tokens player has with each specific NPC
+- **Relationship History**: Letters delivered/skipped per NPC
+- **Interaction Options**: Available only when at NPC's location
+
+**3. Standing Obligations Screen** (Character development):
+- **Active Obligations**: All current permanent modifiers
+- **Obligation Effects**: How each obligation changes queue behavior
+- **Acquisition History**: When and how each obligation was gained
+- **Conflict Warnings**: Obligations that conflict with each other
+- **Breaking Consequences**: What happens if obligations are violated
+
+**Connection Token Architecture**:
+- **Player-Owned**: Tokens belong to player, not NPCs
+- **NPC-Specific**: Each token relates to specific NPC relationship
+- **Type-Based**: Trust/Trade/Noble/Common/Shadow categories
+- **Spendable**: Tokens consumed for queue manipulation
+- **Gravity Effect**: Token count affects where NPC's letters enter queue
+
+**Repository-Based UI Data Access**:
+```csharp
+// ✅ CORRECT: Letter Queue Screen
+public class LetterQueueComponent {
+    private readonly LetterRepository _letterRepository;
+    private readonly ConnectionTokenRepository _tokenRepository;
+    private readonly StandingObligationRepository _obligationRepository;
+    
+    public void LoadQueueData() {
+        var letters = _letterRepository.GetPlayerQueue();
+        var tokens = _tokenRepository.GetPlayerTokens();
+        var obligations = _obligationRepository.GetPlayerObligations();
+        // Render 8-slot queue with obligations panel
+    }
+}
+
+// ✅ CORRECT: Character Relationship Screen
+public class CharacterRelationshipComponent {
+    private readonly CharacterRelationshipRepository _relationshipRepository;
+    private readonly ConnectionTokenRepository _tokenRepository;
+    private readonly LocationRepository _locationRepository;
+    
+    public void LoadRelationshipData() {
+        var npcs = _relationshipRepository.GetAllKnownNPCs();
+        var npcTokens = _tokenRepository.GetTokensByNPC(); // Per-NPC token display
+        var locations = _locationRepository.GetAllLocations();
+        // Render NPC list with individual token counts
+    }
+}
+
+// ✅ CORRECT: Standing Obligations Screen
+public class StandingObligationsComponent {
+    private readonly StandingObligationRepository _obligationRepository;
+    private readonly LetterRepository _letterRepository;
+    
+    public void LoadObligationData() {
+        var obligations = _obligationRepository.GetPlayerObligations();
+        var affectedLetters = _letterRepository.GetLettersAffectedByObligations();
+        // Render obligations with queue effects
+    }
+}
+```
+
+**UI Screen Integration Requirements**:
+- **Letter Queue Screen**: Primary screen with queue + obligations panel
+- **Character Relationship Screen**: Navigate from main menu, shows per-NPC tokens
+- **Standing Obligations Screen**: Can be separate or integrated into queue screen
+- **Cross-Screen Navigation**: Easy switching between queue and relationship management
+- **Real-Time Updates**: All screens update when game state changes
+
+## Architectural Transformation Documentation
+
+**For comprehensive architectural transformation guidance**:
+- **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** - Complete analysis including:
+  - Architecture ramifications (10x state complexity increase)
+  - Repository pattern evolution for complex queries
+  - System dependency transformations
+  - Step-by-step implementation with code examples
+  
+- **`LETTER-QUEUE-UI-SPECIFICATION.md`** - Detailed UI architecture:
+  - Complete screen layouts and components
+  - Repository-based UI data access patterns
+  - Cross-screen navigation requirements
+  
+- **`LETTER-QUEUE-INTEGRATION-PLAN.md`** - System transformation approach:
+  - How each existing system transforms
+  - Integration phases and dependencies
+  - Migration strategies
 
 **MANDATORY TEST DATA ISOLATION:**
 1. **Create TestGameWorldInitializer** that uses test-specific content directories

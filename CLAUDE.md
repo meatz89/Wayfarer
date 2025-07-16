@@ -25,55 +25,108 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 5. ✅ **Keep files focused** - Each file has a specific purpose and audience
 6. ✅ **Reference related files** - Always point to where related information can be found
 
-## PROJECT: WAYFARER
+## PROJECT: WAYFARER - Letters and Ledgers
 
-**Wayfarer** is a medieval life simulation RPG built as a Blazor Server application (.NET 8.0). It features a sophisticated, AI-driven narrative system with turn-based resource management gameplay focused on economic strategy, travel optimization, and contract fulfillment.
+**WAYFARER - Letters and Ledgers** is a medieval letter-carrier RPG built as a Blazor Server application (.NET 8.0). Inspired by Kingkiller Chronicles' impossible social obligations and 80 Days' journey mechanics, players manage a priority queue of letters while navigating deadline pressure, relationship management, and mysterious patron demands. The game features a deterministic queue system with connection token economy creating constant priority dilemmas.
 
 ## CORE GAME DESIGN PRINCIPLES
 
-### Game Abstraction Through Indirect Resource Effects
+### The Letter Queue: Your Life in 8 Slots
 
-The game follows a **game abstraction** principle where real-world concepts become strategic mechanics through indirect resource interactions:
+The game centers around a **priority queue of 8 letters** that represents your social obligations and promises. This queue creates the entire strategic framework:
 
-1. **Abstract concepts into game mechanics** - stamina becomes action cards, fatigue becomes card refresh rates
-2. **No direct system interactions** - systems only affect each other through resource modification (health → card refresh → capability)
-3. **Categorical requirements over modifiers** - need Physical Power 2 card vs +10% strength bonus
-4. **Resources create optimization puzzles** - hand management, allocation decisions, timing trade-offs
-5. **Progression through collection** - better cards/equipment vs arbitrary stat increases
+1. **Queue Order is Sacred** - You must deliver letters in order (1→2→3...) or burn relationships
+2. **Deadlines Create Pressure** - Each letter has a deadline creating impossible optimization puzzles
+3. **Connection Tokens Enable Crisis Management** - Spend social capital to manipulate queue when desperate
+4. **Every Acceptance Matters** - New letters enter at slot 8, affecting everything above them
+5. **Standing Obligations Reshape Play** - Permanent modifiers that alter queue behavior forever
 
-### Other Game Design Principles
-1. **Pure Categorical Logic**: Every constraint emerges from logical category interactions ([Mountain] terrain + missing [Climbing] equipment = route blocked), never arbitrary math.
-2. **Optimization Puzzles**: Each thought process shows real strategic problems - "I need 6 inventory slots but only have 5" or "I need 4 activities but only have 3 time periods."
-3. **Cascading Consequences**: Decisions ripple through multiple systems - choosing [Social_Noble] equipment enables [Manor] access but blocks [Tavern] relationships.
-4. **Discovery Gameplay**: Players must experiment to learn which equipment enables which routes, which NPCs provide which information, which timing creates which opportunities.
-5. **No Automation**: Zero "helpful" features that solve puzzles for players - no "best route calculators" or "profitable opportunity panels."
+### Connection Token Economy
 
-**The Player Experience Target**: 
-- "I can't take this route because I need [Climbing] equipment and it's not available until the [Craftsman] finishes my commission in 2 days"
-- "I want that [Noble] contract but I need [Social_Noble] equipment and [Evening] timing, which conflicts with my [Merchant] network building"
-- "This [Heavy] trade good is profitable but blocks [Caravan] transport, forcing [Walking] which costs stamina I need for work"
+The game uses **5 types of connection tokens** as spendable social capital:
+
+1. **Trust (Green)** - Personal bonds, friendships, romance
+2. **Trade (Blue)** - Merchant relationships, commercial reputation  
+3. **Noble (Purple)** - Aristocratic connections, court standing
+4. **Common (Brown)** - Everyday folk, local knowledge
+5. **Shadow (Black)** - Underworld contacts, forbidden knowledge
+
+Tokens are earned through successful deliveries and spent to manipulate the queue in crisis.
+
+### System Interconnections: How Queue and Tokens Transform Everything
+
+**Travel System ↔ Letter Queue**
+- Route planning now serves queue order enforcement
+- Equipment requirements affect ability to reach recipients in deadline order
+- Transport methods determine how many letters you can carry
+- Time blocks consumed by travel directly impact deadline management
+
+**Inventory System ↔ Letter Physical Constraints**  
+- Letters take inventory slots based on size (documents, packages, samples)
+- Equipment competes with letter capacity for space
+- Transport bonuses increase letter carrying capacity
+- Size categories create delivery priority puzzles
+
+**NPC System ↔ Connection Tokens**
+- Each NPC has a token type (Trust/Trade/Noble/Common/Shadow)
+- NPCs remember every skipped or delayed letter
+- Token accumulation with NPCs unlocks exclusive letter offers
+- NPC availability windows conflict with queue delivery order
+
+**Time System ↔ Deadline Pressure**
+- 5 time blocks per day vs multiple letter deadlines
+- Morning queue review and letter acceptance
+- Travel time creates mathematical impossibilities
+- Rest requirements conflict with delivery urgency
+
+**Location System ↔ Letter Destinations**
+- Access requirements gate certain deliveries
+- Social equipment needed for noble/guild areas
+- Route discovery through token spending
+- Location spots as delivery endpoints
+
+**Equipment System ↔ Queue Management**
+- Climbing gear enables shortcut routes for urgent deliveries
+- Social equipment (Court Attire) required for noble letters
+- Equipment takes slots that could hold letters
+- Equipment condition affects travel options
+
+**Contract System → Letter System** (Complete Transformation)
+- Contracts become Letters with queue positions
+- Multi-step contracts become related letter chains
+- Contract rewards become token payments
+- Contract categories become Standing Obligations
+
+**The Core Loop**: Accept letters → Manage queue vs deadlines → Plan routes → Navigate with equipment → Deliver in order (or spend tokens) → Earn tokens → Face new obligations → Repeat with harder choices
+
+### System Interconnection Details
+
+For detailed analysis of how these systems transform and interconnect, see:
+- **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** - Section: "System Transformations" 
+- **`LOGICAL-SYSTEM-INTERACTIONS.md`** - Complete queue-based interaction rules
+- **`LETTER-QUEUE-INTEGRATION-PLAN.md`** - System-by-system transformation details
 
 ## HIGH-LEVEL ARCHITECTURE
 
-### Core Design Philosophy: Game Abstraction Through Indirect Resource Effects
+### Core Design Philosophy: Queue-Driven Social Obligations
 
-The game follows a **game abstraction** principle where real-world concepts become strategic mechanics through indirect resource interactions:
+The game follows a **letter queue priority** principle where every social obligation becomes a tangible letter in your queue:
 
-1. **Abstract concepts into game mechanics** - stamina becomes action cards, fatigue becomes card refresh rates
-2. **No direct system interactions** - systems only affect each other through resource modification (health → card refresh → capability)
-3. **Categorical requirements over modifiers** - need Physical Power 2 card vs +10% strength bonus
-4. **Resources create optimization puzzles** - allocation decisions, timing trade-offs
-5. **Progression through collection** - better equipment vs arbitrary stat increases
+1. **Queue position determines everything** - Letters must be delivered in order or relationships burn
+2. **Tokens represent social capital** - Spendable resources for queue manipulation in crisis
+3. **Deadlines create mathematical impossibilities** - Queue order vs expiration dates
+4. **Standing obligations reshape gameplay** - Permanent modifiers to queue behavior
+5. **Connection gravity rewards specialization** - Token accumulation affects letter entry position
 
-### Core Design Philosophy: Categorical Interconnection
+### Core Design Philosophy: Token-Based Crisis Management
 
-The game follows a **categorical interconnection** principle where gameplay emerges from logical system interactions rather than arbitrary mathematical modifiers:
+The game follows a **connection token economy** principle where relationships become spendable resources:
 
-1. **All entities have unique types/categories** that interact with other system categories
-2. **Game rules emerge from category interactions** instead of hardcoded bonuses/penalties
-3. **Constraints require multiple systems** - no single system creates arbitrary restrictions
-4. **Categories enable discovery gameplay** - players learn through experimentation
-5. **All categories must be visible in UI** - players cannot strategize about invisible systems
+1. **Five token types map to social spheres** - Trust/Trade/Noble/Common/Shadow
+2. **Tokens enable queue manipulation** - Spend social capital to solve priority crises  
+3. **Token costs create meaningful trade-offs** - Burning relationships for immediate needs
+4. **Connection gravity emerges from accumulation** - 3+ tokens affect queue entry position
+5. **Every token spent weakens relationships** - Crisis management has permanent cost
 
 ### Architectural Patterns
 
@@ -104,12 +157,13 @@ JSON Files → GameWorldSerializer → GameWorldInitializer → GameWorld → Re
 ```
 
 **Key JSON Content Files** (`src/Content/Templates/`):
-- `locations.json` - Game locations with properties
-- `location_spots.json` - Specific spots within locations
-- `routes.json` - Travel routes with terrain categories
-- `items.json` - Items with equipment/item categories
-- `contracts.json` - Available contracts
-- `actions.json` - Player actions at locations
+- `locations.json` - Game locations with court hierarchies and favor access levels
+- `location_spots.json` - Specific spots within locations with social access requirements
+- `routes.json` - Travel routes with terrain categories and information gathering opportunities
+- `items.json` - Correspondence, equipment, and social signaling items
+- `contracts.json` - Patron missions and favor-based assignments
+- `actions.json` - Player actions including favor trading and information gathering
+- `npcs.json` - NPCs with patronage relationships, favor levels, and loyalty conflicts
 
 ### Project Structure
 
@@ -118,31 +172,45 @@ JSON Files → GameWorldSerializer → GameWorldInitializer → GameWorld → Re
 - `src/GameState/GameWorld.cs` - Single source of truth for game state
 - `src/Content/GameWorldInitializer.cs` - JSON content loading and game initialization
 
-#### **Content System**
-- `src/Content/GameWorldSerializer.cs` - JSON parsing and serialization
-- `src/Content/Templates/` - All JSON content files
+#### **Letter Queue System** (Replaces Contract System)
+- `src/GameState/LetterQueue.cs` - 8-slot priority queue with order enforcement
+- `src/GameState/Letter.cs` - Letter entity with deadline, sender, position
+- `src/GameState/LetterQueueManager.cs` - Queue manipulation and delivery logic
+- `src/Content/LetterRepository.cs` - Stateless letter data access
+
+#### **Connection Token System** (Replaces Reputation/Favor)
+- `src/GameState/ConnectionToken.cs` - Token entity with type (Trust/Trade/Noble/Common/Shadow)
+- `src/GameState/ConnectionTokenManager.cs` - Token earning, spending, gravity calculation
+- `src/GameState/StandingObligation.cs` - Permanent queue behavior modifiers
+- `src/Content/TokenRepository.cs` - Stateless token data access
 
 #### **Repository Pattern**
 - `src/Content/LocationRepository.cs` - Stateless location data access
 - `src/Content/ActionRepository.cs` - Stateless action data access  
 - `src/Content/ItemRepository.cs` - Stateless item data access
-- `src/Game/MainSystem/ContractRepository.cs` - Stateless contract data access
+- `src/Content/NPCRepository.cs` - Stateless NPC data access
 
 #### **Business Logic**
-- `src/GameState/TravelManager.cs` - Travel and routing logic
-- `src/GameState/MarketManager.cs` - Trading and pricing logic
-- `src/GameState/TradeManager.cs` - Transaction processing
+- `src/GameState/TravelManager.cs` - Travel logic serving queue delivery order
+- `src/GameState/MarketManager.cs` - Trading items for letter delivery
+- `src/GameState/QueueManipulationService.cs` - Token spending for queue actions
 - `src/GameState/RestManager.cs` - Rest and recovery logic
-- `src/Game/MainSystem/ContractSystem.cs` - Contract management and completion logic
+- `src/GameState/DeadlineManager.cs` - Deadline tracking and expiration
+- `src/GameState/ConnectionGravityService.cs` - Token accumulation effects
 
 #### **Service Configuration**
 - `src/ServiceConfiguration.cs` - Dependency injection setup
 
 #### **UI Components**
 - `src/Pages/MainGameplayView.razor` - Main game screen coordinator
-- `src/Pages/Market.razor` - Trading interface
-- `src/Pages/TravelSelection.razor` - Travel planning interface
-- `src/Pages/ContractUI.razor` - Contract display and completion interface
+- `src/Pages/LetterQueue.razor` - 8-slot queue display with priority order
+- `src/Pages/TokenDisplay.razor` - Connection token inventory and spending interface
+- `src/Pages/Market.razor` - Trading interface for items needed in letters
+- `src/Pages/TravelSelection.razor` - Route planning for queue delivery order
+- `src/Pages/LetterBoard.razor` - Morning letter selection and acceptance
+- `src/Pages/DeliveryInterface.razor` - Letter delivery and token earning
+- `src/Pages/QueueManipulation.razor` - Token spending for queue actions
+- `src/Pages/StandingObligations.razor` - Active permanent modifiers display
 - `src/Pages/RestUI.razor` - Rest and recovery interface
 
 ### Testing Architecture
@@ -164,31 +232,44 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 
 ### Key Design Principles
 
-1. **Emergent Mechanics**: Never hardcode restrictions. All constraints emerge from mathematical interactions between simple systems (time, stamina, coins).
-2. **Player Agency**: Players always retain choice but face natural consequences.
-3. **Discovery Through Play**: Systems are discoverable through experimentation, not tutorials.
-4. **Gameplay in Player's Head**: Fun comes from optimization puzzles, not automated conveniences.
-5. **No Hidden Mechanics**: All categories and relationships must be visible in UI.
+1. **Queue Order Creates Drama**: The requirement to deliver in order (or burn tokens) creates constant moral dilemmas.
+2. **Tokens Are Relationships**: Every token spent represents actual social capital being burned for immediate needs.
+3. **Deadlines Force Impossible Choices**: Mathematical impossibility of satisfying all deadlines creates strategic depth.
+4. **Gravity Rewards Specialization**: Token accumulation affects queue entry, encouraging relationship focus.
+5. **Standing Obligations Reshape Play**: Permanent modifiers create unique playthroughs based on choices.
+6. **All Mechanics Visible**: Queue position, deadlines, token costs, and gravity effects must be clear in UI.
 
 ### Categorical Interconnection Requirements
 
-**All entities must have unique types/categories** that interact with other system categories:
-- Items: `EquipmentCategory` (Climbing_Equipment, Weather_Protection, Navigation_Tools, etc.)
-- Routes: `TerrainCategory` (Requires_Climbing, Exposed_Weather, Wilderness_Terrain, etc.)
+**All entities must have unique types/categories** that interact with the queue and token systems:
+- NPCs: `TokenType` (Trust/Trade/Noble/Common/Shadow), `LetterSender` (true/false), `DeliveryRecipient` (true/false)
+- Letters: `Size` (Small/Medium/Large), `TokenType` (matches sender), `Deadline` (days), `QueuePosition` (1-8)
+- Locations: `AccessLevel` (Public/Private/Restricted), `TokenRequirement` (which tokens needed for access)
+- Equipment: `EnablesAccess` (Noble/Guild/Shadow areas), `EnablesRoutes` (mountain/forest paths)
 
-**Game rules emerge from category interactions** instead of hardcoded bonuses/penalties:
-- Weather + Terrain → Access requirements
-- Equipment + Terrain → Capability enablement  
-- NPC Profession + Location Type → Service availability
+**Game rules emerge from queue position and token interactions**:
+- Queue Position + Deadline → Delivery pressure and crisis decisions
+- Token Accumulation + Letter Type → Connection gravity queue entry boost
+- Token Spending + Queue Position → Crisis management options
+- Standing Obligations + Letter Type → Permanent queue behavior changes
 
 **Core Design Rules:**
-- **NEVER** use arbitrary mathematical modifiers (efficiency multipliers, percentage bonuses, etc.)
-- **ALWAYS** implement logical blocking/enabling instead of sliding scale penalties
-- **ENSURE** all entity categories are visible and understandable in the UI
+- **NEVER** allow free queue reordering - always require token cost or relationship burn
+- **ALWAYS** make deadlines create real pressure through queue position conflicts  
+- **ENSURE** token costs are meaningful - spending tokens burns actual relationships
+- **VISIBLE** queue state - players must see position, deadlines, and token costs clearly
 
 *See GAME-ARCHITECTURE.md for detailed categorical system implementations.*
 
 ### CODE WRITING PRINCIPLES
+
+**TRANSFORMATION APPROACH**:
+- **RENAME AND RECONTEXTUALIZE** - Don't wrap new functionality in old classes, rename them to reflect new purpose
+- **DELETE LEGACY CODE ENTIRELY** - Remove old contract system, reputation system, favor system completely
+- **NO COMPATIBILITY LAYERS** - Clean break from old mechanics to new queue/token system
+- **FRESH TEST SUITE** - Delete old tests and write new ones for queue/token mechanics
+
+**GENERAL PRINCIPLES**:
 - Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
 - After each change, run the tests to check for broken functionality. Never commit while tests are failing
 - **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
@@ -298,8 +379,42 @@ Always distinguish between three layers:
 - Ensure game initialization leverages JSON files, parsers, GameWorldInitialization, Repositories, and GameWorld classes
 - Create comprehensive tests to validate that all content from JSON files is correctly saved into GameWorld
 
+## LETTER QUEUE TRANSFORMATION STATUS
+
+**Current State**: Existing contract-based trading RPG with economic mechanics
+**Target State**: Letter queue management game with 8-slot priority system and connection token economy
+**Transformation Plan**: See `LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md` for comprehensive 12-week plan
+
+**Key Transformation Principles**:
+1. **Maintain Playability**: Never break the game during transformation phases
+2. **Parallel Systems**: Run letter queue alongside existing systems during migration
+3. **Content Evolution**: Transform NPCs from vendors to relationship partners with letter generation
+4. **UI Revolution**: Replace location-based screens with queue-centric interface
+5. **Save Migration**: Implement versioned saves with safe rollback options
+
+**🎯 IMMEDIATE NEXT STEPS**: Start with **`MINIMAL-POC-IMPLEMENTATION-PLAN.md`** (3-week minimal viable POC)
+**Then**: Follow **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** for complete 12-week transformation
+**Critical Path**: Minimal POC → Validate Core Fun → Full Implementation → Legacy Removal
+
 ### Important Documentation
 
-- `INTENDED-GAMEPLAY.md` - Game design philosophy and categorical systems
-- `LOGICAL-SYSTEM-INTERACTIONS.md` - System interaction guidelines
-- `/docs/` - Extensive game design documentation (40+ documents)
+**CRITICAL TRANSFORMATION DOCUMENTS** (Read these for complete understanding):
+- 🎯 **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** - Comprehensive analysis of the letter queue transformation with step-by-step implementation plan
+- 📬 **`LETTER-QUEUE-UI-SPECIFICATION.md`** - Complete UI architecture for the 3-screen letter queue system
+- 🔄 **`LETTER-QUEUE-INTEGRATION-PLAN.md`** - How existing systems transform to serve the queue
+- 📋 **`POC-IMPLEMENTATION-ROADMAP.md`** - Phase-by-phase development plan for letter queue POC
+
+**CORE DESIGN DOCUMENTS**:
+- `INTENDED-GAMEPLAY.md` - The letter queue player experience and Kvothe moments
+- `LOGICAL-SYSTEM-INTERACTIONS.md` - Queue mechanics and token economy rules
+- `POC-TARGET-DESIGN.md` - Minimal POC with 8-slot queue and connection tokens
+- `IMPLEMENTATION-PLAN.md` - Complete system architecture and roadmap
+
+**TECHNICAL DOCUMENTS**:
+- `GAME-ARCHITECTURE.md` - Repository patterns, per-NPC token tracking, and testing requirements
+- `UI-DESIGN-IMPLEMENTATION-PRINCIPLES.md` - Queue-centric UI principles and anti-patterns
+- `SESSION-HANDOFF.md` - Current transformation status and next steps
+
+**SUPPORTING MATERIALS**:
+- `/docs/` - Original game design documentation (40+ documents)
+- Existing source code in `/src/` - To be transformed per the implementation plan
