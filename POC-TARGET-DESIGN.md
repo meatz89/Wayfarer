@@ -1,17 +1,19 @@
-# Wayfarer Minimal POC Target Design
+# WAYFARER - Letters and Ledgers Minimal POC Target Design
 
 **⚠️ IMPORTANT: This is the TARGET DESIGN specification, not current implementation status.**
 
+**🔄 TRANSFORMATION PLAN**: See **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** for the complete analysis of how to transform from current implementation to this target design.
+
 ## CORE DESIGN TARGET
 
-Create **impossible scheduling conflicts** and **equipment trade-offs** that force strategic prioritization even with minimal content. Players should face genuine optimization puzzles where perfect solutions don't exist.
+Create **impossible queue management dilemmas** where the iron law of delivery order conflicts with deadline pressure. Players must constantly choose between following queue order (preserving relationships) or spending precious connection tokens to manipulate their obligations. The 8-slot queue creates genuine strategic puzzles where mathematical perfection is impossible.
 
 ## ENTITY LIMITS (5-8 Each)
 
 ### LOCATIONS (3)
-1. **Millbrook** (Starting Hub) - [Market], [Tavern], [Workshop]
-2. **Thornwood** (Resource Hub) - [Logging_Camp], [Tavern]
-3. **Crossbridge** (Trade Hub) - [Market], [Workshop], [Dock]
+1. **Millbrook** (Starting Hub) - [Market], [Tavern], [Manor_Court] - **Token Access**: None/Trust/Noble
+2. **Thornwood** (Resource Hub) - [Logging_Camp], [Tavern] - **Token Access**: None/Common
+3. **Crossbridge** (Trade Hub) - [Market], [Trading_House], [Dock] - **Token Access**: None/Trade/Noble
 
 ### ROUTES (8)
 1. **Main Road** (Millbrook ↔ Crossbridge) - [Cart] compatible, 2 periods
@@ -23,21 +25,24 @@ Create **impossible scheduling conflicts** and **equipment trade-offs** that for
 7. **Rapids Route** (Thornwood ↔ Crossbridge) - Requires [Climbing] + [Navigation], 1 period
 8. **Direct Path** (Thornwood ↔ Millbrook) - Requires [Climbing], 1 period
 
-### EQUIPMENT CATEGORIES (3)
-1. **[Climbing]** - Enables mountain routes, takes 1 slot, costs 5 coins + 1 period at workshop
-2. **[Navigation]** - Prevents getting lost in forest/river routes, takes 1 slot, costs 5 coins + 1 period at workshop
-3. **[Trade_Tools]** - Enables workshop access and craft contracts, takes 1 slot, costs 5 coins + 1 period at workshop
+### EQUIPMENT CATEGORIES (5) - ROUTE & ACCESS ENABLERS
+1. **[Climbing]** - Enables mountain routes for urgent deliveries, takes 1 slot, costs 5 coins
+2. **[Navigation]** - Enables forest/river shortcuts, takes 1 slot, costs 5 coins
+3. **[Letter_Satchel]** - Base equipment, holds 8 letters in queue, provided at start
+4. **[Court_Attire]** - Required for Noble letter deliveries, takes 1 slot, costs 8 coins
+5. **[Guild_Credentials]** - Required for Trade guild deliveries, takes 1 slot, costs 6 coins
 
-### ITEM SIZE SYSTEM (Separate from Equipment)
-- **Standard Items**: 1 slot each (herbs, grain, basic goods)
-- **Large Items**: 2 slots each (tools, crafted goods, bulk materials)
-- **Base Inventory**: 4 slots
-- **Cart Transport**: +3 slots (7 total) but blocks mountain/forest routes
+### LETTER QUEUE SYSTEM (Core Mechanic)
+- **8 Slots Total**: Letters occupy positions 1-8 in priority order
+- **Queue Order Rule**: Must deliver from position 1 or spend tokens
+- **New Letters**: Enter at slot 8 (or higher with connection gravity)
+- **Delivery**: Completing delivery removes letter, all below move up
+- **Deadlines**: Each letter has 3-10 day deadline, tick down daily
 
 ### STAMINA SYSTEM
 - **Base Stamina**: 10 points
 - **Travel Cost**: 1 stamina per period traveled
-- **Work Cost**: 2 stamina per period worked (contracts, equipment commissioning)
+- **Work Cost**: 2 stamina per period worked (letter delivery contracts, equipment commissioning)
 - **Recovery**: 3 stamina per rest period, 6 stamina per night's sleep
 
 ### ROUTE DISCOVERY SYSTEM
@@ -46,187 +51,209 @@ Create **impossible scheduling conflicts** and **equipment trade-offs** that for
 - **Blocked routes**: Attempting routes without required equipment shows "Cannot travel - requires [Climbing]"
 - **Discovery through failure**: Players learn equipment needs by attempting blocked routes
 
-### CONTRACT SYSTEM
-**Each NPC offers renewable contracts:**
-- **Delivery Contracts**: Transport goods between locations (3-5 coins, 1-2 day deadlines)
-- **Labor Contracts**: Work for NPCs at their location (4-6 coins, 1 day completion)
-- **Transport Contracts**: Help move goods using specific routes (6-8 coins, equipment requirements)
+### CONNECTION TOKEN SYSTEM
+**Five Token Types (Earned through deliveries):**
+- **Trust (Green)**: Personal letters, friendships, romance
+- **Trade (Blue)**: Merchant deliveries, commercial dealings
+- **Noble (Purple)**: Court correspondence, aristocratic favors
+- **Common (Brown)**: Everyday folk, local deliveries
+- **Shadow (Black)**: Illicit letters, underground networks
 
-### NPCS (Location-Specific, 9 total)
+**Token Uses:**
+- **Purge (3 tokens)**: Remove bottom letter from queue
+- **Priority (5 matching tokens)**: Move letter to position 1
+- **Extend (2 matching tokens)**: Add 2 days to deadline
+- **Skip (1 matching token)**: Deliver out of order without penalty
+
+### NPCS AS LETTER SENDERS (9 total)
 **Millbrook**:
-- **[Workshop_Master]** - Commissions equipment, offers workshop contracts
-- **[Market_Trader]** - Buys/sells trade goods, offers delivery contracts
-- **[Tavern_Keeper]** - Offers room rentals, simple labor contracts
+- **[Elena_Messenger]** - Trust tokens, sends personal letters, remembers skipped romance notes
+- **[Market_Trader]** - Trade tokens, sends merchant deliveries, offers bulk trade letters
+- **[Manor_Steward]** - Noble tokens, sends court correspondence, requires Court Attire
 
 **Thornwood**:
-- **[Logger]** - Offers logging contracts, sells lumber/grain
-- **[Herb_Gatherer]** - Sells herbs, offers gathering contracts
-- **[Camp_Boss]** - Offers heavy labor contracts, equipment repair
+- **[Logger]** - Common tokens, sends local deliveries, simple honest folk
+- **[Herb_Gatherer]** - Trust tokens, sends medicinal deliveries, builds friendships
+- **[Camp_Boss]** - Trade tokens, sends resource shipments, time-sensitive orders
 
 **Crossbridge**:
-- **[Dock_Master]** - Sells fish, offers dock work contracts
-- **[Trade_Captain]** - Offers transport contracts, bulk trade deals
-- **[River_Worker]** - Simple labor contracts, boat maintenance work
+- **[Dock_Master]** - Trade tokens, sends shipping manifests, strict deadlines
+- **[Shadow_Contact]** - Shadow tokens, sends illicit packages, high risk/reward
+- **[Port_Official]** - Noble tokens, sends customs documents, formal procedures
 
-### CONTRACTS (4 types)
-1. **[Rush]** - 1 day deadline, 15 coins, requires specific equipment
-2. **[Standard]** - 3 days deadline, 8 coins, moderate requirements
-3. **[Craft]** - 2 days deadline, 12 coins, requires [Trade_Tools] + workshop access
-4. **[Exploration]** - 5 days deadline, 6 coins + discovery bonus, requires terrain equipment
+### YOUR MYSTERIOUS PATRON
+**Special Letters that disrupt everything:**
+- **Patron Letters**: Jump to slots 1-3 when they arrive, pushing everything down
+- **High Payment**: 20-30 coins vs normal 3-8 coin letters
+- **Unknown Purpose**: Deliver to seemingly random people for unclear reasons
+- **Monthly Resources**: Your patron sends coins and equipment if you serve well
+- **The Mystery**: You never learn who they are or what they want
 
-### TRADE GOODS (6)
-1. **[Grain]** - Standard (1 slot), buy Thornwood (2 coins), sell Crossbridge (4 coins) = 2 profit/slot
-2. **[Herbs]** - Standard (1 slot), buy Thornwood (3 coins), sell Millbrook (6 coins) = 3 profit/slot
-3. **[Lumber]** - Large (2 slots), buy Thornwood (4 coins), sell Crossbridge (8 coins) = 2 profit/slot
-4. **[Fish]** - Standard (1 slot), buy Crossbridge (3 coins), sell Millbrook (6 coins) = 3 profit/slot
-5. **[Pottery]** - Large (2 slots), buy Millbrook (5 coins), sell Thornwood (9 coins) = 2 profit/slot
-6. **[Cloth]** - Standard (1 slot), buy Millbrook (4 coins), sell Crossbridge (6 coins) = 2 profit/slot
+### STANDING OBLIGATIONS (Permanent modifiers from special letters)
+1. **[Noble's Courtesy]** - Noble letters enter at slot 5 instead of 8, but you CANNOT refuse noble letters
+2. **[Merchant's Priority]** - Trade letters pay +10 coins bonus, but Trade letters cannot be purged
+3. **[Shadow's Burden]** - Shadow letters pay triple rate, but you receive forced Shadow letter every 3 days
+4. **[Patron's Expectation]** - Monthly resource package, but patron letters jump to slots 1-3
+5. **[Elena's Promise]** - Trust letters can extend deadlines by 1 day free, but skipping Trust letters costs double tokens
+6. **[Common Folk's Friend]** - Common letters enter at slot 6, but refusing Common letters loses 2 tokens
 
-## STRATEGIC TENSION DESIGN
+## STRATEGIC TENSION DESIGN: THE QUEUE CREATES IMPOSSIBLE CHOICES
 
-### Core Mathematical Impossibilities
-**Equipment Slots (3) vs Optimal Loadout (5+)**
-- All 3 equipment types needed for maximum route flexibility = 3 slots
-- High-value trade opportunity (2 Large items) = 4 slots  
-- **Mathematical Impossibility**: 3 + 4 = 7 slots needed, only 4 available
-- Cart adds +3 slots but blocks mountain/forest routes (eliminates 4 of 8 routes)
+### Core Impossibility: Queue Order vs Deadlines
+**Mathematical Conflicts That Force Token Spending**
+- Letter at position 1: Noble court summons (low pay, 8 days left)
+- Letter at position 4: Elena's love letter (Trust building, expires tomorrow!)
+- Letter at position 5: Shadow delivery (triple pay, 2 days left)
+- **The Dilemma**: Follow order and lose Elena + Shadow opportunity, or burn tokens?
+- **Token Scarcity**: You only have 3 Trust tokens - spend them to save romance or keep for crisis?
 
-### Route Network Constraints
-**8 Routes but Equipment Dependencies Create Strategic Choices**
-- Without [Climbing]: Only 4 of 8 routes available (Main Road, Logging Road, Trade Highway, Forest Trail)
-- Without [Navigation]: Only 4 of 8 routes available (Main Road, Logging Road, Trade Highway, Mountain Pass)  
-- With Cart: 3 cart-compatible routes but cannot access fast mountain/forest shortcuts
-- **Strategic Dilemma**: Equipment specialization vs route flexibility vs cargo capacity
+### Connection Gravity Effects
+**Token Accumulation Creates Queue Entry Benefits**
+- 0-2 tokens: Letters enter at slot 8 (bottom priority)
+- 3-4 tokens: Letters enter at slot 7 (slight priority boost)
+- 5+ tokens: Letters enter at slot 6 (significant priority boost)
+- **Strategic Choice**: Spread tokens for flexibility or specialize for gravity benefits?
+- **The Trade-off**: Tokens spent on crisis management reduce gravity effects
 
-### Stamina Management Pressure
-**10 Stamina vs 12+ Daily Demands**
-- Travel costs: 1 stamina per period (2-4 stamina for typical routes)
-- Work costs: 2 stamina per period (4-6 stamina for daily activities)
-- Equipment commissioning: 2 stamina (1 period work)
-- Information gathering: 2 stamina (1 period work)
-- **Result**: Cannot do everything without stamina management and rest periods
+### Standing Obligations Reshape Everything
+**Permanent Modifiers Create Unique Playthroughs**
+- Accept "Noble's Courtesy": Noble letters flood slots 5-6, harder to help commoners
+- Accept "Shadow's Burden": Forced shadow letters every 3 days eat queue space
+- Accept "Patron's Expectation": Patron controls slots 1-3, personal life suffers
+- **Strategic Pressure**: Each obligation provides benefits but permanently constrains freedom
+- **Result**: By day 14, your queue behavior is completely unique based on obligations accepted
 
-### Information vs Income Tension
-- **Tavern visits** provide route/price information but cost time + money
-- **Workshop visits** provide crafting opportunities but require [Trade_Tools]
-- **Market visits** provide immediate trade profits but consume carrying capacity
-- **Cannot optimize everything simultaneously**
+## POC CHALLENGE DESIGN: THE LETTER QUEUE CRISIS
 
-## POC CHALLENGE DESIGN
-
-### Day 1 Breadcrumb: Simple Delivery Contract
+### Day 1: Your Life in 8 Slots
 **Starting Conditions**: 
 - Location: Millbrook
-- Equipment: [Trade_Tools] only
-- Inventory: 4 slots
+- Equipment: [Letter_Satchel] only
 - Money: 12 coins
-- Stamina: 10/10
+- Tokens: 2 Trust, 1 Trade, 1 Common
+- Queue: 3 letters already waiting
 
-**Initial Contract Available**: Deliver 1 [Grain] to Crossbridge by end of day (payment: 3 coins)
-- Teaches: basic travel, route options, stamina costs
-- [Grain] available from Market_Trader for 2 coins
-- Route options: Main Road (2 periods, cart-compatible) vs Mountain Pass (1 period, requires [Climbing])
+**Initial Queue State**:
+1. **Patron Letter** (Unknown sender → Crossbridge merchant, 5 days, pays 20 coins)
+2. **Trade Letter** (Market_Trader → Thornwood, 3 days, pays 5 coins) 
+3. **Trust Letter** (Elena → Her friend in Millbrook, 4 days, pays 3 coins + Trust token)
 
-**Natural Discovery Path**: Player realizes Mountain Pass is faster but blocked, leading to workshop discovery and equipment commissioning
+**Morning Choices**: Letter board shows 3 new letters - which do you accept into slots 4-8?
 
-### Open Sandbox Challenge: "Make 50 Coins in 14 Days"
-**Victory Condition**: Accumulate 50 coins within 14 days
+**Natural Discovery**: Player learns queue order rule when trying to deliver Elena's easy local letter first
+
+### Open Sandbox Challenge: "Master the Queue - Survive 14 Days"
+**Victory Condition**: Maintain positive token balance with at least 3 NPCs and deliver your patron's final letter
 
 **Strategic Dimensions**:
-1. **Route Mastery**: Learn which routes require which equipment, discover time-saving paths
-2. **Trade Optimization**: Identify profitable trade circuits, balance cargo size vs profit margins  
-3. **Equipment Investment**: Commission gear that unlocks route access vs immediate trade goods
-4. **Contract Strategy**: Balance guaranteed contract income vs speculative trading profits
-5. **Stamina Management**: Balance work intensity with rest needs and travel demands
+1. **Queue Management**: Balance order requirements vs deadline pressure
+2. **Token Economy**: Build reserves vs spend for crisis management
+3. **Route Optimization**: Equipment investment for shortcuts vs letter capacity
+4. **Gravity Building**: Specialize in token types vs maintain flexibility
+5. **Obligation Choices**: Accept permanent modifiers for short-term gains?
 
-**Discovery Through Experimentation**:
-- Which routes require which equipment (discovered through route blocking messages)
-- Which trade goods are profitable where (learned through market price observation)
-- Which equipment enables which strategic options (discovered through route access changes)
-- How to balance time between equipment investment vs income generation (learned through resource pressure)
+**Discovery Through Queue Pressure**:
+- When to follow order vs when to burn tokens (learned through deadline failures)
+- Which token types to stockpile (discovered through crisis patterns)
+- How gravity affects queue management (seen as letters enter higher)
+- Which obligations help vs hinder (experienced through permanent constraints)
+- The true cost of skipping letters (NPCs remember and relationships cool)
 
-### Failure States That Teach
-**Equipment Poverty Spiral**: Player focuses only on trading, never invests in route equipment, gets stuck using slow routes, cannot compete with time-sensitive opportunities
+### Failure States That Teach Queue Management
+**Queue Paralysis**: Player refuses to spend tokens, follows strict order, watches urgent high-value letters expire
 
-**Information Starvation**: Player avoids NPC interactions to save time/money, misses route discoveries and price intelligence, makes suboptimal decisions
+**Token Bankruptcy**: Player burns all tokens early for minor crises, has nothing left when patron letter arrives at bad position
 
-**Overspecialization Trap**: Player invests heavily in one equipment type, gets locked out of alternative strategies when conditions change
+**Obligation Trap**: Player accepts too many standing obligations, queue becomes unmanageable with forced letters
 
-**Cart Dependency**: Player relies on cart transport for cargo capacity, becomes unable to access profitable mountain/forest routes when cart-compatible routes become congested or expensive
+**Relationship Death Spiral**: Player repeatedly skips same NPC's letters, they stop offering letters entirely
+
+**The Elena Heartbreak**: Player prioritizes money over Trust letters, Elena stops writing, romance path closes permanently
 
 ## SUCCESS METRICS FOR POC
 
-### Strategic Depth Indicators
-1. **Multiple Valid Strategies**: Players find 3+ different approaches to same challenge
-2. **Trade-off Recognition**: Players understand they can't optimize everything
-3. **Planning Horizon**: Players consider consequences 2-3 decisions ahead
-4. **Failure Recovery**: Poor choices create problems, but recovery strategies exist
+### Queue Management Mastery
+1. **Daily Queue Crises**: Every day presents 2+ impossible delivery order dilemmas
+2. **Token Spending Decisions**: Players agonize over each token expenditure
+3. **Deadline Juggling**: Players do queue math to optimize delivery routes
+4. **Gravity Strategy**: Players intentionally build token types for queue benefits
 
-### Optimization Puzzle Validation
-1. **No Dominant Strategy**: Different equipment loadouts viable for different goals
-2. **Scheduling Tension**: Players regularly face impossible time requirements
-3. **Resource Allocation**: Inventory decisions affect strategic options
-4. **Information Value**: Route/price knowledge creates genuine advantages
+### Emotional Investment Indicators
+1. **Elena Moments**: Players genuinely care about maintaining Trust relationships
+2. **Patron Mystery**: Players speculate about patron's identity and motives
+3. **Token Hoarding**: Players create "emergency token reserves" for crisis
+4. **Obligation Regret**: Players realize too late how obligations constrain them
 
-### Player Experience Goals
-1. **"Clever" Moments**: Players discover equipment combos that solve multiple problems
-2. **"Impossible" Choices**: Face decisions where all options have significant costs
-3. **Learning Curve**: Understanding system interactions improves performance
-4. **Emergent Strategy**: Players develop personal approaches through experimentation
+### Strategic Depth Validation
+1. **No Perfect Run**: Mathematical impossibility of delivering all letters on time
+2. **Multiple Approaches**: Token specialist vs generalist both viable
+3. **Recovery Options**: Failed relationships can be rebuilt with effort
+4. **Meaningful Progression**: Each day's choices affect future queue state
 
 ## VALIDATION SCENARIOS
 
-### Test 1: Equipment Specialization
-- Can player succeed focusing only on [Climbing] routes?
-- Does [Navigation] specialization create viable alternative strategy?
-- Are [Trade_Tools] valuable enough to justify inventory space?
+### Test 1: Queue Order Enforcement
+- Does requiring delivery in order create genuine strategic tension?
+- Do players feel the weight of skipping letters to deliver others?
+- Is the queue position visible and understandable?
 
-### Test 2: Contract Prioritization  
-- Do [Rush] contracts create enough pressure to justify risk?
-- Can player succeed avoiding time pressure entirely?
-- Does contract mixing create optimal income vs risk balance?
+### Test 2: Token Economy Balance
+- Are token costs meaningful (3 for purge, 5 for priority, etc.)?
+- Do players build token reserves vs spend immediately?
+- Does token scarcity create difficult decisions?
 
-### Test 3: Information Investment
-- Is tavern information gathering worth the time/money cost?
-- Do players develop reliable information sources?
-- Does route knowledge compound to create strategic advantages?
+### Test 3: Deadline Pressure
+- Do 3-10 day deadlines create mathematical impossibilities?
+- Can players plan routes considering queue order + deadlines?
+- Do expired letters feel like meaningful losses?
 
-### Test 4: Transport Optimization
-- Do players find cart vs walking optimal balance points?
-- Does scheduled transport create meaningful planning constraints?
-- Are dangerous routes worth the equipment investment?
+### Test 4: Standing Obligations
+- Do obligations reshape gameplay in interesting ways?
+- Are the benefits worth the permanent constraints?
+- Do different obligation combinations create unique experiences?
 
 ## IMPLEMENTATION REQUIREMENTS
 
 ### JSON Content Structure
 All entities must be defined in JSON files with proper categorical relationships:
-- **locations.json**: 3 locations with defined spots and NPC assignments
-- **routes.json**: 8 routes with equipment requirements and terrain categories
-- **items.json**: 6 trade goods with size categories and equipment definitions
-- **contracts.json**: Contract templates for 4 types with categorical requirements
-- **npcs.json**: 9 NPCs with location assignments and contract offerings
+- **locations.json**: 3 locations with token access requirements
+- **routes.json**: 8 routes with equipment requirements
+- **letters.json**: Letter templates with token types, deadlines, payments
+- **npcs.json**: 9 NPCs with token types and letter sending behavior
+- **obligations.json**: Standing obligation definitions with benefits/constraints
 
-### Categorical System Implementation
-- **EquipmentCategory**: Climbing, Navigation, Trade_Tools
-- **TerrainCategory**: Requires_Climbing, Requires_Navigation, Cart_Compatible
-- **ItemSize**: Standard (1 slot), Large (2 slots)
-- **ContractType**: Rush, Standard, Craft, Exploration
-- **TransportMethod**: Walking, Cart
+### Queue System Implementation
+- **LetterQueue**: 8-slot array with position enforcement
+- **Letter**: TokenType, Deadline, Payment, Sender, Recipient, Size
+- **ConnectionToken**: Type (Trust/Trade/Noble/Common/Shadow), Count
+- **StandingObligation**: Benefit effect, Constraint effect, Permanent flag
 
-### Mathematical Constraint Validation
-- Inventory system must enforce slot limits and transport bonuses
-- Route system must block access based on equipment requirements
-- Stamina system must create impossible daily scheduling scenarios
-- Contract system must create time pressure that conflicts with equipment investment
+### Core Mechanics Validation
+- Queue must enforce delivery order (position 1 first)
+- Tokens must be spendable resources with meaningful costs
+- Deadlines must create real pressure through expiration
+- Gravity must affect letter entry position based on token count
+- Obligations must permanently modify queue behavior
 
 ## DESIGN VALIDATION CHECKLIST
 
-- [ ] **Mathematical Impossibilities Confirmed**: 7 slots needed vs 4 available creates genuine constraints
-- [ ] **Route Network Creates Strategic Choices**: Equipment specialization vs flexibility tradeoffs exist
-- [ ] **Stamina Creates Scheduling Pressure**: 10 stamina vs 12+ daily demands forces rest periods
-- [ ] **Contract System Creates Time Pressure**: Rush contracts conflict with equipment investment time
-- [ ] **Discovery System Works**: Route blocking teaches equipment requirements naturally
-- [ ] **Trade Circuits Viable**: Multiple profitable trade routes exist with different risk/reward profiles
-- [ ] **No Dominant Strategy**: Different equipment loadouts enable different viable strategies
+- [ ] **Queue Order Creates Drama**: Position 1-8 enforcement creates constant dilemmas
+- [ ] **Token Costs Feel Meaningful**: Spending tokens represents burning real relationships
+- [ ] **Deadlines Force Impossible Choices**: Mathematical conflicts between order and expiration
+- [ ] **Gravity Rewards Specialization**: 3+ tokens providing queue benefits encourages focus
+- [ ] **Obligations Reshape Gameplay**: Permanent modifiers create unique strategic landscapes
+- [ ] **Elena Creates Emotional Stakes**: Players care about Trust letters beyond mere mechanics
+- [ ] **Patron Mystery Intrigues**: Unknown benefactor creates narrative speculation
+- [ ] **No Perfect Solution Exists**: Queue management remains challenging throughout
 
-The POC should demonstrate that even with minimal content, the categorical prerequisite system creates genuine optimization challenges where success requires strategic thinking, planning, and trade-off recognition rather than following predetermined optimal paths.
+The POC should demonstrate that the letter queue system creates genuine emotional investment where players agonize over every token spent, every letter skipped, and every relationship balanced. Success requires not just strategic planning but acceptance that some letters - and some relationships - must be sacrificed.
+
+## Related Implementation Documents
+
+**For implementing this POC design**:
+1. **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** - Comprehensive transformation plan from current state
+2. **`POC-IMPLEMENTATION-ROADMAP.md`** - Step-by-step development phases with timelines
+3. **`LETTER-QUEUE-UI-SPECIFICATION.md`** - Detailed UI requirements for the POC screens
+4. **`LETTER-QUEUE-INTEGRATION-PLAN.md`** - How to transform existing systems for the POC
+
+**Development Priority**: Follow Phase 1 of the transformation plan to establish core queue mechanics first

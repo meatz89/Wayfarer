@@ -1,273 +1,277 @@
-# UI Design and Implementation Principles
+# Letter Queue UI Design and Implementation Principles
 
-**CRITICAL**: This document captures the essential design and implementation principles for Wayfarer's UI system, discovered and refined through implementation.
+**CRITICAL**: This document captures the essential design and implementation principles for Wayfarer's letter queue UI system.
 
 ## Core UI Design Principles
 
-### 1. Progressive Disclosure Pattern
-**Principle**: Show essential information first, details on demand.
+### 1. Queue-Centric Information Architecture
+**Principle**: The 8-slot letter queue is the primary UI element - all other information supports queue decision-making.
 
 **Implementation**:
 ```razor
-<!-- Essential info always visible -->
-<div class="resource-main">@currentStamina stamina</div>
-<!-- Details shown contextually -->
-<span class="resource-detail">Available for travel</span>
+<!-- Queue always visible and central -->
+<div class="letter-queue-container">
+    @for (int i = 1; i <= 8; i++)
+    {
+        <div class="queue-slot" data-position="@i">
+            @if (queue.GetLetter(i) != null)
+            {
+                <LetterCard Letter="queue.GetLetter(i)" Position="i" />
+            }
+        </div>
+    }
+</div>
 ```
 
-**Why**: Players need quick access to key data without UI clutter. Details should support decisions, not overwhelm.
+**Why**: The queue visualizes the player's entire social life - everything else is context for queue decisions.
 
-### 2. Contextual Information Architecture
-**Principle**: Display ONLY information relevant to the current activity.
+### 2. Token Cost Transparency
+**Principle**: Connection token costs for queue manipulation must be immediately visible and clear.
 
 **Examples**:
-- **Market Screen**: Show coins, inventory space, weight impact on travel
-- **Travel Screen**: Show stamina, equipment capabilities, weight penalties
-- **Player Status**: Comprehensive view when explicitly requested
+- **Purge Action**: "Remove bottom letter (3 tokens)" with current token count
+- **Priority Action**: "Move to slot 1 (5 Trust tokens)" - disabled if insufficient tokens
+- **Skip Action**: "Deliver out of order (1 Trust token)" - shows specific token type needed
 
-**Anti-Pattern**: Showing all information everywhere (creates cognitive overload)
+**Anti-Pattern**: Hidden token costs that surprise players during actions
 
-### 3. No Strategic Analysis or Automation
-**Principle**: NEVER calculate or display optimization hints.
+### 3. Per-NPC Token Relationship Display
+**Principle**: Character Relationship Screen shows connection tokens player has with each specific NPC.
+
+**Implementation**:
+```razor
+<div class="npc-relationship-card">
+    <div class="npc-info">
+        <h3>@npc.Name</h3>
+        <p>Location: @npc.Location</p>
+    </div>
+    <div class="token-display">
+        @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+        {
+            var count = GetTokensWithNPC(npc.Id, tokenType);
+            if (count > 0)
+            {
+                <div class="token-count">
+                    <TokenIcon Type="tokenType" />
+                    <span>@count</span>
+                </div>
+            }
+        }
+    </div>
+</div>
+```
+
+**Why**: Players need to see exactly how much social capital they have with each NPC for strategic planning.
+
+### 4. Deadline Urgency Visualization
+**Principle**: Letter deadlines show visual urgency without strategic analysis.
+
+**Implementation**:
+```razor
+<div class="letter-deadline @GetDeadlineClass(letter.Deadline)">
+    <span class="deadline-text">@letter.Deadline days</span>
+    <div class="deadline-bar" style="width: @GetDeadlinePercentage(letter.Deadline)%"></div>
+</div>
+
+@code {
+    private string GetDeadlineClass(int deadline)
+    {
+        return deadline switch
+        {
+            1 => "deadline-critical",
+            2 => "deadline-urgent", 
+            <= 3 => "deadline-warning",
+            _ => "deadline-normal"
+        };
+    }
+}
+```
+
+**Why**: Visual cues help players prioritize without calculating optimal strategies for them.
+
+### 5. No Queue Automation or Optimization
+**Principle**: NEVER provide automated queue management or optimization suggestions.
 
 **Violations to Avoid**:
 ```csharp
-// ❌ WRONG: Strategic analysis
-public RouteStrategicAnalysis AnalyzeRouteAccessibility()
-public List<EquipmentInvestmentOpportunity> CalculateEquipmentInvestmentOpportunities()
+// ❌ WRONG: Automated queue optimization
+public List<QueueOptimizationSuggestion> GetOptimalDeliveryOrder()
+public RouteRecommendation GetBestRouteForQueue()
+public List<TokenSpendingStrategy> GetTokenOptimizationStrategies()
 
-// ✅ RIGHT: Simple capability check
-public bool HasClimbingEquipment()
+// ✅ RIGHT: Information for player decision-making
+public int GetTokenCost(QueueAction action)
+public bool CanPerformAction(QueueAction action)
+public List<Letter> GetExpiredLetters()
 ```
 
-**Why**: Gameplay happens in the player's head. The UI provides data, players provide strategy.
+**Why**: Queue management IS the game - automation removes the strategic challenge.
 
-### 4. Category Visibility
-**Principle**: All game-mechanical categories MUST be visible in UI.
+## Letter Queue Screen Architecture
 
-**Implementation**:
+### Primary Screen Components
+
+**1. Queue Display (Central)**
+- **8-slot visual queue** with position numbers 1-8
+- **Letter cards** showing sender, recipient, deadline, payment
+- **Drag indicators** (visual only - no drag-and-drop functionality)
+- **Empty slot placeholders** for positions without letters
+
+**2. Queue Manipulation Panel**
+- **Action buttons** with token costs clearly displayed
+- **Token balance** showing current connection tokens by type
+- **Action validation** - disable buttons when insufficient tokens
+- **Confirmation prompts** for token spending actions
+
+**3. Standing Obligations Panel**
+- **Active obligations** with brief descriptions
+- **Queue effects** showing how obligations modify behavior
+- **Obligation conflicts** highlighted when multiple obligations clash
+- **Acquisition history** - when/how obligations were gained
+
+### Letter Card Design
+
+**Essential Information (Always Visible)**:
+- **Sender name** and **token type icon**
+- **Deadline countdown** with visual urgency
+- **Payment amount** in coins
+- **Queue position** prominently displayed
+
+**Contextual Information (On Hover/Click)**:
+- **Recipient details** and location
+- **Letter size** and inventory impact
+- **Relationship history** with sender
+- **Skip consequences** if letter is not delivered
+
+### Token Display Patterns
+
+**Player Token Balance**:
 ```razor
-@if (item.Categories.Any())
-{
-    <span class="item-categories">
-        (@item.AllCategoriesDescription)
-    </span>
-}
+<div class="token-balance">
+    @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+    {
+        <div class="token-type">
+            <TokenIcon Type="tokenType" />
+            <span>@GetPlayerTokens(tokenType)</span>
+        </div>
+    }
+</div>
 ```
 
-**Why**: Players cannot strategize about invisible systems. Categories drive gameplay.
-
-## Technical Implementation Patterns
-
-### 1. Repository-Mediated Access Pattern
-**Principle**: ALL game state access MUST go through repositories.
-
-```csharp
-// ❌ WRONG: Direct access
-GameWorld.WorldState.Items.Add(item);
-
-// ✅ RIGHT: Repository-mediated
-ItemRepository.AddItem(item);
+**Action Token Costs**:
+```razor
+<button class="queue-action" @onclick="PurgeLetter" disabled="@(!CanAffordPurge())">
+    Purge Bottom Letter
+    <div class="token-cost">
+        <span>3</span> <TokenIcon Type="ConnectionType.Any" />
+    </div>
+</button>
 ```
 
-**UI Access Patterns**:
-- **Actions**: UI → GameWorldManager → Specific Manager → Repository
-- **Queries**: UI → Repository → GameWorld.WorldState
+## Character Relationship Screen Architecture
 
-### 2. Blazor Component Architecture
-**Principle**: Razor components with code-behind base classes.
+### NPC Overview Display
 
-**Structure**:
-```
-PlayerStatusView.razor       (UI markup)
-PlayerStatusView.razor.cs    (Logic in base class)
-```
+**Essential Information**:
+- **NPC name** and **connection token type**
+- **Current location** with travel requirements
+- **Relationship status** (Warm/Neutral/Cold/Frozen)
+- **Per-NPC token count** by type
 
-**Benefits**:
-- Clean separation of markup and logic
-- Testable business logic
-- Type-safe parameter handling
+**Interaction Options** (Location-Dependent):
+- **Available only at NPC location** - grayed out when not present
+- **Social activities** that generate tokens (meals, conversations)
+- **Letter offers** based on relationship level
+- **Crisis moments** and forgiveness opportunities
 
-### 3. Dependency Injection Pattern
-**Principle**: Inject services, never create or locate them.
+### Relationship History Panel
 
-```csharp
-[Inject] public GameWorld GameWorld { get; set; }
-[Inject] public ItemRepository ItemRepository { get; set; }
-```
+**Skip Tracking**:
+- **Last 3 skipped letters** with dates
+- **Relationship damage** from expired letters
+- **Forgiveness events** that reset relationship
 
-### 4. Stateless UI Components
-**Principle**: Components should be reactive, not stateful.
+**Delivery History**:
+- **Consistent delivery streak** bonuses
+- **Token earning pattern** from this NPC
+- **Special letter chains** completed
 
-```csharp
-// ❌ WRONG: Caching in component
-private List<Item> _cachedItems;
+## Standing Obligations Screen Architecture
 
-// ✅ RIGHT: Always query fresh data
-public List<Item> GetFilteredMarketItems()
-{
-    return GameManager.GetAvailableMarketItems(Location.Id);
-}
-```
+### Obligation Management Display
 
-## CSS Organization Principles
+**Active Obligations**:
+- **Obligation name** and **acquisition date**
+- **Benefit description** (e.g., "Noble letters enter at slot 5")
+- **Constraint description** (e.g., "Cannot refuse noble letters")
+- **Queue behavior changes** with examples
 
-### 1. Semantic Class Names
-**Principle**: CSS classes describe purpose, not appearance.
+**Conflict Detection**:
+- **Conflicting obligations** highlighted in red
+- **Impossible scenarios** created by multiple obligations
+- **Strategic implications** of each combination
 
-```css
-/* ✅ RIGHT: Semantic */
-.resource-block { }
-.travel-context { }
-.weight-warning { }
+### Obligation Effects Visualization
 
-/* ❌ WRONG: Appearance-based */
-.red-text { }
-.big-font { }
-```
+**Queue Behavior Changes**:
+- **Letter entry positions** modified by obligations
+- **Forced letter generation** (e.g., Shadow's Burden)
+- **Token costs** modified by obligations
+- **Relationship requirements** imposed by obligations
 
-### 2. Component-Scoped Styles
-**Principle**: Group related styles by component/feature.
+## Implementation Anti-Patterns
 
-```css
-/* Travel Planning Styles */
-.travel-status { }
-.travel-resources { }
-.travel-context { }
+### Forbidden UI Elements
 
-/* Market Trading Styles */
-.trading-context { }
-.trading-resources { }
-```
+**❌ Queue Optimization Tools**:
+- "Optimal delivery order" suggestions
+- "Best route for current queue" recommendations
+- "Token spending efficiency" calculators
 
-### 3. State-Based Styling
-**Principle**: Use CSS classes to reflect game state.
+**❌ Automated Queue Management**:
+- Auto-sort letters by deadline
+- Auto-purge expired letters
+- Auto-spend tokens for optimization
 
-```csharp
-public string GetWeightClass(int totalWeight)
-{
-    if (totalWeight <= 3) return "weight-light";
-    if (totalWeight <= 6) return "weight-medium";
-    return "weight-heavy";
-}
-```
+**❌ Relationship Automation**:
+- "Best NPCs to focus on" suggestions
+- "Relationship investment opportunities" analysis
+- "Token earning efficiency" calculations
 
-## Game Design Constraints in UI
+### Required UI Patterns
 
-### 1. No Automated Conveniences
-**Principle**: Never solve the puzzle for the player.
+**✅ Clear Information Display**:
+- All costs and consequences visible before actions
+- Current state always clear (tokens, deadlines, relationships)
+- Historical information available when requested
 
-**Examples of What NOT to Do**:
-- Trading opportunity calculators
-- Optimal route suggestions
-- Profit margin displays
-- "Best equipment for route" hints
+**✅ Player Agency Support**:
+- All actions require explicit player choice
+- Consequences explained but not calculated
+- Strategic decisions remain with player
 
-### 2. Discovery Through Exploration
-**Principle**: Information is revealed through player action, not given freely.
+**✅ Emergent Complexity**:
+- Simple actions (purge, skip, extend) combine into complex strategies
+- Visual feedback helps players understand patterns
+- No hidden mechanics or surprise consequences
 
-**Implementation**:
-- Prices visible only at current location
-- Route requirements shown, but player discovers equipment needs
-- NPC schedules shown, but player learns patterns
+## Success Metrics
 
-### 3. Meaningful Visual Hierarchy
-**Principle**: Important != Prominent. Context determines prominence.
+### UI Effectiveness Indicators
 
-**Example**: 
-- Stamina is HUGE on travel screen (critical for travel decisions)
-- Stamina is small on market screen (less relevant for trading)
+**Queue Management**:
+- Players spend time studying queue before making decisions
+- Token spending feels meaningful and strategic
+- Deadline pressure creates genuine urgency
 
-## Navigation and Screen Management
+**Relationship Investment**:
+- Players remember specific NPCs and their preferences
+- Character Relationship Screen used for strategic planning
+- Per-NPC token display influences travel decisions
 
-### 1. Enum-Based Navigation
-**Principle**: Use type-safe enums for screen management.
+**Obligation Complexity**:
+- Players understand how obligations change their gameplay
+- Standing Obligations Screen consulted for major decisions
+- Obligation conflicts create interesting strategic dilemmas
 
-```csharp
-public enum CurrentViews
-{
-    LocationScreen,
-    MapScreen,
-    MarketScreen,
-    PlayerStatusScreen  // Added for dedicated status view
-}
-```
-
-### 2. Context-Preserving Navigation
-**Principle**: Maintain game context when switching views.
-
-```csharp
-[Parameter] public EventCallback OnClose { get; set; }
-
-public async Task ClosePlayerStatus()
-{
-    if (OnClose.HasDelegate)
-        await OnClose.InvokeAsync();
-    else
-        NavigationManager.NavigateTo("/");
-}
-```
-
-## Error Prevention Patterns
-
-### 1. Null-Safe Data Access
-**Principle**: Always check for null when accessing game data.
-
-```csharp
-Item item = ItemRepository.GetItemByName(itemName);
-if (item != null)
-{
-    categories.AddRange(item.Categories);
-}
-```
-
-### 2. State Validation
-**Principle**: Validate state before operations.
-
-```csharp
-bool canBuy = GameManager.CanBuyMarketItem(item.Id, Location.Id);
-bool canSell = playerState.Inventory.HasItem(item.Name);
-```
-
-## Performance Considerations
-
-### 1. Minimize Re-Renders
-**Principle**: Use StateHasChanged() judiciously.
-
-```csharp
-private void BuyItem(Item item)
-{
-    GameManager.ExecuteTradeAction(item.Id, "buy", Location.Id);
-    StateHasChanged(); // Only after state-changing operations
-}
-```
-
-### 2. Efficient Queries
-**Principle**: Filter data at the source, not in the UI.
-
-```csharp
-// Let repository/manager handle filtering
-var availableRoutes = TravelManager.GetAvailableRoutes(currentId, destId);
-```
-
-## Testing Patterns
-
-### 1. UI Logic in Base Classes
-**Principle**: Business logic in base classes enables unit testing.
-
-### 2. Repository Mocking
-**Principle**: Mock repositories for isolated UI testing.
-
-### 3. Integration Through GameWorldManager
-**Principle**: Test complex flows through the central coordinator.
-
-## Summary
-
-These principles ensure:
-1. **Player Agency**: UI provides information, players provide strategy
-2. **Clean Architecture**: Clear separation of concerns and data flow
-3. **Maintainability**: Consistent patterns across all UI components
-4. **Performance**: Reactive updates without caching complexity
-5. **Game Design Integrity**: No automation or strategic hints
-
-The UI is a window into the game world, not a strategy guide. It should empower discovery and decision-making while maintaining the mystery and challenge that makes games engaging.
+This UI architecture supports the **letter queue management** experience by providing clear information for strategic decision-making while preserving the **puzzle-solving challenge** that makes the game engaging.
