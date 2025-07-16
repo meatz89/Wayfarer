@@ -4,7 +4,6 @@ public class TravelManager
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
-    private readonly ContractProgressionService _contractProgressionService;
     private readonly TransportCompatibilityValidator _transportValidator;
     private readonly RouteRepository _routeRepository;
     public LocationSystem LocationSystem { get; }
@@ -20,14 +19,12 @@ public class TravelManager
         LocationRepository locationRepository,
         ActionFactory actionFactory,
         ItemRepository itemRepository,
-        ContractProgressionService contractProgressionService,
         TransportCompatibilityValidator transportValidator,
         RouteRepository routeRepository
         )
     {
         _gameWorld = gameWorld;
         _timeManager = gameWorld.TimeManager;
-        _contractProgressionService = contractProgressionService;
         _transportValidator = transportValidator;
         _routeRepository = routeRepository;
         this.LocationSystem = locationSystem;
@@ -92,8 +89,6 @@ public class TravelManager
 
         LocationRepository.SetCurrentLocation(targetLocation, locSpot);
 
-        // Check for contract progression based on arrival at destination
-        _contractProgressionService.CheckTravelProgression(targetLocation.Id, _gameWorld.GetPlayer());
 
         string? currentLocation = LocationRepository.GetCurrentLocation()?.Id;
 

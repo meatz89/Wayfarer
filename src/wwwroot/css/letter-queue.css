@@ -1,0 +1,204 @@
+/* Letter Queue Styles */
+.letter-queue-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.letter-queue-container h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Token Display */
+.token-display {
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.token-display h4 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.token-list {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.token-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: var(--bg-panel);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.token-icon {
+    font-size: 1.2rem;
+}
+
+.token-type {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.token-count {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-left: 0.25rem;
+}
+
+/* Letter Queue */
+.letter-queue {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.queue-slot {
+    background-color: var(--bg-dark);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+    min-height: 120px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.queue-slot.position-one {
+    border-color: var(--resource-coins);
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+.queue-slot.occupied {
+    background-color: var(--bg-panel);
+}
+
+.slot-number {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* Letter Card */
+.letter-card {
+    margin-top: 1.2rem;
+}
+
+.letter-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.letter-type {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.letter-route {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.sender {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.arrow {
+    color: var(--text-secondary);
+}
+
+.recipient {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.letter-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.deadline {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.deadline.urgent {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+.payment {
+    color: var(--resource-coins);
+    font-weight: 500;
+}
+
+.empty-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Deliver Button */
+.deliver-btn {
+    margin-top: 0.5rem;
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Queue Status */
+.queue-status {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.queue-status .warning {
+    color: var(--negative);
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .letter-queue {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .letter-queue {
+        grid-template-columns: repeat(8, 1fr);
+    }
+    
+    .queue-slot {
+        min-height: 140px;
+    }
+}

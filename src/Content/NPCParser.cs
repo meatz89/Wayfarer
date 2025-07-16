@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Wayfarer.GameState;
 
 namespace Wayfarer.Content;
 
@@ -59,6 +60,13 @@ public static class NPCParser
         // Parse contract categories
         List<string> contractCategories = GetStringArray(root, "contractCategories");
         npc.ContractCategories = contractCategories;
+
+        // Parse letter token type for letter queue system
+        string letterTokenTypeStr = GetStringProperty(root, "letterTokenType", "");
+        if (!string.IsNullOrEmpty(letterTokenTypeStr))
+        {
+            npc.LetterTokenType = ParseConnectionType(letterTokenTypeStr);
+        }
 
         return npc;
     }
@@ -138,6 +146,19 @@ public static class NPCParser
             "simple_labor" => ServiceTypes.Training,
             "boat_maintenance" => ServiceTypes.EquipmentRepair,
             _ => null // Unknown service
+        };
+    }
+
+    private static ConnectionType? ParseConnectionType(string connectionTypeStr)
+    {
+        return connectionTypeStr.ToLower() switch
+        {
+            "trust" => ConnectionType.Trust,
+            "trade" => ConnectionType.Trade,
+            "noble" => ConnectionType.Noble,
+            "common" => ConnectionType.Common,
+            "shadow" => ConnectionType.Shadow,
+            _ => null
         };
     }
 

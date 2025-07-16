@@ -261,6 +261,22 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 
 *See GAME-ARCHITECTURE.md for detailed categorical system implementations.*
 
+### UI FEEDBACK AND MESSAGING
+**ALWAYS use MessageSystem for user feedback** - Never use Console.WriteLine or similar for user feedback.
+```csharp
+// ❌ WRONG: Console output for user feedback
+Console.WriteLine($"Delivered letter! Earned {payment} coins");
+
+// ✅ CORRECT: MessageSystem for user feedback
+MessageSystem.AddSystemMessage($"Delivered letter! Earned {payment} coins", SystemMessageTypes.Success);
+```
+
+The MessageSystem is properly displayed in the UI and provides consistent feedback across the game. Message types include:
+- `SystemMessageTypes.Success` - For positive outcomes (deliveries, rewards)
+- `SystemMessageTypes.Warning` - For cautions (low tokens, expiring letters)
+- `SystemMessageTypes.Error` - For failures (insufficient tokens, missed deadlines)
+- `SystemMessageTypes.Info` - For neutral information
+
 ### CODE WRITING PRINCIPLES
 
 **TRANSFORMATION APPROACH**:
@@ -281,6 +297,12 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
   2. **STOP all other work** - reflection makes code unmaintainable and breaks refactoring
   3. **Fix it properly** - make fields public, add proper accessors, or redesign the architecture
   4. **NO EXCEPTIONS** - There is never a valid reason to use reflection in production code
+- **CRITICAL: LEGACY CODE ELIMINATION PRINCIPLE** - When files contain ONLY legacy functionality:
+  1. **DELETE THE ENTIRE FILE** - Do not comment out, do not exclude from compilation
+  2. **REMOVE COMPLETELY** - If a test file only tests removed systems, delete it entirely
+  3. **NO PARTIAL PRESERVATION** - Do not try to salvage parts of legacy-only files
+  4. **DOCUMENT THE PRINCIPLE** - Add removal principles to CLAUDE.md, not individual changes
+  5. **NO DELETION COMMENTS** - Do not leave comments about what was deleted, just remove it cleanly
 - **CRITICAL: IMMEDIATE LEGACY CODE ELIMINATION** - If you discover ANY legacy code, compilation errors, or deprecated patterns during development, you MUST immediately:
   1. **CREATE HIGH-PRIORITY TODO ITEM** to fix the legacy code
   2. **STOP current work** and fix the legacy code immediately

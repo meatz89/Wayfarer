@@ -1,6 +1,8 @@
 ﻿using Wayfarer.Game.ActionSystem;
 using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 using Wayfarer.UIHelpers;
+using Wayfarer.Content;
 
 public static class ServiceConfiguration
 {
@@ -24,18 +26,13 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
-        services.AddSingleton<ContractRepository>();
         services.AddSingleton<RouteRepository>();
-
-        // Register contract services
-        services.AddSingleton<ContractValidationService>();
-        services.AddSingleton<ContractProgressionService>();
+        services.AddSingleton<LetterTemplateRepository>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
         services.AddSingleton<ActionGenerator>();
         services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<ContractSystem>();
         services.AddSingleton<EncounterFactory>();
         services.AddSingleton<ActionSystem>();
         services.AddSingleton<ActionProcessor>();
@@ -53,6 +50,16 @@ public static class ServiceConfiguration
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
         services.AddSingleton<TransportCompatibilityValidator>();
+        
+        // Letter Queue System
+        services.AddSingleton<LetterQueueManager>(serviceProvider =>
+        {
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
+            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
+            return new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository);
+        });
+        services.AddSingleton<ConnectionTokenManager>();
 
         services.AddScoped<MusicService>();
 

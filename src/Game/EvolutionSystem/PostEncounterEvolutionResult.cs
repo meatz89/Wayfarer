@@ -5,7 +5,6 @@ public class PostEncounterEvolutionResult
     public List<LocationSpot> NewLocationSpots { get; set; } = new List<LocationSpot>();
     public List<Location> NewLocations { get; set; } = new List<Location>();
     public List<NPC> NewCharacters { get; set; } = new List<NPC>();
-    public List<Contract> NewContracts { get; set; } = new List<Contract>();
     public ResourceChanges ResourceChanges { get; set; } = new ResourceChanges();
     public List<RelationshipChange> RelationshipChanges { get; set; } = new List<RelationshipChange>();
     public int CoinChange { get; set; } = 0;

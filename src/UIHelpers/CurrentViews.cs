@@ -11,7 +11,6 @@ public enum CurrentViews
     // New  screens
     MarketScreen,
     RestScreen,
-    ContractScreen,
     // Modified travel screen
     TravelScreen,
     // Player status screen

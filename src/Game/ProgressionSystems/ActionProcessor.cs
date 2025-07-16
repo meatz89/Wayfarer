@@ -10,22 +10,19 @@ public class ActionProcessor
     public LocationPropertyManager environmentalPropertyManager { get; }
     public MessageSystem messageSystem { get; }
     private LocationRepository locationRepository { get; }
-    private ContractProgressionService contractProgressionService { get; }
 
     public ActionProcessor(
         GameWorld gameWorld,
         PlayerProgression playerProgression,
         LocationPropertyManager environmentalPropertyManager,
         LocationRepository locationRepository,
-        MessageSystem messageSystem,
-        ContractProgressionService contractProgressionService)
+        MessageSystem messageSystem)
     {
         this.gameWorld = gameWorld;
         this.playerProgression = playerProgression;
         this.environmentalPropertyManager = environmentalPropertyManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
-        this.contractProgressionService = contractProgressionService;
         this.player = gameWorld.GetPlayer();
         this.worldState = gameWorld.WorldState;
     }
@@ -77,8 +74,6 @@ public class ActionProcessor
         // Apply categorical effects
         ApplyCategoricalEffects(action.Effects);
 
-        // Check for contract progression
-        contractProgressionService.CheckLocationActionProgression(action, player);
     }
 
     public void UpdateState()

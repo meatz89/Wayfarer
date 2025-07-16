@@ -60,7 +60,6 @@ public static class GameWorldSerializer
         gameWorld.WorldState.actions.Clear();
         gameWorld.WorldState.actions.AddRange(actions);
 
-        gameWorld.WorldState.Contracts.Clear();
 
         // Add cards to world state if applicable
         if (gameWorld.WorldState.AllCards != null)
@@ -261,20 +260,6 @@ public static class GameWorldSerializer
         return actions;
     }
 
-    public static List<Contract> DeserializeContracts(string json)
-    {
-        List<Contract> Contracts = new List<Contract>();
-
-        using (JsonDocument doc = JsonDocument.Parse(json))
-        {
-            foreach (JsonElement contractElement in doc.RootElement.EnumerateArray())
-            {
-                Contracts.Add(ContractParser.ParseContract(contractElement.GetRawText()));
-            }
-        }
-
-        return Contracts;
-    }
     public static string SerializeRouteOptions(List<RouteOption> routes)
     {
         List<object> serializableRoutes = routes.Select(route => (object)new
@@ -316,24 +301,7 @@ public static class GameWorldSerializer
         return JsonSerializer.Serialize(serializableItems, _jsonOptions);
     }
 
-    public static string SerializeContracts(List<Contract> contracts)
-    {
-        List<object> serializableContracts = contracts.Select(contract => (object)new
-        {
-            id = contract.Id,
-            description = contract.Description,
-            startDay = contract.StartDay,
-            dueDay = contract.DueDay,
-            payment = contract.Payment,
-            failurePenalty = contract.FailurePenalty,
-            isCompleted = contract.IsCompleted,
-            isFailed = contract.IsFailed,
-            unlocksContractIds = contract.UnlocksContractIds,
-            locksContractIds = contract.LocksContractIds
-        }).ToList();
-
-        return JsonSerializer.Serialize(serializableContracts, _jsonOptions);
-    }
+    // Contract serialization removed - using letter system only
 
     public static List<RouteOption> DeserializeRouteOptions(string json)
     {

@@ -45,8 +45,6 @@ public class ActionDefinition
     // Information effects provided by this action
     public List<InformationEffectData> InformationEffects { get; set; } = new List<InformationEffectData>();
 
-    // Contract discovery effects provided by this action
-    public List<ContractDiscoveryEffectData> ContractDiscoveryEffects { get; set; } = new List<ContractDiscoveryEffectData>();
 
     public ActionDefinition(string id, string name, string spotId)
     {

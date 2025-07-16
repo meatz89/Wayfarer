@@ -100,7 +100,6 @@ public static class TestGameWorldInitializer
         gameWorld.WorldState.locationSpots = new List<LocationSpot>();
         gameWorld.WorldState.Routes = new List<RouteOption>();
         gameWorld.WorldState.Items = new List<Item>();
-        gameWorld.WorldState.Contracts = new List<Contract>();
 
         // Load locations from TEST-SPECIFIC JSON file - NEVER use production content
         List<Location> locations = new List<Location>();
@@ -208,20 +207,6 @@ public static class TestGameWorldInitializer
             });
         }
 
-        // Load contracts from TEST-SPECIFIC JSON file - NEVER use production content
-        List<Contract> contracts = new List<Contract>();
-        string testContractsFilePath = Path.Combine("Content", "Templates", "contracts.json");
-        if (File.Exists(testContractsFilePath))
-        {
-            contracts = GameWorldSerializer.DeserializeContracts(
-                File.ReadAllText(testContractsFilePath));
-            gameWorld.WorldState.Contracts.AddRange(contracts);
-            Console.WriteLine($"Loaded {contracts.Count} contracts from TEST templates.");
-        }
-        else
-        {
-            Console.WriteLine($"WARNING: TEST contracts.json not found at {testContractsFilePath}. Using empty contract list.");
-        }
 
         // Add basic NPCs for market functionality using repository
         // These NPCs are needed for market operations to work with the scheduling system
@@ -288,23 +273,8 @@ public static class TestGameWorldInitializer
         player.CurrentLocation = startLocation;
         gameWorld.WorldState.SetCurrentLocation(startLocation, null);
 
-        // Initialize empty active contract list
-        gameWorld.WorldState.ActiveContracts = new List<Contract>();
     }
 
-    /// <summary>
-    /// Add a test contract to the game world.
-    /// Utility method for adding contracts without full scenario building.
-    /// </summary>
-    public static void AddTestContract(GameWorld gameWorld, Contract contract)
-    {
-        if (gameWorld.WorldState.Contracts == null)
-        {
-            gameWorld.WorldState.Contracts = new List<Contract>();
-        }
-
-        gameWorld.WorldState.Contracts.Add(contract);
-    }
 
     /// <summary>
     /// Add a test item to the game world.

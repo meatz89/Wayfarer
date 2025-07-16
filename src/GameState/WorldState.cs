@@ -1,4 +1,5 @@
 ﻿using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 
 public class WorldState
 {
@@ -6,8 +7,8 @@ public class WorldState
     public List<Location> locations { get; set; } = new();
     public List<LocationSpot> locationSpots { get; set; } = new();
     public List<ActionDefinition> actions { get; set; } = new();
-    public List<Contract> Contracts { get; set; } = new();
     public List<NPC> NPCs { get; set; } = new();
+    public List<LetterTemplate> LetterTemplates { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
     public List<string> CompletedEncounters { get; } = new List<string>();
@@ -35,10 +36,6 @@ public class WorldState
     // Card tracking
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
 
-    // Contract tracking
-    public List<Contract> CompletedContracts { get; set; } = new List<Contract>();
-    public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
-    public List<Contract> FailedContracts { get; set; } = new List<Contract>();
 
     public string GetLocationIdForSpot(string locationSpotId)
     {

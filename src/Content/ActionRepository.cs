@@ -61,28 +61,6 @@
         return action;
     }
 
-    public Contract GetOpportunity(string contractId)
-    {
-        Contract contract = _gameWorld.WorldState.Contracts.FirstOrDefault(a =>
-        {
-            return a.Id.Equals(contractId, StringComparison.OrdinalIgnoreCase);
-        });
-
-        if (contract != null)
-            return contract;
-
-        Console.WriteLine($"Opportunity '{contractId}' not found.");
-        return CreateDefaultOpportunity(contractId, "DefaultLocation", "DefaultLocationSpot");
-    }
-
-    private Contract CreateDefaultOpportunity(object contractId, string location, string locationSpot)
-    {
-        Contract action = new Contract()
-        {
-            Description = "Description",
-        };
-        return action;
-    }
 
     // Mark encounter as completed
     public void MarkEncounterCompleted(string actionId)
