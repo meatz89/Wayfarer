@@ -28,6 +28,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<RouteRepository>();
         services.AddSingleton<LetterTemplateRepository>();
+        services.AddSingleton<StandingObligationRepository>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
@@ -52,12 +53,15 @@ public static class ServiceConfiguration
         services.AddSingleton<TransportCompatibilityValidator>();
         
         // Letter Queue System
+        services.AddSingleton<StandingObligationManager>();
         services.AddSingleton<LetterQueueManager>(serviceProvider =>
         {
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
             var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
-            return new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository);
+            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
+            var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
+            return new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager);
         });
         services.AddSingleton<ConnectionTokenManager>();
 

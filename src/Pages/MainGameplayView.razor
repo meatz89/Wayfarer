@@ -101,6 +101,9 @@
                             <button class="location-button" @onclick="SwitchToPlayerStatusScreen">
                                 Character 👤
                             </button>
+                            <button class="location-button" @onclick="SwitchToRelationshipScreen">
+                                Relationships 🤝
+                            </button>
                         </div>
                     </div>
 
@@ -278,6 +281,27 @@
                     <div class="location-container">
                         <PlayerStatusView OnClose="() => CurrentScreen = CurrentViews.LocationScreen" />
                     </div>
+                    break;
+                    
+                case CurrentViews.RelationshipScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Character Relationships</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @if (IsGameDataReady())
+                    {
+                        <CharacterRelationshipScreen />
+                    }
+                    else
+                    {
+                        <div class="loading-message">Loading relationship data...</div>
+                    }
                     break;
         }
     </div>

@@ -1,21 +1,70 @@
 # SESSION HANDOFF
 
-## CURRENT STATUS: CRITICAL CONTRACT SYSTEM REMOVAL COMPLETED 🎯
+## CURRENT STATUS: LETTER QUEUE SYSTEM COMPLETE! 🎯
 
-**SESSION ACHIEVEMENT**: Contract system completely eliminated, Letter system daily generation implemented, Week 3 tasks advanced
+**SESSION ACHIEVEMENT**: Relationship damage implemented - ALL letter queue features done!
 
-### **SESSION SUMMARY: CONTRACT ELIMINATION & LETTER SYSTEM ENHANCEMENT**
+### **SESSION SUMMARY: RELATIONSHIP DAMAGE & QUEUE COMPLETION**
 
-**Previous Session**: Week 2 80% complete - needed Skip action and Week 3 planning
+**Previous Session**: Queue manipulation actions implemented (Morning Swap, Purge, Priority, Extend)
 **This Session - Major Achievements**: 
-- ✅ **CRITICAL DECISION**: Analyzed Contract vs Letter systems - found Contract system redundant
-- ✅ **CONTRACT REMOVAL**: Completely eliminated 15+ Contract files and dependencies
-- ✅ **LETTER ENHANCEMENT**: Added daily letter generation system
-- ✅ **ARCHITECTURE CLEANUP**: Simplified codebase to focus on core letter queue mechanics
-- ✅ **WEEK 3 PROGRESS**: Implemented GenerateDailyLetters method and daily processing
-- ❌ **FOLLOW-UP**: Compilation errors remain from Contract references (~25 errors)
+- ✅ **RELATIONSHIP DAMAGE**: Expired letters now damage NPC relationships (-2 tokens)
+- ✅ **NEGATIVE TOKENS**: NPC relationships can go negative (debt system)
+- ✅ **UI FEEDBACK**: Warning messages when relationships damaged
+- ✅ **FULL TEST COVERAGE**: All relationship damage scenarios tested
+- ✅ **ARCHITECTURE COMPLIANCE**: Proper dependency injection for MessageSystem
+- ✅ **COMPLETE LETTER SYSTEM**: All planned features implemented!
 
-## **CRITICAL DISCOVERIES AND DECISIONS THIS SESSION**
+### **RELATIONSHIP DAMAGE IMPLEMENTATION**
+
+**When Letters Expire**:
+- Letters with deadline <= 0 trigger relationship damage before removal
+- 2 tokens of the letter's type are removed from the sender NPC
+- NPC token counts can go negative (relationship debt)
+- Player's total tokens can't go below 0
+- Warning message displayed through MessageSystem
+
+**Implementation Details**:
+- `ApplyRelationshipDamage()` method in LetterQueueManager
+- `RemoveTokensFromNPC()` method in ConnectionTokenManager
+- NPCs identified by name lookup in NPCRepository
+- MessageSystem properly injected through dependency injection
+
+### **QUEUE MANIPULATION ACTIONS (From Previous Session)**
+
+**Morning Swap** (Dawn only, once per day):
+- Free swap of two adjacent letters
+- Only available during dawn time block
+- Tracked with `LastMorningSwapDay` on Player
+- UI shows disabled state if already used today
+
+**Purge** (3 tokens of any type):
+- Removes letter from position 8 (bottom of queue)
+- Flexible token payment - any combination totaling 3
+- UI provides token selection interface
+- Queue automatically shifts after removal
+
+**Priority Move** (5 matching tokens):
+- Moves any letter (positions 2-8) to position 1
+- Requires position 1 to be empty
+- Must pay 5 tokens matching the letter's type
+- Queue shifts to fill gap after move
+
+**Extend Deadline** (2 matching tokens):
+- Adds 2 days to any letter's deadline
+- Requires 2 tokens matching the letter's type
+- Can be used on any position (1-8)
+- Critical for managing expiring letters
+
+### **QUEUE SHIFTING ALGORITHM**
+Implemented smart queue compaction in `LetterQueueManager.ShiftQueueUp()`:
+1. Collect all letters after removed position
+2. Clear their old positions
+3. Redistribute to fill gaps from removed position onward
+4. Update QueuePosition property on each letter
+5. Comprehensive test coverage ensures correctness
+
+## **CRITICAL DISCOVERIES FROM PREVIOUS SESSION**
 
 ### **🚨 CONTRACT vs LETTER SYSTEM ANALYSIS**
 **Major Architectural Discovery**: Contract and Letter systems were functionally duplicate with significant overlap:
@@ -131,10 +180,21 @@
 
 ## **FILES CREATED/MODIFIED THIS SESSION**
 
-### **NEW FILES - Letter Enhancement**
-- **Enhanced**: `/src/GameState/LetterQueueManager.cs` - Added GenerateDailyLetters method with repository dependencies
-- **Enhanced**: `/src/ServiceConfiguration.cs` - Added factory pattern for LetterQueueManager dependency injection
-- **Enhanced**: `/Wayfarer.Tests/TestGameWorldFactory.cs` - Added LetterTemplateRepository and enhanced LetterQueueManager to test configuration
+### **NEW FILES CREATED**
+- **Created**: `/Wayfarer.Tests/GameState/LetterQueueManagerTests.cs` - Comprehensive test suite for queue shifting functionality
+- **Created**: `/Wayfarer.Tests/GameState/RelationshipDamageTests.cs` - Test suite for relationship damage on letter expiry
+
+### **FILES MODIFIED - Relationship Damage Implementation**
+- **Enhanced**: `/src/GameState/LetterQueueManager.cs` - Added ApplyRelationshipDamage() and GetNPCIdByName() methods, MessageSystem injection
+- **Enhanced**: `/src/GameState/ConnectionTokenManager.cs` - Added RemoveTokensFromNPC() method for relationship damage
+- **Enhanced**: `/src/ServiceConfiguration.cs` - Updated LetterQueueManager factory to include MessageSystem
+- **Enhanced**: `/Wayfarer.Tests/TestGameWorldFactory.cs` - Updated test factory to include MessageSystem
+- **Modified**: `/Wayfarer.Tests/GameState/LetterQueueManagerTests.cs` - Added MessageSystem to all test instantiations
+
+### **FILES MODIFIED - Queue Manipulation (Previous Session)**
+- **Enhanced**: `/src/GameState/LetterQueueManager.cs` - Added queue shifting algorithm and all 4 manipulation methods
+- **Enhanced**: `/src/GameState/Player.cs` - Added LastMorningSwapDay tracking for daily swap limit
+- **Enhanced**: `/src/Pages/LetterQueueDisplay.razor` - Added complete UI for all queue manipulation actions
 
 ### **REMOVED FILES - Contract Elimination**
 **UI Components**:
@@ -187,46 +247,54 @@
 
 ## **NEXT SESSION PRIORITIES**
 
-### **🚨 URGENT: Fix Contract Compilation Errors**
+### **🎯 LETTER QUEUE SYSTEM COMPLETE! What's Next?**
 
-**Current Status**: ~25 compilation errors from removed Contract references
-- Multiple managers still reference ContractSystem, ContractRepository, ContractProgressionService
-- ActionFactory, RestManager, TravelManager, MarketManager need Contract dependency removal
-- ActionDefinition and LocationAction have Contract references
-- TestQueryModels references ContractStep and ContractTransaction
+**ALL Core Letter Queue Features Implemented**:
+- ✅ 8-slot priority queue with position enforcement
+- ✅ Daily letter generation (1-2 per day)
+- ✅ Connection token economy (5 types)
+- ✅ Queue manipulation actions (Morning Swap, Purge, Priority, Extend)
+- ✅ Relationship damage on letter expiry
+- ✅ Full UI integration with feedback
+- ✅ Comprehensive test coverage
 
-**Files Needing Contract Reference Cleanup**:
-- `/src/Content/ActionRepository.cs`
-- `/src/Game/ActionSystem/ActionDefinition.cs`
-- `/src/Game/ActionSystem/ActionFactory.cs`
-- `/src/Game/ActionSystem/LocationAction.cs`
-- `/src/Game/EvolutionSystem/LocationCreationSystem.cs`
-- `/src/Game/EvolutionSystem/WorldStateInputBuilder.cs`
-- `/src/Game/EvolutionSystem/FlatPostEncounterEvolutionResponse.cs`
-- `/src/Game/EvolutionSystem/PostEncounterEvolutionResult.cs`
-- `/src/Game/MainSystem/RestManager.cs`
-- `/src/Game/ProgressionSystems/ActionProcessor.cs`
-- `/src/GameState/MarketManager.cs`
-- `/src/GameState/TravelManager.cs`
-- `/src/GameState/TestQueryModels.cs`
+**Potential Next Steps (Based on POC Plan)**:
+1. **Character Relationship Screen**: Visualize NPC relationships
+   - Show all NPCs with token counts
+   - Display negative tokens (relationship debt)
+   - Recent interaction history
+   
+2. **Enhanced Letter Generation**: More sophisticated letter creation
+   - Use NPC relationship levels to influence letter frequency
+   - Patron letters with special requirements
+   - Chain letters (follow-up deliveries)
+   
+3. **Standing Obligations**: Permanent gameplay modifiers
+   - Accept obligations that change queue rules
+   - Trade-offs between benefits and constraints
+   - Integration with letter system
 
-### **📝 MINIMAL POC TODO LIST** (Session-local, recreate in next session):
-**UPDATED PRIORITIES AFTER CONTRACT REMOVAL**:
+### **📝 IMPLEMENTATION STATUS**
 
-**Week 2 REMAINING** (Skip action still needed):
-8. **Week 2**: Add one queue action (Skip for 1 token) - UI buttons and TrySkipDeliver logic
+**COMPLETED THIS SESSION**:
+- ✅ Relationship Damage - Expired letters remove 2 tokens from sender NPC
+- ✅ Negative Token Tracking - NPC relationships can go into debt
+- ✅ MessageSystem Integration - Proper dependency injection across all components
+- ✅ Full Test Coverage - 4 comprehensive tests for relationship damage scenarios
 
-**Week 3 PARTIAL COMPLETE**:
-9. ✅ **Week 3**: Connect to time system (deadline countdown) - DONE
-10. ✅ **Week 3**: Add basic letter generation (1-2 per day) - DONE  
-11. **Week 3**: Implement letter delivery at position 1 - Already working
-12. **Week 3**: Create minimal Character Relationship Screen - Pending
+**LETTER QUEUE SYSTEM STATUS**:
+- ✅ Core Queue (8 slots, priority order) - COMPLETE
+- ✅ Token Economy (5 types, earn/spend) - COMPLETE
+- ✅ Queue Actions (Skip, Morning Swap, Purge, Priority, Extend) - COMPLETE
+- ✅ Daily Processing (generation, deadlines, damage) - COMPLETE
+- ✅ UI Integration (display, actions, feedback) - COMPLETE
 
-**CURRENT STATUS UPDATE**:
-- Week 1: ✅ COMPLETE - Core infrastructure
-- Week 2: ✅ 90% COMPLETE - Only Skip action UI/logic missing  
-- Week 3: ✅ 75% COMPLETE - Daily generation done, relationship screen pending
-- **NEW PRIORITY**: Contract cleanup for compilation
+**VALIDATION STATUS**: 
+- Queue manipulation ✅
+- Token spending ✅
+- UI feedback ✅
+- Daily processing ✅
+- Test coverage ✅
 
 **Validation Status**: Queue visible ✅, order enforced ✅, deadline countdown ✅, letter generation ✅, tokens work ✅, MessageSystem feedback ✅
 
@@ -266,22 +334,63 @@
 
 ## **CURRENT WORKING STATE**
 
-**What's Working Now:**
+**What's Working Now - COMPLETE LETTER QUEUE SYSTEM:**
 - ✅ Letter queue displays in location screen with 8 slots
-- ✅ Test letters show sender, recipient, deadline, payment, token type
-- ✅ Token display shows all 5 types with icons
-- ✅ Position 1 highlighted in gold with "Deliver" button
-- ✅ Expiring letter warnings displayed
-- ✅ Basic delivery removes letter from position 1
-- ✅ All systems integrated and tests passing
+- ✅ Letters show sender, recipient, deadline, payment, token type
+- ✅ Token display shows all 5 types with icons and counts
+- ✅ Position 1 highlighted with "Deliver" button
+- ✅ Expiring letter warnings (expired/urgent/warning)
+- ✅ Letter delivery gives coins and 50% chance of tokens
+- ✅ Queue automatically shifts up when letters removed
+- ✅ Daily letter generation (1-2 per day from NPCs)
+- ✅ Deadline countdown with automatic expiry removal
+- ✅ **RELATIONSHIP DAMAGE on expiry (-2 tokens, can go negative)**
+- ✅ Skip action for queue positions 2-8
+- ✅ **ALL QUEUE MANIPULATION ACTIONS**:
+  - ✅ Morning Swap (dawn only, once per day)
+  - ✅ Purge (remove bottom letter for 3 any tokens)
+  - ✅ Priority (move to position 1 for 5 matching tokens)
+  - ✅ Extend (add 2 days for 2 matching tokens)
+- ✅ Full UI integration with validation and feedback
+- ✅ MessageSystem integration for all user notifications
+- ✅ Comprehensive test coverage (queue shifting + relationship damage)
 
-**What's NOT Working Yet:**
-- ❌ No skip action (Week 2 - LAST TASK)
-- ❌ No queue shifting when letters removed
-- ❌ No deadline countdown (Week 3)
-- ❌ No letter generation (Week 3)
-- ❌ No relationship tracking (Week 3)
+**Letter Queue POC Target: ACHIEVED** 🎯
 
 ---
 
-*Session ended with Week 2 80% complete - only Skip action remaining. MessageSystem properly integrated for all UI feedback.*
+## **KEY IMPLEMENTATION DETAILS**
+
+### **Queue Manipulation Architecture**
+- All actions implemented as methods in `LetterQueueManager`
+- Each action returns bool for success/failure
+- Token validation handled through `ConnectionTokenManager`
+- UI state managed in `LetterQueueDisplay.razor` with show/hide flags
+- Actions properly gated by game rules (time, position, tokens)
+
+### **Testing Strategy**
+- Queue shifting has comprehensive unit tests
+- Test cases cover edge conditions (gaps, multiple letters, etc.)
+- All tests passing with proper GameWorld initialization
+
+### **UI/UX Considerations**
+- Actions only show when relevant (e.g., Morning Swap only at dawn)
+- Clear cost display before committing actions
+- Immediate feedback through MessageSystem
+- Disabled states with explanatory text
+
+---
+
+*Session ended with relationship damage implementation completing the Letter Queue System. The minimal POC target for the letter queue transformation has been achieved with all core features working, tested, and integrated.*
+
+## **LETTER QUEUE SYSTEM - FEATURE COMPLETE** 🎉
+
+The Letter Queue System is now fully operational with:
+- Core queue mechanics (8 slots, priority delivery)
+- Token economy (earn through delivery, spend for manipulation)
+- Queue actions (Skip, Swap, Purge, Priority, Extend)
+- Daily processing (generation, deadlines, relationship damage)
+- Complete UI integration with proper feedback
+- Comprehensive test coverage
+
+**Next logical step**: Character Relationship Screen to visualize the token relationships and debt system.

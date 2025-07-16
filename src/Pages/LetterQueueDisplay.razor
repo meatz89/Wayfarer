@@ -100,9 +100,138 @@
             }
         }
     </div>
+    
+    @* Queue Manipulation Actions *@
+    <div class="queue-actions">
+        <h4>Queue Management</h4>
+        
+        @* Morning Swap (only available at dawn) *@
+        @if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        {
+            <div class="action-section">
+                <button class="btn btn-info" @onclick="ShowMorningSwap" disabled="@(GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay)">
+                    Morning Swap (Free)
+                    @if (GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay)
+                    {
+                        <span class="disabled-reason">- Already used today</span>
+                    }
+                </button>
+                @if (showMorningSwap)
+                {
+                    <div class="swap-controls">
+                        <label>Swap positions:</label>
+                        <input type="number" min="1" max="8" @bind="swapPos1" />
+                        <span>↔️</span>
+                        <input type="number" min="1" max="8" @bind="swapPos2" />
+                        <button class="btn btn-sm btn-primary" @onclick="PerformMorningSwap">Swap</button>
+                        <button class="btn btn-sm btn-secondary" @onclick="() => showMorningSwap = false">Cancel</button>
+                    </div>
+                }
+            </div>
+        }
+        
+        @* Purge Bottom Letter *@
+        @if (LetterQueueManager.GetLetterAt(8) != null)
+        {
+            <div class="action-section">
+                <button class="btn btn-danger" @onclick="ShowPurgeOptions">
+                    Purge Bottom Letter (3 any tokens)
+                </button>
+                @if (showPurgeOptions)
+                {
+                    <div class="purge-controls">
+                        <p>Select 3 tokens to spend:</p>
+                        @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+                        {
+                            var available = TokenManager.GetTokenCount(tokenType);
+                            if (available > 0)
+                            {
+                                <div class="token-selector">
+                                    <span>@GetTokenIcon(tokenType) @tokenType:</span>
+                                    <input type="number" min="0" max="@available" value="@GetPurgeTokenCount(tokenType)" 
+                                           @onchange="@(e => SetPurgeTokenCount(tokenType, int.Parse(e.Value?.ToString() ?? "0")))" />
+                                    <span>(Have @available)</span>
+                                </div>
+                            }
+                        }
+                        <button class="btn btn-sm btn-primary" @onclick="PerformPurge" disabled="@(GetTotalPurgeTokens() != 3)">
+                            Purge (@GetTotalPurgeTokens()/3 selected)
+                        </button>
+                        <button class="btn btn-sm btn-secondary" @onclick="() => { showPurgeOptions = false; purgeTokenSelection.Clear(); }">Cancel</button>
+                    </div>
+                }
+            </div>
+        }
+        
+        @* Priority Move *@
+        <div class="action-section">
+            <button class="btn btn-warning" @onclick="ShowPriorityOptions">
+                Priority Move (5 matching tokens)
+            </button>
+            @if (showPriorityOptions)
+            {
+                <div class="priority-controls">
+                    <label>Move letter from position:</label>
+                    <input type="number" min="2" max="8" @bind="priorityFromPos" />
+                    <button class="btn btn-sm btn-primary" @onclick="PerformPriority" disabled="@(!CanPerformPriority())">
+                        Move to Position 1
+                    </button>
+                    <button class="btn btn-sm btn-secondary" @onclick="() => showPriorityOptions = false">Cancel</button>
+                    @if (priorityFromPos >= 2 && priorityFromPos <= 8)
+                    {
+                        var letter = LetterQueueManager.GetLetterAt(priorityFromPos);
+                        if (letter != null)
+                        {
+                            <p class="cost-info">Cost: 5 @GetTokenIcon(letter.TokenType) @letter.TokenType tokens (Have @TokenManager.GetTokenCount(letter.TokenType))</p>
+                        }
+                    }
+                </div>
+            }
+        </div>
+        
+        @* Extend Deadline *@
+        <div class="action-section">
+            <button class="btn btn-success" @onclick="ShowExtendOptions">
+                Extend Deadline (2 matching tokens)
+            </button>
+            @if (showExtendOptions)
+            {
+                <div class="extend-controls">
+                    <label>Extend deadline for position:</label>
+                    <input type="number" min="1" max="8" @bind="extendPos" />
+                    <button class="btn btn-sm btn-primary" @onclick="PerformExtend" disabled="@(!CanPerformExtend())">
+                        +2 Days
+                    </button>
+                    <button class="btn btn-sm btn-secondary" @onclick="() => showExtendOptions = false">Cancel</button>
+                    @if (extendPos >= 1 && extendPos <= 8)
+                    {
+                        var letter = LetterQueueManager.GetLetterAt(extendPos);
+                        if (letter != null)
+                        {
+                            <p class="cost-info">Cost: 2 @GetTokenIcon(letter.TokenType) @letter.TokenType tokens (Have @TokenManager.GetTokenCount(letter.TokenType))</p>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 @code {
+    // UI state for queue manipulation
+    private bool showMorningSwap = false;
+    private int swapPos1 = 1;
+    private int swapPos2 = 2;
+    
+    private bool showPurgeOptions = false;
+    private Dictionary<ConnectionType, int> purgeTokenSelection = new Dictionary<ConnectionType, int>();
+    
+    private bool showPriorityOptions = false;
+    private int priorityFromPos = 2;
+    
+    private bool showExtendOptions = false;
+    private int extendPos = 1;
+    
     protected override void OnInitialized()
     {
         // Add test letters for minimal POC demonstration
@@ -191,6 +320,9 @@
             TokenManager.AddTokens(letter.TokenType, 1);
         }
         
+        // Track delivery in letter history
+        LetterQueueManager.RecordLetterDelivery(letter);
+        
         // Remove from queue
         LetterQueueManager.RemoveLetterFromQueue(1);
         
@@ -216,6 +348,9 @@
         
         if (success)
         {
+            // Track skip in letter history
+            LetterQueueManager.RecordLetterSkip(letter);
+            
             // Show success message
             string message = $"Skipped letter to position 1! Spent {tokenCost} {letter.TokenType} tokens";
             MessageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
@@ -261,5 +396,110 @@
             2 => "Due in 2 days",
             _ => $"Due in {deadline} days"
         };
+    }
+    
+    // Queue manipulation UI methods
+    private void ShowMorningSwap() => showMorningSwap = true;
+    private void ShowPurgeOptions() => showPurgeOptions = true;
+    private void ShowPriorityOptions() => showPriorityOptions = true;
+    private void ShowExtendOptions() => showExtendOptions = true;
+    
+    private void PerformMorningSwap()
+    {
+        if (LetterQueueManager.TryMorningSwap(swapPos1, swapPos2))
+        {
+            MessageSystem.AddSystemMessage($"Swapped letters in positions {swapPos1} and {swapPos2}!", SystemMessageTypes.Success);
+            showMorningSwap = false;
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage("Cannot swap: positions must be adjacent and contain at least one letter", SystemMessageTypes.Warning);
+        }
+        StateHasChanged();
+    }
+    
+    private int GetPurgeTokenCount(ConnectionType type)
+    {
+        return purgeTokenSelection.ContainsKey(type) ? purgeTokenSelection[type] : 0;
+    }
+    
+    private void SetPurgeTokenCount(ConnectionType type, int count)
+    {
+        if (count > 0)
+            purgeTokenSelection[type] = count;
+        else
+            purgeTokenSelection.Remove(type);
+    }
+    
+    private int GetTotalPurgeTokens()
+    {
+        return purgeTokenSelection.Values.Sum();
+    }
+    
+    private void PerformPurge()
+    {
+        if (LetterQueueManager.TryPurgeLetter(purgeTokenSelection))
+        {
+            string tokenDetails = string.Join(", ", purgeTokenSelection.Select(kvp => $"{kvp.Value} {kvp.Key}"));
+            MessageSystem.AddSystemMessage($"Purged bottom letter! Spent {tokenDetails} tokens", SystemMessageTypes.Success);
+            showPurgeOptions = false;
+            purgeTokenSelection.Clear();
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage("Failed to purge letter", SystemMessageTypes.Danger);
+        }
+        StateHasChanged();
+    }
+    
+    private bool CanPerformPriority()
+    {
+        if (priorityFromPos < 2 || priorityFromPos > 8) return false;
+        if (LetterQueueManager.GetLetterAt(1) != null) return false; // Position 1 must be empty
+        
+        var letter = LetterQueueManager.GetLetterAt(priorityFromPos);
+        if (letter == null) return false;
+        
+        return TokenManager.GetTokenCount(letter.TokenType) >= 5;
+    }
+    
+    private void PerformPriority()
+    {
+        if (LetterQueueManager.TryPriorityMove(priorityFromPos))
+        {
+            var letter = LetterQueueManager.GetLetterAt(1); // It's now in position 1
+            MessageSystem.AddSystemMessage($"Moved letter to position 1! Spent 5 {letter.TokenType} tokens", SystemMessageTypes.Success);
+            showPriorityOptions = false;
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage("Failed to perform priority move", SystemMessageTypes.Danger);
+        }
+        StateHasChanged();
+    }
+    
+    private bool CanPerformExtend()
+    {
+        if (extendPos < 1 || extendPos > 8) return false;
+        
+        var letter = LetterQueueManager.GetLetterAt(extendPos);
+        if (letter == null) return false;
+        
+        return TokenManager.GetTokenCount(letter.TokenType) >= 2;
+    }
+    
+    private void PerformExtend()
+    {
+        var letter = LetterQueueManager.GetLetterAt(extendPos);
+        if (LetterQueueManager.TryExtendDeadline(extendPos))
+        {
+            MessageSystem.AddSystemMessage($"Extended deadline by 2 days! Spent 2 {letter.TokenType} tokens", SystemMessageTypes.Success);
+            showExtendOptions = false;
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage("Failed to extend deadline", SystemMessageTypes.Danger);
+        }
+        StateHasChanged();
     }
 }

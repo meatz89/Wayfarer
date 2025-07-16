@@ -1,0 +1,56 @@
+[
+  {
+    "ID": "nobles_courtesy",
+    "Name": "Noble's Courtesy",
+    "Description": "You have sworn an oath to serve the local nobility with utmost respect and priority.",
+    "Source": "Manor Court",
+    "BenefitEffects": ["NoblesPriority"],
+    "ConstraintEffects": ["NoNobleRefusal"],
+    "RelatedTokenType": "Noble"
+  },
+  {
+    "ID": "merchants_priority",
+    "Name": "Merchant's Priority",
+    "Description": "Your reputation with the Trade Guild grants you better compensation for commercial deliveries.",
+    "Source": "Trade Guild",
+    "BenefitEffects": ["TradeBonus"],
+    "ConstraintEffects": ["NoTradePurge"],
+    "RelatedTokenType": "Trade"
+  },
+  {
+    "ID": "shadows_burden",
+    "Name": "Shadow's Burden",
+    "Description": "You have accepted the dangerous but lucrative world of clandestine deliveries.",
+    "Source": "Shadow Contact",
+    "BenefitEffects": ["ShadowTriplePay"],
+    "ConstraintEffects": ["ShadowForced"],
+    "RelatedTokenType": "Shadow"
+  },
+  {
+    "ID": "patrons_expectation",
+    "Name": "Patron's Expectation",
+    "Description": "Your mysterious patron has made their expectations clear - their letters take precedence above all.",
+    "Source": "Mysterious Patron",
+    "BenefitEffects": ["PatronMonthly"],
+    "ConstraintEffects": ["PatronJumpToTop"],
+    "RelatedTokenType": null
+  },
+  {
+    "ID": "hearts_bond",
+    "Name": "Heart's Bond",
+    "Description": "Your romantic commitment provides emotional support but creates social obligations.",
+    "Source": "Elena",
+    "BenefitEffects": ["TrustFreeExtend"],
+    "ConstraintEffects": ["TrustSkipDoubleCost"],
+    "RelatedTokenType": "Trust"
+  },
+  {
+    "ID": "common_folks_friend",
+    "Name": "Common Folk's Friend",
+    "Description": "You are known as a reliable friend to the working people of the region.",
+    "Source": "Local Community",
+    "BenefitEffects": ["CommonFolksPriority"],
+    "ConstraintEffects": ["NoCommonRefusal"],
+    "RelatedTokenType": "Common"
+  }
+]

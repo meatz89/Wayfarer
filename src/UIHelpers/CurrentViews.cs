@@ -14,5 +14,7 @@ public enum CurrentViews
     // Modified travel screen
     TravelScreen,
     // Player status screen
-    PlayerStatusScreen
+    PlayerStatusScreen,
+    // Character relationship screen
+    RelationshipScreen
 }

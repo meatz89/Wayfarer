@@ -134,6 +134,22 @@ public class GameWorldInitializer
             }
         }
 
+        // Load standing obligations
+        List<StandingObligation> standingObligations = new List<StandingObligation>();
+        string standingObligationsFilePath = Path.Combine(templatePath, "standing_obligations.json");
+        if (File.Exists(standingObligationsFilePath))
+        {
+            try
+            {
+                standingObligations = ParseStandingObligationArray(File.ReadAllText(standingObligationsFilePath));
+                Console.WriteLine($"Loaded {standingObligations.Count} standing obligation templates from JSON.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed to load standing obligations from JSON: {ex.Message}");
+            }
+        }
+
         // Add NPCs to the game world
         if (npcs.Any())
         {
@@ -176,6 +192,17 @@ public class GameWorldInitializer
         else
         {
             Console.WriteLine("INFO: No letter templates loaded. Create letter_templates.json file to add letter template content.");
+        }
+
+        // Add standing obligations to the game world
+        if (standingObligations.Any())
+        {
+            gameWorld.WorldState.StandingObligationTemplates.AddRange(standingObligations);
+            Console.WriteLine($"Added {standingObligations.Count} standing obligation templates to game world.");
+        }
+        else
+        {
+            Console.WriteLine("INFO: No standing obligations loaded. Create standing_obligations.json file to add obligation content.");
         }
 
         // Initialize player inventory if not already initialized
@@ -425,5 +452,65 @@ public class GameWorldInitializer
         }
 
         return templates;
+    }
+
+    private List<StandingObligation> ParseStandingObligationArray(string obligationsJson)
+    {
+        List<StandingObligation> obligations = new List<StandingObligation>();
+
+        using (JsonDocument doc = JsonDocument.Parse(obligationsJson))
+        {
+            foreach (JsonElement obligationElement in doc.RootElement.EnumerateArray())
+            {
+                StandingObligation obligation = ParseStandingObligation(obligationElement);
+                obligations.Add(obligation);
+            }
+        }
+
+        return obligations;
+    }
+
+    private StandingObligation ParseStandingObligation(JsonElement element)
+    {
+        var obligation = new StandingObligation();
+
+        if (element.TryGetProperty("ID", out var idElement))
+            obligation.ID = idElement.GetString() ?? "";
+
+        if (element.TryGetProperty("Name", out var nameElement))
+            obligation.Name = nameElement.GetString() ?? "";
+
+        if (element.TryGetProperty("Description", out var descElement))
+            obligation.Description = descElement.GetString() ?? "";
+
+        if (element.TryGetProperty("Source", out var sourceElement))
+            obligation.Source = sourceElement.GetString() ?? "";
+
+        if (element.TryGetProperty("RelatedTokenType", out var tokenElement) && 
+            !tokenElement.ValueKind.Equals(JsonValueKind.Null))
+        {
+            if (Enum.TryParse<ConnectionType>(tokenElement.GetString(), out var tokenType))
+                obligation.RelatedTokenType = tokenType;
+        }
+
+        if (element.TryGetProperty("BenefitEffects", out var benefitsElement))
+        {
+            foreach (var benefitElement in benefitsElement.EnumerateArray())
+            {
+                if (Enum.TryParse<ObligationEffect>(benefitElement.GetString(), out var effect))
+                    obligation.BenefitEffects.Add(effect);
+            }
+        }
+
+        if (element.TryGetProperty("ConstraintEffects", out var constraintsElement))
+        {
+            foreach (var constraintElement in constraintsElement.EnumerateArray())
+            {
+                if (Enum.TryParse<ObligationEffect>(constraintElement.GetString(), out var effect))
+                    obligation.ConstraintEffects.Add(effect);
+            }
+        }
+
+        return obligation;
     }
 }

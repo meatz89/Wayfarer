@@ -76,6 +76,15 @@ public class Player
     public Letter[] LetterQueue { get; private set; } = new Letter[8];
     public Dictionary<ConnectionType, int> ConnectionTokens { get; private set; } = new Dictionary<ConnectionType, int>();
     public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
+    
+    // Queue manipulation tracking
+    public int LastMorningSwapDay { get; set; } = -1; // Track when morning swap was last used
+    
+    // Letter history tracking
+    public Dictionary<string, LetterHistory> NPCLetterHistory { get; private set; } = new Dictionary<string, LetterHistory>();
+    
+    // Standing Obligations System
+    public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
     public void AddGoal(Goal goal)
     {

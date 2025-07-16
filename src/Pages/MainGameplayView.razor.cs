@@ -187,6 +187,12 @@ public class MainGameplayViewBase : ComponentBase
         StateHasChanged();
     }
 
+    public void SwitchToRelationshipScreen()
+    {
+        CurrentScreen = CurrentViews.RelationshipScreen;
+        StateHasChanged();
+    }
+
     public async Task HandleTravelRoute(RouteOption route)
     {
         await GameManager.Travel(route);

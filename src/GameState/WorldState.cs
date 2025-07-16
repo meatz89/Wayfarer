@@ -9,6 +9,7 @@ public class WorldState
     public List<ActionDefinition> actions { get; set; } = new();
     public List<NPC> NPCs { get; set; } = new();
     public List<LetterTemplate> LetterTemplates { get; set; } = new();
+    public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
     public List<string> CompletedEncounters { get; } = new List<string>();

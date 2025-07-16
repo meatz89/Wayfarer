@@ -167,6 +167,7 @@ public static class TestServiceConfiguration
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<RouteRepository>();
+        services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<LetterTemplateRepository>();
 
 
@@ -193,12 +194,15 @@ public static class TestServiceConfiguration
         services.AddSingleton<TransportCompatibilityValidator>();
         
         // Letter Queue System (same as production)
+        services.AddSingleton<StandingObligationManager>();
         services.AddSingleton<LetterQueueManager>(serviceProvider =>
         {
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
             var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
-            return new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository);
+            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
+            var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
+            return new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager);
         });
         services.AddSingleton<ConnectionTokenManager>();
 
