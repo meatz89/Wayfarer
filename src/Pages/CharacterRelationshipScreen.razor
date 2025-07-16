@@ -1,0 +1,405 @@
+@page "/relationships"
+@using Wayfarer.GameState
+@using Wayfarer.Game.MainSystem
+@using Wayfarer.Content
+
+@inject GameWorld GameWorld
+@inject NPCRepository NPCRepository
+@inject ConnectionTokenManager TokenManager
+@inject LocationRepository LocationRepository
+
+<div class="character-relationship-container">
+    <h2>Character Relationships</h2>
+    
+    <div class="relationship-summary">
+        <p>Total Relationships: @knownNPCs.Count</p>
+        <p>Relationships in Debt: @GetDebtRelationshipCount()</p>
+    </div>
+    
+    <div class="npc-relationship-grid">
+        @foreach (var npc in knownNPCs)
+        {
+            <div class="npc-relationship-card @GetRelationshipStatusClass(npc.ID)">
+                <div class="npc-header">
+                    <h3>@npc.Name</h3>
+                    <span class="npc-profession">@npc.Profession.ToString().Replace("_", " ")</span>
+                </div>
+                
+                <div class="token-display">
+                    <h4>Connection Tokens</h4>
+                    <div class="token-list">
+                        @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+                        {
+                            var tokenCount = GetNPCTokenCount(npc.ID, tokenType);
+                            if (tokenCount != 0)
+                            {
+                                <div class="token-item @(tokenCount < 0 ? "debt" : "positive")">
+                                    <span class="token-icon">@GetTokenIcon(tokenType)</span>
+                                    <span class="token-type">@tokenType</span>
+                                    <span class="token-count">@tokenCount</span>
+                                </div>
+                            }
+                        }
+                        @if (!HasAnyTokens(npc.ID))
+                        {
+                            <div class="no-tokens">No connection established</div>
+                        }
+                    </div>
+                </div>
+                
+                <div class="npc-location">
+                    <h4>Location</h4>
+                    <div class="location-info">
+                        @if (GetNPCLocation(npc) != null)
+                        {
+                            <span class="location-name">@GetNPCLocation(npc).Name</span>
+                            @if (IsPlayerAtSameLocation(npc))
+                            {
+                                <span class="same-location">✓ You are here</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="unknown-location">Location unknown</span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="npc-availability">
+                    <h4>Availability</h4>
+                    <div class="availability-info">
+                        <span class="schedule">@GetScheduleDescription(npc.AvailabilitySchedule)</span>
+                        @if (IsNPCCurrentlyAvailable(npc))
+                        {
+                            <span class="available-now">✓ Available now</span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="letter-history">
+                    <h4>Letter History</h4>
+                    <div class="history-stats">
+                        <span class="delivered">Delivered: @GetDeliveredLetterCount(npc.ID)</span>
+                        <span class="skipped">Skipped: @GetSkippedLetterCount(npc.ID)</span>
+                        <span class="expired">Expired: @GetExpiredLetterCount(npc.ID)</span>
+                    </div>
+                </div>
+                
+                <div class="relationship-status">
+                    <div class="status-indicator @GetRelationshipStatusClass(npc.ID)">
+                        @GetRelationshipStatusText(npc.ID)
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<NPC> knownNPCs = new List<NPC>();
+    
+    protected override void OnInitialized()
+    {
+        // Get all NPCs that the player has interacted with
+        // For now, get all NPCs in the game (in full implementation, would track "known" NPCs)
+        knownNPCs = NPCRepository.GetAllNPCs()
+            .Where(npc => !string.IsNullOrEmpty(npc.ID))
+            .OrderBy(npc => npc.Name)
+            .ToList();
+    }
+    
+    private int GetNPCTokenCount(string npcId, ConnectionType tokenType)
+    {
+        var npcTokens = TokenManager.GetTokensWithNPC(npcId);
+        return npcTokens.GetValueOrDefault(tokenType, 0);
+    }
+    
+    private bool HasAnyTokens(string npcId)
+    {
+        var npcTokens = TokenManager.GetTokensWithNPC(npcId);
+        return npcTokens.Any(kvp => kvp.Value != 0);
+    }
+    
+    private int GetDebtRelationshipCount()
+    {
+        return knownNPCs.Count(npc => 
+        {
+            var tokens = TokenManager.GetTokensWithNPC(npc.ID);
+            return tokens.Any(kvp => kvp.Value < 0);
+        });
+    }
+    
+    private string GetTokenIcon(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Trade => "🪙",
+            ConnectionType.Noble => "👑",
+            ConnectionType.Common => "🍺",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+    
+    private Location GetNPCLocation(NPC npc)
+    {
+        // NPCs have a Location property
+        if (!string.IsNullOrEmpty(npc.Location))
+        {
+            return LocationRepository.GetLocation(npc.Location);
+        }
+        return null;
+    }
+    
+    private bool IsPlayerAtSameLocation(NPC npc)
+    {
+        var player = GameWorld.GetPlayer();
+        return player.CurrentLocation?.Id == npc.Location;
+    }
+    
+    private string GetScheduleDescription(Schedule schedule)
+    {
+        return schedule.ToString().Replace("_", " ");
+    }
+    
+    private bool IsNPCCurrentlyAvailable(NPC npc)
+    {
+        var currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        return npc.IsAvailable(currentTime);
+    }
+    
+    // Letter history methods
+    private int GetDeliveredLetterCount(string npcId)
+    {
+        var player = GameWorld.GetPlayer();
+        if (player.NPCLetterHistory.ContainsKey(npcId))
+        {
+            return player.NPCLetterHistory[npcId].DeliveredCount;
+        }
+        return 0;
+    }
+    
+    private int GetSkippedLetterCount(string npcId)
+    {
+        var player = GameWorld.GetPlayer();
+        if (player.NPCLetterHistory.ContainsKey(npcId))
+        {
+            return player.NPCLetterHistory[npcId].SkippedCount;
+        }
+        return 0;
+    }
+    
+    private int GetExpiredLetterCount(string npcId)
+    {
+        var player = GameWorld.GetPlayer();
+        if (player.NPCLetterHistory.ContainsKey(npcId))
+        {
+            return player.NPCLetterHistory[npcId].ExpiredCount;
+        }
+        return 0;
+    }
+    
+    private string GetRelationshipStatusClass(string npcId)
+    {
+        var tokens = TokenManager.GetTokensWithNPC(npcId);
+        var totalTokens = tokens.Sum(kvp => kvp.Value);
+        
+        if (tokens.Any(kvp => kvp.Value < 0))
+            return "relationship-debt";
+        else if (totalTokens >= 5)
+            return "relationship-strong";
+        else if (totalTokens > 0)
+            return "relationship-positive";
+        else
+            return "relationship-neutral";
+    }
+    
+    private string GetRelationshipStatusText(string npcId)
+    {
+        var tokens = TokenManager.GetTokensWithNPC(npcId);
+        var totalTokens = tokens.Sum(kvp => kvp.Value);
+        
+        if (tokens.Any(kvp => kvp.Value < 0))
+            return "In Debt";
+        else if (totalTokens >= 5)
+            return "Strong Bond";
+        else if (totalTokens > 0)
+            return "Friendly";
+        else
+            return "Neutral";
+    }
+}
+
+<style>
+    .character-relationship-container {
+        padding: 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .relationship-summary {
+        background: var(--surface-color, #f5f5f5);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 2rem;
+    }
+    
+    .npc-relationship-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .npc-relationship-card {
+        background: white;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .npc-relationship-card.relationship-debt {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+    }
+    
+    .npc-relationship-card.relationship-strong {
+        border-color: #28a745;
+        background-color: #f5fff5;
+    }
+    
+    .npc-relationship-card.relationship-positive {
+        border-color: #17a2b8;
+    }
+    
+    .npc-header {
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5rem;
+    }
+    
+    .npc-header h3 {
+        margin: 0;
+        color: #333;
+    }
+    
+    .npc-profession {
+        font-size: 0.875rem;
+        color: #666;
+        font-style: italic;
+    }
+    
+    .token-display h4,
+    .npc-location h4,
+    .npc-availability h4,
+    .letter-history h4 {
+        font-size: 0.875rem;
+        margin: 0.5rem 0 0.25rem;
+        color: #555;
+    }
+    
+    .token-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .token-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        background: #f0f0f0;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+    
+    .token-item.debt {
+        background: #ffdddd;
+        color: #cc0000;
+    }
+    
+    .token-item.positive {
+        background: #ddffdd;
+        color: #008800;
+    }
+    
+    .token-icon {
+        font-size: 1.125rem;
+    }
+    
+    .no-tokens {
+        font-size: 0.875rem;
+        color: #999;
+        font-style: italic;
+    }
+    
+    .location-info,
+    .availability-info {
+        font-size: 0.875rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .same-location,
+    .available-now {
+        color: #28a745;
+        font-weight: bold;
+        margin-left: 0.5rem;
+    }
+    
+    .history-stats {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.875rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .delivered {
+        color: #28a745;
+    }
+    
+    .skipped {
+        color: #ffc107;
+    }
+    
+    .expired {
+        color: #dc3545;
+    }
+    
+    .relationship-status {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #eee;
+    }
+    
+    .status-indicator {
+        font-weight: bold;
+        text-align: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    
+    .status-indicator.relationship-debt {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .status-indicator.relationship-strong {
+        background: #28a745;
+        color: white;
+    }
+    
+    .status-indicator.relationship-positive {
+        background: #17a2b8;
+        color: white;
+    }
+    
+    .status-indicator.relationship-neutral {
+        background: #6c757d;
+        color: white;
+    }
+</style>

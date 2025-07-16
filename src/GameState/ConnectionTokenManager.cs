@@ -97,5 +97,31 @@ namespace Wayfarer.GameState
             if (totalTokens >= 3) return 7;  // Moderate connection
             return 8;                        // Default position
         }
+        
+        // Remove tokens from NPC relationship (for expired letters)
+        public void RemoveTokensFromNPC(ConnectionType type, int count, string npcId)
+        {
+            if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
+            
+            var player = _gameWorld.GetPlayer();
+            var npcTokens = player.NPCTokens;
+            
+            // Ensure NPC token dictionary exists
+            if (!npcTokens.ContainsKey(npcId))
+            {
+                npcTokens[npcId] = new Dictionary<ConnectionType, int>();
+                foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+                {
+                    npcTokens[npcId][tokenType] = 0;
+                }
+            }
+            
+            // Remove tokens from NPC relationship (can go negative)
+            npcTokens[npcId][type] -= count;
+            
+            // Also remove from player's total tokens (but don't go below 0)
+            var playerTokens = player.ConnectionTokens;
+            playerTokens[type] = Math.Max(0, playerTokens.GetValueOrDefault(type) - count);
+        }
     }
 }
