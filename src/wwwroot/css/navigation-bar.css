@@ -1,0 +1,128 @@
+/* Navigation Bar Styles */
+.navigation-bar {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-primary);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-family: var(--font-body);
+}
+
+.nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-section h3 {
+    font-family: var(--font-header);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+    padding: 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.nav-button {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem 1rem;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 120px;
+}
+
+.nav-button:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--accent-primary);
+    transform: translateY(-1px);
+}
+
+.nav-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.nav-button.active {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border-color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.nav-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.nav-icon {
+    font-size: 1.125rem;
+}
+
+/* Primary navigation (Letter Management) */
+.nav-primary .nav-button {
+    border-color: var(--accent-primary);
+}
+
+.nav-primary .nav-button:hover:not(:disabled) {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+}
+
+/* Back button styling */
+.nav-control {
+    margin-left: auto;
+}
+
+.nav-back {
+    background: var(--bg-tertiary);
+    border-color: var(--text-secondary);
+}
+
+.nav-back:hover:not(:disabled) {
+    background: var(--text-secondary);
+    color: var(--bg-primary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .navigation-bar {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-section {
+        width: 100%;
+    }
+    
+    .nav-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Animation for navigation transitions */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.navigation-bar {
+    animation: slideIn 0.3s ease-out;
+}

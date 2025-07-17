@@ -3,6 +3,7 @@ using Wayfarer.Game.MainSystem;
 using Wayfarer.GameState;
 using Wayfarer.UIHelpers;
 using Wayfarer.Content;
+using Wayfarer.Services;
 
 public static class ServiceConfiguration
 {
@@ -123,6 +124,9 @@ public static class ServiceConfiguration
         // UI Razor Services
         services.AddSingleton<CardSelectionService>();
         services.AddSingleton<CardHighlightService>();
+        
+        // Navigation Service
+        services.AddSingleton<NavigationService>();
 
         services.AddAIServices();
 

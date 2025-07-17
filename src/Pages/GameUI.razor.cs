@@ -1,15 +1,17 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Wayfarer.UIHelpers;
+using Wayfarer.Services;
 
 namespace Wayfarer.Pages;
 
-public class GameUIBase : ComponentBase
+public class GameUIBase : ComponentBase, IDisposable
 {
     [Inject] public ContentValidator ContentValidator { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] public NavigationService NavigationService { get; set; }
 
-    public CurrentViews CurrentScreen { get; set; } = CurrentViews.CharacterScreen;
+    public CurrentViews CurrentScreen => NavigationService.CurrentView;
 
     public Player PlayerState
     {
@@ -28,7 +30,7 @@ public class GameUIBase : ComponentBase
 
         if (missingReferences)
         {
-            CurrentScreen = CurrentViews.MissingReferences;
+            NavigationService.NavigateTo(CurrentViews.MissingReferences);
         }
         else if (!PlayerState.IsInitialized)
         {
@@ -36,8 +38,21 @@ public class GameUIBase : ComponentBase
         }
         else
         {
-            CurrentScreen = CurrentViews.LocationScreen;
+            NavigationService.NavigateTo(NavigationService.GetDefaultView());
         }
+        
+        // Subscribe to navigation changes
+        NavigationService.OnNavigationChanged += OnNavigationChanged;
+    }
+    
+    private void OnNavigationChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        NavigationService.OnNavigationChanged -= OnNavigationChanged;
     }
 
     public async Task ResolvedMissingReferences()
@@ -48,21 +63,19 @@ public class GameUIBase : ComponentBase
         }
         else
         {
-            CurrentScreen = CurrentViews.LocationScreen;
-            StateHasChanged();
+            NavigationService.NavigateTo(NavigationService.GetDefaultView());
         }
     }
 
     public async Task InitializeGame()
     {
-        CurrentScreen = CurrentViews.CharacterScreen;
-        StateHasChanged();
+        NavigationService.NavigateTo(CurrentViews.CharacterScreen);
     }
 
     public async Task HandleCharacterCreated(Player player)
     {
-        CurrentScreen = CurrentViews.LocationScreen;
         await GameWorldManager.StartGame();
-        StateHasChanged();
+        // Navigate to Letter Queue Screen as the primary gameplay screen
+        NavigationService.NavigateTo(CurrentViews.LetterQueueScreen);
     }
 }

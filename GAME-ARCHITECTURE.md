@@ -82,6 +82,104 @@ JSON Files → GameWorldSerializer → GameWorldInitializer → GameWorld → Re
 - `routes.json` - Travel routes with unlock conditions
 - `locations.json` - Game locations with access requirements
 
+## NAVIGATION ARCHITECTURE
+
+### Game Flow
+```
+App Start → Content Validation → Character Selection → Game Start → Letter Queue (Primary Screen)
+```
+
+### Three-Tier Navigation Structure
+
+#### Tier 1: Game Entry (GameUI.razor)
+- **MissingReferences** - Only shown if content validation fails
+- **CharacterCreation** - For new players or starting new game
+- **MainGameplayView** - Core game container (hosts all gameplay screens)
+
+#### Tier 2: Primary Navigation Hub
+**Letter Queue Screen** serves as the central hub with three main contexts:
+
+1. **Queue Management** (Primary Context)
+   - Letter Queue Display (8-slot priority queue)
+   - Queue Actions (swap, purge, priority, extend)
+   - Active Obligations Summary
+
+2. **Location Activities** (Secondary Context)
+   - Current Location Display
+   - Travel Planning
+   - Market/Trading
+   - Rest/Recovery
+   - Letter Board (Dawn only)
+
+3. **Character Management** (Tertiary Context)
+   - Character Status
+   - Relationships (with Connection Tokens)
+   - Standing Obligations (Full View)
+
+#### Tier 3: Contextual Sub-Screens
+Each main context has related screens that are contextually accessible.
+
+### Navigation Patterns
+
+#### Primary Navigation Bar (Always Visible)
+```
+[Queue] [Location] [Character] [System]
+```
+- **Queue**: Always returns to Letter Queue (home screen)
+- **Location**: Goes to current location with activity options
+- **Character**: Opens character management hub
+- **System**: Save/Load/Settings/Exit
+
+#### Contextual Sub-Navigation
+When in a main context, show relevant sub-options:
+- **Queue Context**: No sub-nav (it's the home screen)
+- **Location Context**: [Map] [Market] [Rest] [Board*]
+- **Character Context**: [Status] [Relations] [Obligations]
+
+### Screen Accessibility Matrix
+
+| From Screen | Can Navigate To | Via |
+|-------------|----------------|-----|
+| Letter Queue | Location, Character, System | Primary Nav |
+| Location | Travel, Market, Rest, Board | Context Actions |
+| Character | Status, Relations, Obligations | Sub-Nav |
+| Any Sub-Screen | Parent Context | Back Button |
+| Any Screen | Letter Queue | Primary Nav |
+
+### Navigation Service Architecture
+
+```csharp
+public interface INavigationService
+{
+    CurrentViews CurrentScreen { get; }
+    Stack<CurrentViews> NavigationHistory { get; }
+    
+    void NavigateTo(CurrentViews screen);
+    void NavigateBack();
+    bool CanNavigateBack();
+    
+    // Context awareness
+    NavigationContext GetCurrentContext();
+    List<CurrentViews> GetContextualScreens();
+}
+
+public enum NavigationContext
+{
+    Queue,      // Letter Queue management
+    Location,   // Location-based activities
+    Character,  // Character management
+    System      // System/meta functions
+}
+```
+
+### Key Navigation Principles
+
+1. **Letter Queue Centricity**: Queue is always one click away from any screen
+2. **Context Preservation**: Navigation maintains context (e.g., selected NPC when moving between relationship screens)
+3. **Minimal Depth**: No screen is more than 2 clicks from the queue
+4. **Visual Hierarchy**: Primary nav > Context nav > Screen actions
+5. **Click-based Navigation**: All navigation through buttons and UI elements
+
 ## TESTING ARCHITECTURE
 
 ### Test Isolation
