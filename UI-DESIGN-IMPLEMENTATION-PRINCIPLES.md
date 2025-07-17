@@ -234,6 +234,53 @@ Before using ANY CSS class in HTML/Razor components, you MUST:
 
 **VIOLATION IS CRITICAL** - Using undefined CSS classes creates broken layouts and "fucking mess" UIs. Always validate CSS existence before HTML implementation.
 
+## Critical UI Layout Learnings
+
+### **LEARNED: Connection Token Misplacement**
+**Problem**: Connection tokens were displayed on the Letter Queue screen where they don't belong conceptually.
+**Solution**: Connection tokens belong to NPC relationships, not the letter queue. Move token display to Character Relationship Screen only.
+**Principle**: **Information Architecture Belongs to Context** - Display data where it's conceptually relevant, not where it's convenient.
+
+### **LEARNED: Navigation Consistency Violation**
+**Problem**: Letter Queue screen had no navigation back to main menu, violating navigation pattern used elsewhere.
+**Solution**: All screens must have consistent navigation - main navigation in MainGameplayView.razor, back buttons on individual screens.
+**Principle**: **Navigation Patterns Must Be Consistent** - Every screen needs a way back to the main interface.
+
+### **LEARNED: Text Readability in Constrained Layouts**
+**Problem**: Letter card text was cut off and unreadable due to height constraints and poor flex layout.
+**Solution**: Use `justify-content: flex-start` instead of `space-between`, increase min-height, add proper line-height and word-wrapping.
+**Principle**: **Readability Trumps Aesthetic Layout** - Text must be fully readable even if it makes cards slightly larger.
+
+### **LEARNED: Action UI Grouping and Spatial Efficiency**
+**Problem**: Queue management actions were in separate containers taking up too much vertical space.
+**Solution**: Use grid layout to group related actions horizontally, compact button text, use consistent small button sizes.
+**Principle**: **Group Related Actions Spatially** - Actions that serve the same purpose should be visually grouped and use space efficiently.
+
+### **REQUIRED Navigation Pattern**
+```razor
+<!-- Main Screen: MainGameplayView.razor -->
+case CurrentViews.SpecificScreen:
+    <div class="location-container">
+        <div class="location-header">
+            <h2 class="location-title">Screen Name</h2>
+            <div class="location-actions">
+                <button class="nav-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                    Back to Location
+                </button>
+            </div>
+        </div>
+    </div>
+    <SpecificScreenComponent />
+    break;
+```
+
+### **FORBIDDEN UI Patterns Based on User Feedback**
+- ❌ **Information in Wrong Context** - Don't show relationship data on task screens
+- ❌ **Inconsistent Navigation** - Every screen must have clear navigation back
+- ❌ **Unreadable Text Due to Layout** - Never sacrifice text readability for visual layout
+- ❌ **Vertically Stacked Actions** - Group related actions horizontally when possible
+- ❌ **Phantom CSS Variables** - Using undefined CSS variables breaks layouts completely
+
 ### CSS Architecture Principles
 
 - ✅ **SEPARATE CSS FILES** - All CSS must be in dedicated .css files, never inline in Razor components
