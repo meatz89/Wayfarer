@@ -11,21 +11,6 @@
 <div class="letter-queue-container">
     <h3>Letter Queue</h3>
     
-    @* Token Display *@
-    <div class="token-display">
-        <h4>Connection Tokens</h4>
-        <div class="token-list">
-            @foreach (var tokenType in Enum.GetValues<ConnectionType>())
-            {
-                var count = TokenManager.GetTokenCount(tokenType);
-                <div class="token-item">
-                    <span class="token-icon">@GetTokenIcon(tokenType)</span>
-                    <span class="token-type">@tokenType</span>
-                    <span class="token-count">@count</span>
-                </div>
-            }
-        </div>
-    </div>
     
     @* Letter Queue Display *@
     <div class="letter-queue">
@@ -110,115 +95,92 @@
         }
     </div>
     
-    @* Queue Manipulation Actions *@
+    @* Queue Management Actions *@
     <div class="queue-actions">
-        <h4>Queue Management</h4>
+        <h4>Queue Actions</h4>
         
-        @* Morning Swap (only available at dawn) *@
-        @if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
-        {
-            <div class="action-section">
-                <button class="btn btn-info" @onclick="ShowMorningSwap" disabled="@(GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay)">
-                    Morning Swap (Free)
-                    @if (GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay)
-                    {
-                        <span class="disabled-reason">- Already used today</span>
-                    }
-                </button>
-                @if (showMorningSwap)
-                {
-                    <div class="swap-controls">
-                        <label>Swap positions:</label>
-                        <input type="number" min="1" max="8" @bind="swapPos1" />
-                        <span>↔️</span>
-                        <input type="number" min="1" max="8" @bind="swapPos2" />
-                        <button class="btn btn-sm btn-primary" @onclick="PerformMorningSwap">Swap</button>
-                        <button class="btn btn-sm btn-secondary" @onclick="() => showMorningSwap = false">Cancel</button>
-                    </div>
-                }
-            </div>
-        }
-        
-        @* Purge Bottom Letter *@
-        @if (LetterQueueManager.GetLetterAt(8) != null)
-        {
-            <div class="action-section">
-                <button class="btn btn-danger" @onclick="ShowPurgeOptions">
-                    Purge Bottom Letter (3 any tokens)
-                </button>
-                @if (showPurgeOptions)
-                {
-                    <div class="purge-controls">
-                        <p>Select 3 tokens to spend:</p>
-                        @foreach (var tokenType in Enum.GetValues<ConnectionType>())
-                        {
-                            var available = TokenManager.GetTokenCount(tokenType);
-                            if (available > 0)
-                            {
-                                <div class="token-selector">
-                                    <span>@GetTokenIcon(tokenType) @tokenType:</span>
-                                    <input type="number" min="0" max="@available" value="@GetPurgeTokenCount(tokenType)" 
-                                           @onchange="@(e => SetPurgeTokenCount(tokenType, int.Parse(e.Value?.ToString() ?? "0")))" />
-                                    <span>(Have @available)</span>
-                                </div>
-                            }
-                        }
-                        <button class="btn btn-sm btn-primary" @onclick="PerformPurge" disabled="@(GetTotalPurgeTokens() != 3)">
-                            Purge (@GetTotalPurgeTokens()/3 selected)
-                        </button>
-                        <button class="btn btn-sm btn-secondary" @onclick="() => { showPurgeOptions = false; purgeTokenSelection.Clear(); }">Cancel</button>
-                    </div>
-                }
-            </div>
-        }
-        
-        @* Priority Move *@
-        <div class="action-section">
-            <button class="btn btn-warning" @onclick="ShowPriorityOptions">
-                Priority Move (5 matching tokens)
-            </button>
-            @if (showPriorityOptions)
+        <div class="actions-grid">
+            @* Morning Swap (only available at dawn) *@
+            @if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
             {
-                <div class="priority-controls">
-                    <label>Move letter from position:</label>
-                    <input type="number" min="2" max="8" @bind="priorityFromPos" />
-                    <button class="btn btn-sm btn-primary" @onclick="PerformPriority" disabled="@(!CanPerformPriority())">
-                        Move to Position 1
+                <div class="action-group">
+                    <button class="btn btn-info btn-sm" @onclick="ShowMorningSwap" disabled="@(GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay)">
+                        Morning Swap (Free)
                     </button>
-                    <button class="btn btn-sm btn-secondary" @onclick="() => showPriorityOptions = false">Cancel</button>
-                    @if (priorityFromPos >= 2 && priorityFromPos <= 8)
+                    @if (showMorningSwap)
                     {
-                        var letter = LetterQueueManager.GetLetterAt(priorityFromPos);
-                        if (letter != null)
-                        {
-                            <p class="cost-info">Cost: 5 @GetTokenIcon(letter.TokenType) @letter.TokenType tokens (Have @TokenManager.GetTokenCount(letter.TokenType))</p>
-                        }
+                        <div class="action-controls">
+                            <input type="number" min="1" max="8" @bind="swapPos1" placeholder="From" />
+                            <span>↔️</span>
+                            <input type="number" min="1" max="8" @bind="swapPos2" placeholder="To" />
+                            <button class="btn btn-primary btn-sm" @onclick="PerformMorningSwap">Swap</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => showMorningSwap = false">×</button>
+                        </div>
                     }
                 </div>
             }
-        </div>
-        
-        @* Extend Deadline *@
-        <div class="action-section">
-            <button class="btn btn-success" @onclick="ShowExtendOptions">
-                Extend Deadline (2 matching tokens)
-            </button>
-            @if (showExtendOptions)
+            
+            @* Priority Move *@
+            <div class="action-group">
+                <button class="btn btn-warning btn-sm" @onclick="ShowPriorityOptions">
+                    Priority Move (5 tokens)
+                </button>
+                @if (showPriorityOptions)
+                {
+                    <div class="action-controls">
+                        <input type="number" min="2" max="8" @bind="priorityFromPos" placeholder="Position" />
+                        <button class="btn btn-primary btn-sm" @onclick="PerformPriority" disabled="@(!CanPerformPriority())">
+                            → Slot 1
+                        </button>
+                        <button class="btn btn-secondary btn-sm" @onclick="() => showPriorityOptions = false">×</button>
+                    </div>
+                }
+            </div>
+            
+            @* Extend Deadline *@
+            <div class="action-group">
+                <button class="btn btn-success btn-sm" @onclick="ShowExtendOptions">
+                    Extend (2 tokens)
+                </button>
+                @if (showExtendOptions)
+                {
+                    <div class="action-controls">
+                        <input type="number" min="1" max="8" @bind="extendPos" placeholder="Position" />
+                        <button class="btn btn-primary btn-sm" @onclick="PerformExtend" disabled="@(!CanPerformExtend())">
+                            +2 Days
+                        </button>
+                        <button class="btn btn-secondary btn-sm" @onclick="() => showExtendOptions = false">×</button>
+                    </div>
+                }
+            </div>
+            
+            @* Purge Bottom Letter *@
+            @if (LetterQueueManager.GetLetterAt(8) != null)
             {
-                <div class="extend-controls">
-                    <label>Extend deadline for position:</label>
-                    <input type="number" min="1" max="8" @bind="extendPos" />
-                    <button class="btn btn-sm btn-primary" @onclick="PerformExtend" disabled="@(!CanPerformExtend())">
-                        +2 Days
+                <div class="action-group">
+                    <button class="btn btn-danger btn-sm" @onclick="ShowPurgeOptions">
+                        Purge Bottom (3 tokens)
                     </button>
-                    <button class="btn btn-sm btn-secondary" @onclick="() => showExtendOptions = false">Cancel</button>
-                    @if (extendPos >= 1 && extendPos <= 8)
+                    @if (showPurgeOptions)
                     {
-                        var letter = LetterQueueManager.GetLetterAt(extendPos);
-                        if (letter != null)
-                        {
-                            <p class="cost-info">Cost: 2 @GetTokenIcon(letter.TokenType) @letter.TokenType tokens (Have @TokenManager.GetTokenCount(letter.TokenType))</p>
-                        }
+                        <div class="action-controls purge-controls">
+                            @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+                            {
+                                var available = TokenManager.GetTokenCount(tokenType);
+                                if (available > 0)
+                                {
+                                    <div class="token-input">
+                                        <span>@GetTokenIcon(tokenType)</span>
+                                        <input type="number" min="0" max="@available" value="@GetPurgeTokenCount(tokenType)" 
+                                               @onchange="@(e => SetPurgeTokenCount(tokenType, int.Parse(e.Value?.ToString() ?? "0")))" />
+                                    </div>
+                                }
+                            }
+                            <button class="btn btn-primary btn-sm" @onclick="PerformPurge" disabled="@(GetTotalPurgeTokens() != 3)">
+                                Purge
+                            </button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => { showPurgeOptions = false; purgeTokenSelection.Clear(); }">×</button>
+                        </div>
                     }
                 </div>
             }

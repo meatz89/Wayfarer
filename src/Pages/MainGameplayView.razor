@@ -52,6 +52,16 @@
         @switch (CurrentScreen)
         {
             case CurrentViews.LetterQueueScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Letter Queue</h2>
+                        <div class="location-actions">
+                            <button class="nav-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                Back to Location
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <LetterQueueDisplay />
                 break;
 
