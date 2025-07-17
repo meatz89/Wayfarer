@@ -2,6 +2,8 @@
 
 public enum CurrentViews
 {
+    // Letter Queue Screen should be the PRIMARY interface
+    LetterQueueScreen,
     LocationScreen,
     MapScreen,
     EncounterScreen,
@@ -16,5 +18,9 @@ public enum CurrentViews
     // Player status screen
     PlayerStatusScreen,
     // Character relationship screen
-    RelationshipScreen
+    RelationshipScreen,
+    // Standing obligations screen
+    ObligationsScreen,
+    // Letter board screen
+    LetterBoardScreen
 }

@@ -1,12 +1,11 @@
 @page "/relationships"
 @using Wayfarer.GameState
-@using Wayfarer.Game.MainSystem
 @using Wayfarer.Content
+@using Wayfarer.UIHelpers
 
-@inject GameWorld GameWorld
-@inject NPCRepository NPCRepository
+@inherits MainGameplayViewBase
+
 @inject ConnectionTokenManager TokenManager
-@inject LocationRepository LocationRepository
 
 <div class="character-relationship-container">
     <h2>Character Relationships</h2>
@@ -85,6 +84,25 @@
                     </div>
                 </div>
                 
+                @* Current Letters in Queue *@
+                @{
+                    var currentLetters = GetNPCLettersInQueue(npc.Name);
+                    if (currentLetters.Any())
+                    {
+                        <div class="current-letters">
+                            <h4>In Queue</h4>
+                            @foreach (var letter in currentLetters)
+                            {
+                                <div class="queue-letter">
+                                    <span class="position">[Pos @letter.QueuePosition]</span>
+                                    <span class="route">@(letter.SenderName == npc.Name ? $"→ {letter.RecipientName}" : $"← {letter.SenderName}")</span>
+                                    <span class="deadline @(letter.Deadline <= 1 ? "urgent" : "")">@letter.Deadline days</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                
                 <div class="relationship-status">
                     <div class="status-indicator @GetRelationshipStatusClass(npc.ID)">
                         @GetRelationshipStatusText(npc.ID)
@@ -92,6 +110,11 @@
                 </div>
             </div>
         }
+    </div>
+    
+    @* Back Button *@
+    <div class="navigation-buttons">
+        <button class="btn btn-secondary" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">Back to Main</button>
     </div>
 </div>
 
@@ -229,177 +252,12 @@
         else
             return "Neutral";
     }
+    
+    private List<Letter> GetNPCLettersInQueue(string npcName)
+    {
+        var queue = LetterQueueManager.GetPlayerQueue();
+        return queue.Where(l => l != null && (l.SenderName == npcName || l.RecipientName == npcName))
+                   .OrderBy(l => l.QueuePosition)
+                   .ToList();
+    }
 }
-
-<style>
-    .character-relationship-container {
-        padding: 1rem;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
-    .relationship-summary {
-        background: var(--surface-color, #f5f5f5);
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        gap: 2rem;
-    }
-    
-    .npc-relationship-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.5rem;
-    }
-    
-    .npc-relationship-card {
-        background: white;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        padding: 1rem;
-        transition: all 0.3s ease;
-    }
-    
-    .npc-relationship-card.relationship-debt {
-        border-color: #dc3545;
-        background-color: #fff5f5;
-    }
-    
-    .npc-relationship-card.relationship-strong {
-        border-color: #28a745;
-        background-color: #f5fff5;
-    }
-    
-    .npc-relationship-card.relationship-positive {
-        border-color: #17a2b8;
-    }
-    
-    .npc-header {
-        margin-bottom: 1rem;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 0.5rem;
-    }
-    
-    .npc-header h3 {
-        margin: 0;
-        color: #333;
-    }
-    
-    .npc-profession {
-        font-size: 0.875rem;
-        color: #666;
-        font-style: italic;
-    }
-    
-    .token-display h4,
-    .npc-location h4,
-    .npc-availability h4,
-    .letter-history h4 {
-        font-size: 0.875rem;
-        margin: 0.5rem 0 0.25rem;
-        color: #555;
-    }
-    
-    .token-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .token-item {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.25rem 0.5rem;
-        background: #f0f0f0;
-        border-radius: 4px;
-        font-size: 0.875rem;
-    }
-    
-    .token-item.debt {
-        background: #ffdddd;
-        color: #cc0000;
-    }
-    
-    .token-item.positive {
-        background: #ddffdd;
-        color: #008800;
-    }
-    
-    .token-icon {
-        font-size: 1.125rem;
-    }
-    
-    .no-tokens {
-        font-size: 0.875rem;
-        color: #999;
-        font-style: italic;
-    }
-    
-    .location-info,
-    .availability-info {
-        font-size: 0.875rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .same-location,
-    .available-now {
-        color: #28a745;
-        font-weight: bold;
-        margin-left: 0.5rem;
-    }
-    
-    .history-stats {
-        display: flex;
-        gap: 1rem;
-        font-size: 0.875rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .delivered {
-        color: #28a745;
-    }
-    
-    .skipped {
-        color: #ffc107;
-    }
-    
-    .expired {
-        color: #dc3545;
-    }
-    
-    .relationship-status {
-        margin-top: 0.5rem;
-        padding-top: 0.5rem;
-        border-top: 1px solid #eee;
-    }
-    
-    .status-indicator {
-        font-weight: bold;
-        text-align: center;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-    }
-    
-    .status-indicator.relationship-debt {
-        background: #dc3545;
-        color: white;
-    }
-    
-    .status-indicator.relationship-strong {
-        background: #28a745;
-        color: white;
-    }
-    
-    .status-indicator.relationship-positive {
-        background: #17a2b8;
-        color: white;
-    }
-    
-    .status-indicator.relationship-neutral {
-        background: #6c757d;
-        color: white;
-    }
-</style>

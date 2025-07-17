@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Wayfarer.GameState;
+using Wayfarer.Content;
 
 namespace Wayfarer.GameState
 {
@@ -8,11 +9,13 @@ namespace Wayfarer.GameState
     {
         private readonly GameWorld _gameWorld;
         private readonly MessageSystem _messageSystem;
+        private readonly LetterTemplateRepository _letterTemplateRepository;
         
-        public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem)
+        public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, LetterTemplateRepository letterTemplateRepository)
         {
             _gameWorld = gameWorld;
             _messageSystem = messageSystem;
+            _letterTemplateRepository = letterTemplateRepository;
         }
         
         // Get all active obligations for the player
@@ -118,6 +121,96 @@ namespace Wayfarer.GameState
                 .ToList();
         }
         
+        // Process daily obligations and return any forced letters generated
+        public List<Letter> ProcessDailyObligations(int currentDay)
+        {
+            var forcedLetters = new List<Letter>();
+            var obligationsNeedingLetters = GetObligationsRequiringForcedLetters();
+            
+            foreach (var obligation in obligationsNeedingLetters)
+            {
+                var letter = GenerateForcedLetter(obligation);
+                if (letter != null)
+                {
+                    forcedLetters.Add(letter);
+                    obligation.RecordForcedLetterGenerated();
+                    
+                    _messageSystem.AddSystemMessage(
+                        $"Forced letter generated from {obligation.Name}: {letter.SenderName} → {letter.RecipientName}",
+                        SystemMessageTypes.Info
+                    );
+                }
+            }
+            
+            return forcedLetters;
+        }
+        
+        // Generate a forced letter for a specific obligation
+        public Letter GenerateForcedLetter(StandingObligation obligation)
+        {
+            if (obligation.HasEffect(ObligationEffect.ShadowForced))
+            {
+                return GenerateShadowForcedLetter();
+            }
+            
+            if (obligation.HasEffect(ObligationEffect.PatronMonthly))
+            {
+                return GeneratePatronMonthlyLetter();
+            }
+            
+            return null;
+        }
+        
+        // Generate shadow obligation forced letter using templates
+        private Letter GenerateShadowForcedLetter()
+        {
+            var template = _letterTemplateRepository.GetRandomForcedShadowTemplate();
+            if (template != null)
+            {
+                return _letterTemplateRepository.GenerateForcedLetterFromTemplate(template);
+            }
+            
+            // Fallback to hardcoded generation if no templates available
+            var shadowSenders = new[] { "The Fence", "Midnight Contact", "Shadow Broker", "Anonymous Source" };
+            var shadowRecipients = new[] { "Dead Drop", "Safe House", "Underground Contact", "Hidden Ally" };
+            var random = new Random();
+            
+            return new Letter
+            {
+                SenderName = shadowSenders[random.Next(shadowSenders.Length)],
+                RecipientName = shadowRecipients[random.Next(shadowRecipients.Length)],
+                TokenType = ConnectionType.Shadow,
+                Payment = random.Next(20, 40), // High base payment for dangerous work
+                Deadline = random.Next(1, 4), // Urgent deadlines
+                IsGenerated = true,
+                GenerationReason = "Shadow Obligation Forced (Fallback)"
+            };
+        }
+        
+        // Generate patron monthly resource letter using templates
+        private Letter GeneratePatronMonthlyLetter()
+        {
+            var template = _letterTemplateRepository.GetRandomForcedPatronTemplate();
+            if (template != null)
+            {
+                return _letterTemplateRepository.GenerateForcedLetterFromTemplate(template);
+            }
+            
+            // Fallback to hardcoded generation if no templates available
+            var random = new Random();
+            
+            return new Letter
+            {
+                SenderName = "Your Patron",
+                RecipientName = "Resources Contact",
+                TokenType = ConnectionType.Noble, // Patron letters usually noble
+                Payment = random.Next(50, 100), // Large resource package
+                Deadline = random.Next(3, 7), // Reasonable deadline
+                IsGenerated = true,
+                GenerationReason = "Patron Monthly Package (Fallback)"
+            };
+        }
+        
         // Record that forced letters were generated for obligations
         public void RecordForcedLettersGenerated(List<StandingObligation> obligations)
         {
@@ -207,23 +300,6 @@ namespace Wayfarer.GameState
             return false;
         }
         
-        // Record a constraint violation
-        public void RecordConstraintViolation(string obligationId, string violationType)
-        {
-            var obligation = GetActiveObligations().FirstOrDefault(o => o.ID == obligationId);
-            if (obligation != null)
-            {
-                obligation.RecordViolation();
-                
-                _messageSystem.AddSystemMessage(
-                    $"Constraint violated: {obligation.Name} ({violationType})",
-                    SystemMessageTypes.Warning
-                );
-                
-                // Apply immediate consequences for some violations
-                ApplyViolationConsequences(obligation, violationType);
-            }
-        }
         
         // Get obligations affecting a specific token type
         public List<StandingObligation> GetObligationsForTokenType(ConnectionType tokenType)
@@ -294,20 +370,5 @@ namespace Wayfarer.GameState
             }
         }
         
-        private void ApplyViolationConsequences(StandingObligation obligation, string violationType)
-        {
-            // Apply minor consequences for constraint violations
-            
-            if (violationType == "refused_common" && obligation.HasEffect(ObligationEffect.NoCommonRefusal))
-            {
-                var tokenManager = new ConnectionTokenManager(_gameWorld);
-                tokenManager.SpendTokens(ConnectionType.Common, 2);
-                
-                _messageSystem.AddSystemMessage(
-                    "Lost 2 Common tokens for refusing common letter",
-                    SystemMessageTypes.Warning
-                );
-            }
-        }
     }
 }

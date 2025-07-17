@@ -1,6 +1,10 @@
 @using Wayfarer.UIHelpers
+@using Wayfarer.Content
+@using Wayfarer.GameState
 
 @inherits MainGameplayViewBase
+@inject LetterTemplateRepository LetterTemplateRepository
+@inject MorningActivitiesManager MorningManager
 
 <ObjectiveView StateVersion="@StateVersion" />
 
@@ -47,6 +51,10 @@
     <div class="main-content">
         @switch (CurrentScreen)
         {
+            case CurrentViews.LetterQueueScreen:
+                <LetterQueueDisplay />
+                break;
+
             case CurrentViews.EncounterScreen:
                 <EncounterView EncounterManager="EncounterManager"
                                OnEncounterCompleted="OnEncounterCompleted"
@@ -89,21 +97,33 @@
                     <div class="location-header">
                         <h2 class="location-title">@GetCurrentLocation()?.Name</h2>
                         <div class="location-actions">
-                            <button class="location-button" @onclick="SwitchToTravelScreen">
-                                Travel 🗺️
+                            <button class="nav-button" @onclick="() => CurrentScreen = CurrentViews.LetterQueueScreen">
+                                Queue
                             </button>
-                            <button class="location-button" @onclick="SwitchToMarketScreen">
-                                Market 💰
+                            <button class="nav-button" @onclick="SwitchToTravelScreen">
+                                Travel
                             </button>
-                            <button class="location-button" @onclick="SwitchToRestScreen">
-                                Rest 🛏️
+                            <button class="nav-button" @onclick="SwitchToMarketScreen">
+                                Market
                             </button>
-                            <button class="location-button" @onclick="SwitchToPlayerStatusScreen">
-                                Character 👤
+                            <button class="nav-button" @onclick="SwitchToRestScreen">
+                                Rest
                             </button>
-                            <button class="location-button" @onclick="SwitchToRelationshipScreen">
-                                Relationships 🤝
+                            <button class="nav-button" @onclick="SwitchToPlayerStatusScreen">
+                                Character
                             </button>
+                            <button class="nav-button" @onclick="SwitchToRelationshipScreen">
+                                Relations
+                            </button>
+                            <button class="nav-button" @onclick="SwitchToObligationsScreen">
+                                Obligations
+                            </button>
+                            @if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+                            {
+                                <button class="nav-button dawn-only" @onclick="SwitchToLetterBoardScreen">
+                                    Board
+                                </button>
+                            }
                         </div>
                     </div>
 
@@ -198,13 +218,45 @@
                         </div>
                     }
 
-                    @* Letter Queue Display - Minimal POC *@
-                    <LetterQueueDisplay />
+                    @* NPCs with Direct Letter Offers *@
+                    @{
+                        var currentNPCs = NPCRepository.GetNPCsForLocationAndTime(GetCurrentLocation().Id, CurrentTime);
+                        var npcsWithOffers = currentNPCs.Where(npc => ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID)).ToList();
+                        
+                        if (npcsWithOffers.Any())
+                        {
+                            <div class="direct-letter-offers">
+                                <h3>NPCs with Letter Offers</h3>
+                                <div class="npc-offer-list">
+                                    @foreach (var npc in npcsWithOffers)
+                                    {
+                                        <div class="npc-offer-card">
+                                            <div class="npc-name">@npc.Name</div>
+                                            <div class="npc-role">@npc.Role</div>
+                                            <button class="offer-button" @onclick="() => ShowLetterOffer(npc)">
+                                                View Letter Offer 📮
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    
 
                     <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
                                      CurrentSpot="@CurrentSpot"
                                      OnSpotSelected="@HandleSpotSelection"
                                      OnActionSelected="@HandleActionSelection" />
+                                     
+                    @* Letter Offer Dialog *@
+                    @if (ShowLetterOfferDialog && CurrentNPCOffer != null)
+                    {
+                        <LetterOfferDialog 
+                            NPC="@CurrentNPCOffer"
+                            OnAccept="@AcceptLetterOffer"
+                            OnRefuse="@RefuseLetterOffer" />
+                    }
                 </div>
                 break;
 
@@ -301,6 +353,48 @@
                     else
                     {
                         <div class="loading-message">Loading relationship data...</div>
+                    }
+                    break;
+                    
+                case CurrentViews.ObligationsScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Standing Obligations</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @if (IsGameDataReady())
+                    {
+                        <StandingObligationsScreen />
+                    }
+                    else
+                    {
+                        <div class="loading-message">Loading obligations data...</div>
+                    }
+                    break;
+                    
+                case CurrentViews.LetterBoardScreen:
+                    <div class="location-container">
+                        <div class="location-header">
+                            <h2 class="location-title">Morning Letter Board</h2>
+                            <div class="location-actions">
+                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
+                                    Back to Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @if (IsGameDataReady())
+                    {
+                        <LetterBoardScreen />
+                    }
+                    else
+                    {
+                        <div class="loading-message">Loading letter board...</div>
                     }
                     break;
         }
@@ -454,6 +548,17 @@
         </div>
     }
 </div>
+
+@* Morning Summary Dialog *@
+@if (ShowMorningSummary && MorningActivityResult != null)
+{
+    <MorningSummaryDialog 
+        ShowDialog="@ShowMorningSummary"
+        MorningResult="@MorningActivityResult"
+        CurrentDay="@GameWorld.CurrentDay"
+        OnContinue="@HandleMorningSummaryContinue"
+        HasLetterBoard="true" />
+}
 
 @if (ShowTooltip && HoveredAction != null)
 {

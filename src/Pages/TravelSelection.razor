@@ -1,8 +1,9 @@
 ﻿@inherits TravelSelectionBase
+@using Wayfarer.GameState
 
-@inject GameWorld GameWorld
 @inject GameWorldManager GameManager
 @inject TravelManager TravelManager
+@inject RouteUnlockManager RouteUnlockManager
 
 <div class="world-map-container">
     @* Context-aware travel planning status *@
@@ -67,9 +68,12 @@
                 <div class="location-routes">
                     @{
                         var availableRoutes = TravelManager.GetAvailableRoutes(CurrentLocation.Id, location.Id);
+                        var allRoutes = GetAllRoutesToLocation(location.Id);
+                        var lockedRoutes = allRoutes.Where(r => !r.IsDiscovered).ToList();
+                        var unlockedRoutes = allRoutes.Where(r => r.IsDiscovered).ToList();
                     }
                     
-                    @foreach (var route in availableRoutes)
+                    @foreach (var route in unlockedRoutes)
                     {
                         var coinCost = TravelManager.CalculateCoinCost(route);
                         var staminaCost = TravelManager.CalculateStaminaCost(route);
@@ -149,6 +153,59 @@
                                         disabled="true">
                                     @(!accessInfo.IsAllowed ? "Blocked" : "Cannot Afford")
                                 </button>
+                            }
+                        </div>
+                    }
+                    
+                    @* Locked Routes Section *@
+                    @if (lockedRoutes.Any())
+                    {
+                        <div class="route-section">
+                            <h4 class="section-header">🔒 Locked Routes</h4>
+                            @foreach (var route in lockedRoutes)
+                            {
+                                var unlockOptions = RouteUnlockManager.GetAvailableRouteUnlocks(CurrentLocation.Id)
+                                                                     .Where(u => u.RouteId == route.Id)
+                                                                     .ToList();
+                                
+                                <div class="route-option disabled">
+                                    <div class="route-header">
+                                        <div class="route-name">
+                                            🔒 @route.Name
+                                        </div>
+                                        <div class="route-costs">
+                                            <span class="cost-item">⚡ @route.BaseStaminaCost</span>
+                                            <span class="cost-item">⏱️ @route.TimeBlockCost blocks</span>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrEmpty(route.Description))
+                                    {
+                                        <div class="route-description">@route.Description</div>
+                                    }
+                                    
+                                    @if (unlockOptions.Any())
+                                    {
+                                        <div class="route-details">
+                                            @foreach (var unlock in unlockOptions)
+                                            {
+                                                <div class="equipment-required">
+                                                    Ask @unlock.UnlockingNPC.Name: @unlock.TokenCost.Amount @unlock.TokenCost.TokenType tokens
+                                                    @if (!unlock.CanAfford)
+                                                    {
+                                                        <span class="insufficient"> (Cannot afford)</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="route-blocked">
+                                            🚫 No one here knows this route
+                                        </div>
+                                    }
+                                </div>
                             }
                         </div>
                     }

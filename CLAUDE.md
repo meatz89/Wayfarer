@@ -24,6 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. ✅ **Document user feedback immediately** - Critical constraints and discoveries go in SESSION-HANDOFF.md
 5. ✅ **Keep files focused** - Each file has a specific purpose and audience
 6. ✅ **Reference related files** - Always point to where related information can be found
+7. ✅ **CONTINUALLY UPDATE DOCS** - When you learn something new that is not already documented, immediately update the relevant documentation files (IMPLEMENTATION-PLAN.md, GAME-ARCHITECTURE.md, UI-DESIGN-IMPLEMENTATION-PRINCIPLES.md, etc.) to capture the new knowledge
 
 ## PROJECT: WAYFARER - Letters and Ledgers
 
@@ -374,6 +375,9 @@ The MessageSystem is properly displayed in the UI and provides consistent feedba
 - ✅ **Essential action information** - What the player can do immediately
 - ✅ **Click-to-expand details** - Full information available when specifically requested
 
+#### **CSS ARCHITECTURE PRINCIPLES**
+See `UI-DESIGN-IMPLEMENTATION-PRINCIPLES.md` for complete CSS architecture and validation requirements.
+
 ### FRONTEND PERFORMANCE PRINCIPLES
 - **NEVER use caching in frontend components** - Components should be stateless and reactive
 - **Reduce queries by optimizing when objects actually change** - Focus on state change detection, not caching
@@ -396,6 +400,20 @@ Always distinguish between three layers:
 **Player Agency**: What choices remain available (can still trade, but will miss deadline and lose payment)
 
 **Goal**: Complex strategic experiences should arise from simple mathematical rules interacting, not from programmed restrictions. Players should always retain choice, but face natural consequences that guide rational decision-making. The game should feel designed and intentional while being mathematically inevitable.
+
+## Game Feature Simplicity Principle
+**Games are not compliance systems.** When implementing consequences or tracking player behavior:
+
+- ✅ **IMMEDIATE CONSEQUENCES** - One-time penalties that happen right when the player acts (lose tokens, miss payment)
+- ✅ **NATURAL CONSEQUENCES** - Consequences that emerge from existing systems (expired letters lose tokens)
+- ✅ **VISIBLE WARNINGS** - Show danger coming, not complex tracking after (highlight expiring letters)
+- ❌ **NO VIOLATION TRACKING** - Don't track how many times a player broke a rule
+- ❌ **NO ESCALATING PENALTIES** - Don't make consequences worse over time
+- ❌ **NO REPUTATION SYSTEMS** - Token counts ARE the reputation system
+
+**Example**: When a letter expires, the player loses 2 tokens with that NPC. That's it. No violation counter, no reputation hit, no permanent record. The lost tokens ARE the consequence, and they naturally affect future gameplay through connection gravity.
+
+**The Core Truth**: If you're building complex tracking systems, you're not making a game - you're making a spreadsheet. Games create tension through immediate, understandable consequences that affect player decisions going forward.
 
 ## GAME INITIALIZATION
 - Ensure game initialization leverages JSON files, parsers, GameWorldInitialization, Repositories, and GameWorld classes

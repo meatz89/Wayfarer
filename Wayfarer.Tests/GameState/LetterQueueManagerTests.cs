@@ -26,7 +26,7 @@ namespace Wayfarer.Tests.GameState
             var letterTemplateRepo = new LetterTemplateRepository(gameWorld);
             var npcRepo = new NPCRepository(gameWorld);
             var messageSystem = new MessageSystem();
-            var obligationManager = new StandingObligationManager(gameWorld, messageSystem);
+            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo);
             var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager);
 
             // Add letters to positions 1, 3, 5, and 7
@@ -76,7 +76,7 @@ namespace Wayfarer.Tests.GameState
             var letterTemplateRepo = new LetterTemplateRepository(gameWorld);
             var npcRepo = new NPCRepository(gameWorld);
             var messageSystem = new MessageSystem();
-            var obligationManager = new StandingObligationManager(gameWorld, messageSystem);
+            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo);
             var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager);
 
             // Fill positions 1-4
@@ -123,7 +123,7 @@ namespace Wayfarer.Tests.GameState
             var letterTemplateRepo = new LetterTemplateRepository(gameWorld);
             var npcRepo = new NPCRepository(gameWorld);
             var messageSystem = new MessageSystem();
-            var obligationManager = new StandingObligationManager(gameWorld, messageSystem);
+            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo);
             var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager);
 
             // Add letters to positions 6, 7, and 8
@@ -160,7 +160,7 @@ namespace Wayfarer.Tests.GameState
             var letterTemplateRepo = new LetterTemplateRepository(gameWorld);
             var npcRepo = new NPCRepository(gameWorld);
             var messageSystem = new MessageSystem();
-            var obligationManager = new StandingObligationManager(gameWorld, messageSystem);
+            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo);
             var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager);
 
             // Add letters with different deadlines

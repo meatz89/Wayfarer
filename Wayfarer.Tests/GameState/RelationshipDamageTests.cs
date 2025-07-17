@@ -26,7 +26,7 @@ namespace Wayfarer.Tests.GameState
             _messageSystem = new MessageSystem();
             
             // Create managers
-            var obligationManager = new StandingObligationManager(_gameWorld, _messageSystem);
+            var obligationManager = new StandingObligationManager(_gameWorld, _messageSystem, letterTemplateRepository);
             _letterQueueManager = new LetterQueueManager(_gameWorld, letterTemplateRepository, npcRepository, _messageSystem, obligationManager);
             _tokenManager = new ConnectionTokenManager(_gameWorld);
         }

@@ -1,0 +1,260 @@
+@page "/obligations"
+@using Wayfarer.GameState
+@using Wayfarer.Content
+
+@inject GameWorld GameWorld
+@inject StandingObligationRepository ObligationRepository
+@inject ConnectionTokenManager TokenManager
+@inject GameWorldManager GameManager
+
+<div class="obligations-container">
+    <h2>Standing Obligations</h2>
+    
+    <div class="obligations-summary">
+        <p>Active Obligations: @activeObligations.Count</p>
+        @if (activeObligations.Any(o => HasConflicts(o)))
+        {
+            <p class="warning">⚠️ Some obligations have conflicts</p>
+        }
+    </div>
+    
+    @if (!activeObligations.Any())
+    {
+        <div class="no-obligations">
+            <h3>No Active Obligations</h3>
+            <p>You have not accepted any standing obligations yet. These permanent commitments reshape how your letter queue behaves, providing benefits but imposing constraints.</p>
+            <p>Standing obligations are acquired through special letters that appear in your daily letter generation.</p>
+        </div>
+    }
+    else
+    {
+        <div class="obligations-grid">
+            @foreach (var obligation in activeObligations)
+            {
+                <div class="obligation-card @GetObligationStatusClass(obligation)">
+                    <div class="obligation-header">
+                        <h3>@obligation.Name</h3>
+                        <span class="obligation-source">From: @obligation.Source</span>
+                        <span class="obligation-duration">Day @obligation.DaysSinceAccepted</span>
+                    </div>
+                    
+                    <div class="obligation-description">
+                        <p>@obligation.Description</p>
+                    </div>
+                    
+                    <div class="obligation-effects">
+                        <div class="benefits">
+                            <h4>Benefits</h4>
+                            @if (obligation.BenefitEffects.Any())
+                            {
+                                <ul>
+                                    @foreach (var benefit in obligation.BenefitEffects)
+                                    {
+                                        <li class="benefit-item">✓ @GetEffectDescription(benefit)</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="no-effects">No direct benefits</p>
+                            }
+                        </div>
+                        
+                        <div class="constraints">
+                            <h4>Constraints</h4>
+                            @if (obligation.ConstraintEffects.Any())
+                            {
+                                <ul>
+                                    @foreach (var constraint in obligation.ConstraintEffects)
+                                    {
+                                        <li class="constraint-item">⚠️ @GetEffectDescription(constraint)</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="no-effects">No constraints</p>
+                            }
+                        </div>
+                    </div>
+                    
+                    @if (obligation.RelatedTokenType.HasValue)
+                    {
+                        <div class="obligation-tokens">
+                            <h4>Related Token Type</h4>
+                            <div class="token-display">
+                                <span class="token-icon">@GetTokenIcon(obligation.RelatedTokenType.Value)</span>
+                                <span class="token-type">@obligation.RelatedTokenType.Value</span>
+                                <span class="token-count">(@TokenManager.GetTokenCount(obligation.RelatedTokenType.Value) owned)</span>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (ShouldShowForcedLetterWarning(obligation))
+                    {
+                        <div class="forced-letter-warning">
+                            <span class="warning-icon">⏰</span>
+                            <span class="warning-text">Forced letter due in @GetDaysUntilForcedLetter(obligation) days</span>
+                        </div>
+                    }
+                    
+                    @if (HasConflicts(obligation))
+                    {
+                        <div class="conflict-warning">
+                            <span class="conflict-icon">⚡</span>
+                            <span class="conflict-text">Conflicts with other obligations</span>
+                        </div>
+                    }
+                    
+                </div>
+            }
+        </div>
+    }
+    
+    <div class="available-templates">
+        <h3>Available Obligation Templates</h3>
+        <p class="info-text">These obligations can be acquired through special letters:</p>
+        
+        <div class="templates-grid">
+            @foreach (var template in allTemplates.Where(t => !HasObligation(t.ID)))
+            {
+                <div class="template-card">
+                    <div class="template-header">
+                        <h4>@template.Name</h4>
+                        <span class="template-source">@template.Source</span>
+                    </div>
+                    
+                    <div class="template-description">
+                        <p>@template.Description</p>
+                    </div>
+                    
+                    <div class="template-effects-preview">
+                        <div class="benefits-preview">
+                            <strong>Benefits:</strong>
+                            @if (template.BenefitEffects.Any())
+                            {
+                                <span>@string.Join(", ", template.BenefitEffects.Select(GetEffectDescription))</span>
+                            }
+                            else
+                            {
+                                <span class="muted">None</span>
+                            }
+                        </div>
+                        
+                        <div class="constraints-preview">
+                            <strong>Constraints:</strong>
+                            @if (template.ConstraintEffects.Any())
+                            {
+                                <span>@string.Join(", ", template.ConstraintEffects.Select(GetEffectDescription))</span>
+                            }
+                            else
+                            {
+                                <span class="muted">None</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<StandingObligation> activeObligations = new List<StandingObligation>();
+    private List<StandingObligation> allTemplates = new List<StandingObligation>();
+    
+    protected override void OnInitialized()
+    {
+        LoadObligationData();
+    }
+    
+    private void LoadObligationData()
+    {
+        activeObligations = ObligationRepository.GetPlayerObligations();
+        allTemplates = ObligationRepository.GetAllObligationTemplates();
+    }
+    
+    private bool HasObligation(string obligationId)
+    {
+        return activeObligations.Any(o => o.ID.Equals(obligationId, StringComparison.OrdinalIgnoreCase));
+    }
+    
+    private string GetObligationStatusClass(StandingObligation obligation)
+    {
+        var classes = new List<string> { "obligation" };
+        
+            
+        if (HasConflicts(obligation))
+            classes.Add("conflicts");
+            
+        if (ShouldShowForcedLetterWarning(obligation))
+            classes.Add("forced-pending");
+            
+        return string.Join(" ", classes);
+    }
+    
+    private bool HasConflicts(StandingObligation obligation)
+    {
+        // Simple conflict detection - same token type with conflicting effects
+        return activeObligations
+            .Where(other => other.ID != obligation.ID && other.RelatedTokenType == obligation.RelatedTokenType)
+            .Any(other => 
+                (obligation.BenefitEffects.Any(b => other.ConstraintEffects.Contains(b)) ||
+                 obligation.ConstraintEffects.Any(c => other.BenefitEffects.Contains(c))));
+    }
+    
+    private bool ShouldShowForcedLetterWarning(StandingObligation obligation)
+    {
+        if (obligation.HasEffect(ObligationEffect.ShadowForced))
+            return obligation.DaysSinceLastForcedLetter >= 2; // Warning 1 day before
+            
+        if (obligation.HasEffect(ObligationEffect.PatronMonthly))
+            return obligation.DaysSinceLastForcedLetter >= 28; // Warning 2 days before
+            
+        return false;
+    }
+    
+    private int GetDaysUntilForcedLetter(StandingObligation obligation)
+    {
+        if (obligation.HasEffect(ObligationEffect.ShadowForced))
+            return Math.Max(0, 3 - obligation.DaysSinceLastForcedLetter);
+            
+        if (obligation.HasEffect(ObligationEffect.PatronMonthly))
+            return Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
+            
+        return 0;
+    }
+    
+    private string GetTokenIcon(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Trade => "🪙", 
+            ConnectionType.Noble => "👑",
+            ConnectionType.Common => "🍺",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+    
+    private string GetEffectDescription(ObligationEffect effect)
+    {
+        return effect switch
+        {
+            ObligationEffect.NoblesPriority => "Noble letters enter at slot 5",
+            ObligationEffect.CommonFolksPriority => "Common letters enter at slot 6",
+            ObligationEffect.PatronJumpToTop => "Patron letters jump to top slots",
+            ObligationEffect.TradeBonus => "Trade letters +10 coins",
+            ObligationEffect.ShadowTriplePay => "Shadow letters pay triple",
+            ObligationEffect.TrustFreeExtend => "Trust letters extend deadline free",
+            ObligationEffect.ShadowForced => "Forced shadow letter every 3 days",
+            ObligationEffect.PatronMonthly => "Monthly patron resource package",
+            ObligationEffect.NoNobleRefusal => "Cannot refuse noble letters",
+            ObligationEffect.NoTradePurge => "Cannot purge trade letters",
+            ObligationEffect.TrustSkipDoubleCost => "Skipping trust letters costs double",
+            ObligationEffect.NoCommonRefusal => "Refusing common letters loses 2 tokens",
+            _ => effect.ToString()
+        };
+    }
+}

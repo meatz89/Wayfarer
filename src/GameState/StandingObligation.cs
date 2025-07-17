@@ -47,7 +47,6 @@ namespace Wayfarer.GameState
         
         // Tracking for forced generation effects
         public int DaysSinceLastForcedLetter { get; set; } = 0;
-        public int ViolationCount { get; set; } = 0; // Track constraint violations
         
         public StandingObligation()
         {
@@ -170,12 +169,6 @@ namespace Wayfarer.GameState
         public void RecordForcedLetterGenerated()
         {
             DaysSinceLastForcedLetter = 0;
-        }
-        
-        // Record constraint violation
-        public void RecordViolation()
-        {
-            ViolationCount++;
         }
         
         // Get summary of this obligation's effects

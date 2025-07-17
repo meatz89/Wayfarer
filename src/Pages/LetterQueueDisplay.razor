@@ -1,9 +1,12 @@
 @using Wayfarer.GameState
+@using Wayfarer.Content
 
 @inject GameWorld GameWorld
 @inject LetterQueueManager LetterQueueManager
 @inject ConnectionTokenManager TokenManager
 @inject MessageSystem MessageSystem
+@inject StandingObligationRepository ObligationRepository
+@inject StandingObligationManager ObligationManager
 
 <div class="letter-queue-container">
     <h3>Letter Queue</h3>
@@ -57,13 +60,19 @@
                         }
                         else if (position > 1 && LetterQueueManager.GetLetterAt(1) == null)
                         {
-                            var tokenCost = position - 1;
+                            var baseCost = position - 1;
+                            var multiplier = ObligationManager.CalculateSkipCostMultiplier(letter);
+                            var tokenCost = baseCost * multiplier;
                             var hasEnoughTokens = TokenManager.HasTokens(letter.TokenType, tokenCost);
                             
                             <button class="btn btn-secondary btn-sm skip-btn" 
                                     disabled="@(!hasEnoughTokens)" 
                                     @onclick="() => SkipLetter(letter)">
                                 Skip (@tokenCost @letter.TokenType)
+                                @if (multiplier > 1)
+                                {
+                                    <small class="obligation-cost-note">(x@multiplier from obligations)</small>
+                                }
                             </button>
                         }
                     </div>
@@ -215,6 +224,55 @@
             }
         </div>
     </div>
+    
+    @* Standing Obligations Panel *@
+    <div class="obligations-panel">
+        <h4>Active Obligations</h4>
+        @{
+            var activeObligations = ObligationRepository.GetPlayerObligations();
+        }
+        @if (!activeObligations.Any())
+        {
+            <div class="no-obligations-message">
+                <p>No active standing obligations</p>
+                <small>Visit the Obligations screen to see available commitments</small>
+            </div>
+        }
+        else
+        {
+            <div class="obligations-list">
+                @foreach (var obligation in activeObligations.Take(3))
+                {
+                    <div class="obligation-summary @GetObligationSummaryClass(obligation)">
+                        <div class="obligation-name">@obligation.Name</div>
+                        <div class="obligation-effect">
+                            @if (obligation.BenefitEffects.Any())
+                            {
+                                <span class="benefit">✓ @GetPrimaryBenefit(obligation)</span>
+                            }
+                            @if (obligation.ConstraintEffects.Any())
+                            {
+                                <span class="constraint">⚠️ @GetPrimaryConstraint(obligation)</span>
+                            }
+                        </div>
+                        @if (ShouldShowForcedWarning(obligation))
+                        {
+                            <div class="forced-warning">
+                                <span class="warning-icon">⏰</span>
+                                <span class="warning-text">Forced letter in @GetDaysUntilForced(obligation) days</span>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (activeObligations.Count > 3)
+                {
+                    <div class="more-obligations">
+                        <small>+@(activeObligations.Count - 3) more obligations</small>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
 
 @code {
@@ -308,9 +366,13 @@
     {
         if (letter == null) return;
         
-        // Give coins for delivery
+        // Calculate payment with obligation bonuses
         var player = GameWorld.GetPlayer();
-        player.ModifyCoins(letter.Payment);
+        int basePayment = letter.Payment;
+        int bonusPayment = ObligationManager.CalculateTotalCoinBonus(letter);
+        int totalPayment = basePayment + bonusPayment;
+        
+        player.ModifyCoins(totalPayment);
         
         // 50% chance to earn a token
         var random = new Random();
@@ -327,7 +389,11 @@
         LetterQueueManager.RemoveLetterFromQueue(1);
         
         // Show feedback using MessageSystem
-        string message = $"Delivered letter! Earned {letter.Payment} coins";
+        string message = $"Delivered letter! Earned {totalPayment} coins";
+        if (bonusPayment > 0)
+        {
+            message += $" (base {basePayment} + {bonusPayment} bonus)";
+        }
         if (earnedToken)
         {
             message += $" and 1 {letter.TokenType} token!";
@@ -501,5 +567,74 @@
             MessageSystem.AddSystemMessage("Failed to extend deadline", SystemMessageTypes.Danger);
         }
         StateHasChanged();
+    }
+    
+    // Obligations panel helper methods
+    private string GetObligationSummaryClass(StandingObligation obligation)
+    {
+        var classes = new List<string> { "obligation-summary" };
+        
+        if (ShouldShowForcedWarning(obligation))
+            classes.Add("forced-pending");
+            
+        return string.Join(" ", classes);
+    }
+    
+    private string GetPrimaryBenefit(StandingObligation obligation)
+    {
+        if (!obligation.BenefitEffects.Any()) return "No benefits";
+        
+        var primary = obligation.BenefitEffects.First();
+        return primary switch
+        {
+            ObligationEffect.NoblesPriority => "Noble letters → slot 5",
+            ObligationEffect.CommonFolksPriority => "Common letters → slot 6",
+            ObligationEffect.PatronJumpToTop => "Patron letters → top",
+            ObligationEffect.TradeBonus => "Trade +10 coins",
+            ObligationEffect.ShadowTriplePay => "Shadow triple pay",
+            ObligationEffect.TrustFreeExtend => "Free trust extensions",
+            ObligationEffect.ShadowForced => "Shadow letters forced",
+            ObligationEffect.PatronMonthly => "Monthly resources",
+            _ => primary.ToString()
+        };
+    }
+    
+    private string GetPrimaryConstraint(StandingObligation obligation)
+    {
+        if (!obligation.ConstraintEffects.Any()) return "No constraints";
+        
+        var primary = obligation.ConstraintEffects.First();
+        return primary switch
+        {
+            ObligationEffect.NoNobleRefusal => "Must accept nobles",
+            ObligationEffect.NoTradePurge => "Cannot purge trade",
+            ObligationEffect.TrustSkipDoubleCost => "Trust skip 2x cost",
+            ObligationEffect.NoCommonRefusal => "Must accept common",
+            ObligationEffect.ShadowForced => "Every 3 days",
+            ObligationEffect.PatronJumpToTop => "Patron priority",
+            _ => primary.ToString()
+        };
+    }
+    
+    private bool ShouldShowForcedWarning(StandingObligation obligation)
+    {
+        if (obligation.HasEffect(ObligationEffect.ShadowForced))
+            return obligation.DaysSinceLastForcedLetter >= 2;
+            
+        if (obligation.HasEffect(ObligationEffect.PatronMonthly))
+            return obligation.DaysSinceLastForcedLetter >= 28;
+            
+        return false;
+    }
+    
+    private int GetDaysUntilForced(StandingObligation obligation)
+    {
+        if (obligation.HasEffect(ObligationEffect.ShadowForced))
+            return Math.Max(0, 3 - obligation.DaysSinceLastForcedLetter);
+            
+        if (obligation.HasEffect(ObligationEffect.PatronMonthly))
+            return Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
+            
+        return 0;
     }
 }

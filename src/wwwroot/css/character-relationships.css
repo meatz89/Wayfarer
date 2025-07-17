@@ -1,0 +1,292 @@
+/* Character Relationships Screen Styles */
+.character-relationship-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin: 1rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.character-relationship-container h2 {
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Relationship Summary */
+.relationship-summary {
+    background-color: var(--bg-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.relationship-summary p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* NPC Grid */
+.npc-relationship-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* NPC Cards */
+.npc-relationship-card {
+    background-color: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.npc-relationship-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.npc-relationship-card.relationship-debt {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.05);
+}
+
+.npc-relationship-card.relationship-strong {
+    border-color: var(--positive);
+    background-color: rgba(107, 191, 89, 0.05);
+}
+
+.npc-relationship-card.relationship-positive {
+    border-color: var(--resource-stamina);
+}
+
+/* NPC Header */
+.npc-header {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--oak-mid);
+    padding-bottom: 0.5rem;
+}
+
+.npc-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    font-size: 1.1rem;
+}
+
+.npc-profession {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Section Headers */
+.token-display h4,
+.npc-location h4,
+.npc-availability h4,
+.letter-history h4,
+.current-letters h4 {
+    font-size: 0.875rem;
+    margin: 0.75rem 0 0.5rem;
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+}
+
+/* Token Display */
+.token-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.token-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.token-item.debt {
+    background-color: rgba(158, 42, 43, 0.1);
+    border-color: var(--negative);
+    color: var(--negative);
+}
+
+.token-item.positive {
+    background-color: rgba(107, 191, 89, 0.1);
+    border-color: var(--positive);
+    color: var(--positive);
+}
+
+.token-icon {
+    font-size: 1.125rem;
+}
+
+.token-type {
+    color: var(--text-secondary);
+}
+
+.token-count {
+    font-weight: bold;
+}
+
+.no-tokens {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Location Info */
+.location-info,
+.availability-info {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.location-name {
+    color: var(--text-primary);
+}
+
+.same-location,
+.available-now {
+    color: var(--positive);
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.unknown-location {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Schedule */
+.schedule {
+    color: var(--text-secondary);
+}
+
+/* Letter History */
+.history-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.delivered {
+    color: var(--positive);
+}
+
+.skipped {
+    color: var(--special);
+}
+
+.expired {
+    color: var(--negative);
+}
+
+/* Current Letters in Queue */
+.current-letters {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--oak-mid);
+}
+
+.queue-letter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.queue-letter .position {
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.queue-letter .route {
+    color: var(--text-primary);
+}
+
+.queue-letter .deadline {
+    margin-left: auto;
+    color: var(--text-secondary);
+}
+
+.queue-letter .deadline.urgent {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+/* Relationship Status */
+.relationship-status {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--oak-mid);
+}
+
+.status-indicator {
+    font-weight: bold;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-family: var(--font-secondary);
+}
+
+.status-indicator.relationship-debt {
+    background-color: var(--negative);
+    color: var(--text-on-dark);
+}
+
+.status-indicator.relationship-strong {
+    background-color: var(--positive);
+    color: var(--text-on-dark);
+}
+
+.status-indicator.relationship-positive {
+    background-color: var(--resource-stamina);
+    color: var(--text-on-dark);
+}
+
+.status-indicator.relationship-neutral {
+    background-color: var(--oak-mid);
+    color: var(--text-primary);
+}
+
+/* Navigation */
+.navigation-buttons {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .npc-relationship-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .relationship-summary {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+}

@@ -88,5 +88,156 @@
 		"maxDeadline": 2,
 		"minPayment": 15,
 		"maxPayment": 25
+	},
+	{
+		"id": "forced_shadow_dead_drop",
+		"description": "Urgent shadow correspondence to a dead drop location",
+		"tokenType": "Shadow",
+		"minDeadline": 1,
+		"maxDeadline": 3,
+		"minPayment": 20,
+		"maxPayment": 40,
+		"possibleSenders": ["The Fence", "Midnight Contact", "Shadow Broker", "Anonymous Source", "Night Runner"],
+		"possibleRecipients": ["Dead Drop", "Safe House", "Underground Contact", "Hidden Ally", "Secret Cache"]
+	},
+	{
+		"id": "forced_shadow_intelligence",
+		"description": "Time-sensitive intelligence delivery for shadow network",
+		"tokenType": "Shadow",
+		"minDeadline": 1,
+		"maxDeadline": 4,
+		"minPayment": 25,
+		"maxPayment": 45,
+		"possibleSenders": ["The Fence", "Information Broker", "Shadow Operative", "Coded Contact"],
+		"possibleRecipients": ["Intelligence Handler", "Network Node", "Surveillance Post", "Deep Cover Agent"]
+	},
+	{
+		"id": "forced_shadow_blackmail",
+		"description": "Sensitive material that must reach its destination",
+		"tokenType": "Shadow",
+		"minDeadline": 2,
+		"maxDeadline": 3,
+		"minPayment": 30,
+		"maxPayment": 50,
+		"possibleSenders": ["Anonymous Benefactor", "The Collector", "Shadow Patron"],
+		"possibleRecipients": ["Compromised Target", "Leverage Contact", "Pressure Point"]
+	},
+	{
+		"id": "forced_patron_resources",
+		"description": "Monthly resource package from your patron",
+		"tokenType": "Noble",
+		"minDeadline": 3,
+		"maxDeadline": 7,
+		"minPayment": 50,
+		"maxPayment": 100,
+		"possibleSenders": ["Your Patron", "Patron's Secretary", "House Steward"],
+		"possibleRecipients": ["Resources Contact", "Supply Coordinator", "Asset Manager", "Estate Overseer"]
+	},
+	{
+		"id": "forced_patron_instructions",
+		"description": "New directives from your patron requiring immediate attention",
+		"tokenType": "Noble",
+		"minDeadline": 2,
+		"maxDeadline": 5,
+		"minPayment": 40,
+		"maxPayment": 80,
+		"possibleSenders": ["Your Patron", "Patron's Voice", "House Representative"],
+		"possibleRecipients": ["Field Commander", "Local Representative", "Operational Contact"]
+	},
+	{
+		"id": "forced_patron_summons",
+		"description": "Formal summons to attend your patron",
+		"tokenType": "Noble",
+		"minDeadline": 1,
+		"maxDeadline": 4,
+		"minPayment": 60,
+		"maxPayment": 120,
+		"possibleSenders": ["Your Patron", "Patron's Chamberlain", "Court Herald"],
+		"possibleRecipients": ["Personal Attendant", "Household Manager", "Protocol Officer"]
+	},
+	{
+		"id": "business_proposal",
+		"description": "Business proposal that may lead to partnership",
+		"tokenType": "Trade",
+		"minDeadline": 4,
+		"maxDeadline": 6,
+		"minPayment": 6,
+		"maxPayment": 10,
+		"unlocksLetterIds": ["partnership_agreement"],
+		"isChainLetter": false
+	},
+	{
+		"id": "partnership_agreement",
+		"description": "Partnership agreement following successful proposal",
+		"tokenType": "Trade",
+		"minDeadline": 3,
+		"maxDeadline": 5,
+		"minPayment": 8,
+		"maxPayment": 12,
+		"unlocksLetterIds": ["first_joint_venture"],
+		"isChainLetter": true
+	},
+	{
+		"id": "first_joint_venture",
+		"description": "First collaborative business venture",
+		"tokenType": "Trade",
+		"minDeadline": 2,
+		"maxDeadline": 4,
+		"minPayment": 10,
+		"maxPayment": 15,
+		"isChainLetter": true
+	},
+	{
+		"id": "introduction_letter",
+		"description": "Letter of introduction to a new contact",
+		"tokenType": "Trust",
+		"minDeadline": 3,
+		"maxDeadline": 5,
+		"minPayment": 4,
+		"maxPayment": 6,
+		"unlocksLetterIds": ["thank_you_note"],
+		"isChainLetter": false
+	},
+	{
+		"id": "thank_you_note",
+		"description": "Thank you note for successful introduction",
+		"tokenType": "Trust",
+		"minDeadline": 2,
+		"maxDeadline": 4,
+		"minPayment": 5,
+		"maxPayment": 8,
+		"isChainLetter": true
+	},
+	{
+		"id": "noble_favor_request",
+		"description": "Request for favor from a noble",
+		"tokenType": "Noble",
+		"minDeadline": 3,
+		"maxDeadline": 5,
+		"minPayment": 8,
+		"maxPayment": 12,
+		"unlocksLetterIds": ["favor_granted"],
+		"isChainLetter": false
+	},
+	{
+		"id": "favor_granted",
+		"description": "Confirmation that favor has been granted",
+		"tokenType": "Noble",
+		"minDeadline": 4,
+		"maxDeadline": 6,
+		"minPayment": 10,
+		"maxPayment": 15,
+		"unlocksLetterIds": ["noble_invitation_exclusive"],
+		"isChainLetter": true
+	},
+	{
+		"id": "noble_invitation_exclusive",
+		"description": "Exclusive invitation to private noble gathering",
+		"tokenType": "Noble",
+		"minDeadline": 5,
+		"maxDeadline": 8,
+		"minPayment": 15,
+		"maxPayment": 20,
+		"isChainLetter": true
 	}
 ]

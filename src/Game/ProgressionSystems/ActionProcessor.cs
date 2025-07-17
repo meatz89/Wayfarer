@@ -1,5 +1,6 @@
 ﻿using Wayfarer.Game.ActionSystem;
 using Wayfarer.Game.MainSystem;
+using Wayfarer.GameState;
 
 public class ActionProcessor
 {
@@ -10,19 +11,25 @@ public class ActionProcessor
     public LocationPropertyManager environmentalPropertyManager { get; }
     public MessageSystem messageSystem { get; }
     private LocationRepository locationRepository { get; }
+    private RouteUnlockManager routeUnlockManager { get; }
+    private NPCLetterOfferService npcLetterOfferService { get; }
 
     public ActionProcessor(
         GameWorld gameWorld,
         PlayerProgression playerProgression,
         LocationPropertyManager environmentalPropertyManager,
         LocationRepository locationRepository,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        RouteUnlockManager routeUnlockManager,
+        NPCLetterOfferService npcLetterOfferService)
     {
         this.gameWorld = gameWorld;
         this.playerProgression = playerProgression;
         this.environmentalPropertyManager = environmentalPropertyManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
+        this.routeUnlockManager = routeUnlockManager;
+        this.npcLetterOfferService = npcLetterOfferService;
         this.player = gameWorld.GetPlayer();
         this.worldState = gameWorld.WorldState;
     }
@@ -73,6 +80,13 @@ public class ActionProcessor
 
         // Apply categorical effects
         ApplyCategoricalEffects(action.Effects);
+        
+        // Handle route unlock actions
+        if (action.ActionId.StartsWith("unlock_") && action.ActionId.Contains("route"))
+        {
+            HandleRouteUnlockAction(action);
+        }
+        
 
     }
 
@@ -185,5 +199,56 @@ public class ActionProcessor
             }
         }
     }
+    
+    private void HandleRouteUnlockAction(LocationAction action)
+    {
+        // Get current location to find available route unlocks
+        string currentLocationId = locationRepository.GetCurrentLocation()?.Id;
+        if (string.IsNullOrEmpty(currentLocationId))
+        {
+            messageSystem.AddSystemMessage("Cannot unlock routes - location not found.", SystemMessageTypes.Danger);
+            return;
+        }
+        
+        // Get available route unlocks at this location
+        var availableUnlocks = routeUnlockManager.GetAvailableRouteUnlocks(currentLocationId);
+        
+        if (!availableUnlocks.Any())
+        {
+            messageSystem.AddSystemMessage("No route unlocks available at this location.", SystemMessageTypes.Info);
+            return;
+        }
+        
+        // Show all available route unlocks with detailed information
+        messageSystem.AddSystemMessage("🗺️ Available Route Unlocks:", SystemMessageTypes.Info);
+        
+        foreach (var unlock in availableUnlocks)
+        {
+            string affordabilityText = unlock.CanAfford ? "✓ Affordable" : "✗ Cannot afford";
+            messageSystem.AddSystemMessage($"📍 {unlock.RouteName}: {unlock.TokenCost.Amount} {unlock.TokenCost.TokenType} tokens ({affordabilityText})", SystemMessageTypes.Info);
+            messageSystem.AddSystemMessage($"   {unlock.RouteDescription}", SystemMessageTypes.Info);
+        }
+        
+        // Auto-unlock the first affordable route for demonstration
+        var firstAffordableUnlock = availableUnlocks.FirstOrDefault(u => u.CanAfford);
+        if (firstAffordableUnlock != null)
+        {
+            bool success = routeUnlockManager.TryUnlockRoute(firstAffordableUnlock.RouteId, firstAffordableUnlock.UnlockingNPC.ID);
+            if (success)
+            {
+                messageSystem.AddSystemMessage($"Successfully unlocked {firstAffordableUnlock.RouteName}!", SystemMessageTypes.Success);
+            }
+        }
+        else
+        {
+            messageSystem.AddSystemMessage("💼 Build more connections to unlock routes.", SystemMessageTypes.Info);
+            if (availableUnlocks.Any())
+            {
+                var cheapestUnlock = availableUnlocks.OrderBy(u => u.TokenCost.Amount).First();
+                messageSystem.AddSystemMessage($"💡 Cheapest unlock: {cheapestUnlock.RouteName} ({cheapestUnlock.TokenCost.Amount} {cheapestUnlock.TokenCost.TokenType} tokens)", SystemMessageTypes.Info);
+            }
+        }
+    }
+    
 
 }
