@@ -195,7 +195,10 @@
                     @* NPCs with Direct Letter Offers *@
                     @{
                         var currentNPCs = NPCRepository.GetNPCsForLocationAndTime(GetCurrentLocation().Id, CurrentTime);
-                        var npcsWithOffers = currentNPCs.Where(npc => ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID)).ToList();
+                        var npcsWithOffers = currentNPCs.Where(npc => 
+                            ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID) || 
+                            NPCLetterOfferService.HasPendingOffers(npc.ID)
+                        ).ToList();
                         
                         if (npcsWithOffers.Any())
                         {
@@ -207,9 +210,24 @@
                                         <div class="npc-offer-card">
                                             <div class="npc-name">@npc.Name</div>
                                             <div class="npc-role">@npc.Role</div>
+                                            @{
+                                                var pendingCount = NPCLetterOfferService.GetPendingOffersForNPC(npc.ID).Count;
+                                                var hasRelationshipOffer = ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID);
+                                            }
                                             <button class="offer-button" @onclick="() => ShowLetterOffer(npc)">
-                                                View Letter Offer 📮
+                                                @if (pendingCount > 0)
+                                                {
+                                                    <span>View Offers (@pendingCount) 📮</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>View Letter Offer 📮</span>
+                                                }
                                             </button>
+                                            @if (pendingCount > 0)
+                                            {
+                                                <div class="offer-badge">🔔 New!</div>
+                                            }
                                         </div>
                                     }
                                 </div>
@@ -226,9 +244,9 @@
                     @* Letter Offer Dialog *@
                     @if (ShowLetterOfferDialog && CurrentNPCOffer != null)
                     {
-                        <LetterOfferDialog 
+                        <MultipleLetterOfferDialog 
                             NPC="@CurrentNPCOffer"
-                            OnAccept="@AcceptLetterOffer"
+                            OnAcceptOffer="@AcceptLetterOfferId"
                             OnRefuse="@RefuseLetterOffer" />
                     }
                 </div>

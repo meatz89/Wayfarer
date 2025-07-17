@@ -1,19 +1,92 @@
 # SESSION HANDOFF
 
-## CURRENT STATUS: ROUTE SYSTEM COMPLETE! 🎯
+## CURRENT STATUS: RELATIONSHIP TRANSPARENCY COMPLETE! 🎯
 
-**SESSION ACHIEVEMENT**: Token-based route unlocking system implemented with enhanced feedback and persistence! All tests passing.
+**SESSION ACHIEVEMENT**: Complete relationship transparency features added to UI for better player understanding!
 
-### **SESSION SUMMARY: ROUTE SYSTEM & ENHANCED NOTIFICATIONS**
+### **SESSION SUMMARY: RELATIONSHIP TRANSPARENCY UI**
+
+**Previous Session**: Periodic letter offers & UI navigation
+**This Session - Major Achievements**:
+- ✅ **TOKEN COST PREVIEW**: All queue actions show token costs before committing
+- ✅ **RELATIONSHIP GUIDE**: Token type explanations and earning methods
+- ✅ **PROGRESS INDICATORS**: Shows tokens needed for letter offers and better queue position
+- ✅ **RECENT INTERACTIONS**: Display of letter history effects on relationships
+- ✅ **ACTION CONSEQUENCES**: Clear preview of token gain/loss before actions
+- ✅ **ENHANCED NPC CARDS**: Rich relationship display with all transparency features
+
+### **RELATIONSHIP TRANSPARENCY IMPLEMENTATION**
+
+**Core Components Created**:
+- **`RelationshipTransparency.razor`**: Guide explaining token types and relationship mechanics
+- **`TokenCostPreview.razor`**: Reusable component showing action costs with availability
+- **`NPCRelationshipCard.razor`**: Enhanced NPC relationship display with progress indicators
+
+**Technical Features**:
+- **Token Progress Bars**: Visual indicators showing progress toward 3 and 5 token thresholds
+- **Recent Interaction History**: Simulated display of recent deliveries/skips/expires
+- **Token Cost Transparency**: Every queue action shows exact cost and player's available tokens
+- **Nullable ConnectionType**: Support for "any token type" actions (purge)
+- **Contextual Information**: Actions show additional info like "Once per day" or "x2 from obligations"
+
+**UI Enhancements**:
+- Added `relationship-transparency.css` for guide styling
+- Added `token-cost-preview.css` for cost display styling
+- Enhanced `character-relationships.css` with progress indicators
+- Updated `letter-queue.css` for better purge controls
+
+**Integration Points**:
+- Modified `LetterQueueDisplay.razor` to use TokenCostPreview for all actions
+- Updated `CharacterRelationshipScreen.razor` to include transparency guide
+- Added letter-ready NPC count to relationship summary
+- Fixed nullable type issues with ConnectionType parameter
+
+### **PREVIOUS SESSION: PERIODIC OFFERS & NAVIGATION**
+
+**Previous Session**: Route System with token-based unlocking
+**That Session - Major Achievements**:
+- ✅ **PERIODIC OFFER GENERATION**: NPCs spontaneously offer letters based on relationships
+- ✅ **MULTIPLE OFFER UI**: New dialog handles multiple pending offers per NPC
+- ✅ **TIME-BASED TRIGGERS**: Offers generated on time block transitions (20% chance)
+- ✅ **OFFER PERSISTENCE**: Pending offers stored for 2 days before expiring
+- ✅ **VISUAL INDICATORS**: "New!" badges and offer counts on NPC cards
+- ✅ **UI NAVIGATION SYSTEM**: Complete NavigationService and NavigationBar implementation
+
+### **PREVIOUS SESSION: ROUTE SYSTEM & ENHANCED NOTIFICATIONS**
 
 **Previous Session**: Morning Activities Flow with sleep-triggered summaries
-**This Session - Major Achievements**:
+**That Session - Major Achievements**:
 - ✅ **ROUTE SYSTEM**: Token-based route unlocking through NPC relationships
 - ✅ **ROUTE UNLOCK MANAGER**: Comprehensive route discovery and cost calculation
 - ✅ **ENHANCED FEEDBACK**: Rich notifications with emojis and detailed route information
 - ✅ **PERSISTENCE**: Route unlock status automatically saved with game state
 - ✅ **UI INTEGRATION**: Travel screen shows locked routes with unlock options
 - ✅ **NPC INTEGRATION**: Route unlock actions added to NPC interaction system
+
+### **PERIODIC OFFER SYSTEM IMPLEMENTATION**
+
+**Core Features**:
+- **Time-Based Generation**: 20% chance per eligible NPC per time block
+- **Relationship Threshold**: NPCs need 3+ tokens to generate offers
+- **Offer Persistence**: Pending offers stored in Dictionary<npcId, List<LetterOffer>>
+- **2-Day Expiration**: Old offers automatically cleaned up
+- **Multiple Offers**: NPCs can have up to 2 pending offers at once
+- **Combined Display**: Shows both pending and relationship-based offers
+
+**Technical Details**:
+- Enhanced `NPCLetterOfferService` with periodic generation methods
+- Added `GeneratePeriodicOffers()` called after time block changes
+- Created `MultipleLetterOfferDialog.razor` for offer selection UI
+- Updated `GameWorldManager` to trigger generation after travel/rest
+- Added visual indicators: offer counts and "New!" badges
+- Integrated with existing direct offer system seamlessly
+
+**UI Navigation Implementation**:
+- Created `NavigationService` for centralized screen management
+- Built `NavigationBar` component with consistent navigation
+- Letter Queue as primary hub screen (default after character creation)
+- Fixed all navigation flows and removed duplicate navigation buttons
+- Proper Chrome browser-only design (no mobile/keyboard support)
 
 ### **ROUTE SYSTEM IMPLEMENTATION**
 
@@ -382,7 +455,38 @@ Implemented smart queue compaction in `LetterQueueManager.ShiftQueueUp()`:
 
 ## **FILES CREATED/MODIFIED THIS SESSION**
 
-### **FILES CREATED - Route System**
+### **FILES CREATED - Relationship Transparency**
+- **Created**: `/src/Pages/Components/RelationshipTransparency.razor` - Token guide and mechanics explanation
+- **Created**: `/src/Pages/Components/TokenCostPreview.razor` - Reusable cost transparency component
+- **Created**: `/src/Pages/Components/NPCRelationshipCard.razor` - Enhanced NPC relationship display
+- **Created**: `/src/wwwroot/css/relationship-transparency.css` - Styling for transparency guide
+- **Created**: `/src/wwwroot/css/token-cost-preview.css` - Styling for cost preview component
+- **Enhanced**: `/src/Pages/CharacterRelationshipScreen.razor` - Added transparency guide and letter-ready count
+- **Enhanced**: `/src/Pages/LetterQueueDisplay.razor` - Integrated TokenCostPreview for all actions
+- **Enhanced**: `/src/wwwroot/css/character-relationships.css` - Added progress indicators and interaction history
+- **Enhanced**: `/src/wwwroot/css/letter-queue.css` - Improved purge controls with instructions
+- **Enhanced**: `/src/Pages/_Layout.cshtml` - Added new CSS references
+
+### **FILES CREATED - Periodic Offer System** (From Previous Session)
+- **Created**: `/src/Pages/MultipleLetterOfferDialog.razor` - UI for selecting from multiple offers
+- **Created**: `/src/wwwroot/css/multiple-letter-offer.css` - Styling for multiple offer dialog
+- **Enhanced**: `/src/GameState/NPCLetterOfferService.cs` - Added periodic generation and offer persistence
+- **Enhanced**: `/src/GameState/GameWorldManager.cs` - Added CheckForPeriodicLetterOffers() after time changes
+- **Enhanced**: `/src/Pages/MainGameplayView.razor` - Updated to show pending offers with counts
+- **Enhanced**: `/src/Pages/MainGameplayView.razor.cs` - Added AcceptLetterOfferId() method
+- **Enhanced**: `/src/Pages/_Layout.cshtml` - Added multiple-letter-offer.css reference
+
+### **FILES CREATED - UI Navigation System** (From Previous Session)
+- **Created**: `/src/Services/NavigationService.cs` - Centralized navigation management
+- **Created**: `/src/Pages/Components/NavigationBar.razor` - Consistent navigation component
+- **Created**: `/src/wwwroot/css/navigation-bar.css` - Navigation bar styling
+- **Enhanced**: `/src/UIHelpers/CurrentViews.cs` - Reorganized with logical grouping
+- **Enhanced**: `/src/ServiceConfiguration.cs` - Added NavigationService registration
+- **Enhanced**: `/src/Pages/MainGameplayView.razor` - Integrated NavigationBar, removed duplicate nav
+- **Enhanced**: `/src/Pages/MainGameplayView.razor.cs` - Added NavigationService injection
+- **Enhanced**: `/src/Pages/GameUI.razor.cs` - Fixed to use LetterQueueScreen as default
+
+### **FILES CREATED - Route System** (From Previous Session)
 - **Created**: `/src/GameState/RouteUnlockManager.cs` - Token-based route unlocking system
 - **Enhanced**: `/src/Content/Templates/actions.json` - Added route unlock actions for different NPC types
 - **Enhanced**: `/src/Content/Templates/routes.json` - Some routes set to locked (isDiscovered: false)

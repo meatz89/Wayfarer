@@ -1,5 +1,6 @@
 @using Wayfarer.GameState
 @using Wayfarer.Content
+@using Wayfarer.Pages.Components
 
 @inject GameWorld GameWorld
 @inject LetterQueueManager LetterQueueManager
@@ -49,16 +50,19 @@
                             var multiplier = ObligationManager.CalculateSkipCostMultiplier(letter);
                             var tokenCost = baseCost * multiplier;
                             var hasEnoughTokens = TokenManager.HasTokens(letter.TokenType, tokenCost);
+                            var availableTokens = TokenManager.GetTokenCount(letter.TokenType);
                             
                             <button class="btn btn-secondary btn-sm skip-btn" 
                                     disabled="@(!hasEnoughTokens)" 
-                                    @onclick="() => SkipLetter(letter)">
-                                Skip (@tokenCost @letter.TokenType)
-                                @if (multiplier > 1)
-                                {
-                                    <small class="obligation-cost-note">(x@multiplier from obligations)</small>
-                                }
+                                    @onclick="() => SkipLetter(letter)"
+                                    title="Skip to position 1">
+                                Skip
                             </button>
+                            <TokenCostPreview ActionName="Skip" 
+                                            TokenCost="tokenCost" 
+                                            TokenType="letter.TokenType" 
+                                            AvailableTokens="availableTokens"
+                                            AdditionalInfo="@(multiplier > 1 ? $"x{multiplier} cost from obligations" : null)" />
                         }
                     </div>
                 }
@@ -105,8 +109,13 @@
             {
                 <div class="action-group">
                     <button class="btn btn-info btn-sm" @onclick="ShowMorningSwap" disabled="@(GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay)">
-                        Morning Swap (Free)
+                        Morning Swap
                     </button>
+                    <TokenCostPreview ActionName="Morning Swap" 
+                                    TokenCost="0" 
+                                    TokenType="null"
+                                    ShowAvailability="false"
+                                    AdditionalInfo="@(GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay ? "Already used today" : "Once per day at dawn")" />
                     @if (showMorningSwap)
                     {
                         <div class="action-controls">
@@ -123,8 +132,20 @@
             @* Priority Move *@
             <div class="action-group">
                 <button class="btn btn-warning btn-sm" @onclick="ShowPriorityOptions">
-                    Priority Move (5 tokens)
+                    Priority Move
                 </button>
+                @if (showPriorityOptions && priorityFromPos >= 2 && priorityFromPos <= 8)
+                {
+                    var letter = LetterQueueManager.GetLetterAt(priorityFromPos);
+                    if (letter != null)
+                    {
+                        <TokenCostPreview ActionName="Priority Move" 
+                                        TokenCost="5" 
+                                        TokenType="letter.TokenType"
+                                        AvailableTokens="TokenManager.GetTokenCount(letter.TokenType)"
+                                        AdditionalInfo="Move to position 1 (must be empty)" />
+                    }
+                }
                 @if (showPriorityOptions)
                 {
                     <div class="action-controls">
@@ -140,8 +161,20 @@
             @* Extend Deadline *@
             <div class="action-group">
                 <button class="btn btn-success btn-sm" @onclick="ShowExtendOptions">
-                    Extend (2 tokens)
+                    Extend Deadline
                 </button>
+                @if (showExtendOptions && extendPos >= 1 && extendPos <= 8)
+                {
+                    var letter = LetterQueueManager.GetLetterAt(extendPos);
+                    if (letter != null)
+                    {
+                        <TokenCostPreview ActionName="Extend Deadline" 
+                                        TokenCost="2" 
+                                        TokenType="letter.TokenType"
+                                        AvailableTokens="TokenManager.GetTokenCount(letter.TokenType)"
+                                        AdditionalInfo="Adds 2 days to deadline" />
+                    }
+                }
                 @if (showExtendOptions)
                 {
                     <div class="action-controls">
@@ -159,11 +192,17 @@
             {
                 <div class="action-group">
                     <button class="btn btn-danger btn-sm" @onclick="ShowPurgeOptions">
-                        Purge Bottom (3 tokens)
+                        Purge Bottom
                     </button>
+                    <TokenCostPreview ActionName="Purge Bottom Letter" 
+                                    TokenCost="3" 
+                                    TokenType="null"
+                                    AvailableTokens="GetTotalAvailableTokens()"
+                                    AdditionalInfo="Any combination of tokens" />
                     @if (showPurgeOptions)
                     {
                         <div class="action-controls purge-controls">
+                            <p class="purge-instructions">Select 3 tokens total:</p>
                             @foreach (var tokenType in Enum.GetValues<ConnectionType>())
                             {
                                 var available = TokenManager.GetTokenCount(tokenType);
@@ -173,9 +212,11 @@
                                         <span>@GetTokenIcon(tokenType)</span>
                                         <input type="number" min="0" max="@available" value="@GetPurgeTokenCount(tokenType)" 
                                                @onchange="@(e => SetPurgeTokenCount(tokenType, int.Parse(e.Value?.ToString() ?? "0")))" />
+                                        <small>(@available available)</small>
                                     </div>
                                 }
                             }
+                            <div class="purge-total">Total selected: @GetTotalPurgeTokens() / 3</div>
                             <button class="btn btn-primary btn-sm" @onclick="PerformPurge" disabled="@(GetTotalPurgeTokens() != 3)">
                                 Purge
                             </button>
@@ -598,5 +639,15 @@
             return Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
             
         return 0;
+    }
+    
+    private int GetTotalAvailableTokens()
+    {
+        int total = 0;
+        foreach (var tokenType in Enum.GetValues<ConnectionType>())
+        {
+            total += TokenManager.GetTokenCount(tokenType);
+        }
+        return total;
     }
 }

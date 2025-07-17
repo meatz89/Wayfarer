@@ -1,0 +1,60 @@
+@using Wayfarer.GameState
+
+<div class="token-cost-preview">
+    <div class="cost-breakdown">
+        <span class="action-name">@ActionName</span>
+        <span class="cost-separator">:</span>
+        <span class="token-cost">
+            <span class="cost-amount">@TokenCost</span>
+            <span class="token-icon">@GetTokenIcon()</span>
+            <span class="token-type">@(TokenType == null ? "any tokens" : TokenType.ToString())</span>
+        </span>
+    </div>
+    
+    @if (ShowAvailability)
+    {
+        <div class="availability-info">
+            @if (HasEnoughTokens)
+            {
+                <span class="available">✓ You have @AvailableTokens @(TokenType == null ? "total tokens" : $"{TokenType} tokens")</span>
+            }
+            else
+            {
+                <span class="insufficient">❌ Need @(TokenCost - AvailableTokens) more @(TokenType == null ? "tokens" : $"{TokenType} tokens")</span>
+            }
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(AdditionalInfo))
+    {
+        <div class="additional-info">
+            <small>@AdditionalInfo</small>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string ActionName { get; set; }
+    [Parameter] public int TokenCost { get; set; }
+    [Parameter] public ConnectionType? TokenType { get; set; }
+    [Parameter] public int AvailableTokens { get; set; }
+    [Parameter] public bool ShowAvailability { get; set; } = true;
+    [Parameter] public string AdditionalInfo { get; set; }
+    
+    private bool HasEnoughTokens => AvailableTokens >= TokenCost;
+    
+    private string GetTokenIcon()
+    {
+        if (TokenType == null) return "🎲";
+        
+        return TokenType.Value switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Trade => "🪙",
+            ConnectionType.Noble => "👑",
+            ConnectionType.Common => "🍺",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+}

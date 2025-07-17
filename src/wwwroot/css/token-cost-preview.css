@@ -1,0 +1,94 @@
+/* Token Cost Preview Component Styles */
+
+.token-cost-preview {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--oak-mid);
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    font-size: 0.875rem;
+}
+
+.cost-breakdown {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.action-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.cost-separator {
+    color: var(--text-secondary);
+}
+
+.token-cost {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--resource-coins);
+}
+
+.cost-amount {
+    font-weight: bold;
+}
+
+.token-icon {
+    font-size: 1rem;
+}
+
+.token-type {
+    color: var(--text-secondary);
+}
+
+/* Availability Info */
+.availability-info {
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.availability-info .available {
+    color: var(--positive);
+}
+
+.availability-info .insufficient {
+    color: var(--negative);
+}
+
+/* Additional Info */
+.additional-info {
+    margin-top: 0.25rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Hover States */
+.token-cost-preview:hover {
+    border-color: var(--oak-dark);
+    background-color: rgba(139, 105, 62, 0.05);
+}
+
+/* When used inside action buttons */
+.action-group .token-cost-preview {
+    margin: 0.5rem 0;
+    border: 1px dashed var(--oak-mid);
+}
+
+/* Inline variant for compact display */
+.token-cost-preview.inline {
+    display: inline-flex;
+    padding: 0.25rem 0.5rem;
+    margin: 0;
+}
+
+.token-cost-preview.inline .cost-breakdown {
+    margin-bottom: 0;
+}
+
+.token-cost-preview.inline .availability-info,
+.token-cost-preview.inline .additional-info {
+    display: none;
+}

@@ -3,6 +3,7 @@
 @using Wayfarer.Content
 @using Wayfarer.UIHelpers
 @using Wayfarer.Services
+@using Wayfarer.Pages.Components
 
 @inherits MainGameplayViewBase
 
@@ -14,102 +15,16 @@
     <div class="relationship-summary">
         <p>Total Relationships: @knownNPCs.Count</p>
         <p>Relationships in Debt: @GetDebtRelationshipCount()</p>
+        <p>Letter-Ready NPCs: @GetLetterReadyCount()</p>
     </div>
+    
+    @* Relationship Transparency Guide *@
+    <RelationshipTransparency />
     
     <div class="npc-relationship-grid">
         @foreach (var npc in knownNPCs)
         {
-            <div class="npc-relationship-card @GetRelationshipStatusClass(npc.ID)">
-                <div class="npc-header">
-                    <h3>@npc.Name</h3>
-                    <span class="npc-profession">@npc.Profession.ToString().Replace("_", " ")</span>
-                </div>
-                
-                <div class="token-display">
-                    <h4>Connection Tokens</h4>
-                    <div class="token-list">
-                        @foreach (var tokenType in Enum.GetValues<ConnectionType>())
-                        {
-                            var tokenCount = GetNPCTokenCount(npc.ID, tokenType);
-                            if (tokenCount != 0)
-                            {
-                                <div class="token-item @(tokenCount < 0 ? "debt" : "positive")">
-                                    <span class="token-icon">@GetTokenIcon(tokenType)</span>
-                                    <span class="token-type">@tokenType</span>
-                                    <span class="token-count">@tokenCount</span>
-                                </div>
-                            }
-                        }
-                        @if (!HasAnyTokens(npc.ID))
-                        {
-                            <div class="no-tokens">No connection established</div>
-                        }
-                    </div>
-                </div>
-                
-                <div class="npc-location">
-                    <h4>Location</h4>
-                    <div class="location-info">
-                        @if (GetNPCLocation(npc) != null)
-                        {
-                            <span class="location-name">@GetNPCLocation(npc).Name</span>
-                            @if (IsPlayerAtSameLocation(npc))
-                            {
-                                <span class="same-location">✓ You are here</span>
-                            }
-                        }
-                        else
-                        {
-                            <span class="unknown-location">Location unknown</span>
-                        }
-                    </div>
-                </div>
-                
-                <div class="npc-availability">
-                    <h4>Availability</h4>
-                    <div class="availability-info">
-                        <span class="schedule">@GetScheduleDescription(npc.AvailabilitySchedule)</span>
-                        @if (IsNPCCurrentlyAvailable(npc))
-                        {
-                            <span class="available-now">✓ Available now</span>
-                        }
-                    </div>
-                </div>
-                
-                <div class="letter-history">
-                    <h4>Letter History</h4>
-                    <div class="history-stats">
-                        <span class="delivered">Delivered: @GetDeliveredLetterCount(npc.ID)</span>
-                        <span class="skipped">Skipped: @GetSkippedLetterCount(npc.ID)</span>
-                        <span class="expired">Expired: @GetExpiredLetterCount(npc.ID)</span>
-                    </div>
-                </div>
-                
-                @* Current Letters in Queue *@
-                @{
-                    var currentLetters = GetNPCLettersInQueue(npc.Name);
-                    if (currentLetters.Any())
-                    {
-                        <div class="current-letters">
-                            <h4>In Queue</h4>
-                            @foreach (var letter in currentLetters)
-                            {
-                                <div class="queue-letter">
-                                    <span class="position">[Pos @letter.QueuePosition]</span>
-                                    <span class="route">@(letter.SenderName == npc.Name ? $"→ {letter.RecipientName}" : $"← {letter.SenderName}")</span>
-                                    <span class="deadline @(letter.Deadline <= 1 ? "urgent" : "")">@letter.Deadline days</span>
-                                </div>
-                            }
-                        </div>
-                    }
-                }
-                
-                <div class="relationship-status">
-                    <div class="status-indicator @GetRelationshipStatusClass(npc.ID)">
-                        @GetRelationshipStatusText(npc.ID)
-                    </div>
-                </div>
-            </div>
+            <NPCRelationshipCard NPC="npc" GameWorld="GameWorld" />
         }
     </div>
     
@@ -132,18 +47,6 @@
             .ToList();
     }
     
-    private int GetNPCTokenCount(string npcId, ConnectionType tokenType)
-    {
-        var npcTokens = TokenManager.GetTokensWithNPC(npcId);
-        return npcTokens.GetValueOrDefault(tokenType, 0);
-    }
-    
-    private bool HasAnyTokens(string npcId)
-    {
-        var npcTokens = TokenManager.GetTokensWithNPC(npcId);
-        return npcTokens.Any(kvp => kvp.Value != 0);
-    }
-    
     private int GetDebtRelationshipCount()
     {
         return knownNPCs.Count(npc => 
@@ -153,112 +56,8 @@
         });
     }
     
-    private string GetTokenIcon(ConnectionType type)
+    private int GetLetterReadyCount()
     {
-        return type switch
-        {
-            ConnectionType.Trust => "❤️",
-            ConnectionType.Trade => "🪙",
-            ConnectionType.Noble => "👑",
-            ConnectionType.Common => "🍺",
-            ConnectionType.Shadow => "🌑",
-            _ => "❓"
-        };
-    }
-    
-    private Location GetNPCLocation(NPC npc)
-    {
-        // NPCs have a Location property
-        if (!string.IsNullOrEmpty(npc.Location))
-        {
-            return LocationRepository.GetLocation(npc.Location);
-        }
-        return null;
-    }
-    
-    private bool IsPlayerAtSameLocation(NPC npc)
-    {
-        var player = GameWorld.GetPlayer();
-        return player.CurrentLocation?.Id == npc.Location;
-    }
-    
-    private string GetScheduleDescription(Schedule schedule)
-    {
-        return schedule.ToString().Replace("_", " ");
-    }
-    
-    private bool IsNPCCurrentlyAvailable(NPC npc)
-    {
-        var currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
-        return npc.IsAvailable(currentTime);
-    }
-    
-    // Letter history methods
-    private int GetDeliveredLetterCount(string npcId)
-    {
-        var player = GameWorld.GetPlayer();
-        if (player.NPCLetterHistory.ContainsKey(npcId))
-        {
-            return player.NPCLetterHistory[npcId].DeliveredCount;
-        }
-        return 0;
-    }
-    
-    private int GetSkippedLetterCount(string npcId)
-    {
-        var player = GameWorld.GetPlayer();
-        if (player.NPCLetterHistory.ContainsKey(npcId))
-        {
-            return player.NPCLetterHistory[npcId].SkippedCount;
-        }
-        return 0;
-    }
-    
-    private int GetExpiredLetterCount(string npcId)
-    {
-        var player = GameWorld.GetPlayer();
-        if (player.NPCLetterHistory.ContainsKey(npcId))
-        {
-            return player.NPCLetterHistory[npcId].ExpiredCount;
-        }
-        return 0;
-    }
-    
-    private string GetRelationshipStatusClass(string npcId)
-    {
-        var tokens = TokenManager.GetTokensWithNPC(npcId);
-        var totalTokens = tokens.Sum(kvp => kvp.Value);
-        
-        if (tokens.Any(kvp => kvp.Value < 0))
-            return "relationship-debt";
-        else if (totalTokens >= 5)
-            return "relationship-strong";
-        else if (totalTokens > 0)
-            return "relationship-positive";
-        else
-            return "relationship-neutral";
-    }
-    
-    private string GetRelationshipStatusText(string npcId)
-    {
-        var tokens = TokenManager.GetTokensWithNPC(npcId);
-        var totalTokens = tokens.Sum(kvp => kvp.Value);
-        
-        if (tokens.Any(kvp => kvp.Value < 0))
-            return "In Debt";
-        else if (totalTokens >= 5)
-            return "Strong Bond";
-        else if (totalTokens > 0)
-            return "Friendly";
-        else
-            return "Neutral";
-    }
-    
-    private List<Letter> GetNPCLettersInQueue(string npcName)
-    {
-        var queue = LetterQueueManager.GetPlayerQueue();
-        return queue.Where(l => l != null && (l.SenderName == npcName || l.RecipientName == npcName))
-                   .OrderBy(l => l.QueuePosition)
-                   .ToList();
+        return knownNPCs.Count(npc => TokenManager.HasEnoughTokensForDirectOffer(npc.ID));
     }
 }

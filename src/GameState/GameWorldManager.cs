@@ -30,6 +30,7 @@ public class GameWorldManager
     private LetterQueueManager letterQueueManager;
     private StandingObligationManager standingObligationManager;
     private MorningActivitiesManager morningActivitiesManager;
+    private NPCLetterOfferService npcLetterOfferService;
 
     private bool isAiAvailable = true;
 
@@ -45,7 +46,7 @@ public class GameWorldManager
                        PlayerProgression playerProgression, ActionProcessor actionProcessor,
                        ChoiceProjectionService choiceProjectionService, NPCRepository npcRepository,
                        LetterQueueManager letterQueueManager, StandingObligationManager standingObligationManager,
-                       MorningActivitiesManager morningActivitiesManager,
+                       MorningActivitiesManager morningActivitiesManager, NPCLetterOfferService npcLetterOfferService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -64,6 +65,7 @@ public class GameWorldManager
         this.letterQueueManager = letterQueueManager;
         this.standingObligationManager = standingObligationManager;
         this.morningActivitiesManager = morningActivitiesManager;
+        this.npcLetterOfferService = npcLetterOfferService;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -361,6 +363,9 @@ public class GameWorldManager
 
         // Consume time blocks
         GameWorld.TimeManager.ConsumeTimeBlock(route.TimeBlockCost);
+        
+        // Check for periodic letter offers after time change
+        CheckForPeriodicLetterOffers();
 
         int seed = _gameWorld.TimeManager.GetCurrentDay() + player.GetHashCode();
         EncounterContext encounterContext = route.GetEncounter(seed);
@@ -594,6 +599,9 @@ public class GameWorldManager
             }
 
             restManager.Rest(option);
+            
+            // Check for periodic letter offers after time change
+            CheckForPeriodicLetterOffers();
         }
     }
 
@@ -793,5 +801,15 @@ public class GameWorldManager
         totalWeight += player.Coins / 10;
 
         return totalWeight;
+    }
+    
+    /// <summary>
+    /// Check for periodic letter offers after time changes.
+    /// NPCs with strong relationships may spontaneously offer letters.
+    /// </summary>
+    private void CheckForPeriodicLetterOffers()
+    {
+        // Generate periodic offers based on time changes
+        npcLetterOfferService.GeneratePeriodicOffers();
     }
 }

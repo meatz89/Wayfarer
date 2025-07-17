@@ -21,6 +21,13 @@ namespace Wayfarer.GameState
         private readonly LetterQueueManager _letterQueueManager;
         private readonly MessageSystem _messageSystem;
         private readonly Random _random = new Random();
+        
+        // Store pending offers for each NPC
+        private readonly Dictionary<string, List<LetterOffer>> _pendingOffers = new();
+        
+        // Track last generation time to prevent spam
+        private TimeBlocks _lastGenerationTimeBlock = TimeBlocks.Dawn;
+        private int _lastGenerationDay = 0;
 
         public NPCLetterOfferService(
             GameWorld gameWorld,
@@ -266,6 +273,9 @@ namespace Wayfarer.GameState
             _messageSystem.AddSystemMessage($"💰 Payment: {offer.Payment} coins", SystemMessageTypes.Info);
             _messageSystem.AddSystemMessage($"⏰ Deadline: {offer.Deadline} days", SystemMessageTypes.Info);
             _messageSystem.AddSystemMessage($"🤝 Relationship with {npc.Name} strengthened", SystemMessageTypes.Success);
+            
+            // Remove from pending offers
+            RemovePendingOffer(npcId, offerId);
 
             return true;
         }
@@ -315,10 +325,16 @@ namespace Wayfarer.GameState
         /// </summary>
         private LetterOffer GetLetterOfferById(string npcId, string offerId)
         {
-            // In a full implementation, this would store and retrieve offers
-            // For now, we'll regenerate based on current state
-            var offers = GenerateNPCLetterOffers(npcId);
-            return offers.FirstOrDefault(o => o.Id == offerId);
+            // Check stored offers first
+            if (_pendingOffers.TryGetValue(npcId, out var offers))
+            {
+                var offer = offers.FirstOrDefault(o => o.Id == offerId);
+                if (offer != null) return offer;
+            }
+            
+            // Fallback to regeneration
+            var generatedOffers = GenerateNPCLetterOffers(npcId);
+            return generatedOffers.FirstOrDefault(o => o.Id == offerId);
         }
 
         /// <summary>
@@ -347,6 +363,112 @@ namespace Wayfarer.GameState
         {
             return GetNPCsWithLetterOffers(locationId).Any();
         }
+        
+        /// <summary>
+        /// Generate periodic letter offers from NPCs with strong relationships.
+        /// Called during time block transitions.
+        /// </summary>
+        public void GeneratePeriodicOffers()
+        {
+            var currentDay = _gameWorld.CurrentDay;
+            var currentTimeBlock = _gameWorld.TimeManager.GetCurrentTimeBlock();
+            
+            // Only generate once per time block
+            if (currentDay == _lastGenerationDay && currentTimeBlock == _lastGenerationTimeBlock)
+            {
+                return;
+            }
+            
+            _lastGenerationDay = currentDay;
+            _lastGenerationTimeBlock = currentTimeBlock;
+            
+            // Get all NPCs with strong relationships (3+ tokens)
+            var allNPCs = _npcRepository.GetAllNPCs();
+            var eligibleNPCs = allNPCs.Where(npc => ShouldNPCOfferLetters(npc.ID)).ToList();
+            
+            if (!eligibleNPCs.Any()) return;
+            
+            // 20% chance per eligible NPC per time block to generate an offer
+            foreach (var npc in eligibleNPCs)
+            {
+                if (_random.Next(100) < 20)
+                {
+                    GeneratePendingOfferForNPC(npc);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Generate a pending offer for a specific NPC.
+        /// </summary>
+        private void GeneratePendingOfferForNPC(NPC npc)
+        {
+            // Check if NPC already has pending offers
+            if (!_pendingOffers.TryGetValue(npc.ID, out var offers))
+            {
+                offers = new List<LetterOffer>();
+                _pendingOffers[npc.ID] = offers;
+            }
+            
+            // Limit to 2 pending offers per NPC
+            if (offers.Count >= 2)
+            {
+                return;
+            }
+            
+            // Generate one offer
+            var newOffers = GenerateNPCLetterOffers(npc.ID);
+            if (newOffers.Any())
+            {
+                var offer = newOffers.First();
+                offer.GeneratedDay = _gameWorld.CurrentDay;
+                offer.GeneratedTimeBlock = _gameWorld.TimeManager.GetCurrentTimeBlock();
+                offers.Add(offer);
+                
+                // Notify player
+                _messageSystem.AddSystemMessage(
+                    $"📮 {npc.Name} has a letter offer for you!", 
+                    SystemMessageTypes.Info
+                );
+            }
+        }
+        
+        /// <summary>
+        /// Get pending offers for a specific NPC.
+        /// </summary>
+        public List<LetterOffer> GetPendingOffersForNPC(string npcId)
+        {
+            if (_pendingOffers.TryGetValue(npcId, out var offers))
+            {
+                // Remove expired offers (older than 2 days)
+                offers.RemoveAll(o => _gameWorld.CurrentDay - o.GeneratedDay > 2);
+                return offers.ToList(); // Return copy
+            }
+            return new List<LetterOffer>();
+        }
+        
+        /// <summary>
+        /// Check if an NPC has pending offers.
+        /// </summary>
+        public bool HasPendingOffers(string npcId)
+        {
+            return GetPendingOffersForNPC(npcId).Any();
+        }
+        
+        /// <summary>
+        /// Clear accepted/refused offer from pending list.
+        /// </summary>
+        private void RemovePendingOffer(string npcId, string offerId)
+        {
+            if (_pendingOffers.TryGetValue(npcId, out var offers))
+            {
+                offers.RemoveAll(o => o.Id == offerId);
+                if (!offers.Any())
+                {
+                    _pendingOffers.Remove(npcId);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -363,5 +485,7 @@ namespace Wayfarer.GameState
         public int Deadline { get; set; }
         public string TemplateId { get; set; }
         public bool IsDirectApproach { get; set; }
+        public int GeneratedDay { get; set; }
+        public TimeBlocks GeneratedTimeBlock { get; set; }
     }
 }

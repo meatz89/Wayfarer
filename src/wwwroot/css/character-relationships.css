@@ -278,6 +278,101 @@
     margin-top: 2rem;
 }
 
+/* Token Progress Indicator */
+.token-progress {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: var(--special);
+    font-style: italic;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.progress-bar {
+    height: 6px;
+    background-color: var(--oak-mid);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--resource-coins);
+    transition: width 0.3s ease;
+}
+
+/* Recent Interactions */
+.recent-interactions {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--oak-mid);
+}
+
+.recent-interactions h4 {
+    font-size: 0.875rem;
+    margin: 0 0 0.5rem;
+    color: var(--text-secondary);
+}
+
+.interaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.interaction-item {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.interaction-icon {
+    text-align: center;
+}
+
+.interaction-success { 
+    background-color: rgba(107, 191, 89, 0.05); 
+}
+
+.interaction-success .interaction-icon { 
+    color: var(--positive); 
+}
+
+.interaction-warning { 
+    background-color: rgba(255, 193, 7, 0.05); 
+}
+
+.interaction-warning .interaction-icon { 
+    color: var(--special); 
+}
+
+.interaction-danger { 
+    background-color: rgba(158, 42, 43, 0.05); 
+}
+
+.interaction-danger .interaction-icon { 
+    color: var(--negative); 
+}
+
+.interaction-text {
+    color: var(--text-primary);
+}
+
+.interaction-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .npc-relationship-grid {
