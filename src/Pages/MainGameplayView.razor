@@ -9,7 +9,7 @@
 
 <ObjectiveView StateVersion="@StateVersion" />
 
-<NavigationBar OnNavigate="HandleNavigation" />
+<NavigationBar />
 
 <div class="game-status-bar">
     <div class="player-status">
@@ -55,6 +55,11 @@
         @switch (CurrentScreen)
         {
             case CurrentViews.LetterQueueScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Letter Queue</h2>
+                    </div>
+                </div>
                 <LetterQueueDisplay />
                 break;
 
@@ -74,11 +79,6 @@
                 <div class="location-container">
                     <div class="location-header">
                         <h2 class="location-title">@GetCurrentLocation().Id</h2>
-                        <div class="location-actions">
-                            <button class="location-button" @onclick="SwitchToTravelScreen">
-                                Travel 🗺️
-                            </button>
-                        </div>
                     </div>
                 </div>
                 <div class="map-container">
@@ -99,35 +99,6 @@
                 <div class="location-container">
                     <div class="location-header">
                         <h2 class="location-title">@GetCurrentLocation()?.Name</h2>
-                        <div class="location-actions">
-                            <button class="nav-button" @onclick="() => NavigationService.NavigateTo(CurrentViews.LetterQueueScreen)">
-                                Queue
-                            </button>
-                            <button class="nav-button" @onclick="SwitchToTravelScreen">
-                                Travel
-                            </button>
-                            <button class="nav-button" @onclick="SwitchToMarketScreen">
-                                Market
-                            </button>
-                            <button class="nav-button" @onclick="SwitchToRestScreen">
-                                Rest
-                            </button>
-                            <button class="nav-button" @onclick="SwitchToPlayerStatusScreen">
-                                Character
-                            </button>
-                            <button class="nav-button" @onclick="SwitchToRelationshipScreen">
-                                Relations
-                            </button>
-                            <button class="nav-button" @onclick="SwitchToObligationsScreen">
-                                Obligations
-                            </button>
-                            @if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
-                            {
-                                <button class="nav-button dawn-only" @onclick="SwitchToLetterBoardScreen">
-                                    Board
-                                </button>
-                            }
-                        </div>
                     </div>
 
                     @{
@@ -267,11 +238,6 @@
                     <div class="location-container">
                         <div class="location-header">
                             <h2 class="location-title">Travel from @GetCurrentLocation()?.Name</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)">
-                                    Back to Location
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div class="travel-container">
@@ -287,11 +253,6 @@
                     <div class="location-container">
                         <div class="location-header">
                             <h2 class="location-title">@GetCurrentLocation()?.Name Market</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)">
-                                    Back to Location
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div class="market-container">
@@ -310,11 +271,6 @@
                     <div class="location-container">
                         <div class="location-header">
                             <h2 class="location-title">Rest in @GetCurrentLocation()?.Name</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)">
-                                    Back to Location
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div class="rest-container">
@@ -334,7 +290,10 @@
                     
                 case CurrentViews.PlayerStatusScreen:
                     <div class="location-container">
-                        <PlayerStatusView OnClose="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)" />
+                        <div class="location-header">
+                        <h2 class="location-title">Character Status</h2>
+                    </div>
+                    <PlayerStatusView OnClose="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)" />
                     </div>
                     break;
                     
@@ -342,11 +301,6 @@
                     <div class="location-container">
                         <div class="location-header">
                             <h2 class="location-title">Character Relationships</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)">
-                                    Back to Location
-                                </button>
-                            </div>
                         </div>
                     </div>
                     @if (IsGameDataReady())
@@ -363,11 +317,6 @@
                     <div class="location-container">
                         <div class="location-header">
                             <h2 class="location-title">Standing Obligations</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)">
-                                    Back to Location
-                                </button>
-                            </div>
                         </div>
                     </div>
                     @if (IsGameDataReady())
@@ -384,11 +333,6 @@
                     <div class="location-container">
                         <div class="location-header">
                             <h2 class="location-title">Morning Letter Board</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)">
-                                    Back to Location
-                                </button>
-                            </div>
                         </div>
                     </div>
                     @if (IsGameDataReady())

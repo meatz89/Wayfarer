@@ -88,6 +88,7 @@ public static class ServiceConfiguration
         });
         services.AddSingleton<ConnectionTokenManager>();
         services.AddSingleton<RouteUnlockManager>();
+        services.AddSingleton<NavigationService>();
         services.AddSingleton<NPCLetterOfferService>(serviceProvider =>
         {
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();

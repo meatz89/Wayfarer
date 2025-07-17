@@ -11,7 +11,7 @@ public class GameUIBase : ComponentBase, IDisposable
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Inject] public NavigationService NavigationService { get; set; }
 
-    public CurrentViews CurrentScreen => NavigationService.CurrentView;
+    public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
 
     public Player PlayerState
     {
@@ -45,7 +45,7 @@ public class GameUIBase : ComponentBase, IDisposable
         NavigationService.OnNavigationChanged += OnNavigationChanged;
     }
     
-    private void OnNavigationChanged()
+    private void OnNavigationChanged(CurrentViews newView)
     {
         InvokeAsync(StateHasChanged);
     }

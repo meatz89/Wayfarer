@@ -1,120 +1,114 @@
 @using Wayfarer.UIHelpers
 @using Wayfarer.Services
+
 @inject NavigationService NavigationService
+@inject GameWorld GameWorld
 
 <div class="navigation-bar">
     <div class="nav-section nav-primary">
-        <h3>Letter Management</h3>
-        <button class="nav-button @GetActiveClass(CurrentViews.LetterQueueScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.LetterQueueScreen)">
-            <span class="nav-icon">📬</span>
-            Letter Queue
-        </button>
-        <button class="nav-button @GetActiveClass(CurrentViews.LetterBoardScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.LetterBoardScreen)">
-            <span class="nav-icon">📋</span>
-            Letter Board
-        </button>
-        <button class="nav-button @GetActiveClass(CurrentViews.RelationshipScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.RelationshipScreen)">
-            <span class="nav-icon">🤝</span>
-            Relationships
-        </button>
-        <button class="nav-button @GetActiveClass(CurrentViews.ObligationsScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.ObligationsScreen)">
-            <span class="nav-icon">📜</span>
-            Obligations
-        </button>
+        <h4>Letter Management</h4>
+        <div class="nav-buttons">
+            <button class="nav-button @(IsActive(CurrentViews.LetterQueueScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.LetterQueueScreen)">
+                Queue
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.LetterBoardScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.LetterBoardScreen)"
+                    disabled="@(!CanNavigateToLetterBoard())">
+                Board
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.RelationshipScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.RelationshipScreen)">
+                Relations
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.ObligationsScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.ObligationsScreen)">
+                Obligations
+            </button>
+        </div>
     </div>
     
     <div class="nav-section nav-secondary">
-        <h3>World</h3>
-        <button class="nav-button @GetActiveClass(CurrentViews.LocationScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.LocationScreen)"
-                disabled="@(!CanNavigate(CurrentViews.LocationScreen))">
-            <span class="nav-icon">🏘️</span>
-            Location
-        </button>
-        <button class="nav-button @GetActiveClass(CurrentViews.MapScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.MapScreen)">
-            <span class="nav-icon">🗺️</span>
-            Map
-        </button>
-        <button class="nav-button @GetActiveClass(CurrentViews.MarketScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.MarketScreen)"
-                disabled="@(!CanNavigate(CurrentViews.MarketScreen))">
-            <span class="nav-icon">🛒</span>
-            Market
-        </button>
+        <h4>World</h4>
+        <div class="nav-buttons">
+            <button class="nav-button @(IsActive(CurrentViews.LocationScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.LocationScreen)">
+                Location
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.MapScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.MapScreen)">
+                Map
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.TravelScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.TravelScreen)">
+                Travel
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.MarketScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.MarketScreen)">
+                Market
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.RestScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.RestScreen)">
+                Rest
+            </button>
+        </div>
     </div>
     
     <div class="nav-section nav-tertiary">
-        <h3>Character</h3>
-        <button class="nav-button @GetActiveClass(CurrentViews.CharacterScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.CharacterScreen)">
-            <span class="nav-icon">👤</span>
-            Character
-        </button>
-        <button class="nav-button @GetActiveClass(CurrentViews.PlayerStatusScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.PlayerStatusScreen)">
-            <span class="nav-icon">❤️</span>
-            Status
-        </button>
-        <button class="nav-button @GetActiveClass(CurrentViews.RestScreen)" 
-                @onclick="() => NavigateTo(CurrentViews.RestScreen)">
-            <span class="nav-icon">🛌</span>
-            Rest
-        </button>
+        <h4>Character</h4>
+        <div class="nav-buttons">
+            <button class="nav-button @(IsActive(CurrentViews.PlayerStatusScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.PlayerStatusScreen)">
+                Status
+            </button>
+        </div>
     </div>
     
-    @if (NavigationService.PreviousView.HasValue)
+    @if (NavigationService.CanNavigateBack())
     {
-        <div class="nav-section nav-control">
-            <button class="nav-button nav-back" @onclick="NavigateBack">
-                <span class="nav-icon">⬅️</span>
-                Back
+        <div class="nav-section nav-back">
+            <button class="nav-button nav-back-button" @onclick="NavigateBack">
+                ← Back
             </button>
         </div>
     }
 </div>
 
 @code {
-    [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
+    @implements IDisposable
     
     protected override void OnInitialized()
     {
-        NavigationService.OnNavigationChanged += HandleNavigationChanged;
+        NavigationService.OnNavigationChanged += OnNavigationChanged;
     }
     
-    private void HandleNavigationChanged()
+    private void OnNavigationChanged(CurrentViews newView)
     {
         InvokeAsync(StateHasChanged);
     }
     
-    private async Task NavigateTo(CurrentViews view)
+    private void NavigateTo(CurrentViews view)
     {
         NavigationService.NavigateTo(view);
-        await OnNavigate.InvokeAsync(view);
     }
     
-    private async Task NavigateBack()
+    private void NavigateBack()
     {
         NavigationService.NavigateBack();
-        await OnNavigate.InvokeAsync(NavigationService.CurrentView);
     }
     
-    private bool CanNavigate(CurrentViews view)
+    private bool IsActive(CurrentViews view)
     {
-        return NavigationService.CanNavigateTo(view);
+        return NavigationService.CurrentScreen == view;
     }
     
-    private string GetActiveClass(CurrentViews view)
+    private bool CanNavigateToLetterBoard()
     {
-        return NavigationService.CurrentView == view ? "active" : "";
+        return GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
     }
     
     public void Dispose()
     {
-        NavigationService.OnNavigationChanged -= HandleNavigationChanged;
+        NavigationService.OnNavigationChanged -= OnNavigationChanged;
     }
 }

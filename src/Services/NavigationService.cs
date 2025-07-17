@@ -1,181 +1,219 @@
-using System;
-using Microsoft.AspNetCore.Components;
-using Wayfarer.GameState;
 using Wayfarer.UIHelpers;
+using Wayfarer.GameState;
 
 namespace Wayfarer.Services;
 
 /// <summary>
-/// Centralized navigation management service for the UI
-/// Ensures proper navigation flow based on letter queue paradigm
+/// Centralized navigation management service for the letter queue game.
+/// Manages screen transitions, navigation history, and context awareness.
 /// </summary>
 public class NavigationService
 {
-    private readonly GameWorldManager _gameWorldManager;
-    private CurrentViews _currentView = CurrentViews.LetterQueueScreen;
-    private CurrentViews? _previousView = null;
+    private readonly GameWorld _gameWorld;
+    private readonly Stack<CurrentViews> _navigationHistory = new();
+    private CurrentViews _currentScreen = CurrentViews.LetterQueueScreen;
     
-    public NavigationService(GameWorldManager gameWorldManager)
+    public NavigationService(GameWorld gameWorld)
     {
-        _gameWorldManager = gameWorldManager;
+        _gameWorld = gameWorld;
     }
     
     /// <summary>
-    /// Current active view
+    /// Current active screen
     /// </summary>
-    public CurrentViews CurrentView => _currentView;
+    public CurrentViews CurrentScreen => _currentScreen;
     
     /// <summary>
-    /// Previous view for back navigation
+    /// Navigation history for back button support
     /// </summary>
-    public CurrentViews? PreviousView => _previousView;
+    public IReadOnlyCollection<CurrentViews> NavigationHistory => _navigationHistory;
     
     /// <summary>
-    /// Event raised when navigation occurs
+    /// Event fired when navigation changes
     /// </summary>
-    public event Action? OnNavigationChanged;
+    public event Action<CurrentViews>? OnNavigationChanged;
     
     /// <summary>
-    /// Navigate to a specific view with validation
+    /// Navigate to a specific screen
     /// </summary>
-    public void NavigateTo(CurrentViews targetView)
+    public void NavigateTo(CurrentViews screen)
     {
-        // Validate navigation based on game state
-        if (!CanNavigateTo(targetView))
-        {
-            return;
-        }
+        // Don't navigate to the same screen
+        if (_currentScreen == screen) return;
         
-        // Store previous view for back navigation
-        _previousView = _currentView;
-        _currentView = targetView;
+        // Validate navigation is allowed
+        if (!CanNavigateTo(screen)) return;
         
-        // Raise navigation event
-        OnNavigationChanged?.Invoke();
+        // Push current screen to history
+        _navigationHistory.Push(_currentScreen);
+        
+        // Update current screen
+        _currentScreen = screen;
+        
+        // Fire navigation event
+        OnNavigationChanged?.Invoke(_currentScreen);
     }
     
     /// <summary>
-    /// Navigate back to previous view
+    /// Navigate back to previous screen
     /// </summary>
     public void NavigateBack()
     {
-        if (_previousView.HasValue)
-        {
-            var temp = _currentView;
-            _currentView = _previousView.Value;
-            _previousView = temp;
-            OnNavigationChanged?.Invoke();
-        }
-    }
-    
-    /// <summary>
-    /// Navigate to the primary gameplay screen (Letter Queue)
-    /// </summary>
-    public void NavigateToHome()
-    {
-        NavigateTo(CurrentViews.LetterQueueScreen);
-    }
-    
-    /// <summary>
-    /// Check if navigation to a specific view is allowed
-    /// </summary>
-    public bool CanNavigateTo(CurrentViews targetView)
-    {
-        var gameWorld = _gameWorldManager.GameWorld;
+        if (!CanNavigateBack()) return;
         
-        // Special navigation rules based on game state
-        return targetView switch
-        {
-            // Letter screens always accessible after character creation
-            CurrentViews.LetterQueueScreen => gameWorld.GetPlayer() != null,
-            CurrentViews.LetterBoardScreen => gameWorld.GetPlayer() != null,
-            CurrentViews.RelationshipScreen => gameWorld.GetPlayer() != null,
-            CurrentViews.ObligationsScreen => gameWorld.GetPlayer() != null,
-            
-            // Location screens require player to be at a location
-            CurrentViews.LocationScreen => gameWorld.GetPlayer()?.CurrentLocation != null,
-            CurrentViews.MarketScreen => gameWorld.GetPlayer()?.CurrentLocation != null,
-            
-            // Travel is always accessible if player exists
-            CurrentViews.TravelScreen => gameWorld.GetPlayer() != null,
-            
-            // Always accessible if player exists
-            CurrentViews.CharacterScreen => gameWorld.GetPlayer() != null,
-            CurrentViews.PlayerStatusScreen => gameWorld.GetPlayer() != null,
-            CurrentViews.MapScreen => gameWorld.GetPlayer() != null,
-            CurrentViews.RestScreen => gameWorld.GetPlayer() != null,
-            
-            // Event screens are controlled by game events
-            CurrentViews.EncounterScreen => true, // Managed by encounter system
-            CurrentViews.NarrativeScreen => true, // Managed by narrative system
-            
-            // System screens
-            CurrentViews.MissingReferences => true,
-            
-            _ => true
-        };
+        var previousScreen = _navigationHistory.Pop();
+        _currentScreen = previousScreen;
+        
+        OnNavigationChanged?.Invoke(_currentScreen);
     }
     
     /// <summary>
-    /// Get appropriate default view based on game state
+    /// Check if back navigation is available
     /// </summary>
-    public CurrentViews GetDefaultView()
+    public bool CanNavigateBack()
     {
-        var gameWorld = _gameWorldManager.GameWorld;
+        return _navigationHistory.Count > 0;
+    }
+    
+    /// <summary>
+    /// Check if navigation to a specific screen is allowed
+    /// </summary>
+    public bool CanNavigateTo(CurrentViews screen)
+    {
+        // Always allow system screens
+        if (screen == CurrentViews.MissingReferences) return true;
         
-        // No player yet - character creation
-        if (gameWorld.GetPlayer() == null)
+        // Check if player exists for game screens
+        var player = _gameWorld.GetPlayer();
+        if (player == null || !player.IsInitialized)
         {
-            return CurrentViews.CharacterScreen;
+            return screen == CurrentViews.CharacterScreen;
         }
         
-        // Default to Letter Queue Screen if player has no location yet
-        if (gameWorld.GetPlayer().CurrentLocation == null)
+        // Location-based screens require a current location
+        if (IsLocationBasedScreen(screen))
         {
-            return CurrentViews.LetterQueueScreen;
+            return player.CurrentLocation != null && !string.IsNullOrEmpty(player.CurrentLocation.Id);
         }
         
-        // Default to Letter Queue Screen (primary gameplay)
-        return CurrentViews.LetterQueueScreen;
+        // Letter board only available at dawn
+        if (screen == CurrentViews.LetterBoardScreen)
+        {
+            return _gameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
+        }
+        
+        return true;
     }
     
     /// <summary>
-    /// Get navigation category for a view
+    /// Get the navigation context for a screen
     /// </summary>
-    public static string GetViewCategory(CurrentViews view)
+    public NavigationContext GetContext(CurrentViews screen)
     {
-        return view switch
+        return screen switch
         {
             CurrentViews.LetterQueueScreen or 
             CurrentViews.LetterBoardScreen or 
             CurrentViews.RelationshipScreen or 
-            CurrentViews.ObligationsScreen => "Letter Management",
+            CurrentViews.ObligationsScreen => NavigationContext.Queue,
             
             CurrentViews.LocationScreen or 
             CurrentViews.MapScreen or 
-            CurrentViews.TravelScreen => "Navigation",
-            
+            CurrentViews.TravelScreen or 
             CurrentViews.MarketScreen or 
-            CurrentViews.RestScreen => "Activities",
-            
-            CurrentViews.EncounterScreen or 
-            CurrentViews.NarrativeScreen => "Events",
+            CurrentViews.RestScreen => NavigationContext.Location,
             
             CurrentViews.CharacterScreen or 
-            CurrentViews.PlayerStatusScreen => "Character",
+            CurrentViews.PlayerStatusScreen => NavigationContext.Character,
             
-            _ => "System"
+            _ => NavigationContext.System
         };
     }
     
     /// <summary>
-    /// Check if a view is a primary gameplay screen
+    /// Get contextual screens available from current context
     /// </summary>
-    public static bool IsPrimaryGameplayScreen(CurrentViews view)
+    public List<CurrentViews> GetContextualScreens()
     {
-        return view is CurrentViews.LetterQueueScreen or 
-                      CurrentViews.LetterBoardScreen or 
-                      CurrentViews.RelationshipScreen or 
-                      CurrentViews.ObligationsScreen;
+        var context = GetContext(_currentScreen);
+        
+        return context switch
+        {
+            NavigationContext.Queue => new List<CurrentViews>(),  // Queue is the hub, no sub-screens
+            
+            NavigationContext.Location => new List<CurrentViews> 
+            { 
+                CurrentViews.MapScreen, 
+                CurrentViews.MarketScreen, 
+                CurrentViews.RestScreen,
+                CurrentViews.TravelScreen
+            },
+            
+            NavigationContext.Character => new List<CurrentViews> 
+            { 
+                CurrentViews.PlayerStatusScreen, 
+                CurrentViews.RelationshipScreen, 
+                CurrentViews.ObligationsScreen 
+            },
+            
+            _ => new List<CurrentViews>()
+        };
     }
+    
+    /// <summary>
+    /// Check if a screen is location-based
+    /// </summary>
+    private bool IsLocationBasedScreen(CurrentViews screen)
+    {
+        return screen == CurrentViews.LocationScreen ||
+               screen == CurrentViews.MapScreen ||
+               screen == CurrentViews.TravelScreen ||
+               screen == CurrentViews.MarketScreen ||
+               screen == CurrentViews.RestScreen;
+    }
+    
+    /// <summary>
+    /// Check if a screen is a primary gameplay screen
+    /// </summary>
+    public bool IsPrimaryGameplayScreen(CurrentViews screen)
+    {
+        return screen == CurrentViews.LetterQueueScreen ||
+               screen == CurrentViews.LetterBoardScreen ||
+               screen == CurrentViews.RelationshipScreen ||
+               screen == CurrentViews.ObligationsScreen;
+    }
+    
+    /// <summary>
+    /// Get the default view for the current game state
+    /// </summary>
+    public CurrentViews GetDefaultView()
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        // No player = character creation
+        if (player == null || !player.IsInitialized)
+        {
+            return CurrentViews.CharacterScreen;
+        }
+        
+        // Dawn = letter board available
+        if (_gameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        {
+            return CurrentViews.LetterBoardScreen;
+        }
+        
+        // Default to letter queue (primary interface)
+        return CurrentViews.LetterQueueScreen;
+    }
+}
+
+/// <summary>
+/// Navigation context categories
+/// </summary>
+public enum NavigationContext
+{
+    Queue,      // Letter Queue management
+    Location,   // Location-based activities
+    Character,  // Character management
+    System      // System/meta functions
 }
