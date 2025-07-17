@@ -86,7 +86,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     }
 
     public BeatOutcome BeatOutcome { get; set; }
-    public CurrentViews CurrentScreen => NavigationService.CurrentView;
+    public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
 
     public LocationSpot CurrentSpot
     {
@@ -599,7 +599,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         StateHasChanged();
     }
     
-    private void OnNavigationChanged()
+    private void OnNavigationChanged(CurrentViews newView)
     {
         InvokeAsync(StateHasChanged);
     }
