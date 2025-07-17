@@ -1,0 +1,129 @@
+/* Multiple Letter Offer Dialog Styles */
+
+.offers-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 1rem 0;
+}
+
+.letter-offer-card {
+    background-color: var(--bg-panel);
+    border: 2px solid var(--oak-mid);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.letter-offer-card:hover {
+    border-color: var(--oak-dark);
+    transform: translateY(-1px);
+}
+
+.letter-offer-card.selected {
+    border-color: var(--resource-coins);
+    background-color: var(--bg-dark);
+}
+
+.offer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.offer-type {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.token-icon {
+    font-size: 1.2rem;
+}
+
+.token-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.offer-age {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.new-badge {
+    color: var(--resource-coins);
+    font-weight: 600;
+}
+
+.offer-message {
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background-color: var(--bg-light);
+    border-radius: 4px;
+}
+
+.offer-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.select-offer-btn {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--leather);
+    color: var(--parchment);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-secondary);
+    transition: all 0.2s ease;
+}
+
+.select-offer-btn:hover {
+    background-color: var(--oak-dark);
+}
+
+.letter-offer-card.selected .select-offer-btn {
+    background-color: var(--resource-coins);
+    color: var(--bg-dark);
+}
+
+.offer-count {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+/* Token type colors */
+.token-trust { color: var(--trust-green); }
+.token-trade { color: var(--trade-blue); }
+.token-noble { color: var(--noble-purple); }
+.token-common { color: var(--common-brown); }
+.token-shadow { color: var(--shadow-black); }
+
+/* Add visual indicator for NPC card with offers */
+.npc-offer-card {
+    position: relative;
+}
+
+.offer-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--resource-coins);
+    color: var(--bg-dark);
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}

@@ -1,0 +1,211 @@
+@using Wayfarer.GameState
+@using Wayfarer.Content
+@inject NPCLetterOfferService LetterOfferService
+@inject LetterQueueManager LetterQueueManager
+@inject StandingObligationManager ObligationManager
+@inject NPCRepository NPCRepository
+@inject ConnectionTokenManager ConnectionTokenManager
+
+@if (NPC != null && AllOffers != null && AllOffers.Any())
+{
+    <div class="letter-offer-overlay">
+        <div class="letter-offer-dialog">
+            <h3>Letter Offers from @NPC.Name</h3>
+            
+            @if (AllOffers.Count > 1)
+            {
+                <p class="offer-count">@NPC.Name has @AllOffers.Count letter offers for you!</p>
+            }
+            
+            <div class="offers-container">
+                @foreach (var offer in AllOffers)
+                {
+                    <div class="letter-offer-card @(SelectedOffer?.Id == offer.Id ? "selected" : "")">
+                        <div class="offer-header">
+                            <div class="offer-type">
+                                <span class="token-icon @GetTokenTypeClass(offer.LetterType)">@GetTokenIcon(offer.LetterType)</span>
+                                <span class="token-name">@offer.LetterType Letter</span>
+                            </div>
+                            @if (offer.GeneratedDay > 0)
+                            {
+                                <div class="offer-age">
+                                    @{
+                                        var ageInDays = GameWorld.CurrentDay - offer.GeneratedDay;
+                                    }
+                                    @if (ageInDays == 0)
+                                    {
+                                        <span class="new-badge">🔔 New!</span>
+                                    }
+                                    else if (ageInDays == 1)
+                                    {
+                                        <span class="age-text">Yesterday</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="age-text">@ageInDays days ago</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="offer-message">
+                            "@offer.Message"
+                        </div>
+                        
+                        <div class="offer-details">
+                            <div class="payment">
+                                <span class="label">Payment:</span>
+                                <span class="value">@offer.Payment coins</span>
+                            </div>
+                            <div class="deadline">
+                                <span class="label">Deadline:</span>
+                                <span class="value @GetDeadlineClass(offer.Deadline)">@offer.Deadline days</span>
+                            </div>
+                        </div>
+                        
+                        <button class="select-offer-btn" @onclick="() => SelectOffer(offer)">
+                            @if (SelectedOffer?.Id == offer.Id)
+                            {
+                                <span>✓ Selected</span>
+                            }
+                            else
+                            {
+                                <span>Select This Offer</span>
+                            }
+                        </button>
+                    </div>
+                }
+            </div>
+            
+            <div class="queue-info">
+                @if (SelectedOffer != null)
+                {
+                    <p>Selected letter will enter your queue at position <strong>8</strong></p>
+                }
+                @if (ObligationManager.GetActiveObligations().Any())
+                {
+                    <p class="obligation-warning">
+                        <em>Note: Standing obligations may affect entry position</em>
+                    </p>
+                }
+            </div>
+            
+            <div class="dialog-actions">
+                <button class="btn btn-primary" @onclick="HandleAccept" disabled="@(SelectedOffer == null || LetterQueueManager.IsQueueFull())">
+                    @if (LetterQueueManager.IsQueueFull())
+                    {
+                        <span>Queue Full</span>
+                    }
+                    else if (SelectedOffer == null)
+                    {
+                        <span>Select an Offer</span>
+                    }
+                    else
+                    {
+                        <span>Accept Selected</span>
+                    }
+                </button>
+                <button class="btn btn-secondary" @onclick="HandleRefuse">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public NPC NPC { get; set; }
+    [Parameter] public EventCallback<string> OnAcceptOffer { get; set; }
+    [Parameter] public EventCallback OnRefuse { get; set; }
+    
+    [Inject] public GameWorld GameWorld { get; set; }
+    
+    private List<LetterOffer> AllOffers = new();
+    private LetterOffer SelectedOffer;
+    
+    protected override void OnInitialized()
+    {
+        LoadOffers();
+    }
+    
+    private void LoadOffers()
+    {
+        if (NPC == null) return;
+        
+        // Get pending offers
+        var pendingOffers = LetterOfferService.GetPendingOffersForNPC(NPC.ID);
+        AllOffers.AddRange(pendingOffers);
+        
+        // If NPC also qualifies for direct offers, generate one
+        if (ConnectionTokenManager.HasEnoughTokensForDirectOffer(NPC.ID))
+        {
+            var directOffers = LetterOfferService.GenerateNPCLetterOffers(NPC.ID);
+            // Only add offers that aren't already in pending
+            foreach (var offer in directOffers)
+            {
+                if (!AllOffers.Any(o => o.Id == offer.Id))
+                {
+                    AllOffers.Add(offer);
+                }
+            }
+        }
+        
+        // Pre-select if only one offer
+        if (AllOffers.Count == 1)
+        {
+            SelectedOffer = AllOffers.First();
+        }
+    }
+    
+    private void SelectOffer(LetterOffer offer)
+    {
+        SelectedOffer = offer;
+    }
+    
+    private async Task HandleAccept()
+    {
+        if (SelectedOffer != null)
+        {
+            await OnAcceptOffer.InvokeAsync(SelectedOffer.Id);
+        }
+    }
+    
+    private async Task HandleRefuse()
+    {
+        await OnRefuse.InvokeAsync();
+    }
+    
+    private string GetDeadlineClass(int deadline)
+    {
+        return deadline switch
+        {
+            <= 1 => "deadline-urgent",
+            <= 3 => "deadline-warning",
+            _ => "deadline-normal"
+        };
+    }
+    
+    private string GetTokenTypeClass(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => "token-trust",
+            ConnectionType.Trade => "token-trade",
+            ConnectionType.Noble => "token-noble",
+            ConnectionType.Common => "token-common",
+            ConnectionType.Shadow => "token-shadow",
+            _ => ""
+        };
+    }
+    
+    private string GetTokenIcon(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => "💚",
+            ConnectionType.Trade => "💙",
+            ConnectionType.Noble => "💜",
+            ConnectionType.Common => "🤎",
+            ConnectionType.Shadow => "🖤",
+            _ => "❓"
+        };
+    }
+}

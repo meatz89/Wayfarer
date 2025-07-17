@@ -21,6 +21,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     [Inject] public ConnectionTokenManager ConnectionTokenManager { get; set; }
     [Inject] public LetterQueueManager LetterQueueManager { get; set; }
     [Inject] public NavigationService NavigationService { get; set; }
+    [Inject] public NPCLetterOfferService NPCLetterOfferService { get; set; }
 
 
     public int StateVersion = 0;
@@ -552,25 +553,21 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     }
     
     /// <summary>
-    /// Accept a letter offer from an NPC
+    /// Accept a letter offer from an NPC by offer ID
     /// </summary>
-    public void AcceptLetterOffer(Letter letter)
+    public void AcceptLetterOfferId(string offerId)
     {
-        // Add letter to queue
-        int position = LetterQueueManager.AddLetterWithObligationEffects(letter);
+        if (CurrentNPCOffer == null) return;
         
-        if (position > 0)
-        {
-            MessageSystem.AddSystemMessage($"Letter from {letter.SenderName} added to slot {position}", SystemMessageTypes.Success);
-        }
-        else
-        {
-            MessageSystem.AddSystemMessage("Letter queue is full!", SystemMessageTypes.Danger);
-        }
+        // Use the NPCLetterOfferService to accept the offer
+        bool success = NPCLetterOfferService.AcceptNPCLetterOffer(CurrentNPCOffer.ID, offerId);
         
-        ShowLetterOfferDialog = false;
-        CurrentNPCOffer = null;
-        StateHasChanged();
+        if (success)
+        {
+            ShowLetterOfferDialog = false;
+            CurrentNPCOffer = null;
+            StateHasChanged();
+        }
     }
     
     /// <summary>

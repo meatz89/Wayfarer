@@ -225,6 +225,35 @@
     padding: 2rem 1rem;
 }
 
+/* Token Cost Preview Integration */
+.queue-slot .token-cost-preview {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Purge Controls Enhancement */
+.purge-instructions {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.purge-controls .token-input small {
+    color: var(--text-muted);
+    margin-left: 0.25rem;
+}
+
+.purge-total {
+    margin: 0.5rem 0;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    padding: 0.25rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
 /* Deliver Button */
 .deliver-btn {
     margin-top: 0.5rem;
