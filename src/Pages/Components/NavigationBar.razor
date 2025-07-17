@@ -1,0 +1,120 @@
+@using Wayfarer.UIHelpers
+@using Wayfarer.Services
+@inject NavigationService NavigationService
+
+<div class="navigation-bar">
+    <div class="nav-section nav-primary">
+        <h3>Letter Management</h3>
+        <button class="nav-button @GetActiveClass(CurrentViews.LetterQueueScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.LetterQueueScreen)">
+            <span class="nav-icon">📬</span>
+            Letter Queue
+        </button>
+        <button class="nav-button @GetActiveClass(CurrentViews.LetterBoardScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.LetterBoardScreen)">
+            <span class="nav-icon">📋</span>
+            Letter Board
+        </button>
+        <button class="nav-button @GetActiveClass(CurrentViews.RelationshipScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.RelationshipScreen)">
+            <span class="nav-icon">🤝</span>
+            Relationships
+        </button>
+        <button class="nav-button @GetActiveClass(CurrentViews.ObligationsScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.ObligationsScreen)">
+            <span class="nav-icon">📜</span>
+            Obligations
+        </button>
+    </div>
+    
+    <div class="nav-section nav-secondary">
+        <h3>World</h3>
+        <button class="nav-button @GetActiveClass(CurrentViews.LocationScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.LocationScreen)"
+                disabled="@(!CanNavigate(CurrentViews.LocationScreen))">
+            <span class="nav-icon">🏘️</span>
+            Location
+        </button>
+        <button class="nav-button @GetActiveClass(CurrentViews.MapScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.MapScreen)">
+            <span class="nav-icon">🗺️</span>
+            Map
+        </button>
+        <button class="nav-button @GetActiveClass(CurrentViews.MarketScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.MarketScreen)"
+                disabled="@(!CanNavigate(CurrentViews.MarketScreen))">
+            <span class="nav-icon">🛒</span>
+            Market
+        </button>
+    </div>
+    
+    <div class="nav-section nav-tertiary">
+        <h3>Character</h3>
+        <button class="nav-button @GetActiveClass(CurrentViews.CharacterScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.CharacterScreen)">
+            <span class="nav-icon">👤</span>
+            Character
+        </button>
+        <button class="nav-button @GetActiveClass(CurrentViews.PlayerStatusScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.PlayerStatusScreen)">
+            <span class="nav-icon">❤️</span>
+            Status
+        </button>
+        <button class="nav-button @GetActiveClass(CurrentViews.RestScreen)" 
+                @onclick="() => NavigateTo(CurrentViews.RestScreen)">
+            <span class="nav-icon">🛌</span>
+            Rest
+        </button>
+    </div>
+    
+    @if (NavigationService.PreviousView.HasValue)
+    {
+        <div class="nav-section nav-control">
+            <button class="nav-button nav-back" @onclick="NavigateBack">
+                <span class="nav-icon">⬅️</span>
+                Back
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        NavigationService.OnNavigationChanged += HandleNavigationChanged;
+    }
+    
+    private void HandleNavigationChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task NavigateTo(CurrentViews view)
+    {
+        NavigationService.NavigateTo(view);
+        await OnNavigate.InvokeAsync(view);
+    }
+    
+    private async Task NavigateBack()
+    {
+        NavigationService.NavigateBack();
+        await OnNavigate.InvokeAsync(NavigationService.CurrentView);
+    }
+    
+    private bool CanNavigate(CurrentViews view)
+    {
+        return NavigationService.CanNavigateTo(view);
+    }
+    
+    private string GetActiveClass(CurrentViews view)
+    {
+        return NavigationService.CurrentView == view ? "active" : "";
+    }
+    
+    public void Dispose()
+    {
+        NavigationService.OnNavigationChanged -= HandleNavigationChanged;
+    }
+}

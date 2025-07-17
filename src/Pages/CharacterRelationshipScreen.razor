@@ -2,6 +2,7 @@
 @using Wayfarer.GameState
 @using Wayfarer.Content
 @using Wayfarer.UIHelpers
+@using Wayfarer.Services
 
 @inherits MainGameplayViewBase
 
@@ -114,7 +115,7 @@
     
     @* Back Button *@
     <div class="navigation-buttons">
-        <button class="btn btn-secondary" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">Back to Main</button>
+        <button class="btn btn-secondary" @onclick="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)">Back to Main</button>
     </div>
 </div>
 

@@ -2,10 +2,11 @@
 using Microsoft.JSInterop;
 using Wayfarer.UIHelpers;
 using Wayfarer.GameState;
+using Wayfarer.Services;
 
 namespace Wayfarer.Pages;
 
-public class MainGameplayViewBase : ComponentBase
+public class MainGameplayViewBase : ComponentBase, IDisposable
 {
     [Inject] public IJSRuntime JSRuntime { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
@@ -19,6 +20,7 @@ public class MainGameplayViewBase : ComponentBase
     [Inject] public CardHighlightService CardRefreshService { get; set; }
     [Inject] public ConnectionTokenManager ConnectionTokenManager { get; set; }
     [Inject] public LetterQueueManager LetterQueueManager { get; set; }
+    [Inject] public NavigationService NavigationService { get; set; }
 
 
     public int StateVersion = 0;
@@ -84,7 +86,7 @@ public class MainGameplayViewBase : ComponentBase
     }
 
     public BeatOutcome BeatOutcome { get; set; }
-    public CurrentViews CurrentScreen { get; set; } = CurrentViews.LetterQueueScreen;
+    public CurrentViews CurrentScreen => NavigationService.CurrentView;
 
     public LocationSpot CurrentSpot
     {
@@ -136,6 +138,9 @@ public class MainGameplayViewBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        // Subscribe to navigation changes
+        NavigationService.OnNavigationChanged += OnNavigationChanged;
+        
         // Set up polling instead of direct timer calls
         _ = Task.Run(async () =>
         {
@@ -193,65 +198,65 @@ public class MainGameplayViewBase : ComponentBase
     public async Task SwitchToTravelScreen()
     {
         Console.WriteLine($"SwitchToTravelScreen called. Current screen: {CurrentScreen}");
-        CurrentScreen = CurrentViews.TravelScreen;
+        NavigationService.NavigateTo(CurrentViews.TravelScreen);
         Console.WriteLine($"New current screen: {CurrentScreen}");
         StateHasChanged();
     }
 
     public void SwitchToMarketScreen()
     {
-        CurrentScreen = CurrentViews.MarketScreen;
+        NavigationService.NavigateTo(CurrentViews.MarketScreen);
         StateHasChanged();
     }
 
     public void SwitchToRestScreen()
     {
-        CurrentScreen = CurrentViews.RestScreen;
+        NavigationService.NavigateTo(CurrentViews.RestScreen);
         StateHasChanged();
     }
 
 
     public void SwitchToPlayerStatusScreen()
     {
-        CurrentScreen = CurrentViews.PlayerStatusScreen;
+        NavigationService.NavigateTo(CurrentViews.PlayerStatusScreen);
         StateHasChanged();
     }
 
     public void SwitchToRelationshipScreen()
     {
-        CurrentScreen = CurrentViews.RelationshipScreen;
+        NavigationService.NavigateTo(CurrentViews.RelationshipScreen);
         StateHasChanged();
     }
 
     public void SwitchToObligationsScreen()
     {
-        CurrentScreen = CurrentViews.ObligationsScreen;
+        NavigationService.NavigateTo(CurrentViews.ObligationsScreen);
         StateHasChanged();
     }
 
     public void SwitchToLetterBoardScreen()
     {
-        CurrentScreen = CurrentViews.LetterBoardScreen;
+        NavigationService.NavigateTo(CurrentViews.LetterBoardScreen);
         StateHasChanged();
     }
 
     public async Task HandleTravelRoute(RouteOption route)
     {
         await GameManager.Travel(route);
-        CurrentScreen = CurrentViews.LocationScreen;
+        NavigationService.NavigateTo(CurrentViews.LocationScreen);
         UpdateState();
     }
 
     public async Task HandleTravelWithTransport((RouteOption route, TravelMethods transport) travelData)
     {
         await GameManager.TravelWithTransport(travelData.route, travelData.transport);
-        CurrentScreen = CurrentViews.LocationScreen;
+        NavigationService.NavigateTo(CurrentViews.LocationScreen);
         UpdateState();
     }
 
     public async Task HandleRestComplete()
     {
-        CurrentScreen = CurrentViews.LocationScreen;
+        NavigationService.NavigateTo(CurrentViews.LocationScreen);
         UpdateState();
     }
 
@@ -314,7 +319,7 @@ public class MainGameplayViewBase : ComponentBase
         if (GameWorld.ActionStateTracker.CurrentEncounterManager != null)
         {
             // Simply switch to encounter screen - EncounterView will handle initialization
-            CurrentScreen = CurrentViews.EncounterScreen;
+            NavigationService.NavigateTo(CurrentViews.EncounterScreen);
         }
 
         EncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager;
@@ -331,7 +336,7 @@ public class MainGameplayViewBase : ComponentBase
         BeatOutcome = result;
 
         // Switch to narrative screen to show result
-        CurrentScreen = CurrentViews.NarrativeScreen;
+        NavigationService.NavigateTo(CurrentViews.NarrativeScreen);
 
         UpdateState();
     }
@@ -343,7 +348,7 @@ public class MainGameplayViewBase : ComponentBase
 
         await GameManager.Travel(routeOption);
 
-        CurrentScreen = CurrentViews.LocationScreen;
+        NavigationService.NavigateTo(CurrentViews.LocationScreen);
         UpdateState();
     }
 
@@ -351,13 +356,13 @@ public class MainGameplayViewBase : ComponentBase
     {
         BeatOutcome = null;
 
-        CurrentScreen = CurrentViews.LocationScreen;
+        NavigationService.NavigateTo(CurrentViews.LocationScreen);
         UpdateState();
     }
 
     public async Task UseResource(ActionNames actionName)
     {
-        CurrentScreen = CurrentViews.LocationScreen;
+        NavigationService.NavigateTo(CurrentViews.LocationScreen);
         UpdateState();
     }
 
@@ -592,5 +597,22 @@ public class MainGameplayViewBase : ComponentBase
         }
         
         StateHasChanged();
+    }
+    
+    private void OnNavigationChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void HandleNavigation(CurrentViews view)
+    {
+        // Navigation is already handled by NavigationService
+        // This callback is just for any additional logic needed
+        StateHasChanged();
+    }
+    
+    public void Dispose()
+    {
+        NavigationService.OnNavigationChanged -= OnNavigationChanged;
     }
 }

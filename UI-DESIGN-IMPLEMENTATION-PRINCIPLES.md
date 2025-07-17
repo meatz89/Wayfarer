@@ -347,4 +347,135 @@ case CurrentViews.SpecificScreen:
 - Standing Obligations Screen consulted for major decisions
 - Obligation conflicts create interesting strategic dilemmas
 
-This UI architecture supports the **letter queue management** experience by providing clear information for strategic decision-making while preserving the **puzzle-solving challenge** that makes the game engaging.
+## Navigation Architecture Principles
+
+### Core Navigation Hierarchy
+
+#### Three-Tier System
+1. **Entry Layer** (GameUI.razor)
+   - Content Validation → Character Creation → Main Game
+   - Single responsibility: Get player into the game
+
+2. **Primary Navigation Layer** (MainGameplayView.razor)
+   - Letter Queue (Home/Hub)
+   - Location Context
+   - Character Context
+   - System Functions
+
+3. **Contextual Sub-Screens**
+   - Location → Travel, Market, Rest, Board
+   - Character → Status, Relations, Obligations
+   - Queue → No sub-screens (it's the hub)
+
+### Navigation Design Principles
+
+#### **Queue-Centric Navigation**
+**Principle**: Letter Queue is the primary interface and conceptual home.
+- Always accessible with single click/keypress
+- Default screen after character creation
+- Visual prominence in navigation
+- Other screens are "excursions" from the queue
+
+#### **Contextual Grouping**
+**Principle**: Related functions are grouped under logical contexts.
+- **Location Context**: All activities tied to physical presence
+- **Character Context**: All personal/relationship management
+- **Queue Context**: Core gameplay loop
+
+#### **Minimal Navigation Depth**
+**Principle**: No screen should be more than 2 clicks from the queue.
+- Primary Nav → Context Screen → Sub-Screen (maximum depth)
+- Back button always returns to parent context
+
+#### **Consistent Navigation Patterns**
+**Principle**: Same navigation behavior everywhere.
+```razor
+<!-- Every sub-screen follows this pattern -->
+<div class="location-container">
+    <div class="location-header">
+        <h2 class="location-title">@ScreenTitle</h2>
+        <div class="location-actions">
+            <button class="nav-button" @onclick="NavigateBack">
+                Back to @ParentContext
+            </button>
+        </div>
+    </div>
+</div>
+```
+
+### Navigation UI Components
+
+#### Primary Navigation Bar
+- **Position**: Top of screen, always visible
+- **Style**: Prominent but not overwhelming
+- **Contents**: [Queue] [Location] [Character] [System]
+- **Active State**: Clear visual indicator of current context
+
+#### Contextual Navigation
+- **Position**: Below primary nav, only when in context
+- **Style**: Subordinate to primary nav
+- **Contents**: Context-specific sub-screens
+- **Behavior**: Disappears in queue view
+
+#### Quick Access Features
+- **Breadcrumbs**: Show current location in hierarchy
+- **Mini-Queue**: Collapsible queue summary on non-queue screens
+
+### Navigation State Management
+
+```csharp
+public class NavigationService
+{
+    private Stack<CurrentViews> _history = new();
+    private CurrentViews _current;
+    
+    public void NavigateTo(CurrentViews screen)
+    {
+        _history.Push(_current);
+        _current = screen;
+        OnNavigationChanged?.Invoke(screen);
+    }
+    
+    public void NavigateBack()
+    {
+        if (_history.Count > 0)
+        {
+            _current = _history.Pop();
+            OnNavigationChanged?.Invoke(_current);
+        }
+    }
+    
+    public NavigationContext GetContext(CurrentViews screen)
+    {
+        return screen switch
+        {
+            CurrentViews.LetterQueueScreen => NavigationContext.Queue,
+            CurrentViews.LocationScreen or 
+            CurrentViews.TravelScreen or 
+            CurrentViews.MarketScreen => NavigationContext.Location,
+            CurrentViews.CharacterHub or
+            CurrentViews.RelationshipScreen => NavigationContext.Character,
+            _ => NavigationContext.System
+        };
+    }
+}
+```
+
+### Screen Transition Principles
+
+#### **Preserve User Context**
+- Maintain selected items/NPCs when navigating
+- Return to same scroll position
+- Remember expanded/collapsed states
+
+#### **Clear Visual Feedback**
+- Animate transitions (subtle slide/fade)
+- Show loading states for data fetches
+- Highlight navigation path taken
+
+#### **Platform Requirements**
+- **Target**: Web app for Chrome browser only
+- **No mobile/tablet support**
+- **No keyboard shortcuts**
+
+This navigation architecture reinforces that **letter queue management** is the core game experience while providing efficient access to supporting systems. The UI architecture supports the **letter queue management** experience by providing clear information for strategic decision-making while preserving the **puzzle-solving challenge** that makes the game engaging.
