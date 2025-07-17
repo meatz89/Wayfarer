@@ -110,6 +110,31 @@
                                                 }
                                             </div>
                                         }
+                                        
+                                        @* Show letter offers if NPC has sufficient relationship *@
+                                        @if (isCurrentlyAvailable && HasLetterOffers(npc))
+                                        {
+                                            <div class="npc-letter-offers">
+                                                <h4>@npc.Name approaches you:</h4>
+                                                @foreach (var offer in GetLetterOffers(npc))
+                                                {
+                                                    <div class="letter-offer">
+                                                        <div class="offer-message">
+                                                            <span class="offer-icon">💬</span>
+                                                            <span class="offer-text">@offer.Message</span>
+                                                        </div>
+                                                        <div class="offer-details">
+                                                            <span class="letter-type">@GetTokenIcon(offer.LetterType) @offer.LetterType</span>
+                                                            <span class="payment">💰 @offer.Payment coins</span>
+                                                            <span class="deadline">⏰ @offer.Deadline days</span>
+                                                        </div>
+                                                        <button class="accept-offer-button" @onclick="() => AcceptLetterOffer(npc.ID, offer.Id)">
+                                                            Accept
+                                                        </button>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
                                     </div>
                                 }
                             </div>

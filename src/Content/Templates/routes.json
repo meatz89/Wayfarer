@@ -24,7 +24,7 @@
 		"baseStaminaCost": 1,
 		"timeBlockCost": 1,
 		"departureTime": null,
-		"isDiscovered": true,
+		"isDiscovered": false,
 		"terrainCategories": ["Requires_Climbing"],
 		"maxItemCapacity": 4,
 		"description": "Treacherous mountain shortcut requiring climbing equipment but much faster than the main road."
@@ -69,7 +69,7 @@
 		"baseStaminaCost": 2,
 		"timeBlockCost": 2,
 		"departureTime": null,
-		"isDiscovered": true,
+		"isDiscovered": false,
 		"terrainCategories": [],
 		"maxItemCapacity": 7,
 		"description": "Cart-compatible logging road built for transporting lumber and heavy cargo."

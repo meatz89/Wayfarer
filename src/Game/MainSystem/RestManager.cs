@@ -21,61 +21,98 @@
         Location currentLocation = gameWorld.WorldState.CurrentLocation;
         if (currentLocation == null) return new List<RestOption>();
 
-        List<RestOption> restOptions = new List<RestOption>
+        List<RestOption> restOptions = new List<RestOption>();
+        
+        var currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        
+        // During day/evening - only short rest/wait options
+        if (currentTime != TimeBlocks.Night)
         {
-            // Standard rest options available everywhere
-            new RestOption
+            restOptions.Add(new RestOption
+            {
+                Id = "wait",
+                Name = "Wait an Hour",
+                CoinCost = 0,
+                StaminaRecovery = 0,
+                TimeBlockCost = 1,
+                EnablesDawnDeparture = false
+            });
+            
+            restOptions.Add(new RestOption
+            {
+                Id = "short_rest",
+                Name = "Short Rest",
+                CoinCost = 0,
+                StaminaRecovery = 1,
+                TimeBlockCost = 1,
+                EnablesDawnDeparture = false
+            });
+        }
+        // At night - sleep options that trigger morning activities
+        else
+        {
+            restOptions.Add(new RestOption
             {
                 Id = "camp",
-                Name = "Camp Outside",
+                Name = "Sleep Outside",
                 CoinCost = 0,
                 StaminaRecovery = 2,
+                TimeBlockCost = 1, // Consumes remaining night
                 EnablesDawnDeparture = true
+            });
+        }
+
+        // Location-specific rest options (only available evening/night)
+        if (currentTime == TimeBlocks.Evening || currentTime == TimeBlocks.Night)
+        {
+            bool isNight = currentTime == TimeBlocks.Night;
+            
+            if (currentLocation.Id == "Millbrook")
+            {
+                restOptions.Add(new RestOption
+                {
+                    Id = "inn",
+                    Name = isNight ? "Inn Room (Full Night)" : "Inn Room (Evening)",
+                    CoinCost = 2,
+                    StaminaRecovery = isNight ? 4 : 2,
+                    ProvidesMarketRumors = true,
+                    EnablesDawnDeparture = isNight
+                });
             }
-        };
+            else if (currentLocation.Id == "Crossbridge")
+            {
+                restOptions.Add(new RestOption
+                {
+                    Id = "inn",
+                    Name = isNight ? "Inn Room (Full Night)" : "Inn Room (Evening)",
+                    CoinCost = 3,
+                    StaminaRecovery = isNight ? 4 : 2,
+                    ProvidesMarketRumors = true,
+                    EnablesDawnDeparture = isNight
+                });
 
-        // Location-specific rest options
-        if (currentLocation.Id == "Millbrook")
-        {
-            restOptions.Add(new RestOption
+                restOptions.Add(new RestOption
+                {
+                    Id = "church",
+                    Name = isNight ? "Church Lodging (Full Night)" : "Church Lodging (Evening)",
+                    CoinCost = 0,
+                    StaminaRecovery = isNight ? 3 : 1,
+                    CleansesContraband = true,
+                    RequiredItem = "Pilgrim Token",
+                    EnablesDawnDeparture = isNight
+                });
+            }
+            else if (currentLocation.Id == "Thornwood")
             {
-                Id = "inn",
-                Name = "Inn Room",
-                CoinCost = 2,
-                StaminaRecovery = 4,
-                ProvidesMarketRumors = true
-            });
-        }
-        else if (currentLocation.Id == "Crossbridge")
-        {
-            restOptions.Add(new RestOption
-            {
-                Id = "inn",
-                Name = "Inn Room",
-                CoinCost = 3,
-                StaminaRecovery = 4,
-                ProvidesMarketRumors = true
-            });
-
-            restOptions.Add(new RestOption
-            {
-                Id = "church",
-                Name = "Church Lodging",
-                CoinCost = 0,
-                StaminaRecovery = 3,
-                CleansesContraband = true,
-                RequiredItem = "Pilgrim Token"
-            });
-        }
-        else if (currentLocation.Id == "Thornwood")
-        {
-            restOptions.Add(new RestOption
-            {
-                Id = "hunter_cabin",
-                Name = "Hunter's Cabin",
-                CoinCost = 1,
-                StaminaRecovery = 3
-            });
+                restOptions.Add(new RestOption
+                {
+                    Id = "hunter_cabin",
+                    Name = isNight ? "Hunter's Cabin (Full Night)" : "Hunter's Cabin (Evening)",
+                    CoinCost = 1,
+                    StaminaRecovery = isNight ? 3 : 1,
+                    EnablesDawnDeparture = isNight
+                });
+            }
         }
 
         // Filter by player requirements

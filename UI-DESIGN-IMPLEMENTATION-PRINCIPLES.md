@@ -219,6 +219,32 @@ public List<Letter> GetExpiredLetters()
 - **Token costs** modified by obligations
 - **Relationship requirements** imposed by obligations
 
+## CSS Architecture and Validation Requirements
+
+### CRITICAL: CSS Class Validation Principle
+
+Before using ANY CSS class in HTML/Razor components, you MUST:
+
+1. **READ ALL CSS FILES** - Search and review every CSS file in the project (`/src/wwwroot/css/*.css`)
+2. **VERIFY CLASS EXISTS** - Confirm the exact class name is defined in the CSS files
+3. **CHECK FOR DUPLICATES** - Ensure you're not creating redundant styles that already exist
+4. **MATCH EXISTING PATTERNS** - New classes must conform to existing naming conventions and style patterns
+5. **NO PHANTOM CLASSES** - Never use Bootstrap, Framework, or other external CSS classes unless explicitly included in the project
+6. **VALIDATE BEFORE USE** - If a class doesn't exist, either find an existing equivalent or create proper CSS definitions first
+
+**VIOLATION IS CRITICAL** - Using undefined CSS classes creates broken layouts and "fucking mess" UIs. Always validate CSS existence before HTML implementation.
+
+### CSS Architecture Principles
+
+- ✅ **SEPARATE CSS FILES** - All CSS must be in dedicated .css files, never inline in Razor components
+- ✅ **CHECK EXISTING STYLES FIRST** - ALWAYS read existing CSS files before creating new ones to reuse existing classes and patterns
+- ✅ **COHERENT STYLE PATTERNS** - New styles must follow existing color variables, font families, and design patterns
+- ✅ **USE CSS VARIABLES** - Always use existing CSS variables (--text-primary, --bg-panel, etc.) instead of hardcoded colors
+- ✅ **MAINTAIN VISUAL HIERARCHY** - Follow established font size, spacing, and layout patterns from existing components
+- ✅ **REUSE EXISTING CLASSES** - Look for existing CSS classes that can be reused before creating new ones
+- ❌ **NO INLINE STYLES** - Never add `<style>` sections to Razor components; this violates UI architecture principles
+- ❌ **NO DUPLICATE STYLES** - Never create new CSS that duplicates existing functionality
+
 ## Implementation Anti-Patterns
 
 ### Forbidden UI Elements

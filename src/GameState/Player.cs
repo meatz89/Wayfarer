@@ -79,6 +79,7 @@ public class Player
     
     // Queue manipulation tracking
     public int LastMorningSwapDay { get; set; } = -1; // Track when morning swap was last used
+    public int LastLetterBoardDay { get; set; } = -1; // Track when letter board was last generated
     
     // Letter history tracking
     public Dictionary<string, LetterHistory> NPCLetterHistory { get; private set; } = new Dictionary<string, LetterHistory>();

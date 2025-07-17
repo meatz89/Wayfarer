@@ -24,6 +24,15 @@ namespace Wayfarer.GameState
         public LetterSize Size { get; set; } = LetterSize.Medium;
         public bool IsFromPatron { get; set; } = false;
         
+        // Properties for forced letter generation
+        public bool IsGenerated { get; set; } = false;
+        public string GenerationReason { get; set; } = "";
+        
+        // Properties for letter chains
+        public List<string> UnlocksLetterIds { get; set; } = new List<string>();
+        public string ParentLetterId { get; set; } = "";
+        public bool IsChainLetter { get; set; } = false;
+        
         // Helper properties
         public bool IsExpired => Deadline <= 0;
         

@@ -28,6 +28,8 @@ public class GameWorldManager
     private RestManager restManager;
     private NPCRepository npcRepository;
     private LetterQueueManager letterQueueManager;
+    private StandingObligationManager standingObligationManager;
+    private MorningActivitiesManager morningActivitiesManager;
 
     private bool isAiAvailable = true;
 
@@ -42,7 +44,8 @@ public class GameWorldManager
                        RestManager restManager,
                        PlayerProgression playerProgression, ActionProcessor actionProcessor,
                        ChoiceProjectionService choiceProjectionService, NPCRepository npcRepository,
-                       LetterQueueManager letterQueueManager,
+                       LetterQueueManager letterQueueManager, StandingObligationManager standingObligationManager,
+                       MorningActivitiesManager morningActivitiesManager,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -59,6 +62,8 @@ public class GameWorldManager
         this.actionProcessor = actionProcessor;
         this.npcRepository = npcRepository;
         this.letterQueueManager = letterQueueManager;
+        this.standingObligationManager = standingObligationManager;
+        this.morningActivitiesManager = morningActivitiesManager;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -471,18 +476,53 @@ public class GameWorldManager
     {
         //SaveGame();
 
-
+        // Process daily letter queue activities
         ProcessDailyLetterQueue();
+        
+        // Mark that morning activities should be shown
+        if (morningActivitiesManager != null)
+        {
+            // Process and store the morning summary
+            _lastMorningResult = morningActivitiesManager.ProcessMorningActivities();
+        }
+        
         await Update_gameWorld();
     }
+    
+    private MorningActivityResult _lastMorningResult;
 
     public void ProcessDailyLetterQueue()
     {
         // Process letter deadline countdown daily
         letterQueueManager.ProcessDailyDeadlines();
         
+        // Process standing obligations and generate forced letters
+        var forcedLetters = standingObligationManager.ProcessDailyObligations(_gameWorld.CurrentDay);
+        
+        // Add forced letters to the queue with obligation effects
+        foreach (var letter in forcedLetters)
+        {
+            letterQueueManager.AddLetterWithObligationEffects(letter);
+        }
+        
+        // Advance obligation time tracking
+        standingObligationManager.AdvanceDailyTime();
+        
         // Generate new letters for the day
         letterQueueManager.GenerateDailyLetters();
+    }
+    
+    public MorningActivityResult GetMorningActivitySummary()
+    {
+        // Return the last morning result if available
+        var result = _lastMorningResult;
+        _lastMorningResult = null; // Clear after reading
+        return result;
+    }
+    
+    public bool HasPendingMorningActivities()
+    {
+        return _lastMorningResult != null && _lastMorningResult.HasEvents;
     }
 
     public bool CanTravelTo(string locationId)

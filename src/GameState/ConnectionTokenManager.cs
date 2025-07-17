@@ -123,5 +123,13 @@ namespace Wayfarer.GameState
             var playerTokens = player.ConnectionTokens;
             playerTokens[type] = Math.Max(0, playerTokens.GetValueOrDefault(type) - count);
         }
+        
+        // Check if player has 3+ tokens with a specific NPC
+        public bool HasEnoughTokensForDirectOffer(string npcId)
+        {
+            var npcTokens = GetTokensWithNPC(npcId);
+            var totalTokens = npcTokens.Values.Sum();
+            return totalTokens >= 3;
+        }
     }
 }

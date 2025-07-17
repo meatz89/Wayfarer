@@ -1,0 +1,282 @@
+@page "/letterboard"
+@using Wayfarer.GameState
+@using Wayfarer.Content
+@using Wayfarer.UIHelpers
+
+@inherits MainGameplayViewBase
+
+@inject LetterTemplateRepository LetterTemplateRepository
+@inject ConnectionTokenManager TokenManager
+@inject StandingObligationManager ObligationManager
+
+<div class="letter-board-container">
+    <h2>Morning Letter Board</h2>
+    
+    @if (GameWorld.TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+    {
+        <div class="time-restriction">
+            <span class="restriction-icon">⏰</span>
+            <p>The Letter Board is only available during Dawn.</p>
+            <small>Rest until morning to see available letters.</small>
+        </div>
+    }
+    else
+    {
+        @* Queue Status *@
+        <div class="queue-status-bar">
+            <span class="queue-info">Queue: @LetterQueueManager.GetLetterCount() / 8 letters</span>
+            @if (LetterQueueManager.IsQueueFull())
+            {
+                <span class="queue-warning">⚠️ Queue Full - Cannot accept new letters!</span>
+            }
+        </div>
+        
+        @* Available Letters *@
+        <div class="available-letters">
+            <h3>Available Letters</h3>
+            @if (!availableLetters.Any())
+            {
+                <div class="no-letters">
+                    <p>No letters available this morning.</p>
+                    <small>Check back tomorrow or visit NPCs directly.</small>
+                </div>
+            }
+            else
+            {
+                <div class="letter-grid">
+                    @foreach (var letter in availableLetters)
+                    {
+                        <div class="letter-offer @(selectedLetter == letter ? "selected" : "")">
+                            <div class="letter-header">
+                                <span class="token-icon">@GetTokenIcon(letter.TokenType)</span>
+                                <span class="letter-type">@letter.TokenType Letter</span>
+                            </div>
+                            
+                            <div class="letter-route">
+                                <div class="route-line">
+                                    <span class="label">From:</span>
+                                    <span class="sender">@letter.SenderName</span>
+                                </div>
+                                <div class="route-line">
+                                    <span class="label">To:</span>
+                                    <span class="recipient">@letter.RecipientName</span>
+                                </div>
+                            </div>
+                            
+                            <div class="letter-details">
+                                <div class="detail-item">
+                                    <span class="icon">💰</span>
+                                    <span class="value">@letter.Payment coins</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="icon">⏳</span>
+                                    <span class="value">@letter.Deadline days</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="icon">📍</span>
+                                    <span class="value">@GetDestinationHint(letter)</span>
+                                </div>
+                            </div>
+                            
+                            @if (!LetterQueueManager.IsQueueFull())
+                            {
+                                <button class="btn btn-primary accept-btn" @onclick="() => SelectLetter(letter)">
+                                    @(selectedLetter == letter ? "Selected ✓" : "Select")
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+                
+                @* Action Buttons *@
+                @if (selectedLetter != null && !LetterQueueManager.IsQueueFull())
+                {
+                    <div class="action-panel">
+                        <h4>Selected: @selectedLetter.SenderName → @selectedLetter.RecipientName</h4>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" @onclick="AcceptSelectedLetter">
+                                Accept Letter
+                            </button>
+                            <button class="btn btn-secondary" @onclick="() => selectedLetter = null">
+                                Cancel Selection
+                            </button>
+                        </div>
+                        
+                        @* Show obligation warnings *@
+                        @if (WouldViolateRefusalObligation(selectedLetter))
+                        {
+                            <div class="obligation-warning">
+                                <span class="warning-icon">⚠️</span>
+                                <span>You have an obligation that prevents refusing @selectedLetter.TokenType letters!</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+        
+        @* Refresh Info *@
+        <div class="refresh-info">
+            <p>New letters appear each morning. Visit NPCs with strong connections (3+ tokens) for exclusive offers.</p>
+        </div>
+    }
+    
+    @* Back Button *@
+    <div class="navigation-buttons">
+        <button class="btn btn-secondary" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">Back to Location</button>
+    </div>
+</div>
+
+@code {
+    private List<Letter> availableLetters = new List<Letter>();
+    private Letter? selectedLetter = null;
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        CheckAndGenerateLetters();
+    }
+    
+    private void CheckAndGenerateLetters()
+    {
+        var player = GameWorld.GetPlayer();
+        var currentDay = GameWorld.CurrentDay;
+        
+        // Only generate if we haven't generated for today
+        if (player.LastLetterBoardDay < currentDay && GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        {
+            GenerateAvailableLetters();
+            player.LastLetterBoardDay = currentDay;
+        }
+        // Otherwise, letters remain empty (already accepted or it's not dawn)
+    }
+    
+    private void GenerateAvailableLetters()
+    {
+        availableLetters.Clear();
+        
+        // Generate 3-5 letters
+        var random = new Random();
+        int letterCount = random.Next(3, 6);
+        
+        for (int i = 0; i < letterCount; i++)
+        {
+            var template = LetterTemplateRepository.GetRandomTemplate();
+            if (template == null) continue;
+            
+            // Get random NPCs for sender/recipient
+            var allNpcs = NPCRepository.GetAllNPCs();
+            if (allNpcs.Count < 2) continue;
+            
+            var sender = allNpcs[random.Next(allNpcs.Count)];
+            var recipient = allNpcs[random.Next(allNpcs.Count)];
+            
+            // Ensure different sender and recipient
+            if (sender.ID == recipient.ID && allNpcs.Count > 1)
+            {
+                recipient = allNpcs.Where(n => n.ID != sender.ID).First();
+            }
+            
+            var letter = LetterTemplateRepository.GenerateLetterFromTemplate(template, sender.Name, recipient.Name);
+            if (letter != null)
+            {
+                // Mark as board letter
+                letter.GenerationReason = "Morning Letter Board";
+                availableLetters.Add(letter);
+            }
+        }
+    }
+    
+    private void SelectLetter(Letter letter)
+    {
+        selectedLetter = letter;
+    }
+    
+    private void AcceptSelectedLetter()
+    {
+        if (selectedLetter == null || LetterQueueManager.IsQueueFull())
+        {
+            return;
+        }
+        
+        // Check for refusal obligations
+        if (WouldViolateRefusalObligation(selectedLetter))
+        {
+            var obligation = GetRefusalObligation(selectedLetter);
+            if (obligation != null)
+            {
+                MessageSystem.AddSystemMessage(
+                    $"Cannot refuse {selectedLetter.TokenType} letter due to {obligation.Name}",
+                    SystemMessageTypes.Warning
+                );
+                return;
+            }
+        }
+        
+        // Add to queue
+        int position = LetterQueueManager.AddLetterWithObligationEffects(selectedLetter);
+        
+        if (position > 0)
+        {
+            MessageSystem.AddSystemMessage(
+                $"Accepted letter from {selectedLetter.SenderName}! Added to queue position {position}.",
+                SystemMessageTypes.Success
+            );
+            
+            // Remove from available letters
+            availableLetters.Remove(selectedLetter);
+            selectedLetter = null;
+            
+            StateHasChanged();
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage(
+                "Failed to add letter to queue.",
+                SystemMessageTypes.Danger
+            );
+        }
+    }
+    
+    private bool WouldViolateRefusalObligation(Letter letter)
+    {
+        return ObligationManager.IsActionForbidden("refuse", letter, out _);
+    }
+    
+    private StandingObligation? GetRefusalObligation(Letter letter)
+    {
+        var obligations = ObligationManager.GetActiveObligations();
+        
+        if (letter.TokenType == ConnectionType.Noble)
+        {
+            return obligations.FirstOrDefault(o => o.HasEffect(ObligationEffect.NoNobleRefusal));
+        }
+        
+        if (letter.TokenType == ConnectionType.Common)
+        {
+            return obligations.FirstOrDefault(o => o.HasEffect(ObligationEffect.NoCommonRefusal));
+        }
+        
+        return null;
+    }
+    
+    private string GetTokenIcon(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Trade => "🪙",
+            ConnectionType.Noble => "👑",
+            ConnectionType.Common => "🍺",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+    
+    private string GetDestinationHint(Letter letter)
+    {
+        // In a full implementation, this would show the general region
+        // For now, just show that it's somewhere
+        return "Local area";
+    }
+}

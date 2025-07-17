@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Wayfarer.UIHelpers;
+using Wayfarer.GameState;
 
 namespace Wayfarer.Pages;
 
@@ -16,6 +17,8 @@ public class MainGameplayViewBase : ComponentBase
     [Inject] public NPCRepository NPCRepository { get; set; }
     [Inject] public LoadingStateService? LoadingStateService { get; set; }
     [Inject] public CardHighlightService CardRefreshService { get; set; }
+    [Inject] public ConnectionTokenManager ConnectionTokenManager { get; set; }
+    [Inject] public LetterQueueManager LetterQueueManager { get; set; }
 
 
     public int StateVersion = 0;
@@ -51,6 +54,15 @@ public class MainGameplayViewBase : ComponentBase
 
     // Time Planning State
     public bool showFullDayView = false;
+    
+    // Letter Offer State
+    public bool ShowLetterOfferDialog = false;
+    public NPC CurrentNPCOffer = null;
+    
+    // Morning Activities State
+    public bool ShowMorningSummary = false;
+    public MorningActivityResult MorningActivityResult = null;
+    public TimeBlocks? LastTimeBlock = null;
 
 
     public bool HasApLeft { get; set; }
@@ -72,7 +84,7 @@ public class MainGameplayViewBase : ComponentBase
     }
 
     public BeatOutcome BeatOutcome { get; set; }
-    public CurrentViews CurrentScreen { get; set; } = CurrentViews.LocationScreen;
+    public CurrentViews CurrentScreen { get; set; } = CurrentViews.LetterQueueScreen;
 
     public LocationSpot CurrentSpot
     {
@@ -148,6 +160,12 @@ public class MainGameplayViewBase : ComponentBase
         Stamina = snapshot.Stamina;
         Concentration = snapshot.Concentration;
 
+        // Check for pending morning activities (set by StartNewDay)
+        if (GameManager.HasPendingMorningActivities() && !ShowMorningSummary)
+        {
+            ProcessMorningActivities();
+        }
+
         if (oldSnapshot == null || !snapshot.IsEqualTo(oldSnapshot))
         {
             // You need to update EncounterManager state and force StateHasChanged for ALL screens
@@ -157,6 +175,18 @@ public class MainGameplayViewBase : ComponentBase
             }
 
             oldSnapshot = snapshot;
+        }
+    }
+    
+    private void ProcessMorningActivities()
+    {
+        // Get morning summary from GameWorldManager
+        MorningActivityResult = GameManager.GetMorningActivitySummary();
+        
+        if (MorningActivityResult != null && MorningActivityResult.HasEvents)
+        {
+            ShowMorningSummary = true;
+            StateHasChanged();
         }
     }
 
@@ -190,6 +220,18 @@ public class MainGameplayViewBase : ComponentBase
     public void SwitchToRelationshipScreen()
     {
         CurrentScreen = CurrentViews.RelationshipScreen;
+        StateHasChanged();
+    }
+
+    public void SwitchToObligationsScreen()
+    {
+        CurrentScreen = CurrentViews.ObligationsScreen;
+        StateHasChanged();
+    }
+
+    public void SwitchToLetterBoardScreen()
+    {
+        CurrentScreen = CurrentViews.LetterBoardScreen;
         StateHasChanged();
     }
 
@@ -492,5 +534,63 @@ public class MainGameplayViewBase : ComponentBase
             ServiceTypes.FoodProduction => "🍲",
             _ => "⚙️"
         };
+    }
+    
+    /// <summary>
+    /// Show a direct letter offer from an NPC
+    /// </summary>
+    public void ShowLetterOffer(NPC npc)
+    {
+        CurrentNPCOffer = npc;
+        ShowLetterOfferDialog = true;
+        StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Accept a letter offer from an NPC
+    /// </summary>
+    public void AcceptLetterOffer(Letter letter)
+    {
+        // Add letter to queue
+        int position = LetterQueueManager.AddLetterWithObligationEffects(letter);
+        
+        if (position > 0)
+        {
+            MessageSystem.AddSystemMessage($"Letter from {letter.SenderName} added to slot {position}", SystemMessageTypes.Success);
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage("Letter queue is full!", SystemMessageTypes.Danger);
+        }
+        
+        ShowLetterOfferDialog = false;
+        CurrentNPCOffer = null;
+        StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Refuse a letter offer from an NPC
+    /// </summary>
+    public void RefuseLetterOffer()
+    {
+        ShowLetterOfferDialog = false;
+        CurrentNPCOffer = null;
+        StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Handle morning summary continuation
+    /// </summary>
+    public void HandleMorningSummaryContinue()
+    {
+        ShowMorningSummary = false;
+        
+        // If letter board is available, switch to it
+        if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        {
+            SwitchToLetterBoardScreen();
+        }
+        
+        StateHasChanged();
     }
 }

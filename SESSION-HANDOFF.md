@@ -1,19 +1,187 @@
 # SESSION HANDOFF
 
-## CURRENT STATUS: LETTER QUEUE SYSTEM COMPLETE! 🎯
+## CURRENT STATUS: ROUTE SYSTEM COMPLETE! 🎯
 
-**SESSION ACHIEVEMENT**: Relationship damage implemented - ALL letter queue features done!
+**SESSION ACHIEVEMENT**: Token-based route unlocking system implemented with enhanced feedback and persistence! All tests passing.
 
-### **SESSION SUMMARY: RELATIONSHIP DAMAGE & QUEUE COMPLETION**
+### **SESSION SUMMARY: ROUTE SYSTEM & ENHANCED NOTIFICATIONS**
 
-**Previous Session**: Queue manipulation actions implemented (Morning Swap, Purge, Priority, Extend)
+**Previous Session**: Morning Activities Flow with sleep-triggered summaries
+**This Session - Major Achievements**:
+- ✅ **ROUTE SYSTEM**: Token-based route unlocking through NPC relationships
+- ✅ **ROUTE UNLOCK MANAGER**: Comprehensive route discovery and cost calculation
+- ✅ **ENHANCED FEEDBACK**: Rich notifications with emojis and detailed route information
+- ✅ **PERSISTENCE**: Route unlock status automatically saved with game state
+- ✅ **UI INTEGRATION**: Travel screen shows locked routes with unlock options
+- ✅ **NPC INTEGRATION**: Route unlock actions added to NPC interaction system
+
+### **ROUTE SYSTEM IMPLEMENTATION**
+
+**Core Features**:
+- **Token-Based Unlocking**: Spend connection tokens with NPCs to unlock faster routes
+- **Route Discovery**: Some routes start locked (isDiscovered: false) and must be unlocked
+- **Cost Calculation**: Route unlock costs based on route efficiency and NPC profession
+- **Profession Mapping**: Different NPCs unlock routes with different token types
+- **Persistence**: Unlocked routes remain available after save/load cycles
+
+**Technical Details**:
+- Created `RouteUnlockManager` for token-based route access and cost calculation
+- Added route unlock actions to actions.json for different NPC professions
+- Enhanced ActionProcessor to handle route unlock actions automatically
+- Modified TravelSelection.razor to show locked routes with unlock options
+- Added comprehensive feedback with route details and affordability indicators
+
+**Route Unlock Costs**:
+- **Merchants** (Trade tokens): Trade route shortcuts and cargo-efficient paths
+- **Courtiers** (Noble tokens): Official routes through restricted areas
+- **Rangers/Scholars** (Common tokens): Wilderness paths and local knowledge
+- **Thieves** (Shadow tokens): Hidden routes and dangerous shortcuts
+- **Base Cost**: Calculated from route efficiency (time/stamina savings)
+
+### **ENHANCED FEEDBACK SYSTEM**
+
+**Route Unlock Notifications**:
+- **Success**: "🗺️ Route Unlocked: [Name]!" with route details
+- **Details**: Shows origin→destination, time blocks, stamina cost, token cost
+- **Affordability**: Clear indicators of which routes can be unlocked
+- **Guidance**: Shows cheapest unlock when none are affordable
+
+**ActionProcessor Integration**:
+- Auto-unlocks first affordable route for demonstration
+- Lists all available unlocks with descriptions
+- Provides helpful guidance for building connections
+
+### **SESSION SUMMARY: MORNING ACTIVITIES & REST SYSTEM**
+
+**Previous Session**: Direct Letter Offers implementation
+**This Session - Major Achievements**:
+- ✅ **MORNING ACTIVITIES FLOW**: Unified morning routine triggered by night sleep
+- ✅ **MORNING SUMMARY DIALOG**: Shows expired letters, forced obligations, urgent deadlines
+- ✅ **REST SYSTEM OVERHAUL**: Time-based rest options (wait during day, sleep at night)
+- ✅ **NIGHT-TO-DAWN TRIGGER**: Morning activities only fire when sleeping through the night
+- ✅ **INN AVAILABILITY**: Room rentals only available evening/night
+- ✅ **TEST SUITE FIXED**: MorningActivitiesManager properly registered in test configuration
+
+### **DESIGN PRINCIPLE EVOLUTION**
+
+**Game Feature Simplicity Principle** (Added to CLAUDE.md):
+- Games are not compliance systems - use immediate, visible consequences
+- No violation tracking, escalating penalties, or reputation systems
+- Token loss IS the consequence - simple and understandable
+- Focus on warnings BEFORE mistakes, not tracking AFTER
+
+### **MORNING ACTIVITIES IMPLEMENTATION**
+
+**Core Features**:
+- **Sleep-Triggered**: Only full night sleep triggers morning activities (not waiting)
+- **Event Collection**: Tracks expired letters, forced obligations, new letters, urgent deadlines
+- **Relationship Damage**: Shows token loss from expired letters with specific NPCs
+- **Queue Transition**: After summary, players can access Letter Board at dawn
+- **One-Time Display**: Summary shown once per sleep cycle, not every dawn hour
+
+**Technical Details**:
+- Created `MorningActivitiesManager` to collect and track morning events
+- `StartNewDay()` in GameWorldManager triggers morning processing
+- Added `HasPendingMorningActivities()` to check for waiting summary
+- Created `MorningSummaryDialog.razor` component with event categorization
+- Updated `RestManager` for time-based options (wait vs sleep)
+- Added `morning-summary.css` with event-type styling
+
+**Rest System Changes**:
+- **Day/Evening**: "Wait an Hour" (0 stamina) or "Short Rest" (1 stamina)
+- **Night Only**: "Sleep Outside" or inn rooms trigger full night sleep
+- **Inn Availability**: Room rentals only available evening/night
+- **EnablesDawnDeparture**: Only true for full night sleep options
+
+### **DIRECT LETTER OFFERS IMPLEMENTATION** (From Previous Session)
+
+**Core Features**:
+- **3+ Token Threshold**: NPCs only offer letters when player has 3+ tokens with them
+- **Location-Based**: Must visit NPC's current location to see offers
+- **Immediate Decision**: Modal dialog requires accept/refuse before continuing
+- **Exclusive Letters**: NPC is always sender, creating unique relationship opportunities
+- **No Relationship Damage**: Refusing doesn't harm relationships (per design doc)
+
+**Technical Details**:
+- Added `HasEnoughTokensForDirectOffer(npcId)` to ConnectionTokenManager
+- Enhanced MainGameplayView with NPC offer detection in LocationScreen
+- Created `LetterOfferDialog.razor` component for offer UI
+- Added state management: `ShowLetterOfferDialog` and `CurrentNPCOffer`
+- Injected ConnectionTokenManager and LetterQueueManager to MainGameplayViewBase
+- Created `letter-offer.css` following existing design patterns
+
+**Integration Points**:
+- Uses `NPCRepository.GetNPCsForLocationAndTime()` to find present NPCs
+- Leverages existing `LetterTemplateRepository.GenerateLetterFromTemplate()`
+- Queue addition through `LetterQueueManager.AddLetterWithObligationEffects()`
+- Feedback via MessageSystem for successful acceptance or full queue
+
+### **LETTER BOARD IMPLEMENTATION** (From Previous Session)
+
+**Core Features**:
+- **3-5 Random Letters**: Generated each dawn from templates and NPC combinations
+- **Letter Metadata Display**: Shows type, payment, deadline, sender/recipient
+- **Selection Interface**: Click to select, then accept or cancel
+- **Queue Integration**: Adds letters using `AddLetterWithObligationEffects()`
+- **Obligation Warnings**: Shows when refusing would violate obligations
+
+**Technical Details**:
+- Added `LetterBoardScreen` enum to CurrentViews
+- Created `LetterBoardScreen.razor` component inheriting from MainGameplayViewBase
+- Added `LastLetterBoardDay` tracking to Player class
+- Dawn-only button appears in location actions
+- Proper CSS with responsive grid layout
+
+**Connection Gravity Removed**: Simplified `AddLetterWithObligationEffects()` to only handle obligation-based positioning (not POC content)
+
+### **TECHNICAL IMPROVEMENTS**
+
+**Code Cleanup**:
+- Removed `ViolationCount` and `RecordViolation()` from StandingObligation
+- Removed `RecordConstraintViolation()` and `ApplyViolationConsequences()` from StandingObligationManager
+- Fixed letter history property access (using correct property names)
+- Added GetNPCLettersInQueue() method for current queue display
+
+**CSS Architecture**:
+- Created `character-relationships.css` following design patterns
+- Uses CSS variables for consistent theming
+- Responsive grid layout for NPC cards
+- No inline styles (adhering to architecture principles)
+
+### **PREVIOUS SESSION SUMMARY: FORCED LETTER TEMPLATE SYSTEM**
+
+**Previous Session**: Standing Obligations System fully operational with forced letter generation
 **This Session - Major Achievements**: 
-- ✅ **RELATIONSHIP DAMAGE**: Expired letters now damage NPC relationships (-2 tokens)
-- ✅ **NEGATIVE TOKENS**: NPC relationships can go negative (debt system)
-- ✅ **UI FEEDBACK**: Warning messages when relationships damaged
-- ✅ **FULL TEST COVERAGE**: All relationship damage scenarios tested
-- ✅ **ARCHITECTURE COMPLIANCE**: Proper dependency injection for MessageSystem
-- ✅ **COMPLETE LETTER SYSTEM**: All planned features implemented!
+- ✅ **FORCED LETTER TEMPLATES**: 6 new templates for shadow and patron obligations
+- ✅ **TEMPLATE-BASED GENERATION**: Replaced hardcoded generation with flexible template system
+- ✅ **RICH SENDER/RECIPIENT POOLS**: Each template defines multiple possible senders and recipients
+- ✅ **FALLBACK SYSTEM**: Maintains backward compatibility with hardcoded generation
+- ✅ **DEPENDENCY INJECTION**: Proper LetterTemplateRepository integration
+- ✅ **TEST COMPATIBILITY**: All existing tests updated and passing
+
+### **FORCED LETTER TEMPLATE IMPLEMENTATION**
+
+**New Template Types Added**:
+- **Shadow Obligations**: 3 templates with varied urgency and payment scales
+  - `forced_shadow_dead_drop`: Dead drop deliveries (20-40 coins, 1-3 days)
+  - `forced_shadow_intelligence`: Intelligence deliveries (25-45 coins, 1-4 days) 
+  - `forced_shadow_blackmail`: Sensitive material (30-50 coins, 2-3 days)
+- **Patron Obligations**: 3 templates for different patron communications
+  - `forced_patron_resources`: Monthly resource packages (50-100 coins, 3-7 days)
+  - `forced_patron_instructions`: New directives (40-80 coins, 2-5 days)
+  - `forced_patron_summons`: Formal summons (60-120 coins, 1-4 days)
+
+**Enhanced Letter Generation**:
+- Each template defines `possibleSenders` and `possibleRecipients` arrays
+- Random selection from template pools for variety
+- Higher payment ranges for forced letters reflect their special nature
+- Shorter deadlines for shadow work, reasonable deadlines for patron work
+
+**Architecture Improvements**:
+- New methods in `LetterTemplateRepository`: `GetRandomForcedShadowTemplate()`, `GetRandomForcedPatronTemplate()`
+- `GenerateForcedLetterFromTemplate()` method handles template-based generation
+- Backward-compatible fallback to hardcoded generation if templates unavailable
+- Proper dependency injection of `LetterTemplateRepository` into `StandingObligationManager`
 
 ### **RELATIONSHIP DAMAGE IMPLEMENTATION**
 
@@ -24,9 +192,43 @@
 - Player's total tokens can't go below 0
 - Warning message displayed through MessageSystem
 
-**Implementation Details**:
-- `ApplyRelationshipDamage()` method in LetterQueueManager
-- `RemoveTokensFromNPC()` method in ConnectionTokenManager
+## 🎯 IMMEDIATE NEXT STEPS
+
+Based on POC-IMPLEMENTATION-ROADMAP.md and current progress, the logical next features are:
+
+### **1. Network Request Feature (Next High Priority)**
+- Spend tokens to request specific letter types from NPCs
+- Strategic token spending for queue composition control
+- Helps players manage letter type distribution
+- Balances randomness with player agency
+
+### **2. Save System Integration**
+- Ensure letter queue saves/loads properly
+- Standing obligations persistence
+- Per-NPC token tracking in saves
+- Letter board state persistence
+
+### **3. Polish and Testing**
+- Ensure all queue manipulation actions work smoothly
+- Test obligation effects thoroughly
+- Balance letter generation rates and rewards
+- Fine-tune token economy
+
+## CURRENT GAME STATE
+
+**Letter Queue System**: Fully operational with 8-slot priority queue
+**Connection Tokens**: 5 types with per-NPC tracking  
+**Standing Obligations**: Complete with forced letter generation
+**UI Screens**: 
+- ✅ Letter Queue Display (main gameplay)
+- ✅ Standing Obligations Screen (`/obligations`)
+- ✅ Character Relationships Screen (`/relationships`)
+- ✅ Letter Board Screen (`/letterboard`)
+- ✅ Direct Letter Offers (location-based NPC offers)
+- ✅ Morning Activities Flow (sleep-triggered summary)
+
+**All tests passing** - Game is in stable, playable state!
+**Build successful** - Fixed compilation errors from violation tracking removal
 - NPCs identified by name lookup in NPCRepository
 - MessageSystem properly injected through dependency injection
 
@@ -180,11 +382,51 @@ Implemented smart queue compaction in `LetterQueueManager.ShiftQueueUp()`:
 
 ## **FILES CREATED/MODIFIED THIS SESSION**
 
-### **NEW FILES CREATED**
-- **Created**: `/Wayfarer.Tests/GameState/LetterQueueManagerTests.cs` - Comprehensive test suite for queue shifting functionality
-- **Created**: `/Wayfarer.Tests/GameState/RelationshipDamageTests.cs` - Test suite for relationship damage on letter expiry
+### **FILES CREATED - Route System**
+- **Created**: `/src/GameState/RouteUnlockManager.cs` - Token-based route unlocking system
+- **Enhanced**: `/src/Content/Templates/actions.json` - Added route unlock actions for different NPC types
+- **Enhanced**: `/src/Content/Templates/routes.json` - Some routes set to locked (isDiscovered: false)
+- **Enhanced**: `/src/Game/ProgressionSystems/ActionProcessor.cs` - Added route unlock action handling
+- **Enhanced**: `/src/Pages/TravelSelection.razor` - Added locked routes display with unlock options
+- **Enhanced**: `/src/ServiceConfiguration.cs` - Added RouteUnlockManager service registration
 
-### **FILES MODIFIED - Relationship Damage Implementation**
+### **FILES CREATED - Morning Activities Flow** (From Previous Session)
+- **Created**: `/src/GameState/MorningActivitiesManager.cs` - Manages morning event collection and display
+- **Created**: `/src/Pages/MorningSummaryDialog.razor` - Modal dialog for morning events
+- **Created**: `/src/wwwroot/css/morning-summary.css` - Styling for morning summary
+
+### **FILES MODIFIED - Morning Activities Flow**
+- **Enhanced**: `/src/GameState/GameWorldManager.cs` - Added morning processing to StartNewDay()
+- **Enhanced**: `/src/GameState/LetterQueueManager.cs` - GenerateDailyLetters() now returns count
+- **Enhanced**: `/src/Game/MainSystem/RestManager.cs` - Time-based rest options and inn availability
+- **Enhanced**: `/src/Pages/MainGameplayView.razor.cs` - Morning summary state management
+- **Enhanced**: `/src/Pages/MainGameplayView.razor` - Added MorningSummaryDialog component
+- **Enhanced**: `/src/ServiceConfiguration.cs` - Added MorningActivitiesManager service
+- **Enhanced**: `/src/Pages/_Layout.cshtml` - Added morning-summary.css reference
+
+### **FILES CREATED - Direct Letter Offers** (From Previous Session)
+- **Created**: `/src/Pages/LetterOfferDialog.razor` - Modal dialog component for letter offers
+- **Created**: `/src/wwwroot/css/letter-offer.css` - Styling for offer UI
+
+### **FILES MODIFIED - Direct Letter Offers** (From Previous Session)
+- **Enhanced**: `/src/GameState/ConnectionTokenManager.cs` - Added `HasEnoughTokensForDirectOffer()` method
+- **Enhanced**: `/src/Pages/MainGameplayView.razor` - Added NPC offer detection in LocationScreen
+- **Enhanced**: `/src/Pages/MainGameplayView.razor.cs` - Added offer state management and methods
+- **Enhanced**: `/src/Pages/_Layout.cshtml` - Added letter-offer.css reference
+- **Fixed**: `/src/Pages/LetterBoardScreen.razor` - Removed duplicate injections
+- **Fixed**: `/src/Pages/CharacterRelationshipScreen.razor` - Removed duplicate injections
+- **Fixed**: `/src/Pages/TravelSelection.razor` - Removed duplicate GameWorld injection
+
+### **FILES MODIFIED - Forced Letter Template System**
+- **Enhanced**: `/src/Content/Templates/letter_templates.json` - Added 6 forced letter templates with rich sender/recipient pools
+- **Enhanced**: `/src/Content/LetterTemplateRepository.cs` - Added template filtering and forced letter generation methods
+- **Enhanced**: `/src/GameState/StandingObligationManager.cs` - Updated to use template-based generation with fallbacks
+- **Enhanced**: `/src/ServiceConfiguration.cs` - Updated dependency injection for LetterTemplateRepository
+- **Enhanced**: `/Wayfarer.Tests/TestGameWorldFactory.cs` - Updated test service configuration
+- **Enhanced**: `/Wayfarer.Tests/GameState/RelationshipDamageTests.cs` - Fixed constructor dependencies
+- **Enhanced**: `/Wayfarer.Tests/GameState/LetterQueueManagerTests.cs` - Fixed constructor dependencies
+
+### **FILES MODIFIED - Previous Session (Relationship Damage Implementation)**
 - **Enhanced**: `/src/GameState/LetterQueueManager.cs` - Added ApplyRelationshipDamage() and GetNPCIdByName() methods, MessageSystem injection
 - **Enhanced**: `/src/GameState/ConnectionTokenManager.cs` - Added RemoveTokensFromNPC() method for relationship damage
 - **Enhanced**: `/src/ServiceConfiguration.cs` - Updated LetterQueueManager factory to include MessageSystem
@@ -247,47 +489,50 @@ Implemented smart queue compaction in `LetterQueueManager.ShiftQueueUp()`:
 
 ## **NEXT SESSION PRIORITIES**
 
-### **🎯 LETTER QUEUE SYSTEM COMPLETE! What's Next?**
+### **🎯 STANDING OBLIGATIONS SYSTEM COMPLETE! What's Next?**
 
-**ALL Core Letter Queue Features Implemented**:
-- ✅ 8-slot priority queue with position enforcement
-- ✅ Daily letter generation (1-2 per day)
-- ✅ Connection token economy (5 types)
-- ✅ Queue manipulation actions (Morning Swap, Purge, Priority, Extend)
-- ✅ Relationship damage on letter expiry
-- ✅ Full UI integration with feedback
-- ✅ Comprehensive test coverage
+**ALL Core Standing Obligations Features Implemented**:
+- ✅ Forced letter generation with template variety (3 shadow + 3 patron templates)
+- ✅ Queue entry position effects (Noble slot 5, Common slot 6, Patron top 3)
+- ✅ Payment bonuses (Trade +10, Shadow triple pay)
+- ✅ Queue restrictions (purge blocking, skip cost multipliers)
+- ✅ Daily obligation processing and time tracking
+- ✅ Template-based generation with fallback systems
+- ✅ Full UI integration and test coverage
 
-**Potential Next Steps (Based on POC Plan)**:
-1. **Character Relationship Screen**: Visualize NPC relationships
-   - Show all NPCs with token counts
-   - Display negative tokens (relationship debt)
-   - Recent interaction history
+**Potential Next Steps (Based on Implementation Plan)**:
+1. **Obligation Violation Tracking**: Add consequences for breaking obligation constraints
+   - Track violations when players break obligation rules
+   - Apply penalties (token loss, relationship damage)
+   - Warning systems for potential violations
    
-2. **Enhanced Letter Generation**: More sophisticated letter creation
-   - Use NPC relationship levels to influence letter frequency
-   - Patron letters with special requirements
-   - Chain letters (follow-up deliveries)
+2. **Character Relationship Screen**: Visualize NPC relationships and obligations
+   - Show all NPCs with token counts and relationship history
+   - Display active obligations and their effects
+   - Obligation violation history and consequences
    
-3. **Standing Obligations**: Permanent gameplay modifiers
-   - Accept obligations that change queue rules
-   - Trade-offs between benefits and constraints
-   - Integration with letter system
+3. **Advanced Obligation Features**: Expand obligation system
+   - Obligation conflict detection for incompatible constraints
+   - Complex multi-effect obligations with trade-offs
+   - Obligation progression and upgrades over time
 
 ### **📝 IMPLEMENTATION STATUS**
 
 **COMPLETED THIS SESSION**:
-- ✅ Relationship Damage - Expired letters remove 2 tokens from sender NPC
-- ✅ Negative Token Tracking - NPC relationships can go into debt
-- ✅ MessageSystem Integration - Proper dependency injection across all components
-- ✅ Full Test Coverage - 4 comprehensive tests for relationship damage scenarios
+- ✅ Forced Letter Templates - 6 new templates with rich sender/recipient variety
+- ✅ Template-Based Generation - Replaced hardcoded generation with flexible template system
+- ✅ Enhanced LetterTemplateRepository - New methods for forced letter template access
+- ✅ Dependency Injection Updates - Proper integration throughout system and tests
+- ✅ Backward Compatibility - Fallback system maintains existing functionality
 
-**LETTER QUEUE SYSTEM STATUS**:
-- ✅ Core Queue (8 slots, priority order) - COMPLETE
-- ✅ Token Economy (5 types, earn/spend) - COMPLETE
-- ✅ Queue Actions (Skip, Morning Swap, Purge, Priority, Extend) - COMPLETE
-- ✅ Daily Processing (generation, deadlines, damage) - COMPLETE
-- ✅ UI Integration (display, actions, feedback) - COMPLETE
+**STANDING OBLIGATIONS SYSTEM STATUS**:
+- ✅ Core Obligation Framework (benefits, constraints, tracking) - COMPLETE
+- ✅ Forced Letter Generation (template-based with variety) - COMPLETE
+- ✅ Queue Position Effects (Noble priority, Common priority, Patron jump) - COMPLETE
+- ✅ Payment Modifiers (Trade bonus, Shadow triple pay) - COMPLETE
+- ✅ Queue Restrictions (purge blocking, skip cost multipliers) - COMPLETE
+- ✅ Daily Processing (obligation time tracking, forced generation) - COMPLETE
+- ✅ UI Integration (obligation panel, effect display) - COMPLETE
 
 **VALIDATION STATUS**: 
 - Queue manipulation ✅
@@ -355,6 +600,13 @@ Implemented smart queue compaction in `LetterQueueManager.ShiftQueueUp()`:
 - ✅ MessageSystem integration for all user notifications
 - ✅ Comprehensive test coverage (queue shifting + relationship damage)
 
+- ✅ **ROUTE SYSTEM**: Token-based route unlocking through NPC relationships
+  - ✅ Route discovery with locked routes (isDiscovered: false)
+  - ✅ Cost calculation based on route efficiency and NPC profession
+  - ✅ Enhanced feedback with route details and affordability indicators
+  - ✅ Persistence through existing RouteOption.IsDiscovered property
+  - ✅ UI integration showing locked routes with unlock options
+
 **Letter Queue POC Target: ACHIEVED** 🎯
 
 ---
@@ -381,16 +633,18 @@ Implemented smart queue compaction in `LetterQueueManager.ShiftQueueUp()`:
 
 ---
 
-*Session ended with relationship damage implementation completing the Letter Queue System. The minimal POC target for the letter queue transformation has been achieved with all core features working, tested, and integrated.*
+*Session ended with forced letter template implementation enhancing the Standing Obligations System. Template-based generation now provides rich variety for obligation-driven letters while maintaining backward compatibility.*
 
-## **LETTER QUEUE SYSTEM - FEATURE COMPLETE** 🎉
+## **STANDING OBLIGATIONS SYSTEM - FEATURE COMPLETE** 🎉
 
-The Letter Queue System is now fully operational with:
-- Core queue mechanics (8 slots, priority delivery)
-- Token economy (earn through delivery, spend for manipulation)
-- Queue actions (Skip, Swap, Purge, Priority, Extend)
-- Daily processing (generation, deadlines, relationship damage)
-- Complete UI integration with proper feedback
-- Comprehensive test coverage
+The Standing Obligations System is now fully operational with:
+- Comprehensive obligation framework (benefits, constraints, tracking)
+- Rich forced letter generation (6 templates with varied content)
+- Queue positioning effects (priority slots for different letter types)
+- Payment modifiers (bonus coins and multipliers)
+- Queue manipulation restrictions (blocking and cost increases)
+- Daily processing and time tracking
+- Template-based generation with fallback compatibility
+- Complete UI integration and test coverage
 
-**Next logical step**: Character Relationship Screen to visualize the token relationships and debt system.
+**Next logical step**: Obligation violation tracking to add consequences for breaking obligation constraints.

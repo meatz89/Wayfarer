@@ -1,0 +1,263 @@
+/* Letter Board Screen Styles */
+.letter-board-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin: 1rem;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.letter-board-container h2 {
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Time Restriction */
+.time-restriction {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.restriction-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.time-restriction p {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.time-restriction small {
+    color: var(--text-muted);
+}
+
+/* Queue Status Bar */
+.queue-status-bar {
+    background-color: var(--bg-dark);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.queue-info {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.queue-warning {
+    color: var(--negative);
+    font-weight: bold;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Available Letters Section */
+.available-letters h3 {
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    margin-bottom: 1rem;
+}
+
+.no-letters {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.no-letters p {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.no-letters small {
+    color: var(--text-muted);
+}
+
+/* Letter Grid */
+.letter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Letter Offer Card */
+.letter-offer {
+    background-color: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.letter-offer:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.letter-offer.selected {
+    border-color: var(--resource-coins);
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+/* Letter Header */
+.letter-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--oak-mid);
+}
+
+.token-icon {
+    font-size: 1.5rem;
+}
+
+.letter-type {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Letter Route */
+.letter-route {
+    margin-bottom: 0.75rem;
+}
+
+.route-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.route-line .label {
+    color: var(--text-secondary);
+    min-width: 3rem;
+}
+
+.route-line .sender,
+.route-line .recipient {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Letter Details */
+.letter-details {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.detail-item .icon {
+    font-size: 1rem;
+}
+
+.detail-item .value {
+    color: var(--text-secondary);
+}
+
+/* Accept Button */
+.accept-btn {
+    width: 100%;
+    font-size: 0.875rem;
+}
+
+/* Action Panel */
+.action-panel {
+    background-color: var(--bg-dark);
+    border: 2px solid var(--resource-coins);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.action-panel h4 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Obligation Warning */
+.obligation-warning {
+    background-color: rgba(158, 42, 43, 0.1);
+    border: 1px solid var(--negative);
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.warning-icon {
+    font-size: 1.2rem;
+}
+
+/* Refresh Info */
+.refresh-info {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+.refresh-info p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Navigation */
+.navigation-buttons {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Dawn-only button style */
+.location-button.dawn-only {
+    background-color: var(--special);
+    border-color: var(--special);
+}
+
+.location-button.dawn-only:hover {
+    background-color: var(--special-dark);
+    border-color: var(--special-dark);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .letter-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}

@@ -2,15 +2,20 @@
 .letter-queue-container {
     background-color: var(--bg-panel);
     border: 1px solid var(--oak-dark);
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 1rem;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .letter-queue-container h3 {
     color: var(--text-primary);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     text-align: center;
+    font-family: var(--font-primary);
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
 }
 
 /* Token Display */
@@ -41,7 +46,7 @@
     background-color: var(--bg-panel);
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--oak-mid);
 }
 
 .token-icon {
@@ -63,18 +68,22 @@
 .letter-queue {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
 }
 
 .queue-slot {
     background-color: var(--bg-dark);
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--oak-mid);
     border-radius: 8px;
-    padding: 0.75rem;
-    min-height: 120px;
+    padding: 1rem;
+    min-height: 140px;
     position: relative;
     transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .queue-slot.position-one {
@@ -86,18 +95,40 @@
     background-color: var(--bg-panel);
 }
 
+.queue-slot.occupied:has(.deadline-expired) {
+    border-color: var(--negative);
+    box-shadow: 0 0 15px rgba(158, 42, 43, 0.5);
+}
+
+.queue-slot.occupied:has(.deadline-urgent) {
+    border-color: var(--negative);
+    box-shadow: 0 0 10px rgba(158, 42, 43, 0.3);
+}
+
+.queue-slot.occupied:has(.deadline-warning) {
+    border-color: var(--special);
+}
+
 .slot-number {
     position: absolute;
-    top: 0.25rem;
-    left: 0.5rem;
+    top: 0.5rem;
+    left: 0.75rem;
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: bold;
+    background-color: var(--bg-panel);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    border: 1px solid var(--oak-mid);
 }
 
 /* Letter Card */
 .letter-card {
-    margin-top: 1.2rem;
+    margin-top: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .letter-header {
@@ -144,11 +175,35 @@
 .deadline {
     color: var(--text-secondary);
     font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
-.deadline.urgent {
+.deadline.deadline-expired {
     color: var(--negative);
     font-weight: bold;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.deadline.deadline-urgent {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+.deadline.deadline-warning {
+    color: var(--special);
+    font-weight: 600;
+}
+
+.deadline.deadline-normal {
+    color: var(--text-secondary);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
 }
 
 .payment {
@@ -163,6 +218,8 @@
     height: 100%;
     color: var(--text-muted);
     font-style: italic;
+    font-size: 0.9rem;
+    padding: 2rem 1rem;
 }
 
 /* Deliver Button */
@@ -178,12 +235,318 @@
     text-align: center;
     color: var(--text-secondary);
     font-size: 0.9rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
 }
 
-.queue-status .warning {
+.queue-status p {
+    margin: 0.25rem 0;
+}
+
+.queue-status .deadline-expired {
     color: var(--negative);
     font-weight: bold;
+    font-size: 1rem;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.queue-status .deadline-urgent {
+    color: var(--negative);
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.queue-status .deadline-warning {
+    color: var(--special);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Obligations Panel (integrated into letter queue) */
+.obligations-panel {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+
+.obligations-panel h4 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+}
+
+.no-obligations-message {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+}
+
+.no-obligations-message p {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.no-obligations-message small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.obligations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.obligation-summary {
+    padding: 0.75rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.obligation-summary.forced-pending {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.1);
+}
+
+.obligation-name {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+    font-family: var(--font-secondary);
+}
+
+.obligation-effect {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.benefit {
+    color: var(--positive);
+}
+
+.constraint {
+    color: var(--negative);
+}
+
+.forced-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--special);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--special);
+}
+
+.warning-icon {
+    font-size: 0.875rem;
+}
+
+.more-obligations {
+    text-align: center;
+    padding: 0.5rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.more-obligations small {
+    font-size: 0.8rem;
+}
+
+/* Queue Management Actions */
+.queue-actions {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+
+.queue-actions h4 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.action-section {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+    border: 1px solid var(--oak-mid);
+}
+
+.action-section button {
+    margin-bottom: 0.5rem;
+}
+
+/* Controls for queue actions */
+.swap-controls, .purge-controls, .priority-controls, .extend-controls {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-radius: 4px;
+}
+
+.swap-controls label, .purge-controls label, .priority-controls label, .extend-controls label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.swap-controls input[type="number"], .priority-controls input[type="number"], .extend-controls input[type="number"] {
+    width: 60px;
+    padding: 0.25rem;
+    margin: 0 0.5rem;
+    border: 1px solid var(--oak-mid);
+    border-radius: 3px;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+.token-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.token-selector input[type="number"] {
+    width: 50px;
+    padding: 0.25rem;
+    border: 1px solid var(--oak-mid);
+    border-radius: 3px;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+.cost-info {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.disabled-reason {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+.obligation-cost-note {
+    color: var(--special);
+    font-size: 0.7rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+/* Bootstrap-style buttons */
+.btn {
+    padding: 0.375rem 0.75rem;
+    margin: 0.125rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-family: var(--font-secondary);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    user-select: none;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--resource-coins);
+    color: var(--parchment);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #b8860b;
+}
+
+.btn-secondary {
+    background-color: var(--oak-mid);
+    color: var(--parchment);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--oak-dark);
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: var(--parchment);
+}
+
+.btn-info:hover:not(:disabled) {
+    background-color: #138496;
+}
+
+.btn-danger {
+    background-color: var(--negative);
+    color: var(--parchment);
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.btn-warning {
+    background-color: var(--special);
+    color: var(--oak-dark);
+}
+
+.btn-warning:hover:not(:disabled) {
+    background-color: #e0a800;
+}
+
+.btn-success {
+    background-color: var(--positive);
+    color: var(--parchment);
+}
+
+.btn-success:hover:not(:disabled) {
+    background-color: #1e7e34;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.775rem;
+    border-radius: 0.25rem;
+}
+
+.skip-btn {
+    margin-top: 0.5rem;
+    width: 100%;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
 }
 
 /* Responsive adjustments */

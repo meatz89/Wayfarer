@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Wayfarer.GameState;
 
 namespace Wayfarer.Pages;
 
@@ -11,6 +12,7 @@ public class LocationSpotMapBase : ComponentBase
     [Inject] public NPCRepository NPCRepository { get; set; }
     [Inject] public CardSelectionService DragDropService { get; set; }
     [Inject] public CardHighlightService CardHighlightService { get; set; }
+    [Inject] public NPCLetterOfferService NPCLetterOfferService { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
@@ -270,6 +272,50 @@ public class LocationSpotMapBase : ComponentBase
             ServiceTypes.EquipmentRepair => "🔨",
             ServiceTypes.FoodProduction => "🍲",
             _ => "⚙️"
+        };
+    }
+
+    /// <summary>
+    /// Check if NPC has letter offers based on relationship level
+    /// </summary>
+    public bool HasLetterOffers(NPC npc)
+    {
+        return NPCLetterOfferService.ShouldNPCOfferLetters(npc.ID);
+    }
+
+    /// <summary>
+    /// Get letter offers from an NPC
+    /// </summary>
+    public List<LetterOffer> GetLetterOffers(NPC npc)
+    {
+        return NPCLetterOfferService.GenerateNPCLetterOffers(npc.ID);
+    }
+
+    /// <summary>
+    /// Accept a letter offer from an NPC
+    /// </summary>
+    public async Task AcceptLetterOffer(string npcId, string offerId)
+    {
+        bool success = NPCLetterOfferService.AcceptNPCLetterOffer(npcId, offerId);
+        if (success)
+        {
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// Get token icon for UI display
+    /// </summary>
+    public string GetTokenIcon(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => "💚",
+            ConnectionType.Trade => "💙",
+            ConnectionType.Noble => "💜",
+            ConnectionType.Common => "🤎",
+            ConnectionType.Shadow => "🖤",
+            _ => "⚪"
         };
     }
 

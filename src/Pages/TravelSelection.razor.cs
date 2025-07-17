@@ -4,6 +4,7 @@ public class TravelSelectionBase : ComponentBase
 {
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] public RouteRepository RouteRepository { get; set; }
     // ItemRepository allowed for read-only UI data binding
     [Inject] public ItemRepository ItemRepository { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
@@ -261,6 +262,18 @@ public class TravelSelectionBase : ComponentBase
         }
 
         return ownedCategories.Distinct().ToList();
+    }
+
+    /// <summary>
+    /// Get all routes to a destination, including locked ones
+    /// </summary>
+    public List<RouteOption> GetAllRoutesToLocation(string locationId)
+    {
+        // Get all routes from current location
+        var allRoutes = RouteRepository.GetRoutesFromLocation(CurrentLocation.Id);
+        
+        // Filter to only routes going to the specified destination
+        return allRoutes.Where(r => r.Destination == locationId).ToList();
     }
 
 }

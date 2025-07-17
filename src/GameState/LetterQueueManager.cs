@@ -12,6 +12,7 @@ namespace Wayfarer.GameState
         private readonly NPCRepository _npcRepository;
         private readonly MessageSystem _messageSystem;
         private readonly StandingObligationManager _obligationManager;
+        private LetterChainManager _letterChainManager;
         private readonly Random _random = new Random();
         
         public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager)
@@ -21,6 +22,12 @@ namespace Wayfarer.GameState
             _npcRepository = npcRepository;
             _messageSystem = messageSystem;
             _obligationManager = obligationManager;
+        }
+        
+        // Set the letter chain manager (called by DI system after construction)
+        public void SetLetterChainManager(LetterChainManager letterChainManager)
+        {
+            _letterChainManager = letterChainManager;
         }
         
         // Get the player's letter queue
@@ -67,16 +74,6 @@ namespace Wayfarer.GameState
             
             // Calculate base position (slot 8 by default)
             int basePosition = 8;
-            
-            // Apply connection gravity based on tokens
-            var tokenManager = new ConnectionTokenManager(_gameWorld);
-            int tokenCount = tokenManager.GetTokenCount(letter.TokenType);
-            
-            if (tokenCount >= 5)
-                basePosition = 6; // High token count enters at slot 6
-            else if (tokenCount >= 3)
-                basePosition = 7; // Medium token count enters at slot 7
-            // else stays at slot 8
             
             // Apply obligation effects to determine best entry position
             int bestPosition = _obligationManager.CalculateBestEntryPosition(letter, basePosition);
@@ -239,7 +236,7 @@ namespace Wayfarer.GameState
             return npc?.ID ?? "";
         }
         
-        // Track letter delivery in history
+        // Track letter delivery in history and process chain letters
         public void RecordLetterDelivery(Letter letter)
         {
             if (letter == null) return;
@@ -254,6 +251,12 @@ namespace Wayfarer.GameState
             }
             
             player.NPCLetterHistory[senderId].RecordDelivery();
+            
+            // Process chain letters if chain manager is available
+            if (_letterChainManager != null)
+            {
+                _letterChainManager.ProcessLetterDelivery(letter);
+            }
         }
         
         // Track letter skip in history
@@ -340,7 +343,9 @@ namespace Wayfarer.GameState
             if (GetLetterAt(1) != null) return false;
             
             // Calculate token cost: position - 1 (skip from position 3 costs 2 tokens)
-            int tokenCost = position - 1;
+            int baseCost = position - 1;
+            int multiplier = _obligationManager.CalculateSkipCostMultiplier(letter);
+            int tokenCost = baseCost * multiplier;
             
             // Validate token availability through ConnectionTokenManager
             var tokenManager = new ConnectionTokenManager(_gameWorld);
@@ -365,10 +370,11 @@ namespace Wayfarer.GameState
         }
         
         // Generate 1-2 daily letters from available NPCs and templates
-        public void GenerateDailyLetters()
+        public int GenerateDailyLetters()
         {
             // Generate 1-2 letters per day
             int lettersToGenerate = _random.Next(1, 3);
+            int lettersGenerated = 0;
             
             for (int i = 0; i < lettersToGenerate; i++)
             {
@@ -400,9 +406,14 @@ namespace Wayfarer.GameState
                 if (letter != null)
                 {
                     // Add to first empty slot
-                    AddLetterToFirstEmpty(letter);
+                    if (AddLetterToFirstEmpty(letter) > 0)
+                    {
+                        lettersGenerated++;
+                    }
                 }
             }
+            
+            return lettersGenerated;
         }
         
         // Morning Swap: Free swap of two adjacent letters once per day

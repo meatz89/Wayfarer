@@ -155,6 +155,35 @@
 	cursor: not-allowed;
 }
 
+/* Compact navigation buttons */
+.nav-button {
+	background-color: var(--leather);
+	color: var(--parchment);
+	border: none;
+	padding: 4px 8px;
+	border-radius: 3px;
+	cursor: pointer;
+	font-family: var(--font-secondary);
+	font-size: 0.85rem;
+	letter-spacing: 0.02em;
+	transition: all 0.2s ease;
+	margin: 0 2px;
+}
+
+	.nav-button:hover {
+		background-color: var(--clay);
+		transform: translateY(-1px);
+	}
+
+	.nav-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.nav-button.dawn-only {
+		background-color: var(--neutral);
+	}
+
 /* Location Info Panel */
 .location-info-panel {
 	background-color: var(--bg-card);
@@ -413,6 +442,96 @@
 	font-style: italic;
 	text-align: center;
 	padding: 12px;
+}
+
+/* NPC Letter Offers */
+.npc-letter-offers {
+	margin-top: 12px;
+	padding: 10px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	border-left: 4px solid var(--neutral);
+}
+
+.npc-letter-offers h4 {
+	font-family: var(--font-primary);
+	color: var(--text-primary);
+	font-size: 0.9rem;
+	margin: 0 0 8px 0;
+	font-weight: 600;
+}
+
+.letter-offer {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-light);
+	border-radius: 4px;
+	padding: 8px;
+	margin-bottom: 8px;
+}
+
+.letter-offer:last-child {
+	margin-bottom: 0;
+}
+
+.offer-message {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.offer-icon {
+	font-size: 0.9rem;
+	color: var(--neutral);
+}
+
+.offer-text {
+	font-family: var(--font-secondary);
+	color: var(--text-primary);
+	font-size: 0.85rem;
+	font-style: italic;
+}
+
+.offer-details {
+	display: flex;
+	gap: 12px;
+	margin-bottom: 8px;
+	flex-wrap: wrap;
+}
+
+.offer-details .letter-type,
+.offer-details .payment,
+.offer-details .deadline {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+}
+
+.accept-offer-button {
+	background-color: var(--positive);
+	color: var(--parchment);
+	border: none;
+	padding: 6px 12px;
+	border-radius: 3px;
+	cursor: pointer;
+	font-family: var(--font-secondary);
+	font-size: 0.8rem;
+	font-weight: 600;
+	transition: all 0.2s ease;
+	width: 100%;
+}
+
+.accept-offer-button:hover {
+	background-color: var(--forest);
+	transform: translateY(-1px);
+}
+
+.accept-offer-button:active {
+	transform: translateY(0);
 }
 
 /* Compact Time Planning UI */
@@ -1449,4 +1568,288 @@
 	.inventory-slots {
 		grid-template-columns: 1fr;
 	}
+}
+
+/* ==================== Standing Obligations Screen ==================== */
+.obligations-container {
+    padding: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.obligations-summary {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.obligations-summary .warning {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+.no-obligations {
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.no-obligations h3 {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-family: var(--font-primary);
+}
+
+.no-obligations p {
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 1rem;
+    font-family: var(--font-secondary);
+}
+
+.obligations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.obligation-card {
+    background-color: var(--bg-card);
+    border: 2px solid var(--oak-mid);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.obligation-card.violations {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.1);
+}
+
+.obligation-card.conflicts {
+    border-color: var(--special);
+    background-color: rgba(188, 108, 37, 0.1);
+}
+
+.obligation-card.forced-pending {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.05);
+}
+
+.obligation-header {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--oak-mid);
+    padding-bottom: 0.5rem;
+}
+
+.obligation-header h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+}
+
+.obligation-source {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.obligation-duration {
+    float: right;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.obligation-description {
+    margin-bottom: 1rem;
+}
+
+.obligation-description p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    font-family: var(--font-secondary);
+}
+
+.obligation-effects {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.benefits, .constraints {
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--oak-mid);
+}
+
+.benefits {
+    background-color: rgba(96, 108, 56, 0.1);
+    border-color: var(--positive);
+}
+
+.constraints {
+    background-color: rgba(158, 42, 43, 0.1);
+    border-color: var(--negative);
+}
+
+.benefits h4, .constraints h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+}
+
+.benefits ul, .constraints ul {
+    margin: 0;
+    padding-left: 1rem;
+    list-style: none;
+}
+
+.benefit-item {
+    color: var(--positive);
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.constraint-item {
+    color: var(--negative);
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.no-effects {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin: 0;
+}
+
+.obligation-tokens {
+    margin-bottom: 1rem;
+}
+
+.obligation-tokens h4 {
+    font-size: 0.875rem;
+    margin: 0 0 0.5rem 0;
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
+}
+
+.forced-letter-warning, .conflict-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid var(--special);
+}
+
+.forced-letter-warning {
+    background-color: rgba(188, 108, 37, 0.1);
+    color: var(--special);
+}
+
+.conflict-warning {
+    background-color: rgba(188, 108, 37, 0.1);
+    color: var(--special);
+}
+
+.obligation-violations {
+    margin-top: 0.5rem;
+}
+
+.violations {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--negative);
+    font-size: 0.875rem;
+}
+
+.available-templates {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--oak-mid);
+}
+
+.available-templates h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-family: var(--font-primary);
+}
+
+.info-text {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-family: var(--font-secondary);
+}
+
+.templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1rem;
+}
+
+.template-card {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.template-header {
+    margin-bottom: 0.75rem;
+}
+
+.template-header h4 {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+}
+
+.template-source {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.template-description p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    font-family: var(--font-secondary);
+}
+
+.template-effects-preview {
+    font-size: 0.8rem;
+}
+
+.benefits-preview, .constraints-preview {
+    margin-bottom: 0.5rem;
+}
+
+.benefits-preview strong {
+    color: var(--positive);
+}
+
+.constraints-preview strong {
+    color: var(--negative);
+}
+
+.muted {
+    color: var(--text-muted);
+    font-style: italic;
 }

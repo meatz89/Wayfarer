@@ -32,5 +32,7 @@ namespace Wayfarer.GameState
             ExpiredCount++;
             LastInteraction = DateTime.Now;
         }
+        
+        public bool HasHistory => DeliveredCount > 0 || SkippedCount > 0 || ExpiredCount > 0;
     }
 }
