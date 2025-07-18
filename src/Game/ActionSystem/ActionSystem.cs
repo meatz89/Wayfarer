@@ -1,7 +1,5 @@
 ﻿using System.Text;
 
-namespace Wayfarer.Game.ActionSystem;
-
 public class ActionSystem
 {
     private ActionRepository actionRepository;

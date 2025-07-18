@@ -1,5 +1,4 @@
-﻿namespace Wayfarer.UIHelpers
-{
+﻿
     public class Track
     {
         public string Title { get; set; }
@@ -15,4 +14,3 @@
             Tags = tags;
         }
     }
-}

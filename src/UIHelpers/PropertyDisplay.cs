@@ -1,6 +1,4 @@
-﻿namespace Wayfarer.UIHelpers;
-
-public class PropertyDisplay
+﻿public class PropertyDisplay
 {
     public PropertyDisplay()
     {

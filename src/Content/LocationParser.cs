@@ -1,6 +1,4 @@
 ﻿using System.Text.Json;
-using Wayfarer.Content;
-
 public static class LocationParser
 {
     public static Location ParseLocation(string json)

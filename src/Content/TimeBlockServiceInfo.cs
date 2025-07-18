@@ -1,5 +1,3 @@
-using Wayfarer.Game.MainSystem;
-
 /// <summary>
 /// Information about services available during a specific time block
 /// </summary>

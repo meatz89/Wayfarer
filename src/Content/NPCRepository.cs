@@ -1,6 +1,4 @@
-﻿using Wayfarer.Game.MainSystem;
-
-public class NPCRepository
+﻿public class NPCRepository
 {
     private readonly GameWorld _gameWorld;
 

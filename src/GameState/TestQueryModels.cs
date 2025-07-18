@@ -1,5 +1,3 @@
-namespace Wayfarer.Game.MainSystem;
-
 /// <summary>
 /// Result model for contract completion status queries.
 /// Provides comprehensive information about contract progress for testing.

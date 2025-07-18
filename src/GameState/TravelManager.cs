@@ -1,6 +1,4 @@
-﻿using Wayfarer.Game.MainSystem;
-
-public class TravelManager
+﻿public class TravelManager
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;

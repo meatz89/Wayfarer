@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState;
-
 /// <summary>
 /// Defines equipment, token, or other requirements needed to access a location or route.
 /// </summary>

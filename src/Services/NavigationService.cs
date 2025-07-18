@@ -1,8 +1,3 @@
-using Wayfarer.UIHelpers;
-using Wayfarer.GameState;
-
-namespace Wayfarer.Services;
-
 /// <summary>
 /// Centralized navigation management service for the letter queue game.
 /// Manages screen transitions, navigation history, and context awareness.

@@ -1,12 +1,11 @@
-@using Wayfarer.GameState
-@using Wayfarer.Content
-@using Wayfarer.Services
+@using Wayfarer.Pages.Components
 
 @inject ConnectionTokenManager TokenManager
 @inject LetterQueueManager LetterQueueManager
 @inject NPCRepository NPCRepository
 @inject LocationRepository LocationRepository
 @inject NPCLetterOfferService LetterOfferService
+@inject TokenFavorManager TokenFavorManager
 
 <div class="npc-relationship-card @GetRelationshipStatusClass()">
     <div class="npc-header">
@@ -172,6 +171,9 @@
             </div>
         }
     }
+    
+    @* Token Favors *@
+    <TokenFavorDisplay CurrentNPC="@NPC" />
     
     <div class="relationship-status">
         <div class="status-indicator @GetRelationshipStatusClass()">

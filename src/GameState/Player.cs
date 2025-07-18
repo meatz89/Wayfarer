@@ -1,6 +1,4 @@
-﻿using Wayfarer.GameState;
-
-public class Player
+﻿public class Player
 {
     // Core identity
     public string Name { get; set; }
@@ -86,6 +84,11 @@ public class Player
     
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
+    
+    // Token Favor System
+    public List<string> PurchasedFavors { get; set; } = new List<string>();
+    public List<string> UnlockedLocationIds { get; set; } = new List<string>();
+    public List<string> UnlockedServices { get; set; } = new List<string>();
 
     public void AddGoal(Goal goal)
     {

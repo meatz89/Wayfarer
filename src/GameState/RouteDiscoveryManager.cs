@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
-
     /// <summary>
     /// Manages route discovery through NPC relationships and natural play.
     /// Routes are learned from NPCs who know them, not through arbitrary counters.

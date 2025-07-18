@@ -1,8 +1,4 @@
 using System.Text.Json;
-using Wayfarer.GameState;
-
-namespace Wayfarer.Content;
-
 public static class LetterTemplateParser
 {
     public static LetterTemplate ParseLetterTemplate(string json)

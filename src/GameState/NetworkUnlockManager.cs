@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState;
-
     /// <summary>
     /// Manages NPC network unlocks based on relationship levels.
     /// When players build strong relationships (5+ tokens), NPCs can introduce them to new contacts.

@@ -3,11 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using Wayfarer.Content;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.Game.ActionSystem;
-using Wayfarer.GameState;
-
 public class GameWorldInitializer
 {
     private readonly string _contentDirectory;
@@ -197,6 +192,9 @@ public class GameWorldInitializer
         
         // Load network unlocks
         LoadNetworkUnlocks(gameWorld, templatePath);
+        
+        // Load token favors
+        LoadTokenFavors(gameWorld, templatePath);
     }
     
     private void LoadRouteDiscoveries(GameWorld gameWorld, string templatePath)
@@ -317,6 +315,96 @@ public class GameWorldInitializer
         {
             Console.WriteLine($"ERROR: Failed to load network unlocks from JSON: {ex.Message}");
         }
+    }
+    
+    private void LoadTokenFavors(GameWorld gameWorld, string templatePath)
+    {
+        string tokenFavorsPath = Path.Combine(templatePath, "token_favors.json");
+        
+        if (!File.Exists(tokenFavorsPath))
+        {
+            Console.WriteLine("INFO: No token favors loaded. Create token_favors.json to add token favor content.");
+            return;
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(tokenFavorsPath);
+            var favors = TokenFavorParser.ParseTokenFavorArray(json);
+            
+            if (favors == null || !favors.Any())
+            {
+                Console.WriteLine("INFO: No token favors found in token_favors.json");
+                return;
+            }
+            
+            // Validate NPC references
+            var availableNPCs = gameWorld.WorldState.NPCs;
+            var validFavors = new List<TokenFavor>();
+            
+            foreach (var favor in favors)
+            {
+                if (!availableNPCs.Any(n => n.ID == favor.NPCId))
+                {
+                    Console.WriteLine($"WARNING: Token favor '{favor.Id}' references unknown NPC '{favor.NPCId}' - skipping");
+                    continue;
+                }
+                
+                // Additional validation based on favor type
+                bool isValid = ValidateTokenFavor(favor, gameWorld);
+                if (isValid)
+                {
+                    validFavors.Add(favor);
+                }
+            }
+            
+            gameWorld.WorldState.TokenFavors = validFavors;
+            Console.WriteLine($"Loaded {validFavors.Count} token favors from JSON templates.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to load token favors from JSON: {ex.Message}");
+        }
+    }
+    
+    private bool ValidateTokenFavor(TokenFavor favor, GameWorld gameWorld)
+    {
+        switch (favor.FavorType)
+        {
+            case TokenFavorType.RouteDiscovery:
+                if (!gameWorld.WorldState.Routes.Any(r => r.Id == favor.GrantsId))
+                {
+                    Console.WriteLine($"WARNING: Token favor '{favor.Id}' references unknown route '{favor.GrantsId}'");
+                    return false;
+                }
+                break;
+                
+            case TokenFavorType.ItemPurchase:
+                if (!gameWorld.WorldState.Items.Any(i => i.Id == favor.GrantsId))
+                {
+                    Console.WriteLine($"WARNING: Token favor '{favor.Id}' references unknown item '{favor.GrantsId}'");
+                    return false;
+                }
+                break;
+                
+            case TokenFavorType.LocationAccess:
+                if (!gameWorld.WorldState.locations.Any(l => l.Id == favor.GrantsId))
+                {
+                    Console.WriteLine($"WARNING: Token favor '{favor.Id}' references unknown location '{favor.GrantsId}'");
+                    return false;
+                }
+                break;
+                
+            case TokenFavorType.NPCIntroduction:
+                if (!gameWorld.WorldState.NPCs.Any(n => n.ID == favor.GrantsId))
+                {
+                    Console.WriteLine($"WARNING: Token favor '{favor.Id}' references unknown NPC '{favor.GrantsId}'");
+                    return false;
+                }
+                break;
+        }
+        
+        return true;
     }
 
     /// <summary>

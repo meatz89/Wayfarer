@@ -1,6 +1,4 @@
-﻿using Wayfarer.Game.MainSystem;
-
-/// <summary>
+﻿/// <summary>
 /// Manages location-specific item pricing and trading operations.
 /// Implements dynamic pricing system that creates arbitrage opportunities
 /// between different locations for strategic trading gameplay.
