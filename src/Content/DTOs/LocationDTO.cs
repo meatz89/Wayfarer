@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Wayfarer.Content.DTOs;
 
 /// <summary>
 /// Data Transfer Object for deserializing location data from JSON.
@@ -17,6 +18,7 @@ public class LocationDTO
     public string AccessLevel { get; set; }
     public List<string> RequiredSocialClasses { get; set; } = new List<string>();
     public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
+    public AccessRequirementDTO AccessRequirement { get; set; }
 }
 
 /// <summary>

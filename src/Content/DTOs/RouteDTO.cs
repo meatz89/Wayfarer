@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Wayfarer.Content.DTOs;
 
 /// <summary>
 /// Data Transfer Object for deserializing route data from JSON.
@@ -20,6 +21,7 @@ public class RouteDTO
     public List<string> TerrainCategories { get; set; } = new List<string>();
     public int MaxItemCapacity { get; set; }
     public string Description { get; set; }
+    public AccessRequirementDTO AccessRequirement { get; set; }
     
     /// <summary>
     /// Get the actual travel time in hours, with fallback to legacy TimeBlockCost * 3

@@ -89,6 +89,9 @@ public class RouteOption
 
     // Route discovery tracking
     public int UsageCount { get; set; } = 0;
+    
+    // Enhanced Access Requirements (in addition to terrain categories)
+    public AccessRequirement AccessRequirement { get; set; }
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
     {
@@ -119,6 +122,7 @@ public class RouteOption
 
     /// <summary>
     /// Check logical route access based on equipment requirements and terrain
+    /// Note: AccessRequirement checks are done separately in TravelManager for narrative messaging
     /// </summary>
     public RouteAccessResult CheckRouteAccess(ItemRepository itemRepository, Player player, WeatherCondition weather)
     {

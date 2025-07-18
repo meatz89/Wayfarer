@@ -138,6 +138,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ConnectionTokenManager>();
         services.AddSingleton<RouteUnlockManager>();
         services.AddSingleton<NavigationService>();
+        services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<NetworkUnlockManager>();

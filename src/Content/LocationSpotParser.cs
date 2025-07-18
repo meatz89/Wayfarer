@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Wayfarer.Content;
 
 /// <summary>
 /// Parser for deserializing location spot data from JSON.
@@ -51,6 +52,13 @@ public static class LocationSpotParser
             spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
             spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
+        }
+
+        // Parse access requirements
+        if (root.TryGetProperty("accessRequirement", out JsonElement accessReqElement) &&
+            accessReqElement.ValueKind == JsonValueKind.Object)
+        {
+            spot.AccessRequirement = AccessRequirementParser.ParseAccessRequirement(accessReqElement);
         }
 
         return spot;
