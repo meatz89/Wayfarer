@@ -1,10 +1,4 @@
-﻿using Wayfarer.Game.ActionSystem;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
-using Wayfarer.UIHelpers;
-using Wayfarer.Content;
-using Wayfarer.Services;
-
+﻿
 public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
@@ -139,6 +133,8 @@ public static class ServiceConfiguration
         services.AddSingleton<RouteUnlockManager>();
         services.AddSingleton<NavigationService>();
         services.AddSingleton<AccessRequirementChecker>();
+        services.AddSingleton<TokenFavorRepository>();
+        services.AddSingleton<TokenFavorManager>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<NetworkUnlockManager>();

@@ -1,6 +1,4 @@
-﻿namespace Wayfarer.UIHelpers;
-
-public static class StyleHelper
+﻿public static class StyleHelper
 {
     public static List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
     {

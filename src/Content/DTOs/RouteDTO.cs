@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Wayfarer.Content.DTOs;
-
 /// <summary>
 /// Data Transfer Object for deserializing route data from JSON.
 /// Maps to the structure in routes.json.

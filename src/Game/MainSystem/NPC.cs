@@ -1,6 +1,4 @@
-﻿using Wayfarer.GameState;
-
-public class NPC
+﻿public class NPC
 {
     // Identity
     public string ID { get; set; }

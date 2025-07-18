@@ -1,6 +1,4 @@
-﻿using Wayfarer.Game.ActionSystem;
-
-public class LocationCreationSystem
+﻿public class LocationCreationSystem
 {
     private LocationSystem locationSystem;
     private CharacterSystem characterSystem;

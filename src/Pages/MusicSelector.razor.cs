@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Wayfarer.UIHelpers;
-
 namespace Wayfarer.Pages;
 
 public class MusicSelectorBase : ComponentBase

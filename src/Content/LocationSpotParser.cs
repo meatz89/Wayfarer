@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Wayfarer.Content;
-
 /// <summary>
 /// Parser for deserializing location spot data from JSON.
 /// </summary>

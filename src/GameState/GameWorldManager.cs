@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-
 public class GameWorldManager
 {
     private bool _useMemory;

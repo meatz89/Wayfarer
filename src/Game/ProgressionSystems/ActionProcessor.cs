@@ -1,8 +1,4 @@
-﻿using Wayfarer.Game.ActionSystem;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
-
-public class ActionProcessor
+﻿public class ActionProcessor
 {
     public GameWorld gameWorld { get; }
     public Player player { get; }

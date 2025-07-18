@@ -1,6 +1,4 @@
-﻿namespace Wayfarer.UIHelpers;
-
-public enum CurrentViews
+﻿public enum CurrentViews
 {
     // PRIMARY GAMEPLAY SCREENS (Letter Queue Focus)
     LetterQueueScreen,      // Primary interface - 8-slot queue management

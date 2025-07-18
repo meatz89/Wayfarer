@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState;
-
 /// <summary>
 /// Factory for creating locations with guaranteed valid references.
 /// Locations are base entities, but their ConnectedLocationIds and LocationSpotIds

@@ -1,5 +1,3 @@
-namespace Wayfarer.Game.ActionSystem;
-
 /// <summary>
 /// Result of checking whether a player can perform an action
 /// </summary>

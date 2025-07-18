@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Wayfarer.GameState;
-
 namespace Wayfarer.Pages;
 
 public class LocationSpotMapBase : ComponentBase

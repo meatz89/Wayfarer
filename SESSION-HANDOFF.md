@@ -329,3 +329,86 @@ Each access requirement includes:
 
 ### Next Priority: Contextual Token Favors
 The next implementation priority is creating the contextual token favor system where specific NPCs offer specific unlocks for specific token types, adding strategic depth to relationship building.
+
+## Session Update: 2025-07-18 (Evening Continuation)
+
+### ✅ COMPLETED: Contextual Token Favors (Mostly Complete)
+**Status**: MOSTLY COMPLETE - Implementation finished but has 3 compilation errors
+**What's Done**:
+- ✅ Created TokenFavor class with multiple favor types (RouteDiscovery, ItemPurchase, etc.)
+- ✅ Created TokenFavorManager to handle favor purchasing and granting
+- ✅ Added TokenFavorDTO and TokenFavorParser for JSON support
+- ✅ Created TokenFavorRepository for data access
+- ✅ Added TokenFavors to WorldState
+- ✅ Updated Player class with PurchasedFavors, UnlockedLocationIds, UnlockedServices
+- ✅ Added SpendTokens method to ConnectionTokenManager for specific NPC spending
+- ✅ Created token_favors.json with 7 example favors
+- ✅ Integrated TokenFavorManager into ServiceConfiguration
+- ✅ Added LoadTokenFavors to GameWorldInitializer with validation
+
+### 🔴 CRITICAL: 3 Compilation Errors Preventing Build
+**Must fix these errors before the game is playable:**
+
+1. **Item.ID vs Item.Id** (line 388 in GameWorldInitializer.cs)
+   - Error: 'Item' does not contain a definition for 'ID'
+   - Fix: Change `i.ID` to `i.Id` (lowercase 'd')
+
+2. **Missing DiscoverRoute method** (line 201 in TokenFavorManager.cs)
+   - Error: 'RouteDiscoveryManager' does not contain a definition for 'DiscoverRoute'
+   - Need to check RouteDiscoveryManager and add/fix the method
+
+3. **Missing itemRepository parameter** (line 233 in TokenFavorManager.cs)
+   - Error: No argument given for required parameter 'itemRepository' of 'Inventory.CanAddItem'
+   - Need to pass ItemRepository to CanAddItem method
+
+### Implementation Details
+
+#### Token Favor System
+The system allows NPCs to offer special unlocks when players spend specific token types:
+- **Favor Types**: RouteDiscovery, ItemPurchase, LocationAccess, NPCIntroduction, LetterOpportunity, InformationPurchase, ServiceAccess
+- **Requirements**: Minimum relationship level + token cost of specific type
+- **Validation**: All favors validate their target entities exist (routes, items, NPCs, etc.)
+- **Persistence**: Purchased favors tracked in Player.PurchasedFavors
+
+#### Example Favors Created
+1. Elena's Secret Forest Path (2 Trust tokens for route discovery)
+2. Marcus's Noble Introduction (3 Trade tokens for NPC unlock)
+3. River Worker's Shadow Market Access (2 Shadow tokens for location)
+4. Workshop Master's Custom Climbing Gear (4 Trade tokens for item)
+5. Elena's Urgent Noble Letter (1 Trust token for special letter)
+6. Dock Master's Trade Information (2 Trade tokens for profit tip)
+7. Camp Boss's Equipment Rental (3 Common tokens for service)
+
+### Next Steps (Priority Order)
+
+1. **🚨 FIX COMPILATION ERRORS** - Critical before anything else
+2. **Create UI for Token Favors** - NPCs need to show available favors
+3. **Test Token Favor System** - Ensure all favor types work correctly
+4. **Continue with remaining high-priority items** from todo list
+
+### Key Files Modified/Created This Session
+
+#### New Files
+- `/src/GameState/TokenFavor.cs`
+- `/src/GameState/TokenFavorManager.cs`
+- `/src/Content/DTOs/TokenFavorDTO.cs`
+- `/src/Content/TokenFavorParser.cs`
+- `/src/Content/TokenFavorRepository.cs`
+- `/src/Content/Templates/token_favors.json`
+
+#### Modified Files
+- `/src/GameState/Player.cs` - Added favor tracking properties
+- `/src/GameState/ConnectionTokenManager.cs` - Added SpendTokens method
+- `/src/GameState/WorldState.cs` - Added TokenFavors list
+- `/src/ServiceConfiguration.cs` - Registered new services
+- `/src/Content/GameWorldInitializer.cs` - Added LoadTokenFavors
+
+### Current Todo List Status
+1. ✅ Multi-type NPC Relationships
+2. ✅ Update npcs.json
+3. ✅ Access Requirements Framework
+4. ✅ Contextual Token Favors (needs error fixes)
+5. 🔴 Fix compilation errors (HIGH PRIORITY)
+6. ⏸️ Fix NPCLetterOfferService Periodic Offers
+7. ⏸️ Fix narrative violations
+8. ⏸️ Other medium/low priority items...

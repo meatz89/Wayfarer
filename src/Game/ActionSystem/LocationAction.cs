@@ -1,6 +1,4 @@
-﻿using Wayfarer.Game.ActionSystem;
-
-public record LocationAction
+﻿public record LocationAction
 {
     public string ActionId { get; set; }
     public string Name { get; set; }

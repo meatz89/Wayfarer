@@ -1,8 +1,4 @@
 using System.Text.Json;
-using Wayfarer.GameState;
-
-namespace Wayfarer.Content;
-
 public static class NPCParser
 {
     public static NPC ParseNPC(string json)

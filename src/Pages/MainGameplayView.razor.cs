@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Wayfarer.UIHelpers;
-using Wayfarer.GameState;
-using Wayfarer.Services;
 
 namespace Wayfarer.Pages;
 

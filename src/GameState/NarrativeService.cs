@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
-
     /// <summary>
     /// Service that generates contextual narrative text for game mechanics.
     /// Works WITH MessageSystem - NarrativeService generates the narrative content,
