@@ -2,10 +2,6 @@
 {
     private ActionResultMessages currentChanges = new();
 
-    public void AddOutcome(IMechanicalEffect outcome)
-    {
-        currentChanges.Outcomes.Add(outcome);
-    }
 
     public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
     {

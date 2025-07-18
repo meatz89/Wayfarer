@@ -92,6 +92,12 @@
     public List<string> PurchasedFavors { get; set; } = new List<string>();
     public List<string> UnlockedLocationIds { get; set; } = new List<string>();
     public List<string> UnlockedServices { get; set; } = new List<string>();
+    
+    // Scenario tracking
+    public List<Letter> DeliveredLetters { get; set; } = new List<Letter>();
+    public int TotalLettersDelivered { get; set; } = 0;
+    public int TotalLettersExpired { get; set; } = 0;
+    public int TotalTokensSpent { get; set; } = 0;
 
     public void AddGoal(Goal goal)
     {

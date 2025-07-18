@@ -39,18 +39,21 @@ public class LetterQueueManager
         return true;
     }
     
-    // Add letter to first available slot (for minimal POC)
+    // Add letter to first available slot - queue fills from position 1
     public int AddLetterToFirstEmpty(Letter letter)
     {
         if (letter == null) return 0;
         
         var queue = _gameWorld.GetPlayer().LetterQueue;
+        
+        // Find the FIRST empty slot, filling from position 1
         for (int i = 0; i < 8; i++)
         {
             if (queue[i] == null)
             {
                 queue[i] = letter;
                 letter.QueuePosition = i + 1;
+                letter.State = LetterState.Accepted; // Letter enters queue in Accepted state
                 return i + 1;
             }
         }
@@ -62,63 +65,88 @@ public class LetterQueueManager
     {
         if (letter == null) return 0;
         
-        // Calculate base position (slot 8 by default)
-        int basePosition = 8;
-        
-        // Apply obligation effects to determine best entry position
-        int bestPosition = _obligationManager.CalculateBestEntryPosition(letter, basePosition);
-        
         // Handle patron letters specially
         if (letter.IsFromPatron)
         {
             return AddPatronLetter(letter);
         }
         
-        // Try to place letter at calculated position or higher
         var queue = _gameWorld.GetPlayer().LetterQueue;
-        for (int i = bestPosition - 1; i < 8; i++) // Start from bestPosition, work down
+        
+        // Find first empty slot (letters fill from position 1)
+        int firstEmpty = -1;
+        for (int i = 0; i < 8; i++)
         {
             if (queue[i] == null)
             {
-                queue[i] = letter;
-                letter.QueuePosition = i + 1;
-                
-                // Show message about positioning
-                if (i + 1 < basePosition)
-                {
-                    _messageSystem.AddSystemMessage(
-                        $"🌟 Your standing obligations pull {letter.SenderName}'s letter forward!",
-                        SystemMessageTypes.Warning
-                    );
-                    _messageSystem.AddSystemMessage(
-                        $"  • Letter enters at slot {i + 1} instead of the usual slot 8",
-                        SystemMessageTypes.Info
-                    );
-                    _messageSystem.AddSystemMessage(
-                        $"  • Your commitments shape how new obligations arrive",
-                        SystemMessageTypes.Info
-                    );
-                }
-                else
-                {
-                    // Normal entry at slot 8
-                    string urgency = letter.Deadline <= 3 ? " ⚠️" : "";
-                    _messageSystem.AddSystemMessage(
-                        $"📨 New letter from {letter.SenderName} enters queue at position {i + 1}{urgency}",
-                        SystemMessageTypes.Info
-                    );
-                }
-                
-                return i + 1;
+                firstEmpty = i;
+                break;
             }
         }
         
+        if (firstEmpty == -1)
+        {
+            _messageSystem.AddSystemMessage(
+                $"🚫 Cannot accept letter from {letter.SenderName} - your queue is completely full!",
+                SystemMessageTypes.Danger
+            );
+            return 0; // Queue full
+        }
+        
+        // Apply obligation effects to potentially move the letter earlier
+        int basePosition = firstEmpty + 1; // Convert to 1-based
+        int bestPosition = _obligationManager.CalculateBestEntryPosition(letter, basePosition);
+        
+        // Ensure bestPosition is valid and not before first empty
+        bestPosition = Math.Max(bestPosition, basePosition);
+        
+        // Place letter at the calculated position (which should be firstEmpty in most cases)
+        int finalPosition = bestPosition - 1; // Convert back to 0-based
+        if (finalPosition >= 0 && finalPosition < 8 && queue[finalPosition] == null)
+        {
+            queue[finalPosition] = letter;
+            letter.QueuePosition = finalPosition + 1;
+            
+            // Show message about positioning
+            if (bestPosition < basePosition)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"🌟 Your standing obligations pull {letter.SenderName}'s letter forward!",
+                    SystemMessageTypes.Warning
+                );
+                _messageSystem.AddSystemMessage(
+                    $"  • Letter enters at slot {finalPosition + 1} instead of slot {basePosition}",
+                    SystemMessageTypes.Info
+                );
+                _messageSystem.AddSystemMessage(
+                    $"  • Your commitments shape how new obligations arrive",
+                    SystemMessageTypes.Info
+                );
+            }
+            else
+            {
+                // Normal entry at first available position
+                string urgency = letter.Deadline <= 3 ? " ⚠️" : "";
+                _messageSystem.AddSystemMessage(
+                    $"📨 New letter from {letter.SenderName} enters queue at position {finalPosition + 1}{urgency}",
+                    SystemMessageTypes.Info
+                );
+            }
+            
+            return finalPosition + 1;
+        }
+        
+        // Fallback to first empty if obligation calculation failed
+        queue[firstEmpty] = letter;
+        letter.QueuePosition = firstEmpty + 1;
+        
+        string urgencyFallback = letter.Deadline <= 3 ? " ⚠️" : "";
         _messageSystem.AddSystemMessage(
-            $"🚫 Cannot accept letter from {letter.SenderName} - your queue is completely full!",
-            SystemMessageTypes.Danger
+            $"📨 New letter from {letter.SenderName} enters queue at position {firstEmpty + 1}{urgencyFallback}",
+            SystemMessageTypes.Info
         );
         
-        return 0; // Queue full
+        return firstEmpty + 1;
     }
     
     // Handle patron letters that jump to top positions
@@ -126,86 +154,148 @@ public class LetterQueueManager
     {
         var queue = _gameWorld.GetPlayer().LetterQueue;
         
-        // Use new patron properties if available
-        if (letter.IsPatronLetter && letter.PatronQueuePosition > 0)
+        // Show dramatic patron letter arrival
+        _messageSystem.AddSystemMessage(
+            $"🌟 A GOLD-SEALED LETTER ARRIVES FROM YOUR PATRON!",
+            SystemMessageTypes.Warning
+        );
+        
+        // Determine target position (1-3)
+        int targetPos = 0;
+        if (letter.IsPatronLetter && letter.PatronQueuePosition > 0 && letter.PatronQueuePosition <= 3)
         {
-            // Try to place at the specific patron position
-            int targetPos = letter.PatronQueuePosition - 1; // Convert to 0-based
+            targetPos = letter.PatronQueuePosition - 1; // Convert to 0-based
+        }
+        else
+        {
+            // Choose random position 1-3 if not specified
+            targetPos = _random.Next(0, 3);
+        }
+        
+        // Check if queue is completely full
+        if (IsQueueFull())
+        {
+            _messageSystem.AddSystemMessage(
+                $"🚫 CRISIS: Cannot accept patron letter - queue completely full!",
+                SystemMessageTypes.Danger
+            );
             
-            if (targetPos >= 0 && targetPos < 8)
+            _messageSystem.AddSystemMessage(
+                $"  • Your patron will not be pleased with this failure",
+                SystemMessageTypes.Danger
+            );
+            
+            return 0;
+        }
+        
+        // If target position is empty, simple placement
+        if (queue[targetPos] == null)
+        {
+            queue[targetPos] = letter;
+            letter.QueuePosition = targetPos + 1;
+            
+            _messageSystem.AddSystemMessage(
+                $"  • Commands priority position {targetPos + 1} - all other obligations must wait!",
+                SystemMessageTypes.Warning
+            );
+            
+            _messageSystem.AddSystemMessage(
+                $"  • Your mysterious patron's needs supersede all else",
+                SystemMessageTypes.Info
+            );
+            
+            return targetPos + 1;
+        }
+        
+        // Target position is occupied - need to push letters down
+        _messageSystem.AddSystemMessage(
+            $"  ⚡ Patron demands position {targetPos + 1} - displacing existing obligations!",
+            SystemMessageTypes.Warning
+        );
+        
+        // Collect all letters that need to be pushed down
+        var lettersToPush = new System.Collections.Generic.List<Letter>();
+        for (int i = targetPos; i < 8; i++)
+        {
+            if (queue[i] != null)
             {
-                if (queue[targetPos] == null)
-                {
-                    queue[targetPos] = letter;
-                    letter.QueuePosition = targetPos + 1;
-                    return targetPos + 1;
-                }
-                else
-                {
-                    // Position occupied - show conflict message
-                    _messageSystem.AddSystemMessage(
-                        $"⚠️ Patron demands position {letter.PatronQueuePosition}, but it's occupied!",
-                        SystemMessageTypes.Warning
-                    );
-                }
+                lettersToPush.Add(queue[i]);
+                queue[i] = null; // Clear old position
             }
         }
         
-        // Fallback to old behavior - try positions 1-3
-        for (int i = 0; i < 3; i++)
+        // Place patron letter at target position
+        queue[targetPos] = letter;
+        letter.QueuePosition = targetPos + 1;
+        
+        _messageSystem.AddSystemMessage(
+            $"  • Patron letter seizes position {targetPos + 1}!",
+            SystemMessageTypes.Success
+        );
+        
+        // Push other letters down
+        int nextAvailable = targetPos + 1;
+        var pushedLetters = new System.Collections.Generic.List<string>();
+        
+        foreach (var pushedLetter in lettersToPush)
         {
-            if (queue[i] == null)
+            // Find next available slot
+            while (nextAvailable < 8 && queue[nextAvailable] != null)
             {
-                queue[i] = letter;
-                letter.QueuePosition = i + 1;
+                nextAvailable++;
+            }
+            
+            if (nextAvailable < 8)
+            {
+                // Place pushed letter
+                int oldPos = pushedLetter.QueuePosition;
+                queue[nextAvailable] = pushedLetter;
+                pushedLetter.QueuePosition = nextAvailable + 1;
                 
+                pushedLetters.Add($"{pushedLetter.SenderName}'s letter: {oldPos} → {pushedLetter.QueuePosition}");
+                nextAvailable++;
+            }
+            else
+            {
+                // No room - letter falls off queue
                 _messageSystem.AddSystemMessage(
-                    $"  • Commands priority position {i + 1} - all other obligations must wait!",
-                    SystemMessageTypes.Warning
+                    $"  💥 {pushedLetter.SenderName}'s letter PUSHED OUT OF QUEUE!",
+                    SystemMessageTypes.Danger
                 );
                 
-                _messageSystem.AddSystemMessage(
-                    $"  • Your mysterious patron's needs supersede all else",
-                    SystemMessageTypes.Info
-                );
+                // Apply relationship damage for forced removal
+                ApplyRelationshipDamage(pushedLetter, _connectionTokenManager);
                 
-                return i + 1;
+                _messageSystem.AddSystemMessage(
+                    $"  • Your patron's demands have cost you dearly with {pushedLetter.SenderName}",
+                    SystemMessageTypes.Danger
+                );
             }
         }
         
-        // If top slots full, find any empty slot
-        for (int i = 3; i < 8; i++)
+        // Show all the disruption
+        if (pushedLetters.Any())
         {
-            if (queue[i] == null)
+            _messageSystem.AddSystemMessage(
+                $"📬 Queue disrupted by patron's authority:",
+                SystemMessageTypes.Warning
+            );
+            
+            foreach (var pushed in pushedLetters)
             {
-                queue[i] = letter;
-                letter.QueuePosition = i + 1;
-                
                 _messageSystem.AddSystemMessage(
-                    $"  ⚠️ Priority slots 1-3 are occupied! Patron letter forced to position {i + 1}",
-                    SystemMessageTypes.Warning
-                );
-                
-                _messageSystem.AddSystemMessage(
-                    $"  • Even patron letters must wait when obligations pile up",
+                    $"  • {pushed}",
                     SystemMessageTypes.Info
                 );
-                
-                return i + 1;
             }
         }
         
         _messageSystem.AddSystemMessage(
-            $"🚫 CRISIS: Cannot accept patron letter - queue completely full!",
-            SystemMessageTypes.Danger
+            $"  • The gold seal brooks no argument - your patron's will is absolute",
+            SystemMessageTypes.Info
         );
         
-        _messageSystem.AddSystemMessage(
-            $"  • Your patron will not be pleased with this failure",
-            SystemMessageTypes.Danger
-        );
-        
-        return 0; // Queue completely full
+        return targetPos + 1;
     }
     
     // Remove letter from queue
@@ -233,10 +323,50 @@ public class LetterQueueManager
         return _gameWorld.GetPlayer().LetterQueue[position - 1];
     }
     
-    // Check if position 1 has a letter
+    // Check if position 1 has a letter AND it's collected
     public bool CanDeliverFromPosition1()
     {
-        return GetLetterAt(1) != null;
+        var letter = GetLetterAt(1);
+        if (letter == null) return false;
+        
+        // Must be collected to deliver
+        if (letter.State != LetterState.Collected)
+        {
+            _messageSystem.AddSystemMessage(
+                $"⚠️ Cannot deliver! Letter from {letter.SenderName} is not collected yet.",
+                SystemMessageTypes.Warning
+            );
+            _messageSystem.AddSystemMessage(
+                $"  • Visit {letter.SenderName} to collect the physical letter",
+                SystemMessageTypes.Info
+            );
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Deliver letter from position 1
+    public bool DeliverFromPosition1()
+    {
+        if (!CanDeliverFromPosition1()) return false;
+        
+        var player = _gameWorld.GetPlayer();
+        var letter = GetLetterAt(1);
+        
+        // Remove from queue
+        player.LetterQueue[0] = null;
+        
+        // Shift all letters up
+        CompressQueue();
+        
+        // Pay the player
+        player.ModifyCoins(letter.Payment);
+        
+        // Record delivery
+        RecordLetterDelivery(letter);
+        
+        return true;
     }
     
     // Process daily deadline countdown
@@ -424,6 +554,13 @@ public class LetterQueueManager
         
         // Process chain letters
         ProcessChainLetters(letter);
+        
+        // Store delivered letter info in player state for scenario tracking
+        if (!player.DeliveredLetters.Contains(letter))
+        {
+            player.DeliveredLetters.Add(letter);
+            player.TotalLettersDelivered++;
+        }
     }
     
     // Track letter skip in history

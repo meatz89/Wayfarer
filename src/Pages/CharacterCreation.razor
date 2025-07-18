@@ -68,12 +68,37 @@
             Begin Your Journey
         </button>
     </div>
+    
+    @* Optional Scenario Selection *@
+    <div class="scenario-option-section">
+        <h4>Optional: Start with a Challenge</h4>
+        <div class="scenario-toggle">
+            <label class="scenario-checkbox">
+                <input type="checkbox" @bind="startWithScenario" />
+                <span>Begin with the 14-Day Challenge scenario</span>
+            </label>
+            @if (startWithScenario)
+            {
+                <div class="scenario-info">
+                    <p>📜 <strong>Master the Queue - Survive 14 Days</strong></p>
+                    <ul>
+                        <li>Start with 3 letters already in your queue</li>
+                        <li>Limited starting resources (12 coins)</li>
+                        <li>Maintain 3+ positive relationships</li>
+                        <li>Deliver your patron's final letter</li>
+                    </ul>
+                    <p class="scenario-warning">⚠️ This is a challenging start for experienced players!</p>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 @code {
 
 @namespace Wayfarer.Pages
     [Parameter] public EventCallback<Player> OnCharacterCreated { get; set; }
+    [Parameter] public EventCallback<string> OnScenarioRequested { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
 
     private string playerName;
@@ -81,6 +106,7 @@
     private Genders selectedGender = Genders.Male;
     private bool changingImage = false;
     private bool changingContent = false;
+    private bool startWithScenario = false;
     private System.Threading.Timer transitionTimer;
 
     // Name pools
@@ -180,6 +206,12 @@
 
         // Notify parent component that character creation is complete
         await OnCharacterCreated.InvokeAsync(GameWorld.GetPlayer());
+        
+        // If scenario was selected, notify parent to start it
+        if (startWithScenario)
+        {
+            await OnScenarioRequested.InvokeAsync("14_day_challenge");
+        }
     }
 
     private string FormatArchetypeName(Professions archetype)

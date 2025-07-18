@@ -1,0 +1,167 @@
+@page "/location-actions"
+@using Wayfarer.Pages
+@inject LocationActionManager LocationActionManager
+@inject GameWorldManager GameWorldManager
+@inject NavigationManager Navigation
+
+<div class="location-actions">
+    <h3>Available Actions</h3>
+    
+    @if (availableActions.Any())
+    {
+        <div class="action-grid">
+            @foreach (var action in availableActions)
+            {
+                <div class="action-card">
+                    <h4>@action.Name</h4>
+                    <p class="action-description">@action.Description</p>
+                    
+                    <div class="resource-costs">
+                        @if (action.HourCost > 0)
+                        {
+                            <span class="cost-item">⏰ @action.HourCost hour@(action.HourCost > 1 ? "s" : "")</span>
+                        }
+                        @if (action.StaminaCost > 0)
+                        {
+                            <span class="cost-item">💪 @action.StaminaCost stamina</span>
+                        }
+                        @if (action.CoinCost > 0)
+                        {
+                            <span class="cost-item">💰 @action.CoinCost coin@(action.CoinCost > 1 ? "s" : "")</span>
+                        }
+                    </div>
+                    
+                    <div class="action-effect">
+                        ➜ @action.Effect
+                    </div>
+                    
+                    <button class="btn-action" @onclick="() => ExecuteAction(action)">
+                        Perform Action
+                    </button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="no-actions">No actions available at this location.</p>
+    }
+    
+    <div class="action-footer">
+        <button class="btn-secondary" @onclick="BackToLocation">Back to Location</button>
+    </div>
+</div>
+
+<style>
+    .location-actions {
+        padding: 1rem;
+    }
+    
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .action-card {
+        border: 1px solid #444;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+    
+    .action-card h4 {
+        margin: 0 0 0.5rem 0;
+        color: #ffd700;
+    }
+    
+    .action-description {
+        font-style: italic;
+        color: #ccc;
+        margin: 0.5rem 0;
+    }
+    
+    .resource-costs {
+        display: flex;
+        gap: 1rem;
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+    }
+    
+    .cost-item {
+        color: #ff6b6b;
+    }
+    
+    .action-effect {
+        color: #4ecdc4;
+        margin: 0.5rem 0;
+        font-weight: bold;
+    }
+    
+    .btn-action {
+        background: #2a5a2a;
+        color: white;
+        border: 1px solid #4a8a4a;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    .btn-action:hover {
+        background: #3a7a3a;
+    }
+    
+    .no-actions {
+        text-align: center;
+        color: #999;
+        padding: 2rem;
+    }
+    
+    .action-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+    
+    .btn-secondary {
+        background: #444;
+        color: white;
+        border: 1px solid #666;
+        padding: 0.5rem 2rem;
+        cursor: pointer;
+    }
+</style>
+
+@code {
+    private List<ActionOption> availableActions = new();
+    
+    protected override void OnInitialized()
+    {
+        RefreshActions();
+    }
+    
+    private void RefreshActions()
+    {
+        availableActions = LocationActionManager.GetAvailableActions();
+    }
+    
+    private void ExecuteAction(ActionOption action)
+    {
+        bool success = LocationActionManager.ExecuteAction(action);
+        
+        if (success)
+        {
+            // Refresh the action list as available actions may have changed
+            RefreshActions();
+            
+            // Update the UI to reflect resource changes
+            StateHasChanged();
+        }
+    }
+    
+    private void BackToLocation()
+    {
+        Navigation.NavigateTo("/location-view");
+    }
+}

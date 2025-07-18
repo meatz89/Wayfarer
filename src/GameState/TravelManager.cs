@@ -45,6 +45,14 @@
 
         // Check if any route exists and is available
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
+        
+        // Check if player has enough stamina for cheapest route (fixed 2 stamina per route)
+        var player = _gameWorld.GetPlayer();
+        if (player.Stamina < 2)
+        {
+            return false; // Not enough stamina for any travel
+        }
+        
         return routes.Any();
     }
 

@@ -27,21 +27,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 7. ✅ **CONTINUALLY UPDATE DOCS** - When you learn something new that is not already documented, immediately update the relevant documentation files (IMPLEMENTATION-PLAN.md, GAME-ARCHITECTURE.md, UI-DESIGN-IMPLEMENTATION-PRINCIPLES.md, etc.) to capture the new knowledge
 
 ### **CRITICAL PATH TO TARGET VISION**
-The game's vision is best captured in INTENDED-GAMEPLAY.md ("Dude, Let Me Tell You About Wayfarer"). To achieve this experience, these features are CRITICAL and must be implemented in order:
+The game's vision is best captured in INTENDED-GAMEPLAY.md ("Dude, Let Me Tell You About Wayfarer"). To achieve this experience through RESOURCE COMPETITION:
 
-1. **Letter Category Unlocks** - Token thresholds unlock better paying letter categories
-2. **Multi-type NPC Relationships** - NPCs can have multiple token types (Trade AND Shadow)
-3. **Token-based Favors** - Spend specific tokens with specific NPCs for route unlocks
-4. **Network Referral System** - Players need agency to actively seek letters when needed
-5. **Patron Mystery & Resources** - The "agent or pawn?" tension central to the experience
-6. **Physical Constraints** - Equipment vs letter capacity trade-offs that define strategic depth
-7. **NPC Memory & Cooling** - Makes every skip/expire decision permanently meaningful
+**Core Design Principle**: Independent systems compete for shared resources (hours, stamina, inventory, queue slots, tokens). No cross-system rules - just resource scarcity creating strategic tension.
+
+**The Five Shared Resources**:
+1. **HOURS** (12-16 per day) - Every action costs 1 hour
+2. **STAMINA** (0-10 scale) - Physical activities drain energy  
+3. **INVENTORY SLOTS** (8 total) - Letters and equipment compete
+4. **QUEUE POSITIONS** (8 slots) - Delivery order constraints
+5. **CONNECTION TOKENS** (Per-NPC) - Social capital currency
+
+**Critical Features to Implement**:
+1. **Three-State Letter System** - Offered → Accepted → Collected states
+2. **Hour-Based Actions** - Every meaningful action costs 1 hour
+3. **Fixed Stamina Costs** - Travel (2), Work (2), Deliver (1), Rest (+3)
+4. **Physical Collection Requirement** - Position 1 must be collected before delivery
+5. **Token Thresholds** - 0=Stranger, 3+=Letters offered, 5+=Better categories
+6. **Route Knowledge Gates** - Routes require token thresholds with specific NPCs
+7. **NPC Availability Windows** - Time periods when NPCs can be found
+
+**CRITICAL: Compound Actions Through Natural Emergence**
+- **NO SPECIAL COMPOUND RULES** - Actions remain atomic and independent
+- **Natural Overlaps** - Same location/time/NPC enables multiple actions
+- **Discovery Through Play** - Players find efficiencies through desperation
+- **Context Creates Opportunity** - Being at merchant when delivering allows trading
+- **Never Code Combinations** - Just let independent systems share resources
+
+**CRITICAL: More Options, Not Better Options**
+- **NEVER make actions "more efficient" in special contexts** - This violates player agency
+- **ADD additional action choices** - Tavern doesn't make rest better, it offers "buy drinks while resting"
+- **Each action keeps its base efficiency** - Rest is always +3 stamina, work is always 2 stamina→4 coins
+- **Context adds NEW options** - Dawn baker offers different work (1 stamina→2 coins+bread), not better work
+- **Player discovers combinations** - Buying drinks gets rest AND tokens, but costs more
+- **ALL EFFECTS VISIBLE IN UI** - Every contextual option must clearly show ALL effects before choosing
 
 **The Patron Dynamic**: You never meet your patron, just receive gold-sealed letters that jump to slots 1-3. They provide resources but their motives are unclear. Are you an agent with purpose or just a pawn being used?
 
 **The Carrier Network**: Other carriers serve different patrons. You share routes and coordinate deliveries, but when patrons conflict, friendships shatter. (This is only a facade for the player, no simulation)
 
-See IMPLEMENTATION-PLAN.md Section "🎯 PRIORITY IMPLEMENTATION ROADMAP" for the complete 6-7 week path to target vision.
+See IMPLEMENTATION-PLAN.md for complete resource competition implementation details.
 
 ## PROJECT: WAYFARER - Letters and Ledgers
 
@@ -71,6 +96,15 @@ The game centers around a **priority queue of 8 letters** that represents your s
 
 **CRITICAL: The Queue IS the Story** - The queue isn't just a task list, it's a visual representation of all your promises and commitments. Every position matters, every deadline conflicts, every choice cascades into new problems.
 
+**CRITICAL: Letter Queue Filling Principle** - The queue must fill sequentially from position 1:
+- **New letters enter at the LOWEST available position** - If positions 1-3 are filled, new letter goes to position 4
+- **Position 8 is the LAST resort** - A letter only enters at position 8 when positions 1-7 are ALL occupied
+- **Compact queue always** - When a letter is delivered/removed, all letters below shift up to fill the gap
+- **NO GAPS ALLOWED** - The queue should never have empty slots between letters (e.g., letters at 1,2,4 with 3 empty)
+- **Patron letters are EXCEPTIONS** - They can jump to positions 1-3, pushing other letters down
+
+This creates a visual metaphor: your obligations pile up from top to bottom, with new commitments only reaching the bottom when you're truly overwhelmed.
+
 ### Connection Token Economy
 
 The game uses **5 types of connection tokens** as universal currency and reputation:
@@ -93,6 +127,14 @@ Tokens serve multiple purposes:
 - **Standing Obligations**: Tokens lost from the specific NPC relationships violated
 
 This creates narrative coherence: you're never abstractly spending "Trade tokens" - you're specifically burning your relationship with Marcus the Merchant or Elena the Scribe. Every token transaction damages or leverages a specific relationship.
+
+**CRITICAL: No Abstract Token Generation** - NEVER generate tokens with abstract entities:
+- ❌ **FORBIDDEN**: "+1 token with tavern patrons" - "tavern patrons" is not an NPC
+- ❌ **FORBIDDEN**: "+1 token with local merchants" - must be specific merchant
+- ❌ **FORBIDDEN**: "+1 token with the community" - no abstract collectives
+- ✅ **REQUIRED**: "+1 token with Marcus" - specific NPC relationship
+- ✅ **REQUIRED**: "Choose NPC present to share drinks with" - player selects real NPC
+- ✅ **REQUIRED**: All token changes MUST reference actual NPC game objects
 
 **CRITICAL: NPC Token Type Limitations** - NPCs only offer letters in their character-appropriate categories:
 - **Most NPCs have 1-2 token types** that fit their profession and personality

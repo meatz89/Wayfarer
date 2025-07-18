@@ -1,6 +1,13 @@
 using System;
 using System.Collections.Generic;
 
+public enum LetterState
+{
+    Offered,    // NPC has mentioned it, not in queue yet
+    Accepted,   // In queue (positions 1-8), not physical
+    Collected   // Physical item in inventory, ready for delivery
+}
+
 public enum LetterSize
 {
     Small,    // Quick note, easy to carry (1 slot)
@@ -28,6 +35,9 @@ public enum LetterPhysicalProperties
         public int Deadline { get; set; }
         public int Payment { get; set; }
         public ConnectionType TokenType { get; set; }
+        
+        // Three-state system
+        public LetterState State { get; set; } = LetterState.Offered;
         
         // Additional properties for future use but set defaults for POC
         public int QueuePosition { get; set; } = 0;

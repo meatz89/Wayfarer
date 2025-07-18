@@ -7,6 +7,7 @@ public class GameUIBase : ComponentBase, IDisposable
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Inject] public NavigationService NavigationService { get; set; }
+    [Inject] public ScenarioManager ScenarioManager { get; set; }
 
     public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
 
@@ -72,7 +73,23 @@ public class GameUIBase : ComponentBase, IDisposable
     public async Task HandleCharacterCreated(Player player)
     {
         await GameWorldManager.StartGame();
+        
+        // If a scenario was requested, start it now
+        if (_requestedScenarioId != null)
+        {
+            ScenarioManager.StartScenario(_requestedScenarioId);
+            _requestedScenarioId = null;
+        }
+        
         // Navigate to Letter Queue Screen as the primary gameplay screen
         NavigationService.NavigateTo(CurrentViews.LetterQueueScreen);
     }
+    
+    public async Task HandleScenarioRequested(string scenarioId)
+    {
+        // Store the requested scenario to start after character creation
+        _requestedScenarioId = scenarioId;
+    }
+    
+    private string _requestedScenarioId = null;
 }

@@ -4,6 +4,7 @@
 @inject LetterTemplateRepository LetterTemplateRepository
 @inject ConnectionTokenManager TokenManager
 @inject StandingObligationManager ObligationManager
+@inject NoticeBoardService NoticeBoardService
 
 <div class="letter-board-container">
     <h2>Morning Letter Board</h2>
@@ -111,6 +112,105 @@
             }
         </div>
         
+        @* Notice Board Section - Active Letter Seeking *@
+        <div class="notice-board-section">
+            <h3>📋 Spend Tokens to Seek Letters</h3>
+            <div class="notice-board-options">
+                @* Anything Heading Direction Option *@
+                <div class="board-option @(NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.AnythingHeading) ? "" : "disabled")">
+                    <div class="option-header">
+                        <h4>"Anything heading..."</h4>
+                        <span class="token-cost">2 tokens</span>
+                    </div>
+                    <div class="option-description">
+                        Ask about letters going to specific locations
+                    </div>
+                    @if (ShowDirectionSelection)
+                    {
+                        <div class="direction-selection">
+                            @foreach (var direction in NoticeBoardService.GetAvailableDirections())
+                            {
+                                <button class="direction-btn" @onclick="() => SelectDirection(direction)">
+                                    @direction
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="option-button" 
+                                @onclick="() => ShowDirectionSelection = true" 
+                                disabled="@(!NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.AnythingHeading))">
+                            Ask Board Keeper
+                        </button>
+                    }
+                </div>
+                
+                @* Looking for Specific Work Option *@
+                <div class="board-option @(NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.LookingForWork) ? "" : "disabled")">
+                    <div class="option-header">
+                        <h4>"Looking for work..."</h4>
+                        <span class="token-cost">3 tokens</span>
+                    </div>
+                    <div class="option-description">
+                        Request letters of a specific type
+                    </div>
+                    @if (ShowTypeSelection)
+                    {
+                        <div class="type-selection">
+                            @foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+                            {
+                                <button class="type-btn @GetTokenTypeClass(tokenType)" 
+                                        @onclick="() => SelectType(tokenType)">
+                                    @GetTokenIcon(tokenType) @tokenType
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="option-button" 
+                                @onclick="() => ShowTypeSelection = true"
+                                disabled="@(!NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.LookingForWork))">
+                            Specify Work Type
+                        </button>
+                    }
+                </div>
+                
+                @* Urgent Deliveries Option *@
+                <div class="board-option @(NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.UrgentDeliveries) ? "" : "disabled")">
+                    <div class="option-header">
+                        <h4>"Urgent deliveries?"</h4>
+                        <span class="token-cost">5 tokens</span>
+                    </div>
+                    <div class="option-description">
+                        High-paying letters with tight deadlines
+                    </div>
+                    <button class="option-button urgent" 
+                            @onclick="RequestUrgentDelivery"
+                            disabled="@(!NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.UrgentDeliveries))">
+                        Check for Urgent Work
+                    </button>
+                </div>
+            </div>
+            
+            <div class="token-summary">
+                <div class="summary-header">Your Tokens:</div>
+                <div class="token-list">
+                    @foreach (var tokenCount in TokenManager.GetPlayerTokens())
+                    {
+                        @if (tokenCount.Value > 0)
+                        {
+                            <span class="token-display @GetTokenTypeClass(tokenCount.Key)">
+                                @GetTokenIcon(tokenCount.Key) @tokenCount.Value
+                            </span>
+                        }
+                    }
+                </div>
+                <div class="total-tokens">Total: @TokenManager.GetPlayerTokens().Values.Sum() tokens</div>
+            </div>
+        </div>
+        
         @* Refresh Info *@
         <div class="refresh-info">
             <p>New letters appear each morning. Visit NPCs with strong connections (3+ tokens) for exclusive offers.</p>
@@ -128,6 +228,8 @@
 @namespace Wayfarer.Pages
     private List<Letter> availableLetters = new List<Letter>();
     private Letter? selectedLetter = null;
+    private bool ShowDirectionSelection = false;
+    private bool ShowTypeSelection = false;
     
     protected override void OnInitialized()
     {
@@ -276,5 +378,86 @@
         // In a full implementation, this would show the general region
         // For now, just show that it's somewhere
         return "Local area";
+    }
+    
+    // Notice Board Methods
+    private async Task SelectDirection(string direction)
+    {
+        ShowDirectionSelection = false;
+        
+        var letter = NoticeBoardService.UseNoticeBoard(
+            NoticeBoardService.NoticeBoardOption.AnythingHeading, 
+            direction
+        );
+        
+        if (letter != null)
+        {
+            var position = LetterQueueManager.AddLetterToFirstEmpty(letter);
+            if (position > 0)
+            {
+                MessageSystem.AddSystemMessage(
+                    $"📬 Letter added to your queue at position {position}!",
+                    SystemMessageTypes.Success
+                );
+                StateHasChanged();
+            }
+        }
+    }
+    
+    private async Task SelectType(ConnectionType tokenType)
+    {
+        ShowTypeSelection = false;
+        
+        var letter = NoticeBoardService.UseNoticeBoard(
+            NoticeBoardService.NoticeBoardOption.LookingForWork,
+            null,
+            tokenType
+        );
+        
+        if (letter != null)
+        {
+            var position = LetterQueueManager.AddLetterToFirstEmpty(letter);
+            if (position > 0)
+            {
+                MessageSystem.AddSystemMessage(
+                    $"📬 {tokenType} letter added to your queue at position {position}!",
+                    SystemMessageTypes.Success
+                );
+                StateHasChanged();
+            }
+        }
+    }
+    
+    private async Task RequestUrgentDelivery()
+    {
+        var letter = NoticeBoardService.UseNoticeBoard(
+            NoticeBoardService.NoticeBoardOption.UrgentDeliveries
+        );
+        
+        if (letter != null)
+        {
+            var position = LetterQueueManager.AddLetterToFirstEmpty(letter);
+            if (position > 0)
+            {
+                MessageSystem.AddSystemMessage(
+                    $"📬 URGENT letter added to your queue at position {position}!",
+                    SystemMessageTypes.Warning
+                );
+                StateHasChanged();
+            }
+        }
+    }
+    
+    private string GetTokenTypeClass(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "trust-token",
+            ConnectionType.Trade => "trade-token",
+            ConnectionType.Noble => "noble-token",
+            ConnectionType.Common => "common-token",
+            ConnectionType.Shadow => "shadow-token",
+            _ => ""
+        };
     }
 }
