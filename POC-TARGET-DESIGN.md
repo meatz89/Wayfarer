@@ -4,6 +4,23 @@
 
 **🔄 TRANSFORMATION PLAN**: See **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** for the complete analysis of how to transform from current implementation to this target design.
 
+## 📊 IMPLEMENTATION STATUS (December 2024)
+
+**✅ CORE POC ACHIEVED**: The minimal viable letter queue system is operational:
+- ✅ 8-slot queue with order enforcement
+- ✅ Connection tokens (5 types)
+- ✅ Queue manipulation actions
+- ✅ Standing obligations
+- ✅ Letter generation systems
+- ✅ Relationship UI transparency
+
+**❌ STILL NEEDED FOR FULL POC**:
+- ❌ Connection gravity (3-4 tokens → slot 7, 5+ → slot 6)
+- ❌ Network referrals (spend tokens for letters)
+- ❌ Physical constraints (letter sizes, equipment requirements)
+
+See **`IMPLEMENTATION-PLAN.md`** for detailed roadmap to complete vision.
+
 ## CORE DESIGN TARGET
 
 Create **impossible queue management dilemmas** where the iron law of delivery order conflicts with deadline pressure. Players must constantly choose between following queue order (preserving relationships) or spending precious connection tokens to manipulate their obligations. The 8-slot queue creates genuine strategic puzzles where mathematical perfection is impossible.
@@ -107,13 +124,14 @@ Create **impossible queue management dilemmas** where the iron law of delivery o
 - **The Dilemma**: Follow order and lose Elena + Shadow opportunity, or burn tokens?
 - **Token Scarcity**: You only have 3 Trust tokens - spend them to save romance or keep for crisis?
 
-### Connection Gravity Effects
-**Token Accumulation Creates Queue Entry Benefits**
-- 0-2 tokens: Letters enter at slot 8 (bottom priority)
-- 3-4 tokens: Letters enter at slot 7 (slight priority boost)
-- 5+ tokens: Letters enter at slot 6 (significant priority boost)
-- **Strategic Choice**: Spread tokens for flexibility or specialize for gravity benefits?
-- **The Trade-off**: Tokens spent on crisis management reduce gravity effects
+### Connection Token Effects
+**Per-NPC Relationships Create Opportunities**
+- **Direct Offers**: NPCs with 3+ tokens approach you with letter opportunities
+- **Better Letters**: Higher tokens with an NPC = better-paying offers from them
+- **Spending Cost**: Choose which NPC relationship to burn for immediate needs
+- **Strategic Choice**: Build deep relationships with few NPCs or spread tokens widely?
+- **Natural Specialization**: Success with certain NPCs leads to more opportunities with them
+- **The Real Cost**: Spending tokens damages that specific relationship
 
 ### Standing Obligations Reshape Everything
 **Permanent Modifiers Create Unique Playthroughs**

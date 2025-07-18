@@ -1,6 +1,4 @@
-﻿using Wayfarer.Game.ActionSystem;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
+﻿using Wayfarer.GameState;
 
 public class Player
 {
@@ -44,6 +42,9 @@ public class Player
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
+    
+    // Network tracking
+    public List<string> UnlockedNPCIds { get; set; } = new List<string>();
 
 
     public HashSet<(string, SkillCategories)> LocationActionAvailability { get; set; } = new();
@@ -62,7 +63,6 @@ public class Player
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
     public int CurrentDay { get; private set; }
 
-    public List<Information> KnownInformation { get; private set; } = new List<Information>();
 
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
 
@@ -133,13 +133,6 @@ public class Player
         }
     }
 
-    public void LearnInformation(Information information)
-    {
-        if (!KnownInformation.Any(i => i.Id == information.Id))
-        {
-            KnownInformation.Add(information);
-        }
-    }
 
     public void DiscoverContract(string contractId)
     {
@@ -149,20 +142,8 @@ public class Player
         }
     }
 
-    public bool KnowsInformation(string id)
-    {
-        return KnownInformation.Any(i => i.Id == id);
-    }
 
-    public List<Information> GetInformationByType(InformationType type)
-    {
-        return KnownInformation.Where(i => i.Type == type).ToList();
-    }
 
-    public List<Information> GetInformationAboutLocation(string locationId)
-    {
-        return KnownInformation.Where(i => i.IsAbout(locationId)).ToList();
-    }
 
     public void AddMemory(string key, string description, int importance, int expirationDays = -1)
     {

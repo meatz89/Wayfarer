@@ -42,7 +42,6 @@ public class PlayerStateSnapshot
     public List<string> InventoryItems { get; set; } = new List<string>();
     public int Reputation { get; set; }
     public List<string> KnownContracts { get; set; } = new List<string>();
-    public List<Information> KnownInformation { get; set; } = new List<Information>();
 }
 
 /// <summary>

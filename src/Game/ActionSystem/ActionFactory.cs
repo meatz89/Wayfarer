@@ -1,5 +1,3 @@
-using Wayfarer.Game.ActionSystem;
-using Wayfarer.Game.MainSystem;
 
 public class ActionFactory
 {
@@ -57,16 +55,11 @@ public class ActionFactory
 
         // === CATEGORICAL REQUIREMENTS ===
 
-        // Tool category requirements  
-        foreach (ToolCategory toolCategory in template.ToolRequirements)
-        {
-            requirements.Add(new ToolCategoryRequirement(toolCategory, itemRepository));
-        }
 
-        // Equipment category requirements
-        foreach (EquipmentCategory equipmentCategory in template.EquipmentRequirements)
+        // Item category requirements
+        foreach (ItemCategory itemCategory in template.ItemRequirements)
         {
-            requirements.Add(new EquipmentCategoryRequirement(equipmentCategory, itemRepository));
+            requirements.Add(new ItemCategoryRequirement(itemCategory, itemRepository));
         }
 
         // Knowledge requirements
@@ -81,14 +74,6 @@ public class ActionFactory
             requirements.Add(new StaminaCategoricalRequirement(template.PhysicalDemand));
         }
 
-        // Information requirements
-        foreach (InformationRequirementData infoReq in template.InformationRequirements)
-        {
-            requirements.Add(new InformationRequirement(
-                infoReq.RequiredType,
-                infoReq.MinimumQuality,
-                string.IsNullOrEmpty(infoReq.SpecificInformationId) ? null : infoReq.SpecificInformationId));
-        }
 
         // === EXISTING NUMERICAL REQUIREMENTS ===
         // Time window requirement
@@ -144,25 +129,6 @@ public class ActionFactory
             }
         }
 
-        // Information effects
-        foreach (InformationEffectData infoEffect in template.InformationEffects)
-        {
-            // Create Information object from effect data
-            Information information = new Information(infoEffect.InformationId, infoEffect.Title, infoEffect.Type)
-            {
-                Content = infoEffect.Content,
-                Quality = infoEffect.Quality,
-                Source = infoEffect.Source,
-                Value = infoEffect.Value,
-                LocationId = infoEffect.LocationId,
-                NPCId = infoEffect.NPCId
-            };
-
-            information.RelatedItemIds.AddRange(infoEffect.RelatedItemIds);
-            information.RelatedLocationIds.AddRange(infoEffect.RelatedLocationIds);
-
-            effects.Add(new InformationEffect(information, infoEffect.UpgradeExisting));
-        }
 
 
         return effects;

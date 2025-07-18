@@ -49,21 +49,21 @@
     <div class="wait-section">
         <h4>Wait</h4>
         <p>Current Time: @GameWorld.TimeManager.CurrentTimeHours:00 (@GameWorld.TimeManager.GetCurrentTimeBlock())</p>
-        <p>Remaining Time Blocks: @GameWorld.TimeManager.RemainingTimeBlocks</p>
+        <p>Remaining Hours Today: @(24 - GameWorld.TimeManager.CurrentTimeHours)</p>
         
         <div class="wait-options">
             <button class="btn btn-outline-secondary btn-sm" 
-                    disabled="@(!GameWorld.TimeManager.ValidateTimeBlockAction(1))"
+                    disabled="@(GameWorld.TimeManager.CurrentTimeHours >= 23)"
                     @onclick="() => WaitHours(1)">
                 Wait 1 Hour
             </button>
             <button class="btn btn-outline-secondary btn-sm" 
-                    disabled="@(!GameWorld.TimeManager.ValidateTimeBlockAction(1))"
+                    disabled="@(GameWorld.TimeManager.CurrentTimeHours >= 22)"
                     @onclick="() => WaitHours(2)">
                 Wait 2 Hours  
             </button>
             <button class="btn btn-outline-secondary btn-sm" 
-                    disabled="@(!GameWorld.TimeManager.ValidateTimeBlockAction(1))"
+                    disabled="@(GameWorld.TimeManager.CurrentTimeHours >= 21)"
                     @onclick="() => WaitHours(3)">
                 Wait 3 Hours
             </button>
@@ -72,6 +72,8 @@
 </div>
 
 @code {
+
+@namespace Wayfarer.Pages
     [Parameter] public Location Location { get; set; }
     [Parameter] public EventCallback OnRestComplete { get; set; }
 

@@ -5,6 +5,8 @@
 @inject TravelManager TravelManager
 @inject RouteUnlockManager RouteUnlockManager
 
+@namespace Wayfarer.Pages
+
 <div class="world-map-container">
     @* Context-aware travel planning status *@
     <div class="travel-status travel-context">
@@ -175,7 +177,7 @@
                                         </div>
                                         <div class="route-costs">
                                             <span class="cost-item">⚡ @route.BaseStaminaCost</span>
-                                            <span class="cost-item">⏱️ @route.TimeBlockCost blocks</span>
+                                            <span class="cost-item">⏱️ @route.TravelTimeHours hours</span>
                                         </div>
                                     </div>
                                     

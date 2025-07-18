@@ -1,5 +1,3 @@
-namespace Wayfarer.Game.ActionSystem;
-
 /// <summary>
 /// Physical effort required to perform an action
 /// </summary>
@@ -12,18 +10,6 @@ public enum PhysicalDemand
     Extreme     // Maximum effort (combat, emergency situations)
 }
 
-/// <summary>
-/// Categories of tools or equipment needed for actions (non-overlapping with EquipmentCategory)
-/// </summary>
-public enum ToolCategory
-{
-    None,
-    Basic_Tools,           // Simple hand tools
-    Specialized_Equipment, // Professional equipment for specific trades
-    Documentation,         // Contracts, permits, credentials
-    Writing_Materials,     // Ink, parchment, quills
-    Safety_Equipment,      // Protection gear for dangerous activities
-}
 
 /// <summary>
 /// Knowledge, skill level, or education required
@@ -106,32 +92,6 @@ public enum PhysicalCondition
     Recovered     // Recently recovered from exertion
 }
 
-/// <summary>
-/// Categories of information that can be traded, learned, or required
-/// </summary>
-public enum InformationType
-{
-    Market_Intelligence,    // Prices, demand, supply chain information
-    Route_Conditions,      // Road safety, weather, travel requirements
-    Social_Gossip,         // Relationships, reputations, social events
-    Professional_Knowledge, // Trade secrets, craft techniques, business practices
-    Location_Secrets,      // Hidden spots, special access, local customs
-    Political_News,        // Government actions, policy changes, conflicts
-    Personal_History,      // Individual backgrounds, motivations, connections
-    Resource_Availability  // Where to find specific items, services, opportunities
-}
-
-/// <summary>
-/// Quality and reliability of information
-/// </summary>
-public enum InformationQuality
-{
-    Rumor,         // Unverified, possibly false information
-    Reliable,      // Generally trustworthy but may have gaps
-    Verified,      // Confirmed through multiple sources
-    Expert,        // From authoritative professional source
-    Authoritative  // From definitive, unquestionable source
-}
 
 /// <summary>
 /// Categories of contracts affecting NPC relationships and strategic progression

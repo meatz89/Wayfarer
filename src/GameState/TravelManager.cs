@@ -76,7 +76,7 @@ public class TravelManager
         RecordRouteUsage(selectedRoute.Id);
 
         // Advance time
-        AdvanceTimeBlocks(selectedRoute.TimeBlockCost);
+        _timeManager.AdvanceTime(selectedRoute.TravelTimeHours);
 
         // Update location
         Location targetLocation = LocationSystem.GetLocation(travelLocation);
@@ -100,11 +100,6 @@ public class TravelManager
         }
     }
 
-    private void AdvanceTimeBlocks(int timeBlockCost)
-    {
-        // Consume time blocks through TimeManager
-        _timeManager.ConsumeTimeBlock(timeBlockCost);
-    }
 
     // Discovery bonuses removed - emergent gameplay provides rewards through:
     // - New market prices for arbitrage

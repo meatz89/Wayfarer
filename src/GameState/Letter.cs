@@ -1,10 +1,8 @@
 using System;
-using Wayfarer.GameState;
+using System.Collections.Generic;
 
-namespace Wayfarer.GameState
+public enum LetterSize
 {
-    public enum LetterSize
-    {
         Small,    // Quick note, easy to carry
         Medium,   // Standard letter
         Large     // Package or bulky correspondence
@@ -32,6 +30,9 @@ namespace Wayfarer.GameState
         public List<string> UnlocksLetterIds { get; set; } = new List<string>();
         public string ParentLetterId { get; set; } = "";
         public bool IsChainLetter { get; set; } = false;
+        
+        // Content
+        public string Message { get; set; } = "";
         
         // Helper properties
         public bool IsExpired => Deadline <= 0;
@@ -62,4 +63,3 @@ namespace Wayfarer.GameState
             Id = Guid.NewGuid().ToString();
         }
     }
-}

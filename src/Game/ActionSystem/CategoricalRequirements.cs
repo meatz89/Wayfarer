@@ -1,35 +1,31 @@
-using Wayfarer.Game.ActionSystem;
-using Wayfarer.Game.MainSystem;
-
-namespace Wayfarer.Game.ActionSystem;
 
 
 /// <summary>
-/// Validates equipment category requirements based on player's equipment
+/// Validates item category requirements based on player's inventory
 /// </summary>
-public class EquipmentCategoryRequirement : IRequirement
+public class ItemCategoryRequirement : IRequirement
 {
-    private readonly EquipmentCategory _requiredEquipment;
+    private readonly ItemCategory _requiredCategory;
     private readonly ItemRepository _itemRepository;
 
-    public EquipmentCategoryRequirement(EquipmentCategory requiredEquipment, ItemRepository itemRepository)
+    public ItemCategoryRequirement(ItemCategory requiredCategory, ItemRepository itemRepository)
     {
-        _requiredEquipment = requiredEquipment;
+        _requiredCategory = requiredCategory;
         _itemRepository = itemRepository;
     }
 
     public bool IsMet(GameWorld gameWorld)
     {
         Player player = gameWorld.GetPlayer();
-        return PlayerHasEquipmentCategory(player, _requiredEquipment);
+        return PlayerHasItemCategory(player, _requiredCategory);
     }
 
     public string GetDescription()
     {
-        return $"Requires {GetEquipmentCategoryDescription(_requiredEquipment)}";
+        return $"Requires {GetItemCategoryDescription(_requiredCategory)}";
     }
 
-    private bool PlayerHasEquipmentCategory(Player player, EquipmentCategory category)
+    private bool PlayerHasItemCategory(Player player, ItemCategory category)
     {
         // Check if player has any item with the required equipment category
         foreach (string? itemId in player.Inventory.ItemSlots)
@@ -37,7 +33,7 @@ public class EquipmentCategoryRequirement : IRequirement
             if (itemId != null)
             {
                 Item? item = _itemRepository.GetItemById(itemId);
-                if (item != null && item.HasEquipmentCategory(category))
+                if (item != null && item.HasCategory(category))
                 {
                     return true;
                 }
@@ -46,79 +42,30 @@ public class EquipmentCategoryRequirement : IRequirement
         return false;
     }
 
-    private string GetEquipmentCategoryDescription(EquipmentCategory category)
+    private string GetItemCategoryDescription(ItemCategory category)
     {
         return category switch
         {
-            EquipmentCategory.Climbing_Equipment => "climbing equipment",
-            EquipmentCategory.Water_Transport => "water transport equipment",
-            EquipmentCategory.Special_Access => "special access credentials",
-            EquipmentCategory.Navigation_Tools => "navigation tools",
-            EquipmentCategory.Weather_Protection => "weather protection",
-            EquipmentCategory.Load_Distribution => "load distribution equipment",
-            EquipmentCategory.Light_Source => "light source",
+            ItemCategory.Climbing_Equipment => "climbing equipment",
+            ItemCategory.Water_Transport => "water transport equipment",
+            ItemCategory.Special_Access => "special access credentials",
+            ItemCategory.Navigation_Tools => "navigation tools",
+            ItemCategory.Weather_Protection => "weather protection",
+            ItemCategory.Load_Distribution => "load distribution equipment",
+            ItemCategory.Light_Source => "light source",
+            ItemCategory.Food => "food",
+            ItemCategory.Documents => "documents",
+            ItemCategory.Tools => "tools",
+            ItemCategory.Weapons => "weapons",
+            ItemCategory.Clothing => "clothing",
+            ItemCategory.Medicine => "medicine",
+            ItemCategory.Valuables => "valuables",
+            ItemCategory.Materials => "materials",
             _ => category.ToString().Replace("_", " ").ToLower()
         };
     }
 }
 
-/// <summary>
-/// Validates tool category requirements based on player's equipment
-/// </summary>
-public class ToolCategoryRequirement : IRequirement
-{
-    private readonly ToolCategory _requiredTool;
-    private readonly ItemRepository _itemRepository;
-
-    public ToolCategoryRequirement(ToolCategory requiredTool, ItemRepository itemRepository)
-    {
-        _requiredTool = requiredTool;
-        _itemRepository = itemRepository;
-    }
-
-    public bool IsMet(GameWorld gameWorld)
-    {
-        if (_requiredTool == ToolCategory.None)
-        {
-            return true; // None category is always met
-        }
-        
-        Player player = gameWorld.GetPlayer();
-        return PlayerHasToolCategory(player, _requiredTool);
-    }
-
-    private bool PlayerHasToolCategory(Player player, ToolCategory requiredTool)
-    {
-        // Check if player has any item with the required tool category
-        foreach (string? itemId in player.Inventory.ItemSlots)
-        {
-            if (itemId != null)
-            {
-                Item? item = _itemRepository.GetItemById(itemId);
-                if (item != null && item.HasToolCategory(requiredTool))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public string GetDescription()
-    {
-        return $"Requires {GetToolCategoryDescription(_requiredTool)}";
-    }
-
-    private string GetToolCategoryDescription(ToolCategory requiredTool)
-    {
-        return requiredTool switch
-        {
-            ToolCategory.Basic_Tools => "basic tools",
-            ToolCategory.None => "no tools",
-            _ => requiredTool.ToString().Replace("_", " ").ToLower()
-        };
-    }
-}
 
 
 /// <summary>
@@ -237,125 +184,4 @@ public class StaminaCategoricalRequirement : IRequirement
     }
 }
 
-/// <summary>
-/// Validates information requirements based on player's knowledge
-/// </summary>
-public class InformationRequirement : IRequirement
-{
-    private readonly InformationType _requiredType;
-    private readonly InformationQuality _minimumQuality;
-    private readonly string _specificTopicId; // Optional: specific information piece required
 
-    public InformationRequirement(
-        InformationType requiredType,
-        InformationQuality minimumQuality = InformationQuality.Reliable,
-        string specificTopicId = null)
-    {
-        _requiredType = requiredType;
-        _minimumQuality = minimumQuality;
-        _specificTopicId = specificTopicId;
-    }
-
-    public bool IsMet(GameWorld gameWorld)
-    {
-        Player player = gameWorld.GetPlayer();
-
-        // If specific information required, check for exact match
-        if (!string.IsNullOrEmpty(_specificTopicId))
-        {
-            Information? specificInfo = player.KnownInformation.FirstOrDefault(info => info.Id == _specificTopicId);
-            return specificInfo != null &&
-                   specificInfo.MeetsRequirements(_requiredType, _minimumQuality);
-        }
-
-        // Otherwise check for any information matching categorical requirements
-        return player.KnownInformation.Any(info =>
-            info.MeetsRequirements(_requiredType, _minimumQuality));
-    }
-
-    public string GetDescription()
-    {
-        string qualityDesc = _minimumQuality != InformationQuality.Reliable
-            ? $" ({_minimumQuality}+ quality)"
-            : "";
-
-        if (!string.IsNullOrEmpty(_specificTopicId))
-        {
-            return $"Requires specific information: {_specificTopicId}{qualityDesc}";
-        }
-
-        return $"Requires {_requiredType.ToString().Replace('_', ' ').ToLower()} information{qualityDesc}";
-    }
-}
-
-/// <summary>
-/// Effect that provides information to the player's knowledge base
-/// </summary>
-public class InformationEffect : IMechanicalEffect
-{
-    private readonly Information _informationToProvide;
-    private readonly bool _upgradeExisting; // If true, improves quality/freshness of existing info
-
-    public InformationEffect(Information information, bool upgradeExisting = false)
-    {
-        _informationToProvide = information;
-        _upgradeExisting = upgradeExisting;
-    }
-
-    public void Apply(EncounterState encounterState)
-    {
-        Player player = encounterState.Player;
-
-        // Check if player already has this information
-        Information? existingInfo = player.KnownInformation.FirstOrDefault(info => info.Id == _informationToProvide.Id);
-
-        if (existingInfo != null && _upgradeExisting)
-        {
-            // Upgrade existing information quality/freshness
-            if (_informationToProvide.Quality > existingInfo.Quality)
-                existingInfo.Quality = _informationToProvide.Quality;
-
-            // Update source if this is a better source
-            if (_informationToProvide.Quality >= existingInfo.Quality)
-                existingInfo.Source = _informationToProvide.Source;
-        }
-        else if (existingInfo == null)
-        {
-            // Add new information to player's knowledge
-            Information newInfo = new Information(_informationToProvide.Id, _informationToProvide.Title, _informationToProvide.Type)
-            {
-                Content = _informationToProvide.Content,
-                Source = _informationToProvide.Source,
-                Quality = _informationToProvide.Quality,
-                LocationId = _informationToProvide.LocationId,
-                NPCId = _informationToProvide.NPCId,
-                Value = _informationToProvide.Value,
-                IsPublic = _informationToProvide.IsPublic
-            };
-
-            newInfo.RelatedItemIds.AddRange(_informationToProvide.RelatedItemIds);
-            newInfo.RelatedLocationIds.AddRange(_informationToProvide.RelatedLocationIds);
-
-            player.KnownInformation.Add(newInfo);
-        }
-
-        // Add memory of information acquisition for player feedback
-        string actionDescription = existingInfo != null && _upgradeExisting
-            ? $"Updated knowledge about {_informationToProvide.Title}"
-            : $"Learned about {_informationToProvide.Title}";
-
-        player.AddMemory($"info_{_informationToProvide.Id}_{DateTime.Now.Ticks}",
-            $"{actionDescription} from {_informationToProvide.Source}",
-            _informationToProvide.CalculateCurrentValue() / 10, // Importance based on value
-            _informationToProvide.DaysToExpire); // Duration based on info lifespan
-    }
-
-    public string GetDescriptionForPlayer()
-    {
-        string qualityDesc = _informationToProvide.Quality != InformationQuality.Reliable
-            ? $" ({_informationToProvide.Quality} quality)"
-            : "";
-
-        return $"Learn {_informationToProvide.Type.ToString().Replace('_', ' ').ToLower()}: {_informationToProvide.Title}{qualityDesc}";
-    }
-}

@@ -1,15 +1,51 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 using Wayfarer.Content;
 using Wayfarer.Game.MainSystem;
+using Wayfarer.Game.ActionSystem;
 using Wayfarer.GameState;
 
 public class GameWorldInitializer
 {
-    private string _contentDirectory;
+    private readonly string _contentDirectory;
+    private readonly LocationFactory _locationFactory;
+    private readonly LocationSpotFactory _locationSpotFactory;
+    private readonly NPCFactory _npcFactory;
+    private readonly ItemFactory _itemFactory;
+    private readonly RouteFactory _routeFactory;
+    private readonly RouteDiscoveryFactory _routeDiscoveryFactory;
+    private readonly NetworkUnlockFactory _networkUnlockFactory;
+    private readonly LetterTemplateFactory _letterTemplateFactory;
+    private readonly StandingObligationFactory _standingObligationFactory;
+    private readonly ActionDefinitionFactory _actionDefinitionFactory;
 
-    public GameWorldInitializer(string contentDirectory)
+    public GameWorldInitializer(
+        string contentDirectory,
+        LocationFactory locationFactory,
+        LocationSpotFactory locationSpotFactory,
+        NPCFactory npcFactory,
+        ItemFactory itemFactory,
+        RouteFactory routeFactory,
+        RouteDiscoveryFactory routeDiscoveryFactory,
+        NetworkUnlockFactory networkUnlockFactory,
+        LetterTemplateFactory letterTemplateFactory,
+        StandingObligationFactory standingObligationFactory,
+        ActionDefinitionFactory actionDefinitionFactory)
     {
         _contentDirectory = contentDirectory;
+        _locationFactory = locationFactory ?? throw new ArgumentNullException(nameof(locationFactory));
+        _locationSpotFactory = locationSpotFactory ?? throw new ArgumentNullException(nameof(locationSpotFactory));
+        _npcFactory = npcFactory ?? throw new ArgumentNullException(nameof(npcFactory));
+        _itemFactory = itemFactory ?? throw new ArgumentNullException(nameof(itemFactory));
+        _routeFactory = routeFactory ?? throw new ArgumentNullException(nameof(routeFactory));
+        _routeDiscoveryFactory = routeDiscoveryFactory ?? throw new ArgumentNullException(nameof(routeDiscoveryFactory));
+        _networkUnlockFactory = networkUnlockFactory ?? throw new ArgumentNullException(nameof(networkUnlockFactory));
+        _letterTemplateFactory = letterTemplateFactory ?? throw new ArgumentNullException(nameof(letterTemplateFactory));
+        _standingObligationFactory = standingObligationFactory ?? throw new ArgumentNullException(nameof(standingObligationFactory));
+        _actionDefinitionFactory = actionDefinitionFactory ?? throw new ArgumentNullException(nameof(actionDefinitionFactory));
     }
 
     public GameWorld LoadGame()
@@ -22,144 +58,79 @@ public class GameWorldInitializer
     {
         string templatePath = Path.Combine(_contentDirectory, "Templates");
 
-        // Load content from template files
-        List<Location> locations = GameWorldSerializer.DeserializeLocations(
-            File.ReadAllText(Path.Combine(templatePath, "locations.json")));
-
-        List<LocationSpot> spots = GameWorldSerializer.DeserializeLocationSpots(
-            File.ReadAllText(Path.Combine(templatePath, "location_spots.json")));
-
-        // Connect locations to spots
-        ConnectLocationsToSpots(locations, spots);
-
-        // Load route options
-        List<RouteOption> routes = new List<RouteOption>();
-        string routesFilePath = Path.Combine(templatePath, "routes.json");
-        if (File.Exists(routesFilePath))
-        {
-            routes = GameWorldSerializer.DeserializeRouteOptions(
-                File.ReadAllText(routesFilePath));
-        }
-
-        // Connect routes to locations
-        ConnectRoutesToLocations(locations, routes);
-
-        // Load items
-        List<Item> items = new List<Item>();
-        string itemsFilePath = Path.Combine(templatePath, "items.json");
-        if (File.Exists(itemsFilePath))
-        {
-            items = GameWorldSerializer.DeserializeItems(
-                File.ReadAllText(itemsFilePath));
-        }
-
-        // Contract system removed - using letter system instead
-
-        List<ActionDefinition> actions = GameWorldSerializer.DeserializeActions(
-            File.ReadAllText(Path.Combine(templatePath, "actions.json")));
-
-        // Load cards if available
+        // PHASE 1: Load entities without references (Locations, Items)
+        Console.WriteLine("\n=== PHASE 1: Loading base entities ===");
+        List<Location> locations = LoadLocations(templatePath);
+        List<Item> items = LoadItems(templatePath);
+        
+        // PHASE 2: Create initial GameWorld with base entities
+        // We need empty actions list initially as actions require location spots
+        List<ActionDefinition> emptyActions = new List<ActionDefinition>();
+        
         List<SkillCard> cards = new List<SkillCard>();
         string cardsFilePath = Path.Combine(templatePath, "cards.json");
         if (File.Exists(cardsFilePath))
         {
             // Add card deserialization logic here if needed
         }
-
-        // Load game state using the loaded content
+        
+        // Create GameWorld with base entities
         GameWorld gameWorld = GameWorldSerializer.DeserializeGameWorld(
             File.ReadAllText(Path.Combine(templatePath, "gameWorld.json")),
-            locations, spots, actions, cards);
-
-        // Add items to the game world - items are now loaded from JSON
+            locations, new List<LocationSpot>(), emptyActions, cards);
+        
+        // Add items to GameWorld
         if (gameWorld.WorldState.Items == null)
         {
             gameWorld.WorldState.Items = new List<Item>();
         }
+        gameWorld.WorldState.Items.AddRange(items);
+        
+        // PHASE 3: Load entities with simple references (LocationSpots, NPCs)
+        Console.WriteLine("\n=== PHASE 3: Loading entities with references ===");
+        List<LocationSpot> spots = LoadLocationSpots(templatePath, gameWorld);
+        gameWorld.WorldState.locationSpots.AddRange(spots);
+        
+        List<NPC> npcs = LoadNPCs(templatePath, locations);
+        foreach (var npc in npcs)
+        {
+            gameWorld.WorldState.AddCharacter(npc);
+        }
+        
+        // Load actions (they reference location spots)
+        List<ActionDefinition> actions = LoadActions(templatePath, spots, locations);
+        if (gameWorld.WorldState.actions == null)
+        {
+            gameWorld.WorldState.actions = new List<ActionDefinition>();
+        }
+        gameWorld.WorldState.actions.AddRange(actions);
+        
+        // PHASE 4: Connect entities
+        Console.WriteLine("\n=== PHASE 4: Connecting entities ===");
+        ConnectLocationsToSpots(locations, spots);
+        ConnectNPCsToLocationSpots(npcs, spots);
+        
+        // PHASE 5: Load routes (reference locations)
+        Console.WriteLine("\n=== PHASE 5: Loading routes ===");
+        List<RouteOption> routes = LoadRoutes(templatePath, locations);
+        ConnectRoutesToLocations(locations, routes);
+        
+        if (gameWorld.DiscoveredRoutes == null)
+        {
+            gameWorld.DiscoveredRoutes = new List<RouteOption>();
+        }
+        gameWorld.DiscoveredRoutes.AddRange(routes);
 
-        // Only add items if they were successfully loaded from JSON
-        if (items.Any())
-        {
-            gameWorld.WorldState.Items.AddRange(items);
-        }
-        else
-        {
-            Console.WriteLine("WARNING: No items loaded from JSON templates. Check items.json file.");
-        }
+        // Continue loading other content
 
-        // Load NPCs
-        List<NPC> npcs = new List<NPC>();
-        string npcsFilePath = Path.Combine(templatePath, "npcs.json");
-        if (File.Exists(npcsFilePath))
-        {
-            try
-            {
-                npcs = ParseNPCArray(File.ReadAllText(npcsFilePath));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERROR: Failed to load NPCs from JSON: {ex.Message}");
-            }
-        }
+        // Load letter templates with validated NPC references
+        List<LetterTemplate> letterTemplates = LoadLetterTemplates(templatePath, npcs);
 
-        // Load information
-        List<Information> informations = new List<Information>();
-        string informationsFilePath = Path.Combine(templatePath, "informations.json");
-        if (File.Exists(informationsFilePath))
-        {
-            try
-            {
-                informations = InformationParser.ParseInformationArray(
-                    File.ReadAllText(informationsFilePath));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERROR: Failed to load informations from JSON: {ex.Message}");
-            }
-        }
+        // Load standing obligations with validated NPC references
+        List<StandingObligation> standingObligations = LoadStandingObligations(templatePath, npcs);
 
-        // Load letter templates
-        List<LetterTemplate> letterTemplates = new List<LetterTemplate>();
-        string letterTemplatesFilePath = Path.Combine(templatePath, "letter_templates.json");
-        if (File.Exists(letterTemplatesFilePath))
-        {
-            try
-            {
-                letterTemplates = ParseLetterTemplateArray(File.ReadAllText(letterTemplatesFilePath));
-                Console.WriteLine($"Loaded {letterTemplates.Count} letter templates from JSON.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERROR: Failed to load letter templates from JSON: {ex.Message}");
-            }
-        }
-
-        // Load standing obligations
-        List<StandingObligation> standingObligations = new List<StandingObligation>();
-        string standingObligationsFilePath = Path.Combine(templatePath, "standing_obligations.json");
-        if (File.Exists(standingObligationsFilePath))
-        {
-            try
-            {
-                standingObligations = ParseStandingObligationArray(File.ReadAllText(standingObligationsFilePath));
-                Console.WriteLine($"Loaded {standingObligations.Count} standing obligation templates from JSON.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERROR: Failed to load standing obligations from JSON: {ex.Message}");
-            }
-        }
-
-        // Add NPCs to the game world
-        if (npcs.Any())
-        {
-            foreach (NPC npc in npcs)
-            {
-                gameWorld.WorldState.AddCharacter(npc);
-            }
-            Console.WriteLine($"Loaded {npcs.Count} NPCs from JSON templates.");
-        }
-        else
+        // NPCs already added in Phase 3
+        if (!npcs.Any())
         {
             Console.WriteLine("INFO: No NPCs loaded from JSON templates. Create npcs.json file to add NPC content.");
         }
@@ -167,21 +138,6 @@ public class GameWorldInitializer
         // Connect NPCs to their location spots
         ConnectNPCsToLocationSpots(npcs, gameWorld.WorldState.locationSpots);
 
-        // Add information to the game world
-        if (gameWorld.WorldState.Informations == null)
-        {
-            gameWorld.WorldState.Informations = new List<Information>();
-        }
-
-        if (informations.Any())
-        {
-            gameWorld.WorldState.Informations.AddRange(informations);
-            Console.WriteLine($"Loaded {informations.Count} information entries from JSON templates.");
-        }
-        else
-        {
-            Console.WriteLine("INFO: No information loaded from JSON templates. Create informations.json file to add information content.");
-        }
 
         // Add letter templates to the game world
         if (letterTemplates.Any())
@@ -204,6 +160,9 @@ public class GameWorldInitializer
         {
             Console.WriteLine("INFO: No standing obligations loaded. Create standing_obligations.json file to add obligation content.");
         }
+        
+        // PHASE 2: Load progression content that references entities
+        LoadProgressionContent(gameWorld, templatePath);
 
         // Initialize player inventory if not already initialized
         if (gameWorld.GetPlayer().Inventory == null)
@@ -225,6 +184,139 @@ public class GameWorldInitializer
         InitializePlayerLocation(gameWorld);
 
         return gameWorld;
+    }
+    
+    /// <summary>
+    /// Phase 2 loading: Load progression content that references entities.
+    /// This must happen after all entities (NPCs, routes, items) are loaded.
+    /// </summary>
+    private void LoadProgressionContent(GameWorld gameWorld, string templatePath)
+    {
+        // Load route discoveries
+        LoadRouteDiscoveries(gameWorld, templatePath);
+        
+        // Load network unlocks
+        LoadNetworkUnlocks(gameWorld, templatePath);
+    }
+    
+    private void LoadRouteDiscoveries(GameWorld gameWorld, string templatePath)
+    {
+        string progressionPath = Path.Combine(templatePath, "Progression");
+        string routeDiscoveryPath = Path.Combine(progressionPath, "route_discovery.json");
+        
+        if (!File.Exists(routeDiscoveryPath))
+        {
+            Console.WriteLine("INFO: No route discoveries loaded. Create route_discovery.json to add route discovery content.");
+            return;
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(routeDiscoveryPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var discoveries = JsonSerializer.Deserialize<List<RouteDiscoveryDTO>>(json, options);
+            
+            if (discoveries == null || !discoveries.Any())
+            {
+                Console.WriteLine("WARNING: route_discovery.json exists but contains no route discoveries.");
+                return;
+            }
+            
+            int successCount = 0;
+            foreach (var dto in discoveries)
+            {
+                try
+                {
+                    var discovery = _routeDiscoveryFactory.CreateRouteDiscoveryFromIds(
+                        dto.RouteId,
+                        dto.KnownByNPCs,
+                        gameWorld.DiscoveredRoutes,
+                        gameWorld.WorldState.NPCs,
+                        dto.RequiredTokensWithNPC);
+                    
+                    // Add discovery contexts
+                    foreach (var (npcId, contextDto) in dto.DiscoveryContexts)
+                    {
+                        _routeDiscoveryFactory.AddDiscoveryContextFromIds(
+                            discovery,
+                            npcId,
+                            contextDto.RequiredEquipment,
+                            gameWorld.WorldState.NPCs,
+                            gameWorld.WorldState.Items,
+                            contextDto.Narrative);
+                    }
+                    
+                    gameWorld.WorldState.RouteDiscoveries.Add(discovery);
+                    successCount++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"WARNING: Failed to load route discovery for route '{dto.RouteId}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {successCount} route discoveries from JSON templates.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to load route discoveries from JSON: {ex.Message}");
+        }
+    }
+    
+    private void LoadNetworkUnlocks(GameWorld gameWorld, string templatePath)
+    {
+        string networkUnlockPath = Path.Combine(templatePath, "progression_unlocks.json");
+        
+        if (!File.Exists(networkUnlockPath))
+        {
+            Console.WriteLine("INFO: No network unlocks loaded. Create progression_unlocks.json to add network unlock content.");
+            return;
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(networkUnlockPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var unlocks = JsonSerializer.Deserialize<List<NetworkUnlockDTO>>(json, options);
+            
+            if (unlocks == null || !unlocks.Any())
+            {
+                Console.WriteLine("WARNING: progression_unlocks.json exists but contains no network unlocks.");
+                return;
+            }
+            
+            int successCount = 0;
+            foreach (var dto in unlocks)
+            {
+                try
+                {
+                    var targetDefinitions = dto.Unlocks
+                        .Select(t => (t.NpcId, t.IntroductionText))
+                        .ToList();
+                    
+                    var networkUnlock = _networkUnlockFactory.CreateNetworkUnlockFromIds(
+                        dto.Id,
+                        dto.UnlockerNpcId,
+                        dto.TokensRequired,
+                        dto.UnlockDescription,
+                        targetDefinitions,
+                        gameWorld.WorldState.NPCs);
+                    
+                    gameWorld.WorldState.NetworkUnlocks.Add(networkUnlock);
+                    successCount++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"WARNING: Failed to load network unlock '{dto.Id}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {successCount} network unlocks from JSON templates.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to load network unlocks from JSON: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -311,7 +403,7 @@ public class GameWorldInitializer
                         Method = TravelMethods.Walking,
                         BaseCoinCost = 0,
                         BaseStaminaCost = 2,
-                        TimeBlockCost = 1,
+                        TravelTimeHours = 3,
                         DepartureTime = null,
                         IsDiscovered = true,
                         MaxItemCapacity = 3,
@@ -438,79 +530,574 @@ public class GameWorldInitializer
         return npcs;
     }
 
-    private List<LetterTemplate> ParseLetterTemplateArray(string letterTemplatesJson)
+
+    
+    // PHASE 1: Load base entities without references
+    private List<Location> LoadLocations(string templatePath)
     {
-        List<LetterTemplate> templates = new List<LetterTemplate>();
-
-        using (JsonDocument doc = JsonDocument.Parse(letterTemplatesJson))
+        string locationsPath = Path.Combine(templatePath, "locations.json");
+        if (!File.Exists(locationsPath))
         {
-            foreach (JsonElement templateElement in doc.RootElement.EnumerateArray())
-            {
-                LetterTemplate template = LetterTemplateParser.ParseLetterTemplate(templateElement.GetRawText());
-                templates.Add(template);
-            }
+            Console.WriteLine("WARNING: locations.json not found");
+            return new List<Location>();
         }
-
-        return templates;
+        
+        try
+        {
+            string json = File.ReadAllText(locationsPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var locationDTOs = JsonSerializer.Deserialize<List<LocationDTO>>(json, options);
+            
+            if (locationDTOs == null || !locationDTOs.Any())
+            {
+                Console.WriteLine("WARNING: No locations found in locations.json");
+                return new List<Location>();
+            }
+            
+            var locations = new List<Location>();
+            foreach (var dto in locationDTOs)
+            {
+                try
+                {
+                    // Parse environmental properties
+                    var envProps = new Dictionary<TimeBlocks, List<string>>();
+                    if (dto.EnvironmentalProperties != null)
+                    {
+                        envProps[TimeBlocks.Morning] = dto.EnvironmentalProperties.Morning ?? new List<string>();
+                        envProps[TimeBlocks.Afternoon] = dto.EnvironmentalProperties.Afternoon ?? new List<string>();
+                        envProps[TimeBlocks.Evening] = dto.EnvironmentalProperties.Evening ?? new List<string>();
+                        envProps[TimeBlocks.Night] = dto.EnvironmentalProperties.Night ?? new List<string>();
+                    }
+                    
+                    // Parse available professions by time
+                    var professionsByTime = new Dictionary<TimeBlocks, List<Professions>>();
+                    foreach (var (timeStr, professionStrs) in dto.AvailableProfessionsByTime)
+                    {
+                        if (Enum.TryParse<TimeBlocks>(timeStr, out var timeBlock))
+                        {
+                            var professions = new List<Professions>();
+                            foreach (var profStr in professionStrs)
+                            {
+                                if (Enum.TryParse<Professions>(profStr.Replace(" ", "_"), out var profession))
+                                {
+                                    professions.Add(profession);
+                                }
+                            }
+                            professionsByTime[timeBlock] = professions;
+                        }
+                    }
+                    
+                    var location = _locationFactory.CreateLocation(
+                        dto.Id,
+                        dto.Name,
+                        dto.Description,
+                        dto.ConnectedTo,
+                        dto.LocationSpots,
+                        dto.DomainTags,
+                        envProps,
+                        professionsByTime);
+                    
+                    locations.Add(location);
+                    Console.WriteLine($"Loaded location: {location.Id} - {location.Name}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to load location '{dto.Id}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {locations.Count} locations");
+            return locations;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to parse locations.json: {ex.Message}");
+            return new List<Location>();
+        }
     }
-
-    private List<StandingObligation> ParseStandingObligationArray(string obligationsJson)
+    
+    private List<Item> LoadItems(string templatePath)
     {
-        List<StandingObligation> obligations = new List<StandingObligation>();
-
-        using (JsonDocument doc = JsonDocument.Parse(obligationsJson))
+        string itemsPath = Path.Combine(templatePath, "items.json");
+        if (!File.Exists(itemsPath))
         {
-            foreach (JsonElement obligationElement in doc.RootElement.EnumerateArray())
-            {
-                StandingObligation obligation = ParseStandingObligation(obligationElement);
-                obligations.Add(obligation);
-            }
+            Console.WriteLine("INFO: items.json not found");
+            return new List<Item>();
         }
-
-        return obligations;
+        
+        try
+        {
+            string json = File.ReadAllText(itemsPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var itemDTOs = JsonSerializer.Deserialize<List<ItemDTO>>(json, options);
+            
+            if (itemDTOs == null || !itemDTOs.Any())
+            {
+                Console.WriteLine("WARNING: No items found in items.json");
+                return new List<Item>();
+            }
+            
+            var items = new List<Item>();
+            foreach (var dto in itemDTOs)
+            {
+                try
+                {
+                    // Parse categories
+                    var categories = new List<ItemCategory>();
+                    
+                    // Parse from "categories" field
+                    foreach (var catStr in dto.Categories ?? new List<string>())
+                    {
+                        if (Enum.TryParse<ItemCategory>(catStr.Replace(" ", "_"), out var cat))
+                        {
+                            categories.Add(cat);
+                        }
+                    }
+                    
+                    // Also parse from "itemCategories" for backwards compatibility
+                    foreach (var catStr in dto.ItemCategories ?? new List<string>())
+                    {
+                        if (Enum.TryParse<ItemCategory>(catStr.Replace(" ", "_"), out var cat))
+                        {
+                            categories.Add(cat);
+                        }
+                    }
+                    
+                    
+                    // Parse size category
+                    if (!Enum.TryParse<SizeCategory>(dto.SizeCategory ?? "Small", out var sizeCategory))
+                    {
+                        sizeCategory = SizeCategory.Small;
+                    }
+                    
+                    var item = _itemFactory.CreateItem(
+                        dto.Id,
+                        dto.Name,
+                        dto.Weight,
+                        dto.BuyPrice,
+                        dto.SellPrice,
+                        dto.InventorySlots,
+                        sizeCategory,
+                        categories,
+                        dto.Description);
+                    
+                    items.Add(item);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to load item '{dto.Id}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {items.Count} items");
+            return items;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to parse items.json: {ex.Message}");
+            return new List<Item>();
+        }
     }
-
-    private StandingObligation ParseStandingObligation(JsonElement element)
+    
+    private List<LocationSpot> LoadLocationSpots(string templatePath, GameWorld gameWorld)
     {
-        var obligation = new StandingObligation();
-
-        if (element.TryGetProperty("ID", out var idElement))
-            obligation.ID = idElement.GetString() ?? "";
-
-        if (element.TryGetProperty("Name", out var nameElement))
-            obligation.Name = nameElement.GetString() ?? "";
-
-        if (element.TryGetProperty("Description", out var descElement))
-            obligation.Description = descElement.GetString() ?? "";
-
-        if (element.TryGetProperty("Source", out var sourceElement))
-            obligation.Source = sourceElement.GetString() ?? "";
-
-        if (element.TryGetProperty("RelatedTokenType", out var tokenElement) && 
-            !tokenElement.ValueKind.Equals(JsonValueKind.Null))
+        string spotsPath = Path.Combine(templatePath, "location_spots.json");
+        if (!File.Exists(spotsPath))
         {
-            if (Enum.TryParse<ConnectionType>(tokenElement.GetString(), out var tokenType))
-                obligation.RelatedTokenType = tokenType;
+            Console.WriteLine("WARNING: location_spots.json not found");
+            return new List<LocationSpot>();
         }
-
-        if (element.TryGetProperty("BenefitEffects", out var benefitsElement))
+        
+        try
         {
-            foreach (var benefitElement in benefitsElement.EnumerateArray())
+            string json = File.ReadAllText(spotsPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var spotDTOs = JsonSerializer.Deserialize<List<LocationSpotDTO>>(json, options);
+            
+            if (spotDTOs == null || !spotDTOs.Any())
             {
-                if (Enum.TryParse<ObligationEffect>(benefitElement.GetString(), out var effect))
-                    obligation.BenefitEffects.Add(effect);
+                Console.WriteLine("WARNING: No location spots found in location_spots.json");
+                return new List<LocationSpot>();
             }
-        }
-
-        if (element.TryGetProperty("ConstraintEffects", out var constraintsElement))
-        {
-            foreach (var constraintElement in constraintsElement.EnumerateArray())
+            
+            var spots = new List<LocationSpot>();
+            foreach (var dto in spotDTOs)
             {
-                if (Enum.TryParse<ObligationEffect>(constraintElement.GetString(), out var effect))
-                    obligation.ConstraintEffects.Add(effect);
+                try
+                {
+                    // Parse type
+                    if (!Enum.TryParse<LocationSpotTypes>(dto.Type, out var spotType))
+                    {
+                        spotType = LocationSpotTypes.FEATURE;
+                    }
+                    
+                    // Parse time blocks
+                    var timeBlocks = new List<TimeBlocks>();
+                    foreach (var timeStr in dto.CurrentTimeBlocks ?? new List<string>())
+                    {
+                        if (Enum.TryParse<TimeBlocks>(timeStr, out var timeBlock))
+                        {
+                            timeBlocks.Add(timeBlock);
+                        }
+                    }
+                    
+                    var spot = _locationSpotFactory.CreateLocationSpotFromIds(
+                        dto.Id,
+                        dto.Name,
+                        dto.LocationId,
+                        spotType,
+                        gameWorld.WorldState.locations,  // Pass available locations
+                        dto.Description,
+                        dto.InitialState,
+                        timeBlocks,
+                        dto.DomainTags);
+                    
+                    spots.Add(spot);
+                    Console.WriteLine($"Loaded location spot: {spot.SpotID} at {spot.LocationId}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to load location spot '{dto.Id}': {ex.Message}");
+                }
             }
+            
+            Console.WriteLine($"Loaded {spots.Count} location spots");
+            return spots;
         }
-
-        return obligation;
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to parse location_spots.json: {ex.Message}");
+            return new List<LocationSpot>();
+        }
+    }
+    
+    private List<NPC> LoadNPCs(string templatePath, List<Location> availableLocations)
+    {
+        string npcsPath = Path.Combine(templatePath, "npcs.json");
+        if (!File.Exists(npcsPath))
+        {
+            Console.WriteLine("INFO: npcs.json not found");
+            return new List<NPC>();
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(npcsPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var npcDTOs = JsonSerializer.Deserialize<List<NPCDTO>>(json, options);
+            
+            if (npcDTOs == null || !npcDTOs.Any())
+            {
+                Console.WriteLine("WARNING: No NPCs found in npcs.json");
+                return new List<NPC>();
+            }
+            
+            var npcs = new List<NPC>();
+            foreach (var dto in npcDTOs)
+            {
+                try
+                {
+                    // Parse profession
+                    if (!Enum.TryParse<Professions>(dto.Profession.Replace(" ", "_"), out var profession))
+                    {
+                        profession = Professions.Merchant; // Default profession if parsing fails
+                    }
+                    
+                    // Parse schedule
+                    if (!Enum.TryParse<Schedule>(dto.AvailabilitySchedule ?? "Standard", out var schedule))
+                    {
+                        schedule = Schedule.Business_Hours;
+                    }
+                    
+                    // Parse services
+                    var services = new List<ServiceTypes>();
+                    foreach (var serviceStr in dto.Services ?? new List<string>())
+                    {
+                        if (Enum.TryParse<ServiceTypes>(serviceStr.Replace(" ", "_"), out var service))
+                        {
+                            services.Add(service);
+                        }
+                    }
+                    
+                    // Parse letter token type
+                    ConnectionType? tokenType = null;
+                    if (!string.IsNullOrEmpty(dto.LetterTokenType))
+                    {
+                        if (Enum.TryParse<ConnectionType>(dto.LetterTokenType, out var parsed))
+                        {
+                            tokenType = parsed;
+                        }
+                    }
+                    
+                    var npc = _npcFactory.CreateNPCFromIds(
+                        dto.Id,
+                        dto.Name,
+                        dto.LocationId,
+                        availableLocations,
+                        profession,
+                        dto.Role,
+                        dto.Description,
+                        schedule,
+                        services,
+                        dto.ContractCategories,
+                        tokenType);
+                    
+                    npcs.Add(npc);
+                    Console.WriteLine($"Loaded NPC: {npc.ID} - {npc.Name} at {npc.Location}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to load NPC '{dto.Id}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {npcs.Count} NPCs");
+            return npcs;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to parse npcs.json: {ex.Message}");
+            return new List<NPC>();
+        }
+    }
+    
+    private List<RouteOption> LoadRoutes(string templatePath, List<Location> locations)
+    {
+        string routesPath = Path.Combine(templatePath, "routes.json");
+        if (!File.Exists(routesPath))
+        {
+            Console.WriteLine("INFO: routes.json not found");
+            return new List<RouteOption>();
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(routesPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var routeDTOs = JsonSerializer.Deserialize<List<RouteDTO>>(json, options);
+            
+            if (routeDTOs == null || !routeDTOs.Any())
+            {
+                Console.WriteLine("WARNING: No routes found in routes.json");
+                return new List<RouteOption>();
+            }
+            
+            var routes = new List<RouteOption>();
+            foreach (var dto in routeDTOs)
+            {
+                try
+                {
+                    // Parse travel method
+                    if (!Enum.TryParse<TravelMethods>(dto.Method, out var method))
+                    {
+                        method = TravelMethods.Walking;
+                    }
+                    
+                    var route = _routeFactory.CreateRouteFromIds(
+                        dto.Id,
+                        dto.Name,
+                        dto.Origin,
+                        dto.Destination,
+                        locations,
+                        method,
+                        dto.GetTravelTimeHours(),
+                        dto.BaseStaminaCost,
+                        dto.BaseCoinCost,
+                        dto.Description);
+                    
+                    // Set additional properties
+                    route.IsDiscovered = dto.IsDiscovered;
+                    route.MaxItemCapacity = dto.MaxItemCapacity;
+                    
+                    // Parse terrain categories
+                    foreach (var terrainStr in dto.TerrainCategories ?? new List<string>())
+                    {
+                        if (Enum.TryParse<TerrainCategory>(terrainStr.Replace(" ", "_"), out var terrain))
+                        {
+                            route.TerrainCategories.Add(terrain);
+                        }
+                    }
+                    
+                    routes.Add(route);
+                    Console.WriteLine($"Loaded route: {route.Id} from {route.Origin} to {route.Destination}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to load route '{dto.Id}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {routes.Count} routes");
+            return routes;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to parse routes.json: {ex.Message}");
+            return new List<RouteOption>();
+        }
+    }
+    
+    private List<LetterTemplate> LoadLetterTemplates(string templatePath, List<NPC> availableNPCs)
+    {
+        string letterTemplatesPath = Path.Combine(templatePath, "letter_templates.json");
+        if (!File.Exists(letterTemplatesPath))
+        {
+            Console.WriteLine("INFO: letter_templates.json not found");
+            return new List<LetterTemplate>();
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(letterTemplatesPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var templateDTOs = JsonSerializer.Deserialize<List<LetterTemplateDTO>>(json, options);
+            
+            if (templateDTOs == null || !templateDTOs.Any())
+            {
+                Console.WriteLine("WARNING: No letter templates found in letter_templates.json");
+                return new List<LetterTemplate>();
+            }
+            
+            var templates = new List<LetterTemplate>();
+            foreach (var dto in templateDTOs)
+            {
+                try
+                {
+                    // Parse token type
+                    if (!Enum.TryParse<ConnectionType>(dto.TokenType, out var tokenType))
+                    {
+                        Console.WriteLine($"WARNING: Unknown token type '{dto.TokenType}' for template '{dto.Id}', skipping");
+                        continue;
+                    }
+                    
+                    var template = _letterTemplateFactory.CreateLetterTemplateFromIds(
+                        dto.Id,
+                        dto.Description,
+                        tokenType,
+                        dto.MinDeadline,
+                        dto.MaxDeadline,
+                        dto.MinPayment,
+                        dto.MaxPayment,
+                        dto.PossibleSenders,
+                        dto.PossibleRecipients,
+                        availableNPCs,
+                        dto.UnlocksLetterIds,
+                        dto.IsChainLetter);
+                    
+                    templates.Add(template);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to load letter template '{dto.Id}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {templates.Count} letter templates");
+            return templates;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to parse letter_templates.json: {ex.Message}");
+            return new List<LetterTemplate>();
+        }
+    }
+    
+    private List<StandingObligation> LoadStandingObligations(string templatePath, List<NPC> availableNPCs)
+    {
+        string obligationsPath = Path.Combine(templatePath, "standing_obligations.json");
+        if (!File.Exists(obligationsPath))
+        {
+            Console.WriteLine("INFO: standing_obligations.json not found");
+            return new List<StandingObligation>();
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(obligationsPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var obligationDTOs = JsonSerializer.Deserialize<List<StandingObligationDTO>>(json, options);
+            
+            if (obligationDTOs == null || !obligationDTOs.Any())
+            {
+                Console.WriteLine("WARNING: No standing obligations found in standing_obligations.json");
+                return new List<StandingObligation>();
+            }
+            
+            var obligations = new List<StandingObligation>();
+            foreach (var dto in obligationDTOs)
+            {
+                try
+                {
+                    var obligation = _standingObligationFactory.CreateStandingObligationFromDTO(dto, availableNPCs);
+                    obligations.Add(obligation);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to load standing obligation '{dto.ID}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {obligations.Count} standing obligations");
+            return obligations;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to parse standing_obligations.json: {ex.Message}");
+            return new List<StandingObligation>();
+        }
+    }
+    
+    private List<ActionDefinition> LoadActions(string templatePath, List<LocationSpot> availableSpots, List<Location> availableLocations)
+    {
+        string actionsPath = Path.Combine(templatePath, "actions.json");
+        if (!File.Exists(actionsPath))
+        {
+            Console.WriteLine("WARNING: actions.json not found");
+            return new List<ActionDefinition>();
+        }
+        
+        try
+        {
+            string json = File.ReadAllText(actionsPath);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var actionDTOs = JsonSerializer.Deserialize<List<ActionDefinitionDTO>>(json, options);
+            
+            if (actionDTOs == null || !actionDTOs.Any())
+            {
+                Console.WriteLine("WARNING: No actions found in actions.json");
+                return new List<ActionDefinition>();
+            }
+            
+            var actions = new List<ActionDefinition>();
+            foreach (var dto in actionDTOs)
+            {
+                try
+                {
+                    var action = _actionDefinitionFactory.CreateActionDefinitionFromIds(
+                        dto.Id,
+                        dto.Name,
+                        dto.Description,
+                        dto.LocationSpotId,
+                        availableSpots,
+                        availableLocations,
+                        dto);
+                    
+                    actions.Add(action);
+                    Console.WriteLine($"Loaded action: {action.Id} - {action.Name} at spot {action.LocationSpotId}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ERROR: Failed to load action '{dto.Id}': {ex.Message}");
+                }
+            }
+            
+            Console.WriteLine($"Loaded {actions.Count} actions from JSON templates.");
+            return actions;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERROR: Failed to parse actions.json: {ex.Message}");
+            return new List<ActionDefinition>();
+        }
     }
 }

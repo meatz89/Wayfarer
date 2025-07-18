@@ -20,6 +20,8 @@
     </div>
 </div>
 @code {
+
+@namespace Wayfarer.Pages
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }

@@ -63,55 +63,6 @@ public static class LocationParser
         return location;
     }
 
-    public static LocationSpot ParseLocationSpot(string json)
-    {
-        JsonDocumentOptions options = new JsonDocumentOptions
-        {
-            AllowTrailingCommas = true
-        };
-
-        using JsonDocument doc = JsonDocument.Parse(json, options);
-        JsonElement root = doc.RootElement;
-
-        string id = GetStringProperty(root, "id", "");
-        string name = GetStringProperty(root, "name", "");
-        string locationId = GetStringProperty(root, "locationId", "");
-
-        LocationSpot spot = new LocationSpot(id, name)
-        {
-            Description = GetStringProperty(root, "description", ""),
-            InitialState = GetStringProperty(root, "initialState", ""),
-            LocationId = locationId,
-            Type = Enum.Parse<LocationSpotTypes>(GetStringProperty(root, "type", "FEATURE"), true),
-            DomainTags = GetStringArrayFromProperty(root, "domainTags"),
-            PreferredApproach = GetStringProperty(root, "preferredApproach", null),
-            DislikedApproach = GetStringProperty(root, "dislikedApproach", null),
-            DomainExpertise = GetStringProperty(root, "domainExpertise", null)
-        };
-
-        // Parse time windows
-        List<string> CurrentTimeBlockStrings = GetStringArrayFromProperty(root, "CurrentTimeBlocks");
-
-        foreach (string windowString in CurrentTimeBlockStrings)
-        {
-            if (Enum.TryParse(windowString, true, out TimeBlocks window))
-            {
-                spot.CurrentTimeBlocks.Add(window);
-            }
-        }
-
-        if (CurrentTimeBlockStrings.Count == 0)
-        {
-            // Add all time windows as default
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Morning);
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Night);
-        }
-
-        return spot;
-    }
-
     private static List<string> GetStringArrayFromProperty(JsonElement element, string propertyName)
     {
         List<string> results = new List<string>();

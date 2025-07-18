@@ -1,4 +1,3 @@
-using Wayfarer.Game.ActionSystem;
 
 public class ActionDefinition
 {
@@ -26,15 +25,12 @@ public class ActionDefinition
     // Physical requirements
     public PhysicalDemand PhysicalDemand { get; set; } = PhysicalDemand.None;
 
-    // Tool and equipment requirements
-    public List<ToolCategory> ToolRequirements { get; set; } = new List<ToolCategory>();
-    public List<EquipmentCategory> EquipmentRequirements { get; set; } = new List<EquipmentCategory>();
+    // Item requirements
+    public List<ItemCategory> ItemRequirements { get; set; } = new List<ItemCategory>();
 
     // Knowledge and skill requirements
     public KnowledgeRequirement KnowledgeRequirement { get; set; } = KnowledgeRequirement.None;
 
-    // Information requirements
-    public List<InformationRequirementData> InformationRequirements { get; set; } = new List<InformationRequirementData>();
 
     // Time investment category
     public TimeInvestment TimeInvestment { get; set; } = TimeInvestment.Standard;
@@ -42,8 +38,6 @@ public class ActionDefinition
     // Effects produced by this action
     public List<EffectCategory> EffectCategories { get; set; } = new List<EffectCategory>();
 
-    // Information effects provided by this action
-    public List<InformationEffectData> InformationEffects { get; set; } = new List<InformationEffectData>();
 
 
     public ActionDefinition(string id, string name, string spotId)

@@ -126,22 +126,22 @@ public class TravelSelectionBase : ComponentBase
     /// <summary>
     /// Get equipment categories that are absolutely required for terrain types
     /// </summary>
-    public List<EquipmentCategory> GetRequiredEquipment(List<TerrainCategory> terrainCategories)
+    public List<ItemCategory> GetRequiredEquipment(List<TerrainCategory> terrainCategories)
     {
-        List<EquipmentCategory> required = new List<EquipmentCategory>();
+        List<ItemCategory> required = new List<ItemCategory>();
 
         foreach (TerrainCategory terrain in terrainCategories)
         {
             switch (terrain)
             {
                 case TerrainCategory.Requires_Climbing:
-                    required.Add(EquipmentCategory.Climbing_Equipment);
+                    required.Add(ItemCategory.Climbing_Equipment);
                     break;
                 case TerrainCategory.Requires_Water_Transport:
-                    required.Add(EquipmentCategory.Water_Transport);
+                    required.Add(ItemCategory.Water_Transport);
                     break;
                 case TerrainCategory.Requires_Permission:
-                    required.Add(EquipmentCategory.Special_Access);
+                    required.Add(ItemCategory.Special_Access);
                     break;
             }
         }
@@ -152,25 +152,25 @@ public class TravelSelectionBase : ComponentBase
     /// <summary>
     /// Get equipment categories that are recommended for terrain types
     /// </summary>
-    public List<EquipmentCategory> GetRecommendedEquipment(List<TerrainCategory> terrainCategories)
+    public List<ItemCategory> GetRecommendedEquipment(List<TerrainCategory> terrainCategories)
     {
-        List<EquipmentCategory> recommended = new List<EquipmentCategory>();
+        List<ItemCategory> recommended = new List<ItemCategory>();
 
         foreach (TerrainCategory terrain in terrainCategories)
         {
             switch (terrain)
             {
                 case TerrainCategory.Wilderness_Terrain:
-                    recommended.Add(EquipmentCategory.Navigation_Tools);
+                    recommended.Add(ItemCategory.Navigation_Tools);
                     break;
                 case TerrainCategory.Exposed_Weather:
-                    recommended.Add(EquipmentCategory.Weather_Protection);
+                    recommended.Add(ItemCategory.Weather_Protection);
                     break;
                 case TerrainCategory.Heavy_Cargo_Route:
-                    recommended.Add(EquipmentCategory.Load_Distribution);
+                    recommended.Add(ItemCategory.Load_Distribution);
                     break;
                 case TerrainCategory.Dark_Passage:
-                    recommended.Add(EquipmentCategory.Light_Source);
+                    recommended.Add(ItemCategory.Light_Source);
                     break;
             }
         }
@@ -245,9 +245,9 @@ public class TravelSelectionBase : ComponentBase
     /// <summary>
     /// Get all equipment categories currently owned by the player
     /// </summary>
-    public List<EquipmentCategory> GetCurrentEquipmentCategories()
+    public List<ItemCategory> GetCurrentEquipmentCategories()
     {
-        List<EquipmentCategory> ownedCategories = new List<EquipmentCategory>();
+        List<ItemCategory> ownedCategories = new List<ItemCategory>();
 
         foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
         {

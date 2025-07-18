@@ -107,7 +107,7 @@ namespace Wayfarer.GameState
         private int CalculateBaseCost(RouteOption route)
         {
             // Better routes (faster, less stamina) cost more tokens
-            var timeSaving = Math.Max(0, 3 - route.TimeBlockCost); // Assume 3 is standard
+            var timeSaving = Math.Max(0, 8 - route.TravelTimeHours) / 2; // Assume 8 hours is standard
             var staminaSaving = Math.Max(0, 3 - route.BaseStaminaCost);
             
             return Math.Max(1, timeSaving + staminaSaving); // Minimum cost of 1 token
@@ -179,7 +179,7 @@ namespace Wayfarer.GameState
             // Enhanced success feedback with route details
             _messageSystem.AddSystemMessage($"🗺️ Route Unlocked: {route.Name}!", SystemMessageTypes.Success);
             _messageSystem.AddSystemMessage($"📍 {route.Origin} → {route.Destination}", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"⏱️ {route.TimeBlockCost} time blocks, 💪 {route.BaseStaminaCost} stamina", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"⏱️ {route.TravelTimeHours} hours, 💪 {route.BaseStaminaCost} stamina", SystemMessageTypes.Info);
             _messageSystem.AddSystemMessage($"💰 Cost: {unlockCost.Amount} {unlockCost.TokenType} tokens", SystemMessageTypes.Info);
             
             return true;

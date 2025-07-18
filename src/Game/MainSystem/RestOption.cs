@@ -3,7 +3,7 @@
     public string Name { get; set; }
     public int CoinCost { get; set; }
     public int StaminaRecovery { get; set; }
-    public int TimeBlockCost { get; set; } = 1;  // Rest actions consume 1 time block by default
+    public int RestTimeHours { get; set; } = 3;  // Rest actions take 3 hours by default
     public bool EnablesDawnDeparture { get; set; } = false;
     public bool IsAvailable { get; set; } = true;
     public string RequiredItem { get; set; } = null;  // For church requiring pilgrim token, etc.

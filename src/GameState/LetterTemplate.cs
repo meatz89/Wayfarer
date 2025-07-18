@@ -1,9 +1,5 @@
-using Wayfarer.GameState;
-
-namespace Wayfarer.GameState
+public class LetterTemplate
 {
-    public class LetterTemplate
-    {
         public string Id { get; set; }
         public string Description { get; set; }
         public ConnectionType TokenType { get; set; }
@@ -20,4 +16,3 @@ namespace Wayfarer.GameState
         public string[] UnlocksLetterIds { get; set; } = new string[0]; // Letter templates unlocked by delivering this letter
         public bool IsChainLetter { get; set; } = false;
     }
-}

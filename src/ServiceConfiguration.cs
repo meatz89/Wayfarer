@@ -10,12 +10,58 @@ public static class ServiceConfiguration
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
         string contentDirectory = "Content";
-
-        // Create GameWorldInitializer
-        GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(contentDirectory);
-        services.AddSingleton(gameWorldInitializer);
-
-        // Load game state
+        
+        // Create a temporary GameWorld for factories
+        // This is needed because factories need GameWorld to exist
+        var tempGameWorld = new GameWorld();
+        services.AddSingleton(tempGameWorld);
+        
+        // Register ReferenceResolver for safe entity lookups
+        
+        // Register factories for reference-safe content creation
+        services.AddSingleton<LocationFactory>();
+        services.AddSingleton<LocationSpotFactory>();
+        services.AddSingleton<NPCFactory>();
+        services.AddSingleton<ItemFactory>();
+        services.AddSingleton<RouteFactory>();
+        services.AddSingleton<RouteDiscoveryFactory>();
+        services.AddSingleton<NetworkUnlockFactory>();
+        services.AddSingleton<LetterTemplateFactory>();
+        services.AddSingleton<StandingObligationFactory>();
+        services.AddSingleton<ActionDefinitionFactory>();
+        
+        // Build service provider to get factories
+        var serviceProvider = services.BuildServiceProvider();
+        
+        // Create GameWorldInitializer with factories
+        var locationFactory = serviceProvider.GetRequiredService<LocationFactory>();
+        var locationSpotFactory = serviceProvider.GetRequiredService<LocationSpotFactory>();
+        var npcFactory = serviceProvider.GetRequiredService<NPCFactory>();
+        var itemFactory = serviceProvider.GetRequiredService<ItemFactory>();
+        var routeFactory = serviceProvider.GetRequiredService<RouteFactory>();
+        var routeDiscoveryFactory = serviceProvider.GetRequiredService<RouteDiscoveryFactory>();
+        var networkUnlockFactory = serviceProvider.GetRequiredService<NetworkUnlockFactory>();
+        var letterTemplateFactory = serviceProvider.GetRequiredService<LetterTemplateFactory>();
+        var standingObligationFactory = serviceProvider.GetRequiredService<StandingObligationFactory>();
+        var actionDefinitionFactory = serviceProvider.GetRequiredService<ActionDefinitionFactory>();
+        
+        GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(
+            contentDirectory,
+            locationFactory,
+            locationSpotFactory,
+            npcFactory,
+            itemFactory,
+            routeFactory,
+            routeDiscoveryFactory,
+            networkUnlockFactory,
+            letterTemplateFactory,
+            standingObligationFactory,
+            actionDefinitionFactory);
+        
+        // Remove the temporary GameWorld
+        services.Remove(services.First(s => s.ServiceType == typeof(GameWorld)));
+        
+        // Load the real game state
         GameWorld gameWorld = gameWorldInitializer.LoadGame();
         services.AddSingleton(gameWorld);
 
@@ -25,11 +71,14 @@ public static class ServiceConfiguration
         // Register repositories
         services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
+        services.AddSingleton<LocationSpotRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<RouteRepository>();
         services.AddSingleton<LetterTemplateRepository>();
         services.AddSingleton<StandingObligationRepository>();
+        services.AddSingleton<RouteDiscoveryRepository>();
+        services.AddSingleton<NetworkUnlockRepository>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<ActionFactory>();
@@ -89,6 +138,9 @@ public static class ServiceConfiguration
         services.AddSingleton<ConnectionTokenManager>();
         services.AddSingleton<RouteUnlockManager>();
         services.AddSingleton<NavigationService>();
+        services.AddSingleton<NarrativeService>();
+        services.AddSingleton<RouteDiscoveryManager>();
+        services.AddSingleton<NetworkUnlockManager>();
         services.AddSingleton<NPCLetterOfferService>(serviceProvider =>
         {
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();

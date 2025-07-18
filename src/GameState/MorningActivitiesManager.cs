@@ -40,7 +40,7 @@ namespace Wayfarer.GameState
                 MorningEvents.Add(new MorningEvent
                 {
                     Type = MorningEventType.LetterExpired,
-                    Description = $"Letter from {letter.SenderName} to {letter.RecipientName} expired",
+                    Description = GetExpiredLetterNarrative(letter),
                     TokenLoss = 2,
                     TokenType = letter.TokenType,
                     SenderName = letter.SenderName
@@ -61,7 +61,7 @@ namespace Wayfarer.GameState
                     MorningEvents.Add(new MorningEvent
                     {
                         Type = MorningEventType.ForcedLetterAdded,
-                        Description = $"Obligation letter from {letter.SenderName} added at position {position}",
+                        Description = GetObligationLetterNarrative(letter, position),
                         LetterPosition = position,
                         SenderName = letter.SenderName
                     });
@@ -79,7 +79,7 @@ namespace Wayfarer.GameState
                 MorningEvents.Add(new MorningEvent
                 {
                     Type = MorningEventType.NewLettersAvailable,
-                    Description = $"{newLetterCount} new letters arrived overnight"
+                    Description = GetNewLettersNarrative(newLetterCount)
                 });
                 result.NewLetterCount = newLetterCount;
             }
@@ -91,7 +91,7 @@ namespace Wayfarer.GameState
                 MorningEvents.Add(new MorningEvent
                 {
                     Type = MorningEventType.UrgentLetterWarning,
-                    Description = $"URGENT: Letter to {letter.RecipientName} expires in {letter.Deadline} days!",
+                    Description = GetUrgentLetterNarrative(letter),
                     LetterPosition = letter.QueuePosition
                 });
                 result.UrgentLetterCount++;
@@ -118,6 +118,88 @@ namespace Wayfarer.GameState
         public void ClearMorningEvents()
         {
             MorningEvents.Clear();
+        }
+        
+        // Narrative generation methods
+        private string GetExpiredLetterNarrative(Letter letter)
+        {
+            var narratives = new string[]
+            {
+                $"The seal on {letter.SenderName}'s letter has faded completely. {letter.RecipientName} will never receive their message now.",
+                $"You notice {letter.SenderName}'s letter has turned grey and brittle. Another promise broken, another relationship strained.",
+                $"The deadline for {letter.RecipientName}'s letter passed in the night. You can almost feel {letter.SenderName}'s disappointment.",
+                $"Dawn reveals the truth: {letter.SenderName}'s urgent message will never reach {letter.RecipientName}. The consequences begin to unfold."
+            };
+            
+            var random = new Random();
+            return narratives[random.Next(narratives.Length)];
+        }
+        
+        private string GetObligationLetterNarrative(Letter letter, int position)
+        {
+            var narratives = new string[]
+            {
+                $"Your standing obligation to {letter.SenderName} manifests as a letter that forces itself into position {position} of your queue.",
+                $"The binding promise you made to {letter.SenderName} compels you - their letter appears at position {position}, immovable.",
+                $"An oath sworn is a debt owed. {letter.SenderName}'s letter materializes at position {position}, bound by your word.",
+                $"Your obligation to {letter.SenderName} weighs heavy this morning as their letter claims position {position} in your queue."
+            };
+            
+            var random = new Random();
+            return narratives[random.Next(narratives.Length)];
+        }
+        
+        private string GetNewLettersNarrative(int count)
+        {
+            if (count == 1)
+            {
+                var narratives = new string[]
+                {
+                    "A single letter awaits at the morning board, its seal still fresh with dawn's dew.",
+                    "The letter board holds one new commission, delivered under cover of night.",
+                    "A lone envelope catches the morning light - someone needs your services."
+                };
+                var random = new Random();
+                return narratives[random.Next(narratives.Length)];
+            }
+            else
+            {
+                var narratives = new string[]
+                {
+                    $"The letter board is heavy with {count} new commissions this morning. Word of your services spreads.",
+                    $"{count} sealed letters await your attention, each a promise waiting to be kept or broken.",
+                    $"Dawn reveals {count} fresh opportunities pinned to the board. Choose wisely - you cannot carry them all.",
+                    $"The night brought {count} new requests. Your reputation as a letter carrier grows, for better or worse."
+                };
+                var random = new Random();
+                return narratives[random.Next(narratives.Length)];
+            }
+        }
+        
+        private string GetUrgentLetterNarrative(Letter letter)
+        {
+            if (letter.Deadline == 1)
+            {
+                var narratives = new string[]
+                {
+                    $"The letter for {letter.RecipientName} burns hot in your queue - tomorrow will be too late!",
+                    $"{letter.RecipientName}'s letter trembles with urgency. One more dawn and it becomes worthless paper.",
+                    $"Time runs out for {letter.RecipientName}'s message. By tomorrow's light, this promise will be ash."
+                };
+                var random = new Random();
+                return narratives[random.Next(narratives.Length)];
+            }
+            else
+            {
+                var narratives = new string[]
+                {
+                    $"The seal on {letter.RecipientName}'s letter grows warm - only {letter.Deadline} days remain.",
+                    $"{letter.RecipientName} waits for word that grows more urgent by the hour. {letter.Deadline} days left.",
+                    $"The letter to {letter.RecipientName} weighs heavier each day. {letter.Deadline} sunrises remain."
+                };
+                var random = new Random();
+                return narratives[random.Next(narratives.Length)];
+            }
         }
     }
     

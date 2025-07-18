@@ -1,30 +1,27 @@
-﻿using Wayfarer.Game.ActionSystem;
-
-public enum EquipmentCategory
-{
-    // Required categories (hard requirements)
-    Climbing_Equipment,
-    Water_Transport,
-    Special_Access,
-
-    // Efficiency categories (soft modifiers)
-    Navigation_Tools,
-    Weather_Protection,
-    Load_Distribution,
-    Light_Source
-}
+﻿
 
 public enum ItemCategory
 {
-    // Strategic categories that influence multiple systems
-    Trade_Goods,        // Standard trading merchandise
-    Luxury_Items,       // High-value, low-volume goods
-    Bulk_Goods,         // Low-value, high-volume commodities
-    Perishable,         // Time-sensitive goods
-    Raw_Materials,      // Unprocessed resources
-    Finished_Goods,     // Processed/manufactured items
-    Information,        // Maps, documents, news
-    Services            // Intangible offerings
+    // Equipment types
+    Climbing_Equipment, // Ropes, grappling hooks, pitons
+    Water_Transport,    // Boats, rafts, swimming gear
+    Special_Access,     // Keys, passes, credentials
+    Navigation_Tools,   // Maps, compasses
+    Weather_Protection, // Cloaks, boots, umbrellas
+    Load_Distribution,  // Backpacks, carts, bags
+    Light_Source,       // Lanterns, torches, candles
+    
+    // Other item types
+    Food,              // Bread, meat, water
+    Documents,         // Letters, contracts, books
+    Tools,             // Hammers, saws, needles
+    Weapons,           // Swords, bows, shields
+    Clothing,          // Shirts, pants, hats
+    Medicine,          // Herbs, potions, bandages
+    Valuables,         // Jewelry, gems, coins
+    Materials,         // Wood, metal, cloth
+    Bulk_Goods,        // Large trade goods, cargo
+    Luxury_Items       // Expensive specialty items
 }
 
 public enum SizeCategory
@@ -44,9 +41,7 @@ public class Item
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
     public int InventorySlots { get; set; } = 1;
-    public List<EquipmentCategory> Categories { get; set; } = new List<EquipmentCategory>();
-    public List<ItemCategory> ItemCategories { get; set; } = new List<ItemCategory>();
-    public List<ToolCategory> ToolCategories { get; set; } = new List<ToolCategory>();
+    public List<ItemCategory> Categories { get; set; } = new List<ItemCategory>();
 
     // Enhanced Categorical Properties
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
@@ -71,35 +66,17 @@ public class Item
     }
 
     // Helper properties for UI display
-    public string EquipmentCategoriesDescription
+    public string CategoriesDescription
     {
         get
         {
             return Categories.Any()
-        ? $"Equipment: {string.Join(", ", Categories.Select(c => c.ToString().Replace('_', ' ')))}"
+        ? $"Categories: {string.Join(", ", Categories.Select(c => c.ToString().Replace('_', ' ')))}"
         : "";
         }
     }
 
-    public string ItemCategoriesDescription
-    {
-        get
-        {
-            return ItemCategories.Any()
-        ? $"Item: {string.Join(", ", ItemCategories.Select(c => c.ToString().Replace('_', ' ')))}"
-        : "";
-        }
-    }
 
-    public string ToolCategoriesDescription
-    {
-        get
-        {
-            return ToolCategories.Any()
-        ? $"Tools: {string.Join(", ", ToolCategories.Select(c => c.ToString().Replace('_', ' ')))}"
-        : "";
-        }
-    }
 
     public string SizeCategoryDescription
     {
@@ -113,77 +90,37 @@ public class Item
         get
         {
             List<string> descriptions = new List<string>();
-            if (!string.IsNullOrEmpty(EquipmentCategoriesDescription))
-                descriptions.Add(EquipmentCategoriesDescription);
-            if (!string.IsNullOrEmpty(ItemCategoriesDescription))
-                descriptions.Add(ItemCategoriesDescription);
-            if (!string.IsNullOrEmpty(ToolCategoriesDescription))
-                descriptions.Add(ToolCategoriesDescription);
+            if (!string.IsNullOrEmpty(CategoriesDescription))
+                descriptions.Add(CategoriesDescription);
             descriptions.Add(SizeCategoryDescription);
             return string.Join(" • ", descriptions);
         }
     }
 
-    // Determine if this is primarily equipment or other item types
-    public bool IsPrimaryEquipment
-    {
-        get
-        {
-            return Categories.Any() && !ItemCategories.Any();
-        }
-    }
 
-    public bool IsPrimaryItem
-    {
-        get
-        {
-            return ItemCategories.Any() && !Categories.Any();
-        }
-    }
-
-    public bool IsHybridItem
-    {
-        get
-        {
-            return Categories.Any() && ItemCategories.Any();
-        }
-    }
-
-    // Enhanced type helpers for Option 1 system
-    public bool IsTradeGood
-    {
-        get
-        {
-            return ItemCategories.Contains(ItemCategory.Trade_Goods);
-        }
-    }
 
     public bool IsEquipment
     {
         get
         {
-            return Categories.Any();
+            return Categories.Any(c => 
+                c == ItemCategory.Climbing_Equipment ||
+                c == ItemCategory.Water_Transport ||
+                c == ItemCategory.Special_Access ||
+                c == ItemCategory.Navigation_Tools ||
+                c == ItemCategory.Weather_Protection ||
+                c == ItemCategory.Load_Distribution ||
+                c == ItemCategory.Light_Source);
         }
     }
 
-    public bool IsTool
-    {
-        get
-        {
-            return ToolCategories.Any();
-        }
-    }
 
     // Categorical matching helper methods
-    public bool HasEquipmentCategory(EquipmentCategory equipmentCategory)
+    public bool HasCategory(ItemCategory category)
     {
-        return Categories.Contains(equipmentCategory);
+        return Categories.Contains(category);
     }
 
-    public bool HasToolCategory(ToolCategory toolCategory)
-    {
-        return ToolCategories.Contains(toolCategory);
-    }
 
     public bool IsSizeCategory(SizeCategory sizeCategory)
     {

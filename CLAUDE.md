@@ -26,11 +26,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 6. ✅ **Reference related files** - Always point to where related information can be found
 7. ✅ **CONTINUALLY UPDATE DOCS** - When you learn something new that is not already documented, immediately update the relevant documentation files (IMPLEMENTATION-PLAN.md, GAME-ARCHITECTURE.md, UI-DESIGN-IMPLEMENTATION-PRINCIPLES.md, etc.) to capture the new knowledge
 
+### **CRITICAL PATH TO TARGET VISION**
+The game's vision is best captured in INTENDED-GAMEPLAY.md ("Dude, Let Me Tell You About Wayfarer"). To achieve this experience, these features are CRITICAL and must be implemented in order:
+
+1. **Connection Gravity System** - Without it, no strategic specialization (Emma's Shadow problem)
+2. **Network Referral System** - Players need agency to actively seek letters when needed
+3. **Patron Mystery & Resources** - The "agent or pawn?" tension central to the experience
+4. **Physical Constraints** - Equipment vs letter capacity trade-offs that define strategic depth
+5. **NPC Memory & Cooling** - Makes every skip/expire decision permanently meaningful
+6. **Other Letter Carriers** - The social web complexity and patron conflicts
+
+See IMPLEMENTATION-PLAN.md Section "🎯 PRIORITY IMPLEMENTATION ROADMAP" for the complete 6-7 week path to target vision.
+
 ## PROJECT: WAYFARER - Letters and Ledgers
 
 **WAYFARER - Letters and Ledgers** is a medieval letter-carrier RPG built as a Blazor Server application (.NET 8.0). Inspired by Kingkiller Chronicles' impossible social obligations and 80 Days' journey mechanics, players manage a priority queue of letters while navigating deadline pressure, relationship management, and mysterious patron demands. The game features a deterministic queue system with connection token economy creating constant priority dilemmas.
 
 ## CORE GAME DESIGN PRINCIPLES
+
+### The Triumvirate Core: Letter Queue, Connection Tokens, and Standing Obligations
+
+The entire game emerges from three interconnected systems that form the core loop:
+
+1. **Letter Queue** - Your 8-slot priority queue of visible obligations
+2. **Connection Tokens** - Relationships as spendable currency and permanent reputation
+3. **Standing Obligations** - Permanent character modifications from your choices
+
+**See Core Design Philosophy section in `IMPLEMENTATION-PLAN.md`** for how these three systems interconnect.
 
 ### The Letter Queue: Your Life in 8 Slots
 
@@ -38,13 +60,13 @@ The game centers around a **priority queue of 8 letters** that represents your s
 
 1. **Queue Order is Sacred** - You must deliver letters in order (1→2→3...) or burn relationships
 2. **Deadlines Create Pressure** - Each letter has a deadline creating impossible optimization puzzles
-3. **Connection Tokens Enable Crisis Management** - Spend social capital to manipulate queue when desperate
+3. **Connection Gravity** - High reputation affects where letters enter the queue
 4. **Every Acceptance Matters** - New letters enter at slot 8, affecting everything above them
 5. **Standing Obligations Reshape Play** - Permanent modifiers that alter queue behavior forever
 
 ### Connection Token Economy
 
-The game uses **5 types of connection tokens** as spendable social capital:
+The game uses **5 types of connection tokens** as universal currency and reputation:
 
 1. **Trust (Green)** - Personal bonds, friendships, romance
 2. **Trade (Blue)** - Merchant relationships, commercial reputation  
@@ -52,7 +74,43 @@ The game uses **5 types of connection tokens** as spendable social capital:
 4. **Common (Brown)** - Everyday folk, local knowledge
 5. **Shadow (Black)** - Underworld contacts, forbidden knowledge
 
-Tokens are earned through successful deliveries and spent to manipulate the queue in crisis.
+Tokens serve multiple purposes:
+- **Currency**: Spend on queue manipulation, route unlocking, special actions
+- **Reputation**: Lifetime totals determine connection gravity and opportunities
+- **Relationships**: Per-NPC tracking shows individual bonds
+
+**CRITICAL: Contextual Token Spending Principle** - ALL token spending must be contextually tied to specific NPCs:
+- **Letter Queue Manipulation**: Tokens spent from the letter SENDER's relationship (calling in their favor)
+- **Route Unlocking**: Tokens spent from the NPC who controls/knows that route
+- **Special Actions**: Tokens spent from the NPC providing the service or access
+- **Standing Obligations**: Tokens lost from the specific NPC relationships violated
+
+This creates narrative coherence: you're never abstractly spending "Trade tokens" - you're specifically burning your relationship with Marcus the Merchant or Elena the Scribe. Every token transaction damages or leverages a specific relationship.
+
+**CRITICAL: Contextual Token Type Selection** - The TYPE of token gained or spent must match the interaction context:
+- **Route Discovery**: If learning a merchant bypass, spend Trade tokens. If learning a mountain path, spend Common tokens
+- **Letter Delivery**: Noble recipient grants Noble tokens, even if delivered for a Common NPC
+- **Services**: Market transactions use Trade tokens, personal favors use Trust tokens
+- **The Context Determines Type**: It's not about which NPC, but what KIND of interaction is happening
+
+Example: Elena (a Trust NPC) teaches you a merchant route - you spend Trade tokens with Elena because it's a commercial context. Later, she asks a personal favor - you gain Trust tokens with Elena because it's a personal context.
+
+**CRITICAL: Route Discovery Through Relationships** - Routes are discovered through natural play and relationships:
+- **NO USAGE COUNTERS** - Never implement "use route X times to unlock Y" mechanics
+- **NPC KNOWLEDGE** - Routes discovered by building relationships with locals who know them
+- **EQUIPMENT CONTEXT** - Having proper gear makes NPCs willing to share dangerous routes
+- **LETTER CONNECTIONS** - Some routes revealed through letter deliveries and recipient conversations
+- **OBLIGATION NETWORKS** - Standing obligations grant access to specialized network routes
+
+Discovery must feel like gaining local knowledge through trust, not grinding arbitrary counters.
+
+**CRITICAL: Progression Separation Principle** - Keep progression logic completely separate from content:
+- **PROGRESSION FILES** - All unlocks, requirements, and discovery rules in dedicated JSON files under Progression/
+- **CLEAN ENTITIES** - NPCs, routes, locations contain ONLY their intrinsic properties (name, description, stats)
+- **NO MIXED CONCERNS** - Never add unlock conditions, requirements, or progression data to entity definitions
+- **DEDICATED MANAGERS** - RouteDiscoveryManager, NetworkUnlockManager handle progression, not entity managers
+
+This prevents content pollution and keeps systems maintainable. Content describes what exists; progression describes how to access it.
 
 ### System Interconnections: How Queue and Tokens Transform Everything
 
@@ -325,6 +383,35 @@ The MessageSystem is properly displayed in the UI and provides consistent feedba
   2. **REQUIRED**: Categories must be explicit properties in JSON files
   3. **REQUIRED**: Parsers must map JSON category properties to proper enum values
   4. **NO EXCEPTIONS** - String-based inference of categories violates the categorical design principle
+- **CRITICAL: NEVER LEAVE DEPRECATED CODE** - Remove deprecated fields, properties, and methods immediately:
+  1. **FORBIDDEN**: Leaving deprecated fields/properties/methods with [Obsolete] attributes
+  2. **FORBIDDEN**: Keeping old implementations "for backward compatibility"
+  3. **REQUIRED**: Delete deprecated code immediately when refactoring
+  4. **REQUIRED**: Update all references to use new implementations
+  5. **NO EXCEPTIONS** - Deprecated code creates confusion and maintenance debt
+- **NAMESPACE POLICY** - Special exception for Blazor components:
+  1. **NO NAMESPACES in regular C# files** - Makes code easier to work with, no using statements needed
+  2. **EXCEPTION: Blazor/Razor components MAY use namespaces** - Required for Blazor's component discovery
+  3. **Blazor namespace pattern**: Use `Wayfarer.Pages` for pages, `Wayfarer.Pages.Components` for components
+  4. **Update _Imports.razor** - Include necessary namespace imports for Blazor components only
+- **CRITICAL: NO FALLBACKS FOR OLD DATA** - Fix data files instead of adding compatibility code:
+  1. **FORBIDDEN**: Adding fallback logic to handle old JSON/data formats
+  2. **FORBIDDEN**: Writing code like "fallback to old property if new one missing"
+  3. **REQUIRED**: Update all JSON/data files to use new format immediately
+  4. **REQUIRED**: Remove old properties from data files completely
+  5. **NO EXCEPTIONS** - Fallback code is technical debt that will never be cleaned up
+
+### NARRATIVE COMMUNICATION PRINCIPLE (Critical)
+**All game mechanics must communicate to the player through visible UI and narrative context. Silent background mechanics violate player agency.**
+
+**Core Rules:**
+- ✅ **EVERY CHANGE IS VISIBLE** - If something changes, player sees it happen with narrative context
+- ✅ **PLAYER TRIGGERS MECHANICS** - No automatic progressions without player action
+- ✅ **CLEAR CAUSE AND EFFECT** - Players understand why things happen
+- ❌ **NO SILENT MECHANICS** - Never change state without UI feedback
+- ❌ **NO HIDDEN CALCULATIONS** - All math that affects gameplay must be transparent
+
+**Example**: Instead of silently adding tokens, show "Elena smiles. 'Thank you!' (+1 Trust token with Elena)"
 
 ### GAME DESIGN PRINCIPLES (Critical for Games vs Apps)
 **Games create interactive optimization puzzles for the player to solve, not automated systems that solve everything for them.**
@@ -432,9 +519,9 @@ Always distinguish between three layers:
 4. **UI Revolution**: Replace location-based screens with queue-centric interface
 5. **Save Migration**: Implement versioned saves with safe rollback options
 
-**🎯 IMMEDIATE NEXT STEPS**: Start with **`MINIMAL-POC-IMPLEMENTATION-PLAN.md`** (3-week minimal viable POC)
-**Then**: Follow **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** for complete 12-week transformation
-**Critical Path**: Minimal POC → Validate Core Fun → Full Implementation → Legacy Removal
+**🎯 IMMEDIATE NEXT STEPS**: Implement **Connection Gravity System** (see details in `IMPLEMENTATION-PLAN.md`)
+**Current Status**: Minimal POC achieved, relationship transparency complete, gravity design complete
+**Critical Path**: Connection Gravity → Network Referrals → Patron Resources → Full Vision
 
 ### Important Documentation
 
@@ -445,10 +532,11 @@ Always distinguish between three layers:
 - 📋 **`POC-IMPLEMENTATION-ROADMAP.md`** - Phase-by-phase development plan for letter queue POC
 
 **CORE DESIGN DOCUMENTS**:
+- `IMPLEMENTATION-PLAN.md` - Complete system architecture, roadmap, and core design philosophy
 - `INTENDED-GAMEPLAY.md` - The letter queue player experience and Kvothe moments
 - `LOGICAL-SYSTEM-INTERACTIONS.md` - Queue mechanics and token economy rules
 - `POC-TARGET-DESIGN.md` - Minimal POC with 8-slot queue and connection tokens
-- `IMPLEMENTATION-PLAN.md` - Complete system architecture and roadmap
+- `SESSION-HANDOFF.md` - Current implementation status and next steps
 
 **TECHNICAL DOCUMENTS**:
 - `GAME-ARCHITECTURE.md` - Repository patterns, per-NPC token tracking, and testing requirements

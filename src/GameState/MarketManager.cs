@@ -212,7 +212,7 @@ public class MarketManager
             InventorySlots = baseItem?.InventorySlots ?? 1,
             LocationId = locationId,
             Description = baseItem?.Description ?? GetDefaultDescription(itemId),
-            Categories = baseItem?.Categories ?? new List<EquipmentCategory>()
+            Categories = baseItem?.Categories ?? new List<ItemCategory>()
         };
     }
 
@@ -311,8 +311,8 @@ public class MarketManager
             return false;
         }
 
-        // Consume 1 time period per Period-Based Activity Planning user story
-        _timeManager.ConsumeTimeBlock(1);
+        // Trading takes time
+        _timeManager.AdvanceTime(1); // 1 hour for trading
 
 
         return true;
@@ -336,8 +336,8 @@ public class MarketManager
         player.Inventory.RemoveItem(itemId);
         player.Coins += sellPrice;
 
-        // Consume 1 time period per Period-Based Activity Planning user story
-        _timeManager.ConsumeTimeBlock(1);
+        // Trading takes time
+        _timeManager.AdvanceTime(1); // 1 hour for trading
 
 
         return true;

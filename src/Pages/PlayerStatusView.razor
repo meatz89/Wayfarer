@@ -1,6 +1,8 @@
 ﻿@using Wayfarer.Game.ActionSystem
 @inherits PlayerStatusViewBase
 
+@namespace Wayfarer.Pages
+
 <div class="player-status-container">
     <div class="status-header">
         <h2 class="status-title">Character Status</h2>
@@ -129,17 +131,14 @@
                                             <span class="item-size">Size: @item.Size</span>
                                         }
                                     </div>
-                                    @if (item.Categories.Any() || item.ItemCategories.Any())
+                                    @if (item.Categories.Any())
                                     {
                                         <div class="item-categories">
                                             @foreach (var cat in item.Categories)
                                             {
                                                 <span class="category-tag equipment">@cat.ToString().Replace('_', ' ')</span>
                                             }
-                                            @foreach (var cat in item.ItemCategories)
-                                            {
-                                                <span class="category-tag item">@cat.ToString().Replace('_', ' ')</span>
-                                            }
+                                            @* ItemCategories removed - using Categories instead *@
                                         </div>
                                     }
                                 </div>

@@ -130,9 +130,9 @@ public class PlayerStatusViewBase : ComponentBase
         return "weight-heavy";
     }
 
-    public List<EquipmentCategory> GetCurrentEquipmentCategories()
+    public List<ItemCategory> GetCurrentEquipmentCategories()
     {
-        var categories = new List<EquipmentCategory>();
+        var categories = new List<ItemCategory>();
 
         foreach (string itemName in PlayerState.Inventory.ItemSlots)
         {
@@ -163,12 +163,12 @@ public class PlayerStatusViewBase : ComponentBase
             // Check terrain requirements
             foreach (var terrain in route.TerrainCategories)
             {
-                if (terrain == TerrainCategory.Requires_Climbing && !equipmentCategories.Contains(EquipmentCategory.Climbing_Equipment))
+                if (terrain == TerrainCategory.Requires_Climbing && !equipmentCategories.Contains(ItemCategory.Climbing_Equipment))
                 {
                     canAccess = false;
                     break;
                 }
-                if (terrain == TerrainCategory.Wilderness_Terrain && !equipmentCategories.Contains(EquipmentCategory.Navigation_Tools))
+                if (terrain == TerrainCategory.Wilderness_Terrain && !equipmentCategories.Contains(ItemCategory.Navigation_Tools))
                 {
                     canAccess = false;
                     break;
@@ -184,26 +184,26 @@ public class PlayerStatusViewBase : ComponentBase
         return (accessible, blocked, allRoutes.Count);
     }
 
-    public string GetEquipmentIcon(EquipmentCategory category)
+    public string GetEquipmentIcon(ItemCategory category)
     {
         return category switch
         {
-            EquipmentCategory.Climbing_Equipment => "🧗",
-            EquipmentCategory.Navigation_Tools => "🧭",
-            EquipmentCategory.Weather_Protection => "☂️",
-            EquipmentCategory.Light_Source => "🔦",
+            ItemCategory.Climbing_Equipment => "🧗",
+            ItemCategory.Navigation_Tools => "🧭",
+            ItemCategory.Weather_Protection => "☂️",
+            ItemCategory.Light_Source => "🔦",
             _ => "🛠️"
         };
     }
 
-    public string GetEquipmentEffect(EquipmentCategory category)
+    public string GetEquipmentEffect(ItemCategory category)
     {
         return category switch
         {
-            EquipmentCategory.Climbing_Equipment => "Enables mountain routes",
-            EquipmentCategory.Navigation_Tools => "Enables wilderness routes",
-            EquipmentCategory.Weather_Protection => "Travel in bad weather",
-            EquipmentCategory.Light_Source => "Night travel enabled",
+            ItemCategory.Climbing_Equipment => "Enables mountain routes",
+            ItemCategory.Navigation_Tools => "Enables wilderness routes",
+            ItemCategory.Weather_Protection => "Travel in bad weather",
+            ItemCategory.Light_Source => "Night travel enabled",
             _ => "Special capability"
         };
     }
