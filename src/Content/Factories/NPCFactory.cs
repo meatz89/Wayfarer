@@ -1,0 +1,93 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// Factory for creating NPCs with guaranteed valid references.
+/// NPCs reference their Location by ID string.
+/// </summary>
+public class NPCFactory
+{
+    public NPCFactory()
+    {
+        // No dependencies - factory is stateless
+    }
+    
+    /// <summary>
+    /// Create an NPC with validated location reference
+    /// </summary>
+    public NPC CreateNPC(
+        string id,
+        string name,
+        Location location,  // Not string - actual Location object
+        Professions profession,
+        string role = null,
+        string description = null,
+        Schedule availabilitySchedule = Schedule.Business_Hours,
+        List<ServiceTypes> providedServices = null,
+        List<string> contractCategories = null,
+        ConnectionType? letterTokenType = null)
+    {
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("NPC ID cannot be empty", nameof(id));
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentException("NPC name cannot be empty", nameof(name));
+        if (location == null)
+            throw new ArgumentNullException(nameof(location), "Location cannot be null");
+        
+        var npc = new NPC
+        {
+            ID = id,
+            Name = name,
+            Location = location.Id,  // Extract ID from validated object
+            Profession = profession,
+            Role = role ?? profession.ToString().Replace('_', ' '),
+            Description = description ?? $"A {profession} in {location.Name}",
+            AvailabilitySchedule = availabilitySchedule,
+            ProvidedServices = providedServices ?? new List<ServiceTypes>(),
+            ContractCategories = contractCategories ?? new List<string>(),
+            LetterTokenType = letterTokenType
+        };
+        
+        return npc;
+    }
+    
+    /// <summary>
+    /// Create an NPC from string IDs with validation
+    /// </summary>
+    public NPC CreateNPCFromIds(
+        string id,
+        string name,
+        string locationId,
+        IEnumerable<Location> availableLocations,
+        Professions profession,
+        string role = null,
+        string description = null,
+        Schedule availabilitySchedule = Schedule.Business_Hours,
+        List<ServiceTypes> providedServices = null,
+        List<string> contractCategories = null,
+        ConnectionType? letterTokenType = null)
+    {
+        // Resolve location
+        var location = availableLocations.FirstOrDefault(l => l.Id == locationId);
+        if (location == null)
+            throw new InvalidOperationException($"Cannot create NPC: location '{locationId}' not found");
+        
+        return CreateNPC(id, name, location, profession, role, description, 
+                        availabilitySchedule, providedServices, contractCategories, letterTokenType);
+    }
+    
+    /// <summary>
+    /// Validate that an NPC's location exists.
+    /// This should be called after all locations are loaded.
+    /// </summary>
+    public static bool ValidateNPCLocation(NPC npc, IEnumerable<Location> availableLocations)
+    {
+        var locationExists = availableLocations.Any(l => l.Id == npc.Location);
+        if (!locationExists)
+        {
+            Console.WriteLine($"WARNING: NPC '{npc.Name}' references non-existent location '{npc.Location}'");
+        }
+        return locationExists;
+    }
+}

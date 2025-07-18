@@ -60,7 +60,7 @@ payment = basePayment * reputationMultiplier;
 - **Priority (5 matching)**: Move letter to position 1
 - **Extend (2 matching)**: Add 2 days to deadline
 - **Skip (1 matching)**: Deliver one letter out of order
-- **Route Unlock (1 token)**: Gain access to special paths
+- **Route Discovery (1-3 tokens)**: Learn secret paths from knowledgeable NPCs
 
 **Strategic Decisions Created**:
 - Save tokens for emergencies vs spend for immediate relief
@@ -275,7 +275,7 @@ Before implementing any queue mechanic, verify:
 
 **Obligation Conflict**: "Noble's Courtesy means I must accept this noble letter, but my queue is full. Which letter do I purge? The one from my friend or the one that pays my rent?"
 
-**Relationship Death**: "Marcus stopped sending letters after I skipped his last three for more profitable deliveries. Now I need a Trade route unlock and have no Trade connections."
+**Relationship Death**: "Marcus stopped sending letters after I skipped his last three for more profitable deliveries. Now I need to learn the merchant's route but have no Trade connections to ask."
 
 **The Daily Puzzle**: "Queue: Noble summons (8 days), Patron intel (5 days), Elena urgent (1 day!), Shadow package (2 days). I can deliver 2 today if I take the mountain route, but I sold my climbing gear for tokens..."
 

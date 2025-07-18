@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Wayfarer.Game.ActionSystem;
 
 public static class ItemParser
 {
@@ -26,35 +25,26 @@ public static class ItemParser
             Description = GetStringProperty(root, "description", ""),
         };
 
-        // Parse equipment categories
-        List<string> equipmentCategoryStrings = GetStringArray(root, "categories");
-        foreach (string categoryStr in equipmentCategoryStrings)
+        // Parse item categories
+        List<string> categoryStrings = GetStringArray(root, "categories");
+        foreach (string categoryStr in categoryStrings)
         {
-            if (Enum.TryParse<EquipmentCategory>(categoryStr, out EquipmentCategory category))
+            if (Enum.TryParse<ItemCategory>(categoryStr, out ItemCategory category))
+            {
+                item.Categories.Add(category);
+            }
+        }
+        
+        // Also support legacy names for backwards compatibility
+        List<string> itemCategoryStrings = GetStringArray(root, "itemCategories");
+        foreach (string categoryStr in itemCategoryStrings)
+        {
+            if (Enum.TryParse<ItemCategory>(categoryStr, out ItemCategory category))
             {
                 item.Categories.Add(category);
             }
         }
 
-        // Parse item categories
-        List<string> itemCategoryStrings = GetStringArray(root, "itemCategories");
-        foreach (string categoryStr in itemCategoryStrings)
-        {
-            if (Enum.TryParse<ItemCategory>(categoryStr, out ItemCategory itemCategory))
-            {
-                item.ItemCategories.Add(itemCategory);
-            }
-        }
-
-        // Parse tool categories
-        List<string> toolCategoryStrings = GetStringArray(root, "toolCategories");
-        foreach (string categoryStr in toolCategoryStrings)
-        {
-            if (Enum.TryParse<ToolCategory>(categoryStr, out ToolCategory toolCategory))
-            {
-                item.ToolCategories.Add(toolCategory);
-            }
-        }
 
         // Parse enhanced categorical properties
         string sizeStr = GetStringProperty(root, "size", "Medium");

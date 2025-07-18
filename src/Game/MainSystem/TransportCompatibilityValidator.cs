@@ -1,13 +1,9 @@
-using Wayfarer.Game.MainSystem;
-
-namespace Wayfarer.Game.MainSystem
+/// <summary>
+/// Validates transport method compatibility with terrain, equipment, and item constraints.
+/// Implements the logical transport restrictions outlined in UserStories.md.
+/// </summary>
+public class TransportCompatibilityValidator
 {
-    /// <summary>
-    /// Validates transport method compatibility with terrain, equipment, and item constraints.
-    /// Implements the logical transport restrictions outlined in UserStories.md.
-    /// </summary>
-    public class TransportCompatibilityValidator
-    {
         private readonly ItemRepository _itemRepository;
 
         public TransportCompatibilityValidator(ItemRepository itemRepository)
@@ -55,7 +51,7 @@ namespace Wayfarer.Game.MainSystem
         /// </summary>
         public TransportCompatibilityResult CheckEquipmentCompatibility(TravelMethods transport, Player player)
         {
-            List<EquipmentCategory> playerEquipment = GetPlayerEquipmentCategories(player);
+            List<ItemCategory> playerEquipment = GetPlayerEquipmentCategories(player);
             List<Item> playerItems = GetPlayerItems(player);
 
             // Check for heavy equipment restrictions
@@ -103,9 +99,9 @@ namespace Wayfarer.Game.MainSystem
         /// <summary>
         /// Get all equipment categories from player's inventory
         /// </summary>
-        private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
+        private List<ItemCategory> GetPlayerEquipmentCategories(Player player)
         {
-            List<EquipmentCategory> categories = new List<EquipmentCategory>();
+            List<ItemCategory> categories = new List<ItemCategory>();
 
             foreach (string itemId in player.Inventory.ItemSlots)
             {
@@ -171,4 +167,3 @@ namespace Wayfarer.Game.MainSystem
             return new TransportCompatibilityResult(false, reason);
         }
     }
-}

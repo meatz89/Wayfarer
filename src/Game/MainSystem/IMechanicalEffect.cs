@@ -1,5 +1,4 @@
-﻿using Wayfarer.Game.MainSystem;
-
+﻿
 public interface IMechanicalEffect
 {
     void Apply(EncounterState state);
@@ -155,25 +154,6 @@ public class CheckMemoryEffect : IMechanicalEffect
         }
     }
 
-    public class LearnInformationEffect : IMechanicalEffect
-    {
-        private Information informationToLearn;
-
-        public LearnInformationEffect(Information informationToLearn)
-        {
-            this.informationToLearn = informationToLearn;
-        }
-
-        public void Apply(EncounterState state)
-        {
-            state.Player.LearnInformation(informationToLearn);
-        }
-
-        public string GetDescriptionForPlayer()
-        {
-            return $"Learned information about {informationToLearn.Title}";
-        }
-    }
 
     public class SetFlagEffect : IMechanicalEffect
     {

@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Wayfarer.Game.ActionSystem;
 
 public static class ActionParser
 {
@@ -144,7 +143,25 @@ public static class ActionParser
             action.TimeInvestment = time;
         }
 
-        // Parse tool requirements array
+        // Parse item requirements array
+        if (root.TryGetProperty("itemRequirements", out JsonElement itemsElement) &&
+            itemsElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement itemElement in itemsElement.EnumerateArray())
+            {
+                if (itemElement.ValueKind == JsonValueKind.String)
+                {
+                    string itemStr = itemElement.GetString();
+                    if (!string.IsNullOrEmpty(itemStr) &&
+                        Enum.TryParse(itemStr, true, out ItemCategory item))
+                    {
+                        action.ItemRequirements.Add(item);
+                    }
+                }
+            }
+        }
+        
+        // Also check legacy names for backwards compatibility
         if (root.TryGetProperty("toolRequirements", out JsonElement toolsElement) &&
             toolsElement.ValueKind == JsonValueKind.Array)
         {
@@ -153,24 +170,15 @@ public static class ActionParser
                 if (toolElement.ValueKind == JsonValueKind.String)
                 {
                     string toolStr = toolElement.GetString();
-                    if (!string.IsNullOrEmpty(toolStr))
+                    if (!string.IsNullOrEmpty(toolStr) &&
+                        Enum.TryParse(toolStr, true, out ItemCategory item))
                     {
-                        // Try to parse as ToolCategory first
-                        if (Enum.TryParse(toolStr, true, out ToolCategory tool))
-                        {
-                            action.ToolRequirements.Add(tool);
-                        }
-                        // If that fails, try to parse as EquipmentCategory
-                        else if (Enum.TryParse(toolStr, true, out EquipmentCategory equipment))
-                        {
-                            action.EquipmentRequirements.Add(equipment);
-                        }
+                        action.ItemRequirements.Add(item);
                     }
                 }
             }
         }
-
-        // Parse equipment requirements array (if explicitly specified)
+        
         if (root.TryGetProperty("equipmentRequirements", out JsonElement equipmentElement) &&
             equipmentElement.ValueKind == JsonValueKind.Array)
         {
@@ -180,9 +188,9 @@ public static class ActionParser
                 {
                     string equipStr = equipElement.GetString();
                     if (!string.IsNullOrEmpty(equipStr) &&
-                        Enum.TryParse(equipStr, true, out EquipmentCategory equipment))
+                        Enum.TryParse(equipStr, true, out ItemCategory item))
                     {
-                        action.EquipmentRequirements.Add(equipment);
+                        action.ItemRequirements.Add(item);
                     }
                 }
             }

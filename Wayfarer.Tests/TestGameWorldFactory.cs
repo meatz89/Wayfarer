@@ -191,6 +191,18 @@ public static class TestServiceConfiguration
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
+        services.AddSingleton<NarrativeService>(serviceProvider =>
+        {
+            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
+            return new NarrativeService(npcRepository);
+        });
+        services.AddSingleton<ConnectionTokenManager>(serviceProvider =>
+        {
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
+            var narrativeService = serviceProvider.GetRequiredService<NarrativeService>();
+            return new ConnectionTokenManager(gameWorld, messageSystem, narrativeService);
+        });
         services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
@@ -209,7 +221,8 @@ public static class TestServiceConfiguration
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
             var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
-            return new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepository);
+            var narrativeService = serviceProvider.GetRequiredService<NarrativeService>();
+            return new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepository, narrativeService);
         });
         services.AddSingleton<LetterQueueManager>(serviceProvider =>
         {
@@ -218,7 +231,9 @@ public static class TestServiceConfiguration
             var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
             var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
             var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
-            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager);
+            var narrativeService = serviceProvider.GetRequiredService<NarrativeService>();
+            var tokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
+            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager, narrativeService, tokenManager);
             
             // Set up letter chain manager after both are created
             var letterChainManager = new LetterChainManager(gameWorld, letterTemplateRepository, npcRepository, letterQueueManager, messageSystem);
@@ -226,7 +241,6 @@ public static class TestServiceConfiguration
             
             return letterQueueManager;
         });
-        services.AddSingleton<ConnectionTokenManager>();
         services.AddSingleton<RouteUnlockManager>();
         services.AddSingleton<NPCLetterOfferService>(serviceProvider =>
         {

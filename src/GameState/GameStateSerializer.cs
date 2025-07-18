@@ -218,7 +218,7 @@ public static class GameWorldSerializer
         {
             foreach (JsonElement spotElement in doc.RootElement.EnumerateArray())
             {
-                spots.Add(LocationParser.ParseLocationSpot(spotElement.GetRawText()));
+                spots.Add(LocationSpotParser.ParseLocationSpot(spotElement.GetRawText()));
             }
         }
 
@@ -271,7 +271,7 @@ public static class GameWorldSerializer
             method = route.Method.ToString(),
             baseCoinCost = route.BaseCoinCost,
             baseStaminaCost = route.BaseStaminaCost,
-            timeBlockCost = route.TimeBlockCost,
+            travelTimeHours = route.TravelTimeHours,
             departureTime = route.DepartureTime?.ToString(),
             isDiscovered = route.IsDiscovered,
             terrainCategories = route.TerrainCategories.Select(c => c.ToString()).ToList(),

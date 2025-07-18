@@ -479,3 +479,63 @@ public class NavigationService
 - **No keyboard shortcuts**
 
 This navigation architecture reinforces that **letter queue management** is the core game experience while providing efficient access to supporting systems. The UI architecture supports the **letter queue management** experience by providing clear information for strategic decision-making while preserving the **puzzle-solving challenge** that makes the game engaging.
+
+## NPC Introduction and Network Unlock Principles
+
+### Core Principle: Narrative Introduction, Not Mechanical Unlock
+**CRITICAL**: NPCs don't "unlock" other NPCs - they **introduce** you through personal connections and dialogue.
+
+**Implementation Requirements**:
+- **Face-to-face introduction**: Player must be at NPC's location when introduction happens
+- **Personal dialogue**: NPCs explain why they're introducing you ("Elena trusts you with her personal letters")
+- **Introduction narrative**: Show the actual introduction happening, not just "NPC unlocked"
+- **Relationship context**: Display why this NPC trusts you enough to make introductions
+
+**Anti-Patterns**:
+- ❌ "You have unlocked Sarah" - mechanical and gamey
+- ❌ Silent automatic unlocks when reaching token thresholds
+- ❌ NPCs appearing in lists without introduction context
+- ❌ "Achievement unlocked" style notifications
+
+**Correct Patterns**:
+- ✅ Elena says: "I'd like you to meet my friend Sarah. She often needs sensitive documents delivered."
+- ✅ Show introduction happening at NPC's location with dialogue
+- ✅ New NPC explains how they know the introducer
+- ✅ Player learns about new NPC through conversation, not UI notification
+
+### UI Implementation for Introductions
+
+```razor
+<!-- When player has sufficient relationship for introduction -->
+<div class="npc-introduction-opportunity">
+    <div class="introduction-prompt">
+        <p class="npc-dialogue">
+            "You know, I've been meaning to introduce you to someone. 
+            My friend Sarah could really use someone reliable like you."
+        </p>
+        <button class="accept-introduction">
+            "I'd be happy to meet them"
+        </button>
+    </div>
+</div>
+
+<!-- During introduction -->
+<div class="introduction-scene">
+    <div class="introducer-dialogue">
+        <span class="speaker">Elena:</span>
+        "Sarah, this is the courier I mentioned. They've been incredibly reliable with my personal correspondence."
+    </div>
+    <div class="new-npc-dialogue">
+        <span class="speaker">Sarah:</span>
+        "Elena speaks highly of you. I have some academic letters that require... discretion."
+    </div>
+</div>
+```
+
+### Character Relationship Screen Integration
+- Show which NPCs can introduce you to others (when relationship is strong enough)
+- Display introduction opportunities as relationship milestones
+- Track introduction history ("Introduced by Elena")
+- Show network connections between NPCs visually
+
+**Remember**: The game is about **personal relationships and trust**, not mechanical progression systems. Every introduction should feel like a meaningful expansion of your social network through earned trust.

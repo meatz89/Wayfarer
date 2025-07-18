@@ -1,5 +1,4 @@
-﻿using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
+﻿using Wayfarer.GameState;
 
 public class WorldState
 {
@@ -28,7 +27,6 @@ public class WorldState
     // New properties
     public List<Item> Items { get; set; } = new List<Item>();
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
-    public List<Information> Informations { get; set; } = new List<Information>();
 
     // Current location tracking
     public Location CurrentLocation { get; set; }
@@ -36,6 +34,10 @@ public class WorldState
 
     // Card tracking
     public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
+    
+    // Progression tracking
+    public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
+    public List<NetworkUnlock> NetworkUnlocks { get; set; } = new List<NetworkUnlock>();
 
 
     public string GetLocationIdForSpot(string locationSpotId)

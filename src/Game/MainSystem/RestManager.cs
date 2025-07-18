@@ -34,7 +34,7 @@
                 Name = "Wait an Hour",
                 CoinCost = 0,
                 StaminaRecovery = 0,
-                TimeBlockCost = 1,
+                RestTimeHours = 1,
                 EnablesDawnDeparture = false
             });
             
@@ -44,7 +44,7 @@
                 Name = "Short Rest",
                 CoinCost = 0,
                 StaminaRecovery = 1,
-                TimeBlockCost = 1,
+                RestTimeHours = 1,
                 EnablesDawnDeparture = false
             });
         }
@@ -57,7 +57,7 @@
                 Name = "Sleep Outside",
                 CoinCost = 0,
                 StaminaRecovery = 2,
-                TimeBlockCost = 1, // Consumes remaining night
+                RestTimeHours = 1, // Consumes remaining night
                 EnablesDawnDeparture = true
             });
         }
@@ -127,16 +127,17 @@
         Player player = gameWorld.GetPlayer();
 
         // Validate time block availability
-        if (!timeManager.ValidateTimeBlockAction(option.TimeBlockCost))
+        // Check if we have enough hours left in the day
+        if (timeManager.CurrentTimeHours + option.RestTimeHours > 24)
         {
-            throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
+            throw new InvalidOperationException($"Cannot rest: Not enough time remaining in the day. Rest requires {option.RestTimeHours} hours.");
         }
 
         // Deduct cost
         player.ModifyCoins(-option.CoinCost);
 
-        // Consume time blocks
-        timeManager.ConsumeTimeBlock(option.TimeBlockCost);
+        // Resting takes time
+        timeManager.AdvanceTime(option.RestTimeHours);
 
         // Recover stamina
         player.Stamina += option.StaminaRecovery;
@@ -231,18 +232,15 @@
     {
         if (hours <= 0) return;
         
-        // Convert hours to time blocks (roughly 3.6 hours per block)
-        int timeBlocks = (int)Math.Ceiling(hours / 3.6);
-        
-        // Validate time block availability
-        if (!timeManager.ValidateTimeBlockAction(timeBlocks))
+        // Validate we don't go past midnight
+        if (timeManager.CurrentTimeHours + hours > 24)
         {
-            messageSystem.AddSystemMessage($"Cannot wait {hours} hours: insufficient time blocks remaining", SystemMessageTypes.Danger);
+            messageSystem.AddSystemMessage($"Cannot wait {hours} hours: would go past midnight", SystemMessageTypes.Danger);
             return;
         }
         
-        // Consume time blocks
-        timeManager.ConsumeTimeBlock(timeBlocks);
+        // Advance time
+        timeManager.AdvanceTime(hours);
         
         // Show feedback
         string timeDescription = hours == 1 ? "1 hour" : $"{hours} hours";

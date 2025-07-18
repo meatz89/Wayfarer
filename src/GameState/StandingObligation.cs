@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Wayfarer.GameState
+public enum ObligationEffect
 {
-    public enum ObligationEffect
-    {
         // Entry Position Effects
         NoblesPriority,        // Noble letters enter at slot 5
         CommonFolksPriority,   // Common letters enter at slot 6
@@ -221,4 +221,3 @@ namespace Wayfarer.GameState
             };
         }
     }
-}

@@ -348,10 +348,10 @@ public class GameWorldManager
             return;
         }
 
-        // Check time block constraints
-        if (!GameWorld.TimeManager.ValidateTimeBlockAction(route.TimeBlockCost))
+        // Check if we have enough time in the day
+        if (GameWorld.TimeManager.CurrentTimeHours + route.TravelTimeHours > 24)
         {
-            throw new InvalidOperationException($"Cannot travel: Not enough time blocks remaining. Route requires {route.TimeBlockCost} blocks, but only {GameWorld.TimeManager.RemainingTimeBlocks} available.");
+            throw new InvalidOperationException($"Cannot travel: Not enough time remaining in the day. Route requires {route.TravelTimeHours} hours.");
         }
 
         // Apply costs
@@ -361,8 +361,8 @@ public class GameWorldManager
         player.SpendStamina(staminaCost);
         player.ModifyCoins(route.BaseCoinCost);
 
-        // Consume time blocks
-        GameWorld.TimeManager.ConsumeTimeBlock(route.TimeBlockCost);
+        // Travel takes time
+        GameWorld.TimeManager.AdvanceTime(route.TravelTimeHours);
         
         // Check for periodic letter offers after time change
         CheckForPeriodicLetterOffers();
@@ -592,10 +592,10 @@ public class GameWorldManager
 
         if (option != null)
         {
-            // Validate time block availability before attempting rest
-            if (!GameWorld.TimeManager.ValidateTimeBlockAction(option.TimeBlockCost))
+            // Validate time availability before attempting rest
+            if (GameWorld.TimeManager.CurrentTimeHours + option.RestTimeHours > 24)
             {
-                throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {GameWorld.TimeManager.RemainingTimeBlocks} available.");
+                throw new InvalidOperationException($"Cannot rest: Not enough time remaining in the day. Rest requires {option.RestTimeHours} hours.");
             }
 
             restManager.Rest(option);

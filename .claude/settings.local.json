@@ -38,7 +38,17 @@
       "Bash(\"Wayfarer.Tests/ContractCompletionTests.cs\" )",
       "Bash(\"Wayfarer.Tests/DebugMarketTest.cs\" )",
       "Bash(\"Wayfarer.Tests/SimpleMarketManagerTest.cs\")",
-      "Bash(csc:*)"
+      "Bash(csc:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(for file in /mnt/c/git/wayfarer/src/Pages/Components/*.razor)",
+      "Bash(do)",
+      "Bash(if ! grep -q \"@namespace\" \"$file\")",
+      "Bash(then)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(for:*)",
+      "Bash(do grep -q \"@namespace\" \"$file\")"
     ],
     "deny": []
   }

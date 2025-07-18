@@ -26,30 +26,12 @@ public class TimeManager
 
     public int CurrentTimeHours { get; private set; }
 
-    // Track time blocks used during the day - resets each day
-    private int _usedTimeBlocks = 0;
-
-    public int UsedTimeBlocks
-    {
-        get
-        {
-            return _usedTimeBlocks;
-        }
-    }
-
-    public int RemainingTimeBlocks
-    {
-        get
-        {
-            return Math.Max(0, MaxDailyTimeBlocks - UsedTimeBlocks);
-        }
-    }
-
     public bool CanPerformTimeBlockAction
     {
         get
         {
-            return UsedTimeBlocks < MaxDailyTimeBlocks;
+            // Time blocks are only for scheduling, not action limits
+            return true;
         }
     }
 
@@ -86,55 +68,13 @@ public class TimeManager
         worldState.CurrentDay++;
 
         // Reset time blocks for the new day
-        _usedTimeBlocks = 0;
 
         // Reset time to dawn - no action point regeneration per Period-Based Activity Planning user story
         SetNewTime(TimeDayStart);
     }
 
 
-    /// <summary>
-    /// Consumes the specified number of time blocks by advancing actual clock time.
-    /// This is the core fix: time block consumption must advance the clock.
-    /// </summary>
-    /// <param name="blocks">Number of time blocks to consume</param>
-    /// <throws>InvalidOperationException if exceeding daily limit</throws>
-    public void ConsumeTimeBlock(int blocks)
-    {
-        if (_usedTimeBlocks + blocks > MaxDailyTimeBlocks)
-        {
-            throw new InvalidOperationException($"Cannot exceed daily time block limit of {MaxDailyTimeBlocks}. Attempting to consume {blocks} blocks but only {RemainingTimeBlocks} remaining.");
-        }
 
-        // Track the time block consumption
-        _usedTimeBlocks += blocks;
-
-        // Calculate hours to advance based on time blocks
-        double hoursPerTimeBlock = 18.0 / MaxDailyTimeBlocks; // 18 hours (6 AM to midnight) / 5 blocks = 3.6 hours per block
-        int hoursToAdvance = (int)Math.Ceiling(blocks * hoursPerTimeBlock);
-
-        // Advance the actual clock time
-        int newHour = CurrentTimeHours + hoursToAdvance;
-
-        // Cap at end of day (midnight)
-        if (newHour >= 24)
-        {
-            newHour = 23; // Stay at 11 PM to avoid day overflow
-        }
-
-        SetNewTime(newHour);
-    }
-
-    /// <summary>
-    /// Validates whether the specified number of time blocks can be consumed
-    /// without exceeding the daily limit.
-    /// </summary>
-    /// <param name="blocks">Number of time blocks to validate</param>
-    /// <returns>True if the action can be performed, false otherwise</returns>
-    public bool ValidateTimeBlockAction(int blocks)
-    {
-        return UsedTimeBlocks + blocks <= MaxDailyTimeBlocks;
-    }
 
     /// <summary>
     /// Get current time hours for GameWorldManager compatibility
@@ -170,5 +110,25 @@ public class TimeManager
             >= 16 and < 20 => TimeBlocks.Evening,   // 16:00-19:59 (4 hours)
             _ => TimeBlocks.Night                   // 20:00-5:59 (10 hours) - covers >= 20 or < 6
         };
+    }
+    
+    /// <summary>
+    /// Advance time by the specified number of hours
+    /// </summary>
+    public void AdvanceTime(int hours)
+    {
+        if (hours <= 0) return;
+        
+        CurrentTimeHours += hours;
+        
+        // Handle day rollover
+        while (CurrentTimeHours >= 24)
+        {
+            CurrentTimeHours -= 24;
+            StartNewDay();
+        }
+        
+        // Update WorldState to stay synchronized
+        worldState.CurrentTimeBlock = GetCurrentTimeBlock();
     }
 }

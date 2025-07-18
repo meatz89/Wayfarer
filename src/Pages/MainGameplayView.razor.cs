@@ -488,9 +488,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     /// <summary>
     /// Get current equipment categories owned by player
     /// </summary>
-    private List<EquipmentCategory> GetCurrentEquipmentCategories()
+    private List<ItemCategory> GetCurrentEquipmentCategories()
     {
-        List<EquipmentCategory> ownedCategories = new List<EquipmentCategory>();
+        List<ItemCategory> ownedCategories = new List<ItemCategory>();
 
         foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
         {

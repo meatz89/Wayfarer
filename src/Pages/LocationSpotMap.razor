@@ -223,6 +223,8 @@
 </div>
 
 @if (showTooltip && hoveredApproach != null)
+
+@namespace Wayfarer.Pages
 {
     <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">
         <ActionPreview CurrentAction="@selectedAction"

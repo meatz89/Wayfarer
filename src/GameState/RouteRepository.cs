@@ -70,4 +70,11 @@ public class RouteRepository
 
         return allRoutes;
     }
+    
+    // Get a specific route by ID
+    public RouteOption GetRouteById(string routeId)
+    {
+        var allRoutes = GetAllRoutes();
+        return allRoutes.FirstOrDefault(r => r.Id == routeId);
+    }
 }

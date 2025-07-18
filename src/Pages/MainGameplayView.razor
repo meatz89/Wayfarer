@@ -499,7 +499,7 @@
                                         <span class="item-icon">🧰</span>
                                         <span class="item-name">@itemName</span>
                                         <span class="item-weight">Weight: @item.Weight</span>
-                                        @if (item.Categories.Any() || item.ItemCategories.Any())
+                                        @if (item.Categories.Any())
                                         {
                                             <span class="item-categories">@item.AllCategoriesDescription</span>
                                         }
@@ -534,6 +534,8 @@
 }
 
 @if (ShowActionMessage)
+
+@namespace Wayfarer.Pages
 {
     <div class="action-message @(ActionMessageType)">
         <div class="message-content">

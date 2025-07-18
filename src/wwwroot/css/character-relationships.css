@@ -373,6 +373,113 @@
     color: var(--text-muted);
 }
 
+/* Route Discoveries */
+.route-discoveries {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--oak-mid);
+}
+
+.route-discoveries h4 {
+    font-size: 0.875rem;
+    margin: 0 0 0.5rem;
+    color: var(--text-secondary);
+}
+
+.discoveries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.discovery-item {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--oak-mid);
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.discovery-item.available {
+    border-color: var(--resource-stamina);
+    background-color: rgba(74, 155, 191, 0.05);
+}
+
+.discovery-item.available:hover {
+    box-shadow: 0 2px 6px rgba(74, 155, 191, 0.2);
+}
+
+.discovery-item.locked {
+    opacity: 0.7;
+}
+
+.discovery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.route-name {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.token-cost {
+    font-size: 0.8rem;
+    color: var(--resource-coins);
+    background-color: var(--oak-dark);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+}
+
+.route-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.travel-time {
+    color: var(--text-muted);
+}
+
+.missing-equipment {
+    font-size: 0.8rem;
+    color: var(--negative);
+    font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.discover-button {
+    background-color: var(--resource-stamina);
+    color: var(--text-on-dark);
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.discover-button:hover {
+    background-color: var(--resource-stamina-hover, #5ba5d5);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.requirement-hint {
+    font-size: 0.8rem;
+    color: var(--special);
+    font-style: italic;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .npc-relationship-grid {
