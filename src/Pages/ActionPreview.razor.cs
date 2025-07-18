@@ -37,7 +37,11 @@ public class ActionPreviewBase : ComponentBase
     public bool GetRequirementsMet()
     {
         List<string> descriptions = new();
-        LocationAction basicAction = CurrentAction.locationAction;
+        LocationAction? basicAction = CurrentAction?.locationAction;
+        if (basicAction == null)
+        {
+            return false;
+        }
         foreach (IRequirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
@@ -52,7 +56,13 @@ public class ActionPreviewBase : ComponentBase
     public List<string> GetRequirements()
     {
         List<string> descriptions = new();
-        LocationAction basicAction = CurrentAction.locationAction;
+        LocationAction? basicAction = CurrentAction?.locationAction;
+        
+        if(basicAction == null)
+        {
+            return descriptions;
+        }
+
         foreach (IRequirement req in basicAction.Requirements)
         {
             string description = req.GetDescription();
