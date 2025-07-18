@@ -29,6 +29,7 @@ public class GameWorldManager
     private StandingObligationManager standingObligationManager;
     private MorningActivitiesManager morningActivitiesManager;
     private NPCLetterOfferService npcLetterOfferService;
+    private ScenarioManager scenarioManager;
 
     private bool isAiAvailable = true;
 
@@ -45,6 +46,7 @@ public class GameWorldManager
                        ChoiceProjectionService choiceProjectionService, NPCRepository npcRepository,
                        LetterQueueManager letterQueueManager, StandingObligationManager standingObligationManager,
                        MorningActivitiesManager morningActivitiesManager, NPCLetterOfferService npcLetterOfferService,
+                       ScenarioManager scenarioManager,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -64,6 +66,7 @@ public class GameWorldManager
         this.standingObligationManager = standingObligationManager;
         this.morningActivitiesManager = morningActivitiesManager;
         this.npcLetterOfferService = npcLetterOfferService;
+        this.scenarioManager = scenarioManager;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -487,6 +490,12 @@ public class GameWorldManager
         {
             // Process and store the morning summary
             _lastMorningResult = morningActivitiesManager.ProcessMorningActivities();
+        }
+        
+        // Check scenario progress if one is active
+        if (scenarioManager != null)
+        {
+            scenarioManager.CheckScenarioProgress();
         }
         
         await Update_gameWorld();

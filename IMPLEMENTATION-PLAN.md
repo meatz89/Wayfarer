@@ -30,33 +30,87 @@
 
 **🎯 NEXT PRIORITY**: Letter Category Unlocks & Multi-type Relationships
 
-## Core Design Philosophy: The Triumvirate
+## Core Design Philosophy: Resource Competition Creates Everything
 
-The entire game emerges from three interconnected systems:
+The entire game emerges from independent systems competing for shared resources:
 
-### 1. Letter Queue (Visible Obligations)
-- 8-slot priority queue requiring in-order delivery
-- Deadlines create mathematical impossibilities
-- Simple rule: deliver from position 1 or spend tokens
+### The Five Shared Resources
 
-### 2. Connection Tokens (Individual NPC Relationships)
-- **Per-NPC Bonds**: Tokens represent your relationship with specific NPCs
-- **Spending Uses**: Queue manipulation, route unlocking, information trading, access
-- **Real Cost**: Spending reduces your relationship with that specific NPC
-- **Better Letters**: Token thresholds unlock better letter categories from NPCs
-- **Natural Specialization**: Success with certain NPCs leads to more opportunities with them
+1. **HOURS** (12-16 per day) - Every action costs time
+2. **STAMINA** (0-10 scale) - Physical activities drain energy
+3. **FOCUS** (0-10 scale) - Mental activities drain concentration
+4. **INVENTORY SLOTS** (8 total) - Letters and equipment compete
+5. **QUEUE POSITIONS** (8 slots) - Delivery order constraints
+6. **CONNECTION TOKENS** (Per-NPC) - Social capital as spendable currency
 
-### 3. Standing Obligations (Permanent Character)
-- Benefit + Constraint pairs that reshape gameplay
-- Cannot be removed once accepted
-- Create emergent conflicts when combined
-- Examples: Noble priority, forced Shadow letters, patron expectations
+### Core Systems That Compete for Resources
 
-### Systems vs Content Principle
-**Systems** are elegant mechanical frameworks. **Content** creates narrative and meaning.
-- ❌ Don't build a "romance system" - romance emerges from Trust tokens
-- ❌ Don't simulate other carriers - create illusion through availability
-- ✅ Build minimal mechanics that enable maximum emergence
+#### 1. Letter Queue System
+**Narrative**: "I keep my promises by delivering in order"
+- 8 queue positions, letters advance 8→1
+- Must deliver from position 1 (or spend tokens to skip)
+- Letters exist in three states: Offered → Accepted → Collected
+- Position 1 letters MUST be collected before delivery
+
+**The Emotional Core**: The queue isn't just a task list - it's visible social anxiety. Every position represents a promise made, every skip burns actual relationship tokens earned through hours of interaction. Players literally choose whose trust to betray.
+
+#### 2. Time System  
+**Narrative**: "There are only so many hours in a day"
+- 12-16 hours per day (exact number TBD)
+- Every meaningful action costs 1 hour
+- Time periods (Morning/Afternoon/Evening/Night) for NPC availability
+- Cannot add more time, only spend it
+
+#### 3. Stamina System
+**Narrative**: "Physical work is exhausting"
+- Start with 10 stamina each day
+- Fixed costs: Travel (2), Work (2), Deliver (1)
+- Rest action: +3 stamina (costs 1 hour)
+- Mental actions cost 0 stamina but still cost time
+
+#### 4. Physical Inventory System
+**Narrative**: "I can only carry so much"
+- 8 slots total in satchel
+- Letters: Small=1, Medium=2, Large=3 slots
+- Equipment competes for same space
+- Letters must be "Collected" to occupy inventory
+
+#### 5. Connection Token System
+**Narrative**: "Relationships require investment"
+- Tokens per NPC by type (Trust/Trade/Noble/Common/Shadow)
+- Build through: Socialize (1 hour → 1 token), Delivery (1 stamina → 1 token)
+- Spend for: Queue manipulation, route access, special favors
+- 0 tokens = Stranger (no letters offered)
+
+### Why This Design Works
+
+1. **No Cross-System Rules** - Each system has its own logic
+2. **Resource Scarcity Creates Conflict** - Not enough hours/stamina/slots
+3. **Player Discovers Patterns** - Learn through resource starvation
+4. **Multiple Solutions** - Same problem solvable different ways
+5. **Narrative Coherence** - Each system makes real-world sense
+
+### Compound Actions Through Natural Emergence
+
+**CRITICAL PRINCIPLE**: Compound actions are NOT special mechanics - they emerge naturally from independent systems sharing the same resources (time, location, NPCs).
+
+**What Makes Compounds Possible**:
+- **Same Location**: Two needs can be met at the same place
+- **Same Time**: Actions happen during the same hour
+- **Same NPCs**: One person can serve multiple purposes  
+- **Same Resources**: Money/stamina spent serves double duty
+
+**Examples of Natural Emergence**:
+- Delivering to merchant Marcus who's also willing to trade → 1 hour serves both
+- Working for baker at dawn → Earn coins AND get fresh bread (restores stamina)
+- Resting at busy tavern → Recover stamina AND hear letter opportunities
+- Traveling with merchant wagon → Protected travel AND relationship building
+
+**Key Design Rules**:
+- **NO SPECIAL COMPOUND MECHANICS** - Just atomic actions in shared contexts
+- **DISCOVERY THROUGH DESPERATION** - Resource pressure forces creative solutions
+- **ALWAYS LESS EFFICIENT** - Compounds trade efficiency for time savings
+- **CONTEXT CREATES OPPORTUNITY** - Not coded rules
 
 ## **Complete System Architecture**
 

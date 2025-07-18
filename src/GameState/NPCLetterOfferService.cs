@@ -49,7 +49,7 @@ public class NPCLetterOfferService
         var totalConnections = npcTokens.Values.Sum();
         
         // 3+ connections unlock "Direct Approaches"
-        return totalConnections >= 3;
+        return totalConnections >= GameRules.TOKENS_BASIC_THRESHOLD;
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public class NPCLetterOfferService
             var tokensOfType = npcTokens.GetValueOrDefault(letterType, 0);
             
             // Only generate offer if player has enough relationship with this token type
-            if (tokensOfType >= 3) // Basic threshold for any offers
+            if (tokensOfType >= GameRules.TOKENS_BASIC_THRESHOLD) // Basic threshold for any offers
             {
                 // Pass tokens of this specific type, not total tokens
                 var offer = CreateLetterOffer(npc, letterType, tokensOfType);
@@ -173,7 +173,7 @@ public class NPCLetterOfferService
         
         // Calculate deadline - Direct Approaches tend to be more generous
         var baseDeadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1);
-        var deadlineBonus = tokensOfType >= 5 ? 1 : 0; // +1 day for 5+ connections
+        var deadlineBonus = tokensOfType >= GameRules.TOKENS_QUALITY_THRESHOLD ? 1 : 0; // +1 day for quality relationships
         var finalDeadline = baseDeadline + deadlineBonus;
 
         return new LetterOffer
@@ -199,7 +199,7 @@ public class NPCLetterOfferService
         var messages = new List<string>();
         
         // Personal messages based on relationship strength
-        if (tokensOfType >= 5)
+        if (tokensOfType >= GameRules.TOKENS_QUALITY_THRESHOLD)
         {
             messages.AddRange(new[]
             {

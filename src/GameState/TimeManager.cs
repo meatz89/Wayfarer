@@ -1,38 +1,36 @@
 /// <summary>
-/// TimeManager manages the game's time system with exactly 5 time blocks per day.
+/// TimeManager manages the game's hour-based time system.
 /// 
-/// ARCHITECTURAL PRINCIPLE: Single Time Source Authority
-/// - CurrentTimeHours is the ONLY authoritative time value
-/// - All other time representations (TimeBlocks enum) are calculated from hours
-/// - Time blocks are internal action mechanics - players see actual time progression
+/// ARCHITECTURAL PRINCIPLE: Hours as Primary Resource
+/// - Players have 16 active hours per day (6 AM - 10 PM)
+/// - Every meaningful action costs 1+ hours
+/// - Time periods (Dawn/Morning/etc) are for NPC availability only
+/// - No complex time mechanics - just hour consumption
 /// 
-/// FIVE TIME BLOCKS SYSTEM:
-/// - Dawn: 6:00-8:59 (3 hours) - Early morning activities
-/// - Morning: 9:00-11:59 (3 hours) - Prime morning activities  
-/// - Afternoon: 12:00-15:59 (4 hours) - Midday activities
-/// - Evening: 16:00-19:59 (4 hours) - Late day activities
-/// - Night: 20:00-5:59 (10 hours) - Rest and recovery period
-/// 
-/// Each action typically consumes 1 time block = ~3.6 hours of game time.
-/// Players see time progression like "Dawn 6:00" → "Morning 9:00" → "Afternoon 14:00"
+/// TIME PERIODS (for NPC scheduling):
+/// - Dawn: 6:00-7:59 (2 hours) - Early risers available
+/// - Morning: 8:00-11:59 (4 hours) - Most NPCs active  
+/// - Afternoon: 12:00-15:59 (4 hours) - Business hours
+/// - Evening: 16:00-19:59 (4 hours) - Social hours
+/// - Night: 20:00-21:59 (2 hours) - Limited availability
+/// - Late Night: 22:00-5:59 (8 hours) - Sleep/rest only
 /// </summary>
 public class TimeManager
 {
     public const int TimeDayStart = 6;
-    public const int MaxDailyTimeBlocks = 5; // Must match TimeBlocks enum count
+    public const int TimeNightStart = 22;
+    public const int HoursPerDay = 16; // 6 AM to 10 PM
 
     private Player player;
     private WorldState worldState;
 
     public int CurrentTimeHours { get; private set; }
 
-    public bool CanPerformTimeBlockAction
+    public int HoursRemaining => Math.Max(0, TimeNightStart - CurrentTimeHours);
+    
+    public bool CanPerformAction(int hoursRequired = 1)
     {
-        get
-        {
-            // Time blocks are only for scheduling, not action limits
-            return true;
-        }
+        return CurrentTimeHours + hoursRequired <= TimeNightStart;
     }
 
     public TimeManager(Player player, WorldState worldState)
@@ -114,6 +112,21 @@ public class TimeManager
     
     /// <summary>
     /// Advance time by the specified number of hours
+    /// </summary>
+    public bool SpendHours(int hours)
+    {
+        if (hours <= 0) return false;
+        if (!CanPerformAction(hours)) return false;
+        
+        CurrentTimeHours += hours;
+        
+        // Update WorldState to stay synchronized
+        worldState.CurrentTimeBlock = GetCurrentTimeBlock();
+        return true;
+    }
+    
+    /// <summary>
+    /// Force time advancement (for sleep, etc)
     /// </summary>
     public void AdvanceTime(int hours)
     {

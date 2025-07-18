@@ -77,14 +77,20 @@ public class MorningActivitiesManager
             var patronLetter = _patronLetterService.CheckForPatronLetter();
             if (patronLetter != null)
             {
-                MorningEvents.Add(new MorningEvent
+                // Add patron letter to queue - it will jump to positions 1-3
+                int position = _letterQueueManager.AddPatronLetter(patronLetter);
+                
+                if (position > 0)
                 {
-                    Type = MorningEventType.PatronLetterAdded,
-                    Description = "A gold-sealed letter from your patron has arrived! It jumps to position " + patronLetter.PatronQueuePosition + " in your queue.",
-                    LetterPosition = patronLetter.PatronQueuePosition,
-                    SenderName = "Your Patron"
-                });
-                result.PatronLetterCount = 1;
+                    MorningEvents.Add(new MorningEvent
+                    {
+                        Type = MorningEventType.PatronLetterAdded,
+                        Description = GetPatronLetterNarrative(patronLetter, position),
+                        LetterPosition = position,
+                        SenderName = "Your Patron"
+                    });
+                    result.PatronLetterCount = 1;
+                }
             }
         }
         
@@ -216,6 +222,20 @@ public class MorningActivitiesManager
             var random = new Random();
             return narratives[random.Next(narratives.Length)];
         }
+    }
+    
+    private string GetPatronLetterNarrative(Letter letter, int position)
+    {
+        var narratives = new string[]
+        {
+            $"A courier in midnight blue delivers a gold-sealed letter. Your patron's will disrupts everything - it seizes position {position}.",
+            $"The unmistakable weight of patronage arrives. Gold wax, no signature, position {position}. All other obligations must wait.",
+            $"Your mysterious benefactor speaks. The letter's gold seal gleams as it claims position {position} in your queue.",
+            $"Dawn brings a letter bearing the patron's seal. Without ceremony, it commands position {position}. Their needs supersede all else."
+        };
+        
+        var random = new Random();
+        return narratives[random.Next(narratives.Length)];
     }
 }
 

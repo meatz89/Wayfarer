@@ -36,52 +36,71 @@ public class ConnectionTokenManager
         return emptyTokens;
     }
     
-    // Add tokens (from delivery or other sources)
-    public void AddTokens(ConnectionType type, int count, string npcId = null)
+    // Add tokens through Socialize (1 hour → 1 token) or Delivery (1 stamina → 1 token)
+    public void AddTokensFromSocialize(string npcId)
     {
-        if (count <= 0) return;
+        var npc = _npcRepository.GetNPCById(npcId);
+        if (npc == null) return;
         
-        var playerTokens = _gameWorld.GetPlayer().ConnectionTokens;
+        // Socialize gives 1 token of NPC's primary type
+        var tokenType = npc.LetterTokenTypes.FirstOrDefault();
+        if (tokenType == default) return;
+        
+        AddTokensToNPC(tokenType, 1, npcId);
+    }
+    
+    // Add tokens to specific NPC relationship
+    public void AddTokensToNPC(ConnectionType type, int count, string npcId)
+    {
+        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
+        
+        var player = _gameWorld.GetPlayer();
+        var playerTokens = player.ConnectionTokens;
+        var npcTokens = player.NPCTokens;
+        
+        // Update global token count
         playerTokens[type] = playerTokens.GetValueOrDefault(type) + count;
         
-        // Add narrative feedback for token gain
-        if (!string.IsNullOrEmpty(npcId))
+        // Initialize NPC token tracking if needed
+        if (!npcTokens.ContainsKey(npcId))
         {
-            var npc = _npcRepository.GetNPCById(npcId);
-            if (npc != null)
+            npcTokens[npcId] = new Dictionary<ConnectionType, int>();
+            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
             {
-                // NPC-specific reaction based on token type
-                var reaction = GetTokenGainReaction(npc, type, count);
-                _messageSystem.AddSystemMessage(reaction, SystemMessageTypes.Success);
+                npcTokens[npcId][tokenType] = 0;
             }
         }
         
-        _messageSystem.AddSystemMessage(
-            $"Gained {count} {type} token{(count > 1 ? "s" : "")}",
-            SystemMessageTypes.Info
-        );
+        // Update NPC-specific tokens
+        npcTokens[npcId][type] += count;
         
-        // Track by NPC if provided
+        // Get NPC for narrative feedback
+        var npc = _npcRepository.GetNPCById(npcId);
+        if (npc != null)
+        {
+            _messageSystem.AddSystemMessage(
+                $"🤝 +{count} {type} token{(count > 1 ? "s" : "")} with {npc.Name}",
+                SystemMessageTypes.Success
+            );
+            
+            // Check relationship milestones
+            var totalWithNPC = npcTokens[npcId].Values.Sum();
+            CheckRelationshipMilestone(npc, totalWithNPC);
+        }
+    }
+    
+    // Legacy method for compatibility - redirects to AddTokensToNPC
+    public void AddTokens(ConnectionType type, int count, string npcId = null)
+    {
         if (!string.IsNullOrEmpty(npcId))
         {
-            var npcTokens = _gameWorld.GetPlayer().NPCTokens;
-            if (!npcTokens.ContainsKey(npcId))
-            {
-                npcTokens[npcId] = new Dictionary<ConnectionType, int>();
-                foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-                {
-                    npcTokens[npcId][tokenType] = 0;
-                }
-            }
-            npcTokens[npcId][type] += count;
-            
-            // Check for relationship milestones
-            var totalWithNPC = npcTokens[npcId].Values.Sum();
-            var npc = _npcRepository.GetNPCById(npcId);
-            if (npc != null)
-            {
-                CheckRelationshipMilestone(npc, totalWithNPC);
-            }
+            AddTokensToNPC(type, count, npcId);
+        }
+        else
+        {
+            // Global tokens without NPC context (should be rare)
+            var playerTokens = _gameWorld.GetPlayer().ConnectionTokens;
+            playerTokens[type] = playerTokens.GetValueOrDefault(type) + count;
         }
     }
     
@@ -170,8 +189,8 @@ public class ConnectionTokenManager
         var npcTokens = GetTokensWithNPC(npcId);
         var totalTokens = npcTokens.Values.Sum();
         
-        if (totalTokens >= 5) return 6;  // Strong connection
-        if (totalTokens >= 3) return 7;  // Moderate connection
+        if (totalTokens >= GameRules.TOKENS_QUALITY_THRESHOLD) return 6;  // Strong connection
+        if (totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD) return 7;  // Moderate connection
         return 8;                        // Default position
     }
     
@@ -224,7 +243,7 @@ public class ConnectionTokenManager
     {
         var npcTokens = GetTokensWithNPC(npcId);
         var totalTokens = npcTokens.Values.Sum();
-        return totalTokens >= 3;
+        return totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD;
     }
     
     // Get total tokens of a specific type across all NPCs
@@ -362,5 +381,41 @@ public class ConnectionTokenManager
     {
         var npcTokens = GetTokensWithNPC(npcId);
         return npcTokens.Values.Sum() >= minTokens;
+    }
+    
+    // Set tokens for scenario initialization
+    public void SetTokensForScenario(Dictionary<string, Dictionary<ConnectionType, int>> tokenData)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        // Clear existing tokens
+        player.ConnectionTokens.Clear();
+        player.NPCTokens.Clear();
+        
+        // Set tokens from scenario data
+        foreach (var entry in tokenData)
+        {
+            if (entry.Key == "global")
+            {
+                // Set global token counts
+                foreach (var tokenEntry in entry.Value)
+                {
+                    player.ConnectionTokens[tokenEntry.Key] = tokenEntry.Value;
+                }
+            }
+            else
+            {
+                // Set NPC-specific tokens
+                if (!player.NPCTokens.ContainsKey(entry.Key))
+                {
+                    player.NPCTokens[entry.Key] = new Dictionary<ConnectionType, int>();
+                }
+                
+                foreach (var tokenEntry in entry.Value)
+                {
+                    player.NPCTokens[entry.Key][tokenEntry.Key] = tokenEntry.Value;
+                }
+            }
+        }
     }
 }
