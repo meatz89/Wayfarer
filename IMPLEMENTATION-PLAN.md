@@ -19,14 +19,16 @@
 - ✅ **10+ letter templates** with procedural generation
 
 ### Major Features Still Needed:
-- ❌ **Connection Gravity** - Token accumulation affecting queue entry position
+- ❌ **Letter Category Unlocks** - Token thresholds unlock better letter categories
+- ❌ **Multi-type NPC Relationships** - NPCs can have multiple token types
+- ❌ **Token-based Favors** - Spend tokens to unlock routes and access
 - ❌ **Network Referrals** - Spend tokens for letter opportunities
 - ❌ **Patron Resources** - Monthly packages and mystery progression
 - ❌ **Physical Constraints** - Letter sizes and equipment requirements
 - ❌ **Relationship Memory** - NPCs tracking skipped/expired letters
 - ❌ **Save System Validation** - Ensure all features persist properly
 
-**🎯 NEXT PRIORITY**: Connection Gravity System (see Phase 2 below)
+**🎯 NEXT PRIORITY**: Letter Category Unlocks & Multi-type Relationships
 
 ## Core Design Philosophy: The Triumvirate
 
@@ -41,7 +43,7 @@ The entire game emerges from three interconnected systems:
 - **Per-NPC Bonds**: Tokens represent your relationship with specific NPCs
 - **Spending Uses**: Queue manipulation, route unlocking, information trading, access
 - **Real Cost**: Spending reduces your relationship with that specific NPC
-- **Better Letters**: NPCs with more tokens offer better letter opportunities
+- **Better Letters**: Token thresholds unlock better letter categories from NPCs
 - **Natural Specialization**: Success with certain NPCs leads to more opportunities with them
 
 ### 3. Standing Obligations (Permanent Character)
@@ -66,7 +68,7 @@ The entire game emerges from three interconnected systems:
 - **8 Fixed Slots**: Positions 1-8 determine delivery order
 - **Letter Entity**: Sender, recipient, deadline, payment, type, position
 - **Queue Rules**: Must deliver from position 1 (or spend tokens)
-- **Entry Position**: New letters at slot 8 (or higher with gravity)
+- **Entry Position**: New letters always enter at slot 8
 - **Movement**: Delivered letters removed, others move up
 
 **Queue Manipulation Actions**:
@@ -101,17 +103,18 @@ The entire game emerges from three interconnected systems:
 - Special events: Variable tokens based on player choices
 
 **Token Spending (Meaningful Costs)**:
-- **Purge**: 3 any tokens → Remove bottom letter (creates space)
-- **Priority**: 5 matching → Move to slot 1 (emergency access)
-- **Extend**: 2 matching → Add 2 days deadline (buy time)
-- **Skip**: 1 matching → Deliver out of order (relationship cost)
+- **Purge**: 3 tokens of letter's type from sender's NPC → Remove bottom letter
+- **Priority**: 5 tokens of letter's type from sender's NPC → Move to slot 1
+- **Extend**: 2 tokens of letter's type from sender's NPC → Add 2 days deadline
+- **Skip**: 1 token of letter's type from sender's NPC → Deliver out of order
+- **Context**: You spend the sender's specific relationship tokens, not any tokens
 
-**Connection Gravity (Natural Specialization Reward)**:
-- **Multi-layered token system**: Tracks both per-NPC (spendable) and lifetime total (reputation)
-- **Reputation-based entry positions**: 0-2 lifetime → slot 8, 3-4 → slot 7, 5-7 → slot 6, 8-11 → slot 5, 12+ → slot 4
-- **Payment scaling**: Higher reputation increases letter payments (up to +100% at 12+ tokens)
-- **Reputation conflicts**: High reputation in one type can block opportunities in opposing types
-- **See `CONNECTION-GRAVITY-DESIGN.md`** for complete mechanical design
+**Connection Token System (Relationship Currency)**:
+- **Per-NPC token tracking**: Each NPC tracks tokens in their specific categories (1-2 types per NPC)
+- **Tokens as favors**: Spend specific tokens with specific NPCs for specific unlocks
+- **Letter category unlocks**: Token thresholds unlock better paying letter categories
+- **Multi-type relationships**: Some NPCs have multiple token types (e.g., miller with Trade AND Shadow)
+- **No queue position effects**: All letters enter at slot 8 regardless of tokens
 
 ### **3. Standing Obligations System (Permanent Character Development)**
 
@@ -178,9 +181,9 @@ The entire game emerges from three interconnected systems:
 **Letter Acceptance → Queue Position → Delivery Planning → Resource Allocation → Token Generation → Queue Manipulation → Relationship Building → Better Letters**
 
 ### **Resource Scarcity Triangle**
-**Token Earning ↔ Token Spending ↔ Connection Gravity**
-- Tokens earned through deliveries create future queue advantages
-- Crisis management spending reduces gravity benefits
+**Token Earning ↔ Token Spending ↔ Letter Categories**
+- Tokens earned through deliveries unlock better letter categories
+- Crisis management spending reduces available tokens for unlocks
 - Specialization vs flexibility creates natural strategic tension
 
 ### **Time Pressure Cascade**
@@ -212,7 +215,7 @@ The entire game emerges from three interconnected systems:
    - Add token storage to Player state
    - Implement token earning through successful deliveries
    - Create token spending mechanics with meaningful costs
-   - Add connection gravity calculations for queue entry
+   - Add letter category unlock system based on token thresholds
 
 ### **Phase 2: Natural Pressure Systems**
 **Priority**: Systems that create strategic tension through resource scarcity
@@ -280,7 +283,7 @@ The entire game emerges from three interconnected systems:
    - Verify queue order creates natural strategic tension without forced impossibilities
    - Test token economy balance: earning vs spending creates meaningful decisions
    - Validate deadline pressure emerges from mathematical constraints, not arbitrary limits
-   - Balance connection gravity rewards for specialization without penalizing flexibility
+   - Balance letter category thresholds for specialization without penalizing flexibility
    - Ensure standing obligations create unique playthroughs through emergent mechanics
    - Test that relationship consequences feel natural and proportionate
    - Validate that complexity emerges from simple rules, not complicated mechanics
@@ -326,13 +329,13 @@ The entire game emerges from three interconnected systems:
 **Emergent Strategy**: Players develop token management strategies based on these recurring patterns
 
 ### **The Token Specialization Dilemma**
-**Situation**: Built up 6 Trust tokens, giving Trust letters connection gravity (slot 6 entry)
+**Situation**: Built up 6 Trust tokens with Elena, unlocking premium Trust letter category
 **Opportunity**: Elena offers exclusive Trust letter chain (5 letters, builds romance)
 **Constraint**: Chain requires 2 Trust tokens per letter to guarantee completion
 
 **Strategic Calculation**: 
 - Accept chain = 10 tokens needed, only have 6
-- Specialization benefit = Trust letters enter higher in queue
+- Specialization benefit = Access to better paying Trust letters from Elena
 - Diversification cost = Miss other token type opportunities
 
 **Natural Pressure**: Resource scarcity forces choice between specialization depth and flexibility
@@ -367,7 +370,7 @@ This unified system transforms WAYFARER into a **letter queue management game** 
 #### 1. Access Requirements Framework
 - Token gates (need X Noble tokens for noble district)
 - Equipment gates (need Court Attire for palace)
-- Reputation gates (need 8+ lifetime tokens)
+- Token threshold gates (need 8+ tokens with specific NPC)
 - Clear feedback when denied access
 
 #### 2. Information Items Framework
@@ -408,27 +411,33 @@ public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
 - **Per-NPC only** - Each relationship is independent
 - **Choose which to burn** - When spending, pick which NPC relationship to damage
 - **Direct offers** - NPCs with 3+ tokens offer letters directly
-- **Better letters** - Higher tokens with an NPC = better opportunities from them
+- **Better letters** - Token thresholds unlock better letter categories
 - **Network unlocks** - Strong relationships introduce you to new NPCs
 
 ### How NPCs Offer Letters:
 - **0-2 tokens**: No direct offers (don't know you well)
-- **3-4 tokens**: Basic letter offers 
-- **5-7 tokens**: Better-paying letter offers + May introduce you to contacts
-- **8+ tokens**: Premium letter offers + Unlocks their professional network
+- **3-4 tokens**: Basic letter category unlocked
+- **5-7 tokens**: Better letter category + May introduce you to contacts
+- **8+ tokens**: Premium letter category + Unlocks their professional network
 
 ### Example NPC Progression:
-Elena (Trust NPC):
+Elena (Trust NPC only):
 - 0-2 tokens: No interaction
-- 3+ tokens: Offers "personal_letter" (3-5 coins)
-- 5+ tokens: Offers "trusted_delivery" (7-10 coins) + Introduces you to her friend Sarah
-- 8+ tokens: Offers "confidential_message" (12-16 coins) + Unlocks her family network
+- 3+ tokens: Basic Trust letters (3-5 coins)
+- 5+ tokens: Quality Trust letters (7-10 coins) + Introduces you to her friend Sarah
+- 8+ tokens: Premium Trust letters (12-16 coins) + Unlocks her family network
 
-Marcus (Trade NPC):
+Marcus (Trade NPC only):
 - 0-2 tokens: No interaction
-- 3+ tokens: Offers "trade_notice" (4-6 coins)
-- 5+ tokens: Offers "merchant_contract" (10-14 coins) + Introduces guild contacts
-- 8+ tokens: Offers "exclusive_deal" (18-24 coins) + Opens merchant guild network
+- 3+ tokens: Basic Trade letters (4-6 coins)
+- 5+ tokens: Guild Trade letters (10-14 coins) + Introduces guild contacts
+- 8+ tokens: Exclusive Trade letters (18-24 coins) + Opens merchant guild network
+
+River Worker (Trade AND Shadow NPC):
+- Trade: 0-2 tokens: No trade letters
+- Trade: 3+ tokens: Basic shipping letters (5-7 coins)
+- Shadow: 0-2 tokens: No shadow letters
+- Shadow: 3+ tokens: Smuggling letters (12-15 coins)
 
 ### Network Unlock Examples:
 - Elena (5+ Trust) → Introduces Sarah (Trust NPC)
@@ -452,7 +461,7 @@ Based on the "Dude, Let Me Tell You About Wayfarer" vision, here's the critical 
 - "Anything heading [direction]?" - 2 any tokens for random letter
 - "Looking for [type] work" - 3 matching tokens for specific type
 - Integrate with existing LetterBoardScreen as additional option
-- Ensure referrals respect connection gravity rules
+- Ensure referrals respect letter category thresholds
 
 ### **Phase 3: Patron Mystery & Resources (1 week)**
 **Why Critical**: The patron relationship is central to the "agent or pawn?" tension.
@@ -502,7 +511,7 @@ Based on the "Dude, Let Me Tell You About Wayfarer" vision, here's the critical 
 - Per-NPC token tracking persistence
 - Standing obligations state
 - Relationship memory persistence
-- Connection gravity calculations maintained
+- Letter category thresholds maintained
 
 **Total Timeline**: 6-7 weeks to full target experience
 
@@ -633,12 +642,13 @@ public class NPCLetterOfferService
 - **3-4 connections**: "Direct Approaches" - NPC proactively offers private letters
 - **5+ connections**: Premium offers with better terms, more frequent offers
 
-**Letter Types by NPC Profession**:
-- **Merchant**: Trade letters (primary), Common letters (secondary)
-- **Noble**: Noble letters (primary), Common letters (secondary)
-- **Thief**: Shadow letters (primary), Common letters (secondary)
-- **Scholar**: Common letters (primary), Trust letters (secondary)
-- **All NPCs**: Can provide Common letters regardless of profession
+**Letter Types by NPC Character**:
+- **Elena (Scribe)**: Trust letters only - personal correspondence
+- **Marcus (Merchant)**: Trade letters only - commercial deliveries  
+- **Lord Ashford**: Noble letters only - aristocratic matters
+- **Tavern Keeper**: Common letters only - everyday deliveries
+- **River Worker**: Trade AND Shadow - legitimate shipping + smuggling
+- **Most NPCs**: 1-2 types that fit their character/profession
 
 **NPC Letter Offer Generation**:
 - NPCs periodically generate letter offers based on their relationships
@@ -810,7 +820,7 @@ This redesign transforms the system from player-initiated letter requests to NPC
 5. Basic loop functional
 
 ### **NOT in Minimal POC**
-- Queue shifting, connection gravity
+- Queue shifting, complex category systems
 - Standing obligations, per-NPC tracking
 - Complex generation, relationship memory
 - Save system updates, old system removal

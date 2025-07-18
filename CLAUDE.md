@@ -29,12 +29,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### **CRITICAL PATH TO TARGET VISION**
 The game's vision is best captured in INTENDED-GAMEPLAY.md ("Dude, Let Me Tell You About Wayfarer"). To achieve this experience, these features are CRITICAL and must be implemented in order:
 
-1. **Connection Gravity System** - Without it, no strategic specialization (Emma's Shadow problem)
-2. **Network Referral System** - Players need agency to actively seek letters when needed
-3. **Patron Mystery & Resources** - The "agent or pawn?" tension central to the experience
-4. **Physical Constraints** - Equipment vs letter capacity trade-offs that define strategic depth
-5. **NPC Memory & Cooling** - Makes every skip/expire decision permanently meaningful
-6. **Other Letter Carriers** - The social web complexity and patron conflicts
+1. **Letter Category Unlocks** - Token thresholds unlock better paying letter categories
+2. **Multi-type NPC Relationships** - NPCs can have multiple token types (Trade AND Shadow)
+3. **Token-based Favors** - Spend specific tokens with specific NPCs for route unlocks
+4. **Network Referral System** - Players need agency to actively seek letters when needed
+5. **Patron Mystery & Resources** - The "agent or pawn?" tension central to the experience
+6. **Physical Constraints** - Equipment vs letter capacity trade-offs that define strategic depth
+7. **NPC Memory & Cooling** - Makes every skip/expire decision permanently meaningful
 
 See IMPLEMENTATION-PLAN.md Section "🎯 PRIORITY IMPLEMENTATION ROADMAP" for the complete 6-7 week path to target vision.
 
@@ -49,7 +50,7 @@ See IMPLEMENTATION-PLAN.md Section "🎯 PRIORITY IMPLEMENTATION ROADMAP" for th
 The entire game emerges from three interconnected systems that form the core loop:
 
 1. **Letter Queue** - Your 8-slot priority queue of visible obligations
-2. **Connection Tokens** - Relationships as spendable currency and permanent reputation
+2. **Connection Tokens** - Relationships as spendable currency for favors and unlocks
 3. **Standing Obligations** - Permanent character modifications from your choices
 
 **See Core Design Philosophy section in `IMPLEMENTATION-PLAN.md`** for how these three systems interconnect.
@@ -60,7 +61,7 @@ The game centers around a **priority queue of 8 letters** that represents your s
 
 1. **Queue Order is Sacred** - You must deliver letters in order (1→2→3...) or burn relationships
 2. **Deadlines Create Pressure** - Each letter has a deadline creating impossible optimization puzzles
-3. **Connection Gravity** - High reputation affects where letters enter the queue
+3. **Token Thresholds** - More tokens with NPCs unlock better letter categories
 4. **Every Acceptance Matters** - New letters enter at slot 8, affecting everything above them
 5. **Standing Obligations Reshape Play** - Permanent modifiers that alter queue behavior forever
 
@@ -76,16 +77,23 @@ The game uses **5 types of connection tokens** as universal currency and reputat
 
 Tokens serve multiple purposes:
 - **Currency**: Spend on queue manipulation, route unlocking, special actions
-- **Reputation**: Lifetime totals determine connection gravity and opportunities
+- **Letter Categories**: Token thresholds unlock better paying letter types
 - **Relationships**: Per-NPC tracking shows individual bonds
 
 **CRITICAL: Contextual Token Spending Principle** - ALL token spending must be contextually tied to specific NPCs:
-- **Letter Queue Manipulation**: Tokens spent from the letter SENDER's relationship (calling in their favor)
+- **Letter Queue Manipulation**: Spend specific token types from the letter SENDER's relationship
 - **Route Unlocking**: Tokens spent from the NPC who controls/knows that route
 - **Special Actions**: Tokens spent from the NPC providing the service or access
 - **Standing Obligations**: Tokens lost from the specific NPC relationships violated
 
 This creates narrative coherence: you're never abstractly spending "Trade tokens" - you're specifically burning your relationship with Marcus the Merchant or Elena the Scribe. Every token transaction damages or leverages a specific relationship.
+
+**CRITICAL: NPC Token Type Limitations** - NPCs only offer letters in their character-appropriate categories:
+- **Most NPCs have 1-2 token types** that fit their profession and personality
+- **Elena (Scribe)**: Only offers Trust letters (personal correspondence)
+- **Marcus (Merchant)**: Only offers Trade letters (commercial deliveries)
+- **River Worker**: Offers both Trade (legitimate shipping) AND Shadow (smuggling)
+- **NO NPC offers all 5 types** - this forces players to build diverse relationships
 
 **CRITICAL: Contextual Token Type Selection** - The TYPE of token gained or spent must match the interaction context:
 - **Route Discovery**: If learning a merchant bypass, spend Trade tokens. If learning a mountain path, spend Common tokens
@@ -129,7 +137,7 @@ This prevents content pollution and keeps systems maintainable. Content describe
 **NPC System ↔ Connection Tokens**
 - Each NPC has a token type (Trust/Trade/Noble/Common/Shadow)
 - NPCs remember every skipped or delayed letter
-- Token accumulation with NPCs unlocks exclusive letter offers
+- Token thresholds with NPCs unlock better letter categories
 - NPC availability windows conflict with queue delivery order
 
 **Time System ↔ Deadline Pressure**
@@ -175,7 +183,7 @@ The game follows a **letter queue priority** principle where every social obliga
 2. **Tokens represent social capital** - Spendable resources for queue manipulation in crisis
 3. **Deadlines create mathematical impossibilities** - Queue order vs expiration dates
 4. **Standing obligations reshape gameplay** - Permanent modifiers to queue behavior
-5. **Connection gravity rewards specialization** - Token accumulation affects letter entry position
+5. **Token thresholds reward specialization** - More tokens unlock better letter categories
 
 ### Core Design Philosophy: Token-Based Crisis Management
 
@@ -184,7 +192,7 @@ The game follows a **connection token economy** principle where relationships be
 1. **Five token types map to social spheres** - Trust/Trade/Noble/Common/Shadow
 2. **Tokens enable queue manipulation** - Spend social capital to solve priority crises  
 3. **Token costs create meaningful trade-offs** - Burning relationships for immediate needs
-4. **Connection gravity emerges from accumulation** - 3+ tokens affect queue entry position
+4. **Better letters emerge from relationships** - Token thresholds unlock higher paying categories
 5. **Every token spent weakens relationships** - Crisis management has permanent cost
 
 ### Architectural Patterns
@@ -255,7 +263,7 @@ JSON Files → GameWorldSerializer → GameWorldInitializer → GameWorld → Re
 - `src/GameState/QueueManipulationService.cs` - Token spending for queue actions
 - `src/GameState/RestManager.cs` - Rest and recovery logic
 - `src/GameState/DeadlineManager.cs` - Deadline tracking and expiration
-- `src/GameState/ConnectionGravityService.cs` - Token accumulation effects
+- `src/GameState/LetterCategoryService.cs` - Token threshold letter unlocks
 
 #### **Service Configuration**
 - `src/ServiceConfiguration.cs` - Dependency injection setup
@@ -294,7 +302,7 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 1. **Queue Order Creates Drama**: The requirement to deliver in order (or burn tokens) creates constant moral dilemmas.
 2. **Tokens Are Relationships**: Every token spent represents actual social capital being burned for immediate needs.
 3. **Deadlines Force Impossible Choices**: Mathematical impossibility of satisfying all deadlines creates strategic depth.
-4. **Gravity Rewards Specialization**: Token accumulation affects queue entry, encouraging relationship focus.
+4. **Thresholds Reward Specialization**: Token accumulation unlocks better letters, encouraging relationship focus.
 5. **Standing Obligations Reshape Play**: Permanent modifiers create unique playthroughs based on choices.
 6. **All Mechanics Visible**: Queue position, deadlines, token costs, and gravity effects must be clear in UI.
 
@@ -308,7 +316,7 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 
 **Game rules emerge from queue position and token interactions**:
 - Queue Position + Deadline → Delivery pressure and crisis decisions
-- Token Accumulation + Letter Type → Connection gravity queue entry boost
+- Token Accumulation + Letter Type → Better letter category unlocks
 - Token Spending + Queue Position → Crisis management options
 - Standing Obligations + Letter Type → Permanent queue behavior changes
 
@@ -498,7 +506,7 @@ Always distinguish between three layers:
 - ❌ **NO ESCALATING PENALTIES** - Don't make consequences worse over time
 - ❌ **NO REPUTATION SYSTEMS** - Token counts ARE the reputation system
 
-**Example**: When a letter expires, the player loses 2 tokens with that NPC. That's it. No violation counter, no reputation hit, no permanent record. The lost tokens ARE the consequence, and they naturally affect future gameplay through connection gravity.
+**Example**: When a letter expires, the player loses 2 tokens with that NPC. That's it. No violation counter, no reputation hit, no permanent record. The lost tokens ARE the consequence, and they naturally affect which letters that NPC will offer.
 
 **The Core Truth**: If you're building complex tracking systems, you're not making a game - you're making a spreadsheet. Games create tension through immediate, understandable consequences that affect player decisions going forward.
 
@@ -519,9 +527,9 @@ Always distinguish between three layers:
 4. **UI Revolution**: Replace location-based screens with queue-centric interface
 5. **Save Migration**: Implement versioned saves with safe rollback options
 
-**🎯 IMMEDIATE NEXT STEPS**: Implement **Connection Gravity System** (see details in `IMPLEMENTATION-PLAN.md`)
-**Current Status**: Minimal POC achieved, relationship transparency complete, gravity design complete
-**Critical Path**: Connection Gravity → Network Referrals → Patron Resources → Full Vision
+**🎯 IMMEDIATE NEXT STEPS**: Implement **Letter Category Unlocks** (see details in `IMPLEMENTATION-PLAN.md`)
+**Current Status**: Minimal POC achieved, relationship transparency complete
+**Critical Path**: Letter Categories → Multi-type NPCs → Token Favors → Network Referrals → Full Vision
 
 ### Important Documentation
 

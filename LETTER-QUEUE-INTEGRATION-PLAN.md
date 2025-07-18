@@ -211,7 +211,7 @@ This transformation preserves the **mathematical elegance** of existing systems 
 - [ ] Transform Travel System for queue delivery
 - [ ] Update Equipment System for route access
 - [ ] Implement Core Queue Actions (purge, priority, extend, skip)
-- [ ] Create Connection Gravity system
+- [ ] Create Letter Category Unlock system
 - [ ] Build Manipulation UI with costs
 
 ### **UI Transformation Tasks**

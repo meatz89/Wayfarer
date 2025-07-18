@@ -307,7 +307,7 @@
 │  │  │ BENEFITS:                                               │ │ │
 │  │  │ • Shadow letters pay triple coins                      │ │ │
 │  │  │ • Access to exclusive shadow networks                  │ │ │
-│  │  │ • Shadow letters jump to slot 6                        │ │ │
+│  │  │ • Unlocks premium shadow letter categories             │ │ │
 │  │  │                                                         │ │ │
 │  │  │ CONSTRAINTS:                                            │ │ │
 │  │  │ • Forced shadow letter every 3 days                    │ │ │
@@ -326,8 +326,8 @@
 │  │                                                             │ │
 │  │  🔴 ACTIVE CONFLICT: Noble's Courtesy ↔ Shadow's Burden    │ │
 │  │                                                             │ │
-│  │  Problem: Noble letters (slot 5) + Shadow letters (slot 6) │ │
-│  │           + Forced shadow generation = Queue overcrowding   │ │
+│  │  Problem: Noble letters (slot 5) + Forced shadow letters   │ │
+│  │           + Generation every 3 days = Queue overcrowding    │ │
 │  │                                                             │ │
 │  │  Impact: • Harder to accept other letter types             │ │
 │  │          • Increased token spending for queue management   │ │

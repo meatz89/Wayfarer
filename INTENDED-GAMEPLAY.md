@@ -156,7 +156,7 @@ You are a letter carrier in a medieval world where every delivery strengthens or
 
 ### Midday - Route Crisis
 
-**Denna's Letter Arrives**: "Need you NOW" (Heart connection gravity → slot 1)
+**Denna's Letter Arrives**: "Need you NOW" (urgent patron letter → slot 1)
 **Your Queue Instantly Becomes**:
 ```
 1. Denna: Personal crisis (1 day!) [HEART]
@@ -217,7 +217,7 @@ This creates a living system where mechanical constraints (queue order, connecti
 - Position 1-8 determines delivery order
 - Must deliver from slot 1 (or spend connections)
 - Each letter has sender, deadline, payment, type
-- New letters enter at 8 (or higher with connection gravity)
+- New letters always enter at slot 8
 - Delivered letters removed, others move up
 
 ### Connection Tokens Are Everything

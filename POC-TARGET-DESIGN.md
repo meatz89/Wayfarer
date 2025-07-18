@@ -15,7 +15,8 @@
 - ✅ Relationship UI transparency
 
 **❌ STILL NEEDED FOR FULL POC**:
-- ❌ Connection gravity (3-4 tokens → slot 7, 5+ → slot 6)
+- ❌ Letter category unlocks (token thresholds unlock better letters)
+- ❌ Multi-type NPC relationships (NPCs can have multiple token types)
 - ❌ Network referrals (spend tokens for letters)
 - ❌ Physical constraints (letter sizes, equipment requirements)
 
@@ -52,7 +53,7 @@ Create **impossible queue management dilemmas** where the iron law of delivery o
 ### LETTER QUEUE SYSTEM (Core Mechanic)
 - **8 Slots Total**: Letters occupy positions 1-8 in priority order
 - **Queue Order Rule**: Must deliver from position 1 or spend tokens
-- **New Letters**: Enter at slot 8 (or higher with connection gravity)
+- **New Letters**: Always enter at slot 8
 - **Delivery**: Completing delivery removes letter, all below move up
 - **Deadlines**: Each letter has 3-10 day deadline, tick down daily
 
@@ -127,10 +128,10 @@ Create **impossible queue management dilemmas** where the iron law of delivery o
 ### Connection Token Effects
 **Per-NPC Relationships Create Opportunities**
 - **Direct Offers**: NPCs with 3+ tokens approach you with letter opportunities
-- **Better Letters**: Higher tokens with an NPC = better-paying offers from them
+- **Better Letters**: Token thresholds unlock better letter categories (3+ basic, 5+ quality, 8+ premium)
 - **Spending Cost**: Choose which NPC relationship to burn for immediate needs
 - **Strategic Choice**: Build deep relationships with few NPCs or spread tokens widely?
-- **Natural Specialization**: Success with certain NPCs leads to more opportunities with them
+- **Natural Specialization**: Success with certain NPCs unlocks better letters from them
 - **The Real Cost**: Spending tokens damages that specific relationship
 
 ### Standing Obligations Reshape Everything
@@ -167,13 +168,13 @@ Create **impossible queue management dilemmas** where the iron law of delivery o
 1. **Queue Management**: Balance order requirements vs deadline pressure
 2. **Token Economy**: Build reserves vs spend for crisis management
 3. **Route Optimization**: Equipment investment for shortcuts vs letter capacity
-4. **Gravity Building**: Specialize in token types vs maintain flexibility
+4. **Category Unlocking**: Build tokens for better letter categories vs maintain flexibility
 5. **Obligation Choices**: Accept permanent modifiers for short-term gains?
 
 **Discovery Through Queue Pressure**:
 - When to follow order vs when to burn tokens (learned through deadline failures)
 - Which token types to stockpile (discovered through crisis patterns)
-- How gravity affects queue management (seen as letters enter higher)
+- How token thresholds unlock better paying letters
 - Which obligations help vs hinder (experienced through permanent constraints)
 - The true cost of skipping letters (NPCs remember and relationships cool)
 
@@ -194,7 +195,7 @@ Create **impossible queue management dilemmas** where the iron law of delivery o
 1. **Daily Queue Crises**: Every day presents 2+ impossible delivery order dilemmas
 2. **Token Spending Decisions**: Players agonize over each token expenditure
 3. **Deadline Juggling**: Players do queue math to optimize delivery routes
-4. **Gravity Strategy**: Players intentionally build token types for queue benefits
+4. **Category Strategy**: Players build tokens to unlock better letter categories
 
 ### Emotional Investment Indicators
 1. **Elena Moments**: Players genuinely care about maintaining Trust relationships
@@ -250,7 +251,7 @@ All entities must be defined in JSON files with proper categorical relationships
 - Queue must enforce delivery order (position 1 first)
 - Tokens must be spendable resources with meaningful costs
 - Deadlines must create real pressure through expiration
-- Gravity must affect letter entry position based on token count
+- Token thresholds must unlock better letter categories
 - Obligations must permanently modify queue behavior
 
 ## DESIGN VALIDATION CHECKLIST
@@ -258,7 +259,7 @@ All entities must be defined in JSON files with proper categorical relationships
 - [ ] **Queue Order Creates Drama**: Position 1-8 enforcement creates constant dilemmas
 - [ ] **Token Costs Feel Meaningful**: Spending tokens represents burning real relationships
 - [ ] **Deadlines Force Impossible Choices**: Mathematical conflicts between order and expiration
-- [ ] **Gravity Rewards Specialization**: 3+ tokens providing queue benefits encourages focus
+- [ ] **Thresholds Reward Specialization**: 3+ tokens unlocking better letters encourages focus
 - [ ] **Obligations Reshape Gameplay**: Permanent modifiers create unique strategic landscapes
 - [ ] **Elena Creates Emotional Stakes**: Players care about Trust letters beyond mere mechanics
 - [ ] **Patron Mystery Intrigues**: Unknown benefactor creates narrative speculation

@@ -35,7 +35,7 @@ payment = basePayment * reputationMultiplier;
 **Queue Position Rules**:
 - **Position 1**: Must deliver next unless spending connections to skip
 - **Positions 2-8**: Wait their turn as letters above are delivered
-- **New Letters**: Enter at slot 8 (or higher with connection gravity)
+- **New Letters**: Always enter at slot 8
 - **Delivery**: Removes letter, all below move up one position
 
 **Strategic Pressure Created**:
@@ -129,30 +129,35 @@ if (player.HasObligation("Shadow's Burden") && player.HasObligation("Noble's Cou
 - Breaking obligations has permanent consequences
 - Your obligations tell the story of your choices
 
-### **Connection Gravity System**
+### **Letter Category System**
 
-**IMPLEMENTED**: Token accumulation affects where letters enter the queue.
+**NOT YET IMPLEMENTED**: Token thresholds unlock better letter categories.
 
-#### **Gravity Thresholds**
+#### **Category Thresholds**
 ```csharp
-// Token accumulation creates queue entry benefits
-public int GetQueueEntryPosition(ConnectionType letterType, int tokenCount) {
-    if (tokenCount >= 5) return 6;  // Strong connection - high priority
-    if (tokenCount >= 3) return 7;  // Moderate connection - slight boost  
-    return 8;                        // Default - bottom of queue
+// Token thresholds unlock better paying letter categories
+public LetterCategory GetAvailableCategory(string npcId, ConnectionType tokenType) {
+    var tokenCount = GetTokensWithNPC(npcId, tokenType);
+    if (tokenCount >= 8) return LetterCategory.Premium;  // 15-20+ coins
+    if (tokenCount >= 5) return LetterCategory.Quality;  // 8-12 coins  
+    if (tokenCount >= 3) return LetterCategory.Basic;    // 3-5 coins
+    return LetterCategory.None;                          // No letters offered
 }
 
-// Patron letters ignore gravity
-if (letter.IsFromPatron) {
-    return Random.Range(1, 3); // Always slots 1-3
+// All letters enter at slot 8 regardless of tokens
+public int GetQueueEntryPosition(Letter letter) {
+    if (letter.IsFromPatron) {
+        return Random.Range(1, 3); // Patron letters still jump to 1-3
+    }
+    return 8; // Everything else enters at bottom
 }
 ```
 
 #### **Strategic Implications**
-- Specializing in one token type creates natural letter prioritization
-- Spending tokens reduces gravity effect for that type
-- Creates tension between immediate needs and long-term positioning
-- Different players develop different "builds" based on token focus
+- Building tokens with specific NPCs unlocks better paying work
+- Spending tokens loses access to higher categories temporarily
+- Creates tension between spending for crises vs saving for categories
+- Different NPCs offer different token types (most have 1-2 types only)
 
 ## QUEUE-BASED ENTITY CATEGORIES
 
@@ -173,7 +178,7 @@ if (letter.IsFromPatron) {
 - **RelationshipStatus**: [Warm, Neutral, Cold, Frozen]
 
 ### **Standing Obligations (Character Development)**
-- **BenefitType**: Queue entry position, payment bonus, deadline extension
+- **BenefitType**: Payment bonus, deadline extension, free actions
 - **ConstraintType**: Cannot refuse type, cannot purge type, forced letters
 - **Frequency**: One-time, daily, every N days
 - **BreakCost**: What happens if you violate the obligation
@@ -187,12 +192,12 @@ if (letter.IsFromPatron) {
 4. **Skip delivery** + **No matching tokens** = Cannot deliver, relationship damage
 5. **Queue full** + **New urgent letter** = Must refuse or purge existing
 
-### **Token × Queue Manipulation Interactions**
-1. **0-2 tokens of type** + **Letter enters** = Position 8 (bottom)
-2. **3-4 tokens of type** + **Letter enters** = Position 7 (slight boost)
-3. **5+ tokens of type** + **Letter enters** = Position 6 (major boost)
-4. **Spend tokens** + **Reduce count** = Gravity effect weakens
-5. **Token type mismatch** + **Priority action** = Cannot perform action
+### **Token × Letter Category Interactions**
+1. **0-2 tokens with NPC** + **No letters offered** = Build relationship first
+2. **3-4 tokens with NPC** + **Basic letters unlocked** = 3-5 coin letters
+3. **5-7 tokens with NPC** + **Quality letters unlocked** = 8-12 coin letters
+4. **8+ tokens with NPC** + **Premium letters unlocked** = 15-20+ coin letters
+5. **Spend tokens** + **Drop below threshold** = Lose access to category
 
 ### **Obligation × Queue Behavior Interactions**
 1. **Noble's Courtesy** + **Noble letter** = Enters at 5, cannot refuse
