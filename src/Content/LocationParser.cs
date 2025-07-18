@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Content;
 
 public static class LocationParser
 {
@@ -58,6 +59,13 @@ public static class LocationParser
                     location.AvailableProfessionsByTime[timeBlock] = professions;
                 }
             }
+        }
+
+        // Parse access requirements
+        if (root.TryGetProperty("accessRequirement", out JsonElement accessReqElement) &&
+            accessReqElement.ValueKind == JsonValueKind.Object)
+        {
+            location.AccessRequirement = AccessRequirementParser.ParseAccessRequirement(accessReqElement);
         }
 
         return location;

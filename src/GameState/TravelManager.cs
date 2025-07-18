@@ -6,6 +6,7 @@ public class TravelManager
     private readonly TimeManager _timeManager;
     private readonly TransportCompatibilityValidator _transportValidator;
     private readonly RouteRepository _routeRepository;
+    private readonly AccessRequirementChecker _accessChecker;
     public LocationSystem LocationSystem { get; }
     public ActionRepository ActionRepository { get; }
     public LocationRepository LocationRepository { get; }
@@ -20,13 +21,15 @@ public class TravelManager
         ActionFactory actionFactory,
         ItemRepository itemRepository,
         TransportCompatibilityValidator transportValidator,
-        RouteRepository routeRepository
+        RouteRepository routeRepository,
+        AccessRequirementChecker accessChecker
         )
     {
         _gameWorld = gameWorld;
         _timeManager = gameWorld.TimeManager;
         _transportValidator = transportValidator;
         _routeRepository = routeRepository;
+        _accessChecker = accessChecker;
         this.LocationSystem = locationSystem;
         this.ActionRepository = actionRepository;
         this.LocationRepository = locationRepository;
@@ -140,10 +143,18 @@ public class TravelManager
 
             // Check if route is accessible using logical blocking system
             RouteAccessResult accessResult = route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
-            if (accessResult.IsAllowed)
+            if (!accessResult.IsAllowed)
+                continue;
+            
+            // Check additional access requirements (token/equipment based)
+            if (route.AccessRequirement != null)
             {
-                availableRoutes.Add(route);
+                var requirementCheck = _accessChecker.CheckRouteAccess(route);
+                if (!requirementCheck.IsAllowed)
+                    continue;
             }
+            
+            availableRoutes.Add(route);
         }
 
         return availableRoutes;

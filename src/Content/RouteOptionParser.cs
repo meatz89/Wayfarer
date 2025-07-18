@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Content;
 
 public static class RouteOptionParser
 {
@@ -55,6 +56,13 @@ public static class RouteOptionParser
             {
                 route.TerrainCategories.Add(category);
             }
+        }
+
+        // Parse access requirements
+        if (root.TryGetProperty("accessRequirement", out JsonElement accessReqElement) &&
+            accessReqElement.ValueKind == JsonValueKind.Object)
+        {
+            route.AccessRequirement = AccessRequirementParser.ParseAccessRequirement(accessReqElement);
         }
 
         return route;

@@ -131,5 +131,48 @@ namespace Wayfarer.GameState
             var totalTokens = npcTokens.Values.Sum();
             return totalTokens >= 3;
         }
+        
+        // Get total tokens of a specific type across all NPCs
+        public int GetTotalTokensOfType(ConnectionType type)
+        {
+            var player = _gameWorld.GetPlayer();
+            return player.ConnectionTokens.GetValueOrDefault(type, 0);
+        }
+        
+        // Spend tokens of a specific type from any NPCs that have that type
+        public bool SpendTokensOfType(ConnectionType type, int amount)
+        {
+            if (amount <= 0) return true;
+            
+            var player = _gameWorld.GetPlayer();
+            var totalAvailable = player.ConnectionTokens.GetValueOrDefault(type, 0);
+            
+            if (totalAvailable < amount)
+                return false;
+                
+            // Deduct from total
+            player.ConnectionTokens[type] = totalAvailable - amount;
+            
+            // Deduct from NPCs proportionally
+            var npcTokens = player.NPCTokens;
+            int remaining = amount;
+            
+            foreach (var npcId in npcTokens.Keys.ToList())
+            {
+                if (remaining <= 0) break;
+                
+                var npcDict = npcTokens[npcId];
+                var tokensWithNpc = npcDict.GetValueOrDefault(type, 0);
+                
+                if (tokensWithNpc > 0)
+                {
+                    var toSpend = Math.Min(tokensWithNpc, remaining);
+                    npcDict[type] = tokensWithNpc - toSpend;
+                    remaining -= toSpend;
+                }
+            }
+            
+            return true;
+        }
     }
 }

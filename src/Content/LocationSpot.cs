@@ -25,6 +25,9 @@ public class LocationSpot
     public Dictionary<string, int> RelationshipRequirements { get; set; } = new Dictionary<string, int>();
     public NPC PrimaryNPC { get; set; }
     public bool IsClosed { get; set; }
+    
+    // Access Requirements for this spot
+    public AccessRequirement AccessRequirement { get; set; }
 
     public LocationSpot(string id, string name)
     {

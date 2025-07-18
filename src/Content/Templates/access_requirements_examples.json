@@ -1,0 +1,70 @@
+{
+  "access_requirements": [
+    {
+      "comment": "Example: Noble district requires court attire or noble connections",
+      "location_example": {
+        "id": "noble_district",
+        "name": "Noble District Access",
+        "requiredEquipment": ["Court_Attire"],
+        "requiredTokensPerType": {
+          "Noble": 3
+        },
+        "logic": "Or",
+        "blockedMessage": "The guards bar your entry. 'This district is for nobles and their invited guests only.'",
+        "hintMessage": "You need either proper court attire or connections with nobility (3+ Noble tokens)."
+      }
+    },
+    {
+      "comment": "Example: Mountain pass requires climbing gear",
+      "route_example": {
+        "id": "mountain_pass",
+        "name": "Mountain Pass Access",
+        "requiredEquipment": ["Climbing_Equipment"],
+        "logic": "And",
+        "blockedMessage": "The steep cliffs and narrow ledges are impassable without proper climbing equipment.",
+        "hintMessage": "You'll need climbing gear to traverse this treacherous mountain route."
+      }
+    },
+    {
+      "comment": "Example: Guild hall requires specific NPC introduction",
+      "spot_example": {
+        "id": "merchant_guild_hall",
+        "name": "Merchant Guild Hall Access",
+        "requiredTokensPerNpc": {
+          "marcus_thornwood": 5
+        },
+        "logic": "And",
+        "blockedMessage": "The guild doorman shakes his head. 'Members and sponsored guests only.'",
+        "hintMessage": "Build a strong relationship with Marcus (5+ tokens) to gain guild sponsorship."
+      }
+    },
+    {
+      "comment": "Example: Shadow market requires either shadow tokens or specific item",
+      "location_example_2": {
+        "id": "shadow_market",
+        "name": "Shadow Market Access",
+        "requiredItems": ["shadow_contact_token"],
+        "requiredTokensPerType": {
+          "Shadow": 2
+        },
+        "logic": "Or",
+        "blockedMessage": "Without the right connections, you can't even find the entrance.",
+        "hintMessage": "You need either a shadow contact token or reputation in the underworld (2+ Shadow tokens)."
+      }
+    },
+    {
+      "comment": "Example: River crossing requires water transport or high payment",
+      "route_example_2": {
+        "id": "river_crossing",
+        "name": "River Crossing Access",
+        "requiredEquipment": ["Water_Transport"],
+        "requiredTokensPerNpc": {
+          "river_worker": 1
+        },
+        "logic": "Or",
+        "blockedMessage": "The river is too wide and swift to cross without help.",
+        "hintMessage": "You need either a boat or connections with the river workers."
+      }
+    }
+  ]
+}
