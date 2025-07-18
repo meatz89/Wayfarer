@@ -1620,3 +1620,10 @@
 	font-size: 0.8rem;
 	margin-top: 5px;
 }
+
+.penalty-note {
+	font-size: 0.75rem;
+	color: var(--special);
+	font-style: italic;
+	margin-left: 2px;
+}

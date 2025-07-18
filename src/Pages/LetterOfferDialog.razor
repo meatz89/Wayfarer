@@ -34,6 +34,17 @@
                         <span class="label">Token Type:</span>
                         <span class="value @GetTokenTypeClass(GeneratedLetter.TokenType)">@GeneratedLetter.TokenType</span>
                     </div>
+                    <div class="letter-size">
+                        <span class="label">Size:</span>
+                        <span class="value">@GetLetterSizeIcon(GeneratedLetter.Size) @GeneratedLetter.Size (@GeneratedLetter.GetRequiredSlots() slot@(GeneratedLetter.GetRequiredSlots() > 1 ? "s" : ""))</span>
+                    </div>
+                    @if (GeneratedLetter.PhysicalProperties != LetterPhysicalProperties.None || GeneratedLetter.RequiredEquipment.HasValue)
+                    {
+                        <div class="physical-constraints">
+                            <span class="label">Special Requirements:</span>
+                            <span class="value">@GeneratedLetter.GetPhysicalConstraintsDescription()</span>
+                        </div>
+                    }
                 </div>
                 
                 <div class="queue-info">
@@ -131,5 +142,16 @@
     private string GetTokenTypeClass(ConnectionType type)
     {
         return $"token-{type.ToString().ToLower()}";
+    }
+    
+    private string GetLetterSizeIcon(LetterSize size)
+    {
+        return size switch
+        {
+            LetterSize.Small => "📄",
+            LetterSize.Medium => "📦",
+            LetterSize.Large => "📦",
+            _ => "📦"
+        };
     }
 }

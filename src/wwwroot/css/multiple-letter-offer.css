@@ -111,6 +111,35 @@
 .token-common { color: var(--common-brown); }
 .token-shadow { color: var(--shadow-black); }
 
+/* Letter category styles */
+.letter-category {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.category-basic {
+    background-color: rgba(139, 69, 19, 0.2);
+    color: var(--common-brown);
+    border: 1px solid rgba(139, 69, 19, 0.3);
+}
+
+.category-quality {
+    background-color: rgba(70, 130, 180, 0.2);
+    color: var(--trade-blue);
+    border: 1px solid rgba(70, 130, 180, 0.3);
+}
+
+.category-premium {
+    background-color: rgba(218, 165, 32, 0.2);
+    color: var(--resource-coins);
+    border: 1px solid rgba(218, 165, 32, 0.3);
+    box-shadow: 0 0 3px rgba(218, 165, 32, 0.3);
+}
+
 /* Add visual indicator for NPC card with offers */
 .npc-offer-card {
     position: relative;

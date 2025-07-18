@@ -133,6 +133,20 @@
                                                 }
                                             </div>
                                         }
+                                        
+                                        @* Show network referral option if NPC can provide referrals *@
+                                        @if (isCurrentlyAvailable && CanRequestReferral(npc))
+                                        {
+                                            <div class="npc-referral-option">
+                                                <h4>Network Referrals:</h4>
+                                                <p class="referral-description">
+                                                    @npc.Name can introduce you to their contacts (1 token)
+                                                </p>
+                                                <button class="referral-button" @onclick="() => RequestReferral(npc.ID)">
+                                                    Ask for Introduction
+                                                </button>
+                                            </div>
+                                        }
                                     </div>
                                 }
                             </div>

@@ -7,6 +7,7 @@ public class MorningActivitiesManager
     private readonly LetterQueueManager _letterQueueManager;
     private readonly StandingObligationManager _obligationManager;
     private readonly MessageSystem _messageSystem;
+    private readonly PatronLetterService _patronLetterService;
     
     // Track morning events for display
     public List<MorningEvent> MorningEvents { get; private set; } = new List<MorningEvent>();
@@ -15,12 +16,14 @@ public class MorningActivitiesManager
         GameWorld gameWorld, 
         LetterQueueManager letterQueueManager,
         StandingObligationManager obligationManager,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        PatronLetterService patronLetterService = null)
     {
         _gameWorld = gameWorld;
         _letterQueueManager = letterQueueManager;
         _obligationManager = obligationManager;
         _messageSystem = messageSystem;
+        _patronLetterService = patronLetterService;
     }
     
     // Process all morning activities and collect events
@@ -68,7 +71,24 @@ public class MorningActivitiesManager
         // 4. Advance obligation time
         _obligationManager.AdvanceDailyTime();
         
-        // 5. Generate regular daily letters
+        // 5. Check for patron letters
+        if (_patronLetterService != null)
+        {
+            var patronLetter = _patronLetterService.CheckForPatronLetter();
+            if (patronLetter != null)
+            {
+                MorningEvents.Add(new MorningEvent
+                {
+                    Type = MorningEventType.PatronLetterAdded,
+                    Description = "A gold-sealed letter from your patron has arrived! It jumps to position " + patronLetter.PatronQueuePosition + " in your queue.",
+                    LetterPosition = patronLetter.PatronQueuePosition,
+                    SenderName = "Your Patron"
+                });
+                result.PatronLetterCount = 1;
+            }
+        }
+        
+        // 6. Generate regular daily letters
         var newLetterCount = _letterQueueManager.GenerateDailyLetters();
         if (newLetterCount > 0)
         {
@@ -80,7 +100,7 @@ public class MorningActivitiesManager
             result.NewLetterCount = newLetterCount;
         }
         
-        // 6. Check for urgent letters needing attention
+        // 7. Check for urgent letters needing attention
         var urgentLetters = _letterQueueManager.GetExpiringLetters(2);
         foreach (var letter in urgentLetters)
         {
@@ -205,7 +225,8 @@ public enum MorningEventType
     LetterExpired,
     ForcedLetterAdded,
     NewLettersAvailable,
-    UrgentLetterWarning
+    UrgentLetterWarning,
+    PatronLetterAdded
 }
 
 // Individual morning event
@@ -226,7 +247,8 @@ public class MorningActivityResult
     public int ForcedLetterCount { get; set; }
     public int NewLetterCount { get; set; }
     public int UrgentLetterCount { get; set; }
+    public int PatronLetterCount { get; set; }
     
     public bool HasEvents => ExpiredLetterCount > 0 || ForcedLetterCount > 0 || 
-                            NewLetterCount > 0 || UrgentLetterCount > 0;
+                            NewLetterCount > 0 || UrgentLetterCount > 0 || PatronLetterCount > 0;
 }

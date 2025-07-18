@@ -26,4 +26,9 @@ public class LetterTemplate
         // Letter chain properties
         public string[] UnlocksLetterIds { get; set; } = new string[0]; // Letter templates unlocked by delivering this letter
         public bool IsChainLetter { get; set; } = false;
+        
+        // Physical properties
+        public LetterSize Size { get; set; } = LetterSize.Medium;
+        public LetterPhysicalProperties PhysicalProperties { get; set; } = LetterPhysicalProperties.None;
+        public ItemCategory? RequiredEquipment { get; set; } = null;
     }

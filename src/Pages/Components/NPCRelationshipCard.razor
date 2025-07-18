@@ -16,84 +16,86 @@
     <div class="token-display">
         <h4>Connection Tokens</h4>
         <div class="token-list">
-            @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+            @foreach (var tokenType in NPC.LetterTokenTypes ?? new List<ConnectionType>())
             {
                 var tokenCount = GetNPCTokenCount(tokenType);
-                if (tokenCount != 0)
-                {
-                    <div class="token-item @(tokenCount < 0 ? "debt" : "positive")">
-                        <span class="token-icon">@GetTokenIcon(tokenType)</span>
-                        <span class="token-type">@tokenType</span>
-                        <span class="token-count">@tokenCount</span>
-                    </div>
-                }
+                <div class="token-item @(tokenCount < 0 ? "debt" : tokenCount > 0 ? "positive" : "neutral")">
+                    <span class="token-icon">@GetTokenIcon(tokenType)</span>
+                    <span class="token-type">@tokenType</span>
+                    <span class="token-count">@tokenCount</span>
+                </div>
             }
-            @if (!HasAnyTokens())
+            @if (!(NPC.LetterTokenTypes?.Any() ?? false))
             {
-                <div class="no-tokens">No connection established</div>
+                <div class="no-tokens">This NPC doesn't offer letters</div>
             }
         </div>
         
-        @* Token progress and letter categories *@
-        @{
-            var totalTokens = GetTotalTokens();
-            if (totalTokens >= 0 && totalTokens < 3)
-            {
-                <div class="token-progress">
-                    <span class="progress-text">@(3 - totalTokens) more tokens until letter offers</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: @((totalTokens / 3.0) * 100)%"></div>
+        @* Token progress and letter categories per type *@
+        @if (NPC.LetterTokenTypes?.Any() ?? false)
+        {
+            <div class="letter-categories">
+                <h4>Letter Categories by Type</h4>
+                @foreach (var tokenType in NPC.LetterTokenTypes)
+                {
+                    var tokensOfType = GetNPCTokenCount(tokenType);
+                    <div class="token-type-categories">
+                        <h5>@GetTokenIcon(tokenType) @tokenType Letters</h5>
+                        <div class="category-list">
+                            @if (tokensOfType >= 3)
+                            {
+                                <div class="category-item unlocked">
+                                    <span class="category-icon">📄</span>
+                                    <span class="category-name">Basic</span>
+                                    <span class="category-pay">3-7 coins</span>
+                                </div>
+                            }
+                            else if (tokensOfType >= 0)
+                            {
+                                <div class="category-item locked">
+                                    <span class="category-icon">🔒</span>
+                                    <span class="category-name">Basic</span>
+                                    <span class="category-requirement">Need @(3 - tokensOfType) more</span>
+                                </div>
+                            }
+                            
+                            @if (tokensOfType >= 5)
+                            {
+                                <div class="category-item unlocked">
+                                    <span class="category-icon">📜</span>
+                                    <span class="category-name">Quality</span>
+                                    <span class="category-pay">8-14 coins</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="category-item locked">
+                                    <span class="category-icon">🔒</span>
+                                    <span class="category-name">Quality</span>
+                                    <span class="category-requirement">Need @(5 - Math.Max(0, tokensOfType)) more</span>
+                                </div>
+                            }
+                            
+                            @if (tokensOfType >= 8)
+                            {
+                                <div class="category-item unlocked">
+                                    <span class="category-icon">📋</span>
+                                    <span class="category-name">Premium</span>
+                                    <span class="category-pay">15-30+ coins</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="category-item locked">
+                                    <span class="category-icon">🔒</span>
+                                    <span class="category-name">Premium</span>
+                                    <span class="category-requirement">Need @(8 - Math.Max(0, tokensOfType)) more</span>
+                                </div>
+                            }
+                        </div>
                     </div>
-                </div>
-            }
-            else if (totalTokens >= 3)
-            {
-                <div class="letter-categories">
-                    <h4>Letter Categories Unlocked</h4>
-                    <div class="category-list">
-                        @if (totalTokens >= 3)
-                        {
-                            <div class="category-item unlocked">
-                                <span class="category-icon">📄</span>
-                                <span class="category-name">Basic Letters</span>
-                                <span class="category-pay">3-7 coins</span>
-                            </div>
-                        }
-                        @if (totalTokens >= 5)
-                        {
-                            <div class="category-item unlocked">
-                                <span class="category-icon">📜</span>
-                                <span class="category-name">Quality Letters</span>
-                                <span class="category-pay">8-14 coins</span>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="category-item locked">
-                                <span class="category-icon">🔒</span>
-                                <span class="category-name">Quality Letters</span>
-                                <span class="category-requirement">@(5 - totalTokens) more tokens</span>
-                            </div>
-                        }
-                        @if (totalTokens >= 8)
-                        {
-                            <div class="category-item unlocked">
-                                <span class="category-icon">📋</span>
-                                <span class="category-name">Premium Letters</span>
-                                <span class="category-pay">15-30+ coins</span>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="category-item locked">
-                                <span class="category-icon">🔒</span>
-                                <span class="category-name">Premium Letters</span>
-                                <span class="category-requirement">@(8 - totalTokens) more tokens</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
+                }
+            </div>
         }
     </div>
     

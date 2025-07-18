@@ -87,7 +87,24 @@ public class LetterQueueManager
                 if (i + 1 < basePosition)
                 {
                     _messageSystem.AddSystemMessage(
-                        $"Letter entered at slot {i + 1} due to standing obligations",
+                        $"🌟 Your standing obligations pull {letter.SenderName}'s letter forward!",
+                        SystemMessageTypes.Warning
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • Letter enters at slot {i + 1} instead of the usual slot 8",
+                        SystemMessageTypes.Info
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • Your commitments shape how new obligations arrive",
+                        SystemMessageTypes.Info
+                    );
+                }
+                else
+                {
+                    // Normal entry at slot 8
+                    string urgency = letter.Deadline <= 3 ? " ⚠️" : "";
+                    _messageSystem.AddSystemMessage(
+                        $"📨 New letter from {letter.SenderName} enters queue at position {i + 1}{urgency}",
                         SystemMessageTypes.Info
                     );
                 }
@@ -96,15 +113,45 @@ public class LetterQueueManager
             }
         }
         
+        _messageSystem.AddSystemMessage(
+            $"🚫 Cannot accept letter from {letter.SenderName} - your queue is completely full!",
+            SystemMessageTypes.Danger
+        );
+        
         return 0; // Queue full
     }
     
     // Handle patron letters that jump to top positions
-    private int AddPatronLetter(Letter letter)
+    public int AddPatronLetter(Letter letter)
     {
         var queue = _gameWorld.GetPlayer().LetterQueue;
         
-        // Try positions 1-3 first for patron letters
+        // Use new patron properties if available
+        if (letter.IsPatronLetter && letter.PatronQueuePosition > 0)
+        {
+            // Try to place at the specific patron position
+            int targetPos = letter.PatronQueuePosition - 1; // Convert to 0-based
+            
+            if (targetPos >= 0 && targetPos < 8)
+            {
+                if (queue[targetPos] == null)
+                {
+                    queue[targetPos] = letter;
+                    letter.QueuePosition = targetPos + 1;
+                    return targetPos + 1;
+                }
+                else
+                {
+                    // Position occupied - show conflict message
+                    _messageSystem.AddSystemMessage(
+                        $"⚠️ Patron demands position {letter.PatronQueuePosition}, but it's occupied!",
+                        SystemMessageTypes.Warning
+                    );
+                }
+            }
+        }
+        
+        // Fallback to old behavior - try positions 1-3
         for (int i = 0; i < 3; i++)
         {
             if (queue[i] == null)
@@ -113,8 +160,13 @@ public class LetterQueueManager
                 letter.QueuePosition = i + 1;
                 
                 _messageSystem.AddSystemMessage(
-                    $"Patron letter entered at priority slot {i + 1}!",
+                    $"  • Commands priority position {i + 1} - all other obligations must wait!",
                     SystemMessageTypes.Warning
+                );
+                
+                _messageSystem.AddSystemMessage(
+                    $"  • Your mysterious patron's needs supersede all else",
+                    SystemMessageTypes.Info
                 );
                 
                 return i + 1;
@@ -128,9 +180,30 @@ public class LetterQueueManager
             {
                 queue[i] = letter;
                 letter.QueuePosition = i + 1;
+                
+                _messageSystem.AddSystemMessage(
+                    $"  ⚠️ Priority slots 1-3 are occupied! Patron letter forced to position {i + 1}",
+                    SystemMessageTypes.Warning
+                );
+                
+                _messageSystem.AddSystemMessage(
+                    $"  • Even patron letters must wait when obligations pile up",
+                    SystemMessageTypes.Info
+                );
+                
                 return i + 1;
             }
         }
+        
+        _messageSystem.AddSystemMessage(
+            $"🚫 CRISIS: Cannot accept patron letter - queue completely full!",
+            SystemMessageTypes.Danger
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • Your patron will not be pleased with this failure",
+            SystemMessageTypes.Danger
+        );
         
         return 0; // Queue completely full
     }
@@ -200,6 +273,15 @@ public class LetterQueueManager
         var senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId)) return;
         
+        // Get the sender NPC for narrative context
+        var senderNpc = _npcRepository.GetNPCById(senderId);
+        
+        // Show the dramatic moment of failure
+        _messageSystem.AddSystemMessage(
+            $"⏰ TIME'S UP! {letter.SenderName}'s letter has expired!",
+            SystemMessageTypes.Danger
+        );
+        
         // Remove tokens from the relationship with this NPC
         _connectionTokenManager.RemoveTokensFromNPC(letter.TokenType, tokenPenalty, senderId);
         
@@ -211,11 +293,82 @@ public class LetterQueueManager
         }
         player.NPCLetterHistory[senderId].RecordExpiry();
         
-        // Log the relationship damage for UI feedback
+        // Show the relationship damage with narrative weight
         _messageSystem.AddSystemMessage(
-            $"Letter from {letter.SenderName} expired! Lost {tokenPenalty} {letter.TokenType} tokens with them.", 
+            $"💔 Lost {tokenPenalty} {letter.TokenType} tokens with {letter.SenderName}. Trust broken.",
             SystemMessageTypes.Danger
         );
+        
+        // Add contextual reaction based on NPC type
+        if (senderNpc != null)
+        {
+            string consequence = GetExpiryConsequence(senderNpc, letter);
+            _messageSystem.AddSystemMessage(
+                $"  • {consequence}",
+                SystemMessageTypes.Warning
+            );
+        }
+        
+        // Show cumulative damage
+        var history = player.NPCLetterHistory[senderId];
+        if (history.ExpiredCount > 1)
+        {
+            _messageSystem.AddSystemMessage(
+                $"  ⚠️ This is the {GetOrdinal(history.ExpiredCount)} letter from {letter.SenderName} you've let expire.",
+                SystemMessageTypes.Danger
+            );
+        }
+    }
+    
+    // Get contextual consequence for expired letter
+    private string GetExpiryConsequence(NPC npc, Letter letter)
+    {
+        if (npc.LetterTokenTypes.Contains(ConnectionType.Trust))
+        {
+            return $"{npc.Name} waited for your help that never came. Some wounds don't heal.";
+        }
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Trade))
+        {
+            return $"{npc.Name}'s opportunity has passed. 'Time is money, and you've cost me both.'";
+        }
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Noble))
+        {
+            return $"Word of your failure reaches {npc.Name}. Your reputation in court circles suffers.";
+        }
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Shadow))
+        {
+            return $"{npc.Name} doesn't forget broken promises. You've made an enemy in dark places.";
+        }
+        else
+        {
+            return $"{npc.Name} needed this delivered on time. Another bridge burned.";
+        }
+    }
+    
+    // Helper to get ordinal string (1st, 2nd, 3rd, etc.)
+    private string GetOrdinal(int number)
+    {
+        if (number <= 0) return number.ToString();
+        
+        switch (number % 100)
+        {
+            case 11:
+            case 12:
+            case 13:
+                return number + "th";
+        }
+        
+        switch (number % 10)
+        {
+            case 1:
+                return number + "st";
+            case 2:
+                return number + "nd";
+            case 3:
+                return number + "rd";
+            default:
+                return number + "th";
+        }
     }
     
     // Helper to get NPC ID from name (since letters store names, not IDs)
@@ -241,6 +394,34 @@ public class LetterQueueManager
         
         player.NPCLetterHistory[senderId].RecordDelivery();
         
+        // Get the sender NPC for narrative context
+        var senderNpc = _npcRepository.GetNPCById(senderId);
+        if (senderNpc != null)
+        {
+            // Show the relationship improvement
+            _messageSystem.AddSystemMessage(
+                $"👥 {letter.SenderName} appreciates your reliable service.",
+                SystemMessageTypes.Success
+            );
+            
+            // Show trust building based on delivery history
+            var history = player.NPCLetterHistory[senderId];
+            if (history.DeliveredCount == 1)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"  • First successful delivery to {letter.SenderName} - a good start to your relationship.",
+                    SystemMessageTypes.Info
+                );
+            }
+            else if (history.DeliveredCount % 5 == 0)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"  • {history.DeliveredCount} letters delivered! Your reputation with {letter.SenderName} grows stronger.",
+                    SystemMessageTypes.Success
+                );
+            }
+        }
+        
         // Process chain letters
         ProcessChainLetters(letter);
     }
@@ -260,6 +441,63 @@ public class LetterQueueManager
         }
         
         player.NPCLetterHistory[senderId].RecordSkip();
+        
+        // Get the sender NPC for narrative context
+        var senderNpc = _npcRepository.GetNPCById(senderId);
+        if (senderNpc != null)
+        {
+            // Show the relationship damage based on NPC personality
+            string reaction = GetSkipReaction(senderNpc, letter);
+            _messageSystem.AddSystemMessage(
+                $"💔 {reaction}",
+                SystemMessageTypes.Warning
+            );
+            
+            // Show cumulative damage if multiple skips
+            var history = player.NPCLetterHistory[senderId];
+            if (history.SkippedCount > 1)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"  • You've now skipped {history.SkippedCount} letters from {letter.SenderName}. Trust erodes.",
+                    SystemMessageTypes.Danger
+                );
+            }
+            
+            // Warn about potential consequences
+            if (history.SkippedCount >= 3)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"  ⚠️ {letter.SenderName} may stop offering you letters if this continues.",
+                    SystemMessageTypes.Danger
+                );
+            }
+        }
+    }
+    
+    // Get contextual skip reaction based on NPC type
+    private string GetSkipReaction(NPC npc, Letter letter)
+    {
+        // Generate reaction based on NPC's token types and profession
+        if (npc.LetterTokenTypes.Contains(ConnectionType.Trust))
+        {
+            return $"{npc.Name} looks hurt as you prioritize other obligations over their {GetTokenTypeDescription(letter.TokenType)} request.";
+        }
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Trade))
+        {
+            return $"{npc.Name} frowns at the delay. 'Business waits for no one,' they mutter.";
+        }
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Noble))
+        {
+            return $"{npc.Name} raises an eyebrow coldly. Such delays are noted in aristocratic circles.";
+        }
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Shadow))
+        {
+            return $"{npc.Name}'s eyes narrow dangerously. Broken promises have consequences in the shadows.";
+        }
+        else
+        {
+            return $"{npc.Name} notices you skipping their letter. Another promise deferred.";
+        }
     }
     
     // Get expiring letters
@@ -299,6 +537,15 @@ public class LetterQueueManager
             }
         }
         
+        // If no letters to shift, we're done
+        if (!remainingLetters.Any()) return;
+        
+        // Announce the queue reorganization
+        _messageSystem.AddSystemMessage(
+            "📬 Your remaining obligations shift forward:",
+            SystemMessageTypes.Info
+        );
+        
         // Place remaining letters starting from the removed position, filling gaps
         int writePosition = removedPosition - 1; // Convert to 0-based index
         foreach (var letter in remainingLetters)
@@ -311,8 +558,18 @@ public class LetterQueueManager
             
             if (writePosition < 8)
             {
+                int oldPosition = letter.QueuePosition;
                 queue[writePosition] = letter;
                 letter.QueuePosition = writePosition + 1; // Convert back to 1-based
+                
+                // Provide narrative context for each letter moving
+                string urgency = letter.Deadline <= 2 ? " ⚠️ URGENT!" : "";
+                string deadlineText = letter.Deadline == 1 ? "expires tomorrow!" : $"{letter.Deadline} days left";
+                
+                _messageSystem.AddSystemMessage(
+                    $"  • {letter.SenderName}'s letter moves from slot {oldPosition} → {letter.QueuePosition} ({deadlineText}){urgency}",
+                    letter.Deadline <= 2 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+                );
             }
         }
     }
@@ -326,21 +583,46 @@ public class LetterQueueManager
         if (letter == null) return false;
         
         // Check if position 1 is occupied (can't skip to occupied slot)
-        if (GetLetterAt(1) != null) return false;
+        if (GetLetterAt(1) != null)
+        {
+            _messageSystem.AddSystemMessage(
+                $"❌ Cannot skip - position 1 is already occupied!",
+                SystemMessageTypes.Danger
+            );
+            return false;
+        }
         
         // Calculate token cost: position - 1 (skip from position 3 costs 2 tokens)
         int baseCost = position - 1;
         int multiplier = _obligationManager.CalculateSkipCostMultiplier(letter);
         int tokenCost = baseCost * multiplier;
         
+        // Get sender NPC for narrative context
+        var senderId = GetNPCIdByName(letter.SenderName);
+        
+        // Show what's about to happen
+        _messageSystem.AddSystemMessage(
+            $"💸 Attempting to skip {letter.SenderName}'s letter to position 1...",
+            SystemMessageTypes.Info
+        );
+        
         // Validate token availability through ConnectionTokenManager
         if (!_connectionTokenManager.HasTokens(letter.TokenType, tokenCost))
         {
+            _messageSystem.AddSystemMessage(
+                $"  ❌ Insufficient {letter.TokenType} tokens! Need {tokenCost}, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
+                SystemMessageTypes.Danger
+            );
             return false;
         }
         
-        // Spend the tokens
-        if (!_connectionTokenManager.SpendTokens(letter.TokenType, tokenCost))
+        // Spend the tokens with specific NPC context
+        _messageSystem.AddSystemMessage(
+            $"  • Spending {tokenCost} {letter.TokenType} tokens with {letter.SenderName}...",
+            SystemMessageTypes.Warning
+        );
+        
+        if (!_connectionTokenManager.SpendTokensWithNPC(letter.TokenType, tokenCost, senderId))
         {
             return false;
         }
@@ -350,6 +632,23 @@ public class LetterQueueManager
         queue[0] = letter; // Position 1 is index 0
         queue[position - 1] = null; // Clear original position
         letter.QueuePosition = 1;
+        
+        // Success narrative
+        _messageSystem.AddSystemMessage(
+            $"✅ {letter.SenderName}'s letter jumps the queue to position 1!",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • You call in {tokenCost} favors with {letter.SenderName} for urgent handling",
+            SystemMessageTypes.Info
+        );
+        
+        // Shift remaining letters
+        ShiftQueueUp(position);
+        
+        // Track the skip
+        RecordLetterSkip(letter);
         
         return true;
     }
@@ -361,12 +660,32 @@ public class LetterQueueManager
         int lettersToGenerate = _random.Next(1, 3);
         int lettersGenerated = 0;
         
+        // Check if we can generate any letters
+        if (IsQueueFull())
+        {
+            _messageSystem.AddSystemMessage(
+                "📬 Your letter queue is full - no new correspondence can be accepted today.",
+                SystemMessageTypes.Warning
+            );
+            return 0;
+        }
+        
+        // Announce the arrival of new correspondence
+        _messageSystem.AddSystemMessage(
+            "🌅 Dawn brings new correspondence:",
+            SystemMessageTypes.Info
+        );
+        
         for (int i = 0; i < lettersToGenerate; i++)
         {
             // Check if queue has space
             if (IsQueueFull())
             {
-                break; // Stop generating if queue is full
+                _messageSystem.AddSystemMessage(
+                    "  📭 Additional letters arrive but your queue is now full.",
+                    SystemMessageTypes.Warning
+                );
+                break;
             }
             
             // Get a random template
@@ -391,14 +710,57 @@ public class LetterQueueManager
             if (letter != null)
             {
                 // Add to first empty slot
-                if (AddLetterToFirstEmpty(letter) > 0)
+                int position = AddLetterToFirstEmpty(letter);
+                if (position > 0)
                 {
                     lettersGenerated++;
+                    
+                    // Narrative context for each new letter
+                    string urgency = letter.Deadline <= 3 ? " - needs urgent delivery!" : "";
+                    string tokenTypeText = GetTokenTypeDescription(letter.TokenType);
+                    
+                    _messageSystem.AddSystemMessage(
+                        $"  • Letter from {sender.Name} to {recipient.Name} ({tokenTypeText} correspondence){urgency}",
+                        letter.Deadline <= 3 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+                    );
+                    
+                    _messageSystem.AddSystemMessage(
+                        $"    → Enters your queue at position {position} - {letter.Payment} coins on delivery",
+                        SystemMessageTypes.Info
+                    );
                 }
             }
         }
         
+        if (lettersGenerated == 0 && !IsQueueFull())
+        {
+            _messageSystem.AddSystemMessage(
+                "  📭 No new letters arrive today. The roads are quiet.",
+                SystemMessageTypes.Info
+            );
+        }
+        
         return lettersGenerated;
+    }
+    
+    // Helper method to get descriptive text for token types
+    private string GetTokenTypeDescription(ConnectionType tokenType)
+    {
+        switch (tokenType)
+        {
+            case ConnectionType.Trust:
+                return "personal";
+            case ConnectionType.Trade:
+                return "commercial";
+            case ConnectionType.Noble:
+                return "aristocratic";
+            case ConnectionType.Common:
+                return "local";
+            case ConnectionType.Shadow:
+                return "clandestine";
+            default:
+                return tokenType.ToString().ToLower();
+        }
     }
     
     // Morning Swap: Free swap of two adjacent letters once per day
@@ -461,15 +823,25 @@ public class LetterQueueManager
         var letterToPurge = GetLetterAt(8);
         if (letterToPurge == null)
         {
-            return false; // No letter to purge
+            _messageSystem.AddSystemMessage(
+                $"❌ No letter in position 8 to purge!",
+                SystemMessageTypes.Danger
+            );
+            return false;
         }
+        
+        // Show what's at stake
+        _messageSystem.AddSystemMessage(
+            $"🔥 PURGING: Preparing to destroy {letterToPurge.SenderName}'s letter...",
+            SystemMessageTypes.Danger
+        );
         
         // Check if purging this letter is forbidden by obligations
         if (_obligationManager.IsActionForbidden("purge", letterToPurge, out string reason))
         {
             _messageSystem.AddSystemMessage(
-                $"Cannot purge letter: {reason}",
-                SystemMessageTypes.Warning
+                $"  ❌ Cannot purge: {reason}",
+                SystemMessageTypes.Danger
             );
             return false;
         }
@@ -478,7 +850,11 @@ public class LetterQueueManager
         int totalTokens = tokenPayment.Values.Sum();
         if (totalTokens != 3)
         {
-            return false; // Must pay exactly 3 tokens
+            _messageSystem.AddSystemMessage(
+                $"  ❌ Purging requires exactly 3 tokens! You offered {totalTokens}",
+                SystemMessageTypes.Danger
+            );
+            return false;
         }
         
         // Check if player has enough tokens
@@ -486,21 +862,58 @@ public class LetterQueueManager
         {
             if (!_connectionTokenManager.HasTokens(payment.Key, payment.Value))
             {
-                return false; // Insufficient tokens
+                _messageSystem.AddSystemMessage(
+                    $"  ❌ Insufficient {payment.Key} tokens! Need {payment.Value}, have {_connectionTokenManager.GetTokenCount(payment.Key)}",
+                    SystemMessageTypes.Danger
+                );
+                return false;
             }
         }
         
-        // Spend the tokens
+        // Show the desperate measure being taken
+        _messageSystem.AddSystemMessage(
+            $"  💸 Burning social capital to make this letter disappear...",
+            SystemMessageTypes.Warning
+        );
+        
+        // Spend the tokens with narrative weight
         foreach (var payment in tokenPayment)
         {
-            if (!_connectionTokenManager.SpendTokens(payment.Key, payment.Value))
+            if (payment.Value > 0)
             {
-                return false; // Failed to spend tokens
+                _messageSystem.AddSystemMessage(
+                    $"    • Spending {payment.Value} {payment.Key} token{(payment.Value > 1 ? "s" : "")}",
+                    SystemMessageTypes.Warning
+                );
+                
+                if (!_connectionTokenManager.SpendTokens(payment.Key, payment.Value))
+                {
+                    return false;
+                }
             }
         }
+        
+        // Get sender info for final narrative
+        var senderId = GetNPCIdByName(letterToPurge.SenderName);
         
         // Remove the letter from position 8
         RemoveLetterFromQueue(8);
+        
+        // Dramatic conclusion
+        _messageSystem.AddSystemMessage(
+            $"🔥 {letterToPurge.SenderName}'s letter has been destroyed!",
+            SystemMessageTypes.Danger
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • The obligation is gone, but at what cost?",
+            SystemMessageTypes.Warning
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • {letterToPurge.SenderName} will never know their letter was purged... you hope.",
+            SystemMessageTypes.Info
+        );
         
         return true;
     }
@@ -524,19 +937,45 @@ public class LetterQueueManager
         // Check if position 1 is occupied
         if (GetLetterAt(1) != null)
         {
-            return false; // Position 1 must be empty
+            _messageSystem.AddSystemMessage(
+                $"❌ Cannot priority move - position 1 is already occupied!",
+                SystemMessageTypes.Danger
+            );
+            return false;
         }
+        
+        // Get sender NPC for narrative context
+        var senderId = GetNPCIdByName(letter.SenderName);
+        
+        // Show the crisis requiring priority handling
+        _messageSystem.AddSystemMessage(
+            $"🎆 PRIORITY HANDLING: {letter.SenderName}'s letter needs urgent delivery!",
+            SystemMessageTypes.Warning
+        );
         
         // Check token cost (5 matching tokens)
         if (!_connectionTokenManager.HasTokens(letter.TokenType, 5))
         {
-            return false; // Insufficient tokens
+            _messageSystem.AddSystemMessage(
+                $"  ❌ Insufficient {letter.TokenType} tokens! Need 5, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
+                SystemMessageTypes.Danger
+            );
+            _messageSystem.AddSystemMessage(
+                $"  • Major favors require substantial social capital",
+                SystemMessageTypes.Info
+            );
+            return false;
         }
         
-        // Spend the tokens
-        if (!_connectionTokenManager.SpendTokens(letter.TokenType, 5))
+        // Spend the tokens with dramatic weight
+        _messageSystem.AddSystemMessage(
+            $"  💸 Burning 5 {letter.TokenType} tokens with {letter.SenderName} for emergency priority...",
+            SystemMessageTypes.Warning
+        );
+        
+        if (!_connectionTokenManager.SpendTokensWithNPC(letter.TokenType, 5, senderId))
         {
-            return false; // Failed to spend tokens
+            return false;
         }
         
         // Move letter to position 1
@@ -544,6 +983,17 @@ public class LetterQueueManager
         queue[fromPosition - 1] = null; // Clear original position
         queue[0] = letter; // Place in position 1
         letter.QueuePosition = 1;
+        
+        // Success narrative
+        _messageSystem.AddSystemMessage(
+            $"✅ {letter.SenderName}'s letter rockets to position 1!",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • You've called in major favors - this better be worth it",
+            SystemMessageTypes.Warning
+        );
         
         // Shift other letters down to fill the gap
         ShiftQueueUp(fromPosition);
@@ -567,20 +1017,66 @@ public class LetterQueueManager
             return false; // No letter at position
         }
         
+        // Get sender NPC for narrative context
+        var senderId = GetNPCIdByName(letter.SenderName);
+        
+        // Show the negotiation
+        _messageSystem.AddSystemMessage(
+            $"📅 Negotiating deadline extension with {letter.SenderName}...",
+            SystemMessageTypes.Info
+        );
+        
+        // Show current deadline pressure
+        string urgency = letter.Deadline <= 2 ? " 🆘 CRITICAL!" : "";
+        _messageSystem.AddSystemMessage(
+            $"  • Current deadline: {letter.Deadline} days{urgency}",
+            letter.Deadline <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
+        );
+        
         // Check token cost (2 matching tokens)
         if (!_connectionTokenManager.HasTokens(letter.TokenType, 2))
         {
-            return false; // Insufficient tokens
+            _messageSystem.AddSystemMessage(
+                $"  ❌ Insufficient {letter.TokenType} tokens! Need 2, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
+                SystemMessageTypes.Danger
+            );
+            _messageSystem.AddSystemMessage(
+                $"  • {letter.SenderName} won't grant extensions without compensation",
+                SystemMessageTypes.Info
+            );
+            return false;
         }
         
         // Spend the tokens
-        if (!_connectionTokenManager.SpendTokens(letter.TokenType, 2))
+        _messageSystem.AddSystemMessage(
+            $"  • Offering 2 {letter.TokenType} tokens to {letter.SenderName}...",
+            SystemMessageTypes.Warning
+        );
+        
+        if (!_connectionTokenManager.SpendTokensWithNPC(letter.TokenType, 2, senderId))
         {
-            return false; // Failed to spend tokens
+            return false;
         }
         
         // Extend the deadline
+        int oldDeadline = letter.Deadline;
         letter.Deadline += 2;
+        
+        // Success narrative
+        _messageSystem.AddSystemMessage(
+            $"✅ {letter.SenderName} grants a 2-day extension!",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • New deadline: {letter.Deadline} days (was {oldDeadline})",
+            SystemMessageTypes.Info
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • \"Just this once,\" {letter.SenderName} says, \"but don't make a habit of it.\"",
+            SystemMessageTypes.Info
+        );
         
         return true;
     }

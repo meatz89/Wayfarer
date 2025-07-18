@@ -131,6 +131,40 @@
     gap: 0.5rem;
 }
 
+/* Patron Letter Styles */
+.letter-card.patron-letter {
+    background: linear-gradient(135deg, rgba(218, 165, 32, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+    border: 1px solid rgba(218, 165, 32, 0.3);
+    border-radius: 4px;
+    padding: 0.5rem;
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.2);
+}
+
+.patron-seal {
+    font-size: 1.4rem;
+    filter: drop-shadow(0 0 3px rgba(218, 165, 32, 0.6));
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+.patron-sender {
+    color: var(--resource-coins);
+    font-weight: bold;
+    text-shadow: 0 0 2px rgba(218, 165, 32, 0.4);
+}
+
+/* Patron letter in priority positions */
+.queue-slot.position-one .patron-letter,
+.queue-slot:nth-child(2) .patron-letter,
+.queue-slot:nth-child(3) .patron-letter {
+    border-color: var(--resource-coins);
+    box-shadow: 0 0 15px rgba(218, 165, 32, 0.4);
+}
+
 .letter-header {
     display: flex;
     align-items: center;
@@ -173,6 +207,8 @@
     justify-content: space-between;
     align-items: center;
     margin-top: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .deadline {
@@ -212,6 +248,27 @@
 .payment {
     color: var(--resource-coins);
     font-weight: 500;
+}
+
+.letter-size {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: var(--bg-dark);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+}
+
+.physical-properties {
+    color: var(--special);
+    font-size: 1rem;
+    cursor: help;
+    padding: 0.2rem 0.4rem;
+    background-color: rgba(177, 112, 67, 0.1);
+    border: 1px solid rgba(177, 112, 67, 0.3);
+    border-radius: 3px;
 }
 
 .empty-slot {

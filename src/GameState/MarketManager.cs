@@ -11,6 +11,7 @@ public class MarketManager
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
     private readonly TimeManager _timeManager;
+    private readonly MessageSystem _messageSystem;
 
     /// <summary>
     /// Represents pricing information for an item at a specific location
@@ -24,7 +25,7 @@ public class MarketManager
     }
 
     public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
-                        NPCRepository npcRepository, LocationRepository locationRepository)
+                        NPCRepository npcRepository, LocationRepository locationRepository, MessageSystem messageSystem)
     {
         _gameWorld = gameWorld;
         _locationSystem = locationSystem;
@@ -32,6 +33,7 @@ public class MarketManager
         _npcRepository = npcRepository;
         _locationRepository = locationRepository;
         _timeManager = gameWorld.TimeManager;
+        _messageSystem = messageSystem;
     }
 
     /// <summary>
@@ -298,6 +300,12 @@ public class MarketManager
         int buyPrice = GetItemPrice(locationId, itemId, true);
         Item item = _itemRepository.GetItemById(itemId);
 
+        // Show the transaction happening
+        _messageSystem.AddSystemMessage(
+            $"💰 Purchasing {item.Name} for {buyPrice} coins...",
+            SystemMessageTypes.Info
+        );
+        
         player.Coins -= buyPrice;
 
         // Use size-aware inventory method
@@ -306,8 +314,23 @@ public class MarketManager
         {
             // Refund if inventory addition failed
             player.Coins += buyPrice;
+            _messageSystem.AddSystemMessage(
+                $"❌ Purchase failed - no room in inventory! Coins refunded.",
+                SystemMessageTypes.Warning
+            );
             return false;
         }
+        
+        // Success narrative
+        _messageSystem.AddSystemMessage(
+            $"✅ Purchased {item.Name} for {buyPrice} coins.",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • Remaining coins: {player.Coins}",
+            SystemMessageTypes.Info
+        );
 
         // Trading takes time
         _timeManager.AdvanceTime(1); // 1 hour for trading
@@ -331,8 +354,28 @@ public class MarketManager
         int sellPrice = GetItemPrice(locationId, itemId, false);
         if (sellPrice <= 0) return false; // Cannot sell here
 
+        // Get item for narrative context
+        Item item = _itemRepository.GetItemById(itemId);
+        
+        // Show the transaction
+        _messageSystem.AddSystemMessage(
+            $"💰 Selling {item.Name} for {sellPrice} coins...",
+            SystemMessageTypes.Info
+        );
+        
         player.Inventory.RemoveItem(itemId);
         player.Coins += sellPrice;
+        
+        // Success narrative
+        _messageSystem.AddSystemMessage(
+            $"✅ Sold {item.Name} for {sellPrice} coins.",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • Total coins: {player.Coins}",
+            SystemMessageTypes.Info
+        );
 
         // Trading takes time
         _timeManager.AdvanceTime(1); // 1 hour for trading

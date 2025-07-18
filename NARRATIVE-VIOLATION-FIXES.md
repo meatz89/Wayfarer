@@ -6,6 +6,24 @@ This document outlines all violations of the Narrative Communication Principle f
 ## Core Principle
 **Every mechanical change in the game must be communicated to the player through visible UI and narrative context.**
 
+## Summary of Findings
+After comprehensive analysis of the codebase, the following managers have narrative violations:
+1. **LetterQueueManager** - Silent queue operations and history tracking
+2. **ConnectionTokenManager** - Good implementation, already has narrative feedback
+3. **StandingObligationManager** - Silent time tracking that needs warning messages
+4. **NPCLetterOfferService** - Good implementation, already has narrative feedback
+5. **TravelManager** - Silent route usage tracking
+6. **Direct Player State Changes** - Various managers modify player state without feedback
+
+## Call Chain Analysis
+The violations are triggered through this daily processing chain:
+- `GameWorldManager.StartNewDay()` → 
+  - `ProcessDailyLetterQueue()` →
+    - `letterQueueManager.ProcessDailyDeadlines()` (has feedback for expiry)
+    - `standingObligationManager.ProcessDailyObligations()` (has feedback)
+    - `standingObligationManager.AdvanceDailyTime()` (**SILENT - needs warning messages**)
+    - `letterQueueManager.GenerateDailyLetters()` (**SILENT - needs arrival context**)
+
 ## Critical Violations to Fix
 
 ### 1. ConnectionTokenManager - Silent Token Changes
@@ -255,13 +273,93 @@ public void AdvanceDailyTime()
 }
 ```
 
+### 6. Additional LetterQueueManager Violations
+
+#### RecordLetterDelivery() Method (Lines 229-246)
+**Current**: Silently records letter history without feedback
+**Fix Required**:
+```csharp
+public void RecordLetterDelivery(Letter letter)
+{
+    // existing history recording code...
+    
+    // ADD: Narrative feedback about relationship impact
+    _messageSystem.AddSystemMessage(
+        $"{letter.SenderName} will remember this timely delivery.",
+        SystemMessageTypes.Info
+    );
+    
+    // Process chain letters
+    ProcessChainLetters(letter);
+}
+```
+
+#### RecordLetterSkip() Method (Lines 249-263)
+**Current**: Silently records skipped letters in history
+**Fix Required**:
+```csharp
+public void RecordLetterSkip(Letter letter)
+{
+    // existing history recording code...
+    
+    // ADD: Narrative warning about relationship damage
+    _messageSystem.AddSystemMessage(
+        $"{letter.SenderName} notices you prioritized other letters over theirs.",
+        SystemMessageTypes.Warning
+    );
+}
+```
+
+### 7. TravelManager Route Usage Tracking
+
+#### RecordRouteUsage() Method (Lines 272-286)
+**Current**: Silently increments route usage counter
+**Fix Required**:
+```csharp
+public void RecordRouteUsage(string routeId)
+{
+    // existing usage tracking...
+    
+    // ADD: Narrative about gaining route familiarity
+    if (route.UsageCount % 5 == 0) // Every 5 uses
+    {
+        _messageSystem.AddSystemMessage(
+            $"You're becoming more familiar with the {route.DisplayName} route.",
+            SystemMessageTypes.Info
+        );
+    }
+}
+```
+
+### 8. Player State Direct Modifications
+
+#### Various Methods
+**Current**: Direct modifications like `_gameWorld.GetPlayer().ModifyCoins()` without feedback
+**Fix Required**: Add MessageSystem feedback for all direct state changes:
+```csharp
+// Example for coin changes
+player.ModifyCoins(-cost);
+_messageSystem.AddSystemMessage(
+    $"Paid {cost} coins for {reason}.",
+    SystemMessageTypes.Info
+);
+
+// Example for stamina changes
+player.SpendStamina(amount);
+_messageSystem.AddSystemMessage(
+    $"The journey takes its toll. (-{amount} stamina)",
+    SystemMessageTypes.Warning
+);
+```
+
 ## Implementation Priority
 
-1. **CRITICAL - Token Changes**: Fix all silent token modifications first
-2. **HIGH - Queue Operations**: Add feedback for all queue manipulations  
+1. **CRITICAL - Queue Operations**: Fix `ShiftQueueUp()` and `GenerateDailyLetters()` first
+2. **HIGH - Letter History**: Add feedback for `RecordLetterDelivery()` and `RecordLetterSkip()`
 3. **HIGH - Time Transitions**: Create narrative time passage system
-4. **MEDIUM - Offer Generation**: Add rich context for letter offers
+4. **MEDIUM - Route Usage**: Add familiarity feedback for route tracking
 5. **MEDIUM - Obligation Warnings**: Implement approaching deadline warnings
+6. **LOW - Player State Changes**: Add feedback for all direct modifications
 
 ## New System: NarrativeService
 

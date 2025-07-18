@@ -80,7 +80,10 @@ public static class ServiceConfiguration
         services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<NetworkUnlockManager>();
         services.AddSingleton<NPCLetterOfferService>();
+        services.AddSingleton<PatronLetterService>();
+        services.AddSingleton<NetworkReferralService>();
         services.AddSingleton<MorningActivitiesManager>();
+        services.AddSingleton<LetterCarryingManager>();
 
         services.AddScoped<MusicService>();
 
