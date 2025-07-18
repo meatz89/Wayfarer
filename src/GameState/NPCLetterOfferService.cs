@@ -88,6 +88,7 @@ public class NPCLetterOfferService
             // Only generate offer if player has enough relationship with this token type
             if (tokensOfType >= 3) // Basic threshold for any offers
             {
+                // Pass tokens of this specific type, not total tokens
                 var offer = CreateLetterOffer(npc, letterType, tokensOfType);
                 if (offer != null)
                 {
@@ -142,13 +143,13 @@ public class NPCLetterOfferService
     /// <summary>
     /// Create a letter offer from an NPC to the player.
     /// </summary>
-    private LetterOffer CreateLetterOffer(NPC npc, ConnectionType letterType, int totalConnections)
+    private LetterOffer CreateLetterOffer(NPC npc, ConnectionType letterType, int tokensOfType)
     {
         // Get appropriate letter templates for this type
         var allTemplates = _letterTemplateRepository.GetTemplatesByTokenType(letterType);
         
         // Filter templates by token threshold - player must have enough tokens to unlock each category
-        var availableTemplates = allTemplates.Where(t => totalConnections >= t.MinTokensRequired).ToList();
+        var availableTemplates = allTemplates.Where(t => tokensOfType >= t.MinTokensRequired).ToList();
         
         if (!availableTemplates.Any())
         {
@@ -165,14 +166,14 @@ public class NPCLetterOfferService
         var template = templatesByCategory[_random.Next(templatesByCategory.Count)];
         
         // Create personal message based on NPC and relationship level
-        var message = CreatePersonalMessage(npc, letterType, totalConnections);
+        var message = CreatePersonalMessage(npc, letterType, tokensOfType);
         
         // Payment comes directly from template ranges - no modifiers!
         var payment = _random.Next(template.MinPayment, template.MaxPayment + 1);
         
         // Calculate deadline - Direct Approaches tend to be more generous
         var baseDeadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1);
-        var deadlineBonus = totalConnections >= 5 ? 1 : 0; // +1 day for 5+ connections
+        var deadlineBonus = tokensOfType >= 5 ? 1 : 0; // +1 day for 5+ connections
         var finalDeadline = baseDeadline + deadlineBonus;
 
         return new LetterOffer
@@ -193,12 +194,12 @@ public class NPCLetterOfferService
     /// <summary>
     /// Create a personal message for the letter offer.
     /// </summary>
-    private string CreatePersonalMessage(NPC npc, ConnectionType letterType, int totalConnections)
+    private string CreatePersonalMessage(NPC npc, ConnectionType letterType, int tokensOfType)
     {
         var messages = new List<string>();
         
         // Personal messages based on relationship strength
-        if (totalConnections >= 5)
+        if (tokensOfType >= 5)
         {
             messages.AddRange(new[]
             {

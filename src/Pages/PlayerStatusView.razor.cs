@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 
+namespace Wayfarer.Pages
+{
+
 public class PlayerStatusViewBase : ComponentBase
 {
     [Inject] public GameWorld GameWorld { get; set; }
@@ -8,6 +11,7 @@ public class PlayerStatusViewBase : ComponentBase
     [Inject] public LocationRepository LocationRepository { get; set; }
     [Inject] public RouteRepository RouteRepository { get; set; }
     [Inject] public NavigationManager NavigationManager { get; set; }
+    [Inject] public LetterCarryingManager LetterCarryingManager { get; set; }
 
     [Parameter] public EventCallback OnClose { get; set; }
 
@@ -270,6 +274,11 @@ public class PlayerStatusViewBase : ComponentBase
             _ => "⭐"
         };
     }
+
+    public LetterCarryingManager GetLetterCarryingManager()
+    {
+        return LetterCarryingManager;
+    }
 }
 
 // Supporting classes for player strategic overview
@@ -289,3 +298,5 @@ public class TimeAwarenessAnalysis
     public string CurrentStatus { get; set; } = "";
     public string Recommendation { get; set; } = "";
 }
+
+} // namespace Wayfarer.Pages

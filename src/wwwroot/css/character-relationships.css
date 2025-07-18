@@ -236,6 +236,27 @@
     font-weight: bold;
 }
 
+/* Token Type Categories */
+.token-type-categories {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+.token-type-categories h5 {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.token-item.neutral {
+    opacity: 0.6;
+}
+
 /* Relationship Status */
 .relationship-status {
     margin-top: 0.75rem;

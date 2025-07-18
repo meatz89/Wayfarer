@@ -29,7 +29,10 @@ public class LetterTemplateFactory
         IEnumerable<NPC> possibleSenders = null,
         IEnumerable<NPC> possibleRecipients = null,
         IEnumerable<string> unlocksLetterIds = null,
-        bool isChainLetter = false)
+        bool isChainLetter = false,
+        LetterSize size = LetterSize.Medium,
+        LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
+        ItemCategory? requiredEquipment = null)
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
@@ -58,7 +61,10 @@ public class LetterTemplateFactory
             PossibleSenders = possibleSenders?.Select(npc => npc.ID).ToArray() ?? new string[0],
             PossibleRecipients = possibleRecipients?.Select(npc => npc.ID).ToArray() ?? new string[0],
             UnlocksLetterIds = unlocksLetterIds?.ToArray() ?? new string[0],
-            IsChainLetter = isChainLetter
+            IsChainLetter = isChainLetter,
+            Size = size,
+            PhysicalProperties = physicalProperties,
+            RequiredEquipment = requiredEquipment
         };
         
         return template;
@@ -81,7 +87,10 @@ public class LetterTemplateFactory
         IEnumerable<string> possibleRecipientIds,
         IEnumerable<NPC> availableNPCs,
         IEnumerable<string> unlocksLetterIds = null,
-        bool isChainLetter = false)
+        bool isChainLetter = false,
+        LetterSize size = LetterSize.Medium,
+        LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
+        ItemCategory? requiredEquipment = null)
     {
         // Validate senders
         var senders = new List<NPC>();
@@ -121,6 +130,7 @@ public class LetterTemplateFactory
         
         return CreateLetterTemplate(id, description, tokenType, minDeadline, maxDeadline, 
                                    minPayment, maxPayment, category, minTokensRequired,
-                                   senders, recipients, unlocksLetterIds, isChainLetter);
+                                   senders, recipients, unlocksLetterIds, isChainLetter,
+                                   size, physicalProperties, requiredEquipment);
     }
 }

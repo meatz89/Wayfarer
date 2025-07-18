@@ -11,6 +11,9 @@ public class LocationSpotMapBase : ComponentBase
     [Inject] public CardSelectionService DragDropService { get; set; }
     [Inject] public CardHighlightService CardHighlightService { get; set; }
     [Inject] public NPCLetterOfferService NPCLetterOfferService { get; set; }
+    [Inject] public NetworkReferralService NetworkReferralService { get; set; }
+    [Inject] public ConnectionTokenManager TokenManager { get; set; }
+    [Inject] public MessageSystem MessageSystem { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
@@ -315,6 +318,32 @@ public class LocationSpotMapBase : ComponentBase
             ConnectionType.Shadow => "🖤",
             _ => "⚪"
         };
+    }
+    
+    /// <summary>
+    /// Check if player can request referral from NPC
+    /// </summary>
+    public bool CanRequestReferral(NPC npc)
+    {
+        // Need at least 1 token with the NPC to ask for referrals
+        return TokenManager.HasTokensWithNPC(npc.ID, 1);
+    }
+    
+    /// <summary>
+    /// Request network referral from NPC
+    /// </summary>
+    public async Task RequestReferral(string npcId)
+    {
+        var referral = NetworkReferralService.RequestReferral(npcId);
+        if (referral != null)
+        {
+            MessageSystem.AddSystemMessage($"Received introduction to {referral.TargetNPCName}!", SystemMessageTypes.Success);
+            StateHasChanged();
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage($"Cannot get referral: insufficient tokens or no contacts available", SystemMessageTypes.Warning);
+        }
     }
 
 }

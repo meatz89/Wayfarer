@@ -99,6 +99,58 @@ public class ConnectionTokenManager
         return false;
     }
     
+    // Spend tokens with specific NPC context (for queue manipulation)
+    public bool SpendTokensWithNPC(ConnectionType type, int count, string npcId)
+    {
+        if (count <= 0) return true;
+        if (string.IsNullOrEmpty(npcId)) return SpendTokens(type, count); // Fallback to general spending
+        
+        var player = _gameWorld.GetPlayer();
+        var playerTokens = player.ConnectionTokens;
+        
+        // Check if player has enough total tokens
+        if (playerTokens.GetValueOrDefault(type) < count)
+        {
+            return false;
+        }
+        
+        // Ensure NPC token tracking exists
+        if (!player.NPCTokens.ContainsKey(npcId))
+        {
+            player.NPCTokens[npcId] = new Dictionary<ConnectionType, int>();
+            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+            {
+                player.NPCTokens[npcId][tokenType] = 0;
+            }
+        }
+        
+        // Spend from player total
+        playerTokens[type] -= count;
+        
+        // Also reduce from NPC relationship (can go negative)
+        player.NPCTokens[npcId][type] -= count;
+        
+        // Add narrative feedback
+        var npc = _npcRepository.GetNPCById(npcId);
+        if (npc != null)
+        {
+            _messageSystem.AddSystemMessage(
+                $"You call in {count} {type} favor{(count > 1 ? "s" : "")} with {npc.Name}.",
+                SystemMessageTypes.Info
+            );
+            
+            if (player.NPCTokens[npcId][type] < 0)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"You now owe {npc.Name} for this favor.",
+                    SystemMessageTypes.Warning
+                );
+            }
+        }
+        
+        return true;
+    }
+    
     // Check if player has enough tokens
     public bool HasTokens(ConnectionType type, int count)
     {
@@ -301,5 +353,14 @@ public class ConnectionTokenManager
         {
             _messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
         }
+    }
+    
+    /// <summary>
+    /// Check if player has at least the specified number of tokens with an NPC.
+    /// </summary>
+    public bool HasTokensWithNPC(string npcId, int minTokens)
+    {
+        var npcTokens = GetTokensWithNPC(npcId);
+        return npcTokens.Values.Sum() >= minTokens;
     }
 }

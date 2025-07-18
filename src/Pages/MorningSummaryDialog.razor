@@ -38,6 +38,20 @@
                     </div>
                 }
                 
+                @if (MorningResult.PatronLetterCount > 0)
+                {
+                    <div class="event-section patron-letters">
+                        <h3>🏵️ Patron Letter</h3>
+                        @foreach (var evt in MorningManager.MorningEvents.Where(e => e.Type == MorningEventType.PatronLetterAdded))
+                        {
+                            <div class="event-item patron">
+                                <p>@evt.Description</p>
+                                <p class="patron-mystery">Your patron's motives remain unclear...</p>
+                            </div>
+                        }
+                    </div>
+                }
+                
                 @if (MorningResult.UrgentLetterCount > 0)
                 {
                     <div class="event-section urgent-warnings">

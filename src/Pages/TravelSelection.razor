@@ -41,6 +41,34 @@
                     }
                 </div>
             </div>
+            @{
+                var letterCarryingManager = GetLetterCarryingManager();
+                var carriedLetters = GameWorld.GetPlayer().CarriedLetters;
+                var letterPenalties = letterCarryingManager?.GetMovementPenalties() ?? new List<string>();
+                var hasHeavyLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy)) ?? false;
+                var hasFragileLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Fragile)) ?? false;
+            }
+            @if (carriedLetters != null && carriedLetters.Any())
+            {
+                <div class="resource-block letter-block">
+                    <span class="resource-icon">📬</span>
+                    <div class="resource-info">
+                        <span class="resource-main">@carriedLetters.Count letter@(carriedLetters.Count != 1 ? "s" : "") carried</span>
+                        @if (hasHeavyLetters)
+                        {
+                            <span class="resource-detail warning">Heavy letters +1 stamina cost</span>
+                        }
+                        else if (letterPenalties.Any())
+                        {
+                            <span class="resource-detail warning">@letterPenalties.First()</span>
+                        }
+                        else
+                        {
+                            <span class="resource-detail">No letter penalties</span>
+                        }
+                    </div>
+                </div>
+            }
             <div class="resource-block equipment-block">
                 <span class="resource-icon">🛠️</span>
                 <div class="resource-info">
@@ -76,8 +104,10 @@
                     @foreach (var route in unlockedRoutes)
                     {
                         var coinCost = TravelManager.CalculateCoinCost(route);
-                        var staminaCost = TravelManager.CalculateStaminaCost(route);
-                        var canAfford = TravelManager.CanTravel(route);
+                        var routeStaminaCost = TravelManager.CalculateStaminaCost(route);
+                        var letterStaminaPenalty = (hasHeavyLetters ? 1 : 0);
+                        var staminaCost = routeStaminaCost + letterStaminaPenalty;
+                        var canAfford = TravelManager.CanTravel(route) && GameWorld.GetPlayer().Stamina >= staminaCost;
                         var accessInfo = TravelManager.GetRouteAccessInfo(route);
                         var isBlocked = !accessInfo.IsAllowed;
                         
@@ -92,7 +122,13 @@
                                 </div>
                                 <div class="route-costs">
                                     <span class="cost-item @(GameWorld.GetPlayer().Coins < coinCost ? "insufficient" : "")">💰 @coinCost</span>
-                                    <span class="cost-item @(GameWorld.GetPlayer().Stamina < staminaCost ? "insufficient" : "")">⚡ @staminaCost</span>
+                                    <span class="cost-item @(GameWorld.GetPlayer().Stamina < staminaCost ? "insufficient" : "")">
+                                        ⚡ @staminaCost
+                                        @if (letterStaminaPenalty > 0)
+                                        {
+                                            <span class="penalty-note">(+@letterStaminaPenalty heavy)</span>
+                                        }
+                                    </span>
                                 </div>
                             </div>
                             
@@ -135,6 +171,11 @@
                                 {
                                     <div class="route-warning">⚠️ @warning</div>
                                 }
+                            }
+                            @if (hasFragileLetters && (route.TerrainCategories.Contains(TerrainCategory.Requires_Climbing) || 
+                                                      route.TerrainCategories.Contains(TerrainCategory.Wilderness_Terrain)))
+                            {
+                                <div class="route-warning">⚠️ Fragile letters at risk on this route!</div>
                             }
                             @if (!string.IsNullOrEmpty(route.Description))
                             {

@@ -20,13 +20,17 @@
                 <div class="slot-number">[@position]</div>
                 @if (letter != null)
                 {
-                    <div class="letter-card">
+                    <div class="letter-card @(letter.IsPatronLetter ? "patron-letter" : "")">
                         <div class="letter-header">
+                            @if (letter.IsPatronLetter)
+                            {
+                                <span class="patron-seal" title="Patron Letter">🏵️</span>
+                            }
                             <span class="token-icon">@letter.GetTokenTypeIcon()</span>
                             <span class="letter-type">@letter.TokenType</span>
                         </div>
                         <div class="letter-route">
-                            <span class="sender">@letter.SenderName</span>
+                            <span class="sender @(letter.IsPatronLetter ? "patron-sender" : "")">@letter.SenderName</span>
                             <span class="arrow">→</span>
                             <span class="recipient">@letter.RecipientName</span>
                         </div>
@@ -35,6 +39,15 @@
                                 @GetDeadlineWarningIcon(letter.Deadline) @GetDeadlineDescription(letter.Deadline)
                             </div>
                             <div class="payment">@letter.Payment coins</div>
+                            <div class="letter-size" title="@GetLetterSizeTooltip(letter)">
+                                @GetLetterSizeIcon(letter.Size) @letter.Size
+                            </div>
+                            @if (letter.PhysicalProperties != LetterPhysicalProperties.None)
+                            {
+                                <div class="physical-properties" title="@letter.GetPhysicalConstraintsDescription()">
+                                    @GetPhysicalPropertiesIcon(letter.PhysicalProperties)
+                                </div>
+                            }
                         </div>
                         @if (position == 1)
                         {
@@ -465,6 +478,35 @@
             2 => "Due in 2 days",
             _ => $"Due in {deadline} days"
         };
+    }
+    
+    private string GetLetterSizeIcon(LetterSize size)
+    {
+        return size switch
+        {
+            LetterSize.Small => "📄",
+            LetterSize.Medium => "📦",
+            LetterSize.Large => "📦",
+            _ => "📦"
+        };
+    }
+    
+    private string GetLetterSizeTooltip(Letter letter)
+    {
+        var slots = letter.GetRequiredSlots();
+        return $"{letter.Size} letter - Requires {slots} inventory slot{(slots > 1 ? "s" : "")}";
+    }
+    
+    private string GetPhysicalPropertiesIcon(LetterPhysicalProperties properties)
+    {
+        // Show the most important property icon
+        if (properties.HasFlag(LetterPhysicalProperties.Fragile)) return "🔮";
+        if (properties.HasFlag(LetterPhysicalProperties.Heavy)) return "⚖️";
+        if (properties.HasFlag(LetterPhysicalProperties.Perishable)) return "🍃";
+        if (properties.HasFlag(LetterPhysicalProperties.Valuable)) return "💎";
+        if (properties.HasFlag(LetterPhysicalProperties.RequiresProtection)) return "☔";
+        if (properties.HasFlag(LetterPhysicalProperties.Bulky)) return "📏";
+        return "📋";
     }
     
     // Queue manipulation UI methods

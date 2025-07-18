@@ -3,6 +3,7 @@
 @inject StandingObligationManager ObligationManager
 @inject NPCRepository NPCRepository
 @inject ConnectionTokenManager ConnectionTokenManager
+@inject LetterTemplateRepository LetterTemplateRepository
 
 @if (NPC != null && AllOffers != null && AllOffers.Any())
 {
@@ -23,6 +24,7 @@
                             <div class="offer-type">
                                 <span class="token-icon @GetTokenTypeClass(offer.LetterType)">@GetTokenIcon(offer.LetterType)</span>
                                 <span class="token-name">@offer.LetterType Letter</span>
+                                <span class="letter-category @GetCategoryClass(offer.Category)">[@offer.Category]</span>
                             </div>
                             @if (offer.GeneratedDay > 0)
                             {
@@ -59,6 +61,23 @@
                                 <span class="label">Deadline:</span>
                                 <span class="value @GetDeadlineClass(offer.Deadline)">@offer.Deadline days</span>
                             </div>
+                            @{
+                                var template = LetterTemplateRepository.GetTemplateById(offer.TemplateId);
+                                if (template != null)
+                                {
+                                    <div class="letter-size">
+                                        <span class="label">Size:</span>
+                                        <span class="value">@GetLetterSizeIcon(template.Size) @template.Size (@GetRequiredSlots(template.Size) slot@(GetRequiredSlots(template.Size) > 1 ? "s" : ""))</span>
+                                    </div>
+                                    @if (template.PhysicalProperties != LetterPhysicalProperties.None || template.RequiredEquipment.HasValue)
+                                    {
+                                        <div class="physical-constraints">
+                                            <span class="label">Requirements:</span>
+                                            <span class="value">@GetPhysicalConstraintsDescription(template)</span>
+                                        </div>
+                                    }
+                                }
+                            }
                         </div>
                         
                         <button class="select-offer-btn" @onclick="() => SelectOffer(offer)">
@@ -207,5 +226,61 @@
             ConnectionType.Shadow => "🖤",
             _ => "❓"
         };
+    }
+    
+    private string GetCategoryClass(LetterCategory category)
+    {
+        return category switch
+        {
+            LetterCategory.Basic => "category-basic",
+            LetterCategory.Quality => "category-quality",
+            LetterCategory.Premium => "category-premium",
+            _ => ""
+        };
+    }
+    
+    private string GetLetterSizeIcon(LetterSize size)
+    {
+        return size switch
+        {
+            LetterSize.Small => "📄",
+            LetterSize.Medium => "📦",
+            LetterSize.Large => "📦",
+            _ => "📦"
+        };
+    }
+    
+    private int GetRequiredSlots(LetterSize size)
+    {
+        return size switch
+        {
+            LetterSize.Small => 1,
+            LetterSize.Medium => 2,
+            LetterSize.Large => 3,
+            _ => 2
+        };
+    }
+    
+    private string GetPhysicalConstraintsDescription(LetterTemplate template)
+    {
+        var constraints = new List<string>();
+        
+        if (template.PhysicalProperties.HasFlag(LetterPhysicalProperties.Fragile))
+            constraints.Add("Fragile");
+        if (template.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy))
+            constraints.Add("Heavy");
+        if (template.PhysicalProperties.HasFlag(LetterPhysicalProperties.Perishable))
+            constraints.Add("Perishable");
+        if (template.PhysicalProperties.HasFlag(LetterPhysicalProperties.Valuable))
+            constraints.Add("Valuable");
+        if (template.PhysicalProperties.HasFlag(LetterPhysicalProperties.Bulky))
+            constraints.Add("Bulky");
+        if (template.PhysicalProperties.HasFlag(LetterPhysicalProperties.RequiresProtection))
+            constraints.Add("Needs protection");
+            
+        if (template.RequiredEquipment.HasValue)
+            constraints.Add($"Requires {template.RequiredEquipment.Value.ToString().Replace("_", " ")}");
+            
+        return constraints.Any() ? string.Join(", ", constraints) : "None";
     }
 }

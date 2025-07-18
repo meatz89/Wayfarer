@@ -75,6 +75,9 @@
     public Dictionary<ConnectionType, int> ConnectionTokens { get; private set; } = new Dictionary<ConnectionType, int>();
     public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
     
+    // Physical Letter Carrying
+    public List<Letter> CarriedLetters { get; private set; } = new List<Letter>(); // Letters physically in inventory for delivery
+    
     // Queue manipulation tracking
     public int LastMorningSwapDay { get; set; } = -1; // Track when morning swap was last used
     public int LastLetterBoardDay { get; set; } = -1; // Track when letter board was last generated

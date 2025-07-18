@@ -1083,6 +1083,48 @@ public class GameWorldInitializer : IGameWorldFactory
                     // Get minimum tokens required
                     int minTokensRequired = dto.MinTokensRequired ?? 3;
                     
+                    // Parse letter size
+                    var size = LetterSize.Medium;
+                    if (!string.IsNullOrEmpty(dto.Size))
+                    {
+                        if (!Enum.TryParse<LetterSize>(dto.Size, out size))
+                        {
+                            Console.WriteLine($"WARNING: Unknown letter size '{dto.Size}' for template '{dto.Id}', defaulting to Medium");
+                            size = LetterSize.Medium;
+                        }
+                    }
+                    
+                    // Parse physical properties
+                    var physicalProperties = LetterPhysicalProperties.None;
+                    if (dto.PhysicalProperties != null && dto.PhysicalProperties.Any())
+                    {
+                        foreach (var prop in dto.PhysicalProperties)
+                        {
+                            if (Enum.TryParse<LetterPhysicalProperties>(prop, out var propEnum))
+                            {
+                                physicalProperties |= propEnum;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"WARNING: Unknown physical property '{prop}' for template '{dto.Id}'");
+                            }
+                        }
+                    }
+                    
+                    // Parse required equipment
+                    ItemCategory? requiredEquipment = null;
+                    if (!string.IsNullOrEmpty(dto.RequiredEquipment))
+                    {
+                        if (Enum.TryParse<ItemCategory>(dto.RequiredEquipment, out var equipment))
+                        {
+                            requiredEquipment = equipment;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"WARNING: Unknown equipment category '{dto.RequiredEquipment}' for template '{dto.Id}'");
+                        }
+                    }
+                    
                     var template = _letterTemplateFactory.CreateLetterTemplateFromIds(
                         dto.Id,
                         dto.Description,
@@ -1097,7 +1139,10 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.PossibleRecipients,
                         availableNPCs,
                         dto.UnlocksLetterIds,
-                        dto.IsChainLetter);
+                        dto.IsChainLetter,
+                        size,
+                        physicalProperties,
+                        requiredEquipment);
                     
                     templates.Add(template);
                 }

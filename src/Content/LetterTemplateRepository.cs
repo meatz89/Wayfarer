@@ -86,7 +86,11 @@ public class LetterTemplateRepository
             RecipientName = recipientName,
             TokenType = template.TokenType,
             Deadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1),
-            Payment = _random.Next(template.MinPayment, template.MaxPayment + 1)
+            Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
+            Size = template.Size,
+            PhysicalProperties = template.PhysicalProperties,
+            RequiredEquipment = template.RequiredEquipment,
+            Description = template.Description
         };
 
         return letter;
@@ -119,7 +123,11 @@ public class LetterTemplateRepository
             Deadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1),
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
             IsGenerated = true,
-            GenerationReason = $"Forced from template: {template.Id}"
+            GenerationReason = $"Forced from template: {template.Id}",
+            Size = template.Size,
+            PhysicalProperties = template.PhysicalProperties,
+            RequiredEquipment = template.RequiredEquipment,
+            Description = template.Description
         };
 
         return letter;

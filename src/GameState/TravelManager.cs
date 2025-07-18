@@ -74,7 +74,8 @@
         _gameWorld.GetPlayer().SpendStamina(adjustedStaminaCost);
 
         // Record route usage for discovery mechanics
-        RecordRouteUsage(selectedRoute.Id);
+        // Route usage counting removed - violates NO USAGE COUNTERS principle
+        // Routes are discovered through NPC relationships and token spending
 
         // Advance time
         _timeManager.AdvanceTime(selectedRoute.TravelTimeHours);
@@ -266,57 +267,11 @@
         return $"Inventory: {usedSlots}/{maxSlots} slots used{transportInfo}";
     }
 
-    /// <summary>
-    /// Record route usage for discovery mechanics
-    /// </summary>
-    public void RecordRouteUsage(string routeId)
-    {
-        // Find the route and increment usage count
-        foreach (Location location in LocationRepository.GetAllLocations())
-        {
-            foreach (LocationConnection connection in location.Connections)
-            {
-                foreach (RouteOption route in connection.RouteOptions)
-                {
-                    if (route.Id == routeId)
-                    {
-                        route.UsageCount++;
+    // REMOVED: RecordRouteUsage violated NO USAGE COUNTERS principle
+    // Routes are discovered through NPC relationships and token spending, not usage counting
 
-                        // Check if this unlocks any new routes
-                        CheckForRouteUnlocks(route);
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Check if route usage unlocks new routes
-    /// </summary>
-    private void CheckForRouteUnlocks(RouteOption usedRoute)
-    {
-        foreach (Location location in LocationRepository.GetAllLocations())
-        {
-            foreach (LocationConnection connection in location.Connections)
-            {
-                foreach (RouteOption route in connection.RouteOptions)
-                {
-                    if (!route.IsDiscovered && route.UnlockCondition != null)
-                    {
-                        RouteUnlockCondition condition = route.UnlockCondition;
-
-                        // Check if required route usage count is met
-                        if (condition.RequiredRouteUsage == usedRoute.Id &&
-                            usedRoute.UsageCount >= condition.RequiredUsageCount)
-                        {
-                            route.IsDiscovered = true;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // REMOVED: CheckForRouteUnlocks violated NO USAGE COUNTERS principle
+    // Routes are discovered through RouteDiscoveryManager and NPC relationships
 
 
 }

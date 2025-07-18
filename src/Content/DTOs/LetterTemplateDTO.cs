@@ -25,4 +25,9 @@ public class LetterTemplateDTO
     // Letter chain properties
     public List<string> UnlocksLetterIds { get; set; }
     public bool IsChainLetter { get; set; }
+    
+    // Physical properties
+    public string Size { get; set; } = "Medium";
+    public List<string> PhysicalProperties { get; set; }
+    public string RequiredEquipment { get; set; }
 }

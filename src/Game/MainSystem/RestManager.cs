@@ -125,6 +125,7 @@
     public void Rest(RestOption option)
     {
         Player player = gameWorld.GetPlayer();
+        var currentLocation = player.CurrentLocation;
 
         // Validate time block availability
         // Check if we have enough hours left in the day
@@ -133,17 +134,64 @@
             throw new InvalidOperationException($"Cannot rest: Not enough time remaining in the day. Rest requires {option.RestTimeHours} hours.");
         }
 
-        // Deduct cost
-        player.ModifyCoins(-option.CoinCost);
+        // Show the rest beginning
+        messageSystem.AddSystemMessage(
+            $"🛌 {option.Name} at {currentLocation.Name}...",
+            SystemMessageTypes.Info
+        );
+        
+        // Deduct cost with narrative
+        if (option.CoinCost > 0)
+        {
+            player.ModifyCoins(-option.CoinCost);
+            messageSystem.AddSystemMessage(
+                $"  • Paid {option.CoinCost} coins for accommodations",
+                SystemMessageTypes.Info
+            );
+        }
 
         // Resting takes time
         timeManager.AdvanceTime(option.RestTimeHours);
+        messageSystem.AddSystemMessage(
+            $"  • {option.RestTimeHours} hours pass...",
+            SystemMessageTypes.Info
+        );
 
-        // Recover stamina
+        // Recover stamina with narrative
+        int oldStamina = player.Stamina;
         player.Stamina += option.StaminaRecovery;
         if (player.Stamina > player.MaxStamina)
         {
             player.Stamina = player.MaxStamina;
+        }
+        
+        int staminaGained = player.Stamina - oldStamina;
+        messageSystem.AddSystemMessage(
+            $"💪 Recovered {staminaGained} stamina (now {player.Stamina}/{player.MaxStamina})",
+            SystemMessageTypes.Success
+        );
+        
+        // Describe the rest quality
+        if (option.StaminaRecovery >= 8)
+        {
+            messageSystem.AddSystemMessage(
+                $"  • You feel completely refreshed after a good night's sleep.",
+                SystemMessageTypes.Success
+            );
+        }
+        else if (option.StaminaRecovery >= 4)
+        {
+            messageSystem.AddSystemMessage(
+                $"  • The rest helps, though you could use more sleep.",
+                SystemMessageTypes.Info
+            );
+        }
+        else
+        {
+            messageSystem.AddSystemMessage(
+                $"  • A brief rest, but exhaustion still lingers.",
+                SystemMessageTypes.Warning
+            );
         }
 
         // Cleanse contraband if applicable

@@ -1853,3 +1853,121 @@
     color: var(--text-muted);
     font-style: italic;
 }
+
+/* Network Referral UI Styles */
+.npc-referral-option {
+	margin-top: 12px;
+	padding: 10px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	border-left: 4px solid var(--trade-blue);
+}
+
+.npc-referral-option h4 {
+	font-family: var(--font-primary);
+	color: var(--text-primary);
+	font-size: 0.9rem;
+	margin: 0 0 8px 0;
+	font-weight: 600;
+}
+
+.referral-description {
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+	margin-bottom: 10px;
+}
+
+.referral-button {
+	background-color: var(--leather);
+	color: var(--parchment);
+	border: none;
+	border-radius: 4px;
+	padding: 6px 12px;
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	width: 100%;
+}
+
+.referral-button:hover {
+	background-color: var(--oak-dark);
+	transform: translateY(-1px);
+}
+
+/* Carried Letters Section */
+.status-section.carried-letters {
+	background-color: var(--bg-card);
+}
+
+.carrying-status {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+	padding: 0.5rem;
+	background-color: var(--bg-panel);
+	border-radius: 4px;
+	border: 1px solid var(--oak-mid);
+}
+
+.carrying-label {
+	color: var(--text-secondary);
+	font-size: 0.9rem;
+}
+
+.carrying-value {
+	color: var(--text-primary);
+	font-weight: 600;
+}
+
+.carried-letters-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.carried-letter-item {
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 0.75rem;
+	transition: all 0.2s ease;
+}
+
+.carried-letter-item:hover {
+	border-color: var(--leather);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.carried-letter-item .letter-info {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.25rem;
+}
+
+.carried-letter-item .letter-route {
+	color: var(--text-primary);
+	font-weight: 500;
+	font-size: 0.9rem;
+}
+
+.carried-letter-item .letter-size {
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+}
+
+.carried-letter-item .letter-properties {
+	color: var(--special);
+	font-size: 0.8rem;
+	font-style: italic;
+	margin-left: 0.5rem;
+}
+
+.no-carried-letters {
+	text-align: center;
+	color: var(--text-muted);
+	font-style: italic;
+	padding: 1.5rem;
+}

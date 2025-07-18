@@ -152,6 +152,45 @@
             </div>
         </div>
 
+        @* Carried Letters Section *@
+        <div class="status-section carried-letters">
+            <h3 class="section-title">Carried Letters</h3>
+            @{
+                var carriedLetters = PlayerState.CarriedLetters;
+                var letterCarryingManager = GetLetterCarryingManager();
+                var usedLetterSlots = letterCarryingManager?.GetUsedLetterSlots() ?? 0;
+                var availableSlots = letterCarryingManager?.GetAvailableCarryingCapacity() ?? 0;
+            }
+            <div class="carrying-status">
+                <span class="carrying-label">Letter Capacity:</span>
+                <span class="carrying-value">@usedLetterSlots / @(usedLetterSlots + availableSlots) slots used</span>
+            </div>
+            @if (carriedLetters != null && carriedLetters.Any())
+            {
+                <div class="carried-letters-list">
+                    @foreach (var letter in carriedLetters)
+                    {
+                        <div class="carried-letter-item">
+                            <div class="letter-info">
+                                <span class="letter-route">@letter.SenderName → @letter.RecipientName</span>
+                                <span class="letter-size">(@letter.Size: @letter.GetRequiredSlots() slot@(letter.GetRequiredSlots() > 1 ? "s" : ""))</span>
+                            </div>
+                            @if (letter.PhysicalProperties != LetterPhysicalProperties.None)
+                            {
+                                <div class="letter-properties">
+                                    @letter.GetPhysicalConstraintsDescription()
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-carried-letters">No letters currently carried</div>
+            }
+        </div>
+
         @* Equipment Effects Section *@
         <div class="status-section equipment-effects">
             <h3 class="section-title">Equipment Capabilities</h3>

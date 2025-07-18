@@ -142,7 +142,7 @@ public class RelationshipDamageTests
             // Assert
             var messages = _messageSystem.GetAndClearChanges();
             Assert.Contains(messages.SystemMessages, m => 
-                m.Message.Contains("Letter from Lord Ashford expired") && 
+                m.Message.Contains("Lord Ashford's letter has expired") && 
                 m.Type == SystemMessageTypes.Danger);
         }
         
