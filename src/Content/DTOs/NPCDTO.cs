@@ -15,7 +15,7 @@ public class NPCDTO
     public string Personality { get; set; }
     public List<string> Services { get; set; } = new List<string>();
     public List<string> ContractCategories { get; set; } = new List<string>();
-    public string LetterTokenType { get; set; }
+    public List<string> LetterTokenTypes { get; set; } = new List<string>();
     public string Role { get; set; }
     public string AvailabilitySchedule { get; set; }
 }

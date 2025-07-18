@@ -19,7 +19,7 @@ public class NPC
     public List<string> ContractCategories { get; set; } = new List<string>();
     
     // Letter Queue Properties
-    public ConnectionType? LetterTokenType { get; set; }
+    public List<ConnectionType> LetterTokenTypes { get; set; } = new List<ConnectionType>();
 
     // Helper methods for UI display
     public string ProfessionDescription

@@ -189,7 +189,7 @@ The entire game emerges from three interconnected systems:
 ### **Time Pressure Cascade**
 **Multiple Deadlines → Queue Order Constraints → Route Optimization → Resource Allocation → Relationship Consequences → Future Opportunities**
 - Mathematical constraints emerge from simple rules
-- Players must choose between competing priorities
+- Player must choose between competing priorities
 - Natural consequences create strategic depth
 
 ### **Obligation Transformation**
@@ -326,7 +326,7 @@ The entire game emerges from three interconnected systems:
 - Emergency priority costs 5 Trade tokens (all reserves)
 
 **Player Agency**: All options available, but each has clear resource costs
-**Emergent Strategy**: Players develop token management strategies based on these recurring patterns
+**Emergent Strategy**: Player develop token management strategies based on these recurring patterns
 
 ### **The Token Specialization Dilemma**
 **Situation**: Built up 6 Trust tokens with Elena, unlocking premium Trust letter category
@@ -344,16 +344,16 @@ The entire game emerges from three interconnected systems:
 ## **Success Metrics**
 
 ### **Emergent Strategy Goals**
-- **Daily Planning**: Players naturally develop queue management routines
+- **Daily Planning**: Player naturally develop queue management routines
 - **Resource Allocation**: Token spending creates genuine strategic decisions
-- **Relationship Investment**: Players care about specific NPCs through repeated interactions
+- **Relationship Investment**: Player care about specific NPCs through repeated interactions
 - **Adaptive Strategy**: Different obligation combinations create unique approaches
 
 ### **Emergent Complexity Indicators**
-- **Natural Specialization**: Players develop token preferences through play
+- **Natural Specialization**: Player develop token preferences through play
 - **Meaningful Progression**: Each obligation changes gameplay permanently
 - **Strategic Depth**: Multiple viable approaches to queue management
-- **Emotional Investment**: Players form attachments to specific relationships
+- **Emotional Investment**: Player form attachments to specific relationships
 
 ### **Mathematical Elegance Validation**
 - **Simple Rules**: Queue order + deadline countdown + token costs
@@ -409,10 +409,12 @@ public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
 
 ### Key Principles:
 - **Per-NPC only** - Each relationship is independent
-- **Choose which to burn** - When spending, pick which NPC relationship to damage
 - **Direct offers** - NPCs with 3+ tokens offer letters directly
 - **Better letters** - Token thresholds unlock better letter categories
 - **Network unlocks** - Strong relationships introduce you to new NPCs
+- **Social pigeonholing** - Specializing creates letter type dominance (Shadow rep = Shadow queue)
+- **Redemption requires sacrifice** - Breaking patterns means failing deliveries and losing tokens
+- **Patron disruption** - Patron letters jump to slots 1-3, disrupting all your plans
 
 ### How NPCs Offer Letters:
 - **0-2 tokens**: No direct offers (don't know you well)
@@ -454,7 +456,7 @@ River Worker (Trade AND Shadow NPC):
 Based on the "Dude, Let Me Tell You About Wayfarer" vision, here's the critical path to achieving the complete experience:
 
 ### **Phase 2: Network Referral System - "Player Agency" (3-4 days)**
-**Why Critical**: Players need ways to actively seek letters when queue is light or when they need specific types.
+**Why Critical**: Player need ways to actively seek letters when queue is light or when they need specific types.
 
 **Implementation**:
 - Add "Notice Board" action at major locations
@@ -525,7 +527,7 @@ Based on the "Dude, Let Me Tell You About Wayfarer" vision, here's the critical 
 
 **Current Implementation Issues**:
 - Letter requests are location-based actions in `actions.json`
-- Players actively request letters from NPCs (wrong paradigm)
+- Player actively request letters from NPCs (wrong paradigm)
 - No relationship requirements for accessing letter requests
 - Poor connection between NPCs and the letter types they can provide
 - Mechanical action selection rather than personal NPC interaction
@@ -534,13 +536,13 @@ Based on the "Dude, Let Me Tell You About Wayfarer" vision, here's the critical 
 - **Direct Approaches**: "NPCs with 3+ connections to you offer private letters" (NPC-initiated)
 - **Morning Posting**: "3-5 letters appear on public boards each morning" (player-initiated from notice board)
 - **Network Referrals**: "Spend 2 connections of any type: 'Anything heading north?'" (player-initiated through notice board system)
-- **Personal Interaction**: NPCs proactively approach players they have relationships with
+- **Personal Interaction**: NPCs proactively approach Player they have relationships with
 
 **CRITICAL CLARIFICATION**: NPC letters should be NPC-initiated (Direct Approaches), not player-initiated requests. Player-initiated letters use the notice board system.
 
 ### **Solution Architecture: NPC-Initiated Letter Ecosystem**
 
-**Core Principle**: Transform the system from player-initiated letter requests to NPC-initiated letter offers, where NPCs with 3+ connections proactively approach players with private letters ("My cousin needs this delivered, I'd only trust you...").
+**Core Principle**: Transform the system from player-initiated letter requests to NPC-initiated letter offers, where NPCs with 3+ connections proactively approach Player with private letters ("My cousin needs this delivered, I'd only trust you...").
 
 ### **Phase 1: Remove Location-Based Actions**
 
@@ -676,7 +678,7 @@ public class NPCLetterOfferService
 ```csharp
 public class NPCLetterOfferManager
 {
-    // NPC-initiated approach - NPCs offer letters to players
+    // NPC-initiated approach - NPCs offer letters to Player
     public List<LetterOffer> GetNPCLetterOffers(string npcId, string playerId)
     {
         // Check relationship level (3+ connections required)
@@ -716,15 +718,15 @@ public class NPCLetterOfferManager
 ### **Success Metrics**
 
 **Relationship Investment Indicators**:
-- Players actively build relationships with specific NPCs to unlock Direct Approaches
+- Player actively build relationships with specific NPCs to unlock Direct Approaches
 - NPCs feel like individual characters who remember and trust the player
 - Strong relationships create valuable letter opportunities
 
 **Personal Interaction Experience**:
 - Letter offers feel like personal conversations and trust
-- NPCs proactively approach players they have relationships with
+- NPCs proactively approach Player they have relationships with
 - No mechanical costs for Direct Approaches - these are gifts from relationships
-- Players feel rewarded for building strong relationships
+- Player feel rewarded for building strong relationships
 
 ### **Implementation Timeline**
 
@@ -736,7 +738,7 @@ public class NPCLetterOfferManager
 ### **Risk Mitigation**
 
 **Potential Issues**:
-- Players might not understand that NPCs now approach them (not vice versa)
+- Player might not understand that NPCs now approach them (not vice versa)
 - NPC offers might feel too frequent or too rare
 - UI integration might feel disconnected from existing systems
 
@@ -760,7 +762,7 @@ This redesign transforms the system from player-initiated letter requests to NPC
 
 **🟡 HIGH PRIORITY: Essential Features**
 - Complete essential UI usability improvements
-- Game must be usable by players after core systems are stable
+- Game must be usable by Player after core systems are stable
 
 **🟢 MEDIUM PRIORITY: Feature Enhancement**
 - Polish and additional features
@@ -769,7 +771,7 @@ This redesign transforms the system from player-initiated letter requests to NPC
 ### **Critical Test Failures to Fix**
 
 1. **Player Location Initialization System** (5 failing tests)
-   - Players cannot be properly initialized in game world
+   - Player cannot be properly initialized in game world
    - Must ensure location and spot are always properly set
 
 2. **NPC Repository System** (3 failing tests)

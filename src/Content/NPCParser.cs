@@ -61,11 +61,15 @@ public static class NPCParser
         List<string> contractCategories = GetStringArray(root, "contractCategories");
         npc.ContractCategories = contractCategories;
 
-        // Parse letter token type for letter queue system
-        string letterTokenTypeStr = GetStringProperty(root, "letterTokenType", "");
-        if (!string.IsNullOrEmpty(letterTokenTypeStr))
+        // Parse letter token types for letter queue system
+        var letterTokenTypes = GetStringArray(root, "letterTokenTypes");
+        foreach (var tokenTypeStr in letterTokenTypes)
         {
-            npc.LetterTokenType = ParseConnectionType(letterTokenTypeStr);
+            var tokenType = ParseConnectionType(tokenTypeStr);
+            if (tokenType.HasValue && !npc.LetterTokenTypes.Contains(tokenType.Value))
+            {
+                npc.LetterTokenTypes.Add(tokenType.Value);
+            }
         }
 
         return npc;

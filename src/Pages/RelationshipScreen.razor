@@ -15,14 +15,20 @@
         {
             <div class="npc-relationship-card">
                 <div class="npc-header">
-                    <span class="npc-icon">@GetTokenIcon(npc.LetterTokenType)</span>
+                    <span class="npc-icon">@GetTokenIcons(npc)</span>
                     <span class="npc-name">@npc.Name</span>
                     <span class="npc-location">@GetLocationName(npc.Location)</span>
                 </div>
                 
                 <div class="npc-tokens">
-                    <span class="token-label">Your @npc.LetterTokenType tokens:</span>
-                    <span class="token-count">@(npc.LetterTokenType.HasValue ? TokenManager.GetTokenCount(npc.LetterTokenType.Value) : 0)</span>
+                    @foreach (var tokenType in npc.LetterTokenTypes)
+                    {
+                        <div class="token-type-row">
+                            <span class="token-icon">@GetTokenIcon(tokenType)</span>
+                            <span class="token-label">@tokenType:</span>
+                            <span class="token-count">@TokenManager.GetTokenCount(tokenType)</span>
+                        </div>
+                    }
                 </div>
                 
                 @if (IsAtNPCLocation(npc))
@@ -65,7 +71,7 @@
         // For minimal POC, return all NPCs
         // In full implementation, track which NPCs player has interacted with
         return NPCRepository.GetAllNPCs()
-            .Where(npc => npc.LetterTokenType != null)
+            .Where(npc => npc.LetterTokenTypes != null && npc.LetterTokenTypes.Any())
             .OrderBy(npc => npc.Name)
             .ToList();
     }
@@ -82,10 +88,8 @@
         return currentLocation != null && currentLocation.Id == npc.Location;
     }
     
-    private string GetTokenIcon(ConnectionType? type)
+    private string GetTokenIcon(ConnectionType type)
     {
-        if (type == null) return "❓";
-        
         return type switch
         {
             ConnectionType.Trust => "❤️",
@@ -95,6 +99,14 @@
             ConnectionType.Shadow => "🌑",
             _ => "❓"
         };
+    }
+    
+    private string GetTokenIcons(NPC npc)
+    {
+        if (npc.LetterTokenTypes == null || !npc.LetterTokenTypes.Any())
+            return "❓";
+            
+        return string.Join("", npc.LetterTokenTypes.Select(t => GetTokenIcon(t)));
     }
 }
 

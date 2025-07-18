@@ -78,22 +78,27 @@ namespace Wayfarer.GameState
                 return offers;
             }
 
-            // Get available letter types based on NPC profession
+            // Get available letter types based on NPC definition
             var availableLetterTypes = GetAvailableLetterTypes(npc);
             
-            // Generate 1-2 letter offers based on relationship strength
+            // Get NPC's token counts
             var npcTokens = _connectionTokenManager.GetTokensWithNPC(npcId);
             var totalConnections = npcTokens.Values.Sum();
             
-            int offerCount = totalConnections >= 5 ? 2 : 1; // Premium offers for 5+ connections
-            
-            for (int i = 0; i < offerCount && i < availableLetterTypes.Count; i++)
+            // Generate offers for each letter type the NPC can provide
+            foreach (var letterType in availableLetterTypes)
             {
-                var letterType = availableLetterTypes[i];
-                var offer = CreateLetterOffer(npc, letterType, totalConnections);
-                if (offer != null)
+                // Check if player has enough tokens of this specific type with this NPC
+                var tokensOfType = npcTokens.GetValueOrDefault(letterType, 0);
+                
+                // Only generate offer if player has enough relationship with this token type
+                if (tokensOfType >= 3) // Basic threshold for any offers
                 {
-                    offers.Add(offer);
+                    var offer = CreateLetterOffer(npc, letterType, tokensOfType);
+                    if (offer != null)
+                    {
+                        offers.Add(offer);
+                    }
                 }
             }
 
@@ -101,38 +106,40 @@ namespace Wayfarer.GameState
         }
 
         /// <summary>
-        /// Get available letter types based on NPC profession.
+        /// Get available letter types from NPC's defined token types.
         /// </summary>
         private List<ConnectionType> GetAvailableLetterTypes(NPC npc)
         {
             var availableTypes = new List<ConnectionType>();
             
-            // Primary letter type based on profession
-            switch (npc.Profession)
+            // Use the NPC's defined letter token types
+            if (npc.LetterTokenTypes != null && npc.LetterTokenTypes.Any())
             {
-                case Professions.Merchant:
-                    availableTypes.Add(ConnectionType.Trade);
-                    break;
-                case Professions.Courtier:
-                    availableTypes.Add(ConnectionType.Noble);
-                    break;
-                case Professions.Thief:
-                    availableTypes.Add(ConnectionType.Shadow);
-                    break;
-                case Professions.Scholar:
-                    availableTypes.Add(ConnectionType.Trust);
-                    break;
-                case Professions.Ranger:
-                case Professions.Soldier:
-                default:
-                    availableTypes.Add(ConnectionType.Common);
-                    break;
+                availableTypes.AddRange(npc.LetterTokenTypes);
             }
-            
-            // All NPCs can also provide Common letters
-            if (!availableTypes.Contains(ConnectionType.Common))
+            else
             {
-                availableTypes.Add(ConnectionType.Common);
+                // Fallback to profession-based defaults if no token types defined
+                switch (npc.Profession)
+                {
+                    case Professions.Merchant:
+                        availableTypes.Add(ConnectionType.Trade);
+                        break;
+                    case Professions.Courtier:
+                        availableTypes.Add(ConnectionType.Noble);
+                        break;
+                    case Professions.Thief:
+                        availableTypes.Add(ConnectionType.Shadow);
+                        break;
+                    case Professions.Scholar:
+                        availableTypes.Add(ConnectionType.Trust);
+                        break;
+                    case Professions.Ranger:
+                    case Professions.Soldier:
+                    default:
+                        availableTypes.Add(ConnectionType.Common);
+                        break;
+                }
             }
 
             return availableTypes;
@@ -144,21 +151,30 @@ namespace Wayfarer.GameState
         private LetterOffer CreateLetterOffer(NPC npc, ConnectionType letterType, int totalConnections)
         {
             // Get appropriate letter templates for this type
-            var availableTemplates = _letterTemplateRepository.GetTemplatesByTokenType(letterType);
+            var allTemplates = _letterTemplateRepository.GetTemplatesByTokenType(letterType);
+            
+            // Filter templates by token threshold - player must have enough tokens to unlock each category
+            var availableTemplates = allTemplates.Where(t => totalConnections >= t.MinTokensRequired).ToList();
+            
             if (!availableTemplates.Any())
             {
                 return null;
             }
 
-            var template = availableTemplates[_random.Next(availableTemplates.Count)];
+            // Prefer higher category templates if available
+            var templatesByCategory = availableTemplates
+                .GroupBy(t => t.Category)
+                .OrderByDescending(g => g.Key) // Premium > Quality > Basic
+                .First()
+                .ToList();
+            
+            var template = templatesByCategory[_random.Next(templatesByCategory.Count)];
             
             // Create personal message based on NPC and relationship level
             var message = CreatePersonalMessage(npc, letterType, totalConnections);
             
-            // Calculate payment bonus for strong relationships
-            var basePayment = _random.Next(template.MinPayment, template.MaxPayment + 1);
-            var paymentBonus = totalConnections >= 5 ? 1.2f : 1.0f; // 20% bonus for 5+ connections
-            var finalPayment = (int)(basePayment * paymentBonus);
+            // Payment comes directly from template ranges - no modifiers!
+            var payment = _random.Next(template.MinPayment, template.MaxPayment + 1);
             
             // Calculate deadline - Direct Approaches tend to be more generous
             var baseDeadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1);
@@ -172,10 +188,11 @@ namespace Wayfarer.GameState
                 NPCName = npc.Name,
                 LetterType = letterType,
                 Message = message,
-                Payment = finalPayment,
+                Payment = payment,
                 Deadline = finalDeadline,
                 TemplateId = template.Id,
-                IsDirectApproach = true
+                IsDirectApproach = true,
+                Category = template.Category
             };
         }
 
@@ -487,5 +504,6 @@ namespace Wayfarer.GameState
         public bool IsDirectApproach { get; set; }
         public int GeneratedDay { get; set; }
         public TimeBlocks GeneratedTimeBlock { get; set; }
+        public LetterCategory Category { get; set; }
     }
 }

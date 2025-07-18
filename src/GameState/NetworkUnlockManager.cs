@@ -145,11 +145,13 @@ using Wayfarer.GameState;
             );
             
             // Give a small token bonus with the new contact
-            if (unlockNpc.LetterTokenType.HasValue)
+            if (unlockNpc.LetterTokenTypes != null && unlockNpc.LetterTokenTypes.Any())
             {
-                _tokenManager.AddTokens(unlockNpc.LetterTokenType.Value, 1, unlockNpcId);
+                // Give 1 token of their primary type
+                var primaryTokenType = unlockNpc.LetterTokenTypes.First();
+                _tokenManager.AddTokens(primaryTokenType, 1, unlockNpcId);
                 _messageSystem.AddSystemMessage(
-                    $"You gain 1 {unlockNpc.LetterTokenType.Value} token with {unlockNpc.Name}.",
+                    $"You gain 1 {primaryTokenType} token with {unlockNpc.Name}.",
                     SystemMessageTypes.Success
                 );
             }

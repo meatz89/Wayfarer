@@ -6,6 +6,7 @@
 @inject LetterQueueManager LetterQueueManager
 @inject NPCRepository NPCRepository
 @inject LocationRepository LocationRepository
+@inject NPCLetterOfferService LetterOfferService
 
 <div class="npc-relationship-card @GetRelationshipStatusClass()">
     <div class="npc-header">
@@ -34,7 +35,7 @@
             }
         </div>
         
-        @* Token progress indicator *@
+        @* Token progress and letter categories *@
         @{
             var totalTokens = GetTotalTokens();
             if (totalTokens >= 0 && totalTokens < 3)
@@ -46,12 +47,51 @@
                     </div>
                 </div>
             }
-            else if (totalTokens >= 3 && totalTokens < 5)
+            else if (totalTokens >= 3)
             {
-                <div class="token-progress">
-                    <span class="progress-text">@(5 - totalTokens) more tokens for better queue position</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: @(((totalTokens - 3) / 2.0) * 100)%"></div>
+                <div class="letter-categories">
+                    <h4>Letter Categories Unlocked</h4>
+                    <div class="category-list">
+                        @if (totalTokens >= 3)
+                        {
+                            <div class="category-item unlocked">
+                                <span class="category-icon">📄</span>
+                                <span class="category-name">Basic Letters</span>
+                                <span class="category-pay">3-7 coins</span>
+                            </div>
+                        }
+                        @if (totalTokens >= 5)
+                        {
+                            <div class="category-item unlocked">
+                                <span class="category-icon">📜</span>
+                                <span class="category-name">Quality Letters</span>
+                                <span class="category-pay">8-14 coins</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="category-item locked">
+                                <span class="category-icon">🔒</span>
+                                <span class="category-name">Quality Letters</span>
+                                <span class="category-requirement">@(5 - totalTokens) more tokens</span>
+                            </div>
+                        }
+                        @if (totalTokens >= 8)
+                        {
+                            <div class="category-item unlocked">
+                                <span class="category-icon">📋</span>
+                                <span class="category-name">Premium Letters</span>
+                                <span class="category-pay">15-30+ coins</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="category-item locked">
+                                <span class="category-icon">🔒</span>
+                                <span class="category-name">Premium Letters</span>
+                                <span class="category-requirement">@(8 - totalTokens) more tokens</span>
+                            </div>
+                        }
                     </div>
                 </div>
             }
