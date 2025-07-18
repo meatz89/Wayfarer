@@ -1,12 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Wayfarer.Game.ActionSystem;
-using Wayfarer.Game.MainSystem;
-using Wayfarer.GameState;
-using Wayfarer.Content;
-
-namespace Wayfarer.Tests;
+using System.Collections.Generic;
 
 /// <summary>
 /// Factory for creating GameWorldManager instances for testing.
@@ -114,8 +109,7 @@ public static class TestGameWorldFactory
             SellPrice = sellPrice,
             Weight = weight,
             Description = $"Test item: {name}",
-            ItemCategories = new List<ItemCategory> { ItemCategory.Trade_Goods },
-            Categories = new List<EquipmentCategory>()
+            Categories = new List<ItemCategory> { ItemCategory.Materials }
         };
     }
 
@@ -150,13 +144,32 @@ public static class TestServiceConfiguration
     /// <returns>Configured service collection</returns>
     public static IServiceCollection ConfigureTestServices(this IServiceCollection services, string contentDirectory = "Content")
     {
-        // Create GameWorldInitializer with specified content directory
-        GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(contentDirectory);
-        services.AddSingleton(gameWorldInitializer);
-
-        // Load game state using the same flow as production
-        GameWorld gameWorld = gameWorldInitializer.LoadGame();
-        services.AddSingleton(gameWorld);
+        // Register configuration
+        services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = contentDirectory });
+        
+        // Register factories for reference-safe content creation
+        services.AddSingleton<LocationFactory>();
+        services.AddSingleton<LocationSpotFactory>();
+        services.AddSingleton<NPCFactory>();
+        services.AddSingleton<ItemFactory>();
+        services.AddSingleton<RouteFactory>();
+        services.AddSingleton<RouteDiscoveryFactory>();
+        services.AddSingleton<NetworkUnlockFactory>();
+        services.AddSingleton<LetterTemplateFactory>();
+        services.AddSingleton<StandingObligationFactory>();
+        services.AddSingleton<ActionDefinitionFactory>();
+        
+        // Register GameWorldInitializer as both itself and IGameWorldFactory
+        services.AddSingleton<GameWorldInitializer>();
+        services.AddSingleton<IGameWorldFactory>(serviceProvider => 
+            serviceProvider.GetRequiredService<GameWorldInitializer>());
+        
+        // Register GameWorld using factory pattern
+        services.AddSingleton<GameWorld>(serviceProvider => 
+        {
+            var factory = serviceProvider.GetRequiredService<IGameWorldFactory>();
+            return factory.CreateGameWorld();
+        });
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();
@@ -164,11 +177,14 @@ public static class TestServiceConfiguration
         // Register repositories (same as production)
         services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
+        services.AddSingleton<LocationSpotRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<RouteRepository>();
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<LetterTemplateRepository>();
+        services.AddSingleton<RouteDiscoveryRepository>();
+        services.AddSingleton<NetworkUnlockRepository>();
 
 
         // Register core game systems (same as production)
@@ -177,32 +193,12 @@ public static class TestServiceConfiguration
         services.AddSingleton<ActionGenerator>();
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<ActionSystem>();
-        services.AddSingleton<ActionProcessor>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var playerProgression = serviceProvider.GetRequiredService<PlayerProgression>();
-            var environmentalPropertyManager = serviceProvider.GetRequiredService<LocationPropertyManager>();
-            var locationRepository = serviceProvider.GetRequiredService<LocationRepository>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            var routeUnlockManager = serviceProvider.GetRequiredService<RouteUnlockManager>();
-            var npcLetterOfferService = serviceProvider.GetRequiredService<NPCLetterOfferService>();
-            return new ActionProcessor(gameWorld, playerProgression, environmentalPropertyManager, locationRepository, messageSystem, routeUnlockManager, npcLetterOfferService);
-        });
+        services.AddSingleton<ActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
-        services.AddSingleton<NarrativeService>(serviceProvider =>
-        {
-            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
-            return new NarrativeService(npcRepository);
-        });
-        services.AddSingleton<ConnectionTokenManager>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            var narrativeService = serviceProvider.GetRequiredService<NarrativeService>();
-            return new ConnectionTokenManager(gameWorld, messageSystem, narrativeService);
-        });
+        services.AddSingleton<NarrativeService>();
+        services.AddSingleton<ConnectionTokenManager>();
         services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();
@@ -214,6 +210,7 @@ public static class TestServiceConfiguration
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
         services.AddSingleton<TransportCompatibilityValidator>();
+        services.AddSingleton<AccessRequirementChecker>();
         
         // Letter Queue System (same as production)
         services.AddSingleton<StandingObligationManager>(serviceProvider =>
@@ -221,8 +218,8 @@ public static class TestServiceConfiguration
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
             var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
-            var narrativeService = serviceProvider.GetRequiredService<NarrativeService>();
-            return new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepository, narrativeService);
+            var connectionTokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
+            return new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepository, connectionTokenManager);
         });
         services.AddSingleton<LetterQueueManager>(serviceProvider =>
         {
@@ -232,16 +229,14 @@ public static class TestServiceConfiguration
             var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
             var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
             var narrativeService = serviceProvider.GetRequiredService<NarrativeService>();
-            var tokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
-            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager, narrativeService, tokenManager);
-            
-            // Set up letter chain manager after both are created
-            var letterChainManager = new LetterChainManager(gameWorld, letterTemplateRepository, npcRepository, letterQueueManager, messageSystem);
-            letterQueueManager.SetLetterChainManager(letterChainManager);
+            var connectionTokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
+            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager, connectionTokenManager);
             
             return letterQueueManager;
         });
         services.AddSingleton<RouteUnlockManager>();
+        services.AddSingleton<RouteDiscoveryManager>();
+        services.AddSingleton<NetworkUnlockManager>();
         services.AddSingleton<NPCLetterOfferService>(serviceProvider =>
         {
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
@@ -251,15 +246,6 @@ public static class TestServiceConfiguration
             var letterQueueManager = serviceProvider.GetRequiredService<LetterQueueManager>();
             var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
             return new NPCLetterOfferService(gameWorld, npcRepository, letterTemplateRepository, connectionTokenManager, letterQueueManager, messageSystem);
-        });
-        services.AddSingleton<LetterChainManager>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
-            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
-            var letterQueueManager = serviceProvider.GetRequiredService<LetterQueueManager>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            return new LetterChainManager(gameWorld, letterTemplateRepository, npcRepository, letterQueueManager, messageSystem);
         });
         services.AddSingleton<MorningActivitiesManager>();
 

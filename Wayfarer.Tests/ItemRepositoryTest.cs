@@ -1,9 +1,7 @@
-using Wayfarer.Game.MainSystem;
 using Xunit;
+using System.Collections.Generic;
 
-namespace Wayfarer.Tests
-{
-    public class ItemRepositoryTest
+public class ItemRepositoryTest
     {
         [Fact]
         public void ItemRepository_GetItemById_Should_Find_Items()
@@ -39,4 +37,3 @@ namespace Wayfarer.Tests
             Assert.Null(nonExistent);
         }
     }
-}

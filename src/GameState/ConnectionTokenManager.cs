@@ -4,10 +4,14 @@ using System.Linq;
 public class ConnectionTokenManager
 {
     private readonly GameWorld _gameWorld;
+    private readonly MessageSystem _messageSystem;
+    private readonly NPCRepository _npcRepository;
     
-    public ConnectionTokenManager(GameWorld gameWorld)
+    public ConnectionTokenManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository)
     {
         _gameWorld = gameWorld;
+        _messageSystem = messageSystem;
+        _npcRepository = npcRepository;
     }
     
     // Get player's total tokens by type
@@ -40,6 +44,23 @@ public class ConnectionTokenManager
         var playerTokens = _gameWorld.GetPlayer().ConnectionTokens;
         playerTokens[type] = playerTokens.GetValueOrDefault(type) + count;
         
+        // Add narrative feedback for token gain
+        if (!string.IsNullOrEmpty(npcId))
+        {
+            var npc = _npcRepository.GetNPCById(npcId);
+            if (npc != null)
+            {
+                // NPC-specific reaction based on token type
+                var reaction = GetTokenGainReaction(npc, type, count);
+                _messageSystem.AddSystemMessage(reaction, SystemMessageTypes.Success);
+            }
+        }
+        
+        _messageSystem.AddSystemMessage(
+            $"Gained {count} {type} token{(count > 1 ? "s" : "")}",
+            SystemMessageTypes.Info
+        );
+        
         // Track by NPC if provided
         if (!string.IsNullOrEmpty(npcId))
         {
@@ -53,6 +74,14 @@ public class ConnectionTokenManager
                 }
             }
             npcTokens[npcId][type] += count;
+            
+            // Check for relationship milestones
+            var totalWithNPC = npcTokens[npcId].Values.Sum();
+            var npc = _npcRepository.GetNPCById(npcId);
+            if (npc != null)
+            {
+                CheckRelationshipMilestone(npc, totalWithNPC);
+            }
         }
     }
     
@@ -118,6 +147,24 @@ public class ConnectionTokenManager
         // Also remove from player's total tokens (but don't go below 0)
         var playerTokens = player.ConnectionTokens;
         playerTokens[type] = Math.Max(0, playerTokens.GetValueOrDefault(type) - count);
+        
+        // Add narrative feedback for relationship damage
+        var npc = _npcRepository.GetNPCById(npcId);
+        if (npc != null)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Your relationship with {npc.Name} has been damaged. (-{count} {type} token{(count > 1 ? "s" : "")})",
+                SystemMessageTypes.Warning
+            );
+            
+            if (npcTokens[npcId][type] < 0)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"{npc.Name} feels you owe them for past failures.",
+                    SystemMessageTypes.Danger
+                );
+            }
+        }
     }
     
     // Check if player has 3+ tokens with a specific NPC
@@ -195,5 +242,64 @@ public class ConnectionTokenManager
         player.ConnectionTokens[type] = Math.Max(0, totalOfType - amount);
         
         return true;
+    }
+    
+    // Helper method to generate NPC reactions to token gains
+    private string GetTokenGainReaction(NPC npc, ConnectionType type, int count)
+    {
+        var reactions = type switch
+        {
+            ConnectionType.Trust => new[]
+            {
+                $"{npc.Name} smiles warmly. \"I knew I could count on you.\"",
+                $"{npc.Name} clasps your hand. \"Thank you, my friend.\"",
+                $"\"You've proven yourself trustworthy,\" {npc.Name} says with appreciation."
+            },
+            ConnectionType.Trade => new[]
+            {
+                $"{npc.Name} nods approvingly. \"Good business, as always.\"",
+                $"\"Reliable couriers are worth their weight in gold,\" says {npc.Name}.",
+                $"{npc.Name} makes a note. \"I'll remember this efficiency.\""
+            },
+            ConnectionType.Noble => new[]
+            {
+                $"{npc.Name} inclines their head graciously. \"Your service honors us both.\"",
+                $"\"The nobility appreciates discretion,\" {npc.Name} says formally.",
+                $"{npc.Name} acknowledges your service with courtly grace."
+            },
+            ConnectionType.Common => new[]
+            {
+                $"{npc.Name} grins. \"You're good people, you are!\"",
+                $"\"Folk like you keep our communities connected,\" says {npc.Name}.",
+                $"{npc.Name} slaps your shoulder friendly. \"Always knew you were one of us.\""
+            },
+            ConnectionType.Shadow => new[]
+            {
+                $"{npc.Name} gives a subtle nod. \"Your discretion is... noted.\"",
+                $"\"We remember those who keep our secrets,\" {npc.Name} murmurs.",
+                $"A meaningful look passes between you and {npc.Name}."
+            },
+            _ => new[] { $"{npc.Name} acknowledges your service." }
+        };
+        
+        var random = new Random();
+        return reactions[random.Next(reactions.Length)];
+    }
+    
+    // Helper method to check and announce relationship milestones
+    private void CheckRelationshipMilestone(NPC npc, int totalTokens)
+    {
+        var milestones = new Dictionary<int, string>
+        {
+            { 3, $"{npc.Name} now trusts you enough to share private correspondence." },
+            { 5, $"Your bond with {npc.Name} has deepened. They'll offer more valuable letters." },
+            { 8, $"{npc.Name} considers you among their most trusted associates. Premium letters are now available." },
+            { 12, $"Few people enjoy the level of trust {npc.Name} has in you." }
+        };
+        
+        if (milestones.TryGetValue(totalTokens, out var message))
+        {
+            _messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
+        }
     }
 }

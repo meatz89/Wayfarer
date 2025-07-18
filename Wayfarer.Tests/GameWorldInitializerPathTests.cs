@@ -40,8 +40,31 @@ namespace Wayfarer.Tests
         public void GameWorldInitializer_WithCorrectPath_ShouldLoadSuccessfully()
         {
             // Test that GameWorldInitializer works with the correct path
-            string correctContentDirectory = "Content"; // Correct path from test bin directory
-            GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(correctContentDirectory);
+            var contentDirectory = new ContentDirectory { Path = "Content" }; // Correct path from test bin directory
+            // Create factories needed for GameWorldInitializer
+            var locationFactory = new LocationFactory();
+            var locationSpotFactory = new LocationSpotFactory();
+            var npcFactory = new NPCFactory();
+            var itemFactory = new ItemFactory();
+            var routeFactory = new RouteFactory();
+            var routeDiscoveryFactory = new RouteDiscoveryFactory();
+            var networkUnlockFactory = new NetworkUnlockFactory();
+            var letterTemplateFactory = new LetterTemplateFactory();
+            var standingObligationFactory = new StandingObligationFactory();
+            var actionDefinitionFactory = new ActionDefinitionFactory();
+            
+            GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(
+                contentDirectory,
+                locationFactory,
+                locationSpotFactory,
+                npcFactory,
+                itemFactory,
+                routeFactory,
+                routeDiscoveryFactory,
+                networkUnlockFactory,
+                letterTemplateFactory,
+                standingObligationFactory,
+                actionDefinitionFactory);
 
             // This should succeed
             GameWorld gameWorld = gameWorldInitializer.LoadGame();
@@ -56,8 +79,31 @@ namespace Wayfarer.Tests
         public void GameWorldInitializer_WithWrongPath_ShouldFail()
         {
             // Test that GameWorldInitializer fails with a wrong path
-            string wrongContentDirectory = "wrong_path"; // Path that doesn't exist
-            GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(wrongContentDirectory);
+            var contentDirectory = new ContentDirectory { Path = "wrong_path" }; // Path that doesn't exist
+            // Create factories needed for GameWorldInitializer
+            var locationFactory = new LocationFactory();
+            var locationSpotFactory = new LocationSpotFactory();
+            var npcFactory = new NPCFactory();
+            var itemFactory = new ItemFactory();
+            var routeFactory = new RouteFactory();
+            var routeDiscoveryFactory = new RouteDiscoveryFactory();
+            var networkUnlockFactory = new NetworkUnlockFactory();
+            var letterTemplateFactory = new LetterTemplateFactory();
+            var standingObligationFactory = new StandingObligationFactory();
+            var actionDefinitionFactory = new ActionDefinitionFactory();
+            
+            GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(
+                contentDirectory,
+                locationFactory,
+                locationSpotFactory,
+                npcFactory,
+                itemFactory,
+                routeFactory,
+                routeDiscoveryFactory,
+                networkUnlockFactory,
+                letterTemplateFactory,
+                standingObligationFactory,
+                actionDefinitionFactory);
 
             // This should throw because the path doesn't exist
             Exception exception = Record.Exception(() => gameWorldInitializer.LoadGame());

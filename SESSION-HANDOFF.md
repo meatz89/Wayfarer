@@ -407,8 +407,153 @@ The system allows NPCs to offer special unlocks when players spend specific toke
 1. ✅ Multi-type NPC Relationships
 2. ✅ Update npcs.json
 3. ✅ Access Requirements Framework
-4. ✅ Contextual Token Favors (needs error fixes)
-5. 🔴 Fix compilation errors (HIGH PRIORITY)
-6. ⏸️ Fix NPCLetterOfferService Periodic Offers
-7. ⏸️ Fix narrative violations
-8. ⏸️ Other medium/low priority items...
+4. ✅ Contextual Token Favors
+5. ✅ Fix compilation errors
+6. ✅ Create UI for Token Favors
+7. ⏸️ Fix NPCLetterOfferService Periodic Offers
+8. ⏸️ Fix narrative violations
+9. ⏸️ Other medium/low priority items...
+
+## Session Update: 2025-07-18 (Final Update)
+
+### ✅ COMPLETED: Fixed Compilation Errors
+**Status**: COMPLETE - All 3 compilation errors fixed
+**What's Done**:
+- ✅ Fixed Item.ID → Item.Id in GameWorldInitializer.cs
+- ✅ Fixed DiscoverRoute → TryDiscoverRoute in TokenFavorManager.cs  
+- ✅ Fixed missing itemRepository parameter in CanAddItem call
+- ✅ Main project now builds successfully
+
+### ✅ COMPLETED: Create UI for Token Favors
+**Status**: COMPLETE - Token favors now visible in NPC relationship cards
+**What's Done**:
+- ✅ Created TokenFavorDisplay.razor component
+- ✅ Integrated into NPCRelationshipCard.razor
+- ✅ Shows available favors with costs and descriptions
+- ✅ Handles purchase interactions with narrative feedback
+- ✅ Visual feedback for affordable vs unaffordable favors
+
+### ✅ COMPLETED: Fixed Namespace Architecture Violations
+**Status**: COMPLETE - Removed all unnecessary namespace usages
+**What's Done**:
+- ✅ Removed all using statements referencing Wayfarer namespaces from Razor files
+- ✅ Removed namespace declarations from all non-Blazor C# files
+- ✅ Kept namespaces only in Pages directory for Blazor component discovery
+- ✅ Project now fully complies with "NO namespaces" architecture principle
+
+### Key Implementation Achievements Today
+1. **Letter Category Unlocks** - Token thresholds unlock better paying letters
+2. **Multi-type NPC Relationships** - NPCs can offer multiple token types
+3. **Access Requirements Framework** - Equipment/token requirements for locations/routes
+4. **Contextual Token Favors** - NPCs offer specific unlocks for token spending
+5. **UI Integration** - Token favors visible and purchasable in NPC cards
+6. **Architecture Compliance** - Fixed all namespace violations
+
+### Next Priority Implementation
+The next high-priority item is fixing NPCLetterOfferService Periodic Offers to add rich narrative when NPCs spontaneously offer letters. This aligns with the NARRATIVE COMMUNICATION PRINCIPLE where all game mechanics must communicate to the player through visible UI and narrative context.
+
+## Session Update: 2025-07-18 (Architectural Refactoring)
+
+### ✅ MAJOR ACHIEVEMENT: Circular Dependency Resolution
+
+**Problem**: LetterQueueManager and LetterChainManager had a circular dependency that violated our architecture principles.
+
+**Solution**: Merged LetterChainManager functionality directly into LetterQueueManager, following the principle "if responsibilities are truly inseparable, they belong in the same class."
+
+**Changes Made**:
+1. ✅ Merged all chain letter generation logic into LetterQueueManager
+2. ✅ Deleted LetterChainManager.cs, ILetterQueueOperations.cs, ILetterDeliveryHandler.cs, LetterDeliveryCoordinator.cs
+3. ✅ Updated ServiceConfiguration to remove all references to deleted classes
+4. ✅ Updated TestGameWorldFactory to remove circular dependency workarounds
+5. ✅ Fixed all test compilation errors from ConnectionTokenManager constructor changes
+6. ✅ Documented the merged architecture in GAME-ARCHITECTURE.md
+7. ✅ All 105 tests passing, build successful
+
+**Key Insight**: Chain letter generation is an inherent part of the letter delivery lifecycle. By recognizing this inseparable relationship, we eliminated complex coordination patterns and achieved a cleaner architecture.
+
+### Architecture Documentation Added to GAME-ARCHITECTURE.md
+```
+### Unified Letter Queue Management
+**LetterQueueManager handles the complete letter lifecycle including chain letter generation.**
+
+#### Why Chain Letters are Part of Queue Management
+1. **Inseparable Lifecycle** - Chain letters are generated as a direct result of delivery
+2. **Immediate Queue Impact** - Generated letters must be added to the queue immediately
+3. **Single Transaction** - Delivery, history recording, and chain generation happen atomically
+4. **No External Coordination** - The queue manager has all context needed for chain generation
+5. **Simplified Architecture** - Eliminates circular dependencies and complex coordination
+```
+
+### Current System State
+- ✅ All circular dependencies eliminated
+- ✅ No events or delegates in the codebase
+- ✅ No setter injection patterns
+- ✅ LetterQueueManager is now a cohesive single-responsibility class
+- ✅ All tests passing (105/105)
+- ✅ Build successful with no errors
+
+### Next Implementation Priorities
+1. **Fix all narrative violations in LetterQueueManager** - Many methods lack narrative context
+2. **Implement Network Referrals** - Spend tokens with NPCs for letter opportunities
+3. **Implement Patron Resources** - Monthly packages and mystery progression
+4. **Implement Physical Constraints** - Letter sizes and equipment requirements
+5. **Implement Relationship Memory** - NPCs tracking skipped/expired letters
+
+## Session Update: 2025-07-18 (ServiceConfiguration Refactoring)
+
+### ✅ MAJOR ACHIEVEMENT: Dependency Injection Anti-Pattern Resolution
+
+**Problem**: ServiceConfiguration had multiple anti-patterns:
+- Manual `new()` instantiations instead of DI
+- Intermediate `BuildServiceProvider()` calls
+- Temporary GameWorld hack
+- Setter injection patterns
+
+**Solution**: Complete refactoring to use proper dependency injection throughout:
+
+**Changes Made**:
+1. ✅ Created IGameWorldFactory interface - Abstracts GameWorld creation
+2. ✅ Created IContentDirectory interface - Abstracts content path configuration
+3. ✅ Updated GameWorldInitializer to implement IGameWorldFactory
+4. ✅ Removed ALL manual `new()` instantiations in ServiceConfiguration
+5. ✅ Eliminated ALL `BuildServiceProvider()` calls
+6. ✅ Fixed the "temporary GameWorld" hack with proper factory pattern
+7. ✅ Updated all test files to use IContentDirectory instead of string
+8. ✅ All 105 tests passing, build successful
+
+**Key Pattern Established**:
+```csharp
+// OLD: Anti-pattern
+var tempGameWorld = new GameWorld();
+var serviceProvider = services.BuildServiceProvider();
+GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(...);
+
+// NEW: Proper DI
+services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
+services.AddSingleton<GameWorldInitializer>();
+services.AddSingleton<IGameWorldFactory>(sp => sp.GetRequiredService<GameWorldInitializer>());
+services.AddSingleton<GameWorld>(sp => sp.GetRequiredService<IGameWorldFactory>().CreateGameWorld());
+```
+
+### Architecture Principles Documented
+
+Added to both CLAUDE.md and GAME-ARCHITECTURE.md:
+1. **NO CIRCULAR DEPENDENCIES** - Classes with circular dependencies should be merged
+2. **NO EVENTS OR DELEGATES** - Use direct method calls instead
+3. **PROPER DEPENDENCY INJECTION** - No manual instantiation, no BuildServiceProvider
+4. **NO SETTER INJECTION** - All dependencies through constructor only
+
+### Current System State
+- ✅ All DI anti-patterns eliminated
+- ✅ Clean factory pattern for complex object creation
+- ✅ Proper interface segregation (IGameWorldFactory, IContentDirectory)
+- ✅ No manual instantiation in ServiceConfiguration
+- ✅ All tests passing (105/105)
+- ✅ Build successful with no errors
+
+### Next Implementation Priorities
+1. **Fix all narrative violations in LetterQueueManager** - Many methods lack narrative context
+2. **Implement Network Referrals** - Spend tokens with NPCs for letter opportunities
+3. **Implement Patron Resources** - Monthly packages and mystery progression
+4. **Implement Physical Constraints** - Letter sizes and equipment requirements
+5. **Implement Relationship Memory** - NPCs tracking skipped/expired letters

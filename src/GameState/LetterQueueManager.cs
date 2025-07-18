@@ -7,22 +7,17 @@ public class LetterQueueManager
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
     private readonly StandingObligationManager _obligationManager;
-    private LetterChainManager _letterChainManager;
+    private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly Random _random = new Random();
     
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
         _npcRepository = npcRepository;
         _messageSystem = messageSystem;
         _obligationManager = obligationManager;
-    }
-    
-    // Set the letter chain manager (called by DI system after construction)
-    public void SetLetterChainManager(LetterChainManager letterChainManager)
-    {
-        _letterChainManager = letterChainManager;
+        _connectionTokenManager = connectionTokenManager;
     }
     
     // Get the player's letter queue
@@ -175,7 +170,6 @@ public class LetterQueueManager
     public void ProcessDailyDeadlines()
     {
         var queue = _gameWorld.GetPlayer().LetterQueue;
-        var tokenManager = new ConnectionTokenManager(_gameWorld);
         
         // Process from back to front to avoid issues with shifting
         for (int i = 7; i >= 0; i--)
@@ -187,7 +181,7 @@ public class LetterQueueManager
                 if (letter.Deadline <= 0)
                 {
                     // Apply relationship damage before removing
-                    ApplyRelationshipDamage(letter, tokenManager);
+                    ApplyRelationshipDamage(letter, _connectionTokenManager);
                     
                     // Remove expired letter (which will shift the queue)
                     RemoveLetterFromQueue(i + 1);
@@ -197,7 +191,7 @@ public class LetterQueueManager
     }
     
     // Apply token penalty when a letter expires
-    private void ApplyRelationshipDamage(Letter letter, ConnectionTokenManager tokenManager)
+    private void ApplyRelationshipDamage(Letter letter, ConnectionTokenManager _connectionTokenManager)
     {
         // Determine penalty amount (2 tokens for expired letters)
         int tokenPenalty = 2;
@@ -207,7 +201,7 @@ public class LetterQueueManager
         if (string.IsNullOrEmpty(senderId)) return;
         
         // Remove tokens from the relationship with this NPC
-        tokenManager.RemoveTokensFromNPC(letter.TokenType, tokenPenalty, senderId);
+        _connectionTokenManager.RemoveTokensFromNPC(letter.TokenType, tokenPenalty, senderId);
         
         // Record the expiry in letter history
         var player = _gameWorld.GetPlayer();
@@ -247,11 +241,8 @@ public class LetterQueueManager
         
         player.NPCLetterHistory[senderId].RecordDelivery();
         
-        // Process chain letters if chain manager is available
-        if (_letterChainManager != null)
-        {
-            _letterChainManager.ProcessLetterDelivery(letter);
-        }
+        // Process chain letters
+        ProcessChainLetters(letter);
     }
     
     // Track letter skip in history
@@ -343,14 +334,13 @@ public class LetterQueueManager
         int tokenCost = baseCost * multiplier;
         
         // Validate token availability through ConnectionTokenManager
-        var tokenManager = new ConnectionTokenManager(_gameWorld);
-        if (!tokenManager.HasTokens(letter.TokenType, tokenCost))
+        if (!_connectionTokenManager.HasTokens(letter.TokenType, tokenCost))
         {
             return false;
         }
         
         // Spend the tokens
-        if (!tokenManager.SpendTokens(letter.TokenType, tokenCost))
+        if (!_connectionTokenManager.SpendTokens(letter.TokenType, tokenCost))
         {
             return false;
         }
@@ -492,10 +482,9 @@ public class LetterQueueManager
         }
         
         // Check if player has enough tokens
-        var tokenManager = new ConnectionTokenManager(_gameWorld);
         foreach (var payment in tokenPayment)
         {
-            if (!tokenManager.HasTokens(payment.Key, payment.Value))
+            if (!_connectionTokenManager.HasTokens(payment.Key, payment.Value))
             {
                 return false; // Insufficient tokens
             }
@@ -504,7 +493,7 @@ public class LetterQueueManager
         // Spend the tokens
         foreach (var payment in tokenPayment)
         {
-            if (!tokenManager.SpendTokens(payment.Key, payment.Value))
+            if (!_connectionTokenManager.SpendTokens(payment.Key, payment.Value))
             {
                 return false; // Failed to spend tokens
             }
@@ -539,14 +528,13 @@ public class LetterQueueManager
         }
         
         // Check token cost (5 matching tokens)
-        var tokenManager = new ConnectionTokenManager(_gameWorld);
-        if (!tokenManager.HasTokens(letter.TokenType, 5))
+        if (!_connectionTokenManager.HasTokens(letter.TokenType, 5))
         {
             return false; // Insufficient tokens
         }
         
         // Spend the tokens
-        if (!tokenManager.SpendTokens(letter.TokenType, 5))
+        if (!_connectionTokenManager.SpendTokens(letter.TokenType, 5))
         {
             return false; // Failed to spend tokens
         }
@@ -580,14 +568,13 @@ public class LetterQueueManager
         }
         
         // Check token cost (2 matching tokens)
-        var tokenManager = new ConnectionTokenManager(_gameWorld);
-        if (!tokenManager.HasTokens(letter.TokenType, 2))
+        if (!_connectionTokenManager.HasTokens(letter.TokenType, 2))
         {
             return false; // Insufficient tokens
         }
         
         // Spend the tokens
-        if (!tokenManager.SpendTokens(letter.TokenType, 2))
+        if (!_connectionTokenManager.SpendTokens(letter.TokenType, 2))
         {
             return false; // Failed to spend tokens
         }
@@ -596,5 +583,180 @@ public class LetterQueueManager
         letter.Deadline += 2;
         
         return true;
+    }
+    
+    // Process chain letters when a letter is delivered
+    private void ProcessChainLetters(Letter deliveredLetter)
+    {
+        var chainLetters = new System.Collections.Generic.List<Letter>();
+        
+        // Check if this letter unlocks any chain letters
+        if (deliveredLetter.UnlocksLetterIds.Any())
+        {
+            // Generate follow-up letters from template IDs
+            foreach (var templateId in deliveredLetter.UnlocksLetterIds)
+            {
+                var chainLetter = GenerateChainLetter(templateId, deliveredLetter);
+                if (chainLetter != null)
+                {
+                    chainLetters.Add(chainLetter);
+                }
+            }
+        }
+        else
+        {
+            // Check if the letter's template has chain letters
+            var letterTemplate = FindLetterTemplate(deliveredLetter);
+            if (letterTemplate != null && letterTemplate.UnlocksLetterIds.Any())
+            {
+                // Generate follow-up letters from template
+                foreach (var templateId in letterTemplate.UnlocksLetterIds)
+                {
+                    var chainLetter = GenerateChainLetter(templateId, deliveredLetter);
+                    if (chainLetter != null)
+                    {
+                        chainLetters.Add(chainLetter);
+                    }
+                }
+            }
+        }
+
+        // Add chain letters to the queue
+        foreach (var chainLetter in chainLetters)
+        {
+            AddLetterWithObligationEffects(chainLetter);
+            
+            // Provide feedback about chain letter generation
+            _messageSystem.AddSystemMessage($"📬 Follow-up letter generated!", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"✉️ {chainLetter.SenderName} → {chainLetter.RecipientName}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"🔗 Chain letter from completing {deliveredLetter.SenderName}'s delivery", SystemMessageTypes.Info);
+        }
+    }
+
+    // Generate a chain letter from a template ID
+    private Letter GenerateChainLetter(string templateId, Letter parentLetter)
+    {
+        var template = _letterTemplateRepository.GetTemplateById(templateId);
+        if (template == null)
+        {
+            return null;
+        }
+
+        // Determine sender and recipient for the chain letter
+        var senderName = DetermineChainSender(template, parentLetter);
+        var recipientName = DetermineChainRecipient(template, parentLetter);
+
+        if (string.IsNullOrEmpty(senderName) || string.IsNullOrEmpty(recipientName))
+        {
+            return null;
+        }
+
+        // Generate the chain letter
+        var chainLetter = _letterTemplateRepository.GenerateLetterFromTemplate(template, senderName, recipientName);
+        
+        if (chainLetter != null)
+        {
+            // Mark it as a chain letter
+            chainLetter.IsChainLetter = true;
+            chainLetter.ParentLetterId = parentLetter.Id;
+            
+            // Chain letters typically have similar or longer deadlines
+            chainLetter.Deadline = Math.Max(chainLetter.Deadline, parentLetter.Deadline + 1);
+            
+            // Chain letters often have better payment (reward for completing the chain)
+            chainLetter.Payment = (int)(chainLetter.Payment * 1.2f);
+        }
+
+        return chainLetter;
+    }
+
+    // Determine the sender for a chain letter based on the template and parent letter
+    private string DetermineChainSender(LetterTemplate template, Letter parentLetter)
+    {
+        // Check if template specifies possible senders
+        if (template.PossibleSenders != null && template.PossibleSenders.Length > 0)
+        {
+            var random = new Random();
+            return template.PossibleSenders[random.Next(template.PossibleSenders.Length)];
+        }
+
+        // Default logic: chain letters often come from the original recipient
+        // This creates a "reply" effect
+        return parentLetter.RecipientName;
+    }
+
+    // Determine the recipient for a chain letter based on the template and parent letter
+    private string DetermineChainRecipient(LetterTemplate template, Letter parentLetter)
+    {
+        // Check if template specifies possible recipients
+        if (template.PossibleRecipients != null && template.PossibleRecipients.Length > 0)
+        {
+            var random = new Random();
+            return template.PossibleRecipients[random.Next(template.PossibleRecipients.Length)];
+        }
+
+        // Default logic: chain letters often go to the original sender
+        // This creates a "reply" effect
+        return parentLetter.SenderName;
+    }
+
+    // Find the letter template that was used to generate a letter
+    private LetterTemplate FindLetterTemplate(Letter letter)
+    {
+        // This is a simplified approach - in a full implementation,
+        // we might store the template ID on the letter itself
+        var allTemplates = _letterTemplateRepository.GetAllTemplates();
+        
+        // Try to find a template that matches the letter's characteristics
+        return allTemplates.FirstOrDefault(t => 
+            t.TokenType == letter.TokenType && 
+            t.MinPayment <= letter.Payment && 
+            t.MaxPayment >= letter.Payment);
+    }
+
+    // Check if a letter has potential chain letters
+    public bool HasChainLetters(Letter letter)
+    {
+        // Check if the letter itself has chain letters
+        if (letter.UnlocksLetterIds.Any())
+        {
+            return true;
+        }
+
+        // Check if the letter's template has chain letters
+        var template = FindLetterTemplate(letter);
+        return template != null && template.UnlocksLetterIds.Any();
+    }
+
+    // Get information about potential chain letters for a letter
+    public System.Collections.Generic.List<string> GetChainLetterInfo(Letter letter)
+    {
+        var chainInfo = new System.Collections.Generic.List<string>();
+
+        // Check letter's own chain letters
+        foreach (var templateId in letter.UnlocksLetterIds)
+        {
+            var template = _letterTemplateRepository.GetTemplateById(templateId);
+            if (template != null)
+            {
+                chainInfo.Add($"Unlocks: {template.Description}");
+            }
+        }
+
+        // Check template's chain letters
+        var letterTemplate = FindLetterTemplate(letter);
+        if (letterTemplate != null)
+        {
+            foreach (var templateId in letterTemplate.UnlocksLetterIds)
+            {
+                var template = _letterTemplateRepository.GetTemplateById(templateId);
+                if (template != null)
+                {
+                    chainInfo.Add($"May unlock: {template.Description}");
+                }
+            }
+        }
+
+        return chainInfo;
     }
 }

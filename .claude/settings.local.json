@@ -48,7 +48,8 @@
       "Bash(fi)",
       "Bash(done)",
       "Bash(for:*)",
-      "Bash(do grep -q \"@namespace\" \"$file\")"
+      "Bash(do grep -q \"@namespace\" \"$file\")",
+      "Bash(kill:*)"
     ],
     "deny": []
   }

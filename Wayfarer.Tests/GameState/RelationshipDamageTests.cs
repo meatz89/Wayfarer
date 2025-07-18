@@ -2,12 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Wayfarer.GameState;
-using Wayfarer.Content;
 
-namespace Wayfarer.Tests.GameState
-{
-    public class RelationshipDamageTests
+public class RelationshipDamageTests
     {
         private readonly GameWorld _gameWorld;
         private readonly LetterQueueManager _letterQueueManager;
@@ -17,7 +13,31 @@ namespace Wayfarer.Tests.GameState
         public RelationshipDamageTests()
         {
             // Create test world
-            var gameWorldInitializer = new GameWorldInitializer("Content");
+            // Create factories needed for GameWorldInitializer
+            var locationFactory = new LocationFactory();
+            var locationSpotFactory = new LocationSpotFactory();
+            var npcFactory = new NPCFactory();
+            var itemFactory = new ItemFactory();
+            var routeFactory = new RouteFactory();
+            var routeDiscoveryFactory = new RouteDiscoveryFactory();
+            var networkUnlockFactory = new NetworkUnlockFactory();
+            var letterTemplateFactory = new LetterTemplateFactory();
+            var standingObligationFactory = new StandingObligationFactory();
+            var actionDefinitionFactory = new ActionDefinitionFactory();
+            
+            var contentDirectory = new ContentDirectory { Path = "Content" };
+            var gameWorldInitializer = new GameWorldInitializer(
+                contentDirectory,
+                locationFactory,
+                locationSpotFactory,
+                npcFactory,
+                itemFactory,
+                routeFactory,
+                routeDiscoveryFactory,
+                networkUnlockFactory,
+                letterTemplateFactory,
+                standingObligationFactory,
+                actionDefinitionFactory);
             _gameWorld = gameWorldInitializer.LoadGame();
             
             // Create repositories
@@ -27,9 +47,9 @@ namespace Wayfarer.Tests.GameState
             
             // Create managers
             var narrativeService = new NarrativeService(npcRepository);
-            _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, narrativeService);
-            var obligationManager = new StandingObligationManager(_gameWorld, _messageSystem, letterTemplateRepository, narrativeService);
-            _letterQueueManager = new LetterQueueManager(_gameWorld, letterTemplateRepository, npcRepository, _messageSystem, obligationManager, narrativeService, _tokenManager);
+            _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, npcRepository);
+            var obligationManager = new StandingObligationManager(_gameWorld, _messageSystem, letterTemplateRepository, _tokenManager);
+            _letterQueueManager = new LetterQueueManager(_gameWorld, letterTemplateRepository, npcRepository, _messageSystem, obligationManager, _tokenManager);
         }
         
         [Fact]
@@ -159,4 +179,3 @@ namespace Wayfarer.Tests.GameState
             Assert.Equal(2, letter.Deadline); // Deadline decreased but not expired
         }
     }
-}
