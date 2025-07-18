@@ -37,6 +37,10 @@ The game's vision is best captured in INTENDED-GAMEPLAY.md ("Dude, Let Me Tell Y
 6. **Physical Constraints** - Equipment vs letter capacity trade-offs that define strategic depth
 7. **NPC Memory & Cooling** - Makes every skip/expire decision permanently meaningful
 
+**The Patron Dynamic**: You never meet your patron, just receive gold-sealed letters that jump to slots 1-3. They provide resources but their motives are unclear. Are you an agent with purpose or just a pawn being used?
+
+**The Carrier Network**: Other carriers serve different patrons. You share routes and coordinate deliveries, but when patrons conflict, friendships shatter. (This is only a facade for the player, no simulation)
+
 See IMPLEMENTATION-PLAN.md Section "🎯 PRIORITY IMPLEMENTATION ROADMAP" for the complete 6-7 week path to target vision.
 
 ## PROJECT: WAYFARER - Letters and Ledgers
@@ -64,6 +68,8 @@ The game centers around a **priority queue of 8 letters** that represents your s
 3. **Token Thresholds** - More tokens with NPCs unlock better letter categories
 4. **Every Acceptance Matters** - New letters enter at slot 8, affecting everything above them
 5. **Standing Obligations Reshape Play** - Permanent modifiers that alter queue behavior forever
+
+**CRITICAL: The Queue IS the Story** - The queue isn't just a task list, it's a visual representation of all your promises and commitments. Every position matters, every deadline conflicts, every choice cascades into new problems.
 
 ### Connection Token Economy
 

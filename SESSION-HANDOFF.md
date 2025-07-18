@@ -179,9 +179,122 @@ The reference-safe system found these issues:
 - Namespace policy updated for Blazor compatibility
 - Ready to implement Access Requirements Framework
 
-## Notes for Next Session
-1. **Start with Access Requirements Framework** - High priority todo
-2. **The reference-safe system is working beautifully** - Catching all content issues at startup
-3. **Consider fixing content warnings** - Add missing items/NPCs or update references
-4. **Blazor namespace issue is resolved** - App runs despite warnings
-5. **The architecture is very clean now** - Factories validate, GameWorld owns, Repositories access
+## Major Accomplishments This Session (Continued)
+
+### 5. Documentation Consolidation ✅
+- **Merged redundant implementation plans** into IMPLEMENTATION-PLAN.md
+- **Consolidated letter queue documents** into LETTER-QUEUE-INTEGRATION-PLAN.md
+- **Removed 4 redundant files** while preserving essential information
+- **Updated all references** to point to consolidated documents
+
+### 6. Fixed All Connection Gravity References ✅
+- **Removed outdated concept**: Connection gravity affecting queue entry positions
+- **Clarified**: ALL letters enter at slot 8 only (except patron letters)
+- **Updated**: Token thresholds unlock better letter categories, not queue positions
+- **Fixed**: All references to lifetime tokens, payment scaling, and gravity
+
+### 7. Clarified Token System Design ✅
+- **NPCs have limited token types**: Most have 1-2 types fitting their character
+- **Queue manipulation**: Spend specific tokens from letter sender's NPC
+- **Letter categories**: Token thresholds (3+, 5+, 8+) unlock better paying letters
+- **No abstract spending**: Every token transaction is with a specific NPC
+
+## Current Token System Understanding
+
+### Core Concepts:
+1. **Tokens = Relationship Currency** with specific NPCs
+2. **No queue position effects** - all letters enter at slot 8
+3. **Token thresholds unlock letter categories**:
+   - 0-2 tokens: No letters offered
+   - 3-4 tokens: Basic category (3-5 coins)
+   - 5-7 tokens: Quality category (8-12 coins)
+   - 8+ tokens: Premium category (15-20+ coins)
+4. **NPCs have character-appropriate token types**:
+   - Elena: Trust only
+   - Marcus: Trade only
+   - River Worker: Trade AND Shadow
+5. **Queue manipulation burns sender's tokens**:
+   - Skip Elena's letter → Spend Trust tokens with Elena
+   - Extend Marcus's letter → Spend Trade tokens with Marcus
+
+## Next Implementation Priority
+
+### 1. Letter Category Unlock System 🚀
+**What**: Token thresholds unlock better paying letter categories from NPCs
+
+**Key Implementation Tasks**:
+1. **Update LetterTemplate** to include category and threshold requirements
+2. **Update NPCLetterOfferService** to filter templates by token thresholds
+3. **Create letter categories** in JSON (basic/quality/premium per type)
+4. **Update letter generation** to respect category thresholds
+5. **Add UI feedback** showing unlocked categories with each NPC
+
+### 2. Multi-type NPC Relationships
+**What**: Support NPCs having multiple token types (e.g., River Worker with Trade AND Shadow)
+
+**Key Implementation Tasks**:
+1. **Update NPC model** to support multiple token types
+2. **Update letter templates** to specify which token type they grant
+3. **Update token tracking** to handle multi-type NPCs correctly
+
+### 3. Access Requirements Framework
+**What**: Equipment/token requirements for routes and locations
+
+**Key Implementation Tasks**:
+1. **Create access requirement system** for routes
+2. **Add token-based location access** (spend tokens to unlock areas)
+3. **Implement narrative feedback** for blocked access
+
+## Important Notes
+
+1. **Start with Letter Category Unlocks** - This is the new priority based on corrected understanding
+2. **No connection gravity** - This concept is completely removed
+3. **NPCs are limited** - Most have 1-2 token types only
+4. **Context is everything** - All token spending is with specific NPCs
+5. **The architecture is very clean** - Ready for new features
+
+## Session Update: 2025-07-18 (Continuation)
+
+### ✅ COMPLETED: Letter Category Unlocks
+**Status**: COMPLETE - Basic implementation finished
+**What's Done**:
+- ✅ Added LetterCategory enum (Basic/Quality/Premium) to LetterTemplate.cs
+- ✅ Added MinTokensRequired property for token thresholds
+- ✅ Updated LetterTemplateDTO and factory methods
+- ✅ Modified NPCLetterOfferService to filter templates by token count
+- ✅ Updated letter_templates.json with categories and thresholds
+- ✅ Removed payment bonus calculation per design principles
+- ✅ Templates use direct payment ranges: Basic (2-7), Quality (6-14), Premium (15-50+)
+
+### ✅ COMPLETED: Multi-type NPC Relationships
+**Status**: COMPLETE - Implementation finished and builds successfully
+**What's Done**:
+- ✅ Changed NPC.LetterTokenType (single) to LetterTokenTypes (list)
+- ✅ Updated all DTOs, factories, and parsers to handle lists
+- ✅ Modified NPCLetterOfferService to check tokens per type
+- ✅ Updated npcs.json - all NPCs now use letterTokenTypes array
+- ✅ Added multi-type NPCs (e.g., dock_master with Trade AND Shadow)
+- ✅ Fixed all compilation errors in dependent files
+- ✅ NPCParser now properly handles nullable ConnectionType returns
+
+### Implementation Details
+
+#### Letter Categories
+Each token type now has three letter categories with token requirements:
+- **Basic**: 3-4 tokens required, pays 2-7 coins
+- **Quality**: 5-7 tokens required, pays 6-14 coins  
+- **Premium**: 8+ tokens required, pays 15-50+ coins
+
+The NPCLetterOfferService filters available templates based on the player's token count with that NPC.
+
+#### Multi-type NPCs
+NPCs can now have multiple token types:
+- Elena: Trust only (character-appropriate)
+- Marcus: Trade only (merchant)
+- Dock Master: Trade AND Shadow (duality of legitimate and illicit business)
+- River Worker: Trade AND Shadow (similar duality)
+
+Each token type is tracked separately per NPC, allowing for nuanced relationships.
+
+### Next Priority: Access Requirements Framework
+The next implementation priority is creating the access requirements system for routes and locations based on equipment and tokens. This will add strategic depth to navigation and exploration.

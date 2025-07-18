@@ -82,9 +82,9 @@
     
     private void GenerateLetter()
     {
-        // Get template matching NPC's token type
-        var template = NPC.LetterTokenType.HasValue 
-            ? LetterTemplateRepository.GetRandomTemplateByTokenType(NPC.LetterTokenType.Value)
+        // Get template matching NPC's primary token type
+        var template = NPC.LetterTokenTypes != null && NPC.LetterTokenTypes.Any()
+            ? LetterTemplateRepository.GetRandomTemplateByTokenType(NPC.LetterTokenTypes.First())
             : LetterTemplateRepository.GetRandomTemplate();
             
         if (template != null)

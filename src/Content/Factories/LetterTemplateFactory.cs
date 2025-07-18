@@ -24,6 +24,8 @@ public class LetterTemplateFactory
         int maxDeadline,
         int minPayment,
         int maxPayment,
+        LetterCategory category = LetterCategory.Basic,
+        int minTokensRequired = 3,
         IEnumerable<NPC> possibleSenders = null,
         IEnumerable<NPC> possibleRecipients = null,
         IEnumerable<string> unlocksLetterIds = null,
@@ -51,6 +53,8 @@ public class LetterTemplateFactory
             MaxDeadline = maxDeadline,
             MinPayment = minPayment,
             MaxPayment = maxPayment,
+            Category = category,
+            MinTokensRequired = minTokensRequired,
             PossibleSenders = possibleSenders?.Select(npc => npc.ID).ToArray() ?? new string[0],
             PossibleRecipients = possibleRecipients?.Select(npc => npc.ID).ToArray() ?? new string[0],
             UnlocksLetterIds = unlocksLetterIds?.ToArray() ?? new string[0],
@@ -71,6 +75,8 @@ public class LetterTemplateFactory
         int maxDeadline,
         int minPayment,
         int maxPayment,
+        LetterCategory category,
+        int minTokensRequired,
         IEnumerable<string> possibleSenderIds,
         IEnumerable<string> possibleRecipientIds,
         IEnumerable<NPC> availableNPCs,
@@ -114,7 +120,7 @@ public class LetterTemplateFactory
         }
         
         return CreateLetterTemplate(id, description, tokenType, minDeadline, maxDeadline, 
-                                   minPayment, maxPayment, senders, recipients, 
-                                   unlocksLetterIds, isChainLetter);
+                                   minPayment, maxPayment, category, minTokensRequired,
+                                   senders, recipients, unlocksLetterIds, isChainLetter);
     }
 }

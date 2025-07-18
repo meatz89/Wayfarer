@@ -14,6 +14,10 @@ public class LetterTemplateDTO
     public int MinPayment { get; set; }
     public int MaxPayment { get; set; }
     
+    // Letter category and requirements
+    public string Category { get; set; } = "Basic";
+    public int? MinTokensRequired { get; set; } = 3;
+    
     // Optional fields
     public List<string> PossibleSenders { get; set; }
     public List<string> PossibleRecipients { get; set; }

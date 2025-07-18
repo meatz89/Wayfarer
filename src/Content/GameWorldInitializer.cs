@@ -819,13 +819,17 @@ public class GameWorldInitializer
                         }
                     }
                     
-                    // Parse letter token type
-                    ConnectionType? tokenType = null;
-                    if (!string.IsNullOrEmpty(dto.LetterTokenType))
+                    // Parse letter token types
+                    var tokenTypes = new List<ConnectionType>();
+                    foreach (var tokenTypeStr in dto.LetterTokenTypes ?? new List<string>())
                     {
-                        if (Enum.TryParse<ConnectionType>(dto.LetterTokenType, out var parsed))
+                        if (Enum.TryParse<ConnectionType>(tokenTypeStr, out var parsed))
                         {
-                            tokenType = parsed;
+                            tokenTypes.Add(parsed);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"WARNING: Unknown token type '{tokenTypeStr}' for NPC '{dto.Id}'");
                         }
                     }
                     
@@ -840,7 +844,7 @@ public class GameWorldInitializer
                         schedule,
                         services,
                         dto.ContractCategories,
-                        tokenType);
+                        tokenTypes);
                     
                     npcs.Add(npc);
                     Console.WriteLine($"Loaded NPC: {npc.ID} - {npc.Name} at {npc.Location}");
@@ -970,6 +974,20 @@ public class GameWorldInitializer
                         continue;
                     }
                     
+                    // Parse letter category
+                    var category = LetterCategory.Basic;
+                    if (!string.IsNullOrEmpty(dto.Category))
+                    {
+                        if (!Enum.TryParse<LetterCategory>(dto.Category, out category))
+                        {
+                            Console.WriteLine($"WARNING: Unknown letter category '{dto.Category}' for template '{dto.Id}', defaulting to Basic");
+                            category = LetterCategory.Basic;
+                        }
+                    }
+                    
+                    // Get minimum tokens required
+                    int minTokensRequired = dto.MinTokensRequired ?? 3;
+                    
                     var template = _letterTemplateFactory.CreateLetterTemplateFromIds(
                         dto.Id,
                         dto.Description,
@@ -978,6 +996,8 @@ public class GameWorldInitializer
                         dto.MaxDeadline,
                         dto.MinPayment,
                         dto.MaxPayment,
+                        category,
+                        minTokensRequired,
                         dto.PossibleSenders,
                         dto.PossibleRecipients,
                         availableNPCs,
