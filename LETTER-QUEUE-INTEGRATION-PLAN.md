@@ -107,3 +107,157 @@
 - **Patron Mystery**: Monthly disruptions create strategic and narrative tension
 
 This transformation preserves the **mathematical elegance** of existing systems while **completely recontextualizing** them to serve the letter queue vision. The result is a **medieval letter-carrier RPG** where players live the experience of juggling social obligations like Kvothe in Kingkiller Chronicles.
+
+---
+
+## **IMPLEMENTATION ROADMAP**
+
+### **PHASE 1: Core Letter Queue System (HIGH PRIORITY)**
+**Goal**: Implement 8-slot letter queue with basic mechanics
+
+#### **1.1 Letter Queue Foundation** (2-3 sessions)
+- Create Letter entity: Sender, recipient, deadline, payment, token type, queue position
+- Implement LetterQueue class: 8-slot array with position enforcement
+- Add queue manipulation: Basic add/remove/reorder operations
+- Create LetterRepository: Stateless access to letter data
+- Build queue UI component: Visual 8-slot display with position indicators
+
+#### **1.2 Connection Token System** (1-2 sessions)
+- Create ConnectionToken enum: Trust, Trade, Noble, Common, Shadow
+- Add token storage: Player state with per-NPC token tracking
+- Implement token operations: Earn tokens through deliveries, spend for queue manipulation
+- Create ConnectionTokenRepository: Stateless token access
+- Add token UI display: Show player's token counts and per-NPC relationships
+
+### **PHASE 2: Queue Support Systems (MEDIUM PRIORITY)**
+**Goal**: Add deadline pressure and queue manipulation
+
+#### **2.1 Deadline System** (1-2 sessions)
+- Add deadline countdown: Daily reduction of all letter deadlines
+- Implement expiration: Letters vanish when deadline reaches 0
+- Create relationship damage: Skip tracking and relationship cooling
+- Add deadline UI: Visual countdown with urgency indicators
+- Build mathematical pressure: Multiple letters expiring same day
+
+#### **2.2 Queue Manipulation Actions** (1-2 sessions)
+- Implement purge action: 3 any tokens to remove bottom letter
+- Add priority action: 5 matching tokens to move letter to slot 1
+- Create extend action: 2 matching tokens to add 2 days to deadline
+- Add skip action: 1 matching token to deliver out of order
+- Build manipulation UI: Action buttons with token cost display
+
+### **PHASE 3: Character Relationship System (MEDIUM PRIORITY)**
+**Goal**: Location-based NPCs with relationship tracking
+
+#### **3.1 Character Relationship Screen** (2-3 sessions)
+- Create relationship UI: Display all known NPCs with standings
+- Add per-NPC token display: Show connection tokens with each NPC
+- Implement location info: Where each NPC can be found
+- Build interaction system: Face-to-face meetings at NPC locations
+- Add relationship history: Track delivered/skipped letters per NPC
+
+#### **3.2 Standing Obligations System** (1-2 sessions)
+- Create StandingObligation class: Permanent queue behavior modifiers
+- Add obligation effects: Noble's Courtesy, Shadow's Burden, etc.
+- Implement acquisition: Through special letters and deep relationships
+- Build obligation UI: Display active obligations with effects
+- Add conflict detection: Identify obligations that conflict with each other
+
+### **PHASE 4: Content Transformation (LOW PRIORITY)**
+**Goal**: Transform existing content to letter-based system
+
+#### **4.1 NPC and Letter Content** (2-3 sessions)
+- Transform NPCs to Letter Senders: Add tokenType property to all NPCs
+- Create Letter Templates: 50+ templates across all token types
+- Design Letter Categories: Personal, Commercial, Aristocratic, Everyday, Underground
+- Implement procedural generation variations
+
+#### **4.2 System Migration** (1-2 sessions)
+- Delete Contract System: Remove ContractManager, ContractRepository
+- Remove Reputation/Favor Systems: Transform to token counts
+- Clean Obsolete UI: Remove old quest screens
+- Implement Save Migration: Create versioned save system
+
+### **PHASE 5: Polish and Balance**
+**Goal**: Complete letter queue experience
+
+- Implement Patron Mystery System: Monthly letters that jump to slots 1-3
+- Create Letter Chains: Follow-up letter generation
+- Add Crisis Events: Denna-style interruptions
+- Balance Token Economy: Tune earning rates and spending costs
+- Create Tutorial Flow: Queue mechanics introduction
+
+---
+
+## **MASTER TODO LIST**
+
+### **Foundation Tasks**
+- [ ] Create Letter Entity with all properties
+- [ ] Implement LetterQueue Class with position enforcement
+- [ ] Build ConnectionToken System with per-NPC tracking
+- [ ] Create Core Repositories (Letter, Token)
+- [ ] Add Basic Queue UI Component
+- [ ] Create Token Display UI
+- [ ] Integrate with Time System
+
+### **Content Transformation Tasks**
+- [ ] Transform NPCs to Letter Senders
+- [ ] Create 50+ Letter Templates
+- [ ] Design Letter Categories (Trust/Trade/Noble/Common/Shadow)
+- [ ] Design Core Standing Obligations
+- [ ] Create Obligation System with effects
+
+### **System Integration Tasks**
+- [ ] Transform Travel System for queue delivery
+- [ ] Update Equipment System for route access
+- [ ] Implement Core Queue Actions (purge, priority, extend, skip)
+- [ ] Create Connection Gravity system
+- [ ] Build Manipulation UI with costs
+
+### **UI Transformation Tasks**
+- [ ] Build Letter Queue Screen (primary interface)
+- [ ] Create Character Relationship Screen
+- [ ] Implement Standing Obligations Screen
+- [ ] Add Cross-Screen Navigation
+- [ ] Create Notification System
+
+### **Migration and Cleanup Tasks**
+- [ ] Delete Contract System completely
+- [ ] Remove Reputation/Favor Systems
+- [ ] Clean Obsolete UI components
+- [ ] Implement Save Migration with versioning
+- [ ] Balance Token Economy
+- [ ] Comprehensive Testing
+
+### **Polish Tasks**
+- [ ] Implement Letter Chains
+- [ ] Create Crisis Events
+- [ ] Add Seasonal Events
+- [ ] Implement Patron Mystery
+- [ ] Create Tutorial Flow
+- [ ] Add Achievement System
+
+---
+
+## **POC SUCCESS CRITERIA**
+
+### **Core Mechanics Working**
+- ✅ 8-slot queue with position enforcement
+- ✅ Connection tokens earned and spent for queue manipulation
+- ✅ Deadline pressure creates strategic decisions
+- ✅ Standing obligations permanently modify gameplay
+
+### **UI Requirements Met**
+- ✅ Letter Queue Screen: Primary gameplay interface
+- ✅ Character Relationship Screen: NPC management with per-NPC tokens
+- ✅ Location-based interactions: Must travel to NPCs to interact
+- ✅ Queue manipulation UI: Token costs clearly displayed
+
+### **Player Experience Achieved**
+- ✅ Daily queue crisis: Morning queue management decisions
+- ✅ Token value: Connection tokens feel precious and meaningful
+- ✅ Relationship investment: Players care about specific NPCs
+- ✅ Patron mystery: Monthly disruptions create tension
+
+**Expected Timeline**: 8-12 weeks for complete transformation
+**Critical Path**: Letter Queue Foundation → Token System → Deadline Pressure → Character Relationships → System Migration → Polish
