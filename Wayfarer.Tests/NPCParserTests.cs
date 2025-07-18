@@ -1,7 +1,8 @@
 using System.Text.Json;
-using Wayfarer.Content;
-
-namespace Wayfarer.Tests;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+using Xunit;
 
 public class NPCParserTests
 {

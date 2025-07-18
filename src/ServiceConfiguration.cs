@@ -3,14 +3,8 @@ public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
-        string contentDirectory = "Content";
-        
-        // Create a temporary GameWorld for factories
-        // This is needed because factories need GameWorld to exist
-        var tempGameWorld = new GameWorld();
-        services.AddSingleton(tempGameWorld);
-        
-        // Register ReferenceResolver for safe entity lookups
+        // Register configuration
+        services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
         
         // Register factories for reference-safe content creation
         services.AddSingleton<LocationFactory>();
@@ -24,40 +18,17 @@ public static class ServiceConfiguration
         services.AddSingleton<StandingObligationFactory>();
         services.AddSingleton<ActionDefinitionFactory>();
         
-        // Build service provider to get factories
-        var serviceProvider = services.BuildServiceProvider();
+        // Register GameWorldInitializer as both itself and IGameWorldFactory
+        services.AddSingleton<GameWorldInitializer>();
+        services.AddSingleton<IGameWorldFactory>(serviceProvider => 
+            serviceProvider.GetRequiredService<GameWorldInitializer>());
         
-        // Create GameWorldInitializer with factories
-        var locationFactory = serviceProvider.GetRequiredService<LocationFactory>();
-        var locationSpotFactory = serviceProvider.GetRequiredService<LocationSpotFactory>();
-        var npcFactory = serviceProvider.GetRequiredService<NPCFactory>();
-        var itemFactory = serviceProvider.GetRequiredService<ItemFactory>();
-        var routeFactory = serviceProvider.GetRequiredService<RouteFactory>();
-        var routeDiscoveryFactory = serviceProvider.GetRequiredService<RouteDiscoveryFactory>();
-        var networkUnlockFactory = serviceProvider.GetRequiredService<NetworkUnlockFactory>();
-        var letterTemplateFactory = serviceProvider.GetRequiredService<LetterTemplateFactory>();
-        var standingObligationFactory = serviceProvider.GetRequiredService<StandingObligationFactory>();
-        var actionDefinitionFactory = serviceProvider.GetRequiredService<ActionDefinitionFactory>();
-        
-        GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(
-            contentDirectory,
-            locationFactory,
-            locationSpotFactory,
-            npcFactory,
-            itemFactory,
-            routeFactory,
-            routeDiscoveryFactory,
-            networkUnlockFactory,
-            letterTemplateFactory,
-            standingObligationFactory,
-            actionDefinitionFactory);
-        
-        // Remove the temporary GameWorld
-        services.Remove(services.First(s => s.ServiceType == typeof(GameWorld)));
-        
-        // Load the real game state
-        GameWorld gameWorld = gameWorldInitializer.LoadGame();
-        services.AddSingleton(gameWorld);
+        // Register GameWorld using factory pattern
+        services.AddSingleton<GameWorld>(serviceProvider => 
+        {
+            var factory = serviceProvider.GetRequiredService<IGameWorldFactory>();
+            return factory.CreateGameWorld();
+        });
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();
@@ -80,17 +51,7 @@ public static class ServiceConfiguration
         services.AddSingleton<CharacterSystem>();
         services.AddSingleton<EncounterFactory>();
         services.AddSingleton<ActionSystem>();
-        services.AddSingleton<ActionProcessor>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var playerProgression = serviceProvider.GetRequiredService<PlayerProgression>();
-            var environmentalPropertyManager = serviceProvider.GetRequiredService<LocationPropertyManager>();
-            var locationRepository = serviceProvider.GetRequiredService<LocationRepository>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            var routeUnlockManager = serviceProvider.GetRequiredService<RouteUnlockManager>();
-            var npcLetterOfferService = serviceProvider.GetRequiredService<NPCLetterOfferService>();
-            return new ActionProcessor(gameWorld, playerProgression, environmentalPropertyManager, locationRepository, messageSystem, routeUnlockManager, npcLetterOfferService);
-        });
+        services.AddSingleton<ActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
@@ -107,29 +68,9 @@ public static class ServiceConfiguration
         services.AddSingleton<TransportCompatibilityValidator>();
         
         // Letter Queue System
-        services.AddSingleton<StandingObligationManager>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
-            return new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepository);
-        });
-        services.AddSingleton<LetterQueueManager>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
-            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
-            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager);
-            
-            // Set up letter chain manager after both are created
-            var letterChainManager = new LetterChainManager(gameWorld, letterTemplateRepository, npcRepository, letterQueueManager, messageSystem);
-            letterQueueManager.SetLetterChainManager(letterChainManager);
-            
-            return letterQueueManager;
-        });
         services.AddSingleton<ConnectionTokenManager>();
+        services.AddSingleton<StandingObligationManager>();
+        services.AddSingleton<LetterQueueManager>();
         services.AddSingleton<RouteUnlockManager>();
         services.AddSingleton<NavigationService>();
         services.AddSingleton<AccessRequirementChecker>();
@@ -138,36 +79,8 @@ public static class ServiceConfiguration
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<NetworkUnlockManager>();
-        services.AddSingleton<NPCLetterOfferService>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
-            var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
-            var connectionTokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
-            var letterQueueManager = serviceProvider.GetRequiredService<LetterQueueManager>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            return new NPCLetterOfferService(gameWorld, npcRepository, letterTemplateRepository, connectionTokenManager, letterQueueManager, messageSystem);
-        });
-        services.AddSingleton<LetterChainManager>(serviceProvider =>
-        {
-            // Get the already-created chain manager from the letter queue manager
-            var letterQueueManager = serviceProvider.GetRequiredService<LetterQueueManager>();
-            // The chain manager is already set up in the letter queue manager factory
-            // This is a bit hacky but works around the circular dependency
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var letterTemplateRepository = serviceProvider.GetRequiredService<LetterTemplateRepository>();
-            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            return new LetterChainManager(gameWorld, letterTemplateRepository, npcRepository, letterQueueManager, messageSystem);
-        });
-        services.AddSingleton<MorningActivitiesManager>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var letterQueueManager = serviceProvider.GetRequiredService<LetterQueueManager>();
-            var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            return new MorningActivitiesManager(gameWorld, letterQueueManager, obligationManager, messageSystem);
-        });
+        services.AddSingleton<NPCLetterOfferService>();
+        services.AddSingleton<MorningActivitiesManager>();
 
         services.AddScoped<MusicService>();
 
@@ -198,21 +111,19 @@ public static class ServiceConfiguration
         services.AddSingleton<EncounterChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
 
-        // Get configuration to determine which provider to use
-        using (ServiceProvider sp = services.BuildServiceProvider())
+        // Register AI provider factory
+        services.AddSingleton<IAIProvider>(serviceProvider =>
         {
-            IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            var logger = serviceProvider.GetRequiredService<ILogger<EncounterFactory>>();
             string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "Ollama";
-
-            // Register the appropriate AI service based on configuration
-            switch (defaultProvider.ToLower())
+            
+            return defaultProvider.ToLower() switch
             {
-                case "ollama":
-                default:
-                    services.AddSingleton<IAIProvider, OllamaProvider>();
-                    break;
-            }
-        }
+                "ollama" => new OllamaProvider(configuration, logger),
+                _ => new OllamaProvider(configuration, logger)
+            };
+        });
 
         return services;
     }

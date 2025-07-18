@@ -1,16 +1,14 @@
-using Wayfarer.Game.MainSystem;
 using Xunit;
+using System.Collections.Generic;
 
-namespace Wayfarer.Tests
-{
-    /// <summary>
-    /// Tests for the Logical Equipment Requirements for Routes feature.
-    /// Validates that routes require appropriate equipment categories based on terrain types,
-    /// creating strategic equipment planning decisions for players.
-    /// 
-    /// User Story: Logical Equipment Requirements (UserStories.md lines 29-49)
-    /// </summary>
-    public class LogicalEquipmentRequirementsTests
+/// <summary>
+/// Tests for the Logical Equipment Requirements for Routes feature.
+/// Validates that routes require appropriate equipment categories based on terrain types,
+/// creating strategic equipment planning decisions for players.
+/// 
+/// User Story: Logical Equipment Requirements (UserStories.md lines 29-49)
+/// </summary>
+public class LogicalEquipmentRequirementsTests
     {
         [Fact]
         public void Mountain_Route_Should_Require_Climbing_Equipment()
@@ -33,7 +31,7 @@ namespace Wayfarer.Tests
                 Destination = "mountain_summit",
                 TerrainCategories = new List<TerrainCategory> { TerrainCategory.Requires_Climbing },
                 BaseStaminaCost = 4,
-                TimeBlockCost = 2
+                TravelTimeHours = 2
             };
 
             // Act - Check route access without climbing equipment
@@ -65,7 +63,7 @@ namespace Wayfarer.Tests
                 Destination = "mountain_summit",
                 TerrainCategories = new List<TerrainCategory> { TerrainCategory.Requires_Climbing },
                 BaseStaminaCost = 4,
-                TimeBlockCost = 2
+                TravelTimeHours = 2
             };
 
             // Act - Check route access with climbing equipment
@@ -96,7 +94,7 @@ namespace Wayfarer.Tests
                 Destination = "workshop",
                 TerrainCategories = new List<TerrainCategory> { TerrainCategory.Dark_Passage },
                 BaseStaminaCost = 1,
-                TimeBlockCost = 1
+                TravelTimeHours = 1
             };
 
             // Act - Check route access without light source
@@ -129,7 +127,7 @@ namespace Wayfarer.Tests
                 Destination = "mountain_summit",
                 TerrainCategories = new List<TerrainCategory> { TerrainCategory.Wilderness_Terrain },
                 BaseStaminaCost = 3,
-                TimeBlockCost = 2
+                TravelTimeHours = 2
             };
 
             // Act - Check route access in foggy weather without navigation tools
@@ -161,7 +159,7 @@ namespace Wayfarer.Tests
                 Destination = "mountain_summit",
                 TerrainCategories = new List<TerrainCategory> { TerrainCategory.Wilderness_Terrain },
                 BaseStaminaCost = 3,
-                TimeBlockCost = 2
+                TravelTimeHours = 2
             };
 
             // Act - Check route access in foggy weather with navigation tools
@@ -197,7 +195,7 @@ namespace Wayfarer.Tests
                     TerrainCategory.Requires_Climbing
                 },
                 BaseStaminaCost = 2,
-                TimeBlockCost = 2
+                TravelTimeHours = 2
             };
 
             // Act - Check route access without any equipment
@@ -229,7 +227,7 @@ namespace Wayfarer.Tests
                 Destination = "mountain_summit",
                 TerrainCategories = new List<TerrainCategory> { TerrainCategory.Requires_Climbing },
                 BaseStaminaCost = 2,
-                TimeBlockCost = 1
+                TravelTimeHours = 1
             };
 
             // Create alternative road route (no equipment required, longer)
@@ -241,7 +239,7 @@ namespace Wayfarer.Tests
                 Destination = "mountain_summit",
                 TerrainCategories = new List<TerrainCategory>(), // No special requirements
                 BaseStaminaCost = 4,
-                TimeBlockCost = 3
+                TravelTimeHours = 3
             };
 
             // Act - Check both routes without equipment
@@ -254,8 +252,7 @@ namespace Wayfarer.Tests
 
             // The player now faces the strategic choice mentioned in UserStories.md:
             // "Do I take the longer [Road] route that's cart-compatible, or delay the contract to get proper equipment?"
-            Assert.True(mountainRoute.TimeBlockCost < roadRoute.TimeBlockCost, "Mountain route should be faster");
+            Assert.True(mountainRoute.TravelTimeHours < roadRoute.TravelTimeHours, "Mountain route should be faster");
             Assert.True(mountainRoute.BaseStaminaCost < roadRoute.BaseStaminaCost, "Mountain route should be less tiring");
         }
     }
-}

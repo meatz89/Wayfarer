@@ -49,16 +49,211 @@ itemRepository.AddItem(item);
 - **Actions (State Changes)**: UI → GameWorldManager → Specific Manager
 - **Queries (Reading State)**: UI → Repository → GameWorld.WorldState
 
+### NO EVENTS OR DELEGATES (CRITICAL)
+**Events and delegates are FORBIDDEN - they create hidden dependencies and make code flow impossible to trace.**
+
+#### Why Are Events Forbidden?
+1. **Hidden Dependencies** - Can't see who's listening by looking at the code
+2. **Memory Leaks** - Forgotten event subscriptions prevent garbage collection
+3. **Order Dependencies** - Event handler execution order is not guaranteed
+4. **Debugging Nightmare** - Can't step through code flow easily
+5. **Testing Complexity** - Must mock event subscriptions
+6. **Null Reference Risks** - Events can be null if no subscribers
+
+#### What to Use Instead
+
+**Option 1: Direct Method Calls**
+```csharp
+// ❌ WRONG: Using events
+class LetterQueueManager {
+    public event Action<Letter> LetterDelivered;
+    
+    void DeliverLetter(Letter letter) {
+        // delivery logic
+        LetterDelivered?.Invoke(letter);
+    }
+}
+
+// ✅ CORRECT: Direct dependency injection
+class LetterQueueManager {
+    private readonly ILetterDeliveryHandler _deliveryHandler;
+    
+    void DeliverLetter(Letter letter) {
+        // delivery logic
+        _deliveryHandler.HandleDelivery(letter);
+    }
+}
+```
+
+**Option 2: Return Values**
+```csharp
+// ❌ WRONG: Event to notify of completion
+public event Action<ProcessResult> ProcessComplete;
+
+// ✅ CORRECT: Return the result
+public ProcessResult Process() {
+    // do work
+    return result;
+}
+```
+
+**Option 3: Command Pattern**
+```csharp
+// ✅ CORRECT: Explicit command handling
+interface ICommand {
+    void Execute();
+}
+
+class DeliverLetterCommand : ICommand {
+    public void Execute() { /* delivery logic */ }
+}
+```
+
+### NO CIRCULAR DEPENDENCIES (CRITICAL)
+**Circular dependencies are FORBIDDEN and must be eliminated immediately when found.**
+
+#### What Are Circular Dependencies?
+```csharp
+// ❌ WRONG: Direct circular dependency
+class LetterQueueManager {
+    private LetterChainManager _chainManager;
+    public LetterQueueManager(LetterChainManager chainManager) { ... }
+}
+
+class LetterChainManager {
+    private LetterQueueManager _queueManager;
+    public LetterChainManager(LetterQueueManager queueManager) { ... }
+}
+
+// ❌ WRONG: Transitive circular dependency
+// A → B → C → A
+
+// ❌ WRONG: Setter workaround (still a circular dependency!)
+class LetterQueueManager {
+    private LetterChainManager _chainManager;
+    public void SetLetterChainManager(LetterChainManager manager) { 
+        _chainManager = manager; // This is still circular!
+    }
+}
+```
+
+#### Why Are They Forbidden?
+1. **Breaks Dependency Injection** - DI containers cannot resolve circular dependencies
+2. **Violates Single Responsibility** - Classes with circular deps are doing too much
+3. **Creates Tight Coupling** - Changes in one class affect the other
+4. **Makes Testing Impossible** - Cannot create one without the other
+5. **Indicates Poor Design** - The architecture needs redesign
+
+#### How to Fix Circular Dependencies
+
+**Option 1: Extract Common Interface**
+```csharp
+// ✅ CORRECT: Use interfaces
+interface ILetterQueue {
+    void AddLetter(Letter letter);
+}
+
+class LetterQueueManager : ILetterQueue {
+    // No dependency on LetterChainManager
+}
+
+class LetterChainManager {
+    private ILetterQueue _queue;
+    public LetterChainManager(ILetterQueue queue) { ... }
+}
+```
+
+**Option 2: Use Events/Observer Pattern**
+```csharp
+// ✅ CORRECT: Event-based communication
+class LetterQueueManager {
+    public event Action<Letter> LetterAdded;
+    
+    public void AddLetter(Letter letter) {
+        // Add to queue
+        LetterAdded?.Invoke(letter);
+    }
+}
+
+class LetterChainManager {
+    public LetterChainManager(LetterQueueManager queueManager) {
+        queueManager.LetterAdded += OnLetterAdded;
+    }
+}
+```
+
+**Option 3: Extract Third Service**
+```csharp
+// ✅ CORRECT: Mediator pattern
+class LetterCoordinator {
+    private LetterQueueManager _queueManager;
+    private LetterChainManager _chainManager;
+    
+    public LetterCoordinator(LetterQueueManager queue, LetterChainManager chain) {
+        _queueManager = queue;
+        _chainManager = chain;
+    }
+    
+    public void ProcessLetter(Letter letter) {
+        _queueManager.AddToQueue(letter);
+        _chainManager.CheckChains(letter);
+    }
+}
+```
+
+**Option 4: Merge Classes (if truly interdependent)**
+```csharp
+// ✅ CORRECT: Single class if responsibilities are truly inseparable
+class LetterManagementService {
+    // Handles both queue and chain logic
+}
+```
+
 ### Stateless Repositories
 Repositories MUST be stateless and only delegate to GameWorld.
 
 ## LETTER QUEUE SYSTEM ARCHITECTURE
 
 ### Core Components
-- **LetterQueueManager**: 8-slot priority queue with position enforcement
+- **LetterQueueManager**: 8-slot priority queue with position enforcement and chain letter generation
 - **Letter Entity**: Id, SenderId, RecipientId, TokenType, Deadline, Payment, QueuePosition
 - **ConnectionTokenManager**: 5 token types (Trust/Trade/Noble/Common/Shadow) with per-NPC tracking
 - **StandingObligationManager**: Permanent queue behavior modifiers
+
+### Unified Letter Queue Management
+**LetterQueueManager handles the complete letter lifecycle including chain letter generation.**
+
+#### Why Chain Letters are Part of Queue Management
+1. **Inseparable Lifecycle** - Chain letters are generated as a direct result of delivery
+2. **Immediate Queue Impact** - Generated letters must be added to the queue immediately
+3. **Single Transaction** - Delivery, history recording, and chain generation happen atomically
+4. **No External Coordination** - The queue manager has all context needed for chain generation
+5. **Simplified Architecture** - Eliminates circular dependencies and complex coordination
+
+#### Chain Letter Flow
+```csharp
+// Unified flow within LetterQueueManager
+public void RecordLetterDelivery(Letter letter) {
+    // 1. Record delivery in history
+    player.NPCLetterHistory[senderId].RecordDelivery();
+    
+    // 2. Process chain letters immediately
+    ProcessChainLetters(letter);
+}
+
+private void ProcessChainLetters(Letter deliveredLetter) {
+    // Generate any chain letters
+    var chainLetters = GenerateChainLetters(deliveredLetter);
+    
+    // Add them to the queue with narrative feedback
+    foreach (var chainLetter in chainLetters) {
+        AddLetterWithObligationEffects(chainLetter);
+        _messageSystem.AddSystemMessage("📬 Follow-up letter generated!");
+    }
+}
+```
+
+This design follows the principle: if responsibilities are truly inseparable, they belong in the same class.
 
 ### Contextual Token Spending Principle
 **All token spending must be contextually tied to specific NPCs**
@@ -509,25 +704,60 @@ public bool IsAvailable(TimeBlocks currentTime) // Shop open during Afternoon
 - TimeBlocks create narrative moments (dawn letter selection, evening rest)
 - Separation prevents confusion between duration (hours) and schedule (blocks)
 
-## DEPENDENCY INJECTION PATTERNS
+## DEPENDENCY INJECTION PATTERNS (CRITICAL)
 
 ### Service Registration
+**NEVER use `new` to instantiate services or call `BuildServiceProvider()` in configuration.**
+
+#### ❌ FORBIDDEN Patterns
 ```csharp
-// Services must be registered for both app and tests
-services.AddScoped<LetterQueueManager>();
-services.AddScoped<ConnectionTokenManager>();
-services.AddScoped<RouteUnlockManager>();
+// ❌ WRONG: Manual instantiation
+var gameWorldInitializer = new GameWorldInitializer(...);
+
+// ❌ WRONG: Intermediate service provider
+var serviceProvider = services.BuildServiceProvider();
+var factory = serviceProvider.GetRequiredService<Factory>();
+
+// ❌ WRONG: Manual dependency resolution
+services.AddSingleton<Service>(sp => {
+    var dep1 = sp.GetRequiredService<Dep1>();
+    var dep2 = sp.GetRequiredService<Dep2>();
+    return new Service(dep1, dep2);
+});
+```
+
+#### ✅ CORRECT Patterns
+```csharp
+// ✅ CORRECT: Let DI handle everything
+services.AddSingleton<GameWorldInitializer>();
+services.AddSingleton<LetterQueueManager>();
+
+// ✅ CORRECT: Factory delegate for complex initialization
+services.AddSingleton<GameWorld>(sp => {
+    var initializer = sp.GetRequiredService<GameWorldInitializer>();
+    return initializer.LoadGame();
+});
+
+// ✅ CORRECT: Direct registration when possible
+services.AddSingleton<ActionProcessor>();
 ```
 
 ### Manager Dependencies
 ```csharp
-// Managers depend on GameWorld and specific repositories
+// Managers declare dependencies in constructors
 public LetterQueueManager(
     GameWorld gameWorld,
     LetterTemplateRepository letterTemplateRepository,
     NPCRepository npcRepository,
     MessageSystem messageSystem) { }
 ```
+
+### Why This Matters
+1. **Testability** - Proper DI allows easy mocking and testing
+2. **Maintainability** - Dependencies are explicit and clear
+3. **Lifecycle Management** - Container handles object lifetimes correctly
+4. **Circular Dependency Detection** - Container detects issues at startup
+5. **Single Responsibility** - Configuration only registers, doesn't create
 
 ## TRANSFORMATION ARCHITECTURE
 

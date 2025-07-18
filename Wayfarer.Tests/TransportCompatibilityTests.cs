@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Game.MainSystem;
 using Xunit;
 
-namespace Wayfarer.Tests
-{
-    public class TransportCompatibilityTests
+public class TransportCompatibilityTests
     {
         private readonly TransportCompatibilityValidator _validator;
         private readonly ItemRepository _itemRepository;
@@ -14,7 +11,31 @@ namespace Wayfarer.Tests
         public TransportCompatibilityTests()
         {
             // Use simple test initialization
-            GameWorldInitializer initializer = new GameWorldInitializer("Content");
+            // Create factories needed for GameWorldInitializer
+            var locationFactory = new LocationFactory();
+            var locationSpotFactory = new LocationSpotFactory();
+            var npcFactory = new NPCFactory();
+            var itemFactory = new ItemFactory();
+            var routeFactory = new RouteFactory();
+            var routeDiscoveryFactory = new RouteDiscoveryFactory();
+            var networkUnlockFactory = new NetworkUnlockFactory();
+            var letterTemplateFactory = new LetterTemplateFactory();
+            var standingObligationFactory = new StandingObligationFactory();
+            var actionDefinitionFactory = new ActionDefinitionFactory();
+            
+            var contentDirectory = new ContentDirectory { Path = "Content" };
+            GameWorldInitializer initializer = new GameWorldInitializer(
+                contentDirectory,
+                locationFactory,
+                locationSpotFactory,
+                npcFactory,
+                itemFactory,
+                routeFactory,
+                routeDiscoveryFactory,
+                networkUnlockFactory,
+                letterTemplateFactory,
+                standingObligationFactory,
+                actionDefinitionFactory);
             _gameWorld = initializer.LoadGame();
             _itemRepository = new ItemRepository(_gameWorld);
             _validator = new TransportCompatibilityValidator(_itemRepository);
@@ -81,28 +102,6 @@ namespace Wayfarer.Tests
             Assert.False(horsebackResult.IsCompatible);
         }
 
-        [Fact]
-        public void HeavyEquipment_ShouldBlockBoatTransport()
-        {
-            // Arrange
-            Player player = _gameWorld.GetPlayer();
-
-            // Give player a large item
-            Item? largeItem = _itemRepository.GetAllItems()
-            .FirstOrDefault(item => item.Size == SizeCategory.Large);
-
-            if (largeItem != null)
-            {
-                player.Inventory.ItemSlots[0] = largeItem.Id;
-            }
-
-            // Act
-            TransportCompatibilityResult result = _validator.CheckEquipmentCompatibility(TravelMethods.Boat, player);
-
-            // Assert
-            Assert.False(result.IsCompatible);
-            Assert.Contains("Heavy equipment blocks boat transport", result.BlockingReason);
-        }
 
         [Fact]
         public void MassiveItems_ShouldBlockCarriageTransport()
@@ -179,27 +178,4 @@ namespace Wayfarer.Tests
             Assert.Contains("Heavy equipment blocks boat transport", result.BlockingReason);
         }
 
-        [Fact]
-        public void HorsebackTransport_ShouldBeBlocked_WithHeavyEquipment()
-        {
-            // Arrange
-            Player player = _gameWorld.GetPlayer();
-
-            // Give player a large item
-            Item? largeItem = _itemRepository.GetAllItems()
-            .FirstOrDefault(item => item.Size == SizeCategory.Large);
-
-            if (largeItem != null)
-            {
-                player.Inventory.ItemSlots[0] = largeItem.Id;
-            }
-
-            // Act
-            TransportCompatibilityResult result = _validator.CheckEquipmentCompatibility(TravelMethods.Horseback, player);
-
-            // Assert
-            Assert.False(result.IsCompatible);
-            Assert.Contains("Heavy equipment incompatible with horseback travel", result.BlockingReason);
-        }
     }
-}

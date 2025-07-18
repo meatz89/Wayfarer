@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-public class GameWorldInitializer
+public class GameWorldInitializer : IGameWorldFactory
 {
-    private readonly string _contentDirectory;
+    private readonly IContentDirectory _contentDirectory;
     private readonly LocationFactory _locationFactory;
     private readonly LocationSpotFactory _locationSpotFactory;
     private readonly NPCFactory _npcFactory;
@@ -18,7 +18,7 @@ public class GameWorldInitializer
     private readonly ActionDefinitionFactory _actionDefinitionFactory;
 
     public GameWorldInitializer(
-        string contentDirectory,
+        IContentDirectory contentDirectory,
         LocationFactory locationFactory,
         LocationSpotFactory locationSpotFactory,
         NPCFactory npcFactory,
@@ -30,7 +30,7 @@ public class GameWorldInitializer
         StandingObligationFactory standingObligationFactory,
         ActionDefinitionFactory actionDefinitionFactory)
     {
-        _contentDirectory = contentDirectory;
+        _contentDirectory = contentDirectory ?? throw new ArgumentNullException(nameof(contentDirectory));
         _locationFactory = locationFactory ?? throw new ArgumentNullException(nameof(locationFactory));
         _locationSpotFactory = locationSpotFactory ?? throw new ArgumentNullException(nameof(locationSpotFactory));
         _npcFactory = npcFactory ?? throw new ArgumentNullException(nameof(npcFactory));
@@ -45,13 +45,20 @@ public class GameWorldInitializer
 
     public GameWorld LoadGame()
     {
-        GameWorld gameWorld = CreateInitialGameWorld();
         return LoadGameFromTemplates();
+    }
+    
+    /// <summary>
+    /// IGameWorldFactory implementation
+    /// </summary>
+    public GameWorld CreateGameWorld()
+    {
+        return LoadGame();
     }
 
     private GameWorld LoadGameFromTemplates()
     {
-        string templatePath = Path.Combine(_contentDirectory, "Templates");
+        string templatePath = Path.Combine(_contentDirectory.Path, "Templates");
 
         // PHASE 1: Load entities without references (Locations, Items)
         Console.WriteLine("\n=== PHASE 1: Loading base entities ===");

@@ -436,11 +436,31 @@ public class NPCLetterOfferService
             offer.GeneratedTimeBlock = _gameWorld.TimeManager.GetCurrentTimeBlock();
             offers.Add(offer);
             
-            // Notify player
+            // Add rich narrative about why NPC is offering now
+            var timeNarrative = _gameWorld.TimeManager.GetCurrentTimeBlock() switch
+            {
+                TimeBlocks.Dawn => "early this morning",
+                TimeBlocks.Morning => "this morning",
+                TimeBlocks.Afternoon => "this afternoon",
+                TimeBlocks.Evening => "this evening",
+                TimeBlocks.Night => "late tonight",
+                _ => "recently"
+            };
+            
+            // Notify player with narrative context
             _messageSystem.AddSystemMessage(
-                $"📮 {npc.Name} has a letter offer for you!", 
+                $"📮 {npc.Name} approached you {timeNarrative} with a letter request.", 
                 SystemMessageTypes.Info
             );
+            
+            // Add the offer message if available
+            if (!string.IsNullOrEmpty(offer.Message))
+            {
+                _messageSystem.AddSystemMessage(
+                    $"\"{offer.Message}\"",
+                    SystemMessageTypes.Info
+                );
+            }
         }
     }
     

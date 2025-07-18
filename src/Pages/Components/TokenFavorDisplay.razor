@@ -61,27 +61,29 @@
     
     private bool CanAfford(TokenFavor favor)
     {
-        var tokenCount = TokenManager.GetTokenCount(CurrentNPC.ID, favor.RequiredTokenType);
+        var npcTokens = TokenManager.GetTokensWithNPC(CurrentNPC.ID);
+        var tokenCount = npcTokens.GetValueOrDefault(favor.RequiredTokenType);
         return tokenCount >= favor.TokenCost;
     }
     
     private int GetTokenCount(TokenFavor favor)
     {
-        return TokenManager.GetTokenCount(CurrentNPC.ID, favor.RequiredTokenType);
+        var npcTokens = TokenManager.GetTokensWithNPC(CurrentNPC.ID);
+        return npcTokens.GetValueOrDefault(favor.RequiredTokenType);
     }
     
     private async Task PurchaseFavor(TokenFavor favor)
     {
-        var result = TokenFavorManager.PurchaseFavor(favor.Id);
-        if (result.Success)
+        var success = TokenFavorManager.PurchaseFavor(CurrentNPC.ID, favor.Id);
+        if (success)
         {
-            MessageSystem.AddSystemMessage(result.Message, SystemMessageTypes.Success);
+            MessageSystem.AddSystemMessage($"You purchased {favor.Name} from {CurrentNPC.Name}!", SystemMessageTypes.Success);
             RefreshAvailableFavors();
             StateHasChanged();
         }
         else
         {
-            MessageSystem.AddSystemMessage(result.Message, SystemMessageTypes.Error);
+            MessageSystem.AddSystemMessage($"Could not purchase {favor.Name}. Check requirements.", SystemMessageTypes.Danger);
         }
     }
 }

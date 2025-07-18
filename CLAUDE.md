@@ -370,6 +370,13 @@ The MessageSystem is properly displayed in the UI and provides consistent feedba
   2. **STOP all other work** - reflection makes code unmaintainable and breaks refactoring
   3. **Fix it properly** - make fields public, add proper accessors, or redesign the architecture
   4. **NO EXCEPTIONS** - There is never a valid reason to use reflection in production code
+- **CRITICAL: NO CIRCULAR DEPENDENCIES** - Circular dependencies violate clean architecture:
+  1. **FORBIDDEN**: Class A depends on B, and B depends on A (direct circular)
+  2. **FORBIDDEN**: A → B → C → A (transitive circular)
+  3. **FORBIDDEN**: Using setter methods like SetXxx() to work around circular dependencies
+  4. **REQUIRED**: Use proper architectural patterns (events, interfaces, mediator)
+  5. **REQUIRED**: Dependencies must form a directed acyclic graph (DAG)
+  6. **IF FOUND**: Stop all work and redesign the architecture immediately
 - **CRITICAL: LEGACY CODE ELIMINATION PRINCIPLE** - When files contain ONLY legacy functionality:
   1. **DELETE THE ENTIRE FILE** - Do not comment out, do not exclude from compilation
   2. **REMOVE COMPLETELY** - If a test file only tests removed systems, delete it entirely
@@ -403,6 +410,14 @@ The MessageSystem is properly displayed in the UI and provides consistent feedba
   3. **REQUIRED**: Delete deprecated code immediately when refactoring
   4. **REQUIRED**: Update all references to use new implementations
   5. **NO EXCEPTIONS** - Deprecated code creates confusion and maintenance debt
+- **CRITICAL: PROPER DEPENDENCY INJECTION** - Always use proper DI patterns:
+  1. **FORBIDDEN**: Using `new` to instantiate services in ServiceConfiguration
+  2. **FORBIDDEN**: Calling `BuildServiceProvider()` to create intermediate containers
+  3. **FORBIDDEN**: Manual dependency resolution with `GetRequiredService` in configuration
+  4. **REQUIRED**: Register all services and let DI container resolve dependencies
+  5. **REQUIRED**: Use factory delegates when complex initialization is needed
+  6. **REQUIRED**: Services should declare dependencies in constructors, not resolve them
+  7. **NO EXCEPTIONS** - Proper DI ensures testability and maintainability
 - **NAMESPACE POLICY** - Special exception for Blazor components:
   1. **NO NAMESPACES in regular C# files** - Makes code easier to work with, no using statements needed
   2. **EXCEPTION: Blazor/Razor components MAY use namespaces** - Required for Blazor's component discovery

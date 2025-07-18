@@ -1,6 +1,6 @@
-using Wayfarer.Game.MainSystem;
-
-namespace Wayfarer.Tests;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 /// <summary>
 /// Fluent API for building test scenarios declaratively.
@@ -294,8 +294,7 @@ public class ItemSingleBuilder
             SellPrice = 8,
             Weight = 1,
             Description = $"Test item: {itemId}",
-            Categories = new List<EquipmentCategory>(),
-            ItemCategories = new List<ItemCategory> { ItemCategory.Trade_Goods }
+            Categories = new List<ItemCategory> { ItemCategory.Materials }
         };
     }
 

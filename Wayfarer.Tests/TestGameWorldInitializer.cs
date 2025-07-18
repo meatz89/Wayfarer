@@ -1,7 +1,7 @@
 using System.IO;
-using Wayfarer.Game.MainSystem;
-
-namespace Wayfarer.Tests;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 /// <summary>
 /// Simple, synchronous initializer for creating GameWorld instances for testing.
@@ -37,7 +37,31 @@ public static class TestGameWorldInitializer
     public static GameWorld CreateTestWorld(TestScenarioBuilder scenario)
     {
         // Load test content from JSON files
-        GameWorldInitializer initializer = new GameWorldInitializer("Content");
+        // Create factories needed for GameWorldInitializer
+        var locationFactory = new LocationFactory();
+        var locationSpotFactory = new LocationSpotFactory();
+        var npcFactory = new NPCFactory();
+        var itemFactory = new ItemFactory();
+        var routeFactory = new RouteFactory();
+        var routeDiscoveryFactory = new RouteDiscoveryFactory();
+        var networkUnlockFactory = new NetworkUnlockFactory();
+        var letterTemplateFactory = new LetterTemplateFactory();
+        var standingObligationFactory = new StandingObligationFactory();
+        var actionDefinitionFactory = new ActionDefinitionFactory();
+        
+        var contentDirectory = new ContentDirectory { Path = "Content" };
+        GameWorldInitializer initializer = new GameWorldInitializer(
+            contentDirectory,
+            locationFactory,
+            locationSpotFactory,
+            npcFactory,
+            itemFactory,
+            routeFactory,
+            routeDiscoveryFactory,
+            networkUnlockFactory,
+            letterTemplateFactory,
+            standingObligationFactory,
+            actionDefinitionFactory);
         GameWorld gameWorld = initializer.LoadGame();
 
         // Apply scenario configuration to game world
@@ -190,8 +214,7 @@ public static class TestGameWorldInitializer
                     SellPrice = 6,
                     Weight = 1,
                     Description = "Common medicinal herbs",
-                    Categories = new List<EquipmentCategory>(),
-                    ItemCategories = new List<ItemCategory> { ItemCategory.Trade_Goods }
+                    Categories = new List<ItemCategory> { ItemCategory.Materials }
                 },
                 new Item
                 {
@@ -201,8 +224,7 @@ public static class TestGameWorldInitializer
                     SellPrice = 12,
                     Weight = 3,
                     Description = "Basic craftsman tools",
-                    Categories = new List<EquipmentCategory>(),
-                    ItemCategories = new List<ItemCategory> { ItemCategory.Finished_Goods }
+                    Categories = new List<ItemCategory> { ItemCategory.Tools }
                 }
             });
         }

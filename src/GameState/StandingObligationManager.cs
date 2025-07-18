@@ -5,12 +5,14 @@ public class StandingObligationManager
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly LetterTemplateRepository _letterTemplateRepository;
+    private readonly ConnectionTokenManager _connectionTokenManager;
     
-    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, LetterTemplateRepository letterTemplateRepository)
+    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, LetterTemplateRepository letterTemplateRepository, ConnectionTokenManager connectionTokenManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
         _letterTemplateRepository = letterTemplateRepository;
+        _connectionTokenManager = connectionTokenManager;
     }
     
     // Get all active obligations for the player
@@ -347,15 +349,13 @@ public class StandingObligationManager
     private void ApplyBreakingConsequences(StandingObligation obligation)
     {
         // Apply relationship damage or other consequences for breaking obligations
-        var tokenManager = new ConnectionTokenManager(_gameWorld);
-        
         // Remove tokens based on obligation type
         if (obligation.RelatedTokenType.HasValue)
         {
-            int penaltyTokens = Math.Min(5, tokenManager.GetTokenCount(obligation.RelatedTokenType.Value));
+            int penaltyTokens = Math.Min(5, _connectionTokenManager.GetTokenCount(obligation.RelatedTokenType.Value));
             if (penaltyTokens > 0)
             {
-                tokenManager.SpendTokens(obligation.RelatedTokenType.Value, penaltyTokens);
+                _connectionTokenManager.SpendTokens(obligation.RelatedTokenType.Value, penaltyTokens);
                 
                 _messageSystem.AddSystemMessage(
                     $"Lost {penaltyTokens} {obligation.RelatedTokenType} tokens for breaking {obligation.Name}",

@@ -1,12 +1,7 @@
 using System.Linq;
 using Xunit;
-using Wayfarer.GameState;
-using Wayfarer.Content;
-using Wayfarer.Game.MainSystem;
 
-namespace Wayfarer.Tests.GameState
-{
-    public class LetterQueueManagerTests
+public class LetterQueueManagerTests
     {
         private GameWorld CreateTestGameWorld()
         {
@@ -27,9 +22,9 @@ namespace Wayfarer.Tests.GameState
             var npcRepo = new NPCRepository(gameWorld);
             var messageSystem = new MessageSystem();
             var narrativeService = new NarrativeService(npcRepo);
-            var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, narrativeService);
-            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, narrativeService);
-            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, narrativeService, tokenManager);
+            var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepo);
+            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, tokenManager);
+            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager);
 
             // Add letters to positions 1, 3, 5, and 7
             var letter1 = new Letter { SenderName = "A", RecipientName = "B", Deadline = 5, Payment = 10, TokenType = ConnectionType.Trust };
@@ -79,9 +74,9 @@ namespace Wayfarer.Tests.GameState
             var npcRepo = new NPCRepository(gameWorld);
             var messageSystem = new MessageSystem();
             var narrativeService = new NarrativeService(npcRepo);
-            var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, narrativeService);
-            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, narrativeService);
-            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, narrativeService, tokenManager);
+            var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepo);
+            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, tokenManager);
+            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager);
 
             // Fill positions 1-4
             var letters = new Letter[4];
@@ -128,9 +123,9 @@ namespace Wayfarer.Tests.GameState
             var npcRepo = new NPCRepository(gameWorld);
             var messageSystem = new MessageSystem();
             var narrativeService = new NarrativeService(npcRepo);
-            var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, narrativeService);
-            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, narrativeService);
-            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, narrativeService, tokenManager);
+            var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepo);
+            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, tokenManager);
+            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager);
 
             // Add letters to positions 6, 7, and 8
             var letter6 = new Letter { SenderName = "A", RecipientName = "B", Deadline = 3, Payment = 10, TokenType = ConnectionType.Trust };
@@ -167,9 +162,9 @@ namespace Wayfarer.Tests.GameState
             var npcRepo = new NPCRepository(gameWorld);
             var messageSystem = new MessageSystem();
             var narrativeService = new NarrativeService(npcRepo);
-            var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, narrativeService);
-            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, narrativeService);
-            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, narrativeService, tokenManager);
+            var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepo);
+            var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, tokenManager);
+            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager);
 
             // Add letters with different deadlines
             var letter1 = new Letter { SenderName = "A", RecipientName = "B", Deadline = 1, Payment = 10, TokenType = ConnectionType.Trust };
@@ -204,4 +199,3 @@ namespace Wayfarer.Tests.GameState
             }
         }
     }
-}
