@@ -526,10 +526,9 @@ Always distinguish between three layers:
 ### Important Documentation
 
 **CRITICAL TRANSFORMATION DOCUMENTS** (Read these for complete understanding):
-- 🎯 **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** - Comprehensive analysis of the letter queue transformation with step-by-step implementation plan
+- 🎯 **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** - Comprehensive analysis of the letter queue transformation
 - 📬 **`LETTER-QUEUE-UI-SPECIFICATION.md`** - Complete UI architecture for the 3-screen letter queue system
-- 🔄 **`LETTER-QUEUE-INTEGRATION-PLAN.md`** - How existing systems transform to serve the queue
-- 📋 **`POC-IMPLEMENTATION-ROADMAP.md`** - Phase-by-phase development plan for letter queue POC
+- 🔄 **`LETTER-QUEUE-INTEGRATION-PLAN.md`** - How existing systems transform to serve the queue (includes roadmap and todo list)
 
 **CORE DESIGN DOCUMENTS**:
 - `IMPLEMENTATION-PLAN.md` - Complete system architecture, roadmap, and core design philosophy

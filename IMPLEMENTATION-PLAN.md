@@ -2,6 +2,8 @@
 
 **🔄 TRANSFORMATION STATUS**: For comprehensive analysis of the transformation from current systems to letter queue, see **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`**
 
+**📋 IMPLEMENTATION DETAILS**: For complete roadmap, todo list, and POC criteria, see **`LETTER-QUEUE-INTEGRATION-PLAN.md`**
+
 ## 📊 CURRENT IMPLEMENTATION STATUS (December 2024)
 
 **✅ MINIMAL POC ACHIEVED** - Core letter queue system is functionally complete and playable:
@@ -738,4 +740,81 @@ This redesign transforms the system from player-initiated letter requests to NPC
 
 ---
 
-**Next Step**: Begin letter request system redesign implementation starting with Phase 1
+## 🔴 CRITICAL PRIORITIES: Core System Stability
+
+### **Priority Framework**
+
+**🔴 CRITICAL PRIORITY: Core System Stability**
+- Fix all failing tests that represent broken core gameplay systems
+- Cannot add features on top of broken foundations
+
+**🟡 HIGH PRIORITY: Essential Features**
+- Complete essential UI usability improvements
+- Game must be usable by players after core systems are stable
+
+**🟢 MEDIUM PRIORITY: Feature Enhancement**
+- Polish and additional features
+- Only after core systems are stable and essential features complete
+
+### **Critical Test Failures to Fix**
+
+1. **Player Location Initialization System** (5 failing tests)
+   - Players cannot be properly initialized in game world
+   - Must ensure location and spot are always properly set
+
+2. **NPC Repository System** (3 failing tests)
+   - NPC interactions, trading, and services broken
+   - Fix NPC storage, retrieval, and location queries
+
+3. **Travel Time Consumption System** (2 failing tests)
+   - Time-based resource management broken
+   - Fix time block consumption during travel
+
+4. **Route Condition System** (1 failing test)
+   - Route accessibility rules not working
+   - Fix time-based route restrictions
+
+---
+
+## 📋 MINIMAL POC IMPLEMENTATION DETAILS
+
+### **3-Week Minimal POC Timeline**
+
+**Goal**: Get a working letter queue system with minimal content to validate core mechanics.
+
+#### **Week 1: Core Queue System**
+- **Letter Entity**: Basic properties (Id, Sender, Recipient, Deadline, Payment, TokenType)
+- **LetterQueue**: 8-slot array with position enforcement
+- **Connection Tokens**: Dictionary<ConnectionType, int> on Player
+- **Basic Queue UI**: Simple visual display of 8 slots
+- **Token Display**: Show all 5 token types with counts
+
+#### **Week 2: Minimal Content & Actions**
+- **3 Test NPCs**: One per existing location (Elena/Trust, Marcus/Trade, Noble/Noble)
+- **5-10 Letter Templates**: Simple templates with token types and ranges
+- **Token Earning**: +1 token on delivery
+- **Skip Action**: Spend tokens to deliver out of order
+- **Basic Integration**: Daily deadline countdown
+
+#### **Week 3: Basic Integration**
+- **Time Integration**: Deadlines countdown, letters expire
+- **Letter Generation**: 1-2 letters per day
+- **Delivery Restriction**: Only from position 1
+- **Minimal Relationship Screen**: Show NPCs and token counts
+
+### **Success Criteria for Minimal POC**
+1. Queue visible with 8 slots
+2. Order enforced (position 1 delivery)
+3. Tokens work (earn and spend)
+4. Deadlines matter (expiration)
+5. Basic loop functional
+
+### **NOT in Minimal POC**
+- Queue shifting, connection gravity
+- Standing obligations, per-NPC tracking
+- Complex generation, relationship memory
+- Save system updates, old system removal
+
+---
+
+**Next Step**: Fix critical test failures first, then proceed with minimal POC implementation

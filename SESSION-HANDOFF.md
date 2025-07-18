@@ -140,6 +140,7 @@ The reference-safe system found these issues:
 - NPCLetterOfferService periodic offers need narrative
 - ConnectionTokenManager operations need story context
 - LetterQueueManager actions need narrative framing
+- **See NARRATIVE-VIOLATION-FIXES.md for complete implementation details**
 
 ## Important Files Modified This Session
 
