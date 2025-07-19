@@ -166,5 +166,77 @@
 		"services": [],
 		"contractCategories": [],
 		"letterTokenTypes": ["Trust", "Common"]
+	},
+	{
+		"id": "noble_courtier",
+		"name": "Lady Rosalind",
+		"profession": "Courtier",
+		"locationId": "crossbridge",
+		"spotId": "noble_quarter",
+		"description": "A courtier who manages sensitive noble correspondence requiring utmost discretion.",
+		"personality": "Refined and particular, values discretion and proper etiquette.",
+		"services": [],
+		"contractCategories": [],
+		"letterTokenTypes": ["Noble", "Trust"]
+	},
+	{
+		"id": "river_smuggler",
+		"name": "Garrett the Quiet",
+		"profession": "Thief",
+		"locationId": "crossbridge",
+		"spotId": "hidden_wharf",
+		"description": "A river smuggler who needs packages delivered without questions asked.",
+		"personality": "Taciturn and cautious, pays well for silence and reliability.",
+		"services": [],
+		"contractCategories": [],
+		"letterTokenTypes": ["Shadow"]
+	},
+	{
+		"id": "forest_hermit",
+		"name": "Old Willem",
+		"profession": "Herbalist",
+		"locationId": "thornwood",
+		"spotId": "deep_woods",
+		"description": "A hermit living deep in the woods who occasionally needs messages sent to civilization.",
+		"personality": "Eccentric but kind, generous with forest wisdom and herbal remedies.",
+		"services": [],
+		"contractCategories": [],
+		"letterTokenTypes": ["Trust", "Common"]
+	},
+	{
+		"id": "guild_master",
+		"name": "Master Aldrich",
+		"profession": "Merchant_Captain",
+		"locationId": "crossbridge",
+		"spotId": "merchant_guild",
+		"description": "The head of the merchant guild who handles high-value commercial correspondence.",
+		"personality": "Shrewd and professional, rewards competence with lucrative opportunities.",
+		"services": [],
+		"contractCategories": [],
+		"letterTokenTypes": ["Trade", "Noble"]
+	},
+	{
+		"id": "traveling_merchant",
+		"name": "Miriam the Wanderer",
+		"profession": "Merchant",
+		"locationId": "various",
+		"spotId": "market",
+		"description": "A merchant who travels between towns in a distinctive blue wagon, always needing letters carried.",
+		"personality": "Cheerful and well-traveled, full of stories and always happy to help fellow travelers.",
+		"services": [],
+		"contractCategories": [],
+		"letterTokenTypes": ["Trade", "Common"]
+	},
+	{
+		"id": "barge_captain",
+		"name": "Captain Thorne",
+		"profession": "Harbor_Master",
+		"locationId": "crossbridge",
+		"spotId": "river_docks",
+		"description": "A barge captain who needs letters delivered to various river ports.",
+		"personality": "Gruff but fair, respects hard work and punctual deliveries.",
+		"services": [],
+		"contractCategories": [],
+		"letterTokenTypes": ["Trade", "Common"]
 	}
 ]
