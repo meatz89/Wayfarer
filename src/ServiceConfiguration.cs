@@ -92,9 +92,8 @@ public static class ServiceConfiguration
         services.AddSingleton<NoticeBoardService>();
         services.AddSingleton<ScenarioManager>();
         services.AddSingleton<LocationActionManager>();
-        services.AddSingleton<ConversationManager>();
         services.AddSingleton<ConversationFactory>();
-        
+
         // Wire up LetterCategoryService to LetterTemplateRepository
         services.AddSingleton<LetterTemplateRepository>(serviceProvider =>
         {

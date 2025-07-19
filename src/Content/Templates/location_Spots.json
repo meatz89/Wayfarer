@@ -78,5 +78,55 @@
 		"locationId": "crossbridge",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
 		"domainTags": [ "COMMERCE", "TRANSPORT" ]
+	},
+	{
+		"id": "noble_quarter",
+		"name": "Noble Quarter",
+		"type": "DISTRICT",
+		"description": "An exclusive district where aristocrats reside and conduct their affairs.",
+		"initialState": "Elegant mansions and manicured gardens, with guards at every entrance.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "SOCIAL", "RESTRICTED" ]
+	},
+	{
+		"id": "hidden_wharf",
+		"name": "Hidden Wharf",
+		"type": "FEATURE",
+		"description": "A secluded dock known only to those involved in less legitimate trade.",
+		"initialState": "Shadowy pier hidden beneath overhanging buildings, quiet except for occasional whispers.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Evening", "Night" ],
+		"domainTags": [ "SHADOW", "TRANSPORT" ]
+	},
+	{
+		"id": "deep_woods",
+		"name": "Deep Woods",
+		"type": "WILDERNESS",
+		"description": "The heart of the forest where few venture and strange folk dwell.",
+		"initialState": "Ancient trees block most sunlight, creating a perpetual twilight beneath their canopy.",
+		"locationId": "thornwood",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "WILDERNESS", "ISOLATED" ]
+	},
+	{
+		"id": "merchant_guild",
+		"name": "Merchant Guild",
+		"type": "INSTITUTION",
+		"description": "The powerful guild hall where major trade deals are negotiated.",
+		"initialState": "Imposing stone building with the guild's seal prominently displayed.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "COMMERCE", "RESTRICTED" ]
+	},
+	{
+		"id": "river_docks",
+		"name": "River Docks",
+		"type": "FEATURE",
+		"description": "Busy commercial docks where barges load and unload cargo.",
+		"initialState": "Constant activity as cargo moves between barges and warehouses.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "COMMERCE", "TRANSPORT" ]
 	}
 ]
