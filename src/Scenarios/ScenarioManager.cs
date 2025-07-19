@@ -326,7 +326,7 @@ public class ScenarioManager
         }
         foreach (var letter in conditions.StartingLetters)
         {
-            _letterQueueManager.AddLetterToFirstEmpty(letter);
+            _letterQueueManager.AddLetter(letter);
         }
         
         // Set time to dawn (6 AM)
@@ -437,7 +437,7 @@ public class ScenarioManager
             if (letter != null && _letterQueueManager.GetLetterCount() < 8)
             {
                 letter.Deadline = 2; // Very urgent!
-                _letterQueueManager.AddLetterToFirstEmpty(letter);
+                _letterQueueManager.AddLetter(letter);
             }
         }
     }
@@ -466,7 +466,7 @@ public class ScenarioManager
                 Size = LetterSize.Medium
             };
             
-            _letterQueueManager.AddLetterToFirstEmpty(letter);
+            _letterQueueManager.AddLetter(letter);
         }
     }
     
@@ -495,7 +495,7 @@ public class ScenarioManager
                 Size = LetterSize.Small
             };
             
-            _letterQueueManager.AddLetterToFirstEmpty(letter);
+            _letterQueueManager.AddLetter(letter);
         }
     }
     
@@ -525,7 +525,7 @@ public class ScenarioManager
             if (letter != null)
             {
                 letter.Deadline = new Random().Next(2, 4);
-                _letterQueueManager.AddLetterToFirstEmpty(letter);
+                _letterQueueManager.AddLetter(letter);
             }
         }
     }
