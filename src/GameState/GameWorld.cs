@@ -89,6 +89,9 @@
     public Guid GameInstanceId { get; set; }
     public RouteOption CurrentRouteOption { get; internal set; }
     public TimeManager TimeManager { get; internal set; }
+    
+    // System Messages State
+    public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
 
     public GameWorld()
     {

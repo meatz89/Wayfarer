@@ -1,5 +1,4 @@
-﻿
-public static class ServiceConfiguration
+﻿public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
@@ -41,6 +40,7 @@ public static class ServiceConfiguration
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
+        services.AddSingleton<LetterTemplateRepository>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
@@ -62,18 +62,9 @@ public static class ServiceConfiguration
         // Letter Queue System
         services.AddSingleton<StandingObligationManager>();
         services.AddSingleton<LetterCategoryService>();
-        
+
         // Wire up circular dependencies after initial creation
-        services.AddSingleton<ConnectionTokenManager>(serviceProvider =>
-        {
-            var manager = new ConnectionTokenManager(
-                serviceProvider.GetRequiredService<GameWorld>(),
-                serviceProvider.GetRequiredService<MessageSystem>(),
-                serviceProvider.GetRequiredService<NPCRepository>()
-            );
-            manager.SetCategoryService(serviceProvider.GetRequiredService<LetterCategoryService>());
-            return manager;
-        });
+        services.AddSingleton<ConnectionTokenManager>();
         
         services.AddSingleton<LetterQueueManager>();
         services.AddSingleton<RouteUnlockManager>();
@@ -94,14 +85,6 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationActionManager>();
         services.AddSingleton<ConversationFactory>();
 
-        // Wire up LetterCategoryService to LetterTemplateRepository
-        services.AddSingleton<LetterTemplateRepository>(serviceProvider =>
-        {
-            var repo = new LetterTemplateRepository(serviceProvider.GetRequiredService<GameWorld>());
-            repo.SetCategoryService(serviceProvider.GetRequiredService<LetterCategoryService>());
-            return repo;
-        });
-
         services.AddScoped<MusicService>();
 
         // UI Razor Services
@@ -119,15 +102,12 @@ public static class ServiceConfiguration
         // Register core services
         services.AddSingleton<ConversationHistoryManager>();
         services.AddSingleton<NarrativeLogManager>();
-        // Encounter system removed - using conversation system
-        // services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<LoadingStateService>();
         services.AddSingleton<AIGameMaster>();
         services.AddSingleton<AIClient>();
 
         // Register updated services
         services.AddSingleton<AIPromptBuilder>();
-        // Renamed to ConversationChoiceResponseParser
         services.AddSingleton<ConversationChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
 

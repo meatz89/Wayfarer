@@ -2,6 +2,9 @@
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE BEFORE WRITING TO IT ⚠️**
 
+**⚠️ CRITICAL: ALWAYS READ THE FULL FILE BEFORE MODIFYING IT ⚠️**
+**NEVER make changes to a file without reading it completely first. This is non-negotiable.**
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ### **NEW SESSION STARTUP CHECKLIST**
@@ -353,6 +356,57 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 - **ALWAYS read files FULLY before making changes** - Never make assumptions about file contents. Read the entire file to understand context and avoid mistakes.
 - **RENAME instead of DELETE/RECREATE** - When refactoring systems (e.g., Encounter → Conversation), rename files and classes to preserve git history and ensure complete transformation.
 - **COMPLETE refactorings IMMEDIATELY** - Never leave systems half-renamed. If you start renaming Encounter to Conversation, finish ALL references before moving to other tasks.
+
+### UI STATE MANAGEMENT PRINCIPLE (CRITICAL)
+
+**ALL UI components must follow the architecture's state management pattern:**
+
+1. **GameWorld is the ONLY source of truth** - All game state lives in GameWorld
+2. **MainGameplayView polls GameWorld** - The PollGameState() method is the ONLY allowed polling mechanism
+3. **NO separate state queries** - UI components CANNOT query repositories or managers directly
+4. **NO separate timers** - Components CANNOT have their own Timer or polling loops
+5. **State passed as Parameters** - Parent components pass state down via Parameters
+
+**Example:**
+```csharp
+// ❌ WRONG: Component polls for its own state
+@inject MessageSystem MessageSystem
+@code {
+    Timer _timer = new Timer(_ => CheckForMessages(), null, 0, 500);
+}
+
+// ✅ CORRECT: Component receives state as parameter
+@code {
+    [Parameter] public List<SystemMessage> Messages { get; set; }
+}
+```
+
+**The MainGameplayView polling loop:**
+```csharp
+protected override async Task OnInitializedAsync()
+{
+    _ = Task.Run(async () =>
+    {
+        while (true)
+        {
+            await InvokeAsync(() =>
+            {
+                PollGameState();  // This pulls ALL state from GameWorld
+                StateHasChanged();
+            });
+            await Task.Delay(50);
+        }
+    });
+}
+```
+
+This ensures:
+- Single source of truth
+- Predictable state updates
+- No race conditions
+- Testable components
+- Performance optimization
+
 **See GAME-ARCHITECTURE.md for critical technical principles:**
 - NO CIRCULAR DEPENDENCIES
 - NEVER USE REFLECTION  

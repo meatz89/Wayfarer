@@ -1,64 +1,23 @@
-@inject MessageSystem MessageSystem
-@implements IDisposable
-
 <div class="system-messages-container">
-    @foreach (var message in _messages)
+    @if (Messages != null)
     {
-        <div class="system-message @GetMessageClass(message.Type) @(message.IsNew ? "message-enter" : "")"
-             @key="@message">
-            <div class="message-content">
-                @message.Message
+        @foreach (var message in Messages.TakeLast(10))
+        {
+            <div class="system-message @GetMessageClass(message.Type)"
+                 @key="@message">
+                <div class="message-content">
+                    @message.Message
+                </div>
+                <div class="message-timestamp">
+                    @message.Timestamp.ToString("HH:mm")
+                </div>
             </div>
-            <div class="message-timestamp">
-                @message.Timestamp.ToString("HH:mm")
-            </div>
-        </div>
+        }
     }
 </div>
 
 @code {
-    private List<SystemMessage> _messages = new List<SystemMessage>();
-    private Timer? _timer;
-    
-    protected override void OnInitialized()
-    {
-        // Poll for new messages every 500ms
-        _timer = new Timer(_ => CheckForMessages(), null, 0, 500);
-    }
-    
-    private void CheckForMessages()
-    {
-        var newMessages = MessageSystem.GetAndClearMessages();
-        if (newMessages.Any())
-        {
-            foreach (var msg in newMessages)
-            {
-                msg.IsNew = true;
-                _messages.Add(msg);
-            }
-            
-            // Keep only last 10 messages
-            if (_messages.Count > 10)
-            {
-                _messages.RemoveRange(0, _messages.Count - 10);
-            }
-            
-            InvokeAsync(() => 
-            {
-                StateHasChanged();
-                
-                // Remove "new" flag after animation
-                Task.Delay(300).ContinueWith(_ => 
-                {
-                    foreach (var msg in newMessages)
-                    {
-                        msg.IsNew = false;
-                    }
-                    InvokeAsync(StateHasChanged);
-                });
-            });
-        }
-    }
+    [Parameter] public List<SystemMessage>? Messages { get; set; }
     
     private string GetMessageClass(SystemMessageTypes type)
     {
@@ -70,11 +29,6 @@
             SystemMessageTypes.Info => "message-info",
             _ => "message-info"
         };
-    }
-    
-    public void Dispose()
-    {
-        _timer?.Dispose();
     }
 }
 

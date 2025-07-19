@@ -8,13 +8,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     [Inject] public IJSRuntime JSRuntime { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameWorldManager GameManager { get; set; }
-    // Read-only services allowed for UI state management and display
     [Inject] public MessageSystem MessageSystem { get; set; }
     [Inject] public ItemRepository ItemRepository { get; set; }
     [Inject] public LocationRepository LocationRepository { get; set; }
     [Inject] public NPCRepository NPCRepository { get; set; }
     [Inject] public LoadingStateService? LoadingStateService { get; set; }
-    // Card system removed - using conversation and location action systems
     [Inject] public ConnectionTokenManager ConnectionTokenManager { get; set; }
     [Inject] public LetterQueueManager LetterQueueManager { get; set; }
     [Inject] public NavigationService NavigationService { get; set; }
@@ -51,6 +49,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public string ActionMessageType = "success";
     public List<string> ActionMessages = new List<string>();
     public ElementReference SidebarRef;
+    
+    // System Messages from GameWorld
+    public List<SystemMessage> SystemMessages = new List<SystemMessage>();
 
     // Time Planning State
     public bool showFullDayView = false;
@@ -162,6 +163,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         CurrentTimeBlock = snapshot.CurrentTimeBlock;
         Stamina = snapshot.Stamina;
         Concentration = snapshot.Concentration;
+        
+        // Pull system messages from GameWorld
+        SystemMessages = GameWorld.SystemMessages;
 
         // Check for pending morning activities (set by StartNewDay)
         if (GameManager.HasPendingMorningActivities() && !ShowMorningSummary)
