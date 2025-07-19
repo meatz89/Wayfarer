@@ -32,10 +32,10 @@ public class LetterQueueManagerTests
             var letter5 = new Letter { SenderName = "E", RecipientName = "F", Deadline = 3, Payment = 15, TokenType = ConnectionType.Noble };
             var letter7 = new Letter { SenderName = "G", RecipientName = "H", Deadline = 2, Payment = 20, TokenType = ConnectionType.Shadow };
 
-            manager.AddLetterToQueue(letter1, 1);
-            manager.AddLetterToQueue(letter3, 3);
-            manager.AddLetterToQueue(letter5, 5);
-            manager.AddLetterToQueue(letter7, 7);
+            manager.AddLetter(letter1, 1);
+            manager.AddLetter(letter3, 3);
+            manager.AddLetter(letter5, 5);
+            manager.AddLetter(letter7, 7);
 
             // Act - Remove letter from position 3
             bool result = manager.RemoveLetterFromQueue(3);
@@ -90,7 +90,7 @@ public class LetterQueueManagerTests
                     Payment = 10 + i, 
                     TokenType = ConnectionType.Trust 
                 };
-                manager.AddLetterToQueue(letters[i], i + 1);
+                manager.AddLetter(letters[i], i + 1);
             }
 
             // Act - Remove letter from position 1
@@ -132,9 +132,9 @@ public class LetterQueueManagerTests
             var letter7 = new Letter { SenderName = "C", RecipientName = "D", Deadline = 2, Payment = 12, TokenType = ConnectionType.Trade };
             var letter8 = new Letter { SenderName = "E", RecipientName = "F", Deadline = 1, Payment = 15, TokenType = ConnectionType.Noble };
 
-            manager.AddLetterToQueue(letter6, 6);
-            manager.AddLetterToQueue(letter7, 7);
-            manager.AddLetterToQueue(letter8, 8);
+            manager.AddLetter(letter6, 6);
+            manager.AddLetter(letter7, 7);
+            manager.AddLetter(letter8, 8);
 
             // Act - Remove letter from position 8
             bool result = manager.RemoveLetterFromQueue(8);
@@ -172,10 +172,10 @@ public class LetterQueueManagerTests
             var letter3 = new Letter { SenderName = "E", RecipientName = "F", Deadline = 1, Payment = 15, TokenType = ConnectionType.Noble };
             var letter4 = new Letter { SenderName = "G", RecipientName = "H", Deadline = 2, Payment = 20, TokenType = ConnectionType.Shadow };
 
-            manager.AddLetterToQueue(letter1, 1);
-            manager.AddLetterToQueue(letter2, 2);
-            manager.AddLetterToQueue(letter3, 3);
-            manager.AddLetterToQueue(letter4, 4);
+            manager.AddLetter(letter1, 1);
+            manager.AddLetter(letter2, 2);
+            manager.AddLetter(letter3, 3);
+            manager.AddLetter(letter4, 4);
 
             // Act - Process daily deadlines (will decrement all deadlines by 1)
             manager.ProcessDailyDeadlines();

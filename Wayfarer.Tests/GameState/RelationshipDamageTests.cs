@@ -74,7 +74,7 @@ public class RelationshipDamageTests
                 Payment = 5,
                 TokenType = ConnectionType.Trust
             };
-            _letterQueueManager.AddLetterToFirstEmpty(letter);
+            _letterQueueManager.AddLetter(letter);
             
             // Act - Process daily deadlines (letter expires)
             _letterQueueManager.ProcessDailyDeadlines();
@@ -107,7 +107,7 @@ public class RelationshipDamageTests
                 Payment = 8,
                 TokenType = ConnectionType.Trade
             };
-            _letterQueueManager.AddLetterToFirstEmpty(letter);
+            _letterQueueManager.AddLetter(letter);
             
             // Act - Process daily deadlines (letter expires)
             _letterQueueManager.ProcessDailyDeadlines();
@@ -134,7 +134,7 @@ public class RelationshipDamageTests
                 Payment = 12,
                 TokenType = ConnectionType.Noble
             };
-            _letterQueueManager.AddLetterToFirstEmpty(letter);
+            _letterQueueManager.AddLetter(letter);
             
             // Act
             _letterQueueManager.ProcessDailyDeadlines();
@@ -168,7 +168,7 @@ public class RelationshipDamageTests
                 Payment = 15,
                 TokenType = ConnectionType.Shadow
             };
-            _letterQueueManager.AddLetterToFirstEmpty(letter);
+            _letterQueueManager.AddLetter(letter);
             
             // Act - Process one day
             _letterQueueManager.ProcessDailyDeadlines();

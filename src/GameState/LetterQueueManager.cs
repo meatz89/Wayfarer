@@ -27,22 +27,21 @@ public class LetterQueueManager
     {
         return _gameWorld.GetPlayer().LetterQueue;
     }
-    
+
     // Add letter to queue at specific position
     public bool AddLetterToQueue(Letter letter, int position)
     {
         if (letter == null || position < 1 || position > 8) return false;
-        
+
         var queue = _gameWorld.GetPlayer().LetterQueue;
         if (queue[position - 1] != null) return false; // Position occupied
-        
+
         queue[position - 1] = letter;
         letter.QueuePosition = position;
         return true;
     }
-    
     // Add letter to first available slot - queue fills from position 1
-    public int AddLetterToFirstEmpty(Letter letter)
+    public int AddLetter(Letter letter)
     {
         if (letter == null) return 0;
         
@@ -899,7 +898,7 @@ public class LetterQueueManager
             if (letter != null)
             {
                 // Add to first empty slot
-                int position = AddLetterToFirstEmpty(letter);
+                int position = AddLetter(letter);
                 if (position > 0)
                 {
                     lettersGenerated++;
