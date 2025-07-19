@@ -1,17 +1,11 @@
 ﻿public class ContentValidationResult
 {
     public List<MissingLocationSpotReference> MissingLocationSpots { get; } = new List<MissingLocationSpotReference>();
-    public List<MissingActionReference> MissingActions { get; } = new List<MissingActionReference>();
     public List<MissingConnectedLocationReference> MissingConnectedLocations { get; } = new List<MissingConnectedLocationReference>();
 
     public void AddMissingLocationSpot(string locationSpotId, Location referencingLocation)
     {
         MissingLocationSpots.Add(new MissingLocationSpotReference(locationSpotId, referencingLocation));
-    }
-
-    public void AddMissingAction(string locationId, string spotId, ActionDefinition referencingAction)
-    {
-        MissingActions.Add(new MissingActionReference(locationId, spotId, referencingAction));
     }
 
     public void AddMissingConnectedLocation(string locationId, Location referencingLocation)
@@ -24,7 +18,6 @@
         get
         {
             return MissingLocationSpots.Count > 0 ||
-                MissingActions.Count > 0 ||
                 MissingConnectedLocations.Count > 0;
         }
     }
@@ -39,20 +32,6 @@ public class MissingLocationSpotReference
     {
         LocationSpotId = locationSpotId;
         ReferencingLocation = referencingLocation;
-    }
-}
-
-public class MissingActionReference
-{
-    public string LocationId { get; }
-    public string SpotId { get; }
-    public ActionDefinition ReferencingAction { get; }
-
-    public MissingActionReference(string locationId, string spotId, ActionDefinition referencingAction)
-    {
-        LocationId = locationId;
-        SpotId = spotId;
-        ReferencingAction = referencingAction;
     }
 }
 

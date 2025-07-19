@@ -9,9 +9,8 @@
 
     public string ConnectedLocations { get; set; } // All spots across all locations
     public string CurrentLocationSpots { get; set; } // All spots in current location
-    public string AllExistingActions { get; set; } // All existing actions
 
-    public bool WasEncounterContext { get; set; }
+    public bool WasConversationContext { get; set; }
     public string TravelOrigin { get; set; }
     public string TravelDestination { get; set; }
 

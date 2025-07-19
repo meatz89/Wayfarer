@@ -16,7 +16,7 @@
     RestScreen,             // Rest and recovery management
     
     // EVENT AND NARRATIVE SCREENS
-    EncounterScreen,        // Random encounters during travel
+    ConversationScreen,     // Conversations with NPCs
     NarrativeScreen,        // Story events and conversations
     
     // CHARACTER MANAGEMENT SCREENS

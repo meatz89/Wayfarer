@@ -3,13 +3,12 @@
     // Core data collections
     public List<Location> locations { get; set; } = new();
     public List<LocationSpot> locationSpots { get; set; } = new();
-    public List<ActionDefinition> actions { get; set; } = new();
     public List<NPC> NPCs { get; set; } = new();
     public List<LetterTemplate> LetterTemplates { get; set; } = new();
     public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
-    public List<string> CompletedEncounters { get; } = new List<string>();
+    public List<string> CompletedConversations { get; } = new List<string>();
 
     // Game time
     public int CurrentDay { get; set; } = 1;
@@ -30,8 +29,7 @@
     public Location CurrentLocation { get; set; }
     public LocationSpot CurrentLocationSpot { get; set; }
 
-    // Card tracking
-    public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
+    // Card system removed - using conversation and location action systems
     
     // Progression tracking
     public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
@@ -79,14 +77,14 @@
         CurrentLocationSpot = locationSpot;
     }
 
-    public bool IsEncounterCompleted(string actionId)
+    public bool IsConversationCompleted(string actionId)
     {
-        return CompletedEncounters.Contains(actionId);
+        return CompletedConversations.Contains(actionId);
     }
 
-    public void MarkEncounterCompleted(string actionId)
+    public void MarkConversationCompleted(string actionId)
     {
-        CompletedEncounters.Add(actionId);
+        CompletedConversations.Add(actionId);
     }
 
     public void AddCharacter(NPC character)

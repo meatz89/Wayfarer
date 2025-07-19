@@ -26,8 +26,6 @@
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
 
-    // Categorical Physical State
-    public PhysicalCondition CurrentPhysicalCondition { get; private set; } = PhysicalCondition.Good;
 
     public Inventory Inventory { get; set; } = new Inventory(6);
 
@@ -36,6 +34,9 @@
 
 
     // Location knowledge
+    // Location knowledge - Moved from action system
+    public HashSet<string> LocationActionAvailability { get; set; } = new HashSet<string>();
+
     public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
 
     // Travel capabilities
@@ -45,7 +46,6 @@
     public List<string> UnlockedNPCIds { get; set; } = new List<string>();
 
 
-    public HashSet<(string, SkillCategories)> LocationActionAvailability { get; set; } = new();
 
     public bool IsInitialized { get; set; } = false;
 
@@ -53,9 +53,6 @@
     public List<string> KnownLocationSpots { get; private set; } = new List<string>();
     public PlayerSkills Skills { get; private set; } = new();
 
-    // Card collection (player skills)
-    public List<SkillCard> PlayerSkillCards { get; set; } = new List<SkillCard>();
-    public List<SkillCard> AvailableCards { get; set; } = new List<SkillCard>();
     public Location CurrentLocation { get; set; }
     public LocationSpot CurrentLocationSpot { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
@@ -202,7 +199,7 @@
         MaxConcentration = 10; // Match initial Concentration = 10
         MaxHealth = 10; // Set reasonable default for MaxHealth
 
-        AvailableCards = new List<SkillCard>();
+        // Skill cards removed - using letter queue system
 
         // Initialize letter queue system
         foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
@@ -291,27 +288,6 @@
         ClearInventory();
     }
 
-    public bool HasAvailableCard(SkillCategories cardTypes)
-    {
-        foreach (SkillCard card in AvailableCards)
-        {
-            if (card.Category == cardTypes && !card.IsExhausted)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void ExhaustCard(SkillCard card)
-    {
-        card.Exhaust();
-    }
-
-    public void RefreshCard(SkillCard card)
-    {
-        card.Refresh();
-    }
 
     private void ClearInventory()
     {
@@ -379,10 +355,6 @@
         }
     }
 
-    public void UnlockCard(SkillCard card)
-    {
-        PlayerSkillCards.Add(card);
-    }
 
     public void AddKnownLocation(string location)
     {
@@ -411,10 +383,6 @@
 
     // ModifyStamina moved to categorical stamina system section below
 
-    public bool HasNonExhaustedCardOfType(SkillCategories requiredCardType)
-    {
-        return true;
-    }
 
     public int GetSkillLevel(SkillTypes skill)
     {
@@ -422,10 +390,6 @@
         return level;
     }
 
-    public SkillCard GetSelectedCardForSkill(SkillTypes skill)
-    {
-        return null;
-    }
 
     public void AddSilver(int silverReward)
     {
@@ -478,9 +442,6 @@
         // Deep copy of RelationshipList
         clone.Relationships = this.Relationships.Clone();
 
-        // Deep copy of card collections
-        clone.PlayerSkillCards = [.. this.PlayerSkillCards];
-        clone.PlayerSkillCards = [.. this.PlayerSkillCards];
 
         // Deep copy of location knowledge
         clone.DiscoveredLocationIds = [.. this.DiscoveredLocationIds];
@@ -500,10 +461,6 @@
         return clone;
     }
 
-    public SkillCard GetBestNonExhaustedCardOfType(SkillCategories requiredCardType)
-    {
-        throw new NotImplementedException();
-    }
 
     public void ModifyRelationship(string id, int amount, string source)
     {
@@ -529,20 +486,6 @@
         throw new NotImplementedException();
     }
 
-    public List<SkillCard> GetAvailableCardsByType(SkillCategories requiredCardType)
-    {
-        return new List<SkillCard>(AvailableCards);
-    }
-
-    public List<SkillCard> GetAllAvailableCards()
-    {
-        return new List<SkillCard>(AvailableCards);
-    }
-
-    public SkillCard FindCard(string skillName)
-    {
-        throw new NotImplementedException();
-    }
 
     public int GetRelationship(object iD)
     {
@@ -554,10 +497,6 @@
         throw new NotImplementedException();
     }
 
-    public List<SkillCard> GetCardsOfType(SkillCategories requiredApproach)
-    {
-        return new List<SkillCard>();
-    }
 
     public ReputationLevel GetReputationLevel()
     {
@@ -617,43 +556,12 @@
         if (newStamina != Stamina)
         {
             Stamina = newStamina;
-            UpdatePhysicalCondition();
             return true;
         }
         return false;
     }
 
-    /// <summary>
-    /// Updates the categorical physical condition based on current stamina level
-    /// </summary>
-    private void UpdatePhysicalCondition()
-    {
-        CurrentPhysicalCondition = Stamina switch
-        {
-            >= 9 => PhysicalCondition.Excellent,   // 9-10: Peak performance
-            >= 7 => PhysicalCondition.Good,        // 7-8: Normal condition  
-            >= 5 => PhysicalCondition.Tired,       // 5-6: Somewhat fatigued
-            >= 3 => PhysicalCondition.Exhausted,   // 3-4: Significantly fatigued
-            >= 1 => PhysicalCondition.Injured,     // 1-2: Physical impairment
-            _ => PhysicalCondition.Sick             // 0: Complete exhaustion
-        };
-    }
 
-    /// <summary>
-    /// Checks if player meets stamina requirements for categorical actions
-    /// </summary>
-    public bool CanPerformStaminaAction(PhysicalDemand physicalDemand)
-    {
-        return physicalDemand switch
-        {
-            PhysicalDemand.None => true,                    // Anyone can perform non-physical actions
-            PhysicalDemand.Light => Stamina >= 2,           // Requires 2+ stamina
-            PhysicalDemand.Moderate => Stamina >= 4,        // Requires 4+ stamina  
-            PhysicalDemand.Heavy => Stamina >= 6,           // Requires 6+ stamina
-            PhysicalDemand.Extreme => Stamina >= 8,         // Requires 8+ stamina
-            _ => false
-        };
-    }
 
     /// <summary>
     /// Checks if player can perform dangerous route travel (requires 4+ stamina)
@@ -664,9 +572,9 @@
     }
 
     /// <summary>
-    /// Checks if player can perform noble social encounters (requires 3+ stamina)
+    /// Checks if player can perform noble social conversations (requires 3+ stamina)
     /// </summary>
-    public bool CanPerformNobleSocialEncounter()
+    public bool CanPerformNobleSocialConversation()
     {
         return Stamina >= 3;
     }
@@ -689,43 +597,5 @@
         ModifyStamina(recoveryAmount);
     }
 
-    /// <summary>
-    /// Applies categorical stamina costs for different action types
-    /// </summary>
-    public bool ApplyCategoricalStaminaCost(PhysicalDemand physicalDemand)
-    {
-        int staminaCost = physicalDemand switch
-        {
-            PhysicalDemand.None => 0,       // No stamina cost
-            PhysicalDemand.Light => 1,      // Light work costs 1 stamina
-            PhysicalDemand.Moderate => 2,   // Moderate work costs 2 stamina
-            PhysicalDemand.Heavy => 3,      // Heavy work costs 3 stamina
-            PhysicalDemand.Extreme => 4,    // Extreme work costs 4 stamina
-            _ => 0
-        };
 
-        if (Stamina >= staminaCost)
-        {
-            ModifyStamina(-staminaCost);
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Gets description of current physical condition for UI display
-    /// </summary>
-    public string GetPhysicalConditionDescription()
-    {
-        return CurrentPhysicalCondition switch
-        {
-            PhysicalCondition.Excellent => "Excellent - Peak physical performance",
-            PhysicalCondition.Good => "Good - Normal physical condition",
-            PhysicalCondition.Tired => "Tired - Somewhat fatigued, limited heavy work",
-            PhysicalCondition.Exhausted => "Exhausted - Significantly fatigued, no heavy work",
-            PhysicalCondition.Injured => "Injured - Physical impairment, basic actions only",
-            PhysicalCondition.Sick => "Sick - Complete exhaustion, rest required",
-            _ => "Unknown condition"
-        };
-    }
 }

@@ -1,4 +1,4 @@
-﻿public class StrategicTag : IEncounterTag
+﻿public class StrategicTag : IConversationTag
 {
     public string NarrativeName { get; }
     public ILocationProperty EnvironmentalProperty { get; }

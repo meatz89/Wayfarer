@@ -20,17 +20,6 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
     
-	<ItemGroup>
-		<Compile Remove="Game\EncounterManager\**" />
-		<Compile Remove="Game\MainSystem\Builders\**" />
-		<Content Remove="Game\EncounterManager\**" />
-		<Content Remove="Game\MainSystem\Builders\**" />
-		<EmbeddedResource Remove="Game\EncounterManager\**" />
-		<EmbeddedResource Remove="Game\MainSystem\Builders\**" />
-		<None Remove="**/*.ps1" />
-		<None Remove="Game\EncounterManager\**" />
-		<None Remove="Game\MainSystem\Builders\**" />
-	</ItemGroup>
     
 	<ItemGroup>
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

@@ -5,10 +5,16 @@ public class LetterTemplateRepository
 {
     private readonly GameWorld _gameWorld;
     private readonly Random _random = new Random();
+    private LetterCategoryService _categoryService;
 
     public LetterTemplateRepository(GameWorld gameWorld)
     {
         _gameWorld = gameWorld;
+    }
+    
+    public void SetCategoryService(LetterCategoryService categoryService)
+    {
+        _categoryService = categoryService;
     }
 
     public List<LetterTemplate> GetAllTemplates()
@@ -131,5 +137,37 @@ public class LetterTemplateRepository
         };
 
         return letter;
+    }
+    
+    /// <summary>
+    /// Get templates available for an NPC based on their relationship with the player.
+    /// </summary>
+    public List<LetterTemplate> GetAvailableTemplatesForNPC(string npcId, ConnectionType tokenType)
+    {
+        if (_categoryService == null) 
+            return GetTemplatesByTokenType(tokenType); // Fallback to all templates
+            
+        return _categoryService.GetAvailableTemplates(npcId, tokenType);
+    }
+    
+    /// <summary>
+    /// Generate a letter from an NPC respecting category thresholds.
+    /// </summary>
+    public Letter GenerateLetterFromNPC(string npcId, string senderName, ConnectionType tokenType)
+    {
+        var availableTemplates = GetAvailableTemplatesForNPC(npcId, tokenType);
+        if (!availableTemplates.Any()) return null;
+        
+        // Select a random template from available ones
+        var template = availableTemplates[_random.Next(availableTemplates.Count)];
+        
+        // Find a random recipient (not the sender)
+        var allNpcs = _gameWorld.WorldState.NPCs;
+        var possibleRecipients = allNpcs.Where(n => n.Name != senderName).ToList();
+        if (!possibleRecipients.Any()) return null;
+        
+        var recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
+        
+        return GenerateLetterFromTemplate(template, senderName, recipient.Name);
     }
 }

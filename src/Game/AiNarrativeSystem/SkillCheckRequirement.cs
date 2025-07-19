@@ -1,12 +1,13 @@
-﻿public class SkillCheckRequirement
+﻿// Skill system removed - conversations use tokens and relationships
+public class SkillCheckRequirement
 {
-    public SkillCategories SkillCategory { get; private set; }
-    public int StandardCheckDifficulty { get; private set; }
+    public string RequirementType { get; private set; }
+    public int Difficulty { get; private set; }
 
-    public SkillCheckRequirement(SkillCategories skillCategory, int standardCheckDifficulty)
+    public SkillCheckRequirement(string requirementType, int difficulty)
     {
-        SkillCategory = skillCategory;
-        StandardCheckDifficulty = standardCheckDifficulty;
+        RequirementType = requirementType;
+        Difficulty = difficulty;
     }
 
     // For JSON serialization
@@ -14,8 +15,8 @@
     {
         return new
         {
-            SkillCategory = SkillCategory.ToString(),
-            StandardCheckDifficulty = StandardCheckDifficulty
+            RequirementType = RequirementType,
+            Difficulty = Difficulty
         };
     }
 }

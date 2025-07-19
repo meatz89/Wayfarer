@@ -14,7 +14,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     [Inject] public LocationRepository LocationRepository { get; set; }
     [Inject] public NPCRepository NPCRepository { get; set; }
     [Inject] public LoadingStateService? LoadingStateService { get; set; }
-    [Inject] public CardHighlightService CardRefreshService { get; set; }
+    // Card system removed - using conversation and location action systems
     [Inject] public ConnectionTokenManager ConnectionTokenManager { get; set; }
     [Inject] public LetterQueueManager LetterQueueManager { get; set; }
     [Inject] public NavigationService NavigationService { get; set; }
@@ -22,8 +22,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
 
     public int StateVersion = 0;
-    public EncounterManager EncounterManager = null;
-    public EncounterResult EncounterResult;
+    public ConversationManager ConversationManager = null;
+    public ConversationResult ConversationResult;
 
     // Navigation State
     public string SelectedLocation { get; set; }
@@ -42,7 +42,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     // Tooltip State
     public bool ShowTooltip = false;
-    public UserActionOption HoveredAction;
+    // Action system removed - using location actions
     public double MouseX;
     public double MouseY;
 
@@ -83,7 +83,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         }
     }
 
-    public BeatOutcome BeatOutcome { get; set; }
+    public ConversationBeatOutcome ConversationBeatOutcome { get; set; }
     public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
 
     public LocationSpot CurrentSpot
@@ -171,10 +171,10 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         if (oldSnapshot == null || !snapshot.IsEqualTo(oldSnapshot))
         {
-            // You need to update EncounterManager state and force StateHasChanged for ALL screens
-            if (CurrentScreen == CurrentViews.EncounterScreen)
+            // You need to update ConversationManager state and force StateHasChanged for ALL screens
+            if (CurrentScreen == CurrentViews.ConversationScreen)
             {
-                StateVersion++;  // Force re-render of EncounterView
+                StateVersion++;  // Force re-render of ConversationView
             }
 
             oldSnapshot = snapshot;
@@ -307,31 +307,14 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         UpdateState();
     }
 
-    public async Task HandleActionSelection(UserActionOption action)
+    // Action system removed - use LocationActionManager for location actions
+
+    public async Task OnConversationCompleted(ConversationBeatOutcome result)
     {
-        if (action.IsDisabled) return;
-
-        await GameManager.OnPlayerSelectsAction(action);
-
-        // Check if an encounter was started
-        if (GameWorld.ActionStateTracker.CurrentEncounterManager != null)
-        {
-            // Simply switch to encounter screen - EncounterView will handle initialization
-            NavigationService.NavigateTo(CurrentViews.EncounterScreen);
-        }
-
-        EncounterManager = GameWorld.ActionStateTracker.CurrentEncounterManager;
-
-        UpdateState();
-    }
-
-    public async Task OnEncounterCompleted(BeatOutcome result)
-    {
-        // Process action completion
-        await GameManager.ProcessActionCompletion();
-
+        // Action system removed - no action processing needed
+        
         // Store the result for narrative view
-        BeatOutcome = result;
+        ConversationBeatOutcome = result;
 
         // Switch to narrative screen to show result
         NavigationService.NavigateTo(CurrentViews.NarrativeScreen);
@@ -352,24 +335,13 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task OnNarrativeCompleted()
     {
-        BeatOutcome = null;
+        ConversationBeatOutcome = null;
 
         NavigationService.NavigateTo(CurrentViews.LocationScreen);
         UpdateState();
     }
 
-    public async Task UseResource(ActionNames actionName)
-    {
-        NavigationService.NavigateTo(CurrentViews.LocationScreen);
-        UpdateState();
-    }
-
-    public async Task HandleCardRefreshed(SkillCard card)
-    {
-        await GameManager.RefreshCard(card);
-        MessageSystem.AddSystemMessage($"Refreshed {card.Name} card");
-        UpdateState();
-    }
+    // Action and card systems removed - use LocationActionManager and ConversationSystem
 
     public void UpdateState()
     {
@@ -407,24 +379,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public List<string> GetResultMessages()
     {
-        ActionResultMessages messages = MessageSystem.GetAndClearChanges();
-        List<string> list = new();
-
-        if (messages == null) return list;
-
-        // Add outcome descriptions
-        foreach (IMechanicalEffect outcome in messages.Outcomes)
-        {
-            list.Add(outcome.GetDescriptionForPlayer());
-        }
-
-        // Add system messages
-        foreach (SystemMessage sysMsg in messages.SystemMessages)
-        {
-            list.Add(sysMsg.Message);
-        }
-
-        return list;
+        // Action system removed - just return empty list
+        // Messages are now handled directly through MessageSystem
+        return new List<string>();
     }
 
     public string GetArchetypePortrait()

@@ -31,16 +31,14 @@ public static class GameWorldSerializer
                 InventoryItems = gameWorld.GetPlayer().Inventory.GetAllItems()
                     .Select(item => item.ToString())
                     .ToList(),
-                // Add serialization for player's cards if needed
-                SelectedCards = gameWorld.GetPlayer().AvailableCards?.Select(c => c.Id).ToList() ?? new List<string>()
+                // Card system removed - using letter queue system
             }
         };
 
         return JsonSerializer.Serialize(serialized, _jsonOptions);
     }
 
-    public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots,
-            List<ActionDefinition> actions, List<SkillCard> cards)
+    public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots)
     {
         SerializableGameWorld serialized = JsonSerializer.Deserialize<SerializableGameWorld>(json, _jsonOptions);
         if (serialized == null)
@@ -57,16 +55,10 @@ public static class GameWorldSerializer
         gameWorld.WorldState.locationSpots.Clear();
         gameWorld.WorldState.locationSpots.AddRange(spots);
 
-        gameWorld.WorldState.actions.Clear();
-        gameWorld.WorldState.actions.AddRange(actions);
+        // Actions removed - using letter queue system
 
 
-        // Add cards to world state if applicable
-        if (gameWorld.WorldState.AllCards != null)
-        {
-            gameWorld.WorldState.AllCards.Clear();
-            gameWorld.WorldState.AllCards.AddRange(cards);
-        }
+        // Card system removed - using letter queue system
 
         // Apply basic state data
         gameWorld.WorldState.CurrentDay = serialized.CurrentDay;
@@ -96,19 +88,7 @@ public static class GameWorldSerializer
             // Apply inventory
             gameWorld.GetPlayer().Inventory.Clear();
 
-            // Apply selected cards if available
-            if (serialized.Player.SelectedCards != null && cards != null)
-            {
-                gameWorld.GetPlayer().AvailableCards = new List<SkillCard>();
-                foreach (string cardId in serialized.Player.SelectedCards)
-                {
-                    SkillCard card = cards.FirstOrDefault(c => c.Id == cardId);
-                    if (card != null)
-                    {
-                        gameWorld.GetPlayer().AvailableCards.Add(card);
-                    }
-                }
-            }
+            // Card system removed - using conversation and location action systems
         }
 
         // Set current location and spot
@@ -225,40 +205,7 @@ public static class GameWorldSerializer
         return spots;
     }
 
-    public static string SerializeActions(List<ActionDefinition> actions)
-    {
-        // Updated to handle the new action structure with approaches
-        List<object> serializableActions = actions.Select(action => (object)new
-        {
-            id = action.Id,
-            name = action.Name,
-            description = action.Description,
-            spotId = action.LocationSpotId,
-
-            // Time windows (string list)
-            CurrentTimeBlocks = action.CurrentTimeBlocks?.Select(tw => tw.ToString()).ToList(),
-
-            moveToLocation = action.MoveToLocation,
-            moveToLocationSpot = action.MoveToLocationSpot
-        }).ToList();
-
-        return JsonSerializer.Serialize(serializableActions, _jsonOptions);
-    }
-
-    public static List<ActionDefinition> DeserializeActions(string json)
-    {
-        List<ActionDefinition> actions = new List<ActionDefinition>();
-
-        using (JsonDocument doc = JsonDocument.Parse(json))
-        {
-            foreach (JsonElement actionElement in doc.RootElement.EnumerateArray())
-            {
-                actions.Add(ActionParser.ParseAction(actionElement.GetRawText()));
-            }
-        }
-
-        return actions;
-    }
+    // Action system removed - using conversation and location action systems
 
     public static string SerializeRouteOptions(List<RouteOption> routes)
     {

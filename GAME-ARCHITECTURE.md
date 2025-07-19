@@ -163,26 +163,7 @@ class LetterChainManager {
 }
 ```
 
-**Option 2: Use Events/Observer Pattern**
-```csharp
-// ✅ CORRECT: Event-based communication
-class LetterQueueManager {
-    public event Action<Letter> LetterAdded;
-    
-    public void AddLetter(Letter letter) {
-        // Add to queue
-        LetterAdded?.Invoke(letter);
-    }
-}
-
-class LetterChainManager {
-    public LetterChainManager(LetterQueueManager queueManager) {
-        queueManager.LetterAdded += OnLetterAdded;
-    }
-}
-```
-
-**Option 3: Extract Third Service**
+**Option 2: Extract Third Service**
 ```csharp
 // ✅ CORRECT: Mediator pattern
 class LetterCoordinator {
@@ -632,25 +613,87 @@ Common violations:
 - Hardcoded content IDs in business logic
 - Direct GameWorld access bypassing repositories
 
-## GAME DESIGN PRINCIPLES
+### IMMEDIATE LEGACY CODE ELIMINATION
+If you discover ANY legacy code, compilation errors, or deprecated patterns during development:
+1. **CREATE HIGH-PRIORITY TODO ITEM** to fix the legacy code
+2. **STOP current work** and fix the legacy code immediately
+3. **NEVER ignore or postpone** legacy code fixes
+4. **NEVER say "these are just dependency fixes"** - fix them now or create immediate todo items
 
-### Games Create Optimization Puzzles
-**Players solve puzzles, systems don't solve for players**
+### REFACTORING PRINCIPLES
+**When refactoring systems (e.g., Encounter → Conversation):**
+
+1. **NEVER use Compile Remove in .csproj** - This hides compilation errors and mistakes
+2. **RENAME files and classes** - Don't delete and recreate, preserve git history
+3. **Fix ALL references** - Update every usage throughout the codebase
+4. **Complete the refactoring** - Don't leave half-renamed systems
+5. **NO HACKS OR LEGACY CODE** - Remove fields/properties entirely if not needed, don't leave empty strings or commented code
+6. **Update ALL related classes** - Including DTOs, inputs, parsers, and results
+7. **Update Enums** - MessageType.PostEncounterEvolution → PostConversationEvolution
+8. **Update Service Registration** - ConversationSystem → ConversationManager (use actual class names)
 
 ```csharp
-// ❌ WRONG: Automated system
-public List<Item> GetProfitableItems() { /* Solves puzzle for player */ }
+// ❌ WRONG: Hiding errors with .csproj exclusions
+<ItemGroup>
+    <Compile Remove="Game\EncounterSystem\**" />
+</ItemGroup>
 
-// ✅ CORRECT: Player discovers
-public List<Item> GetAvailableItems() { /* Player finds opportunities */ }
+// ✅ CORRECT: Rename and fix all references
+mv EncounterSystem ConversationSystem
+// Then update all class names and references
 ```
 
-### Emergent Complexity
-- **Simple systems** (queue position, deadlines, tokens) interact to create strategic depth
-- **Player agency** through meaningful choices with consequences
-- **Discovery gameplay** through exploration and experimentation
+**Refactoring Process:**
+1. Move/rename directories
+2. Rename files to match new system name
+3. Update class names inside files
+4. Fix all references in other files
+5. Update using statements
+6. Fix method signatures
+7. Update XML comments and documentation
+8. Update related enums (MessageType, etc.)
+9. Update DTOs and input/output classes
+10. Update parsers and builders
+11. Fix service registrations to use correct class names
 
-### Route Discovery Principle (CRITICAL)
+### NEVER USE REFLECTION (CRITICAL)
+Reflection makes code unmaintainable and breaks refactoring:
+1. **IMMEDIATELY create highest priority TODO** to remove any reflection
+2. **STOP all other work** - reflection usage is a critical violation
+3. **Fix it properly** - make fields public, add proper accessors, or redesign the architecture
+4. **NO EXCEPTIONS** - There is never a valid reason to use reflection in production code
+
+### NEVER USE STRING-BASED CATEGORY MAPPING
+Categories must be properly defined in JSON and parsed into enums/classes:
+1. **FORBIDDEN**: Mapping categories based on string matching in item IDs (e.g., `itemId.Contains("hammer")`)
+2. **REQUIRED**: Categories must be explicit properties in JSON files
+3. **REQUIRED**: Parsers must map JSON category properties to proper enum values
+4. **NO EXCEPTIONS** - String-based inference of categories violates the categorical design principle
+
+### NEVER LEAVE DEPRECATED CODE
+Remove deprecated fields, properties, and methods immediately:
+1. **FORBIDDEN**: Leaving deprecated fields/properties/methods with [Obsolete] attributes
+2. **FORBIDDEN**: Keeping old implementations "for backward compatibility"
+3. **REQUIRED**: Delete deprecated code immediately when refactoring
+4. **REQUIRED**: Update all references to use new implementations
+5. **NO EXCEPTIONS** - Deprecated code creates confusion and maintenance debt
+
+### NO FALLBACKS FOR OLD DATA
+Fix data files instead of adding compatibility code:
+1. **FORBIDDEN**: Adding fallback logic to handle old JSON/data formats
+2. **FORBIDDEN**: Writing code like "fallback to old property if new one missing"
+3. **REQUIRED**: Update all JSON/data files to use new format immediately
+4. **REQUIRED**: Remove old properties from data files completely
+5. **NO EXCEPTIONS** - Fallback code is technical debt that will never be cleaned up
+
+### NAMESPACE POLICY
+Special exception for Blazor components:
+1. **NO NAMESPACES in regular C# files** - Makes code easier to work with, no using statements needed
+2. **EXCEPTION: Blazor/Razor components MAY use namespaces** - Required for Blazor's component discovery
+3. **Blazor namespace pattern**: Use `Wayfarer.Pages` for pages, `Wayfarer.Pages.Components` for components
+4. **Update _Imports.razor** - Include necessary namespace imports for Blazor components only
+
+## ROUTE DISCOVERY PRINCIPLE (CRITICAL)
 **Routes are discovered through relationships and natural play, never through arbitrary counters or requirements.**
 
 **Core Rules:**
@@ -758,6 +801,139 @@ public LetterQueueManager(
 3. **Lifecycle Management** - Container handles object lifetimes correctly
 4. **Circular Dependency Detection** - Container detects issues at startup
 5. **Single Responsibility** - Configuration only registers, doesn't create
+
+## AI CONVERSATION SYSTEM ARCHITECTURE
+
+### Overview
+The conversation system enables AI-driven dynamic interactions with NPCs using a structured approach that integrates with the letter queue and token systems.
+
+### Core Components
+
+#### ConversationManager
+- **Purpose**: Orchestrates AI-driven conversations between player and NPCs
+- **Key Responsibilities**:
+  - Manages conversation state and flow
+  - Coordinates with AIGameMaster for narrative generation
+  - Tracks conversation progress and choices
+  - Handles conversation completion and outcomes
+
+#### AIGameMaster
+- **Purpose**: Interfaces with the AI provider to generate dynamic narrative content
+- **Key Methods**:
+  - `GenerateIntroduction`: Creates opening narrative for conversations
+  - `RequestChoices`: Generates contextual player choices
+  - `GenerateReaction`: Creates NPC responses to player choices
+  - `GenerateConclusion`: Wraps up conversations meaningfully
+  - `ProcessPostConversationEvolution`: Handles world changes after important conversations
+
+#### Message Type System
+- **Purpose**: Categorizes different types of AI-generated content
+- **Key Types**:
+  - `Introduction`: Opening narrative
+  - `ChoicesGeneration`: Player choice generation
+  - `PlayerChoice`: Player's selected action
+  - `Reaction`: NPC response
+  - `PostConversationEvolution`: World state changes
+  - `Conclusion`: Conversation ending
+
+#### ConversationHistoryManager
+- **Purpose**: Maintains conversation context for coherent AI responses
+- **Key Features**:
+  - Filters out system messages from history
+  - Optimizes context to stay within token limits
+  - Preserves narrative continuity
+  - Tracks conversation flow for AI context
+
+### Integration with Game Systems
+
+#### Letter Collection Integration
+```csharp
+// Conversations enable physical letter collection
+if (npc.HasLettersToCollect && conversation.Outcome == Success)
+{
+    EnableLetterCollection(npc.OfferedLetters);
+}
+```
+
+#### Token Building Integration
+```csharp
+// Successful conversations build connection tokens
+if (conversation.BuildsTrust)
+{
+    connectionTokenManager.AddTokens(npc.TokenType, 1, npc.Id);
+}
+```
+
+### PostConversationEvolution System
+This subsystem handles world changes that occur as a result of important conversations:
+
+1. **Trigger Conditions**:
+   - Major story conversations
+   - First meetings with key NPCs
+   - Revealing important information
+   - Completing narrative arcs
+
+2. **Possible Changes**:
+   - New NPCs become available
+   - Locations are revealed
+   - Routes become known
+   - Letter opportunities arise
+   - Story progression occurs
+
+3. **Implementation Flow**:
+   ```
+   ConversationManager → AIGameMaster → PostConversationEvolutionParser → WorldState Updates
+   ```
+
+### Design Principles for AI Conversations
+
+1. **Minimal Complexity in POC**:
+   - Focus on letter collection mechanics
+   - Simple token-building interactions
+   - No complex branching narratives
+   - No skill checks or combat
+
+2. **Context Preservation**:
+   - Keep conversation history concise
+   - Filter mechanical messages from context
+   - Preserve narrative flow
+   - Optimize for AI token limits
+
+3. **Clear Outcomes**:
+   - Every conversation has a clear purpose
+   - Results are immediately visible
+   - No hidden state changes
+   - Player understands consequences
+
+### Refactoring Insights
+
+When refactoring from Encounter to Conversation system:
+
+1. **Complete Renaming Required**:
+   - All classes, methods, and properties must be renamed
+   - Enums need updating (MessageType.PostEncounterEvolution → PostConversationEvolution)
+   - DTOs, inputs, outputs, and parsers all need renaming
+   - Prompt files and CSS files need renaming
+
+2. **Service Registration Patterns**:
+   - Use actual class names, not assumed names
+   - ConversationSystem doesn't exist - use ConversationManager
+   - Logger types must match constructor expectations
+
+3. **Clean Removal Approach**:
+   - Remove old systems entirely, don't leave placeholders
+   - Delete flag system when using token system
+   - Remove action system when using location-based actions
+   - No compatibility layers - clean break
+
+### Future Expansion (Full Game)
+
+In the full game, conversations will expand to include:
+- Relationship building with deep narrative branches
+- Information gathering and route discovery
+- World evolution through player choices
+- Crisis management and negotiation
+- The "Denna Problem" - conflicting carrier obligations
 
 ## TRANSFORMATION ARCHITECTURE
 

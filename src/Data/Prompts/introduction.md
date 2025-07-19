@@ -33,7 +33,7 @@ Match the ending to the encounter's actual demands:
 - Investigation encounters: End with character confronting the mystery
 - Social encounters: End with character positioned within the social dynamic
 
-## EncounterContext Integration
+## ConversationContext Integration
 - Make clear what success would accomplish through the SPECIFIC chosen approach
 - Hint at consequences of failure for this particular approach
 - Set up the chosen approach method directly, not generic possibilities

@@ -1,19 +1,16 @@
 ﻿public class MessageSystem
 {
-    private ActionResultMessages currentChanges = new();
-
+    private List<SystemMessage> currentMessages = new();
 
     public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
     {
-        currentChanges.SystemMessages.Add(new SystemMessage(message, type));
+        currentMessages.Add(new SystemMessage(message, type));
     }
 
-    public ActionResultMessages GetAndClearChanges()
+    public List<SystemMessage> GetAndClearMessages()
     {
-        ActionResultMessages changes = currentChanges;
-
-        currentChanges = new ActionResultMessages();
-
-        return changes;
+        var messages = new List<SystemMessage>(currentMessages);
+        currentMessages.Clear();
+        return messages;
     }
 }

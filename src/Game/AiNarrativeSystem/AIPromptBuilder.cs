@@ -28,8 +28,8 @@ public class AIPromptBuilder
     }
 
     public AIPrompt BuildIntroductionPrompt(
-        EncounterContext context,
-        EncounterState state,
+        ConversationContext context,
+        ConversationState state,
         string memoryContent)
     {
         string template = promptTemplates[INTRO_MD];
@@ -49,7 +49,7 @@ public class AIPromptBuilder
         AddMemoryContext(prompt, gameWorld);
 
         // Add core game state context
-        AddEncounterContext(prompt, context, state, player);
+        AddConversationContext(prompt, context, state, player);
 
         // Add time context
         AddTimeContext(prompt, gameWorld);
@@ -72,8 +72,8 @@ public class AIPromptBuilder
     }
 
     public AIPrompt BuildChoicesPrompt(
-        EncounterContext context,
-        EncounterState state,
+        ConversationContext context,
+        ConversationState state,
         List<ChoiceTemplate> choiceTemplates)
     {
         string template = promptTemplates[CHOICES_MD];
@@ -87,7 +87,7 @@ public class AIPromptBuilder
         AddPlayerContext(prompt, context);
 
         // Add core game state context
-        AddEncounterContext(prompt, context, state, player);
+        AddConversationContext(prompt, context, state, player);
 
         // Add choices information
         AddChoiceTemplatesContext(prompt, context, choiceTemplates);
@@ -104,9 +104,9 @@ public class AIPromptBuilder
     }
 
     public AIPrompt BuildReactionPrompt(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption)
+        ConversationContext context,
+        ConversationState state,
+        ConversationChoice chosenOption)
     {
         string template = promptTemplates[REACTION_MD];
 
@@ -122,7 +122,7 @@ public class AIPromptBuilder
         AddPlayerContext(prompt, context);
 
         // Add core game state context
-        AddEncounterContext(prompt, context, state, player);
+        AddConversationContext(prompt, context, state, player);
 
         // Add selected choice context
         AddSelectedChoiceContext(prompt, state, chosenOption);
@@ -138,11 +138,11 @@ public class AIPromptBuilder
         return aiPrompt;
     }
 
-    public AIPrompt BuildEncounterConclusionPrompt(
-        EncounterContext context,
-        EncounterState state,
-        BeatOutcomes outcome,
-        EncounterChoice finalChoice
+    public AIPrompt BuildConversationConclusionPrompt(
+        ConversationContext context,
+        ConversationState state,
+        ConversationOutcome outcome,
+        ConversationChoice finalChoice
         )
     {
         string template = promptTemplates[ENDING_MD];
@@ -153,10 +153,10 @@ public class AIPromptBuilder
         StringBuilder prompt = new StringBuilder();
 
         // Add core game state context
-        AddEncounterContext(prompt, context, state, player);
+        AddConversationContext(prompt, context, state, player);
 
         // Add goal context
-        AddEncounterGoalContext(prompt, context, state, gameWorld);
+        AddConversationGoalContext(prompt, context, state, gameWorld);
 
         // Add time context
         AddTimeContext(prompt, gameWorld);
@@ -177,7 +177,7 @@ public class AIPromptBuilder
 
         return aiPrompt;
     }
-    public AIPrompt BuildPostEncounterEvolutionPrompt(PostEncounterEvolutionInput input)
+    public AIPrompt BuildPostConversationEvolutionPrompt(PostConversationEvolutionInput input)
     {
         string template = promptTemplates[WORLD_EVOLUTION_MD];
 
@@ -185,7 +185,7 @@ public class AIPromptBuilder
             template
             .Replace("{characterBackground}", input.CharacterBackground)
             .Replace("{currentLocation}", input.CurrentLocation)
-            .Replace("{encounterOutcome}", input.EncounterOutcome)
+            .Replace("{encounterOutcome}", input.ConversationOutcome)
             .Replace("{health}", input.Health.ToString())
             .Replace("{maxHealth}", input.MaxHealth.ToString())
             .Replace("{stamina}", input.Stamina.ToString())
@@ -193,7 +193,6 @@ public class AIPromptBuilder
             .Replace("{allKnownLocations}", input.KnownLocations)
             .Replace("{connectedLocations}", input.ConnectedLocations)
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
-            .Replace("{allExistingActions}", input.AllExistingActions)
             .Replace("{knownCharacters}", input.KnownCharacters)
             .Replace("{activeContracts}", input.ActiveContracts)
             .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
@@ -227,22 +226,7 @@ public class AIPromptBuilder
         return prompt;
     }
 
-    public AIPrompt BuildActionGenerationPrompt(ActionGenerationContext context)
-    {
-        string template = promptTemplates[ACTION_GENERATION_MD];
-
-        string content =
-            template
-            .Replace("{ACTIONNAME}", context.ActionId)
-            .Replace("{SPOT_NAME}", context.SpotName)
-            .Replace("{LOCATION_NAME}", context.LocationName);
-        AIPrompt prompt = new AIPrompt()
-        {
-            Content = content
-        };
-
-        return prompt;
-    }
+    // Action generation removed - using location actions and conversations
 
 
     public AIPrompt BuildMemoryPrompt(MemoryConsolidationInput input)
@@ -302,7 +286,7 @@ public class AIPromptBuilder
         return dynamicSystemPrompt;
     }
 
-    private void AddEncounterContext(StringBuilder prompt, EncounterContext context, EncounterState state, Player player)
+    private void AddConversationContext(StringBuilder prompt, ConversationContext context, ConversationState state, Player player)
     {
         prompt.AppendLine();
 
@@ -310,14 +294,6 @@ public class AIPromptBuilder
 
         // Add focus points
         prompt.AppendLine($"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}");
-
-        // Add active flags
-        prompt.AppendLine("- Active State Flags:");
-        List<FlagStates> activeFlags = state.FlagManager.GetAllActiveFlags();
-        foreach (FlagStates flag in activeFlags)
-        {
-            prompt.AppendLine($"  * {flag}");
-        }
 
         // Add NPC information if available
         if (context.TargetNPC != null)
@@ -331,23 +307,14 @@ public class AIPromptBuilder
         string playerStatus = $"- Focus Points: {state.FocusPoints}/{state.MaxFocusPoints}\n";
 
         // Add duration information
-        prompt.AppendLine($"- Encounter Type: {context.SkillCategory.ToString()}");
-        prompt.AppendLine($"- Encounter Duration: {state.DurationCounter}/{state.MaxDuration}");
+        prompt.AppendLine($"- Conversation Duration: {state.DurationCounter}/{state.MaxDuration}");
 
-        // Add player skills
-        prompt.AppendLine("- Player Skills Available:");
-        foreach (SkillCard card in player.AvailableCards)
-        {
-            if (!card.IsExhausted)
-            {
-                prompt.AppendLine($"  * {card.Name} (Level {card.Level}, {card.Category})");
-            }
-        }
+        // Player skills removed - using letter queue system instead
 
         prompt.AppendLine();
     }
 
-    private static void AddPlayerContext(StringBuilder prompt, EncounterContext context)
+    private static void AddPlayerContext(StringBuilder prompt, ConversationContext context)
     {
         prompt.AppendLine();
         prompt.AppendLine("PLAYER CHARACTER CONTEXT:");
@@ -362,7 +329,7 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private static void AddLocationContext(StringBuilder prompt, EncounterContext context)
+    private static void AddLocationContext(StringBuilder prompt, ConversationContext context)
     {
         prompt.AppendLine();
         prompt.AppendLine("LOCATION CONTEXT:");
@@ -373,23 +340,11 @@ public class AIPromptBuilder
         {
             npcList = "None";
         }
-        // Get action and approach information
-        LocationAction locationAction = context.LocationAction;
-        string actionGoal = locationAction.ObjectiveDescription;
-
-        // Get chosen approach
-        string approachName = context.ActionApproach?.Name ?? "General approach";
-        string approachDescription = context.ActionApproach?.Description ?? "Using available skills";
-        string approachDetails = $"{approachName}: {approachDescription}";
-
         // Append lines with easy to understand labels
-        prompt.AppendLine("Encounter Type: " + context.SkillCategory);
         prompt.AppendLine("Location Name: " + context.LocationName);
         prompt.AppendLine("Location Spot: " + context.LocationSpotName);
-        prompt.AppendLine("Player character Goal: " + actionGoal);
         prompt.AppendLine("Environment Details: " + environmentDetails);
         prompt.AppendLine("NPCs Present: " + npcList);
-        prompt.AppendLine("Chosen Approach: " + approachDetails);
 
         prompt.AppendLine();
     }
@@ -417,20 +372,17 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private void AddEncounterGoalContext(StringBuilder prompt, EncounterContext context, EncounterState state, GameWorld gameWorld)
+    private void AddConversationGoalContext(StringBuilder prompt, ConversationContext context, ConversationState state, GameWorld gameWorld)
     {
         prompt.AppendLine();
 
         prompt.AppendLine("ENCOUNTER GOAL CONTEXT:");
 
-        BeatOutcomes outcome = state.EncounterOutcome;
-
-        string encounterGoal = context.LocationAction.ObjectiveDescription;
-        prompt.AppendLine(encounterGoal);
+        ConversationOutcome outcome = state.Outcome;
 
         string goalAchievementStatus =
-            outcome == BeatOutcomes.Success ? $"You have successfully achieved your goal to {encounterGoal}" :
-            outcome == BeatOutcomes.Failure ? $"You have failed to {encounterGoal}" : string.Empty;
+            outcome == ConversationOutcome.Success ? "You have successfully achieved your goal" :
+            outcome == ConversationOutcome.Failure ? "You have failed to achieve your goal" : string.Empty;
 
         prompt.AppendLine(goalAchievementStatus);
 
@@ -474,27 +426,21 @@ public class AIPromptBuilder
         return;
     }
 
-    private void AddSelectedChoiceContext(StringBuilder prompt, EncounterState state, EncounterChoice choice)
+    private void AddSelectedChoiceContext(StringBuilder prompt, ConversationState state, ConversationChoice choice)
     {
         prompt.AppendLine();
 
         prompt.AppendLine("SELECTED CHOICE:");
         prompt.AppendLine($"{choice.NarrativeText}");
 
-        bool success = state.LastBeatOutcome == BeatOutcomes.Success;
-        if (success)
-        {
-            prompt.AppendLine("RESULT: Success");
-        }
-        else
-        {
-            prompt.AppendLine("RESULT: Failure");
-        }
+        // For now, assume the choice was successful
+        // TODO: Implement skill check results
+        prompt.AppendLine("RESULT: Success");
 
         prompt.AppendLine();
     }
 
-    private void AddChoiceTemplatesContext(StringBuilder prompt, EncounterContext context, List<ChoiceTemplate> choiceTemplates)
+    private void AddChoiceTemplatesContext(StringBuilder prompt, ConversationContext context, List<ChoiceTemplate> choiceTemplates)
     {
         prompt.AppendLine();
 

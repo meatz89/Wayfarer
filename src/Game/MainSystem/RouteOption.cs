@@ -325,7 +325,7 @@ public class RouteOption
     }
 
 
-    internal EncounterContext GetEncounter(int seed)
+    internal ConversationContext GetConversation(int seed)
     {
         return null;
     }

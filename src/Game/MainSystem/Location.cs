@@ -36,7 +36,7 @@
     public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
 
     // Time-based properties
-    public Dictionary<TimeBlocks, List<FlagStates>> TimeStateFlags { get; private set; }
+    // Flag system removed - using connection tokens instead
     public Dictionary<TimeBlocks, List<string>> AvailableActions { get; private set; }
     public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
     public Dictionary<TimeBlocks, List<ILocationProperty>> TimeProperties { get; private set; }
@@ -48,13 +48,7 @@
     public AccessRequirement AccessRequirement { get; set; }
 
 
-    // Method to get current state based on time
-    public List<FlagStates> GetCurrentFlags(TimeBlocks TimeBlocks)
-    {
-        return TimeStateFlags.ContainsKey(TimeBlocks)
-            ? TimeStateFlags[TimeBlocks]
-            : new List<FlagStates>();
-    }
+    // Flag system removed - using connection tokens instead
 
     public Location(string id, string name)
     {

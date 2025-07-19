@@ -68,7 +68,6 @@
 
     private Player Player;
     public WorldState WorldState { get; private set; }
-    public ActionStateTracker ActionStateTracker { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }
 
     // New journey-related properties
@@ -83,7 +82,7 @@
 
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
-    public List<EncounterChoice> AvailableChoices { get; set; } = new List<EncounterChoice>();
+    public List<ConversationChoice> AvailableChoices { get; set; } = new List<ConversationChoice>();
 
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
@@ -100,7 +99,6 @@
 
         TimeManager = new TimeManager(Player, WorldState);
 
-        ActionStateTracker = new ActionStateTracker();
         StreamingContentState = new StreamingContentState();
 
         CurrentAIResponse = null;

@@ -3,10 +3,7 @@
     private LocationSystem locationSystem;
     private CharacterSystem characterSystem;
     private GameWorld gameWorld;
-    private ActionGenerator actionGenerator;
     private LocationRepository locationRepository;
-    private ActionRepository actionRepository;
-    private ActionSystem actionSystem;
     private WorldStateInputBuilder worldStateInputCreator;
     private AIGameMaster aiService;
 
@@ -14,10 +11,7 @@
         LocationSystem locationSystem,
         CharacterSystem characterSystem,
         GameWorld gameWorld,
-        ActionGenerator actionGenerator,
         LocationRepository locationRepository,
-        ActionRepository actionRepository,
-        ActionSystem actionSystem,
         WorldStateInputBuilder worldStateInputCreator,
         AIGameMaster aiService
         )
@@ -25,10 +19,7 @@
         this.locationSystem = locationSystem;
         this.characterSystem = characterSystem;
         this.gameWorld = gameWorld;
-        this.actionGenerator = actionGenerator;
         this.locationRepository = locationRepository;
-        this.actionRepository = actionRepository;
-        this.actionSystem = actionSystem;
         this.worldStateInputCreator = worldStateInputCreator;
         this.aiService = aiService;
     }
@@ -78,16 +69,7 @@
             locationRepository.AddLocationSpot(spot);
         }
 
-        foreach (NewAction newAction in details.NewActions)
-        {
-            string actionId = await actionGenerator.GenerateAction(
-                newAction.Name,
-                newAction.SpotName,
-                locationName);
-
-            ActionDefinition actionDef = actionRepository.GetAction(actionId);
-            string spotId = $"{locationName}:{newAction.SpotName}";
-        }
+        // Action system removed - location actions handled by LocationActionManager
 
         return location;
     }
@@ -137,9 +119,8 @@
 
             CurrentLocationSpots = this.locationSystem.FormatLocationSpots(worldState.CurrentLocation),
             ConnectedLocations = this.locationSystem.FormatLocations(locationSystem.GetConnectedLocations(worldState.CurrentLocation.Id)),
-            AllExistingActions = actionSystem.FormatExistingActions(allLocations),
 
-            WasEncounterContext = true,
+            WasConversationContext = true,
             TravelOrigin = travelOrigin,
             TravelDestination = travelDestination,
 

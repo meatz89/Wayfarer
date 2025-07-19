@@ -15,7 +15,6 @@ public class GameWorldInitializer : IGameWorldFactory
     private readonly NetworkUnlockFactory _networkUnlockFactory;
     private readonly LetterTemplateFactory _letterTemplateFactory;
     private readonly StandingObligationFactory _standingObligationFactory;
-    private readonly ActionDefinitionFactory _actionDefinitionFactory;
 
     public GameWorldInitializer(
         IContentDirectory contentDirectory,
@@ -27,8 +26,7 @@ public class GameWorldInitializer : IGameWorldFactory
         RouteDiscoveryFactory routeDiscoveryFactory,
         NetworkUnlockFactory networkUnlockFactory,
         LetterTemplateFactory letterTemplateFactory,
-        StandingObligationFactory standingObligationFactory,
-        ActionDefinitionFactory actionDefinitionFactory)
+        StandingObligationFactory standingObligationFactory)
     {
         _contentDirectory = contentDirectory ?? throw new ArgumentNullException(nameof(contentDirectory));
         _locationFactory = locationFactory ?? throw new ArgumentNullException(nameof(locationFactory));
@@ -40,7 +38,6 @@ public class GameWorldInitializer : IGameWorldFactory
         _networkUnlockFactory = networkUnlockFactory ?? throw new ArgumentNullException(nameof(networkUnlockFactory));
         _letterTemplateFactory = letterTemplateFactory ?? throw new ArgumentNullException(nameof(letterTemplateFactory));
         _standingObligationFactory = standingObligationFactory ?? throw new ArgumentNullException(nameof(standingObligationFactory));
-        _actionDefinitionFactory = actionDefinitionFactory ?? throw new ArgumentNullException(nameof(actionDefinitionFactory));
     }
 
     public GameWorld LoadGame()
@@ -66,20 +63,14 @@ public class GameWorldInitializer : IGameWorldFactory
         List<Item> items = LoadItems(templatePath);
         
         // PHASE 2: Create initial GameWorld with base entities
-        // We need empty actions list initially as actions require location spots
-        List<ActionDefinition> emptyActions = new List<ActionDefinition>();
+        // Actions removed - using letter queue system
         
-        List<SkillCard> cards = new List<SkillCard>();
-        string cardsFilePath = Path.Combine(templatePath, "cards.json");
-        if (File.Exists(cardsFilePath))
-        {
-            // Add card deserialization logic here if needed
-        }
+        // Skill cards removed - using letter queue system
         
         // Create GameWorld with base entities
         GameWorld gameWorld = GameWorldSerializer.DeserializeGameWorld(
             File.ReadAllText(Path.Combine(templatePath, "gameWorld.json")),
-            locations, new List<LocationSpot>(), emptyActions, cards);
+            locations, new List<LocationSpot>());
         
         // Add items to GameWorld
         if (gameWorld.WorldState.Items == null)
@@ -99,13 +90,7 @@ public class GameWorldInitializer : IGameWorldFactory
             gameWorld.WorldState.AddCharacter(npc);
         }
         
-        // Load actions (they reference location spots)
-        List<ActionDefinition> actions = LoadActions(templatePath, spots, locations);
-        if (gameWorld.WorldState.actions == null)
-        {
-            gameWorld.WorldState.actions = new List<ActionDefinition>();
-        }
-        gameWorld.WorldState.actions.AddRange(actions);
+        // Action system removed - location actions handled by LocationActionManager
         
         // PHASE 4: Connect entities
         Console.WriteLine("\n=== PHASE 4: Connecting entities ===");
@@ -565,10 +550,7 @@ public class GameWorldInitializer : IGameWorldFactory
         List<LocationSpot> spots = new List<LocationSpot>();
         locations = ConnectLocationsToSpots(locations, spots);
 
-        List<ActionDefinition> actions = new List<ActionDefinition>();
-        // Contract system removed - using letter system instead
-
-        List<SkillCard> cards = new List<SkillCard>();
+        // Action and skill systems removed - using letter system instead
 
         // Add content to game state
         gameWorld.WorldState.locations.Clear();
@@ -577,16 +559,10 @@ public class GameWorldInitializer : IGameWorldFactory
         gameWorld.WorldState.locationSpots.Clear();
         gameWorld.WorldState.locationSpots.AddRange(spots);
 
-        gameWorld.WorldState.actions.Clear();
-        gameWorld.WorldState.actions.AddRange(actions);
+        // Actions removed - using letter queue system
         // Contract system removed - using letter system instead
 
-        // Add cards to world state if applicable
-        if (gameWorld.WorldState.AllCards != null)
-        {
-            gameWorld.WorldState.AllCards.Clear();
-            gameWorld.WorldState.AllCards.AddRange(cards);
-        }
+        // Card system removed - using letter queue system
 
         return gameWorld;
     }
@@ -1207,57 +1183,5 @@ public class GameWorldInitializer : IGameWorldFactory
         }
     }
     
-    private List<ActionDefinition> LoadActions(string templatePath, List<LocationSpot> availableSpots, List<Location> availableLocations)
-    {
-        string actionsPath = Path.Combine(templatePath, "actions.json");
-        if (!File.Exists(actionsPath))
-        {
-            Console.WriteLine("WARNING: actions.json not found");
-            return new List<ActionDefinition>();
-        }
-        
-        try
-        {
-            string json = File.ReadAllText(actionsPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var actionDTOs = JsonSerializer.Deserialize<List<ActionDefinitionDTO>>(json, options);
-            
-            if (actionDTOs == null || !actionDTOs.Any())
-            {
-                Console.WriteLine("WARNING: No actions found in actions.json");
-                return new List<ActionDefinition>();
-            }
-            
-            var actions = new List<ActionDefinition>();
-            foreach (var dto in actionDTOs)
-            {
-                try
-                {
-                    var action = _actionDefinitionFactory.CreateActionDefinitionFromIds(
-                        dto.Id,
-                        dto.Name,
-                        dto.Description,
-                        dto.LocationSpotId,
-                        availableSpots,
-                        availableLocations,
-                        dto);
-                    
-                    actions.Add(action);
-                    Console.WriteLine($"Loaded action: {action.Id} - {action.Name} at spot {action.LocationSpotId}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"ERROR: Failed to load action '{dto.Id}': {ex.Message}");
-                }
-            }
-            
-            Console.WriteLine($"Loaded {actions.Count} actions from JSON templates.");
-            return actions;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ERROR: Failed to parse actions.json: {ex.Message}");
-            return new List<ActionDefinition>();
-        }
-    }
+    // Action system removed - location actions handled by LocationActionManager
 }

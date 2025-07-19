@@ -5,39 +5,33 @@
         @if (ShowResult)
         {
             <h3>
-                @(EncounterResult.ActionResult switch
-                {
-                    ActionResults.EncounterSuccess => "EncounterContext Won!",
-                    ActionResults.EncounterFailure => "EncounterContext Lost",
-                    ActionResults.GameOver => "Game Over",
-                    _ => ""
-                })
+                @(ConversationResult.Success ? "Conversation Success!" : "Conversation Failed")
             </h3>
 
-            @if (!string.IsNullOrEmpty(EncounterResult.AIResponse?.BeatNarration))
+            @if (!string.IsNullOrEmpty(ConversationResult.AIResponse?.BeatNarration))
             {
                 <div class="narrative-message">
-                    @((MarkupString)EncounterResult.AIResponse?.BeatNarration)
+                    @((MarkupString)ConversationResult.AIResponse?.BeatNarration)
                 </div>
             }
 
             <div class="tooltip-section">
                 <h5>
-                    EncounterContext Consequences
+                    Conversation Consequences
                 </h5>
                 <div class="tooltip-list">
-                    @if (EncounterResult.ActionResult == ActionResults.EncounterSuccess)
+                    @if (ConversationResult.Success)
                     {
                     }
                 </div>
                 <div class="tooltip-list">
-                    @if (EncounterResult.ActionResult == ActionResults.EncounterFailure)
+                    @if (!ConversationResult.Success)
                     {
                     }
                 </div>
             </div>
 
-            @if (HasPostEncounterEvolution())
+            @if (HasPostConversationEvolution())
             {
                 <div class="tooltip-section">
                     <h5>World Changes</h5>

@@ -16,7 +16,6 @@ public static class ServiceConfiguration
         services.AddSingleton<NetworkUnlockFactory>();
         services.AddSingleton<LetterTemplateFactory>();
         services.AddSingleton<StandingObligationFactory>();
-        services.AddSingleton<ActionDefinitionFactory>();
         
         // Register GameWorldInitializer as both itself and IGameWorldFactory
         services.AddSingleton<GameWorldInitializer>();
@@ -34,24 +33,17 @@ public static class ServiceConfiguration
         services.AddSingleton<ContentValidator>();
 
         // Register repositories
-        services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<LocationSpotRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<RouteRepository>();
-        services.AddSingleton<LetterTemplateRepository>();
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
 
         services.AddSingleton<LocationSystem>();
-        services.AddSingleton<ActionFactory>();
-        services.AddSingleton<ActionGenerator>();
         services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<EncounterFactory>();
-        services.AddSingleton<ActionSystem>();
-        services.AddSingleton<ActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
@@ -68,8 +60,21 @@ public static class ServiceConfiguration
         services.AddSingleton<TransportCompatibilityValidator>();
         
         // Letter Queue System
-        services.AddSingleton<ConnectionTokenManager>();
         services.AddSingleton<StandingObligationManager>();
+        services.AddSingleton<LetterCategoryService>();
+        
+        // Wire up circular dependencies after initial creation
+        services.AddSingleton<ConnectionTokenManager>(serviceProvider =>
+        {
+            var manager = new ConnectionTokenManager(
+                serviceProvider.GetRequiredService<GameWorld>(),
+                serviceProvider.GetRequiredService<MessageSystem>(),
+                serviceProvider.GetRequiredService<NPCRepository>()
+            );
+            manager.SetCategoryService(serviceProvider.GetRequiredService<LetterCategoryService>());
+            return manager;
+        });
+        
         services.AddSingleton<LetterQueueManager>();
         services.AddSingleton<RouteUnlockManager>();
         services.AddSingleton<NavigationService>();
@@ -87,12 +92,20 @@ public static class ServiceConfiguration
         services.AddSingleton<NoticeBoardService>();
         services.AddSingleton<ScenarioManager>();
         services.AddSingleton<LocationActionManager>();
+        services.AddSingleton<ConversationManager>();
+        services.AddSingleton<ConversationFactory>();
+        
+        // Wire up LetterCategoryService to LetterTemplateRepository
+        services.AddSingleton<LetterTemplateRepository>(serviceProvider =>
+        {
+            var repo = new LetterTemplateRepository(serviceProvider.GetRequiredService<GameWorld>());
+            repo.SetCategoryService(serviceProvider.GetRequiredService<LetterCategoryService>());
+            return repo;
+        });
 
         services.AddScoped<MusicService>();
 
         // UI Razor Services
-        services.AddSingleton<CardSelectionService>();
-        services.AddSingleton<CardHighlightService>();
         
         // Navigation Service
         services.AddSingleton<NavigationService>();
@@ -107,21 +120,23 @@ public static class ServiceConfiguration
         // Register core services
         services.AddSingleton<ConversationHistoryManager>();
         services.AddSingleton<NarrativeLogManager>();
-        services.AddSingleton<PostEncounterEvolutionParser>();
+        // Encounter system removed - using conversation system
+        // services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<LoadingStateService>();
         services.AddSingleton<AIGameMaster>();
         services.AddSingleton<AIClient>();
 
         // Register updated services
         services.AddSingleton<AIPromptBuilder>();
-        services.AddSingleton<EncounterChoiceResponseParser>();
+        // Renamed to ConversationChoiceResponseParser
+        services.AddSingleton<ConversationChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
 
         // Register AI provider factory
         services.AddSingleton<IAIProvider>(serviceProvider =>
         {
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-            var logger = serviceProvider.GetRequiredService<ILogger<EncounterFactory>>();
+            var logger = serviceProvider.GetRequiredService<ILogger<ConversationFactory>>();
             string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "Ollama";
             
             return defaultProvider.ToLower() switch

@@ -11,7 +11,7 @@
 <div class="game-status-bar">
     <div class="player-status">
 
-        <CardHand PlayerCards="@PlayerState.AvailableCards" OnCardRefreshed="HandleCardRefreshed" />
+        @* Card hand removed - using new conversation and location action systems *@
 
         <div class="status-item">
             <span class="status-label">Stamina</span>
@@ -60,16 +60,16 @@
                 <LetterQueueDisplay />
                 break;
 
-            case CurrentViews.EncounterScreen:
-                <EncounterView EncounterManager="EncounterManager"
-                               OnEncounterCompleted="OnEncounterCompleted"
+            case CurrentViews.ConversationScreen:
+                <ConversationView ConversationManager="ConversationManager"
+                               OnConversationCompleted="OnConversationCompleted"
                                @key="StateVersion" />
                 break;
 
             case CurrentViews.NarrativeScreen:
                 <NarrativeView LocationName="@SelectedLocation"
                                OnNarrativeCompleted="OnNarrativeCompleted"
-                               EncounterResult="@EncounterResult" />
+                               ConversationResult="@ConversationResult" />
                 break;
 
             case CurrentViews.MapScreen:
@@ -236,7 +236,7 @@
                     <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
                                      CurrentSpot="@CurrentSpot"
                                      OnSpotSelected="@HandleSpotSelection"
-                                     OnActionSelected="@HandleActionSelection" />
+ />
                                      
                     @* Letter Offer Dialog *@
                     @if (ShowLetterOfferDialog && CurrentNPCOffer != null)
@@ -457,7 +457,7 @@
                                 <span class="resource-value">@PlayerState.Food</span>
                                 @if (PlayerState.Food > 0)
                                 {
-                                    <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
+                                    @* Food consumption removed - part of old action system *@
                                 }
                             </div>
                         </div>
@@ -522,13 +522,7 @@
         HasLetterBoard="true" />
 }
 
-@if (ShowTooltip && HoveredAction != null)
-{
-    <div class="tooltip" style="left: @(MouseX + 10)px; top: @(MouseY + 10)px">
-        <ActionPreview CurrentAction="@HoveredAction"
-                       Player="@PlayerState" />
-    </div>
-}
+@* Action preview removed - location actions handled by LocationActionManager *@
 
 @if (ShowActionMessage)
 
