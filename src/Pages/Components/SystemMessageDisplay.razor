@@ -1,0 +1,154 @@
+@inject MessageSystem MessageSystem
+@implements IDisposable
+
+<div class="system-messages-container">
+    @foreach (var message in _messages)
+    {
+        <div class="system-message @GetMessageClass(message.Type) @(message.IsNew ? "message-enter" : "")"
+             @key="@message">
+            <div class="message-content">
+                @message.Message
+            </div>
+            <div class="message-timestamp">
+                @message.Timestamp.ToString("HH:mm")
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<SystemMessage> _messages = new List<SystemMessage>();
+    private Timer? _timer;
+    
+    protected override void OnInitialized()
+    {
+        // Poll for new messages every 500ms
+        _timer = new Timer(_ => CheckForMessages(), null, 0, 500);
+    }
+    
+    private void CheckForMessages()
+    {
+        var newMessages = MessageSystem.GetAndClearMessages();
+        if (newMessages.Any())
+        {
+            foreach (var msg in newMessages)
+            {
+                msg.IsNew = true;
+                _messages.Add(msg);
+            }
+            
+            // Keep only last 10 messages
+            if (_messages.Count > 10)
+            {
+                _messages.RemoveRange(0, _messages.Count - 10);
+            }
+            
+            InvokeAsync(() => 
+            {
+                StateHasChanged();
+                
+                // Remove "new" flag after animation
+                Task.Delay(300).ContinueWith(_ => 
+                {
+                    foreach (var msg in newMessages)
+                    {
+                        msg.IsNew = false;
+                    }
+                    InvokeAsync(StateHasChanged);
+                });
+            });
+        }
+    }
+    
+    private string GetMessageClass(SystemMessageTypes type)
+    {
+        return type switch
+        {
+            SystemMessageTypes.Success => "message-success",
+            SystemMessageTypes.Warning => "message-warning",
+            SystemMessageTypes.Danger => "message-danger",
+            SystemMessageTypes.Info => "message-info",
+            _ => "message-info"
+        };
+    }
+    
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}
+
+<style>
+    .system-messages-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        max-width: 400px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .system-message {
+        background-color: rgba(0, 0, 0, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .message-enter {
+        animation: slideIn 0.3s ease-out;
+    }
+        
+    .message-content {
+        flex: 1;
+        color: #ffffff;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    .message-timestamp {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+    
+    .message-success {
+        border-left: 4px solid #28a745;
+    }
+    
+    .message-success .message-content {
+        color: #90EE90;
+    }
+    
+    .message-warning {
+        border-left: 4px solid #ffc107;
+    }
+    
+    .message-warning .message-content {
+        color: #FFD700;
+    }
+    
+    .message-danger {
+        border-left: 4px solid #dc3545;
+    }
+    
+    .message-danger .message-content {
+        color: #FF6B6B;
+    }
+    
+    .message-info {
+        border-left: 4px solid #17a2b8;
+    }
+    
+    .message-info .message-content {
+        color: #87CEEB;
+    }
+</style>

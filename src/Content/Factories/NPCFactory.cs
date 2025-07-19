@@ -25,7 +25,6 @@ public class NPCFactory
         string description = null,
         Schedule availabilitySchedule = Schedule.Business_Hours,
         List<ServiceTypes> providedServices = null,
-        List<string> contractCategories = null,
         List<ConnectionType> letterTokenTypes = null)
     {
         if (string.IsNullOrEmpty(id))
@@ -45,7 +44,6 @@ public class NPCFactory
             Description = description ?? $"A {profession} in {location.Name}",
             AvailabilitySchedule = availabilitySchedule,
             ProvidedServices = providedServices ?? new List<ServiceTypes>(),
-            ContractCategories = contractCategories ?? new List<string>(),
             LetterTokenTypes = letterTokenTypes ?? new List<ConnectionType>()
         };
         
@@ -65,7 +63,6 @@ public class NPCFactory
         string description = null,
         Schedule availabilitySchedule = Schedule.Business_Hours,
         List<ServiceTypes> providedServices = null,
-        List<string> contractCategories = null,
         List<ConnectionType> letterTokenTypes = null)
     {
         // Resolve location
@@ -74,7 +71,7 @@ public class NPCFactory
             throw new InvalidOperationException($"Cannot create NPC: location '{locationId}' not found");
         
         return CreateNPC(id, name, location, profession, role, description, 
-                        availabilitySchedule, providedServices, contractCategories, letterTokenTypes);
+                        availabilitySchedule, providedServices, letterTokenTypes);
     }
     
     /// <summary>

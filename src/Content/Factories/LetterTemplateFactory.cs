@@ -92,9 +92,19 @@ public class LetterTemplateFactory
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
         ItemCategory? requiredEquipment = null)
     {
+        // Special narrative letter templates that use placeholder names, not NPC IDs
+        var narrativeTemplates = new HashSet<string> 
+        {
+            "forced_patron_resources", "forced_patron_instructions", "forced_patron_summons",
+            "patron_letter_resources", "patron_letter_instructions",
+            "forced_shadow_dead_drop", "forced_shadow_intelligence", "forced_shadow_blackmail"
+        };
+        
+        // Skip NPC validation for narrative templates
+        bool isNarrativeTemplate = narrativeTemplates.Contains(id);
         // Validate senders
         var senders = new List<NPC>();
-        if (possibleSenderIds != null)
+        if (possibleSenderIds != null && !isNarrativeTemplate)
         {
             foreach (var senderId in possibleSenderIds)
             {
@@ -112,7 +122,7 @@ public class LetterTemplateFactory
         
         // Validate recipients
         var recipients = new List<NPC>();
-        if (possibleRecipientIds != null)
+        if (possibleRecipientIds != null && !isNarrativeTemplate)
         {
             foreach (var recipientId in possibleRecipientIds)
             {

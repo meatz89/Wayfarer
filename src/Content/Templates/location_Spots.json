@@ -128,5 +128,15 @@
 		"locationId": "crossbridge",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
 		"domainTags": [ "COMMERCE", "TRANSPORT" ]
+	},
+	{
+		"id": "library",
+		"name": "Library",
+		"type": "INSTITUTION",
+		"description": "A small but well-maintained library where scholars and nobles conduct research.",
+		"initialState": "Quiet halls lined with books, with reading tables lit by oil lamps.",
+		"locationId": "crossbridge",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "SCHOLARLY", "QUIET" ]
 	}
 ]

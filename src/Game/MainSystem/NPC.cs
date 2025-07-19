@@ -13,9 +13,6 @@
     public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
     
-    // Contract Generation Properties
-    public List<string> ContractCategories { get; set; } = new List<string>();
-    
     // Letter Queue Properties
     public List<ConnectionType> LetterTokenTypes { get; set; } = new List<ConnectionType>();
 

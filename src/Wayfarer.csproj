@@ -55,18 +55,6 @@
 	</ItemGroup>
     
 	<ItemGroup>
-		<Content Update="Content\Templates\actions.json">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Update="Content\Templates\action_config.json">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Update="Content\Templates\contracts.json">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Update="Content\Templates\cards.json">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
 		<Content Update="Content\Templates\locations.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>

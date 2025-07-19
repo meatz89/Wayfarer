@@ -116,42 +116,36 @@
 	},
 	{
 		"id": "forced_shadow_dead_drop",
-		"description": "Urgent shadow correspondence to a dead drop location",
+		"description": "Urgent shadow correspondence to a secure location",
 		"tokenType": "Shadow",
 		"category": "Premium",
 		"minTokensRequired": 8,
 		"minDeadline": 1,
 		"maxDeadline": 3,
 		"minPayment": 20,
-		"maxPayment": 40,
-		"possibleSenders": ["The Fence", "Midnight Contact", "Shadow Broker", "Anonymous Source", "Night Runner"],
-		"possibleRecipients": ["Dead Drop", "Safe House", "Underground Contact", "Hidden Ally", "Secret Cache"]
+		"maxPayment": 40
 	},
 	{
 		"id": "forced_shadow_intelligence",
-		"description": "Time-sensitive intelligence delivery for shadow network",
+		"description": "Time-sensitive intelligence delivery",
 		"tokenType": "Shadow",
 		"category": "Premium",
 		"minTokensRequired": 8,
 		"minDeadline": 1,
 		"maxDeadline": 4,
 		"minPayment": 25,
-		"maxPayment": 45,
-		"possibleSenders": ["The Fence", "Information Broker", "Shadow Operative", "Coded Contact"],
-		"possibleRecipients": ["Intelligence Handler", "Network Node", "Surveillance Post", "Deep Cover Agent"]
+		"maxPayment": 45
 	},
 	{
 		"id": "forced_shadow_blackmail",
-		"description": "Sensitive material that must reach its destination",
+		"description": "Sensitive material requiring discrete delivery",
 		"tokenType": "Shadow",
 		"category": "Premium",
 		"minTokensRequired": 8,
 		"minDeadline": 2,
 		"maxDeadline": 3,
 		"minPayment": 30,
-		"maxPayment": 50,
-		"possibleSenders": ["Anonymous Benefactor", "The Collector", "Shadow Patron"],
-		"possibleRecipients": ["Compromised Target", "Leverage Contact", "Pressure Point"]
+		"maxPayment": 50
 	},
 	{
 		"id": "forced_patron_resources",
@@ -162,9 +156,7 @@
 		"minDeadline": 3,
 		"maxDeadline": 7,
 		"minPayment": 50,
-		"maxPayment": 100,
-		"possibleSenders": ["Your Patron", "Patron's Secretary", "House Steward"],
-		"possibleRecipients": ["Resources Contact", "Supply Coordinator", "Asset Manager", "Estate Overseer"]
+		"maxPayment": 100
 	},
 	{
 		"id": "forced_patron_instructions",
@@ -175,9 +167,7 @@
 		"minDeadline": 2,
 		"maxDeadline": 5,
 		"minPayment": 40,
-		"maxPayment": 80,
-		"possibleSenders": ["Your Patron", "Patron's Voice", "House Representative"],
-		"possibleRecipients": ["Field Commander", "Local Representative", "Operational Contact"]
+		"maxPayment": 80
 	},
 	{
 		"id": "forced_patron_summons",
@@ -188,9 +178,7 @@
 		"minDeadline": 1,
 		"maxDeadline": 4,
 		"minPayment": 60,
-		"maxPayment": 120,
-		"possibleSenders": ["Your Patron", "Patron's Chamberlain", "Court Herald"],
-		"possibleRecipients": ["Personal Attendant", "Household Manager", "Protocol Officer"]
+		"maxPayment": 120
 	},
 	{
 		"id": "business_proposal",
@@ -421,8 +409,6 @@
 		"maxDeadline": 7,
 		"minPayment": 60,
 		"maxPayment": 100,
-		"possibleSenders": ["Your Patron", "Patron's Steward"],
-		"possibleRecipients": ["Resource Master", "Supply Coordinator"],
 		"isChainLetter": false
 	},
 	{
@@ -435,8 +421,6 @@
 		"maxDeadline": 4,
 		"minPayment": 80,
 		"maxPayment": 120,
-		"possibleSenders": ["Your Patron"],
-		"possibleRecipients": ["Field Commander", "Local Agent"],
 		"isChainLetter": false
 	},
 	{

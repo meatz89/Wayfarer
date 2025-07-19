@@ -86,17 +86,12 @@ public class PatronLetterService
             };
         }
         
-        // Generate the letter
-        var senders = template.PossibleSenders?.Length > 0 
-            ? template.PossibleSenders 
-            : new[] { "Your Patron", "Patron's Secretary" };
-            
-        var recipients = template.PossibleRecipients?.Length > 0
-            ? template.PossibleRecipients
-            : new[] { "Field Agent", "Local Contact", "Resource Master" };
-            
-        var sender = senders[_random.Next(senders.Length)];
-        var recipient = recipients[_random.Next(recipients.Length)];
+        // Generate narrative names for patron letters
+        var patronSenders = new[] { "Your Patron", "Patron's Secretary", "House Steward", "Patron's Voice" };
+        var patronRecipients = new[] { "Field Agent", "Local Contact", "Resource Master", "Field Commander", "Supply Coordinator" };
+        
+        var sender = patronSenders[_random.Next(patronSenders.Length)];
+        var recipient = patronRecipients[_random.Next(patronRecipients.Length)];
         
         var letter = new Letter
         {
