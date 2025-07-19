@@ -1,16 +1,14 @@
 ﻿public class MessageSystem
 {
-    private List<SystemMessage> currentMessages = new();
+    private readonly GameWorld _gameWorld;
+    
+    public MessageSystem(GameWorld gameWorld)
+    {
+        _gameWorld = gameWorld;
+    }
 
     public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
     {
-        currentMessages.Add(new SystemMessage(message, type));
-    }
-
-    public List<SystemMessage> GetAndClearMessages()
-    {
-        var messages = new List<SystemMessage>(currentMessages);
-        currentMessages.Clear();
-        return messages;
+        _gameWorld.SystemMessages.Add(new SystemMessage(message, type));
     }
 }

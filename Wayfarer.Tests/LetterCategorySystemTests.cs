@@ -18,7 +18,6 @@ public class LetterCategorySystemTests
         _gameWorld = _gameWorldManager.GameWorld;
         
         _npcRepository = new NPCRepository(_gameWorld);
-        _messageSystem = new MessageSystem();
         _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, _npcRepository);
         _categoryService = new LetterCategoryService(_gameWorld, _tokenManager, _npcRepository, _messageSystem);
         _letterTemplateRepository = new LetterTemplateRepository(_gameWorld);
