@@ -140,5 +140,33 @@
 		"locationId": "millbrook",
 		"spotId": "workshop",
 		"description": "Basic tools for common tasks and repairs."
+	},
+	{
+		"id": "master_climbing_gear",
+		"name": "Master Climbing Gear",
+		"weight": 1,
+		"buyPrice": 15,
+		"sellPrice": 10,
+		"inventorySlots": 1,
+		"categories": [ "Climbing_Equipment" ],
+		"itemCategories": [ "Equipment" ],
+		"size": "Small",
+		"locationId": "millbrook",
+		"spotId": "workshop",
+		"description": "Exceptional climbing equipment with silk-woven rope, enables access to the most challenging routes."
+	},
+	{
+		"id": "navigation_compass",
+		"name": "Navigation Compass",
+		"weight": 1,
+		"buyPrice": 10,
+		"sellPrice": 6,
+		"inventorySlots": 1,
+		"categories": [],
+		"itemCategories": [ "Equipment" ],
+		"size": "Small",
+		"locationId": "crossbridge",
+		"spotId": "market",
+		"description": "A precision compass that helps navigate unfamiliar routes and terrain."
 	}
 ]

@@ -67,5 +67,28 @@
 			"Evening": ["Trade_Captain"],
 			"Night": []
 		}
+	},
+	{
+		"id": "shadow_market",
+		"name": "Shadow Market",
+		"description": "A hidden underground market where illicit goods change hands and information is traded like currency.",
+		"environmentalProperties": {
+			"morning": [ "DARK", "QUIET", "URBAN" ],
+			"afternoon": [ "DARK", "QUIET", "URBAN" ],
+			"evening": [ "DARK", "BUSY", "URBAN" ],
+			"night": [ "DARK", "BUSY", "URBAN" ]
+		},
+		"domainTags": [ "SHADOW", "COMMERCE" ],
+		"locationSpots": [],
+		"connectedTo": [ "crossbridge" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Restricted",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": [],
+			"Evening": ["Thief"],
+			"Night": ["Thief"]
+		}
 	}
 ]

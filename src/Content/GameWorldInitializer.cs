@@ -914,7 +914,6 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.Description,
                         schedule,
                         services,
-                        dto.ContractCategories,
                         tokenTypes);
                     
                     npcs.Add(npc);

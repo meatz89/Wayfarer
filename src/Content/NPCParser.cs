@@ -53,10 +53,6 @@ public static class NPCParser
         // Set default player relationship
         npc.PlayerRelationship = NPCRelationship.Neutral;
 
-        // Parse contract categories
-        List<string> contractCategories = GetStringArray(root, "contractCategories");
-        npc.ContractCategories = contractCategories;
-
         // Parse letter token types for letter queue system
         var letterTokenTypes = GetStringArray(root, "letterTokenTypes");
         foreach (var tokenTypeStr in letterTokenTypes)

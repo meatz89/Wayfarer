@@ -1,26 +1,27 @@
-using NUnit.Framework;
+using Xunit;
 using System.Collections.Generic;
 using System.Linq;
 
-[TestFixture]
-public class LetterCategorySystemTests : TestFixtureBase
+public class LetterCategorySystemTests
 {
     private ConnectionTokenManager _tokenManager;
     private LetterCategoryService _categoryService;
     private LetterTemplateRepository _letterTemplateRepository;
     private NPCRepository _npcRepository;
     private MessageSystem _messageSystem;
+    private GameWorld _gameWorld;
+    private GameWorldManager _gameWorldManager;
     
-    [SetUp]
-    public override void SetUp()
+    public LetterCategorySystemTests()
     {
-        base.SetUp();
+        _gameWorldManager = TestGameWorldFactory.CreateCompleteGameWorldManager();
+        _gameWorld = _gameWorldManager.GameWorld;
         
-        _npcRepository = new NPCRepository(TestGameWorld);
+        _npcRepository = new NPCRepository(_gameWorld);
         _messageSystem = new MessageSystem();
-        _tokenManager = new ConnectionTokenManager(TestGameWorld, _messageSystem, _npcRepository);
-        _categoryService = new LetterCategoryService(TestGameWorld, _tokenManager, _npcRepository, _messageSystem);
-        _letterTemplateRepository = new LetterTemplateRepository(TestGameWorld);
+        _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, _npcRepository);
+        _categoryService = new LetterCategoryService(_gameWorld, _tokenManager, _npcRepository, _messageSystem);
+        _letterTemplateRepository = new LetterTemplateRepository(_gameWorld);
         
         // Wire up services
         _tokenManager.SetCategoryService(_categoryService);
@@ -40,7 +41,7 @@ public class LetterCategorySystemTests : TestFixtureBase
             LetterTokenTypes = new List<ConnectionType> { ConnectionType.Trust },
             Location = "town_square"
         };
-        TestGameWorld.WorldState.NPCs.Add(elena);
+        _gameWorld.NPCs.Add(elena.ID, elena);
         
         // Create test letter templates for each category
         var basicTemplate = new LetterTemplate
@@ -82,12 +83,12 @@ public class LetterCategorySystemTests : TestFixtureBase
             Description = "Premium trust letter"
         };
         
-        TestGameWorld.WorldState.LetterTemplates.Add(basicTemplate);
-        TestGameWorld.WorldState.LetterTemplates.Add(qualityTemplate);
-        TestGameWorld.WorldState.LetterTemplates.Add(premiumTemplate);
+        _gameWorld.LetterTemplates.Add(basicTemplate.Id, basicTemplate);
+        _gameWorld.LetterTemplates.Add(qualityTemplate.Id, qualityTemplate);
+        _gameWorld.LetterTemplates.Add(premiumTemplate.Id, premiumTemplate);
     }
     
-    [Test]
+    [Fact]
     public void CanNPCOfferLetters_WithNoTokens_ReturnsFalse()
     {
         // Arrange
@@ -97,10 +98,10 @@ public class LetterCategorySystemTests : TestFixtureBase
         var canOffer = _categoryService.CanNPCOfferLetters(npcId);
         
         // Assert
-        Assert.IsFalse(canOffer, "NPC should not offer letters with 0 tokens");
+        Assert.False(canOffer, "NPC should not offer letters with 0 tokens");
     }
     
-    [Test]
+    [Fact]
     public void CanNPCOfferLetters_WithBasicThreshold_ReturnsTrue()
     {
         // Arrange
@@ -111,10 +112,10 @@ public class LetterCategorySystemTests : TestFixtureBase
         var canOffer = _categoryService.CanNPCOfferLetters(npcId);
         
         // Assert
-        Assert.IsTrue(canOffer, "NPC should offer letters with 3+ tokens");
+        Assert.True(canOffer, "NPC should offer letters with 3+ tokens");
     }
     
-    [Test]
+    [Fact]
     public void GetAvailableCategory_ReturnsCorrectCategory()
     {
         // Arrange
@@ -123,20 +124,20 @@ public class LetterCategorySystemTests : TestFixtureBase
         // Test Basic threshold
         _tokenManager.AddTokensToNPC(ConnectionType.Trust, 3, npcId);
         var basicCategory = _categoryService.GetAvailableCategory(npcId, ConnectionType.Trust);
-        Assert.AreEqual(LetterCategory.Basic, basicCategory);
+        Assert.Equal(LetterCategory.Basic, basicCategory);
         
         // Test Quality threshold
         _tokenManager.AddTokensToNPC(ConnectionType.Trust, 2, npcId); // Total: 5
         var qualityCategory = _categoryService.GetAvailableCategory(npcId, ConnectionType.Trust);
-        Assert.AreEqual(LetterCategory.Quality, qualityCategory);
+        Assert.Equal(LetterCategory.Quality, qualityCategory);
         
         // Test Premium threshold
         _tokenManager.AddTokensToNPC(ConnectionType.Trust, 3, npcId); // Total: 8
         var premiumCategory = _categoryService.GetAvailableCategory(npcId, ConnectionType.Trust);
-        Assert.AreEqual(LetterCategory.Premium, premiumCategory);
+        Assert.Equal(LetterCategory.Premium, premiumCategory);
     }
     
-    [Test]
+    [Fact]
     public void GetAvailableTemplates_RespectsTokenThresholds()
     {
         // Arrange
@@ -144,68 +145,67 @@ public class LetterCategorySystemTests : TestFixtureBase
         
         // With 0 tokens - no templates
         var noTokenTemplates = _categoryService.GetAvailableTemplates(npcId, ConnectionType.Trust);
-        Assert.AreEqual(0, noTokenTemplates.Count);
+        Assert.Equal(0, noTokenTemplates.Count);
         
         // With 3 tokens - only basic templates
         _tokenManager.AddTokensToNPC(ConnectionType.Trust, 3, npcId);
         var basicTemplates = _categoryService.GetAvailableTemplates(npcId, ConnectionType.Trust);
-        Assert.AreEqual(1, basicTemplates.Count);
-        Assert.AreEqual(LetterCategory.Basic, basicTemplates[0].Category);
+        Assert.Equal(1, basicTemplates.Count);
+        Assert.Equal(LetterCategory.Basic, basicTemplates[0].Category);
         
         // With 5 tokens - basic and quality templates
         _tokenManager.AddTokensToNPC(ConnectionType.Trust, 2, npcId);
         var qualityTemplates = _categoryService.GetAvailableTemplates(npcId, ConnectionType.Trust);
-        Assert.AreEqual(2, qualityTemplates.Count);
-        Assert.IsTrue(qualityTemplates.Any(t => t.Category == LetterCategory.Basic));
-        Assert.IsTrue(qualityTemplates.Any(t => t.Category == LetterCategory.Quality));
+        Assert.Equal(2, qualityTemplates.Count);
+        Assert.True(qualityTemplates.Any(t => t.Category == LetterCategory.Basic));
+        Assert.True(qualityTemplates.Any(t => t.Category == LetterCategory.Quality));
         
         // With 8 tokens - all templates
         _tokenManager.AddTokensToNPC(ConnectionType.Trust, 3, npcId);
         var allTemplates = _categoryService.GetAvailableTemplates(npcId, ConnectionType.Trust);
-        Assert.AreEqual(3, allTemplates.Count);
+        Assert.Equal(3, allTemplates.Count);
     }
     
-    [Test]
+    [Fact]
     public void CheckCategoryUnlock_ShowsCorrectMessages()
     {
         // Arrange
         var npcId = "elena_test";
-        var messages = new List<string>();
-        _messageSystem.OnSystemMessage += (msg, type) => messages.Add(msg);
         
         // Test Basic unlock
         _categoryService.CheckCategoryUnlock(npcId, ConnectionType.Trust, 2, 3);
-        Assert.IsTrue(messages.Any(m => m.Contains("now trusts you enough to offer Trust letters")));
+        var messages = _messageSystem.GetAndClearMessages();
+        Assert.True(messages.Any(m => m.Message.Contains("now trusts you enough to offer Trust letters")));
         
         // Test Quality unlock
-        messages.Clear();
         _categoryService.CheckCategoryUnlock(npcId, ConnectionType.Trust, 4, 5);
-        Assert.IsTrue(messages.Any(m => m.Contains("relationship") && m.Contains("stronger")));
+        messages = _messageSystem.GetAndClearMessages();
+        Assert.True(messages.Any(m => m.Message.Contains("relationship") && m.Message.Contains("stronger")));
         
         // Test Premium unlock
-        messages.Clear();
         _categoryService.CheckCategoryUnlock(npcId, ConnectionType.Trust, 7, 8);
-        Assert.IsTrue(messages.Any(m => m.Contains("most trusted associates")));
+        messages = _messageSystem.GetAndClearMessages();
+        Assert.True(messages.Any(m => m.Message.Contains("most trusted associates")));
     }
     
-    [Test]
+    [Fact]
     public void GetCategoryPaymentRange_ReturnsCorrectRanges()
     {
         // Test payment ranges
         var (basicMin, basicMax) = _categoryService.GetCategoryPaymentRange(LetterCategory.Basic);
-        Assert.AreEqual(3, basicMin);
-        Assert.AreEqual(5, basicMax);
+        Assert.Equal(3, basicMin);
+        Assert.Equal(5, basicMax);
         
         var (qualityMin, qualityMax) = _categoryService.GetCategoryPaymentRange(LetterCategory.Quality);
-        Assert.AreEqual(8, qualityMin);
-        Assert.AreEqual(12, qualityMax);
+        Assert.Equal(8, qualityMin);
+        Assert.Equal(12, qualityMax);
         
         var (premiumMin, premiumMax) = _categoryService.GetCategoryPaymentRange(LetterCategory.Premium);
-        Assert.AreEqual(15, premiumMin);
-        Assert.AreEqual(20, premiumMax);
+        Assert.Equal(15, premiumMin);
+        Assert.Equal(20, premiumMax);
     }
     
-    [Test]
+    [Fact]
     public void LetterGeneration_RespectsCategories()
     {
         // Arrange
@@ -216,8 +216,8 @@ public class LetterCategorySystemTests : TestFixtureBase
         var letter = _letterTemplateRepository.GenerateLetterFromNPC(npcId, "Elena", ConnectionType.Trust);
         
         // Assert
-        Assert.IsNotNull(letter);
-        Assert.GreaterOrEqual(letter.Payment, 3); // Should be at least basic payment
-        Assert.LessOrEqual(letter.Payment, 12); // Should not exceed quality payment
+        Assert.NotNull(letter);
+        Assert.True(letter.Payment >= 3); // Should be at least basic payment
+        Assert.True(letter.Payment <= 12); // Should not exceed quality payment
     }
 }

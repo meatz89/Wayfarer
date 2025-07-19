@@ -345,43 +345,13 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public void UpdateState()
     {
-        DisplayActionMessages();
-
         StateVersion++;
         StateHasChanged();
-    }
-
-    public void DisplayActionMessages()
-    {
-        ActionMessages = GetResultMessages();
-
-        if (ActionMessages.Any())
-        {
-            ShowActionMessage = true;
-            ActionMessageType = "success";  // Default to success
-
-            // Auto-dismiss after 5 seconds
-            Task.Delay(5000).ContinueWith(_ =>
-            {
-                InvokeAsync(() =>
-                {
-                    ShowActionMessage = false;
-                    StateHasChanged();
-                });
-            });
-        }
     }
 
     public void DismissActionMessage()
     {
         ShowActionMessage = false;
-    }
-
-    public List<string> GetResultMessages()
-    {
-        // Action system removed - just return empty list
-        // Messages are now handled directly through MessageSystem
-        return new List<string>();
     }
 
     public string GetArchetypePortrait()

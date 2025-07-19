@@ -102,23 +102,37 @@ public class LetterTemplateRepository
         return letter;
     }
 
-    // Generate a forced letter from a template using template's possible senders/recipients
+    // Generate a forced letter from a template (for standing obligations)
+    // Narrative names should be provided by the calling service, not the template
     public Letter GenerateForcedLetterFromTemplate(LetterTemplate template)
     {
         if (template == null) return null;
 
-        // Use template's defined senders and recipients if available
-        string senderName = "Unknown Sender";
-        string recipientName = "Unknown Recipient";
-
-        if (template.PossibleSenders != null && template.PossibleSenders.Length > 0)
+        // Generate narrative names based on token type
+        string senderName;
+        string recipientName;
+        
+        switch (template.TokenType)
         {
-            senderName = template.PossibleSenders[_random.Next(template.PossibleSenders.Length)];
-        }
-
-        if (template.PossibleRecipients != null && template.PossibleRecipients.Length > 0)
-        {
-            recipientName = template.PossibleRecipients[_random.Next(template.PossibleRecipients.Length)];
+            case ConnectionType.Shadow:
+                var shadowSenders = new[] { "The Fence", "Midnight Contact", "Shadow Broker", "Anonymous Source" };
+                var shadowRecipients = new[] { "Dead Drop", "Safe House", "Underground Contact", "Hidden Ally" };
+                senderName = shadowSenders[_random.Next(shadowSenders.Length)];
+                recipientName = shadowRecipients[_random.Next(shadowRecipients.Length)];
+                break;
+                
+            case ConnectionType.Noble:
+                var patronSenders = new[] { "Your Patron", "Patron's Secretary", "House Steward" };
+                var patronRecipients = new[] { "Field Agent", "Local Contact", "Resource Master" };
+                senderName = patronSenders[_random.Next(patronSenders.Length)];
+                recipientName = patronRecipients[_random.Next(patronRecipients.Length)];
+                break;
+                
+            default:
+                // For other types, this method shouldn't be used
+                senderName = "Unknown Sender";
+                recipientName = "Unknown Recipient";
+                break;
         }
 
         var letter = new Letter

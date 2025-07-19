@@ -281,6 +281,19 @@ The game follows a clean architecture with clear separation of concerns:
 For detailed project structure, see the solution explorer or project documentation.
 
 
+### DESIGN DECISION PRINCIPLE (Critical)
+**Every ambiguous design choice introduces technical debt. Make clear decisions immediately.**
+
+When implementing features, NEVER leave design decisions unmade:
+- ❌ **FORBIDDEN**: "Use profession OR token type" - pick ONE
+- ❌ **FORBIDDEN**: "Could be X or Y" - decide which
+- ❌ **FORBIDDEN**: Adding fields "just in case" - YAGNI
+- ✅ **REQUIRED**: Make a clear choice and document why
+- ✅ **REQUIRED**: If genuinely unsure, ask user for design decision
+- ✅ **REQUIRED**: Document decisions in code and architecture docs
+
+**Example**: Letter generation should use token type matching, NOT profession matching, because NPCs already define their letterTokenTypes and this creates a single source of truth.
+
 ### Code Quality
 
 The project uses multiple code analyzers:

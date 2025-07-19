@@ -3,7 +3,13 @@
 @inject GameWorld GameWorld
 @inject MessageSystem MessageSystem
 
-<div class="token-favor-section">
+<div class="token-favor-section @(ShowRelationshipDamage ? "relationship-damaged" : "")">
+    @if (ShowRelationshipDamage)
+    {
+        <div class="damage-indicator">
+            💔 Your relationship with @CurrentNPC.Name has been damaged
+        </div>
+    }
     @if (AvailableFavors.Any())
     {
         <h4>Special Favors Available</h4>
@@ -26,6 +32,9 @@
                             <button class="btn btn-primary" @onclick="() => PurchaseFavor(favor)">
                                 Spend @favor.TokenCost @favor.RequiredTokenType Tokens
                             </button>
+                            <div class="token-warning">
+                                <small>⚠️ This will damage your relationship with @CurrentNPC.Name</small>
+                            </div>
                         }
                         else
                         {
@@ -45,6 +54,7 @@
     [Parameter] public NPC CurrentNPC { get; set; }
     
     private List<TokenFavor> AvailableFavors = new List<TokenFavor>();
+    private bool ShowRelationshipDamage = false;
     
     protected override void OnParametersSet()
     {
@@ -74,16 +84,27 @@
     
     private async Task PurchaseFavor(TokenFavor favor)
     {
+        // Show warning about relationship damage
+        var tokensBefore = TokenManager.GetTokensWithNPC(CurrentNPC.ID).GetValueOrDefault(favor.RequiredTokenType);
+        
         var success = TokenFavorManager.PurchaseFavor(CurrentNPC.ID, favor.Id);
         if (success)
         {
-            MessageSystem.AddSystemMessage($"You purchased {favor.Name} from {CurrentNPC.Name}!", SystemMessageTypes.Success);
+            // The TokenFavorManager and ConnectionTokenManager already add narrative messages
+            // We just need to refresh the UI to show the updated state
             RefreshAvailableFavors();
             StateHasChanged();
-        }
-        else
-        {
-            MessageSystem.AddSystemMessage($"Could not purchase {favor.Name}. Check requirements.", SystemMessageTypes.Danger);
+            
+            // Show visual indication of relationship change
+            var tokensAfter = TokenManager.GetTokensWithNPC(CurrentNPC.ID).GetValueOrDefault(favor.RequiredTokenType);
+            if (tokensAfter < tokensBefore)
+            {
+                ShowRelationshipDamage = true;
+                StateHasChanged();
+                await Task.Delay(2000);
+                ShowRelationshipDamage = false;
+                StateHasChanged();
+            }
         }
     }
 }
@@ -176,4 +197,26 @@
     .btn-primary:hover {
         background-color: #5ba0f2;
     }
+    
+    .token-warning {
+        margin-top: 0.25rem;
+        color: #ffa500;
+        font-size: 0.8rem;
+    }
+    
+    .relationship-damaged {
+        animation: damage-flash 0.5s ease-in-out;
+    }
+    
+    .damage-indicator {
+        background-color: rgba(255, 0, 0, 0.2);
+        border: 1px solid rgba(255, 0, 0, 0.4);
+        color: #ff6b6b;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: bold;
+    }
+    
 </style>

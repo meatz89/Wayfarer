@@ -118,5 +118,20 @@
 		"terrainCategories": ["Requires_Climbing"],
 		"maxItemCapacity": 4,
 		"description": "Direct mountain path back to Millbrook requiring climbing equipment for steep terrain."
+	},
+	{
+		"id": "millbrook_forest_shortcut",
+		"name": "Forest Shortcut",
+		"origin": "millbrook",
+		"destination": "thornwood",
+		"method": "Walking",
+		"baseCoinCost": 0,
+		"baseStaminaCost": 1,
+		"timeBlockCost": 1,
+		"departureTime": null,
+		"isDiscovered": false,
+		"terrainCategories": [],
+		"maxItemCapacity": 5,
+		"description": "Hidden path through the woods known only to locals, avoids the main roads."
 	}
 ]
