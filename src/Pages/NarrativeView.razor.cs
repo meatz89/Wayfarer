@@ -5,12 +5,12 @@ public class NarrativeViewBase : ComponentBase
     [Inject] public GameWorld GameWorld { get; set; }
     [Parameter] public string LocationName { get; set; }
     [Parameter] public EventCallback OnNarrativeCompleted { get; set; }
-    [Parameter] public EncounterResult EncounterResult { get; set; }
+    [Parameter] public ConversationResult ConversationResult { get; set; }
     [Parameter] public bool ShowResult { get; set; } = true;
 
-    public bool HasPostEncounterEvolution()
+    public bool HasPostConversationEvolution()
     {
-        return EncounterResult?.PostEncounterEvolution != null;
+        return ConversationResult?.PostConversationEvolution != null;
     }
 
     // In NarrativeViewBase
@@ -56,11 +56,11 @@ public class NarrativeViewBase : ComponentBase
 
     public List<LocationChangeWithDepth> GetLocationChangesWithDepth()
     {
-        if (!HasPostEncounterEvolution()) return new List<LocationChangeWithDepth>();
+        if (!HasPostConversationEvolution()) return new List<LocationChangeWithDepth>();
 
         List<LocationChangeWithDepth> changes = new List<LocationChangeWithDepth>();
 
-        foreach (Location location in EncounterResult.PostEncounterEvolution.NewLocations)
+        foreach (Location location in ConversationResult.PostConversationEvolution.NewLocations)
         {
             changes.Add(new LocationChangeWithDepth
             {
@@ -90,11 +90,11 @@ public class NarrativeViewBase : ComponentBase
 
     public List<ActionWithStamina> GetActionChangesWithStamina()
     {
-        if (!HasPostEncounterEvolution()) return new List<ActionWithStamina>();
+        if (!HasPostConversationEvolution()) return new List<ActionWithStamina>();
 
         List<ActionWithStamina> changes = new List<ActionWithStamina>();
 
-        foreach (NewAction action in EncounterResult.PostEncounterEvolution.NewActions)
+        foreach (NewAction action in ConversationResult.PostConversationEvolution.NewActions)
         {
             changes.Add(new ActionWithStamina
             {
@@ -120,12 +120,12 @@ public class NarrativeViewBase : ComponentBase
 
     public List<CharacterChangeDisplay> GetCharacterChanges()
     {
-        if (!HasPostEncounterEvolution()) return new List<CharacterChangeDisplay>();
+        if (!HasPostConversationEvolution()) return new List<CharacterChangeDisplay>();
 
         List<CharacterChangeDisplay> changes = new List<CharacterChangeDisplay>();
 
         // Add new characters
-        foreach (NPC character in EncounterResult.PostEncounterEvolution.NewCharacters)
+        foreach (NPC character in ConversationResult.PostConversationEvolution.NewCharacters)
         {
             changes.Add(new CharacterChangeDisplay
             {
@@ -140,14 +140,14 @@ public class NarrativeViewBase : ComponentBase
 
     public List<RelationshipChangeDisplay> GetRelationshipChanges()
     {
-        if (!HasPostEncounterEvolution()) return new List<RelationshipChangeDisplay>();
+        if (!HasPostConversationEvolution()) return new List<RelationshipChangeDisplay>();
 
         List<RelationshipChangeDisplay> changes = new List<RelationshipChangeDisplay>();
 
         // Add relationship changes
-        if (EncounterResult.PostEncounterEvolution.RelationshipChanges != null)
+        if (ConversationResult.PostConversationEvolution.RelationshipChanges != null)
         {
-            foreach (RelationshipChange relationship in EncounterResult.PostEncounterEvolution.RelationshipChanges)
+            foreach (RelationshipChange relationship in ConversationResult.PostConversationEvolution.RelationshipChanges)
             {
                 changes.Add(new RelationshipChangeDisplay
                 {
@@ -162,26 +162,26 @@ public class NarrativeViewBase : ComponentBase
 
     public CoinsChangeDisplay GetCoinsChange()
     {
-        if (!HasPostEncounterEvolution() || EncounterResult.PostEncounterEvolution.CoinChange == 0)
+        if (!HasPostConversationEvolution() || ConversationResult.PostConversationEvolution.CoinChange == 0)
             return null;
 
         return new CoinsChangeDisplay
         {
-            Amount = EncounterResult.PostEncounterEvolution.CoinChange,
+            Amount = ConversationResult.PostConversationEvolution.CoinChange,
             Current = GameWorld.GetPlayer().Coins,
-            New = GameWorld.GetPlayer().Coins + EncounterResult.PostEncounterEvolution.CoinChange
+            New = GameWorld.GetPlayer().Coins + ConversationResult.PostConversationEvolution.CoinChange
         };
     }
 
     public List<ResourceChangeDisplay> GetResourceChanges()
     {
-        if (!HasPostEncounterEvolution() || EncounterResult.PostEncounterEvolution.ResourceChanges == null)
+        if (!HasPostConversationEvolution() || ConversationResult.PostConversationEvolution.ResourceChanges == null)
             return new List<ResourceChangeDisplay>();
 
         List<ResourceChangeDisplay> changes = new List<ResourceChangeDisplay>();
 
         // Add items added
-        foreach (string item in EncounterResult.PostEncounterEvolution.ResourceChanges.ItemsAdded)
+        foreach (string item in ConversationResult.PostConversationEvolution.ResourceChanges.ItemsAdded)
         {
             changes.Add(new ResourceChangeDisplay
             {
@@ -191,7 +191,7 @@ public class NarrativeViewBase : ComponentBase
         }
 
         // Add items removed
-        foreach (string item in EncounterResult.PostEncounterEvolution.ResourceChanges.ItemsRemoved)
+        foreach (string item in ConversationResult.PostConversationEvolution.ResourceChanges.ItemsRemoved)
         {
             changes.Add(new ResourceChangeDisplay
             {

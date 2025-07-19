@@ -6,17 +6,13 @@
     private readonly RouteRepository _routeRepository;
     private readonly AccessRequirementChecker _accessChecker;
     public LocationSystem LocationSystem { get; }
-    public ActionRepository ActionRepository { get; }
     public LocationRepository LocationRepository { get; }
-    public ActionFactory ActionFactory { get; }
     public ItemRepository ItemRepository { get; }
 
     public TravelManager(
         GameWorld gameWorld,
         LocationSystem locationSystem,
-        ActionRepository actionRepository,
         LocationRepository locationRepository,
-        ActionFactory actionFactory,
         ItemRepository itemRepository,
         TransportCompatibilityValidator transportValidator,
         RouteRepository routeRepository,
@@ -29,9 +25,7 @@
         _routeRepository = routeRepository;
         _accessChecker = accessChecker;
         this.LocationSystem = locationSystem;
-        this.ActionRepository = actionRepository;
         this.LocationRepository = locationRepository;
-        this.ActionFactory = actionFactory;
         ItemRepository = itemRepository;
     }
 

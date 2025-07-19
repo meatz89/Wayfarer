@@ -8,9 +8,10 @@ public class LetterQueueManager
     private readonly MessageSystem _messageSystem;
     private readonly StandingObligationManager _obligationManager;
     private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly LetterCategoryService _categoryService;
     private readonly Random _random = new Random();
     
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -18,6 +19,7 @@ public class LetterQueueManager
         _messageSystem = messageSystem;
         _obligationManager = obligationManager;
         _connectionTokenManager = connectionTokenManager;
+        _categoryService = categoryService;
     }
     
     // Get the player's letter queue
@@ -367,6 +369,25 @@ public class LetterQueueManager
         RecordLetterDelivery(letter);
         
         return true;
+    }
+    
+    // Compress queue by shifting letters up to fill gaps
+    private void CompressQueue()
+    {
+        var player = _gameWorld.GetPlayer();
+        int writeIndex = 0;
+        for (int i = 0; i < 8; i++)
+        {
+            if (player.LetterQueue[i] != null)
+            {
+                if (i != writeIndex)
+                {
+                    player.LetterQueue[writeIndex] = player.LetterQueue[i];
+                    player.LetterQueue[i] = null;
+                }
+                writeIndex++;
+            }
+        }
     }
     
     // Process daily deadline countdown
@@ -825,25 +846,56 @@ public class LetterQueueManager
                 break;
             }
             
-            // Get a random template
-            var template = _letterTemplateRepository.GetRandomTemplate();
-            if (template == null) continue;
-            
             // Get random NPCs for sender and recipient
             var allNpcs = _npcRepository.GetAllNPCs();
             if (allNpcs.Count < 2) continue; // Need at least 2 NPCs
             
-            var sender = allNpcs[_random.Next(allNpcs.Count)];
-            var recipient = allNpcs[_random.Next(allNpcs.Count)];
-            
-            // Ensure sender and recipient are different
-            if (sender.ID == recipient.ID && allNpcs.Count > 1)
+            // Find NPCs who can send letters (have token types and player has relationship)
+            var eligibleSenders = allNpcs.Where(npc => 
+                npc.LetterTokenTypes.Any() && 
+                _categoryService.CanNPCOfferLetters(npc.ID)).ToList();
+                
+            if (!eligibleSenders.Any()) 
             {
-                recipient = allNpcs.Where(n => n.ID != sender.ID).First();
+                // Fallback to any NPC with letter token types
+                eligibleSenders = allNpcs.Where(npc => npc.LetterTokenTypes.Any()).ToList();
             }
             
-            // Generate letter from template
-            var letter = _letterTemplateRepository.GenerateLetterFromTemplate(template, sender.Name, recipient.Name);
+            if (!eligibleSenders.Any()) continue;
+            
+            var sender = eligibleSenders[_random.Next(eligibleSenders.Count)];
+            
+            // Pick a token type the sender can offer
+            var availableCategories = _categoryService.GetAvailableCategories(sender.ID);
+            ConnectionType tokenType;
+            
+            if (availableCategories.Any())
+            {
+                // Use a token type where we have enough relationship
+                var tokenTypes = availableCategories.Keys.ToList();
+                tokenType = tokenTypes[_random.Next(tokenTypes.Count)];
+            }
+            else
+            {
+                // Fallback to sender's first token type
+                tokenType = sender.LetterTokenTypes.FirstOrDefault();
+                if (tokenType == default) continue;
+            }
+            
+            // Generate letter respecting category thresholds
+            var letter = _letterTemplateRepository.GenerateLetterFromNPC(sender.ID, sender.Name, tokenType);
+            if (letter == null)
+            {
+                // Try with basic template if category system fails
+                var template = _letterTemplateRepository.GetRandomTemplateByTokenType(tokenType);
+                if (template == null) continue;
+                
+                var recipient = allNpcs.Where(n => n.ID != sender.ID).FirstOrDefault();
+                if (recipient == null) continue;
+                
+                letter = _letterTemplateRepository.GenerateLetterFromTemplate(template, sender.Name, recipient.Name);
+            }
+            
             if (letter != null)
             {
                 // Add to first empty slot
@@ -856,8 +908,16 @@ public class LetterQueueManager
                     string urgency = letter.Deadline <= 3 ? " - needs urgent delivery!" : "";
                     string tokenTypeText = GetTokenTypeDescription(letter.TokenType);
                     
+                    // Show category if from relationship
+                    var category = _categoryService.GetAvailableCategory(sender.ID, tokenType);
+                    string categoryText = "";
+                    if (_categoryService.CanNPCOfferLetters(sender.ID))
+                    {
+                        categoryText = $" [{category} letter]";
+                    }
+                    
                     _messageSystem.AddSystemMessage(
-                        $"  • Letter from {sender.Name} to {recipient.Name} ({tokenTypeText} correspondence){urgency}",
+                        $"  • Letter from {sender.Name} to {letter.RecipientName} ({tokenTypeText} correspondence{categoryText}){urgency}",
                         letter.Deadline <= 3 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
                     );
                     

@@ -10,7 +10,7 @@
                 weight: 10,
                 inputMechanics: new InputMechanics(
                     new FocusCost(1),
-                    new SkillCheckRequirement(SkillCategories.Social, 3)
+                    null // Skill system removed
                 ),
                 successEffect: new NoEffect(),
                 failureEffect: new NoEffect()
@@ -22,7 +22,7 @@
                 weight: 8,
                 inputMechanics: new InputMechanics(
                     new FocusCost(1),
-                    new SkillCheckRequirement(SkillCategories.Intellectual, 3)
+                    null // Skill system removed
                 ),
                 successEffect: new NoEffect(),
                 failureEffect: new NoEffect()
@@ -34,7 +34,7 @@
                 weight: 5,
                 inputMechanics: new InputMechanics(
                     new FocusCost(0),
-                    new SkillCheckRequirement(SkillCategories.Physical, 2)
+                    null // Skill system removed
                 ),
                 successEffect: new NoEffect(),
                 failureEffect: new NoEffect()

@@ -14,7 +14,7 @@
 
     public AIClient(
         IAIProvider aiProvider,
-        ILogger<EncounterFactory> logger,
+        ILogger<ConversationFactory> logger,
         NarrativeLogManager logManager,
         LoadingStateService loadingStateService,
         GameWorld gameWorld)
@@ -74,7 +74,7 @@
             "IntroductionGeneration" => "introduction",
             "ChoiceGeneration" => "choices",
             "EncounterNarrative" => "response",
-            "PostEncounterEvolution" => "world update",
+            "PostConversationEvolution" => "world update",
             _ => sourceSystem.ToLower()
         };
     }

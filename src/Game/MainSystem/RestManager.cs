@@ -228,11 +228,7 @@
             gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
         }
 
-        // Refresh player cards
-        foreach (SkillCard card in player.GetAllAvailableCards())
-        {
-            player.RefreshCard(card);
-        }
+        // Skill cards removed - using letter queue system
 
         // Generate exclusive contract if applicable
         if (option.OffersExclusiveContract)

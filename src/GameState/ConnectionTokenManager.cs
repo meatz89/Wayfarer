@@ -6,12 +6,18 @@ public class ConnectionTokenManager
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
+    private LetterCategoryService _categoryService;
     
     public ConnectionTokenManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
         _npcRepository = npcRepository;
+    }
+    
+    public void SetCategoryService(LetterCategoryService categoryService)
+    {
+        _categoryService = categoryService;
     }
     
     // Get player's total tokens by type
@@ -71,8 +77,12 @@ public class ConnectionTokenManager
             }
         }
         
+        // Track old token count for category unlock checking
+        int oldTokenCount = npcTokens[npcId][type];
+        
         // Update NPC-specific tokens
         npcTokens[npcId][type] += count;
+        int newTokenCount = npcTokens[npcId][type];
         
         // Get NPC for narrative feedback
         var npc = _npcRepository.GetNPCById(npcId);
@@ -86,6 +96,12 @@ public class ConnectionTokenManager
             // Check relationship milestones
             var totalWithNPC = npcTokens[npcId].Values.Sum();
             CheckRelationshipMilestone(npc, totalWithNPC);
+            
+            // Check category unlocks if we have the service
+            if (_categoryService != null && npc.LetterTokenTypes.Contains(type))
+            {
+                _categoryService.CheckCategoryUnlock(npcId, type, oldTokenCount, newTokenCount);
+            }
         }
     }
     

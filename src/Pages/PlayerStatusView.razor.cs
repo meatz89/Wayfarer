@@ -56,62 +56,7 @@ public class PlayerStatusViewBase : ComponentBase
         };
     }
 
-    public string GetHealthIcon(PhysicalCondition condition)
-    {
-        return condition switch
-        {
-            PhysicalCondition.Excellent => "💚",
-            PhysicalCondition.Good => "💚",
-            PhysicalCondition.Tired => "💛",
-            PhysicalCondition.Exhausted => "🧡",
-            PhysicalCondition.Injured => "❤️",
-            PhysicalCondition.Sick => "🤒",
-            PhysicalCondition.Recovered => "💪",
-            _ => "❓"
-        };
-    }
-
-    public string GetHealthStatusClass(PhysicalCondition condition)
-    {
-        return condition switch
-        {
-            PhysicalCondition.Excellent => "health-excellent",
-            PhysicalCondition.Good => "health-good",
-            PhysicalCondition.Tired => "health-tired",
-            PhysicalCondition.Exhausted => "health-exhausted",
-            PhysicalCondition.Injured => "health-injured",
-            PhysicalCondition.Sick => "health-sick",
-            PhysicalCondition.Recovered => "health-recovered",
-            _ => ""
-        };
-    }
-
-    public string GetPhysicalConditionDescription(PhysicalCondition condition)
-    {
-        return condition switch
-        {
-            PhysicalCondition.Excellent => "You feel at peak performance",
-            PhysicalCondition.Good => "You feel healthy and strong",
-            PhysicalCondition.Tired => "You feel somewhat tired but capable",
-            PhysicalCondition.Exhausted => "You are completely exhausted",
-            PhysicalCondition.Injured => "You are physically impaired",
-            PhysicalCondition.Sick => "You feel ill and weak",
-            PhysicalCondition.Recovered => "You are recovering from recent exertion",
-            _ => "Unknown condition"
-        };
-    }
-
-    public string GetPhysicalConditionEffects(PhysicalCondition condition)
-    {
-        return condition switch
-        {
-            PhysicalCondition.Tired => "Slightly reduced effectiveness",
-            PhysicalCondition.Exhausted => "Cannot perform strenuous activities",
-            PhysicalCondition.Injured => "Severe penalties to physical actions",
-            PhysicalCondition.Sick => "Reduced stamina recovery, slower movement",
-            _ => "No effects"
-        };
-    }
+    // Physical condition system removed - using stamina system only
 
     public int GetStaminaCost()
     {

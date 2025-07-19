@@ -4,5 +4,5 @@
     public string Description { get; set; }
     public List<string> AddedActionIds { get; set; } = new List<string>();
     public List<string> RemovedActionIds { get; set; } = new List<string>();
-    public string EncounterActionId { get; set; }
+    public string ConversationActionId { get; set; }
 }

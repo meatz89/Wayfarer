@@ -66,31 +66,9 @@
                     <span class="resource-label">Concentration</span>
                     <span class="resource-value">@CurrentConcentration</span>
                 </div>
-                <div class="resource-item">
-                    <span class="resource-icon">❤️</span>
-                    <span class="resource-label">Health</span>
-                    <span class="resource-value @GetHealthStatusClass(PlayerState.CurrentPhysicalCondition)">@PlayerState.CurrentPhysicalCondition</span>
-                </div>
             </div>
         </div>
 
-        @* Physical Condition Section *@
-        <div class="status-section physical-condition">
-            <h3 class="section-title">Physical Condition</h3>
-            <div class="condition-info">
-                <div class="condition-status @GetHealthStatusClass(PlayerState.CurrentPhysicalCondition)">
-                    <span class="condition-icon">@GetHealthIcon(PlayerState.CurrentPhysicalCondition)</span>
-                    <span class="condition-text">@GetPhysicalConditionDescription(PlayerState.CurrentPhysicalCondition)</span>
-                </div>
-                @if (PlayerState.CurrentPhysicalCondition != PhysicalCondition.Good)
-                {
-                    <div class="condition-effects">
-                        <span class="effect-label">Effects:</span>
-                        <span class="effect-text">@GetPhysicalConditionEffects(PlayerState.CurrentPhysicalCondition)</span>
-                    </div>
-                }
-            </div>
-        </div>
 
         @* Inventory Section *@
         <div class="status-section inventory-full">

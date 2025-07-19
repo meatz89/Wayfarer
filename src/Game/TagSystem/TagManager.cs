@@ -1,35 +1,35 @@
 ﻿public class TagManager
 {
-    public List<IEncounterTag> EncounterTags { get; } = new List<IEncounterTag>();
+    public List<IConversationTag> ConversationTags { get; } = new List<IConversationTag>();
 
     public TagManager()
     {
-        EncounterTags = new List<IEncounterTag>();
+        ConversationTags = new List<IConversationTag>();
     }
 
-    public void CreateEncounterTags(List<IEncounterTag> locationTags)
+    public void CreateConversationTags(List<IConversationTag> locationTags)
     {
-        HashSet<string> previouslyActive = new(EncounterTags.Select(t =>
+        HashSet<string> previouslyActive = new(ConversationTags.Select(t =>
         {
             return t.NarrativeName;
         }));
 
-        EncounterTags.Clear();
+        ConversationTags.Clear();
 
-        foreach (IEncounterTag tag in locationTags)
+        foreach (IConversationTag tag in locationTags)
         {
             bool shouldActivate = tag is StrategicTag || (tag is NarrativeTag);
 
             if (shouldActivate)
             {
-                EncounterTags.Add(tag);
+                ConversationTags.Add(tag);
             }
         }
     }
 
     public List<StrategicTag> GetStrategicActiveTags()
     {
-        List<StrategicTag> list = EncounterTags
+        List<StrategicTag> list = ConversationTags
             .Where(x =>
             {
                 return x is StrategicTag strategicTag;
@@ -45,7 +45,7 @@
 
     public List<NarrativeTag> GetNarrativeActiveTags()
     {
-        List<NarrativeTag> list = EncounterTags
+        List<NarrativeTag> list = ConversationTags
             .Where(x =>
             {
                 return x is NarrativeTag narrativeTag;

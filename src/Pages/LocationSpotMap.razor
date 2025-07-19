@@ -162,64 +162,7 @@
 
         @if (spot.SpotID == CurrentSpot.SpotID)
         {
-            <div class="action-list">
-                @foreach (UserActionOption action in GameWorld.ActionStateTracker.LocationSpotActions)
-                {
-                    if(action.locationAction.ActionExecutionType == ActionExecutionTypes.Instant)
-                    {
-                        <button class="approach-button" @onclick="() => HandleActionSelection(action)">
-                                @action.locationAction.Name
-                        </button >
-                    }
-                    else
-                    {
-                        <div class="action-header @(selectedAction?.locationAction.ActionId == action.locationAction.ActionId ? "expanded" : "")"
-                                @onclick="() => ToggleActionApproaches(action)">
-                            <div class="action-header-content">
-                                <span class="action-title">@action.locationAction.Name</span>
-                                <span class="action-type">@action.locationAction.RequiredCardType</span>
-                            </div>
-                            <span class="action-toggle-icon">@(selectedAction?.locationAction.ActionId == action.locationAction.ActionId ? "▼" : "►")</span>
-                        </div>
-                        @if (selectedAction?.locationAction.ActionId == action.locationAction.ActionId)
-                        {
-                            <div class="approaches-container">
-                                <div class="approaches-description">
-                                    @action.locationAction.ObjectiveDescription
-                                </div>
-
-                                <div class="approaches-list">
-                                    @foreach (var approach in action.locationAction.Approaches)
-                                    {
-                                        bool isCompatible = IsValidCardForApproach(approach.RequiredCardType);
-                                        <div class="approach-option @(isCompatible ? "compatible-approach" : "incompatible-approach")"
-                                                @onclick="() => ActivateHighlightMode(approach.RequiredCardType)">
-                                            <div class="approach-content">
-                                                <div class="approach-header">
-                                                    <h4>@approach.Name</h4>
-                                                    <div class="card-requirement">
-                                                        <div class="card-preview @GetCardTypeClass(approach.RequiredCardType)"></div>
-                                                        <span>@approach.RequiredCardType</span>
-                                                    </div>
-                                                </div>
-
-                                                <p class="approach-description">@approach.Description</p>
-                                            </div>
-
-                                            <button class="approach-button @(isCompatible ? "compatible-button" : "incompatible-button")"
-                                                @onclick="() => HandleApproachSelection(action, approach)"
-                                                @onmouseover="(e) => HandleShowApproachTooltip(action, approach, e)"
-                                                @onmouseout="HandleHideTooltip">
-                                                @(isCompatible ? "Use Selected Card" : "Select Approach")
-                                            </button>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    }
-                }
-            </div>
+            @* Actions removed - using LocationActionManager and letter queue system *@
                 }
                 else
                 {
@@ -234,13 +177,6 @@
     }
 </div>
 
-@if (showTooltip && hoveredApproach != null)
-
 @namespace Wayfarer.Pages
-{
-    <div class="tooltip" style="left: @(mouseX + 10)px; top: @(mouseY + 10)px">
-        <ActionPreview CurrentAction="@selectedAction"
-                       CurrentApproach="@hoveredApproach"
-                       GameWorld="@GameWorld" />
-    </div>
-}
+
+@* Action preview removed - location actions handled by LocationActionManager *@

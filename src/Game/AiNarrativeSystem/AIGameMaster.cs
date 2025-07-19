@@ -2,20 +2,20 @@
 {
     private AIPromptBuilder _promptBuilder;
     private ConversationHistoryManager _contextManager;
-    private EncounterChoiceResponseParser _encounterChoiceResponseParser;
+    private ConversationChoiceResponseParser _conversationChoiceResponseParser;
     private AIClient _aiClient;
     private GameWorld _gameWorld;
     private bool hasResponse;
 
     public AIGameMaster(
         ConversationHistoryManager contextManager,
-        EncounterChoiceResponseParser EncounterChoiceResponseParser,
+        ConversationChoiceResponseParser conversationChoiceResponseParser,
         AIClient aiClient,
         IConfiguration configuration,
         GameWorld gameWorld)
     {
         _contextManager = contextManager;
-        _encounterChoiceResponseParser = EncounterChoiceResponseParser;
+        _conversationChoiceResponseParser = conversationChoiceResponseParser;
         _gameWorld = gameWorld;
         _promptBuilder = new AIPromptBuilder(configuration);
         hasResponse = false;
@@ -30,7 +30,7 @@
         }
     }
 
-    private static string GetConversationId(EncounterContext context)
+    private static string GetConversationId(ConversationContext context)
     {
         return $"{context.LocationName}_encounter";
     }
@@ -41,8 +41,8 @@
     }
 
     public async Task<string> GenerateIntroduction(
-        EncounterContext context,
-        EncounterState state,
+        ConversationContext context,
+        ConversationState state,
         WorldStateInput worldStateInput,
         int priority)
     {
@@ -83,9 +83,9 @@
         return response;
     }
 
-    public async Task<List<EncounterChoice>> RequestChoices(
-        EncounterContext context,
-        EncounterState state,
+    public async Task<List<ConversationChoice>> RequestChoices(
+        ConversationContext context,
+        ConversationState state,
         WorldStateInput worldStateInput,
         List<ChoiceTemplate> allTemplates,
         int priority)
@@ -110,14 +110,14 @@
         string response = await _aiClient.ProcessCommand(aiGenerationCommand);
         _contextManager.AddAssistantMessage(conversationId, response, messageType);
 
-        List<EncounterChoice> choices = _encounterChoiceResponseParser.ParseMultipleChoicesResponse(response);
+        List<ConversationChoice> choices = _conversationChoiceResponseParser.ParseMultipleChoicesResponse(response);
         return choices;
     }
 
     public async Task<string> GenerateReaction(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption,
+        ConversationContext context,
+        ConversationState state,
+        ConversationChoice chosenOption,
         bool choiceSuccess,
         WorldStateInput worldStateInput,
         int priority)
@@ -149,9 +149,9 @@
     }
 
     public async Task<string> GenerateConclusion(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice finalChoice,
+        ConversationContext context,
+        ConversationState state,
+        ConversationChoice finalChoice,
         WorldStateInput worldStateInput,
         int priority)
     {
@@ -159,7 +159,7 @@
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
         AIPrompt prompt = _promptBuilder
-            .BuildEncounterConclusionPrompt(context, state, state.EncounterOutcome, finalChoice);
+            .BuildConversationConclusionPrompt(context, state, state.Outcome, finalChoice);
         MessageType messageType = MessageType.Conclusion;
 
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);
@@ -180,9 +180,9 @@
     }
 
     public async Task<LocationDetails> GenerateLocationDetails(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption,
+        ConversationContext context,
+        ConversationState state,
+        ConversationChoice chosenOption,
         WorldStateInput worldStateInput,
         int priority)
     {
@@ -214,18 +214,18 @@
         };
     }
 
-    public async Task<PostEncounterEvolutionResult> ProcessPostEncounterEvolution(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption,
+    public async Task<PostConversationEvolutionResult> ProcessPostConversationEvolution(
+        ConversationContext context,
+        ConversationState state,
+        ConversationChoice chosenOption,
         WorldStateInput worldStateInput,
         int priority)
     {
         string conversationId = GetConversationId(context);
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
-        AIPrompt prompt = _promptBuilder.BuildPostEncounterEvolutionPrompt(new PostEncounterEvolutionInput());
-        MessageType messageType = MessageType.PostEncounterEvolution;
+        AIPrompt prompt = _promptBuilder.BuildPostConversationEvolutionPrompt(new PostConversationEvolutionInput());
+        MessageType messageType = MessageType.PostConversationEvolution;
 
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);
         string choiceDescription = chosenOption.NarrativeText;
@@ -242,47 +242,16 @@
         string response = await _aiClient.ProcessCommand(aiGenerationCommand);
         _contextManager.AddAssistantMessage(conversationId, response, messageType);
 
-        return new PostEncounterEvolutionResult
+        return new PostConversationEvolutionResult
         {
         };
     }
-    public async Task<string> GenerateActions(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption,
-        WorldStateInput worldStateInput,
-        int priority)
-    {
-        string conversationId = GetConversationId(context);
-        string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
-
-        ActionGenerationContext actionContext = new ActionGenerationContext();
-
-        AIPrompt prompt = _promptBuilder.BuildActionGenerationPrompt(actionContext);
-        MessageType messageType = MessageType.ActionGeneration;
-
-        _contextManager.UpdateSystemMessage(conversationId, systemMessage);
-        string choiceDescription = chosenOption.NarrativeText;
-        _contextManager.AddUserMessage(conversationId, prompt.Content, MessageType.PlayerChoice);
-
-        List<IResponseStreamWatcher> watchers = new List<IResponseStreamWatcher>();
-
-        AIGenerationCommand aiGenerationCommand = await _aiClient.CreateAndQueueCommand(
-            watchers,
-            _contextManager.GetConversationHistory(conversationId),
-            priority,
-            messageType.ToString());
-
-        string response = await _aiClient.ProcessCommand(aiGenerationCommand);
-        _contextManager.AddAssistantMessage(conversationId, response, messageType);
-
-        return response;
-    }
+    // Action generation removed - using location actions and conversations
 
     public async Task<string> ProcessMemoryConsolidation(
-        EncounterContext context,
-        EncounterState state,
-        EncounterChoice chosenOption,
+        ConversationContext context,
+        ConversationState state,
+        ConversationChoice chosenOption,
         WorldStateInput worldStateInput,
         int priority)
     {

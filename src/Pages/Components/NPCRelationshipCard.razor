@@ -6,6 +6,7 @@
 @inject LocationRepository LocationRepository
 @inject NPCLetterOfferService LetterOfferService
 @inject TokenFavorManager TokenFavorManager
+@inject LetterCategoryService CategoryService
 
 <div class="npc-relationship-card @GetRelationshipStatusClass()">
     <div class="npc-header">
@@ -39,57 +40,67 @@
                 @foreach (var tokenType in NPC.LetterTokenTypes)
                 {
                     var tokensOfType = GetNPCTokenCount(tokenType);
+                    var currentCategory = CategoryService.GetAvailableCategory(NPC.ID, tokenType);
                     <div class="token-type-categories">
                         <h5>@GetTokenIcon(tokenType) @tokenType Letters</h5>
                         <div class="category-list">
-                            @if (tokensOfType >= 3)
+                            @* Basic Category *@
+                            @if (tokensOfType >= GameRules.TOKENS_BASIC_THRESHOLD)
                             {
+                                var (minPay, maxPay) = CategoryService.GetCategoryPaymentRange(LetterCategory.Basic);
                                 <div class="category-item unlocked">
                                     <span class="category-icon">📄</span>
                                     <span class="category-name">Basic</span>
-                                    <span class="category-pay">3-7 coins</span>
+                                    <span class="category-pay">@minPay-@maxPay coins</span>
                                 </div>
                             }
                             else if (tokensOfType >= 0)
                             {
+                                var tokensNeeded = CategoryService.GetTokensToNextCategory(NPC.ID, tokenType);
                                 <div class="category-item locked">
                                     <span class="category-icon">🔒</span>
                                     <span class="category-name">Basic</span>
-                                    <span class="category-requirement">Need @(3 - tokensOfType) more</span>
+                                    <span class="category-requirement">Need @tokensNeeded more</span>
                                 </div>
                             }
                             
-                            @if (tokensOfType >= 5)
+                            @* Quality Category *@
+                            @if (tokensOfType >= GameRules.TOKENS_QUALITY_THRESHOLD)
                             {
+                                var (minPay, maxPay) = CategoryService.GetCategoryPaymentRange(LetterCategory.Quality);
                                 <div class="category-item unlocked">
                                     <span class="category-icon">📜</span>
                                     <span class="category-name">Quality</span>
-                                    <span class="category-pay">8-14 coins</span>
+                                    <span class="category-pay">@minPay-@maxPay coins</span>
                                 </div>
                             }
                             else
                             {
+                                var tokensNeeded = Math.Max(0, GameRules.TOKENS_QUALITY_THRESHOLD - tokensOfType);
                                 <div class="category-item locked">
                                     <span class="category-icon">🔒</span>
                                     <span class="category-name">Quality</span>
-                                    <span class="category-requirement">Need @(5 - Math.Max(0, tokensOfType)) more</span>
+                                    <span class="category-requirement">Need @tokensNeeded more</span>
                                 </div>
                             }
                             
-                            @if (tokensOfType >= 8)
+                            @* Premium Category *@
+                            @if (tokensOfType >= GameRules.TOKENS_PREMIUM_THRESHOLD)
                             {
+                                var (minPay, maxPay) = CategoryService.GetCategoryPaymentRange(LetterCategory.Premium);
                                 <div class="category-item unlocked">
                                     <span class="category-icon">📋</span>
                                     <span class="category-name">Premium</span>
-                                    <span class="category-pay">15-30+ coins</span>
+                                    <span class="category-pay">@minPay-@maxPay coins</span>
                                 </div>
                             }
                             else
                             {
+                                var tokensNeeded = Math.Max(0, GameRules.TOKENS_PREMIUM_THRESHOLD - tokensOfType);
                                 <div class="category-item locked">
                                     <span class="category-icon">🔒</span>
                                     <span class="category-name">Premium</span>
-                                    <span class="category-requirement">Need @(8 - Math.Max(0, tokensOfType)) more</span>
+                                    <span class="category-requirement">Need @tokensNeeded more</span>
                                 </div>
                             }
                         </div>

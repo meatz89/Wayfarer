@@ -1,7 +1,7 @@
 ﻿
 public class PersistentChangeProcessor
 {
-    public void ApplyChanges(EncounterResult conclusion, EncounterState state)
+    public void ApplyChanges(ConversationResult conclusion, ConversationState state)
     {
         // Validate proposed changes against permission system
         foreach (ProposedChange change in conclusion.ProposedChanges)

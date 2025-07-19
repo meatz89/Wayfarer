@@ -6,7 +6,7 @@
     PlayerChoice,
     Reaction,
     MemoryUpdate,
-    PostEncounterEvolution,
+    PostConversationEvolution,
     LocationCreation,
     ActionGeneration,
     Conclusion

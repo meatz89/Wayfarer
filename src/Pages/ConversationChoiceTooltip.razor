@@ -1,0 +1,69 @@
+﻿@inherits ConversationChoiceTooltipBase
+
+@if (hoveredChoice != null)
+
+@namespace Wayfarer.Pages
+{
+    <div class="tooltip" style="top:@tooltipYpx; left:@tooltipXpx;">
+        <!-- Choice Header -->
+        <div class="tooltip-header">
+            <h4>@hoveredChoice.NarrativeText</h4>
+        </div>
+
+        <!-- Narrative Description -->
+        <div class="tooltip-section narrative-section">
+            Success: <div class="choice-narrative">@hoveredChoice.SuccessNarrative</div>
+            Failure: <div class="choice-narrative">@hoveredChoice.FailureNarrative</div>
+        </div>
+
+        <!-- Costs Section -->
+        <div class="tooltip-section costs-section">
+            <h5>Costs</h5>
+            <div class="tooltip-item">
+                <div class="resource-costs">
+                    @if (hoveredChoice.FocusCost > 0)
+                    {
+                        <div class="resource-cost focus-cost">
+                            <span class="resource-icon">⚡</span> @hoveredChoice.FocusCost Focus
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="resource-cost focus-cost">
+                            <span class="resource-icon">⚡</span> 0 Focus
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Effects Section -->
+        <div class="tooltip-section effects-section">
+            <h5>Template Info</h5>
+            <div class="tooltip-item">
+                @hoveredChoice.TemplateUsed
+            </div>
+            <div class="tooltip-item">
+                @hoveredChoice.TemplatePurpose
+            </div>
+        </div>
+
+        <!-- Skill Check Section -->
+        @if (hoveredChoice.SkillOption != null)
+        {
+            <div class="tooltip-section skill-section">
+                <h5>Skill Checks</h5>
+                <div class="tooltip-item">
+                    <div class="skill-details">
+                        <div class="skill-name">
+                            @hoveredChoice.SkillOption.SkillName Check (@hoveredChoice.SkillOption.Difficulty)
+                        </div>
+                        <div class="skill-difficulty">
+                            Difficulty: @hoveredChoice.SkillOption.Difficulty
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

@@ -3,6 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
+/// Core location actions that consume hours
+/// Each action is independent and has its own purpose
+/// </summary>
+public enum LocationAction
+{
+    // Basic Actions (1 hour each)
+    Converse,       // Talk with someone
+    Work,           // Earn coins through labor
+    Socialize,      // Build relationship with NPC
+    Rest,           // Recover stamina
+    Collect,        // Get physical letter from sender
+    Deliver,        // Complete letter delivery
+    Trade,          // Buy or sell items
+}
+
+/// <summary>
 /// Manages location-based actions that consume hours and other resources.
 /// Each action has a clear resource cost and benefit.
 /// </summary>
@@ -33,21 +49,6 @@ public class LocationActionManager
         _itemRepository = itemRepository;
     }
     
-    /// <summary>
-    /// Core location actions that consume hours
-    /// Each action is independent and has its own purpose
-    /// </summary>
-    public enum LocationAction
-    {
-        // Basic Actions (1 hour each)
-        Converse,       // Talk with someone
-        Work,           // Earn coins through labor
-        Socialize,      // Build relationship with NPC
-        Rest,           // Recover stamina
-        Collect,        // Get physical letter from sender
-        Deliver,        // Complete letter delivery
-        Trade,          // Buy or sell items
-    }
     
     /// <summary>
     /// Get available actions at current location
@@ -398,7 +399,7 @@ public class LocationActionManager
                 
                 // Add bread to inventory if space available
                 var breadItem = _itemRepository.GetItemById("bread");
-                if (breadItem != null && player.Inventory.CanAddItem(breadItem.Id, _itemRepository))
+                if (breadItem != null && player.Inventory.CanAddItem(breadItem, _itemRepository))
                 {
                     player.Inventory.AddItem(breadItem.Id);
                     _messageSystem.AddSystemMessage(
@@ -679,7 +680,7 @@ public class LocationActionManager
         // Dawn opportunities - baker example
         if (currentTime == TimeBlocks.Dawn && spot.SpotID.Contains("bakery"))
         {
-            var baker = npcsPresent.FirstOrDefault(n => n.Profession == Professions.Artisan);
+            var baker = npcsPresent.FirstOrDefault(n => n.Profession == Professions.Merchant && n.Name.ToLower().Contains("baker"));
             if (baker != null && player.Stamina >= 1)
             {
                 actions.Add(new ActionOption

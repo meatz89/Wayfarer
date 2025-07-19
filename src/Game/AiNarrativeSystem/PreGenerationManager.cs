@@ -3,9 +3,9 @@
     private Dictionary<string, Task<AIResponse>> _pendingGenerations;
     private Dictionary<string, AIResponse> _cachedResults;
     private CancellationTokenSource _cancellationTokenSource;
-    private ILogger<EncounterFactory> _logger;
+    private ILogger<ConversationFactory> _logger;
 
-    public PreGenerationManager(ILogger<EncounterFactory> logger = null)
+    public PreGenerationManager(ILogger<ConversationFactory> logger = null)
     {
         _pendingGenerations = new Dictionary<string, Task<AIResponse>>();
         _cachedResults = new Dictionary<string, AIResponse>();

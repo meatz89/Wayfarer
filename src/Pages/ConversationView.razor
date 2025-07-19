@@ -1,0 +1,54 @@
+﻿@inherits ConversationViewBase
+
+@using Microsoft.AspNetCore.Components.Web
+
+@namespace Wayfarer.Pages
+
+<div class="encounter-container">
+    <div class="encounter-content">
+        <div class="encounter-main">
+            <div class="encounter-stage">
+                <div class="stage-header">
+                    <div class="choice-set-name">Player Choice: @currentSnapshot.LastChoiceLabel (@(currentSnapshot.LastChoiceSuccess ? "Success" : "Failure"))</div>
+                </div>
+                <div class="stage-situation">@currentSnapshot.StreamingText</div>
+                
+            </div>
+
+            <div class="encounter-choices">
+                @if (currentSnapshot?.CanSelectChoice == true)
+                {
+                    @foreach (var choice in currentSnapshot.AvailableChoices)
+                    {
+                        <div class="choice-option"
+                             @onclick="(() => MakeChoice(choice.ChoiceID))"
+                             @onmouseover="(e => ShowTooltip(e, choice))"
+                             @onmouseout="HideTooltip">
+                            <div class="choice-index">@choice.ChoiceID</div>
+                            <div class="choice-name">@choice.NarrativeText</div>
+                        </div>
+                    }
+
+                    @if (showTooltip && hoveredChoice != null)
+                    {
+                        <ConversationChoiceTooltip hoveredChoice="hoveredChoice" tooltipX="tooltipX" tooltipY="tooltipY" />
+                    }
+                }
+            </div>
+            @if (currentSnapshot?.IsAwaitingAIResponse == true)
+            {
+                <div class="loading-indicator">
+                    Thinking...
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (currentSnapshot?.IsStreaming == true)
+    {
+        <div class="stream-progress">
+            <div class="progress-bar" style="width: @(currentSnapshot.StreamProgress * 100)%"></div>
+        </div>
+    }
+
+</div>

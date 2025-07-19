@@ -245,25 +245,15 @@ The game follows a **connection token economy** principle where relationships be
 
 ### Architectural Patterns
 
-#### Repository-Mediated Access (CRITICAL)
-**ALL game state access MUST go through entity repositories.**
+The game follows strict architectural patterns for maintainability and testability. 
 
-```csharp
-// ❌ WRONG: Direct access
-gameWorld.WorldState.Items.Add(item);
-
-// ✅ CORRECT: Repository-mediated
-itemRepository.AddItem(item);
-```
-
-#### UI Access Patterns
-- **For Actions (State Changes)**: UI → GameWorldManager → Specific Manager
-- **For Queries (Reading State)**: UI → Repository → GameWorld.WorldState
-
-#### Stateless Repositories
-Repositories MUST be completely stateless and only delegate to GameWorld.
-
-*See GAME-ARCHITECTURE.md for detailed enforcement rules and patterns.*
+**See GAME-ARCHITECTURE.md for:**
+- Repository-Mediated Access patterns
+- UI Access patterns (queries vs actions)
+- Stateless Repository requirements
+- Dependency injection patterns
+- Testing architecture
+- Complete technical implementation details
 
 ### Game Initialization Pipeline
 
@@ -282,59 +272,14 @@ JSON Files → GameWorldSerializer → GameWorldInitializer → GameWorld → Re
 
 ### Project Structure
 
-#### **Core Game Management**
-- `src/GameState/GameWorldManager.cs` - Central coordinator, UI gateway
-- `src/GameState/GameWorld.cs` - Single source of truth for game state
-- `src/Content/GameWorldInitializer.cs` - JSON content loading and game initialization
+The game follows a clean architecture with clear separation of concerns:
+- **GameState/** - Core game logic and managers
+- **Content/** - JSON loading and repositories
+- **Pages/** - Blazor UI components
+- **wwwroot/** - Static assets and CSS
 
-#### **Letter Queue System** (Replaces Contract System)
-- `src/GameState/LetterQueue.cs` - 8-slot priority queue with order enforcement
-- `src/GameState/Letter.cs` - Letter entity with deadline, sender, position
-- `src/GameState/LetterQueueManager.cs` - Queue manipulation and delivery logic
-- `src/Content/LetterRepository.cs` - Stateless letter data access
+For detailed project structure, see the solution explorer or project documentation.
 
-#### **Connection Token System** (Replaces Reputation/Favor)
-- `src/GameState/ConnectionToken.cs` - Token entity with type (Trust/Trade/Noble/Common/Shadow)
-- `src/GameState/ConnectionTokenManager.cs` - Token earning, spending, gravity calculation
-- `src/GameState/StandingObligation.cs` - Permanent queue behavior modifiers
-- `src/Content/TokenRepository.cs` - Stateless token data access
-
-#### **Repository Pattern**
-- `src/Content/LocationRepository.cs` - Stateless location data access
-- `src/Content/ActionRepository.cs` - Stateless action data access  
-- `src/Content/ItemRepository.cs` - Stateless item data access
-- `src/Content/NPCRepository.cs` - Stateless NPC data access
-
-#### **Business Logic**
-- `src/GameState/TravelManager.cs` - Travel logic serving queue delivery order
-- `src/GameState/MarketManager.cs` - Trading items for letter delivery
-- `src/GameState/QueueManipulationService.cs` - Token spending for queue actions
-- `src/GameState/RestManager.cs` - Rest and recovery logic
-- `src/GameState/DeadlineManager.cs` - Deadline tracking and expiration
-- `src/GameState/LetterCategoryService.cs` - Token threshold letter unlocks
-
-#### **Service Configuration**
-- `src/ServiceConfiguration.cs` - Dependency injection setup
-
-#### **UI Components**
-- `src/Pages/MainGameplayView.razor` - Main game screen coordinator
-- `src/Pages/LetterQueue.razor` - 8-slot queue display with priority order
-- `src/Pages/TokenDisplay.razor` - Connection token inventory and spending interface
-- `src/Pages/Market.razor` - Trading interface for items needed in letters
-- `src/Pages/TravelSelection.razor` - Route planning for queue delivery order
-- `src/Pages/LetterBoard.razor` - Morning letter selection and acceptance
-- `src/Pages/DeliveryInterface.razor` - Letter delivery and token earning
-- `src/Pages/QueueManipulation.razor` - Token spending for queue actions
-- `src/Pages/StandingObligations.razor` - Active permanent modifiers display
-- `src/Pages/RestUI.razor` - Rest and recovery interface
-
-### Testing Architecture
-
-- **Framework**: xUnit
-- **Test Isolation**: Each test class uses its own JSON content
-- **NEVER use production JSON in tests** - create test-specific data
-
-*See GAME-ARCHITECTURE.md for detailed testing patterns and requirements.*
 
 ### Code Quality
 
@@ -376,22 +321,6 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 
 *See GAME-ARCHITECTURE.md for detailed categorical system implementations.*
 
-### UI FEEDBACK AND MESSAGING
-**ALWAYS use MessageSystem for user feedback** - Never use Console.WriteLine or similar for user feedback.
-```csharp
-// ❌ WRONG: Console output for user feedback
-Console.WriteLine($"Delivered letter! Earned {payment} coins");
-
-// ✅ CORRECT: MessageSystem for user feedback
-MessageSystem.AddSystemMessage($"Delivered letter! Earned {payment} coins", SystemMessageTypes.Success);
-```
-
-The MessageSystem is properly displayed in the UI and provides consistent feedback across the game. Message types include:
-- `SystemMessageTypes.Success` - For positive outcomes (deliveries, rewards)
-- `SystemMessageTypes.Warning` - For cautions (low tokens, expiring letters)
-- `SystemMessageTypes.Error` - For failures (insufficient tokens, missed deadlines)
-- `SystemMessageTypes.Info` - For neutral information
-
 ### CODE WRITING PRINCIPLES
 
 **TRANSFORMATION APPROACH**:
@@ -407,70 +336,17 @@ The MessageSystem is properly displayed in the UI and provides consistent feedba
 - You must run all tests and execute the game and do quick smoke tests before every commit
 - **Never keep legacy code for compatibility**
 - **NEVER use suffixes like "New", "Revised", "V2", etc.** - Replace old implementations completely and use the correct final name immediately. Delete old code, don't leave it behind.
-- **CRITICAL: NEVER USE REFLECTION** - If you find ANY reflection usage in the codebase:
-  1. **IMMEDIATELY create highest priority TODO** to remove the reflection
-  2. **STOP all other work** - reflection makes code unmaintainable and breaks refactoring
-  3. **Fix it properly** - make fields public, add proper accessors, or redesign the architecture
-  4. **NO EXCEPTIONS** - There is never a valid reason to use reflection in production code
-- **CRITICAL: NO CIRCULAR DEPENDENCIES** - Circular dependencies violate clean architecture:
-  1. **FORBIDDEN**: Class A depends on B, and B depends on A (direct circular)
-  2. **FORBIDDEN**: A → B → C → A (transitive circular)
-  3. **FORBIDDEN**: Using setter methods like SetXxx() to work around circular dependencies
-  4. **REQUIRED**: Use proper architectural patterns (events, interfaces, mediator)
-  5. **REQUIRED**: Dependencies must form a directed acyclic graph (DAG)
-  6. **IF FOUND**: Stop all work and redesign the architecture immediately
-- **CRITICAL: LEGACY CODE ELIMINATION PRINCIPLE** - When files contain ONLY legacy functionality:
-  1. **DELETE THE ENTIRE FILE** - Do not comment out, do not exclude from compilation
-  2. **REMOVE COMPLETELY** - If a test file only tests removed systems, delete it entirely
-  3. **NO PARTIAL PRESERVATION** - Do not try to salvage parts of legacy-only files
-  4. **DOCUMENT THE PRINCIPLE** - Add removal principles to CLAUDE.md, not individual changes
-  5. **NO DELETION COMMENTS** - Do not leave comments about what was deleted, just remove it cleanly
-- **CRITICAL: IMMEDIATE LEGACY CODE ELIMINATION** - If you discover ANY legacy code, compilation errors, or deprecated patterns during development, you MUST immediately:
-  1. **CREATE HIGH-PRIORITY TODO ITEM** to fix the legacy code
-  2. **STOP current work** and fix the legacy code immediately
-  3. **NEVER ignore or postpone** legacy code fixes
-  4. **NEVER say "these are just dependency fixes"** - fix them now or create immediate todo items
-- **CRITICAL: ARCHITECTURAL BUG DISCOVERY** - If you discover architectural bugs (e.g., duplicate state storage, inconsistent data access patterns), you MUST:
-  1. **IMMEDIATELY create highest priority TODO** to fix the architectural issue
-  2. **STOP all other work** - architectural bugs corrupt the entire system
-  3. **NEVER work around architectural bugs** - fix them at the source
-  4. **Document the fix in GAME-ARCHITECTURE.md** for future reference
-- **CRITICAL: CONTENT/LOGIC SEPARATION** - NEVER hardcode content IDs (location names, item names, NPC names, etc.) into business logic:
-  1. **CONTENT ≠ GAME LOGIC** - Content IDs must never control program flow
-  2. **NO HARDCODED CONTENT IDS** - Never use specific location names, item names, etc. in switch statements or conditionals
-  3. **USE PROPERTIES/CATEGORIES** - Business logic should operate on entity properties (LocationType, ItemCategory, etc.), not specific IDs
-  4. **CONTENT IS DATA** - Content should be configurable data, not part of the code logic
-  5. **VIOLATION IS CRITICAL** - Any hardcoded content ID in business logic is a critical architectural violation
-- **CRITICAL: NEVER USE STRING-BASED CATEGORY MAPPING** - Categories must be properly defined in JSON and parsed into enums/classes:
-  1. **FORBIDDEN**: Mapping categories based on string matching in item IDs (e.g., `itemId.Contains("hammer")`)
-  2. **REQUIRED**: Categories must be explicit properties in JSON files
-  3. **REQUIRED**: Parsers must map JSON category properties to proper enum values
-  4. **NO EXCEPTIONS** - String-based inference of categories violates the categorical design principle
-- **CRITICAL: NEVER LEAVE DEPRECATED CODE** - Remove deprecated fields, properties, and methods immediately:
-  1. **FORBIDDEN**: Leaving deprecated fields/properties/methods with [Obsolete] attributes
-  2. **FORBIDDEN**: Keeping old implementations "for backward compatibility"
-  3. **REQUIRED**: Delete deprecated code immediately when refactoring
-  4. **REQUIRED**: Update all references to use new implementations
-  5. **NO EXCEPTIONS** - Deprecated code creates confusion and maintenance debt
-- **CRITICAL: PROPER DEPENDENCY INJECTION** - Always use proper DI patterns:
-  1. **FORBIDDEN**: Using `new` to instantiate services in ServiceConfiguration
-  2. **FORBIDDEN**: Calling `BuildServiceProvider()` to create intermediate containers
-  3. **FORBIDDEN**: Manual dependency resolution with `GetRequiredService` in configuration
-  4. **REQUIRED**: Register all services and let DI container resolve dependencies
-  5. **REQUIRED**: Use factory delegates when complex initialization is needed
-  6. **REQUIRED**: Services should declare dependencies in constructors, not resolve them
-  7. **NO EXCEPTIONS** - Proper DI ensures testability and maintainability
-- **NAMESPACE POLICY** - Special exception for Blazor components:
-  1. **NO NAMESPACES in regular C# files** - Makes code easier to work with, no using statements needed
-  2. **EXCEPTION: Blazor/Razor components MAY use namespaces** - Required for Blazor's component discovery
-  3. **Blazor namespace pattern**: Use `Wayfarer.Pages` for pages, `Wayfarer.Pages.Components` for components
-  4. **Update _Imports.razor** - Include necessary namespace imports for Blazor components only
-- **CRITICAL: NO FALLBACKS FOR OLD DATA** - Fix data files instead of adding compatibility code:
-  1. **FORBIDDEN**: Adding fallback logic to handle old JSON/data formats
-  2. **FORBIDDEN**: Writing code like "fallback to old property if new one missing"
-  3. **REQUIRED**: Update all JSON/data files to use new format immediately
-  4. **REQUIRED**: Remove old properties from data files completely
-  5. **NO EXCEPTIONS** - Fallback code is technical debt that will never be cleaned up
+- **NEVER use Compile Remove in .csproj files** - This hides compilation errors and mistakes. Fix the code, rename files, or delete them entirely. Using Remove patterns in project files masks problems instead of solving them.
+- **ALWAYS read files FULLY before making changes** - Never make assumptions about file contents. Read the entire file to understand context and avoid mistakes.
+- **RENAME instead of DELETE/RECREATE** - When refactoring systems (e.g., Encounter → Conversation), rename files and classes to preserve git history and ensure complete transformation.
+- **COMPLETE refactorings IMMEDIATELY** - Never leave systems half-renamed. If you start renaming Encounter to Conversation, finish ALL references before moving to other tasks.
+**See GAME-ARCHITECTURE.md for critical technical principles:**
+- NO CIRCULAR DEPENDENCIES
+- NEVER USE REFLECTION  
+- LEGACY CODE ELIMINATION
+- CONTENT/LOGIC SEPARATION
+- PROPER DEPENDENCY INJECTION
+- And all other architectural patterns and code quality requirements
 
 ### NARRATIVE COMMUNICATION PRINCIPLE (Critical)
 **All game mechanics must communicate to the player through visible UI and narrative context. Silent background mechanics violate player agency.**
@@ -497,50 +373,11 @@ The MessageSystem is properly displayed in the UI and provides consistent feedba
 
 **Example**: Instead of showing "Buy herbs at town_square (4 coins) → Sell at dusty_flagon (5 coins) = 1 profit", let players discover this by visiting locations, checking prices, and building their own understanding of the market.
 
-### UI DESIGN PRINCIPLES (Critical for Game vs App UX)
-**UI should support discovery and decision-making, not replace player thinking or overwhelm with information.**
-
-#### **CONTEXTUAL INFORMATION PRINCIPLES**
-- ✅ **SHOW RELEVANT, NOT COMPREHENSIVE** - Display only information immediately relevant to player's current context
-- ✅ **PROGRESSIVE DISCLOSURE** - Start with essential info, allow drilling down for details when needed
-- ❌ **NO INFORMATION OVERLOAD** - Don't show all possible information at once
-- ❌ **NO STRATEGIC CATEGORIZATION** - Don't artificially separate information into "strategic" vs "non-strategic"
-
-#### **DECISION-FOCUSED DESIGN**
-- ✅ **DECISION SUPPORT** - Present information that helps players make immediate decisions
-- ✅ **CONTEXTUAL RELEVANCE** - Show information based on what the player is currently doing
-- ❌ **NO OPTIMIZATION HINTS** - Don't tell players what the "best" choice is
-- ❌ **NO AUTOMATED ANALYSIS** - Don't provide "Investment Opportunities" or "Trade Indicators"
-
-#### **SPATIAL EFFICIENCY**
-- ✅ **EFFICIENT SPACE USE** - Every pixel should serve a purpose
-- ✅ **VISUAL HIERARCHY** - Use icons, colors, and layout to convey information quickly
-- ❌ **NO VERBOSE TEXT** - Don't use 15+ lines of text when 3-4 lines suffice
-- ❌ **NO REDUNDANT SECTIONS** - Don't repeat the same information in multiple places
-
-#### **FORBIDDEN UI PATTERNS**
-- ❌ **"Strategic Market Analysis" sections** - Violates NO AUTOMATED CONVENIENCES principle
-- ❌ **"Equipment Investment Opportunities"** - Tells players what to buy, removing discovery
-- ❌ **"Trade Opportunity Indicators"** - Automated system solving optimization puzzles
-- ❌ **"Profitable Items" lists** - Removes the challenge of finding profit opportunities
-- ❌ **"Best Route" recommendations** - Eliminates route planning gameplay
-- ❌ **Verbose NPC schedules** - Information overload that doesn't help decisions
-
-#### **REQUIRED UI PATTERNS**
-- ✅ **Basic availability indicators** - Simple 🟢/🔴 status without detailed explanations
-- ✅ **Item categories for filtering** - Help players find what they're looking for
-- ✅ **Current status information** - What's happening right now
-- ✅ **Essential action information** - What the player can do immediately
-- ✅ **Click-to-expand details** - Full information available when specifically requested
-
-#### **CSS ARCHITECTURE PRINCIPLES**
-See `UI-DESIGN-IMPLEMENTATION-PRINCIPLES.md` for complete CSS architecture and validation requirements.
-
-### FRONTEND PERFORMANCE PRINCIPLES
-- **NEVER use caching in frontend components** - Components should be stateless and reactive
-- **Reduce queries by optimizing when objects actually change** - Focus on state change detection, not caching
-- **Log at state changes, not at queries** - Debug messages should track mutations, not reads
-- **Use proper reactive patterns** - Let Blazor's change detection handle rendering optimization
+**See UI-DESIGN-IMPLEMENTATION-PRINCIPLES.md for:**
+- UI Design Principles (Game vs App UX)
+- CSS Architecture Principles
+- Frontend Performance Principles
+- Complete UI implementation patterns
 
 
 *See GAME-ARCHITECTURE.md for detailed initialization flow and system dependencies.*
