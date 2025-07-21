@@ -16,6 +16,13 @@ public enum LocationAction
     Collect,        // Get physical letter from sender
     Deliver,        // Complete letter delivery
     Trade,          // Buy or sell items
+    
+    // Debt Actions (1 hour each)
+    RequestPatronFunds,     // Request money from patron (-1 token)
+    RequestPatronEquipment, // Request equipment from patron (-2 tokens)
+    BorrowMoney,           // Borrow from NPC (-2 tokens)
+    PleedForAccess,        // Maintain route access (-1 token)
+    AcceptIllegalWork,     // Accept shadow work (-1 token)
 }
 
 /// <summary>
@@ -179,6 +186,12 @@ public class LocationActionManager
         // Location-specific actions based on what's naturally available
         AddLocationSpecificActions(location, spot, actions, npcsHere);
         
+        // Patron request actions - available when desperate
+        AddPatronRequestActions(actions);
+        
+        // Emergency assistance actions - context sensitive
+        AddEmergencyActions(actions, npcsHere);
+        
         return actions;
     }
     
@@ -245,6 +258,21 @@ public class LocationActionManager
                 
             case LocationAction.Trade:
                 return ExecuteTrade(option.NPCId);
+                
+            case LocationAction.RequestPatronFunds:
+                return ExecuteRequestPatronFunds(option);
+                
+            case LocationAction.RequestPatronEquipment:
+                return ExecuteRequestPatronEquipment(option);
+                
+            case LocationAction.BorrowMoney:
+                return ExecuteBorrowMoney(option);
+                
+            case LocationAction.PleedForAccess:
+                return ExecutePleedForAccess(option);
+                
+            case LocationAction.AcceptIllegalWork:
+                return ExecuteAcceptIllegalWork(option);
                 
             default:
                 return false;
@@ -696,6 +724,255 @@ public class LocationActionManager
                 });
             }
         }
+    }
+    
+    private void AddPatronRequestActions(List<ActionOption> actions)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        // Can write to patron at any desk/room location
+        if (player.CurrentLocationSpot?.SpotID.Contains("room") == true || 
+            player.CurrentLocationSpot?.SpotID.Contains("desk") == true ||
+            player.CurrentLocationSpot?.SpotID.Contains("study") == true)
+        {
+            if (_timeManager.HoursRemaining >= 1)
+            {
+                var patronTokens = _tokenManager.GetTokensWithNPC("patron")[ConnectionType.Noble];
+                
+                // Request funds action
+                actions.Add(new ActionOption
+                {
+                    Action = LocationAction.RequestPatronFunds,
+                    Name = "Write to patron requesting funds",
+                    Description = $"Receive 30 coins, -1 Patron leverage (current: {patronTokens})",
+                    HourCost = 1,
+                    StaminaCost = 0,
+                    CoinCost = 0,
+                    Effect = "30 coins, -1 Noble token with patron"
+                });
+                
+                // Request equipment if low on stamina
+                if (player.Stamina <= 4)
+                {
+                    actions.Add(new ActionOption
+                    {
+                        Action = LocationAction.RequestPatronEquipment,
+                        Name = "Request equipment from patron",
+                        Description = $"Receive climbing gear, -2 Patron leverage (current: {patronTokens})",
+                        HourCost = 1,
+                        StaminaCost = 0,
+                        CoinCost = 0,
+                        Effect = "Climbing gear, -2 Noble tokens with patron"
+                    });
+                }
+            }
+        }
+    }
+    
+    private void AddEmergencyActions(List<ActionOption> actions, List<NPC> npcsPresent)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        if (_timeManager.HoursRemaining < 1) return;
+        
+        foreach (var npc in npcsPresent)
+        {
+            // Borrow money when broke
+            if (player.Coins < 10 && npc.Profession == Professions.Merchant)
+            {
+                var tradeTokens = _tokenManager.GetTokensWithNPC(npc.ID)[ConnectionType.Trade];
+                actions.Add(new ActionOption
+                {
+                    Action = LocationAction.BorrowMoney,
+                    Name = $"Borrow money from {npc.Name}",
+                    Description = $"20 coins now, -2 Trade leverage (current: {tradeTokens})",
+                    HourCost = 1,
+                    StaminaCost = 0,
+                    CoinCost = 0,
+                    NPCId = npc.ID,
+                    Effect = "20 coins, -2 Trade tokens"
+                });
+            }
+            
+            // Accept illegal work from shadow NPCs
+            if (npc.LetterTokenTypes.Contains(ConnectionType.Shadow) && player.Coins < 15)
+            {
+                var shadowTokens = _tokenManager.GetTokensWithNPC(npc.ID)[ConnectionType.Shadow];
+                actions.Add(new ActionOption
+                {
+                    Action = LocationAction.AcceptIllegalWork,
+                    Name = $"Accept questionable job from {npc.Name}",
+                    Description = $"30 coins, but they'll have leverage (current: {shadowTokens})",
+                    HourCost = 1,
+                    StaminaCost = 1,
+                    CoinCost = 0,
+                    NPCId = npc.ID,
+                    Effect = "30 coins, -1 Shadow token (they have dirt on you)"
+                });
+            }
+        }
+    }
+    
+    private bool ExecuteRequestPatronFunds(ActionOption option)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        _messageSystem.AddSystemMessage(
+            "📜 You pen a carefully worded letter to your patron...",
+            SystemMessageTypes.Info
+        );
+        
+        _messageSystem.AddSystemMessage(
+            "  • \"Circumstances require additional resources for your important work...\"",
+            SystemMessageTypes.Info
+        );
+        
+        // Reduce tokens with patron (can go negative)
+        _tokenManager.RemoveTokensFromNPC(ConnectionType.Noble, 1, "patron");
+        
+        // Grant funds
+        player.ModifyCoins(30);
+        
+        _messageSystem.AddSystemMessage(
+            "💰 Your patron's courier arrives with a small purse. No questions asked... this time.",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            "  • Received 30 coins",
+            SystemMessageTypes.Success
+        );
+        
+        var patronTokens = _tokenManager.GetTokensWithNPC("patron")[ConnectionType.Noble];
+        if (patronTokens < 0)
+        {
+            _messageSystem.AddSystemMessage(
+                $"⚠️ You now owe your patron {Math.Abs(patronTokens)} favors. Their letters will demand priority.",
+                SystemMessageTypes.Warning
+            );
+        }
+        
+        return true;
+    }
+    
+    private bool ExecuteRequestPatronEquipment(ActionOption option)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        _messageSystem.AddSystemMessage(
+            "📜 You write urgently to your patron about equipment needs...",
+            SystemMessageTypes.Info
+        );
+        
+        // Reduce tokens with patron
+        _tokenManager.RemoveTokensFromNPC(ConnectionType.Noble, 2, "patron");
+        
+        // Grant equipment (simplified - just add to inventory)
+        // In full implementation, would use ItemRepository
+        _messageSystem.AddSystemMessage(
+            "📦 A package arrives from your patron. Quality climbing gear, no note.",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            "  • Received climbing gear",
+            SystemMessageTypes.Success
+        );
+        
+        var patronTokens = _tokenManager.GetTokensWithNPC("patron")[ConnectionType.Noble];
+        if (patronTokens < 0)
+        {
+            _messageSystem.AddSystemMessage(
+                $"⚠️ Your debt deepens. You owe your patron {Math.Abs(patronTokens)} favors.",
+                SystemMessageTypes.Danger
+            );
+        }
+        
+        return true;
+    }
+    
+    private bool ExecuteBorrowMoney(ActionOption option)
+    {
+        var npc = _npcRepository.GetNPCById(option.NPCId);
+        if (npc == null) return false;
+        
+        _messageSystem.AddSystemMessage(
+            $"💸 You swallow your pride and ask {npc.Name} for a loan...",
+            SystemMessageTypes.Info
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • \"{npc.Name} sighs. 'I'll help, but this isn't charity.'\"",
+            SystemMessageTypes.Warning
+        );
+        
+        // Create debt
+        _tokenManager.RemoveTokensFromNPC(ConnectionType.Trade, 2, option.NPCId);
+        
+        // Grant money
+        var player = _gameWorld.GetPlayer();
+        player.ModifyCoins(20);
+        
+        _messageSystem.AddSystemMessage(
+            $"💰 {npc.Name} counts out 20 coins. 'I expect repayment... with interest.'",
+            SystemMessageTypes.Success
+        );
+        
+        var tradeTokens = _tokenManager.GetTokensWithNPC(option.NPCId)[ConnectionType.Trade];
+        if (tradeTokens < 0)
+        {
+            _messageSystem.AddSystemMessage(
+                $"⚠️ You now owe {npc.Name}. Their letters will take priority in your queue.",
+                SystemMessageTypes.Warning
+            );
+        }
+        
+        return true;
+    }
+    
+    private bool ExecutePleedForAccess(ActionOption option)
+    {
+        // This would be implemented when route system is ready
+        _messageSystem.AddSystemMessage(
+            "Route access maintenance not yet implemented",
+            SystemMessageTypes.Info
+        );
+        return true;
+    }
+    
+    private bool ExecuteAcceptIllegalWork(ActionOption option)
+    {
+        var npc = _npcRepository.GetNPCById(option.NPCId);
+        if (npc == null) return false;
+        
+        _messageSystem.AddSystemMessage(
+            $"🌑 {npc.Name} leans in close. 'I have a job that pays well... if you don't ask questions.'",
+            SystemMessageTypes.Warning
+        );
+        
+        _messageSystem.AddSystemMessage(
+            "  • You nod silently. Some things are better left unspoken.",
+            SystemMessageTypes.Info
+        );
+        
+        // Create leverage
+        _tokenManager.RemoveTokensFromNPC(ConnectionType.Shadow, 1, option.NPCId);
+        
+        // Grant payment
+        var player = _gameWorld.GetPlayer();
+        player.ModifyCoins(30);
+        
+        _messageSystem.AddSystemMessage(
+            $"💰 {npc.Name} slides a heavy purse across the table. 'Remember, you never saw me.'",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"⚠️ {npc.Name} now has dirt on you. Refusing their future requests may have consequences.",
+            SystemMessageTypes.Danger
+        );
+        
+        return true;
     }
 }
 

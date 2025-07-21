@@ -1,13 +1,49 @@
 # SESSION HANDOFF
 
-## Session Date: 2025-07-19
+## Session Date: 2025-07-21
 
-## CURRENT STATUS: Fixed application hang! Implemented UI State Management architecture principle.
-## NEXT: User testing of application, then fix failing unit tests
+## CURRENT STATUS: Build errors fixed! Leverage System fully implemented! Location actions UI added and accessible.
+## NEXT: Fix failing unit tests (55 errors), then test the gameplay
 
 ## LATEST SESSION ACCOMPLISHMENTS
 
-### FIXED CRITICAL APPLICATION HANG! 🚨
+### LEVERAGE SYSTEM FULLY IMPLEMENTED! 🎯
+
+1. **Created Comprehensive Documentation** ✅
+   - LEVERAGE-SYSTEM-IMPLEMENTATION.md - Complete technical specification
+   - USER-STORIES.md - 10 epics with detailed acceptance criteria
+   - Updated CLAUDE.md with leverage principles and references
+   - Updated GAME-ARCHITECTURE.md with leverage calculation details
+   - Updated LOGICAL-SYSTEM-INTERACTIONS.md with debt system
+
+2. **Core Leverage Mechanics Implemented** ✅
+   - CalculateLeveragePosition method in LetterQueueManager
+   - Base positions by social status: Patron (1), Noble (3), Trade/Shadow (5), Common/Trust (7)
+   - Token debt modifies positions: -1 position per negative token
+   - High respect (4+ tokens) adds +1 position
+   - Queue displacement when high-leverage letters force entry
+   - Letters pushed past position 8 are automatically discarded WITH token penalty
+
+3. **Token Debt Actions Implemented** ✅
+   - Request patron funds: -1 Patron token, gain 30 coins
+   - Request patron equipment: -2 Patron tokens, gain climbing gear
+   - Borrow from NPC: -2 tokens, gain 20 coins
+   - Accept illegal work: -1 Shadow token (they have dirt on you)
+   - All actions properly integrated in LocationActionManager
+
+4. **UI Enhancements** ✅
+   - Added leverage indicators to LetterQueueDisplay (🔴 for debt levels)
+   - Added debt warnings to NPCRelationshipCard
+   - Added GetLeveragePosition helper to show exact queue positions
+   - Fixed forced discard to include token penalty (user correction applied)
+
+5. **Location Actions UI Added** ✅
+   - LocationActions component now embedded in LocationScreen
+   - Players can now access all implemented actions from the UI
+   - Shows available actions with resource costs and effects
+   - Proper hour/stamina/coin cost display
+
+### Previous Session: FIXED CRITICAL APPLICATION HANG! 🚨
 
 1. **Identified Architecture Violation** ✅
    - SystemMessageDisplay component had its own Timer polling every 500ms
@@ -77,18 +113,27 @@ SystemMessages = GameWorld.SystemMessages;
 
 ## NEXT PRIORITIES
 
-### 1. Fix Failing Unit Tests (HIGH)
+### 1. Implement Leverage System (CRITICAL)
+- CalculateLeveragePosition method in LetterQueueManager
+- Update AddLetterWithObligationEffects to handle displacement
+- Add patron request actions (request funds, equipment)
+- Implement emergency assistance actions (borrow money, plead for access)
+- Add UI indicators for leverage (debt markers, position explanations)
+
+### 2. Fix Failing Unit Tests (HIGH)
 - 55 test errors need fixing
 - Most relate to removed legacy systems (ActionSystem, etc.)
 - Some need updating for new constructors (LetterCategoryService)
+- Add tests for leverage calculation and displacement
 
-### 2. Test Core Gameplay Loop (CRITICAL)
+### 3. Test Core Gameplay Loop (CRITICAL)
 - Accept letters → Queue management → Travel → Deliver
 - Verify token accumulation and spending
 - Test letter category unlocks (3/5/8 token thresholds)
 - Confirm patron letters jump queue properly
+- Test leverage-based queue entry and displacement
 
-### 3. Resource Competition Implementation (NEXT PHASE)
+### 4. Resource Competition Implementation (NEXT PHASE)
 - Three-State Letter System (Offered → Accepted → Collected)
 - Hour-Based Time System (12-16 hours per day)
 - Fixed Stamina Costs (Travel: 2, Work: 2, Deliver: 1, Rest: +3)
@@ -96,19 +141,38 @@ SystemMessages = GameWorld.SystemMessages;
 
 ## BUGS/ISSUES TO TRACK
 
-1. **Unit Tests Failing**
+1. **Build Errors Fixed** ✅
+   - Created nuget.config to fix package resolution
+   - Fixed syntax error in LetterQueueDisplay (pattern matching)
+   - Fixed ConsecutiveDeliveries reference (used DeliveredCount instead)
+   - Removed compound rule that violated design principles
+
+2. **Unit Tests Still Failing**
+   - 55 test errors need fixing
    - MessageSystem.GetAndClearMessages() removed (tests need updating)
    - ActionSystem references in tests (need removal)
    - LetterQueueManager constructor changed (needs LetterCategoryService)
 
-2. **Minor Content References**
+3. **Minor Content References**
    - Some items referenced in token favors might not exist
    - Some routes referenced in discoveries might be missing
    - These don't break the game but should be cleaned up
 
 ## USER FEEDBACK HIGHLIGHTS
 
-Recent corrections:
+Recent design refinement:
+1. **Leverage Through Token Debt** - "it's not just token debt. there is also the base position"
+   - Base positions matter: Social status determines starting leverage
+   - Token debt modifies these positions to create power inversions
+   - Common folk with leverage can have noble-level priority
+
+2. **Comprehensive User Stories Provided** - Full game design in 10 epics
+   - Core letter queue system with 8-slot priority
+   - Leverage system with token debt mechanics
+   - Physical letter states (offered/queued/collected)
+   - Standing obligations as permanent modifiers
+
+Previous corrections:
 1. "WTF DID YOU BREAK NOW?" - Led to discovering SystemMessageDisplay timer violation
 2. "WHY THE FUCK WOULD YOU DO THAT?" - Emphasized architecture principles
 3. "NO FUCK NO: MESSAGESYSTEM NEED NOT BE PART OF GAMEWORLD" - Clarified managers hold no state
@@ -120,13 +184,41 @@ Design philosophy emphasized:
 - Token spending represents "relationship death"
 - Standing obligations as permanent character modifications
 - Independent systems compete for shared resources (no cross-system rules)
+- Leverage emerges from token imbalances, not a separate system
 
 ## FILES MODIFIED THIS SESSION
 
-1. **src/GameState/GameWorld.cs** - Added SystemMessages list
-2. **src/Game/MainSystem/MessageSystem.cs** - Modified to write to GameWorld
-3. **src/Pages/Components/SystemMessageDisplay.razor** - Removed timer, now receives Parameter
-4. **src/Pages/MainGameplayView.razor.cs** - Added SystemMessages property and polling
-5. **src/Pages/MainGameplayView.razor** - Pass Messages to SystemMessageDisplay
-6. **CLAUDE.md** - Added UI STATE MANAGEMENT PRINCIPLE and file reading requirement
-7. **SESSION-HANDOFF.md** - Culled and updated with current status
+1. **LEVERAGE-SYSTEM-IMPLEMENTATION.md** - Created comprehensive technical specification
+2. **USER-STORIES.md** - Created with 10 epics of user stories
+3. **CLAUDE.md** - Updated with leverage system principles and references
+4. **GAME-ARCHITECTURE.md** - Added leverage calculation and constants
+5. **LOGICAL-SYSTEM-INTERACTIONS.md** - Added leverage through token debt section
+6. **LetterQueueManager.cs** - Implemented CalculateLeveragePosition and queue displacement
+7. **StandingObligation.cs** - Added leverage modifier effects (ShadowEqualsNoble, DebtSpiral, etc.)
+8. **StandingObligationManager.cs** - Added ApplyLeverageModifiers method
+9. **LocationActionManager.cs** - Implemented debt actions (patron requests, borrowing, illegal work)
+10. **LetterQueueDisplay.razor** - Added leverage indicators (🔴 debt markers)
+11. **NPCRelationshipCard.razor** - Added debt warnings and GetLeveragePosition helper
+12. **MainGameplayView.razor** - Embedded LocationActions component
+13. **LocationActions.razor** - Updated to work as embedded component
+14. **SESSION-HANDOFF.md** - Updated with implementation status
+
+## KEY ARCHITECTURAL INSIGHTS
+
+### Leverage System Architecture
+- **No new core systems needed** - Leverage emerges from existing token tracking
+- **ConnectionTokenManager already supports negative values** - Debt ready to use
+- **Queue displacement logic** - High-leverage letters force others down
+- **Forced discards** - Letters pushed past position 8 are lost (no token penalty)
+
+### Implementation Path
+1. **CalculateLeveragePosition()** - Core method to determine entry position
+2. **DisplaceAndInsertLetter()** - Handles queue reorganization
+3. **Debt creation actions** - Patron requests, borrowing, emergency help
+4. **UI indicators** - Show debt levels and leverage effects visually
+
+### Testing Strategy
+- Unit tests for leverage calculation with various token balances
+- Integration tests for queue displacement cascades
+- UI tests for leverage indicators and feedback
+- Save game compatibility (backward compatible design)

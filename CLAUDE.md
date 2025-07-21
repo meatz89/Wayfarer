@@ -53,7 +53,7 @@ The game's vision is best captured in INTENDED-GAMEPLAY.md ("Dude, Let Me Tell Y
 **CRITICAL: Compound Actions Through Natural Emergence**
 - **NO SPECIAL COMPOUND RULES** - Actions remain atomic and independent
 - **Natural Overlaps** - Same location/time/NPC enables multiple actions
-- **Discovery Through Play** - Players find efficiencies through desperation
+- **Discovery Through Play** - Players find efficiencies through exploration and experimentation
 - **Context Creates Opportunity** - Being at merchant when delivering allows trading
 - **Never Code Combinations** - Just let independent systems share resources
 
@@ -94,19 +94,21 @@ The game centers around a **priority queue of 8 letters** that represents your s
 1. **Queue Order is Sacred** - You must deliver letters in order (1→2→3...) or burn relationships
 2. **Deadlines Create Pressure** - Each letter has a deadline creating impossible optimization puzzles
 3. **Token Thresholds** - More tokens with NPCs unlock better letter categories
-4. **Every Acceptance Matters** - New letters enter at slot 8, affecting everything above them
+4. **Every Acceptance Matters** - New letters enter based on sender leverage
 5. **Standing Obligations Reshape Play** - Permanent modifiers that alter queue behavior forever
 
 **CRITICAL: The Queue IS the Story** - The queue isn't just a task list, it's a visual representation of all your promises and commitments. Every position matters, every deadline conflicts, every choice cascades into new problems.
 
-**CRITICAL: Letter Queue Filling Principle** - The queue must fill sequentially from position 1:
-- **New letters enter at the LOWEST available position** - If positions 1-3 are filled, new letter goes to position 4
-- **Position 8 is the LAST resort** - A letter only enters at position 8 when positions 1-7 are ALL occupied
-- **Compact queue always** - When a letter is delivered/removed, all letters below shift up to fill the gap
-- **NO GAPS ALLOWED** - The queue should never have empty slots between letters (e.g., letters at 1,2,4 with 3 empty)
-- **Patron letters are EXCEPTIONS** - They can jump to positions 1-3, pushing other letters down
+**CRITICAL: Leverage-Based Queue Entry** - Letters enter based on sender's social leverage:
+- **Base Positions**: Patron (1), Noble (3), Trade/Shadow (5), Common/Trust (7)
+- **Token Debt Modifies Position**: Negative tokens = higher leverage = earlier position
+- **Queue Displacement**: High-leverage letters force entry, pushing others down
+- **Overflow Discard**: Letters pushed past position 8 are discarded automatically
+- **Leverage Inversion**: Debt can make commoners have noble-level priority
 
-This creates a visual metaphor: your obligations pile up from top to bottom, with new commitments only reaching the bottom when you're truly overwhelmed.
+**See `LEVERAGE-SYSTEM-IMPLEMENTATION.md` for complete technical details and `USER-STORIES.md` for acceptance criteria.**
+
+This creates a visual metaphor: the queue shows who has power over your time through the physics of social obligation.
 
 ### Connection Token Economy
 
@@ -122,6 +124,16 @@ Tokens serve multiple purposes:
 - **Currency**: Spend on queue manipulation, route unlocking, special actions
 - **Letter Categories**: Token thresholds unlock better paying letter types
 - **Relationships**: Per-NPC tracking shows individual bonds
+- **Leverage Through Debt**: Negative tokens create power dynamics in the queue
+
+**CRITICAL: Token Debt Creates Leverage** - Going into token debt fundamentally changes power dynamics:
+- **Positive Tokens (1-3)**: Normal relationship, standard queue positions
+- **High Tokens (4+)**: Mutual respect, letters enter 1 position later
+- **Zero Tokens**: Neutral relationship, no modifications
+- **Negative Tokens**: Each -1 token moves letters 1 position earlier (more leverage)
+- **Deep Debt (-3+)**: Extreme leverage, can push letters to top positions
+
+Example: A merchant you owe -2 Trade tokens has their letters enter at position 3 instead of 5, reflecting how debt gives them power over your priorities.
 
 **CRITICAL: Contextual Token Spending Principle** - ALL token spending must be contextually tied to specific NPCs:
 - **Letter Queue Manipulation**: Spend specific token types from the letter SENDER's relationship
@@ -313,7 +325,8 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 3. **Deadlines Force Impossible Choices**: Mathematical impossibility of satisfying all deadlines creates strategic depth.
 4. **Thresholds Reward Specialization**: Token accumulation unlocks better letters, encouraging relationship focus.
 5. **Standing Obligations Reshape Play**: Permanent modifiers create unique playthroughs based on choices.
-6. **All Mechanics Visible**: Queue position, deadlines, token costs, and gravity effects must be clear in UI.
+6. **Debt Creates Leverage**: Token debt inverts power dynamics - those you owe control your priorities.
+7. **All Mechanics Visible**: Queue position, deadlines, token costs, and leverage effects must be clear in UI.
 
 ### Categorical Interconnection Requirements
 
@@ -494,9 +507,9 @@ Always distinguish between three layers:
 4. **UI Revolution**: Replace location-based screens with queue-centric interface
 5. **Save Migration**: Implement versioned saves with safe rollback options
 
-**🎯 IMMEDIATE NEXT STEPS**: Implement **Letter Category Unlocks** (see details in `IMPLEMENTATION-PLAN.md`)
-**Current Status**: Minimal POC achieved, relationship transparency complete
-**Critical Path**: Letter Categories → Multi-type NPCs → Token Favors → Network Referrals → Full Vision
+**🎯 IMMEDIATE NEXT STEPS**: Implement **Leverage System** (see `LEVERAGE-SYSTEM-IMPLEMENTATION.md`)
+**Current Status**: Token debt supported, need leverage-based queue positioning
+**Critical Path**: Leverage System → Patron Requests → Emergency Actions → Full Vision
 
 ### Important Documentation
 
@@ -506,6 +519,8 @@ Always distinguish between three layers:
 - 🔄 **`LETTER-QUEUE-INTEGRATION-PLAN.md`** - How existing systems transform to serve the queue (includes roadmap and todo list)
 
 **CORE DESIGN DOCUMENTS**:
+- ⚡ **`LEVERAGE-SYSTEM-IMPLEMENTATION.md`** - Technical guide for leverage through token debt
+- 📋 **`USER-STORIES.md`** - Complete acceptance criteria for all game features
 - `IMPLEMENTATION-PLAN.md` - Complete system architecture, roadmap, and core design philosophy
 - `INTENDED-GAMEPLAY.md` - The letter queue player experience and Kvothe moments
 - `LOGICAL-SYSTEM-INTERACTIONS.md` - Queue mechanics and token economy rules

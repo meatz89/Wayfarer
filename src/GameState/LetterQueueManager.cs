@@ -61,7 +61,7 @@ public class LetterQueueManager
         return 0; // Queue full
     }
     
-    // Add letter with obligation-aware positioning
+    // Add letter with leverage-aware positioning
     public int AddLetterWithObligationEffects(Letter letter)
     {
         if (letter == null) return 0;
@@ -72,82 +72,280 @@ public class LetterQueueManager
             return AddPatronLetter(letter);
         }
         
-        var queue = _gameWorld.GetPlayer().LetterQueue;
+        // Calculate leverage position
+        int targetPosition = CalculateLeveragePosition(letter);
         
-        // Find first empty slot (letters fill from position 1)
-        int firstEmpty = -1;
-        for (int i = 0; i < 8; i++)
+        return AddLetterWithLeverage(letter, targetPosition);
+    }
+    
+    // Calculate leverage-based entry position for a letter
+    private int CalculateLeveragePosition(Letter letter)
+    {
+        // Get base position from social status
+        int basePosition = GetBasePositionForTokenType(letter.TokenType);
+        
+        // Get token balance with sender
+        var senderId = GetNPCIdByName(letter.SenderName);
+        if (string.IsNullOrEmpty(senderId))
         {
-            if (queue[i] == null)
-            {
-                firstEmpty = i;
-                break;
-            }
+            return basePosition; // Default if NPC not found
         }
         
-        if (firstEmpty == -1)
+        var npcTokens = _connectionTokenManager.GetTokensWithNPC(senderId);
+        var tokenBalance = npcTokens[letter.TokenType];
+        
+        // Apply token-based leverage
+        int leveragePosition = basePosition;
+        
+        if (tokenBalance < 0)
+        {
+            // Debt creates leverage - each negative token moves position up
+            leveragePosition += tokenBalance; // Subtracts since negative
+        }
+        else if (tokenBalance >= 4)
+        {
+            // High positive relationship reduces leverage
+            leveragePosition += 1;
+        }
+        
+        // Apply pattern modifiers
+        leveragePosition = ApplyPatternModifiers(leveragePosition, senderId, tokenBalance);
+        
+        // Apply obligation modifiers
+        leveragePosition = _obligationManager.ApplyLeverageModifiers(letter, leveragePosition);
+        
+        // Clamp to valid queue range
+        return Math.Max(1, Math.Min(8, leveragePosition));
+    }
+    
+    // Get base position for token type
+    private int GetBasePositionForTokenType(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Noble => 3,    // Noble base position
+            ConnectionType.Trade => 5,    // Trade base position  
+            ConnectionType.Shadow => 5,   // Shadow base position
+            ConnectionType.Common => 7,   // Common base position
+            ConnectionType.Trust => 7,    // Trust base position
+            _ => 7                        // Default to lowest priority
+        };
+    }
+    
+    // Apply relationship pattern modifiers
+    private int ApplyPatternModifiers(int currentPosition, string npcId, int tokenBalance)
+    {
+        var player = _gameWorld.GetPlayer();
+        var history = player.NPCLetterHistory.GetValueOrDefault(npcId);
+        if (history == null) return currentPosition;
+        
+        // Repeated skipping creates leverage even without debt
+        if (history.SkippedCount >= 2 && tokenBalance >= 0)
+        {
+            currentPosition -= 1; // More leverage due to pattern
+        }
+        
+        return currentPosition;
+    }
+    
+    // Add letter with leverage-based displacement
+    private int AddLetterWithLeverage(Letter letter, int targetPosition)
+    {
+        var queue = _gameWorld.GetPlayer().LetterQueue;
+        
+        // Check if queue is completely full
+        if (IsQueueFull())
         {
             _messageSystem.AddSystemMessage(
                 $"🚫 Cannot accept letter from {letter.SenderName} - your queue is completely full!",
                 SystemMessageTypes.Danger
             );
-            return 0; // Queue full
+            return 0;
         }
         
-        // Apply obligation effects to potentially move the letter earlier
-        int basePosition = firstEmpty + 1; // Convert to 1-based
-        int bestPosition = _obligationManager.CalculateBestEntryPosition(letter, basePosition);
-        
-        // Ensure bestPosition is valid and not before first empty
-        bestPosition = Math.Max(bestPosition, basePosition);
-        
-        // Place letter at the calculated position (which should be firstEmpty in most cases)
-        int finalPosition = bestPosition - 1; // Convert back to 0-based
-        if (finalPosition >= 0 && finalPosition < 8 && queue[finalPosition] == null)
+        // If target position is empty, simple insertion
+        if (queue[targetPosition - 1] == null)
         {
-            queue[finalPosition] = letter;
-            letter.QueuePosition = finalPosition + 1;
+            queue[targetPosition - 1] = letter;
+            letter.QueuePosition = targetPosition;
+            letter.State = LetterState.Accepted;
             
-            // Show message about positioning
-            if (bestPosition < basePosition)
+            // Show leverage narrative if position differs from normal
+            ShowLeverageNarrative(letter, targetPosition);
+            
+            return targetPosition;
+        }
+        
+        // Target occupied - need displacement
+        return DisplaceAndInsertLetter(letter, targetPosition);
+    }
+    
+    // Displace letters to insert at leverage position
+    private int DisplaceAndInsertLetter(Letter letter, int targetPosition)
+    {
+        var queue = _gameWorld.GetPlayer().LetterQueue;
+        
+        // Announce the leverage-based displacement
+        ShowLeverageDisplacement(letter, targetPosition);
+        
+        // Collect all letters from target position downward
+        var lettersToDisplace = new System.Collections.Generic.List<Letter>();
+        for (int i = targetPosition - 1; i < 8; i++)
+        {
+            if (queue[i] != null)
             {
-                _messageSystem.AddSystemMessage(
-                    $"🌟 Your standing obligations pull {letter.SenderName}'s letter forward!",
-                    SystemMessageTypes.Warning
-                );
-                _messageSystem.AddSystemMessage(
-                    $"  • Letter enters at slot {finalPosition + 1} instead of slot {basePosition}",
-                    SystemMessageTypes.Info
-                );
-                _messageSystem.AddSystemMessage(
-                    $"  • Your commitments shape how new obligations arrive",
-                    SystemMessageTypes.Info
-                );
+                lettersToDisplace.Add(queue[i]);
+                queue[i] = null; // Clear old position
+            }
+        }
+        
+        // Insert new letter at its leverage position
+        queue[targetPosition - 1] = letter;
+        letter.QueuePosition = targetPosition;
+        letter.State = LetterState.Accepted;
+        
+        // Reinsert displaced letters
+        int nextAvailable = targetPosition;
+        foreach (var displaced in lettersToDisplace)
+        {
+            nextAvailable++;
+            if (nextAvailable <= 8)
+            {
+                queue[nextAvailable - 1] = displaced;
+                displaced.QueuePosition = nextAvailable;
+                NotifyLetterShifted(displaced, nextAvailable);
             }
             else
             {
-                // Normal entry at first available position
-                string urgency = letter.Deadline <= 3 ? " ⚠️" : "";
-                _messageSystem.AddSystemMessage(
-                    $"📨 New letter from {letter.SenderName} enters queue at position {finalPosition + 1}{urgency}",
-                    SystemMessageTypes.Info
-                );
+                HandleQueueOverflow(displaced);
             }
-            
-            return finalPosition + 1;
         }
         
-        // Fallback to first empty if obligation calculation failed
-        queue[firstEmpty] = letter;
-        letter.QueuePosition = firstEmpty + 1;
+        return targetPosition;
+    }
+    
+    // Show leverage narrative when letter enters
+    private void ShowLeverageNarrative(Letter letter, int position)
+    {
+        var basePosition = GetBasePositionForTokenType(letter.TokenType);
+        var senderId = GetNPCIdByName(letter.SenderName);
+        var tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
         
-        string urgencyFallback = letter.Deadline <= 3 ? " ⚠️" : "";
+        if (tokenBalance < 0)
+        {
+            // Debt leverage narrative
+            _messageSystem.AddSystemMessage(
+                $"💸 {letter.SenderName} has LEVERAGE! Your debt gives them power.",
+                SystemMessageTypes.Warning
+            );
+            _messageSystem.AddSystemMessage(
+                $"  • Enters at position {position} (normally {basePosition}) due to {Math.Abs(tokenBalance)} token debt",
+                SystemMessageTypes.Info
+            );
+            
+            if (position <= 3 && basePosition >= 5)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"  • Social hierarchy inverts when you owe money!",
+                    SystemMessageTypes.Warning
+                );
+            }
+        }
+        else if (position > basePosition)
+        {
+            // Reduced leverage narrative
+            _messageSystem.AddSystemMessage(
+                $"✨ Strong relationship with {letter.SenderName} reduces their demands.",
+                SystemMessageTypes.Success
+            );
+            _messageSystem.AddSystemMessage(
+                $"  • Enters at position {position} (normally {basePosition}) due to mutual respect",
+                SystemMessageTypes.Info
+            );
+        }
+        else
+        {
+            // Normal entry
+            string urgency = letter.Deadline <= 3 ? " ⚠️" : "";
+            _messageSystem.AddSystemMessage(
+                $"📨 New letter from {letter.SenderName} enters queue at position {position}{urgency}",
+                SystemMessageTypes.Info
+            );
+        }
+    }
+    
+    // Show displacement narrative
+    private void ShowLeverageDisplacement(Letter letter, int targetPosition)
+    {
+        var senderId = GetNPCIdByName(letter.SenderName);
+        var tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
+        
+        if (tokenBalance < 0)
+        {
+            _messageSystem.AddSystemMessage(
+                $"⚡ {letter.SenderName} demands position {targetPosition} - you owe them!",
+                SystemMessageTypes.Danger
+            );
+            _messageSystem.AddSystemMessage(
+                $"  • Your {Math.Abs(tokenBalance)} token debt gives them power to displace others",
+                SystemMessageTypes.Warning
+            );
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage(
+                $"📬 {letter.SenderName}'s letter pushes into position {targetPosition}",
+                SystemMessageTypes.Warning
+            );
+        }
+    }
+    
+    // Notify when letter is shifted
+    private void NotifyLetterShifted(Letter letter, int newPosition)
+    {
+        string urgency = letter.Deadline <= 2 ? " 🆘" : "";
         _messageSystem.AddSystemMessage(
-            $"📨 New letter from {letter.SenderName} enters queue at position {firstEmpty + 1}{urgencyFallback}",
-            SystemMessageTypes.Info
+            $"  • {letter.SenderName}'s letter pushed to position {newPosition}{urgency}",
+            letter.Deadline <= 2 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+        );
+    }
+    
+    // Handle letter pushed out of queue
+    private void HandleQueueOverflow(Letter overflowLetter)
+    {
+        _messageSystem.AddSystemMessage(
+            $"💥 {overflowLetter.SenderName}'s letter FORCED OUT by leverage!",
+            SystemMessageTypes.Danger
         );
         
-        return firstEmpty + 1;
+        _messageSystem.AddSystemMessage(
+            $"  • The weight of your debts crushes other obligations",
+            SystemMessageTypes.Warning
+        );
+        
+        // Apply relationship damage - sender doesn't care WHY their letter was dropped
+        var senderId = GetNPCIdByName(overflowLetter.SenderName);
+        int tokenPenalty = 2; // Same penalty as expiration
+        
+        _connectionTokenManager.RemoveTokensFromNPC(overflowLetter.TokenType, tokenPenalty, senderId);
+        
+        _messageSystem.AddSystemMessage(
+            $"💔 Lost {tokenPenalty} {overflowLetter.TokenType} tokens with {overflowLetter.SenderName}!",
+            SystemMessageTypes.Danger
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"  • \"{overflowLetter.SenderName} won't care that you were 'forced' - you failed to deliver.\"",
+            SystemMessageTypes.Warning
+        );
+        
+        // Record in history
+        var player = _gameWorld.GetPlayer();
+        if (!player.NPCLetterHistory.ContainsKey(senderId))
+        {
+            player.NPCLetterHistory[senderId] = new LetterHistory();
+        }
+        player.NPCLetterHistory[senderId].RecordExpiry(); // Use existing expiry tracking
     }
     
     // Handle patron letters that jump to top positions

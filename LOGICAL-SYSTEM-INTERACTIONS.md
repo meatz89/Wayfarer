@@ -30,19 +30,26 @@ payment = basePayment * reputationMultiplier;
 
 ### **Letter Queue Priority System**
 
-**IMPLEMENTED**: 8-slot priority queue with absolute delivery order enforcement.
+**IMPLEMENTED**: 8-slot priority queue with leverage-based positioning.
 
 **Queue Position Rules**:
 - **Position 1**: Must deliver next unless spending connections to skip
 - **Positions 2-8**: Wait their turn as letters above are delivered
-- **New Letters**: Always enter at slot 8
+- **Leverage Entry**: Letters enter based on sender's social status + token debt
+- **Displacement**: High-leverage letters push existing letters down
 - **Delivery**: Removes letter, all below move up one position
 
+**Leverage-Based Entry Positions**:
+- **Base Positions**: Patron (1), Noble (3), Trade/Shadow (5), Common/Trust (7)
+- **Token Debt Effect**: Each negative token moves position -1 (earlier)
+- **High Respect Effect**: 4+ positive tokens moves position +1 (later)
+- **Leverage Inversion**: Debt can make commoners enter at noble positions
+
 **Strategic Pressure Created**:
-- Urgent letters trapped behind routine deliveries
-- Route optimization conflicts with queue order
-- Deadline expiration in queue creates permanent losses
-- Connection spending for queue manipulation vs saving for crises
+- Token debt creates queue disruption through leverage
+- Social hierarchies invert when you owe money
+- Accepting help reshapes your entire priority structure
+- Forced discards when leverage pushes letters past position 8
 
 ### **Connection Token Economy System**
 
@@ -67,6 +74,39 @@ payment = basePayment * reputationMultiplier;
 - Specialize in token types vs maintain balanced reserves
 - Burn relationships for queue management vs preserve for future
 - Token type matching requirements create collection pressure
+
+### **Leverage Through Token Debt System**
+
+**IMPLEMENTED**: Negative tokens create power dynamics that reshape the queue.
+
+**Debt Creation Actions**:
+- **Request Patron Funds**: -1 Patron token, gain 30 coins
+- **Borrow from NPC**: -2 tokens, gain 20 coins
+- **Emergency Route Access**: -1 token to maintain access below threshold
+- **Accept Illegal Work**: -1 Shadow token (they have dirt on you)
+- **Use Service Without Payment**: -1 to -3 tokens based on value
+
+**Leverage Effects on Queue Position**:
+```
+Token Balance → Queue Position Modifier
++4 or more   → +1 (less leverage, mutual respect)
++1 to +3     → +0 (normal relationship)
+0            → +0 (neutral)
+-1           → -1 (some leverage)
+-2           → -2 (significant leverage)
+-3 or less   → -3 (extreme leverage)
+```
+
+**Example Leverage Inversions**:
+- **Noble at -2 tokens**: Letters enter at position 1 (not 3)
+- **Common at -3 tokens**: Letters enter at position 4 (not 7)
+- **Merchant at +5 tokens**: Letters enter at position 6 (not 5)
+
+**Strategic Debt Usage**:
+- Deliberately go into debt with reliable NPCs for queue control
+- Use high-leverage positions to block unreliable senders
+- Strategic bankruptcy: accept all help to fill queue with chosen debts
+- Independence path: never go negative, maintain queue autonomy
 
 ### **Deadline Pressure System**
 
