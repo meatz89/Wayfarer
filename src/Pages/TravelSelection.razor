@@ -142,40 +142,36 @@
                                 </div>
                             }
                             
-                            @if (isBlocked && !string.IsNullOrEmpty(accessInfo.BlockingReason))
-                            {
-                                <div class="block-reason">
-                                    @accessInfo.BlockingReason
-                                </div>
-                            }
-                            
+                            @* Display departure time *@
                             @if (route.DepartureTime.HasValue)
                             {
                                 <div class="departure-info">
                                     🕐 @route.DepartureTime.Value.ToString().Replace('_', ' ')
                                 </div>
                             }
-                            else
-                            {
-                                <div class="departure-time">
-                                    🕐 Available anytime
-                                </div>
-                            }
-                            @if (!accessInfo.IsAllowed)
+                            
+                            @* Show blocking reason only once *@
+                            @if (isBlocked && !string.IsNullOrEmpty(accessInfo.BlockingReason))
                             {
                                 <div class="route-blocked">🚫 @accessInfo.BlockingReason</div>
                             }
-                            @if (accessInfo.Warnings.Any())
-                            {
-                                @foreach (var warning in accessInfo.Warnings)
+                            
+                            @* Show only the most critical warning *@
+                            @{
+                                var criticalWarning = "";
+                                if (hasFragileLetters && (route.TerrainCategories.Contains(TerrainCategory.Requires_Climbing) || 
+                                                         route.TerrainCategories.Contains(TerrainCategory.Wilderness_Terrain)))
                                 {
-                                    <div class="route-warning">⚠️ @warning</div>
+                                    criticalWarning = "Fragile letters at risk on this route!";
+                                }
+                                else if (accessInfo.Warnings.Any())
+                                {
+                                    criticalWarning = accessInfo.Warnings.First();
                                 }
                             }
-                            @if (hasFragileLetters && (route.TerrainCategories.Contains(TerrainCategory.Requires_Climbing) || 
-                                                      route.TerrainCategories.Contains(TerrainCategory.Wilderness_Terrain)))
+                            @if (!string.IsNullOrEmpty(criticalWarning))
                             {
-                                <div class="route-warning">⚠️ Fragile letters at risk on this route!</div>
+                                <div class="route-warning">⚠️ @criticalWarning</div>
                             }
                             @if (!string.IsNullOrEmpty(route.Description))
                             {

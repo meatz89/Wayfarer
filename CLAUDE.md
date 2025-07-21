@@ -359,6 +359,7 @@ Analysis is configured in `wayfarer.ruleset` with enforcement during build.
 - **FRESH TEST SUITE** - Delete old tests and write new ones for queue/token mechanics
 
 **GENERAL PRINCIPLES**:
+- **UNDERSTAND BEFORE REMOVING** - Always understand the purpose of code before removing it. Determine if it's safe to remove or needs refactoring. Never assume code is redundant without understanding its context and dependencies.
 - Do not leave comments in code that are not TODOs or SERIOUSLY IMPORTANT
 - After each change, run the tests to check for broken functionality. Never commit while tests are failing
 - **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
