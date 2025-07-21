@@ -20,22 +20,23 @@
 **So that** I must respect the queue order or pay social costs  
 
 **Acceptance Criteria:**
-- Deliver action only available for position 1 letter
-- Attempting to deliver other positions shows token cost
+- Deliver action only available for position 1 letter when at recipient location
+- Attempting to deliver other positions shows token cost via ConversationManager
 - Successful delivery removes letter and shifts all below up one position
 - Uncollected letters cannot be delivered (show "must collect first")
+- Delivery triggers conversation with recipient NPC
 
-### Story 1.3: Token Burning for Queue Skipping
+### Story 1.3: Token Burning for Queue Skipping (Conversation Action)
 **As a** player  
 **I want to** skip queue order by burning connection tokens  
 **So that** I can prioritize urgent deliveries at social cost  
 
 **Acceptance Criteria:**
-- Selecting non-position-1 letter shows skip cost
-- Cost = 1 token of sender's type for each position skipped
-- Example: Deliver position 3 = burn 1 token each with position 1 and 2 senders
-- Burns tokens with specific NPCs, not general tokens
-- Cannot skip if insufficient tokens (action disabled)
+- Selecting non-position-1 letter triggers ConversationManager
+- Conversation shows exact token cost (1 per skipped sender)
+- Player chooses: "Skip and deliver" or "Respect queue order"
+- Skip choice burns tokens with specific NPCs
+- Cannot skip if insufficient tokens (choice disabled)
 - Skip action delivers letter immediately after token payment
 
 ### Story 1.4: Queue Shifting on Delivery
@@ -64,7 +65,19 @@
 - Letters enter at lowest available position unless it conflicts with preference
 - If preferred position occupied, letter forces entry and pushes others down
 
-### Story 2.2: Token-Modified Leverage
+### Story 2.2: Token Debt System
+**As a** player  
+**I want to** go into token debt with NPCs  
+**So that** accepting help has mechanical consequences  
+
+**Acceptance Criteria:**
+- Tokens can go negative (-1, -2, etc.)
+- Negative tokens display as debt in UI
+- Request actions available: "Borrow money" (-2 tokens), "Ask for help" (-1 token)
+- Can go into debt from positive or zero
+- Debt immediately affects letter entry positions
+
+### Story 2.3: Token-Modified Leverage
 **As a** player with varying token relationships  
 **I want** token balance to affect letter entry positions  
 **So that** my relationships change sender leverage  
@@ -77,7 +90,7 @@
 - Example: Noble at -2 tokens enters at position 1 instead of 3
 - Leverage position cannot go below 1 or above 8
 
-### Story 2.3: Queue Overflow and Discard
+### Story 2.4: Queue Overflow and Discard
 **As a** player with a full queue  
 **I want** high-leverage letters to force entry  
 **So that** powerful senders can't be ignored  
@@ -85,289 +98,297 @@
 **Acceptance Criteria:**
 - When queue is full and letter forces entry above position 8
 - Letter at position 8 is automatically discarded
-- Player receives notification of discarded letter
+- ConversationManager narrates the loss: "Your obligation to [NPC] falls by the wayside"
 - No token penalty for forced discard
-- Discarded letter's sender remembers this slight
+- Discarded letter's sender remembers this slight (affects future interactions)
 
-### Story 2.4: Standing Obligation Position Overrides
-**As a** player with standing obligations  
-**I want** obligations to override normal entry positions  
-**So that** my commitments reshape queue behavior  
+## Epic 3: NPC Letter Offers Through Conversation
 
-**Acceptance Criteria:**
-- "Patron's Expectation": Patron letters always enter at position 1
-- "Noble's Courtesy": Noble letters always enter at position 5
-- Override applies regardless of token balance
-- Multiple obligations can conflict (design doc rules apply)
-
-## Epic 3: Connection Token Management
-
-### Story 3.1: Per-NPC Token Tracking
+### Story 3.1: Letter Discovery Through Conversation
 **As a** player  
-**I want** separate token counts with each NPC  
-**So that** each relationship is distinct  
+**I want to** discover letter opportunities through NPC conversations  
+**So that** relationships feel natural and contextual  
 
 **Acceptance Criteria:**
-- Each NPC shows token count by type
-- Example: "Marcus: Trade 3, Common 1"
-- Tokens can be positive, zero, or negative
-- Negative tokens show as debt (e.g., "Trade -2")
-- Token changes show visual feedback (+1, -1)
+- "Converse" action with NPC triggers ConversationManager
+- Conversation reveals if NPC has letter need
+- NPCs with 0 tokens only offer small talk
+- NPCs with 1+ tokens may mention letter needs
+- Player can accept or decline within conversation flow
 
-### Story 3.2: Token Generation Through Delivery
-**As a** player  
-**I want to** earn tokens by completing deliveries  
-**So that** I build relationships through work  
-
-**Acceptance Criteria:**
-- Successful delivery grants 1 token of recipient's type
-- Token goes to recipient, not sender
-- Delivery from positions 4-6: No token (mild delay)
-- Delivery from positions 7-8: -1 token with sender (major delay)
-- Token changes display immediately
-
-### Story 3.3: Token Debt Creation
-**As a** player  
-**I want to** go into token debt for emergency help  
-**So that** desperation has mechanical weight  
+### Story 3.2: Letter Acceptance Conversation
+**As a** player offered a letter  
+**I want** the conversation to show full details  
+**So that** I can make an informed decision  
 
 **Acceptance Criteria:**
-- Request funds from patron: -1 Patron token
-- Borrow money from NPC: -2 tokens
-- Use service without payment: -1 to -3 tokens based on value
-- Can go into debt even from positive (e.g., +2 to -1 is allowed)
-- Debt affects leverage immediately
+- Conversation shows: destination, deadline, payment, size, special properties
+- Shows current queue state and where letter would enter
+- Warning if acceptance would discard position 8 letter
+- Choice: "Accept letter" or "Politely decline"
+- Acceptance adds to queue at calculated position
 
-### Story 3.4: Token Spending for Queue Actions
-**As a** player  
-**I want to** spend tokens for queue manipulation  
-**So that** crisis management costs relationships  
-
-**Acceptance Criteria:**
-- Purge (remove position 8): 3 tokens of any type
-- Emergency Priority (move to position 1): 5 matching tokens
-- Extend Deadline: 2 matching tokens adds 2 days
-- Tokens must match letter type for specific actions
-- Cannot spend tokens you don't have
-
-## Epic 4: Physical Letter States
-
-### Story 4.1: Three-State Letter Existence
-**As a** player  
-**I want** letters to exist in offered/queued/collected states  
-**So that** accepting and collecting are distinct actions  
-
-**Acceptance Criteria:**
-- Offered: NPC has letter, player can accept/refuse
-- Queued: In queue but not physical
-- Collected: In inventory and queue
-- Must collect before delivery
-- Uncollected letters show "Not Collected" status
-
-### Story 4.2: Physical Collection Requirements
-**As a** player  
-**I want to** collect letters from sender locations  
-**So that** routing includes collection planning  
-
-**Acceptance Criteria:**
-- Collection requires visiting sender's location
-- Collection transfers letter to inventory
-- Letters have size: Small (1), Medium (2), Large (3)
-- Inventory has 8 total slots shared with items
-- Cannot collect if insufficient inventory space
-
-### Story 4.3: Inventory Management
-**As a** player  
-**I want** letters and items to compete for space  
-**So that** carrying capacity creates hard choices  
-
-**Acceptance Criteria:**
-- 8 inventory slots total
-- Letters use slots: S=1, M=2, L=3
-- Equipment uses slots (climbing gear=1, etc.)
-- Trade goods use slots
-- Visual inventory grid shows current usage
-- Cannot exceed 8 slots
-
-## Epic 5: NPC and Relationship Systems
-
-### Story 5.1: NPC Letter Generation
+### Story 3.3: Token-Based Letter Categories
 **As a** player building relationships  
-**I want** NPCs to offer letters based on tokens  
-**So that** relationships unlock opportunities  
+**I want** better letters from stronger relationships  
+**So that** investment in NPCs pays off  
 
 **Acceptance Criteria:**
 - 0 tokens: No letters offered
-- 1-2 tokens: Basic letters (low pay)
-- 3-4 tokens: Quality letters (medium pay)
-- 5+ tokens: Premium letters (high pay)
-- Letter availability checks happen during conversation
-- Can refuse offered letters
+- 1-2 tokens: Basic letters (3-5 coins)
+- 3-4 tokens: Quality letters (8-12 coins)
+- 5+ tokens: Premium letters (15-20 coins)
+- Letter quality shown in conversation
+- Higher category letters may have better deadlines
 
-### Story 5.2: NPC Memory and Reactions
-**As a** player who skips letters  
-**I want** NPCs to remember and react  
-**So that** actions have social consequences  
+## Epic 4: Physical Letter Management
+
+### Story 4.1: Letter Collection Action
+**As a** player with queued letters  
+**I want to** collect physical letters from senders  
+**So that** accepting and carrying are distinct  
 
 **Acceptance Criteria:**
-- NPCs remember last 3 skipped letters
-- Dialogue reflects relationship state
-- At 0 tokens: NPC refuses all interaction
-- Negative tokens: NPC may demand repayment
-- Positive history: NPC offers better opportunities
+- Uncollected letters show "Not Collected" status in queue
+- "Collect Letter" action available at sender's location
+- Collection transfers to inventory if space available
+- Shows required slots: Small (1), Medium (2), Large (3)
+- Cannot collect if insufficient inventory space
 
-### Story 5.3: Letter Categories by NPC Type
+### Story 4.2: Inventory Management Through Conversation
+**As a** player with full inventory  
+**I want** conversations to handle overflow  
+**So that** I make strategic carrying decisions  
+
+**Acceptance Criteria:**
+- Collection with full inventory triggers ConversationManager
+- Shows current inventory contents
+- Choices: Drop items, leave letter uncollected, reorganize
+- Visual inventory grid in conversation UI
+- Items and letters share same 8 slots
+
+### Story 4.3: Multi-Purpose Item Choices
+**As a** player carrying deliverable items  
+**I want** conversation choices for their use  
+**So that** moral decisions emerge naturally  
+
+**Acceptance Criteria:**
+- Items with multiple uses trigger conversations when relevant
+- Medicine during illness: "Use it yourself" vs "Save for delivery"
+- Trade documents: "Read for information" vs "Deliver sealed"
+- Conversation shows consequences of each choice
+- Using delivery items damages relationship with sender
+
+## Epic 5: Standing Obligations
+
+### Story 5.1: Obligation Letter Warning
 **As a** player  
-**I want** NPCs to offer appropriate letter types  
-**So that** merchants offer trade letters, nobles offer noble letters  
+**I want** clear warnings before accepting obligation letters  
+**So that** I understand permanent consequences  
 
 **Acceptance Criteria:**
-- Each NPC has 1-2 appropriate token types
-- Marcus (merchant): Trade and Common only
-- Duke (noble): Noble and Trust only
-- Elena (scribe): Trust only
-- Letters match NPC's social sphere
+- Special letters marked with obligation icon
+- Accepting triggers ConversationManager warning
+- Full explanation of obligation effects
+- Explicit choice: "Accept obligation" vs "Refuse (burn tokens)"
+- Cannot back out once accepted
 
-## Epic 6: Standing Obligations
-
-### Story 6.1: Obligation Acquisition
-**As a** player  
-**I want to** gain obligations through special deliveries  
-**So that** my choices permanently alter gameplay  
+### Story 5.2: Patron's Expectation (Starting Obligation)
+**As a** player with a patron  
+**I want** patron letters to have special priority  
+**So that** my employment has mechanical weight  
 
 **Acceptance Criteria:**
-- Certain letters create obligations when delivered
-- Clear warning before accepting obligation letter
-- Obligation effects display before acceptance
-- Cannot refuse obligation once acquired
-- Multiple obligations can be active
+- "Patron's Expectation" obligation active from game start
+- Patron letters always enter at position 1
+- Pushes all other letters down
+- Cannot refuse patron letters
+- Breaking obligation requires burning all patron tokens
 
-### Story 6.2: Queue Rule Modifications
+### Story 5.3: Obligation-Modified Queue Rules
 **As a** player with obligations  
-**I want** obligations to modify queue behavior  
-**So that** my commitments reshape my game  
+**I want** them to permanently alter queue behavior  
+**So that** my choices reshape gameplay  
 
 **Acceptance Criteria:**
 - "Noble's Courtesy": Noble letters enter at 5, cannot refuse nobles
 - "Shadow's Burden": Forced shadow letter every 3 days, cannot purge shadow
 - "Merchant's Priority": Trade letters pay +10 coins, cannot move trade letters
-- Modifications apply automatically
-- Conflicts between obligations create compound effects
+- Modifications stack and can conflict
+- UI shows active obligations and their effects
 
-### Story 6.3: Breaking Obligations
-**As a** player  
-**I want to** break obligations through specific actions  
-**So that** I can escape at permanent cost  
+## Epic 6: Emergency Actions Through Conversation
+
+### Story 6.1: Patron Fund Requests
+**As a** player needing resources  
+**I want to** request help from my patron  
+**So that** desperation has consequences  
 
 **Acceptance Criteria:**
-- Each obligation has a breaking condition
-- Example: Refuse noble letter breaks "Noble's Courtesy"
-- Breaking is permanent and irreversible
-- Lose all benefits immediately
-- Some NPCs may refuse interaction after breaking
+- "Write to Patron" action available at desk/study locations
+- ConversationManager handles request narrative
+- Choices: Request funds (-1 token), Request equipment (-2 tokens), Cancel
+- Resources arrive next morning if approved
+- Each request increases patron leverage
 
-## Epic 7: Route and Travel Systems
-
-### Story 7.1: Token-Gated Route Access
+### Story 6.2: NPC Debt Actions
 **As a** player  
-**I want** routes to require relationship thresholds  
+**I want to** borrow from NPCs when desperate  
+**So that** local relationships become financial  
+
+**Acceptance Criteria:**
+- "Ask for loan" available with 1+ token NPCs
+- Conversation negotiates terms
+- Borrowing creates -2 token debt
+- Repayment options in future conversations
+- Debt affects letter entry positions immediately
+
+### Story 6.3: Shadow Dealings
+**As a** player  
+**I want** illegal work options from shadow NPCs  
+**So that** desperation can compromise morals  
+
+**Acceptance Criteria:**
+- Shadow NPCs offer illegal work when player is desperate
+- Conversation emphasizes risks and moral weight
+- Accepting creates -1 Shadow token (they have leverage)
+- Illegal work pays triple but adds "Heat" status
+- Heat affects future NPC interactions
+
+## Epic 7: Route Access and Token Thresholds
+
+### Story 7.1: Route Discovery Through NPCs
+**As a** player building relationships  
+**I want** NPCs to share route knowledge  
 **So that** connections enable efficient travel  
 
 **Acceptance Criteria:**
-- Mountain Pass: Requires 3+ Common tokens with Guide
-- River Ferry: Requires 3+ Trade tokens with Captain
-- Show requirements on route selection
-- Routes unavailable if below threshold
-- "Lost access" notification when tokens drop
+- NPCs with route knowledge show in conversations
+- At 3+ tokens, can ask about shortcuts
+- Learning route through conversation (not automatic)
+- Routes show token requirements for access
+- Losing tokens below threshold locks route
 
-### Story 7.2: Route Properties and Travel Time
+### Story 7.2: Route Access Warnings
+**As a** player planning travel  
+**I want** clear warnings about route requirements  
+**So that** I can maintain critical relationships  
+
+**Acceptance Criteria:**
+- Route selection shows: "Requires 3+ Common tokens with Guide"
+- Warning if current tokens exactly at threshold
+- "Route locked" if below threshold
+- Alternative routes always visible
+- Time differences shown for comparison
+
+You're absolutely right. Let me revise those delivery stories to reflect that every delivery is a narrative experience through the conversation system:
+
+## Epic 8: Delivery Conversations
+
+### Story 8.1: Letter Delivery as Conversation
+**As a** player delivering letters  
+**I want** each delivery to be a full conversation with choices  
+**So that** deliveries are narrative experiences, not transactions  
+
+**Acceptance Criteria:**
+- Delivery action triggers ConversationManager with recipient
+- Conversation has multiple beats based on context
+- Every delivery offers at least one meaningful choice
+- Choices emerge from relationship, letter contents, timing, etc.
+- ConversationManager determines narrative complexity
+
+### Story 8.2: Delivery Choice Outcomes
+**As a** player in delivery conversations  
+**I want** choices that affect different rewards  
+**So that** I can prioritize what matters to me  
+
+**Acceptance Criteria:**
+- Common choice types include but aren't limited to:
+  - Accept token reward OR extra payment
+  - Deliver privately OR publicly  
+  - Share news from sender OR keep discrete
+  - Accept return letter OR decline additional work
+- All choices show clear mechanical outcomes
+- Choices affect relationships, resources, or future opportunities
+- No "correct" choice - just different priorities
+
+### Story 8.3: Contextual Delivery Narratives
 **As a** player  
-**I want** different routes with varying properties  
-**So that** route choice matters strategically  
+**I want** delivery conversations to reflect context  
+**So that** each delivery feels unique and grounded  
 
 **Acceptance Criteria:**
-- Each route shows: time cost, token requirements, hazards
-- Mountain routes: Faster but need equipment
-- River routes: Moderate speed, weather dependent
-- Main roads: Slow but always available
-- Travel time consumes hours from the day
+- Late deliveries reflected in recipient's reaction
+- Fragile items acknowledged if damaged/protected
+- Valuable deliveries may prompt trust/suspicion
+- Relationship history affects conversation tone
+- Letter contents influence available choices
+- All context provided to ConversationManager for narrative generation
 
-## Epic 8: Deadline and Time Management
+### Story 8.4: Post-Delivery Opportunities
+**As a** player completing deliveries  
+**I want** conversations to potentially open new opportunities  
+**So that** deliveries can chain into further gameplay  
 
-### Story 8.1: Independent Deadline System
+**Acceptance Criteria:**
+- Recipients may offer new letters during delivery conversation
+- Successful delivery might unlock new information or routes
+- Building relationship through delivery enables future actions
+- Some deliveries reveal connections to other NPCs
+- All opportunities emerge through conversation choices, not automatic rewards
+
+This better reflects the design where every delivery is a narrative moment with player agency, not a simple button click with random complications.
+
+## Epic 9: Travel Encounters
+
+### Story 9.1: Route-Based Travel Events
+**As a** player traveling  
+**I want** encounters during travel  
+**So that** journeys are active gameplay  
+
+**Acceptance Criteria:**
+- Each route has potential encounters
+- ConversationManager handles encounter narrative
+- Choices based on equipment and skills
+- Outcomes affect: time, stamina, items, discoveries
+- Equipment enables additional choices
+
+### Story 9.2: Equipment-Dependent Options
+**As a** player with equipment  
+**I want** special travel choices  
+**So that** gear investment pays off  
+
+**Acceptance Criteria:**
+- Climbing gear: "Scale cliff to save 2 hours"
+- Waterproof satchel: "Ford river directly"
+- Cart: "Offer ride to gain information"
+- Choices only appear with correct equipment
+- Clear risk/reward for each option
+
+## Epic 10: Compound Actions
+
+### Story 10.1: Natural Action Combinations
 **As a** player  
-**I want** letter deadlines independent of queue position  
-**So that** urgency and priority conflict  
+**I want** some actions to naturally accomplish multiple goals  
+**So that** I can discover efficiencies  
 
 **Acceptance Criteria:**
-- Each letter shows days remaining
-- Deadlines tick down each morning
-- Visual urgency indicators (color coding)
-- Expired letters vanish at dawn
-- Expiration damages relationship (-2 tokens)
+- Helping merchant load wagon: Work + Token building
+- Traveling with merchants: Protected travel + Socializing
+- Delivering to merchant: Complete delivery + Shop access
+- No special bonuses - just logical overlap
+- Players discover these through play
 
-### Story 8.2: Time Period Availability
-**As a** player  
-**I want** NPCs available at specific times  
-**So that** timing affects planning  
-
-**Acceptance Criteria:**
-- NPCs show availability windows
-- Morning (6am-12pm), Afternoon (12pm-6pm), Evening (6pm-10pm)
-- Some NPCs have multiple windows
-- Travel time affects arrival period
-- Cannot interact outside availability
-
-## Epic 9: Multi-Purpose Items
-
-### Story 9.1: Items with Multiple Uses
-**As a** player carrying items  
-**I want** each item to have delivery/use/trade options  
-**So that** moral choices emerge from gameplay  
+### Story 10.2: Location-Based Opportunities
+**As a** player at specific locations  
+**I want** contextual actions based on spot properties  
+**So that** locations feel distinct  
 
 **Acceptance Criteria:**
-- Medicine: Deliver for payment OR use for healing OR sell
-- Documents: Deliver sealed OR read for information OR sell
-- Trade goods: Deliver OR sell at different prices
-- Each use is exclusive (can't use then deliver)
-- Using items meant for delivery damages relationships
+- Forest spots: "Gather berries" (uses RESOURCES domain tag)
+- Market spots: "Browse stalls" (uses COMMERCE tag)
+- Tavern spots: "Listen to gossip" (uses SOCIAL tag)
+- Actions generated from domain tags, not hardcoded
+- Environmental actions only when no relevant NPCs present
 
-### Story 9.2: Item Properties and Requirements
-**As a** player  
-**I want** items to have properties affecting carriage  
-**So that** inventory becomes strategic  
-
-**Acceptance Criteria:**
-- Fragile items: Require protection or risk breaking
-- Heavy items: Require cart or two people
-- Perishable items: Lose value over time
-- Valuable items: Risk of theft in certain areas
-- Properties shown on item inspection
-
-## Epic 10: Resource Management
-
-### Story 10.1: Action Resource Costs
-**As a** player  
-**I want** actions to cost appropriate resources  
-**So that** everything has a price  
-
-**Acceptance Criteria:**
-- Travel: 2 stamina per segment
-- Work: 2 stamina per period
-- Deep conversation: 2 Focus
-- Rest: +3 stamina per period
-- All costs visible before action
-
-### Story 10.2: Resource Recovery Options
-**As a** player  
-**I want** multiple ways to recover resources  
-**So that** I can manage depletion strategically  
-
-**Acceptance Criteria:**
-- Rest action: +3 stamina, costs 1 period
-- Full sleep: +6 stamina, ends day
-- Meditation: +3 Focus, costs 1 period
-- Food items: Variable stamina recovery
-- Inn stay: Full recovery, costs coins
-
-This comprehensive set of user stories captures the complete game design, ready for implementation. Each story is specific, testable, and maintains the interconnected systems we've designed.
+This user story set fully integrates with your existing ConversationManager architecture while implementing the complete letter queue game design we've developed. Each story is structured to work with your action-conversation system and maintains the design principle of making every action narratively meaningful.

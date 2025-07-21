@@ -193,6 +193,46 @@ class LetterManagementService {
 ### Stateless Repositories
 Repositories MUST be stateless and only delegate to GameWorld.
 
+### NO CLASS INHERITANCE PRINCIPLE (CRITICAL)
+**NEVER use class inheritance or extensions. Use composition and helper methods instead.**
+
+```csharp
+// ❌ WRONG: Extending existing classes
+public class DeterministicConversationManager : ConversationManager
+{
+    // This violates our architecture principles
+}
+
+// ✅ CORRECT: Add helper methods to the existing class
+public class ConversationManager
+{
+    private bool _isDeterministic;
+    
+    public void SetDeterministicMode(bool isDeterministic)
+    {
+        _isDeterministic = isDeterministic;
+    }
+    
+    private ConversationChoice GenerateDeterministicChoice(ActionOption action)
+    {
+        // Helper method for non-AI choices
+    }
+}
+```
+
+**Key Principles:**
+1. **Composition over inheritance** - Use member variables and helper methods
+2. **Single class responsibility** - One class handles all modes of operation
+3. **Mode flags over subclasses** - Use boolean flags to switch behavior
+4. **Helper methods for variants** - Private methods handle mode-specific logic
+
+**Why This Matters:**
+- **Maintains single source of truth** - One class means one place to look
+- **Avoids fragmentation** - Logic stays together instead of scattered across subclasses
+- **Simplifies debugging** - All behavior in one file
+- **Prevents divergence** - Subclasses can drift from parent behavior
+- **Enables easy mode switching** - Can change behavior at runtime
+
 ## LETTER QUEUE SYSTEM ARCHITECTURE
 
 ### Core Components
