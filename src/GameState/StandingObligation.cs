@@ -24,7 +24,14 @@ public enum ObligationEffect
         NoNobleRefusal,        // Cannot refuse noble letters
         NoTradePurge,          // Cannot purge trade letters
         TrustSkipDoubleCost,   // Skipping trust letters costs double
-        NoCommonRefusal        // Refusing common letters loses 2 tokens
+        NoCommonRefusal,       // Refusing common letters loses 2 tokens
+        
+        // Leverage Modifiers
+        ShadowEqualsNoble,     // Shadow letters use Noble base position (3)
+        MerchantRespect,       // Trade letters with 5+ tokens get additional +1 position
+        CommonRevenge,         // Common letters from debt relationships use position 3
+        PatronAbsolute,        // Patron letters push everything down (no displacement limit)
+        DebtSpiral             // All negative token positions get additional -1
     }
     
     public class StandingObligation

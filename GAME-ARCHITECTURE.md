@@ -196,10 +196,11 @@ Repositories MUST be stateless and only delegate to GameWorld.
 ## LETTER QUEUE SYSTEM ARCHITECTURE
 
 ### Core Components
-- **LetterQueueManager**: 8-slot priority queue with position enforcement and chain letter generation
+- **LetterQueueManager**: 8-slot priority queue with leverage-based positioning and displacement
 - **Letter Entity**: Id, SenderId, RecipientId, TokenType, Deadline, Payment, QueuePosition
-- **ConnectionTokenManager**: 5 token types (Trust/Trade/Noble/Common/Shadow) with per-NPC tracking
+- **ConnectionTokenManager**: 5 token types (Trust/Trade/Noble/Common/Shadow) with per-NPC tracking, supports debt
 - **StandingObligationManager**: Permanent queue behavior modifiers
+- **Leverage System**: Token debt creates queue position modifications (see below)
 
 ### Unified Letter Queue Management
 **LetterQueueManager handles the complete letter lifecycle including chain letter generation.**
@@ -273,6 +274,58 @@ Token spending is NEVER abstract - every token spent damages a specific NPC rela
 - **Information Purchase**: Tokens from the NPC selling the information
 
 This creates narrative coherence - you're not spending abstract "Trade tokens", you're specifically burning your relationship with Marcus the Merchant. Every token transaction has a face and a consequence.
+
+### Leverage-Based Queue Positioning
+**Letter queue positions emerge from social status and token debt relationships**
+
+#### Base Positions by Social Status
+```csharp
+public static class LeverageConstants
+{
+    public const int PATRON_BASE_POSITION = 1;
+    public const int NOBLE_BASE_POSITION = 3;
+    public const int TRADE_BASE_POSITION = 5;
+    public const int SHADOW_BASE_POSITION = 5;
+    public const int COMMON_BASE_POSITION = 7;
+    public const int TRUST_BASE_POSITION = 7;
+}
+```
+
+#### Leverage Calculation
+```csharp
+private int CalculateLeveragePosition(Letter letter)
+{
+    // Get base position from social status
+    int basePosition = GetBasePositionForTokenType(letter.TokenType);
+    
+    // Get token balance with sender
+    var senderId = GetNPCIdByName(letter.SenderName);
+    var tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
+    
+    // Apply token-based leverage
+    if (tokenBalance < 0)
+    {
+        // Debt creates leverage - each negative token moves position up
+        basePosition += tokenBalance; // Subtracts since negative
+    }
+    else if (tokenBalance >= 4)
+    {
+        // High positive relationship reduces leverage
+        basePosition += 1;
+    }
+    
+    return Math.Max(1, Math.Min(8, basePosition));
+}
+```
+
+#### Queue Displacement
+When a letter's leverage position conflicts with existing letters:
+1. Letter enters at its calculated leverage position
+2. Existing letters at and below that position shift down
+3. Letters pushed past position 8 are automatically discarded
+4. No token penalty for forced discards (not player's choice)
+
+This creates emergent gameplay where debt inverts social hierarchies - a common merchant you owe money to can have noble-level priority in your queue.
 
 ### Repository Pattern Implementation
 

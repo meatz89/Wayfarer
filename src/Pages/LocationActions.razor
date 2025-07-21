@@ -1,11 +1,10 @@
-@page "/location-actions"
 @using Wayfarer.Pages
 @inject LocationActionManager LocationActionManager
 @inject GameWorldManager GameWorldManager
-@inject NavigationManager Navigation
+@inject TimeManager TimeManager
 
 <div class="location-actions">
-    <h3>Available Actions</h3>
+    <h3>Available Actions (@TimeManager.HoursRemaining hours remaining)</h3>
     
     @if (availableActions.Any())
     {
@@ -47,14 +46,13 @@
         <p class="no-actions">No actions available at this location.</p>
     }
     
-    <div class="action-footer">
-        <button class="btn-secondary" @onclick="BackToLocation">Back to Location</button>
-    </div>
 </div>
 
 <style>
     .location-actions {
+        margin-top: 1rem;
         padding: 1rem;
+        border-top: 1px solid #444;
     }
     
     .action-grid {
@@ -133,6 +131,8 @@
     }
 </style>
 
+@namespace Wayfarer.Pages
+
 @code {
     private List<ActionOption> availableActions = new();
     
@@ -158,10 +158,5 @@
             // Update the UI to reflect resource changes
             StateHasChanged();
         }
-    }
-    
-    private void BackToLocation()
-    {
-        Navigation.NavigateTo("/location-view");
     }
 }

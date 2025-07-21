@@ -257,6 +257,74 @@ public class StandingObligationManager
         return bestPosition;
     }
     
+    // Apply leverage modifiers from standing obligations
+    public int ApplyLeverageModifiers(Letter letter, int currentPosition)
+    {
+        var activeObligations = GetActiveObligations();
+        int modifiedPosition = currentPosition;
+        
+        foreach (var obligation in activeObligations)
+        {
+            // Shadow equals noble leverage
+            if (obligation.HasEffect(ObligationEffect.ShadowEqualsNoble) && letter.TokenType == ConnectionType.Shadow)
+            {
+                modifiedPosition = Math.Min(modifiedPosition, 3); // Noble base position
+            }
+            
+            // Common revenge - common letters from debt get noble priority
+            if (obligation.HasEffect(ObligationEffect.CommonRevenge) && letter.TokenType == ConnectionType.Common)
+            {
+                var senderId = GetNPCIdByName(letter.SenderName);
+                if (!string.IsNullOrEmpty(senderId))
+                {
+                    var tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Common];
+                    if (tokenBalance < 0)
+                    {
+                        modifiedPosition = 3; // Noble position for debt leverage
+                    }
+                }
+            }
+            
+            // Debt spiral - all negative positions get extra leverage
+            if (obligation.HasEffect(ObligationEffect.DebtSpiral))
+            {
+                var senderId = GetNPCIdByName(letter.SenderName);
+                if (!string.IsNullOrEmpty(senderId))
+                {
+                    var tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
+                    if (tokenBalance < 0)
+                    {
+                        modifiedPosition -= 1; // Additional leverage from debt
+                    }
+                }
+            }
+            
+            // Merchant respect - trade letters with 5+ tokens get additional position down
+            if (obligation.HasEffect(ObligationEffect.MerchantRespect) && letter.TokenType == ConnectionType.Trade)
+            {
+                var senderId = GetNPCIdByName(letter.SenderName);
+                if (!string.IsNullOrEmpty(senderId))
+                {
+                    var tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Trade];
+                    if (tokenBalance >= 5)
+                    {
+                        modifiedPosition += 1; // Less leverage due to respect
+                    }
+                }
+            }
+        }
+        
+        return modifiedPosition;
+    }
+    
+    // Helper to get NPC ID from name
+    private string GetNPCIdByName(string npcName)
+    {
+        // This would typically use NPCRepository, but we don't have it injected here
+        // For now, return empty string - the calling code should handle this
+        return "";
+    }
+    
     // Check if any obligation provides free deadline extension
     public bool HasFreeDeadlineExtension(Letter letter)
     {

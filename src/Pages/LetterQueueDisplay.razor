@@ -28,6 +28,13 @@
                             }
                             <span class="token-icon">@letter.GetTokenTypeIcon()</span>
                             <span class="letter-type">@letter.TokenType</span>
+                            @{
+                                var leverageIndicator = GetLeverageIndicator(letter);
+                                if (!string.IsNullOrEmpty(leverageIndicator))
+                                {
+                                    <span class="leverage-indicator" title="@GetLeverageTooltip(letter)">@leverageIndicator</span>
+                                }
+                            }
                         </div>
                         <div class="letter-route">
                             <span class="sender @(letter.IsPatronLetter ? "patron-sender" : "")">@letter.SenderName</span>
@@ -691,5 +698,54 @@
             total += TokenManager.GetTokenCount(tokenType);
         }
         return total;
+    }
+    
+    private string GetLeverageIndicator(Letter letter)
+    {
+        // Get sender's token balance to determine leverage
+        var senderId = GetNPCIdByName(letter.SenderName);
+        if (string.IsNullOrEmpty(senderId)) return "";
+        
+        var tokens = TokenManager.GetTokensWithNPC(senderId);
+        var balance = tokens[letter.TokenType];
+        
+        // Visual indicators for leverage state
+        return balance switch
+        {
+            <= -3 => "🔴🔴🔴", // Extreme leverage
+            -2 => "🔴🔴",      // High leverage  
+            -1 => "🔴",        // Some leverage
+            0 => "",           // Neutral
+            >= 1 and <= 3 => "", // Normal relationship
+            >= 4 => "🟢",      // Mutual respect
+        };
+    }
+    
+    private string GetLeverageTooltip(Letter letter)
+    {
+        var senderId = GetNPCIdByName(letter.SenderName);
+        if (string.IsNullOrEmpty(senderId)) return "";
+        
+        var tokens = TokenManager.GetTokensWithNPC(senderId);
+        var balance = tokens[letter.TokenType];
+        
+        if (balance < 0)
+        {
+            return $"You owe {letter.SenderName} {Math.Abs(balance)} {letter.TokenType} tokens - they have leverage!";
+        }
+        else if (balance >= 4)
+        {
+            return $"Strong relationship ({balance} tokens) - reduced leverage";
+        }
+        
+        return "";
+    }
+    
+    // Helper to get NPC ID from name
+    private string GetNPCIdByName(string npcName)
+    {
+        // In a real implementation, this would use NPCRepository
+        // For now, just return a consistent ID based on the name
+        return npcName?.ToLower().Replace(" ", "_") ?? "";
     }
 }

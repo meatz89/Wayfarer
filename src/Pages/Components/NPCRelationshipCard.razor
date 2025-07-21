@@ -24,6 +24,15 @@
                     <span class="token-icon">@GetTokenIcon(tokenType)</span>
                     <span class="token-type">@tokenType</span>
                     <span class="token-count">@tokenCount</span>
+                    @if (tokenCount < 0)
+                    {
+                        <span class="debt-label">(debt)</span>
+                        <span class="leverage-warning" title="Letters from @NPC.Name will enter at position @GetLeveragePosition(tokenType, tokenCount)">⚠️ Leverage</span>
+                    }
+                    else if (tokenCount >= 4)
+                    {
+                        <span class="respect-indicator" title="Strong relationship reduces leverage">⭐</span>
+                    }
                 </div>
             }
             @if (!(NPC.LetterTokenTypes?.Any() ?? false))
@@ -392,5 +401,39 @@
             "danger" => "❌",
             _ => "ℹ️"
         };
+    }
+    
+    private int GetLeveragePosition(ConnectionType tokenType, int tokenBalance)
+    {
+        // Calculate the leverage position based on token debt
+        // This mirrors the logic in LetterQueueManager.CalculateLeveragePosition
+        
+        // Get base position for token type
+        int basePosition = tokenType switch
+        {
+            ConnectionType.Noble => 3,     // High social status
+            ConnectionType.Trade => 5,     // Middle class
+            ConnectionType.Shadow => 5,    // Underworld
+            ConnectionType.Common => 7,    // Lower class
+            ConnectionType.Trust => 7,     // Personal relationships
+            _ => 8
+        };
+        
+        // Apply leverage modifiers based on token balance
+        int leveragePosition = basePosition;
+        
+        if (tokenBalance < 0)
+        {
+            // Negative tokens create leverage - each -1 token = -1 position
+            leveragePosition += tokenBalance; // Subtracts since negative
+        }
+        else if (tokenBalance >= 4)
+        {
+            // High positive tokens reduce leverage slightly
+            leveragePosition += 1;
+        }
+        
+        // Clamp to valid queue positions
+        return Math.Max(1, Math.Min(8, leveragePosition));
     }
 }
