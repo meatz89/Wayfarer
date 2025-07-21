@@ -44,6 +44,7 @@ public class LocationActionManager
     private readonly NPCRepository _npcRepository;
     private readonly ItemRepository _itemRepository;
     private readonly ConversationFactory _conversationFactory;
+    private readonly RouteDiscoveryManager _routeDiscoveryManager;
     
     private TimeManager _timeManager => _gameWorld.TimeManager;
     
@@ -54,7 +55,8 @@ public class LocationActionManager
         LetterQueueManager letterQueueManager,
         NPCRepository npcRepository,
         ItemRepository itemRepository,
-        ConversationFactory conversationFactory)
+        ConversationFactory conversationFactory,
+        RouteDiscoveryManager routeDiscoveryManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -63,6 +65,7 @@ public class LocationActionManager
         _npcRepository = npcRepository;
         _itemRepository = itemRepository;
         _conversationFactory = conversationFactory;
+        _routeDiscoveryManager = routeDiscoveryManager;
     }
     
     
@@ -623,6 +626,58 @@ public class LocationActionManager
                     $"  • Gained +1 {npc.LetterTokenTypes.FirstOrDefault()} token with {npc.Name}",
                     SystemMessageTypes.Success
                 );
+                return true;
+            }
+            else if (selectedChoice.TemplateUsed == "DiscoverRoute")
+            {
+                // Show available routes from this NPC
+                var routeDiscoveries = _routeDiscoveryManager.GetDiscoveriesFromNPC(npc);
+                var discoverableRoutes = routeDiscoveries.Where(r => !r.Route.IsDiscovered && r.CanAfford).ToList();
+                
+                if (discoverableRoutes.Any())
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"🗺️ {npc.Name} shares their knowledge of hidden paths:",
+                        SystemMessageTypes.Success
+                    );
+                    
+                    // For now, discover the first available route
+                    // In a full implementation, this would be another conversation choice
+                    var routeToDiscover = discoverableRoutes.First();
+                    var route = routeToDiscover.Route;
+                    var discovery = routeToDiscover.Discovery;
+                    
+                    // Attempt to discover the route
+                    if (_routeDiscoveryManager.TryDiscoverRoute(route.Id, npcId))
+                    {
+                        _messageSystem.AddSystemMessage(
+                            $"  • Learned: {route.Name}",
+                            SystemMessageTypes.Success
+                        );
+                        _messageSystem.AddSystemMessage(
+                            $"  • From {route.Origin} to {route.Destination}",
+                            SystemMessageTypes.Info
+                        );
+                        _messageSystem.AddSystemMessage(
+                            $"  • Travel time: {route.TravelTimeHours} hours",
+                            SystemMessageTypes.Info
+                        );
+                        
+                        // Show token cost
+                        var tokenCost = discovery.RequiredTokensWithNPC;
+                        _messageSystem.AddSystemMessage(
+                            $"  • Cost: {tokenCost} tokens with {npc.Name}",
+                            SystemMessageTypes.Warning
+                        );
+                    }
+                }
+                else
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"💬 {npc.Name} doesn't know any routes you haven't already discovered.",
+                        SystemMessageTypes.Info
+                    );
+                }
                 return true;
             }
         }

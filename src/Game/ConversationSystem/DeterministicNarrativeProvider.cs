@@ -11,11 +11,16 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 {
     private readonly GameWorld _gameWorld;
     private readonly ConnectionTokenManager _tokenManager;
+    private readonly RouteDiscoveryManager _routeDiscoveryManager;
     
-    public DeterministicNarrativeProvider(GameWorld gameWorld, ConnectionTokenManager tokenManager)
+    public DeterministicNarrativeProvider(
+        GameWorld gameWorld, 
+        ConnectionTokenManager tokenManager,
+        RouteDiscoveryManager routeDiscoveryManager)
     {
         _gameWorld = gameWorld;
         _tokenManager = tokenManager;
+        _routeDiscoveryManager = routeDiscoveryManager;
     }
     
     public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
@@ -122,6 +127,11 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             var npc = context.TargetNPC;
             return Task.FromResult($"{npc?.Name ?? "They"} seem pleased to make your acquaintance.");
         }
+        else if (selectedChoice.TemplateUsed == "DiscoverRoute")
+        {
+            var npc = context.TargetNPC;
+            return Task.FromResult($"{npc?.Name ?? "They"} look around carefully. 'I do know a few paths... Let me tell you about them.'");
+        }
         
         // For most thin narrative layer actions, no reaction needed
         return Task.FromResult("");
@@ -227,7 +237,26 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             }
             else if (totalTokens >= 3)
             {
-                return $"{context.TargetNPC.Name} greets you warmly. 'Good to see you! I might have some work for you, if you're interested.'";
+                // Check if they know routes to make intro more contextual
+                var routeDiscoveries = _routeDiscoveryManager.GetDiscoveriesFromNPC(context.TargetNPC);
+                var hasRoutes = routeDiscoveries.Any(r => !r.Route.IsDiscovered && r.CanAfford);
+                
+                if (hasRoutes && context.TargetNPC.LetterTokenTypes.Any())
+                {
+                    return $"{context.TargetNPC.Name} greets you warmly. 'Good to see you! I have work if you need it, and I know some shortcuts you might find useful.'";
+                }
+                else if (hasRoutes)
+                {
+                    return $"{context.TargetNPC.Name} leans in conspiratorially. 'You've proven trustworthy. I know some paths that could save you time.'";
+                }
+                else if (context.TargetNPC.LetterTokenTypes.Any())
+                {
+                    return $"{context.TargetNPC.Name} greets you warmly. 'Good to see you! I might have some work for you, if you're interested.'";
+                }
+                else
+                {
+                    return $"You spend some time chatting with {context.TargetNPC.Name}.";
+                }
             }
             else
             {
@@ -329,45 +358,57 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             };
         }
         
+        // Build choices based on relationship level and what NPC offers
+        var choices = new List<ConversationChoice>();
+        
         // 1+ tokens = can offer letters (basic threshold)
         if (totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD && npc.LetterTokenTypes.Any())
         {
-            return new List<ConversationChoice>
-            {
-                new ConversationChoice
-                {
-                    ChoiceID = "1",
-                    NarrativeText = "I'd be happy to help with deliveries",
-                    FocusCost = 0,
-                    IsAffordable = true,
-                    TemplateUsed = "AcceptLetterOffer",
-                    TemplatePurpose = "Accept letter work"
-                },
-                new ConversationChoice
-                {
-                    ChoiceID = "2",
-                    NarrativeText = "Just catching up today",
-                    FocusCost = 0,
-                    IsAffordable = true,
-                    TemplateUsed = "DeclineLetterOffer",
-                    TemplatePurpose = "Decline letter work"
-                }
-            };
-        }
-        
-        // Otherwise just friendly chat
-        return new List<ConversationChoice>
-        {
-            new ConversationChoice
+            choices.Add(new ConversationChoice
             {
                 ChoiceID = "1",
-                NarrativeText = "Good to see you too",
+                NarrativeText = "I'd be happy to help with deliveries",
                 FocusCost = 0,
                 IsAffordable = true,
-                TemplateUsed = "FriendlyChat",
-                TemplatePurpose = "Continue conversation"
+                TemplateUsed = "AcceptLetterOffer",
+                TemplatePurpose = "Accept letter work"
+            });
+        }
+        
+        // 3+ tokens = can discover routes (quality threshold)
+        if (totalTokens >= GameRules.TOKENS_QUALITY_THRESHOLD)
+        {
+            // Check if NPC knows any undiscovered routes
+            var routeDiscoveries = _routeDiscoveryManager.GetDiscoveriesFromNPC(npc);
+            var discoverableRoutes = routeDiscoveries.Where(r => !r.Route.IsDiscovered && r.CanAfford).ToList();
+            
+            if (discoverableRoutes.Any())
+            {
+                // Just show one route discovery option, details will be in follow-up conversation
+                choices.Add(new ConversationChoice
+                {
+                    ChoiceID = choices.Count + 1 + "",
+                    NarrativeText = "Ask about hidden routes",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    TemplateUsed = "DiscoverRoute",
+                    TemplatePurpose = "Learn about secret paths"
+                });
             }
-        };
+        }
+        
+        // Always have option to just chat
+        choices.Add(new ConversationChoice
+        {
+            ChoiceID = choices.Count + 1 + "",
+            NarrativeText = choices.Any() ? "Just catching up today" : "Good to see you too",
+            FocusCost = 0,
+            IsAffordable = true,
+            TemplateUsed = choices.Any() ? "DeclineOffers" : "FriendlyChat",
+            TemplatePurpose = "Continue conversation"
+        });
+        
+        return choices;
     }
     
     private string GetQueueManagementIntroduction(QueueManagementContext context)

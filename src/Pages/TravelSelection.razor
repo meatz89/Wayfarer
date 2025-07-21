@@ -1,7 +1,7 @@
 ﻿@inherits TravelSelectionBase
 @inject GameWorldManager GameManager
 @inject TravelManager TravelManager
-@inject RouteUnlockManager RouteUnlockManager
+@inject RouteDiscoveryManager RouteDiscoveryManager
 
 @namespace Wayfarer.Pages
 
@@ -205,8 +205,8 @@
                             <h4 class="section-header">🔒 Locked Routes</h4>
                             @foreach (var route in lockedRoutes)
                             {
-                                var unlockOptions = RouteUnlockManager.GetAvailableRouteUnlocks(CurrentLocation.Id)
-                                                                     .Where(u => u.RouteId == route.Id)
+                                var unlockOptions = RouteDiscoveryManager.GetAvailableDiscoveries(CurrentLocation.Id)
+                                                                     .Where(d => d.Route.Id == route.Id)
                                                                      .ToList();
                                 
                                 <div class="route-option disabled">
@@ -228,13 +228,13 @@
                                     @if (unlockOptions.Any())
                                     {
                                         <div class="route-details">
-                                            @foreach (var unlock in unlockOptions)
+                                            @foreach (var discovery in unlockOptions)
                                             {
                                                 <div class="equipment-required">
-                                                    Ask @unlock.UnlockingNPC.Name: @unlock.TokenCost.Amount @unlock.TokenCost.TokenType tokens
-                                                    @if (!unlock.CanAfford)
+                                                    Ask @discovery.TeachingNPC.Name: @discovery.Discovery.RequiredTokensWithNPC tokens
+                                                    @if (!discovery.CanAfford)
                                                     {
-                                                        <span class="insufficient"> (Cannot afford)</span>
+                                                        <span class="insufficient"> (Need @discovery.Discovery.RequiredTokensWithNPC tokens, have @discovery.PlayerTokensWithNPC)</span>
                                                     }
                                                 </div>
                                             }
