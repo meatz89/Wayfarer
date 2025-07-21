@@ -1,9 +1,9 @@
 # SESSION HANDOFF
 
-## Session Date: 2025-07-21
+## Session Date: 2025-07-21 (COMPLETE)
 
-## CURRENT STATUS: World Map complete + TimeBlockCost legacy code removed!
-## NEXT: Test the new map visualization and complete gameplay experience
+## CURRENT STATUS: World Map fixed to use travel screen + All critical issues resolved!
+## NEXT: Test the complete gameplay experience with proper route selection
 
 ## SESSION SUMMARY
 
@@ -18,6 +18,7 @@ This session focused on fixing critical UI issues and implementing quality-of-li
 6. **Content Fixes** - Added missing Thornwood Village Market
 7. **Comprehensive World Map** - Shows ALL locations and routes, not just reachable ones
 8. **Legacy Code Removal** - Removed TimeBlockCost throughout codebase, now uses TravelTimeHours
+9. **Map Travel Fix** - Map now properly redirects to travel screen instead of bypassing route selection
 
 ### Critical User Feedback Addressed:
 - "the ui is all messed up" - Fixed 14 specific UI issues
@@ -26,6 +27,8 @@ This session focused on fixing critical UI issues and implementing quality-of-li
 - "npcs should only be at one location spot" - Fixed NPC positioning logic
 - "why are there no traders at thornwood village market?" - Added market and fixed trader assignment
 - "the map screen should show all locations with all possible connections" - Implemented comprehensive world map
+- "why does the world map 'travel to' button not redirect to the travel screen?" - Fixed critical design violation
+- "did you even read our detailed design documentation before making those changes?" - Added principle to CLAUDE.md
 
 ## CRITICAL DISCOVERIES THIS SESSION
 
@@ -55,6 +58,13 @@ This session focused on fixing critical UI issues and implementing quality-of-li
 
 **Root Cause**: Letters were generated but not stored in persistent state
 **Solution**: Added DailyBoardLetters property to Player to maintain letter state
+
+### 5. Critical Map Design Violation Caught
+**User Quote**: "why does the world map 'travel to' button not redirect to the travel screen? now it is possible to simply travel to a location without choosing and paying for a specific route. it also circumvents restrictions like route gear and route availability times."
+
+**Root Cause**: Map was calling HandleTravelStart which bypassed route selection entirely
+**Solution**: Changed to use SwitchToTravelScreen, button text now says "SELECT ROUTE TO"
+**Lesson**: ALWAYS read design documentation before implementing features - travel system has specific mechanics that must not be bypassed
 
 ## LATEST SESSION ACCOMPLISHMENTS
 
@@ -413,14 +423,15 @@ Design philosophy emphasized:
 
 ## FILES MODIFIED THIS SESSION
 
-Latest session (World Map + Legacy Code Removal):
-1. **AreaMap.razor** - Complete rewrite to show ALL locations and connections
-2. **area-map.css** - Created comprehensive styles for map visualization
+Latest session (World Map + Legacy Code Removal + Travel Fix):
+1. **AreaMap.razor** - Complete rewrite to show ALL locations and connections, fixed to use travel screen
+2. **area-map.css** - Created comprehensive styles for map visualization  
 3. **_Layout.cshtml** - Added area-map.css reference
 4. **routes.json** - Replaced timeBlockCost with travelTimeHours (1 block = 3 hours)
 5. **RouteDTO.cs** - Removed TimeBlockCost legacy property and GetTravelTimeHours method
 6. **GameWorldInitializer.cs** - Updated to use TravelTimeHours directly
 7. **CLAUDE.md** - Added "READ ALL RELEVANT FILES BEFORE MODIFYING" principle
+8. **MainGameplayView.razor** - Fixed to use SwitchToTravelScreen instead of HandleTravelStart
 8. **SystemMessage.cs** - Added expiration time and IsExpired property
 9. **MessageSystem.cs** - Added duration based on message type
 10. **MainGameplayView.razor.cs** - Added cleanup of expired messages
@@ -469,7 +480,7 @@ Previous session (Leverage implementation):
 11. **NPCRelationshipCard.razor** - Added debt warnings and GetLeveragePosition helper
 12. **MainGameplayView.razor** - Embedded LocationActions component
 
-This session:
+Previous session (Architecture fixes):
 1. **LocationActions.razor** - Fixed TimeManager dependency injection (changed to GameWorld.TimeManager)
 2. **nuget.config** - Created to fix NuGet package resolution issues
 3. **LetterCategorySystemTests.cs** - Removed (legacy direct access patterns)
@@ -553,3 +564,39 @@ public List<NPC> GetNPCsForLocationSpotAndTime(string locationSpotId, TimeBlocks
 - ✅ Build succeeds with only warnings
 - ✅ Ready for gameplay testing
 - ⚠️ Token relationship display needs investigation
+
+---
+
+## Session Date: 2025-07-22 (NEW SESSION)
+
+## IMMEDIATE CONTEXT
+
+### Current Implementation Status:
+- **Leverage System**: Complete with token debt mechanics affecting queue positioning
+- **UI System**: All major issues fixed, distance-based principles established
+- **System Messages**: Auto-dismiss with toast behavior + permanent event log
+- **World Map**: Shows ALL locations/routes, properly redirects to travel screen
+- **Architecture**: Clean, single source of truth (GameWorld), proper state management
+
+### Critical Design Principles Established:
+1. **Travel must go through TravelSelection screen** - Never bypass route mechanics
+2. **NPCs only interactable at same location** - Distance creates information constraints
+3. **All file reading must be complete** - No partial reads or assumptions
+4. **UI containers standardized at 1200px** - Consistent across all screens
+5. **GameWorld is ONLY source of truth** - No component state or timers
+
+### Known Issues:
+1. **Token Relationship Display** - Tokens tracked but may not show in UI
+   - Debug: Check HasAnyTokens() implementation
+   - Tokens visible in debug messages with totals
+
+### Next Immediate Tasks:
+1. **Test Complete Gameplay** at 1586x1357px resolution
+2. **Debug Token Display Issue** if relationships don't appear
+3. **Begin Resource Competition Phase** (see IMPLEMENTATION-PLAN.md)
+
+### Critical Files for New Session:
+- Read IMPLEMENTATION-PLAN.md for resource competition details
+- Check LOGICAL-SYSTEM-INTERACTIONS.md for queue mechanics
+- Review GAME-ARCHITECTURE.md for technical patterns
+- See INTENDED-GAMEPLAY.md for player experience goals
