@@ -90,8 +90,8 @@
                 @if (selectedLocation.Id != CurrentLocation.Id && GameWorldManager.CanTravelTo(selectedLocation.Id))
                 {
                     <button class="action-button"
-                            @onclick="() => OnTravel.InvokeAsync(selectedLocation.Id)">
-                        TRAVEL TO @selectedLocation.Name.ToUpper()
+                            @onclick="() => OnShowTravelScreen.InvokeAsync()">
+                        SELECT ROUTE TO @selectedLocation.Name.ToUpper()
                     </button>
                 }
             </div>
@@ -127,7 +127,7 @@
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
-    [Parameter] public EventCallback<string> OnTravel { get; set; }
+    [Parameter] public EventCallback OnShowTravelScreen { get; set; }
     
     private Location selectedLocation;
     private RouteOption selectedRoute;
