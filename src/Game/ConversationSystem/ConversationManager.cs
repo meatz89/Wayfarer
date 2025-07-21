@@ -5,8 +5,7 @@ public class ConversationManager
 {
     private ConversationContext _context;
     private ConversationState _state;
-    private AIGameMaster _aiGameMaster;
-    private WorldStateInputBuilder _worldStateInputBuilder;
+    private INarrativeProvider _narrativeProvider;
     private GameWorld _gameWorld;
     public List<ConversationChoice> Choices = new List<ConversationChoice>();
     public bool _isAwaitingAIResponse = false;
@@ -15,14 +14,12 @@ public class ConversationManager
     public ConversationManager(
         ConversationContext context,
         ConversationState state,
-        AIGameMaster aiGameMaster,
-        WorldStateInputBuilder worldStateInputBuilder,
+        INarrativeProvider narrativeProvider,
         GameWorld gameWorld)
     {
         _context = context;
         _state = state;
-        _aiGameMaster = aiGameMaster;
-        _worldStateInputBuilder = worldStateInputBuilder;
+        _narrativeProvider = narrativeProvider;
         _gameWorld = gameWorld;
     }
     
@@ -31,20 +28,14 @@ public class ConversationManager
         _state.DurationCounter = 0;
         _state.IsConversationComplete = false;
         
-        // Generate initial AI narrative for the conversation
-        var worldState = await _worldStateInputBuilder.CreateWorldStateInput(_gameWorld.WorldState.CurrentLocation?.Id ?? "unknown");
-        string introduction = await _aiGameMaster.GenerateIntroduction(
-            _context, 
-            _state, 
-            worldState, 
-            1);
-            
+        // Generate initial narrative for the conversation
+        string introduction = await _narrativeProvider.GenerateIntroduction(_context, _state);
         _state.CurrentNarrative = introduction;
     }
     
     public async Task<bool> ProcessNextBeat()
     {
-        if (!_isAvailable || !await _aiGameMaster.CanReceiveRequests())
+        if (!_isAvailable || !await _narrativeProvider.IsAvailable())
         {
             return false;
         }
@@ -52,15 +43,16 @@ public class ConversationManager
         _isAwaitingAIResponse = true;
         
         // Generate conversation choices
-        var worldState = await _worldStateInputBuilder.CreateWorldStateInput(_gameWorld.WorldState.CurrentLocation?.Id ?? "unknown");
+        var choiceTemplates = new List<ChoiceTemplate>(); // Empty for now, can be populated from context
+        if (_context is ActionConversationContext actionContext && actionContext.AvailableTemplates != null)
+        {
+            choiceTemplates = actionContext.AvailableTemplates;
+        }
         
-        var choiceTemplates = new List<ChoiceTemplate>(); // Empty for now
-        Choices = await _aiGameMaster.RequestChoices(
+        Choices = await _narrativeProvider.GenerateChoices(
             _context,
             _state,
-            worldState,
-            choiceTemplates,
-            1);
+            choiceTemplates);
             
         _isAwaitingAIResponse = false;
         return true;
@@ -69,16 +61,14 @@ public class ConversationManager
     public async Task<ConversationBeatOutcome> ProcessPlayerChoice(ConversationChoice selectedChoice)
     {
         // Process the player's dialogue choice
-        var worldState = await _worldStateInputBuilder.CreateWorldStateInput(_gameWorld.WorldState.CurrentLocation?.Id ?? "unknown");
+        bool success = true; // TODO: Determine success based on skill check
         
         // Generate reaction narrative
-        var reactionNarrative = await _aiGameMaster.GenerateReaction(
+        var reactionNarrative = await _narrativeProvider.GenerateReaction(
             _context,
             _state,
             selectedChoice,
-            true, // TODO: Determine success based on skill check
-            worldState,
-            1);
+            success);
             
         _state.LastChoiceNarrative = selectedChoice.NarrativeText;
         _state.CurrentNarrative = reactionNarrative;
@@ -96,12 +86,10 @@ public class ConversationManager
         {
             _state.IsConversationComplete = true;
             // Generate conclusion
-            var conclusion = await _aiGameMaster.GenerateConclusion(
+            var conclusion = await _narrativeProvider.GenerateConclusion(
                 _context,
                 _state,
-                selectedChoice,
-                worldState,
-                1);
+                selectedChoice);
             outcome.NarrativeDescription = conclusion;
         }
         

@@ -111,6 +111,23 @@
         services.AddSingleton<ConversationChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
 
+        // Register narrative provider based on configuration
+        services.AddSingleton<INarrativeProvider>(serviceProvider =>
+        {
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            bool useDeterministic = configuration.GetValue<bool>("UseDeterministicNarrative");
+            
+            if (useDeterministic)
+            {
+                var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+                return new DeterministicNarrativeProvider(gameWorld);
+            }
+            else
+            {
+                return serviceProvider.GetRequiredService<AIGameMaster>();
+            }
+        });
+
         // Register AI provider factory
         services.AddSingleton<IAIProvider>(serviceProvider =>
         {

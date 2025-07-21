@@ -25,6 +25,7 @@ public class GameWorldManager
     private MorningActivitiesManager morningActivitiesManager;
     private NPCLetterOfferService npcLetterOfferService;
     private ScenarioManager scenarioManager;
+    private ConversationFactory conversationFactory;
 
     private bool isAiAvailable = true;
 
@@ -39,7 +40,7 @@ public class GameWorldManager
                        NPCRepository npcRepository,
                        LetterQueueManager letterQueueManager, StandingObligationManager standingObligationManager,
                        MorningActivitiesManager morningActivitiesManager, NPCLetterOfferService npcLetterOfferService,
-                       ScenarioManager scenarioManager,
+                       ScenarioManager scenarioManager, ConversationFactory conversationFactory,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -56,6 +57,7 @@ public class GameWorldManager
         this.morningActivitiesManager = morningActivitiesManager;
         this.npcLetterOfferService = npcLetterOfferService;
         this.scenarioManager = scenarioManager;
+        this.conversationFactory = conversationFactory;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -118,12 +120,6 @@ public class GameWorldManager
         };
         
         // Create conversation using factory
-        var conversationFactory = new ConversationFactory(
-            null, // AIGameMaster will be injected by DI
-            null, // WorldStateInputBuilder will be injected by DI
-            null  // ConnectionTokenManager will be injected by DI
-        );
-        
         var conversationManager = await conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
         await conversationManager.InitializeConversation();
         

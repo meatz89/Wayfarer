@@ -1,4 +1,4 @@
-﻿public class AIGameMaster
+﻿public class AIGameMaster : INarrativeProvider
 {
     private AIPromptBuilder _promptBuilder;
     private ConversationHistoryManager _contextManager;
@@ -6,13 +6,15 @@
     private AIClient _aiClient;
     private GameWorld _gameWorld;
     private bool hasResponse;
+    private WorldStateInputBuilder _worldStateInputBuilder;
 
     public AIGameMaster(
         ConversationHistoryManager contextManager,
         ConversationChoiceResponseParser conversationChoiceResponseParser,
         AIClient aiClient,
         IConfiguration configuration,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        WorldStateInputBuilder worldStateInputBuilder)
     {
         _contextManager = contextManager;
         _conversationChoiceResponseParser = conversationChoiceResponseParser;
@@ -20,6 +22,7 @@
         _promptBuilder = new AIPromptBuilder(configuration);
         hasResponse = false;
         _aiClient = aiClient;
+        _worldStateInputBuilder = worldStateInputBuilder;
     }
 
     public bool HasResponse
@@ -40,6 +43,21 @@
         return await _aiClient.CanReceiveRequests();
     }
 
+    // INarrativeProvider implementation
+    public async Task<bool> IsAvailable()
+    {
+        return await CanReceiveRequests();
+    }
+
+    // INarrativeProvider implementation
+    public async Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
+    {
+        // Create world state input
+        var worldStateInput = await _worldStateInputBuilder.CreateWorldStateInput(context.LocationName);
+        return await GenerateIntroduction(context, state, worldStateInput, 1);
+    }
+    
+    // Original method with full parameters
     public async Task<string> GenerateIntroduction(
         ConversationContext context,
         ConversationState state,
@@ -83,6 +101,16 @@
         return response;
     }
 
+    // INarrativeProvider implementation
+    public async Task<List<ConversationChoice>> GenerateChoices(
+        ConversationContext context,
+        ConversationState state,
+        List<ChoiceTemplate> availableTemplates)
+    {
+        var worldStateInput = await _worldStateInputBuilder.CreateWorldStateInput(context.LocationName);
+        return await RequestChoices(context, state, worldStateInput, availableTemplates, 1);
+    }
+
     public async Task<List<ConversationChoice>> RequestChoices(
         ConversationContext context,
         ConversationState state,
@@ -112,6 +140,17 @@
 
         List<ConversationChoice> choices = _conversationChoiceResponseParser.ParseMultipleChoicesResponse(response);
         return choices;
+    }
+
+    // INarrativeProvider implementation
+    public async Task<string> GenerateReaction(
+        ConversationContext context,
+        ConversationState state,
+        ConversationChoice selectedChoice,
+        bool success)
+    {
+        var worldStateInput = await _worldStateInputBuilder.CreateWorldStateInput(context.LocationName);
+        return await GenerateReaction(context, state, selectedChoice, success, worldStateInput, 1);
     }
 
     public async Task<string> GenerateReaction(
@@ -146,6 +185,16 @@
         _contextManager.AddAssistantMessage(conversationId, response, messageType);
 
         return response;
+    }
+
+    // INarrativeProvider implementation
+    public async Task<string> GenerateConclusion(
+        ConversationContext context,
+        ConversationState state,
+        ConversationChoice lastChoice)
+    {
+        var worldStateInput = await _worldStateInputBuilder.CreateWorldStateInput(context.LocationName);
+        return await GenerateConclusion(context, state, lastChoice, worldStateInput, 1);
     }
 
     public async Task<string> GenerateConclusion(
