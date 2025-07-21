@@ -23,3 +23,14 @@ public class ConversationContext
     // Conversation flow
     public List<string> ConversationHistory { get; set; } = new List<string>();
 }
+
+/// <summary>
+/// Extended context for queue management conversations
+/// </summary>
+public class QueueManagementContext : ConversationContext
+{
+    public Letter TargetLetter { get; set; }
+    public string ManagementAction { get; set; } // "SkipDeliver", "Purge", etc.
+    public int TokenCost { get; set; }
+    public Dictionary<int, Letter> SkippedLetters { get; set; } // For skip action - letters that would be skipped
+}

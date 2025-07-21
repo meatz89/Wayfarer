@@ -7,6 +7,10 @@ public class ConversationManager
     private ConversationState _state;
     private INarrativeProvider _narrativeProvider;
     private GameWorld _gameWorld;
+    
+    public ConversationState State => _state;
+    public ConversationContext Context => _context;
+    public bool IsAwaitingResponse => _isAwaitingAIResponse;
     public List<ConversationChoice> Choices = new List<ConversationChoice>();
     public bool _isAwaitingAIResponse = false;
     public bool _isAvailable = true;

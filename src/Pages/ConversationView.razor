@@ -8,17 +8,20 @@
     <div class="encounter-content">
         <div class="encounter-main">
             <div class="encounter-stage">
-                <div class="stage-header">
-                    <div class="choice-set-name">Player Choice: @currentSnapshot.LastChoiceLabel (@(currentSnapshot.LastChoiceSuccess ? "Success" : "Failure"))</div>
-                </div>
-                <div class="stage-situation">@currentSnapshot.StreamingText</div>
-                
+                @if (ConversationManager != null && ConversationManager.State != null)
+                {
+                    <div class="stage-situation">@ConversationManager.State.CurrentNarrative</div>
+                }
+                else
+                {
+                    <div class="stage-situation">Starting conversation...</div>
+                }
             </div>
 
             <div class="encounter-choices">
-                @if (currentSnapshot?.CanSelectChoice == true)
+                @if (ConversationManager != null && ConversationManager.Choices?.Any() == true && !ConversationManager.IsAwaitingResponse)
                 {
-                    @foreach (var choice in currentSnapshot.AvailableChoices)
+                    @foreach (var choice in ConversationManager.Choices)
                     {
                         <div class="choice-option"
                              @onclick="(() => MakeChoice(choice.ChoiceID))"
@@ -35,7 +38,7 @@
                     }
                 }
             </div>
-            @if (currentSnapshot?.IsAwaitingAIResponse == true)
+            @if (ConversationManager?.IsAwaitingResponse == true)
             {
                 <div class="loading-indicator">
                     Thinking...
@@ -44,10 +47,10 @@
         </div>
     </div>
 
-    @if (currentSnapshot?.IsStreaming == true)
+    @if (ConversationManager?.State?.IsConversationComplete == true)
     {
-        <div class="stream-progress">
-            <div class="progress-bar" style="width: @(currentSnapshot.StreamProgress * 100)%"></div>
+        <div class="conversation-complete">
+            <button class="nav-button" @onclick="CompleteConversation">Continue</button>
         </div>
     }
 

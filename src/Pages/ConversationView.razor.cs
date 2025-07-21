@@ -21,8 +21,14 @@ public class ConversationViewBase : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         currentSnapshot = GameWorldManager.GetGameSnapshot();
-        // TODO: Implement conversation beat logic
-        // await GameWorldManager.NextConversationBeat();
+        
+        // Start the conversation by showing introduction and getting first choices
+        if (ConversationManager != null)
+        {
+            await ConversationManager.InitializeConversation();
+            await ConversationManager.ProcessNextBeat();
+            currentSnapshot = GameWorldManager.GetGameSnapshot();
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -30,10 +36,15 @@ public class ConversationViewBase : ComponentBase
         currentSnapshot = GameWorldManager.GetGameSnapshot();
 
         if (!currentSnapshot.IsStreaming &&
-            !currentSnapshot.IsAwaitingAIResponse)
+            !currentSnapshot.IsAwaitingAIResponse &&
+            ConversationManager != null)
         {
-            // TODO: Implement conversation beat logic
-        // await GameWorldManager.NextConversationBeat();
+            // Process next beat if conversation is active
+            if (!currentSnapshot.IsConversationComplete)
+            {
+                await ConversationManager.ProcessNextBeat();
+                currentSnapshot = GameWorldManager.GetGameSnapshot();
+            }
         }
     }
 
@@ -41,18 +52,31 @@ public class ConversationViewBase : ComponentBase
     {
         HideTooltip();
 
-        if (currentSnapshot?.CanSelectChoice == true)
+        if (ConversationManager != null && ConversationManager.Choices?.Any() == true)
         {
-            ConversationChoice selectedChoice = currentSnapshot.AvailableChoices
+            ConversationChoice selectedChoice = ConversationManager.Choices
                 .FirstOrDefault(c => c.ChoiceID == choiceId);
 
             if (selectedChoice != null)
             {
-                // TODO: Implement player choice processing
-                // await GameWorldManager.ProcessPlayerChoice(new PlayerChoiceSelection
-                // {
-                //     Choice = selectedChoice
-                // });
+                // Process the player's choice
+                var outcome = await ConversationManager.ProcessPlayerChoice(selectedChoice);
+                
+                // Update the game world with the last selected choice
+                GameWorldManager.SetLastSelectedChoice(selectedChoice);
+                
+                // Check if conversation is complete
+                if (outcome.IsConversationComplete)
+                {
+                    await OnConversationCompleted.InvokeAsync(outcome);
+                }
+                else
+                {
+                    // Continue conversation
+                    await ConversationManager.ProcessNextBeat();
+                    currentSnapshot = GameWorldManager.GetGameSnapshot();
+                    StateHasChanged();
+                }
             }
         }
     }
@@ -72,6 +96,18 @@ public class ConversationViewBase : ComponentBase
             hoveredChoice = null;
             showTooltip = false;
         }
+    }
+    
+    public async Task CompleteConversation()
+    {
+        // Create simple outcome for completion
+        var outcome = new ConversationBeatOutcome
+        {
+            IsConversationComplete = true,
+            NarrativeDescription = ConversationManager?.State?.CurrentNarrative ?? ""
+        };
+        
+        await OnConversationCompleted.InvokeAsync(outcome);
     }
 
 }

@@ -326,8 +326,53 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task OnConversationCompleted(ConversationBeatOutcome result)
     {
+        // Check if this was a queue management conversation
+        if (ConversationManager?.Context is QueueManagementContext queueContext)
+        {
+            var selectedChoice = GameManager.GetLastSelectedChoice();
+            if (selectedChoice != null)
+            {
+                if (selectedChoice.TemplateUsed == "SkipAndDeliver")
+                {
+                    // Process the skip action
+                    var skipPosition = GameWorld.GetMetadata("PendingSkipPosition");
+                    if (int.TryParse(skipPosition, out int position))
+                    {
+                        LetterQueueManager.TrySkipDeliver(position);
+                    }
+                }
+                else if (selectedChoice.TemplateUsed == "PurgeLetter")
+                {
+                    // Process the purge action
+                    var purgeTokensJson = GameWorld.GetMetadata("PendingPurgeTokens");
+                    if (!string.IsNullOrEmpty(purgeTokensJson))
+                    {
+                        try
+                        {
+                            var tokenSelection = System.Text.Json.JsonSerializer.Deserialize<Dictionary<ConnectionType, int>>(purgeTokensJson);
+                            if (tokenSelection != null)
+                            {
+                                LetterQueueManager.TryPurgeLetter(tokenSelection);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageSystem.AddSystemMessage($"Error processing purge: {ex.Message}", SystemMessageTypes.Danger);
+                        }
+                    }
+                }
+            }
+            
+            // Clear metadata
+            GameWorld.ClearMetadata("PendingSkipPosition");
+            GameWorld.ClearMetadata("PendingPurgePosition");
+            GameWorld.ClearMetadata("PendingPurgeTokens");
+            
+            // Return to letter queue screen
+            NavigationService.NavigateTo(CurrentViews.LetterQueueScreen);
+        }
         // Check if this was an action conversation
-        if (GameWorld.PendingAction != null)
+        else if (GameWorld.PendingAction != null)
         {
             // UI actions must go through GameWorldManager
             GameManager.CompleteActionAfterConversation(GameWorld.PendingAction);

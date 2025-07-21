@@ -9,9 +9,10 @@ public class LetterQueueManager
     private readonly StandingObligationManager _obligationManager;
     private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly LetterCategoryService _categoryService;
+    private readonly ConversationFactory _conversationFactory;
     private readonly Random _random = new Random();
     
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, ConversationFactory conversationFactory)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -20,6 +21,7 @@ public class LetterQueueManager
         _obligationManager = obligationManager;
         _connectionTokenManager = connectionTokenManager;
         _categoryService = categoryService;
+        _conversationFactory = conversationFactory;
     }
     
     // Get the player's letter queue
@@ -545,6 +547,57 @@ public class LetterQueueManager
         return true;
     }
     
+    // Generate a letter from an NPC and add to queue
+    public Letter GenerateLetterFromNPC(NPC npc)
+    {
+        if (npc == null) return null;
+        
+        // Check if queue has space
+        var player = _gameWorld.GetPlayer();
+        var queue = player.LetterQueue;
+        var emptySlot = queue.Any(l => l == null);
+        
+        if (!emptySlot)
+        {
+            _messageSystem.AddSystemMessage(
+                "❌ Letter queue is full! Make room before accepting more letters.",
+                SystemMessageTypes.Danger
+            );
+            return null;
+        }
+        
+        // Generate letter based on NPC token type
+        var tokenType = npc.LetterTokenTypes.FirstOrDefault();
+        var letter = _letterTemplateRepository.GenerateLetterFromNPC(npc.ID, npc.Name, tokenType);
+        
+        if (letter != null)
+        {
+            // Calculate leverage for position
+            var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+            var tokenBalance = tokens.Values.Sum(); // Sum of all tokens with this NPC
+            
+            // Determine position based on token type
+            int basePosition = tokenType switch
+            {
+                ConnectionType.Noble => 3,
+                ConnectionType.Trade => 5,
+                ConnectionType.Shadow => 5,
+                ConnectionType.Common => 7,
+                ConnectionType.Trust => 7,
+                _ => 7
+            };
+            
+            // If in debt (negative tokens), letter gets higher priority
+            int leverage = tokenBalance < 0 ? Math.Abs(tokenBalance) : 0;
+            int targetPosition = Math.Max(1, Math.Min(8, basePosition - leverage));
+            
+            // Add to queue at calculated position
+            AddLetterToQueue(letter, targetPosition);
+        }
+        
+        return letter;
+    }
+    
     // Deliver letter from position 1
     public bool DeliverFromPosition1()
     {
@@ -927,6 +980,109 @@ public class LetterQueueManager
                 );
             }
         }
+    }
+    
+    // Create conversation context for skip delivery action
+    public QueueManagementContext CreateSkipDeliverContext(int position)
+    {
+        if (position <= 1 || position > 8) return null;
+        
+        var letter = GetLetterAt(position);
+        if (letter == null) return null;
+        
+        // Check if position 1 is occupied
+        if (GetLetterAt(1) != null) return null;
+        
+        // Calculate token cost and get skipped letters
+        int tokenCost = position - 1;
+        var skippedLetters = new Dictionary<int, Letter>();
+        
+        for (int i = 2; i < position; i++)
+        {
+            var skippedLetter = GetLetterAt(i);
+            if (skippedLetter != null)
+            {
+                skippedLetters[i] = skippedLetter;
+            }
+        }
+        
+        return new QueueManagementContext
+        {
+            TargetLetter = letter,
+            ManagementAction = "SkipDeliver",
+            TokenCost = tokenCost,
+            SkippedLetters = skippedLetters,
+            GameWorld = _gameWorld,
+            Player = _gameWorld.GetPlayer()
+        };
+    }
+    
+    // Trigger conversation for skip delivery
+    public async Task<bool> TriggerSkipConversation(int position)
+    {
+        var context = CreateSkipDeliverContext(position);
+        if (context == null)
+        {
+            _messageSystem.AddSystemMessage("Cannot skip this letter.", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        // Store the skip position for later processing
+        _gameWorld.SetMetadata("PendingSkipPosition", position.ToString());
+        
+        // Create conversation
+        var conversation = await _conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
+        
+        // Set as pending conversation
+        _gameWorld.PendingConversationManager = conversation;
+        _gameWorld.ConversationPending = true;
+        
+        return true;
+    }
+    
+    // Create conversation context for purge action
+    public QueueManagementContext CreatePurgeContext()
+    {
+        var letter = GetLetterAt(8);
+        if (letter == null) return null;
+        
+        // Check if purging is forbidden
+        if (_obligationManager.IsActionForbidden("purge", letter, out string reason))
+        {
+            return null;
+        }
+        
+        return new QueueManagementContext
+        {
+            TargetLetter = letter,
+            ManagementAction = "Purge",
+            TokenCost = 3,
+            GameWorld = _gameWorld,
+            Player = _gameWorld.GetPlayer()
+        };
+    }
+    
+    // Trigger conversation for purge action
+    public async Task<bool> TriggerPurgeConversation()
+    {
+        var context = CreatePurgeContext();
+        if (context == null)
+        {
+            _messageSystem.AddSystemMessage("Cannot purge - no letter in position 8 or action forbidden.", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        // Store purge flag for later processing
+        _gameWorld.SetMetadata("PendingPurgePosition", "8");
+        
+        // Create conversation
+        var conversation = await _conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
+        
+        // Set as pending conversation
+        _gameWorld.PendingConversationManager = conversation;
+        _gameWorld.ConversationPending = true;
+        
+        return true;
     }
     
     // Skip letter delivery by spending tokens

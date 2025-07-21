@@ -172,8 +172,19 @@ public class LetterTemplateRepository
         var availableTemplates = GetAvailableTemplatesForNPC(npcId, tokenType);
         if (!availableTemplates.Any()) return null;
         
-        // Select a random template from available ones
-        var template = availableTemplates[_random.Next(availableTemplates.Count)];
+        // Get the category based on actual token count
+        var category = _categoryService?.GetAvailableCategory(npcId, tokenType) ?? LetterCategory.Basic;
+        
+        // Filter templates to only those matching the category
+        var categoryTemplates = availableTemplates.Where(t => t.Category == category).ToList();
+        if (!categoryTemplates.Any())
+        {
+            // Fallback to any available template if no exact category match
+            categoryTemplates = availableTemplates;
+        }
+        
+        // Select a random template from category-appropriate ones
+        var template = categoryTemplates[_random.Next(categoryTemplates.Count)];
         
         // Find a random recipient (not the sender)
         var allNpcs = _gameWorld.WorldState.NPCs;
@@ -182,6 +193,16 @@ public class LetterTemplateRepository
         
         var recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
         
-        return GenerateLetterFromTemplate(template, senderName, recipient.Name);
+        // Generate letter with category-appropriate payment
+        var letter = GenerateLetterFromTemplate(template, senderName, recipient.Name);
+        
+        // Override payment to match category if needed
+        if (_categoryService != null)
+        {
+            var (minPay, maxPay) = _categoryService.GetCategoryPaymentRange(category);
+            letter.Payment = _random.Next(minPay, maxPay + 1);
+        }
+        
+        return letter;
     }
 }

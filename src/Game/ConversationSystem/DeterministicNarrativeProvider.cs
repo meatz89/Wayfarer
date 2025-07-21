@@ -10,10 +10,12 @@ using System.Threading.Tasks;
 public class DeterministicNarrativeProvider : INarrativeProvider
 {
     private readonly GameWorld _gameWorld;
+    private readonly ConnectionTokenManager _tokenManager;
     
-    public DeterministicNarrativeProvider(GameWorld gameWorld)
+    public DeterministicNarrativeProvider(GameWorld gameWorld, ConnectionTokenManager tokenManager)
     {
         _gameWorld = gameWorld;
+        _tokenManager = tokenManager;
     }
     
     public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
@@ -24,11 +26,21 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             return Task.FromResult(actionContext.InitialNarrative);
         }
         
-        // Handle delivery separately to check letter state
-        if (context.ConversationTopic == "Action_Deliver")
+        // Check if this is an action conversation with special narrative handling
+        if (context is ActionConversationContext actionCtx && actionCtx.SourceAction != null)
         {
-            var introduction = GetDeliveryIntroduction(context);
-            return Task.FromResult(introduction);
+            var specialIntroduction = GetActionSpecificIntroduction(actionCtx);
+            if (specialIntroduction != null)
+            {
+                return Task.FromResult(specialIntroduction);
+            }
+        }
+        
+        // Check if this is a queue management conversation
+        if (context is QueueManagementContext queueCtx)
+        {
+            var queueIntroduction = GetQueueManagementIntroduction(queueCtx);
+            return Task.FromResult(queueIntroduction);
         }
         
         // Simple one-sentence narratives for thin layer
@@ -54,14 +66,25 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         ConversationState state,
         List<ChoiceTemplate> availableTemplates)
     {
-        // For delivery, check if letter is valid
-        if (context.ConversationTopic == "Action_Deliver")
+        // Check if this is a queue management conversation
+        if (context is QueueManagementContext queueContext)
         {
-            return Task.FromResult(GetDeliveryChoices(context));
+            var choices = GenerateQueueManagementChoices(queueContext);
+            return Task.FromResult(choices);
+        }
+        
+        // Check if this is an action conversation with special handling
+        if (context is ActionConversationContext actionContext && actionContext.SourceAction != null)
+        {
+            var choices = GenerateActionChoices(actionContext);
+            if (choices != null)
+            {
+                return Task.FromResult(choices);
+            }
         }
         
         // For thin narrative layer, always return a single "Continue" button
-        var choices = new List<ConversationChoice>
+        var defaultChoices = new List<ConversationChoice>
         {
             new ConversationChoice
             {
@@ -74,7 +97,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             }
         };
         
-        return Task.FromResult(choices);
+        return Task.FromResult(defaultChoices);
     }
     
     public Task<string> GenerateReaction(
@@ -83,8 +106,24 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         ConversationChoice selectedChoice,
         bool success)
     {
-        // For thin narrative layer, no reaction needed - action will execute immediately
-        // Return empty string to signal completion
+        // Handle specific choice templates that need reactions
+        if (selectedChoice.TemplateUsed == "AcceptLetterOffer")
+        {
+            var npc = context.TargetNPC;
+            return Task.FromResult($"{npc?.Name ?? "They"} smile and hand you a sealed letter. 'I knew I could count on you.'");
+        }
+        else if (selectedChoice.TemplateUsed == "DeclineLetterOffer")
+        {
+            var npc = context.TargetNPC;
+            return Task.FromResult($"{npc?.Name ?? "They"} nod understandingly. 'Perhaps another time then.'");
+        }
+        else if (selectedChoice.TemplateUsed == "Introduction")
+        {
+            var npc = context.TargetNPC;
+            return Task.FromResult($"{npc?.Name ?? "They"} seem pleased to make your acquaintance.");
+        }
+        
+        // For most thin narrative layer actions, no reaction needed
         return Task.FromResult("");
     }
     
@@ -165,6 +204,59 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         return $"You approach {context.TargetNPC?.Name ?? "the recipient"} to deliver a letter.";
     }
     
+    private string GetActionSpecificIntroduction(ActionConversationContext context)
+    {
+        // Handle actions that need special state checks categorically
+        var action = context.SourceAction;
+        
+        // Check if this is a delivery action (has letter context)
+        if (action.Action == LocationAction.Deliver)
+        {
+            return GetDeliveryIntroduction(context);
+        }
+        
+        // Check if this is a conversation action that might offer letters
+        if (action.Action == LocationAction.Converse && context.TargetNPC != null)
+        {
+            var tokens = _tokenManager.GetTokensWithNPC(context.TargetNPC.ID);
+            var totalTokens = tokens.Values.Sum();
+            
+            if (totalTokens == 0)
+            {
+                return $"You approach {context.TargetNPC.Name} to introduce yourself.";
+            }
+            else if (totalTokens >= 3)
+            {
+                return $"{context.TargetNPC.Name} greets you warmly. 'Good to see you! I might have some work for you, if you're interested.'";
+            }
+            else
+            {
+                return $"You spend some time chatting with {context.TargetNPC.Name}.";
+            }
+        }
+        
+        return null; // Use default narrative
+    }
+    
+    private List<ConversationChoice> GenerateActionChoices(ActionConversationContext context)
+    {
+        var action = context.SourceAction;
+        
+        // Handle delivery actions with validation
+        if (action.Action == LocationAction.Deliver)
+        {
+            return GetDeliveryChoices(context);
+        }
+        
+        // Handle conversation actions that might offer letters
+        if (action.Action == LocationAction.Converse && context.TargetNPC != null)
+        {
+            return GetConverseChoices(context);
+        }
+        
+        return null; // Use default choices
+    }
+    
     private List<ConversationChoice> GetDeliveryChoices(ConversationContext context)
     {
         var player = _gameWorld.GetPlayer();
@@ -188,19 +280,173 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             };
         }
         
-        // Otherwise provide continue choice to deliver
+        // Otherwise provide delivery choices - token vs extra payment
         return new List<ConversationChoice>
         {
             new ConversationChoice
             {
                 ChoiceID = "1",
-                NarrativeText = "Hand over the letter",
+                NarrativeText = $"Accept standard payment ({letter.Payment} coins + 1 token)",
                 FocusCost = 0,
                 IsAffordable = true,
-                TemplateUsed = "Deliver",
-                TemplatePurpose = "Complete the delivery"
+                TemplateUsed = "DeliverForTokens",
+                TemplatePurpose = "Standard delivery with relationship building"
+            },
+            new ConversationChoice
+            {
+                ChoiceID = "2",
+                NarrativeText = $"Request extra payment ({letter.Payment + 3} coins, no token)",
+                FocusCost = 0,
+                IsAffordable = true,
+                TemplateUsed = "DeliverForCoins",
+                TemplatePurpose = "Prioritize money over relationship"
             }
         };
+    }
+    
+    private List<ConversationChoice> GetConverseChoices(ActionConversationContext context)
+    {
+        var npc = context.TargetNPC;
+        if (npc == null) return null;
+        
+        var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        var totalTokens = tokens.Values.Sum();
+        
+        // No tokens = just introduction
+        if (totalTokens == 0)
+        {
+            return new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "1",
+                    NarrativeText = "Nice to meet you",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    TemplateUsed = "Introduction",
+                    TemplatePurpose = "Establish first connection"
+                }
+            };
+        }
+        
+        // 1+ tokens = can offer letters (basic threshold)
+        if (totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD && npc.LetterTokenTypes.Any())
+        {
+            return new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "1",
+                    NarrativeText = "I'd be happy to help with deliveries",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    TemplateUsed = "AcceptLetterOffer",
+                    TemplatePurpose = "Accept letter work"
+                },
+                new ConversationChoice
+                {
+                    ChoiceID = "2",
+                    NarrativeText = "Just catching up today",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    TemplateUsed = "DeclineLetterOffer",
+                    TemplatePurpose = "Decline letter work"
+                }
+            };
+        }
+        
+        // Otherwise just friendly chat
+        return new List<ConversationChoice>
+        {
+            new ConversationChoice
+            {
+                ChoiceID = "1",
+                NarrativeText = "Good to see you too",
+                FocusCost = 0,
+                IsAffordable = true,
+                TemplateUsed = "FriendlyChat",
+                TemplatePurpose = "Continue conversation"
+            }
+        };
+    }
+    
+    private string GetQueueManagementIntroduction(QueueManagementContext context)
+    {
+        if (context.ManagementAction == "SkipDeliver")
+        {
+            var letter = context.TargetLetter;
+            if (context.SkippedLetters?.Any() == true)
+            {
+                var skippedNames = string.Join(", ", context.SkippedLetters.Values.Select(l => l.SenderName));
+                return $"To deliver {letter.SenderName}'s letter immediately, you'll need to skip ahead of {skippedNames}. This will cost {context.TokenCost} {letter.TokenType} tokens.";
+            }
+            return $"You consider prioritizing {letter.SenderName}'s letter to position 1. This will cost {context.TokenCost} {letter.TokenType} tokens.";
+        }
+        else if (context.ManagementAction == "Purge")
+        {
+            var letter = context.TargetLetter;
+            return $"You're about to discard {letter.SenderName}'s letter from your queue. This will permanently remove the obligation but costs 3 tokens of any type.";
+        }
+        
+        return "You consider managing your letter queue.";
+    }
+    
+    private List<ConversationChoice> GenerateQueueManagementChoices(QueueManagementContext context)
+    {
+        if (context.ManagementAction == "SkipDeliver")
+        {
+            var letter = context.TargetLetter;
+            var tokenCount = _tokenManager.GetTokenCount(letter.TokenType);
+            
+            return new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "1",
+                    NarrativeText = $"Skip and deliver ({context.TokenCost} {letter.TokenType} tokens)",
+                    FocusCost = 0,
+                    IsAffordable = tokenCount >= context.TokenCost,
+                    TemplateUsed = "SkipAndDeliver",
+                    TemplatePurpose = "Pay tokens to skip queue order"
+                },
+                new ConversationChoice
+                {
+                    ChoiceID = "2",
+                    NarrativeText = "Respect queue order",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    TemplateUsed = "RespectQueueOrder",
+                    TemplatePurpose = "Cancel skip action"
+                }
+            };
+        }
+        else if (context.ManagementAction == "Purge")
+        {
+            // For purge, player can choose any combination of 3 tokens
+            return new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "1",
+                    NarrativeText = "Discard the letter (3 tokens)",
+                    FocusCost = 0,
+                    IsAffordable = _tokenManager.GetPlayerTokens().Values.Sum() >= 3,
+                    TemplateUsed = "PurgeLetter",
+                    TemplatePurpose = "Remove letter from queue"
+                },
+                new ConversationChoice
+                {
+                    ChoiceID = "2",
+                    NarrativeText = "Keep the obligation",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    TemplateUsed = "KeepLetter",
+                    TemplatePurpose = "Cancel purge action"
+                }
+            };
+        }
+        
+        return GenerateDefaultChoices(context, null);
     }
 }
 

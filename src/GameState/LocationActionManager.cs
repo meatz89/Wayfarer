@@ -454,7 +454,7 @@ public class LocationActionManager
     /// <summary>
     /// Complete the action after conversation finishes
     /// </summary>
-    public bool CompleteActionAfterConversation(ActionOption option)
+    public bool CompleteActionAfterConversation(ActionOption option, ConversationChoice selectedChoice = null)
     {
         var player = _gameWorld.GetPlayer();
         
@@ -463,14 +463,14 @@ public class LocationActionManager
         player.ModifyStamina(-option.StaminaCost);
         player.ModifyCoins(-option.CoinCost);
         
-        // Execute action
+        // Execute action - handle special conversation outcomes
         switch (option.Action)
         {
             case LocationAction.Rest:
                 return ExecuteRest(option);
                 
             case LocationAction.Converse:
-                return ExecuteConverse(option.NPCId);
+                return ExecuteConverse(option.NPCId, selectedChoice);
                 
             case LocationAction.Socialize:
                 return ExecuteSocialize(option.NPCId);
@@ -482,7 +482,7 @@ public class LocationActionManager
                 return ExecuteCollect(option.NPCId, option.LetterId);
                 
             case LocationAction.Deliver:
-                return ExecuteDeliver(option.NPCId, option.LetterId);
+                return ExecuteDeliver(option.NPCId, option.LetterId, selectedChoice);
                 
             case LocationAction.Trade:
                 return ExecuteTrade(option.NPCId);
@@ -559,7 +559,7 @@ public class LocationActionManager
         return true;
     }
     
-    private bool ExecuteConverse(string npcId)
+    private bool ExecuteConverse(string npcId, ConversationChoice selectedChoice = null)
     {
         var npc = _npcRepository.GetNPCById(npcId);
         if (npc == null) return false;
@@ -567,27 +567,72 @@ public class LocationActionManager
         var tokens = _tokenManager.GetTokensWithNPC(npcId);
         var totalTokens = tokens.Values.Sum();
         
+        // Handle conversation choice outcomes
+        if (selectedChoice != null)
+        {
+            if (selectedChoice.TemplateUsed == "AcceptLetterOffer")
+            {
+                // Generate letter from this NPC
+                var letter = _letterQueueManager.GenerateLetterFromNPC(npc);
+                if (letter != null)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"📬 {npc.Name} hands you a letter to deliver.",
+                        SystemMessageTypes.Success
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • To: {letter.RecipientName}",
+                        SystemMessageTypes.Info
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • Payment: {letter.Payment} coins",
+                        SystemMessageTypes.Info
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • Deadline: {letter.Deadline} days",
+                        SystemMessageTypes.Info
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • Letter added to position {letter.QueuePosition}",
+                        SystemMessageTypes.Success
+                    );
+                }
+                else
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"❌ Your letter queue is full! Make room before accepting more letters.",
+                        SystemMessageTypes.Danger
+                    );
+                }
+                return true;
+            }
+            else if (selectedChoice.TemplateUsed == "Introduction")
+            {
+                // Grant first token to establish connection
+                _tokenManager.AddTokensToNPC(npc.LetterTokenTypes.FirstOrDefault(), 1, npcId);
+                
+                _messageSystem.AddSystemMessage(
+                    $"👋 You introduce yourself to {npc.Name}.",
+                    SystemMessageTypes.Success
+                );
+                _messageSystem.AddSystemMessage(
+                    $"  • \"{npc.Description}\"",
+                    SystemMessageTypes.Info
+                );
+                _messageSystem.AddSystemMessage(
+                    $"  • Gained +1 {npc.LetterTokenTypes.FirstOrDefault()} token with {npc.Name}",
+                    SystemMessageTypes.Success
+                );
+                return true;
+            }
+        }
+        
+        // Default conversation outcomes
         if (totalTokens == 0)
         {
-            // First meeting
+            // First meeting - should have been handled by Introduction choice above
             _messageSystem.AddSystemMessage(
-                $"👋 You introduce yourself to {npc.Name}.",
-                SystemMessageTypes.Success
-            );
-            _messageSystem.AddSystemMessage(
-                $"  • \"{npc.Description}\"",
-                SystemMessageTypes.Info
-            );
-            _messageSystem.AddSystemMessage(
-                $"  • They seem to work in {npc.LetterTokenTypes.FirstOrDefault()} circles",
-                SystemMessageTypes.Info
-            );
-            
-            // Grant first token to establish connection
-            _tokenManager.AddTokensToNPC(npc.LetterTokenTypes.FirstOrDefault(), 1, npcId);
-            
-            _messageSystem.AddSystemMessage(
-                $"  • Gained +1 {npc.LetterTokenTypes.FirstOrDefault()} token with {npc.Name}",
+                $"💬 You have a brief chat with {npc.Name}.",
                 SystemMessageTypes.Success
             );
         }
@@ -599,11 +644,11 @@ public class LocationActionManager
                 SystemMessageTypes.Success
             );
             
-            // May reveal letter opportunities at 3+ tokens
-            if (totalTokens >= 3)
+            // May reveal letter opportunities at 1+ tokens
+            if (totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD && npc.LetterTokenTypes.Any())
             {
                 _messageSystem.AddSystemMessage(
-                    $"  • {npc.Name} mentions they might have some letters that need delivering...",
+                    $"  • {npc.Name} seems to trust you with their correspondence",
                     SystemMessageTypes.Info
                 );
             }
@@ -798,7 +843,7 @@ public class LocationActionManager
         return true;
     }
     
-    private bool ExecuteDeliver(string npcId, string letterId)
+    private bool ExecuteDeliver(string npcId, string letterId, ConversationChoice selectedChoice = null)
     {
         var player = _gameWorld.GetPlayer();
         var letter = player.LetterQueue[0];
@@ -815,19 +860,53 @@ public class LocationActionManager
         // Remove from carried letters
         player.CarriedLetters.Remove(letter);
         
-        // Use LetterQueueManager to handle the delivery properly
-        if (_letterQueueManager.DeliverFromPosition1())
+        // Determine payment based on conversation choice
+        bool earnToken = true;
+        int bonusCoins = 0;
+        
+        if (selectedChoice != null)
+        {
+            if (selectedChoice.TemplateUsed == "DeliverForCoins")
+            {
+                // Player chose extra coins, no token
+                earnToken = false;
+                bonusCoins = 3;
+            }
+            // DeliverForTokens is the default behavior
+        }
+        
+        // Calculate total payment
+        int totalPayment = letter.Payment + bonusCoins;
+        
+        // Process delivery
+        _letterQueueManager.RemoveLetterFromQueue(1);
+        _letterQueueManager.RecordLetterDelivery(letter);
+        player.ModifyCoins(totalPayment);
+        
+        // Show delivery messages
+        _messageSystem.AddSystemMessage(
+            $"✉️ Letter delivered to {letter.RecipientName}!",
+            SystemMessageTypes.Success
+        );
+        
+        if (bonusCoins > 0)
         {
             _messageSystem.AddSystemMessage(
-                $"✉️ Letter delivered to {letter.RecipientName}!",
+                $"💰 Earned {totalPayment} coins (base {letter.Payment} + {bonusCoins} extra)",
                 SystemMessageTypes.Success
             );
+        }
+        else
+        {
             _messageSystem.AddSystemMessage(
-                $"💰 Earned {letter.Payment} coins",
+                $"💰 Earned {totalPayment} coins",
                 SystemMessageTypes.Success
             );
-            
-            // Add token with recipient
+        }
+        
+        // Handle token reward if applicable
+        if (earnToken)
+        {
             var npc = _npcRepository.GetNPCById(npcId);
             if (npc != null && npc.LetterTokenTypes.Any())
             {
@@ -838,11 +917,16 @@ public class LocationActionManager
                     SystemMessageTypes.Success
                 );
             }
-            
-            return true;
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage(
+                "  • No token earned (chose extra payment)",
+                SystemMessageTypes.Info
+            );
         }
         
-        return false;
+        return true;
     }
     
     private bool ExecuteTrade(string npcId)
