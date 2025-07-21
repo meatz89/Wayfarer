@@ -89,7 +89,7 @@ public class ConnectionTokenManager
         if (npc != null)
         {
             _messageSystem.AddSystemMessage(
-                $"🤝 +{count} {type} token{(count > 1 ? "s" : "")} with {npc.Name}",
+                $"🤝 +{count} {type} token{(count > 1 ? "s" : "")} with {npc.Name} (Total: {newTokenCount})",
                 SystemMessageTypes.Success
             );
             

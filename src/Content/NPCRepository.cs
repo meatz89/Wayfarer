@@ -64,15 +64,8 @@
     /// </summary>
     public List<NPC> GetNPCsForLocationSpotAndTime(string locationSpotId, TimeBlocks currentTime)
     {
-        List<LocationSpot> spots = _gameWorld.WorldState.locationSpots ?? new List<LocationSpot>();
-        LocationSpot spot = spots.FirstOrDefault(s => s.SpotID == locationSpotId);
-
-        if (spot?.PrimaryNPC != null && spot.PrimaryNPC.IsAvailable(currentTime))
-        {
-            return new List<NPC> { spot.PrimaryNPC };
-        }
-
-        return new List<NPC>();
+        List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
+        return npcs.Where(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime)).ToList();
     }
 
     /// <summary>
@@ -80,15 +73,8 @@
     /// </summary>
     public NPC GetPrimaryNPCForSpot(string locationSpotId, TimeBlocks currentTime)
     {
-        List<LocationSpot> spots = _gameWorld.WorldState.locationSpots ?? new List<LocationSpot>();
-        LocationSpot spot = spots.FirstOrDefault(s => s.SpotID == locationSpotId);
-
-        if (spot?.PrimaryNPC != null && spot.PrimaryNPC.IsAvailable(currentTime))
-        {
-            return spot.PrimaryNPC;
-        }
-
-        return null;
+        List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
+        return npcs.FirstOrDefault(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime));
     }
 
     /// <summary>

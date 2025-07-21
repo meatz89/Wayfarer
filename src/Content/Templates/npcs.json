@@ -114,7 +114,7 @@
 		"name": "Marcus",
 		"profession": "Merchant",
 		"locationId": "thornwood",
-		"spotId": "market",
+		"spotId": "thornwood_market",
 		"description": "A shrewd trader who deals in valuable goods and commercial correspondence.",
 		"personality": "Business-focused and practical, always looking for reliable couriers.",
 		"services": ["trade_goods"],

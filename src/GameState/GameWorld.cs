@@ -92,6 +92,8 @@
     
     // System Messages State
     public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
+    // Event Log - Permanent record of all messages
+    public List<SystemMessage> EventLog { get; set; } = new List<SystemMessage>();
 
     public GameWorld()
     {

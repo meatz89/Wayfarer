@@ -563,8 +563,7 @@ public class GameWorldManager
             }
         }
 
-        // Add coin weight (coins have weight)
-        totalWeight += player.Coins / 10;
+        // Coins no longer have weight
 
         return totalWeight;
     }

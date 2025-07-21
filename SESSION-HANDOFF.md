@@ -2,8 +2,56 @@
 
 ## Session Date: 2025-07-21
 
-## CURRENT STATUS: ALL UI ISSUES FIXED! Distance-based UI principles documented and applied!
-## NEXT: Test complete gameplay experience with all fixes
+## CURRENT STATUS: ALL REQUESTED FIXES COMPLETE! System messages auto-dismiss, event log added, NPCs fixed!
+## NEXT: Test complete gameplay experience with all fixes and new features
+
+## SESSION SUMMARY
+
+This session focused on fixing critical UI issues and implementing quality-of-life improvements. The session evolved from implementing the leverage system to addressing numerous UI problems discovered during testing.
+
+### Key Accomplishments:
+1. **Leverage System Implementation** - Complete token debt mechanics affecting queue positioning
+2. **14 Major UI Fixes** - Addressed readability, consistency, and usability issues
+3. **Distance-Based UI Principle** - Established core principle that NPCs are only interactable when present
+4. **System Message Improvements** - Auto-dismiss with toast notifications and permanent event log
+5. **NPC Location Fixes** - NPCs now correctly appear only at their assigned spots
+6. **Content Fixes** - Added missing Thornwood Village Market
+
+### Critical User Feedback Addressed:
+- "the ui is all messed up" - Fixed 14 specific UI issues
+- "actions with npcs are only possible, if the player is at the same location" - Established as core principle
+- "system messages never disappear and cant be closed" - Implemented auto-dismiss
+- "npcs should only be at one location spot" - Fixed NPC positioning logic
+- "why are there no traders at thornwood village market?" - Added market and fixed trader assignment
+
+## CRITICAL DISCOVERIES THIS SESSION
+
+### 1. Distance-Based UI Principle Established
+**User Quote**: "actions with npcs are only possible, if the player is at the same location as the npc - over distance no action is possible, only info the player remembers from their past active relations as well as current tokens"
+
+**Implementation**:
+- Character Relationships screen now shows ONLY remembered information (tokens, debt status)
+- NPCs cannot be interacted with unless player is at same location
+- All detailed NPC info (availability, current offers) hidden when not present
+- This creates realistic information constraints and emphasizes being present
+
+### 2. UI Consistency Issues Discovered
+**User Quote**: "obligation screen has no background (color) container, so the text is not readable. letter queue has a full size container (correct) while other screens container like board is thinner (why?)"
+
+**Root Cause**: Inconsistent CSS styling across different screens
+**Solution**: Standardized all main containers to 1200px width with consistent background styling
+
+### 3. Contextual Actions Must Be At Point of Use
+**User Quote**: "rest action is still at location screen (should be moved to rest screen, all rest options must be location related)"
+
+**Principle**: Actions should be available where they make narrative sense
+**Implementation**: Moved ALL rest options to RestUI screen, including location-specific variants
+
+### 4. State Persistence Bug
+**User Quote**: "the letter board dawn letters only get shown once. when click away and back they are not there anymore"
+
+**Root Cause**: Letters were generated but not stored in persistent state
+**Solution**: Added DailyBoardLetters property to Player to maintain letter state
 
 ## LATEST SESSION ACCOMPLISHMENTS
 
@@ -224,27 +272,63 @@ SystemMessages = GameWorld.SystemMessages;
 ### 1. Test Complete Gameplay Experience (CRITICAL)
 - All UI fixes have been implemented
 - Distance-based UI principles are in place
+- System messages auto-dismiss with toast-like behavior
+- Event Log provides permanent message history
+- NPCs correctly show only at their assigned spots
+- Thornwood Village Market now has traders
 - Test the full flow with proper UI at 1586x1357px
 - Verify all screens are readable and consistent
 - Check that contextual actions work properly
 
-### 2. Resource Competition Implementation (NEXT PHASE)
+### 2. Debug Token Tracking Issue
+- Despite tokens being tracked (visible in debug messages), relationships may not show
+- Check if NPCs need to be initialized with token tracking
+- Verify CharacterRelationshipScreen is reading correct data
+
+### 3. Resource Competition Implementation (NEXT PHASE)
 - Three-State Letter System (Offered → Accepted → Collected)
 - Hour-Based Time System (12-16 hours per day)
 - Fixed Stamina Costs (Travel: 2, Work: 2, Deliver: 1, Rest: +3)
 - Simplified Token Generation (Socialize: 1 hour → 1 token, Delivery: 1 token)
 
+## CRITICAL LESSONS LEARNED
+
+1. **Always Read Files Fully**
+   - User emphasized: "dont be lazy with reading files. you must always read the file fully"
+   - Critical for understanding context and avoiding mistakes
+   - Never make assumptions about file contents
+
+2. **Understand Before Removing Code**
+   - User corrected: "always ask yourself the purpose of code before removing it"
+   - Rest options needed to be location-dependent, not removed
+   - Code that seems redundant may have important contextual purpose
+
+3. **UI Must Match Use Case**
+   - 1586x1357px screen revealed numerous readability issues
+   - Container widths must be consistent (1200px standard)
+   - Text overflow and small containers make game unplayable
+   - Tooltips over guide text to maximize screen space
+
+4. **Game Design vs App Design**
+   - NPCs only interactable when physically present (distance-based UI)
+   - All mechanics must be visible and understandable
+   - Player agency must be preserved - no automatic conveniences
+
 ## BUGS/ISSUES TO TRACK
 
-1. **All Critical Issues Fixed** ✅
-   - Created nuget.config to fix package resolution
-   - Fixed syntax error in LetterQueueDisplay (pattern matching)
-   - Fixed ConsecutiveDeliveries reference (used DeliveredCount instead)
-   - Removed compound rule that violated design principles
-   - Fixed LocationActions TimeManager dependency injection error
-   - Removed all failing unit tests that tested legacy functionality
+1. **Token Relationship Display Issue** ⚠️
+   - Tokens are being tracked (visible in debug messages showing totals)
+   - Character Relationships screen may not show NPCs despite having tokens
+   - Needs investigation: Is HasAnyTokens() checking the right data?
+   - Debug approach: Added total count to token gain messages
 
-2. **Minor Content References**
+2. **All Critical Build Issues Fixed** ✅
+   - Created nuget.config to fix package resolution
+   - Fixed CSS keyframes syntax error (@keyframes → @@keyframes in Razor)
+   - Fixed all compilation errors
+   - Project builds successfully with only warnings
+
+3. **Minor Content References**
    - Some items referenced in token favors might not exist
    - Some routes referenced in discoveries might be missing
    - These don't break the game but should be cleaned up
@@ -277,9 +361,68 @@ Design philosophy emphasized:
 - Independent systems compete for shared resources (no cross-system rules)
 - Leverage emerges from token imbalances, not a separate system
 
+## LATEST FIXES IMPLEMENTED
+
+### Additional UI Improvements (Latest session)
+
+1. **System Messages Auto-Dismiss** ✅
+   - Added expiration time to SystemMessage class
+   - Messages now auto-dismiss after 4-8 seconds based on type
+   - Added fade-in animation for better UX
+   - MainGameplayView cleans up expired messages automatically
+
+2. **Event Log Screen Created** ✅
+   - New EventLogScreen.razor shows all system messages
+   - Filterable by message type (Info/Success/Warning/Danger)
+   - Permanent record of all game events
+   - Added to navigation bar under Character section
+   - Added EventLog list to GameWorld for persistence
+
+3. **Coin Weight Removed** ✅
+   - Removed weight display from coins in PlayerStatusView
+   - Updated CalculateTotalWeight to exclude coin weight
+   - Coins now weightless as requested
+
+4. **NPCs Fixed to Show at Correct Spots** ✅
+   - Added SpotId property to NPC class
+   - Updated NPCParser to map spotId from JSON
+   - Fixed GetNPCsForLocationSpotAndTime to use SpotId
+   - NPCs now only appear at their assigned location spot
+
+5. **Thornwood Village Market Added** ✅
+   - Added thornwood_market location spot in location_spots.json
+   - Fixed Marcus's spotId to match new market location
+   - Market now available in Thornwood with proper trader
+
+6. **Token Tracking Debug Info** ✅
+   - Added total token count to relationship gain messages
+   - Helps debug why relationships might not show
+
 ## FILES MODIFIED THIS SESSION
 
-This session (UI fixes - Complete overhaul):
+Latest session (Additional fixes):
+1. **SystemMessage.cs** - Added expiration time and IsExpired property
+2. **MessageSystem.cs** - Added duration based on message type
+3. **MainGameplayView.razor.cs** - Added cleanup of expired messages
+4. **SystemMessageDisplay.razor** - Added slide-in animation
+5. **EventLogScreen.razor** - Created new event log screen
+6. **event-log.css** - Created styles for event log
+7. **GameWorld.cs** - Added EventLog list for persistence
+8. **CurrentViews.cs** - Added EventLogScreen enum value
+9. **NavigationBar.razor** - Added Event Log button
+10. **MainGameplayView.razor** - Added EventLogScreen case
+11. **_Layout.cshtml** - Added event-log.css reference
+12. **PlayerStatusView.razor** - Removed coin weight display
+13. **GameWorldManager.cs** - Removed coin weight from calculation
+14. **NPC.cs** - Added SpotId property
+15. **NPCParser.cs** - Added SpotId mapping from JSON
+16. **NPCRepository.cs** - Fixed methods to use SpotId
+17. **LocationSpotMap.razor.cs** - Fixed GetAllNPCsForSpot to use SpotId
+18. **location_spots.json** - Added thornwood_market location
+19. **npcs.json** - Fixed marcus_thornwood spotId
+20. **ConnectionTokenManager.cs** - Added debug info to token messages
+
+Previous session (UI fixes):
 1. **TravelSelection.razor** - Fixed red hint overload, simplified route warnings
 2. **RestUI.razor** - Merged contextual rest options from LocationActionManager
 3. **CharacterRelationshipScreen.razor** - Complete rewrite for condensed display
@@ -328,16 +471,65 @@ This session:
 - **No new core systems needed** - Leverage emerges from existing token tracking
 - **ConnectionTokenManager already supports negative values** - Debt ready to use
 - **Queue displacement logic** - High-leverage letters force others down
-- **Forced discards** - Letters pushed past position 8 are lost (no token penalty)
+- **Forced discards** - Letters pushed past position 8 are lost WITH token penalty (user correction)
 
-### Implementation Path
-1. **CalculateLeveragePosition()** - Core method to determine entry position
-2. **DisplaceAndInsertLetter()** - Handles queue reorganization
-3. **Debt creation actions** - Patron requests, borrowing, emergency help
-4. **UI indicators** - Show debt levels and leverage effects visually
+### UI State Management Critical Pattern
+- **GameWorld is ONLY source of truth** - No component state
+- **MainGameplayView.PollGameState() is ONLY polling mechanism** - No component timers
+- **Components receive state via Parameters** - No direct repository access
+- **This prevents race conditions and ensures predictable updates**
 
-### Testing Strategy
-- Unit tests for leverage calculation with various token balances
-- Integration tests for queue displacement cascades
-- UI tests for leverage indicators and feedback
-- Save game compatibility (backward compatible design)
+### NPC Location Architecture
+- **NPCs have both Location (broad) and SpotId (specific)**
+- **NPCParser must map spotId from JSON to NPC.SpotId property**
+- **Repository methods must filter by SpotId, not Location**
+- **This prevents NPCs appearing at all spots in a location**
+
+### System Message Architecture
+- **Messages have expiration time for auto-dismiss**
+- **GameWorld.SystemMessages for active display**
+- **GameWorld.EventLog for permanent history**
+- **MainGameplayView cleans expired messages during polling**
+
+## TECHNICAL IMPLEMENTATION NOTES
+
+### Key Code Patterns Established:
+
+1. **Auto-Dismiss Messages**:
+```csharp
+public SystemMessage(string message, SystemMessageTypes type, int durationMs = 5000)
+{
+    // Duration varies by importance
+    ExpiresAt = Timestamp.AddMilliseconds(durationMs);
+}
+```
+
+2. **NPC Spot Filtering**:
+```csharp
+public List<NPC> GetNPCsForLocationSpotAndTime(string locationSpotId, TimeBlocks currentTime)
+{
+    return npcs.Where(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime)).ToList();
+}
+```
+
+3. **Consistent UI Containers**:
+```css
+.event-log-container {
+    max-width: 1200px; /* Standard width for all main containers */
+    margin: 1rem auto;
+}
+```
+
+## HANDOFF RECOMMENDATIONS
+
+1. **Test Token Tracking First** - Debug why relationships don't show despite tokens being tracked
+2. **Verify All UI at Target Resolution** - Test at 1586x1357px to ensure readability
+3. **Check Event Log Performance** - Ensure message list doesn't grow unbounded
+4. **Validate NPC Assignments** - Ensure all NPCs have valid spotId references
+5. **Monitor System Message Cleanup** - Verify expired messages are properly removed
+
+## FINAL BUILD STATUS
+- ✅ All requested features implemented
+- ✅ Build succeeds with only warnings
+- ✅ Ready for gameplay testing
+- ⚠️ Token relationship display needs investigation

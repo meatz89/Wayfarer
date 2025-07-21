@@ -1,0 +1,120 @@
+.event-log-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 1rem auto;
+    min-height: 600px;
+}
+
+.event-log-container h2 {
+    color: var(--text-header);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.log-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--oak-dark);
+}
+
+.filter-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.filter-controls label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.filter-controls input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.event-log-entries {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.log-entry {
+    display: grid;
+    grid-template-columns: 80px 30px 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid rgba(139, 90, 42, 0.2);
+    align-items: center;
+}
+
+.log-entry:hover {
+    background-color: rgba(139, 90, 42, 0.1);
+}
+
+.log-timestamp {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-family: monospace;
+}
+
+.log-type {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.log-message {
+    color: var(--text-primary);
+}
+
+/* Type-specific colors */
+.log-info .log-type {
+    color: #87CEEB;
+}
+
+.log-success .log-type {
+    color: #90EE90;
+}
+
+.log-warning .log-type {
+    color: #FFD700;
+}
+
+.log-danger .log-type {
+    color: #FF6B6B;
+}
+
+.no-events {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 3rem;
+    font-style: italic;
+}
+
+/* Scrollbar styling */
+.event-log-entries::-webkit-scrollbar {
+    width: 8px;
+}
+
+.event-log-entries::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.event-log-entries::-webkit-scrollbar-thumb {
+    background: var(--oak-dark);
+    border-radius: 4px;
+}
+
+.event-log-entries::-webkit-scrollbar-thumb:hover {
+    background: var(--oak-light);
+}

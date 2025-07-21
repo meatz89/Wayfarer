@@ -6,6 +6,7 @@
     public string Role { get; set; }
     public string Description { get; set; }
     public string Location { get; set; }
+    public string SpotId { get; set; }
 
     // Categorical Properties for Logical System Interactions
     public Professions Profession { get; set; }
