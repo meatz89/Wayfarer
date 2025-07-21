@@ -10,7 +10,6 @@ public class TravelSelectionBase : ComponentBase
     [Inject] public RouteRepository RouteRepository { get; set; }
     // ItemRepository allowed for read-only UI data binding
     [Inject] public ItemRepository ItemRepository { get; set; }
-    [Inject] public LetterCarryingManager LetterCarryingManager { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback<string> OnTravel { get; set; }
@@ -280,10 +279,6 @@ public class TravelSelectionBase : ComponentBase
         return allRoutes.Where(r => r.Destination == locationId).ToList();
     }
 
-    public LetterCarryingManager GetLetterCarryingManager()
-    {
-        return LetterCarryingManager;
-    }
 
 }
 

@@ -250,7 +250,7 @@ public class ScenarioManager
             Payment = 20,
             IsPatronLetter = true,
             Description = "Gold-sealed letter from your mysterious patron",
-            Size = LetterSize.Small
+            Size = SizeCategory.Small
         });
         
         // Trade letter
@@ -264,7 +264,7 @@ public class ScenarioManager
             Deadline = 3,
             Payment = 5,
             Description = "Merchant correspondence regarding shipments",
-            Size = LetterSize.Small
+            Size = SizeCategory.Small
         });
         
         // Trust letter
@@ -278,7 +278,7 @@ public class ScenarioManager
             Deadline = 4,
             Payment = 3,
             Description = "Personal letter filled with warmth",
-            Size = LetterSize.Small
+            Size = SizeCategory.Small
         });
         
         return letters;
@@ -463,7 +463,7 @@ public class ScenarioManager
                 Deadline = 3,
                 Payment = 15,
                 Description = "A mysterious package wrapped in black cloth",
-                Size = LetterSize.Medium
+                Size = SizeCategory.Medium
             };
             
             _letterQueueManager.AddLetter(letter);
@@ -492,7 +492,7 @@ public class ScenarioManager
                 Payment = 8,
                 Description = "Noble correspondence with official seal",
                 RequiredEquipment = ItemCategory.Clothing,
-                Size = LetterSize.Small
+                Size = SizeCategory.Small
             };
             
             _letterQueueManager.AddLetter(letter);
@@ -548,7 +548,7 @@ public class ScenarioManager
             IsPatronLetter = true,
             PatronQueuePosition = 1,
             Description = "FINAL LETTER: The culmination of your patron's plans",
-            Size = LetterSize.Large
+            Size = SizeCategory.Large
         };
         
         // Store reference for tracking

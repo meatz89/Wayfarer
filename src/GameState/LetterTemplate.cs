@@ -28,7 +28,7 @@ public class LetterTemplate
         public bool IsChainLetter { get; set; } = false;
         
         // Physical properties
-        public LetterSize Size { get; set; } = LetterSize.Medium;
+        public SizeCategory Size { get; set; } = SizeCategory.Medium;
         public LetterPhysicalProperties PhysicalProperties { get; set; } = LetterPhysicalProperties.None;
         public ItemCategory? RequiredEquipment { get; set; } = null;
     }

@@ -8,13 +8,6 @@ public enum LetterState
     Collected   // Physical item in inventory, ready for delivery
 }
 
-public enum LetterSize
-{
-    Small,    // Quick note, easy to carry (1 slot)
-    Medium,   // Standard letter (2 slots)
-    Large     // Package or bulky correspondence (3 slots)
-}
-
 [Flags]
 public enum LetterPhysicalProperties
 {
@@ -41,7 +34,7 @@ public enum LetterPhysicalProperties
         
         // Additional properties for future use but set defaults for POC
         public int QueuePosition { get; set; } = 0;
-        public LetterSize Size { get; set; } = LetterSize.Medium;
+        public SizeCategory Size { get; set; } = SizeCategory.Medium;
         public bool IsFromPatron { get; set; } = false;
         
         // Physical properties
@@ -80,10 +73,45 @@ public enum LetterPhysicalProperties
         {
             return Size switch
             {
-                LetterSize.Small => 1,
-                LetterSize.Medium => 2,
-                LetterSize.Large => 3,
+                SizeCategory.Tiny => 1,
+                SizeCategory.Small => 1,
+                SizeCategory.Medium => 1,
+                SizeCategory.Large => 2,
+                SizeCategory.Massive => 3,
                 _ => 2
+            };
+        }
+        
+        /// <summary>
+        /// Convert letter size to item size category for inventory
+        /// </summary>
+        public SizeCategory GetItemSizeCategory()
+        {
+            return Size switch
+            {
+                SizeCategory.Small => SizeCategory.Small,
+                SizeCategory.Medium => SizeCategory.Medium,
+                SizeCategory.Large => SizeCategory.Large,
+                _ => SizeCategory.Medium
+            };
+        }
+        
+        /// <summary>
+        /// Create an inventory item representing this physical letter
+        /// </summary>
+        public Item CreateInventoryItem()
+        {
+            return new Item
+            {
+                Id = $"letter_{Id}",
+                Name = $"Letter: {SenderName} to {RecipientName}",
+                Description = $"A sealed letter to be delivered. Deadline: {GetDeadlineDescription()}",
+                Categories = new List<ItemCategory> { ItemCategory.Documents },
+                Size = GetItemSizeCategory(),
+                Weight = HasPhysicalProperty(LetterPhysicalProperties.Heavy) ? 3 : 1,
+                BuyPrice = 0,
+                SellPrice = 0,
+                InventorySlots = GetRequiredSlots()
             };
         }
         

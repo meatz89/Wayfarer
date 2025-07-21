@@ -79,7 +79,6 @@
         services.AddSingleton<PatronLetterService>();
         services.AddSingleton<NetworkReferralService>();
         services.AddSingleton<MorningActivitiesManager>();
-        services.AddSingleton<LetterCarryingManager>();
         services.AddSingleton<NoticeBoardService>();
         services.AddSingleton<ScenarioManager>();
         services.AddSingleton<LocationActionManager>();
