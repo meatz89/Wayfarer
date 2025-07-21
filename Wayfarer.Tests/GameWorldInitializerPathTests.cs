@@ -51,7 +51,6 @@ namespace Wayfarer.Tests
             var networkUnlockFactory = new NetworkUnlockFactory();
             var letterTemplateFactory = new LetterTemplateFactory();
             var standingObligationFactory = new StandingObligationFactory();
-            var actionDefinitionFactory = new ActionDefinitionFactory();
             
             GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(
                 contentDirectory,
@@ -63,8 +62,7 @@ namespace Wayfarer.Tests
                 routeDiscoveryFactory,
                 networkUnlockFactory,
                 letterTemplateFactory,
-                standingObligationFactory,
-                actionDefinitionFactory);
+                standingObligationFactory);
 
             // This should succeed
             GameWorld gameWorld = gameWorldInitializer.LoadGame();
@@ -90,7 +88,6 @@ namespace Wayfarer.Tests
             var networkUnlockFactory = new NetworkUnlockFactory();
             var letterTemplateFactory = new LetterTemplateFactory();
             var standingObligationFactory = new StandingObligationFactory();
-            var actionDefinitionFactory = new ActionDefinitionFactory();
             
             GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(
                 contentDirectory,
@@ -102,8 +99,7 @@ namespace Wayfarer.Tests
                 routeDiscoveryFactory,
                 networkUnlockFactory,
                 letterTemplateFactory,
-                standingObligationFactory,
-                actionDefinitionFactory);
+                standingObligationFactory);
 
             // This should throw because the path doesn't exist
             Exception exception = Record.Exception(() => gameWorldInitializer.LoadGame());

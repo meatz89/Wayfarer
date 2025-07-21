@@ -17,14 +17,11 @@ public class LetterCategorySystemTests
         _gameWorldManager = TestGameWorldFactory.CreateCompleteGameWorldManager();
         _gameWorld = _gameWorldManager.GameWorld;
         
+        _messageSystem = new MessageSystem(_gameWorld);
         _npcRepository = new NPCRepository(_gameWorld);
         _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, _npcRepository);
         _categoryService = new LetterCategoryService(_gameWorld, _tokenManager, _npcRepository, _messageSystem);
         _letterTemplateRepository = new LetterTemplateRepository(_gameWorld);
-        
-        // Wire up services
-        _tokenManager.SetCategoryService(_categoryService);
-        _letterTemplateRepository.SetCategoryService(_categoryService);
         
         CreateTestNPCsAndTemplates();
     }
@@ -173,17 +170,19 @@ public class LetterCategorySystemTests
         
         // Test Basic unlock
         _categoryService.CheckCategoryUnlock(npcId, ConnectionType.Trust, 2, 3);
-        var messages = _messageSystem.GetAndClearMessages();
+        var messages = _gameWorld.SystemMessages;
         Assert.True(messages.Any(m => m.Message.Contains("now trusts you enough to offer Trust letters")));
+        _gameWorld.SystemMessages.Clear();
         
         // Test Quality unlock
         _categoryService.CheckCategoryUnlock(npcId, ConnectionType.Trust, 4, 5);
-        messages = _messageSystem.GetAndClearMessages();
+        messages = _gameWorld.SystemMessages;
         Assert.True(messages.Any(m => m.Message.Contains("relationship") && m.Message.Contains("stronger")));
+        _gameWorld.SystemMessages.Clear();
         
         // Test Premium unlock
         _categoryService.CheckCategoryUnlock(npcId, ConnectionType.Trust, 7, 8);
-        messages = _messageSystem.GetAndClearMessages();
+        messages = _gameWorld.SystemMessages;
         Assert.True(messages.Any(m => m.Message.Contains("most trusted associates")));
     }
     

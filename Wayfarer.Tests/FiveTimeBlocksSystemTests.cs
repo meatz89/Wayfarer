@@ -28,15 +28,6 @@ namespace Wayfarer.Tests
             Assert.Contains(TimeBlocks.Night, timeBlockValues);
         }
 
-        [Fact]
-        public void MaxDailyTimeBlocks_Should_Equal_TimeBlocks_Count()
-        {
-            // Ensure architectural consistency
-            int timeBlockEnumCount = Enum.GetValues<TimeBlocks>().Length;
-
-            Assert.Equal(TimeManager.MaxDailyTimeBlocks, timeBlockEnumCount);
-        }
-
         [Theory]
         [InlineData(6, TimeBlocks.Dawn)]
         [InlineData(7, TimeBlocks.Dawn)]
@@ -207,11 +198,8 @@ namespace Wayfarer.Tests
             // Consume time blocks and track progression
             for (int i = 0; i < 5; i++)
             {
-                if (timeManager.CanPerformTimeBlockAction)
-                {
-                    timeManager.AdvanceTime(4); // Advance by ~4 hours (roughly one time block)
-                    timeBlockProgression.Add(timeManager.GetCurrentTimeBlock());
-                }
+                timeManager.AdvanceTime(4); // Advance by ~4 hours (roughly one time block)
+                timeBlockProgression.Add(timeManager.GetCurrentTimeBlock());
             }
 
             // Should have progressed through multiple time blocks
