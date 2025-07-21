@@ -284,3 +284,103 @@ else
 5. **Keep It Simple** - Thin narrative layer is sufficient for now
 
 The core architecture is solid and ready for expanding with additional user stories. The conversation system properly integrates with all actions, and the letter queue mechanics are working as designed.
+
+## Network Introduction System Analysis (2025-01-21)
+
+### Existing Network Introduction Functionality ✅
+
+The codebase ALREADY has a comprehensive network introduction system implemented:
+
+#### 1. **NetworkUnlockManager** (`/src/GameState/NetworkUnlockManager.cs`)
+- Manages NPC network unlocks based on relationship levels
+- Requires 5+ tokens with an NPC to unlock their network
+- Methods:
+  - `CanNPCUnlockNetwork()` - Checks if NPC can introduce others
+  - `GetUnlockableNPCs()` - Lists NPCs that can be introduced
+  - `UnlockNetworkContact()` - Actually performs the introduction
+  - `CheckForNetworkUnlocks()` - Shows hints when visiting locations
+
+#### 2. **Network Unlock Data Model** (`/src/GameState/NetworkUnlock.cs`)
+- `NetworkUnlock` class defines unlock rules:
+  - `UnlockerNpcId` - The NPC who can make introductions
+  - `TokensRequired` - How many tokens needed (usually 5-8)
+  - `Unlocks` - List of NPCs they can introduce
+- `NetworkUnlockTarget` defines:
+  - `NpcId` - The NPC being introduced
+  - `IntroductionText` - Narrative text for the introduction
+
+#### 3. **Configuration Data** (`/src/Content/Templates/progression_unlocks.json`)
+- Pre-configured network unlocks:
+  - Elena (5 tokens) → Sarah, Thomas
+  - Marcus (5 tokens) → Guild Merchant, Trade Factor
+  - Lord Ashford (8 tokens) → Lady Catherine
+  - Sarah (8 tokens) → Master Librarian
+  - The Fence (5 tokens) → Midnight Courier
+
+#### 4. **Token Favor Integration** (`/src/GameState/TokenFavorManager.cs`)
+- NPCs can offer introductions as token favors
+- `GrantNPCIntroduction()` delegates to NetworkUnlockManager
+- Example: Marcus can introduce Lord Ashford for token cost
+
+#### 5. **Network Referral System** (`/src/GameState/NetworkReferralService.cs`)
+- Alternative introduction method using referral letters
+- Costs 1 token to get a referral
+- Creates actual letter to deliver as introduction
+- Grants 3 tokens with new NPC when delivered
+- Referrals expire after 7 days
+
+### Face-to-Face Meeting Requirements ❌
+
+**NO EXISTING FACE-TO-FACE REQUIREMENTS FOUND**
+
+The current system tracks:
+- `Player.UnlockedNPCIds` - Which NPCs player has access to
+- Token counts with each NPC
+- NO tracking of whether player has physically met an NPC
+
+**Current Behavior:**
+1. NPCs are "unlocked" through network introductions
+2. Once unlocked, they appear in their locations
+3. Player can immediately send letters without meeting
+4. No distinction between "know of" vs "have met"
+
+### Missing Functionality for Face-to-Face Requirements
+
+To implement face-to-face meeting requirements, would need:
+
+1. **New Player State**:
+   ```csharp
+   public List<string> MetNPCIds { get; set; } = new List<string>();
+   ```
+
+2. **Meeting Tracking**:
+   - Track first conversation with each NPC
+   - Distinguish unlocked (introduced) vs met (conversed)
+   
+3. **Letter Restrictions**:
+   - Check if NPC has been met before accepting letters
+   - Show different conversation options for introduced-but-not-met NPCs
+
+4. **UI Updates**:
+   - Show different badges for unlocked vs met NPCs
+   - Indicate meeting requirements in letter offers
+
+### Integration Points
+
+The system is well-designed for extension:
+- `ConversationManager.StartConversation()` could track first meetings
+- `NPCLetterOfferService` could check meeting requirements
+- `LocationActionManager` already handles NPC conversations
+- Introduction narratives already exist in the data
+
+### Recommendation
+
+The network introduction system is comprehensive and working. Adding face-to-face requirements would be straightforward:
+1. Add `MetNPCIds` to Player
+2. Update `StartConversation` to track first meetings
+3. Modify letter generation to require meetings
+4. Update UI to show meeting status
+
+This would create a two-stage introduction system:
+- Stage 1: Network unlock (can see NPC at location)
+- Stage 2: Face-to-face meeting (can exchange letters)

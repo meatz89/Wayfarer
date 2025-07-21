@@ -95,6 +95,15 @@ public class GameWorldManager
         Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {locationRepository.GetCurrentLocationSpot()?.SpotID}");
 
         // Location actions are now handled by LocationActionManager
+        
+        // Apply starting obligations - Patron's Expectation
+        var patronObligation = _gameWorld.WorldState.StandingObligationTemplates
+            .FirstOrDefault(o => o.ID == "patrons_expectation");
+        if (patronObligation != null)
+        {
+            standingObligationManager.AddObligation(patronObligation);
+            Console.WriteLine("Applied Patron's Expectation obligation to new player");
+        }
     }
 
 
