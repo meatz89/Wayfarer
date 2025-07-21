@@ -193,6 +193,53 @@ class LetterManagementService {
 ### Stateless Repositories
 Repositories MUST be stateless and only delegate to GameWorld.
 
+### CLEAN ARCHITECTURE PRINCIPLE (CRITICAL)
+**ALWAYS use interfaces and dependency injection for behavioral variations. NEVER use mode flags or conditional logic.**
+
+```csharp
+// ❌ WRONG: Mode flags and conditionals
+public class ConversationManager
+{
+    private bool _isDeterministic;
+    
+    public async Task GenerateNarrative()
+    {
+        if (_isDeterministic)
+            return GenerateDeterministicNarrative();
+        else
+            return await GenerateAINarrative();
+    }
+}
+
+// ✅ CORRECT: Interface and dependency injection
+public interface INarrativeProvider
+{
+    Task<string> GenerateIntroduction(ConversationContext context);
+    Task<List<ConversationChoice>> GenerateChoices(ConversationContext context);
+}
+
+public class ConversationManager
+{
+    private readonly INarrativeProvider _narrativeProvider;
+    
+    public ConversationManager(INarrativeProvider narrativeProvider)
+    {
+        _narrativeProvider = narrativeProvider;
+    }
+}
+
+// Register in ServiceRegistrations.cs
+services.AddScoped<INarrativeProvider, DeterministicNarrativeProvider>(); // For POC
+// services.AddScoped<INarrativeProvider, AINarrativeProvider>(); // For full game
+```
+
+**Key Principles:**
+1. **Interfaces define contracts** - Behavior variations implement same interface
+2. **Dependency injection selects implementation** - ServiceRegistrations determines which to use
+3. **No conditional logic in classes** - The class doesn't know or care which implementation
+4. **Easy testing** - Mock implementations for unit tests
+5. **Clean separation** - AI vs deterministic logic completely separated
+
 ### NO CLASS INHERITANCE PRINCIPLE (CRITICAL)
 **NEVER use class inheritance or extensions. Use composition and helper methods instead.**
 

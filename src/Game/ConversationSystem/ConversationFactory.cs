@@ -3,17 +3,14 @@
 /// </summary>
 public class ConversationFactory
 {
-    private readonly AIGameMaster _aiGameMaster;
-    private readonly WorldStateInputBuilder _worldStateInputBuilder;
+    private readonly INarrativeProvider _narrativeProvider;
     private readonly ConnectionTokenManager _tokenManager;
     
     public ConversationFactory(
-        AIGameMaster aiGameMaster,
-        WorldStateInputBuilder worldStateInputBuilder,
+        INarrativeProvider narrativeProvider,
         ConnectionTokenManager tokenManager)
     {
-        _aiGameMaster = aiGameMaster;
-        _worldStateInputBuilder = worldStateInputBuilder;
+        _narrativeProvider = narrativeProvider;
         _tokenManager = tokenManager;
     }
     
@@ -39,8 +36,7 @@ public class ConversationFactory
         var conversationManager = new ConversationManager(
             context,
             state,
-            _aiGameMaster,
-            _worldStateInputBuilder,
+            _narrativeProvider,
             context.GameWorld);
             
         return conversationManager;
