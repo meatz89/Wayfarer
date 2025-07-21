@@ -11,7 +11,6 @@ public class PlayerStatusViewBase : ComponentBase
     [Inject] public LocationRepository LocationRepository { get; set; }
     [Inject] public RouteRepository RouteRepository { get; set; }
     [Inject] public NavigationManager NavigationManager { get; set; }
-    [Inject] public LetterCarryingManager LetterCarryingManager { get; set; }
 
     [Parameter] public EventCallback OnClose { get; set; }
 
@@ -220,10 +219,6 @@ public class PlayerStatusViewBase : ComponentBase
         };
     }
 
-    public LetterCarryingManager GetLetterCarryingManager()
-    {
-        return LetterCarryingManager;
-    }
 }
 
 // Supporting classes for player strategic overview

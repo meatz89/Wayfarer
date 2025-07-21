@@ -1059,13 +1059,13 @@ public class GameWorldInitializer : IGameWorldFactory
                     int minTokensRequired = dto.MinTokensRequired ?? 3;
                     
                     // Parse letter size
-                    var size = LetterSize.Medium;
+                    var size = SizeCategory.Medium;
                     if (!string.IsNullOrEmpty(dto.Size))
                     {
-                        if (!Enum.TryParse<LetterSize>(dto.Size, out size))
+                        if (!Enum.TryParse<SizeCategory>(dto.Size, out size))
                         {
                             Console.WriteLine($"WARNING: Unknown letter size '{dto.Size}' for template '{dto.Id}', defaulting to Medium");
-                            size = LetterSize.Medium;
+                            size = SizeCategory.Medium;
                         }
                     }
                     

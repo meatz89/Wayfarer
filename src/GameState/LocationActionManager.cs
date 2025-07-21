@@ -802,18 +802,16 @@ public class LocationActionManager
             return false;
         }
         
+        // Create an inventory item for the letter
+        var letterItem = letter.CreateInventoryItem();
+        
         // Check inventory space
         var player = _gameWorld.GetPlayer();
-        var requiredSlots = letter.GetRequiredSlots();
-        var availableSlots = player.Inventory.GetAvailableSlots(
-            _itemRepository, 
-            null // No transport bonus during collection
-        );
-        
-        if (availableSlots < requiredSlots)
+        if (!player.Inventory.CanAddItem(letterItem, _itemRepository))
         {
+            var availableSlots = player.Inventory.GetAvailableSlots(_itemRepository);
             _messageSystem.AddSystemMessage(
-                $"❌ Not enough inventory space! Need {requiredSlots} slots, have {availableSlots}",
+                $"❌ Not enough inventory space! Need {letterItem.GetRequiredSlots()} slots, have {availableSlots}",
                 SystemMessageTypes.Danger
             );
             _messageSystem.AddSystemMessage(
@@ -823,7 +821,17 @@ public class LocationActionManager
             return false;
         }
         
-        // Add to carried letters
+        // Add letter to inventory as an item
+        if (!player.Inventory.AddItem(letterItem.Id))
+        {
+            _messageSystem.AddSystemMessage(
+                "❌ Failed to add letter to inventory!",
+                SystemMessageTypes.Danger
+            );
+            return false;
+        }
+        
+        // Update letter state and add to carried letters list for quick access
         letter.State = LetterState.Collected;
         player.CarriedLetters.Add(letter);
         
@@ -832,7 +840,7 @@ public class LocationActionManager
             SystemMessageTypes.Success
         );
         _messageSystem.AddSystemMessage(
-            $"  • Letter now takes {requiredSlots} inventory slots",
+            $"  • Letter now takes {letterItem.GetRequiredSlots()} inventory slots",
             SystemMessageTypes.Info
         );
         _messageSystem.AddSystemMessage(
@@ -857,8 +865,9 @@ public class LocationActionManager
             return false;
         }
         
-        // Remove from carried letters
+        // Remove from carried letters and inventory
         player.CarriedLetters.Remove(letter);
+        player.Inventory.RemoveItem($"letter_{letter.Id}");
         
         // Determine payment based on conversation choice
         bool earnToken = true;

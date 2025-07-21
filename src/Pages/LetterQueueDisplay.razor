@@ -46,8 +46,8 @@
                                 @GetDeadlineWarningIcon(letter.Deadline) @GetDeadlineDescription(letter.Deadline)
                             </div>
                             <div class="payment">@letter.Payment coins</div>
-                            <div class="letter-size" title="@GetLetterSizeTooltip(letter)">
-                                @GetLetterSizeIcon(letter.Size) @letter.Size
+                            <div class="letter-size" title="@GetSizeCategoryTooltip(letter)">
+                                @GetSizeCategoryIcon(letter.Size) @letter.Size
                             </div>
                             @if (letter.State != LetterState.Collected)
                             {
@@ -448,18 +448,18 @@
         };
     }
     
-    private string GetLetterSizeIcon(LetterSize size)
+    private string GetSizeCategoryIcon(SizeCategory size)
     {
         return size switch
         {
-            LetterSize.Small => "📄",
-            LetterSize.Medium => "📦",
-            LetterSize.Large => "📦",
+            SizeCategory.Small => "📄",
+            SizeCategory.Medium => "📦",
+            SizeCategory.Large => "📦",
             _ => "📦"
         };
     }
     
-    private string GetLetterSizeTooltip(Letter letter)
+    private string GetSizeCategoryTooltip(Letter letter)
     {
         var slots = letter.GetRequiredSlots();
         return $"{letter.Size} letter - Requires {slots} inventory slot{(slots > 1 ? "s" : "")}";

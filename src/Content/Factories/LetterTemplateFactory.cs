@@ -30,7 +30,7 @@ public class LetterTemplateFactory
         IEnumerable<NPC> possibleRecipients = null,
         IEnumerable<string> unlocksLetterIds = null,
         bool isChainLetter = false,
-        LetterSize size = LetterSize.Medium,
+        SizeCategory size = SizeCategory.Medium,
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
         ItemCategory? requiredEquipment = null)
     {
@@ -88,7 +88,7 @@ public class LetterTemplateFactory
         IEnumerable<NPC> availableNPCs,
         IEnumerable<string> unlocksLetterIds = null,
         bool isChainLetter = false,
-        LetterSize size = LetterSize.Medium,
+        SizeCategory size = SizeCategory.Medium,
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
         ItemCategory? requiredEquipment = null)
     {

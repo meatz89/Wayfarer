@@ -128,14 +128,8 @@
             <h3 class="section-title">Carried Letters</h3>
             @{
                 var carriedLetters = PlayerState.CarriedLetters;
-                var letterCarryingManager = GetLetterCarryingManager();
-                var usedLetterSlots = letterCarryingManager?.GetUsedLetterSlots() ?? 0;
-                var availableSlots = letterCarryingManager?.GetAvailableCarryingCapacity() ?? 0;
+                var letterSlots = carriedLetters?.Sum(l => l.GetRequiredSlots()) ?? 0;
             }
-            <div class="carrying-status">
-                <span class="carrying-label">Letter Capacity:</span>
-                <span class="carrying-value">@usedLetterSlots / @(usedLetterSlots + availableSlots) slots used</span>
-            </div>
             @if (carriedLetters != null && carriedLetters.Any())
             {
                 <div class="carried-letters-list">
@@ -154,6 +148,9 @@
                             }
                         </div>
                     }
+                </div>
+                <div class="carrying-status">
+                    <span class="carrying-label">Using @letterSlots inventory slot@(letterSlots != 1 ? "s" : "") for letters</span>
                 </div>
             }
             else

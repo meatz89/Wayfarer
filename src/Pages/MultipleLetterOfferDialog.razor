@@ -67,7 +67,7 @@
                                 {
                                     <div class="letter-size">
                                         <span class="label">Size:</span>
-                                        <span class="value">@GetLetterSizeIcon(template.Size) @template.Size (@GetRequiredSlots(template.Size) slot@(GetRequiredSlots(template.Size) > 1 ? "s" : ""))</span>
+                                        <span class="value">@GetSizeCategoryIcon(template.Size) @template.Size (@GetRequiredSlots(template.Size) slot@(GetRequiredSlots(template.Size) > 1 ? "s" : ""))</span>
                                     </div>
                                     @if (template.PhysicalProperties != LetterPhysicalProperties.None || template.RequiredEquipment.HasValue)
                                     {
@@ -239,24 +239,24 @@
         };
     }
     
-    private string GetLetterSizeIcon(LetterSize size)
+    private string GetSizeCategoryIcon(SizeCategory size)
     {
         return size switch
         {
-            LetterSize.Small => "📄",
-            LetterSize.Medium => "📦",
-            LetterSize.Large => "📦",
+            SizeCategory.Small => "📄",
+            SizeCategory.Medium => "📦",
+            SizeCategory.Large => "📦",
             _ => "📦"
         };
     }
     
-    private int GetRequiredSlots(LetterSize size)
+    private int GetRequiredSlots(SizeCategory size)
     {
         return size switch
         {
-            LetterSize.Small => 1,
-            LetterSize.Medium => 2,
-            LetterSize.Large => 3,
+            SizeCategory.Small => 1,
+            SizeCategory.Medium => 2,
+            SizeCategory.Large => 3,
             _ => 2
         };
     }

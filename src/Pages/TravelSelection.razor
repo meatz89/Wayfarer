@@ -42,11 +42,11 @@
                 </div>
             </div>
             @{
-                var letterCarryingManager = GetLetterCarryingManager();
                 var carriedLetters = GameWorld.GetPlayer().CarriedLetters;
-                var letterPenalties = letterCarryingManager?.GetMovementPenalties() ?? new List<string>();
                 var hasHeavyLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy)) ?? false;
                 var hasFragileLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Fragile)) ?? false;
+                var hasBulkyLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Bulky)) ?? false;
+                var hasPerishableLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Perishable)) ?? false;
             }
             @if (carriedLetters != null && carriedLetters.Any())
             {
@@ -58,9 +58,13 @@
                         {
                             <span class="resource-detail warning">Heavy letters +1 stamina cost</span>
                         }
-                        else if (letterPenalties.Any())
+                        else if (hasBulkyLetters)
                         {
-                            <span class="resource-detail warning">@letterPenalties.First()</span>
+                            <span class="resource-detail warning">Bulky letters restrict movement</span>
+                        }
+                        else if (hasPerishableLetters)
+                        {
+                            <span class="resource-detail warning">Perishable letters - time sensitive</span>
                         }
                         else
                         {
