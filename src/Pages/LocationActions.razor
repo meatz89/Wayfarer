@@ -39,7 +39,7 @@
                         ➜ @action.Effect
                     </div>
                     
-                    <button class="btn-action" @onclick="() => ExecuteAction(action)">
+                    <button class="btn-action" @onclick="async () => await ExecuteAction(action)">
                         Perform Action
                     </button>
                 </div>
@@ -151,10 +151,10 @@
         availableActions = LocationActionManager.GetAvailableActions();
     }
     
-    private void ExecuteAction(ActionOption action)
+    private async Task ExecuteAction(ActionOption action)
     {
         // UI actions must go through GameWorldManager, not LocationActionManager directly
-        bool success = GameWorldManager.ExecuteAction(action);
+        bool success = await GameWorldManager.ExecuteAction(action);
         
         if (success)
         {

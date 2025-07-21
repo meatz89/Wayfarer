@@ -1,0 +1,244 @@
+.letter-queue-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+}
+
+.screen-header {
+    text-align: center;
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.screen-header h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.queue-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+.queue-main-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: var(--spacing-md);
+    overflow-y: auto;
+}
+
+.queue-section {
+    grid-column: 1;
+    grid-row: span 3;
+}
+
+.obligations-summary,
+.token-summary,
+.queue-stats,
+.letter-history {
+    background: var(--bg-panel);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.obligations-summary h3,
+.token-summary h3,
+.queue-stats h3,
+.letter-history h3 {
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+/* Obligations */
+.obligation-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.obligation-item {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.obligation-item:last-child {
+    border-bottom: none;
+}
+
+.obligation-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.obligation-effect {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+.no-obligations {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Token Summary */
+.token-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+}
+
+.token-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+    background: var(--bg-elevated);
+    border-radius: var(--border-radius-sm);
+}
+
+.token-item.debt {
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger);
+}
+
+.token-icon {
+    font-size: var(--font-size-lg);
+}
+
+.token-type {
+    flex: 1;
+    font-size: var(--font-size-sm);
+}
+
+.token-count {
+    font-weight: 600;
+}
+
+.debt-indicator {
+    font-size: var(--font-size-xs);
+    color: var(--color-danger);
+    font-weight: 700;
+}
+
+/* Queue Statistics */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background: var(--bg-elevated);
+    border-radius: var(--border-radius-sm);
+}
+
+.stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-value.urgent {
+    color: var(--color-warning);
+}
+
+.stat-value.success {
+    color: var(--color-success);
+}
+
+/* Letter History */
+.history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) 0;
+    font-size: var(--font-size-sm);
+}
+
+.history-icon {
+    font-size: var(--font-size-md);
+}
+
+.history-text {
+    flex: 1;
+    color: var(--text-secondary);
+}
+
+.history-time {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+.history-item.delivered {
+    color: var(--color-success);
+}
+
+.history-item.expired {
+    color: var(--color-danger);
+}
+
+.history-item.skipped {
+    color: var(--color-warning);
+}
+
+.no-history {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Quick Actions Bar */
+.quick-actions-bar {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.quick-action {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-button);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-action:hover:not(:disabled) {
+    background: var(--bg-button-hover);
+    border-color: var(--color-primary);
+}
+
+.quick-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

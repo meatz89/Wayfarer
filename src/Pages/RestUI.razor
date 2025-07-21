@@ -2,6 +2,7 @@
 @inject GameWorld GameWorld
 @inject GameWorldManager GameManager
 @inject RestManager RestManager
+@inject GameWorldManager GameWorldManager
 @inject LocationActionManager LocationActionManager
 
 <div class="rest-options">
@@ -168,7 +169,8 @@
     
     private async Task ExecuteLocationAction(ActionOption action)
     {
-        LocationActionManager.ExecuteAction(action);
+        // UI actions must go through GameWorldManager, not LocationActionManager directly
+        await GameWorldManager.ExecuteAction(action);
         await OnRestComplete.InvokeAsync();
     }
 }

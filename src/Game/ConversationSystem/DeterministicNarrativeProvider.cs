@@ -24,8 +24,15 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             return Task.FromResult(actionContext.InitialNarrative);
         }
         
+        // Handle delivery separately to check letter state
+        if (context.ConversationTopic == "Action_Deliver")
+        {
+            var introduction = GetDeliveryIntroduction(context);
+            return Task.FromResult(introduction);
+        }
+        
         // Simple one-sentence narratives for thin layer
-        var introduction = context.ConversationTopic switch
+        var narrative = context.ConversationTopic switch
         {
             "Action_GatherResources" => "You carefully search the area for edible berries.",
             "Action_Browse" => "You examine the market stalls, noting prices and goods.",
@@ -33,13 +40,13 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             "Action_Work" => $"You begin your work for {context.TargetNPC?.Name ?? "your employer"}.",
             "Action_Socialize" => $"You engage {context.TargetNPC?.Name ?? "someone"} in friendly conversation.",
             "Action_Converse" => $"You approach {context.TargetNPC?.Name ?? "someone"} to talk.",
-            "Action_Deliver" => $"You hand the letter to {context.TargetNPC?.Name ?? "the recipient"}.",
+            "Action_Collect" => $"{context.TargetNPC?.Name ?? "The sender"} hands you a sealed letter with instructions for safe delivery.",
             "Action_Trade" => $"You browse {context.TargetNPC?.Name ?? "the merchant"}'s wares.",
             "Action_Rest" => "You find a comfortable spot to rest.",
             _ => "You proceed with your action."
         };
         
-        return Task.FromResult(introduction);
+        return Task.FromResult(narrative);
     }
     
     public Task<List<ConversationChoice>> GenerateChoices(
@@ -47,6 +54,12 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         ConversationState state,
         List<ChoiceTemplate> availableTemplates)
     {
+        // For delivery, check if letter is valid
+        if (context.ConversationTopic == "Action_Deliver")
+        {
+            return Task.FromResult(GetDeliveryChoices(context));
+        }
+        
         // For thin narrative layer, always return a single "Continue" button
         var choices = new List<ConversationChoice>
         {
@@ -120,6 +133,72 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                 IsAffordable = true,
                 TemplateUsed = "Default",
                 TemplatePurpose = "Continue the conversation"
+            }
+        };
+    }
+    
+    private string GetDeliveryIntroduction(ConversationContext context)
+    {
+        // Check if letter is collected for delivery action
+        if (context is ActionConversationContext actionContext && actionContext.SourceAction != null)
+        {
+            var player = _gameWorld.GetPlayer();
+            var letter = player.LetterQueue.FirstOrDefault();
+            
+            if (letter == null)
+            {
+                return $"{context.TargetNPC?.Name ?? "The recipient"} looks expectant. 'Do you have something for me?' You realize you have no letter in position 1.";
+            }
+            else if (letter.State != LetterState.Collected)
+            {
+                return $"{context.TargetNPC?.Name ?? "The recipient"} waits patiently. 'I heard you have a letter for me?' You realize you haven't collected it yet.";
+            }
+            else if (letter.RecipientName != context.TargetNPC?.Name)
+            {
+                return $"{context.TargetNPC?.Name ?? "The recipient"} looks confused. 'Are you sure that letter is for me?'";
+            }
+            else
+            {
+                return $"You present the sealed letter to {context.TargetNPC?.Name ?? "the recipient"}. They examine the seal carefully.";
+            }
+        }
+        return $"You approach {context.TargetNPC?.Name ?? "the recipient"} to deliver a letter.";
+    }
+    
+    private List<ConversationChoice> GetDeliveryChoices(ConversationContext context)
+    {
+        var player = _gameWorld.GetPlayer();
+        var letter = player.LetterQueue.FirstOrDefault();
+        
+        // If letter is not valid for delivery, provide explanation choice
+        if (letter == null || letter.State != LetterState.Collected || 
+            (context.TargetNPC != null && letter.RecipientName != context.TargetNPC.Name))
+        {
+            return new List<ConversationChoice>
+            {
+                new ConversationChoice
+                {
+                    ChoiceID = "1",
+                    NarrativeText = "Leave (can't deliver)",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    TemplateUsed = "CannotDeliver",
+                    TemplatePurpose = "Cannot complete delivery"
+                }
+            };
+        }
+        
+        // Otherwise provide continue choice to deliver
+        return new List<ConversationChoice>
+        {
+            new ConversationChoice
+            {
+                ChoiceID = "1",
+                NarrativeText = "Hand over the letter",
+                FocusCost = 0,
+                IsAffordable = true,
+                TemplateUsed = "Deliver",
+                TemplatePurpose = "Complete the delivery"
             }
         };
     }

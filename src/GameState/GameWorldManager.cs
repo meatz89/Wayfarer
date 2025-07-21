@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 public class GameWorldManager
 {
     private bool _useMemory;
@@ -580,9 +582,9 @@ public class GameWorldManager
     /// <summary>
     /// Execute an action - UI must use this, not LocationActionManager directly
     /// </summary>
-    public bool ExecuteAction(ActionOption action)
+    public async Task<bool> ExecuteAction(ActionOption action)
     {
-        return locationActionManager.ExecuteAction(action);
+        return await locationActionManager.ExecuteAction(action);
     }
     
     /// <summary>
