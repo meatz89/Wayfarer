@@ -94,6 +94,11 @@
     public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
     // Event Log - Permanent record of all messages
     public List<SystemMessage> EventLog { get; set; } = new List<SystemMessage>();
+    
+    // Action-Conversation State
+    public ActionOption PendingAction { get; set; }
+    public ConversationManager PendingConversationManager { get; set; }
+    public bool ConversationPending { get; set; }
 
     public GameWorld()
     {

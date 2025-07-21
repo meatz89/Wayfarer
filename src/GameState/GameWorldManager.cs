@@ -26,6 +26,7 @@ public class GameWorldManager
     private NPCLetterOfferService npcLetterOfferService;
     private ScenarioManager scenarioManager;
     private ConversationFactory conversationFactory;
+    private LocationActionManager locationActionManager;
 
     private bool isAiAvailable = true;
 
@@ -41,6 +42,7 @@ public class GameWorldManager
                        LetterQueueManager letterQueueManager, StandingObligationManager standingObligationManager,
                        MorningActivitiesManager morningActivitiesManager, NPCLetterOfferService npcLetterOfferService,
                        ScenarioManager scenarioManager, ConversationFactory conversationFactory,
+                       LocationActionManager locationActionManager,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -58,6 +60,7 @@ public class GameWorldManager
         this.npcLetterOfferService = npcLetterOfferService;
         this.scenarioManager = scenarioManager;
         this.conversationFactory = conversationFactory;
+        this.locationActionManager = locationActionManager;
         this.logger = logger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
@@ -572,5 +575,21 @@ public class GameWorldManager
     {
         // Generate periodic offers based on time changes
         npcLetterOfferService.GeneratePeriodicOffers();
+    }
+    
+    /// <summary>
+    /// Execute an action - UI must use this, not LocationActionManager directly
+    /// </summary>
+    public bool ExecuteAction(ActionOption action)
+    {
+        return locationActionManager.ExecuteAction(action);
+    }
+    
+    /// <summary>
+    /// Complete action after conversation - called by MainGameplayView
+    /// </summary>
+    public bool CompleteActionAfterConversation(ActionOption action)
+    {
+        return locationActionManager.CompleteActionAfterConversation(action);
     }
 }

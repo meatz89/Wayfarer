@@ -31,46 +31,44 @@ This roadmap outlines the path to complete POC implementation following our core
 
 ## Implementation Phases
 
-### Phase 1: Enable Deterministic Conversations (Week 1)
-**Goal**: Add non-AI mode to existing ConversationManager
+### Phase 1: Thin Narrative Layer (Immediate)
+**Goal**: Minimal narrative wrapper for actions - one sentence, one button, done
 
-#### 1.1 Extend ConversationManager
+#### 1.1 Simple Narrative Flow
 ```csharp
-public class ConversationManager
+// Action selection → Narrative sentence → "Continue" button → Execute action → Show results
+public class DeterministicNarrativeProvider : INarrativeProvider
 {
-    private bool _isDeterministic = false;
-    private List<ChoiceTemplate> _deterministicTemplates;
-    
-    public void EnableDeterministicMode(List<ChoiceTemplate> templates)
+    public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
     {
-        _isDeterministic = true;
-        _deterministicTemplates = templates;
+        var actionContext = context as ActionConversationContext;
+        return Task.FromResult(GetActionNarrative(actionContext.ActionType));
     }
     
-    // Override methods to use deterministic logic when enabled
-    public async Task InitializeConversation()
+    public Task<List<ConversationChoice>> GenerateChoices(...)
     {
-        if (_isDeterministic)
-        {
-            InitializeDeterministicConversation();
-            return;
-        }
-        // Existing AI logic...
+        // Single "Continue" button for thin layer
+        return Task.FromResult(new List<ConversationChoice> 
+        { 
+            new ConversationChoice { Text = "Continue", Value = "continue" }
+        });
     }
 }
 ```
 
-#### 1.2 Create Action-Specific ChoiceTemplates
-- GatherResourcesTemplate (safe vs risky gathering)
-- WorkActionTemplate (effort level choices)
-- DeliveryTemplate (reward type choices)
-- SocializeTemplate (conversation topics)
+#### 1.2 Action Narratives
+Simple one-sentence narratives for each action type:
+- GatherResources: "You carefully search the area for edible berries."
+- Browse: "You examine the market stalls, noting prices and goods."
+- Observe: "You blend into the crowd, listening to local gossip."
+- Work: "You begin your work for [NPC Name]."
+- Socialize: "You engage [NPC Name] in friendly conversation."
 
-#### 1.3 Implement IMechanicalEffect Classes
-- ResourceGatheringEffect
-- WorkCompletionEffect
-- TokenRewardEffect
-- StaminaModificationEffect
+#### 1.3 Direct Execution
+- No complex choices or branching
+- Action executes immediately after "Continue" 
+- Results shown via MessageSystem
+- Return to location screen
 
 ### Phase 2: Action-Conversation Integration (Week 1-2)
 **Goal**: Connect LocationActionManager with ConversationManager

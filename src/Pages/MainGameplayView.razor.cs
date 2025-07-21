@@ -175,6 +175,14 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         {
             ProcessMorningActivities();
         }
+        
+        // Check for pending action conversation
+        if (GameWorld.ConversationPending)
+        {
+            ConversationManager = GameWorld.PendingConversationManager;
+            NavigationService.NavigateTo(CurrentViews.ConversationScreen);
+            GameWorld.ConversationPending = false;
+        }
 
         if (oldSnapshot == null || !snapshot.IsEqualTo(oldSnapshot))
         {
@@ -318,13 +326,26 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task OnConversationCompleted(ConversationBeatOutcome result)
     {
-        // Action system removed - no action processing needed
-        
-        // Store the result for narrative view
-        ConversationBeatOutcome = result;
+        // Check if this was an action conversation
+        if (GameWorld.PendingAction != null)
+        {
+            // UI actions must go through GameWorldManager
+            GameManager.CompleteActionAfterConversation(GameWorld.PendingAction);
+            
+            // Clear the pending action
+            GameWorld.PendingAction = null;
+            
+            // Return to location screen
+            NavigationService.NavigateTo(CurrentViews.LocationScreen);
+        }
+        else
+        {
+            // Store the result for narrative view
+            ConversationBeatOutcome = result;
 
-        // Switch to narrative screen to show result
-        NavigationService.NavigateTo(CurrentViews.NarrativeScreen);
+            // Switch to narrative screen to show result
+            NavigationService.NavigateTo(CurrentViews.NarrativeScreen);
+        }
 
         UpdateState();
     }

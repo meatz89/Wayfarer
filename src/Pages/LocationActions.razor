@@ -153,7 +153,8 @@
     
     private void ExecuteAction(ActionOption action)
     {
-        bool success = LocationActionManager.ExecuteAction(action);
+        // UI actions must go through GameWorldManager, not LocationActionManager directly
+        bool success = GameWorldManager.ExecuteAction(action);
         
         if (success)
         {
