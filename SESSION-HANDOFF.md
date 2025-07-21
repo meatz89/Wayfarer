@@ -2,8 +2,8 @@
 
 ## Session Date: 2025-07-21
 
-## CURRENT STATUS: ALL REQUESTED FIXES COMPLETE! System messages auto-dismiss, event log added, NPCs fixed!
-## NEXT: Test complete gameplay experience with all fixes and new features
+## CURRENT STATUS: World Map complete + TimeBlockCost legacy code removed!
+## NEXT: Test the new map visualization and complete gameplay experience
 
 ## SESSION SUMMARY
 
@@ -16,6 +16,8 @@ This session focused on fixing critical UI issues and implementing quality-of-li
 4. **System Message Improvements** - Auto-dismiss with toast notifications and permanent event log
 5. **NPC Location Fixes** - NPCs now correctly appear only at their assigned spots
 6. **Content Fixes** - Added missing Thornwood Village Market
+7. **Comprehensive World Map** - Shows ALL locations and routes, not just reachable ones
+8. **Legacy Code Removal** - Removed TimeBlockCost throughout codebase, now uses TravelTimeHours
 
 ### Critical User Feedback Addressed:
 - "the ui is all messed up" - Fixed 14 specific UI issues
@@ -23,6 +25,7 @@ This session focused on fixing critical UI issues and implementing quality-of-li
 - "system messages never disappear and cant be closed" - Implemented auto-dismiss
 - "npcs should only be at one location spot" - Fixed NPC positioning logic
 - "why are there no traders at thornwood village market?" - Added market and fixed trader assignment
+- "the map screen should show all locations with all possible connections" - Implemented comprehensive world map
 
 ## CRITICAL DISCOVERIES THIS SESSION
 
@@ -398,29 +401,46 @@ Design philosophy emphasized:
    - Added total token count to relationship gain messages
    - Helps debug why relationships might not show
 
+7. **Comprehensive World Map Implementation** ✅
+   - Complete redesign of AreaMap.razor to show ALL locations and routes
+   - Visual SVG-based map with interactive nodes and connections
+   - Color-coded locations: Current (gold), Reachable (green), Unreachable (gray)
+   - Route visualization: Discovered (solid), Undiscovered (dashed)
+   - Clickable locations and routes show detailed information
+   - Legend explaining all visual elements
+   - Shows route requirements (terrain categories) and costs
+   - Travel button available for directly reachable locations
+
 ## FILES MODIFIED THIS SESSION
 
-Latest session (Additional fixes):
-1. **SystemMessage.cs** - Added expiration time and IsExpired property
-2. **MessageSystem.cs** - Added duration based on message type
-3. **MainGameplayView.razor.cs** - Added cleanup of expired messages
-4. **SystemMessageDisplay.razor** - Added slide-in animation
-5. **EventLogScreen.razor** - Created new event log screen
-6. **event-log.css** - Created styles for event log
-7. **GameWorld.cs** - Added EventLog list for persistence
-8. **CurrentViews.cs** - Added EventLogScreen enum value
-9. **NavigationBar.razor** - Added Event Log button
-10. **MainGameplayView.razor** - Added EventLogScreen case
-11. **_Layout.cshtml** - Added event-log.css reference
-12. **PlayerStatusView.razor** - Removed coin weight display
-13. **GameWorldManager.cs** - Removed coin weight from calculation
-14. **NPC.cs** - Added SpotId property
-15. **NPCParser.cs** - Added SpotId mapping from JSON
-16. **NPCRepository.cs** - Fixed methods to use SpotId
-17. **LocationSpotMap.razor.cs** - Fixed GetAllNPCsForSpot to use SpotId
-18. **location_spots.json** - Added thornwood_market location
-19. **npcs.json** - Fixed marcus_thornwood spotId
-20. **ConnectionTokenManager.cs** - Added debug info to token messages
+Latest session (World Map + Legacy Code Removal):
+1. **AreaMap.razor** - Complete rewrite to show ALL locations and connections
+2. **area-map.css** - Created comprehensive styles for map visualization
+3. **_Layout.cshtml** - Added area-map.css reference
+4. **routes.json** - Replaced timeBlockCost with travelTimeHours (1 block = 3 hours)
+5. **RouteDTO.cs** - Removed TimeBlockCost legacy property and GetTravelTimeHours method
+6. **GameWorldInitializer.cs** - Updated to use TravelTimeHours directly
+7. **CLAUDE.md** - Added "READ ALL RELEVANT FILES BEFORE MODIFYING" principle
+8. **SystemMessage.cs** - Added expiration time and IsExpired property
+9. **MessageSystem.cs** - Added duration based on message type
+10. **MainGameplayView.razor.cs** - Added cleanup of expired messages
+11. **SystemMessageDisplay.razor** - Added slide-in animation
+8. **EventLogScreen.razor** - Created new event log screen
+9. **event-log.css** - Created styles for event log
+10. **GameWorld.cs** - Added EventLog list for persistence
+11. **CurrentViews.cs** - Added EventLogScreen enum value
+12. **NavigationBar.razor** - Added Event Log button
+13. **MainGameplayView.razor** - Added EventLogScreen case
+14. **_Layout.cshtml** - Added event-log.css reference
+15. **PlayerStatusView.razor** - Removed coin weight display
+16. **GameWorldManager.cs** - Removed coin weight from calculation
+17. **NPC.cs** - Added SpotId property
+18. **NPCParser.cs** - Added SpotId mapping from JSON
+19. **NPCRepository.cs** - Fixed methods to use SpotId
+20. **LocationSpotMap.razor.cs** - Fixed GetAllNPCsForSpot to use SpotId
+21. **location_spots.json** - Added thornwood_market location
+22. **npcs.json** - Fixed marcus_thornwood spotId
+23. **ConnectionTokenManager.cs** - Added debug info to token messages
 
 Previous session (UI fixes):
 1. **TravelSelection.razor** - Fixed red hint overload, simplified route warnings

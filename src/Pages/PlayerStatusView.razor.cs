@@ -99,7 +99,7 @@ public class PlayerStatusViewBase : ComponentBase
 
     public (int accessible, int blocked, int total) GetAccessibleRoutes()
     {
-        var allRoutes = RouteRepository.GetAllRoutes();
+        var allRoutes = RouteRepository.GetAll();
         var equipmentCategories = GetCurrentEquipmentCategories();
         int accessible = 0;
         int blocked = 0;
