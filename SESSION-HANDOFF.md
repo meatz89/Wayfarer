@@ -852,3 +852,111 @@ Choice 3: "Search for fallen berries" (+2 food, +30 minutes)
 ---
 
 ## Session Date: 2025-07-22 (END OF SESSION)
+
+---
+
+## Session Date: 2025-01-21
+
+## CURRENT STATUS: Architectural principles documented + POC roadmap created
+## NEXT: Begin Phase 1 - Implement deterministic conversation mode
+
+## SESSION SUMMARY
+
+This session focused on documenting critical architectural and design principles, then creating a comprehensive POC implementation roadmap that follows these principles.
+
+### Key Accomplishments:
+
+1. **Documented NO CLASS INHERITANCE Principle** ✅
+   - Added to GAME-ARCHITECTURE.md
+   - Never use class inheritance or extensions
+   - Use composition and helper methods instead
+   - Single class handles all modes of operation
+
+2. **Documented NO SPECIAL RULES Principle** ✅
+   - Added to CLAUDE.md
+   - Special rules are a design smell
+   - Create categorical mechanics instead
+   - Transform special cases into regular system behavior
+
+3. **Created POC Implementation Roadmap** ✅
+   - POC-IMPLEMENTATION-ROADMAP.md
+   - 7-week implementation plan
+   - Follows all architectural principles
+   - Reuses existing systems (no new classes)
+
+### Critical User Feedback:
+- "never rename classes that already exist unless specifically ordered to"
+- "document in game architecture to never use class extensions, ever"
+- "each time you try to add a 'special rule' to the game, this is a 'design smell'"
+- "introduce new mechanics through which this 'special case' becomes a new regular case"
+
+## KEY DESIGN INSIGHTS
+
+### Architectural Principles
+1. **NO INHERITANCE** - Add helper methods to existing classes
+2. **NO SPECIAL RULES** - Create categorical systems that apply to all entities
+3. **COMPOSITION OVER INHERITANCE** - Use member variables and mode flags
+
+### Example Application
+Instead of:
+- DeterministicConversationManager extends ConversationManager ❌
+- "Patron letters always go to position 1" special rule ❌
+
+Do:
+- ConversationManager with _isDeterministic mode flag ✅
+- Leverage system where patron has high starting debt ✅
+
+## IMPLEMENTATION ROADMAP SUMMARY
+
+### Phase 1: Deterministic Conversations (Week 1)
+- Extend ConversationManager with deterministic mode
+- Create action-specific ChoiceTemplates
+- Implement IMechanicalEffect classes
+
+### Phase 2: Action Integration (Week 1-2)
+- Extend ActionOption with conversation properties
+- Modify LocationActionManager to launch conversations
+- Update MainGameplayView for conversation flow
+
+### Phase 3: Letter Queue Conversations (Week 2-3)
+- Queue skipping with token costs
+- Letter discovery through dialogue
+- Collection mechanics with inventory
+
+### Phase 4: Delivery Conversations (Week 3-4)
+- Multi-beat delivery experiences
+- Contextual choices based on timing/condition
+- Post-delivery opportunities
+
+### Phase 5: Standing Obligations (Week 4-5)
+- Obligations as leverage modifiers
+- No special rules, just categorical effects
+- Patron's Expectation as starting debt
+
+### Phase 6: Physical & Travel (Week 5-6)
+- Three-state letter management
+- Travel encounters via conversations
+- Route discovery through NPCs
+
+### Phase 7: Polish & Testing (Week 6-7)
+- System integration testing
+- UI polish and clarity
+- Balance validation
+
+## NEXT STEPS
+
+### Immediate Priority: Phase 1.1
+Start implementing deterministic mode in ConversationManager:
+1. Add _isDeterministic flag
+2. Add EnableDeterministicMode method
+3. Override InitializeConversation for deterministic flow
+4. Override ProcessNextBeat for template-based choices
+5. Override ProcessPlayerChoice for mechanical effects
+
+### Key Implementation Notes
+- DO NOT create new classes
+- DO NOT add special rules
+- DO use existing systems
+- DO create categorical mechanics
+
+## Session Date: 2025-01-21 (END OF SESSION)
