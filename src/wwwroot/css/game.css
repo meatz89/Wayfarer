@@ -56,7 +56,46 @@ html body * {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    overflow: hidden;
+    /* Remove global overflow hidden - causes text cutoff */
+}
+
+/* Text overflow handling */
+p, span, div {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Ensure containers can show content */
+.market-container,
+.rest-container,
+.letter-queue-container,
+.player-status-container,
+.location-container {
+    overflow: visible;
+    max-width: 100%;
+}
+
+/* Responsive design for better readability */
+@media (max-width: 1600px) {
+    html {
+        font-size: 14px; /* Scale down from default 16px */
+    }
+    
+    .letter-queue-container,
+    .market-container {
+        padding: 0.75rem;
+    }
+}
+
+@media (min-width: 1920px) {
+    html {
+        font-size: 16px;
+    }
+    
+    .main-content {
+        max-width: 1800px;
+        margin: 0 auto;
+    }
 }
 
 /* Override for all potentially interactive elements with even higher specificity */

@@ -2,49 +2,104 @@
 @inject GameWorld GameWorld
 @inject GameWorldManager GameManager
 @inject RestManager RestManager
+@inject LocationActionManager LocationActionManager
 
 <div class="rest-options">
-    <div class="rest-option">
-        <div class="option-header">
-            <span class="option-name">Camp Outside</span>
-            <span class="option-cost">Free</span>
-        </div>
-        <div class="option-benefits">
-            <div class="benefit">
-                <span class="benefit-label">Stamina Recovery:</span>
-                <span class="benefit-value">+2</span>
+    @* Show contextual rest options from RestManager *@
+    @{
+        var restOptions = RestManager.GetAvailableRestOptions()
+            .Where(o => o.StaminaRecovery > 0 && o.RestTimeHours >= 1)
+            .ToList();
+    }
+    
+    @foreach (var option in restOptions)
+    {
+        <div class="rest-option">
+            <div class="option-header">
+                <span class="option-name">@option.Name</span>
+                <span class="option-cost">@(option.CoinCost > 0 ? $"{option.CoinCost} coins" : "Free")</span>
             </div>
-            <div class="benefit special-benefit">
-                <span class="benefit-label">Special:</span>
-                <span class="benefit-value">Enables dawn departure</span>
+            <div class="option-benefits">
+                <div class="benefit">
+                    <span class="benefit-label">Stamina Recovery:</span>
+                    <span class="benefit-value">+@option.StaminaRecovery</span>
+                </div>
+                @if (option.EnablesDawnDeparture)
+                {
+                    <div class="benefit special-benefit">
+                        <span class="benefit-label">Special:</span>
+                        <span class="benefit-value">Enables dawn departure</span>
+                    </div>
+                }
+                @if (option.ProvidesMarketRumors)
+                {
+                    <div class="benefit special-benefit">
+                        <span class="benefit-label">Special:</span>
+                        <span class="benefit-value">Provides market rumors</span>
+                    </div>
+                }
+                @if (option.CleansesContraband)
+                {
+                    <div class="benefit special-benefit">
+                        <span class="benefit-label">Special:</span>
+                        <span class="benefit-value">Cleanses contraband</span>
+                    </div>
+                }
             </div>
+            <button class="rest-button"
+                    disabled="@(GameWorld.GetPlayer().Coins < option.CoinCost || (option.RequiredItem != null && !HasItem(option.RequiredItem)))"
+                    @onclick='() => Rest(option.Id)'>
+                Rest Here
+            </button>
         </div>
-        <button class="rest-button" @onclick='() => Rest("camp")'>
-            Rest Here
-        </button>
-    </div>
-
-    <div class="rest-option">
-        <div class="option-header">
-            <span class="option-name">Inn Room</span>
-            <span class="option-cost">2 coins</span>
+    }
+    
+    @* Show location-specific rest actions from LocationActionManager *@
+    @{
+        var locationActions = LocationActionManager.GetAvailableActions()
+            .Where(a => a.Action == LocationAction.Rest && a.Name != "Rest")
+            .ToList();
+    }
+    
+    @if (locationActions.Any())
+    {
+        <div class="location-rest-actions">
+            <h4>Location Activities</h4>
+            @foreach (var action in locationActions)
+            {
+                <div class="rest-option">
+                    <div class="option-header">
+                        <span class="option-name">@action.Name</span>
+                        <span class="option-cost">
+                            @if (action.CoinCost > 0)
+                            {
+                                @:@action.CoinCost coins
+                            }
+                            else
+                            {
+                                @:Free
+                            }
+                        </span>
+                    </div>
+                    <div class="option-benefits">
+                        <div class="benefit">
+                            <span class="benefit-label">Time:</span>
+                            <span class="benefit-value">@action.HourCost hour@(action.HourCost > 1 ? "s" : "")</span>
+                        </div>
+                        <div class="benefit">
+                            <span class="benefit-label">Effect:</span>
+                            <span class="benefit-value">@action.Effect</span>
+                        </div>
+                    </div>
+                    <button class="rest-button"
+                            disabled="@(!CanAffordAction(action))"
+                            @onclick="() => ExecuteLocationAction(action)">
+                        @action.Name
+                    </button>
+                </div>
+            }
         </div>
-        <div class="option-benefits">
-            <div class="benefit">
-                <span class="benefit-label">Stamina Recovery:</span>
-                <span class="benefit-value">+4</span>
-            </div>
-            <div class="benefit special-benefit">
-                <span class="benefit-label">Special:</span>
-                <span class="benefit-value">Provides market rumors</span>
-            </div>
-        </div>
-        <button class="rest-button"
-                disabled="@(GameWorld.GetPlayer().Coins < 2)"
-                @onclick='() => Rest("inn")'>
-            Rest Here
-        </button>
-    </div>
+    }
     
     <div class="wait-section">
         <h4>Wait</h4>
@@ -52,17 +107,17 @@
         <p>Remaining Hours Today: @(24 - GameWorld.TimeManager.CurrentTimeHours)</p>
         
         <div class="wait-options">
-            <button class="btn btn-outline-secondary btn-sm" 
+            <button class="wait-button" 
                     disabled="@(GameWorld.TimeManager.CurrentTimeHours >= 23)"
                     @onclick="() => WaitHours(1)">
                 Wait 1 Hour
             </button>
-            <button class="btn btn-outline-secondary btn-sm" 
+            <button class="wait-button" 
                     disabled="@(GameWorld.TimeManager.CurrentTimeHours >= 22)"
                     @onclick="() => WaitHours(2)">
                 Wait 2 Hours  
             </button>
-            <button class="btn btn-outline-secondary btn-sm" 
+            <button class="wait-button" 
                     disabled="@(GameWorld.TimeManager.CurrentTimeHours >= 21)"
                     @onclick="() => WaitHours(3)">
                 Wait 3 Hours
@@ -94,6 +149,26 @@
     private async Task WaitHours(int hours)
     {
         RestManager.Wait(hours);
+        await OnRestComplete.InvokeAsync();
+    }
+    
+    private bool HasItem(string itemName)
+    {
+        var player = GameWorld.GetPlayer();
+        return Array.IndexOf(player.Inventory.ItemSlots, itemName) != -1;
+    }
+    
+    private bool CanAffordAction(ActionOption action)
+    {
+        var player = GameWorld.GetPlayer();
+        return player.Coins >= action.CoinCost && 
+               player.Stamina >= action.StaminaCost &&
+               GameWorld.TimeManager.HoursRemaining >= action.HourCost;
+    }
+    
+    private async Task ExecuteLocationAction(ActionOption action)
+    {
+        LocationActionManager.ExecuteAction(action);
         await OnRestComplete.InvokeAsync();
     }
 }

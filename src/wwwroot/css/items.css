@@ -74,14 +74,24 @@
 
 /* Market Scheduling Status */
 .market-status {
-	background-color: var(--bg-panel);
-	border: 1px solid var(--oak-mid);
-	border-radius: 5px;
-	padding: 10px 15px;
-	margin-bottom: 15px;
+	padding: 5px 0;
+	margin-bottom: 10px;
 	text-align: center;
 	font-family: var(--font-secondary);
-	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.player-status-compact {
+	padding: 5px 0;
+	margin-bottom: 10px;
+	font-family: var(--font-secondary);
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+}
+
+.player-status-compact .warning {
+	color: var(--rust);
+	font-weight: bold;
 }
 
 .market-open {
@@ -280,20 +290,21 @@
 
 .table-header {
 	display: grid;
-	grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
-	padding: 8px 0;
+	grid-template-columns: 2fr 1fr 1fr 1fr;
+	padding: 4px 0;
 	border-bottom: 1px solid var(--oak-mid);
 	font-family: var(--font-primary);
+	font-size: 0.85rem;
 	color: var(--leather);
-	letter-spacing: 0.05em;
 }
 
 .market-item {
 	display: grid;
-	grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
-	padding: 10px 0;
+	grid-template-columns: 2fr 1fr 1fr 1fr;
+	padding: 6px 0;
 	border-bottom: 1px solid var(--oak-dark);
 	align-items: center;
+	font-size: 0.85rem;
 }
 
 	.market-item:last-child {
@@ -359,10 +370,16 @@
 	color: var(--text-primary);
 	border: 1px solid var(--oak-dark);
 	border-radius: 3px;
-	padding: 4px 8px;
+	padding: 2px 6px;
 	font-family: var(--font-secondary);
+	font-size: 0.8rem;
 	transition: all 0.2s ease;
 	cursor: url('/images/cursors/pointer.png'), pointer !important;
+}
+
+.no-action {
+	color: var(--text-muted);
+	font-size: 0.8rem;
 }
 
 	.buy-button:hover, .sell-button:hover, .drop-button:hover {
@@ -631,6 +648,56 @@
 	background-color: var(--bg-panel);
 	color: var(--text-muted);
 	cursor: url('/images/cursors/cursor.png'), default !important;
+}
+
+/* Wait section styling */
+.wait-section {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid var(--oak-mid);
+}
+
+.wait-section h4 {
+	font-family: var(--font-primary);
+	color: var(--leather);
+	margin-bottom: 10px;
+	font-size: 1rem;
+}
+
+.wait-section p {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+	margin: 5px 0;
+}
+
+.wait-options {
+	display: flex;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.wait-button {
+	background-color: var(--bg-active);
+	color: var(--text-primary);
+	border: 1px solid var(--oak-dark);
+	border-radius: 3px;
+	padding: 6px 12px;
+	font-family: var(--font-secondary);
+	font-size: 0.85rem;
+	transition: all 0.2s ease;
+	cursor: url('/images/cursors/pointer.png'), pointer !important;
+}
+
+.wait-button:hover {
+	background-color: var(--oak-mid);
+}
+
+.wait-button:disabled {
+	background-color: var(--bg-panel);
+	color: var(--text-muted);
+	cursor: url('/images/cursors/cursor.png'), default !important;
+	opacity: 0.6;
 }
 
 

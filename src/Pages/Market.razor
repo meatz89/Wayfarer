@@ -12,108 +12,28 @@
         @{
             string marketStatus = GameManager.GetMarketAvailabilityStatus(Location.Id);
             var currentTraders = GameManager.GetTradingNPCs(Location.Id).Where(npc => npc.IsAvailable(GameWorld.TimeManager.GetCurrentTimeBlock())).ToList();
-            var allTraders = GameManager.GetTradingNPCs(Location.Id);
         }
         <span class="@(marketStatus.Contains("Open") ? "market-open" : "market-closed")">
             @marketStatus
         </span>
         
-        @* Show detailed trader information *@
-        <div class="trader-information">
-            <h4>🏪 Trading Information</h4>
-            
-            @if (currentTraders.Any())
-            {
-                <div class="current-traders">
-                    <div class="traders-header">Available Traders:</div>
-                    @foreach (var trader in currentTraders)
-                    {
-                        <div class="trader-card trader-available">
-                            <div class="trader-name">🟢 @trader.Name</div>
-                            <div class="trader-profession">@trader.Profession.ToString().Replace("_", " ")</div>
-                            <div class="trader-schedule">Schedule: @GameManager.GetNPCScheduleDescription(trader.AvailabilitySchedule)</div>
-                            <div class="trader-services">
-                                Services: @string.Join(", ", trader.ProvidedServices.Select(s => s.ToString().Replace("_", " ")))
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="no-current-traders">
-                    <div class="status-message">❌ No traders available right now</div>
-                    
-                    @if (allTraders.Any())
-                    {
-                        <div class="trader-schedules">
-                            <div class="schedules-header">Trader Schedules:</div>
-                            @foreach (var trader in allTraders)
-                            {
-                                <div class="trader-card trader-unavailable">
-                                    <div class="trader-name">🔴 @trader.Name</div>
-                                    <div class="trader-profession">@trader.Profession.ToString().Replace("_", " ")</div>
-                                    <div class="trader-schedule">Schedule: @GameManager.GetNPCScheduleDescription(trader.AvailabilitySchedule)</div>
-                                    <div class="trader-next-available">@GameManager.GetNextAvailableTime(trader)</div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="no-traders">
-                            <strong>No traders at this location</strong>
-                            <div class="explanation">You cannot trade items here because no NPCs provide trading services.</div>
-                        </div>
-                    }
-                </div>
-            }
-        </div>
+        @if (currentTraders.Any())
+        {
+            <span class="trader-count">(@currentTraders.Count trader@(currentTraders.Count != 1 ? "s" : "") available)</span>
+        }
     </div>
 
-    @* Context-aware player status for trading *@
-    <div class="player-status trading-context">
+    @* Compact player status *@
+    <div class="player-status-compact">
         @{
-            int totalWeight = GameManager.CalculateTotalWeight();
-            int coinWeight = GameWorld.GetPlayer().Coins / 10;
-            int itemWeight = totalWeight - coinWeight;
-            string weightStatus = totalWeight <= 3 ? "Light load" :
-            (totalWeight <= 6 ? "Medium load (+1 stamina)" :
-            "Heavy load (+2 stamina)");
-            
-            // Get inventory status
-            string inventoryStatus = GameManager.GetInventoryStatusForMarket();
             var inventory = GameWorld.GetPlayer().Inventory;
             int freeSlots = inventory.Size - inventory.UsedCapacity;
         }
-        <div class="trading-resources">
-            <div class="resource-block coins-block">
-                <span class="resource-icon">💰</span>
-                <div class="resource-info">
-                    <span class="resource-main">@GameWorld.GetPlayer().Coins coins</span>
-                    <span class="resource-detail">Weight: @coinWeight</span>
-                </div>
-            </div>
-            <div class="resource-block inventory-block">
-                <span class="resource-icon">🎒</span>
-                <div class="resource-info">
-                    <span class="resource-main">@inventory.UsedCapacity / @inventory.Size slots</span>
-                    <span class="resource-detail">@freeSlots free</span>
-                </div>
-            </div>
-            <div class="resource-block weight-block">
-                <span class="resource-icon">⚖️</span>
-                <div class="resource-info">
-                    <span class="resource-main @GetWeightClass(totalWeight)">@weightStatus</span>
-                    <span class="resource-detail">Total: @totalWeight units</span>
-                </div>
-            </div>
-        </div>
-        @if (totalWeight > 6)
+        💰 @GameWorld.GetPlayer().Coins | 
+        🎒 @inventory.UsedCapacity/@inventory.Size | 
+        @if (freeSlots == 0)
         {
-            <div class="context-warning">
-                ⚠️ Heavy load will cost +2 stamina per travel segment
-            </div>
+            <span class="warning">Inventory Full!</span>
         }
     </div>
 
@@ -140,11 +60,9 @@
     <div class="market-table">
         <div class="table-header">
             <div class="item-name">Item</div>
-            <div class="item-size">Size</div>
             <div class="item-buy">Buy</div>
             <div class="item-sell">Sell</div>
-            <div class="item-constraints">Inventory</div>
-            <div class="item-actions">Actions</div>
+            <div class="item-actions">Action</div>
         </div>
 
         @foreach (Item item in GetFilteredMarketItems())
@@ -156,79 +74,27 @@
             bool canSell = playerState.Inventory.HasItem(item.Name);
 
             <div class="market-item">
-                <div class="item-name">
-                    @item.Name
-                    @if (item.Categories.Any())
-                    {
-                        <span class="item-categories">
-                            @if (!string.IsNullOrEmpty(item.AllCategoriesDescription))
-                            {
-                                <text>(@item.AllCategoriesDescription)</text>
-                            }
-                        </span>
-                    }
-                </div>
-                <div class="item-size">
-                    @item.Size (@item.GetRequiredSlots() slot@(item.GetRequiredSlots() > 1 ? "s" : ""))
-                </div>
-                <div class="item-buy">@item.BuyPrice coins</div>
-                <div class="item-sell">@item.SellPrice coins</div>
-                <div class="item-constraints">
-                    @GameManager.GetInventoryConstraintMessage(item.Id)
-                </div>
+                <div class="item-name">@item.Name</div>
+                <div class="item-buy">@item.BuyPrice</div>
+                <div class="item-sell">@item.SellPrice</div>
                 <div class="item-actions">
-                    <button class="buy-button"
-                            disabled="@(!canBuy)"
-                            @onclick="() => BuyItem(item)">
-                        Buy
-                    </button>
-                    <button class="sell-button"
-                            disabled="@(!canSell)"
-                            @onclick="() => SellItem(item)">
-                        Sell
-                    </button>
+                    @if (canBuy)
+                    {
+                        <button class="buy-button" @onclick="() => BuyItem(item)">Buy</button>
+                    }
+                    else if (canSell)
+                    {
+                        <button class="sell-button" @onclick="() => SellItem(item)">Sell</button>
+                    }
+                    else
+                    {
+                        <span class="no-action">-</span>
+                    }
                 </div>
             </div>
         }
     </div>
 
-    @* Players must discover profitable trades through exploration and memory *@
-
-    <div class="inventory-preview">
-        <h3>Your Inventory</h3>
-        <div class="inventory-items">
-            @for (int i = 0; i < GameWorld.GetPlayer().Inventory.ItemSlots.Length; i++)
-            {
-                string itemName = GameWorld.GetPlayer().Inventory.ItemSlots[i];
-                int index = i;
-
-                <div class="inventory-slot @(itemName == null ? "empty" : "")">
-                    @if (itemName != null)
-                    {
-                        Item item = ItemRepository.GetItemByName(itemName);
-                        if (item != null)
-                        {
-                            <div class="item-details">
-                                <span class="item-name">@itemName</span>
-                                <span class="item-weight">Weight: @item.Weight</span>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="item-details">
-                                <span class="item-name">@itemName</span>
-                                <span class="item-weight">Weight: Unknown</span>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <span>Empty</span>
-                    }
-                </div>
-            }
-        </div>
-    </div>
 </div>
 
 @code {

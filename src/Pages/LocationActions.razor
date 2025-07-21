@@ -1,10 +1,10 @@
 @using Wayfarer.Pages
 @inject LocationActionManager LocationActionManager
 @inject GameWorldManager GameWorldManager
-@inject TimeManager TimeManager
+@inject GameWorld GameWorld
 
 <div class="location-actions">
-    <h3>Available Actions (@TimeManager.HoursRemaining hours remaining)</h3>
+    <h3>Available Actions (@GameWorld.TimeManager.HoursRemaining hours remaining)</h3>
     
     @if (availableActions.Any())
     {
