@@ -17,6 +17,7 @@
     public List<ConversationChoice> AvailableChoices { get; private set; } = new List<ConversationChoice>();
     public string LastChoiceLabel { get; private set; }
     public bool LastChoiceSuccess { get; private set; }
+    public bool IsConversationComplete { get; private set; }
 
     public GameWorldSnapshot(GameWorld gameWorld)
     {
@@ -28,7 +29,21 @@
         IsStreaming = streamingState.IsStreaming;
         StreamProgress = streamingState.StreamProgress;
 
-        // Conversation state will be handled separately
+        // Conversation state
+        if (gameWorld.PendingConversationManager != null)
+        {
+            IsAwaitingAIResponse = gameWorld.PendingConversationManager.IsAwaitingResponse;
+            AvailableChoices = gameWorld.PendingConversationManager.Choices ?? new List<ConversationChoice>();
+            CanSelectChoice = AvailableChoices.Any() && !IsAwaitingAIResponse;
+            IsConversationComplete = gameWorld.PendingConversationManager.State?.IsConversationComplete ?? false;
+        }
+        else
+        {
+            IsAwaitingAIResponse = false;
+            AvailableChoices = new List<ConversationChoice>();
+            CanSelectChoice = false;
+            IsConversationComplete = false;
+        }
     }
 
     public bool IsEqualTo(GameWorldSnapshot snapshot)

@@ -84,7 +84,7 @@
                             
                             <button class="btn btn-secondary btn-sm skip-btn" 
                                     disabled="@(!hasEnoughTokens)" 
-                                    @onclick="() => SkipLetter(letter)"
+                                    @onclick="async () => await SkipLetter(letter)"
                                     title="Skip to position 1">
                                 Skip
                             </button>
@@ -247,7 +247,7 @@
                                 }
                             }
                             <div class="purge-total">Total selected: @GetTotalPurgeTokens() / 3</div>
-                            <button class="btn btn-primary btn-sm" @onclick="PerformPurge" disabled="@(GetTotalPurgeTokens() != 3)">
+                            <button class="btn btn-primary btn-sm" @onclick="async () => await PerformPurge()" disabled="@(GetTotalPurgeTokens() != 3)">
                                 Purge
                             </button>
                             <button class="btn btn-secondary btn-sm" @onclick="() => { showPurgeOptions = false; purgeTokenSelection.Clear(); }">×</button>
@@ -405,30 +405,12 @@
         StateHasChanged();
     }
     
-    private void SkipLetter(Letter letter)
+    private async Task SkipLetter(Letter letter)
     {
         if (letter == null) return;
         
-        int tokenCost = letter.QueuePosition - 1;
-        
-        // Attempt to skip the letter
-        bool success = LetterQueueManager.TrySkipDeliver(letter.QueuePosition);
-        
-        if (success)
-        {
-            // Track skip in letter history
-            LetterQueueManager.RecordLetterSkip(letter);
-            
-            // Show success message
-            string message = $"Skipped letter to position 1! Spent {tokenCost} {letter.TokenType} tokens";
-            MessageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
-        }
-        else
-        {
-            // Show failure message
-            string message = $"Cannot skip letter: insufficient {letter.TokenType} tokens or position 1 occupied";
-            MessageSystem.AddSystemMessage(message, SystemMessageTypes.Danger);
-        }
+        // Trigger conversation for skip action
+        await LetterQueueManager.TriggerSkipConversation(letter.QueuePosition);
         
         StateHasChanged();
     }
@@ -533,19 +515,17 @@
         return purgeTokenSelection.Values.Sum();
     }
     
-    private void PerformPurge()
+    private async Task PerformPurge()
     {
-        if (LetterQueueManager.TryPurgeLetter(purgeTokenSelection))
-        {
-            string tokenDetails = string.Join(", ", purgeTokenSelection.Select(kvp => $"{kvp.Value} {kvp.Key}"));
-            MessageSystem.AddSystemMessage($"Purged bottom letter! Spent {tokenDetails} tokens", SystemMessageTypes.Success);
-            showPurgeOptions = false;
-            purgeTokenSelection.Clear();
-        }
-        else
-        {
-            MessageSystem.AddSystemMessage("Failed to purge letter", SystemMessageTypes.Danger);
-        }
+        // Store the selected tokens for later use in conversation completion
+        var tokenSelectionJson = System.Text.Json.JsonSerializer.Serialize(purgeTokenSelection);
+        GameWorld.SetMetadata("PendingPurgeTokens", tokenSelectionJson);
+        
+        // Trigger conversation for purge action
+        await LetterQueueManager.TriggerPurgeConversation();
+        
+        showPurgeOptions = false;
+        purgeTokenSelection.Clear();
         StateHasChanged();
     }
     

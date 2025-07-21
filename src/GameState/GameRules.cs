@@ -22,7 +22,7 @@
     
     // Resource Competition: Token Thresholds
     public const int TOKENS_STRANGER_THRESHOLD = 0;    // No interaction
-    public const int TOKENS_BASIC_THRESHOLD = 3;       // Basic letters offered
-    public const int TOKENS_QUALITY_THRESHOLD = 5;     // Better letters offered
-    public const int TOKENS_PREMIUM_THRESHOLD = 8;     // Premium letters & routes
+    public const int TOKENS_BASIC_THRESHOLD = 1;       // Basic letters offered (1-2 tokens)
+    public const int TOKENS_QUALITY_THRESHOLD = 3;     // Quality letters offered (3-4 tokens)
+    public const int TOKENS_PREMIUM_THRESHOLD = 5;     // Premium letters & routes (5+ tokens)
 }

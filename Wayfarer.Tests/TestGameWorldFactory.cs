@@ -225,7 +225,8 @@ public static class TestServiceConfiguration
             var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
             var connectionTokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
             var categoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
-            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager, connectionTokenManager, categoryService);
+            var conversationFactory = serviceProvider.GetRequiredService<ConversationFactory>();
+            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager, connectionTokenManager, categoryService, conversationFactory);
             
             return letterQueueManager;
         });

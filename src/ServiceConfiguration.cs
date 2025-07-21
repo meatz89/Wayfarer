@@ -120,7 +120,8 @@
             if (useDeterministic)
             {
                 var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-                return new DeterministicNarrativeProvider(gameWorld);
+                var tokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
+                return new DeterministicNarrativeProvider(gameWorld, tokenManager);
             }
             else
             {

@@ -99,6 +99,9 @@
     public ActionOption PendingAction { get; set; }
     public ConversationManager PendingConversationManager { get; set; }
     public bool ConversationPending { get; set; }
+    
+    // Temporary metadata for conversation context
+    private Dictionary<string, string> _metadata = new Dictionary<string, string>();
 
     public GameWorld()
     {
@@ -128,6 +131,22 @@
     public bool IsDeadlineReached()
     {
         return CurrentDay >= DeadlineDay;
+    }
+    
+    // Metadata management for conversation context
+    public void SetMetadata(string key, string value)
+    {
+        _metadata[key] = value;
+    }
+    
+    public string GetMetadata(string key)
+    {
+        return _metadata.TryGetValue(key, out var value) ? value : null;
+    }
+    
+    public void ClearMetadata(string key)
+    {
+        _metadata.Remove(key);
     }
 
 }

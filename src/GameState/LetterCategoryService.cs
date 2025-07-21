@@ -31,11 +31,11 @@ public class LetterCategoryService
         var tokenCount = npcTokens.GetValueOrDefault(tokenType, 0);
         
         // Check thresholds from highest to lowest
-        if (tokenCount >= GameRules.TOKENS_PREMIUM_THRESHOLD) // 8+ tokens
+        if (tokenCount >= GameRules.TOKENS_PREMIUM_THRESHOLD) // 5+ tokens
             return LetterCategory.Premium;
-        if (tokenCount >= GameRules.TOKENS_QUALITY_THRESHOLD) // 5+ tokens
+        if (tokenCount >= GameRules.TOKENS_QUALITY_THRESHOLD) // 3-4 tokens
             return LetterCategory.Quality;
-        if (tokenCount >= GameRules.TOKENS_BASIC_THRESHOLD) // 3+ tokens
+        if (tokenCount >= GameRules.TOKENS_BASIC_THRESHOLD) // 1-2 tokens
             return LetterCategory.Basic;
             
         // Not enough tokens for any category
@@ -127,9 +127,9 @@ public class LetterCategoryService
     {
         return category switch
         {
-            LetterCategory.Basic => (3, 5),
-            LetterCategory.Quality => (8, 12),
-            LetterCategory.Premium => (15, 20),
+            LetterCategory.Basic => (3, 5),      // 1-2 tokens: 3-5 coins
+            LetterCategory.Quality => (8, 12),   // 3-4 tokens: 8-12 coins
+            LetterCategory.Premium => (15, 20),  // 5+ tokens: 15-20 coins
             _ => (3, 5)
         };
     }

@@ -592,6 +592,18 @@ public class GameWorldManager
     /// </summary>
     public bool CompleteActionAfterConversation(ActionOption action)
     {
-        return locationActionManager.CompleteActionAfterConversation(action);
+        return locationActionManager.CompleteActionAfterConversation(action, LastSelectedChoice);
+    }
+    
+    private ConversationChoice LastSelectedChoice { get; set; }
+    
+    public void SetLastSelectedChoice(ConversationChoice choice)
+    {
+        LastSelectedChoice = choice;
+    }
+    
+    public ConversationChoice GetLastSelectedChoice()
+    {
+        return LastSelectedChoice;
     }
 }

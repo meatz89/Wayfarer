@@ -1,8 +1,8 @@
 public enum LetterCategory
 {
-    Basic,    // 3-4 tokens required
-    Quality,  // 5-7 tokens required  
-    Premium   // 8+ tokens required
+    Basic,    // 1-2 tokens required
+    Quality,  // 3-4 tokens required  
+    Premium   // 5+ tokens required
 }
 
 public class LetterTemplate
@@ -17,7 +17,7 @@ public class LetterTemplate
         
         // Letter category and requirements
         public LetterCategory Category { get; set; } = LetterCategory.Basic;
-        public int MinTokensRequired { get; set; } = 3; // Minimum tokens with NPC to unlock this template
+        public int MinTokensRequired { get; set; } = 1; // Minimum tokens with NPC to unlock this template
         
         // Optional fields for future expansion
         public string[] PossibleSenders { get; set; } // NPCs who can send this type
