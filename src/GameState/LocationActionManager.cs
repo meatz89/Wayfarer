@@ -42,6 +42,7 @@ public class LocationActionManager
     private readonly LetterQueueManager _letterQueueManager;
     private readonly NPCRepository _npcRepository;
     private readonly ItemRepository _itemRepository;
+    private readonly ConversationFactory _conversationFactory;
     
     private TimeManager _timeManager => _gameWorld.TimeManager;
     
@@ -51,7 +52,8 @@ public class LocationActionManager
         ConnectionTokenManager tokenManager,
         LetterQueueManager letterQueueManager,
         NPCRepository npcRepository,
-        ItemRepository itemRepository)
+        ItemRepository itemRepository,
+        ConversationFactory conversationFactory)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -59,6 +61,7 @@ public class LocationActionManager
         _letterQueueManager = letterQueueManager;
         _npcRepository = npcRepository;
         _itemRepository = itemRepository;
+        _conversationFactory = conversationFactory;
     }
     
     
@@ -385,7 +388,7 @@ public class LocationActionManager
     }
     
     /// <summary>
-    /// Execute an action
+    /// Execute an action - now launches conversation for thin narrative layer
     /// </summary>
     public bool ExecuteAction(ActionOption option)
     {
@@ -418,6 +421,39 @@ public class LocationActionManager
             );
             return false;
         }
+        
+        // Store the action for post-conversation processing
+        _gameWorld.PendingAction = option;
+        
+        // Create conversation context for the action
+        var context = new ActionConversationContext
+        {
+            GameWorld = _gameWorld,
+            Player = player,
+            LocationName = player.CurrentLocation?.Name ?? "",
+            LocationSpotName = player.CurrentLocationSpot?.Name ?? "",
+            TargetNPC = option.NPCId != null ? _npcRepository.GetNPCById(option.NPCId) : null,
+            ConversationTopic = $"Action_{option.Action}",
+            SourceAction = option,
+            InitialNarrative = option.InitialNarrative
+        };
+        
+        // Create conversation
+        var conversation = _conversationFactory.CreateConversation(context, player);
+        
+        // Set up for MainGameplayView to handle
+        _gameWorld.ConversationPending = true;
+        _gameWorld.PendingConversationManager = conversation;
+        
+        return true;
+    }
+    
+    /// <summary>
+    /// Complete the action after conversation finishes
+    /// </summary>
+    public bool CompleteActionAfterConversation(ActionOption option)
+    {
+        var player = _gameWorld.GetPlayer();
         
         // Spend resources
         _timeManager.SpendHours(option.HourCost);
@@ -901,7 +937,8 @@ public class LocationActionManager
                     HourCost = 1,
                     StaminaCost = 1,
                     CoinCost = 0,
-                    Effect = "+2 food items"
+                    Effect = "+2 food items",
+                    InitialNarrative = "You carefully search the area for edible berries."
                 });
             }
             
@@ -916,7 +953,8 @@ public class LocationActionManager
                     HourCost = 1,
                     StaminaCost = 2,
                     CoinCost = 0,
-                    Effect = "+1-3 herbs (can sell for 3-5 coins each)"
+                    Effect = "+1-3 herbs (can sell for 3-5 coins each)",
+                    InitialNarrative = "You kneel down and carefully examine the undergrowth for valuable herbs."
                 });
             }
         }
@@ -940,7 +978,8 @@ public class LocationActionManager
                     HourCost = 1,
                     StaminaCost = 0,
                     CoinCost = 0,
-                    Effect = "Learn current market prices"
+                    Effect = "Learn current market prices",
+                    InitialNarrative = "You examine the market stalls, noting prices and goods."
                 });
             }
         }
@@ -956,7 +995,8 @@ public class LocationActionManager
                 HourCost = 1,
                 StaminaCost = 0,
                 CoinCost = 0,
-                Effect = "Learn about recent events or opportunities"
+                Effect = "Learn about recent events or opportunities",
+                InitialNarrative = "You blend into the crowd, listening to local gossip."
             });
         }
         
@@ -972,7 +1012,8 @@ public class LocationActionManager
                 HourCost = 1,
                 StaminaCost = 0,
                 CoinCost = 0,
-                Effect = "Discover new letter opportunities or warnings"
+                Effect = "Discover new letter opportunities or warnings",
+                InitialNarrative = "You scan the weathered notice board for interesting postings."
             });
         }
     }
@@ -1349,4 +1390,7 @@ public class ActionOption
     public string NPCId { get; set; }
     public string LetterId { get; set; }
     public string Effect { get; set; }
+    
+    // Narrative for thin layer - all actions use conversation
+    public string InitialNarrative { get; set; }
 }

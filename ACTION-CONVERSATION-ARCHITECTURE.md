@@ -551,25 +551,35 @@ private bool ShouldAddEnvironmentalActions(LocationSpot spot)
 
 ## Implementation Notes
 
-### Phase 1: Narrative Wrapper
-- Keep current direct execution
-- Add single-beat narrative messages via MessageSystem
-- Test the flow and UI integration
-- Focus on simple environmental actions first
+### Phase 1: Thin Narrative Layer (IMMEDIATE)
+- Action selection → One sentence narrative → "Continue" button → Execute action → Show results
+- Use DeterministicNarrativeProvider with single narrative sentence
+- No complex choices or branching
+- Direct execution after "Continue" button
+- Focus on getting the flow working end-to-end
 
-### Phase 2: Simple Conversations
+Example flow:
+```
+1. Player selects "Gather berries" action
+2. ConversationScreen shows: "You carefully search the area for edible berries."
+3. Single button: "Continue"
+4. Click Continue → Execute action → +2 food
+5. Return to location screen with success message
+```
+
+### Phase 2: Future - Simple Conversations
 - Convert simple actions to use ConversationManager
-- Single beat, no choices
+- Single beat, no choices initially
 - Ensure mechanical effects still apply
 - Start with Gather, Read, Rest actions
 
-### Phase 3: Complex Conversations
+### Phase 3: Future - Complex Conversations
 - Add choice-based conversations for NPC actions
 - Implement branching narratives
 - Different outcomes based on choices
 - Work actions with choice of heavy/light labor
 
-### Phase 4: Travel System
+### Phase 4: Future - Travel System
 - Implement travel as series of encounters
 - Add equipment-based options
 - Create risk/reward decisions
@@ -757,6 +767,95 @@ Let narrative choices affect future options:
 - Travel is active gameplay, not passive transition
 - Equipment enables new options without forcing them
 - All consequences visible before choosing
+
+## Thin Narrative Layer Implementation (CURRENT)
+
+### Overview
+The thin narrative layer provides minimal narrative context for actions without complex branching or choices. This approach allows every action to have story weight while keeping implementation simple.
+
+### Implementation Architecture
+
+#### 1. DeterministicNarrativeProvider
+```csharp
+// Simple one-sentence narratives
+public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
+{
+    var introduction = context.ConversationTopic switch
+    {
+        "Action_GatherResources" => "You carefully search the area for edible berries.",
+        "Action_Browse" => "You examine the market stalls, noting prices and goods.",
+        "Action_Observe" => "You blend into the crowd, listening to local gossip.",
+        // ... other action types
+    };
+    return Task.FromResult(introduction);
+}
+
+// Always returns single "Continue" button
+public Task<List<ConversationChoice>> GenerateChoices(...)
+{
+    return Task.FromResult(new List<ConversationChoice>
+    {
+        new ConversationChoice { NarrativeText = "Continue", ... }
+    });
+}
+```
+
+#### 2. Action Flow Integration
+```
+1. Player selects action in LocationActions UI
+2. UI calls GameWorldManager.ExecuteAction(action)
+3. GameWorldManager delegates to LocationActionManager
+4. LocationActionManager creates conversation with narrative
+5. Sets GameWorld.ConversationPending = true
+6. MainGameplayView polls and switches to ConversationScreen
+7. Player sees narrative and clicks "Continue"
+8. OnConversationCompleted calls GameWorldManager.CompleteActionAfterConversation
+9. Action executes with resource spending and rewards
+10. Returns to LocationScreen with success messages
+```
+
+#### 3. Key Components Modified
+
+**ActionOption**:
+- Added `InitialNarrative` property for action-specific narrative text
+
+**LocationActionManager**:
+- `ExecuteAction` now creates conversation instead of executing directly
+- Added `CompleteActionAfterConversation` for post-conversation execution
+- Environmental actions include appropriate narrative text
+
+**GameWorldManager**:
+- Added `ExecuteAction` method (UI must use this)
+- Added `CompleteActionAfterConversation` method
+- Follows UI Access Pattern: Actions through GameWorldManager
+
+**GameWorld**:
+- Added `PendingAction`, `PendingConversationManager`, `ConversationPending` properties
+- Stores action state during conversation flow
+
+**MainGameplayView**:
+- Polls for `ConversationPending` in `PollGameState`
+- Modified `OnConversationCompleted` to handle action completion
+
+### Configuration
+```json
+// appsettings.json
+"UseDeterministicNarrative": true  // Enables thin narrative layer
+```
+
+### Architectural Compliance
+
+1. **UI Access Pattern**: ✅ All UI actions go through GameWorldManager
+2. **Clean Architecture**: ✅ Uses INarrativeProvider interface, no mode flags
+3. **No Special Rules**: ✅ All actions follow same conversation flow
+4. **Repository Pattern**: ✅ Direct queries allowed, actions through manager
+
+### Future Expansion
+When ready for richer narratives:
+1. Enhance DeterministicNarrativeProvider with actual choices
+2. Add ChoiceTemplate system for mechanical trade-offs
+3. Implement branching narratives with consequences
+4. Keep same architecture, just richer content
 
 ## Conclusion
 

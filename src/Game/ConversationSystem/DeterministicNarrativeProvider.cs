@@ -24,14 +24,19 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             return Task.FromResult(actionContext.InitialNarrative);
         }
         
-        // Default introduction based on conversation topic
+        // Simple one-sentence narratives for thin layer
         var introduction = context.ConversationTopic switch
         {
-            "Action_GatherResources" => "You survey the area for resources to gather.",
-            "Action_Work" => $"{context.TargetNPC?.Name ?? "Someone"} has work available.",
-            "Action_Socialize" => $"You approach {context.TargetNPC?.Name ?? "someone"} for a conversation.",
-            "Action_Deliver" => $"You prepare to deliver the letter to {context.TargetNPC?.Name ?? "the recipient"}.",
-            _ => "You consider your options."
+            "Action_GatherResources" => "You carefully search the area for edible berries.",
+            "Action_Browse" => "You examine the market stalls, noting prices and goods.",
+            "Action_Observe" => "You blend into the crowd, listening to local gossip.",
+            "Action_Work" => $"You begin your work for {context.TargetNPC?.Name ?? "your employer"}.",
+            "Action_Socialize" => $"You engage {context.TargetNPC?.Name ?? "someone"} in friendly conversation.",
+            "Action_Converse" => $"You approach {context.TargetNPC?.Name ?? "someone"} to talk.",
+            "Action_Deliver" => $"You hand the letter to {context.TargetNPC?.Name ?? "the recipient"}.",
+            "Action_Trade" => $"You browse {context.TargetNPC?.Name ?? "the merchant"}'s wares.",
+            "Action_Rest" => "You find a comfortable spot to rest.",
+            _ => "You proceed with your action."
         };
         
         return Task.FromResult(introduction);
@@ -42,31 +47,19 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         ConversationState state,
         List<ChoiceTemplate> availableTemplates)
     {
-        var choices = new List<ConversationChoice>();
-        
-        // Convert templates to choices
-        for (int i = 0; i < availableTemplates.Count; i++)
+        // For thin narrative layer, always return a single "Continue" button
+        var choices = new List<ConversationChoice>
         {
-            var template = availableTemplates[i];
-            var choice = new ConversationChoice
+            new ConversationChoice
             {
-                ChoiceID = (i + 1).ToString(),
-                NarrativeText = GetNarrativeTextForTemplate(template, context),
-                FocusCost = template.InputMechanics?.FocusCost?.Amount ?? 0,
-                IsAffordable = state.FocusPoints >= (template.InputMechanics?.FocusCost?.Amount ?? 0),
-                TemplateUsed = template.TemplateName,
-                TemplatePurpose = template.TemplatePurpose,
-                RequiresSkillCheck = template.InputMechanics?.SkillCheckRequirement != null
-            };
-            
-            choices.Add(choice);
-        }
-        
-        // If no templates provided, generate default choices based on context
-        if (choices.Count == 0)
-        {
-            choices = GenerateDefaultChoices(context, state);
-        }
+                ChoiceID = "1",
+                NarrativeText = "Continue",
+                FocusCost = 0,
+                IsAffordable = true,
+                TemplateUsed = "Continue",
+                TemplatePurpose = "Proceed with the action"
+            }
+        };
         
         return Task.FromResult(choices);
     }
@@ -77,25 +70,9 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         ConversationChoice selectedChoice,
         bool success)
     {
-        // Look for specific reaction in choice
-        var reaction = success ? selectedChoice.SuccessNarrative : selectedChoice.FailureNarrative;
-        
-        if (!string.IsNullOrEmpty(reaction))
-        {
-            return Task.FromResult(reaction);
-        }
-        
-        // Generate reaction based on template
-        reaction = selectedChoice.TemplateUsed switch
-        {
-            "GatherSafely" => success ? "You carefully gather resources without incident." : "You struggle to find anything useful.",
-            "GatherRiskily" => success ? "Your bold approach pays off with extra resources!" : "Your haste causes you to damage what you were gathering.",
-            "WorkHard" => success ? "You put in solid effort and earn your full wages." : "The work proves too demanding.",
-            "WorkLight" => success ? "You complete the light tasks efficiently." : "Even the simple work proves challenging today.",
-            _ => success ? "You succeed in your action." : "Things don't go as planned."
-        };
-        
-        return Task.FromResult(reaction);
+        // For thin narrative layer, no reaction needed - action will execute immediately
+        // Return empty string to signal completion
+        return Task.FromResult("");
     }
     
     public Task<string> GenerateConclusion(
@@ -103,16 +80,8 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         ConversationState state,
         ConversationChoice lastChoice)
     {
-        var conclusion = context.ConversationTopic switch
-        {
-            "Action_GatherResources" => "You finish your gathering and prepare to move on.",
-            "Action_Work" => "The work is complete and you collect your payment.",
-            "Action_Socialize" => "The conversation comes to a natural end.",
-            "Action_Deliver" => "The delivery is complete.",
-            _ => "You've accomplished what you set out to do."
-        };
-        
-        return Task.FromResult(conclusion);
+        // For thin narrative layer, no conclusion needed - action completes immediately
+        return Task.FromResult("");
     }
     
     public Task<bool> IsAvailable()
