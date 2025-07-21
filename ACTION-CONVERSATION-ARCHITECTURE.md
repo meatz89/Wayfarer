@@ -251,55 +251,186 @@ Having the right gear opens new action possibilities (climbing gear for shortcut
 
 ## Integration Strategy
 
+### Current Conversation System Architecture
+
+#### Key Components
+1. **MainGameplayView** - Controls which screen is displayed via CurrentViews enum
+2. **ConversationManager** - Stored as property in MainGameplayView
+3. **ConversationFactory** - Creates conversation instances with dependencies
+4. **ConversationView** - UI component that displays conversations
+
+#### View Switching Pattern
+```csharp
+// In MainGameplayView.razor.cs
+public ConversationManager ConversationManager = null;
+
+// In MainGameplayView.razor
+case CurrentViews.ConversationScreen:
+    <ConversationView ConversationManager="ConversationManager"
+                      OnConversationCompleted="OnConversationCompleted"
+                      @key="StateVersion" />
+    break;
+```
+
 ### Connecting LocationActionManager with ConversationManager
 
-#### 1. Action-to-Conversation Bridge
+#### 1. Deterministic Conversation System (Phase 1)
+For initial implementation, create a simplified deterministic conversation flow:
+
+```csharp
+// Extend ActionOption to include conversation data
+public class ActionOption
+{
+    // Existing properties...
+    
+    // New conversation properties
+    public bool RequiresConversation { get; set; }
+    public List<ActionChoice> PossibleChoices { get; set; }
+    public string InitialNarrative { get; set; }
+}
+
+public class ActionChoice
+{
+    public string ChoiceText { get; set; }
+    public string Outcome { get; set; }
+    public int HourModifier { get; set; }  // Extra hours cost/saved
+    public int StaminaModifier { get; set; }
+    public int CoinModifier { get; set; }
+    public Dictionary<string, int> ItemsGained { get; set; }
+}
+```
+
+#### 2. Action Execution Flow Integration
 ```csharp
 // In LocationActionManager.ExecuteAction()
-if (action.RequiresConversation)
+if (option.RequiresConversation)
 {
-    var conversationContext = CreateActionConversationContext(action);
-    var conversation = await _conversationFactory.CreateConversation(conversationContext, player);
-    await conversation.InitializeConversation();
-    // Launch conversation UI
-    return;
+    // Store the action for post-conversation processing
+    _gameWorld.PendingAction = option;
+    
+    // Create deterministic conversation
+    var context = new ConversationContext
+    {
+        GameWorld = _gameWorld,
+        Player = _gameWorld.GetPlayer(),
+        LocationName = _gameWorld.GetPlayer().CurrentLocation.Name,
+        LocationSpotName = _gameWorld.GetPlayer().CurrentLocationSpot?.Name,
+        TargetNPC = option.NPCId != null ? _npcRepository.GetNPCById(option.NPCId) : null,
+        ConversationTopic = $"Action_{option.Action}"
+    };
+    
+    // Create simplified conversation state
+    var state = new ConversationState(
+        _gameWorld.GetPlayer(),
+        context.TargetNPC,
+        0,  // No focus cost for simple actions
+        1); // Single beat conversation
+    
+    // For Phase 1: Create a simplified ConversationManager without AI
+    var conversationManager = new DeterministicConversationManager(context, state, option);
+    
+    // Signal MainGameplayView to switch to conversation
+    _gameWorld.LaunchConversation(conversationManager);
+    return true;
 }
+
 // Otherwise execute directly as before
 ```
 
-#### 2. ActionConversationContext Creation
+#### 3. DeterministicConversationManager Implementation
 ```csharp
-private ConversationContext CreateActionConversationContext(ActionOption action)
+public class DeterministicConversationManager : ConversationManager
 {
-    return new ConversationContext
+    private ActionOption _actionOption;
+    
+    public DeterministicConversationManager(
+        ConversationContext context, 
+        ConversationState state,
+        ActionOption actionOption) 
+        : base(context, state, null, null, context.GameWorld)
     {
-        GameWorld = _gameWorld,
-        Player = _gameWorld.Player,
-        LocationName = _gameWorld.CurrentLocation.Name,
-        LocationSpotName = _gameWorld.CurrentLocationSpot?.Name,
-        LocationProperties = GetLocationProperties(),
-        TargetNPC = action.NPCId != null ? _npcRepository.GetById(action.NPCId) : null,
-        ConversationTopic = action.ActionType.ToString(),
-        StartingFocusPoints = DetermineActionComplexity(action),
-        // Action-specific data would go in a derived class
-    };
+        _actionOption = actionOption;
+        _isAvailable = true;
+    }
+    
+    public override async Task InitializeConversation()
+    {
+        _state.CurrentNarrative = _actionOption.InitialNarrative;
+        _state.IsConversationComplete = false;
+    }
+    
+    public override async Task<bool> ProcessNextBeat()
+    {
+        // Generate deterministic choices
+        Choices.Clear();
+        
+        for (int i = 0; i < _actionOption.PossibleChoices.Count; i++)
+        {
+            var actionChoice = _actionOption.PossibleChoices[i];
+            Choices.Add(new ConversationChoice
+            {
+                ChoiceID = (i + 1).ToString(),
+                NarrativeText = actionChoice.ChoiceText,
+                FocusCost = 0,
+                IsAffordable = true
+            });
+        }
+        
+        return true;
+    }
+    
+    public override async Task<ConversationBeatOutcome> ProcessPlayerChoice(ConversationChoice selectedChoice)
+    {
+        var choiceIndex = int.Parse(selectedChoice.ChoiceID) - 1;
+        var actionChoice = _actionOption.PossibleChoices[choiceIndex];
+        
+        // Apply choice modifiers to the original action
+        _actionOption.HourCost += actionChoice.HourModifier;
+        _actionOption.StaminaCost += actionChoice.StaminaModifier;
+        _actionOption.CoinCost -= actionChoice.CoinModifier; // Negative because cost reduction
+        
+        var outcome = new ConversationBeatOutcome
+        {
+            NarrativeDescription = actionChoice.Outcome,
+            IsConversationComplete = true
+        };
+        
+        _state.IsConversationComplete = true;
+        
+        return outcome;
+    }
 }
 ```
 
-#### 3. Post-Conversation Execution
-After conversation completes, LocationActionManager processes the mechanical effects:
+#### 4. MainGameplayView Integration
 ```csharp
-public void ProcessConversationOutcome(ActionOption originalAction, ConversationBeatOutcome outcome)
+// In GameWorld
+public void LaunchConversation(ConversationManager manager)
 {
-    // Apply resource costs
-    _gameWorld.TimeManager.AdvanceTime(originalAction.HourCost);
-    _gameWorld.Player.CurrentStamina -= originalAction.StaminaCost;
-    
-    // Apply action effects based on outcome
-    if (outcome.Success)
+    ConversationPending = true;
+    PendingConversationManager = manager;
+}
+
+// In MainGameplayView.PollGameState()
+if (GameWorld.ConversationPending)
+{
+    ConversationManager = GameWorld.PendingConversationManager;
+    CurrentScreen = CurrentViews.ConversationScreen;
+    GameWorld.ConversationPending = false;
+}
+
+// Handle conversation completion
+private void OnConversationCompleted(ConversationResult result)
+{
+    if (GameWorld.PendingAction != null)
     {
-        ApplyActionEffects(originalAction);
+        // Execute the action with modified parameters
+        LocationActionManager.CompleteActionAfterConversation(GameWorld.PendingAction);
+        GameWorld.PendingAction = null;
     }
+    
+    // Return to location view
+    CurrentScreen = CurrentViews.LocationScreen;
 }
 ```
 
