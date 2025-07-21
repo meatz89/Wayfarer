@@ -2,6 +2,7 @@
 @inject LocationActionManager LocationActionManager
 @inject GameWorldManager GameWorldManager
 @inject GameWorld GameWorld
+@inject NPCRepository NPCRepository
 
 <div class="location-actions">
     <h3>Available Actions (@GameWorld.TimeManager.HoursRemaining hours remaining)</h3>
@@ -13,6 +14,10 @@
             {
                 <div class="action-card">
                     <h4>@action.Name</h4>
+                    @if (!string.IsNullOrEmpty(action.NPCId))
+                    {
+                        <p class="npc-connection">👤 @GetNPCProfession(action.NPCId)</p>
+                    }
                     <p class="action-description">@action.Description</p>
                     
                     <div class="resource-costs">
@@ -158,5 +163,13 @@
             // Update the UI to reflect resource changes
             StateHasChanged();
         }
+    }
+    
+    private string GetNPCProfession(string npcId)
+    {
+        if (string.IsNullOrEmpty(npcId)) return "";
+        
+        var npc = NPCRepository.GetNPCById(npcId);
+        return npc?.Name ?? "Someone";
     }
 }
