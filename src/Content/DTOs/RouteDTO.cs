@@ -12,8 +12,7 @@ public class RouteDTO
     public string Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
-    public int? TimeBlockCost { get; set; } // Legacy field - will be converted to TravelTimeHours
-    public int? TravelTimeHours { get; set; } // New field - takes precedence over TimeBlockCost
+    public int TravelTimeHours { get; set; }
     public string DepartureTime { get; set; }
     public bool IsDiscovered { get; set; }
     public List<string> TerrainCategories { get; set; } = new List<string>();
@@ -21,19 +20,4 @@ public class RouteDTO
     public string Description { get; set; }
     public AccessRequirementDTO AccessRequirement { get; set; }
     
-    /// <summary>
-    /// Get the actual travel time in hours, with fallback to legacy TimeBlockCost * 3
-    /// </summary>
-    public int GetTravelTimeHours()
-    {
-        if (TravelTimeHours.HasValue)
-            return TravelTimeHours.Value;
-        
-        // Legacy conversion: 1 time block = ~3 hours
-        if (TimeBlockCost.HasValue)
-            return TimeBlockCost.Value * 3;
-        
-        // Default to 3 hours if neither is specified
-        return 3;
-    }
 }

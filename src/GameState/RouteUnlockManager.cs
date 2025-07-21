@@ -185,7 +185,7 @@ public class RouteUnlockManager
     /// </summary>
     private RouteOption? FindRouteById(string routeId)
     {
-        var allRoutes = _routeRepository.GetAllRoutes();
+        var allRoutes = _routeRepository.GetAll();
         return allRoutes.FirstOrDefault(r => r.Id == routeId);
     }
 

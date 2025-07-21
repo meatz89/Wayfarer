@@ -45,7 +45,7 @@ public class RouteRepository
     }
 
     // Get all routes in the world
-    public List<RouteOption> GetAllRoutes()
+    public List<RouteOption> GetAll()
     {
         List<RouteOption> allRoutes = new List<RouteOption>();
 
@@ -72,7 +72,7 @@ public class RouteRepository
     // Get a specific route by ID
     public RouteOption GetRouteById(string routeId)
     {
-        var allRoutes = GetAllRoutes();
+        var allRoutes = GetAll();
         return allRoutes.FirstOrDefault(r => r.Id == routeId);
     }
 }

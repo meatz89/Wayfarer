@@ -974,7 +974,7 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.Destination,
                         locations,
                         method,
-                        dto.GetTravelTimeHours(),
+                        dto.TravelTimeHours,
                         dto.BaseStaminaCost,
                         dto.BaseCoinCost,
                         dto.Description);
