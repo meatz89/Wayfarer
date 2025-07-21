@@ -521,5 +521,6 @@ Always distinguish between three layers:
 - `SESSION-HANDOFF.md` - Current transformation status and next steps
 
 **SUPPORTING MATERIALS**:
+- **`ACTION-CONVERSATION-ARCHITECTURE.md`** - How LocationActionManager and ConversationManager integrate
 - `/docs/` - Original game design documentation (40+ documents)
 - Existing source code in `/src/` - To be transformed per the implementation plan

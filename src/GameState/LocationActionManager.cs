@@ -17,6 +17,11 @@ public enum LocationAction
     Deliver,        // Complete letter delivery
     Trade,          // Buy or sell items
     
+    // Environmental Actions (1 hour each)
+    GatherResources,    // Gather berries, herbs, etc. based on location
+    Browse,             // Browse market stalls or notice boards
+    Observe,            // Listen to gossip or watch for opportunities
+    
     // Debt Actions (1 hour each)
     RequestPatronFunds,     // Request money from patron (-1 token)
     RequestPatronEquipment, // Request equipment from patron (-2 tokens)
@@ -74,113 +79,309 @@ public class LocationActionManager
         var npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTimeBlock);
         
         // NOTE: Basic rest is handled in RestUI screen via RestManager
-        // Only add location-specific contextual rest actions here
+        // Only add NPC-specific contextual actions here
         
-        // Check what NPCs are present and available
+        // ALL actions must come from NPCs present at the spot
         foreach (var npc in npcsHere)
         {
             // Check NPC availability in current time period
             if (!IsNPCAvailable(npc)) continue;
             
-            var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
-            var totalTokens = tokens.Values.Sum();
+            // Add basic NPC interactions
+            AddBasicNPCActions(npc, actions);
             
-            // Basic conversation - always available when NPC is present
-            if (_timeManager.HoursRemaining >= 1)
+            // Add profession-specific actions
+            AddProfessionSpecificActions(npc, actions, npcsHere);
+            
+            // Add letter-related actions
+            AddLetterActions(npc, actions);
+            
+            // Add debt/emergency actions specific to this NPC
+            AddNPCEmergencyActions(npc, actions);
+        }
+        
+        // Environmental actions based on location spot properties
+        AddEnvironmentalActions(actions, spot);
+        
+        // Patron request actions - available at writing locations
+        AddPatronRequestActions(actions);
+        
+        return actions;
+    }
+    
+    /// <summary>
+    /// Add basic NPC interaction actions (converse, socialize)
+    /// </summary>
+    private void AddBasicNPCActions(NPC npc, List<ActionOption> actions)
+    {
+        var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        var totalTokens = tokens.Values.Sum();
+        
+        // Basic conversation - always available when NPC is present
+        if (_timeManager.HoursRemaining >= 1)
+        {
+            actions.Add(new ActionOption
             {
-                actions.Add(new ActionOption
+                Action = LocationAction.Converse,
+                Name = $"Talk with {npc.Name}",
+                Description = npc.Description,
+                HourCost = 1,
+                StaminaCost = 0,
+                CoinCost = 0,
+                NPCId = npc.ID,
+                Effect = totalTokens == 0 ? "Meet someone new" : "Catch up"
+            });
+        }
+        
+        // Socialize - spend quality time if relationship exists
+        if (_timeManager.HoursRemaining >= 1 && totalTokens > 0)
+        {
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.Socialize,
+                Name = $"Spend time with {npc.Name}",
+                Description = "Deepen your connection",
+                HourCost = 1,
+                StaminaCost = 0,
+                CoinCost = 0,
+                NPCId = npc.ID,
+                Effect = $"+1 {npc.LetterTokenTypes.FirstOrDefault()} token"
+            });
+        }
+    }
+    
+    /// <summary>
+    /// Add profession-specific actions for an NPC
+    /// </summary>
+    private void AddProfessionSpecificActions(NPC npc, List<ActionOption> actions, List<NPC> allNPCsPresent)
+    {
+        var player = _gameWorld.GetPlayer();
+        var currentTime = _timeManager.GetCurrentTimeBlock();
+        
+        // Work actions are available even without existing relationship!
+        switch (npc.Profession)
+        {
+            case Professions.Merchant:
+                // Merchants offer work during business hours
+                if (_timeManager.HoursRemaining >= 1 && 
+                    player.Stamina >= GameRules.STAMINA_COST_WORK &&
+                    (currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon))
                 {
-                    Action = LocationAction.Converse,
-                    Name = $"Talk with {npc.Name}",
-                    Description = npc.Description,
-                    HourCost = 1,
-                    StaminaCost = 0,
-                    CoinCost = 0,
-                    NPCId = npc.ID,
-                    Effect = totalTokens == 0 ? "Meet someone new" : "Catch up"
-                });
-            }
-            
-            // Socialize - spend quality time if relationship exists
-            if (_timeManager.HoursRemaining >= 1 && totalTokens > 0)
-            {
-                actions.Add(new ActionOption
-                {
-                    Action = LocationAction.Socialize,
-                    Name = $"Spend time with {npc.Name}",
-                    Description = "Deepen your connection",
-                    HourCost = 1,
-                    StaminaCost = 0,
-                    CoinCost = 0,
-                    NPCId = npc.ID,
-                    Effect = $"+1 {npc.LetterTokenTypes.FirstOrDefault()} token"
-                });
-            }
-            
-            // Trade - if this NPC is a merchant
-            if (_timeManager.HoursRemaining >= 1 && npc.Profession == Professions.Merchant)
-            {
-                actions.Add(new ActionOption
-                {
-                    Action = LocationAction.Trade,
-                    Name = $"Trade with {npc.Name}",
-                    Description = "Buy or sell goods",
-                    HourCost = 1,
-                    StaminaCost = 0,
-                    CoinCost = 0,
-                    NPCId = npc.ID,
-                    Effect = "Access market prices"
-                });
-            }
-            
-            // Deliver - if this NPC is a letter recipient
-            if (_timeManager.HoursRemaining >= 1 && IsLetterRecipient(npc.ID))
-            {
-                actions.Add(new ActionOption
-                {
-                    Action = LocationAction.Deliver,
-                    Name = $"Deliver letter to {npc.Name}",
-                    Description = "Complete your obligation",
-                    HourCost = 1,
-                    StaminaCost = 1,
-                    CoinCost = 0,
-                    NPCId = npc.ID,
-                    Effect = "Earn payment and tokens"
-                });
-            }
-            
-            // Collect - if this NPC has letters to give
-            var lettersFromNPC = GetAcceptedLettersFromNPC(npc.ID);
-            foreach (var letter in lettersFromNPC)
-            {
+                    actions.Add(new ActionOption
+                    {
+                        Action = LocationAction.Work,
+                        Name = $"Help {npc.Name} with inventory",
+                        Description = "Earn coins through honest labor",
+                        HourCost = 1,
+                        StaminaCost = GameRules.STAMINA_COST_WORK,
+                        CoinCost = 0,
+                        NPCId = npc.ID,
+                        Effect = "+4 coins"
+                    });
+                }
+                
+                // Trade option
                 if (_timeManager.HoursRemaining >= 1)
                 {
                     actions.Add(new ActionOption
                     {
-                        Action = LocationAction.Collect,
-                        Name = $"Collect letter from {npc.Name}",
-                        Description = $"Get the physical letter",
+                        Action = LocationAction.Trade,
+                        Name = $"Trade with {npc.Name}",
+                        Description = "Buy or sell goods",
                         HourCost = 1,
                         StaminaCost = 0,
                         CoinCost = 0,
                         NPCId = npc.ID,
-                        LetterId = letter.Id,
-                        Effect = $"Uses {letter.GetRequiredSlots()} inventory slots"
+                        Effect = "Access market prices"
                     });
                 }
-            }
+                break;
+                
+            case Professions.TavernKeeper:
+                // Tavern keepers offer work in evenings
+                if (_timeManager.HoursRemaining >= 1 && 
+                    player.Stamina >= 2 &&
+                    currentTime == TimeBlocks.Evening)
+                {
+                    actions.Add(new ActionOption
+                    {
+                        Action = LocationAction.Work,
+                        Name = $"Serve drinks for {npc.Name}",
+                        Description = "Help with the evening rush",
+                        HourCost = 1,
+                        StaminaCost = 2,
+                        CoinCost = 0,
+                        NPCId = npc.ID,
+                        Effect = "+4 coins"
+                    });
+                }
+                
+                // Drink and rest option (if you have coins)
+                if (_timeManager.HoursRemaining >= 1 && player.Coins >= 3)
+                {
+                    actions.Add(new ActionOption
+                    {
+                        Action = LocationAction.Rest,
+                        Name = $"Buy drinks and rest with {npc.Name}",
+                        Description = "Rest while building connection",
+                        HourCost = 1,
+                        StaminaCost = 0,
+                        CoinCost = 3,
+                        NPCId = npc.ID,
+                        Effect = $"+3 Stamina, +1 {npc.LetterTokenTypes.FirstOrDefault()} token"
+                    });
+                }
+                break;
+                
+            case Professions.Scribe:
+                // Scribes offer copying work
+                if (_timeManager.HoursRemaining >= 1 && player.Stamina >= 1)
+                {
+                    actions.Add(new ActionOption
+                    {
+                        Action = LocationAction.Work,
+                        Name = $"Copy documents for {npc.Name}",
+                        Description = "Careful work with quill and ink",
+                        HourCost = 1,
+                        StaminaCost = 1,
+                        CoinCost = 0,
+                        NPCId = npc.ID,
+                        Effect = "+3 coins"
+                    });
+                }
+                break;
+                
+            case Professions.Noble:
+                // Nobles don't offer work directly, but may have other opportunities later
+                break;
+                
+            case Professions.Innkeeper:
+                // Innkeepers offer room cleaning work
+                if (_timeManager.HoursRemaining >= 1 && 
+                    player.Stamina >= 2 &&
+                    currentTime == TimeBlocks.Morning)
+                {
+                    actions.Add(new ActionOption
+                    {
+                        Action = LocationAction.Work,
+                        Name = $"Clean rooms for {npc.Name}",
+                        Description = "Morning cleaning duties",
+                        HourCost = 1,
+                        StaminaCost = 2,
+                        CoinCost = 0,
+                        NPCId = npc.ID,
+                        Effect = "+4 coins"
+                    });
+                }
+                break;
         }
         
-        // Location-specific actions based on what's naturally available
-        AddLocationSpecificActions(location, spot, actions, npcsHere);
+        // Special case: Baker work at dawn (if this is a merchant baker)
+        if (npc.Profession == Professions.Merchant && 
+            npc.Name.ToLower().Contains("baker") &&
+            currentTime == TimeBlocks.Dawn &&
+            player.Stamina >= 1 &&
+            _timeManager.HoursRemaining >= 1)
+        {
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.Work,
+                Name = $"Help {npc.Name} with morning baking",
+                Description = "Early work with benefits",
+                HourCost = 1,
+                StaminaCost = 1,
+                CoinCost = 0,
+                NPCId = npc.ID,
+                Effect = "+2 coins, +1 bread (restores 2 stamina when eaten)"
+            });
+        }
+    }
+    
+    /// <summary>
+    /// Add letter-related actions for an NPC
+    /// </summary>
+    private void AddLetterActions(NPC npc, List<ActionOption> actions)
+    {
+        // Deliver - if this NPC is a letter recipient
+        if (_timeManager.HoursRemaining >= 1 && IsLetterRecipient(npc.ID))
+        {
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.Deliver,
+                Name = $"Deliver letter to {npc.Name}",
+                Description = "Complete your obligation",
+                HourCost = 1,
+                StaminaCost = 1,
+                CoinCost = 0,
+                NPCId = npc.ID,
+                Effect = "Earn payment and tokens"
+            });
+        }
         
-        // Patron request actions - available when desperate
-        AddPatronRequestActions(actions);
+        // Collect - if this NPC has letters to give
+        var lettersFromNPC = GetAcceptedLettersFromNPC(npc.ID);
+        foreach (var letter in lettersFromNPC)
+        {
+            if (_timeManager.HoursRemaining >= 1)
+            {
+                actions.Add(new ActionOption
+                {
+                    Action = LocationAction.Collect,
+                    Name = $"Collect letter from {npc.Name}",
+                    Description = $"Get the physical letter",
+                    HourCost = 1,
+                    StaminaCost = 0,
+                    CoinCost = 0,
+                    NPCId = npc.ID,
+                    LetterId = letter.Id,
+                    Effect = $"Uses {letter.GetRequiredSlots()} inventory slots"
+                });
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Add emergency actions specific to an NPC
+    /// </summary>
+    private void AddNPCEmergencyActions(NPC npc, List<ActionOption> actions)
+    {
+        var player = _gameWorld.GetPlayer();
         
-        // Emergency assistance actions - context sensitive
-        AddEmergencyActions(actions, npcsHere);
+        if (_timeManager.HoursRemaining < 1) return;
         
-        return actions;
+        // Borrow money from merchants when broke
+        if (player.Coins < 10 && npc.Profession == Professions.Merchant)
+        {
+            var tradeTokens = _tokenManager.GetTokensWithNPC(npc.ID)[ConnectionType.Trade];
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.BorrowMoney,
+                Name = $"Borrow money from {npc.Name}",
+                Description = $"20 coins now, -2 Trade leverage (current: {tradeTokens})",
+                HourCost = 1,
+                StaminaCost = 0,
+                CoinCost = 0,
+                NPCId = npc.ID,
+                Effect = "20 coins, -2 Trade tokens"
+            });
+        }
+        
+        // Accept illegal work from shadow NPCs
+        if (npc.LetterTokenTypes.Contains(ConnectionType.Shadow) && player.Coins < 15)
+        {
+            var shadowTokens = _tokenManager.GetTokensWithNPC(npc.ID)[ConnectionType.Shadow];
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.AcceptIllegalWork,
+                Name = $"Accept questionable job from {npc.Name}",
+                Description = $"30 coins, but they'll have leverage (current: {shadowTokens})",
+                HourCost = 1,
+                StaminaCost = 1,
+                CoinCost = 0,
+                NPCId = npc.ID,
+                Effect = "30 coins, -1 Shadow token (they have dirt on you)"
+            });
+        }
     }
     
     /// <summary>
@@ -246,6 +447,15 @@ public class LocationActionManager
                 
             case LocationAction.Trade:
                 return ExecuteTrade(option.NPCId);
+                
+            case LocationAction.GatherResources:
+                return ExecuteGatherResources(option);
+                
+            case LocationAction.Browse:
+                return ExecuteBrowse(option);
+                
+            case LocationAction.Observe:
+                return ExecuteObserve(option);
                 
             case LocationAction.RequestPatronFunds:
                 return ExecuteRequestPatronFunds(option);
@@ -394,72 +604,100 @@ public class LocationActionManager
     private bool ExecuteWork(ActionOption option)
     {
         var player = _gameWorld.GetPlayer();
+        var npc = _npcRepository.GetNPCById(option.NPCId);
         
-        // Baker work is a separate action with different mechanics
-        if (!string.IsNullOrEmpty(option.NPCId) && option.StaminaCost == 1)
+        if (npc == null) 
         {
-            // Special baker work: 1 stamina → 2 coins + bread
-            player.ModifyCoins(2);
+            _messageSystem.AddSystemMessage(
+                "❌ Cannot find the NPC to work for!",
+                SystemMessageTypes.Danger
+            );
+            return false;
+        }
+        
+        // Different work types based on NPC profession and context
+        string workDescription = "";
+        int coinsEarned = 0;
+        
+        // Special case: Baker work at dawn
+        if (npc.Name.ToLower().Contains("baker") && option.StaminaCost == 1)
+        {
+            // Baker work: 1 stamina → 2 coins + bread
+            coinsEarned = 2;
+            player.ModifyCoins(coinsEarned);
             
-            var npc = _npcRepository.GetNPCById(option.NPCId);
-            if (npc != null)
+            workDescription = $"🥖 You help {npc.Name} with the morning baking.";
+            
+            // Add bread to inventory if space available
+            var breadItem = _itemRepository.GetItemById("bread");
+            if (breadItem != null && player.Inventory.CanAddItem(breadItem, _itemRepository))
             {
-                _messageSystem.AddSystemMessage(
-                    $"🥖 You help {npc.Name} with the morning baking.",
-                    SystemMessageTypes.Success
-                );
-                _messageSystem.AddSystemMessage(
-                    "  • Earned: 2 coins",
-                    SystemMessageTypes.Success
-                );
-                
-                // Add bread to inventory if space available
-                var breadItem = _itemRepository.GetItemById("bread");
-                if (breadItem != null && player.Inventory.CanAddItem(breadItem, _itemRepository))
+                player.Inventory.AddItem(breadItem.Id);
+                _messageSystem.AddSystemMessage(workDescription, SystemMessageTypes.Success);
+                _messageSystem.AddSystemMessage($"  • Earned: {coinsEarned} coins", SystemMessageTypes.Success);
+                _messageSystem.AddSystemMessage("  • Received: 1 bread (restores 2 stamina when eaten)", SystemMessageTypes.Success);
+            }
+            else
+            {
+                _messageSystem.AddSystemMessage(workDescription, SystemMessageTypes.Success);
+                _messageSystem.AddSystemMessage($"  • Earned: {coinsEarned} coins", SystemMessageTypes.Success);
+                if (breadItem == null)
                 {
-                    player.Inventory.AddItem(breadItem.Id);
-                    _messageSystem.AddSystemMessage(
-                        "  • Received: 1 bread (restores 2 stamina when eaten)",
-                        SystemMessageTypes.Success
-                    );
-                }
-                else if (breadItem == null)
-                {
-                    _messageSystem.AddSystemMessage(
-                        "  • (Bread item not found in game data)",
-                        SystemMessageTypes.Warning
-                    );
+                    _messageSystem.AddSystemMessage("  • (Bread item not found in game data)", SystemMessageTypes.Warning);
                 }
                 else
                 {
-                    _messageSystem.AddSystemMessage(
-                        "  • No room for bread in inventory!",
-                        SystemMessageTypes.Warning
-                    );
+                    _messageSystem.AddSystemMessage("  • No room for bread in inventory!", SystemMessageTypes.Warning);
                 }
-                
-                _messageSystem.AddSystemMessage(
-                    $"  • Stamina: {player.Stamina}/10",
-                    SystemMessageTypes.Info
-                );
             }
         }
         else
         {
-            // Standard work: 2 stamina → 4 coins
-            player.ModifyCoins(4);
+            // Standard work based on profession
+            switch (npc.Profession)
+            {
+                case Professions.Merchant:
+                    coinsEarned = 4;
+                    workDescription = $"💪 You help {npc.Name} organize inventory and serve customers.";
+                    break;
+                    
+                case Professions.TavernKeeper:
+                    coinsEarned = 4;
+                    workDescription = $"🍺 You serve drinks and clean tables for {npc.Name}.";
+                    break;
+                    
+                case Professions.Scribe:
+                    coinsEarned = 3;
+                    workDescription = $"✍️ You carefully copy documents for {npc.Name}.";
+                    break;
+                    
+                case Professions.Innkeeper:
+                    coinsEarned = 4;
+                    workDescription = $"🧹 You clean rooms and change linens for {npc.Name}.";
+                    break;
+                    
+                default:
+                    coinsEarned = 3;
+                    workDescription = $"💼 You complete various tasks for {npc.Name}.";
+                    break;
+            }
             
+            player.ModifyCoins(coinsEarned);
+            
+            _messageSystem.AddSystemMessage(workDescription, SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"  • Earned: {coinsEarned} coins", SystemMessageTypes.Success);
+        }
+        
+        _messageSystem.AddSystemMessage($"  • Stamina: {player.Stamina}/10", SystemMessageTypes.Info);
+        
+        // Work builds a small connection with the NPC
+        if (npc.LetterTokenTypes.Any())
+        {
+            var tokenType = npc.LetterTokenTypes.First();
+            _tokenManager.AddTokensToNPC(tokenType, 1, option.NPCId);
             _messageSystem.AddSystemMessage(
-                "💪 You work hard for an hour.",
+                $"  • {npc.Name} appreciates your help (+1 {tokenType} token)",
                 SystemMessageTypes.Success
-            );
-            _messageSystem.AddSystemMessage(
-                "  • Earned: 4 coins",
-                SystemMessageTypes.Success
-            );
-            _messageSystem.AddSystemMessage(
-                $"  • Stamina: {player.Stamina}/10",
-                SystemMessageTypes.Info
             );
         }
         
@@ -636,81 +874,106 @@ public class LocationActionManager
             .ToList();
     }
     
-    private void AddLocationSpecificActions(Location location, LocationSpot spot, List<ActionOption> actions, List<NPC> npcsPresent)
+    
+    /// <summary>
+    /// Add environmental actions based on location spot domain tags
+    /// </summary>
+    private void AddEnvironmentalActions(List<ActionOption> actions, LocationSpot spot)
     {
+        if (spot == null || !spot.DomainTags.Any()) return;
+        
         var player = _gameWorld.GetPlayer();
-        var currentTime = _timeManager.GetCurrentTimeBlock();
         
-        // Market - work opportunities naturally available
-        if (spot.SpotID.Contains("market"))
+        // Only add environmental actions if we have hours available
+        if (_timeManager.HoursRemaining < 1) return;
+        
+        // RESOURCES tag - forest/nature locations
+        if (spot.DomainTags.Contains("RESOURCES"))
         {
-            // Work is available during business hours if you have stamina
-            if (_timeManager.HoursRemaining >= 1 && 
-                player.Stamina >= GameRules.STAMINA_COST_WORK &&
-                (currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon))
+            // Gather berries - simple food gathering
+            if (player.Stamina >= 1)
             {
                 actions.Add(new ActionOption
                 {
-                    Action = LocationAction.Work,
-                    Name = "Help load merchant wagons",
-                    Description = "Physical labor for quick coins",
+                    Action = LocationAction.GatherResources,
+                    Name = "Gather wild berries",
+                    Description = "Search the area for edible berries",
                     HourCost = 1,
-                    StaminaCost = GameRules.STAMINA_COST_WORK,
+                    StaminaCost = 1,
                     CoinCost = 0,
-                    Effect = "+4 coins"
+                    Effect = "+2 food items"
+                });
+            }
+            
+            // Collect herbs - slightly more effort
+            if (player.Stamina >= 2)
+            {
+                actions.Add(new ActionOption
+                {
+                    Action = LocationAction.GatherResources,
+                    Name = "Collect medicinal herbs",
+                    Description = "Look for valuable herbs in the undergrowth",
+                    HourCost = 1,
+                    StaminaCost = 2,
+                    CoinCost = 0,
+                    Effect = "+1-3 herbs (can sell for 3-5 coins each)"
                 });
             }
         }
         
-        // Tavern - additional options available, not enhanced versions
-        if (spot.SpotID.Contains("tavern") || spot.SpotID.Contains("inn"))
+        // COMMERCE tag - market/trade locations (when no merchant NPCs present)
+        if (spot.DomainTags.Contains("COMMERCE"))
         {
-            // Evening taverns are busy - natural social opportunities
-            if (currentTime == TimeBlocks.Evening && player.Coins >= 3)
-            {
-                // For each NPC present who accepts Common tokens, offer drink-sharing option
-                var commonNPCs = npcsPresent.Where(n => n.LetterTokenTypes.Contains(ConnectionType.Common)).ToList();
-                foreach (var npc in commonNPCs)
-                {
-                    actions.Add(new ActionOption
-                    {
-                        Action = LocationAction.Rest,
-                        Name = $"Buy drinks and rest with {npc.Name}",
-                        Description = "Rest while building connection",
-                        HourCost = 1,
-                        StaminaCost = 0,
-                        CoinCost = 3,
-                        NPCId = npc.ID,
-                        Effect = $"+3 Stamina, +1 Common token with {npc.Name}"
-                    });
-                }
-            }
-        }
-        
-        // Workshop - equipment context (future)
-        if (spot.SpotID.Contains("workshop") || spot.SpotID.Contains("smithy"))
-        {
-            // Future: Repair equipment, commission items
-        }
-        
-        // Dawn opportunities - baker example
-        if (currentTime == TimeBlocks.Dawn && spot.SpotID.Contains("bakery"))
-        {
-            var baker = npcsPresent.FirstOrDefault(n => n.Profession == Professions.Merchant && n.Name.ToLower().Contains("baker"));
-            if (baker != null && player.Stamina >= 1)
+            var npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(
+                spot.SpotID, 
+                _timeManager.GetCurrentTimeBlock()
+            );
+            var hasMerchants = npcsHere.Any(npc => npc.Profession == Professions.Merchant);
+            
+            if (!hasMerchants)
             {
                 actions.Add(new ActionOption
                 {
-                    Action = LocationAction.Work,
-                    Name = $"Help {baker.Name} with morning baking",
-                    Description = "Early work with benefits",
+                    Action = LocationAction.Browse,
+                    Name = "Browse empty market stalls",
+                    Description = "Check unattended stalls for posted prices",
                     HourCost = 1,
-                    StaminaCost = 1, // Lighter work
+                    StaminaCost = 0,
                     CoinCost = 0,
-                    NPCId = baker.ID,
-                    Effect = "+2 coins, +1 bread (restores 2 stamina when eaten)"
+                    Effect = "Learn current market prices"
                 });
             }
+        }
+        
+        // SOCIAL tag - gathering places
+        if (spot.DomainTags.Contains("SOCIAL"))
+        {
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.Observe,
+                Name = "Listen to local gossip",
+                Description = "Sit quietly and overhear conversations",
+                HourCost = 1,
+                StaminaCost = 0,
+                CoinCost = 0,
+                Effect = "Learn about recent events or opportunities"
+            });
+        }
+        
+        // Notice boards at town centers or market areas
+        if ((spot.Type == LocationSpotTypes.FEATURE && spot.Name.ToLower().Contains("market")) || 
+            (spot.Type == LocationSpotTypes.FEATURE && spot.Name.ToLower().Contains("square")))
+        {
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.Browse,
+                Name = "Read the notice board",
+                Description = "Check for public announcements and opportunities",
+                HourCost = 1,
+                StaminaCost = 0,
+                CoinCost = 0,
+                Effect = "Discover new letter opportunities or warnings"
+            });
         }
     }
     
@@ -757,49 +1020,6 @@ public class LocationActionManager
         }
     }
     
-    private void AddEmergencyActions(List<ActionOption> actions, List<NPC> npcsPresent)
-    {
-        var player = _gameWorld.GetPlayer();
-        
-        if (_timeManager.HoursRemaining < 1) return;
-        
-        foreach (var npc in npcsPresent)
-        {
-            // Borrow money when broke
-            if (player.Coins < 10 && npc.Profession == Professions.Merchant)
-            {
-                var tradeTokens = _tokenManager.GetTokensWithNPC(npc.ID)[ConnectionType.Trade];
-                actions.Add(new ActionOption
-                {
-                    Action = LocationAction.BorrowMoney,
-                    Name = $"Borrow money from {npc.Name}",
-                    Description = $"20 coins now, -2 Trade leverage (current: {tradeTokens})",
-                    HourCost = 1,
-                    StaminaCost = 0,
-                    CoinCost = 0,
-                    NPCId = npc.ID,
-                    Effect = "20 coins, -2 Trade tokens"
-                });
-            }
-            
-            // Accept illegal work from shadow NPCs
-            if (npc.LetterTokenTypes.Contains(ConnectionType.Shadow) && player.Coins < 15)
-            {
-                var shadowTokens = _tokenManager.GetTokensWithNPC(npc.ID)[ConnectionType.Shadow];
-                actions.Add(new ActionOption
-                {
-                    Action = LocationAction.AcceptIllegalWork,
-                    Name = $"Accept questionable job from {npc.Name}",
-                    Description = $"30 coins, but they'll have leverage (current: {shadowTokens})",
-                    HourCost = 1,
-                    StaminaCost = 1,
-                    CoinCost = 0,
-                    NPCId = npc.ID,
-                    Effect = "30 coins, -1 Shadow token (they have dirt on you)"
-                });
-            }
-        }
-    }
     
     private bool ExecuteRequestPatronFunds(ActionOption option)
     {
@@ -958,6 +1178,156 @@ public class LocationActionManager
         _messageSystem.AddSystemMessage(
             $"⚠️ {npc.Name} now has dirt on you. Refusing their future requests may have consequences.",
             SystemMessageTypes.Danger
+        );
+        
+        return true;
+    }
+    
+    private bool ExecuteGatherResources(ActionOption option)
+    {
+        var player = _gameWorld.GetPlayer();
+        var spot = player.CurrentLocationSpot;
+        
+        if (option.Name.Contains("berries"))
+        {
+            // Gather berries - simple and reliable
+            _messageSystem.AddSystemMessage(
+                "🫐 You spend an hour carefully picking ripe berries from the bushes.",
+                SystemMessageTypes.Success
+            );
+            
+            // Add berries to inventory (simplified for now)
+            // In full implementation, would use ItemRepository to add actual food items
+            _messageSystem.AddSystemMessage(
+                "  • Found 2 portions of wild berries",
+                SystemMessageTypes.Success
+            );
+            
+            _messageSystem.AddSystemMessage(
+                "  • Each portion restores 1 stamina when eaten",
+                SystemMessageTypes.Info
+            );
+        }
+        else if (option.Name.Contains("herbs"))
+        {
+            // Collect herbs - variable results
+            var herbCount = new Random().Next(1, 4); // 1-3 herbs
+            
+            _messageSystem.AddSystemMessage(
+                "🌿 You search the undergrowth for medicinal herbs.",
+                SystemMessageTypes.Success
+            );
+            
+            _messageSystem.AddSystemMessage(
+                $"  • Found {herbCount} medicinal herb{(herbCount > 1 ? "s" : "")}",
+                SystemMessageTypes.Success
+            );
+            
+            _messageSystem.AddSystemMessage(
+                "  • Can be sold to merchants for 3-5 coins each",
+                SystemMessageTypes.Info
+            );
+        }
+        
+        return true;
+    }
+    
+    private bool ExecuteBrowse(ActionOption option)
+    {
+        if (option.Name.Contains("market stalls"))
+        {
+            _messageSystem.AddSystemMessage(
+                "🏪 You browse the empty market stalls, checking posted prices.",
+                SystemMessageTypes.Info
+            );
+            
+            _messageSystem.AddSystemMessage(
+                "  • Bread: 2 coins",
+                SystemMessageTypes.Info
+            );
+            
+            _messageSystem.AddSystemMessage(
+                "  • Herbs: 3-5 coins (depending on quality)",
+                SystemMessageTypes.Info
+            );
+            
+            _messageSystem.AddSystemMessage(
+                "  • Basic supplies: 5-10 coins",
+                SystemMessageTypes.Info
+            );
+            
+            _messageSystem.AddSystemMessage(
+                "  • Note: \"Marcus returns at morning market hours\"",
+                SystemMessageTypes.Info
+            );
+        }
+        else if (option.Name.Contains("notice board"))
+        {
+            _messageSystem.AddSystemMessage(
+                "📋 You read the notices posted on the board.",
+                SystemMessageTypes.Info
+            );
+            
+            var currentTime = _timeManager.GetCurrentTimeBlock();
+            
+            // Different notices based on time of day
+            if (currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon)
+            {
+                _messageSystem.AddSystemMessage(
+                    "  • \"Warning: Bandits spotted on eastern road at night\"",
+                    SystemMessageTypes.Warning
+                );
+                
+                _messageSystem.AddSystemMessage(
+                    "  • \"Elena the Scribe seeks carriers for urgent letters\"",
+                    SystemMessageTypes.Info
+                );
+            }
+            else
+            {
+                _messageSystem.AddSystemMessage(
+                    "  • \"Night work available - ask at the docks\"",
+                    SystemMessageTypes.Info
+                );
+                
+                _messageSystem.AddSystemMessage(
+                    "  • \"Lost: Merchant's ledger. Reward offered.\"",
+                    SystemMessageTypes.Info
+                );
+            }
+        }
+        
+        return true;
+    }
+    
+    private bool ExecuteObserve(ActionOption option)
+    {
+        _messageSystem.AddSystemMessage(
+            "👂 You find a quiet corner and listen to the local gossip.",
+            SystemMessageTypes.Info
+        );
+        
+        // Random gossip based on game state
+        var gossipOptions = new List<string>
+        {
+            "  • \"Did you hear? The noble's courier never arrived...\"",
+            "  • \"Marcus has been looking for reliable carriers lately\"",
+            "  • \"The mountain pass is treacherous without proper gear\"",
+            "  • \"I heard Elena pays well for discrete deliveries\"",
+            "  • \"The river route saves time, but ruins letters in the rain\""
+        };
+        
+        var random = new Random();
+        var selectedGossip = gossipOptions[random.Next(gossipOptions.Count)];
+        
+        _messageSystem.AddSystemMessage(
+            selectedGossip,
+            SystemMessageTypes.Info
+        );
+        
+        _messageSystem.AddSystemMessage(
+            "  • You make a mental note of this information",
+            SystemMessageTypes.Info
         );
         
         return true;

@@ -72,16 +72,20 @@ public static class NPCParser
     {
         return jsonProfession switch
         {
-            "Craftsman" => Professions.Merchant, // Workshop Master
+            "Craftsman" => Professions.Craftsman, // Workshop Master
             "Merchant" => Professions.Merchant,
-            "Innkeeper" => Professions.Merchant,
+            "Innkeeper" => Professions.Innkeeper,
+            "TavernKeeper" => Professions.TavernKeeper,
+            "Baker" => Professions.Baker,
+            "Scribe" => Professions.Scribe,
+            "Noble" => Professions.Noble,
             "Woodsman" => Professions.Ranger, // Logger
             "Herbalist" => Professions.Ranger, // Herb Gatherer
             "Foreman" => Professions.Soldier, // Camp Boss
             "Harbor_Master" => Professions.Merchant, // Dock Master
             "Merchant_Captain" => Professions.Merchant, // Trade Captain
             "Laborer" => Professions.Soldier, // River Worker
-            "Scholar" => Professions.Scholar, // Test NPC
+            "Scholar" => Professions.Scholar,
             _ => Professions.Merchant // Default fallback
         };
     }
@@ -94,6 +98,14 @@ public static class NPCParser
             Professions.Soldier => Schedule.Workshop_Hours,
             Professions.Ranger => Schedule.Morning_Afternoon,
             Professions.Scholar => Schedule.Library_Hours,
+            Professions.Scribe => Schedule.Business_Hours,
+            Professions.Noble => Schedule.Afternoon_Evening,
+            Professions.Courtier => Schedule.Business_Hours,
+            Professions.Thief => Schedule.Evening_Night,
+            Professions.TavernKeeper => Schedule.Evening_Night,
+            Professions.Innkeeper => Schedule.Always,
+            Professions.Baker => Schedule.Dawn_Only,
+            Professions.Craftsman => Schedule.Workshop_Hours,
             _ => Schedule.Business_Hours
         };
     }

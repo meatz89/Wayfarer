@@ -1,11 +1,28 @@
 ﻿public enum Professions
 {
-    Soldier,
-    Scholar,
-    Courtier,
-    Ranger,
-    Thief,
-    Merchant
+    // Combat & Guard professions
+    Soldier,        // Guards, laborers, physical workers
+    
+    // Knowledge professions  
+    Scholar,        // Researchers, academics, librarians
+    Scribe,         // Document copiers, letter writers
+    
+    // Social professions
+    Courtier,       // Diplomats, court members
+    Noble,          // Aristocrats, patrons
+    
+    // Wilderness professions
+    Ranger,         // Hunters, woodsmen, guides
+    
+    // Underground professions
+    Thief,          // Rogues, smugglers, shadow workers
+    
+    // Trade & Service professions
+    Merchant,       // Traders, shop owners, general merchants
+    TavernKeeper,   // Inn and tavern proprietors
+    Innkeeper,      // Hotel and lodging managers
+    Baker,          // Bakers and food producers
+    Craftsman       // Smiths, carpenters, artisans
 }
 
 //| Class | Signature Skill(Excels) | Why ?                                                                                          |
