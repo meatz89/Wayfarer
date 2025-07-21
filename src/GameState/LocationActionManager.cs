@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 /// <summary>
 /// Core location actions that consume hours
@@ -317,7 +318,8 @@ public class LocationActionManager
                 StaminaCost = 1,
                 CoinCost = 0,
                 NPCId = npc.ID,
-                Effect = "Earn payment and tokens"
+                Effect = "Earn payment and tokens",
+                InitialNarrative = $"You approach {npc.Name} with their awaited correspondence."
             });
         }
         
@@ -337,7 +339,8 @@ public class LocationActionManager
                     CoinCost = 0,
                     NPCId = npc.ID,
                     LetterId = letter.Id,
-                    Effect = $"Uses {letter.GetRequiredSlots()} inventory slots"
+                    Effect = $"Uses {letter.GetRequiredSlots()} inventory slots",
+                    InitialNarrative = $"{npc.Name} hands you a sealed letter with instructions for safe delivery."
                 });
             }
         }
@@ -390,7 +393,7 @@ public class LocationActionManager
     /// <summary>
     /// Execute an action - now launches conversation for thin narrative layer
     /// </summary>
-    public bool ExecuteAction(ActionOption option)
+    public async Task<bool> ExecuteAction(ActionOption option)
     {
         var player = _gameWorld.GetPlayer();
         
@@ -438,8 +441,8 @@ public class LocationActionManager
             InitialNarrative = option.InitialNarrative
         };
         
-        // Create conversation
-        var conversation = _conversationFactory.CreateConversation(context, player);
+        // Create conversation properly with async/await
+        var conversation = await _conversationFactory.CreateConversation(context, player);
         
         // Set up for MainGameplayView to handle
         _gameWorld.ConversationPending = true;

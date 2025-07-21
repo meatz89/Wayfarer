@@ -666,6 +666,29 @@
     padding: 0.25rem 0.5rem;
 }
 
+/* Collection Status */
+.collection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.collection-status.uncollected {
+    color: var(--special);
+    background-color: rgba(177, 112, 67, 0.1);
+    border: 1px solid rgba(177, 112, 67, 0.3);
+}
+
+.collection-status.collected {
+    color: var(--positive);
+    background-color: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
 /* Responsive adjustments */
 @media (min-width: 768px) {
     .letter-queue {

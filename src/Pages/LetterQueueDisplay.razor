@@ -49,6 +49,18 @@
                             <div class="letter-size" title="@GetLetterSizeTooltip(letter)">
                                 @GetLetterSizeIcon(letter.Size) @letter.Size
                             </div>
+                            @if (letter.State != LetterState.Collected)
+                            {
+                                <div class="collection-status uncollected" title="Visit sender to collect physical letter">
+                                    📭 Not Collected
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="collection-status collected" title="Letter in inventory">
+                                    📬 Collected
+                                </div>
+                            }
                             @if (letter.PhysicalProperties != LetterPhysicalProperties.None)
                             {
                                 <div class="physical-properties" title="@letter.GetPhysicalConstraintsDescription()">
@@ -340,6 +352,21 @@
     private void DeliverLetter(Letter letter)
     {
         if (letter == null) return;
+        
+        // Check if letter is collected
+        if (letter.State != LetterState.Collected)
+        {
+            MessageSystem.AddSystemMessage(
+                $"⚠️ Cannot deliver! Letter from {letter.SenderName} is not collected yet.",
+                SystemMessageTypes.Warning
+            );
+            MessageSystem.AddSystemMessage(
+                $"  • Visit {letter.SenderName} to collect the physical letter",
+                SystemMessageTypes.Info
+            );
+            StateHasChanged();
+            return;
+        }
         
         // Calculate payment with obligation bonuses
         var player = GameWorld.GetPlayer();
