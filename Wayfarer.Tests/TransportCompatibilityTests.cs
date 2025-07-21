@@ -21,7 +21,6 @@ public class TransportCompatibilityTests
             var networkUnlockFactory = new NetworkUnlockFactory();
             var letterTemplateFactory = new LetterTemplateFactory();
             var standingObligationFactory = new StandingObligationFactory();
-            var actionDefinitionFactory = new ActionDefinitionFactory();
             
             var contentDirectory = new ContentDirectory { Path = "Content" };
             GameWorldInitializer initializer = new GameWorldInitializer(
@@ -34,8 +33,7 @@ public class TransportCompatibilityTests
                 routeDiscoveryFactory,
                 networkUnlockFactory,
                 letterTemplateFactory,
-                standingObligationFactory,
-                actionDefinitionFactory);
+                standingObligationFactory);
             _gameWorld = initializer.LoadGame();
             _itemRepository = new ItemRepository(_gameWorld);
             _validator = new TransportCompatibilityValidator(_itemRepository);

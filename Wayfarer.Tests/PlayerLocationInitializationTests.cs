@@ -114,37 +114,6 @@ namespace Wayfarer.Tests
         }
 
         [Fact]
-        public void PlayerLocation_ShouldProvideValidLocationSpots()
-        {
-            // CRITICAL: Player location spot must have available actions and be valid
-
-            // Arrange: Setup system
-            IServiceProvider serviceProvider = CreateServiceProvider();
-            LocationSystem locationSystem = serviceProvider.GetRequiredService<LocationSystem>();
-            GameWorld gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            ActionRepository actionRepository = serviceProvider.GetRequiredService<ActionRepository>();
-
-            // Initialize
-            Location startLocation = locationSystem.Initialize().Result;
-            Player player = gameWorld.GetPlayer();
-
-            // Assert: Player location spot must be valid and usable
-            Assert.NotNull(player.CurrentLocationSpot);
-            Assert.NotNull(player.CurrentLocationSpot.SpotID);
-            Assert.True(player.CurrentLocationSpot.SpotID.Length > 0);
-
-            // Location spot must belong to current location
-            Assert.Equal(player.CurrentLocation.Id, player.CurrentLocationSpot.LocationId);
-
-            // Location spot must be in the location's available spots
-            Assert.Contains(player.CurrentLocationSpot.SpotID, player.CurrentLocation.AvailableSpots.Select(s => s.SpotID));
-
-            // Location spot must have valid actions (may be 0 but should not throw)
-            List<ActionDefinition> actions = actionRepository.GetActionsForSpot(player.CurrentLocationSpot.SpotID);
-            Assert.NotNull(actions);
-        }
-
-        [Fact]
         public void PlayerLocation_ShouldSupportSystemOperations()
         {
             // CRITICAL: Player location must support all system operations without null exceptions

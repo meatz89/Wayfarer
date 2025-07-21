@@ -20,11 +20,11 @@ public class LetterQueueManagerTests
             var gameWorld = CreateTestGameWorld();
             var letterTemplateRepo = new LetterTemplateRepository(gameWorld);
             var npcRepo = new NPCRepository(gameWorld);
-            var messageSystem = new MessageSystem();
-            var narrativeService = new NarrativeService(npcRepo);
+            var messageSystem = new MessageSystem(gameWorld);
             var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepo);
             var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, tokenManager);
-            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager);
+            var categoryService = new LetterCategoryService(gameWorld, tokenManager, npcRepo, messageSystem);
+            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager, categoryService);
 
             // Add letters to positions 1, 3, 5, and 7
             var letter1 = new Letter { SenderName = "A", RecipientName = "B", Deadline = 5, Payment = 10, TokenType = ConnectionType.Trust };
@@ -32,10 +32,10 @@ public class LetterQueueManagerTests
             var letter5 = new Letter { SenderName = "E", RecipientName = "F", Deadline = 3, Payment = 15, TokenType = ConnectionType.Noble };
             var letter7 = new Letter { SenderName = "G", RecipientName = "H", Deadline = 2, Payment = 20, TokenType = ConnectionType.Shadow };
 
-            manager.AddLetter(letter1, 1);
-            manager.AddLetter(letter3, 3);
-            manager.AddLetter(letter5, 5);
-            manager.AddLetter(letter7, 7);
+            manager.AddLetter(letter1);
+            manager.AddLetter(letter3);
+            manager.AddLetter(letter5);
+            manager.AddLetter(letter7);
 
             // Act - Remove letter from position 3
             bool result = manager.RemoveLetterFromQueue(3);
@@ -72,11 +72,11 @@ public class LetterQueueManagerTests
             var gameWorld = CreateTestGameWorld();
             var letterTemplateRepo = new LetterTemplateRepository(gameWorld);
             var npcRepo = new NPCRepository(gameWorld);
-            var messageSystem = new MessageSystem();
-            var narrativeService = new NarrativeService(npcRepo);
+            var messageSystem = new MessageSystem(gameWorld);
             var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepo);
             var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, tokenManager);
-            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager);
+            var categoryService = new LetterCategoryService(gameWorld, tokenManager, npcRepo, messageSystem);
+            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager, categoryService);
 
             // Fill positions 1-4
             var letters = new Letter[4];
@@ -90,7 +90,7 @@ public class LetterQueueManagerTests
                     Payment = 10 + i, 
                     TokenType = ConnectionType.Trust 
                 };
-                manager.AddLetter(letters[i], i + 1);
+                manager.AddLetter(letters[i]);
             }
 
             // Act - Remove letter from position 1
@@ -121,20 +121,30 @@ public class LetterQueueManagerTests
             var gameWorld = CreateTestGameWorld();
             var letterTemplateRepo = new LetterTemplateRepository(gameWorld);
             var npcRepo = new NPCRepository(gameWorld);
-            var messageSystem = new MessageSystem();
-            var narrativeService = new NarrativeService(npcRepo);
+            var messageSystem = new MessageSystem(gameWorld);
             var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepo);
             var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, tokenManager);
-            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager);
+            var categoryService = new LetterCategoryService(gameWorld, tokenManager, npcRepo, messageSystem);
+            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager, categoryService);
 
-            // Add letters to positions 6, 7, and 8
+            // Add letters to fill up to positions 6, 7, and 8
+            var letter1 = new Letter { SenderName = "X", RecipientName = "Y", Deadline = 5, Payment = 5, TokenType = ConnectionType.Trust };
+            var letter2 = new Letter { SenderName = "Z", RecipientName = "W", Deadline = 5, Payment = 5, TokenType = ConnectionType.Trust };
+            var letter3 = new Letter { SenderName = "V", RecipientName = "U", Deadline = 5, Payment = 5, TokenType = ConnectionType.Trust };
+            var letter4 = new Letter { SenderName = "T", RecipientName = "S", Deadline = 5, Payment = 5, TokenType = ConnectionType.Trust };
+            var letter5 = new Letter { SenderName = "R", RecipientName = "Q", Deadline = 5, Payment = 5, TokenType = ConnectionType.Trust };
             var letter6 = new Letter { SenderName = "A", RecipientName = "B", Deadline = 3, Payment = 10, TokenType = ConnectionType.Trust };
             var letter7 = new Letter { SenderName = "C", RecipientName = "D", Deadline = 2, Payment = 12, TokenType = ConnectionType.Trade };
             var letter8 = new Letter { SenderName = "E", RecipientName = "F", Deadline = 1, Payment = 15, TokenType = ConnectionType.Noble };
 
-            manager.AddLetter(letter6, 6);
-            manager.AddLetter(letter7, 7);
-            manager.AddLetter(letter8, 8);
+            manager.AddLetter(letter1);
+            manager.AddLetter(letter2);
+            manager.AddLetter(letter3);
+            manager.AddLetter(letter4);
+            manager.AddLetter(letter5);
+            manager.AddLetter(letter6);
+            manager.AddLetter(letter7);
+            manager.AddLetter(letter8);
 
             // Act - Remove letter from position 8
             bool result = manager.RemoveLetterFromQueue(8);
@@ -160,11 +170,11 @@ public class LetterQueueManagerTests
             var gameWorld = CreateTestGameWorld();
             var letterTemplateRepo = new LetterTemplateRepository(gameWorld);
             var npcRepo = new NPCRepository(gameWorld);
-            var messageSystem = new MessageSystem();
-            var narrativeService = new NarrativeService(npcRepo);
+            var messageSystem = new MessageSystem(gameWorld);
             var tokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepo);
             var obligationManager = new StandingObligationManager(gameWorld, messageSystem, letterTemplateRepo, tokenManager);
-            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager);
+            var categoryService = new LetterCategoryService(gameWorld, tokenManager, npcRepo, messageSystem);
+            var manager = new LetterQueueManager(gameWorld, letterTemplateRepo, npcRepo, messageSystem, obligationManager, tokenManager, categoryService);
 
             // Add letters with different deadlines
             var letter1 = new Letter { SenderName = "A", RecipientName = "B", Deadline = 1, Payment = 10, TokenType = ConnectionType.Trust };
@@ -172,10 +182,10 @@ public class LetterQueueManagerTests
             var letter3 = new Letter { SenderName = "E", RecipientName = "F", Deadline = 1, Payment = 15, TokenType = ConnectionType.Noble };
             var letter4 = new Letter { SenderName = "G", RecipientName = "H", Deadline = 2, Payment = 20, TokenType = ConnectionType.Shadow };
 
-            manager.AddLetter(letter1, 1);
-            manager.AddLetter(letter2, 2);
-            manager.AddLetter(letter3, 3);
-            manager.AddLetter(letter4, 4);
+            manager.AddLetter(letter1);
+            manager.AddLetter(letter2);
+            manager.AddLetter(letter3);
+            manager.AddLetter(letter4);
 
             // Act - Process daily deadlines (will decrement all deadlines by 1)
             manager.ProcessDailyDeadlines();

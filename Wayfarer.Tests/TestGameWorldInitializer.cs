@@ -47,7 +47,6 @@ public static class TestGameWorldInitializer
         var networkUnlockFactory = new NetworkUnlockFactory();
         var letterTemplateFactory = new LetterTemplateFactory();
         var standingObligationFactory = new StandingObligationFactory();
-        var actionDefinitionFactory = new ActionDefinitionFactory();
         
         var contentDirectory = new ContentDirectory { Path = "Content" };
         GameWorldInitializer initializer = new GameWorldInitializer(
@@ -60,8 +59,7 @@ public static class TestGameWorldInitializer
             routeDiscoveryFactory,
             networkUnlockFactory,
             letterTemplateFactory,
-            standingObligationFactory,
-            actionDefinitionFactory);
+            standingObligationFactory);
         GameWorld gameWorld = initializer.LoadGame();
 
         // Apply scenario configuration to game world

@@ -9,6 +9,7 @@ public class LetterCarryingManagerTests
     {
         var gameWorld = TestGameWorldInitializer.CreateSimpleTestWorld();
         var itemRepository = new ItemRepository(gameWorld);
+        var messageSystem = new MessageSystem(gameWorld);
         var manager = new LetterCarryingManager(gameWorld, itemRepository, messageSystem);
         return (gameWorld, manager);
     }
