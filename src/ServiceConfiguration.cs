@@ -120,7 +120,8 @@
             {
                 var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
                 var tokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
-                return new DeterministicNarrativeProvider(gameWorld, tokenManager);
+                var routeDiscoveryManager = serviceProvider.GetRequiredService<RouteDiscoveryManager>();
+                return new DeterministicNarrativeProvider(gameWorld, tokenManager, routeDiscoveryManager);
             }
             else
             {
