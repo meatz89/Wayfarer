@@ -2,8 +2,8 @@
 
 ## Session Date: 2025-07-21
 
-## CURRENT STATUS: ALL REMAINING UI ISSUES FIXED! Travel screen simplified! Contextual rest options merged!
-## NEXT: Test core gameplay loop with all improvements
+## CURRENT STATUS: Character relationships screen condensed! Distance-based UI principle established!
+## NEXT: Apply distance-based UI principles to all screens
 
 ## LATEST SESSION ACCOMPLISHMENTS
 
@@ -94,6 +94,14 @@
    - Displays church lodging, hunter's cabin, etc. based on location
    - All rest options now in one consolidated interface
 
+9. **Fixed Character Relationships Screen** ✅
+   - Removed large guide section - moved to help tooltip
+   - Only shows NPCs with actual relationships (non-zero tokens)
+   - Condensed display showing only essential info: name, tokens, status
+   - Debt NPCs shown first, then letter-ready, then others
+   - Status badges: DEBT, LETTERS, QUEUE for quick identification
+   - Token tooltips show thresholds and leverage positions
+
 ### Critical UI Bug Fixed! 🚨
 
 1. **Fixed LocationActions TimeManager Dependency** ✅
@@ -155,6 +163,12 @@ SystemMessages = GameWorld.SystemMessages;
 
 ## KEY ARCHITECTURAL DISCOVERIES
 
+### Distance-Based UI Principle
+- **NPCs are only interactable at same location** - Over distance, only remembered info (tokens)
+- **Tooltips over text blocks** - Guides and help should be in tooltips, not taking screen space
+- **Condensed displays for overview screens** - Show only most critical information
+- **Detailed info at point of interaction** - When at same location, show full NPC details
+
 ### UI State Management Pattern
 - GameWorld is the ONLY source of truth for ALL state
 - MainGameplayView.PollGameState() is the ONLY polling mechanism
@@ -178,12 +192,13 @@ SystemMessages = GameWorld.SystemMessages;
 
 ## NEXT PRIORITIES
 
-### 1. Test Complete Gameplay Loop (CRITICAL)
-- All UI improvements are now complete
-- Leverage system fully implemented
-- Test the complete flow: accept letters → manage queue → travel → deliver
-- Verify all contextual actions work properly
-- Ensure UI is readable at 1586x1357px resolution
+### 1. Apply Distance-Based UI Principle to All Screens (HIGH)
+- **Principle**: "Actions with NPCs are only possible if the player is at the same location as the NPC - over distance no action is possible, only info the player remembers from their past active relations as well as current tokens"
+- Character Relationships screen: ✅ DONE - Shows only remembered info (tokens, debt, status)
+- Location screen: Show detailed NPC info when at same location
+- Letter Board: Show only public offers, not NPC-specific details
+- Market: Show trader details only when present
+- All screens should use tooltips for guides, not large text blocks
 
 ### 2. Resource Competition Implementation (NEXT PHASE)
 - Three-State Letter System (Offered → Accepted → Collected)
@@ -239,7 +254,9 @@ Design philosophy emphasized:
 This session (UI fixes):
 1. **TravelSelection.razor** - Fixed red hint overload, simplified route warnings
 2. **RestUI.razor** - Merged contextual rest options from LocationActionManager
-3. **SESSION-HANDOFF.md** - Updated with all UI improvements
+3. **CharacterRelationshipScreen.razor** - Complete rewrite for condensed display
+4. **character-relationships.css** - Added styles for condensed view
+5. **SESSION-HANDOFF.md** - Updated with all UI improvements and new principles
 
 Previous session (Leverage implementation):
 1. **LEVERAGE-SYSTEM-IMPLEMENTATION.md** - Created comprehensive technical specification

@@ -571,6 +571,127 @@
     font-style: italic;
 }
 
+/* Condensed NPC Cards */
+.npc-relationship-card-condensed {
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 4px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.npc-relationship-card-condensed:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.npc-relationship-card-condensed.relationship-debt {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.05);
+}
+
+.npc-relationship-card-condensed.relationship-ready {
+    border-color: var(--positive);
+    background-color: rgba(107, 191, 89, 0.05);
+}
+
+.npc-essential {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 1rem;
+}
+
+.npc-name {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.npc-tokens {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.token-display {
+    padding: 0.15rem 0.4rem;
+    background-color: var(--bg-dark);
+    border-radius: 3px;
+    font-size: 0.85rem;
+    cursor: help;
+}
+
+.token-display.debt {
+    background-color: rgba(158, 42, 43, 0.15);
+    color: var(--negative);
+}
+
+.token-display.positive {
+    color: var(--positive);
+}
+
+.debt-indicator {
+    font-weight: bold;
+    color: var(--negative);
+}
+
+.npc-status {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.status-debt,
+.status-ready,
+.status-queue {
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: help;
+}
+
+.status-debt {
+    background-color: var(--negative);
+    color: white;
+}
+
+.status-ready {
+    background-color: var(--positive);
+    color: white;
+}
+
+.status-queue {
+    background-color: var(--special);
+    color: white;
+}
+
+/* Help Icon */
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: var(--oak-mid);
+    color: var(--text-primary);
+    border-radius: 50%;
+    font-size: 0.875rem;
+    font-weight: bold;
+    cursor: help;
+    margin-left: 1rem;
+}
+
+.help-icon:hover {
+    background-color: var(--oak-dark);
+}
+
+/* No Relationships */
+.no-relationships {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .npc-relationship-grid {
@@ -581,5 +702,10 @@
         flex-direction: column;
         gap: 0.5rem;
         text-align: center;
+    }
+    
+    .npc-essential {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
     }
 }
