@@ -54,10 +54,10 @@
         </div>
     }
     
-    @* Show location-specific rest actions from LocationActionManager *@
+    @* Show location-specific rest actions (like tavern drinking while resting) *@
     @{
         var locationActions = LocationActionManager.GetAvailableActions()
-            .Where(a => a.Action == LocationAction.Rest && a.Name != "Rest")
+            .Where(a => a.Action == LocationAction.Rest)
             .ToList();
     }
     

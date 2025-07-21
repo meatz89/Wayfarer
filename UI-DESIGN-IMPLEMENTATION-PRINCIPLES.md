@@ -4,6 +4,58 @@
 
 ## Core UI Design Principles
 
+### 0. Distance-Based Information Principle
+**Principle**: NPCs are only interactable when at the same location. Over distance, show only remembered information (tokens, past interactions).
+
+**Implementation**:
+- **At Same Location**: Show full NPC details, availability, current offers, interaction options
+- **At Distance**: Show only token counts, debt status, letter history
+- **Never Show**: Real-time NPC status when not present (availability, current mood, etc.)
+
+**Why**: Creates realistic information constraints and emphasizes the importance of being present.
+
+### 0.1 Consistent Container Widths
+**Principle**: All main content containers should use the same full-width styling for visual consistency.
+
+**Implementation**:
+```css
+.letter-queue-container,
+.obligation-container,
+.board-container,
+.location-container,
+.rest-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+}
+```
+
+**Why**: Inconsistent widths make the UI feel unpolished and confuse visual hierarchy.
+
+### 0.2 Tooltips Over Text Blocks
+**Principle**: Use tooltips for guides and help text, not large explanatory sections that consume screen space.
+
+**Implementation**:
+- Help icons (?) with comprehensive tooltips
+- Hover tooltips on interactive elements
+- Remove large guide sections from main views
+
+**Why**: Maximizes usable screen space for actual gameplay elements.
+
+### 0.3 Contextual Actions at Point of Use
+**Principle**: Actions should be available where they make narrative sense, not scattered across screens.
+
+**Implementation**:
+- **Rest Screen**: ALL rest options (basic rest + location-specific like inn, tavern, church)
+- **Location Screen**: NPC interactions, spot navigation
+- **Market Screen**: Trading actions only
+- **Letter Board**: Public letter offers only
+
+**Why**: Reduces cognitive load by grouping related actions together.
+
 ### 1. Queue-Centric Information Architecture
 **Principle**: The 8-slot letter queue is the primary UI element - all other information supports queue decision-making.
 
