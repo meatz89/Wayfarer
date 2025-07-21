@@ -12,10 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. ✅ **READ CLAUDE.MD FIRST** - Understand architectural patterns and game design principles
 2. ✅ **READ SESSION-HANDOFF.MD** - Get current progress, discoveries, and immediate next steps
-3. ✅ **READ POC-TARGET-DESIGN.md** - Understand the target POC structure and requirements
 4. ✅ **READ GAME-ARCHITECTURE.md** - Acquire a deep understanding of the architecture guidelines and principles
-5. ✅ **READ INTENDED-GAMEPLAY.md** - Acquire a deep understanding of what we want the game experience to feel like for the player
-6. ✅ **READ LOGICAL-SYSTEM-INTERACTIONS.MD** - Critical design guidelines for system changes
 6. ✅ **READ IMPLEMENTATION-PLAN.MD** - Our current roadmap to follow
 7. ✅ **ONLY THEN begin working** - Never start coding without understanding current state
 
@@ -229,13 +226,6 @@ This prevents content pollution and keeps systems maintainable. Content describe
 
 **The Core Loop**: Accept letters → Manage queue vs deadlines → Plan routes → Navigate with equipment → Deliver in order (or spend tokens) → Earn tokens → Face new obligations → Repeat with harder choices
 
-### System Interconnection Details
-
-For detailed analysis of how these systems transform and interconnect, see:
-- **`LETTER-QUEUE-TRANSFORMATION-ANALYSIS.md`** - Section: "System Transformations" 
-- **`LOGICAL-SYSTEM-INTERACTIONS.md`** - Complete queue-based interaction rules
-- **`LETTER-QUEUE-INTEGRATION-PLAN.md`** - System-by-system transformation details
-
 ## HIGH-LEVEL ARCHITECTURE
 
 ### Core Design Philosophy: Queue-Driven Social Obligations
@@ -281,9 +271,8 @@ JSON Files → GameWorldSerializer → GameWorldInitializer → GameWorld → Re
 - `location_spots.json` - Specific spots within locations with social access requirements
 - `routes.json` - Travel routes with terrain categories and information gathering opportunities
 - `items.json` - Correspondence, equipment, and social signaling items
-- `contracts.json` - Patron missions and favor-based assignments
-- `actions.json` - Player actions including favor trading and information gathering
 - `npcs.json` - NPCs with patronage relationships, favor levels, and loyalty conflicts
+- ...
 
 ### Project Structure
 
@@ -524,9 +513,6 @@ Always distinguish between three layers:
 - ⚡ **`LEVERAGE-SYSTEM-IMPLEMENTATION.md`** - Technical guide for leverage through token debt
 - 📋 **`USER-STORIES.md`** - Complete acceptance criteria for all game features
 - `IMPLEMENTATION-PLAN.md` - Complete system architecture, roadmap, and core design philosophy
-- `INTENDED-GAMEPLAY.md` - The letter queue player experience and Kvothe moments
-- `LOGICAL-SYSTEM-INTERACTIONS.md` - Queue mechanics and token economy rules
-- `POC-TARGET-DESIGN.md` - Minimal POC with 8-slot queue and connection tokens
 - `SESSION-HANDOFF.md` - Current implementation status and next steps
 
 **TECHNICAL DOCUMENTS**:
