@@ -164,8 +164,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         Stamina = snapshot.Stamina;
         Concentration = snapshot.Concentration;
         
-        // Pull system messages from GameWorld
-        SystemMessages = GameWorld.SystemMessages;
+        // Pull system messages from GameWorld and filter expired ones
+        SystemMessages = GameWorld.SystemMessages.Where(m => !m.IsExpired).ToList();
+        
+        // Clean up expired messages from GameWorld
+        GameWorld.SystemMessages.RemoveAll(m => m.IsExpired);
 
         // Check for pending morning activities (set by StartNewDay)
         if (GameManager.HasPendingMorningActivities() && !ShowMorningSummary)

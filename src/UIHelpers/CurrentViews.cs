@@ -24,5 +24,6 @@
     PlayerStatusScreen,     // Player stats and condition
     
     // SYSTEM SCREENS
+    EventLogScreen,         // Event log showing all system messages
     MissingReferences       // Error screen for missing content
 }

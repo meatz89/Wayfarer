@@ -20,6 +20,7 @@ public static class NPCParser
             Role = GetStringProperty(root, "name", ""), // Use name as role for current JSON structure
             Description = GetStringProperty(root, "description", ""),
             Location = locationId, // Use locationId for location
+            SpotId = GetStringProperty(root, "spotId", ""), // Map spotId from JSON
         };
         
         Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{locationId}'");

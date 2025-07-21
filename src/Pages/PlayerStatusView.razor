@@ -49,7 +49,6 @@
                     <span class="resource-icon">💰</span>
                     <span class="resource-label">Coins</span>
                     <span class="resource-value">@PlayerState.Coins</span>
-                    <span class="resource-detail">Weight: @(PlayerState.Coins / 10)</span>
                 </div>
                 <div class="resource-item">
                     <span class="resource-icon">⚡</span>
@@ -74,7 +73,6 @@
             <h3 class="section-title">Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Size)</h3>
             @{
                 int totalWeight = GameManager.CalculateTotalWeight();
-                int coinWeight = PlayerState.Coins / 10;
                 string weightStatus = GetWeightStatus(totalWeight);
             }
             <div class="inventory-status">
@@ -82,10 +80,6 @@
                     <span class="weight-label">Total Weight:</span>
                     <span class="weight-value">@totalWeight</span>
                     <span class="weight-status @GetWeightStatusClass(totalWeight)">(@weightStatus)</span>
-                </div>
-                <div class="weight-breakdown">
-                    <span>Items: @(totalWeight - coinWeight)</span>
-                    <span>Coins: @coinWeight</span>
                 </div>
             </div>
             <div class="inventory-slots">

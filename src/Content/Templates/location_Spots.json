@@ -50,6 +50,16 @@
 		"domainTags": [ "SOCIAL", "REST" ]
 	},
 	{
+		"id": "thornwood_market",
+		"name": "Village Market",
+		"type": "FEATURE",
+		"description": "A small but bustling market where forest goods and supplies are traded.",
+		"initialState": "Wooden stalls filled with lumber, herbs, and forest produce.",
+		"locationId": "thornwood",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "TRADE", "SOCIAL" ]
+	},
+	{
 		"id": "crossbridge_market",
 		"name": "Market",
 		"type": "FEATURE",

@@ -64,8 +64,8 @@ public class LocationSpotMapBase : ComponentBase
     /// </summary>
     public List<NPC> GetAllNPCsForSpot(LocationSpot spot)
     {
-        return NPCRepository.GetNPCsForLocation(spot.LocationId)
-            .Where(npc => npc.Location == spot.LocationId)
+        return NPCRepository.GetAllNPCs()
+            .Where(npc => npc.SpotId == spot.SpotID)
             .ToList();
     }
 

@@ -55,10 +55,18 @@
         align-items: flex-start;
         gap: 1rem;
         transition: all 0.3s ease;
+        animation: slideIn 0.3s ease-out;
     }
     
-    .message-enter {
-        animation: slideIn 0.3s ease-out;
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
         
     .message-content {

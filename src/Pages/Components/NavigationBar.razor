@@ -60,6 +60,10 @@
                     @onclick="() => NavigateTo(CurrentViews.PlayerStatusScreen)">
                 Status
             </button>
+            <button class="nav-button @(IsActive(CurrentViews.EventLogScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.EventLogScreen)">
+                Event Log
+            </button>
         </div>
     </div>
     
