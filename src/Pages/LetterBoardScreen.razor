@@ -247,8 +247,15 @@
         {
             GenerateAvailableLetters();
             player.LastLetterBoardDay = currentDay;
+            // Store the generated letters in the player state
+            player.DailyBoardLetters = availableLetters.ToList();
         }
-        // Otherwise, letters remain empty (already accepted or it's not dawn)
+        else if (player.LastLetterBoardDay == currentDay && GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        {
+            // Restore previously generated letters for today (minus any already accepted)
+            availableLetters = player.DailyBoardLetters?.ToList() ?? new List<Letter>();
+        }
+        // Otherwise, letters remain empty (not dawn)
     }
     
     private void GenerateAvailableLetters()
@@ -325,6 +332,8 @@
             
             // Remove from available letters
             availableLetters.Remove(selectedLetter);
+            // Also remove from player's stored daily letters
+            GameWorld.GetPlayer().DailyBoardLetters?.Remove(selectedLetter);
             selectedLetter = null;
             
             StateHasChanged();

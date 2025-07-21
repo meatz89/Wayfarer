@@ -73,20 +73,8 @@ public class LocationActionManager
         var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         var npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTimeBlock);
         
-        // Basic actions available everywhere
-        if (_timeManager.HoursRemaining >= 1)
-        {
-            actions.Add(new ActionOption
-            {
-                Action = LocationAction.Rest,
-                Name = "Rest",
-                Description = "Recover stamina (+3)",
-                HourCost = 1,
-                StaminaCost = 0,
-                CoinCost = 0,
-                Effect = "+3 Stamina"
-            });
-        }
+        // NOTE: Basic rest is handled in RestUI screen via RestManager
+        // Only add location-specific contextual rest actions here
         
         // Check what NPCs are present and available
         foreach (var npc in npcsHere)
