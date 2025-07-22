@@ -101,16 +101,53 @@ public class ConversationManager
     }
 }
 
+public enum ConversationChoiceType
+{
+    // Basic conversation choices
+    Continue,           // Proceed with the current action
+    Introduction,
+    FriendlyChat,
+    DeclineOffers,
+    
+    // Letter management choices
+    AcceptLetterOffer,
+    DeclineLetterOffer,
+    
+    // Delivery choices
+    DeliverForTokens,
+    DeliverForCoins,
+    CannotDeliver,
+    
+    // Queue management choices
+    SkipAndDeliver,
+    PurgeLetter,
+    KeepLetter,
+    RespectQueueOrder,
+    
+    // Route discovery
+    DiscoverRoute,
+    
+    // Other specialized choices
+    NetworkIntroduction,
+    RequestFunds,
+    BorrowMoney,
+    AcceptIllegalWork
+}
+
 public class ConversationChoice
 {
     public string ChoiceID { get; set; }
     public string NarrativeText { get; set; }
     public int FocusCost { get; set; }
     public bool IsAffordable { get; set; }
-    public string TemplateUsed { get; set; }
+    public ConversationChoiceType ChoiceType { get; set; }
     public string TemplatePurpose { get; set; }
     public string SuccessNarrative { get; internal set; }
     public string FailureNarrative { get; internal set; }
     public SkillOption SkillOption { get; set; }
     public bool RequiresSkillCheck { get; internal set; }
+    
+    // Category-based properties for letter offers
+    public ConnectionType? OfferTokenType { get; set; }
+    public LetterCategory? OfferCategory { get; set; }
 }

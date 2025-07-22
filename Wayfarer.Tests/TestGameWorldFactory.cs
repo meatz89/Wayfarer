@@ -230,7 +230,6 @@ public static class TestServiceConfiguration
             
             return letterQueueManager;
         });
-        services.AddSingleton<RouteUnlockManager>();
         services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<NetworkUnlockManager>();
         services.AddSingleton<NPCLetterOfferService>(serviceProvider =>
