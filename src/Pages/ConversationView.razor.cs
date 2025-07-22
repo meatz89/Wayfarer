@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using System.Linq;
 
 public class ConversationViewBase : ComponentBase
 {
@@ -11,6 +12,11 @@ public class ConversationViewBase : ComponentBase
 
     // State
     public GameWorldSnapshot currentSnapshot;
+    
+    // Streaming state - comes from GameWorldSnapshot
+    public bool IsStreaming => currentSnapshot?.IsStreaming ?? false;
+    public string StreamingText => currentSnapshot?.StreamingText ?? "";
+    public int StreamProgress => (int)(currentSnapshot?.StreamProgress ?? 0);
 
     // Tooltip state
     public ConversationChoice hoveredChoice;
@@ -108,6 +114,47 @@ public class ConversationViewBase : ComponentBase
         };
         
         await OnConversationCompleted.InvokeAsync(outcome);
+    }
+
+    public string GetChoiceClass(ConversationChoice choice)
+    {
+        // Return CSS class based on choice type
+        return choice.ChoiceType switch
+        {
+            ConversationChoiceType.AcceptLetterOffer => "choice-letter",
+            ConversationChoiceType.DeclineLetterOffer => "choice-decline",
+            ConversationChoiceType.Introduction => "choice-introduction",
+            ConversationChoiceType.DiscoverRoute => "choice-discovery",
+            ConversationChoiceType.SkipAndDeliver => "choice-skip",
+            ConversationChoiceType.RespectQueueOrder => "choice-respect",
+            ConversationChoiceType.PurgeLetter => "choice-purge",
+            ConversationChoiceType.KeepLetter => "choice-keep",
+            ConversationChoiceType.TravelCautious => "choice-cautious",
+            ConversationChoiceType.TravelUseEquipment => "choice-equipment",
+            ConversationChoiceType.TravelForceThrough => "choice-force",
+            ConversationChoiceType.TravelSlowProgress => "choice-slow",
+            ConversationChoiceType.TravelTradeHelp => "choice-trade",
+            ConversationChoiceType.TravelExchangeInfo => "choice-info",
+            _ => "choice-default"
+        };
+    }
+
+    public string GetChoiceIcon(ConversationChoice choice)
+    {
+        // Return icon based on choice type
+        return choice.ChoiceType switch
+        {
+            ConversationChoiceType.AcceptLetterOffer => "📨",
+            ConversationChoiceType.DeclineLetterOffer => "🚫",
+            ConversationChoiceType.Introduction => "👋",
+            ConversationChoiceType.DiscoverRoute => "🗺️",
+            ConversationChoiceType.SkipAndDeliver => "⏩",
+            ConversationChoiceType.PurgeLetter => "🗑️",
+            ConversationChoiceType.TravelUseEquipment => "🛠️",
+            ConversationChoiceType.TravelTradeHelp => "🤝",
+            ConversationChoiceType.TravelExchangeInfo => "💬",
+            _ => null
+        };
     }
 
 }
