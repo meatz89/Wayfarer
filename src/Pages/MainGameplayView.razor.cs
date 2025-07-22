@@ -156,22 +156,18 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             DebugLogger.LogDebug($"Initial state:\n{report}");
         }
         
-        // Set up polling instead of direct timer calls
-        _ = Task.Run(async () =>
-        {
-            while (true)
-            {
-                await InvokeAsync(() =>
-                {
-                    PollGameState();
-                    StateHasChanged();
-                });
-                await Task.Delay(50);
-            }
-        });
+        // Poll state initially
+        PollGameState();
+        StateHasChanged();
     }
 
     public GameWorldSnapshot oldSnapshot;
+
+    public void RefreshUI()
+    {
+        PollGameState();
+        StateHasChanged();
+    }
 
     public void PollGameState()
     {
@@ -201,6 +197,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             NavigationService.NavigateTo(CurrentViews.ConversationScreen);
             GameWorld.ConversationPending = false;
             DebugLogger.LogNavigation(CurrentScreen.ToString(), "ConversationScreen", "Pending conversation detected");
+            StateHasChanged();
         }
 
         if (oldSnapshot == null || !snapshot.IsEqualTo(oldSnapshot))
@@ -232,44 +229,44 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         Console.WriteLine($"SwitchToTravelScreen called. Current screen: {CurrentScreen}");
         NavigationService.NavigateTo(CurrentViews.TravelScreen);
         Console.WriteLine($"New current screen: {CurrentScreen}");
-        StateHasChanged();
+        RefreshUI();
     }
 
     public void SwitchToMarketScreen()
     {
         NavigationService.NavigateTo(CurrentViews.MarketScreen);
-        StateHasChanged();
+        RefreshUI();
     }
 
     public void SwitchToRestScreen()
     {
         NavigationService.NavigateTo(CurrentViews.RestScreen);
-        StateHasChanged();
+        RefreshUI();
     }
 
 
     public void SwitchToPlayerStatusScreen()
     {
         NavigationService.NavigateTo(CurrentViews.PlayerStatusScreen);
-        StateHasChanged();
+        RefreshUI();
     }
 
     public void SwitchToRelationshipScreen()
     {
         NavigationService.NavigateTo(CurrentViews.RelationshipScreen);
-        StateHasChanged();
+        RefreshUI();
     }
 
     public void SwitchToObligationsScreen()
     {
         NavigationService.NavigateTo(CurrentViews.ObligationsScreen);
-        StateHasChanged();
+        RefreshUI();
     }
 
     public void SwitchToLetterBoardScreen()
     {
         NavigationService.NavigateTo(CurrentViews.LetterBoardScreen);
-        StateHasChanged();
+        RefreshUI();
     }
 
     public async Task HandleTravelRoute(RouteOption route)
@@ -447,6 +444,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public void UpdateState()
     {
         StateVersion++;
+        PollGameState();
         StateHasChanged();
     }
 

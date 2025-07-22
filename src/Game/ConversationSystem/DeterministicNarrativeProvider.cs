@@ -52,6 +52,11 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         {
             narrativeText = GetQueueManagementIntroduction(queueCtx);
         }
+        // Check if this is a travel conversation
+        else if (context is TravelConversationContext travelCtx)
+        {
+            narrativeText = GetTravelIntroduction(travelCtx);
+        }
         else
         {
             // All conversations must be properly categorized - no fallbacks
@@ -80,6 +85,13 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         if (context is QueueManagementContext queueContext)
         {
             var choices = GenerateQueueManagementChoices(queueContext);
+            return Task.FromResult(choices);
+        }
+        
+        // Check if this is a travel conversation
+        if (context is TravelConversationContext travelContext)
+        {
+            var choices = GenerateTravelChoices(travelContext);
             return Task.FromResult(choices);
         }
         
@@ -498,6 +510,23 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         return "You consider managing your letter queue.";
     }
     
+    private string GetTravelIntroduction(TravelConversationContext context)
+    {
+        var origin = context.Origin?.Name ?? "here";
+        var destination = context.Destination?.Name ?? "your destination";
+        
+        // Generate narrative based on encounter type
+        return context.EncounterType switch
+        {
+            TravelEncounterType.WildernessObstacle => $"The path to {destination} is blocked by a fallen tree. You'll need to find a way around or through.",
+            TravelEncounterType.DarkChallenge => $"As you travel toward {destination}, darkness falls suddenly. The path ahead is barely visible.",
+            TravelEncounterType.WeatherEvent => $"A sudden storm catches you on the road to {destination}. Rain begins to fall heavily.",
+            TravelEncounterType.MerchantEncounter => $"You encounter a merchant whose cart has broken down on the road to {destination}. They look like they could use help.",
+            TravelEncounterType.FellowTraveler => $"You meet a fellow traveler heading toward {destination}. They wave in greeting.",
+            _ => $"You encounter an unexpected situation on your journey from {origin} to {destination}."
+        };
+    }
+    
     private List<ConversationChoice> GenerateQueueManagementChoices(QueueManagementContext context)
     {
         if (context.ManagementAction == "SkipDeliver")
@@ -554,6 +583,181 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         }
         
         return GenerateDefaultChoices(context, null);
+    }
+    
+    private List<ConversationChoice> GenerateTravelChoices(TravelConversationContext context)
+    {
+        var choices = new List<ConversationChoice>();
+        var player = context.Player;
+        
+        // Get player equipment using proper categories
+        var hasClimbingGear = HasEquipmentCategory(player, ItemCategory.Climbing_Equipment);
+        var hasLightSource = HasEquipmentCategory(player, ItemCategory.Light_Source);
+        var hasWeatherProtection = HasEquipmentCategory(player, ItemCategory.Weather_Protection);
+        var hasCart = HasEquipmentCategory(player, ItemCategory.Load_Distribution);
+        
+        // Always add a default cautious option
+        choices.Add(new ConversationChoice
+        {
+            ChoiceID = "1",
+            NarrativeText = "Proceed with caution",
+            FocusCost = 0,
+            IsAffordable = true,
+            ChoiceType = ConversationChoiceType.TravelCautious,
+            TemplatePurpose = "Take the safe but slow approach",
+            TravelEffect = TravelChoiceEffect.None
+        });
+        
+        // Add equipment-based choices based on encounter type
+        switch (context.EncounterType)
+        {
+            case TravelEncounterType.WildernessObstacle:
+                if (hasClimbingGear)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Use climbing gear to go over",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelUseEquipment,
+                        TemplatePurpose = "Save time with equipment",
+                        TravelEffect = TravelChoiceEffect.SaveTime,
+                        RequiredEquipment = EquipmentType.ClimbingGear,
+                        TimeModifierMinutes = -30
+                    });
+                }
+                
+                // Always offer a risky option
+                if (player.Stamina >= 2)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = choices.Count + 1 + "",
+                        NarrativeText = "Force through the obstacle",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelForceThrough,
+                        TemplatePurpose = "Spend stamina to save time",
+                        TravelEffect = TravelChoiceEffect.SpendStamina,
+                        StaminaCost = 2,
+                        TimeModifierMinutes = -30
+                    });
+                }
+                break;
+                
+            case TravelEncounterType.DarkChallenge:
+                if (hasLightSource)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Light torch and continue safely",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelUseEquipment,
+                        TemplatePurpose = "Navigate safely with light",
+                        TravelEffect = TravelChoiceEffect.None,
+                        RequiredEquipment = EquipmentType.LightSource
+                    });
+                }
+                else
+                {
+                    // Risky option without light
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Stumble forward in darkness",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelSlowProgress,
+                        TemplatePurpose = "Continue slowly without light",
+                        TravelEffect = TravelChoiceEffect.LoseTime,
+                        TimeModifierMinutes = 60
+                    });
+                }
+                break;
+                
+            case TravelEncounterType.WeatherEvent:
+                if (hasWeatherProtection)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Use weather gear and press on",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelUseEquipment,
+                        TemplatePurpose = "Continue protected",
+                        TravelEffect = TravelChoiceEffect.None,
+                        RequiredEquipment = EquipmentType.WeatherProtection
+                    });
+                }
+                else
+                {
+                    // Risk getting wet
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Get soaked but keep moving",
+                        FocusCost = 0,
+                        IsAffordable = player.Stamina >= 1,
+                        ChoiceType = ConversationChoiceType.TravelForceThrough,
+                        TemplatePurpose = "Continue unprotected",
+                        TravelEffect = TravelChoiceEffect.SpendStamina,
+                        StaminaCost = 1
+                    });
+                }
+                break;
+                
+            case TravelEncounterType.MerchantEncounter:
+                if (hasCart)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Offer cart space for a ride",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelTradeHelp,
+                        TemplatePurpose = "Trade help for faster travel",
+                        TravelEffect = TravelChoiceEffect.SaveTime,
+                        RequiredEquipment = EquipmentType.LoadDistribution,
+                        TimeModifierMinutes = -60
+                    });
+                }
+                
+                // Always offer to help on foot
+                choices.Add(new ConversationChoice
+                {
+                    ChoiceID = choices.Count + 1 + "",
+                    NarrativeText = "Help push their cart",
+                    FocusCost = 0,
+                    IsAffordable = player.Stamina >= 1,
+                    ChoiceType = ConversationChoiceType.TravelTradeHelp,
+                    TemplatePurpose = "Earn coins helping",
+                    TravelEffect = TravelChoiceEffect.EarnCoins,
+                    StaminaCost = 1,
+                    CoinReward = 3
+                });
+                break;
+                
+            case TravelEncounterType.FellowTraveler:
+                // Information exchange
+                choices.Add(new ConversationChoice
+                {
+                    ChoiceID = "2",
+                    NarrativeText = "Exchange travel information",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    ChoiceType = ConversationChoiceType.TravelExchangeInfo,
+                    TemplatePurpose = "Learn about route conditions",
+                    TravelEffect = TravelChoiceEffect.GainInformation
+                });
+                break;
+        }
+        
+        return choices;
     }
     
     private List<ConversationChoice> GetTravelEncounterChoices(ActionConversationContext context)

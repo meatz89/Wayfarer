@@ -413,7 +413,8 @@
 
             <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
                              CurrentSpot="@CurrentSpot"
-                             OnSpotSelected="@HandleSpotSelection" />
+                             OnSpotSelected="@HandleSpotSelection"
+                             OnActionExecuted="@RefreshUI" />
             
             @* Location Actions Panel *@
             <LocationActions />

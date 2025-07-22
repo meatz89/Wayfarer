@@ -16,6 +16,7 @@ public class LocationSpotMapBase : ComponentBase
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
     [Parameter] public EventCallback<LocationSpot> OnSpotSelected { get; set; }
+    [Parameter] public EventCallback OnActionExecuted { get; set; }
     
     public bool showTooltip;
     public double mouseX;
@@ -73,6 +74,8 @@ public class LocationSpotMapBase : ComponentBase
         if (success)
         {
             DeselectNPC();
+            // Notify parent to refresh UI to check for pending conversations
+            await OnActionExecuted.InvokeAsync();
         }
     }
     
@@ -103,6 +106,12 @@ public class LocationSpotMapBase : ComponentBase
         TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
         return NPCRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
     }
+    
+    public List<NPC> GetAvailableNPCsAtCurrentSpot()
+    {
+        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        return NPCRepository.GetNPCsForLocationSpotAndTime(CurrentSpot.SpotID, currentTime);
+    }
 
     /// <summary>
     /// Get all NPCs assigned to a spot regardless of current availability
@@ -111,6 +120,13 @@ public class LocationSpotMapBase : ComponentBase
     {
         return NPCRepository.GetAllNPCs()
             .Where(npc => npc.SpotId == spot.SpotID)
+            .ToList();
+    }
+    
+    public List<NPC> GetAllNPCsAtCurrentSpot()
+    {
+        return NPCRepository.GetAllNPCs()
+            .Where(npc => npc.SpotId == CurrentSpot.SpotID)
             .ToList();
     }
 

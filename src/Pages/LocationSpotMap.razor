@@ -22,13 +22,14 @@
                 </div>
                 <div class="location-type">@spot.Description</div>
 
-                @* Show compact NPC information for this spot *@
-                @{
-                    var allSpotNPCs = GetAllNPCsForSpot(spot);
-                    var availableNPCs = GetAvailableNPCsForSpot(spot);
+                @* Show NPCs ONLY if this is the current spot *@
+                @if (spot.SpotID == CurrentSpot.SpotID)
+                {
+                    var allSpotNPCs = GetAllNPCsAtCurrentSpot();
+                    var availableNPCs = GetAvailableNPCsAtCurrentSpot();
                     var currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
-                }
-                @if (allSpotNPCs.Any())
+                    
+                    if (allSpotNPCs.Any())
                 {
                     <div class="npcs-section">
                         <div class="npcs-header">People:</div>
@@ -173,12 +174,13 @@
                             </div>
                         }
                     </div>
-                }
-                else
-                {
-                    <div class="npcs-section">
-                        <div class="no-npcs">No people at this location</div>
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="npcs-section">
+                            <div class="no-npcs">No people at this location</div>
+                        </div>
+                    }
                 }
 
         @if (spot.SpotID == CurrentSpot.SpotID)
