@@ -377,6 +377,12 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             // UI actions must go through GameWorldManager
             GameManager.CompleteActionAfterConversation(GameWorld.PendingAction);
             
+            // Check if this was a travel encounter - if so, complete the travel
+            if (GameWorld.PendingAction.Action == LocationAction.TravelEncounter)
+            {
+                GameManager.CompleteTravelAfterEncounter();
+            }
+            
             // Clear the pending action
             GameWorld.PendingAction = null;
             

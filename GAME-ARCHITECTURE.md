@@ -1085,6 +1085,151 @@ When refactoring from Encounter to Conversation system:
    - Remove action system when using location-based actions
    - No compatibility layers - clean break
 
+## NO OPTIONAL PARAMETERS PRINCIPLE (CRITICAL)
+
+### All Method Parameters Must Be Explicit and Required
+**NEVER use optional parameters with default values. Every parameter must be explicitly provided by the caller.**
+
+#### ❌ FORBIDDEN Patterns
+```csharp
+// ❌ WRONG: Optional parameters with defaults
+public NPC CreateNPC(string id, string name, string spotId = null)
+{
+    // This hides important data requirements
+}
+
+// ❌ WRONG: Default values for any parameters
+public void AddTokens(ConnectionType type, int amount = 1, string npcId = null)
+{
+    // Caller might forget to provide critical npcId
+}
+
+// ❌ WRONG: Method overloading to simulate optional parameters
+public Letter CreateLetter(string id, string sender)
+{
+    return CreateLetter(id, sender, null); // Still using null defaults
+}
+```
+
+#### ✅ CORRECT Patterns
+```csharp
+// ✅ CORRECT: All parameters required
+public NPC CreateNPC(string id, string name, string spotId)
+{
+    if (string.IsNullOrEmpty(spotId))
+        throw new ArgumentException("SpotId is required", nameof(spotId));
+}
+
+// ✅ CORRECT: Explicit parameters force intentional usage
+public void AddTokens(ConnectionType type, int amount, string npcId)
+{
+    // Caller must explicitly provide all values
+}
+
+// ✅ CORRECT: Different methods for different use cases
+public NPC CreateLocationNPC(string id, string name, string locationId, string spotId)
+{
+    // For NPCs tied to specific spots
+}
+
+public NPC CreateWanderingNPC(string id, string name, string locationId)
+{
+    // For NPCs without fixed spots - different method, not optional parameter
+}
+```
+
+#### Why This Matters
+1. **Prevents Bugs** - Optional parameters hide missing data that causes runtime errors
+2. **Forces Intentional Design** - Callers must think about every value they provide
+3. **Improves Debugging** - No hidden nulls or defaults to trace
+4. **Better Refactoring** - Adding parameters breaks callers intentionally, ensuring updates
+5. **Clear Data Flow** - Every piece of data is explicitly passed and visible
+
+#### Implementation Guidelines
+1. **Remove all `= null` and `= defaultValue` from parameters**
+2. **Create separate methods for different scenarios** instead of optional parameters
+3. **Validate all parameters** at method entry
+4. **Use different factory methods** for different creation patterns
+5. **Make nullable intent explicit** with proper null checks and exceptions
+
+## NO METHOD OVERLOADING PRINCIPLE (CRITICAL)
+
+### Every Method Must Have a Unique, Descriptive Name
+**NEVER use method overloading. Each method must have a distinct name that clearly describes its purpose and parameters.**
+
+#### ❌ FORBIDDEN Patterns
+```csharp
+// ❌ WRONG: Method overloading hides different behaviors
+public Letter CreateLetter(string id, string sender)
+{
+    // Basic letter creation
+}
+
+public Letter CreateLetter(string id, string sender, string recipient)
+{
+    // Different behavior with recipient
+}
+
+public Letter CreateLetter(string id, string sender, string recipient, int deadline)
+{
+    // Yet another variant
+}
+
+// ❌ WRONG: Overloading with different parameter types
+public void ProcessLetter(Letter letter) { }
+public void ProcessLetter(string letterId) { }
+public void ProcessLetter(int queuePosition) { }
+```
+
+#### ✅ CORRECT Patterns
+```csharp
+// ✅ CORRECT: Unique names describe the specific behavior
+public Letter CreateBasicLetter(string id, string sender)
+{
+    // Clear what this does
+}
+
+public Letter CreateAddressedLetter(string id, string sender, string recipient)
+{
+    // Different name for different behavior
+}
+
+public Letter CreateTimedLetter(string id, string sender, string recipient, int deadline)
+{
+    // Explicit about the deadline parameter
+}
+
+// ✅ CORRECT: Clear method names for different input types
+public void ProcessLetterObject(Letter letter) { }
+public void ProcessLetterById(string letterId) { }
+public void ProcessLetterAtPosition(int queuePosition) { }
+
+// ✅ CORRECT: Factory methods with descriptive names
+public NPC CreateLocationBoundNPC(string id, string name, string locationId, string spotId)
+{
+    // Clear that this NPC is bound to a location
+}
+
+public NPC CreateWanderingNPC(string id, string name, string locationId)
+{
+    // Clear that this NPC wanders without a fixed spot
+}
+```
+
+#### Why This Matters
+1. **Code Clarity** - Method name tells you exactly what it does
+2. **Easier Debugging** - Stack traces show specific method names
+3. **Better IntelliSense** - IDE shows all variants clearly
+4. **Prevents Mistakes** - Can't accidentally call wrong overload
+5. **Self-Documenting** - Method names explain the differences
+
+#### Implementation Rules
+1. **Never use the same method name with different parameters**
+2. **Include parameter context in the method name**
+3. **Use verb phrases that describe the specific action**
+4. **Create distinct names even for similar operations**
+5. **Prefer longer, descriptive names over short, ambiguous ones**
+
 ### Future Expansion (Full Game)
 
 In the full game, conversations will expand to include:

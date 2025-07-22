@@ -21,11 +21,12 @@ public class NPCFactory
         string name,
         Location location,  // Not string - actual Location object
         Professions profession,
-        string role = null,
-        string description = null,
-        Schedule availabilitySchedule = Schedule.Business_Hours,
-        List<ServiceTypes> providedServices = null,
-        List<ConnectionType> letterTokenTypes = null)
+        string spotId,
+        string role,
+        string description,
+        Schedule availabilitySchedule,
+        List<ServiceTypes> providedServices,
+        List<ConnectionType> letterTokenTypes)
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("NPC ID cannot be empty", nameof(id));
@@ -39,6 +40,7 @@ public class NPCFactory
             ID = id,
             Name = name,
             Location = location.Id,  // Extract ID from validated object
+            SpotId = spotId,
             Profession = profession,
             Role = role ?? profession.ToString().Replace('_', ' '),
             Description = description ?? $"A {profession} in {location.Name}",
@@ -59,18 +61,19 @@ public class NPCFactory
         string locationId,
         IEnumerable<Location> availableLocations,
         Professions profession,
-        string role = null,
-        string description = null,
-        Schedule availabilitySchedule = Schedule.Business_Hours,
-        List<ServiceTypes> providedServices = null,
-        List<ConnectionType> letterTokenTypes = null)
+        string spotId,
+        string role,
+        string description,
+        Schedule availabilitySchedule,
+        List<ServiceTypes> providedServices,
+        List<ConnectionType> letterTokenTypes)
     {
         // Resolve location
         var location = availableLocations.FirstOrDefault(l => l.Id == locationId);
         if (location == null)
             throw new InvalidOperationException($"Cannot create NPC: location '{locationId}' not found");
         
-        return CreateNPC(id, name, location, profession, role, description, 
+        return CreateNPC(id, name, location, profession, spotId, role, description, 
                         availabilitySchedule, providedServices, letterTokenTypes);
     }
     

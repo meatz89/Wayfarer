@@ -162,17 +162,43 @@ public class GameWorldManager
         int staminaCost = travelManager.CalculateStaminaCost(route);
 
         player.SpendStamina(staminaCost);
-        player.ModifyCoins(route.BaseCoinCost);
+        player.ModifyCoins(-route.BaseCoinCost); // Negative to deduct coins
         
-        // ALWAYS have a travel encounter - deterministic gameplay
         // Store pending travel completion
         _pendingTravelDestination = route.Destination;
         _pendingTravelTimeHours = route.TravelTimeHours;
         _pendingTravelRoute = route;
         
-        // Travel encounter will be handled by UI through conversation system
-        // UI will call CompleteTravelAfterEncounter when done
-        return;
+        // ALWAYS have a travel encounter - deterministic gameplay
+        var origin = locationRepository.GetCurrentLocation();
+        var destination = locationRepository.GetLocation(route.Destination);
+        
+        // Generate travel encounter
+        var encounterAction = locationActionManager.GenerateTravelEncounterAction(route);
+        
+        // Create travel conversation context
+        var travelContext = new TravelConversationContext
+        {
+            GameWorld = _gameWorld,
+            Player = player,
+            LocationName = origin.Name,
+            LocationSpotName = player.CurrentLocationSpot?.Name ?? "",
+            Route = route,
+            Origin = origin,
+            Destination = destination,
+            EncounterType = encounterAction.EncounterType ?? TravelEncounterType.FellowTraveler,
+            ConversationTopic = $"Travel from {origin.Name} to {destination.Name}"
+        };
+        
+        // Store the encounter action for later processing
+        _gameWorld.PendingAction = encounterAction;
+        
+        // Create conversation through factory - properly await async method
+        var conversationManager = await conversationFactory.CreateConversation(travelContext, player);
+        
+        // Set pending conversation
+        _gameWorld.PendingConversationManager = conversationManager;
+        _gameWorld.ConversationPending = true;
     }
     
     // Store pending travel state for after encounter
