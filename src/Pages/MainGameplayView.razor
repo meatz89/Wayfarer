@@ -114,11 +114,11 @@
                     }
 
                     @* Compact Time Planning UI *@
-                    @{
+                    @if (currentLocation != null)
+                    {
                         var timeBlockServicePlan = NPCRepository.GetTimeBlockServicePlan(currentLocation.Id);
                         var currentTimeBlock = timeBlockServicePlan.FirstOrDefault(t => t.IsCurrentTimeBlock);
                         var nextTimeBlock = timeBlockServicePlan.Where(t => !t.IsCurrentTimeBlock).FirstOrDefault();
-                    }
                     <div class="time-planning-compact">
                         <div class="current-time-info">
                             @if (currentTimeBlock != null)
@@ -245,8 +245,8 @@
                             OnAcceptOffer="@AcceptLetterOfferId"
                             OnRefuse="@RefuseLetterOffer" />
                     }
-                </div>
-                break;
+                    </div>
+                    break;
 
                 case CurrentViews.TravelScreen:
                     <div class="location-container">
