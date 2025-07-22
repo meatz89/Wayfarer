@@ -279,9 +279,152 @@
 
 
 
+/* Choice content structure */
+.choice-content {
+	flex: 1;
+}
+
+.choice-name {
+	font-size: 1.1rem;
+	font-weight: 500;
+	margin-bottom: 0.25rem;
+}
+
+.choice-unavailable {
+	font-size: 0.9rem;
+	color: var(--rust);
+	font-style: italic;
+}
+
+.choice-cost {
+	font-size: 0.9rem;
+	color: var(--text-secondary);
+}
+
+.choice-icon {
+	font-size: 1.5rem;
+	flex-shrink: 0;
+}
+
+/* Loading states */
+.loading-text {
+	color: var(--text-secondary);
+	font-style: italic;
+}
+
+.loading-indicator {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 2rem;
+	color: var(--text-secondary);
+}
+
+.thinking-dots {
+	display: flex;
+	gap: 0.25rem;
+}
+
+.dot {
+	width: 8px;
+	height: 8px;
+	background: var(--text-secondary);
+	border-radius: 50%;
+	animation: thinking 1.4s infinite;
+}
+
+.dot:nth-child(1) { animation-delay: 0s; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes thinking {
+	0%, 60%, 100% {
+		transform: translateY(0);
+		opacity: 0.5;
+	}
+	30% {
+		transform: translateY(-10px);
+		opacity: 1;
+	}
+}
+
+/* Conversation complete */
+.conversation-complete {
+	display: flex;
+	justify-content: center;
+	padding: 2rem;
+	border-top: 1px solid var(--oak-dark);
+}
+
+.nav-button {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.75rem 2rem;
+	background: var(--leather);
+	color: var(--parchment);
+	border: none;
+	border-radius: 6px;
+	font-size: 1.1rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: var(--font-primary);
+	letter-spacing: 0.05em;
+}
+
+.nav-button:hover {
+	background: var(--clay);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.nav-button.primary {
+	background: var(--moss);
+}
+
+.nav-button.primary:hover {
+	background: var(--rust);
+}
+
+.complete-icon {
+	font-size: 1.2rem;
+}
+
+/* Progress bar */
+.stream-progress {
+	margin-top: 1rem;
+	height: 4px;
+	background: var(--bg-card);
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.progress-bar {
+	height: 100%;
+	background: var(--leather);
+	transition: width 0.3s ease;
+}
+
+/* Animations */
+.fade-in {
+	animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
 /* Streaming animation */
+.streaming-text {
+	position: relative;
+}
+
 .cursor {
 	animation: blink 1s infinite;
+	color: var(--leather);
 }
 
 @keyframes blink {
