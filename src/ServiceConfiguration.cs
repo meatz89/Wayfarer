@@ -67,7 +67,6 @@
         services.AddSingleton<ConnectionTokenManager>();
         
         services.AddSingleton<LetterQueueManager>();
-        services.AddSingleton<RouteUnlockManager>();
         services.AddSingleton<NavigationService>();
         services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<TokenFavorRepository>();
@@ -121,7 +120,8 @@
                 var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
                 var tokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
                 var routeDiscoveryManager = serviceProvider.GetRequiredService<RouteDiscoveryManager>();
-                return new DeterministicNarrativeProvider(gameWorld, tokenManager, routeDiscoveryManager);
+                var letterCategoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
+                return new DeterministicNarrativeProvider(gameWorld, tokenManager, routeDiscoveryManager, letterCategoryService);
             }
             else
             {

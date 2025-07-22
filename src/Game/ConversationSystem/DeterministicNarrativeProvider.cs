@@ -12,15 +12,18 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     private readonly GameWorld _gameWorld;
     private readonly ConnectionTokenManager _tokenManager;
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
+    private readonly LetterCategoryService _letterCategoryService;
     
     public DeterministicNarrativeProvider(
         GameWorld gameWorld, 
         ConnectionTokenManager tokenManager,
-        RouteDiscoveryManager routeDiscoveryManager)
+        RouteDiscoveryManager routeDiscoveryManager,
+        LetterCategoryService letterCategoryService)
     {
         _gameWorld = gameWorld;
         _tokenManager = tokenManager;
         _routeDiscoveryManager = routeDiscoveryManager;
+        _letterCategoryService = letterCategoryService;
     }
     
     public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
@@ -97,7 +100,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                 NarrativeText = "Continue",
                 FocusCost = 0,
                 IsAffordable = true,
-                TemplateUsed = "Continue",
+                ChoiceType = ConversationChoiceType.Continue,
                 TemplatePurpose = "Proceed with the action"
             }
         };
@@ -112,22 +115,22 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         bool success)
     {
         // Handle specific choice templates that need reactions
-        if (selectedChoice.TemplateUsed == "AcceptLetterOffer")
+        if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
         {
             var npc = context.TargetNPC;
             return Task.FromResult($"{npc?.Name ?? "They"} smile and hand you a sealed letter. 'I knew I could count on you.'");
         }
-        else if (selectedChoice.TemplateUsed == "DeclineLetterOffer")
+        else if (selectedChoice.ChoiceType == ConversationChoiceType.DeclineLetterOffer)
         {
             var npc = context.TargetNPC;
             return Task.FromResult($"{npc?.Name ?? "They"} nod understandingly. 'Perhaps another time then.'");
         }
-        else if (selectedChoice.TemplateUsed == "Introduction")
+        else if (selectedChoice.ChoiceType == ConversationChoiceType.Introduction)
         {
             var npc = context.TargetNPC;
             return Task.FromResult($"{npc?.Name ?? "They"} seem pleased to make your acquaintance.");
         }
-        else if (selectedChoice.TemplateUsed == "DiscoverRoute")
+        else if (selectedChoice.ChoiceType == ConversationChoiceType.DiscoverRoute)
         {
             var npc = context.TargetNPC;
             return Task.FromResult($"{npc?.Name ?? "They"} look around carefully. 'I do know a few paths... Let me tell you about them.'");
@@ -180,7 +183,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                 NarrativeText = "Continue",
                 FocusCost = 0,
                 IsAffordable = true,
-                TemplateUsed = "Default",
+                ChoiceType = ConversationChoiceType.Continue,
                 TemplatePurpose = "Continue the conversation"
             }
         };
@@ -303,7 +306,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                     NarrativeText = "Leave (can't deliver)",
                     FocusCost = 0,
                     IsAffordable = true,
-                    TemplateUsed = "CannotDeliver",
+                    ChoiceType = ConversationChoiceType.CannotDeliver,
                     TemplatePurpose = "Cannot complete delivery"
                 }
             };
@@ -318,7 +321,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                 NarrativeText = $"Accept standard payment ({letter.Payment} coins + 1 token)",
                 FocusCost = 0,
                 IsAffordable = true,
-                TemplateUsed = "DeliverForTokens",
+                ChoiceType = ConversationChoiceType.DeliverForTokens,
                 TemplatePurpose = "Standard delivery with relationship building"
             },
             new ConversationChoice
@@ -327,7 +330,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                 NarrativeText = $"Request extra payment ({letter.Payment + 3} coins, no token)",
                 FocusCost = 0,
                 IsAffordable = true,
-                TemplateUsed = "DeliverForCoins",
+                ChoiceType = ConversationChoiceType.DeliverForCoins,
                 TemplatePurpose = "Prioritize money over relationship"
             }
         };
@@ -352,7 +355,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                     NarrativeText = "Nice to meet you",
                     FocusCost = 0,
                     IsAffordable = true,
-                    TemplateUsed = "Introduction",
+                    ChoiceType = ConversationChoiceType.Introduction,
                     TemplatePurpose = "Establish first connection"
                 }
             };
@@ -361,18 +364,42 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         // Build choices based on relationship level and what NPC offers
         var choices = new List<ConversationChoice>();
         
-        // 1+ tokens = can offer letters (basic threshold)
-        if (totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD && npc.LetterTokenTypes.Any())
+        // Check letter categories available from this NPC
+        if (npc.LetterTokenTypes.Any())
         {
-            choices.Add(new ConversationChoice
+            // Get available categories for each token type this NPC offers
+            var availableCategories = _letterCategoryService.GetAvailableCategories(npc.ID);
+            
+            if (availableCategories.Any())
             {
-                ChoiceID = "1",
-                NarrativeText = "I'd be happy to help with deliveries",
-                FocusCost = 0,
-                IsAffordable = true,
-                TemplateUsed = "AcceptLetterOffer",
-                TemplatePurpose = "Accept letter work"
-            });
+                // Show available letter categories
+                foreach (var kvp in availableCategories)
+                {
+                    var tokenType = kvp.Key;
+                    var category = kvp.Value;
+                    var paymentRange = _letterCategoryService.GetCategoryPaymentRange(category);
+                    
+                    var categoryText = category switch
+                    {
+                        LetterCategory.Basic => $"Basic {tokenType} delivery ({paymentRange.min}-{paymentRange.max} coins)",
+                        LetterCategory.Quality => $"Quality {tokenType} delivery ({paymentRange.min}-{paymentRange.max} coins)",
+                        LetterCategory.Premium => $"Premium {tokenType} delivery ({paymentRange.min}-{paymentRange.max} coins)",
+                        _ => "Delivery work"
+                    };
+                    
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = choices.Count + 1 + "",
+                        NarrativeText = categoryText,
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.AcceptLetterOffer,
+                        TemplatePurpose = $"Accept {category} {tokenType} letter",
+                        OfferTokenType = tokenType,
+                        OfferCategory = category
+                    });
+                }
+            }
         }
         
         // 3+ tokens = can discover routes (quality threshold)
@@ -391,7 +418,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                     NarrativeText = "Ask about hidden routes",
                     FocusCost = 0,
                     IsAffordable = true,
-                    TemplateUsed = "DiscoverRoute",
+                    ChoiceType = ConversationChoiceType.DiscoverRoute,
                     TemplatePurpose = "Learn about secret paths"
                 });
             }
@@ -404,7 +431,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             NarrativeText = choices.Any() ? "Just catching up today" : "Good to see you too",
             FocusCost = 0,
             IsAffordable = true,
-            TemplateUsed = choices.Any() ? "DeclineOffers" : "FriendlyChat",
+            ChoiceType = choices.Any() ? ConversationChoiceType.DeclineOffers : ConversationChoiceType.FriendlyChat,
             TemplatePurpose = "Continue conversation"
         });
         
@@ -447,7 +474,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                     NarrativeText = $"Skip and deliver ({context.TokenCost} {letter.TokenType} tokens)",
                     FocusCost = 0,
                     IsAffordable = tokenCount >= context.TokenCost,
-                    TemplateUsed = "SkipAndDeliver",
+                    ChoiceType = ConversationChoiceType.SkipAndDeliver,
                     TemplatePurpose = "Pay tokens to skip queue order"
                 },
                 new ConversationChoice
@@ -456,7 +483,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                     NarrativeText = "Respect queue order",
                     FocusCost = 0,
                     IsAffordable = true,
-                    TemplateUsed = "RespectQueueOrder",
+                    ChoiceType = ConversationChoiceType.RespectQueueOrder,
                     TemplatePurpose = "Cancel skip action"
                 }
             };
@@ -472,7 +499,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                     NarrativeText = "Discard the letter (3 tokens)",
                     FocusCost = 0,
                     IsAffordable = _tokenManager.GetPlayerTokens().Values.Sum() >= 3,
-                    TemplateUsed = "PurgeLetter",
+                    ChoiceType = ConversationChoiceType.PurgeLetter,
                     TemplatePurpose = "Remove letter from queue"
                 },
                 new ConversationChoice
@@ -481,7 +508,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                     NarrativeText = "Keep the obligation",
                     FocusCost = 0,
                     IsAffordable = true,
-                    TemplateUsed = "KeepLetter",
+                    ChoiceType = ConversationChoiceType.KeepLetter,
                     TemplatePurpose = "Cancel purge action"
                 }
             };

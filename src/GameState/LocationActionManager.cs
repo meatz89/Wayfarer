@@ -45,6 +45,8 @@ public class LocationActionManager
     private readonly ItemRepository _itemRepository;
     private readonly ConversationFactory _conversationFactory;
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
+    private readonly NPCLetterOfferService _letterOfferService;
+    private readonly LetterCategoryService _letterCategoryService;
     
     private TimeManager _timeManager => _gameWorld.TimeManager;
     
@@ -56,7 +58,9 @@ public class LocationActionManager
         NPCRepository npcRepository,
         ItemRepository itemRepository,
         ConversationFactory conversationFactory,
-        RouteDiscoveryManager routeDiscoveryManager)
+        RouteDiscoveryManager routeDiscoveryManager,
+        NPCLetterOfferService letterOfferService,
+        LetterCategoryService letterCategoryService)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -66,6 +70,8 @@ public class LocationActionManager
         _itemRepository = itemRepository;
         _conversationFactory = conversationFactory;
         _routeDiscoveryManager = routeDiscoveryManager;
+        _letterOfferService = letterOfferService;
+        _letterCategoryService = letterCategoryService;
     }
     
     
@@ -573,43 +579,43 @@ public class LocationActionManager
         // Handle conversation choice outcomes
         if (selectedChoice != null)
         {
-            if (selectedChoice.TemplateUsed == "AcceptLetterOffer")
+            if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
             {
-                // Generate letter from this NPC
-                var letter = _letterQueueManager.GenerateLetterFromNPC(npc);
-                if (letter != null)
+                // Use the categorical properties to find the matching offer
+                if (selectedChoice.OfferTokenType.HasValue && selectedChoice.OfferCategory.HasValue)
                 {
-                    _messageSystem.AddSystemMessage(
-                        $"📬 {npc.Name} hands you a letter to deliver.",
-                        SystemMessageTypes.Success
-                    );
-                    _messageSystem.AddSystemMessage(
-                        $"  • To: {letter.RecipientName}",
-                        SystemMessageTypes.Info
-                    );
-                    _messageSystem.AddSystemMessage(
-                        $"  • Payment: {letter.Payment} coins",
-                        SystemMessageTypes.Info
-                    );
-                    _messageSystem.AddSystemMessage(
-                        $"  • Deadline: {letter.Deadline} days",
-                        SystemMessageTypes.Info
-                    );
-                    _messageSystem.AddSystemMessage(
-                        $"  • Letter added to position {letter.QueuePosition}",
-                        SystemMessageTypes.Success
-                    );
-                }
-                else
-                {
-                    _messageSystem.AddSystemMessage(
-                        $"❌ Your letter queue is full! Make room before accepting more letters.",
-                        SystemMessageTypes.Danger
-                    );
+                    var tokenType = selectedChoice.OfferTokenType.Value;
+                    var category = selectedChoice.OfferCategory.Value;
+                    
+                    // Generate offers and find the one matching our category
+                    var offers = _letterOfferService.GenerateNPCLetterOffers(npcId);
+                    var matchingOffer = offers.FirstOrDefault(o => 
+                        o.LetterType == tokenType && 
+                        o.Category == category);
+                    
+                    if (matchingOffer != null)
+                    {
+                        var success = _letterOfferService.AcceptNPCLetterOffer(npcId, matchingOffer.Id);
+                        
+                        if (!success)
+                        {
+                            _messageSystem.AddSystemMessage(
+                                $"❌ Your letter queue is full! Make room before accepting more letters.",
+                                SystemMessageTypes.Danger
+                            );
+                        }
+                    }
+                    else
+                    {
+                        _messageSystem.AddSystemMessage(
+                            $"❌ That letter offer is no longer available.",
+                            SystemMessageTypes.Warning
+                        );
+                    }
                 }
                 return true;
             }
-            else if (selectedChoice.TemplateUsed == "Introduction")
+            else if (selectedChoice.ChoiceType == ConversationChoiceType.Introduction)
             {
                 // Grant first token to establish connection
                 _tokenManager.AddTokensToNPC(npc.LetterTokenTypes.FirstOrDefault(), 1, npcId);
@@ -628,7 +634,7 @@ public class LocationActionManager
                 );
                 return true;
             }
-            else if (selectedChoice.TemplateUsed == "DiscoverRoute")
+            else if (selectedChoice.ChoiceType == ConversationChoiceType.DiscoverRoute)
             {
                 // Show available routes from this NPC
                 var routeDiscoveries = _routeDiscoveryManager.GetDiscoveriesFromNPC(npc);
@@ -930,7 +936,7 @@ public class LocationActionManager
         
         if (selectedChoice != null)
         {
-            if (selectedChoice.TemplateUsed == "DeliverForCoins")
+            if (selectedChoice.ChoiceType == ConversationChoiceType.DeliverForCoins)
             {
                 // Player chose extra coins, no token
                 earnToken = false;

@@ -332,7 +332,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             var selectedChoice = GameManager.GetLastSelectedChoice();
             if (selectedChoice != null)
             {
-                if (selectedChoice.TemplateUsed == "SkipAndDeliver")
+                if (selectedChoice.ChoiceType == ConversationChoiceType.SkipAndDeliver)
                 {
                     // Process the skip action
                     var skipPosition = GameWorld.GetMetadata("PendingSkipPosition");
@@ -341,7 +341,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                         LetterQueueManager.TrySkipDeliver(position);
                     }
                 }
-                else if (selectedChoice.TemplateUsed == "PurgeLetter")
+                else if (selectedChoice.ChoiceType == ConversationChoiceType.PurgeLetter)
                 {
                     // Process the purge action
                     var purgeTokensJson = GameWorld.GetMetadata("PendingPurgeTokens");

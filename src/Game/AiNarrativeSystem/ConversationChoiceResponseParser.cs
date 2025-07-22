@@ -143,33 +143,30 @@ public class ConversationChoiceResponseParser
             choice.FocusCost = focusCostElement.GetInt32();
         }
 
-        if (choiceElement.TryGetProperty("template", out JsonElement templateElement))
+        // Parse choice type
+        if (choiceElement.TryGetProperty("choiceType", out JsonElement choiceTypeElement))
         {
-            choice.TemplateUsed = templateElement.GetString();
-
-            if (!string.IsNullOrWhiteSpace(choice.TemplateUsed))
+            var choiceTypeStr = choiceTypeElement.GetString();
+            if (Enum.TryParse<ConversationChoiceType>(choiceTypeStr, out var choiceType))
             {
-                AppendUniqueValueToFile(_templateFile, choice.TemplateUsed);
+                choice.ChoiceType = choiceType;
             }
         }
-        else if (choiceElement.TryGetProperty("templateUsed", out JsonElement templateUsedElement))
+        // Fallback: try to parse from template for AI responses that use old format
+        else if (choiceElement.TryGetProperty("template", out JsonElement templateElement) || 
+                 choiceElement.TryGetProperty("templateUsed", out templateElement))
         {
-            choice.TemplateUsed = templateUsedElement.GetString();
-
-            if (!string.IsNullOrWhiteSpace(choice.TemplateUsed))
+            var templateStr = templateElement.GetString();
+            if (!string.IsNullOrWhiteSpace(templateStr) && 
+                Enum.TryParse<ConversationChoiceType>(templateStr, out var choiceType))
             {
-                AppendUniqueValueToFile(_templateFile, choice.TemplateUsed);
+                choice.ChoiceType = choiceType;
             }
         }
 
         if (choiceElement.TryGetProperty("templatePurpose", out JsonElement templatePurposeElement))
         {
             choice.TemplatePurpose = templatePurposeElement.GetString();
-
-            if (!string.IsNullOrWhiteSpace(choice.TemplateUsed) && !string.IsNullOrWhiteSpace(choice.TemplatePurpose))
-            {
-                AppendUniqueTemplateUsedPurposeToFile(_templateUsedPurposeFile, choice.TemplateUsed, choice.TemplatePurpose);
-            }
         }
 
         if (choiceElement.TryGetProperty("successEffect", out JsonElement successEffectElement) ||
