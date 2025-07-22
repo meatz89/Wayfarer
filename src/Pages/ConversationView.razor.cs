@@ -20,7 +20,7 @@ public class ConversationViewBase : ComponentBase
 
     // Tooltip state
     public ConversationChoice hoveredChoice;
-    public bool showTooltip;
+    public bool showTooltip = false;
     public double tooltipX;
     public double tooltipY;
 
@@ -90,7 +90,7 @@ public class ConversationViewBase : ComponentBase
     public void ShowTooltip(MouseEventArgs e, ConversationChoice choice)
     {
         hoveredChoice = choice;
-        showTooltip = true;
+        showTooltip = false;
         tooltipX = e.ClientX + 5;
         tooltipY = e.ClientY - 300;
     }
