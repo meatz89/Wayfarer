@@ -163,26 +163,35 @@ public class GameWorldManager
 
         player.SpendStamina(staminaCost);
         player.ModifyCoins(route.BaseCoinCost);
-
+        
+        // ALWAYS have a travel encounter - deterministic gameplay
+        // Store pending travel completion
+        _pendingTravelDestination = route.Destination;
+        _pendingTravelTimeHours = route.TravelTimeHours;
+        _pendingTravelRoute = route;
+        
+        // Travel encounter will be handled by UI through conversation system
+        // UI will call CompleteTravelAfterEncounter when done
+        return;
+    }
+    
+    // Store pending travel state for after encounter
+    private string _pendingTravelDestination;
+    private int _pendingTravelTimeHours;
+    private RouteOption _pendingTravelRoute;
+    
+    /// <summary>
+    /// Complete travel to destination (called directly or after encounter)
+    /// </summary>
+    private void CompleteTravelToDestination(string destinationId, int travelTimeHours)
+    {
         // Travel takes time
-        GameWorld.TimeManager.AdvanceTime(route.TravelTimeHours);
+        GameWorld.TimeManager.AdvanceTime(travelTimeHours);
         
         // Check for periodic letter offers after time change
         CheckForPeriodicLetterOffers();
-
-        // Encounter system removed - travel encounters will use conversation system
-        // int seed = _gameWorld.TimeManager.GetCurrentDay() + player.GetHashCode();
-        // EncounterContext encounterContext = route.GetEncounter(seed);
-
-        // if (encounterContext != null)
-        // {
-        //     // Start a travel encounter
-        //     // This would use the encounter system
-        // }
-        // else
-        // {
-        //     // Arrived safely
-        Location destination = locationRepository.GetLocation(route.Destination);
+        
+        Location destination = locationRepository.GetLocation(destinationId);
 
         // Find the first available location spot for the destination
         LocationSpot? destinationSpot = locationSystem.GetLocationSpots(destination.Id).FirstOrDefault();
@@ -190,12 +199,25 @@ public class GameWorldManager
         locationRepository.SetCurrentLocation(destination, destinationSpot);
 
         // Also update the Player's location to keep them in sync
+        var player = _gameWorld.GetPlayer();
         player.CurrentLocation = destination;
         player.CurrentLocationSpot = destinationSpot;
-
-
-        // Update handled automatically
-        // }
+        
+        // Clear pending travel state
+        _pendingTravelDestination = null;
+        _pendingTravelTimeHours = 0;
+        _pendingTravelRoute = null;
+    }
+    
+    /// <summary>
+    /// Complete travel after encounter resolution
+    /// </summary>
+    public void CompleteTravelAfterEncounter()
+    {
+        if (!string.IsNullOrEmpty(_pendingTravelDestination))
+        {
+            CompleteTravelToDestination(_pendingTravelDestination, _pendingTravelTimeHours);
+        }
     }
 
     public async Task TravelWithTransport(RouteOption route, TravelMethods transport)
@@ -403,6 +425,22 @@ public class GameWorldManager
     public bool CanTravelRoute(RouteOption route)
     {
         return travelManager.CanTravel(route);
+    }
+    
+    /// <summary>
+    /// Check if there's a pending travel encounter
+    /// </summary>
+    public bool HasPendingTravelEncounter()
+    {
+        return !string.IsNullOrEmpty(_pendingTravelDestination);
+    }
+    
+    /// <summary>
+    /// Get the pending travel route for encounter generation
+    /// </summary>
+    public RouteOption GetPendingTravelRoute()
+    {
+        return _pendingTravelRoute;
     }
 
     /// <summary>

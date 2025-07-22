@@ -142,7 +142,15 @@ public enum ConversationChoiceType
     NetworkIntroduction,
     RequestFunds,
     BorrowMoney,
-    AcceptIllegalWork
+    AcceptIllegalWork,
+    
+    // Travel encounter choices
+    TravelCautious,              // Default safe option
+    TravelUseEquipment,          // Use specific equipment
+    TravelForceThrough,          // Spend stamina
+    TravelSlowProgress,          // Accept time penalty
+    TravelTradeHelp,             // Help for benefit
+    TravelExchangeInfo           // Exchange information
 }
 
 public class ConversationChoice
@@ -165,4 +173,36 @@ public class ConversationChoice
     // Delivery-specific properties
     public DeliveryOutcome DeliveryOutcome { get; set; }
     public int Priority { get; set; } = 0;
+    
+    // Travel encounter properties
+    public TravelChoiceEffect? TravelEffect { get; set; }
+    public EquipmentType? RequiredEquipment { get; set; }
+    public int? TimeModifierMinutes { get; set; }
+    public int? StaminaCost { get; set; }
+    public int? CoinReward { get; set; }
+}
+
+/// <summary>
+/// Effects of travel encounter choices
+/// </summary>
+public enum TravelChoiceEffect
+{
+    None,
+    SaveTime,        // Reduce travel time
+    LoseTime,        // Increase travel time
+    SpendStamina,    // Cost stamina
+    EarnCoins,       // Gain coins
+    GainInformation  // Learn something useful
+}
+
+/// <summary>
+/// Equipment types for travel encounters
+/// </summary>
+public enum EquipmentType
+{
+    None,
+    ClimbingGear,
+    LightSource,
+    WeatherProtection,
+    LoadDistribution
 }

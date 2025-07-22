@@ -118,12 +118,11 @@
             
             if (useDeterministic)
             {
-                var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
                 var tokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
                 var routeDiscoveryManager = serviceProvider.GetRequiredService<RouteDiscoveryManager>();
                 var letterCategoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
                 var deliveryConversationService = serviceProvider.GetRequiredService<DeliveryConversationService>();
-                return new DeterministicNarrativeProvider(gameWorld, tokenManager, routeDiscoveryManager, letterCategoryService, deliveryConversationService);
+                return new DeterministicNarrativeProvider(tokenManager, routeDiscoveryManager, letterCategoryService, deliveryConversationService);
             }
             else
             {
