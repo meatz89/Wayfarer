@@ -122,7 +122,8 @@
                 var routeDiscoveryManager = serviceProvider.GetRequiredService<RouteDiscoveryManager>();
                 var letterCategoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
                 var deliveryConversationService = serviceProvider.GetRequiredService<DeliveryConversationService>();
-                return new DeterministicNarrativeProvider(tokenManager, routeDiscoveryManager, letterCategoryService, deliveryConversationService);
+                var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+                return new DeterministicNarrativeProvider(tokenManager, routeDiscoveryManager, letterCategoryService, deliveryConversationService, gameWorld);
             }
             else
             {

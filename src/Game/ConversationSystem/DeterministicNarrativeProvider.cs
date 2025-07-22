@@ -14,17 +14,20 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
     private readonly LetterCategoryService _letterCategoryService;
     private readonly DeliveryConversationService _deliveryConversationService;
+    private readonly GameWorld _gameWorld;
     
     public DeterministicNarrativeProvider(
         ConnectionTokenManager tokenManager,
         RouteDiscoveryManager routeDiscoveryManager,
         LetterCategoryService letterCategoryService,
-        DeliveryConversationService deliveryConversationService)
+        DeliveryConversationService deliveryConversationService,
+        GameWorld gameWorld)
     {
         _tokenManager = tokenManager;
         _routeDiscoveryManager = routeDiscoveryManager;
         _letterCategoryService = letterCategoryService;
         _deliveryConversationService = deliveryConversationService;
+        _gameWorld = gameWorld;
     }
     
     public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
@@ -39,11 +42,8 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         // Check if this is an action conversation with special narrative handling
         if (context is ActionConversationContext actionCtx && actionCtx.SourceAction != null)
         {
-            var specialIntroduction = GetActionSpecificIntroduction(actionCtx);
-            if (specialIntroduction != null)
-            {
-                return Task.FromResult(specialIntroduction);
-            }
+            var narrative = GetActionNarrative(actionCtx);
+            return Task.FromResult(narrative);
         }
         
         // Check if this is a queue management conversation
@@ -53,23 +53,8 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             return Task.FromResult(queueIntroduction);
         }
         
-        // Simple one-sentence narratives for thin layer
-        var narrative = context.ConversationTopic switch
-        {
-            "Action_GatherResources" => "You carefully search the area for edible berries.",
-            "Action_Browse" => "You examine the market stalls, noting prices and goods.",
-            "Action_Observe" => "You blend into the crowd, listening to local gossip.",
-            "Action_Work" => $"You begin your work for {context.TargetNPC?.Name ?? "your employer"}.",
-            "Action_Socialize" => $"You engage {context.TargetNPC?.Name ?? "someone"} in friendly conversation.",
-            "Action_Converse" => $"You approach {context.TargetNPC?.Name ?? "someone"} to talk.",
-            "Action_Collect" => $"{context.TargetNPC?.Name ?? "The sender"} hands you a sealed letter with instructions for safe delivery.",
-            "Action_Trade" => $"You browse {context.TargetNPC?.Name ?? "the merchant"}'s wares.",
-            "Action_Rest" => "You find a comfortable spot to rest.",
-            "Action_TravelEncounter" => "You must deal with an unexpected situation on your journey.",
-            _ => "You proceed with your action."
-        };
-        
-        return Task.FromResult(narrative);
+        // All conversations must be properly categorized - no fallbacks
+        throw new InvalidOperationException($"Unknown conversation context type: {context.GetType().Name}");
     }
     
     public Task<List<ConversationChoice>> GenerateChoices(
@@ -272,7 +257,36 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             }
         }
         
-        return null; // Use default narrative
+        // No special introduction needed, use general action narrative
+        return GetActionNarrative(context);
+    }
+    
+    private string GetActionNarrative(ActionConversationContext context)
+    {
+        var action = context.SourceAction;
+        var npc = context.TargetNPC;
+        
+        // Use categorical action enum, never string comparisons
+        return action.Action switch
+        {
+            LocationAction.GatherResources => "You carefully search the area for edible berries.",
+            LocationAction.Browse => "You examine the market stalls, noting prices and goods.",
+            LocationAction.Observe => "You blend into the crowd, listening to local gossip.",
+            LocationAction.Work => $"You begin your work for {npc?.Name ?? "your employer"}.",
+            LocationAction.Socialize => $"You engage {npc?.Name ?? "someone"} in friendly conversation.",
+            LocationAction.Converse => $"You approach {npc?.Name ?? "someone"} to talk.",
+            LocationAction.Collect => $"{npc?.Name ?? "The sender"} hands you a sealed letter with instructions for safe delivery.",
+            LocationAction.Trade => $"You browse {npc?.Name ?? "the merchant"}'s wares.",
+            LocationAction.Rest => "You find a comfortable spot to rest.",
+            LocationAction.Deliver => GetDeliveryIntroduction(context),
+            LocationAction.RequestPatronFunds => $"You humbly request financial assistance from {npc?.Name ?? "your patron"}.",
+            LocationAction.RequestPatronEquipment => $"You ask {npc?.Name ?? "your patron"} for equipment to help with your duties.",
+            LocationAction.BorrowMoney => $"You negotiate a loan with {npc?.Name ?? "the lender"}.",
+            LocationAction.PleedForAccess => $"You plead with {npc?.Name ?? "the gatekeeper"} to maintain your access.",
+            LocationAction.AcceptIllegalWork => $"{npc?.Name ?? "A shadowy figure"} offers you questionable employment.",
+            LocationAction.TravelEncounter => "You must deal with an unexpected situation on your journey.",
+            _ => throw new InvalidOperationException($"Unknown action type: {action.Action}")
+        };
     }
     
     private List<ConversationChoice> GenerateActionChoices(ActionConversationContext context)
@@ -297,7 +311,8 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             return GetTravelEncounterChoices(context);
         }
         
-        return null; // Use default choices
+        // For all other actions, return a simple continue choice
+        return GenerateDefaultChoices(context, state: null);
     }
     
     private List<ConversationChoice> GetDeliveryChoices(ConversationContext context)
@@ -517,11 +532,11 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         // Get the encounter type from the action
         var encounterType = context.SourceAction.EncounterType ?? TravelEncounterType.FellowTraveler;
         
-        // Get player equipment (simplified for thin layer)
-        var hasClimbingGear = HasEquipmentCategory(player, "climbing");
-        var hasLightSource = HasEquipmentCategory(player, "torch") || HasEquipmentCategory(player, "lantern");
-        var hasWeatherProtection = HasEquipmentCategory(player, "cloak") || HasEquipmentCategory(player, "waterproof");
-        var hasCart = HasEquipmentCategory(player, "cart") || HasEquipmentCategory(player, "wagon");
+        // Get player equipment using proper categories
+        var hasClimbingGear = HasEquipmentCategory(player, ItemCategory.Climbing_Equipment);
+        var hasLightSource = HasEquipmentCategory(player, ItemCategory.Light_Source);
+        var hasWeatherProtection = HasEquipmentCategory(player, ItemCategory.Weather_Protection);
+        var hasCart = HasEquipmentCategory(player, ItemCategory.Load_Distribution);
         
         // Always add a default cautious option
         choices.Add(new ConversationChoice
@@ -689,15 +704,16 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     
     
     /// <summary>
-    /// Simple equipment check for thin narrative layer
-    /// In full implementation, would check actual item categories
+    /// Check if player has equipment matching a category
     /// </summary>
-    private bool HasEquipmentCategory(Player player, string equipmentKeyword)
+    private bool HasEquipmentCategory(Player player, ItemCategory category)
     {
-        // For thin narrative layer, check item names for keywords
+        // Check player's inventory for items with the specified category
+        var itemRepository = new ItemRepository(_gameWorld);
         foreach (var itemId in player.Inventory.ItemSlots.Where(id => !string.IsNullOrEmpty(id)))
         {
-            if (itemId.ToLower().Contains(equipmentKeyword.ToLower()))
+            var item = itemRepository.GetItemById(itemId);
+            if (item != null && item.Categories.Contains(category))
             {
                 return true;
             }
