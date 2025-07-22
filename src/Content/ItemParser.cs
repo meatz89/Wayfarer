@@ -34,16 +34,6 @@ public static class ItemParser
                 item.Categories.Add(category);
             }
         }
-        
-        // Also support legacy names for backwards compatibility
-        List<string> itemCategoryStrings = GetStringArray(root, "itemCategories");
-        foreach (string categoryStr in itemCategoryStrings)
-        {
-            if (Enum.TryParse<ItemCategory>(categoryStr, out ItemCategory category))
-            {
-                item.Categories.Add(category);
-            }
-        }
 
 
         // Parse enhanced categorical properties

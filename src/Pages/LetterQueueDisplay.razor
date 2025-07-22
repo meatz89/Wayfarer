@@ -330,10 +330,7 @@
             LetterQueueManager.AddLetter(letter);
         }
         
-        // Add some test tokens
-        TokenManager.AddTokens(ConnectionType.Trust, 3);
-        TokenManager.AddTokens(ConnectionType.Trade, 2);
-        TokenManager.AddTokens(ConnectionType.Noble, 1);
+        // Test tokens removed - tokens must be associated with specific NPCs
     }
     
     private string GetTokenIcon(ConnectionType type)
@@ -379,9 +376,9 @@
         // 50% chance to earn a token
         var random = new Random();
         bool earnedToken = random.Next(2) == 0;
-        if (earnedToken)
+        if (earnedToken && !string.IsNullOrEmpty(letter.SenderId))
         {
-            TokenManager.AddTokens(letter.TokenType, 1);
+            TokenManager.AddTokensToNPC(letter.TokenType, 1, letter.SenderId);
         }
         
         // Track delivery in letter history

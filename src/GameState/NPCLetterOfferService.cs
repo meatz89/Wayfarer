@@ -277,7 +277,7 @@ public class NPCLetterOfferService
         _letterQueueManager.AddLetterWithObligationEffects(letter);
         
         // Strengthen relationship with this NPC (1 token for accepting Direct Approach)
-        _connectionTokenManager.AddTokens(offer.LetterType, 1, npcId);
+        _connectionTokenManager.AddTokensToNPC(offer.LetterType, 1, npcId);
         
         // Enhanced success feedback
         _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);

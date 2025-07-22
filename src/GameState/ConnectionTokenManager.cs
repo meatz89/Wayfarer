@@ -105,21 +105,6 @@ public class ConnectionTokenManager
         }
     }
     
-    // Legacy method for compatibility - redirects to AddTokensToNPC
-    public void AddTokens(ConnectionType type, int count, string npcId = null)
-    {
-        if (!string.IsNullOrEmpty(npcId))
-        {
-            AddTokensToNPC(type, count, npcId);
-        }
-        else
-        {
-            // Global tokens without NPC context (should be rare)
-            var playerTokens = _gameWorld.GetPlayer().ConnectionTokens;
-            playerTokens[type] = playerTokens.GetValueOrDefault(type) + count;
-        }
-    }
-    
     // Spend tokens (for queue actions)
     public bool SpendTokens(ConnectionType type, int count)
     {

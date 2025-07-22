@@ -277,7 +277,7 @@ public class NetworkReferralService
         referral.IsUsed = true;
         
         // Add initial tokens with the new NPC
-        _connectionTokenManager.AddTokens(referral.TokenType, 3, targetNPCId);
+        _connectionTokenManager.AddTokensToNPC(referral.TokenType, 3, targetNPCId);
         
         // Show introduction narrative
         _messageSystem.AddSystemMessage(
