@@ -1,8 +1,6 @@
 @using Wayfarer.Pages.Components
 
 @inherits MainGameplayViewBase
-@inject LetterTemplateRepository LetterTemplateRepository
-@inject MorningActivitiesManager MorningManager
 
 <SystemMessageDisplay Messages="@SystemMessages" />
 <ObjectiveView StateVersion="@StateVersion" />
@@ -11,27 +9,16 @@
 
 <div class="game-status-bar">
     <div class="player-status">
-
-        @* Card hand removed - using new conversation and location action systems *@
-
         <div class="status-item">
             <span class="status-label">Stamina</span>
-            <span class="status-value">
-                @Stamina
-            </span>
-            <span class="danger">
-                @(TurnActionPoints * -1)
-            </span>
+            <span class="status-value">@Stamina</span>
+            <span class="danger">@(TurnActionPoints * -1)</span>
         </div>
 
         <div class="status-item">
             <span class="status-label">Concentration</span>
-            <span class="status-value">
-                @Concentration
-            </span>
-            <span class="danger">
-                @(TurnActionPoints * -1)
-            </span>
+            <span class="status-value">@Concentration</span>
+            <span class="danger">@(TurnActionPoints * -1)</span>
         </div>
     </div>
 
@@ -48,7 +35,6 @@
 </div>
 
 <div class="game-content">
-    <!-- Main content area -->
     <div class="main-content">
         @switch (CurrentScreen)
         {
@@ -89,284 +75,362 @@
                 break;
 
             case CurrentViews.LocationScreen:
+                @RenderLocationScreen()
+                break;
+
+            case CurrentViews.TravelScreen:
                 <div class="location-container">
                     <div class="location-header">
-                        <h2 class="location-title">@GetCurrentLocation()?.Name</h2>
+                        <h2 class="location-title">Travel from @GetCurrentLocation()?.Name</h2>
                     </div>
+                </div>
+                <div class="travel-container">
+                    <TravelSelection 
+                        CurrentLocation="@GetCurrentLocation()"
+                        Locations="@Locations"
+                        OnTravelRoute="@HandleTravelRoute"
+                        OnTravelWithTransport="@HandleTravelWithTransport" />
+                </div>
+                break;
 
-                    @{
-                        var currentLocation = GetCurrentLocation();
-                        if (currentLocation != null)
-                        {
-                            <div class="location-info-panel">
-                                @{
-                                    var availableProfessions = currentLocation.GetAvailableProfessions(CurrentTime);
-                                    if (availableProfessions.Any())
-                                    {
-                                        <div class="location-professions-info">
-                                            <span class="info-label">Available Services:</span>
-                                            <span class="info-value">@string.Join(", ", availableProfessions.Select(p => p.ToString().Replace('_', ' ')))</span>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        }
-                    }
-
-                    @* Compact Time Planning UI *@
-                    @if (currentLocation != null)
+            case CurrentViews.MarketScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">@GetCurrentLocation()?.Name Market</h2>
+                    </div>
+                </div>
+                <div class="market-container">
+                    @if (IsGameDataReady())
                     {
-                        var timeBlockServicePlan = NPCRepository.GetTimeBlockServicePlan(currentLocation.Id);
-                        var currentTimeBlock = timeBlockServicePlan.FirstOrDefault(t => t.IsCurrentTimeBlock);
-                        var nextTimeBlock = timeBlockServicePlan.Where(t => !t.IsCurrentTimeBlock).FirstOrDefault();
-                    <div class="time-planning-compact">
-                        <div class="current-time-info">
-                            @if (currentTimeBlock != null)
-                            {
-                                <div class="time-current">
-                                    <span class="time-icon">@GetTimeBlockIcon(currentTimeBlock.TimeBlock)</span>
-                                    @currentTimeBlock.TimeBlock.ToString()
-                                    <span class="service-count">(@currentTimeBlock.AvailableServices.Count services)</span>
-                                </div>
-                            }
-                            @if (nextTimeBlock != null)
-                            {
-                                <div class="time-next">
-                                    Next: <span class="time-icon">@GetTimeBlockIcon(nextTimeBlock.TimeBlock)</span>
-                                    @nextTimeBlock.TimeBlock.ToString()
-                                    <span class="service-count">(@nextTimeBlock.AvailableServices.Count services)</span>
-                                </div>
-                            }
-                        </div>
-                        <button class="expand-planning" @onclick="() => showFullDayView = !showFullDayView">
-                            @(showFullDayView ? "Hide" : "View") Full Day
-                        </button>
-                    </div>
-                    
-                    @if (showFullDayView)
+                        <Market Location="@GetCurrentLocation()" />
+                    }
+                    else
                     {
-                        <div class="time-block-planning-container">
-                            <div class="time-block-grid">
-                                @foreach (var timeBlockInfo in timeBlockServicePlan)
-                                {
-                                    <div class="time-block-card @(timeBlockInfo.IsCurrentTimeBlock ? "current-time-block" : "")">
-                                        <div class="time-block-header">
-                                            <div class="time-block-name">
-                                                <span class="time-icon">@GetTimeBlockIcon(timeBlockInfo.TimeBlock)</span>
-                                                @timeBlockInfo.TimeBlock.ToString()
-                                            </div>
-                                            @if (timeBlockInfo.IsCurrentTimeBlock)
-                                            {
-                                                <div class="current-indicator">● NOW</div>
-                                            }
-                                        </div>
-                                        
-                                        <div class="time-block-content">
-                                            @if (timeBlockInfo.AvailableServices.Any())
-                                            {
-                                                <div class="services-list">
-                                                    @foreach (var service in timeBlockInfo.AvailableServices)
-                                                    {
-                                                        <div class="service-tag">
-                                                            <span class="service-icon">@GetServiceIcon(service)</span>
-                                                            <span class="service-name">@service.ToString().Replace("_", " ")</span>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="no-services">No services available</div>
-                                            }
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
+                        <div class="loading-message">Loading market data...</div>
                     }
+                </div>
+                break;
 
-                    @* NPCs with Direct Letter Offers *@
-                    @{
-                        var currentNPCs = NPCRepository.GetNPCsForLocationAndTime(GetCurrentLocation().Id, CurrentTime);
-                        var npcsWithOffers = currentNPCs.Where(npc => 
-                            ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID) || 
-                            NPCLetterOfferService.HasPendingOffers(npc.ID)
-                        ).ToList();
-                        
-                        if (npcsWithOffers.Any())
-                        {
-                            <div class="direct-letter-offers">
-                                <h3>NPCs with Letter Offers</h3>
-                                <div class="npc-offer-list">
-                                    @foreach (var npc in npcsWithOffers)
-                                    {
-                                        <div class="npc-offer-card">
-                                            <div class="npc-name">@npc.Name</div>
-                                            <div class="npc-role">@npc.Role</div>
-                                            @{
-                                                var pendingCount = NPCLetterOfferService.GetPendingOffersForNPC(npc.ID).Count;
-                                                var hasRelationshipOffer = ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID);
-                                            }
-                                            <button class="offer-button" @onclick="() => ShowLetterOffer(npc)">
-                                                @if (pendingCount > 0)
-                                                {
-                                                    <span>View Offers (@pendingCount) 📮</span>
-                                                }
-                                                else
-                                                {
-                                                    <span>View Letter Offer 📮</span>
-                                                }
-                                            </button>
-                                            @if (pendingCount > 0)
-                                            {
-                                                <div class="offer-badge">🔔 New!</div>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    }
-                    
-
-                    <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
-                                     CurrentSpot="@CurrentSpot"
-                                     OnSpotSelected="@HandleSpotSelection"
- />
-                    
-                    @* Location Actions Panel *@
-                    <LocationActions />
-                                     
-                    @* Letter Offer Dialog *@
-                    @if (ShowLetterOfferDialog && CurrentNPCOffer != null)
+            case CurrentViews.RestScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Rest in @GetCurrentLocation()?.Name</h2>
+                    </div>
+                </div>
+                <div class="rest-container">
+                    @if (IsGameDataReady())
                     {
-                        <MultipleLetterOfferDialog 
-                            NPC="@CurrentNPCOffer"
-                            OnAcceptOffer="@AcceptLetterOfferId"
-                            OnRefuse="@RefuseLetterOffer" />
+                        <RestUI 
+                            Location="@GetCurrentLocation()"
+                            OnRestComplete="HandleRestComplete" />
                     }
-                    </div>
-                    break;
-
-                case CurrentViews.TravelScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Travel from @GetCurrentLocation()?.Name</h2>
-                        </div>
-                    </div>
-                    <div class="travel-container">
-                        <TravelSelection 
-                            CurrentLocation="@GetCurrentLocation()"
-                            Locations="@Locations"
-                            OnTravelRoute="@HandleTravelRoute"
-                            OnTravelWithTransport="@HandleTravelWithTransport" />
-                    </div>
-                    break;
-
-                case CurrentViews.MarketScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">@GetCurrentLocation()?.Name Market</h2>
-                        </div>
-                    </div>
-                    <div class="market-container">
-                        @if (IsGameDataReady())
-                        {
-                            <Market Location="@GetCurrentLocation()" />
-                        }
-                        else
-                        {
-                            <div class="loading-message">Loading market data...</div>
-                        }
-                    </div>
-                    break;
-
-                case CurrentViews.RestScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Rest in @GetCurrentLocation()?.Name</h2>
-                        </div>
-                    </div>
-                    <div class="rest-container">
-                        @if (IsGameDataReady())
-                        {
-                            <RestUI 
-                                Location="@GetCurrentLocation()"
-                                OnRestComplete="HandleRestComplete" />
-                        }
-                        else
-                        {
-                            <div class="loading-message">Loading rest options...</div>
-                        }
-                    </div>
-                    break;
-
+                    else
+                    {
+                        <div class="loading-message">Loading rest options...</div>
+                    }
+                </div>
+                break;
                     
-                case CurrentViews.PlayerStatusScreen:
-                    <div class="location-container">
-                        <div class="location-header">
+            case CurrentViews.PlayerStatusScreen:
+                <div class="location-container">
+                    <div class="location-header">
                         <h2 class="location-title">Character Status</h2>
                     </div>
                     <PlayerStatusView OnClose="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)" />
-                    </div>
-                    break;
+                </div>
+                break;
                     
-                case CurrentViews.EventLogScreen:
-                    <EventLogScreen />
-                    break;
+            case CurrentViews.EventLogScreen:
+                <EventLogScreen />
+                break;
                     
-                case CurrentViews.RelationshipScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Character Relationships</h2>
-                        </div>
+            case CurrentViews.RelationshipScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Character Relationships</h2>
                     </div>
-                    @if (IsGameDataReady())
-                    {
-                        <CharacterRelationshipScreen />
-                    }
-                    else
-                    {
-                        <div class="loading-message">Loading relationship data...</div>
-                    }
-                    break;
+                </div>
+                @if (IsGameDataReady())
+                {
+                    <CharacterRelationshipScreen />
+                }
+                else
+                {
+                    <div class="loading-message">Loading relationship data...</div>
+                }
+                break;
                     
-                case CurrentViews.ObligationsScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Standing Obligations</h2>
-                        </div>
+            case CurrentViews.ObligationsScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Standing Obligations</h2>
                     </div>
-                    @if (IsGameDataReady())
-                    {
-                        <StandingObligationsScreen />
-                    }
-                    else
-                    {
-                        <div class="loading-message">Loading obligations data...</div>
-                    }
-                    break;
+                </div>
+                @if (IsGameDataReady())
+                {
+                    <StandingObligationsScreen />
+                }
+                else
+                {
+                    <div class="loading-message">Loading obligations data...</div>
+                }
+                break;
                     
-                case CurrentViews.LetterBoardScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Morning Letter Board</h2>
-                        </div>
+            case CurrentViews.LetterBoardScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Morning Letter Board</h2>
                     </div>
-                    @if (IsGameDataReady())
-                    {
-                        <LetterBoardScreen />
-                    }
-                    else
-                    {
-                        <div class="loading-message">Loading letter board...</div>
-                    }
-                    break;
+                </div>
+                @if (IsGameDataReady())
+                {
+                    <LetterBoardScreen />
+                }
+                else
+                {
+                    <div class="loading-message">Loading letter board...</div>
+                }
+                break;
         }
     </div>
 
     @if (CurrentScreen == CurrentViews.LocationScreen)
     {
+        @RenderSidebar()
+    }
+</div>
+
+@* Morning Summary Dialog *@
+@if (ShowMorningSummary && MorningActivityResult != null)
+{
+    <MorningSummaryDialog 
+        ShowDialog="@ShowMorningSummary"
+        MorningResult="@MorningActivityResult"
+        CurrentDay="@GameWorld.CurrentDay"
+        OnContinue="@HandleMorningSummaryContinue"
+        HasLetterBoard="true" />
+}
+
+@* Debug Panel Toggle *@
+<button class="debug-toggle" @onclick="ToggleDebugPanel" title="Toggle Debug Panel">
+    🔧
+</button>
+
+@* Debug Panel *@
+@if (ShowDebugPanel)
+{
+    <div class="debug-panel">
+        <div class="debug-header">
+            <h3>Debug Information</h3>
+            <button class="debug-close" @onclick="ToggleDebugPanel">×</button>
+        </div>
+        <div class="debug-content">
+            <div class="debug-section">
+                <h4>Current State</h4>
+                <p>Screen: @CurrentScreen</p>
+                <p>Location: @PlayerState?.CurrentLocation?.Name (@PlayerState?.CurrentLocation?.Id)</p>
+                <p>Spot: @PlayerState?.CurrentLocationSpot?.Name (@PlayerState?.CurrentLocationSpot?.SpotID)</p>
+                <p>Time: @CurrentTime (@CurrentHour:00)</p>
+                <p>Day: @GameWorld.CurrentDay</p>
+            </div>
+            
+            <div class="debug-section">
+                <h4>Conversation State</h4>
+                <p>Pending: @GameWorld.ConversationPending</p>
+                <p>Manager Exists: @(GameWorld.PendingConversationManager != null)</p>
+                @if (GameWorld.PendingAction != null)
+                {
+                    <p>Pending Action: @GameWorld.PendingAction.Name</p>
+                }
+            </div>
+            
+            <div class="debug-section">
+                <h4>NPCs at Current Spot</h4>
+                @{
+                    var npcsAtSpot = GetNPCsAtCurrentSpot();
+                    var availableNpcs = GetAvailableNPCsAtCurrentSpot();
+                }
+                <p>Total NPCs: @npcsAtSpot.Count</p>
+                <p>Available: @availableNpcs.Count</p>
+                @foreach (var npc in npcsAtSpot)
+                {
+                    <p class="debug-npc">
+                        @npc.Name (@npc.ID) - 
+                        @(npc.IsAvailable(CurrentTime) ? "🟢" : "🔴")
+                        @npc.AvailabilitySchedule
+                    </p>
+                }
+            </div>
+            
+            <div class="debug-actions">
+                <button class="debug-button" @onclick="PrintDebugState">Print Full State</button>
+                <button class="debug-button" @onclick="RunVerification">Run Verification</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private RenderFragment RenderLocationScreen() => @<text>
+        <div class="location-container">
+            <div class="location-header">
+                <h2 class="location-title">@GetCurrentLocation()?.Name</h2>
+            </div>
+
+            @{
+                var currentLocation = GetCurrentLocation();
+                if (currentLocation != null)
+                {
+                    <div class="location-info-panel">
+                        @{
+                            var availableProfessions = currentLocation.GetAvailableProfessions(CurrentTime);
+                            if (availableProfessions.Any())
+                            {
+                                <div class="location-professions-info">
+                                    <span class="info-label">Available Services:</span>
+                                    <span class="info-value">@string.Join(", ", availableProfessions.Select(p => p.ToString().Replace('_', ' ')))</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            }
+
+            @* Compact Time Planning UI *@
+            @if (currentLocation != null)
+            {
+                var timeBlockServicePlan = NPCRepository.GetTimeBlockServicePlan(currentLocation.Id);
+                var currentTimeBlock = timeBlockServicePlan.FirstOrDefault(t => t.IsCurrentTimeBlock);
+                var nextTimeBlock = timeBlockServicePlan.Where(t => !t.IsCurrentTimeBlock).FirstOrDefault();
+                <div class="time-planning-compact">
+                    <div class="current-time-info">
+                        @if (currentTimeBlock != null)
+                        {
+                            <div class="time-current">
+                                <span class="time-icon">@GetTimeBlockIcon(currentTimeBlock.TimeBlock)</span>
+                                @currentTimeBlock.TimeBlock.ToString()
+                                <span class="service-count">(@currentTimeBlock.AvailableServices.Count services)</span>
+                            </div>
+                        }
+                        @if (nextTimeBlock != null)
+                        {
+                            <div class="time-next">
+                                Next: <span class="time-icon">@GetTimeBlockIcon(nextTimeBlock.TimeBlock)</span>
+                                @nextTimeBlock.TimeBlock.ToString()
+                                <span class="service-count">(@nextTimeBlock.AvailableServices.Count services)</span>
+                            </div>
+                        }
+                    </div>
+                    <button class="expand-planning" @onclick="() => showFullDayView = !showFullDayView">
+                        @(showFullDayView ? "Hide" : "View") Full Day
+                    </button>
+                </div>
+                
+                @if (showFullDayView)
+                {
+                    <div class="time-block-planning-container">
+                        <div class="time-block-grid">
+                            @foreach (var timeBlockInfo in timeBlockServicePlan)
+                            {
+                                <div class="time-block-card @(timeBlockInfo.IsCurrentTimeBlock ? "current-time-block" : "")">
+                                    <div class="time-block-header">
+                                        <div class="time-block-name">
+                                            <span class="time-icon">@GetTimeBlockIcon(timeBlockInfo.TimeBlock)</span>
+                                            @timeBlockInfo.TimeBlock.ToString()
+                                        </div>
+                                        @if (timeBlockInfo.IsCurrentTimeBlock)
+                                        {
+                                            <div class="current-indicator">● NOW</div>
+                                        }
+                                    </div>
+                                    
+                                    <div class="time-block-content">
+                                        @if (timeBlockInfo.AvailableServices.Any())
+                                        {
+                                            <div class="services-list">
+                                                @foreach (var service in timeBlockInfo.AvailableServices)
+                                                {
+                                                    <div class="service-tag">
+                                                        <span class="service-icon">@GetServiceIcon(service)</span>
+                                                        <span class="service-name">@service.ToString().Replace("_", " ")</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="no-services">No services available</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
+            @* NPCs with Direct Letter Offers *@
+            @{
+                var currentNPCs = NPCRepository.GetNPCsForLocationAndTime(GetCurrentLocation().Id, CurrentTime);
+                var npcsWithOffers = currentNPCs.Where(npc => 
+                    ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID) || 
+                    NPCLetterOfferService.HasPendingOffers(npc.ID)
+                ).ToList();
+                
+                if (npcsWithOffers.Any())
+                {
+                    <div class="direct-letter-offers">
+                        <h3>NPCs with Letter Offers</h3>
+                        <div class="npc-offer-list">
+                            @foreach (var npc in npcsWithOffers)
+                            {
+                                <div class="npc-offer-card">
+                                    <div class="npc-name">@npc.Name</div>
+                                    <div class="npc-role">@npc.Role</div>
+                                    @{
+                                        var pendingCount = NPCLetterOfferService.GetPendingOffersForNPC(npc.ID).Count;
+                                        var hasRelationshipOffer = ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID);
+                                    }
+                                    <button class="offer-button" @onclick="() => ShowLetterOffer(npc)">
+                                        @if (pendingCount > 0)
+                                        {
+                                            <span>View Offers (@pendingCount) 📮</span>
+                                        }
+                                        else
+                                        {
+                                            <span>View Letter Offer 📮</span>
+                                        }
+                                    </button>
+                                    @if (pendingCount > 0)
+                                    {
+                                        <div class="offer-badge">🔔 New!</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
+            <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
+                             CurrentSpot="@CurrentSpot"
+                             OnSpotSelected="@HandleSpotSelection" />
+            
+            @* Location Actions Panel *@
+            <LocationActions />
+                             
+            @* Letter Offer Dialog *@
+            @if (ShowLetterOfferDialog && CurrentNPCOffer != null)
+            {
+                <MultipleLetterOfferDialog 
+                    NPC="@CurrentNPCOffer"
+                    OnAcceptOffer="@AcceptLetterOfferId"
+                    OnRefuse="@RefuseLetterOffer" />
+            }
+        </div>
+    </text>;
+
+    private RenderFragment RenderSidebar() => @<text>
         <div class="game-sidebar" @ref="SidebarRef">
             <div class="sidebar-section expanded">
                 <div class="section-header" id="section-character">
@@ -458,10 +522,6 @@
                                 <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
                                 <span class="resource-label">Food</span>
                                 <span class="resource-value">@PlayerState.Food</span>
-                                @if (PlayerState.Food > 0)
-                                {
-                                    @* Food consumption removed - part of old action system *@
-                                }
                             </div>
                         </div>
                     </div>
@@ -511,75 +571,5 @@
                 }
             </div>
         </div>
-    }
-</div>
-
-@* Morning Summary Dialog *@
-@if (ShowMorningSummary && MorningActivityResult != null)
-{
-    <MorningSummaryDialog 
-        ShowDialog="@ShowMorningSummary"
-        MorningResult="@MorningActivityResult"
-        CurrentDay="@GameWorld.CurrentDay"
-        OnContinue="@HandleMorningSummaryContinue"
-        HasLetterBoard="true" />
-}
-
-@* Debug Panel Toggle *@
-<button class="debug-toggle" @onclick="ToggleDebugPanel" title="Toggle Debug Panel">
-    🔧
-</button>
-
-@* Debug Panel *@
-@if (ShowDebugPanel)
-{
-    <div class="debug-panel">
-        <div class="debug-header">
-            <h3>Debug Information</h3>
-            <button class="debug-close" @onclick="ToggleDebugPanel">×</button>
-        </div>
-        <div class="debug-content">
-            <div class="debug-section">
-                <h4>Current State</h4>
-                <p>Screen: @CurrentScreen</p>
-                <p>Location: @PlayerState?.CurrentLocation?.Name (@PlayerState?.CurrentLocation?.Id)</p>
-                <p>Spot: @PlayerState?.CurrentLocationSpot?.Name (@PlayerState?.CurrentLocationSpot?.SpotID)</p>
-                <p>Time: @CurrentTime (@CurrentHour:00)</p>
-                <p>Day: @GameWorld.CurrentDay</p>
-            </div>
-            
-            <div class="debug-section">
-                <h4>Conversation State</h4>
-                <p>Pending: @GameWorld.ConversationPending</p>
-                <p>Manager Exists: @(GameWorld.PendingConversationManager != null)</p>
-                @if (GameWorld.PendingAction != null)
-                {
-                    <p>Pending Action: @GameWorld.PendingAction.Name</p>
-                }
-            </div>
-            
-            <div class="debug-section">
-                <h4>NPCs at Current Spot</h4>
-                @{
-                    var npcsAtSpot = GetNPCsAtCurrentSpot();
-                    var availableNpcs = GetAvailableNPCsAtCurrentSpot();
-                }
-                <p>Total NPCs: @npcsAtSpot.Count</p>
-                <p>Available: @availableNpcs.Count</p>
-                @foreach (var npc in npcsAtSpot)
-                {
-                    <p class="debug-npc">
-                        @npc.Name (@npc.ID) - 
-                        @(npc.IsAvailable(CurrentTime) ? "🟢" : "🔴")
-                        @npc.AvailabilitySchedule
-                    </p>
-                }
-            </div>
-            
-            <div class="debug-actions">
-                <button class="debug-button" @onclick="PrintDebugState">Print Full State</button>
-                <button class="debug-button" @onclick="RunVerification">Run Verification</button>
-            </div>
-        </div>
-    </div>
+    </text>;
 }
