@@ -524,3 +524,62 @@
         OnContinue="@HandleMorningSummaryContinue"
         HasLetterBoard="true" />
 }
+
+@* Debug Panel Toggle *@
+<button class="debug-toggle" @onclick="ToggleDebugPanel" title="Toggle Debug Panel">
+    🔧
+</button>
+
+@* Debug Panel *@
+@if (ShowDebugPanel)
+{
+    <div class="debug-panel">
+        <div class="debug-header">
+            <h3>Debug Information</h3>
+            <button class="debug-close" @onclick="ToggleDebugPanel">×</button>
+        </div>
+        <div class="debug-content">
+            <div class="debug-section">
+                <h4>Current State</h4>
+                <p>Screen: @CurrentScreen</p>
+                <p>Location: @PlayerState?.CurrentLocation?.Name (@PlayerState?.CurrentLocation?.Id)</p>
+                <p>Spot: @PlayerState?.CurrentLocationSpot?.Name (@PlayerState?.CurrentLocationSpot?.SpotID)</p>
+                <p>Time: @CurrentTime (@CurrentHour:00)</p>
+                <p>Day: @GameWorld.CurrentDay</p>
+            </div>
+            
+            <div class="debug-section">
+                <h4>Conversation State</h4>
+                <p>Pending: @GameWorld.ConversationPending</p>
+                <p>Manager Exists: @(GameWorld.PendingConversationManager != null)</p>
+                @if (GameWorld.PendingAction != null)
+                {
+                    <p>Pending Action: @GameWorld.PendingAction.Name</p>
+                }
+            </div>
+            
+            <div class="debug-section">
+                <h4>NPCs at Current Spot</h4>
+                @{
+                    var npcsAtSpot = GetNPCsAtCurrentSpot();
+                    var availableNpcs = GetAvailableNPCsAtCurrentSpot();
+                }
+                <p>Total NPCs: @npcsAtSpot.Count</p>
+                <p>Available: @availableNpcs.Count</p>
+                @foreach (var npc in npcsAtSpot)
+                {
+                    <p class="debug-npc">
+                        @npc.Name (@npc.ID) - 
+                        @(npc.IsAvailable(CurrentTime) ? "🟢" : "🔴")
+                        @npc.AvailabilitySchedule
+                    </p>
+                }
+            </div>
+            
+            <div class="debug-actions">
+                <button class="debug-button" @onclick="PrintDebugState">Print Full State</button>
+                <button class="debug-button" @onclick="RunVerification">Run Verification</button>
+            </div>
+        </div>
+    </div>
+}

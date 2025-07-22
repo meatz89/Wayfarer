@@ -17,6 +17,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     [Inject] public LetterQueueManager LetterQueueManager { get; set; }
     [Inject] public NavigationService NavigationService { get; set; }
     [Inject] public NPCLetterOfferService NPCLetterOfferService { get; set; }
+    [Inject] public DebugLogger DebugLogger { get; set; }
+    [Inject] public StateVerificationService StateVerifier { get; set; }
 
 
     public int StateVersion = 0;
@@ -64,6 +66,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public bool ShowMorningSummary = false;
     public MorningActivityResult MorningActivityResult = null;
     public TimeBlocks? LastTimeBlock = null;
+    
+    // Debug State
+    public bool ShowDebugPanel = false;
 
 
     public bool HasApLeft { get; set; }
@@ -140,6 +145,19 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         // Subscribe to navigation changes
         NavigationService.OnNavigationChanged += OnNavigationChanged;
         
+        DebugLogger.LogDebug("MainGameplayView initialized - starting polling");
+        
+        // Verify initial state
+        if (IsGameDataReady())
+        {
+            DebugLogger.LogDebug("Game data is ready - running initial verification");
+            StateVerifier.RunFullVerification();
+            
+            // Log initial state report
+            var report = StateVerifier.GetStateReport();
+            DebugLogger.LogDebug($"Initial state:\n{report}");
+        }
+        
         // Set up polling instead of direct timer calls
         _ = Task.Run(async () =>
         {
@@ -173,15 +191,18 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         // Check for pending morning activities (set by StartNewDay)
         if (GameManager.HasPendingMorningActivities() && !ShowMorningSummary)
         {
+            DebugLogger.LogPolling("MainGameplayView", "Morning activities pending - processing");
             ProcessMorningActivities();
         }
         
         // Check for pending action conversation
         if (GameWorld.ConversationPending)
         {
+            DebugLogger.LogPolling("MainGameplayView", $"ConversationPending detected! Manager exists: {GameWorld.PendingConversationManager != null}");
             ConversationManager = GameWorld.PendingConversationManager;
             NavigationService.NavigateTo(CurrentViews.ConversationScreen);
             GameWorld.ConversationPending = false;
+            DebugLogger.LogNavigation(CurrentScreen.ToString(), "ConversationScreen", "Pending conversation detected");
         }
 
         if (oldSnapshot == null || !snapshot.IsEqualTo(oldSnapshot))
@@ -255,8 +276,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task HandleTravelRoute(RouteOption route)
     {
+        DebugLogger.LogAction("HandleTravelRoute", route.Name, $"Current screen: {CurrentScreen}");
         await GameManager.Travel(route);
-        NavigationService.NavigateTo(CurrentViews.LocationScreen);
+        // Don't navigate immediately - let polling detect the pending conversation
+        // The conversation will be shown when PollGameState() detects ConversationPending
+        DebugLogger.LogDebug("HandleTravelRoute completed - waiting for polling to detect conversation");
         UpdateState();
     }
 
@@ -609,6 +633,48 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         // Navigation is already handled by NavigationService
         // This callback is just for any additional logic needed
         StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Debug method to output current game state
+    /// </summary>
+    public void PrintDebugState()
+    {
+        var report = StateVerifier.GetStateReport();
+        Console.WriteLine(report);
+        
+        // Also run full verification
+        StateVerifier.RunFullVerification();
+    }
+    
+    public void ToggleDebugPanel()
+    {
+        ShowDebugPanel = !ShowDebugPanel;
+        StateHasChanged();
+    }
+    
+    public void RunVerification()
+    {
+        StateVerifier.RunFullVerification();
+        MessageSystem.AddSystemMessage("Verification completed - check console", SystemMessageTypes.Success);
+    }
+    
+    public List<NPC> GetNPCsAtCurrentSpot()
+    {
+        if (PlayerState?.CurrentLocationSpot == null) return new List<NPC>();
+        
+        return NPCRepository.GetAllNPCs()
+            .Where(n => n.SpotId == PlayerState.CurrentLocationSpot.SpotID)
+            .ToList();
+    }
+    
+    public List<NPC> GetAvailableNPCsAtCurrentSpot()
+    {
+        if (PlayerState?.CurrentLocationSpot == null) return new List<NPC>();
+        
+        return NPCRepository.GetNPCsForLocationSpotAndTime(
+            PlayerState.CurrentLocationSpot.SpotID, 
+            CurrentTime);
     }
     
     public void Dispose()

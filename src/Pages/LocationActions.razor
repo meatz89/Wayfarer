@@ -5,52 +5,8 @@
 @inject NPCRepository NPCRepository
 
 <div class="location-actions">
-    <h3>Available Actions (@GameWorld.TimeManager.HoursRemaining hours remaining)</h3>
-    
-    @if (availableActions.Any())
-    {
-        <div class="action-grid">
-            @foreach (var action in availableActions)
-            {
-                <div class="action-card">
-                    <h4>@action.Name</h4>
-                    @if (!string.IsNullOrEmpty(action.NPCId))
-                    {
-                        <p class="npc-connection">👤 @GetNPCProfession(action.NPCId)</p>
-                    }
-                    <p class="action-description">@action.Description</p>
-                    
-                    <div class="resource-costs">
-                        @if (action.HourCost > 0)
-                        {
-                            <span class="cost-item">⏰ @action.HourCost hour@(action.HourCost > 1 ? "s" : "")</span>
-                        }
-                        @if (action.StaminaCost > 0)
-                        {
-                            <span class="cost-item">💪 @action.StaminaCost stamina</span>
-                        }
-                        @if (action.CoinCost > 0)
-                        {
-                            <span class="cost-item">💰 @action.CoinCost coin@(action.CoinCost > 1 ? "s" : "")</span>
-                        }
-                    </div>
-                    
-                    <div class="action-effect">
-                        ➜ @action.Effect
-                    </div>
-                    
-                    <button class="btn-action" @onclick="async () => await ExecuteAction(action)">
-                        Perform Action
-                    </button>
-                </div>
-            }
-        </div>
-    }
-    else
-    {
-        <p class="no-actions">No actions available at this location.</p>
-    }
-    
+    <h3>Actions (@GameWorld.TimeManager.HoursRemaining hours remaining)</h3>
+    <p class="actions-info">Click on a person to see available actions.</p>
 </div>
 
 <style>
@@ -116,10 +72,11 @@
         background: #3a7a3a;
     }
     
-    .no-actions {
+    .actions-info {
         text-align: center;
         color: #999;
-        padding: 2rem;
+        padding: 1rem;
+        font-style: italic;
     }
     
     .action-footer {

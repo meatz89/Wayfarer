@@ -33,6 +33,7 @@ public class GameWorldManager
     private bool isAiAvailable = true;
 
     private readonly ILogger<GameWorldManager> logger;
+    private readonly DebugLogger _debugLogger;
 
     public GameWorldManager(GameWorld gameWorld,
                        ItemRepository itemRepository,
@@ -45,6 +46,7 @@ public class GameWorldManager
                        MorningActivitiesManager morningActivitiesManager, NPCLetterOfferService npcLetterOfferService,
                        ScenarioManager scenarioManager, ConversationFactory conversationFactory,
                        LocationActionManager locationActionManager,
+                       DebugLogger debugLogger,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -64,6 +66,7 @@ public class GameWorldManager
         this.conversationFactory = conversationFactory;
         this.locationActionManager = locationActionManager;
         this.logger = logger;
+        _debugLogger = debugLogger;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
@@ -114,11 +117,19 @@ public class GameWorldManager
     
     public async Task<ConversationManager> StartConversation(string npcId)
     {
+        _debugLogger.LogConversation("Starting", $"NPC: {npcId}");
+        
         var npc = npcRepository.GetNPCById(npcId);
-        if (npc == null) return null;
+        if (npc == null)
+        {
+            _debugLogger.LogWarning("Conversation", $"NPC {npcId} not found");
+            return null;
+        }
         
         var location = locationRepository.GetCurrentLocation();
         var locationSpot = locationRepository.GetCurrentLocationSpot();
+        
+        _debugLogger.LogDebug($"Starting conversation with {npc.Name} at {location?.Name ?? "null"}/{locationSpot?.SpotID ?? "null"}");
         
         // Create conversation context
         var context = new ConversationContext

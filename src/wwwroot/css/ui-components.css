@@ -312,11 +312,41 @@
 		background-color: var(--bg-active);
 		border-color: var(--leather);
 	}
+	
+	.npc-card.npc-selected {
+		background-color: var(--bg-active);
+		border-color: var(--leather);
+		border-width: 2px;
+		padding: 7px 9px;
+		position: relative;
+	}
 
 /* Compact NPC Display */
 .npc-compact-info {
-	cursor: pointer;
 	padding: 4px 0;
+}
+
+.npc-interaction-controls {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+}
+
+.close-npc-button {
+	background: var(--oak-dark);
+	color: var(--text-secondary);
+	border: 1px solid var(--oak-mid);
+	border-radius: 3px;
+	padding: 2px 6px;
+	font-size: 0.8rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.close-npc-button:hover {
+	background: var(--leather-dark);
+	color: var(--text-bright);
+	border-color: var(--leather);
 }
 
 .npc-status-line {
@@ -1699,6 +1729,224 @@
 .referral-button:hover {
 	background-color: var(--oak-dark);
 	transform: translateY(-1px);
+}
+
+/* NPC Action List */
+.npc-action-list {
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid var(--oak-mid);
+}
+
+.npc-action-list h4 {
+	font-family: var(--font-primary);
+	color: var(--text-bright);
+	font-size: 0.9rem;
+	margin: 0 0 8px 0;
+}
+
+.npc-action-item {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-light);
+	border-radius: 3px;
+	padding: 8px;
+	margin-bottom: 8px;
+}
+
+.npc-action-item .action-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 4px;
+}
+
+.npc-action-item .action-name {
+	font-family: var(--font-primary);
+	color: var(--leather);
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.npc-action-item .action-costs {
+	display: flex;
+	gap: 8px;
+	font-size: 0.85rem;
+}
+
+.npc-action-item .cost {
+	color: var(--leather-dark);
+}
+
+.npc-action-item .action-description {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+	margin: 4px 0;
+	font-style: italic;
+}
+
+.npc-action-item .action-effect {
+	font-family: var(--font-secondary);
+	color: var(--leather-light);
+	font-size: 0.85rem;
+	margin: 4px 0;
+	font-weight: 600;
+}
+
+.npc-action-item .action-button {
+	width: 100%;
+	padding: 6px 12px;
+	background-color: var(--leather-dark);
+	color: var(--text-bright);
+	border: 1px solid var(--leather);
+	border-radius: 3px;
+	font-family: var(--font-primary);
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	margin-top: 6px;
+}
+
+.npc-action-item .action-button:hover {
+	background-color: var(--leather);
+	border-color: var(--leather-light);
+}
+
+.npc-no-actions,
+.npc-unavailable-message {
+	font-family: var(--font-secondary);
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+	font-style: italic;
+	padding: 8px 0;
+}
+
+/* Debug Panel */
+.debug-toggle {
+	position: fixed;
+	bottom: 10px;
+	right: 10px;
+	background: var(--oak-dark);
+	color: var(--text-bright);
+	border: 1px solid var(--oak-mid);
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	font-size: 1.2rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	z-index: 999;
+}
+
+.debug-toggle:hover {
+	background: var(--leather-dark);
+	border-color: var(--leather);
+}
+
+.debug-panel {
+	position: fixed;
+	right: 10px;
+	top: 60px;
+	width: 350px;
+	max-height: 80vh;
+	background: var(--bg-panel);
+	border: 2px solid var(--oak-dark);
+	border-radius: 8px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+	z-index: 1000;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.debug-header {
+	background: var(--oak-dark);
+	padding: 10px 15px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 1px solid var(--oak-mid);
+}
+
+.debug-header h3 {
+	margin: 0;
+	color: var(--text-bright);
+	font-size: 1rem;
+}
+
+.debug-close {
+	background: none;
+	border: none;
+	color: var(--text-secondary);
+	font-size: 1.5rem;
+	cursor: pointer;
+	padding: 0;
+	width: 30px;
+	height: 30px;
+}
+
+.debug-close:hover {
+	color: var(--text-bright);
+}
+
+.debug-content {
+	padding: 15px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.debug-section {
+	margin-bottom: 20px;
+	padding-bottom: 15px;
+	border-bottom: 1px solid var(--oak-light);
+}
+
+.debug-section:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.debug-section h4 {
+	margin: 0 0 10px 0;
+	color: var(--leather);
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+.debug-section p {
+	margin: 5px 0;
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+	font-family: var(--font-mono);
+}
+
+.debug-npc {
+	padding-left: 15px;
+	font-size: 0.8rem !important;
+}
+
+.debug-actions {
+	display: flex;
+	gap: 10px;
+	margin-top: 15px;
+}
+
+.debug-button {
+	flex: 1;
+	padding: 8px 12px;
+	background: var(--leather-dark);
+	color: var(--text-bright);
+	border: 1px solid var(--leather);
+	border-radius: 4px;
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.debug-button:hover {
+	background: var(--leather);
+	border-color: var(--leather-light);
 }
 
 /* Carried Letters Section */

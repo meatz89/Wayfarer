@@ -21,9 +21,13 @@ public class LocationSpotMapBase : ComponentBase
     public double mouseX;
     public double mouseY;
 
-    // NPC expansion state management
-    private Dictionary<string, bool> _npcExpandedStates = new Dictionary<string, bool>();
+    // Selected NPC for interaction
+    public NPC SelectedNPC { get; set; }
+    public List<ActionOption> SelectedNPCActions { get; set; } = new();
 
+    [Inject] public LocationActionManager LocationActionManager { get; set; }
+    [Inject] public DebugLogger DebugLogger { get; set; }
+    
     protected override void OnInitialized()
     {
         // Initialize component
@@ -31,6 +35,47 @@ public class LocationSpotMapBase : ComponentBase
 
     // Action system removed - use LocationActionManager for location actions
 
+    public void SelectNPC(NPC npc)
+    {
+        DebugLogger.LogAction("SelectNPC", npc.ID, $"Selected {npc.Name}");
+        
+        SelectedNPC = npc;
+        
+        // Get actions for this NPC if they're available
+        if (IsNPCCurrentlyAvailable(npc))
+        {
+            var allActions = LocationActionManager.GetAvailableActions();
+            SelectedNPCActions = allActions.Where(a => a.NPCId == npc.ID).ToList();
+            DebugLogger.LogDebug($"Found {SelectedNPCActions.Count} actions for {npc.Name}");
+        }
+        else
+        {
+            SelectedNPCActions.Clear();
+        }
+        
+        StateHasChanged();
+    }
+    
+    public void DeselectNPC()
+    {
+        SelectedNPC = null;
+        SelectedNPCActions.Clear();
+        StateHasChanged();
+    }
+    
+    public async Task ExecuteNPCAction(ActionOption action)
+    {
+        DebugLogger.LogAction("ExecuteNPCAction", action.Name, $"Via NPC {SelectedNPC?.Name}");
+        
+        // UI actions must go through GameWorldManager
+        bool success = await GameWorldManager.ExecuteAction(action);
+        
+        if (success)
+        {
+            DeselectNPC();
+        }
+    }
+    
     public void Dispose()
     {
         // Component disposal
@@ -141,26 +186,10 @@ public class LocationSpotMapBase : ComponentBase
     /// <summary>
     /// Get expanded state for a specific NPC
     /// </summary>
-    public bool GetNPCExpandedState(string npcId)
-    {
-        return _npcExpandedStates.ContainsKey(npcId) && _npcExpandedStates[npcId];
-    }
 
     /// <summary>
     /// Toggle expansion state for a specific NPC
     /// </summary>
-    public void ToggleNPCExpansion(string npcId)
-    {
-        if (_npcExpandedStates.ContainsKey(npcId))
-        {
-            _npcExpandedStates[npcId] = !_npcExpandedStates[npcId];
-        }
-        else
-        {
-            _npcExpandedStates[npcId] = true;
-        }
-        StateHasChanged();
-    }
 
     /// <summary>
     /// Get service icon for UI display

@@ -51,6 +51,7 @@ public class LocationActionManager
     private readonly NPCLetterOfferService _letterOfferService;
     private readonly LetterCategoryService _letterCategoryService;
     private readonly NoticeBoardService _noticeBoardService;
+    private readonly DebugLogger _debugLogger;
     
     private TimeManager _timeManager => _gameWorld.TimeManager;
     
@@ -65,7 +66,8 @@ public class LocationActionManager
         RouteDiscoveryManager routeDiscoveryManager,
         NPCLetterOfferService letterOfferService,
         LetterCategoryService letterCategoryService,
-        NoticeBoardService noticeBoardService)
+        NoticeBoardService noticeBoardService,
+        DebugLogger debugLogger)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -78,6 +80,7 @@ public class LocationActionManager
         _letterOfferService = letterOfferService;
         _letterCategoryService = letterCategoryService;
         _noticeBoardService = noticeBoardService;
+        _debugLogger = debugLogger;
     }
     
     
@@ -91,11 +94,20 @@ public class LocationActionManager
         var spot = player.CurrentLocationSpot;
         var actions = new List<ActionOption>();
         
-        if (location == null || spot == null) return actions;
+        _debugLogger.LogAction("GetAvailableActions", $"{location?.Name ?? "null"}/{spot?.SpotID ?? "null"}", "Starting");
+        
+        if (location == null || spot == null)
+        {
+            _debugLogger.LogWarning("LocationActionManager", "No location or spot - returning empty actions");
+            return actions;
+        }
         
         // Get NPCs at current location
         var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        _debugLogger.LogDebug($"Getting NPCs for spot '{spot.SpotID}' at time {currentTimeBlock}");
         var npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTimeBlock);
+        
+        _debugLogger.LogDebug($"Found {npcsHere.Count} NPCs at current spot");
         
         // NOTE: Basic rest is handled in RestUI screen via RestManager
         // Only add NPC-specific contextual actions here

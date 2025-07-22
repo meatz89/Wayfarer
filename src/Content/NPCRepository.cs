@@ -1,10 +1,12 @@
 ﻿public class NPCRepository
 {
     private readonly GameWorld _gameWorld;
+    private readonly DebugLogger _debugLogger;
 
-    public NPCRepository(GameWorld gameWorld)
+    public NPCRepository(GameWorld gameWorld, DebugLogger debugLogger)
     {
         _gameWorld = gameWorld;
+        _debugLogger = debugLogger;
 
         if (_gameWorld.WorldState.GetCharacters() == null)
         {
@@ -64,8 +66,22 @@
     /// </summary>
     public List<NPC> GetNPCsForLocationSpotAndTime(string locationSpotId, TimeBlocks currentTime)
     {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime)).ToList();
+        List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();;
+        
+        _debugLogger.LogNPCActivity("GetNPCsForLocationSpotAndTime", null, 
+            $"Looking for NPCs at spot '{locationSpotId}' during {currentTime}");
+        
+        // First, find all NPCs at this spot
+        var npcsAtSpot = npcs.Where(n => n.SpotId == locationSpotId).ToList();
+        _debugLogger.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}': " + 
+            string.Join(", ", npcsAtSpot.Select(n => $"{n.Name} ({n.ID})")));
+        
+        // Then filter by availability
+        var availableNpcs = npcsAtSpot.Where(n => n.IsAvailable(currentTime)).ToList();
+        _debugLogger.LogDebug($"Of those, {availableNpcs.Count} are available at {currentTime}: " + 
+            string.Join(", ", availableNpcs.Select(n => $"{n.Name} (Schedule: {n.AvailabilitySchedule})")));
+        
+        return availableNpcs;
     }
 
     /// <summary>
