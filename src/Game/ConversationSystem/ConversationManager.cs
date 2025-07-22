@@ -117,6 +117,17 @@ public enum ConversationChoiceType
     DeliverForTokens,
     DeliverForCoins,
     CannotDeliver,
+    DeliverApologetic,
+    DeliverWithExcuse,
+    DeliverHonest,
+    DeliverCarefully,
+    DeliverDiscreetly,
+    DeliverPrivately,
+    DeliverWithGossip,
+    DeliverAcceptReturn,
+    DeliverDesperate,
+    DeliverWithReport,
+    DeliverChainLetter,
     
     // Queue management choices
     SkipAndDeliver,
@@ -150,4 +161,8 @@ public class ConversationChoice
     // Category-based properties for letter offers
     public ConnectionType? OfferTokenType { get; set; }
     public LetterCategory? OfferCategory { get; set; }
+    
+    // Delivery-specific properties
+    public DeliveryOutcome DeliveryOutcome { get; set; }
+    public int Priority { get; set; } = 0;
 }

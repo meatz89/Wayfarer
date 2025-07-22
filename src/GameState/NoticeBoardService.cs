@@ -354,4 +354,32 @@ public class NoticeBoardService
                 return "";
         }
     }
+    
+    /// <summary>
+    /// Unlock a chain letter that was previously locked.
+    /// This is called when a player delivers a chain letter that unlocks follow-up letters.
+    /// </summary>
+    public void UnlockChainLetter(string letterId)
+    {
+        // Store unlocked chain letters in player's memories
+        var player = _gameWorld.GetPlayer();
+        var chainLetterKey = $"ChainLetter_{letterId}";
+        var chainLetterMemory = new MemoryFlag 
+        { 
+            Key = chainLetterKey,
+            Description = $"Unlocked chain letter opportunity: {letterId}",
+            CreationDay = _gameWorld.CurrentDay,
+            Importance = 3
+        };
+        
+        if (!player.Memories.Any(m => m.Key == chainLetterKey))
+        {
+            player.Memories.Add(chainLetterMemory);
+            
+            _messageSystem.AddSystemMessage(
+                $"🔓 New chain letter opportunity unlocked: {letterId}",
+                SystemMessageTypes.Info
+            );
+        }
+    }
 }

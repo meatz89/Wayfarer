@@ -13,17 +13,20 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     private readonly ConnectionTokenManager _tokenManager;
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
     private readonly LetterCategoryService _letterCategoryService;
+    private readonly DeliveryConversationService _deliveryConversationService;
     
     public DeterministicNarrativeProvider(
         GameWorld gameWorld, 
         ConnectionTokenManager tokenManager,
         RouteDiscoveryManager routeDiscoveryManager,
-        LetterCategoryService letterCategoryService)
+        LetterCategoryService letterCategoryService,
+        DeliveryConversationService deliveryConversationService)
     {
         _gameWorld = gameWorld;
         _tokenManager = tokenManager;
         _routeDiscoveryManager = routeDiscoveryManager;
         _letterCategoryService = letterCategoryService;
+        _deliveryConversationService = deliveryConversationService;
     }
     
     public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
@@ -312,28 +315,9 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             };
         }
         
-        // Otherwise provide delivery choices - token vs extra payment
-        return new List<ConversationChoice>
-        {
-            new ConversationChoice
-            {
-                ChoiceID = "1",
-                NarrativeText = $"Accept standard payment ({letter.Payment} coins + 1 token)",
-                FocusCost = 0,
-                IsAffordable = true,
-                ChoiceType = ConversationChoiceType.DeliverForTokens,
-                TemplatePurpose = "Standard delivery with relationship building"
-            },
-            new ConversationChoice
-            {
-                ChoiceID = "2",
-                NarrativeText = $"Request extra payment ({letter.Payment + 3} coins, no token)",
-                FocusCost = 0,
-                IsAffordable = true,
-                ChoiceType = ConversationChoiceType.DeliverForCoins,
-                TemplatePurpose = "Prioritize money over relationship"
-            }
-        };
+        // Use the delivery conversation service to generate contextual choices
+        var deliveryContext = _deliveryConversationService.AnalyzeDeliveryContext(letter, context.TargetNPC);
+        return _deliveryConversationService.GenerateDeliveryChoices(deliveryContext);
     }
     
     private List<ConversationChoice> GetConverseChoices(ActionConversationContext context)
