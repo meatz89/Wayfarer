@@ -910,6 +910,7 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.LocationId,
                         availableLocations,
                         profession,
+                        dto.SpotId,
                         dto.Role,
                         dto.Description,
                         schedule,

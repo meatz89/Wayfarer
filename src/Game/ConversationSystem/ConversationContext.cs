@@ -45,3 +45,14 @@ public class ActionConversationContext : ConversationContext
     public string InitialNarrative { get; set; }
     public List<ChoiceTemplate> AvailableTemplates { get; set; }
 }
+
+/// <summary>
+/// Extended context for travel conversations
+/// </summary>
+public class TravelConversationContext : ConversationContext
+{
+    public RouteOption Route { get; set; }
+    public Location Origin { get; set; }
+    public Location Destination { get; set; }
+    public TravelEncounterType EncounterType { get; set; }
+}
