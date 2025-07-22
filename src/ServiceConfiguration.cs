@@ -63,6 +63,9 @@
         services.AddSingleton<StandingObligationManager>();
         services.AddSingleton<LetterCategoryService>();
         services.AddSingleton<DeliveryConversationService>();
+        
+        // Conversation System
+        services.AddSingleton<DeterministicStreamingService>();
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<ConnectionTokenManager>();
@@ -110,26 +113,12 @@
         services.AddSingleton<ConversationChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
 
-        // Register narrative provider based on configuration
-        services.AddSingleton<INarrativeProvider>(serviceProvider =>
-        {
-            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-            bool useDeterministic = configuration.GetValue<bool>("UseDeterministicNarrative");
-            
-            if (useDeterministic)
-            {
-                var tokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
-                var routeDiscoveryManager = serviceProvider.GetRequiredService<RouteDiscoveryManager>();
-                var letterCategoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
-                var deliveryConversationService = serviceProvider.GetRequiredService<DeliveryConversationService>();
-                var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-                return new DeterministicNarrativeProvider(tokenManager, routeDiscoveryManager, letterCategoryService, deliveryConversationService, gameWorld);
-            }
-            else
-            {
-                return serviceProvider.GetRequiredService<AIGameMaster>();
-            }
-        });
+        // Register narrative provider - choose which implementation to use
+        // For POC: Using DeterministicNarrativeProvider
+        services.AddSingleton<INarrativeProvider, DeterministicNarrativeProvider>();
+        
+        // For full game with AI: Uncomment this and comment out the line above
+        // services.AddSingleton<INarrativeProvider, AIGameMaster>();
 
         // Register AI provider factory
         services.AddSingleton<IAIProvider>(serviceProvider =>

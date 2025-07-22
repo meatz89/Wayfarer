@@ -15,46 +15,59 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     private readonly LetterCategoryService _letterCategoryService;
     private readonly DeliveryConversationService _deliveryConversationService;
     private readonly GameWorld _gameWorld;
+    private readonly DeterministicStreamingService _streamingService;
     
     public DeterministicNarrativeProvider(
         ConnectionTokenManager tokenManager,
         RouteDiscoveryManager routeDiscoveryManager,
         LetterCategoryService letterCategoryService,
         DeliveryConversationService deliveryConversationService,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        DeterministicStreamingService streamingService)
     {
         _tokenManager = tokenManager;
         _routeDiscoveryManager = routeDiscoveryManager;
         _letterCategoryService = letterCategoryService;
         _deliveryConversationService = deliveryConversationService;
         _gameWorld = gameWorld;
+        _streamingService = streamingService;
     }
     
-    public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
+    public async Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
     {
+        string narrativeText;
         
         // Look for initial narrative in context
         if (context is ActionConversationContext actionContext && !string.IsNullOrEmpty(actionContext.InitialNarrative))
         {
-            return Task.FromResult(actionContext.InitialNarrative);
+            narrativeText = actionContext.InitialNarrative;
         }
-        
         // Check if this is an action conversation with special narrative handling
-        if (context is ActionConversationContext actionCtx && actionCtx.SourceAction != null)
+        else if (context is ActionConversationContext actionCtx && actionCtx.SourceAction != null)
         {
-            var narrative = GetActionNarrative(actionCtx);
-            return Task.FromResult(narrative);
+            narrativeText = GetActionNarrative(actionCtx);
         }
-        
         // Check if this is a queue management conversation
-        if (context is QueueManagementContext queueCtx)
+        else if (context is QueueManagementContext queueCtx)
         {
-            var queueIntroduction = GetQueueManagementIntroduction(queueCtx);
-            return Task.FromResult(queueIntroduction);
+            narrativeText = GetQueueManagementIntroduction(queueCtx);
+        }
+        else
+        {
+            // All conversations must be properly categorized - no fallbacks
+            throw new InvalidOperationException($"Unknown conversation context type: {context.GetType().Name}");
         }
         
-        // All conversations must be properly categorized - no fallbacks
-        throw new InvalidOperationException($"Unknown conversation context type: {context.GetType().Name}");
+        // Create watchers like AIGameMaster does
+        var watchers = new List<IResponseStreamWatcher>
+        {
+            new StreamingContentStateWatcher(_gameWorld.StreamingContentState)
+        };
+        
+        // Stream the text
+        await _streamingService.StreamTextAsync(narrativeText, watchers);
+        
+        return narrativeText;
     }
     
     public Task<List<ConversationChoice>> GenerateChoices(
@@ -97,46 +110,65 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         return Task.FromResult(defaultChoices);
     }
     
-    public Task<string> GenerateReaction(
+    public async Task<string> GenerateReaction(
         ConversationContext context,
         ConversationState state,
         ConversationChoice selectedChoice,
         bool success)
     {
+        string reactionText;
         
         // Handle specific choice templates that need reactions
         if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
         {
             var npc = context.TargetNPC;
-            return Task.FromResult($"{npc?.Name ?? "They"} smile and hand you a sealed letter. 'I knew I could count on you.'");
+            reactionText = $"{npc?.Name ?? "They"} smile and hand you a sealed letter. 'I knew I could count on you.'";
         }
         else if (selectedChoice.ChoiceType == ConversationChoiceType.DeclineLetterOffer)
         {
             var npc = context.TargetNPC;
-            return Task.FromResult($"{npc?.Name ?? "They"} nod understandingly. 'Perhaps another time then.'");
+            reactionText = $"{npc?.Name ?? "They"} nod understandingly. 'Perhaps another time then.'";
         }
         else if (selectedChoice.ChoiceType == ConversationChoiceType.Introduction)
         {
             var npc = context.TargetNPC;
-            return Task.FromResult($"{npc?.Name ?? "They"} seem pleased to make your acquaintance.");
+            reactionText = $"{npc?.Name ?? "They"} seem pleased to make your acquaintance.";
         }
         else if (selectedChoice.ChoiceType == ConversationChoiceType.DiscoverRoute)
         {
             var npc = context.TargetNPC;
-            return Task.FromResult($"{npc?.Name ?? "They"} look around carefully. 'I do know a few paths... Let me tell you about them.'");
+            reactionText = $"{npc?.Name ?? "They"} look around carefully. 'I do know a few paths... Let me tell you about them.'";
+        }
+        else
+        {
+            // For most thin narrative layer actions, no reaction needed
+            reactionText = "";
         }
         
-        // For most thin narrative layer actions, no reaction needed
-        return Task.FromResult("");
+        // Only stream if there's text to stream
+        if (!string.IsNullOrEmpty(reactionText))
+        {
+            // Create watchers like AIGameMaster does
+            var watchers = new List<IResponseStreamWatcher>
+            {
+                new StreamingContentStateWatcher(_gameWorld.StreamingContentState)
+            };
+            
+            // Stream the text
+            await _streamingService.StreamTextAsync(reactionText, watchers);
+        }
+        
+        return reactionText;
     }
     
-    public Task<string> GenerateConclusion(
+    public async Task<string> GenerateConclusion(
         ConversationContext context,
         ConversationState state,
         ConversationChoice lastChoice)
     {
         // For thin narrative layer, no conclusion needed - action completes immediately
-        return Task.FromResult("");
+        // Return empty string without streaming
+        return "";
     }
     
     public Task<bool> IsAvailable()
