@@ -53,13 +53,6 @@ public class TimeManager
     }
 
 
-    public void UpdateCurrentTimeBlock()
-    {
-        // Time blocks are managed directly, not based on action points
-
-        // Time progression is now handled by time blocks, not action points
-        // This method is kept for compatibility but doesn't need to do anything specific
-    }
 
     public void StartNewDay()
     {
@@ -75,7 +68,7 @@ public class TimeManager
 
 
     /// <summary>
-    /// Get current time hours for GameWorldManager compatibility
+    /// Get current time hours
     /// </summary>
     /// <returns>Current time hours</returns>
     public int GetCurrentTimeHours()

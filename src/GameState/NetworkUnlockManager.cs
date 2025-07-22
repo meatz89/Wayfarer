@@ -147,7 +147,7 @@ using System.Linq;
             {
                 // Give 1 token of their primary type
                 var primaryTokenType = unlockNpc.LetterTokenTypes.First();
-                _tokenManager.AddTokens(primaryTokenType, 1, unlockNpcId);
+                _tokenManager.AddTokensToNPC(primaryTokenType, 1, unlockNpcId);
                 _messageSystem.AddSystemMessage(
                     $"You gain 1 {primaryTokenType} token with {unlockNpc.Name}.",
                     SystemMessageTypes.Success
