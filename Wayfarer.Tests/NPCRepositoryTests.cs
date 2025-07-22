@@ -36,7 +36,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Act
             List<NPC> npcs = npcRepository.GetAllNPCs();
@@ -52,7 +53,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Act
             NPC testMerchant = npcRepository.GetNPCById("test_merchant_npc");
@@ -68,7 +70,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Debug: Check all NPCs and their locations
             List<NPC> allNPCs = npcRepository.GetAllNPCs();
@@ -98,7 +101,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Act
             List<NPC> morningNPCs = npcRepository.GetAvailableNPCs(TimeBlocks.Morning);
@@ -125,7 +129,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Act
             List<NPC> merchants = npcRepository.GetNPCsByProfession(Professions.Merchant);
@@ -145,7 +150,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Act
             List<NPC> lodgingProviders = npcRepository.GetNPCsProvidingService(ServiceTypes.Lodging);
@@ -166,7 +172,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Act
             List<NPC> availableNPCs = npcRepository.GetNPCsForLocationAndTime("test_start_location", TimeBlocks.Afternoon);
@@ -189,7 +196,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             NPC newNPC = new NPC
             {
@@ -215,7 +223,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Get initial count
             int initialCount = npcRepository.GetAllNPCs().Count;
@@ -234,7 +243,8 @@ namespace Wayfarer.Tests
         {
             // Arrange
             GameWorld gameWorld = CreateTestGameWorld();
-            NPCRepository npcRepository = new NPCRepository(gameWorld);
+            DebugLogger debugLogger = new DebugLogger();
+            NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Act - Try to get primary NPC for innkeeper spot
             NPC primaryNPC = npcRepository.GetPrimaryNPCForSpot("innkeeper", TimeBlocks.Afternoon);

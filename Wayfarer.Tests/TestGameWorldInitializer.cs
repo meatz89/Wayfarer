@@ -230,7 +230,8 @@ public static class TestGameWorldInitializer
 
         // Add basic NPCs for market functionality using repository
         // These NPCs are needed for market operations to work with the scheduling system
-        NPCRepository npcRepository = new NPCRepository(gameWorld);
+        DebugLogger debugLogger = new DebugLogger();
+        NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
         npcRepository.AddNPC(new NPC
         {
