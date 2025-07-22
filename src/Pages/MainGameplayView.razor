@@ -2,7 +2,7 @@
 
 @inherits MainGameplayViewBase
 
-<SystemMessageDisplay Messages="@SystemMessages" />
+<SystemMessageDisplay Messages="@SystemMessages" OnMessagesExpired="HandleMessagesExpired" />
 <ObjectiveView StateVersion="@StateVersion" />
 
 <NavigationBar />

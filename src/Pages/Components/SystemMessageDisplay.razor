@@ -1,9 +1,11 @@
+@implements IDisposable
+
 <div class="system-messages-container">
     @if (Messages != null)
     {
         @foreach (var message in Messages.TakeLast(10))
         {
-            <div class="system-message @GetMessageClass(message.Type)"
+            <div class="system-message @GetMessageClass(message.Type) @(IsMessageExpiring(message) ? "message-expiring" : "")"
                  @key="@message">
                 <div class="message-content">
                     @message.Message
@@ -18,6 +20,60 @@
 
 @code {
     [Parameter] public List<SystemMessage>? Messages { get; set; }
+    [Parameter] public EventCallback OnMessagesExpired { get; set; }
+    
+    private System.Threading.Timer? _timer;
+    private HashSet<SystemMessage> _expiringMessages = new HashSet<SystemMessage>();
+    
+    protected override void OnInitialized()
+    {
+        // Check for expired messages every 100ms
+        _timer = new System.Threading.Timer(CheckExpiredMessages, null, 100, 100);
+    }
+    
+    private async void CheckExpiredMessages(object? state)
+    {
+        if (Messages != null)
+        {
+            var hasExpired = false;
+            var hasExpiring = false;
+            
+            foreach (var message in Messages)
+            {
+                if (message.IsExpired && !_expiringMessages.Contains(message))
+                {
+                    hasExpired = true;
+                }
+                else if (!message.IsExpired)
+                {
+                    // Check if message will expire in next 500ms (for fade out animation)
+                    var timeUntilExpiry = message.ExpiresAt - DateTime.Now;
+                    if (timeUntilExpiry.TotalMilliseconds <= 500 && !_expiringMessages.Contains(message))
+                    {
+                        _expiringMessages.Add(message);
+                        hasExpiring = true;
+                    }
+                }
+            }
+            
+            if (hasExpired || hasExpiring)
+            {
+                await InvokeAsync(async () =>
+                {
+                    if (hasExpired && OnMessagesExpired.HasDelegate)
+                    {
+                        await OnMessagesExpired.InvokeAsync();
+                    }
+                    StateHasChanged();
+                });
+            }
+        }
+    }
+    
+    private bool IsMessageExpiring(SystemMessage message)
+    {
+        return _expiringMessages.Contains(message);
+    }
     
     private string GetMessageClass(SystemMessageTypes type)
     {
@@ -29,6 +85,11 @@
             SystemMessageTypes.Info => "message-info",
             _ => "message-info"
         };
+    }
+    
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 }
 
@@ -112,5 +173,20 @@
     
     .message-info .message-content {
         color: #87CEEB;
+    }
+    
+    .message-expiring {
+        animation: fadeOut 0.5s ease-out forwards;
+    }
+    
+    @@keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
     }
 </style>

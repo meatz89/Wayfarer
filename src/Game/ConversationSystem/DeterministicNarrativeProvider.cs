@@ -223,6 +223,50 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         };
     }
     
+    private List<ConversationChoice> GenerateLetterOfferChoices(ActionConversationContext context)
+    {
+        var choices = new List<ConversationChoice>();
+        var npc = context.TargetNPC;
+        int choiceId = 1;
+        
+        // Add choices for each letter offer template
+        foreach (var template in context.AvailableTemplates)
+        {
+            if (template.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
+            {
+                choices.Add(new ConversationChoice
+                {
+                    ChoiceID = choiceId.ToString(),
+                    NarrativeText = template.Purpose,
+                    FocusCost = template.FocusCost,
+                    IsAffordable = true,
+                    ChoiceType = template.ChoiceType,
+                    TemplatePurpose = template.Description,
+                    OfferTokenType = template.TokenType,
+                    OfferCategory = template.Category
+                });
+                choiceId++;
+            }
+        }
+        
+        // Add decline option
+        var declineTemplate = context.AvailableTemplates.FirstOrDefault(t => t.ChoiceType == ConversationChoiceType.DeclineLetterOffer);
+        if (declineTemplate != null)
+        {
+            choices.Add(new ConversationChoice
+            {
+                ChoiceID = choiceId.ToString(),
+                NarrativeText = declineTemplate.Purpose,
+                FocusCost = 0,
+                IsAffordable = true,
+                ChoiceType = ConversationChoiceType.DeclineLetterOffer,
+                TemplatePurpose = declineTemplate.Description
+            });
+        }
+        
+        return choices;
+    }
+    
     private string GetDeliveryIntroduction(ConversationContext context)
     {
         // Check if letter is collected for delivery action
@@ -310,6 +354,12 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         var action = context.SourceAction;
         var npc = context.TargetNPC;
         
+        // Check if this is a letter offer conversation
+        if (action.IsLetterOffer)
+        {
+            return $"You ask {npc?.Name ?? "someone"} if they have any letters that need delivering.";
+        }
+        
         // Use categorical action enum, never string comparisons
         return action.Action switch
         {
@@ -336,6 +386,12 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     private List<ConversationChoice> GenerateActionChoices(ActionConversationContext context)
     {
         var action = context.SourceAction;
+        
+        // Check if this is a letter offer conversation
+        if (action.IsLetterOffer && context.AvailableTemplates != null && context.AvailableTemplates.Any())
+        {
+            return GenerateLetterOfferChoices(context);
+        }
         
         // Handle delivery actions with validation
         if (action.Action == LocationAction.Deliver)

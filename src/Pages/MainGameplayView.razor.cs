@@ -168,6 +168,14 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         PollGameState();
         StateHasChanged();
     }
+    
+    public void HandleMessagesExpired()
+    {
+        // Filter expired messages and update UI
+        SystemMessages = GameWorld.SystemMessages.Where(m => !m.IsExpired).ToList();
+        GameWorld.SystemMessages.RemoveAll(m => m.IsExpired);
+        StateHasChanged();
+    }
 
     public void PollGameState()
     {
