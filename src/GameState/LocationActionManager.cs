@@ -409,6 +409,32 @@ public class LocationActionManager
     /// </summary>
     private void AddLetterActions(NPC npc, List<ActionOption> actions)
     {
+        // Check for letter work - if NPC has potential letters and relationship exists
+        var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        var totalTokens = tokens.Values.Sum();
+        
+        if (_timeManager.HoursRemaining >= 1 && totalTokens > 0)
+        {
+            // Check if NPC can offer letters
+            var potentialOffers = _letterOfferService.GenerateNPCLetterOffers(npc.ID);
+            if (potentialOffers.Any())
+            {
+                actions.Add(new ActionOption
+                {
+                    Action = LocationAction.Converse,
+                    Name = $"Ask {npc.Name} about letter work",
+                    Description = "Check if they need letters delivered",
+                    HourCost = 1,
+                    StaminaCost = 0,
+                    CoinCost = 0,
+                    NPCId = npc.ID,
+                    Effect = "May offer letter delivery work",
+                    InitialNarrative = $"You ask {npc.Name} if they have any letters that need delivering.",
+                    IsLetterOffer = true // Mark this as a letter offer conversation
+                });
+            }
+        }
+        
         // Deliver - if this NPC is a letter recipient
         if (_timeManager.HoursRemaining >= 1 && IsLetterRecipient(npc.ID))
         {
@@ -539,10 +565,37 @@ public class LocationActionManager
             LocationName = player.CurrentLocation?.Name ?? "",
             LocationSpotName = player.CurrentLocationSpot?.Name ?? "",
             TargetNPC = option.NPCId != null ? _npcRepository.GetNPCById(option.NPCId) : null,
-            ConversationTopic = $"Action_{option.Action}",
+            ConversationTopic = option.IsLetterOffer ? "LetterOffer" : $"Action_{option.Action}",
             SourceAction = option,
             InitialNarrative = option.InitialNarrative
         };
+        
+        // If this is a letter offer conversation, add available letter templates
+        if (option.IsLetterOffer && context.TargetNPC != null)
+        {
+            var offers = _letterOfferService.GenerateNPCLetterOffers(option.NPCId);
+            if (offers.Any())
+            {
+                context.AvailableTemplates = offers.Select(offer => new ChoiceTemplate
+                {
+                    Purpose = $"Accept {offer.Category} letter",
+                    Description = $"{offer.Category} delivery for {offer.Payment} coins",
+                    FocusCost = 0,
+                    ChoiceType = ConversationChoiceType.AcceptLetterOffer,
+                    TokenType = offer.LetterType,
+                    Category = offer.Category
+                }).ToList();
+                
+                // Add decline option
+                context.AvailableTemplates.Add(new ChoiceTemplate
+                {
+                    Purpose = "Decline letter offers",
+                    Description = "Politely refuse any letter work",
+                    FocusCost = 0,
+                    ChoiceType = ConversationChoiceType.DeclineLetterOffer
+                });
+            }
+        }
         
         // Create conversation properly with async/await
         var conversation = await _conversationFactory.CreateConversation(context, player);
@@ -2175,6 +2228,9 @@ public class ActionOption
     
     // Travel encounter specific properties
     public TravelEncounterType? EncounterType { get; set; }
+    
+    // Letter offer specific flag
+    public bool IsLetterOffer { get; set; }
 }
 
 /// <summary>
