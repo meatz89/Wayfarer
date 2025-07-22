@@ -62,6 +62,7 @@
         // Letter Queue System
         services.AddSingleton<StandingObligationManager>();
         services.AddSingleton<LetterCategoryService>();
+        services.AddSingleton<DeliveryConversationService>();
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<ConnectionTokenManager>();
@@ -121,7 +122,8 @@
                 var tokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
                 var routeDiscoveryManager = serviceProvider.GetRequiredService<RouteDiscoveryManager>();
                 var letterCategoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
-                return new DeterministicNarrativeProvider(gameWorld, tokenManager, routeDiscoveryManager, letterCategoryService);
+                var deliveryConversationService = serviceProvider.GetRequiredService<DeliveryConversationService>();
+                return new DeterministicNarrativeProvider(gameWorld, tokenManager, routeDiscoveryManager, letterCategoryService, deliveryConversationService);
             }
             else
             {

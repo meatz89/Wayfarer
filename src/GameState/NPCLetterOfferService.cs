@@ -501,6 +501,77 @@ public class NPCLetterOfferService
             }
         }
     }
+    
+    /// <summary>
+    /// Generate a return letter when recipient wants to send a reply.
+    /// </summary>
+    public Letter GenerateReturnLetter(NPC recipient, Letter originalLetter)
+    {
+        // Find a suitable return recipient - prefer the original sender if they're an NPC
+        NPC returnRecipient = null;
+        if (!string.IsNullOrEmpty(originalLetter.SenderId))
+        {
+            returnRecipient = _npcRepository.GetNPCById(originalLetter.SenderId);
+        }
+        
+        // If no valid sender, pick a random NPC from a different location
+        if (returnRecipient == null)
+        {
+            var eligibleNPCs = _npcRepository.GetAllNPCs()
+                .Where(n => n.ID != recipient.ID && n.Location != recipient.Location)
+                .ToList();
+                
+            if (!eligibleNPCs.Any())
+            {
+                // Fall back to any NPC
+                eligibleNPCs = _npcRepository.GetAllNPCs()
+                    .Where(n => n.ID != recipient.ID)
+                    .ToList();
+            }
+            
+            if (eligibleNPCs.Any())
+            {
+                returnRecipient = eligibleNPCs[_random.Next(eligibleNPCs.Count)];
+            }
+        }
+        
+        if (returnRecipient == null) return null;
+        
+        // Generate return letter
+        var letter = new Letter
+        {
+            Id = Guid.NewGuid().ToString(),
+            SenderId = recipient.ID,
+            SenderName = recipient.Name,
+            RecipientId = returnRecipient.ID,
+            RecipientName = returnRecipient.Name,
+            Payment = _random.Next(8, 16), // Return letters pay slightly more
+            Deadline = _gameWorld.CurrentDay + _random.Next(3, 5),
+            IsGenerated = true,
+            GenerationReason = "Return Letter",
+            State = LetterState.Accepted,
+            Message = $"Reply to: {originalLetter.SenderName}"
+        };
+        
+        // Determine token type based on recipient
+        if (returnRecipient.LetterTokenTypes.Any())
+        {
+            letter.TokenType = returnRecipient.LetterTokenTypes.First();
+        }
+        else
+        {
+            letter.TokenType = ConnectionType.Common;
+        }
+        
+        // Add urgency sometimes
+        if (_random.Next(100) < 30)
+        {
+            letter.PhysicalProperties |= LetterPhysicalProperties.Valuable;
+            letter.Payment += 3;
+        }
+        
+        return letter;
+    }
 }
 
 /// <summary>

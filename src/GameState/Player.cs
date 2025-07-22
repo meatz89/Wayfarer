@@ -20,6 +20,7 @@
     public int Reputation { get; set; } = 0;
     public int Health { get; set; }
     public int Food { get; set; }
+    public int PatronLeverage { get; set; } = 0;
 
     public int MaxStamina { get; set; } = 10;  // Changed to 10 to match 0-10 scale
     public int MaxConcentration { get; set; }

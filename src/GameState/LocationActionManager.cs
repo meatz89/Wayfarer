@@ -47,6 +47,7 @@ public class LocationActionManager
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
     private readonly NPCLetterOfferService _letterOfferService;
     private readonly LetterCategoryService _letterCategoryService;
+    private readonly NoticeBoardService _noticeBoardService;
     
     private TimeManager _timeManager => _gameWorld.TimeManager;
     
@@ -60,7 +61,8 @@ public class LocationActionManager
         ConversationFactory conversationFactory,
         RouteDiscoveryManager routeDiscoveryManager,
         NPCLetterOfferService letterOfferService,
-        LetterCategoryService letterCategoryService)
+        LetterCategoryService letterCategoryService,
+        NoticeBoardService noticeBoardService)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -72,6 +74,7 @@ public class LocationActionManager
         _routeDiscoveryManager = routeDiscoveryManager;
         _letterOfferService = letterOfferService;
         _letterCategoryService = letterCategoryService;
+        _noticeBoardService = noticeBoardService;
     }
     
     
@@ -930,53 +933,176 @@ public class LocationActionManager
         player.CarriedLetters.Remove(letter);
         player.Inventory.RemoveItem($"letter_{letter.Id}");
         
-        // Determine payment based on conversation choice
-        bool earnToken = true;
-        int bonusCoins = 0;
-        
-        if (selectedChoice != null)
+        // Process delivery outcome based on conversation choice
+        if (selectedChoice?.DeliveryOutcome != null)
         {
-            if (selectedChoice.ChoiceType == ConversationChoiceType.DeliverForCoins)
+            var outcome = selectedChoice.DeliveryOutcome;
+            var npc = _npcRepository.GetNPCById(npcId);
+            
+            // Calculate total payment
+            int totalPayment = outcome.BasePayment + outcome.BonusPayment;
+            
+            // Apply tip chance if applicable
+            if (outcome.ChanceForTip > 0)
             {
-                // Player chose extra coins, no token
-                earnToken = false;
-                bonusCoins = 3;
+                var random = new Random();
+                if (random.NextDouble() < outcome.ChanceForTip)
+                {
+                    totalPayment += outcome.TipAmount;
+                    _messageSystem.AddSystemMessage(
+                        $"💝 {npc.Name} appreciates your honesty and gives you a {outcome.TipAmount} coin tip!",
+                        SystemMessageTypes.Success
+                    );
+                }
             }
-            // DeliverForTokens is the default behavior
-        }
-        
-        // Calculate total payment
-        int totalPayment = letter.Payment + bonusCoins;
-        
-        // Process delivery
-        _letterQueueManager.RemoveLetterFromQueue(1);
-        _letterQueueManager.RecordLetterDelivery(letter);
-        player.ModifyCoins(totalPayment);
-        
-        // Show delivery messages
-        _messageSystem.AddSystemMessage(
-            $"✉️ Letter delivered to {letter.RecipientName}!",
-            SystemMessageTypes.Success
-        );
-        
-        if (bonusCoins > 0)
-        {
+            
+            // Process delivery and payment
+            _letterQueueManager.RemoveLetterFromQueue(1);
+            _letterQueueManager.RecordLetterDelivery(letter);
+            player.ModifyCoins(totalPayment);
+            
+            // Show delivery message
             _messageSystem.AddSystemMessage(
-                $"💰 Earned {totalPayment} coins (base {letter.Payment} + {bonusCoins} extra)",
+                $"✉️ Letter delivered to {letter.RecipientName}!",
                 SystemMessageTypes.Success
             );
+            
+            // Show payment breakdown
+            if (outcome.BonusPayment > 0)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"💰 Earned {totalPayment} coins (base {outcome.BasePayment} + {outcome.BonusPayment} bonus)",
+                    SystemMessageTypes.Success
+                );
+            }
+            else if (outcome.BasePayment < letter.Payment)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"💰 Earned {totalPayment} coins ({letter.Payment - outcome.BasePayment} coin penalty for late delivery)",
+                    SystemMessageTypes.Warning
+                );
+            }
+            else
+            {
+                _messageSystem.AddSystemMessage(
+                    $"💰 Earned {totalPayment} coins",
+                    SystemMessageTypes.Success
+                );
+            }
+            
+            // Handle token rewards/penalties
+            if (outcome.TokenReward && outcome.TokenAmount > 0)
+            {
+                _tokenManager.AddTokensToNPC(outcome.TokenType, outcome.TokenAmount, npcId);
+                if (outcome.TokenAmount > 1)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"🤝 +{outcome.TokenAmount} {outcome.TokenType} tokens with {npc.Name} (relationship strengthened)",
+                        SystemMessageTypes.Success
+                    );
+                }
+                else
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"🤝 +1 {outcome.TokenType} token with {npc.Name}",
+                        SystemMessageTypes.Success
+                    );
+                }
+            }
+            else if (outcome.TokenPenalty && outcome.TokenAmount < 0)
+            {
+                var currentTokens = _tokenManager.GetTokenCount(outcome.TokenType);
+                if (currentTokens >= Math.Abs(outcome.TokenAmount))
+                {
+                    _tokenManager.SpendTokens(outcome.TokenType, Math.Abs(outcome.TokenAmount));
+                    _messageSystem.AddSystemMessage(
+                        $"⚠️ Lost {Math.Abs(outcome.TokenAmount)} {outcome.TokenType} token with {npc.Name} (trust damaged)",
+                        SystemMessageTypes.Warning
+                    );
+                }
+            }
+            else if (!outcome.TokenReward)
+            {
+                _messageSystem.AddSystemMessage(
+                    "  • No token earned",
+                    SystemMessageTypes.Info
+                );
+            }
+            
+            // Handle additional effects
+            if (!string.IsNullOrEmpty(outcome.AdditionalEffect))
+            {
+                _messageSystem.AddSystemMessage(
+                    $"  • {outcome.AdditionalEffect}",
+                    SystemMessageTypes.Info
+                );
+            }
+            
+            // Handle return letter generation
+            if (outcome.GeneratesReturnLetter)
+            {
+                var returnLetter = _letterOfferService.GenerateReturnLetter(npc, letter);
+                if (returnLetter != null)
+                {
+                    // Try to add to the next available position
+                    for (int pos = 1; pos <= 8; pos++)
+                    {
+                        if (_letterQueueManager.AddLetterToQueue(returnLetter, pos))
+                        {
+                            break;
+                        }
+                    }
+                    _messageSystem.AddSystemMessage(
+                        $"📨 {npc.Name} hands you a return letter to deliver",
+                        SystemMessageTypes.Success
+                    );
+                }
+            }
+            
+            // Handle chain letter unlocking
+            if (outcome.UnlocksChainLetters && letter.IsChainLetter)
+            {
+                // Process chain letter unlocks
+                if (letter.UnlocksLetterIds != null && letter.UnlocksLetterIds.Any())
+                {
+                    foreach (var unlockedId in letter.UnlocksLetterIds)
+                    {
+                        _noticeBoardService.UnlockChainLetter(unlockedId);
+                    }
+                    _messageSystem.AddSystemMessage(
+                        $"🔗 Chain letter sequence unlocked! Check notice boards for new opportunities.",
+                        SystemMessageTypes.Success
+                    );
+                }
+            }
+            
+            // Handle leverage reduction
+            if (outcome.ReducesLeverage > 0 && npc.Profession == Professions.Noble)
+            {
+                player.PatronLeverage = Math.Max(0, player.PatronLeverage - outcome.ReducesLeverage);
+                _messageSystem.AddSystemMessage(
+                    $"  • Your patron's leverage over you reduces ({player.PatronLeverage} remaining)",
+                    SystemMessageTypes.Success
+                );
+            }
         }
         else
         {
+            // Fallback to original simple delivery logic
+            _letterQueueManager.RemoveLetterFromQueue(1);
+            _letterQueueManager.RecordLetterDelivery(letter);
+            player.ModifyCoins(letter.Payment);
+            
             _messageSystem.AddSystemMessage(
-                $"💰 Earned {totalPayment} coins",
+                $"✉️ Letter delivered to {letter.RecipientName}!",
                 SystemMessageTypes.Success
             );
-        }
-        
-        // Handle token reward if applicable
-        if (earnToken)
-        {
+            _messageSystem.AddSystemMessage(
+                $"💰 Earned {letter.Payment} coins",
+                SystemMessageTypes.Success
+            );
+            
+            // Default token reward
             var npc = _npcRepository.GetNPCById(npcId);
             if (npc != null && npc.LetterTokenTypes.Any())
             {
@@ -987,13 +1113,6 @@ public class LocationActionManager
                     SystemMessageTypes.Success
                 );
             }
-        }
-        else
-        {
-            _messageSystem.AddSystemMessage(
-                "  • No token earned (chose extra payment)",
-                SystemMessageTypes.Info
-            );
         }
         
         return true;

@@ -1,6 +1,15 @@
 using Serilog;
 
+// Suppress security warnings
+Environment.SetEnvironmentVariable("ASPNETCORE_SUPPRESSSTATUSMESSAGES", "true");
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Configure Kestrel to only use HTTP
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenLocalhost(5011); // HTTP only on different port
+});
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -33,10 +42,10 @@ WebApplication app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    app.UseHsts();
+    // Removed HSTS
 }
 
-app.UseHttpsRedirection();
+// Removed HTTPS redirection
 app.UseStaticFiles();
 app.UseRouting();
 app.MapBlazorHub();
