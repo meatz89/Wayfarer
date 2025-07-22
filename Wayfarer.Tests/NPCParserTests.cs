@@ -32,7 +32,6 @@ public class NPCParserTests
         Assert.Equal("A jovial man who runs the Dusty Flagon with warmth and efficiency.", npc.Description);
         Assert.Equal("dusty_flagon", npc.Location);
         Assert.Equal(Professions.Merchant, npc.Profession);
-        Assert.Equal(Schedule.Market_Hours, npc.AvailabilitySchedule); // Default schedule for Merchant profession
         Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship);
 
         Assert.Contains(ServiceTypes.Rest, npc.ProvidedServices);
@@ -93,18 +92,12 @@ public class NPCParserTests
             Assert.True(npc.Profession != default(Professions) || npc.Profession == Professions.Soldier,
                 $"NPC {npc.Name} has invalid profession: {npc.Profession}");
             // Schedule should be properly set
-            Assert.True(npc.AvailabilitySchedule != default(Schedule) || npc.AvailabilitySchedule == Schedule.Always,
-                $"NPC {npc.Name} has invalid schedule: {npc.AvailabilitySchedule}");
             Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship); // All should start neutral
         }
 
         // Verify we have diverse professions
         List<Professions> professions = npcs.Select(n => n.Profession).Distinct().ToList();
         Assert.True(professions.Count >= 3, "Should have at least 3 different professions");
-
-        // Verify we have diverse schedules
-        List<Schedule> schedules = npcs.Select(n => n.AvailabilitySchedule).Distinct().ToList();
-        Assert.True(schedules.Count >= 3, "Should have at least 3 different schedules");
     }
 
     [Fact]
@@ -131,10 +124,6 @@ public class NPCParserTests
             bool availableInAfternoon = npc.IsAvailable(TimeBlocks.Afternoon);
             bool availableInEvening = npc.IsAvailable(TimeBlocks.Evening);
             bool availableInNight = npc.IsAvailable(TimeBlocks.Night);
-
-            // At least one time should be available
-            Assert.True(availableInDawn || availableInMorning || availableInAfternoon || availableInEvening || availableInNight,
-                $"NPC {npc.Name} (ID: {npc.ID}) with schedule {npc.AvailabilitySchedule} is not available at any time: Dawn={availableInDawn}, Morning={availableInMorning}, Afternoon={availableInAfternoon}, Evening={availableInEvening}, Night={availableInNight}");
 
             // Test service provision
             foreach (ServiceTypes service in npc.ProvidedServices)

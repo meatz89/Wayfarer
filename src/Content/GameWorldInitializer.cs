@@ -63,9 +63,6 @@ public class GameWorldInitializer : IGameWorldFactory
         List<Item> items = LoadItems(templatePath);
         
         // PHASE 2: Create initial GameWorld with base entities
-        // Actions removed - using letter queue system
-        
-        // Skill cards removed - using letter queue system
         
         // Create GameWorld with base entities
         GameWorld gameWorld = GameWorldSerializer.DeserializeGameWorld(
@@ -169,6 +166,8 @@ public class GameWorldInitializer : IGameWorldFactory
         // CRITICAL: Ensure Player.CurrentLocation and CurrentLocationSpot are NEVER null
         // Systems depend on these values being valid
         InitializePlayerLocation(gameWorld);
+
+        gameWorld.TimeManager.SetNewTime(11); // Set initial time to noon
 
         return gameWorld;
     }
@@ -874,11 +873,7 @@ public class GameWorldInitializer : IGameWorldFactory
                         profession = Professions.Merchant; // Default profession if parsing fails
                     }
                     
-                    // Parse schedule
-                    if (!Enum.TryParse<Schedule>(dto.AvailabilitySchedule ?? "Standard", out var schedule))
-                    {
-                        schedule = Schedule.Business_Hours;
-                    }
+                    // NPCs are always available - no schedule parsing needed
                     
                     // Parse services
                     var services = new List<ServiceTypes>();
@@ -913,7 +908,6 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.SpotId,
                         dto.Role,
                         dto.Description,
-                        schedule,
                         services,
                         tokenTypes);
                     

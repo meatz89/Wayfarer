@@ -19,52 +19,6 @@ public class NPCCategoricalSystemTests
     }
 
     [Fact]
-    public void NPC_Should_Have_Schedule_For_Availability()
-    {
-        // Arrange & Act
-        NPC npc = new NPC
-        {
-            ID = "test_npc",
-            Name = "Test NPC",
-            AvailabilitySchedule = Schedule.Market_Hours
-        };
-
-        // Assert
-        Assert.Equal(Schedule.Market_Hours, npc.AvailabilitySchedule);
-    }
-
-    [Theory]
-    [InlineData(Schedule.Market_Hours, TimeBlocks.Morning, true)]
-    [InlineData(Schedule.Market_Hours, TimeBlocks.Afternoon, true)]
-    [InlineData(Schedule.Market_Hours, TimeBlocks.Evening, false)]
-    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Dawn, true)]
-    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Morning, true)]
-    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Afternoon, true)]
-    [InlineData(Schedule.Workshop_Hours, TimeBlocks.Evening, false)]
-    [InlineData(Schedule.Evening_Only, TimeBlocks.Evening, true)]
-    [InlineData(Schedule.Evening_Only, TimeBlocks.Morning, false)]
-    [InlineData(Schedule.Always, TimeBlocks.Morning, true)]
-    [InlineData(Schedule.Always, TimeBlocks.Afternoon, true)]
-    [InlineData(Schedule.Always, TimeBlocks.Evening, true)]
-    public void NPC_IsAvailable_Should_Return_Correct_Availability_Based_On_Schedule(
-        Schedule npcSchedule, TimeBlocks currentTime, bool expectedAvailable)
-    {
-        // Arrange
-        NPC npc = new NPC
-        {
-            ID = "test_npc",
-            Name = "Test NPC",
-            AvailabilitySchedule = npcSchedule
-        };
-
-        // Act
-        bool isAvailable = npc.IsAvailable(currentTime);
-
-        // Assert
-        Assert.Equal(expectedAvailable, isAvailable);
-    }
-
-    [Fact]
     public void NPC_Should_Track_Provided_Services()
     {
         // Arrange
@@ -126,7 +80,6 @@ public class NPCCategoricalSystemTests
             ID = "test_npc",
             Name = "Test NPC",
             Profession = Professions.Merchant,
-            AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Information }
         };
 

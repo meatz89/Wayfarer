@@ -29,16 +29,7 @@ public static class NPCParser
         string professionStr = GetStringProperty(root, "profession", "");
         npc.Profession = MapProfessionFromJson(professionStr);
 
-        // Parse schedule from JSON if available, otherwise use default based on profession
-        string scheduleStr = GetStringProperty(root, "availabilitySchedule", "");
-        if (!string.IsNullOrEmpty(scheduleStr))
-        {
-            npc.AvailabilitySchedule = ParseScheduleFromJson(scheduleStr);
-        }
-        else
-        {
-            npc.AvailabilitySchedule = GetDefaultScheduleForProfession(npc.Profession);
-        }
+        // NPCs are always available - no schedule parsing needed
 
         // Parse services and map to ServiceTypes enum
         List<string> serviceStrings = GetStringArray(root, "services");
@@ -72,65 +63,16 @@ public static class NPCParser
     {
         return jsonProfession switch
         {
-            "Craftsman" => Professions.Craftsman, // Workshop Master
+            "Craftsman" => Professions.Craftsman,
             "Merchant" => Professions.Merchant,
             "Innkeeper" => Professions.Innkeeper,
-            "TavernKeeper" => Professions.TavernKeeper,
-            "Baker" => Professions.Baker,
-            "Scribe" => Professions.Scribe,
-            "Noble" => Professions.Noble,
-            "Woodsman" => Professions.Ranger, // Logger
-            "Herbalist" => Professions.Ranger, // Herb Gatherer
-            "Foreman" => Professions.Soldier, // Camp Boss
-            "Harbor_Master" => Professions.Merchant, // Dock Master
-            "Merchant_Captain" => Professions.Merchant, // Trade Captain
-            "Laborer" => Professions.Soldier, // River Worker
+            "Soldier" => Professions.Soldier,
             "Scholar" => Professions.Scholar,
             _ => Professions.Merchant // Default fallback
         };
     }
 
-    private static Schedule GetDefaultScheduleForProfession(Professions profession)
-    {
-        return profession switch
-        {
-            Professions.Merchant => Schedule.Market_Hours,
-            Professions.Soldier => Schedule.Workshop_Hours,
-            Professions.Ranger => Schedule.Morning_Afternoon,
-            Professions.Scholar => Schedule.Library_Hours,
-            Professions.Scribe => Schedule.Business_Hours,
-            Professions.Noble => Schedule.Afternoon_Evening,
-            Professions.Courtier => Schedule.Business_Hours,
-            Professions.Thief => Schedule.Evening_Night,
-            Professions.TavernKeeper => Schedule.Evening_Night,
-            Professions.Innkeeper => Schedule.Always,
-            Professions.Baker => Schedule.Dawn_Only,
-            Professions.Craftsman => Schedule.Workshop_Hours,
-            _ => Schedule.Business_Hours
-        };
-    }
 
-    private static Schedule ParseScheduleFromJson(string scheduleStr)
-    {
-        return scheduleStr switch
-        {
-            "Always" => Schedule.Always,
-            "Market_Hours" => Schedule.Market_Hours,
-            "Workshop_Hours" => Schedule.Workshop_Hours,
-            "Library_Hours" => Schedule.Library_Hours,
-            "Business_Hours" => Schedule.Business_Hours,
-            "Morning_Evening" => Schedule.Morning_Evening,
-            "Morning_Afternoon" => Schedule.Morning_Afternoon,
-            "Afternoon_Evening" => Schedule.Afternoon_Evening,
-            "Evening_Only" => Schedule.Evening_Only,
-            "Morning_Only" => Schedule.Morning_Only,
-            "Afternoon_Only" => Schedule.Afternoon_Only,
-            "Evening_Night" => Schedule.Evening_Night,
-            "Dawn_Only" => Schedule.Dawn_Only,
-            "Night_Only" => Schedule.Night_Only,
-            _ => Schedule.Business_Hours // Default fallback
-        };
-    }
 
     private static ServiceTypes? MapServiceFromJson(string jsonService)
     {

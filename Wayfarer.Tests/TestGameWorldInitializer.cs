@@ -239,7 +239,6 @@ public static class TestGameWorldInitializer
             Name = "Marcus the Innkeeper",
             Location = "dusty_flagon",
             Profession = Professions.Merchant,
-            AvailabilitySchedule = Schedule.Always,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.Rest }
         });
 
@@ -249,7 +248,6 @@ public static class TestGameWorldInitializer
             Name = "Elena the Trader",
             Location = "town_square",
             Profession = Professions.Merchant,
-            AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
         });
 
@@ -259,7 +257,6 @@ public static class TestGameWorldInitializer
             Name = "Guild Artisan",
             Location = "workshop",
             Profession = Professions.Merchant,
-            AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade, ServiceTypes.EquipmentRepair }
         });
 
@@ -269,7 +266,6 @@ public static class TestGameWorldInitializer
             Name = "Village Merchant",
             Location = "millbrook",
             Profession = Professions.Merchant,
-            AvailabilitySchedule = Schedule.Market_Hours,
             ProvidedServices = new List<ServiceTypes> { ServiceTypes.Trade }
         });
 

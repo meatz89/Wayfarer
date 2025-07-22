@@ -10,7 +10,7 @@
 
     // Categorical Properties for Logical System Interactions
     public Professions Profession { get; set; }
-    public Schedule AvailabilitySchedule { get; set; }
+    // NPCs are always available - no schedule system
     public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
     
@@ -30,7 +30,7 @@
     {
         get
         {
-            return AvailabilitySchedule.ToString().Replace('_', ' ');
+            return "Always available";
         }
     }
 
@@ -46,24 +46,8 @@
 
     public bool IsAvailable(TimeBlocks currentTime)
     {
-        return AvailabilitySchedule switch
-        {
-            Schedule.Always => true,
-            Schedule.Market_Hours => currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon,
-            Schedule.Workshop_Hours => currentTime == TimeBlocks.Dawn || currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon,
-            Schedule.Library_Hours => currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon,
-            Schedule.Business_Hours => currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon,
-            Schedule.Morning_Evening => currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Evening,
-            Schedule.Morning_Afternoon => currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon,
-            Schedule.Afternoon_Evening => currentTime == TimeBlocks.Afternoon || currentTime == TimeBlocks.Evening,
-            Schedule.Evening_Only => currentTime == TimeBlocks.Evening,
-            Schedule.Morning_Only => currentTime == TimeBlocks.Morning,
-            Schedule.Afternoon_Only => currentTime == TimeBlocks.Afternoon,
-            Schedule.Evening_Night => currentTime == TimeBlocks.Evening || currentTime == TimeBlocks.Night,
-            Schedule.Dawn_Only => currentTime == TimeBlocks.Dawn,
-            Schedule.Night_Only => currentTime == TimeBlocks.Night,
-            _ => false
-        };
+        // NPCs are always available by default
+        return true;
     }
 
     public bool CanProvideService(ServiceTypes requestedService)

@@ -48,7 +48,6 @@
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
-        services.AddSingleton<StateVerificationService>();
         services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();

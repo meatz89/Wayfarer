@@ -205,7 +205,6 @@ namespace Wayfarer.Tests
                 Name = "Test NPC",
                 Location = "town_square",
                 Profession = Professions.Scholar,
-                AvailabilitySchedule = Schedule.Always
             };
 
             // Act
