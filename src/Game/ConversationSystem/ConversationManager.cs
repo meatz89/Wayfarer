@@ -79,18 +79,8 @@ public class ConversationManager
         _state.AdvanceDuration();
         
         // Check if conversation should complete
-        bool shouldComplete = false;
-        
-        // Introduction conversations complete after one choice
-        if (selectedChoice.ChoiceType == ConversationChoiceType.Introduction)
-        {
-            shouldComplete = true;
-        }
-        // Other conversations complete based on duration
-        else if (_state.DurationCounter >= _state.MaxDuration)
-        {
-            shouldComplete = true;
-        }
+        // For now, ALL conversations complete after one choice
+        bool shouldComplete = true;
         
         // Create outcome
         var outcome = new ConversationBeatOutcome
