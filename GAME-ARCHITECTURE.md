@@ -1108,6 +1108,83 @@ In the full game, conversations will expand to include:
 ### Queue-Centric Design
 Every feature must answer: "How does this serve the letter queue optimization puzzle?"
 
+## COMPOUND ACTION PRINCIPLE (CRITICAL)
+
+### Natural Action Overlap Creates Emergent Efficiency
+**Actions should naturally accomplish multiple goals without special bonuses or explicit compound mechanics.**
+
+**Core Principle**: When player actions naturally overlap (like carrying trade goods while delivering letters), the efficiency emerges from the systems working as designed, not from special "compound action" bonuses.
+
+**Implementation Pattern**:
+```csharp
+// ✅ CORRECT: Natural overlap detection
+private string GetTradeCompoundEffect(NPC merchant)
+{
+    // Check what player is already carrying
+    var profitableItems = CheckInventoryForTradeGoods();
+    if (profitableItems.Any())
+    {
+        // Show the natural benefit, don't add special bonuses
+        return $"Access market + sell {profitableItems.Count} items for +{totalProfit} profit";
+    }
+}
+
+// ❌ WRONG: Special compound bonuses
+if (hasLetterDelivery && hasTradeGoods)
+{
+    bonusMultiplier = 1.5; // NO! No special bonuses for combining
+}
+```
+
+**Examples of Natural Overlap**:
+1. **Trade + Delivery**: Carrying trade goods to a letter destination naturally allows profitable trading
+2. **Work + Relationship**: Working for an NPC naturally builds connection tokens
+3. **Rest + Socializing**: Buying drinks at a tavern restores stamina AND builds relationships
+4. **Gathering + Travel**: Collecting resources while traveling between locations
+
+**Why This Matters**:
+- Players discover efficiencies through play, not through tooltips
+- No complex "combo" systems to explain or balance
+- Emergent gameplay feels more satisfying than prescribed combinations
+- Maintains simplicity while allowing depth
+
+## LOCATION-BASED ACTION GENERATION
+
+### Domain Tags Drive Environmental Actions
+**Location spots use domain tags to generate contextual actions, creating distinct location personalities.**
+
+**Domain Tag Categories**:
+- **RESOURCES**: Natural gathering opportunities (berries, herbs, materials)
+- **COMMERCE**: Trading and market activities
+- **SOCIAL**: Information gathering and relationship building
+- **LABOR**: Work opportunities when NPCs aren't available
+- **CRAFTING**: Equipment maintenance and creation
+- **TRANSPORT**: Alternative travel arrangements
+- **RESTRICTED**: Limited access based on relationships or equipment
+
+**Implementation Requirements**:
+1. **Actions emerge from tags, not hardcoded spot IDs**
+2. **Environmental actions supplement, don't replace NPC interactions**
+3. **Contextual availability based on time, NPCs present, and player state**
+4. **No optimization hints - players discover uses through exploration**
+
+```csharp
+// ✅ CORRECT: Tag-based action generation
+if (spot.DomainTags.Contains("RESOURCES"))
+{
+    actions.Add(new GatherBerriesAction());
+}
+
+// ❌ WRONG: Hardcoded spot checks
+if (spot.SpotID == "millbrook_forest")
+{
+    actions.Add(new GatherBerriesAction());
+}
+```
+
+### Queue-Centric Design
+Every feature must answer: "How does this serve the letter queue optimization puzzle?"
+
 ---
 
 **This document contains the essential architectural patterns. Follow these principles to maintain system consistency and avoid architectural violations.**

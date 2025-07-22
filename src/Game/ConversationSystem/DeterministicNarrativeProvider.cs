@@ -9,20 +9,18 @@ using System.Threading.Tasks;
 /// </summary>
 public class DeterministicNarrativeProvider : INarrativeProvider
 {
-    private readonly GameWorld _gameWorld;
+    // These services are needed to generate appropriate choices and narratives
     private readonly ConnectionTokenManager _tokenManager;
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
     private readonly LetterCategoryService _letterCategoryService;
     private readonly DeliveryConversationService _deliveryConversationService;
     
     public DeterministicNarrativeProvider(
-        GameWorld gameWorld, 
         ConnectionTokenManager tokenManager,
         RouteDiscoveryManager routeDiscoveryManager,
         LetterCategoryService letterCategoryService,
         DeliveryConversationService deliveryConversationService)
     {
-        _gameWorld = gameWorld;
         _tokenManager = tokenManager;
         _routeDiscoveryManager = routeDiscoveryManager;
         _letterCategoryService = letterCategoryService;
@@ -31,6 +29,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     
     public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
     {
+        
         // Look for initial narrative in context
         if (context is ActionConversationContext actionContext && !string.IsNullOrEmpty(actionContext.InitialNarrative))
         {
@@ -66,6 +65,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             "Action_Collect" => $"{context.TargetNPC?.Name ?? "The sender"} hands you a sealed letter with instructions for safe delivery.",
             "Action_Trade" => $"You browse {context.TargetNPC?.Name ?? "the merchant"}'s wares.",
             "Action_Rest" => "You find a comfortable spot to rest.",
+            "Action_TravelEncounter" => "You must deal with an unexpected situation on your journey.",
             _ => "You proceed with your action."
         };
         
@@ -77,6 +77,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         ConversationState state,
         List<ChoiceTemplate> availableTemplates)
     {
+        
         // Check if this is a queue management conversation
         if (context is QueueManagementContext queueContext)
         {
@@ -117,6 +118,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         ConversationChoice selectedChoice,
         bool success)
     {
+        
         // Handle specific choice templates that need reactions
         if (selectedChoice.ChoiceType == ConversationChoiceType.AcceptLetterOffer)
         {
@@ -197,7 +199,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         // Check if letter is collected for delivery action
         if (context is ActionConversationContext actionContext && actionContext.SourceAction != null)
         {
-            var player = _gameWorld.GetPlayer();
+            var player = context.Player;
             var letter = player.LetterQueue.FirstOrDefault();
             
             if (letter == null)
@@ -289,12 +291,18 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             return GetConverseChoices(context);
         }
         
+        // Handle travel encounters
+        if (action.Action == LocationAction.TravelEncounter)
+        {
+            return GetTravelEncounterChoices(context);
+        }
+        
         return null; // Use default choices
     }
     
     private List<ConversationChoice> GetDeliveryChoices(ConversationContext context)
     {
-        var player = _gameWorld.GetPlayer();
+        var player = context.Player;
         var letter = player.LetterQueue.FirstOrDefault();
         
         // If letter is not valid for delivery, provide explanation choice
@@ -500,14 +508,204 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         
         return GenerateDefaultChoices(context, null);
     }
+    
+    private List<ConversationChoice> GetTravelEncounterChoices(ActionConversationContext context)
+    {
+        var choices = new List<ConversationChoice>();
+        var player = context.Player;
+        
+        // Get the encounter type from the action
+        var encounterType = context.SourceAction.EncounterType ?? TravelEncounterType.FellowTraveler;
+        
+        // Get player equipment (simplified for thin layer)
+        var hasClimbingGear = HasEquipmentCategory(player, "climbing");
+        var hasLightSource = HasEquipmentCategory(player, "torch") || HasEquipmentCategory(player, "lantern");
+        var hasWeatherProtection = HasEquipmentCategory(player, "cloak") || HasEquipmentCategory(player, "waterproof");
+        var hasCart = HasEquipmentCategory(player, "cart") || HasEquipmentCategory(player, "wagon");
+        
+        // Always add a default cautious option
+        choices.Add(new ConversationChoice
+        {
+            ChoiceID = "1",
+            NarrativeText = "Proceed with caution",
+            FocusCost = 0,
+            IsAffordable = true,
+            ChoiceType = ConversationChoiceType.TravelCautious,
+            TemplatePurpose = "Take the safe but slow approach",
+            TravelEffect = TravelChoiceEffect.None
+        });
+        
+        // Add equipment-based choices based on encounter type
+        switch (encounterType)
+        {
+            case TravelEncounterType.WildernessObstacle:
+                if (hasClimbingGear)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Use climbing gear to go over",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelUseEquipment,
+                        TemplatePurpose = "Save time with equipment",
+                        TravelEffect = TravelChoiceEffect.SaveTime,
+                        RequiredEquipment = EquipmentType.ClimbingGear,
+                        TimeModifierMinutes = -30
+                    });
+                }
+                
+                // Always offer a risky option
+                if (player.Stamina >= 2)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = choices.Count + 1 + "",
+                        NarrativeText = "Force through the obstacle",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelForceThrough,
+                        TemplatePurpose = "Spend stamina to save time",
+                        TravelEffect = TravelChoiceEffect.SpendStamina,
+                        StaminaCost = 2,
+                        TimeModifierMinutes = -30
+                    });
+                }
+                break;
+                
+            case TravelEncounterType.DarkChallenge:
+                if (hasLightSource)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Light torch and continue safely",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelUseEquipment,
+                        TemplatePurpose = "Navigate safely with light",
+                        TravelEffect = TravelChoiceEffect.None,
+                        RequiredEquipment = EquipmentType.LightSource
+                    });
+                }
+                else
+                {
+                    // Risky option without light
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Stumble forward in darkness",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelSlowProgress,
+                        TemplatePurpose = "Continue slowly without light",
+                        TravelEffect = TravelChoiceEffect.LoseTime,
+                        TimeModifierMinutes = 60
+                    });
+                }
+                break;
+                
+            case TravelEncounterType.WeatherEvent:
+                if (hasWeatherProtection)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Use weather gear and press on",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelUseEquipment,
+                        TemplatePurpose = "Continue protected",
+                        TravelEffect = TravelChoiceEffect.None,
+                        RequiredEquipment = EquipmentType.WeatherProtection
+                    });
+                }
+                else
+                {
+                    // Risk getting wet
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Get soaked but keep moving",
+                        FocusCost = 0,
+                        IsAffordable = player.Stamina >= 1,
+                        ChoiceType = ConversationChoiceType.TravelForceThrough,
+                        TemplatePurpose = "Continue unprotected",
+                        TravelEffect = TravelChoiceEffect.SpendStamina,
+                        StaminaCost = 1
+                    });
+                }
+                break;
+                
+            case TravelEncounterType.MerchantEncounter:
+                if (hasCart)
+                {
+                    choices.Add(new ConversationChoice
+                    {
+                        ChoiceID = "2",
+                        NarrativeText = "Offer cart space for a ride",
+                        FocusCost = 0,
+                        IsAffordable = true,
+                        ChoiceType = ConversationChoiceType.TravelTradeHelp,
+                        TemplatePurpose = "Trade help for faster travel",
+                        TravelEffect = TravelChoiceEffect.SaveTime,
+                        RequiredEquipment = EquipmentType.LoadDistribution,
+                        TimeModifierMinutes = -60
+                    });
+                }
+                
+                // Always offer to help on foot
+                choices.Add(new ConversationChoice
+                {
+                    ChoiceID = choices.Count + 1 + "",
+                    NarrativeText = "Help push their cart",
+                    FocusCost = 0,
+                    IsAffordable = player.Stamina >= 1,
+                    ChoiceType = ConversationChoiceType.TravelTradeHelp,
+                    TemplatePurpose = "Earn coins helping",
+                    TravelEffect = TravelChoiceEffect.EarnCoins,
+                    StaminaCost = 1,
+                    CoinReward = 3
+                });
+                break;
+                
+            case TravelEncounterType.FellowTraveler:
+                // Information exchange
+                choices.Add(new ConversationChoice
+                {
+                    ChoiceID = "2",
+                    NarrativeText = "Exchange travel information",
+                    FocusCost = 0,
+                    IsAffordable = true,
+                    ChoiceType = ConversationChoiceType.TravelExchangeInfo,
+                    TemplatePurpose = "Learn about route conditions",
+                    TravelEffect = TravelChoiceEffect.GainInformation
+                });
+                break;
+        }
+        
+        return choices;
+    }
+    
+    
+    /// <summary>
+    /// Simple equipment check for thin narrative layer
+    /// In full implementation, would check actual item categories
+    /// </summary>
+    private bool HasEquipmentCategory(Player player, string equipmentKeyword)
+    {
+        // For thin narrative layer, check item names for keywords
+        foreach (var itemId in player.Inventory.ItemSlots.Where(id => !string.IsNullOrEmpty(id)))
+        {
+            if (itemId.ToLower().Contains(equipmentKeyword.ToLower()))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 /// <summary>
 /// Extended conversation context for action-based conversations
 /// </summary>
-public class ActionConversationContext : ConversationContext
-{
-    public ActionOption SourceAction { get; set; }
-    public string InitialNarrative { get; set; }
-    public List<ChoiceTemplate> AvailableTemplates { get; set; }
-}

@@ -281,8 +281,6 @@
 - Alternative routes always visible
 - Time differences shown for comparison
 
-You're absolutely right. Let me revise those delivery stories to reflect that every delivery is a narrative experience through the conversation system:
-
 ## Epic 8: Delivery Conversations
 
 ### Story 8.1: Letter Delivery as Conversation
@@ -337,8 +335,6 @@ You're absolutely right. Let me revise those delivery stories to reflect that ev
 - Some deliveries reveal connections to other NPCs
 - All opportunities emerge through conversation choices, not automatic rewards
 
-This better reflects the design where every delivery is a narrative moment with player agency, not a simple button click with random complications.
-
 ## Epic 9: Travel Encounters
 
 ### Story 9.1: Route-Based Travel Events
@@ -373,9 +369,8 @@ This better reflects the design where every delivery is a narrative moment with 
 **So that** I can discover efficiencies  
 
 **Acceptance Criteria:**
-- Helping merchant load wagon: Work + Token building
-- Traveling with merchants: Protected travel + Socializing
-- Delivering to merchant: Complete delivery + Shop access
+- Player can carry trade items to a letter delivery destination to sell there for a profit
+- ...
 - No special bonuses - just logical overlap
 - Players discover these through play
 
@@ -391,4 +386,3 @@ This better reflects the design where every delivery is a narrative moment with 
 - Actions generated from domain tags, not hardcoded
 - Environmental actions only when no relevant NPCs present
 
-This user story set fully integrates with your existing ConversationManager architecture while implementing the complete letter queue game design we've developed. Each story is structured to work with your action-conversation system and maintains the design principle of making every action narratively meaningful.

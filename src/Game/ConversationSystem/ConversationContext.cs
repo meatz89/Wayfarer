@@ -22,6 +22,7 @@ public class ConversationContext
     
     // Conversation flow
     public List<string> ConversationHistory { get; set; } = new List<string>();
+    
 }
 
 /// <summary>
@@ -33,4 +34,14 @@ public class QueueManagementContext : ConversationContext
     public string ManagementAction { get; set; } // "SkipDeliver", "Purge", etc.
     public int TokenCost { get; set; }
     public Dictionary<int, Letter> SkippedLetters { get; set; } // For skip action - letters that would be skipped
+}
+
+/// <summary>
+/// Extended context for action-based conversations
+/// </summary>
+public class ActionConversationContext : ConversationContext
+{
+    public ActionOption SourceAction { get; set; }
+    public string InitialNarrative { get; set; }
+    public List<ChoiceTemplate> AvailableTemplates { get; set; }
 }

@@ -29,6 +29,9 @@ public enum LocationAction
     BorrowMoney,           // Borrow from NPC (-2 tokens)
     PleedForAccess,        // Maintain route access (-1 token)
     AcceptIllegalWork,     // Accept shadow work (-1 token)
+    
+    // Travel Encounters (0 hours - happen during travel)
+    TravelEncounter        // Handle obstacle or event during travel
 }
 
 /// <summary>
@@ -126,6 +129,81 @@ public class LocationActionManager
     }
     
     /// <summary>
+    /// Generate travel encounter action based on route terrain
+    /// </summary>
+    public ActionOption GenerateTravelEncounterAction(RouteOption route)
+    {
+        var player = _gameWorld.GetPlayer();
+        var encounterType = DetermineEncounterType(route);
+        
+        return new ActionOption
+        {
+            Action = LocationAction.TravelEncounter,
+            Name = GetEncounterName(encounterType),
+            Description = GetEncounterDescription(encounterType),
+            HourCost = 0, // Travel encounters don't consume extra hours
+            StaminaCost = 0, // Base stamina cost, choices may add more
+            CoinCost = 0,
+            InitialNarrative = GetEncounterNarrative(encounterType, route),
+            EncounterType = encounterType
+        };
+    }
+    
+    private TravelEncounterType DetermineEncounterType(RouteOption route)
+    {
+        // Determine encounter based on terrain categories
+        if (route.TerrainCategories.Contains(TerrainCategory.Wilderness_Terrain))
+            return TravelEncounterType.WildernessObstacle;
+        if (route.TerrainCategories.Contains(TerrainCategory.Dark_Passage))
+            return TravelEncounterType.DarkChallenge;
+        if (route.TerrainCategories.Contains(TerrainCategory.Exposed_Weather))
+            return TravelEncounterType.WeatherEvent;
+        if (route.TerrainCategories.Contains(TerrainCategory.Heavy_Cargo_Route))
+            return TravelEncounterType.MerchantEncounter;
+            
+        return TravelEncounterType.FellowTraveler; // Default encounter
+    }
+    
+    private string GetEncounterName(TravelEncounterType encounterType)
+    {
+        return encounterType switch
+        {
+            TravelEncounterType.WildernessObstacle => "Path Blocked",
+            TravelEncounterType.DarkChallenge => "Darkness Falls",
+            TravelEncounterType.WeatherEvent => "Storm Approaches",
+            TravelEncounterType.MerchantEncounter => "Merchant in Need",
+            TravelEncounterType.FellowTraveler => "Fellow Traveler",
+            _ => "Unexpected Event"
+        };
+    }
+    
+    private string GetEncounterDescription(TravelEncounterType encounterType)
+    {
+        return encounterType switch
+        {
+            TravelEncounterType.WildernessObstacle => "Navigate around a fallen tree",
+            TravelEncounterType.DarkChallenge => "Find your way in the darkness",
+            TravelEncounterType.WeatherEvent => "Deal with sudden bad weather",
+            TravelEncounterType.MerchantEncounter => "Help a stranded merchant",
+            TravelEncounterType.FellowTraveler => "Meet someone on the road",
+            _ => "Handle an unexpected situation"
+        };
+    }
+    
+    private string GetEncounterNarrative(TravelEncounterType encounterType, RouteOption route)
+    {
+        return encounterType switch
+        {
+            TravelEncounterType.WildernessObstacle => $"A large tree has fallen across the {route.Name}, blocking your path completely.",
+            TravelEncounterType.DarkChallenge => "The sun sets earlier than expected, plunging the path into near-complete darkness.",
+            TravelEncounterType.WeatherEvent => "Dark clouds gather overhead, and the first drops of rain begin to fall.",
+            TravelEncounterType.MerchantEncounter => "A merchant's cart sits broken by the roadside, its owner looking distressed.",
+            TravelEncounterType.FellowTraveler => "You encounter another traveler heading in the opposite direction.",
+            _ => "Something unexpected occurs during your journey."
+        };
+    }
+    
+    /// <summary>
     /// Add basic NPC interaction actions (converse, socialize)
     /// </summary>
     private void AddBasicNPCActions(NPC npc, List<ActionOption> actions)
@@ -196,9 +274,10 @@ public class LocationActionManager
                     });
                 }
                 
-                // Trade option
+                // Trade option - check for compound opportunities
                 if (_timeManager.HoursRemaining >= 1)
                 {
+                    var tradeEffect = GetTradeCompoundEffect(npc);
                     actions.Add(new ActionOption
                     {
                         Action = LocationAction.Trade,
@@ -208,7 +287,7 @@ public class LocationActionManager
                         StaminaCost = 0,
                         CoinCost = 0,
                         NPCId = npc.ID,
-                        Effect = "Access market prices"
+                        Effect = tradeEffect
                     });
                 }
                 break;
@@ -523,6 +602,9 @@ public class LocationActionManager
             case LocationAction.AcceptIllegalWork:
                 return ExecuteAcceptIllegalWork(option);
                 
+            case LocationAction.TravelEncounter:
+                return ExecuteTravelEncounter(option, selectedChoice);
+                
             default:
                 return false;
         }
@@ -752,6 +834,48 @@ public class LocationActionManager
     private bool ExecuteWork(ActionOption option)
     {
         var player = _gameWorld.GetPlayer();
+        
+        // Handle environmental work actions (no specific NPC)
+        if (string.IsNullOrEmpty(option.NPCId))
+        {
+            if (option.Name.Contains("day labor"))
+            {
+                // General labor at LABOR tagged locations
+                player.ModifyCoins(3);
+                _messageSystem.AddSystemMessage(
+                    "💪 You find various odd jobs around the area.",
+                    SystemMessageTypes.Success
+                );
+                _messageSystem.AddSystemMessage(
+                    "  • Earned: 3 coins",
+                    SystemMessageTypes.Success
+                );
+                _messageSystem.AddSystemMessage(
+                    $"  • Stamina: {player.Stamina}/10",
+                    SystemMessageTypes.Info
+                );
+                return true;
+            }
+            else if (option.Name.Contains("Sharpen tools"))
+            {
+                // Tool maintenance at CRAFTING locations
+                _messageSystem.AddSystemMessage(
+                    "🔧 You spend time maintaining your equipment.",
+                    SystemMessageTypes.Success
+                );
+                _messageSystem.AddSystemMessage(
+                    "  • Your tools are in better condition",
+                    SystemMessageTypes.Info
+                );
+                _messageSystem.AddSystemMessage(
+                    "  • This may help with future crafting or labor",
+                    SystemMessageTypes.Info
+                );
+                return true;
+            }
+        }
+        
+        // Original NPC-based work
         var npc = _npcRepository.GetNPCById(option.NPCId);
         
         if (npc == null) 
@@ -1276,6 +1400,66 @@ public class LocationActionManager
             });
         }
         
+        // LABOR tag - work opportunities (when no specific NPCs offering work)
+        if (spot.DomainTags.Contains("LABOR") && player.Stamina >= 2)
+        {
+            var npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(
+                spot.SpotID, 
+                _timeManager.GetCurrentTimeBlock()
+            );
+            var hasWorkOffering = npcsHere.Any(npc => 
+                npc.Profession == Professions.Merchant || 
+                npc.Profession == Professions.Innkeeper ||
+                npc.Profession == Professions.TavernKeeper);
+            
+            if (!hasWorkOffering)
+            {
+                actions.Add(new ActionOption
+                {
+                    Action = LocationAction.Work,
+                    Name = "Find day labor",
+                    Description = "Look for general work opportunities",
+                    HourCost = 1,
+                    StaminaCost = 2,
+                    CoinCost = 0,
+                    Effect = "+3 coins from odd jobs",
+                    InitialNarrative = "You ask around for any work that needs doing."
+                });
+            }
+        }
+        
+        // CRAFTING tag - tool maintenance or small crafts
+        if (spot.DomainTags.Contains("CRAFTING") && player.Stamina >= 1)
+        {
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.Work,
+                Name = "Sharpen tools",
+                Description = "Maintain your equipment at the workshop",
+                HourCost = 1,
+                StaminaCost = 1,
+                CoinCost = 2,
+                Effect = "Equipment in better condition",
+                InitialNarrative = "You use the workshop facilities to maintain your gear."
+            });
+        }
+        
+        // TRANSPORT tag - travel arrangements
+        if (spot.DomainTags.Contains("TRANSPORT"))
+        {
+            actions.Add(new ActionOption
+            {
+                Action = LocationAction.Browse,
+                Name = "Check transport schedules",
+                Description = "Look for boats, carts, or caravans",
+                HourCost = 1,
+                StaminaCost = 0,
+                CoinCost = 0,
+                Effect = "Learn about alternative travel options",
+                InitialNarrative = "You examine the posted schedules and talk to transport operators."
+            });
+        }
+        
         // Notice boards at town centers or market areas
         if ((spot.Type == LocationSpotTypes.FEATURE && spot.Name.ToLower().Contains("market")) || 
             (spot.Type == LocationSpotTypes.FEATURE && spot.Name.ToLower().Contains("square")))
@@ -1586,8 +1770,10 @@ public class LocationActionManager
             );
             
             var currentTime = _timeManager.GetCurrentTimeBlock();
+            var player = _gameWorld.GetPlayer();
+            var currentLocation = player.CurrentLocation;
             
-            // Different notices based on time of day
+            // Different notices based on time of day and location
             if (currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon)
             {
                 _messageSystem.AddSystemMessage(
@@ -1595,10 +1781,26 @@ public class LocationActionManager
                     SystemMessageTypes.Warning
                 );
                 
-                _messageSystem.AddSystemMessage(
-                    "  • \"Elena the Scribe seeks carriers for urgent letters\"",
-                    SystemMessageTypes.Info
-                );
+                // Check for NPCs seeking carriers
+                var scribes = _npcRepository.GetNPCsByProfession(Professions.Scribe)
+                    .Where(npc => npc.Location == currentLocation.Id)
+                    .ToList();
+                    
+                if (scribes.Any())
+                {
+                    var scribe = scribes.First();
+                    _messageSystem.AddSystemMessage(
+                        $"  • \"{scribe.Name} seeks reliable carriers for correspondence\"",
+                        SystemMessageTypes.Info
+                    );
+                }
+                else
+                {
+                    _messageSystem.AddSystemMessage(
+                        "  • \"Seeking experienced letter carriers - inquire at scribe's office\"",
+                        SystemMessageTypes.Info
+                    );
+                }
             }
             else
             {
@@ -1609,6 +1811,50 @@ public class LocationActionManager
                 
                 _messageSystem.AddSystemMessage(
                     "  • \"Lost: Merchant's ledger. Reward offered.\"",
+                    SystemMessageTypes.Info
+                );
+            }
+            
+            // Check for dawn time when letter board is active
+            if (currentTime == TimeBlocks.Dawn)
+            {
+                _messageSystem.AddSystemMessage(
+                    "  • \"The letter board is active now - check for new opportunities!\"",
+                    SystemMessageTypes.Success
+                );
+            }
+        }
+        else if (option.Name.Contains("transport schedules"))
+        {
+            _messageSystem.AddSystemMessage(
+                "🚢 You check the transport schedules and talk to operators.",
+                SystemMessageTypes.Info
+            );
+            
+            var player = _gameWorld.GetPlayer();
+            var currentLocation = player.CurrentLocation;
+            
+            // Show transport-specific information based on location
+            if (currentLocation.Id.ToLower().Contains("bridge") || 
+                currentLocation.Id.ToLower().Contains("dock"))
+            {
+                _messageSystem.AddSystemMessage(
+                    "  • River boats depart at dawn and noon",
+                    SystemMessageTypes.Info
+                );
+                _messageSystem.AddSystemMessage(
+                    "  • Boat passage: 5 coins, saves 2 hours to downstream locations",
+                    SystemMessageTypes.Info
+                );
+            }
+            else
+            {
+                _messageSystem.AddSystemMessage(
+                    "  • Merchant caravans form weekly for distant cities",
+                    SystemMessageTypes.Info
+                );
+                _messageSystem.AddSystemMessage(
+                    "  • Cart rental: 10 coins/day, reduces stamina cost on roads",
                     SystemMessageTypes.Info
                 );
             }
@@ -1649,6 +1895,251 @@ public class LocationActionManager
         
         return true;
     }
+    
+    private bool ExecuteTravelEncounter(ActionOption option, ConversationChoice selectedChoice)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        // Travel encounters are always resolved through conversation choices
+        if (selectedChoice == null)
+        {
+            _messageSystem.AddSystemMessage(
+                "❌ Travel encounter requires a choice!",
+                SystemMessageTypes.Danger
+            );
+            return false;
+        }
+        
+        // For travel encounters, we need the route info from the action option
+        // The route should be stored in the action context
+        if (option.EncounterType == null)
+        {
+            _messageSystem.AddSystemMessage(
+                "❌ Travel encounter missing encounter type!",
+                SystemMessageTypes.Danger
+            );
+            return false;
+        }
+        
+        // Apply effects based on choice type and properties
+        switch (selectedChoice.ChoiceType)
+        {
+            case ConversationChoiceType.TravelCautious:
+                // Default safe option - no additional effects
+                _messageSystem.AddSystemMessage(
+                    "🚶 You proceed carefully, taking your time to navigate safely.",
+                    SystemMessageTypes.Info
+                );
+                break;
+                
+            case ConversationChoiceType.TravelUseEquipment:
+                // Use equipment for benefit
+                HandleEquipmentChoice(selectedChoice, option);
+                break;
+                
+            case ConversationChoiceType.TravelForceThrough:
+                // Spend stamina
+                if (selectedChoice.StaminaCost > 0)
+                {
+                    player.SpendStamina(selectedChoice.StaminaCost.Value);
+                    _messageSystem.AddSystemMessage(
+                        "💪 You push through with determination, exhausting yourself.",
+                        SystemMessageTypes.Warning
+                    );
+                    
+                    if (selectedChoice.TimeModifierMinutes < 0)
+                    {
+                        _messageSystem.AddSystemMessage(
+                            $"  • -{selectedChoice.StaminaCost} stamina, saved {Math.Abs(selectedChoice.TimeModifierMinutes.Value)} minutes",
+                            SystemMessageTypes.Warning
+                        );
+                    }
+                    else
+                    {
+                        _messageSystem.AddSystemMessage(
+                            $"  • -{selectedChoice.StaminaCost} stamina",
+                            SystemMessageTypes.Warning
+                        );
+                    }
+                }
+                break;
+                
+            case ConversationChoiceType.TravelSlowProgress:
+                // Accept time penalty
+                if (selectedChoice.TimeModifierMinutes > 0)
+                {
+                    _messageSystem.AddSystemMessage(
+                        "🌑 You make slow but steady progress.",
+                        SystemMessageTypes.Warning
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • +{selectedChoice.TimeModifierMinutes / 60} hour to travel time",
+                        SystemMessageTypes.Warning
+                    );
+                }
+                break;
+                
+            case ConversationChoiceType.TravelTradeHelp:
+                // Help for benefit
+                if (selectedChoice.CoinReward > 0)
+                {
+                    player.ModifyCoins(selectedChoice.CoinReward.Value);
+                    if (selectedChoice.StaminaCost > 0)
+                    {
+                        player.SpendStamina(selectedChoice.StaminaCost.Value);
+                    }
+                    _messageSystem.AddSystemMessage(
+                        "💪 You help the merchant with their troubles.",
+                        SystemMessageTypes.Success
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • Earned {selectedChoice.CoinReward} coins" + 
+                        (selectedChoice.StaminaCost > 0 ? $", -{selectedChoice.StaminaCost} stamina" : ""),
+                        SystemMessageTypes.Success
+                    );
+                }
+                else if (selectedChoice.TimeModifierMinutes < 0)
+                {
+                    _messageSystem.AddSystemMessage(
+                        "🎠 Your assistance is rewarded with faster travel.",
+                        SystemMessageTypes.Success
+                    );
+                    _messageSystem.AddSystemMessage(
+                        $"  • Saved {Math.Abs(selectedChoice.TimeModifierMinutes.Value)} minutes of travel time",
+                        SystemMessageTypes.Success
+                    );
+                }
+                break;
+                
+            case ConversationChoiceType.TravelExchangeInfo:
+                // Learn information
+                _messageSystem.AddSystemMessage(
+                    "💬 You exchange valuable information about the roads.",
+                    SystemMessageTypes.Success
+                );
+                _messageSystem.AddSystemMessage(
+                    "  • You feel more prepared for future journeys",
+                    SystemMessageTypes.Info
+                );
+                break;
+        }
+        
+        // Travel completion will be handled by GameWorldManager after action completes
+        // The UI will call CompleteTravelAfterEncounter when appropriate
+        
+        return true;
+    }
+    
+    private void HandleEquipmentChoice(ConversationChoice choice, ActionOption option)
+    {
+        var encounterType = option.EncounterType ?? TravelEncounterType.FellowTraveler;
+        
+        switch (choice.RequiredEquipment)
+        {
+            case EquipmentType.ClimbingGear:
+                _messageSystem.AddSystemMessage(
+                    "🧗 Your climbing gear allows you to quickly scale the obstacle.",
+                    SystemMessageTypes.Success
+                );
+                if (choice.TimeModifierMinutes < 0)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"  • Saved {Math.Abs(choice.TimeModifierMinutes.Value)} minutes of travel time",
+                        SystemMessageTypes.Success
+                    );
+                }
+                break;
+                
+            case EquipmentType.LightSource:
+                _messageSystem.AddSystemMessage(
+                    "🔦 Your torch illuminates the path, allowing safe passage.",
+                    SystemMessageTypes.Success
+                );
+                break;
+                
+            case EquipmentType.WeatherProtection:
+                _messageSystem.AddSystemMessage(
+                    "☔ Your weather gear keeps you dry and comfortable.",
+                    SystemMessageTypes.Success
+                );
+                break;
+                
+            case EquipmentType.LoadDistribution:
+                _messageSystem.AddSystemMessage(
+                    "🎠 Your cart proves useful in unexpected ways.",
+                    SystemMessageTypes.Success
+                );
+                if (choice.TimeModifierMinutes < 0)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"  • Saved {Math.Abs(choice.TimeModifierMinutes.Value)} minutes of travel time",
+                        SystemMessageTypes.Success
+                    );
+                }
+                break;
+        }
+    }
+    
+    /// <summary>
+    /// Check if player carries trade goods with profit potential at this location
+    /// This creates natural compound actions where letter delivery and trading overlap
+    /// </summary>
+    private string GetTradeCompoundEffect(NPC merchant)
+    {
+        var player = _gameWorld.GetPlayer();
+        var currentLocation = player.CurrentLocation;
+        var profitableItems = new List<(string itemName, int profit)>();
+        
+        // Check inventory for trade goods
+        foreach (var itemId in player.Inventory.ItemSlots)
+        {
+            if (string.IsNullOrEmpty(itemId)) continue;
+            
+            var item = _itemRepository.GetItemById(itemId);
+            if (item == null) continue;
+            
+            // Check if this is a trade good with profit potential here
+            if (item.Categories.Contains(ItemCategory.Trade_Goods))
+            {
+                // Different locations value different goods
+                var localValue = GetLocalItemValue(item, currentLocation);
+                var profit = localValue - item.BuyPrice;
+                
+                if (profit > 0)
+                {
+                    profitableItems.Add((item.Name, profit));
+                }
+            }
+        }
+        
+        if (profitableItems.Any())
+        {
+            var totalProfit = profitableItems.Sum(i => i.profit);
+            return $"Access market + sell {profitableItems.Count} items for +{totalProfit} profit";
+        }
+        
+        return "Access market prices";
+    }
+    
+    /// <summary>
+    /// Determine local value of an item based on location economics
+    /// Items have higher value where they're not produced
+    /// </summary>
+    private int GetLocalItemValue(Item item, Location location)
+    {
+        // Base sell price
+        var baseValue = item.SellPrice;
+        
+        // Items sell for more where they're not produced
+        if (item.LocationId != null && item.LocationId != location.Id)
+        {
+            // Foreign goods command premium prices
+            return (int)(baseValue * 1.5);
+        }
+        
+        // Local goods sell at standard price
+        return baseValue;
+    }
 }
 
 /// <summary>
@@ -1669,4 +2160,19 @@ public class ActionOption
     
     // Narrative for thin layer - all actions use conversation
     public string InitialNarrative { get; set; }
+    
+    // Travel encounter specific properties
+    public TravelEncounterType? EncounterType { get; set; }
+}
+
+/// <summary>
+/// Types of travel encounters based on route terrain
+/// </summary>
+public enum TravelEncounterType
+{
+    WildernessObstacle,  // Fallen trees, blocked paths
+    DarkChallenge,       // Darkness requiring navigation
+    WeatherEvent,        // Rain, storms, weather challenges
+    MerchantEncounter,   // Stranded merchants needing help
+    FellowTraveler       // Other travelers on the road
 }

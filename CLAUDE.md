@@ -59,3 +59,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Players discover strategies rather than memorizing exceptions
 - Code remains clean and general
 - New content automatically inherits system behaviors
+
+### COMPOUND ACTIONS AND EMERGENT EFFICIENCY
+
+**Natural action overlap creates efficiency without special bonuses or explicit mechanics.**
+
+**Key Principle**: When player actions naturally overlap (carrying trade goods while delivering letters), the efficiency emerges from systems working as designed, not from special "compound action" bonuses.
+
+**Examples of Natural Overlap:**
+- ✅ Carrying trade goods to letter destinations for profit
+- ✅ Working for NPCs naturally builds relationship tokens
+- ✅ Buying drinks at taverns restores stamina AND builds connections
+- ✅ Gathering resources while traveling between locations
+
+**Implementation Pattern:**
+```csharp
+// ✅ CORRECT: Detect natural benefits
+if (player.HasTradeGoods && location.HasMarket)
+{
+    // Show the natural profit opportunity
+    effect = "Access market + sell items for profit";
+}
+
+// ❌ WRONG: Add special compound bonuses
+if (isDoingDelivery && hasTradeGoods)
+{
+    profitBonus *= 1.5; // NO! No artificial bonuses
+}
+```
+
+### LOCATION-BASED ACTION GENERATION
+
+**Use domain tags to generate environmental actions, not hardcoded spot checks.**
+
+**Domain Tags:**
+- RESOURCES - Gathering opportunities
+- COMMERCE - Trading activities
+- SOCIAL - Information and gossip
+- LABOR - Work opportunities
+- CRAFTING - Equipment maintenance
+- TRANSPORT - Alternative travel
+
+**Implementation Rules:**
+1. Actions emerge from tags, not spot IDs
+2. Environmental actions supplement NPC interactions
+3. Context matters (time, NPCs present, player state)
+4. No optimization hints - discovery through play
