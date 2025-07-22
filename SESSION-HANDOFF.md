@@ -1,24 +1,74 @@
 # Wayfarer Session Handoff - Letter Queue & Conversation System
 
-## Session Date: 2025-01-21 (CONTINUED - LETTER QUEUE & CONVERSATION)
+## Session Date: 2025-01-22 Evening Session
 
-## CURRENT STATUS: Core Letter Queue & Conversation System VERIFIED WORKING ✅
-## NEXT: Implement token-based letter categories and queue management actions
+## CURRENT STATUS: Letter Offers, System Messages, and Conversation Flow FIXED ✅
 
-### VERIFICATION COMPLETED (2025-01-21)
-- ✅ GetAwaiter().GetResult() anti-pattern completely removed
-- ✅ Async/await implemented throughout entire action chain  
-- ✅ Letter queue screen IS the default view (NavigationService line 9)
-- ✅ Letter discovery through conversations fully implemented
-- ✅ Collection status display working (📭 Not Collected / 📬 Collected)
-- ✅ Deterministic narrative mode enabled in appsettings.json
-- ✅ Build succeeds with 0 errors
+### SESSION OVERVIEW (2025-01-22 Evening)
 
-## SESSION OVERVIEW
+This session addressed three specific UI/UX issues:
+1. Letter offers had no accept button - FIXED via conversation integration
+2. System messages didn't auto-dismiss - FIXED with timer and fade animation
+3. All conversations should complete after one choice - SIMPLIFIED
 
-This session focused on implementing the thin narrative layer for the action system and integrating letter discovery through NPC conversations. The core architecture is now functional with proper async/await patterns and categorical action handling.
+## What Was Fixed in This Session ✅
 
-## What Was ACTUALLY Implemented ✅
+### 1. Letter Offer Accept Button Issue ✅
+**Problem**: Letter offers couldn't be accepted - no button in UI
+**Solution**: Integrated letter offers as NPC conversation actions
+- Modified `LocationActionManager.AddLetterActions()` to generate letter offer conversation actions
+- Added `IsLetterOffer` property to `ActionOption` class
+- Updated `DeterministicNarrativeProvider.GetActionNarrative()` to handle letter offers
+- Added `GenerateLetterOfferChoices()` method for accept/decline options
+- Letter offers now work through standard conversation flow, not separate dialogs
+
+### 2. Auto-Dismissing System Messages ✅
+**Problem**: System messages stayed on screen indefinitely
+**Solution**: Implemented toast-style auto-dismiss
+- Updated `SystemMessageDisplay.razor` with timer checking every 100ms
+- Added fade-out animation starting 500ms before expiration
+- Messages expire after 5 seconds (configurable per message)
+- Added `HandleMessagesExpired()` callback to clean up expired messages
+- CSS animation with smooth fade and slide-out effect
+
+### 3. One-Round Conversations ✅
+**Problem**: Conversations could go multiple rounds
+**Solution**: Simplified all conversations to complete after one choice
+- Modified `ConversationManager.ProcessPlayerChoice()` line 83
+- Changed to `bool shouldComplete = true;` for all conversations
+- Removed complex duration and type checking logic
+- All conversation types now complete after first player choice
+
+## Technical Details
+
+### Files Modified in This Session:
+1. `src/GameState/LocationActionManager.cs` - Added letter offer action generation
+2. `src/Game/AiNarrativeSystem/ChoiceTemplate.cs` - Added letter offer properties
+3. `src/Game/ConversationSystem/DeterministicNarrativeProvider.cs` - Added letter offer handling
+4. `src/Pages/Components/SystemMessageDisplay.razor` - Added auto-dismiss functionality
+5. `src/Pages/MainGameplayView.razor.cs` - Added HandleMessagesExpired method
+6. `src/Pages/MainGameplayView.razor` - Connected OnMessagesExpired callback
+7. `src/Game/ConversationSystem/ConversationManager.cs` - Simplified completion logic
+
+### Key Implementation Notes:
+- Letter offers use the standard conversation system, not special dialogs
+- System message timer runs independently in the component
+- All conversations now follow the same one-choice pattern
+- No polling loops added - UI still updates on player actions only
+
+## Current State
+- Build: Successful (warnings only)
+- Runtime: Stable at http://localhost:5011
+- All three issues fixed and tested
+
+## Outstanding Todo Items
+1. Check why validation didn't catch spotId mismatch at startup (medium priority) - NOT addressed this session
+
+---
+
+# Previous Session Context (2025-01-21)
+
+## What Was Previously Implemented ✅
 
 ### 1. Fixed Async/Await Anti-Pattern ✅
 **Status: FULLY WORKING**
