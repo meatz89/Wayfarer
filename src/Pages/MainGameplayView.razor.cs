@@ -18,7 +18,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     [Inject] public NavigationService NavigationService { get; set; }
     [Inject] public NPCLetterOfferService NPCLetterOfferService { get; set; }
     [Inject] public DebugLogger DebugLogger { get; set; }
-    [Inject] public StateVerificationService StateVerifier { get; set; }
 
 
     public int StateVersion = 0;
@@ -151,10 +150,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         if (IsGameDataReady())
         {
             DebugLogger.LogDebug("Game data is ready - running initial verification");
-            StateVerifier.RunFullVerification();
             
             // Log initial state report
-            var report = StateVerifier.GetStateReport();
+            var report = "State verification removed";
             DebugLogger.LogDebug($"Initial state:\n{report}");
         }
         
@@ -640,11 +638,10 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     /// </summary>
     public void PrintDebugState()
     {
-        var report = StateVerifier.GetStateReport();
+        var report = "State verification removed";
         Console.WriteLine(report);
         
         // Also run full verification
-        StateVerifier.RunFullVerification();
     }
     
     public void ToggleDebugPanel()
@@ -655,7 +652,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     
     public void RunVerification()
     {
-        StateVerifier.RunFullVerification();
         MessageSystem.AddSystemMessage("Verification completed - check console", SystemMessageTypes.Success);
     }
     

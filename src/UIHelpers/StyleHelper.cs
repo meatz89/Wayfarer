@@ -65,9 +65,7 @@
         {
             Professions.Soldier => "⚔️",
             Professions.Scholar => "📚",
-            Professions.Thief => "🏹",
             Professions.Merchant => "🎵",
-            Professions.Ranger => "🗝️",
             _ => "❓"
         };
     }

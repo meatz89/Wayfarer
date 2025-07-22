@@ -49,13 +49,10 @@ public class PlayerStatusViewBase : ComponentBase
         {
             Professions.Soldier => "⚔️",
             Professions.Merchant => "💰",
-            Professions.Thief => "🗡️",
             Professions.Scholar => "📚",
             _ => "👤"
         };
     }
-
-    // Physical condition system removed - using stamina system only
 
     public int GetStaminaCost()
     {

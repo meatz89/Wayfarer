@@ -115,29 +115,6 @@ public class LocationSpotMapBase : ComponentBase
     }
 
     /// <summary>
-    /// Get human-readable description of NPC availability schedule
-    /// </summary>
-    public string GetNPCScheduleDescription(Schedule schedule)
-    {
-        return schedule switch
-        {
-            Schedule.Always => "Always available",
-            Schedule.Market_Hours => "Morning, Afternoon",
-            Schedule.Workshop_Hours => "Dawn, Morning, Afternoon",
-            Schedule.Library_Hours => "Morning, Afternoon",
-            Schedule.Business_Hours => "Morning, Afternoon",
-            Schedule.Morning_Evening => "Morning, Evening",
-            Schedule.Morning_Afternoon => "Morning, Afternoon",
-            Schedule.Afternoon_Evening => "Afternoon, Evening",
-            Schedule.Evening_Only => "Evening only",
-            Schedule.Morning_Only => "Morning only",
-            Schedule.Afternoon_Only => "Afternoon only",
-            Schedule.Evening_Night => "Evening, Night",
-            Schedule.Dawn_Only => "Dawn only",
-            Schedule.Night_Only => "Night only",
-            _ => "Unknown schedule"
-        };
-    }
 
     /// <summary>
     /// Get next time block when NPC will be available

@@ -57,8 +57,10 @@
 
     public List<NPC> GetNPCsForLocationAndTime(string locationId, TimeBlocks currentTime)
     {
+        // Return all NPCs at location, regardless of availability
+        // UI will handle whether they're interactable based on availability
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.Location == locationId && n.IsAvailable(currentTime)).ToList();
+        return npcs.Where(n => n.Location == locationId).ToList();
     }
 
     /// <summary>
@@ -66,22 +68,18 @@
     /// </summary>
     public List<NPC> GetNPCsForLocationSpotAndTime(string locationSpotId, TimeBlocks currentTime)
     {
+        // Return all NPCs at this spot, regardless of availability
+        // UI will handle whether they're interactable based on availability
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();;
         
         _debugLogger.LogNPCActivity("GetNPCsForLocationSpotAndTime", null, 
             $"Looking for NPCs at spot '{locationSpotId}' during {currentTime}");
         
-        // First, find all NPCs at this spot
         var npcsAtSpot = npcs.Where(n => n.SpotId == locationSpotId).ToList();
         _debugLogger.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}': " + 
-            string.Join(", ", npcsAtSpot.Select(n => $"{n.Name} ({n.ID})")));
+            string.Join(", ", npcsAtSpot.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
         
-        // Then filter by availability
-        var availableNpcs = npcsAtSpot.Where(n => n.IsAvailable(currentTime)).ToList();
-        _debugLogger.LogDebug($"Of those, {availableNpcs.Count} are available at {currentTime}: " + 
-            string.Join(", ", availableNpcs.Select(n => $"{n.Name} (Schedule: {n.AvailabilitySchedule})")));
-        
-        return availableNpcs;
+        return npcsAtSpot;
     }
 
     /// <summary>

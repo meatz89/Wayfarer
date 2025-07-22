@@ -244,15 +244,6 @@
             case Professions.Scholar:
                 InitializeScholar();
                 break;
-            case Professions.Thief:
-                InitializeExplorer();
-                break;
-            case Professions.Ranger:
-                InitializeThief();
-                break;
-            case Professions.Courtier:
-                InitializeCourtier();
-                break;
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(archetype));
@@ -261,12 +252,6 @@
 
     private void InitializeGuard()
     {
-        // Inventory
-        ClearInventory();
-    }
-
-    private void InitializeCourtier()
-    {
         ClearInventory();
     }
 
@@ -274,22 +259,11 @@
     {
         ClearInventory();
     }
-
-    private void InitializeExplorer()
-    {
-        ClearInventory();
-    }
-
-    private void InitializeThief()
-    {
-        ClearInventory();
-    }
-
+    
     private void InitializeMerchant()
     {
         ClearInventory();
     }
-
 
     private void ClearInventory()
     {

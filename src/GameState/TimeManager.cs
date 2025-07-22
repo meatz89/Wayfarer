@@ -52,8 +52,6 @@ public class TimeManager
         worldState.CurrentTimeBlock = GetCurrentTimeBlock();
     }
 
-
-
     public void StartNewDay()
     {
         worldState.CurrentDay++;
@@ -63,9 +61,6 @@ public class TimeManager
         // Reset time to dawn - no action point regeneration per Period-Based Activity Planning user story
         SetNewTime(TimeDayStart);
     }
-
-
-
 
     /// <summary>
     /// Get current time hours

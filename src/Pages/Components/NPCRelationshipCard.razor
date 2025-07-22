@@ -140,7 +140,7 @@
     <div class="npc-availability">
         <h4>Availability</h4>
         <div class="availability-info">
-            <span class="schedule">@GetScheduleDescription(NPC.AvailabilitySchedule)</span>
+            <span class="schedule">Always available</span>
             @if (IsNPCCurrentlyAvailable())
             {
                 <span class="available-now">✓ Available now</span>
@@ -302,10 +302,6 @@
         return player.CurrentLocation?.Id == NPC.Location;
     }
     
-    private string GetScheduleDescription(Schedule schedule)
-    {
-        return schedule.ToString().Replace("_", " ");
-    }
     
     private bool IsNPCCurrentlyAvailable()
     {

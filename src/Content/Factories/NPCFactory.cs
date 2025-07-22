@@ -24,7 +24,6 @@ public class NPCFactory
         string spotId,
         string role,
         string description,
-        Schedule availabilitySchedule,
         List<ServiceTypes> providedServices,
         List<ConnectionType> letterTokenTypes)
     {
@@ -44,7 +43,6 @@ public class NPCFactory
             Profession = profession,
             Role = role ?? profession.ToString().Replace('_', ' '),
             Description = description ?? $"A {profession} in {location.Name}",
-            AvailabilitySchedule = availabilitySchedule,
             ProvidedServices = providedServices ?? new List<ServiceTypes>(),
             LetterTokenTypes = letterTokenTypes ?? new List<ConnectionType>()
         };
@@ -64,7 +62,6 @@ public class NPCFactory
         string spotId,
         string role,
         string description,
-        Schedule availabilitySchedule,
         List<ServiceTypes> providedServices,
         List<ConnectionType> letterTokenTypes)
     {
@@ -74,7 +71,7 @@ public class NPCFactory
             throw new InvalidOperationException($"Cannot create NPC: location '{locationId}' not found");
         
         return CreateNPC(id, name, location, profession, spotId, role, description, 
-                        availabilitySchedule, providedServices, letterTokenTypes);
+                        providedServices, letterTokenTypes);
     }
     
     /// <summary>

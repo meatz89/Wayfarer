@@ -112,30 +112,6 @@ public class NPCLetterOfferService
         {
             availableTypes.AddRange(npc.LetterTokenTypes);
         }
-        else
-        {
-            // Fallback to profession-based defaults if no token types defined
-            switch (npc.Profession)
-            {
-                case Professions.Merchant:
-                    availableTypes.Add(ConnectionType.Trade);
-                    break;
-                case Professions.Courtier:
-                    availableTypes.Add(ConnectionType.Noble);
-                    break;
-                case Professions.Thief:
-                    availableTypes.Add(ConnectionType.Shadow);
-                    break;
-                case Professions.Scholar:
-                    availableTypes.Add(ConnectionType.Trust);
-                    break;
-                case Professions.Ranger:
-                case Professions.Soldier:
-                default:
-                    availableTypes.Add(ConnectionType.Common);
-                    break;
-            }
-        }
 
         return availableTypes;
     }
@@ -223,12 +199,6 @@ public class NPCLetterOfferService
         {
             case Professions.Merchant:
                 messages.Add("I have a business associate who needs discrete correspondence handled.");
-                break;
-            case Professions.Courtier:
-                messages.Add("A noble friend requires someone trustworthy for a sensitive delivery.");
-                break;
-            case Professions.Thief:
-                messages.Add("I know someone who needs... unconventional postal services.");
                 break;
             case Professions.Scholar:
                 messages.Add("A colleague needs someone reliable to carry important research.");
