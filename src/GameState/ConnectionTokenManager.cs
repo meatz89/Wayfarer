@@ -114,8 +114,20 @@ public class ConnectionTokenManager
         if (playerTokens.GetValueOrDefault(type) >= count)
         {
             playerTokens[type] -= count;
+            
+            _messageSystem.AddSystemMessage(
+                $"💰 Spent {count} {type} token{(count > 1 ? "s" : "")} (Remaining: {playerTokens[type]})",
+                SystemMessageTypes.Info
+            );
+            
             return true;
         }
+        
+        _messageSystem.AddSystemMessage(
+            $"❌ Insufficient {type} tokens! Need {count}, have {playerTokens.GetValueOrDefault(type)}",
+            SystemMessageTypes.Danger
+        );
+        
         return false;
     }
     

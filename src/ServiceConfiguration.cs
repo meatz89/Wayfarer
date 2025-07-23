@@ -1,9 +1,20 @@
-﻿public static class ServiceConfiguration
+﻿using Wayfarer.GameState.Actions;
+
+public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
         // Register configuration
         services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
+        
+        // Register game configuration and rule engine
+        services.AddSingleton<GameConfigurationLoader>();
+        services.AddSingleton<GameConfiguration>(serviceProvider =>
+        {
+            var loader = serviceProvider.GetRequiredService<GameConfigurationLoader>();
+            return loader.LoadConfiguration();
+        });
+        services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
         
         // Register factories for reference-safe content creation
         services.AddSingleton<LocationFactory>();
@@ -76,6 +87,10 @@
         services.AddSingleton<ConnectionTokenManager>();
         
         services.AddSingleton<LetterQueueManager>();
+        
+        // Transaction and Preview System
+        services.AddSingleton<QueueDisplacementPlanner>();
+        services.AddSingleton<TransactionalLetterQueueManager>();
         services.AddSingleton<NavigationService>();
         services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<TokenFavorRepository>();
@@ -91,6 +106,14 @@
         services.AddSingleton<ScenarioManager>();
         services.AddSingleton<LocationActionManager>();
         services.AddSingleton<ConversationFactory>();
+        
+        // Narrative system components
+        services.AddSingleton<NarrativeLoader>();
+        services.AddSingleton<NarrativeJournal>();
+        services.AddSingleton<NarrativeEffectRegistry>();
+        
+        // Action system components
+        services.AddSingleton<ActionPrerequisiteFactory>();
 
         services.AddScoped<MusicService>();
 
@@ -98,6 +121,10 @@
         
         // Navigation Service
         services.AddSingleton<NavigationService>();
+        
+        // State Management Services
+        services.AddSingleton<GameStateManager>();
+        services.AddSingleton<Wayfarer.GameState.Validation.GameStateValidator>();
 
         services.AddAIServices();
 

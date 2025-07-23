@@ -32,6 +32,12 @@ public class MorningActivitiesManager
         MorningEvents.Clear();
         var result = new MorningActivityResult();
         
+        // Announce morning arrival
+        _messageSystem.AddSystemMessage(
+            "🌅 Morning arrives with new opportunities and obligations:",
+            SystemMessageTypes.Info
+        );
+        
         // 1. Track letters that will expire
         var expiringLetters = GetLettersAboutToExpire();
         foreach (var letter in expiringLetters)
@@ -119,6 +125,9 @@ public class MorningActivitiesManager
             result.UrgentLetterCount++;
         }
         
+        // Display morning summary
+        DisplayMorningSummary(result);
+        
         return result;
     }
     
@@ -140,6 +149,42 @@ public class MorningActivitiesManager
     public void ClearMorningEvents()
     {
         MorningEvents.Clear();
+    }
+    
+    // Display morning summary
+    private void DisplayMorningSummary(MorningActivityResult result)
+    {
+        if (result.ExpiredLetterCount > 0)
+        {
+            _messageSystem.AddSystemMessage(
+                $"⏰ {result.ExpiredLetterCount} letter{(result.ExpiredLetterCount > 1 ? "s" : "")} expired overnight",
+                SystemMessageTypes.Danger
+            );
+        }
+        
+        if (result.UrgentLetterCount > 0)
+        {
+            _messageSystem.AddSystemMessage(
+                $"⚠️ {result.UrgentLetterCount} letter{(result.UrgentLetterCount > 1 ? "s need" : " needs")} urgent attention today!",
+                SystemMessageTypes.Warning
+            );
+        }
+        
+        var queueStatus = _letterQueueManager.GetLetterCount();
+        var maxQueue = 8; // Assuming max queue size is 8
+        
+        if (queueStatus >= maxQueue - 1)
+        {
+            _messageSystem.AddSystemMessage(
+                $"📭 Your letter queue is nearly full ({queueStatus}/{maxQueue})",
+                SystemMessageTypes.Warning
+            );
+        }
+        
+        _messageSystem.AddSystemMessage(
+            "☀️ The day awaits your actions",
+            SystemMessageTypes.Info
+        );
     }
     
     // Narrative generation methods

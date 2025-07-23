@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Content.Utilities;
 
 /// <summary>
 /// Factory for creating standing obligations with guaranteed valid references.
@@ -97,7 +98,7 @@ public class StandingObligationFactory
         ConnectionType? tokenType = null;
         if (!string.IsNullOrEmpty(dto.RelatedTokenType))
         {
-            if (Enum.TryParse<ConnectionType>(dto.RelatedTokenType, out var parsed))
+            if (EnumParser.TryParse<ConnectionType>(dto.RelatedTokenType, out var parsed))
             {
                 tokenType = parsed;
             }
@@ -111,7 +112,7 @@ public class StandingObligationFactory
         var benefitEffects = new List<ObligationEffect>();
         foreach (var effectStr in dto.BenefitEffects ?? new List<string>())
         {
-            if (Enum.TryParse<ObligationEffect>(effectStr, out var effect))
+            if (EnumParser.TryParse<ObligationEffect>(effectStr, out var effect))
             {
                 benefitEffects.Add(effect);
             }
@@ -125,7 +126,7 @@ public class StandingObligationFactory
         var constraintEffects = new List<ObligationEffect>();
         foreach (var effectStr in dto.ConstraintEffects ?? new List<string>())
         {
-            if (Enum.TryParse<ObligationEffect>(effectStr, out var effect))
+            if (EnumParser.TryParse<ObligationEffect>(effectStr, out var effect))
             {
                 constraintEffects.Add(effect);
             }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Wayfarer.Content.Utilities;
 /// <summary>
 /// Parser for TokenFavor entities from JSON.
 /// </summary>
@@ -46,7 +47,7 @@ public static class TokenFavorParser
         };
         
         // Parse favor type
-        if (Enum.TryParse<TokenFavorType>(dto.FavorType, true, out var favorType))
+        if (EnumParser.TryParse<TokenFavorType>(dto.FavorType, out var favorType))
         {
             favor.FavorType = favorType;
         }
@@ -57,7 +58,7 @@ public static class TokenFavorParser
         }
         
         // Parse required token type
-        if (Enum.TryParse<ConnectionType>(dto.RequiredTokenType, true, out var tokenType))
+        if (EnumParser.TryParse<ConnectionType>(dto.RequiredTokenType, out var tokenType))
         {
             favor.RequiredTokenType = tokenType;
         }

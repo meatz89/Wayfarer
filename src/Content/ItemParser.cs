@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Content.Utilities;
 
 public static class ItemParser
 {
@@ -29,7 +30,7 @@ public static class ItemParser
         List<string> categoryStrings = GetStringArray(root, "categories");
         foreach (string categoryStr in categoryStrings)
         {
-            if (Enum.TryParse<ItemCategory>(categoryStr, out ItemCategory category))
+            if (EnumParser.TryParse<ItemCategory>(categoryStr, out ItemCategory category))
             {
                 item.Categories.Add(category);
             }
@@ -38,7 +39,7 @@ public static class ItemParser
 
         // Parse enhanced categorical properties
         string sizeStr = GetStringProperty(root, "size", "Medium");
-        if (Enum.TryParse<SizeCategory>(sizeStr, out SizeCategory size))
+        if (EnumParser.TryParse<SizeCategory>(sizeStr, out SizeCategory size))
         {
             item.Size = size;
         }

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Content.Utilities;
 
 public static class GameWorldSerializer
 {
@@ -237,15 +238,15 @@ public static class GameWorldSerializer
         };
         
         // Parse enums
-        if (Enum.TryParse<ConnectionType>(data.TokenType, out var tokenType))
+        if (EnumParser.TryParse<ConnectionType>(data.TokenType, out var tokenType))
             letter.TokenType = tokenType;
-        if (Enum.TryParse<LetterState>(data.State, out var state))
+        if (EnumParser.TryParse<LetterState>(data.State, out var state))
             letter.State = state;
-        if (Enum.TryParse<SizeCategory>(data.Size, out var size))
+        if (EnumParser.TryParse<SizeCategory>(data.Size, out var size))
             letter.Size = size;
-        if (Enum.TryParse<LetterPhysicalProperties>(data.PhysicalProperties, out var physicalProps))
+        if (EnumParser.TryParse<LetterPhysicalProperties>(data.PhysicalProperties, out var physicalProps))
             letter.PhysicalProperties = physicalProps;
-        if (!string.IsNullOrEmpty(data.RequiredEquipment) && Enum.TryParse<ItemCategory>(data.RequiredEquipment, out var equipment))
+        if (!string.IsNullOrEmpty(data.RequiredEquipment) && EnumParser.TryParse<ItemCategory>(data.RequiredEquipment, out var equipment))
             letter.RequiredEquipment = equipment;
             
         return letter;
@@ -256,7 +257,7 @@ public static class GameWorldSerializer
         player.ConnectionTokens.Clear();
         foreach (var kvp in tokens)
         {
-            if (Enum.TryParse<ConnectionType>(kvp.Key, out var tokenType))
+            if (EnumParser.TryParse<ConnectionType>(kvp.Key, out var tokenType))
             {
                 player.ConnectionTokens[tokenType] = kvp.Value;
             }
@@ -271,7 +272,7 @@ public static class GameWorldSerializer
             var tokenDict = new Dictionary<ConnectionType, int>();
             foreach (var token in npc.Value)
             {
-                if (Enum.TryParse<ConnectionType>(token.Key, out var tokenType))
+                if (EnumParser.TryParse<ConnectionType>(token.Key, out var tokenType))
                 {
                     tokenDict[tokenType] = token.Value;
                 }
@@ -311,7 +312,7 @@ public static class GameWorldSerializer
         // Parse benefit effects
         foreach (var effect in data.BenefitEffects ?? new List<string>())
         {
-            if (Enum.TryParse<ObligationEffect>(effect, out var effectEnum))
+            if (EnumParser.TryParse<ObligationEffect>(effect, out var effectEnum))
             {
                 obligation.BenefitEffects.Add(effectEnum);
             }
@@ -320,14 +321,14 @@ public static class GameWorldSerializer
         // Parse constraint effects
         foreach (var effect in data.ConstraintEffects ?? new List<string>())
         {
-            if (Enum.TryParse<ObligationEffect>(effect, out var effectEnum))
+            if (EnumParser.TryParse<ObligationEffect>(effect, out var effectEnum))
             {
                 obligation.ConstraintEffects.Add(effectEnum);
             }
         }
         
         // Parse related token type
-        if (!string.IsNullOrEmpty(data.RelatedTokenType) && Enum.TryParse<ConnectionType>(data.RelatedTokenType, out var tokenType))
+        if (!string.IsNullOrEmpty(data.RelatedTokenType) && EnumParser.TryParse<ConnectionType>(data.RelatedTokenType, out var tokenType))
         {
             obligation.RelatedTokenType = tokenType;
         }
@@ -378,8 +379,8 @@ public static class GameWorldSerializer
         // Apply player state if character exists
         if (!string.IsNullOrEmpty(serialized.Player.Name))
         {
-            if (Enum.TryParse<Genders>(serialized.Player.Gender, out Genders gender) &&
-                Enum.TryParse<Professions>(serialized.Player.Archetype, out Professions archetype))
+            if (EnumParser.TryParse<Genders>(serialized.Player.Gender, out Genders gender) &&
+                EnumParser.TryParse<Professions>(serialized.Player.Archetype, out Professions archetype))
             {
                 // Initialize player
                 gameWorld.GetPlayer().Initialize(serialized.Player.Name, archetype, gender);

@@ -206,6 +206,15 @@ public static class TestServiceConfiguration
         services.AddSingleton<TransportCompatibilityValidator>();
         services.AddSingleton<AccessRequirementChecker>();
         
+        // Register game configuration and rule engine
+        services.AddSingleton<GameConfiguration>(serviceProvider =>
+        {
+            var contentDirectory = serviceProvider.GetRequiredService<IContentDirectory>();
+            var loader = new GameConfigurationLoader(contentDirectory);
+            return loader.LoadConfiguration();
+        });
+        services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
+        
         // Letter Queue System (same as production)
         services.AddSingleton<StandingObligationManager>(serviceProvider =>
         {
@@ -226,7 +235,9 @@ public static class TestServiceConfiguration
             var connectionTokenManager = serviceProvider.GetRequiredService<ConnectionTokenManager>();
             var categoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
             var conversationFactory = serviceProvider.GetRequiredService<ConversationFactory>();
-            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager, connectionTokenManager, categoryService, conversationFactory);
+            var config = serviceProvider.GetRequiredService<GameConfiguration>();
+            var ruleEngine = serviceProvider.GetRequiredService<IGameRuleEngine>();
+            var letterQueueManager = new LetterQueueManager(gameWorld, letterTemplateRepository, npcRepository, messageSystem, obligationManager, connectionTokenManager, categoryService, conversationFactory, config, ruleEngine);
             
             return letterQueueManager;
         });
