@@ -5,6 +5,8 @@
     private readonly TransportCompatibilityValidator _transportValidator;
     private readonly RouteRepository _routeRepository;
     private readonly AccessRequirementChecker _accessChecker;
+    private readonly FlagService _flagService;
+    private readonly NarrativeManager _narrativeManager;
     public LocationSystem LocationSystem { get; }
     public LocationRepository LocationRepository { get; }
     public ItemRepository ItemRepository { get; }
@@ -24,6 +26,8 @@
         _transportValidator = transportValidator;
         _routeRepository = routeRepository;
         _accessChecker = accessChecker;
+        _flagService = gameWorld.FlagService;
+        _narrativeManager = gameWorld.NarrativeManager;
         this.LocationSystem = locationSystem;
         this.LocationRepository = locationRepository;
         ItemRepository = itemRepository;
@@ -93,6 +97,20 @@
 
         LocationRepository.SetCurrentLocation(targetLocation, locSpot);
 
+        // Check for tutorial first movement
+        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial") && 
+            !_flagService.GetFlag("tutorial_first_movement"))
+        {
+            _flagService.SetFlag("tutorial_first_movement", true);
+        }
+        
+        // Check for tutorial docks visit
+        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial") && 
+            targetLocation.Id == "docks" &&
+            !_flagService.GetFlag("tutorial_docks_visited"))
+        {
+            _flagService.SetFlag("tutorial_docks_visited", true);
+        }
 
         string? currentLocation = LocationRepository.GetCurrentLocation()?.Id;
 

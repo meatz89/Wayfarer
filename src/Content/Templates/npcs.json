@@ -108,5 +108,60 @@
 		"personality": "Meticulous and knowledgeable, values accuracy.",
 		"services": ["document_services", "research_services"],
 		"letterTokenTypes": ["Noble", "Trust"]
+	},
+	{
+		"id": "tam_beggar",
+		"name": "Tam the Beggar",
+		"profession": "Beggar",
+		"locationId": "lower_ward",
+		"spotId": "lower_ward_square",
+		"description": "A weathered man who knows the streets and shares information with those who show kindness.",
+		"personality": "Observant and cryptic, sees more than he lets on.",
+		"services": ["information"],
+		"letterTokenTypes": ["Common"]
+	},
+	{
+		"id": "martha_docks",
+		"name": "Martha the Docker",
+		"profession": "Dock_Boss",
+		"locationId": "docks",
+		"spotId": "wharf",
+		"description": "A tough woman who manages dock workers and always has cargo that needs moving.",
+		"personality": "Hard-working and fair, respects those who earn their keep.",
+		"services": ["labor_work", "delivery_contracts"],
+		"letterTokenTypes": ["Trade"]
+	},
+	{
+		"id": "elena_scribe",
+		"name": "Elena the Scribe",
+		"profession": "Scribe",
+		"locationId": "lower_ward",
+		"spotId": "lower_ward_square",
+		"description": "A young woman fallen on hard times after her master's shop burned down.",
+		"personality": "Intelligent and compassionate, values loyalty and friendship.",
+		"services": ["writing_services"],
+		"letterTokenTypes": ["Trust"]
+	},
+	{
+		"id": "fishmonger",
+		"name": "Fishmonger Giles",
+		"profession": "Merchant",
+		"locationId": "docks",
+		"spotId": "wharf",
+		"description": "A merchant who deals in fresh fish and always needs messages delivered to other traders.",
+		"personality": "Businesslike and efficient, always thinking of profit.",
+		"services": ["trade_goods", "delivery_contracts"],
+		"letterTokenTypes": ["Common"]
+	},
+	{
+		"id": "patron_intermediary",
+		"name": "The Intermediary",
+		"profession": "Agent",
+		"locationId": "merchants_rest",
+		"spotId": "private_room",
+		"description": "A well-dressed individual who speaks for a mysterious patron seeking reliable couriers.",
+		"personality": "Professional and discreet, reveals nothing about their employer.",
+		"services": ["patron_contracts"],
+		"letterTokenTypes": ["Noble"]
 	}
 ]

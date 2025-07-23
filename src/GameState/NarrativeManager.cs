@@ -255,6 +255,24 @@ public class NarrativeManager
                     _flagService.SetFlag(currentStep.CompletionFlag, true);
                 }
                 
+                // Create obligation if specified
+                if (currentStep.ObligationToCreate != null && _obligationManager != null)
+                {
+                    var obligationDef = currentStep.ObligationToCreate;
+                    var obligation = new StandingObligation
+                    {
+                        ID = obligationDef.Id,
+                        Name = obligationDef.Name,
+                        Description = obligationDef.Description,
+                        Source = obligationDef.SourceNpcId,
+                        RelatedTokenType = obligationDef.RelatedTokenType,
+                        BenefitEffects = obligationDef.BenefitEffects,
+                        ConstraintEffects = obligationDef.ConstraintEffects
+                    };
+                    
+                    _obligationManager.AddObligation(obligation);
+                }
+                
                 // Increment step counter
                 _flagService.IncrementCounter($"narrative_{narrativeId}_steps_completed");
                 
@@ -379,6 +397,15 @@ public class NarrativeManager
             }
         }
     }
+    
+    public NarrativeDefinition GetNarrativeDefinition(string narrativeId)
+    {
+        if (_narrativeDefinitions.ContainsKey(narrativeId))
+        {
+            return _narrativeDefinitions[narrativeId];
+        }
+        return null;
+    }
 }
 
 // Data models for narrative configuration
@@ -407,6 +434,7 @@ public class NarrativeStep
     public string GuidanceText { get; set; }
     public string CompletionFlag { get; set; }
     public string ConversationIntroduction { get; set; } // Override for conversation intro
+    public NarrativeStepObligation ObligationToCreate { get; set; } // Creates obligation when step completes
 }
 
 public class NarrativeStartingConditions
@@ -426,4 +454,15 @@ public class NarrativeRewards
     public int? Stamina { get; set; }
     public List<string> Items { get; set; }
     public string Message { get; set; }
+}
+
+public class NarrativeStepObligation
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string SourceNpcId { get; set; }
+    public ConnectionType? RelatedTokenType { get; set; }
+    public List<ObligationEffect> BenefitEffects { get; set; } = new List<ObligationEffect>();
+    public List<ObligationEffect> ConstraintEffects { get; set; } = new List<ObligationEffect>();
 }

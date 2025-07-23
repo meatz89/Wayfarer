@@ -1,18 +1,37 @@
-# CLAUDE.md
+* CLAUDE.md
 
-**⚠️ CRITICAL: READ ARCHITECTURE-DOCUMENTATION-2025-01-22.md FIRST ⚠️**
-**This file contains the complete system architecture, file map, and known issues.**
+**⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 
 **📋 NARRATIVE SYSTEM: See NARRATIVE-IMPLEMENTATION-PLAN.md for tutorial/quest/story system design**
 
-**⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE BEFORE WRITING TO IT ⚠️**
+**🚧 TUTORIAL IMPLEMENTATION: See TUTORIAL-IMPLEMENTATION-TODOS.md for current state and remaining work**
+**Current State**: Core systems working, narrative defined, but critical integration missing (narrative not connected to game flow, UI overlay missing, no auto-start). Total remaining work: 7-11 days.
 
-**⚠️ CRITICAL: ALWAYS READ THE FULL FILE BEFORE MODIFYING IT ⚠️**
+**⚠️ CRITICAL: ALWAYS READ ALL FILES FULLY BEFORE MODIFYING IT ⚠️**
 **NEVER make changes to a file without reading it completely first. This is non-negotiable.**
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-### CODE WRITING PRINCIPLES
+** CODE WRITING PRINCIPLES **
+
+*** Error Handling Philosophy ***
+- **Let exceptions bubble up** naturally for better error visibility
+- Only catch exceptions when you can meaningfully recover from them
+- Prefer clear failures over hidden bugs
+
+** Code Style Guidelines **
+
+*** Code Style ***
+- Self-descriptive code over excessive comments
+- Comments for intent, not implementation
+
+*** Anti-Defensive Programming Philosophy ***
+- **Fail Fast**: Let exceptions bubble up naturally for clear debugging information
+- **Minimal Try-Catch**: Only use try-catch when absolutely necessary for error recovery
+- **No Excessive Null Checks**: Avoid defensive programming for things that should never be null
+- **Assumption Validation**: It's fine to assume correctness for things that would fail during initialization and be caught in basic smoke testing
+
+**Why**: Defensive programming hides bugs instead of revealing them. Clear exceptions with full stack traces are more valuable than swallowed errors.
 
 **TRANSFORMATION APPROACH**:
 - **RENAME AND RECONTEXTUALIZE** - Don't wrap new functionality in old classes, rename them to reflect new purpose
@@ -36,7 +55,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **RENAME instead of DELETE/RECREATE** - When refactoring systems (e.g., Encounter → Conversation), rename files and classes to preserve git history and ensure complete transformation.
 - **COMPLETE refactorings IMMEDIATELY** - Never leave systems half-renamed. If you start renaming Encounter to Conversation, finish ALL references before moving to other tasks.
 
-### GAME DESIGN PRINCIPLE: NO SPECIAL RULES (CRITICAL)
+*** GAME DESIGN PRINCIPLE: NO SPECIAL RULES (CRITICAL)
 
 **"Special rules" are a design smell. When tempted to add special behavior, create new categorical mechanics instead.**
 
@@ -65,7 +84,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Code remains clean and general
 - New content automatically inherits system behaviors
 
-### COMPOUND ACTIONS AND EMERGENT EFFICIENCY
+*** COMPOUND ACTIONS AND EMERGENT EFFICIENCY
 
 **Natural action overlap creates efficiency without special bonuses or explicit mechanics.**
 
@@ -92,21 +111,3 @@ if (isDoingDelivery && hasTradeGoods)
     profitBonus *= 1.5; // NO! No artificial bonuses
 }
 ```
-
-### LOCATION-BASED ACTION GENERATION
-
-**Use domain tags to generate environmental actions, not hardcoded spot checks.**
-
-**Domain Tags:**
-- RESOURCES - Gathering opportunities
-- COMMERCE - Trading activities
-- SOCIAL - Information and gossip
-- LABOR - Work opportunities
-- CRAFTING - Equipment maintenance
-- TRANSPORT - Alternative travel
-
-**Implementation Rules:**
-1. Actions emerge from tags, not spot IDs
-2. Environmental actions supplement NPC interactions
-3. Context matters (time, NPCs present, player state)
-4. No optimization hints - discovery through play

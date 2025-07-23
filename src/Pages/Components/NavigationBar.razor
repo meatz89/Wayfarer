@@ -4,28 +4,43 @@
 @namespace Wayfarer.Pages.Components
 
 <div class="navigation-bar">
-    <div class="nav-section nav-primary">
-        <h4>Letter Management</h4>
-        <div class="nav-buttons">
-            <button class="nav-button @(IsActive(CurrentViews.LetterQueueScreen) ? "active" : "")" 
-                    @onclick="() => NavigateTo(CurrentViews.LetterQueueScreen)">
-                Queue
-            </button>
-            <button class="nav-button @(IsActive(CurrentViews.LetterBoardScreen) ? "active" : "")" 
-                    @onclick="() => NavigateTo(CurrentViews.LetterBoardScreen)"
-                    disabled="@(!CanNavigateToLetterBoard())">
-                Board
-            </button>
-            <button class="nav-button @(IsActive(CurrentViews.RelationshipScreen) ? "active" : "")" 
-                    @onclick="() => NavigateTo(CurrentViews.RelationshipScreen)">
-                Relations
-            </button>
-            <button class="nav-button @(IsActive(CurrentViews.ObligationsScreen) ? "active" : "")" 
-                    @onclick="() => NavigateTo(CurrentViews.ObligationsScreen)">
-                Obligations
-            </button>
+    @if (ShouldShowLetterManagement())
+    {
+        <div class="nav-section nav-primary">
+            <h4>Letter Management</h4>
+            <div class="nav-buttons">
+                @if (ShouldShowQueue())
+                {
+                    <button class="nav-button @(IsActive(CurrentViews.LetterQueueScreen) ? "active" : "")" 
+                            @onclick="() => NavigateTo(CurrentViews.LetterQueueScreen)">
+                        Queue
+                    </button>
+                }
+                @if (ShouldShowLetterBoard())
+                {
+                    <button class="nav-button @(IsActive(CurrentViews.LetterBoardScreen) ? "active" : "")" 
+                            @onclick="() => NavigateTo(CurrentViews.LetterBoardScreen)"
+                            disabled="@(!CanNavigateToLetterBoard())">
+                        Board
+                    </button>
+                }
+                @if (ShouldShowRelations())
+                {
+                    <button class="nav-button @(IsActive(CurrentViews.RelationshipScreen) ? "active" : "")" 
+                            @onclick="() => NavigateTo(CurrentViews.RelationshipScreen)">
+                        Relations
+                    </button>
+                }
+                @if (ShouldShowObligations())
+                {
+                    <button class="nav-button @(IsActive(CurrentViews.ObligationsScreen) ? "active" : "")" 
+                            @onclick="() => NavigateTo(CurrentViews.ObligationsScreen)">
+                        Obligations
+                    </button>
+                }
+            </div>
         </div>
-    </div>
+    }
     
     <div class="nav-section nav-secondary">
         <h4>World</h4>
@@ -108,6 +123,43 @@
     private bool CanNavigateToLetterBoard()
     {
         return GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
+    }
+    
+    // Tutorial visibility methods based on player achievements
+    private bool ShouldShowLetterManagement()
+    {
+        // Show letter management section once player has learned about letters
+        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
+               GameWorld.FlagService.GetFlag("first_letter_accepted");
+    }
+    
+    private bool ShouldShowQueue()
+    {
+        // Show queue after player accepts their first letter
+        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
+               GameWorld.FlagService.GetFlag("first_letter_accepted");
+    }
+    
+    private bool ShouldShowLetterBoard()
+    {
+        // Show letter board after player delivers their first letter
+        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
+               GameWorld.FlagService.GetFlag("first_letter_delivered");
+    }
+    
+    private bool ShouldShowRelations()
+    {
+        // Show relations after player earns their first token
+        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
+               GameWorld.FlagService.GetFlag("first_token_earned");
+    }
+    
+    private bool ShouldShowObligations()
+    {
+        // Show obligations after player meets patron or has any obligation
+        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
+               GameWorld.FlagService.GetFlag("tutorial_patron_met") ||
+               GameWorld.StandingObligationManager.GetActiveObligations().Any();
     }
     
     public void Dispose()

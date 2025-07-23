@@ -102,14 +102,8 @@ public class GameWorldManager
 
         // Location actions are now handled by LocationActionManager
         
-        // Apply starting obligations - Patron's Expectation
-        var patronObligation = _gameWorld.WorldState.StandingObligationTemplates
-            .FirstOrDefault(o => o.ID == "patrons_expectation");
-        if (patronObligation != null)
-        {
-            standingObligationManager.AddObligation(patronObligation);
-            Console.WriteLine("Applied Patron's Expectation obligation to new player");
-        }
+        // Don't apply patron obligation at start - it's added during tutorial Day 10
+        // when player accepts patronage
     }
 
 

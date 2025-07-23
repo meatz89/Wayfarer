@@ -148,5 +148,45 @@
 		"locationId": "crossbridge",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
 		"domainTags": [ "SCHOLARLY", "QUIET" ]
+	},
+	{
+		"id": "abandoned_warehouse",
+		"name": "Abandoned Warehouse",
+		"type": "SHELTER",
+		"description": "A cold, empty warehouse where the desperate find shelter from the elements.",
+		"initialState": "Broken crates and old tarps provide makeshift bedding. Wind whistles through gaps in the walls.",
+		"locationId": "lower_ward",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "REST", "POOR" ]
+	},
+	{
+		"id": "lower_ward_square",
+		"name": "Lower Ward Square",
+		"type": "FEATURE",
+		"description": "A small square where the poor gather to share news and seek opportunities.",
+		"initialState": "Worn cobblestones and a broken fountain. Desperate souls linger in doorways.",
+		"locationId": "lower_ward",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "SOCIAL", "POOR" ]
+	},
+	{
+		"id": "wharf",
+		"name": "Martha's Wharf",
+		"type": "FEATURE",
+		"description": "A working wharf where dock workers load and unload river barges for daily wages.",
+		"initialState": "Stacks of crates and barrels. The smell of tar and river water fills the air.",
+		"locationId": "docks",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "LABOR", "COMMERCE" ]
+	},
+	{
+		"id": "private_room",
+		"name": "Private Room",
+		"type": "MEETING",
+		"description": "A discreet meeting room in the Merchant's Rest, reserved for confidential business.",
+		"initialState": "Well-appointed room with comfortable chairs and thick curtains for privacy.",
+		"locationId": "merchants_rest",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "SOCIAL", "REFINED" ]
 	}
 ]
