@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Wayfarer.Content.Utilities;
 /// <summary>
 /// Parser for AccessRequirement entities from JSON.
 /// </summary>
@@ -25,7 +26,7 @@ public static class AccessRequirementParser
         };
         
         // Parse logic
-        if (Enum.TryParse<RequirementLogic>(dto.Logic, true, out var logic))
+        if (EnumParser.TryParse<RequirementLogic>(dto.Logic, out var logic))
         {
             requirement.Logic = logic;
         }
@@ -33,7 +34,7 @@ public static class AccessRequirementParser
         // Parse equipment requirements
         foreach (var equipStr in dto.RequiredEquipment)
         {
-            if (Enum.TryParse<ItemCategory>(equipStr, true, out var category))
+            if (EnumParser.TryParse<ItemCategory>(equipStr, out var category))
             {
                 requirement.RequiredEquipment.Add(category);
             }
@@ -52,7 +53,7 @@ public static class AccessRequirementParser
         // Parse token type requirements
         foreach (var (typeStr, count) in dto.RequiredTokensPerType)
         {
-            if (Enum.TryParse<ConnectionType>(typeStr, true, out var tokenType))
+            if (EnumParser.TryParse<ConnectionType>(typeStr, out var tokenType))
             {
                 requirement.RequiredTokensPerType[tokenType] = count;
             }

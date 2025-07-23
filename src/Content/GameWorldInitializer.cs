@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Wayfarer.Content.Utilities;
 public class GameWorldInitializer : IGameWorldFactory
 {
     private readonly IContentDirectory _contentDirectory;
@@ -643,12 +644,12 @@ public class GameWorldInitializer : IGameWorldFactory
                     var professionsByTime = new Dictionary<TimeBlocks, List<Professions>>();
                     foreach (var (timeStr, professionStrs) in dto.AvailableProfessionsByTime)
                     {
-                        if (Enum.TryParse<TimeBlocks>(timeStr, out var timeBlock))
+                        if (EnumParser.TryParse<TimeBlocks>(timeStr, out var timeBlock))
                         {
                             var professions = new List<Professions>();
                             foreach (var profStr in professionStrs)
                             {
-                                if (Enum.TryParse<Professions>(profStr.Replace(" ", "_"), out var profession))
+                                if (EnumParser.TryParse<Professions>(profStr, out var profession))
                                 {
                                     professions.Add(profession);
                                 }
@@ -718,7 +719,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     // Parse from "categories" field
                     foreach (var catStr in dto.Categories ?? new List<string>())
                     {
-                        if (Enum.TryParse<ItemCategory>(catStr.Replace(" ", "_"), out var cat))
+                        if (EnumParser.TryParse<ItemCategory>(catStr, out var cat))
                         {
                             categories.Add(cat);
                         }
@@ -727,7 +728,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     // Also parse from "itemCategories" for backwards compatibility
                     foreach (var catStr in dto.ItemCategories ?? new List<string>())
                     {
-                        if (Enum.TryParse<ItemCategory>(catStr.Replace(" ", "_"), out var cat))
+                        if (EnumParser.TryParse<ItemCategory>(catStr, out var cat))
                         {
                             categories.Add(cat);
                         }
@@ -735,7 +736,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     
                     
                     // Parse size category
-                    if (!Enum.TryParse<SizeCategory>(dto.SizeCategory ?? "Small", out var sizeCategory))
+                    if (!EnumParser.TryParse<SizeCategory>(dto.SizeCategory ?? "Small", out var sizeCategory))
                     {
                         sizeCategory = SizeCategory.Small;
                     }
@@ -796,7 +797,7 @@ public class GameWorldInitializer : IGameWorldFactory
                 try
                 {
                     // Parse type
-                    if (!Enum.TryParse<LocationSpotTypes>(dto.Type, out var spotType))
+                    if (!EnumParser.TryParse<LocationSpotTypes>(dto.Type, out var spotType))
                     {
                         spotType = LocationSpotTypes.FEATURE;
                     }
@@ -805,7 +806,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     var timeBlocks = new List<TimeBlocks>();
                     foreach (var timeStr in dto.CurrentTimeBlocks ?? new List<string>())
                     {
-                        if (Enum.TryParse<TimeBlocks>(timeStr, out var timeBlock))
+                        if (EnumParser.TryParse<TimeBlocks>(timeStr, out var timeBlock))
                         {
                             timeBlocks.Add(timeBlock);
                         }
@@ -868,7 +869,7 @@ public class GameWorldInitializer : IGameWorldFactory
                 try
                 {
                     // Parse profession
-                    if (!Enum.TryParse<Professions>(dto.Profession.Replace(" ", "_"), out var profession))
+                    if (!EnumParser.TryParse<Professions>(dto.Profession, out var profession))
                     {
                         profession = Professions.Merchant; // Default profession if parsing fails
                     }
@@ -879,7 +880,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     var services = new List<ServiceTypes>();
                     foreach (var serviceStr in dto.Services ?? new List<string>())
                     {
-                        if (Enum.TryParse<ServiceTypes>(serviceStr.Replace(" ", "_"), out var service))
+                        if (EnumParser.TryParse<ServiceTypes>(serviceStr, out var service))
                         {
                             services.Add(service);
                         }
@@ -889,7 +890,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     var tokenTypes = new List<ConnectionType>();
                     foreach (var tokenTypeStr in dto.LetterTokenTypes ?? new List<string>())
                     {
-                        if (Enum.TryParse<ConnectionType>(tokenTypeStr, out var parsed))
+                        if (EnumParser.TryParse<ConnectionType>(tokenTypeStr, out var parsed))
                         {
                             tokenTypes.Add(parsed);
                         }
@@ -957,7 +958,7 @@ public class GameWorldInitializer : IGameWorldFactory
                 try
                 {
                     // Parse travel method
-                    if (!Enum.TryParse<TravelMethods>(dto.Method, out var method))
+                    if (!EnumParser.TryParse<TravelMethods>(dto.Method, out var method))
                     {
                         method = TravelMethods.Walking;
                     }
@@ -981,7 +982,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     // Parse terrain categories
                     foreach (var terrainStr in dto.TerrainCategories ?? new List<string>())
                     {
-                        if (Enum.TryParse<TerrainCategory>(terrainStr.Replace(" ", "_"), out var terrain))
+                        if (EnumParser.TryParse<TerrainCategory>(terrainStr, out var terrain))
                         {
                             route.TerrainCategories.Add(terrain);
                         }
@@ -1033,7 +1034,7 @@ public class GameWorldInitializer : IGameWorldFactory
                 try
                 {
                     // Parse token type
-                    if (!Enum.TryParse<ConnectionType>(dto.TokenType, out var tokenType))
+                    if (!EnumParser.TryParse<ConnectionType>(dto.TokenType, out var tokenType))
                     {
                         Console.WriteLine($"WARNING: Unknown token type '{dto.TokenType}' for template '{dto.Id}', skipping");
                         continue;
@@ -1043,7 +1044,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     var category = LetterCategory.Basic;
                     if (!string.IsNullOrEmpty(dto.Category))
                     {
-                        if (!Enum.TryParse<LetterCategory>(dto.Category, out category))
+                        if (!EnumParser.TryParse<LetterCategory>(dto.Category, out category))
                         {
                             Console.WriteLine($"WARNING: Unknown letter category '{dto.Category}' for template '{dto.Id}', defaulting to Basic");
                             category = LetterCategory.Basic;
@@ -1057,7 +1058,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     var size = SizeCategory.Medium;
                     if (!string.IsNullOrEmpty(dto.Size))
                     {
-                        if (!Enum.TryParse<SizeCategory>(dto.Size, out size))
+                        if (!EnumParser.TryParse<SizeCategory>(dto.Size, out size))
                         {
                             Console.WriteLine($"WARNING: Unknown letter size '{dto.Size}' for template '{dto.Id}', defaulting to Medium");
                             size = SizeCategory.Medium;
@@ -1070,7 +1071,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     {
                         foreach (var prop in dto.PhysicalProperties)
                         {
-                            if (Enum.TryParse<LetterPhysicalProperties>(prop, out var propEnum))
+                            if (EnumParser.TryParse<LetterPhysicalProperties>(prop, out var propEnum))
                             {
                                 physicalProperties |= propEnum;
                             }
@@ -1085,7 +1086,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     ItemCategory? requiredEquipment = null;
                     if (!string.IsNullOrEmpty(dto.RequiredEquipment))
                     {
-                        if (Enum.TryParse<ItemCategory>(dto.RequiredEquipment, out var equipment))
+                        if (EnumParser.TryParse<ItemCategory>(dto.RequiredEquipment, out var equipment))
                         {
                             requiredEquipment = equipment;
                         }

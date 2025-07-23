@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json;
+using Wayfarer.Content.Utilities;
 
 /// <summary>
 /// Parser for deserializing standing obligation data from JSON.
@@ -38,7 +39,7 @@ public static class StandingObligationParser
         if (element.TryGetProperty("RelatedTokenType", out var tokenElement) && 
             !tokenElement.ValueKind.Equals(JsonValueKind.Null))
         {
-            if (Enum.TryParse<ConnectionType>(tokenElement.GetString(), out var tokenType))
+            if (EnumParser.TryParse<ConnectionType>(tokenElement.GetString(), out var tokenType))
                 obligation.RelatedTokenType = tokenType;
         }
 
@@ -46,7 +47,7 @@ public static class StandingObligationParser
         {
             foreach (var benefitElement in benefitsElement.EnumerateArray())
             {
-                if (Enum.TryParse<ObligationEffect>(benefitElement.GetString(), out var effect))
+                if (EnumParser.TryParse<ObligationEffect>(benefitElement.GetString(), out var effect))
                     obligation.BenefitEffects.Add(effect);
             }
         }
@@ -55,7 +56,7 @@ public static class StandingObligationParser
         {
             foreach (var constraintElement in constraintsElement.EnumerateArray())
             {
-                if (Enum.TryParse<ObligationEffect>(constraintElement.GetString(), out var effect))
+                if (EnumParser.TryParse<ObligationEffect>(constraintElement.GetString(), out var effect))
                     obligation.ConstraintEffects.Add(effect);
             }
         }

@@ -10,9 +10,11 @@ public class LetterQueueManager
     private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly LetterCategoryService _categoryService;
     private readonly ConversationFactory _conversationFactory;
+    private readonly GameConfiguration _config;
+    private readonly IGameRuleEngine _ruleEngine;
     private readonly Random _random = new Random();
     
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, ConversationFactory conversationFactory)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, ConversationFactory conversationFactory, GameConfiguration config, IGameRuleEngine ruleEngine)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -22,6 +24,8 @@ public class LetterQueueManager
         _connectionTokenManager = connectionTokenManager;
         _categoryService = categoryService;
         _conversationFactory = conversationFactory;
+        _config = config;
+        _ruleEngine = ruleEngine;
     }
     
     // Get the player's letter queue
@@ -33,13 +37,19 @@ public class LetterQueueManager
     // Add letter to queue at specific position
     public bool AddLetterToQueue(Letter letter, int position)
     {
-        if (letter == null || position < 1 || position > 8) return false;
+        if (letter == null || position < 1 || position > _config.LetterQueue.MaxQueueSize) return false;
 
         var queue = _gameWorld.GetPlayer().LetterQueue;
         if (queue[position - 1] != null) return false; // Position occupied
 
         queue[position - 1] = letter;
         letter.QueuePosition = position;
+        
+        _messageSystem.AddSystemMessage(
+            $"📨 Letter from {letter.SenderName} added to position {position}",
+            SystemMessageTypes.Success
+        );
+        
         return true;
     }
     // Add letter to first available slot - queue fills from position 1
@@ -50,13 +60,19 @@ public class LetterQueueManager
         var queue = _gameWorld.GetPlayer().LetterQueue;
         
         // Find the FIRST empty slot, filling from position 1
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
         {
             if (queue[i] == null)
             {
                 queue[i] = letter;
                 letter.QueuePosition = i + 1;
                 letter.State = LetterState.Accepted; // Letter enters queue in Accepted state
+                
+                _messageSystem.AddSystemMessage(
+                    $"📨 New letter from {letter.SenderName} enters queue at position {i + 1}",
+                    SystemMessageTypes.Success
+                );
+                
                 return i + 1;
             }
         }
@@ -117,21 +133,16 @@ public class LetterQueueManager
         leveragePosition = _obligationManager.ApplyLeverageModifiers(letter, leveragePosition);
         
         // Clamp to valid queue range
-        return Math.Max(1, Math.Min(8, leveragePosition));
+        return Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, leveragePosition));
     }
     
     // Get base position for token type
     private int GetBasePositionForTokenType(ConnectionType tokenType)
     {
-        return tokenType switch
-        {
-            ConnectionType.Noble => 3,    // Noble base position
-            ConnectionType.Trade => 5,    // Trade base position  
-            ConnectionType.Shadow => 5,   // Shadow base position
-            ConnectionType.Common => 7,   // Common base position
-            ConnectionType.Trust => 7,    // Trust base position
-            _ => 7                        // Default to lowest priority
-        };
+        return _config.LetterQueue.BasePositions.GetValueOrDefault(
+            tokenType, 
+            _config.LetterQueue.MaxQueueSize - 1
+        );
     }
     
     // Apply relationship pattern modifiers
@@ -192,7 +203,7 @@ public class LetterQueueManager
         
         // Collect all letters from target position downward
         var lettersToDisplace = new System.Collections.Generic.List<Letter>();
-        for (int i = targetPosition - 1; i < 8; i++)
+        for (int i = targetPosition - 1; i < _config.LetterQueue.MaxQueueSize; i++)
         {
             if (queue[i] != null)
             {
@@ -211,7 +222,7 @@ public class LetterQueueManager
         foreach (var displaced in lettersToDisplace)
         {
             nextAvailable++;
-            if (nextAvailable <= 8)
+            if (nextAvailable <= _config.LetterQueue.MaxQueueSize)
             {
                 queue[nextAvailable - 1] = displaced;
                 displaced.QueuePosition = nextAvailable;
@@ -416,7 +427,7 @@ public class LetterQueueManager
         
         // Collect all letters that need to be pushed down
         var lettersToPush = new System.Collections.Generic.List<Letter>();
-        for (int i = targetPos; i < 8; i++)
+        for (int i = targetPos; i < _config.LetterQueue.MaxQueueSize; i++)
         {
             if (queue[i] != null)
             {
@@ -441,12 +452,12 @@ public class LetterQueueManager
         foreach (var pushedLetter in lettersToPush)
         {
             // Find next available slot
-            while (nextAvailable < 8 && queue[nextAvailable] != null)
+            while (nextAvailable < _config.LetterQueue.MaxQueueSize && queue[nextAvailable] != null)
             {
                 nextAvailable++;
             }
             
-            if (nextAvailable < 8)
+            if (nextAvailable < _config.LetterQueue.MaxQueueSize)
             {
                 // Place pushed letter
                 int oldPos = pushedLetter.QueuePosition;
@@ -502,7 +513,7 @@ public class LetterQueueManager
     // Remove letter from queue
     public bool RemoveLetterFromQueue(int position)
     {
-        if (position < 1 || position > 8) return false;
+        if (position < 1 || position > _config.LetterQueue.MaxQueueSize) return false;
         
         var queue = _gameWorld.GetPlayer().LetterQueue;
         var letter = queue[position - 1];
@@ -520,7 +531,7 @@ public class LetterQueueManager
     // Get letter at position
     public Letter GetLetterAt(int position)
     {
-        if (position < 1 || position > 8) return null;
+        if (position < 1 || position > _config.LetterQueue.MaxQueueSize) return null;
         return _gameWorld.GetPlayer().LetterQueue[position - 1];
     }
     
@@ -589,7 +600,7 @@ public class LetterQueueManager
             
             // If in debt (negative tokens), letter gets higher priority
             int leverage = tokenBalance < 0 ? Math.Abs(tokenBalance) : 0;
-            int targetPosition = Math.Max(1, Math.Min(8, basePosition - leverage));
+            int targetPosition = Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, basePosition - leverage));
             
             // Add to queue at calculated position
             AddLetterToQueue(letter, targetPosition);
@@ -626,7 +637,7 @@ public class LetterQueueManager
     {
         var player = _gameWorld.GetPlayer();
         int writeIndex = 0;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < _config.LetterQueue.MaxQueueSize; i++)
         {
             if (player.LetterQueue[i] != null)
             {
@@ -667,8 +678,8 @@ public class LetterQueueManager
     // Apply token penalty when a letter expires
     private void ApplyRelationshipDamage(Letter letter, ConnectionTokenManager _connectionTokenManager)
     {
-        // Determine penalty amount (2 tokens for expired letters)
-        int tokenPenalty = 2;
+        // Determine penalty amount from configuration
+        int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
         
         // Get the sender's NPC ID (for per-NPC tracking)
         var senderId = GetNPCIdByName(letter.SenderName);
@@ -936,7 +947,7 @@ public class LetterQueueManager
         
         // Collect all letters after the removed position
         var remainingLetters = new System.Collections.Generic.List<Letter>();
-        for (int i = removedPosition; i < 8; i++)
+        for (int i = removedPosition; i < _config.LetterQueue.MaxQueueSize; i++)
         {
             if (queue[i] != null)
             {
@@ -959,12 +970,12 @@ public class LetterQueueManager
         foreach (var letter in remainingLetters)
         {
             // Find next empty slot starting from the removed position
-            while (writePosition < 8 && queue[writePosition] != null)
+            while (writePosition < _config.LetterQueue.MaxQueueSize && queue[writePosition] != null)
             {
                 writePosition++;
             }
             
-            if (writePosition < 8)
+            if (writePosition < _config.LetterQueue.MaxQueueSize)
             {
                 int oldPosition = letter.QueuePosition;
                 queue[writePosition] = letter;
@@ -985,7 +996,7 @@ public class LetterQueueManager
     // Create conversation context for skip delivery action
     public QueueManagementContext CreateSkipDeliverContext(int position)
     {
-        if (position <= 1 || position > 8) return null;
+        if (position <= 1 || position > _config.LetterQueue.MaxQueueSize) return null;
         
         var letter = GetLetterAt(position);
         if (letter == null) return null;
@@ -1043,7 +1054,7 @@ public class LetterQueueManager
     // Create conversation context for purge action
     public QueueManagementContext CreatePurgeContext()
     {
-        var letter = GetLetterAt(8);
+        var letter = GetLetterAt(_config.LetterQueue.MaxQueueSize);
         if (letter == null) return null;
         
         // Check if purging is forbidden
@@ -1056,7 +1067,7 @@ public class LetterQueueManager
         {
             TargetLetter = letter,
             ManagementAction = "Purge",
-            TokenCost = 3,
+            TokenCost = _config.LetterQueue.PurgeCostTokens,
             GameWorld = _gameWorld,
             Player = _gameWorld.GetPlayer()
         };
@@ -1068,12 +1079,12 @@ public class LetterQueueManager
         var context = CreatePurgeContext();
         if (context == null)
         {
-            _messageSystem.AddSystemMessage("Cannot purge - no letter in position 8 or action forbidden.", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"Cannot purge - no letter in position {_config.LetterQueue.MaxQueueSize} or action forbidden.", SystemMessageTypes.Warning);
             return false;
         }
         
         // Store purge flag for later processing
-        _gameWorld.SetMetadata("PendingPurgePosition", "8");
+        _gameWorld.SetMetadata("PendingPurgePosition", _config.LetterQueue.MaxQueueSize.ToString());
         
         // Create conversation
         var conversation = await _conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
@@ -1088,7 +1099,7 @@ public class LetterQueueManager
     // Skip letter delivery by spending tokens
     public bool TrySkipDeliver(int position)
     {
-        if (position <= 1 || position > 8) return false;
+        if (position <= 1 || position > _config.LetterQueue.MaxQueueSize) return false;
         
         var letter = GetLetterAt(position);
         if (letter == null) return false;
@@ -1336,7 +1347,7 @@ public class LetterQueueManager
         }
         
         // Validate positions are in range
-        if (position1 < 1 || position1 > 8 || position2 < 1 || position2 > 8)
+        if (position1 < 1 || position1 > _config.LetterQueue.MaxQueueSize || position2 < 1 || position2 > _config.LetterQueue.MaxQueueSize)
         {
             return false;
         }
@@ -1369,12 +1380,12 @@ public class LetterQueueManager
     // Purge: Remove bottom letter for 3 tokens of any type
     public bool TryPurgeLetter(Dictionary<ConnectionType, int> tokenPayment)
     {
-        // Check if there's a letter in position 8
-        var letterToPurge = GetLetterAt(8);
+        // Check if there's a letter in the last position
+        var letterToPurge = GetLetterAt(_config.LetterQueue.MaxQueueSize);
         if (letterToPurge == null)
         {
             _messageSystem.AddSystemMessage(
-                $"❌ No letter in position 8 to purge!",
+                $"❌ No letter in position {_config.LetterQueue.MaxQueueSize} to purge!",
                 SystemMessageTypes.Danger
             );
             return false;
@@ -1446,8 +1457,8 @@ public class LetterQueueManager
         // Get sender info for final narrative
         var senderId = GetNPCIdByName(letterToPurge.SenderName);
         
-        // Remove the letter from position 8
-        RemoveLetterFromQueue(8);
+        // Remove the letter from the last position
+        RemoveLetterFromQueue(_config.LetterQueue.MaxQueueSize);
         
         // Dramatic conclusion
         _messageSystem.AddSystemMessage(
@@ -1472,7 +1483,7 @@ public class LetterQueueManager
     public bool TryPriorityMove(int fromPosition)
     {
         // Validate position
-        if (fromPosition < 2 || fromPosition > 8)
+        if (fromPosition < 2 || fromPosition > _config.LetterQueue.MaxQueueSize)
         {
             return false; // Can't priority move from position 1 or invalid position
         }
@@ -1555,7 +1566,7 @@ public class LetterQueueManager
     public bool TryExtendDeadline(int position)
     {
         // Validate position
-        if (position < 1 || position > 8)
+        if (position < 1 || position > _config.LetterQueue.MaxQueueSize)
         {
             return false;
         }

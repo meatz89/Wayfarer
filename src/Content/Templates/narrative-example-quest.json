@@ -1,0 +1,78 @@
+[
+  {
+    "id": "merchant_favor", 
+    "name": "A Merchant's Trust",
+    "description": "Help Marcus expand his trade network",
+    "introductionMessage": "Marcus pulls you aside. 'I need someone discreet for a delicate matter.'",
+    "completionMessage": "Marcus smiles. 'You've earned more than coins today - you've earned trust.'",
+    "steps": [
+      {
+        "id": "accept_quest",
+        "name": "Accept the Task",
+        "description": "Listen to Marcus's proposal",
+        "requiredAction": "Converse",
+        "requiredNPC": "marcus_merchant",
+        "conversationIntroduction": "This isn't ordinary merchant business. Are you interested?",
+        "completionFlag": "merchant_favor_accepted",
+        "effects": [
+          {
+            "type": "SetFlag",
+            "parameters": {
+              "flag": "marcus_trusts_player",
+              "value": true
+            }
+          }
+        ]
+      },
+      {
+        "id": "collect_documents",
+        "name": "Collect Trade Documents", 
+        "description": "Retrieve the documents from the Merchant Guild",
+        "requiredAction": "Collect",
+        "requiredLocation": "merchant_guild",
+        "guidanceText": "The guild keeps these documents under close watch.",
+        "completionFlag": "merchant_documents_collected",
+        "effects": [
+          {
+            "type": "GrantItem",
+            "parameters": {
+              "itemId": "trade_documents",
+              "quantity": 1
+            }
+          }
+        ]
+      },
+      {
+        "id": "deliver_secretly",
+        "name": "Secret Delivery",
+        "description": "Deliver the documents without being noticed",
+        "requiredAction": "Deliver",
+        "requiredNPC": "shadow_trader",
+        "guidanceText": "Deliver without drawing attention from other merchants.",
+        "completionFlag": "documents_delivered",
+        "effects": [
+          {
+            "type": "GrantToken",
+            "parameters": {
+              "npcId": "marcus_merchant",
+              "tokenType": "Trade",
+              "amount": 2
+            }
+          },
+          {
+            "type": "ShowNPC",
+            "parameters": {
+              "npcId": "shadow_trader_contact",
+              "narrativeId": "merchant_favor"
+            }
+          }
+        ]
+      }
+    ],
+    "rewards": {
+      "coins": 50,
+      "stamina": 2,
+      "message": "You've gained Marcus's trust and expanded your network!"
+    }
+  }
+]

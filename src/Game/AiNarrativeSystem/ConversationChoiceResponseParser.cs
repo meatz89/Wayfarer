@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
+using Wayfarer.Content.Utilities;
 
 public class ConversationChoiceResponseParser
 {
@@ -147,7 +148,7 @@ public class ConversationChoiceResponseParser
         if (choiceElement.TryGetProperty("choiceType", out JsonElement choiceTypeElement))
         {
             var choiceTypeStr = choiceTypeElement.GetString();
-            if (Enum.TryParse<ConversationChoiceType>(choiceTypeStr, out var choiceType))
+            if (EnumParser.TryParse<ConversationChoiceType>(choiceTypeStr, out var choiceType))
             {
                 choice.ChoiceType = choiceType;
             }
@@ -158,7 +159,7 @@ public class ConversationChoiceResponseParser
         {
             var templateStr = templateElement.GetString();
             if (!string.IsNullOrWhiteSpace(templateStr) && 
-                Enum.TryParse<ConversationChoiceType>(templateStr, out var choiceType))
+                EnumParser.TryParse<ConversationChoiceType>(templateStr, out var choiceType))
             {
                 choice.ChoiceType = choiceType;
             }

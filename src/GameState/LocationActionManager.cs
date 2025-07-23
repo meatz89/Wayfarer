@@ -55,6 +55,8 @@ public class LocationActionManager
     private readonly FlagService _flagService;
     private readonly NarrativeManager _narrativeManager;
     private readonly NarrativeRequirementFactory _narrativeRequirementFactory;
+    private readonly IGameRuleEngine _ruleEngine;
+    private readonly GameConfiguration _config;
     
     private TimeManager _timeManager => _gameWorld.TimeManager;
     
@@ -72,7 +74,9 @@ public class LocationActionManager
         NoticeBoardService noticeBoardService,
         DebugLogger debugLogger,
         FlagService flagService,
-        NarrativeManager narrativeManager)
+        NarrativeManager narrativeManager,
+        IGameRuleEngine ruleEngine,
+        GameConfiguration config)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -89,6 +93,8 @@ public class LocationActionManager
         _flagService = flagService;
         _narrativeManager = narrativeManager;
         _narrativeRequirementFactory = new NarrativeRequirementFactory(narrativeManager, flagService);
+        _ruleEngine = ruleEngine;
+        _config = config;
     }
     
     
@@ -260,7 +266,7 @@ public class LocationActionManager
                 StaminaCost = 0,
                 CoinCost = 0,
                 NPCId = npc.ID,
-                Effect = totalTokens == 0 ? "Meet someone new" : "Catch up"
+                Effect = totalTokens == 0 ? "Start a new relationship" : $"Current: {totalTokens} total tokens"
             });
         }
         
@@ -294,20 +300,25 @@ public class LocationActionManager
         {
             case Professions.Merchant:
                 // Merchants offer work during business hours
-                if (_timeManager.HoursRemaining >= 1 && 
-                    player.Stamina >= GameRules.STAMINA_COST_WORK &&
+                if (_timeManager.HoursRemaining >= _config.Time.HourCostStandardAction && 
+                    player.Stamina >= _config.Stamina.CostWork &&
                     (currentTime == TimeBlocks.Morning || currentTime == TimeBlocks.Afternoon))
                 {
+                    var workReward = _ruleEngine.CalculateWorkReward(
+                        new ActionOption { NPCId = npc.ID }, 
+                        npc
+                    );
+                    
                     actions.Add(new ActionOption
                     {
                         Action = LocationAction.Work,
                         Name = $"Help {npc.Name} with inventory",
                         Description = "Earn coins through honest labor",
-                        HourCost = 1,
-                        StaminaCost = GameRules.STAMINA_COST_WORK,
+                        HourCost = _config.Time.HourCostStandardAction,
+                        StaminaCost = _config.Stamina.CostWork,
                         CoinCost = 0,
                         NPCId = npc.ID,
-                        Effect = "+4 coins"
+                        Effect = $"Earn {workReward.Coins} coins (costs {_config.Stamina.CostWork} stamina)"
                     });
                 }
                 
@@ -360,7 +371,7 @@ public class LocationActionManager
                         StaminaCost = 0,
                         CoinCost = 3,
                         NPCId = npc.ID,
-                        Effect = $"+3 Stamina, +1 {npc.LetterTokenTypes.FirstOrDefault()} token"
+                        Effect = $"Restore 3 stamina + earn 1 {npc.LetterTokenTypes.FirstOrDefault()} token (costs 3 coins)"
                     });
                 }
                 break;
@@ -472,7 +483,7 @@ public class LocationActionManager
                 StaminaCost = 1,
                 CoinCost = 0,
                 NPCId = npc.ID,
-                Effect = "Earn payment and tokens",
+                Effect = $"Payment varies by letter (position 1 only)",
                 InitialNarrative = $"You approach {npc.Name} with their awaited correspondence."
             });
         }
@@ -750,7 +761,7 @@ public class LocationActionManager
     private bool ExecuteRest(ActionOption option)
     {
         var player = _gameWorld.GetPlayer();
-        player.ModifyStamina(GameRules.STAMINA_RECOVERY_REST);
+        player.ModifyStamina(_config.Stamina.RecoveryRest);
         
         // Check if this is the special "buy drinks" rest with specific NPC
         if (option.CoinCost > 0 && !string.IsNullOrEmpty(option.NPCId))
@@ -945,7 +956,7 @@ public class LocationActionManager
             );
             
             // May reveal letter opportunities at 1+ tokens
-            if (totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD && npc.LetterTokenTypes.Any())
+            if (totalTokens >= _config.TokenEconomy.BasicLetterThreshold && npc.LetterTokenTypes.Any())
             {
                 _messageSystem.AddSystemMessage(
                     $"  • {npc.Name} seems to trust you with their correspondence",

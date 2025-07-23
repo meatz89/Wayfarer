@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Wayfarer.GameState.Actions;
 
 /// <summary>
 /// Requirement that checks if an action is allowed during an active narrative
-/// Integrates with the existing IRequirement system for clean architecture
+/// Integrates with the existing IActionRequirement system for clean architecture
 /// </summary>
-public class NarrativeRequirement : IRequirement
+public class NarrativeRequirement : IActionRequirement
 {
     private readonly NarrativeManager _narrativeManager;
     private readonly FlagService _flagService;
@@ -23,7 +24,7 @@ public class NarrativeRequirement : IRequirement
         _targetId = targetId;
     }
     
-    public bool IsSatisfiedBy(Player player)
+    public bool IsSatisfied(Player player, GameWorld world)
     {
         // If no active narrative, always satisfied
         if (!_narrativeManager.HasActiveNarrative())
@@ -43,7 +44,7 @@ public class NarrativeRequirement : IRequirement
         return true;
     }
     
-    public string GetFailureReason()
+    public string GetFailureReason(Player player, GameWorld world)
     {
         // Provide context-specific guidance
         foreach (var narrativeId in GetActiveNarrativeIds())
@@ -84,15 +85,23 @@ public class NarrativeRequirement : IRequirement
         return _narrativeManager.GetActiveNarrativeIds();
     }
 
-    public bool IsMet(GameWorld gameWorld)
-    {
-        // Use the same logic as IsSatisfiedBy but with gameWorld's player
-        return IsSatisfiedBy(gameWorld.GetPlayer());
-    }
-
     public string GetDescription()
     {
-        return GetFailureReason();
+        return "Complete current narrative objectives";
+    }
+    
+    public bool CanBeRemedied => true;
+    
+    public string GetRemediationHint()
+    {
+        return "Complete your current objective first";
+    }
+    
+    public double GetProgress(Player player, GameWorld world)
+    {
+        if (!_narrativeManager.HasActiveNarrative())
+            return 1.0;
+        return 0.0;
     }
 }
 

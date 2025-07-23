@@ -1,5 +1,6 @@
 public enum LetterCategory
 {
+    None,     // No category (insufficient tokens)
     Basic,    // 1-2 tokens required
     Quality,  // 3-4 tokens required  
     Premium   // 5+ tokens required

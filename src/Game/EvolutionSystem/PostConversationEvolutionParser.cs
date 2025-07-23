@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Content.Utilities;
 
 public class PostConversationEvolutionParser
 {
@@ -184,7 +185,7 @@ public class PostConversationEvolutionParser
 
     private LocationTypes ParseLocationType(string locationTypeStr)
     {
-        if (Enum.TryParse<LocationTypes>(locationTypeStr, true, out LocationTypes locationType))
+        if (EnumParser.TryParse<LocationTypes>(locationTypeStr, out LocationTypes locationType))
         {
             return locationType;
         }
@@ -197,7 +198,7 @@ public class PostConversationEvolutionParser
 
         foreach (string serviceStr in serviceStrings)
         {
-            if (Enum.TryParse<ServiceTypes>(serviceStr, true, out ServiceTypes service))
+            if (EnumParser.TryParse<ServiceTypes>(serviceStr, out ServiceTypes service))
             {
                 services.Add(service);
             }

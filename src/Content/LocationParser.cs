@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Wayfarer.Content.Utilities;
 public static class LocationParser
 {
     public static Location ParseLocation(string json)
@@ -37,7 +38,7 @@ public static class LocationParser
         {
             foreach (JsonProperty timeProperty in professionsByTime.EnumerateObject())
             {
-                if (Enum.TryParse<TimeBlocks>(timeProperty.Name, out TimeBlocks timeBlock))
+                if (EnumParser.TryParse<TimeBlocks>(timeProperty.Name, out TimeBlocks timeBlock))
                 {
                     List<Professions> professions = new List<Professions>();
                     if (timeProperty.Value.ValueKind == JsonValueKind.Array)
@@ -47,7 +48,7 @@ public static class LocationParser
                             if (professionElement.ValueKind == JsonValueKind.String)
                             {
                                 string professionStr = professionElement.GetString() ?? "";
-                                if (Enum.TryParse<Professions>(professionStr, out Professions profession))
+                                if (EnumParser.TryParse<Professions>(professionStr, out Professions profession))
                                 {
                                     professions.Add(profession);
                                 }

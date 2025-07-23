@@ -1,5 +1,6 @@
 @inject NavigationService NavigationService
 @inject GameWorld GameWorld
+@inject StandingObligationManager ObligationManager
 
 @namespace Wayfarer.Pages.Components
 
@@ -159,7 +160,7 @@
         // Show obligations after player meets patron or has any obligation
         return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
                GameWorld.FlagService.GetFlag("tutorial_patron_met") ||
-               GameWorld.StandingObligationManager.GetActiveObligations().Any();
+               ObligationManager.GetActiveObligations().Any();
     }
     
     public void Dispose()

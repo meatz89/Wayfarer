@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using System.Threading.Tasks;
 
 /// <summary>
 /// Manages narrative flows including tutorials, quests, and story sequences
@@ -16,6 +18,9 @@ public class NarrativeManager
     private StandingObligationManager _obligationManager;
     private LetterTemplateRepository _letterTemplateRepository;
     private ConnectionTokenManager _connectionTokenManager;
+    private NarrativeJournal _journal;
+    private NarrativeEffectRegistry _effectRegistry;
+    private NarrativeLoader _narrativeLoader;
     
     // Active narratives (can have multiple quests/stories active)
     private Dictionary<string, NarrativeDefinition> _activeNarratives = new Dictionary<string, NarrativeDefinition>();
@@ -31,7 +36,8 @@ public class NarrativeManager
         LocationActionManager locationActionManager,
         StandingObligationManager obligationManager,
         LetterTemplateRepository letterTemplateRepository,
-        ConnectionTokenManager connectionTokenManager)
+        ConnectionTokenManager connectionTokenManager,
+        IServiceProvider serviceProvider)
     {
         _gameWorld = gameWorld;
         _flagService = flagService;
@@ -41,6 +47,11 @@ public class NarrativeManager
         _obligationManager = obligationManager;
         _letterTemplateRepository = letterTemplateRepository;
         _connectionTokenManager = connectionTokenManager;
+        
+        // Initialize new components
+        _journal = new NarrativeJournal();
+        _effectRegistry = new NarrativeEffectRegistry(serviceProvider);
+        _narrativeLoader = new NarrativeLoader(Path.Combine(Directory.GetCurrentDirectory(), "Content"));
     }
     
     /// <summary>
@@ -51,6 +62,7 @@ public class NarrativeManager
     {
         _activeNarratives = new Dictionary<string, NarrativeDefinition>();
         _narrativeDefinitions = new Dictionary<string, NarrativeDefinition>();
+        _journal = new NarrativeJournal();
     }
     
     /// <summary>
@@ -70,6 +82,20 @@ public class NarrativeManager
         {
             _narrativeDefinitions[def.Id] = def;
         }
+    }
+    
+    /// <summary>
+    /// Load narrative definitions from JSON files
+    /// </summary>
+    public async Task LoadNarrativesFromJsonAsync()
+    {
+        if (_narrativeLoader == null)
+        {
+            _narrativeLoader = new NarrativeLoader(Path.Combine(Directory.GetCurrentDirectory(), "Content"));
+        }
+        
+        var narratives = await _narrativeLoader.LoadNarrativesAsync();
+        LoadNarrativeDefinitions(narratives);
     }
     
     public bool HasActiveNarrative()
@@ -100,6 +126,9 @@ public class NarrativeManager
         var definition = _narrativeDefinitions[narrativeId];
         _activeNarratives[narrativeId] = definition;
         
+        // Record in journal
+        _journal.RecordNarrativeStarted(narrativeId);
+        
         // Apply starting conditions if specified
         if (definition.StartingConditions != null)
         {
@@ -129,6 +158,9 @@ public class NarrativeManager
             return;
             
         var definition = _activeNarratives[narrativeId];
+        
+        // Record in journal
+        _journal.RecordNarrativeCompleted(narrativeId);
         
         // Apply rewards if specified
         if (definition.Rewards != null)
@@ -212,7 +244,7 @@ public class NarrativeManager
         return availableActions.Where(a => allowedActions.Contains(a)).ToList();
     }
     
-    public void OnActionCompleted(LocationAction action, string targetId = null)
+    public async Task OnActionCompleted(LocationAction action, string targetId = null)
     {
         // Check all active narratives for step completion
         var narrativesToCheck = _activeNarratives.Keys.ToList();
@@ -249,6 +281,9 @@ public class NarrativeManager
             
             if (stepCompleted)
             {
+                // Record in journal
+                _journal.RecordStepCompleted(narrativeId, currentStep.Id);
+                
                 // Mark step as complete
                 if (!string.IsNullOrEmpty(currentStep.CompletionFlag))
                 {
@@ -271,6 +306,20 @@ public class NarrativeManager
                     };
                     
                     _obligationManager.AddObligation(obligation);
+                    
+                    // Record relationship in journal
+                    _journal.RecordRelationshipFormed(narrativeId, obligationDef.SourceNpcId, "obligation");
+                }
+                
+                // Apply any narrative effects
+                if (currentStep.Effects != null && _effectRegistry != null)
+                {
+                    var results = await _effectRegistry.ApplyEffects(_gameWorld, currentStep.Effects);
+                    // Log any failed effects
+                    foreach (var result in results.Where(r => !r.Success))
+                    {
+                        Console.WriteLine($"Failed to apply effect: {result.Message}");
+                    }
                 }
                 
                 // Increment step counter
@@ -406,6 +455,22 @@ public class NarrativeManager
         }
         return null;
     }
+    
+    /// <summary>
+    /// Get the narrative journal for querying history
+    /// </summary>
+    public NarrativeJournal GetJournal()
+    {
+        return _journal;
+    }
+    
+    /// <summary>
+    /// Record a player choice in the journal
+    /// </summary>
+    public void RecordChoice(string narrativeId, string stepId, string choiceId, Dictionary<string, object> context = null)
+    {
+        _journal.RecordChoice(narrativeId, stepId, choiceId, context);
+    }
 }
 
 // Data models for narrative configuration
@@ -435,6 +500,7 @@ public class NarrativeStep
     public string CompletionFlag { get; set; }
     public string ConversationIntroduction { get; set; } // Override for conversation intro
     public NarrativeStepObligation ObligationToCreate { get; set; } // Creates obligation when step completes
+    public List<NarrativeEffectDefinition> Effects { get; set; } // Effects to apply when step completes
 }
 
 public class NarrativeStartingConditions
