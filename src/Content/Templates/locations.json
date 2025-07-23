@@ -69,6 +69,75 @@
 		}
 	},
 	{
+		"id": "lower_ward",
+		"name": "Lower Ward",
+		"description": "Millbrook's poorest district, where desperate souls scrape by in the shadow of prosperity. The air smells of old sweat and unfulfilled dreams.",
+		"environmentalProperties": {
+			"morning": [ "SHADOWY", "POOR", "URBAN" ],
+			"afternoon": [ "WELL-LIT", "POOR", "URBAN" ],
+			"evening": [ "SHADOWY", "DANGEROUS", "URBAN" ],
+			"night": [ "DARK", "DANGEROUS", "URBAN" ]
+		},
+		"domainTags": [ "SOCIAL", "LABOR" ],
+		"locationSpots": [ "abandoned_warehouse", "lower_ward_square" ],
+		"connectedTo": [ "millbrook", "docks" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": [],
+			"Evening": [],
+			"Night": []
+		}
+	},
+	{
+		"id": "docks",
+		"name": "Millbrook Docks",
+		"description": "The working waterfront where barges load and unload, and strong backs can earn honest coin. The smell of fish and tar permeates everything.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "BUSY", "MARITIME" ],
+			"afternoon": [ "WELL-LIT", "BUSY", "MARITIME" ],
+			"evening": [ "SHADOWY", "QUIET", "MARITIME" ],
+			"night": [ "DARK", "QUIET", "MARITIME" ]
+		},
+		"domainTags": [ "LABOR", "COMMERCE", "TRANSPORT" ],
+		"locationSpots": [ "wharf" ],
+		"connectedTo": [ "lower_ward", "millbrook", "merchants_rest" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": [],
+			"Evening": [],
+			"Night": []
+		}
+	},
+	{
+		"id": "merchants_rest",
+		"name": "Merchant's Rest Inn",
+		"description": "A respectable inn in Millbrook's middle ward, where traders conduct business over wine and those with coin can find comfort.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "QUIET", "REFINED" ],
+			"afternoon": [ "WELL-LIT", "BUSY", "REFINED" ],
+			"evening": [ "SHADOWY", "BUSY", "REFINED" ],
+			"night": [ "DARK", "QUIET", "REFINED" ]
+		},
+		"domainTags": [ "SOCIAL", "COMMERCE" ],
+		"locationSpots": [ "private_room" ],
+		"connectedTo": [ "millbrook", "docks" ],
+		"socialExpectation": "Proper",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": [],
+			"Evening": [],
+			"Night": []
+		}
+	},
+	{
 		"id": "shadow_market",
 		"name": "Shadow Market",
 		"description": "A hidden underground market where illicit goods change hands and information is traded like currency.",

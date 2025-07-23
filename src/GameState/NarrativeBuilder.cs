@@ -195,6 +195,14 @@ public class StepBuilder
         return this;
     }
     
+    public StepBuilder CreatesObligation(Action<ObligationBuilder> configure)
+    {
+        var obligationBuilder = new ObligationBuilder();
+        configure(obligationBuilder);
+        _step.ObligationToCreate = obligationBuilder.Build();
+        return this;
+    }
+    
     public NarrativeStep Build()
     {
         // Auto-generate completion flag if not specified
@@ -204,6 +212,61 @@ public class StepBuilder
         }
         
         return _step;
+    }
+}
+
+/// <summary>
+/// Builder for step obligations
+/// </summary>
+public class ObligationBuilder
+{
+    private NarrativeStepObligation _obligation = new NarrativeStepObligation();
+    
+    public ObligationBuilder WithId(string id)
+    {
+        _obligation.Id = id;
+        return this;
+    }
+    
+    public ObligationBuilder WithName(string name)
+    {
+        _obligation.Name = name;
+        return this;
+    }
+    
+    public ObligationBuilder WithDescription(string description)
+    {
+        _obligation.Description = description;
+        return this;
+    }
+    
+    public ObligationBuilder FromNPC(string npcId)
+    {
+        _obligation.SourceNpcId = npcId;
+        return this;
+    }
+    
+    public ObligationBuilder ForTokenType(ConnectionType tokenType)
+    {
+        _obligation.RelatedTokenType = tokenType;
+        return this;
+    }
+    
+    public ObligationBuilder WithBenefits(params ObligationEffect[] effects)
+    {
+        _obligation.BenefitEffects.AddRange(effects);
+        return this;
+    }
+    
+    public ObligationBuilder WithConstraints(params ObligationEffect[] effects)
+    {
+        _obligation.ConstraintEffects.AddRange(effects);
+        return this;
+    }
+    
+    public NarrativeStepObligation Build()
+    {
+        return _obligation;
     }
 }
 
@@ -263,17 +326,17 @@ public static class NarrativeDefinitions
             .WithStartingConditions(conditions => conditions
                 .WithCoins(3)
                 .WithStamina(5)
-                .AtLocation("millbrook", "lower_ward_warehouse")
+                .AtLocation("lower_ward", "abandoned_warehouse")
                 .ClearInventory()
                 .ClearLetterQueue()
                 .ClearObligations())
             
             // Day 1: Movement and Survival
             .AddStep("leave_warehouse", "Leave the Warehouse", step => step
-                .WithDescription("Exit the abandoned warehouse")
-                .RequiresAction(LocationAction.Rest)  // Use Rest as placeholder for movement tutorial
-                .AtLocation("lower_ward_square")
-                .WithGuidance("Click on locations to move. Each movement takes time.")
+                .WithDescription("Travel to Lower Ward Square")
+                .AtLocation("lower_ward")
+                .AllowActions(LocationAction.Rest, LocationAction.Converse)  // Only allow rest and talking until player moves
+                .WithGuidance("Click on the map to travel to Lower Ward Square. Each movement takes time.")
                 .CompletesWhenFlagSet("tutorial_first_movement"))
                 
             .AddStep("meet_tam", "Meet Tam", step => step
@@ -286,16 +349,15 @@ public static class NarrativeDefinitions
                 
             .AddStep("travel_to_docks", "Go to Millbrook Docks", step => step
                 .WithDescription("Travel to the docks to find work")
-                .RequiresAction(LocationAction.Rest)
-                .AtLocation("millbrook_docks")
-                .WithGuidance("Travel between districts takes 1 hour.")
+                .AtLocation("docks")
+                .WithGuidance("Travel between districts takes 1 hour. Click on Docks on the map.")
                 .CompletesWhenFlagSet("tutorial_docks_visited"))
                 
             .AddStep("martha_not_available", "Martha Not Available", step => step
-                .WithDescription("Return to Lower Ward - Martha works mornings only")
-                .RequiresAction(LocationAction.Rest)
-                .AtLocation("lower_ward_square")
-                .WithGuidance("NPCs have schedules. Martha works mornings.")
+                .WithDescription("Martha is not here in the afternoon. Return tomorrow morning.")
+                .AtLocation("docks")
+                .AllowActions(LocationAction.Rest, LocationAction.Browse)
+                .WithGuidance("NPCs have schedules. Martha works mornings only. Rest until tomorrow.")
                 .CompletesWhenFlagSet("tutorial_schedule_learned"))
                 
             .AddStep("survival_choice", "Eat or Save Money", step => step
@@ -423,7 +485,20 @@ public static class NarrativeDefinitions
                 .WithNPC("patron_intermediary")
                 .WithConversationIntro("My employer values discretion and loyalty above all else. They offer patronage - monthly funds, equipment when needed, protection. In exchange, you carry their letters when asked. These letters take priority above all others. Do you accept?")
                 .WithGuidance("Standing Obligations permanently modify game rules.")
-                .CompletesWhenFlagSet("patron_contact_met"))
+                .CompletesWhenFlagSet("patron_contact_met")
+                .CreatesObligation(obligation => obligation
+                    .WithId("patron_obligation")
+                    .WithName("Patron's Service")
+                    .WithDescription("You are bound to carry your patron's letters with absolute priority. In return, you receive monthly support and protection.")
+                    .FromNPC("patron_intermediary")
+                    .ForTokenType(ConnectionType.Noble)
+                    .WithBenefits(
+                        ObligationEffect.PatronMonthly,      // Monthly resource packages
+                        ObligationEffect.PatronJumpToTop     // Letters jump to positions 1-3
+                    )
+                    .WithConstraints(
+                        ObligationEffect.PatronAbsolute      // Patron letters push everything else down
+                    )))
                 
             .AddStep("first_patron_letter", "Your First Task", step => step
                 .WithDescription("Receive your first patron letter")
