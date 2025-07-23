@@ -3,6 +3,8 @@
 **⚠️ CRITICAL: READ ARCHITECTURE-DOCUMENTATION-2025-01-22.md FIRST ⚠️**
 **This file contains the complete system architecture, file map, and known issues.**
 
+**📋 NARRATIVE SYSTEM: See NARRATIVE-IMPLEMENTATION-PLAN.md for tutorial/quest/story system design**
+
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE BEFORE WRITING TO IT ⚠️**
 
 **⚠️ CRITICAL: ALWAYS READ THE FULL FILE BEFORE MODIFYING IT ⚠️**
