@@ -52,6 +52,9 @@ public class LocationActionManager
     private readonly LetterCategoryService _letterCategoryService;
     private readonly NoticeBoardService _noticeBoardService;
     private readonly DebugLogger _debugLogger;
+    private readonly FlagService _flagService;
+    private readonly NarrativeManager _narrativeManager;
+    private readonly NarrativeRequirementFactory _narrativeRequirementFactory;
     
     private TimeManager _timeManager => _gameWorld.TimeManager;
     
@@ -67,7 +70,9 @@ public class LocationActionManager
         NPCLetterOfferService letterOfferService,
         LetterCategoryService letterCategoryService,
         NoticeBoardService noticeBoardService,
-        DebugLogger debugLogger)
+        DebugLogger debugLogger,
+        FlagService flagService,
+        NarrativeManager narrativeManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -81,6 +86,9 @@ public class LocationActionManager
         _letterCategoryService = letterCategoryService;
         _noticeBoardService = noticeBoardService;
         _debugLogger = debugLogger;
+        _flagService = flagService;
+        _narrativeManager = narrativeManager;
+        _narrativeRequirementFactory = new NarrativeRequirementFactory(narrativeManager, flagService);
     }
     
     
@@ -106,6 +114,14 @@ public class LocationActionManager
         var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         _debugLogger.LogDebug($"Getting NPCs for spot '{spot.SpotID}' at time {currentTimeBlock}");
         var npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTimeBlock);
+        
+        // Filter NPCs through narrative manager if active
+        if (_narrativeManager.HasActiveNarrative())
+        {
+            _debugLogger.LogDebug($"Filtering {npcsHere.Count} NPCs through narrative manager");
+            npcsHere = npcsHere.Where(npc => _narrativeManager.ShouldShowNPC(npc.ID)).ToList();
+            _debugLogger.LogDebug($"After narrative filter: {npcsHere.Count} NPCs remain");
+        }
         
         _debugLogger.LogDebug($"Found {npcsHere.Count} NPCs at current spot");
         
@@ -136,6 +152,15 @@ public class LocationActionManager
         
         // Patron request actions - available at writing locations
         AddPatronRequestActions(actions);
+        
+        // Filter actions through narrative manager if active
+        if (_narrativeManager.HasActiveNarrative())
+        {
+            _debugLogger.LogDebug($"Filtering {actions.Count} actions through narrative manager");
+            var filteredActions = _narrativeManager.FilterActions(actions.Select(a => a.Action).ToList());
+            actions = actions.Where(a => filteredActions.Contains(a.Action)).ToList();
+            _debugLogger.LogDebug($"After narrative filter: {actions.Count} actions remain");
+        }
         
         return actions;
     }
@@ -526,6 +551,17 @@ public class LocationActionManager
     {
         var player = _gameWorld.GetPlayer();
         
+        // Check narrative requirements first
+        var narrativeRequirement = _narrativeRequirementFactory.CreateForAction(option.Action, option.NPCId);
+        if (!narrativeRequirement.IsSatisfiedBy(player))
+        {
+            _messageSystem.AddSystemMessage(
+                $"❌ {narrativeRequirement.GetFailureReason()}",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+        
         // Validate resources
         if (!_timeManager.CanPerformAction(option.HourCost))
         {
@@ -569,6 +605,16 @@ public class LocationActionManager
             SourceAction = option,
             InitialNarrative = option.InitialNarrative
         };
+        
+        // Check for narrative-specific conversation overrides
+        if (_narrativeManager.HasActiveNarrative() && option.Action == LocationAction.Converse && context.TargetNPC != null)
+        {
+            var narrativeIntro = _narrativeManager.GetNarrativeIntroduction(context);
+            if (!string.IsNullOrEmpty(narrativeIntro))
+            {
+                context.InitialNarrative = narrativeIntro;
+            }
+        }
         
         // If this is a letter offer conversation, add available letter templates
         if (option.IsLetterOffer && context.TargetNPC != null)
@@ -620,59 +666,85 @@ public class LocationActionManager
         player.ModifyCoins(-option.CoinCost);
         
         // Execute action - handle special conversation outcomes
+        bool result = false;
         switch (option.Action)
         {
             case LocationAction.Rest:
-                return ExecuteRest(option);
+                result = ExecuteRest(option);
+                break;
                 
             case LocationAction.Converse:
-                return ExecuteConverse(option.NPCId, selectedChoice);
+                result = ExecuteConverse(option.NPCId, selectedChoice);
+                break;
                 
             case LocationAction.Socialize:
-                return ExecuteSocialize(option.NPCId);
+                result = ExecuteSocialize(option.NPCId);
+                break;
                 
             case LocationAction.Work:
-                return ExecuteWork(option);
+                result = ExecuteWork(option);
+                break;
                 
             case LocationAction.Collect:
-                return ExecuteCollect(option.NPCId, option.LetterId);
+                result = ExecuteCollect(option.NPCId, option.LetterId);
+                break;
                 
             case LocationAction.Deliver:
-                return ExecuteDeliver(option.NPCId, option.LetterId, selectedChoice);
+                result = ExecuteDeliver(option.NPCId, option.LetterId, selectedChoice);
+                break;
                 
             case LocationAction.Trade:
-                return ExecuteTrade(option.NPCId);
+                result = ExecuteTrade(option.NPCId);
+                break;
                 
             case LocationAction.GatherResources:
-                return ExecuteGatherResources(option);
+                result = ExecuteGatherResources(option);
+                break;
                 
             case LocationAction.Browse:
-                return ExecuteBrowse(option);
+                result = ExecuteBrowse(option);
+                break;
                 
             case LocationAction.Observe:
-                return ExecuteObserve(option);
+                result = ExecuteObserve(option);
+                break;
                 
             case LocationAction.RequestPatronFunds:
-                return ExecuteRequestPatronFunds(option);
+                result = ExecuteRequestPatronFunds(option);
+                break;
                 
             case LocationAction.RequestPatronEquipment:
-                return ExecuteRequestPatronEquipment(option);
+                result = ExecuteRequestPatronEquipment(option);
+                break;
                 
             case LocationAction.BorrowMoney:
-                return ExecuteBorrowMoney(option);
+                result = ExecuteBorrowMoney(option);
+                break;
                 
             case LocationAction.PleedForAccess:
-                return ExecutePleedForAccess(option);
+                result = ExecutePleedForAccess(option);
+                break;
                 
             case LocationAction.AcceptIllegalWork:
-                return ExecuteAcceptIllegalWork(option);
+                result = ExecuteAcceptIllegalWork(option);
+                break;
                 
             case LocationAction.TravelEncounter:
-                return ExecuteTravelEncounter(option, selectedChoice);
+                result = ExecuteTravelEncounter(option, selectedChoice);
+                break;
                 
             default:
-                return false;
+                result = false;
+                break;
         }
+        
+        // Report completed action to narrative manager
+        if (result && _narrativeManager.HasActiveNarrative())
+        {
+            _narrativeManager.OnActionCompleted(option.Action, option.NPCId);
+        }
+        
+        return result;
     }
     
     private bool ExecuteRest(ActionOption option)
@@ -754,6 +826,15 @@ public class LocationActionManager
                                 SystemMessageTypes.Danger
                             );
                         }
+                        else
+                        {
+                            // Track first letter accepted for tutorial
+                            if (!_flagService.GetFlag(FlagService.FIRST_LETTER_ACCEPTED))
+                            {
+                                _flagService.SetFlag(FlagService.FIRST_LETTER_ACCEPTED, true);
+                                _flagService.SetFlag($"first_letter_accepted", true);
+                            }
+                        }
                     }
                     else
                     {
@@ -782,6 +863,14 @@ public class LocationActionManager
                     $"  • Gained +1 {npc.LetterTokenTypes.FirstOrDefault()} token with {npc.Name}",
                     SystemMessageTypes.Success
                 );
+                
+                // Track first conversation for tutorial
+                if (!_flagService.GetFlag(FlagService.FIRST_CONVERSATION))
+                {
+                    _flagService.SetFlag(FlagService.FIRST_CONVERSATION, true);
+                    _flagService.SetFlag($"tutorial_first_conversation", true);
+                }
+                
                 return true;
             }
             else if (selectedChoice.ChoiceType == ConversationChoiceType.DiscoverRoute)
@@ -1036,6 +1125,13 @@ public class LocationActionManager
                 $"  • {npc.Name} appreciates your help (+1 {tokenType} token)",
                 SystemMessageTypes.Success
             );
+            
+            // Track first token earned for tutorial
+            if (!_flagService.GetFlag(FlagService.FIRST_TOKEN_EARNED))
+            {
+                _flagService.SetFlag(FlagService.FIRST_TOKEN_EARNED, true);
+                _flagService.SetFlag($"first_token_earned", true);
+            }
         }
         
         return true;
@@ -1100,6 +1196,13 @@ public class LocationActionManager
             $"  • Ready for delivery when in position 1",
             SystemMessageTypes.Info
         );
+        
+        // Track first letter collected for tutorial
+        if (!_flagService.GetFlag(FlagService.FIRST_LETTER_COLLECTED))
+        {
+            _flagService.SetFlag(FlagService.FIRST_LETTER_COLLECTED, true);
+            _flagService.SetFlag($"first_letter_collected", true);
+        }
         
         return true;
     }
@@ -1302,6 +1405,13 @@ public class LocationActionManager
                     SystemMessageTypes.Success
                 );
             }
+        }
+        
+        // Track first letter delivered for tutorial
+        if (!_flagService.GetFlag(FlagService.FIRST_LETTER_DELIVERED))
+        {
+            _flagService.SetFlag(FlagService.FIRST_LETTER_DELIVERED, true);
+            _flagService.SetFlag($"first_delivery_completed", true);
         }
         
         return true;

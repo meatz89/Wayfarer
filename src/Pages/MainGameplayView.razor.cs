@@ -331,6 +331,20 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         return true;
     }
+    
+    /// <summary>
+    /// Gets the currently active narrative ID for the overlay
+    /// </summary>
+    public string GetActiveNarrativeId()
+    {
+        if (GameWorld?.NarrativeManager?.HasActiveNarrative() == true)
+        {
+            // Get the first active narrative ID (typically only one active at a time for tutorials)
+            var activeIds = GameWorld.NarrativeManager.GetActiveNarrativeIds();
+            return activeIds.FirstOrDefault();
+        }
+        return null;
+    }
 
     public LocationSpot GetCurrentSpot()
     {
@@ -654,6 +668,36 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     {
         ShowDebugPanel = !ShowDebugPanel;
         StateHasChanged();
+    }
+    
+    /// <summary>
+    /// Debug command to start tutorial manually
+    /// </summary>
+    public void StartTutorialManually()
+    {
+        try
+        {
+            // Check if already active
+            if (GameWorld?.NarrativeManager?.IsNarrativeActive("wayfarer_tutorial") == true)
+            {
+                MessageSystem.AddSystemMessage("Tutorial is already active!", SystemMessageTypes.Warning);
+                return;
+            }
+            
+            // Load and start tutorial
+            var tutorialNarrative = NarrativeDefinitions.CreateTutorial();
+            GameWorld.NarrativeManager.LoadNarrativeDefinitions(new List<NarrativeDefinition> { tutorialNarrative });
+            GameWorld.NarrativeManager.StartNarrative("wayfarer_tutorial");
+            
+            MessageSystem.AddSystemMessage("Tutorial started successfully!", SystemMessageTypes.Success);
+            DebugLogger.LogDebug("Tutorial manually started");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            MessageSystem.AddSystemMessage($"Failed to start tutorial: {ex.Message}", SystemMessageTypes.Danger);
+            DebugLogger.LogError("MainGameplayView", $"Tutorial start failed: {ex.Message}", ex);
+        }
     }
     
     public void RunVerification()

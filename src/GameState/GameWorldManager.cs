@@ -97,6 +97,9 @@ public class GameWorldManager
         Location? currentLoc = currentLocation;
         Console.WriteLine($"Game started at: {currentLoc?.Id}, Current spot: {locationRepository.GetCurrentLocationSpot()?.SpotID}");
 
+        // Initialize tutorial if this is a new game
+        InitializeTutorialIfNeeded();
+
         // Location actions are now handled by LocationActionManager
         
         // Apply starting obligations - Patron's Expectation
@@ -665,5 +668,35 @@ public class GameWorldManager
     public ConversationChoice GetLastSelectedChoice()
     {
         return LastSelectedChoice;
+    }
+    
+    /// <summary>
+    /// Initialize tutorial for new players
+    /// </summary>
+    private void InitializeTutorialIfNeeded()
+    {
+        // Check if player has completed tutorial before
+        if (_gameWorld.FlagService.GetFlag("tutorial_completed"))
+            return;
+            
+        // Check if tutorial is already active
+        if (_gameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+            return;
+            
+        try
+        {
+            // Load tutorial narrative definition
+            var tutorialNarrative = NarrativeDefinitions.CreateTutorial();
+            _gameWorld.NarrativeManager.LoadNarrativeDefinitions(new List<NarrativeDefinition> { tutorialNarrative });
+            
+            // Start the tutorial
+            _gameWorld.NarrativeManager.StartNarrative("wayfarer_tutorial");
+            
+            _debugLogger.LogDebug("Tutorial narrative started successfully");
+        }
+        catch (Exception ex)
+        {
+            _debugLogger.LogError("GameWorldManager", $"Failed to initialize tutorial: {ex.Message}", ex);
+        }
     }
 }

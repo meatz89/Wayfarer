@@ -48,6 +48,10 @@
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
+        
+        // FlagService and NarrativeManager are created by GameWorld
+        services.AddSingleton<FlagService>(provider => provider.GetRequiredService<GameWorld>().FlagService);
+        services.AddSingleton<NarrativeManager>(provider => provider.GetRequiredService<GameWorld>().NarrativeManager);
         services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<PersistentChangeProcessor>();

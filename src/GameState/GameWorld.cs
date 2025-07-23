@@ -100,6 +100,10 @@
     public ConversationManager PendingConversationManager { get; set; }
     public bool ConversationPending { get; set; }
     
+    // Narrative System
+    public FlagService FlagService { get; set; }
+    public NarrativeManager NarrativeManager { get; set; }
+    
     // Temporary metadata for conversation context
     private Dictionary<string, string> _metadata = new Dictionary<string, string>();
 
@@ -113,6 +117,11 @@
         TimeManager = new TimeManager(Player, WorldState);
 
         StreamingContentState = new StreamingContentState();
+        
+        // Initialize narrative system
+        FlagService = new FlagService();
+        NarrativeManager = new NarrativeManager();
+        NarrativeManager.Initialize(this, FlagService);
 
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;

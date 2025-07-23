@@ -5,6 +5,13 @@
 <SystemMessageDisplay Messages="@SystemMessages" OnMessagesExpired="HandleMessagesExpired" />
 <ObjectiveView StateVersion="@StateVersion" />
 
+@* Narrative overlay for tutorials and quests *@
+@if (GameWorld?.NarrativeManager?.HasActiveNarrative() == true)
+{
+    <NarrativeOverlay NarrativeManager="@GameWorld.NarrativeManager" 
+                      ActiveNarrativeId="@GetActiveNarrativeId()" />
+}
+
 <NavigationBar />
 
 <div class="game-status-bar">
@@ -261,9 +268,19 @@
                 }
             </div>
             
+            <div class="debug-section">
+                <h4>Narrative System</h4>
+                <p>Active: @(GameWorld?.NarrativeManager?.HasActiveNarrative() == true ? "Yes" : "No")</p>
+                @if (GameWorld?.NarrativeManager?.HasActiveNarrative() == true)
+                {
+                    <p>Current: @GetActiveNarrativeId()</p>
+                }
+            </div>
+            
             <div class="debug-actions">
                 <button class="debug-button" @onclick="PrintDebugState">Print Full State</button>
                 <button class="debug-button" @onclick="RunVerification">Run Verification</button>
+                <button class="debug-button" @onclick="StartTutorialManually">Start Tutorial</button>
             </div>
         </div>
     </div>
