@@ -1,6 +1,46 @@
-# Wayfarer Session Handoff - E2E Testing Implementation
+# Wayfarer Session Handoff - Location State Refactoring
 
-## Session Date: 2025-01-24 (Latest Update - E2E Test Project Structure & Validator Fixes)
+## Session Date: 2025-01-24 (Latest Update - Fixed NullReferenceException on Game Start)
+
+### Critical Bug Fixed: Location State Synchronization ✅
+
+**Issue**: Game crashed with `NullReferenceException` when clicking "Begin Journey" after character creation.
+
+**Root Cause**: Duplicate location state tracking between `Player` and `WorldState` objects caused synchronization issues:
+- LocationRepository.GetCurrentLocation() returned `WorldState.CurrentLocation` (null)
+- Player.CurrentLocation was properly initialized
+- TravelManager crashed when accessing the null location
+
+**Solution**: Refactored to use **Player as the single source of truth** for location state:
+
+1. **Removed from WorldState.cs**:
+   - `CurrentLocation` property
+   - `CurrentLocationSpot` property
+   - `SetCurrentLocation()` method
+   - `SetCurrentLocationSpot()` method
+
+2. **Updated to use Player**:
+   - **LocationRepository.cs**: `GetCurrentLocation()` now returns `_gameWorld.GetPlayer().CurrentLocation`
+   - **LocationSpotRepository.cs**: `GetCurrentLocationSpot()` now returns `_gameWorld.GetPlayer().CurrentLocationSpot`
+   - **GameWorld.cs**: CurrentLocation/CurrentLocationSpot properties now delegate to Player
+   - **GameStateSerializer.cs**: Serialization now reads from Player's location
+   - **Phase5_PlayerInitialization.cs**: Removed WorldState synchronization
+   - **MinimalGameWorldInitializer.cs**: Removed WorldState.SetCurrentLocation call
+   - **RelationshipScreen.razor**: Updated to use Player's location
+
+**Results**:
+- ✅ Main project builds successfully
+- ✅ E2E test passes - player location properly initialized
+- ✅ No more NullReferenceException when starting game
+- ❌ Test project has compilation errors (52 errors) - needs cleanup
+
+**Key Learning**: When you have duplicate state tracking, always establish a single source of truth. Player was used 3x more than WorldState for location tracking (85 vs 30 usages), making it the clear choice.
+
+---
+
+# Previous Work: E2E Test Project Restructuring
+
+## Session Date: 2025-01-24 (E2E Test Project Structure & Validator Fixes)
 
 ### E2E Test Project Restructuring (✓ Complete)
 - Moved E2E test to separate project at `/mnt/c/git/Wayfarer.E2ETests/`

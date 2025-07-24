@@ -663,14 +663,6 @@ public class GameWorldManager
     /// </summary>
     private void InitializeTutorialIfNeeded()
     {
-        // Check if player has completed tutorial before
-        if (_gameWorld.FlagService.GetFlag("tutorial_completed"))
-            return;
-
-        // Check if tutorial is already active
-        if (_gameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
-            return;
-
         // TODO: Tutorial narrative needs to be implemented
         _debugLogger.LogDebug("Tutorial system not yet implemented");
     }

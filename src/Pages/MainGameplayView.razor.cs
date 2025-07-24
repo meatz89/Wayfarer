@@ -284,38 +284,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         return true;
     }
 
-    /// <summary>
-    /// Gets the currently active narrative ID for the overlay
-    /// </summary>
-    public string GetActiveNarrativeId()
-    {
-        if (GameWorld?.NarrativeManager?.HasActiveNarrative() == true)
-        {
-            // Get the first active narrative ID (typically only one active at a time for tutorials)
-            List<string> activeIds = GameWorld.NarrativeManager.GetActiveNarratives();
-            return activeIds.FirstOrDefault();
-        }
-        return null;
-    }
-
-    public LocationSpot GetCurrentSpot()
-    {
-        return LocationRepository.GetCurrentLocationSpot();
-    }
-
     public async Task HandleSpotSelection(LocationSpot locationSpot)
     {
         await GameManager.MoveToLocationSpot(locationSpot.SpotID);
         UpdateState();
     }
-
-    public async Task AdvanceToNextDay()
-    {
-        await GameManager.AdvanceToNextDay();
-        UpdateState();
-    }
-
-    // Action system removed - use LocationActionManager for location actions
 
     public async Task OnConversationCompleted(ConversationBeatOutcome result)
     {
@@ -625,13 +598,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     {
         try
         {
-            // Check if already active
-            if (GameWorld?.NarrativeManager?.IsNarrativeActive("wayfarer_tutorial") == true)
-            {
-                MessageSystem.AddSystemMessage("Tutorial is already active!", SystemMessageTypes.Warning);
-                return;
-            }
-
             // TODO: Tutorial narrative needs to be implemented
             // For now, just show a message
             MessageSystem.AddSystemMessage("Tutorial system not yet implemented", SystemMessageTypes.Warning);

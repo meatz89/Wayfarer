@@ -262,15 +262,6 @@
                 }
             </div>
             
-            <div class="debug-section">
-                <h4>Narrative System</h4>
-                <p>Active: @(GameWorld?.NarrativeManager?.HasActiveNarrative() == true ? "Yes" : "No")</p>
-                @if (GameWorld?.NarrativeManager?.HasActiveNarrative() == true)
-                {
-                    <p>Current: @GetActiveNarrativeId()</p>
-                }
-            </div>
-            
             <div class="debug-actions">
                 <button class="debug-button" @onclick="PrintDebugState">Print Full State</button>
                 <button class="debug-button" @onclick="RunVerification">Run Verification</button>

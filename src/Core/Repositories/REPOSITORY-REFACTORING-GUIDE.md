@@ -139,32 +139,6 @@ This allows existing code to continue working while you migrate piece by piece.
 4. **Maintainability** - Clear boundaries between layers
 5. **Flexibility** - Easy to swap implementations (e.g., for testing or different data sources)
 
-## Example Unit Test
-
-With the new pattern, testing becomes much easier:
-
-```csharp
-[Test]
-public void GetAvailableServiceProviders_ReturnsCorrectNPCs()
-{
-    // Arrange
-    var mockRepository = new Mock<INPCRepository>();
-    var mockTimeManager = new Mock<ITimeManager>();
-    var logger = new Mock<ILogger<NPCService>>();
-    
-    mockTimeManager.Setup(t => t.GetCurrentTimeBlock()).Returns(TimeBlocks.Morning);
-    mockRepository.Setup(r => r.GetAvailableNPCs(TimeBlocks.Morning))
-        .Returns(new List<NPC> { /* test data */ });
-    
-    var service = new NPCService(mockRepository.Object, mockTimeManager.Object, logger.Object);
-    
-    // Act
-    var result = service.GetAvailableServiceProviders(ServiceTypes.Food);
-    
-    // Assert
-    Assert.That(result.Count(), Is.EqualTo(expectedCount));
-}
-```
 
 ## Next Steps
 
