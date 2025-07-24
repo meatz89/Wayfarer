@@ -2,7 +2,7 @@
 	{
 		"id": "abandoned_warehouse",
 		"name": "Abandoned Warehouse",
-		"type": "SHELTER",
+		"type": "FEATURE",
 		"description": "A cold, empty warehouse where the desperate find shelter from the elements.",
 		"initialState": "Broken crates and old tarps provide makeshift bedding. Wind whistles through gaps in the walls.",
 		"locationId": "lower_ward",
@@ -32,7 +32,7 @@
 	{
 		"id": "private_room",
 		"name": "Private Room",
-		"type": "MEETING",
+		"type": "FEATURE",
 		"description": "A discreet meeting room in the Merchant's Rest, reserved for confidential business.",
 		"initialState": "Well-appointed room with comfortable chairs and thick curtains for privacy.",
 		"locationId": "merchants_rest",
