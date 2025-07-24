@@ -85,7 +85,7 @@
                                             <button class="close-npc-button" @onclick="DeselectNPC">✕</button>
                                         </div>
                                         
-                                        else if (isCurrentlyAvailable)
+                                        @if (isCurrentlyAvailable)
                                         {
                                             <div class="npc-no-actions">
                                                 <p>No actions available with @npc.Name at this time.</p>

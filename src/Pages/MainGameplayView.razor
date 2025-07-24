@@ -418,6 +418,9 @@
                              OnSpotSelected="@HandleSpotSelection"
                              OnActionExecuted="@RefreshUI" />
             
+            @* Show available actions for current location *@
+            <LocationActions />
+            
                              
             @* Letter Offer Dialog *@
             @if (ShowLetterOfferDialog && CurrentNPCOffer != null)
