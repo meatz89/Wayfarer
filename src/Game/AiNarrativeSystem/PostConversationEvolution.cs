@@ -104,7 +104,7 @@ public class WorldStateInputBuilder
     {
         return new WorldStateInput();
     }
-    
+
     public WorldStateInput CreateWorldStateInput(object gameWorld, object player)
     {
         return new WorldStateInput();
@@ -118,7 +118,7 @@ public class LocationCreationSystem
         // STUB: Location creation
         await Task.CompletedTask;
     }
-    
+
     public static async Task CreateLocationSpot(string spotId)
     {
         // STUB: Location spot creation

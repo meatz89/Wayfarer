@@ -8,17 +8,17 @@ public enum ConversationChoiceType
     DeclineLetterOffer,
     PurgeLetter,
     KeepLetter,
-    
+
     // Queue manipulation choices
     SkipAndDeliver,
     RespectQueueOrder,
-    
+
     // Social choices
     Introduction,
-    
+
     // Discovery choices
     DiscoverRoute,
-    
+
     // Travel choices
     TravelCautious,
     TravelUseEquipment,
@@ -26,7 +26,7 @@ public enum ConversationChoiceType
     TravelSlowProgress,
     TravelTradeHelp,
     TravelExchangeInfo,
-    
+
     // Default/generic
     Default
 }

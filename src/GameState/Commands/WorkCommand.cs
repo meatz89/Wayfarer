@@ -121,13 +121,13 @@ public class WorkCommand : BaseGameCommand
         {
             return _gameConfiguration.WorkRewards.SpecialRewards[npc.ID];
         }
-        
+
         // Check by profession
         if (_gameConfiguration.WorkRewards.ByProfession.ContainsKey(npc.Profession))
         {
             return _gameConfiguration.WorkRewards.ByProfession[npc.Profession];
         }
-        
+
         // Return default reward
         return _gameConfiguration.WorkRewards.DefaultReward;
     }

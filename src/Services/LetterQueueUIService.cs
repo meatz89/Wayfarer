@@ -62,7 +62,7 @@ public class LetterQueueUIService
         {
             Letter? letter = _queueManager.GetLetterAt(position);
             bool canSkip = position > 1 && letter != null && _queueManager.GetLetterAt(1) == null;
-            
+
             // Calculate skip action details
             SkipActionViewModel? skipAction = null;
             if (canSkip)
@@ -83,7 +83,7 @@ public class LetterQueueUIService
                     MultiplierReason = multiplier > 1 ? "Increased cost from obligations" : null
                 };
             }
-            
+
             QueueSlotViewModel slot = new QueueSlotViewModel
             {
                 Position = position,
@@ -359,7 +359,7 @@ public class LetterQueueUIService
 
     private (string indicator, string tooltip) GetLeverageInfo(Letter letter)
     {
-        var npc = _npcRepository.GetAllNPCs().FirstOrDefault(n => n.Name == letter.SenderName);
+        NPC? npc = _npcRepository.GetAllNPCs().FirstOrDefault(n => n.Name == letter.SenderName);
         if (npc == null) return ("", "");
 
         Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);

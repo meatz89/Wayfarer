@@ -8,24 +8,18 @@ public class GameUIBase : ComponentBase, IDisposable
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Inject] public NavigationService NavigationService { get; set; }
 
-    public CurrentViews CurrentScreen
-    {
-        get
-        {
-            return NavigationService.CurrentScreen;
-        }
-    }
+    public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
 
     [Inject] public LoadingStateService LoadingStateService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
-        
+
         Console.WriteLine("[GameUIBase.OnInitializedAsync] Calling ContentValidator.ValidateContent()...");
         ContentValidationResult validationResult = ContentValidator.ValidateContent();
         Console.WriteLine($"[GameUIBase.OnInitializedAsync] ContentValidator.ValidateContent() completed. HasMissingReferences: {validationResult.HasMissingReferences}");
-        
+
         bool missingReferences = validationResult.HasMissingReferences;
 
         if (missingReferences)
@@ -48,7 +42,7 @@ public class GameUIBase : ComponentBase, IDisposable
         // Subscribe to navigation changes
         Console.WriteLine("[GameUIBase.OnInitializedAsync] Subscribing to navigation changes...");
         NavigationService.OnNavigationChanged += OnNavigationChanged;
-        
+
         Console.WriteLine("[GameUIBase.OnInitializedAsync] Initialization completed.");
     }
 

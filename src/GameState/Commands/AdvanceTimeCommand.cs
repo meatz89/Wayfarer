@@ -34,7 +34,7 @@ public class AdvanceTimeCommand : BaseGameCommand
     {
         // Commands return metadata about what needs to be done
         // The executing service will handle actual time advancement
-        
+
         // Add to event log
         string message = $"Time advancement requested: {_hours} hour(s) for {_reason}";
         gameWorld.SystemMessages.Add(new SystemMessage(message));

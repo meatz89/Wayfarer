@@ -3,7 +3,7 @@
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
         Console.WriteLine("[SERVICE] Starting service configuration...");
-        
+
         // Register configuration
         Console.WriteLine("[SERVICE] Registering IContentDirectory...");
         services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
@@ -43,15 +43,15 @@
         services.AddSingleton<GameWorld>(serviceProvider =>
         {
             Console.WriteLine("[SERVICE] Creating GameWorld via factory...");
-            var logger = serviceProvider.GetRequiredService<ILogger<GameWorld>>();
+            ILogger<GameWorld> logger = serviceProvider.GetRequiredService<ILogger<GameWorld>>();
             logger.LogInformation("GameWorld factory method called");
-            
+
             IGameWorldFactory factory = serviceProvider.GetRequiredService<IGameWorldFactory>();
             logger.LogInformation("Got IGameWorldFactory instance");
-            
-            var gameWorld = factory.CreateGameWorld();
+
+            GameWorld gameWorld = factory.CreateGameWorld();
             logger.LogInformation("GameWorld instance created successfully");
-            
+
             Console.WriteLine("[SERVICE] GameWorld created via factory");
             return gameWorld;
         });

@@ -144,25 +144,25 @@ public class ValidationResult
     {
         Errors = errors.ToList().AsReadOnly();
     }
-    
+
     // Static factory methods for TimeModel compatibility
-    public static ValidationResult Success() 
+    public static ValidationResult Success()
     {
         return new ValidationResult(new List<ValidationError>());
     }
-    
-    public static ValidationResult Failure(string message) 
+
+    public static ValidationResult Failure(string message)
     {
-        return new ValidationResult(new List<ValidationError> 
-        { 
+        return new ValidationResult(new List<ValidationError>
+        {
             new ValidationError("TimeModel", message, ValidationSeverity.Critical)
         });
     }
-    
-    public static ValidationResult Warning(string message) 
+
+    public static ValidationResult Warning(string message)
     {
-        return new ValidationResult(new List<ValidationError> 
-        { 
+        return new ValidationResult(new List<ValidationError>
+        {
             new ValidationError("TimeModel", message, ValidationSeverity.Warning)
         });
     }

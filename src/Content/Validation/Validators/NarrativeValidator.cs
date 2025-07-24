@@ -273,7 +273,7 @@ public class NarrativeValidator : IContentValidator
             _ => false
         };
     }
-    
+
     private void ValidatePositiveNumber(JsonElement element, string id, string fileName, List<ValidationError> errors, string fieldName)
     {
         if (element.TryGetProperty(fieldName, out JsonElement field) &&

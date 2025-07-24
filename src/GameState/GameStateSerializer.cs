@@ -389,7 +389,7 @@ public static class GameWorldSerializer
         // Calculate hours to advance from start of day to reach saved time
         int savedHours = serialized.CurrentTimeHours;
         int savedDay = serialized.CurrentDay;
-        
+
         // Restore time state directly to GameWorld
         gameWorld.CurrentDay = savedDay;
         // Convert hours to time block (6=Dawn, 10=Morning, 14=Afternoon, 18=Evening, 22=Night)

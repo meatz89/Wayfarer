@@ -43,7 +43,7 @@ public class MarketUIService
     /// </summary>
     public MarketViewModel GetMarketViewModel(string locationId)
     {
-        var location = _locationRepository.GetLocation(locationId);
+        Location location = _locationRepository.GetLocation(locationId);
         Player player = _gameWorld.GetPlayer();
         string marketStatus = _gameManager.GetMarketAvailabilityStatus(locationId);
         List<NPC> traders = _gameManager.GetTradingNPCs(locationId)

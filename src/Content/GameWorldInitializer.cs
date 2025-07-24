@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using Microsoft.Extensions.Logging;
-
-public class GameWorldInitializer : IGameWorldFactory
+﻿public class GameWorldInitializer : IGameWorldFactory
 {
     private readonly IContentDirectory _contentDirectory;
     private readonly LocationFactory _locationFactory;
@@ -46,7 +39,7 @@ public class GameWorldInitializer : IGameWorldFactory
         _standingObligationFactory = standingObligationFactory;
         _contentLoader = contentLoader;
         _logger = logger;
-        
+
         _logger?.LogInformation("GameWorldInitializer constructor completed");
     }
 
@@ -62,9 +55,9 @@ public class GameWorldInitializer : IGameWorldFactory
     {
         Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld called");
         _logger?.LogInformation("CreateGameWorld method started");
-        
-        var gameWorld = LoadGame();
-        
+
+        GameWorld gameWorld = LoadGame();
+
         _logger?.LogInformation("CreateGameWorld method completed, GameWorld instance created");
         Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld completed");
         return gameWorld;

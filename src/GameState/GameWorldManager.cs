@@ -649,11 +649,11 @@ public class GameWorldManager
     public void CompletePendingCommand(PendingCommand pendingCommand)
     {
         if (pendingCommand == null) return;
-        
+
         // Execute any completion logic based on the command type
         // This is a stub - actual implementation would handle different command types
         _debugLogger.LogDebug($"Completing pending command: {pendingCommand.CommandType} - {pendingCommand.Description}");
-        
+
         // Clear the pending command
         _gameWorld.PendingCommand = null;
     }

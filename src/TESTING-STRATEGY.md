@@ -19,17 +19,30 @@ We use ONE comprehensive E2E test (`E2E.Test.cs`) that catches ALL startup and r
 ### Running the Test
 
 ```bash
+# Build first
+dotnet build RunE2ETest.csproj
+
+# Run the executable directly (recommended - faster, no timeout)
+./bin/Debug/net8.0/RunE2ETest
+
+# Alternative: Run with dotnet (may timeout due to server startup)
 dotnet run --project RunE2ETest.csproj
 ```
 
 ### Example Output - Catching Errors
 
 ```
+=== WAYFARER E2E TEST ===
 TEST 1: GameWorld Creation
-✗ FAIL: CRITICAL: Player location initialization failed. CurrentLocation and CurrentLocationSpot must never be null.
+ERROR: Failed to parse location_spots.json: Content validation failed with 6 critical errors
+ERROR: Failed to parse npcs.json: Content validation failed with 3 critical errors
+ERROR: Failed to parse routes.json: Content validation failed with 68 critical errors
+ERROR: Failed to parse letter_templates.json: Content validation failed with 80 critical errors
+ERROR: Failed to parse standing_obligations.json: Content validation failed with 42 critical errors
+✗ FAIL: CRITICAL: Player location initialization failed.
 ```
 
-This is the EXACT error that would appear when starting the game in browser.
+This shows the EXACT validation errors that prevent the game from starting, including counts of errors in each JSON file.
 
 ### When to Run
 

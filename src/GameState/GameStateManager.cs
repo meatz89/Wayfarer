@@ -31,7 +31,7 @@ public class GameStateManager
     public async Task<CommandResult> ExecuteCommandAsync(IGameCommand command)
     {
         // Execute command directly without validation
-        var result = await _commandExecutor.ExecuteAsync(command);
+        CommandResult result = await _commandExecutor.ExecuteAsync(command);
         return result;
     }
 

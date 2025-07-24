@@ -8,19 +8,19 @@ public enum DomainTag
     Commerce,
     Residential,
     Religious,
-    
+
     // Service domains
     Hospitality,
     Crafting,
     Administrative,
     Medical,
-    
+
     // Activity domains
     Transportation,
     Storage,
     Entertainment,
     Education,
-    
+
     // Environmental domains
     Natural,
     Urban,

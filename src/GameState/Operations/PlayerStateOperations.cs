@@ -172,10 +172,10 @@ public static class PlayerStateOperations
         if (string.IsNullOrWhiteSpace(npcId))
             return PlayerStateOperationResult.Failure("NPC ID cannot be empty");
 
-        var immutableNpcTokens = state.NPCTokens.GetValueOrDefault(npcId);
-        var npcTokens = immutableNpcTokens != null ? new Dictionary<ConnectionType, int>(immutableNpcTokens) : new Dictionary<ConnectionType, int>();
-        var currentTokens = npcTokens.GetValueOrDefault(tokenType, 0);
-        var newTokens = Math.Max(0, currentTokens + delta);
+        System.Collections.Immutable.ImmutableDictionary<ConnectionType, int>? immutableNpcTokens = state.NPCTokens.GetValueOrDefault(npcId);
+        Dictionary<ConnectionType, int> npcTokens = immutableNpcTokens != null ? new Dictionary<ConnectionType, int>(immutableNpcTokens) : new Dictionary<ConnectionType, int>();
+        int currentTokens = npcTokens.GetValueOrDefault(tokenType, 0);
+        int newTokens = Math.Max(0, currentTokens + delta);
 
         if (delta < 0 && currentTokens < Math.Abs(delta))
             return PlayerStateOperationResult.Failure($"Insufficient {tokenType} tokens with {npcId} (have {currentTokens}, need {Math.Abs(delta)})");
