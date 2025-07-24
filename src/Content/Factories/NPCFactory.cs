@@ -12,7 +12,7 @@ public class NPCFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create an NPC with validated location reference
     /// </summary>
@@ -33,8 +33,8 @@ public class NPCFactory
             throw new ArgumentException("NPC name cannot be empty", nameof(name));
         if (location == null)
             throw new ArgumentNullException(nameof(location), "Location cannot be null");
-        
-        var npc = new NPC
+
+        NPC npc = new NPC
         {
             ID = id,
             Name = name,
@@ -46,10 +46,10 @@ public class NPCFactory
             ProvidedServices = providedServices ?? new List<ServiceTypes>(),
             LetterTokenTypes = letterTokenTypes ?? new List<ConnectionType>()
         };
-        
+
         return npc;
     }
-    
+
     /// <summary>
     /// Create an NPC from string IDs with validation
     /// </summary>
@@ -66,21 +66,21 @@ public class NPCFactory
         List<ConnectionType> letterTokenTypes)
     {
         // Resolve location
-        var location = availableLocations.FirstOrDefault(l => l.Id == locationId);
+        Location? location = availableLocations.FirstOrDefault(l => l.Id == locationId);
         if (location == null)
             throw new InvalidOperationException($"Cannot create NPC: location '{locationId}' not found");
-        
-        return CreateNPC(id, name, location, profession, spotId, role, description, 
+
+        return CreateNPC(id, name, location, profession, spotId, role, description,
                         providedServices, letterTokenTypes);
     }
-    
+
     /// <summary>
     /// Validate that an NPC's location exists.
     /// This should be called after all locations are loaded.
     /// </summary>
     public static bool ValidateNPCLocation(NPC npc, IEnumerable<Location> availableLocations)
     {
-        var locationExists = availableLocations.Any(l => l.Id == npc.Location);
+        bool locationExists = availableLocations.Any(l => l.Id == npc.Location);
         if (!locationExists)
         {
             Console.WriteLine($"WARNING: NPC '{npc.Name}' references non-existent location '{npc.Location}'");

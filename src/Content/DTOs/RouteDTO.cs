@@ -19,5 +19,5 @@ public class RouteDTO
     public int MaxItemCapacity { get; set; }
     public string Description { get; set; }
     public AccessRequirementDTO AccessRequirement { get; set; }
-    
+
 }

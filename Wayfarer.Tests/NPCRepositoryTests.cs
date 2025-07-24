@@ -12,7 +12,7 @@ namespace Wayfarer.Tests
         {
             // Create test service provider with test content
             IServiceCollection services = new ServiceCollection();
-            
+
             // Add configuration
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
@@ -22,10 +22,10 @@ namespace Wayfarer.Tests
                 .Build();
             services.AddSingleton(configuration);
             services.AddLogging();
-            
+
             // Use test service configuration
             services.ConfigureTestServices("Content");
-            
+
             // Build service provider and get GameWorld
             using ServiceProvider serviceProvider = services.BuildServiceProvider();
             return serviceProvider.GetRequiredService<GameWorld>();
@@ -57,7 +57,7 @@ namespace Wayfarer.Tests
             NPCRepository npcRepository = new NPCRepository(gameWorld, debugLogger);
 
             // Act
-            NPC testMerchant = npcRepository.GetNPCById("test_merchant_npc");
+            NPC testMerchant = npcRepository.GetById("test_merchant_npc");
 
             // Assert
             Assert.NotNull(testMerchant);
@@ -76,7 +76,7 @@ namespace Wayfarer.Tests
             // Debug: Check all NPCs and their locations
             List<NPC> allNPCs = npcRepository.GetAllNPCs();
             Assert.True(allNPCs.Count > 0, $"No NPCs loaded! Expected at least 6 NPCs.");
-            foreach (var npc in allNPCs)
+            foreach (NPC npc in allNPCs)
             {
                 Assert.True(!string.IsNullOrEmpty(npc.Location), $"NPC {npc.Name} has empty Location!");
             }
@@ -211,7 +211,7 @@ namespace Wayfarer.Tests
             npcRepository.AddNPC(newNPC);
 
             // Assert
-            NPC retrievedNPC = npcRepository.GetNPCById("test_npc");
+            NPC retrievedNPC = npcRepository.GetById("test_npc");
             Assert.NotNull(retrievedNPC);
             Assert.Equal("test_npc", retrievedNPC.ID);
             Assert.Equal("Test NPC", retrievedNPC.Name);
@@ -234,7 +234,7 @@ namespace Wayfarer.Tests
             // Assert
             Assert.True(removed);
             Assert.Equal(initialCount - 1, npcRepository.GetAllNPCs().Count);
-            Assert.Null(npcRepository.GetNPCById("test_innkeeper_npc"));
+            Assert.Null(npcRepository.GetById("test_innkeeper_npc"));
         }
 
         [Fact]

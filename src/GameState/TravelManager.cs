@@ -22,7 +22,7 @@
         )
     {
         _gameWorld = gameWorld;
-        _timeManager = gameWorld.TimeManager;
+        _timeManager = (TimeManager)gameWorld.TimeManager;
         _transportValidator = transportValidator;
         _routeRepository = routeRepository;
         _accessChecker = accessChecker;
@@ -43,14 +43,14 @@
 
         // Check if any route exists and is available
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
-        
+
         // Check if player has enough stamina for cheapest route (fixed 2 stamina per route)
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player.Stamina < 2)
         {
             return false; // Not enough stamina for any travel
         }
-        
+
         return routes.Any();
     }
 
@@ -69,7 +69,7 @@
         return selectedRoute;
     }
 
-    public void TravelToLocation(string travelLocation, string locationSpotName, RouteOption selectedRoute)
+    public void TravelToLocation(RouteOption selectedRoute)
     {
         // Calculate actual costs with weather and weight modifications
         int adjustedStaminaCost = CalculateStaminaCost(selectedRoute);
@@ -87,25 +87,26 @@
         _timeManager.AdvanceTime(selectedRoute.TravelTimeHours);
 
         // Update location
-        Location targetLocation = LocationSystem.GetLocation(travelLocation);
+        Location targetLocation = LocationSystem.GetLocation(selectedRoute.Destination);
 
         List<LocationSpot> spots = LocationSystem.GetLocationSpots(targetLocation.Id);
-        LocationSpot? locSpot = spots.FirstOrDefault((Func<LocationSpot, bool>)(ls =>
+        LocationSpot locSpot = null;
+        if (spots.Count > 0)
         {
-            return ls.SpotID == locationSpotName;
-        }));
+            locSpot = spots[0];
+        }
 
         LocationRepository.SetCurrentLocation(targetLocation, locSpot);
 
         // Check for tutorial first movement
-        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial") && 
+        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial") &&
             !_flagService.GetFlag("tutorial_first_movement"))
         {
             _flagService.SetFlag("tutorial_first_movement", true);
         }
-        
+
         // Check for tutorial docks visit
-        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial") && 
+        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial") &&
             targetLocation.Id == "docks" &&
             !_flagService.GetFlag("tutorial_docks_visited"))
         {
@@ -164,15 +165,15 @@
             RouteAccessResult accessResult = route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
             if (!accessResult.IsAllowed)
                 continue;
-            
+
             // Check additional access requirements (token/equipment based)
             if (route.AccessRequirement != null)
             {
-                var requirementCheck = _accessChecker.CheckRouteAccess(route);
+                AccessCheckResult requirementCheck = _accessChecker.CheckRouteAccess(route);
                 if (!requirementCheck.IsAllowed)
                     continue;
             }
-            
+
             availableRoutes.Add(route);
         }
 

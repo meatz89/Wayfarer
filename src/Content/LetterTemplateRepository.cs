@@ -11,7 +11,7 @@ public class LetterTemplateRepository
     {
         _gameWorld = gameWorld;
     }
-    
+
     public void SetCategoryService(LetterCategoryService categoryService)
     {
         _categoryService = categoryService;
@@ -37,17 +37,17 @@ public class LetterTemplateRepository
 
     public LetterTemplate GetRandomTemplate()
     {
-        var templates = GetAllTemplates();
+        List<LetterTemplate> templates = GetAllTemplates();
         if (!templates.Any()) return null;
-        
+
         return templates[_random.Next(templates.Count)];
     }
 
     public LetterTemplate GetRandomTemplateByTokenType(ConnectionType tokenType)
     {
-        var templates = GetTemplatesByTokenType(tokenType);
+        List<LetterTemplate> templates = GetTemplatesByTokenType(tokenType);
         if (!templates.Any()) return null;
-        
+
         return templates[_random.Next(templates.Count)];
     }
 
@@ -67,17 +67,17 @@ public class LetterTemplateRepository
 
     public LetterTemplate GetRandomForcedShadowTemplate()
     {
-        var templates = GetForcedShadowTemplates();
+        List<LetterTemplate> templates = GetForcedShadowTemplates();
         if (!templates.Any()) return null;
-        
+
         return templates[_random.Next(templates.Count)];
     }
 
     public LetterTemplate GetRandomForcedPatronTemplate()
     {
-        var templates = GetForcedPatronTemplates();
+        List<LetterTemplate> templates = GetForcedPatronTemplates();
         if (!templates.Any()) return null;
-        
+
         return templates[_random.Next(templates.Count)];
     }
 
@@ -86,7 +86,7 @@ public class LetterTemplateRepository
     {
         if (template == null) return null;
 
-        var letter = new Letter
+        Letter letter = new Letter
         {
             SenderName = senderName,
             RecipientName = recipientName,
@@ -111,23 +111,23 @@ public class LetterTemplateRepository
         // Generate narrative names based on token type
         string senderName;
         string recipientName;
-        
+
         switch (template.TokenType)
         {
             case ConnectionType.Shadow:
-                var shadowSenders = new[] { "The Fence", "Midnight Contact", "Shadow Broker", "Anonymous Source" };
-                var shadowRecipients = new[] { "Dead Drop", "Safe House", "Underground Contact", "Hidden Ally" };
+                string[] shadowSenders = new[] { "The Fence", "Midnight Contact", "Shadow Broker", "Anonymous Source" };
+                string[] shadowRecipients = new[] { "Dead Drop", "Safe House", "Underground Contact", "Hidden Ally" };
                 senderName = shadowSenders[_random.Next(shadowSenders.Length)];
                 recipientName = shadowRecipients[_random.Next(shadowRecipients.Length)];
                 break;
-                
+
             case ConnectionType.Noble:
-                var patronSenders = new[] { "Your Patron", "Patron's Secretary", "House Steward" };
-                var patronRecipients = new[] { "Field Agent", "Local Contact", "Resource Master" };
+                string[] patronSenders = new[] { "Your Patron", "Patron's Secretary", "House Steward" };
+                string[] patronRecipients = new[] { "Field Agent", "Local Contact", "Resource Master" };
                 senderName = patronSenders[_random.Next(patronSenders.Length)];
                 recipientName = patronRecipients[_random.Next(patronRecipients.Length)];
                 break;
-                
+
             default:
                 // For other types, this method shouldn't be used
                 senderName = "Unknown Sender";
@@ -135,7 +135,7 @@ public class LetterTemplateRepository
                 break;
         }
 
-        var letter = new Letter
+        Letter letter = new Letter
         {
             SenderName = senderName,
             RecipientName = recipientName,
@@ -152,57 +152,57 @@ public class LetterTemplateRepository
 
         return letter;
     }
-    
+
     /// <summary>
     /// Get templates available for an NPC based on their relationship with the player.
     /// </summary>
     public List<LetterTemplate> GetAvailableTemplatesForNPC(string npcId, ConnectionType tokenType)
     {
-        if (_categoryService == null) 
+        if (_categoryService == null)
             return GetTemplatesByTokenType(tokenType); // Fallback to all templates
-            
+
         return _categoryService.GetAvailableTemplates(npcId, tokenType);
     }
-    
+
     /// <summary>
     /// Generate a letter from an NPC respecting category thresholds.
     /// </summary>
     public Letter GenerateLetterFromNPC(string npcId, string senderName, ConnectionType tokenType)
     {
-        var availableTemplates = GetAvailableTemplatesForNPC(npcId, tokenType);
+        List<LetterTemplate> availableTemplates = GetAvailableTemplatesForNPC(npcId, tokenType);
         if (!availableTemplates.Any()) return null;
-        
+
         // Get the category based on actual token count
-        var category = _categoryService?.GetAvailableCategory(npcId, tokenType) ?? LetterCategory.Basic;
-        
+        LetterCategory category = _categoryService?.GetAvailableCategory(npcId, tokenType) ?? LetterCategory.Basic;
+
         // Filter templates to only those matching the category
-        var categoryTemplates = availableTemplates.Where(t => t.Category == category).ToList();
+        List<LetterTemplate> categoryTemplates = availableTemplates.Where(t => t.Category == category).ToList();
         if (!categoryTemplates.Any())
         {
             // Fallback to any available template if no exact category match
             categoryTemplates = availableTemplates;
         }
-        
+
         // Select a random template from category-appropriate ones
-        var template = categoryTemplates[_random.Next(categoryTemplates.Count)];
-        
+        LetterTemplate template = categoryTemplates[_random.Next(categoryTemplates.Count)];
+
         // Find a random recipient (not the sender)
-        var allNpcs = _gameWorld.WorldState.NPCs;
-        var possibleRecipients = allNpcs.Where(n => n.Name != senderName).ToList();
+        List<NPC> allNpcs = _gameWorld.WorldState.NPCs;
+        List<NPC> possibleRecipients = allNpcs.Where(n => n.Name != senderName).ToList();
         if (!possibleRecipients.Any()) return null;
-        
-        var recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
-        
+
+        NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
+
         // Generate letter with category-appropriate payment
-        var letter = GenerateLetterFromTemplate(template, senderName, recipient.Name);
-        
+        Letter letter = GenerateLetterFromTemplate(template, senderName, recipient.Name);
+
         // Override payment to match category if needed
         if (_categoryService != null)
         {
-            var (minPay, maxPay) = _categoryService.GetCategoryPaymentRange(category);
+            (int minPay, int maxPay) = _categoryService.GetCategoryPaymentRange(category);
             letter.Payment = _random.Next(minPay, maxPay + 1);
         }
-        
+
         return letter;
     }
 }

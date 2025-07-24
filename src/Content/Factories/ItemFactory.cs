@@ -11,7 +11,7 @@ public class ItemFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create an item with validated data.
     /// Items are standalone entities without references to other game objects.
@@ -33,8 +33,8 @@ public class ItemFactory
             throw new ArgumentException("Item name cannot be empty", nameof(name));
         if (inventorySlots < 1)
             throw new ArgumentException("Items must take at least 1 inventory slot", nameof(inventorySlots));
-        
-        var item = new Item
+
+        Item item = new Item
         {
             Id = id,
             Name = name,
@@ -46,19 +46,19 @@ public class ItemFactory
             Categories = categories ?? new List<ItemCategory>(),
             Description = description ?? $"A {sizeCategory.ToString().ToLower()} {name.ToLower()}"
         };
-        
+
         // Validate price logic
         if (sellPrice > buyPrice)
         {
             Console.WriteLine($"WARNING: Item '{id}' has sell price ({sellPrice}) higher than buy price ({buyPrice}). This may create infinite money exploits.");
         }
-        
+
         // Validate size vs slots
         ValidateSizeVsSlots(item);
-        
+
         return item;
     }
-    
+
     /// <summary>
     /// Validate that item size category matches inventory slots
     /// </summary>
@@ -73,13 +73,13 @@ public class ItemFactory
             SizeCategory.Massive => 3,
             _ => 1
         };
-        
+
         if (item.InventorySlots != expectedSlots)
         {
             Console.WriteLine($"WARNING: Item '{item.Id}' size category {item.Size} suggests {expectedSlots} slots but has {item.InventorySlots} slots configured.");
         }
     }
-    
+
     /// <summary>
     /// Create an item suitable for trading based on category
     /// </summary>
@@ -94,7 +94,7 @@ public class ItemFactory
         // Calculate buy/sell prices with reasonable margins
         int buyPrice = basePrice;
         int sellPrice = (int)(basePrice * 0.7); // 30% markdown for selling
-        
+
         // Adjust slots based on category
         int slots = category switch
         {
@@ -102,7 +102,7 @@ public class ItemFactory
             ItemCategory.Luxury_Items => 1,
             _ => 1
         };
-        
+
         return CreateItem(
             id: id,
             name: name,

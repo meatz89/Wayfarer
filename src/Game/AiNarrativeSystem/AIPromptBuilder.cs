@@ -190,13 +190,11 @@ public class AIPromptBuilder
             .Replace("{maxHealth}", input.MaxHealth.ToString())
             .Replace("{stamina}", input.Stamina.ToString())
             .Replace("{maxStamina}", input.MaxStamina.ToString())
-            .Replace("{allKnownLocations}", input.KnownLocations)
-            .Replace("{connectedLocations}", input.ConnectedLocations)
-            .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
-            .Replace("{knownCharacters}", input.KnownCharacters)
-            .Replace("{activeContracts}", input.ActiveContracts)
-            .Replace("{currentLocationSpots}", input.CurrentLocationSpots)
-            .Replace("{connectedLocations}", input.ConnectedLocations);
+            .Replace("{allKnownLocations}", string.Join(", ", input.KnownLocations))
+            .Replace("{connectedLocations}", string.Join(", ", input.ConnectedLocations))
+            .Replace("{currentLocationSpots}", string.Join(", ", input.CurrentLocationSpots))
+            .Replace("{knownCharacters}", string.Join(", ", input.KnownCharacters))
+            .Replace("{activeContracts}", string.Join(", ", input.ActiveContracts));
 
         AIPrompt aiPrompt = new AIPrompt()
         {
@@ -214,10 +212,10 @@ public class AIPromptBuilder
             template
             .Replace("{characterArchetype}", input.CharacterArchetype)
             .Replace("{locationName}", input.TravelDestination)
-            .Replace("{allKnownLocations}", input.KnownLocations)
+            .Replace("{allKnownLocations}", string.Join(", ", input.KnownLocations))
             .Replace("{originLocationName}", input.TravelOrigin)
-            .Replace("{knownCharacters}", input.KnownCharacters)
-            .Replace("{activeContracts}", input.ActiveContracts);
+            .Replace("{knownCharacters}", string.Join(", ", input.KnownCharacters))
+            .Replace("{activeContracts}", string.Join(", ", input.ActiveContracts));
         AIPrompt prompt = new AIPrompt()
         {
             Content = content
@@ -276,11 +274,11 @@ public class AIPromptBuilder
             .Replace("{CURRENT_LOCATION}", input.CurrentLocation)
             .Replace("{LOCATION_DEPTH}", input.LocationDepth.ToString())
             .Replace("{CURRENT_SPOT}", input.CurrentSpot)
-            .Replace("{CONNECTED_LOCATIONS}", input.ConnectedLocations)
-            .Replace("{LOCATION_SPOTS}", input.LocationSpots)
-            .Replace("{INVENTORY}", input.Inventory)
-            .Replace("{KNOWN_CHARACTERS}", input.KnownCharacters)
-            .Replace("{ACTIVE_Contracts}", input.ActiveContracts)
+            .Replace("{CONNECTED_LOCATIONS}", string.Join(", ", input.ConnectedLocations))
+            .Replace("{LOCATION_SPOTS}", string.Join(", ", input.LocationSpots))
+            .Replace("{INVENTORY}", string.Join(", ", input.Inventory))
+            .Replace("{KNOWN_CHARACTERS}", string.Join(", ", input.KnownCharacters))
+            .Replace("{ACTIVE_Contracts}", string.Join(", ", input.ActiveContracts))
             .Replace("{MEMORY_SUMMARY}", input.MemorySummary);
 
         return dynamicSystemPrompt;
@@ -421,8 +419,8 @@ public class AIPromptBuilder
 
     private void AddTravelContext(StringBuilder prompt, GameWorld gameWorld)
     {
-        // TODO: Implement when encounters are needed
-        // Currently not used as encounters are not implemented
+        // This method is a placeholder for future travel encounter features
+        // Travel encounters are not currently part of the game design
         return;
     }
 
@@ -433,8 +431,8 @@ public class AIPromptBuilder
         prompt.AppendLine("SELECTED CHOICE:");
         prompt.AppendLine($"{choice.NarrativeText}");
 
-        // For now, assume the choice was successful
-        // TODO: Implement skill check results
+        // The game design uses deterministic outcomes without skill checks
+        // All choices succeed but have different narrative consequences
         prompt.AppendLine("RESULT: Success");
 
         prompt.AppendLine();

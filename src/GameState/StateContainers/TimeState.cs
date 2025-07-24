@@ -1,6 +1,5 @@
 using System;
 
-namespace Wayfarer.GameState.StateContainers;
 
 /// <summary>
 /// Immutable state container for time tracking with validation and atomic operations.
@@ -19,20 +18,14 @@ public sealed class TimeState
     private readonly int _currentDay;
 
     // Public properties with validation
-    public int CurrentHour 
-    { 
-        get => _currentHour;
-    }
-    
-    public int CurrentDay 
-    { 
-        get => _currentDay;
-    }
+    public int CurrentHour => _currentHour;
+
+    public int CurrentDay => _currentDay;
 
     public TimeBlocks CurrentTimeBlock => CalculateTimeBlock(_currentHour);
-    
+
     public int ActiveHoursRemaining => Math.Max(0, ACTIVE_DAY_END - _currentHour);
-    
+
     public bool IsActiveTime => _currentHour >= ACTIVE_DAY_START && _currentHour < ACTIVE_DAY_END;
 
     /// <summary>
@@ -42,7 +35,7 @@ public sealed class TimeState
     {
         if (day < 1)
             throw new ArgumentException("Day must be at least 1", nameof(day));
-        
+
         if (hour < 0 || hour >= HOURS_PER_DAY)
             throw new ArgumentException($"Hour must be between 0 and {HOURS_PER_DAY - 1}", nameof(hour));
 
@@ -59,14 +52,14 @@ public sealed class TimeState
         if (hours <= 0)
             throw new ArgumentException("Hours to advance must be positive", nameof(hours));
 
-        var oldTimeBlock = CurrentTimeBlock;
-        var totalHours = _currentHour + hours;
-        var daysAdvanced = totalHours / HOURS_PER_DAY;
-        var newHour = totalHours % HOURS_PER_DAY;
-        var newDay = _currentDay + daysAdvanced;
+        TimeBlocks oldTimeBlock = CurrentTimeBlock;
+        int totalHours = _currentHour + hours;
+        int daysAdvanced = totalHours / HOURS_PER_DAY;
+        int newHour = totalHours % HOURS_PER_DAY;
+        int newDay = _currentDay + daysAdvanced;
 
-        var newState = new TimeState(newDay, newHour);
-        
+        TimeState newState = new TimeState(newDay, newHour);
+
         return new TimeAdvancementResult
         {
             OldState = this,
@@ -92,7 +85,7 @@ public sealed class TimeState
     /// <summary>
     /// Creates a new TimeState at the start of the next day.
     /// </summary>
-    public TimeState StartNewDay()
+    public TimeState AdvanceToNextDay()
     {
         return new TimeState(_currentDay + 1, ACTIVE_DAY_START);
     }

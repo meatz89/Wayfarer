@@ -25,13 +25,7 @@
         _worldStateInputBuilder = worldStateInputBuilder;
     }
 
-    public bool HasResponse
-    {
-        get
-        {
-            return hasResponse;
-        }
-    }
+    public bool HasResponse => hasResponse;
 
     private static string GetConversationId(ConversationContext context)
     {
@@ -53,10 +47,10 @@
     public async Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
     {
         // Create world state input
-        var worldStateInput = await _worldStateInputBuilder.CreateWorldStateInput(context.LocationName);
+        WorldStateInput worldStateInput = _worldStateInputBuilder.CreateWorldStateInput(context.LocationName, context.Player);
         return await GenerateIntroduction(context, state, worldStateInput, 1);
     }
-    
+
     // Original method with full parameters
     public async Task<string> GenerateIntroduction(
         ConversationContext context,
@@ -107,7 +101,7 @@
         ConversationState state,
         List<ChoiceTemplate> availableTemplates)
     {
-        var worldStateInput = await _worldStateInputBuilder.CreateWorldStateInput(context.LocationName);
+        WorldStateInput worldStateInput = _worldStateInputBuilder.CreateWorldStateInput(context.LocationName, context.Player);
         return await RequestChoices(context, state, worldStateInput, availableTemplates, 1);
     }
 
@@ -149,7 +143,7 @@
         ConversationChoice selectedChoice,
         bool success)
     {
-        var worldStateInput = await _worldStateInputBuilder.CreateWorldStateInput(context.LocationName);
+        WorldStateInput worldStateInput = _worldStateInputBuilder.CreateWorldStateInput(context.LocationName, context.Player);
         return await GenerateReaction(context, state, selectedChoice, success, worldStateInput, 1);
     }
 
@@ -193,7 +187,7 @@
         ConversationState state,
         ConversationChoice lastChoice)
     {
-        var worldStateInput = await _worldStateInputBuilder.CreateWorldStateInput(context.LocationName);
+        WorldStateInput worldStateInput = _worldStateInputBuilder.CreateWorldStateInput(context.LocationName, context.Player);
         return await GenerateConclusion(context, state, lastChoice, worldStateInput, 1);
     }
 

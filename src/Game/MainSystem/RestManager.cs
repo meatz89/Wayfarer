@@ -1,7 +1,7 @@
 ﻿public class RestManager
 {
     private GameWorld gameWorld;
-    private TimeManager timeManager;
+    private ITimeManager timeManager;
     private LocationRepository locationRepository;
     private MessageSystem messageSystem;
 
@@ -18,13 +18,13 @@
 
     public List<RestOption> GetAvailableRestOptions()
     {
-        Location currentLocation = gameWorld.WorldState.CurrentLocation;
+        Location currentLocation = gameWorld.GetPlayer().CurrentLocation;
         if (currentLocation == null) return new List<RestOption>();
 
         List<RestOption> restOptions = new List<RestOption>();
-        
-        var currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
-        
+
+        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+
         // During day/evening - only short rest/wait options
         if (currentTime != TimeBlocks.Night)
         {
@@ -37,7 +37,7 @@
                 RestTimeHours = 1,
                 EnablesDawnDeparture = false
             });
-            
+
             restOptions.Add(new RestOption
             {
                 Id = "short_rest",
@@ -66,7 +66,7 @@
         if (currentTime == TimeBlocks.Evening || currentTime == TimeBlocks.Night)
         {
             bool isNight = currentTime == TimeBlocks.Night;
-            
+
             if (currentLocation.Id == "Millbrook")
             {
                 restOptions.Add(new RestOption
@@ -125,11 +125,11 @@
     public void Rest(RestOption option)
     {
         Player player = gameWorld.GetPlayer();
-        var currentLocation = player.CurrentLocation;
+        Location currentLocation = player.CurrentLocation;
 
         // Validate time block availability
         // Check if we have enough hours left in the day
-        if (timeManager.CurrentTimeHours + option.RestTimeHours > 24)
+        if (timeManager.GetCurrentTimeHours() + option.RestTimeHours > 24)
         {
             throw new InvalidOperationException($"Cannot rest: Not enough time remaining in the day. Rest requires {option.RestTimeHours} hours.");
         }
@@ -139,7 +139,7 @@
             $"🛌 {option.Name} at {currentLocation.Name}...",
             SystemMessageTypes.Info
         );
-        
+
         // Deduct cost with narrative
         if (option.CoinCost > 0)
         {
@@ -159,18 +159,14 @@
 
         // Recover stamina with narrative
         int oldStamina = player.Stamina;
-        player.Stamina += option.StaminaRecovery;
-        if (player.Stamina > player.MaxStamina)
-        {
-            player.Stamina = player.MaxStamina;
-        }
-        
+        player.ModifyStamina(option.StaminaRecovery);
+
         int staminaGained = player.Stamina - oldStamina;
         messageSystem.AddSystemMessage(
             $"💪 Recovered {staminaGained} stamina (now {player.Stamina}/{player.MaxStamina})",
             SystemMessageTypes.Success
         );
-        
+
         // Describe the rest quality
         if (option.StaminaRecovery >= 8)
         {
@@ -217,15 +213,20 @@
         // Advance time based on rest option using TimeManager
         if (option.EnablesDawnDeparture)
         {
-            gameWorld.TimeManager.StartNewDay();
-            // StartNewDay() sets time to TimeDayStart (6 AM) which is Dawn
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Dawn;
+            // Calculate hours until dawn (6 AM) of next day
+            int currentHour = gameWorld.TimeManager.GetCurrentTimeHours();
+            int hoursUntilDawn = (24 - currentHour) + 6; // Hours to midnight + 6 hours to dawn
+            gameWorld.TimeManager.AdvanceTime(hoursUntilDawn);
         }
         else
         {
-            gameWorld.TimeManager.StartNewDay();
-            // Override to Morning for regular departure
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
+            // Advance to next day at 6 AM
+            int currentHour = gameWorld.TimeManager.GetCurrentTimeHours();
+            int hoursUntilDawn = (24 - currentHour) + 6;
+            gameWorld.TimeManager.AdvanceTime(hoursUntilDawn);
+            // Time advances to next day at dawn (6 AM)
+            // If we need to start at a different time, we can advance additional hours
+            gameWorld.TimeManager.AdvanceTime(3); // Advance to 9 AM (Morning)
         }
 
         // Skill cards removed - using letter queue system
@@ -271,23 +272,23 @@
         // Contract functionality has been removed - using letter system instead
         messageSystem.AddSystemMessage("Your connections have provided you with valuable information!");
     }
-    
+
     public void Wait(int hours)
     {
         if (hours <= 0) return;
-        
+
         // Validate we don't go past midnight
-        if (timeManager.CurrentTimeHours + hours > 24)
+        if (timeManager.GetCurrentTimeHours() + hours > 24)
         {
             messageSystem.AddSystemMessage($"Cannot wait {hours} hours: would go past midnight", SystemMessageTypes.Danger);
             return;
         }
-        
+
         // Advance time
         timeManager.AdvanceTime(hours);
-        
+
         // Show feedback
         string timeDescription = hours == 1 ? "1 hour" : $"{hours} hours";
-        messageSystem.AddSystemMessage($"Waited {timeDescription}. Time advanced to {timeManager.CurrentTimeHours}:00", SystemMessageTypes.Info);
+        messageSystem.AddSystemMessage($"Waited {timeDescription}. Time advanced to {timeManager.GetCurrentTimeHours()}:00", SystemMessageTypes.Info);
     }
 }

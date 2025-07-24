@@ -13,9 +13,9 @@ public class QueueDisplacementPlanner
     private readonly GameConfiguration _config;
     private readonly ConnectionTokenManager _tokenManager;
     private readonly MessageSystem _messageSystem;
-    
+
     public QueueDisplacementPlanner(
-        LetterQueueManager queueManager, 
+        LetterQueueManager queueManager,
         GameConfiguration config,
         ConnectionTokenManager tokenManager,
         MessageSystem messageSystem)
@@ -25,21 +25,21 @@ public class QueueDisplacementPlanner
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
     }
-    
+
     /// <summary>
     /// Plans the displacement effects of adding a letter at a specific position
     /// </summary>
     public DisplacementPlan PlanLetterAddition(Letter newLetter, int targetPosition)
     {
-        var plan = new DisplacementPlan 
-        { 
+        DisplacementPlan plan = new DisplacementPlan
+        {
             NewLetter = newLetter,
             TargetPosition = targetPosition,
             ActionType = DisplacementActionType.AddLetter
         };
-        
-        var currentQueue = _queueManager.GetPlayerQueue();
-        
+
+        Letter[] currentQueue = _queueManager.GetPlayerQueue();
+
         // Check if queue is full
         if (currentQueue.All(slot => slot != null))
         {
@@ -48,7 +48,7 @@ public class QueueDisplacementPlanner
             plan.FailureReason = "Queue is completely full - no letter can be added";
             return plan;
         }
-        
+
         // If target position is empty, no displacement needed
         if (currentQueue[targetPosition - 1] == null)
         {
@@ -56,19 +56,19 @@ public class QueueDisplacementPlanner
             plan.SimpleInsertion = true;
             return plan;
         }
-        
+
         // Calculate all movements
         for (int i = targetPosition - 1; i < currentQueue.Length; i++)
         {
             if (currentQueue[i] != null)
             {
-                var movement = new LetterMovement
+                LetterMovement movement = new LetterMovement
                 {
                     Letter = currentQueue[i],
                     FromPosition = i + 1,
                     ToPosition = i + 2
                 };
-                
+
                 // Check if this letter would be pushed out
                 if (movement.ToPosition > _config.LetterQueue.MaxQueueSize)
                 {
@@ -86,24 +86,24 @@ public class QueueDisplacementPlanner
                 }
             }
         }
-        
+
         plan.CanExecute = true;
         return plan;
     }
-    
+
     /// <summary>
     /// Plans the effects of skipping a letter to position 1
     /// </summary>
     public DisplacementPlan PlanSkipDelivery(int fromPosition)
     {
-        var plan = new DisplacementPlan
+        DisplacementPlan plan = new DisplacementPlan
         {
             TargetPosition = 1,
             ActionType = DisplacementActionType.SkipDelivery
         };
-        
-        var currentQueue = _queueManager.GetPlayerQueue();
-        
+
+        Letter[] currentQueue = _queueManager.GetPlayerQueue();
+
         // Validate position
         if (fromPosition <= 1 || fromPosition > _config.LetterQueue.MaxQueueSize)
         {
@@ -111,17 +111,17 @@ public class QueueDisplacementPlanner
             plan.FailureReason = "Invalid skip position";
             return plan;
         }
-        
-        var letter = currentQueue[fromPosition - 1];
+
+        Letter letter = currentQueue[fromPosition - 1];
         if (letter == null)
         {
             plan.CanExecute = false;
             plan.FailureReason = "No letter at specified position";
             return plan;
         }
-        
+
         plan.NewLetter = letter;
-        
+
         // Check if position 1 is occupied
         if (currentQueue[0] != null)
         {
@@ -129,14 +129,14 @@ public class QueueDisplacementPlanner
             plan.FailureReason = "Position 1 is already occupied";
             return plan;
         }
-        
+
         // Calculate token cost
         int baseCost = fromPosition - 1;
         plan.TokenCost = new Dictionary<ConnectionType, int>
         {
             { letter.TokenType, baseCost }
         };
-        
+
         // Check token availability
         if (!_tokenManager.HasTokens(letter.TokenType, baseCost))
         {
@@ -148,7 +148,7 @@ public class QueueDisplacementPlanner
             };
             return plan;
         }
-        
+
         // Track skipped letters
         for (int i = 1; i < fromPosition - 1; i++)
         {
@@ -162,7 +162,7 @@ public class QueueDisplacementPlanner
                 });
             }
         }
-        
+
         // Plan the movement
         plan.Movements.Add(new LetterMovement
         {
@@ -170,38 +170,38 @@ public class QueueDisplacementPlanner
             FromPosition = fromPosition,
             ToPosition = 1
         });
-        
+
         plan.CanExecute = true;
         return plan;
     }
-    
+
     /// <summary>
     /// Plans the effects of purging the bottom letter
     /// </summary>
     public DisplacementPlan PlanPurge()
     {
-        var plan = new DisplacementPlan
+        DisplacementPlan plan = new DisplacementPlan
         {
             TargetPosition = _config.LetterQueue.MaxQueueSize,
             ActionType = DisplacementActionType.Purge
         };
-        
-        var currentQueue = _queueManager.GetPlayerQueue();
-        var letterToPurge = currentQueue[_config.LetterQueue.MaxQueueSize - 1];
-        
+
+        Letter[] currentQueue = _queueManager.GetPlayerQueue();
+        Letter letterToPurge = currentQueue[_config.LetterQueue.MaxQueueSize - 1];
+
         if (letterToPurge == null)
         {
             plan.CanExecute = false;
             plan.FailureReason = $"No letter in position {_config.LetterQueue.MaxQueueSize} to purge";
             return plan;
         }
-        
+
         plan.NewLetter = letterToPurge;
-        
+
         // Set token cost (3 tokens of any type)
         plan.TokenCost = new Dictionary<ConnectionType, int>();
         plan.RequiredTokenTotal = _config.LetterQueue.PurgeCostTokens;
-        
+
         // Add purge to evictions
         plan.Evictions.Add(new LetterEviction
         {
@@ -210,23 +210,23 @@ public class QueueDisplacementPlanner
             Reason = "Purged by player",
             TokenPenalty = 0 // No relationship penalty for purging
         });
-        
+
         plan.CanExecute = true;
         return plan;
     }
-    
+
     /// <summary>
     /// Plans the effects of a morning swap
     /// </summary>
     public DisplacementPlan PlanMorningSwap(int position1, int position2)
     {
-        var plan = new DisplacementPlan
+        DisplacementPlan plan = new DisplacementPlan
         {
             ActionType = DisplacementActionType.MorningSwap
         };
-        
-        var currentQueue = _queueManager.GetPlayerQueue();
-        
+
+        Letter[] currentQueue = _queueManager.GetPlayerQueue();
+
         // Validate positions are adjacent
         if (Math.Abs(position1 - position2) != 1)
         {
@@ -234,19 +234,19 @@ public class QueueDisplacementPlanner
             plan.FailureReason = "Positions must be adjacent for morning swap";
             return plan;
         }
-        
+
         // Validate positions are in range
-        if (position1 < 1 || position1 > _config.LetterQueue.MaxQueueSize || 
+        if (position1 < 1 || position1 > _config.LetterQueue.MaxQueueSize ||
             position2 < 1 || position2 > _config.LetterQueue.MaxQueueSize)
         {
             plan.CanExecute = false;
             plan.FailureReason = "Invalid positions for swap";
             return plan;
         }
-        
-        var letter1 = currentQueue[position1 - 1];
-        var letter2 = currentQueue[position2 - 1];
-        
+
+        Letter? letter1 = currentQueue[position1 - 1];
+        Letter letter2 = currentQueue[position2 - 1];
+
         // At least one position must have a letter
         if (letter1 == null && letter2 == null)
         {
@@ -254,7 +254,7 @@ public class QueueDisplacementPlanner
             plan.FailureReason = "At least one position must contain a letter";
             return plan;
         }
-        
+
         // Add swap movements
         if (letter1 != null)
         {
@@ -265,7 +265,7 @@ public class QueueDisplacementPlanner
                 ToPosition = position2
             });
         }
-        
+
         if (letter2 != null)
         {
             plan.Movements.Add(new LetterMovement
@@ -275,12 +275,12 @@ public class QueueDisplacementPlanner
                 ToPosition = position1
             });
         }
-        
+
         plan.CanExecute = true;
         plan.IsFreeAction = true;
         return plan;
     }
-    
+
     /// <summary>
     /// Creates a preview message for a displacement plan
     /// </summary>
@@ -294,7 +294,7 @@ public class QueueDisplacementPlanner
             );
             return;
         }
-        
+
         // Show action summary
         switch (plan.ActionType)
         {
@@ -304,21 +304,21 @@ public class QueueDisplacementPlanner
                     SystemMessageTypes.Info
                 );
                 break;
-                
+
             case DisplacementActionType.SkipDelivery:
                 _messageSystem.AddSystemMessage(
                     $"⏭️ PREVIEW: Skipping {plan.NewLetter.SenderName}'s letter to position 1",
                     SystemMessageTypes.Info
                 );
                 break;
-                
+
             case DisplacementActionType.Purge:
                 _messageSystem.AddSystemMessage(
                     $"🔥 PREVIEW: Purging {plan.NewLetter.SenderName}'s letter",
                     SystemMessageTypes.Warning
                 );
                 break;
-                
+
             case DisplacementActionType.MorningSwap:
                 _messageSystem.AddSystemMessage(
                     $"🔄 PREVIEW: Morning swap",
@@ -326,12 +326,12 @@ public class QueueDisplacementPlanner
                 );
                 break;
         }
-        
+
         // Show token costs
         if (plan.TokenCost?.Any() == true)
         {
             _messageSystem.AddSystemMessage("💸 Token Cost:", SystemMessageTypes.Warning);
-            foreach (var cost in plan.TokenCost)
+            foreach (KeyValuePair<ConnectionType, int> cost in plan.TokenCost)
             {
                 _messageSystem.AddSystemMessage(
                     $"  • {cost.Value} {cost.Key} tokens",
@@ -339,26 +339,26 @@ public class QueueDisplacementPlanner
                 );
             }
         }
-        
+
         // Show movements
         if (plan.Movements.Any())
         {
             _messageSystem.AddSystemMessage("📬 Queue Changes:", SystemMessageTypes.Info);
-            foreach (var movement in plan.Movements)
+            foreach (LetterMovement movement in plan.Movements)
             {
-                var urgency = movement.Letter.Deadline <= 2 ? " ⚠️" : "";
+                string urgency = movement.Letter.Deadline <= 2 ? " ⚠️" : "";
                 _messageSystem.AddSystemMessage(
                     $"  • {movement.Letter.SenderName}: position {movement.FromPosition} → {movement.ToPosition}{urgency}",
                     SystemMessageTypes.Info
                 );
             }
         }
-        
+
         // Show skipped letters
         if (plan.SkippedLetters.Any())
         {
             _messageSystem.AddSystemMessage("⏩ Skipped Letters:", SystemMessageTypes.Warning);
-            foreach (var skipped in plan.SkippedLetters)
+            foreach (SkippedLetter skipped in plan.SkippedLetters)
             {
                 _messageSystem.AddSystemMessage(
                     $"  • {skipped.Letter.SenderName} at position {skipped.Position} (relationship -1)",
@@ -366,12 +366,12 @@ public class QueueDisplacementPlanner
                 );
             }
         }
-        
+
         // Show evictions
         if (plan.Evictions.Any())
         {
             _messageSystem.AddSystemMessage("💥 EVICTIONS:", SystemMessageTypes.Danger);
-            foreach (var eviction in plan.Evictions)
+            foreach (LetterEviction eviction in plan.Evictions)
             {
                 _messageSystem.AddSystemMessage(
                     $"  • {eviction.Letter.SenderName} will be REMOVED ({eviction.Reason})",
@@ -386,7 +386,7 @@ public class QueueDisplacementPlanner
                 }
             }
         }
-        
+
         // Show summary
         if (plan.SimpleInsertion)
         {
@@ -397,7 +397,7 @@ public class QueueDisplacementPlanner
         }
         else if (plan.Movements.Any() || plan.Evictions.Any())
         {
-            var totalAffected = plan.Movements.Count + plan.Evictions.Count;
+            int totalAffected = plan.Movements.Count + plan.Evictions.Count;
             _messageSystem.AddSystemMessage(
                 $"📊 Total affected: {totalAffected} letter(s)",
                 SystemMessageTypes.Info

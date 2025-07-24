@@ -8,24 +8,31 @@ public class MusicPlayerBase : ComponentBase, IDisposable
     public string _formattedCurrentPosition = "0:00";
     public string _formattedDuration = "0:00";
     public System.Timers.Timer _uiTimer;
+    private int _lastStateVersion = -1;
 
     protected override void OnInitialized()
     {
-        MusicService.OnQueueChanged += StateHasChanged;
-        MusicService.OnPlaybackStateChanged += StateHasChanged;
-        MusicService.OnPositionChanged += UpdatePosition;
-
-        _uiTimer = new System.Timers.Timer(1000);
+        // Razor code-behind files ARE allowed to use events
+        // But we need to poll since MusicService can't have events
+        _uiTimer = new System.Timers.Timer(100); // Poll every 100ms
         _uiTimer.Elapsed += async (sender, e) =>
         {
-            if (MusicService.IsPlaying)
+            await InvokeAsync(() =>
             {
-                await InvokeAsync(() =>
+                // Check for state changes via polling
+                if (MusicService.StateVersion != _lastStateVersion)
                 {
-                    MusicService.IncrementPosition(TimeSpan.FromSeconds(1));
+                    _lastStateVersion = MusicService.StateVersion;
+                    StateHasChanged();
+                }
+
+                // Update position if playing
+                if (MusicService.IsPlaying)
+                {
+                    MusicService.IncrementPosition(TimeSpan.FromMilliseconds(100));
                     UpdatePosition(MusicService.CurrentPosition);
-                });
-            }
+                }
+            });
         };
         _uiTimer.Start();
     }
@@ -58,9 +65,5 @@ public class MusicPlayerBase : ComponentBase, IDisposable
     {
         _uiTimer?.Stop();
         _uiTimer?.Dispose();
-
-        MusicService.OnQueueChanged -= StateHasChanged;
-        MusicService.OnPlaybackStateChanged -= StateHasChanged;
-        MusicService.OnPositionChanged -= UpdatePosition;
     }
 }

@@ -9,5 +9,6 @@
     FoodProduction,
     Trading,
     Lodging,
-    Market
+    Market,
+    Work
 }

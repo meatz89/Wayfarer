@@ -21,7 +21,9 @@
   </PropertyGroup>
     
 	<ItemGroup>
+	  <PackageReference Include="Moq" Version="4.20.72" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	  <PackageReference Include="NUnit" Version="4.3.2" />
 	  <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
 	  <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
 	  
@@ -49,6 +51,7 @@
 	</ItemGroup>
     
 	<ItemGroup>
+	  <Folder Include="Core\Repositories\Tests\" />
 	  <Folder Include="wwwroot\images\cursors\" />
 	  <Folder Include="wwwroot\music\forest\" />
 	</ItemGroup>

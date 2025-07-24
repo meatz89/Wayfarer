@@ -1,57 +1,39 @@
-﻿@* MarketUI.razor *@
-@inject GameWorld GameWorld
-@inject GameWorldManager GameManager
-@* MarketManager removed - all actions through GameWorldManager *@
-@* ItemRepository allowed for read-only UI data binding *@
-@inject ItemRepository ItemRepository
+﻿@* MarketUI.razor - Pure presentation layer, no game logic *@
+@inject MarketUIService MarketUIService
 
 <div class="market-container">
-    <h2>@Location.Name Market</h2>
+    <h2>@_viewModel.LocationName Market</h2>
     
     <div class="market-status">
-        @{
-            string marketStatus = GameManager.GetMarketAvailabilityStatus(Location.Id);
-            var currentTraders = GameManager.GetTradingNPCs(Location.Id).Where(npc => npc.IsAvailable(GameWorld.TimeManager.GetCurrentTimeBlock())).ToList();
-        }
-        <span class="@(marketStatus.Contains("Open") ? "market-open" : "market-closed")">
-            @marketStatus
+        <span class="@(_viewModel.IsOpen ? "market-open" : "market-closed")">
+            @_viewModel.MarketStatus
         </span>
         
-        @if (currentTraders.Any())
+        @if (_viewModel.TraderCount > 0)
         {
-            <span class="trader-count">(@currentTraders.Count trader@(currentTraders.Count != 1 ? "s" : "") available)</span>
+            <span class="trader-count">(@_viewModel.TraderCount trader@(_viewModel.TraderCount != 1 ? "s" : "") available)</span>
         }
     </div>
 
     @* Compact player status *@
     <div class="player-status-compact">
-        @{
-            var inventory = GameWorld.GetPlayer().Inventory;
-            int freeSlots = inventory.Size - inventory.UsedCapacity;
-        }
-        💰 @GameWorld.GetPlayer().Coins | 
-        🎒 @inventory.UsedCapacity/@inventory.Size | 
-        @if (freeSlots == 0)
+        💰 @_viewModel.PlayerCoins | 
+        🎒 @_viewModel.InventoryUsed/@_viewModel.InventoryCapacity | 
+        @if (_viewModel.IsInventoryFull)
         {
             <span class="warning">Inventory Full!</span>
         }
     </div>
 
     @* Basic category filter for items *@
-    @{
-        var categoryFilter = GetSelectedCategoryFilter();
-    }
-    
     <div class="category-filter-section">
         <h4>Filter Items</h4>
         <div class="category-filters">
-            <button class="category-filter @(categoryFilter == "All" ? "active" : "")" 
-                    @onclick='() => SetCategoryFilter("All")'>All Items</button>
-            @foreach (var category in GetAvailableEquipmentCategories())
+            @foreach (var category in _viewModel.AvailableCategories)
             {
-                <button class="category-filter @(categoryFilter == category.ToString() ? "active" : "")"
-                        @onclick='() => SetCategoryFilter(category.ToString())'>
-                    @category.ToString().Replace('_', ' ')
+                <button class="category-filter @(_viewModel.SelectedCategory == category ? "active" : "")"
+                        @onclick='() => SetCategoryFilter(category)'>
+                    @category.Replace('_', ' ')
                 </button>
             }
         </div>
@@ -65,24 +47,18 @@
             <div class="item-actions">Action</div>
         </div>
 
-        @foreach (Item item in GetFilteredMarketItems())
+        @foreach (var item in GetFilteredItems())
         {
-            if (item == null) continue;
-            
-            Player playerState = GameWorld.GetPlayer();
-            bool canBuy = GameManager.CanBuyMarketItem(item.Id ?? item.Name, Location.Id);
-            bool canSell = playerState.Inventory.HasItem(item.Name);
-
             <div class="market-item">
                 <div class="item-name">@item.Name</div>
                 <div class="item-buy">@item.BuyPrice</div>
                 <div class="item-sell">@item.SellPrice</div>
                 <div class="item-actions">
-                    @if (canBuy)
+                    @if (item.CanBuy)
                     {
                         <button class="buy-button" @onclick="() => BuyItem(item)">Buy</button>
                     }
-                    else if (canSell)
+                    else if (item.CanSell)
                     {
                         <button class="sell-button" @onclick="() => SellItem(item)">Sell</button>
                     }
@@ -100,74 +76,47 @@
 @code {
 
 @namespace Wayfarer.Pages
-    [Parameter] public Location Location { get; set; }
+    [Parameter] public string LocationId { get; set; }
     
-    private string _selectedCategoryFilter = "All";
+    private MarketViewModel _viewModel;
 
-    private void BuyItem(Item item)
+    protected override void OnInitialized()
     {
-        GameManager.ExecuteTradeAction(item.Id ?? item.Name, "buy", Location.Id);
+        RefreshViewModel();
+    }
+    
+    protected override void OnParametersSet()
+    {
+        RefreshViewModel();
+    }
+
+    private void RefreshViewModel()
+    {
+        _viewModel = MarketUIService.GetMarketViewModel(LocationId);
+    }
+
+    private async Task BuyItem(MarketItemViewModel item)
+    {
+        await MarketUIService.ExecuteTradeAsync(item.ItemId, "buy", LocationId);
+        RefreshViewModel();
         StateHasChanged();
     }
 
-    private void SellItem(Item item)
+    private async Task SellItem(MarketItemViewModel item)
     {
-        GameManager.ExecuteTradeAction(item.Id ?? item.Name, "sell", Location.Id);
+        await MarketUIService.ExecuteTradeAsync(item.ItemId, "sell", LocationId);
+        RefreshViewModel();
         StateHasChanged();
     }
 
-
-    /// <summary>
-    /// Get available equipment categories in the current market
-    /// </summary>
-    public List<ItemCategory> GetAvailableEquipmentCategories()
+    private void SetCategoryFilter(string category)
     {
-        var allItems = GameManager.GetAvailableMarketItems(Location.Id);
-        return allItems.SelectMany(i => i.Categories).Distinct().ToList();
-    }
-
-    /// <summary>
-    /// Get currently selected category filter
-    /// </summary>
-    public string GetSelectedCategoryFilter()
-    {
-        return _selectedCategoryFilter;
-    }
-
-    /// <summary>
-    /// Set category filter for market items
-    /// </summary>
-    public void SetCategoryFilter(string category)
-    {
-        _selectedCategoryFilter = category;
+        _viewModel.SelectedCategory = category;
         StateHasChanged();
     }
 
-    /// <summary>
-    /// Get market items filtered by selected category
-    /// </summary>
-    public List<Item> GetFilteredMarketItems()
+    private List<MarketItemViewModel> GetFilteredItems()
     {
-        var allItems = GameManager.GetAvailableMarketItems(Location.Id);
-        
-        if (_selectedCategoryFilter == "All")
-            return allItems;
-            
-        if (EnumParser.TryParse<ItemCategory>(_selectedCategoryFilter, out var category))
-        {
-            return allItems.Where(i => i.Categories.Contains(category)).ToList();
-        }
-        
-        return allItems;
-    }
-
-    /// <summary>
-    /// Get CSS class for weight status
-    /// </summary>
-    public string GetWeightClass(int totalWeight)
-    {
-        if (totalWeight <= 3) return "weight-light";
-        if (totalWeight <= 6) return "weight-medium";
-        return "weight-heavy";
+        return MarketUIService.GetFilteredItems(_viewModel, _viewModel.SelectedCategory);
     }
 }

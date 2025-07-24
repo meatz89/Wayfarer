@@ -5,12 +5,7 @@
 <SystemMessageDisplay Messages="@SystemMessages" OnMessagesExpired="HandleMessagesExpired" />
 <ObjectiveView StateVersion="@StateVersion" />
 
-@* Narrative overlay for tutorials and quests *@
-@if (GameWorld?.NarrativeManager?.HasActiveNarrative() == true)
-{
-    <NarrativeOverlay NarrativeManager="@GameWorld.NarrativeManager" 
-                      ActiveNarrativeId="@GetActiveNarrativeId()" />
-}
+@* Narrative overlay for tutorials and quests - STUB *@
 
 <NavigationBar />
 
@@ -56,9 +51,8 @@
                 break;
 
             case CurrentViews.NarrativeScreen:
-                <NarrativeView LocationName="@SelectedLocation"
-                               OnNarrativeCompleted="OnNarrativeCompleted"
-                               ConversationResult="@ConversationResult" />
+                @* NarrativeView - STUB *@
+                <div>Narrative screen placeholder</div>
                 break;
 
             case CurrentViews.MapScreen:
@@ -245,9 +239,9 @@
                 <h4>Conversation State</h4>
                 <p>Pending: @GameWorld.ConversationPending</p>
                 <p>Manager Exists: @(GameWorld.PendingConversationManager != null)</p>
-                @if (GameWorld.PendingAction != null)
+                @if (GameWorld.PendingCommand != null)
                 {
-                    <p>Pending Action: @GameWorld.PendingAction.Name</p>
+                    <p>Pending Command: @GameWorld.PendingCommand.Description</p>
                 }
             </div>
             
@@ -433,8 +427,6 @@
                              OnSpotSelected="@HandleSpotSelection"
                              OnActionExecuted="@RefreshUI" />
             
-            @* Location Actions Panel *@
-            <LocationActions />
                              
             @* Letter Offer Dialog *@
             @if (ShowLetterOfferDialog && CurrentNPCOffer != null)

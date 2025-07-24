@@ -1,8 +1,8 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace Wayfarer.GameState;
 
@@ -31,9 +31,9 @@ public class DayTransitionOrchestrator
     /// </summary>
     public async Task<DayTransitionResult> ProcessNewDay()
     {
-        var startTime = DateTime.UtcNow;
-        var results = new List<HandlerResult>();
-        var context = new DayTransitionContext
+        DateTime startTime = DateTime.UtcNow;
+        List<HandlerResult> results = new List<HandlerResult>();
+        DayTransitionContext context = new DayTransitionContext
         {
             NewDay = _timeModel.CurrentDay,
             PreviousDay = _timeModel.CurrentDay - 1,
@@ -43,29 +43,29 @@ public class DayTransitionOrchestrator
 
         _logger.LogInformation("Starting day transition for day {NewDay}", context.NewDay);
 
-        foreach (var handler in _handlers)
+        foreach (IDayTransitionHandler handler in _handlers)
         {
-            var handlerName = handler.GetType().Name;
-            
+            string handlerName = handler.GetType().Name;
+
             try
             {
-                _logger.LogDebug("Executing handler {HandlerName} with priority {Priority}", 
+                _logger.LogDebug("Executing handler {HandlerName} with priority {Priority}",
                     handlerName, handler.Priority);
 
-                var result = await handler.ProcessDayTransition(context);
+                HandlerResult result = await handler.ProcessDayTransition(context);
                 results.Add(result);
 
                 // Add handler output to shared context for subsequent handlers
                 if (result.OutputData != null)
                 {
-                    foreach (var kvp in result.OutputData)
+                    foreach (KeyValuePair<string, object> kvp in result.OutputData)
                     {
                         context.SharedData[kvp.Key] = kvp.Value;
                     }
                 }
 
-                _logger.LogDebug("Handler {HandlerName} completed: {Success}", 
-                    handlerName, result.Success);
+                _logger.LogDebug("Handler {HandlerName} completed: {Success}",
+                    handlerName, result.IsSuccess);
 
                 // Stop processing if handler blocks subsequent handlers
                 if (result.BlocksSubsequentHandlers)
@@ -77,11 +77,11 @@ public class DayTransitionOrchestrator
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Handler {HandlerName} failed during day transition", handlerName);
-                
+
                 results.Add(new HandlerResult
                 {
                     HandlerName = handlerName,
-                    Success = false,
+                    IsSuccess = false,
                     ErrorMessage = ex.Message,
                     BlocksSubsequentHandlers = false
                 });
@@ -95,9 +95,9 @@ public class DayTransitionOrchestrator
             }
         }
 
-        var duration = DateTime.UtcNow - startTime;
+        TimeSpan duration = DateTime.UtcNow - startTime;
         _logger.LogInformation("Day transition completed in {Duration}ms with {SuccessCount}/{TotalCount} successful handlers",
-            duration.TotalMilliseconds, results.Count(r => r.Success), results.Count);
+            duration.TotalMilliseconds, results.Count(r => r.IsSuccess), results.Count);
 
         return new DayTransitionResult(results, duration);
     }
@@ -170,7 +170,7 @@ public class DayTransitionContext
 public class HandlerResult
 {
     public string HandlerName { get; init; }
-    public bool Success { get; init; }
+    public bool IsSuccess { get; init; }
     public string Message { get; init; }
     public string ErrorMessage { get; init; }
     public bool BlocksSubsequentHandlers { get; init; }
@@ -192,20 +192,20 @@ public class DayTransitionResult
     {
         HandlerResults = results;
         Duration = duration;
-        SuccessfulCount = results.Count(r => r.Success);
-        FailedCount = results.Count(r => !r.Success);
+        SuccessfulCount = results.Count(r => r.IsSuccess);
+        FailedCount = results.Count(r => !r.IsSuccess);
         AllSuccessful = FailedCount == 0;
     }
 
     public string GetSummary()
     {
-        var summary = $"Day transition completed in {Duration.TotalMilliseconds:F0}ms\n";
+        string summary = $"Day transition completed in {Duration.TotalMilliseconds:F0}ms\n";
         summary += $"Handlers: {SuccessfulCount} successful, {FailedCount} failed\n";
 
         if (FailedCount > 0)
         {
             summary += "Failed handlers:\n";
-            foreach (var failed in HandlerResults.Where(r => !r.Success))
+            foreach (HandlerResult? failed in HandlerResults.Where(r => !r.IsSuccess))
             {
                 summary += $"  - {failed.HandlerName}: {failed.ErrorMessage}\n";
             }

@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState.StateContainers;
-
-namespace Wayfarer.GameState;
 
 /// <summary>
 /// Represents an atomic time-based transaction that can include multiple effects.
@@ -32,10 +29,10 @@ public class TimeTransaction
             throw new ArgumentException("Hours must be positive", nameof(hours));
 
         _totalHoursCost += hours;
-        
+
         if (!string.IsNullOrEmpty(description))
             _description = string.IsNullOrEmpty(_description) ? description : $"{_description}; {description}";
-            
+
         return this;
     }
 
@@ -74,7 +71,7 @@ public class TimeTransaction
     /// </summary>
     public TransactionValidation CanExecute()
     {
-        var validation = new TransactionValidation();
+        TransactionValidation validation = new TransactionValidation();
 
         // Check if we have enough time
         if (_requiresActiveHours && !_timeModel.CanPerformAction(_totalHoursCost))
@@ -84,9 +81,9 @@ public class TimeTransaction
         }
 
         // Validate all effects
-        foreach (var effect in _effects)
+        foreach (ITimeBasedEffect effect in _effects)
         {
-            var effectValidation = effect.Validate(_timeModel.CurrentState, _context);
+            EffectValidation effectValidation = effect.Validate(_timeModel.CurrentState, _context);
             if (!effectValidation.IsValid)
             {
                 validation.AddError($"Effect '{effect.GetType().Name}' validation failed: {effectValidation.Message}");
@@ -101,28 +98,28 @@ public class TimeTransaction
     /// </summary>
     public TimeTransactionResult Execute()
     {
-        var validation = CanExecute();
+        TransactionValidation validation = CanExecute();
         if (!validation.IsValid)
         {
-            return TimeTransactionResult.Failure(validation.Errors);
+            return TimeTransactionResult.Failure(validation.Errors.ToArray());
         }
 
-        var completedEffects = new List<ITimeBasedEffect>();
-        var effectResults = new List<EffectResult>();
+        List<ITimeBasedEffect> completedEffects = new List<ITimeBasedEffect>();
+        List<EffectResult> effectResults = new List<EffectResult>();
 
         try
         {
             // Advance time first
-            var timeAdvancement = _totalHoursCost > 0 
-                ? _timeModel.AdvanceTime(_totalHoursCost) 
+            TimeAdvancementResult? timeAdvancement = _totalHoursCost > 0
+                ? _timeModel.AdvanceTime(_totalHoursCost)
                 : null;
 
             // Execute all effects in order
-            foreach (var effect in _effects)
+            foreach (ITimeBasedEffect effect in _effects)
             {
-                var result = effect.Apply(_timeModel.CurrentState, _context);
+                EffectResult result = effect.Apply(_timeModel.CurrentState, _context);
                 effectResults.Add(result);
-                
+
                 if (!result.Success)
                 {
                     throw new TimeTransactionException($"Effect '{effect.GetType().Name}' failed: {result.Message}");
@@ -140,7 +137,7 @@ public class TimeTransaction
         catch (Exception ex)
         {
             // Rollback completed effects in reverse order
-            foreach (var effect in completedEffects.AsEnumerable().Reverse())
+            foreach (ITimeBasedEffect? effect in completedEffects.AsEnumerable().Reverse())
             {
                 try
                 {
@@ -184,20 +181,20 @@ public interface ITimeBasedEffect
 /// </summary>
 public class TimeTransactionResult
 {
-    public bool Success { get; init; }
+    public bool IsSuccess { get; init; }
     public TimeAdvancementResult TimeAdvancement { get; init; }
     public List<EffectResult> EffectResults { get; init; }
     public string Description { get; init; }
     public string[] Errors { get; init; }
 
     public static TimeTransactionResult Success(
-        TimeAdvancementResult timeAdvancement, 
+        TimeAdvancementResult timeAdvancement,
         List<EffectResult> effectResults,
         string description)
     {
         return new TimeTransactionResult
         {
-            Success = true,
+            IsSuccess = true,
             TimeAdvancement = timeAdvancement,
             EffectResults = effectResults,
             Description = description,
@@ -209,7 +206,7 @@ public class TimeTransactionResult
     {
         return new TimeTransactionResult
         {
-            Success = false,
+            IsSuccess = false,
             Errors = errors,
             EffectResults = new List<EffectResult>()
         };
@@ -224,6 +221,7 @@ public class TransactionValidation
     private readonly List<string> _errors = new();
 
     public bool IsValid => _errors.Count == 0;
+
     public IReadOnlyList<string> Errors => _errors;
 
     public void AddError(string error)
@@ -240,8 +238,15 @@ public class EffectValidation
     public bool IsValid { get; init; }
     public string Message { get; init; }
 
-    public static EffectValidation Valid() => new EffectValidation { IsValid = true };
-    public static EffectValidation Invalid(string message) => new EffectValidation { IsValid = false, Message = message };
+    public static EffectValidation Valid()
+    {
+        return new EffectValidation { IsValid = true };
+    }
+
+    public static EffectValidation Invalid(string message)
+    {
+        return new EffectValidation { IsValid = false, Message = message };
+    }
 }
 
 /// <summary>
@@ -254,17 +259,23 @@ public class EffectResult
     public bool BlocksSubsequentEffects { get; init; }
     public Dictionary<string, object> OutputData { get; init; } = new();
 
-    public static EffectResult Succeeded(string message = null) => new EffectResult 
-    { 
-        Success = true, 
-        Message = message 
-    };
+    public static EffectResult Succeeded(string message = null)
+    {
+        return new EffectResult
+        {
+            Success = true,
+            Message = message
+        };
+    }
 
-    public static EffectResult Failed(string message) => new EffectResult 
-    { 
-        Success = false, 
-        Message = message 
-    };
+    public static EffectResult Failed(string message)
+    {
+        return new EffectResult
+        {
+            Success = false,
+            Message = message
+        };
+    }
 }
 
 /// <summary>

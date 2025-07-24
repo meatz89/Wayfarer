@@ -4,5 +4,6 @@
     Morning,
     Afternoon,
     Evening,
-    Night
+    Night,
+    LateNight
 }

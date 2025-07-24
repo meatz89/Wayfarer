@@ -6,13 +6,7 @@ public class GameWorldManager
     private bool _processStateChanges;
     private readonly GameWorld _gameWorld;
 
-    public GameWorld GameWorld
-    {
-        get
-        {
-            return _gameWorld;
-        }
-    }
+    public GameWorld GameWorld => _gameWorld;
 
     private ItemRepository itemRepository;
     private LocationSystem locationSystem;
@@ -26,9 +20,10 @@ public class GameWorldManager
     private StandingObligationManager standingObligationManager;
     private MorningActivitiesManager morningActivitiesManager;
     private NPCLetterOfferService npcLetterOfferService;
-    private ScenarioManager scenarioManager;
     private ConversationFactory conversationFactory;
-    private LocationActionManager locationActionManager;
+    private CommandExecutor commandExecutor;
+    private CommandDiscoveryService commandDiscovery;
+    private MessageSystem _messageSystem;
 
     private bool isAiAvailable = true;
 
@@ -44,8 +39,10 @@ public class GameWorldManager
                        NPCRepository npcRepository,
                        LetterQueueManager letterQueueManager, StandingObligationManager standingObligationManager,
                        MorningActivitiesManager morningActivitiesManager, NPCLetterOfferService npcLetterOfferService,
-                       ScenarioManager scenarioManager, ConversationFactory conversationFactory,
-                       LocationActionManager locationActionManager,
+                       ConversationFactory conversationFactory,
+                       CommandExecutor commandExecutor,
+                       CommandDiscoveryService commandDiscovery,
+                       MessageSystem messageSystem,
                        DebugLogger debugLogger,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
@@ -62,9 +59,10 @@ public class GameWorldManager
         this.standingObligationManager = standingObligationManager;
         this.morningActivitiesManager = morningActivitiesManager;
         this.npcLetterOfferService = npcLetterOfferService;
-        this.scenarioManager = scenarioManager;
         this.conversationFactory = conversationFactory;
-        this.locationActionManager = locationActionManager;
+        this.commandExecutor = commandExecutor;
+        this.commandDiscovery = commandDiscovery;
+        _messageSystem = messageSystem;
         this.logger = logger;
         _debugLogger = debugLogger;
         _useMemory = configuration.GetValue<bool>("useMemory");
@@ -76,12 +74,12 @@ public class GameWorldManager
         _gameWorld.GetPlayer().HealFully();
 
         // Initialize time management - set to start of first day
-        _gameWorld.TimeManager.SetNewTime(TimeManager.TimeDayStart);  // 6:00 AM
-        _gameWorld.CurrentDay = 1; // Start on day 1
+        bool spendHours = _gameWorld.TimeManager.SpendHours(6);  // 6:00 AM
+        // CurrentDay is readonly - managed by TimeManager
 
         Location startingLocation = await locationSystem.Initialize();
         locationRepository.RecordLocationVisit(startingLocation.Id);
-        travelManager.StartLocationTravel(startingLocation.Id);
+        RouteOption selectedRoute = travelManager.StartLocationTravel(startingLocation.Id);
 
         // Preserve the location spot that was set by LocationSystem.Initialize()
         LocationSpot currentSpot = _gameWorld.GetPlayer().CurrentLocationSpot;
@@ -100,8 +98,8 @@ public class GameWorldManager
         // Initialize tutorial if this is a new game
         InitializeTutorialIfNeeded();
 
-        // Location actions are now handled by LocationActionManager
-        
+        // Location actions are now handled by CommandDiscoveryService
+
         // Don't apply patron obligation at start - it's added during tutorial Day 10
         // when player accepts patronage
     }
@@ -109,27 +107,27 @@ public class GameWorldManager
 
     // Encounter system adapted for conversations - use ConversationSystem for NPC interactions
 
-    // Action system removed - LocationActionManager handles location actions
-    // ConversationSystem handles NPC interactions
-    
+    // Action system removed - CommandDiscoveryService discovers commands
+    // ConversationFactory handles NPC interactions
+
     public async Task<ConversationManager> StartConversation(string npcId)
     {
         _debugLogger.LogConversation("Starting", $"NPC: {npcId}");
-        
-        var npc = npcRepository.GetNPCById(npcId);
+
+        NPC npc = npcRepository.GetById(npcId);
         if (npc == null)
         {
             _debugLogger.LogWarning("Conversation", $"NPC {npcId} not found");
             return null;
         }
-        
-        var location = locationRepository.GetCurrentLocation();
-        var locationSpot = locationRepository.GetCurrentLocationSpot();
-        
+
+        Location? location = locationRepository.GetCurrentLocation();
+        LocationSpot? locationSpot = locationRepository.GetCurrentLocationSpot();
+
         _debugLogger.LogDebug($"Starting conversation with {npc.Name} at {location?.Name ?? "null"}/{locationSpot?.SpotID ?? "null"}");
-        
+
         // Create conversation context
-        var context = new ConversationContext
+        ConversationContext context = new ConversationContext
         {
             GameWorld = _gameWorld,
             Player = _gameWorld.GetPlayer(),
@@ -140,11 +138,11 @@ public class GameWorldManager
             ConversationTopic = "General conversation",
             StartingFocusPoints = 10
         };
-        
+
         // Create conversation using factory
-        var conversationManager = await conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
+        ConversationManager conversationManager = await conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
         await conversationManager.InitializeConversation();
-        
+
         return conversationManager;
     }
 
@@ -160,7 +158,7 @@ public class GameWorldManager
         }
 
         // Check if we have enough time in the day
-        if (GameWorld.TimeManager.CurrentTimeHours + route.TravelTimeHours > 24)
+        if (GameWorld.TimeManager.GetCurrentTimeHours() + route.TravelTimeHours > 24)
         {
             throw new InvalidOperationException($"Cannot travel: Not enough time remaining in the day. Route requires {route.TravelTimeHours} hours.");
         }
@@ -171,49 +169,22 @@ public class GameWorldManager
 
         player.SpendStamina(staminaCost);
         player.ModifyCoins(-route.BaseCoinCost); // Negative to deduct coins
-        
+
         // Store pending travel completion
         _pendingTravelDestination = route.Destination;
         _pendingTravelTimeHours = route.TravelTimeHours;
         _pendingTravelRoute = route;
-        
-        // ALWAYS have a travel encounter - deterministic gameplay
-        var origin = locationRepository.GetCurrentLocation();
-        var destination = locationRepository.GetLocation(route.Destination);
-        
-        // Generate travel encounter
-        var encounterAction = locationActionManager.GenerateTravelEncounterAction(route);
-        
-        // Create travel conversation context
-        var travelContext = new TravelConversationContext
-        {
-            GameWorld = _gameWorld,
-            Player = player,
-            LocationName = origin.Name,
-            LocationSpotName = player.CurrentLocationSpot?.Name ?? "",
-            Route = route,
-            Origin = origin,
-            Destination = destination,
-            EncounterType = encounterAction.EncounterType ?? TravelEncounterType.FellowTraveler,
-            ConversationTopic = $"Travel from {origin.Name} to {destination.Name}"
-        };
-        
-        // Store the encounter action for later processing
-        _gameWorld.PendingAction = encounterAction;
-        
-        // Create conversation through factory - properly await async method
-        var conversationManager = await conversationFactory.CreateConversation(travelContext, player);
-        
-        // Set pending conversation
-        _gameWorld.PendingConversationManager = conversationManager;
-        _gameWorld.ConversationPending = true;
+
+        // Travel encounters might be implemented later
+        // For now, just complete the travel
+        CompleteTravelToDestination(route.Destination, route.TravelTimeHours);
     }
-    
+
     // Store pending travel state for after encounter
     private string _pendingTravelDestination;
     private int _pendingTravelTimeHours;
     private RouteOption _pendingTravelRoute;
-    
+
     /// <summary>
     /// Complete travel to destination (called directly or after encounter)
     /// </summary>
@@ -221,10 +192,10 @@ public class GameWorldManager
     {
         // Travel takes time
         GameWorld.TimeManager.AdvanceTime(travelTimeHours);
-        
+
         // Check for periodic letter offers after time change
         CheckForPeriodicLetterOffers();
-        
+
         Location destination = locationRepository.GetLocation(destinationId);
 
         // Find the first available location spot for the destination
@@ -233,16 +204,16 @@ public class GameWorldManager
         locationRepository.SetCurrentLocation(destination, destinationSpot);
 
         // Also update the Player's location to keep them in sync
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         player.CurrentLocation = destination;
         player.CurrentLocationSpot = destinationSpot;
-        
+
         // Clear pending travel state
         _pendingTravelDestination = null;
         _pendingTravelTimeHours = 0;
         _pendingTravelRoute = null;
     }
-    
+
     /// <summary>
     /// Complete travel after encounter resolution
     /// </summary>
@@ -306,61 +277,55 @@ public class GameWorldManager
     }
 
 
-    // Encounter and action methods removed - use LocationActionManager and ConversationSystem
+    // Encounter and action methods removed - use CommandDiscoveryService and ConversationFactory
 
-    public async Task StartNewDay()
+    public async Task AdvanceToNextDay()
     {
         //SaveGame();
 
         // Process daily letter queue activities
         ProcessDailyLetterQueue();
-        
+
         // Mark that morning activities should be shown
         if (morningActivitiesManager != null)
         {
             // Process and store the morning summary
             _lastMorningResult = morningActivitiesManager.ProcessMorningActivities();
         }
-        
-        // Check scenario progress if one is active
-        if (scenarioManager != null)
-        {
-            scenarioManager.CheckScenarioProgress();
-        }
-        
+
     }
-    
+
     private MorningActivityResult _lastMorningResult;
 
     public void ProcessDailyLetterQueue()
     {
         // Process letter deadline countdown daily
         letterQueueManager.ProcessDailyDeadlines();
-        
+
         // Process standing obligations and generate forced letters
-        var forcedLetters = standingObligationManager.ProcessDailyObligations(_gameWorld.CurrentDay);
-        
+        List<Letter> forcedLetters = standingObligationManager.ProcessDailyObligations(_gameWorld.CurrentDay);
+
         // Add forced letters to the queue with obligation effects
-        foreach (var letter in forcedLetters)
+        foreach (Letter letter in forcedLetters)
         {
             letterQueueManager.AddLetterWithObligationEffects(letter);
         }
-        
+
         // Advance obligation time tracking
         standingObligationManager.AdvanceDailyTime();
-        
+
         // Generate new letters for the day
         letterQueueManager.GenerateDailyLetters();
     }
-    
+
     public MorningActivityResult GetMorningActivitySummary()
     {
         // Return the last morning result if available
-        var result = _lastMorningResult;
+        MorningActivityResult result = _lastMorningResult;
         _lastMorningResult = null; // Clear after reading
         return result;
     }
-    
+
     public bool HasPendingMorningActivities()
     {
         return _lastMorningResult != null && _lastMorningResult.HasEvents;
@@ -425,13 +390,13 @@ public class GameWorldManager
         if (option != null)
         {
             // Validate time availability before attempting rest
-            if (GameWorld.TimeManager.CurrentTimeHours + option.RestTimeHours > 24)
+            if (GameWorld.TimeManager.GetCurrentTimeHours() + option.RestTimeHours > 24)
             {
                 throw new InvalidOperationException($"Cannot rest: Not enough time remaining in the day. Rest requires {option.RestTimeHours} hours.");
             }
 
             restManager.Rest(option);
-            
+
             // Check for periodic letter offers after time change
             CheckForPeriodicLetterOffers();
         }
@@ -460,7 +425,7 @@ public class GameWorldManager
     {
         return travelManager.CanTravel(route);
     }
-    
+
     /// <summary>
     /// Check if there's a pending travel encounter
     /// </summary>
@@ -468,7 +433,7 @@ public class GameWorldManager
     {
         return !string.IsNullOrEmpty(_pendingTravelDestination);
     }
-    
+
     /// <summary>
     /// Get the pending travel route for encounter generation
     /// </summary>
@@ -559,17 +524,17 @@ public class GameWorldManager
     public string GetNextAvailableTime(NPC npc)
     {
         TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
-        
+
         if (npc.IsAvailable(currentTime))
         {
             return "Available now";
         }
 
         // Check upcoming time blocks in order
-        List<TimeBlocks> timeBlocks = new List<TimeBlocks> 
-        { 
-            TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, 
-            TimeBlocks.Evening, TimeBlocks.Night 
+        List<TimeBlocks> timeBlocks = new List<TimeBlocks>
+        {
+            TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon,
+            TimeBlocks.Evening, TimeBlocks.Night
         };
 
         // Start checking from the next time block
@@ -578,7 +543,7 @@ public class GameWorldManager
         {
             int nextIndex = (currentIndex + i) % timeBlocks.Count;
             TimeBlocks nextTime = timeBlocks[nextIndex];
-            
+
             if (npc.IsAvailable(nextTime))
             {
                 return $"Next available: {nextTime.ToString().Replace('_', ' ')}";
@@ -625,7 +590,7 @@ public class GameWorldManager
 
         return totalWeight;
     }
-    
+
     /// <summary>
     /// Check for periodic letter offers after time changes.
     /// NPCs with strong relationships may spontaneously offer letters.
@@ -635,35 +600,61 @@ public class GameWorldManager
         // Generate periodic offers based on time changes
         npcLetterOfferService.GeneratePeriodicOffers();
     }
-    
+
     /// <summary>
-    /// Execute an action - UI must use this, not LocationActionManager directly
+    /// Execute a command by ID - UI must use this
     /// </summary>
-    public async Task<bool> ExecuteAction(ActionOption action)
+    public async Task<bool> ExecuteCommandAsync(string commandId)
     {
-        return await locationActionManager.ExecuteAction(action);
+        // Discover commands to find the one to execute
+        CommandDiscoveryResult discovery = commandDiscovery.DiscoverCommands(_gameWorld);
+        DiscoveredCommand commandToExecute = discovery.AllCommands.FirstOrDefault(c => c.UniqueId == commandId);
+
+        if (commandToExecute == null)
+        {
+            _messageSystem.AddSystemMessage("Command not found", SystemMessageTypes.Danger);
+            return false;
+        }
+
+        CommandResult result = await commandExecutor.ExecuteAsync(commandToExecute.Command);
+        return result.IsSuccess;
     }
-    
+
     /// <summary>
-    /// Complete action after conversation - called by MainGameplayView
+    /// Get available commands at current location
     /// </summary>
-    public bool CompleteActionAfterConversation(ActionOption action)
+    public CommandDiscoveryResult DiscoverAvailableCommands()
     {
-        return locationActionManager.CompleteActionAfterConversation(action, LastSelectedChoice);
+        return commandDiscovery.DiscoverCommands(_gameWorld);
     }
-    
+
     private ConversationChoice LastSelectedChoice { get; set; }
-    
+
     public void SetLastSelectedChoice(ConversationChoice choice)
     {
         LastSelectedChoice = choice;
     }
-    
+
     public ConversationChoice GetLastSelectedChoice()
     {
         return LastSelectedChoice;
     }
-    
+
+    /// <summary>
+    /// Complete a pending command that was waiting for an event
+    /// </summary>
+    public void CompletePendingCommand(PendingCommand pendingCommand)
+    {
+        if (pendingCommand == null) return;
+        
+        // Execute any completion logic based on the command type
+        // This is a stub - actual implementation would handle different command types
+        _debugLogger.LogDebug($"Completing pending command: {pendingCommand.CommandType} - {pendingCommand.Description}");
+        
+        // Clear the pending command
+        _gameWorld.PendingCommand = null;
+    }
+
     /// <summary>
     /// Initialize tutorial for new players
     /// </summary>
@@ -672,25 +663,12 @@ public class GameWorldManager
         // Check if player has completed tutorial before
         if (_gameWorld.FlagService.GetFlag("tutorial_completed"))
             return;
-            
+
         // Check if tutorial is already active
         if (_gameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
             return;
-            
-        try
-        {
-            // Load tutorial narrative definition
-            var tutorialNarrative = NarrativeDefinitions.CreateTutorial();
-            _gameWorld.NarrativeManager.LoadNarrativeDefinitions(new List<NarrativeDefinition> { tutorialNarrative });
-            
-            // Start the tutorial
-            _gameWorld.NarrativeManager.StartNarrative("wayfarer_tutorial");
-            
-            _debugLogger.LogDebug("Tutorial narrative started successfully");
-        }
-        catch (Exception ex)
-        {
-            _debugLogger.LogError("GameWorldManager", $"Failed to initialize tutorial: {ex.Message}", ex);
-        }
+
+        // TODO: Tutorial narrative needs to be implemented
+        _debugLogger.LogDebug("Tutorial system not yet implemented");
     }
 }

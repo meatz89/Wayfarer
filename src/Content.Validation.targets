@@ -8,7 +8,7 @@
     
     To use:
     1. Add to your .csproj file:
-       <Import Project="Content.Validation.targets" />
+       <Import Project="Content.targets" />
     
     2. Set ValidateContentOnBuild to true in your .csproj:
        <PropertyGroup>
@@ -40,7 +40,6 @@
     <PropertyGroup>
       <_ValidationRunner>
 using System;
-using Wayfarer.Content.Validation;
 
 class Program
 {

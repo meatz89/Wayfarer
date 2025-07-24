@@ -12,7 +12,7 @@ public class RouteDiscoveryFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create a route discovery with validated references
     /// </summary>
@@ -25,24 +25,24 @@ public class RouteDiscoveryFactory
             throw new ArgumentNullException(nameof(route), "Route cannot be null");
         if (knownByNPCs == null || !knownByNPCs.Any())
             throw new ArgumentException("At least one NPC must know the route", nameof(knownByNPCs));
-        
-        var discovery = new RouteDiscovery
+
+        RouteDiscovery discovery = new RouteDiscovery
         {
             RouteId = route.Id,
             KnownByNPCs = knownByNPCs.Select(n => n.ID).ToList(),
             RequiredTokensWithNPC = requiredTokens,
             DiscoveryContexts = new Dictionary<string, RouteDiscoveryContext>()
         };
-        
+
         // Initialize empty contexts for each NPC
-        foreach (var npc in knownByNPCs)
+        foreach (NPC npc in knownByNPCs)
         {
             discovery.DiscoveryContexts[npc.ID] = new RouteDiscoveryContext();
         }
-        
+
         return discovery;
     }
-    
+
     /// <summary>
     /// Create a route discovery from string IDs with validation
     /// </summary>
@@ -54,34 +54,34 @@ public class RouteDiscoveryFactory
         int requiredTokens = 3)
     {
         // Resolve route
-        var route = availableRoutes.FirstOrDefault(r => r.Id == routeId);
+        RouteOption? route = availableRoutes.FirstOrDefault(r => r.Id == routeId);
         if (route == null)
             throw new InvalidOperationException($"Cannot create route discovery: route '{routeId}' not found");
-        
+
         // Resolve NPCs
-        var npcs = new List<NPC>();
-        var missingNPCs = new List<string>();
-        
-        foreach (var npcId in knownByNPCIds)
+        List<NPC> npcs = new List<NPC>();
+        List<string> missingNPCs = new List<string>();
+
+        foreach (string npcId in knownByNPCIds)
         {
-            var npc = availableNPCs.FirstOrDefault(n => n.ID == npcId);
+            NPC? npc = availableNPCs.FirstOrDefault(n => n.ID == npcId);
             if (npc != null)
                 npcs.Add(npc);
             else
                 missingNPCs.Add(npcId);
         }
-        
+
         if (!npcs.Any())
             throw new InvalidOperationException($"Cannot create route discovery: no valid NPCs found from IDs");
-        
+
         if (missingNPCs.Any())
         {
             Console.WriteLine($"WARNING: Route discovery for '{routeId}' - NPCs not found: {string.Join(", ", missingNPCs)}");
         }
-        
+
         return CreateRouteDiscovery(route, npcs, requiredTokens);
     }
-    
+
     /// <summary>
     /// Add discovery context for a specific NPC
     /// </summary>
@@ -97,16 +97,16 @@ public class RouteDiscoveryFactory
             throw new ArgumentNullException(nameof(npc));
         if (!discovery.KnownByNPCs.Contains(npc.ID))
             throw new InvalidOperationException($"NPC '{npc.Name}' does not know this route");
-        
-        var context = new RouteDiscoveryContext
+
+        RouteDiscoveryContext context = new RouteDiscoveryContext
         {
             RequiredEquipment = requiredEquipment?.Select(e => e.Id).ToList() ?? new List<string>(),
             Narrative = narrative ?? $"{npc.Name} shares their knowledge of the route with you."
         };
-        
+
         discovery.DiscoveryContexts[npc.ID] = context;
     }
-    
+
     /// <summary>
     /// Add discovery context from string IDs with validation
     /// </summary>
@@ -118,30 +118,30 @@ public class RouteDiscoveryFactory
         IEnumerable<Item> availableItems,
         string narrative)
     {
-        var npc = availableNPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC? npc = availableNPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
             throw new InvalidOperationException($"Cannot add discovery context: NPC '{npcId}' not found");
-        
-        var equipment = new List<Item>();
-        var missingItems = new List<string>();
-        
+
+        List<Item> equipment = new List<Item>();
+        List<string> missingItems = new List<string>();
+
         if (requiredEquipmentIds != null)
         {
-            foreach (var itemId in requiredEquipmentIds)
+            foreach (string itemId in requiredEquipmentIds)
             {
-                var item = availableItems.FirstOrDefault(i => i.Id == itemId);
+                Item? item = availableItems.FirstOrDefault(i => i.Id == itemId);
                 if (item != null)
                     equipment.Add(item);
                 else
                     missingItems.Add(itemId);
             }
-            
+
             if (missingItems.Any())
             {
                 Console.WriteLine($"WARNING: Discovery context for NPC '{npcId}' - Items not found: {string.Join(", ", missingItems)}");
             }
         }
-        
+
         AddDiscoveryContext(discovery, npc, equipment, narrative);
     }
 }

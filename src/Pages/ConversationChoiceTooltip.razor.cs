@@ -64,28 +64,11 @@ public class ConversationChoiceTooltipBase : ComponentBase
         return 1;
     }
 
-    public string tooltipXpx
-    {
-        get
-        {
-            return $"{tooltipX}px";
-        }
-    }
+    public string tooltipXpx => $"{tooltipX}px";
 
-    public string tooltipYpx
-    {
-        get
-        {
-            return $"{tooltipY}px";
-        }
-    }
+    public string tooltipYpx => $"{tooltipY}px";
 
-    public ChoiceProjection Preview
-    {
-        get
-        {
+    public ChoiceProjection Preview =>
             // TODO: Implement choice preview
-            return null; // GameWorldManager.GetChoicePreview(hoveredChoice);
-        }
-    }
+            null; // GameWorldManager.GetChoicePreview(hoveredChoice);
 }

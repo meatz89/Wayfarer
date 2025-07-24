@@ -9,13 +9,7 @@ public class OllamaProvider : IAIProvider
     private string _modelName = "gemma3:12b-it-qat";
     private string _fallbackModel = "gemma3:2b-it";
 
-    public string Name
-    {
-        get
-        {
-            return "Ollama";
-        }
-    }
+    public string Name => "Ollama";
 
     public OllamaProvider(IConfiguration configuration, ILogger<ConversationFactory> logger)
     {

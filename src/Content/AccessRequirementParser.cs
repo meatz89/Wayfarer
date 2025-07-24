@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using Wayfarer.Content.Utilities;
 /// <summary>
 /// Parser for AccessRequirement entities from JSON.
 /// </summary>
@@ -12,29 +11,29 @@ public static class AccessRequirementParser
     {
         if (element.ValueKind == JsonValueKind.Null || element.ValueKind == JsonValueKind.Undefined)
             return null;
-            
-        var dto = JsonSerializer.Deserialize<AccessRequirementDTO>(element.GetRawText());
+
+        AccessRequirementDTO? dto = JsonSerializer.Deserialize<AccessRequirementDTO>(element.GetRawText());
         if (dto == null)
             return null;
-            
-        var requirement = new AccessRequirement
+
+        AccessRequirement requirement = new AccessRequirement
         {
             Id = dto.Id ?? Guid.NewGuid().ToString(),
             Name = dto.Name ?? string.Empty,
             BlockedMessage = dto.BlockedMessage ?? "You cannot access this area.",
             HintMessage = dto.HintMessage ?? string.Empty
         };
-        
+
         // Parse logic
-        if (EnumParser.TryParse<RequirementLogic>(dto.Logic, out var logic))
+        if (EnumParser.TryParse<RequirementLogic>(dto.Logic, out RequirementLogic logic))
         {
             requirement.Logic = logic;
         }
-        
+
         // Parse equipment requirements
-        foreach (var equipStr in dto.RequiredEquipment)
+        foreach (string equipStr in dto.RequiredEquipment)
         {
-            if (EnumParser.TryParse<ItemCategory>(equipStr, out var category))
+            if (EnumParser.TryParse<ItemCategory>(equipStr, out ItemCategory category))
             {
                 requirement.RequiredEquipment.Add(category);
             }
@@ -43,17 +42,17 @@ public static class AccessRequirementParser
                 Console.WriteLine($"[WARNING] Unknown equipment category: {equipStr}");
             }
         }
-        
+
         // Parse item requirements
         requirement.RequiredItemIds = dto.RequiredItemIds;
-        
+
         // Parse NPC token requirements
         requirement.RequiredTokensPerNPC = dto.RequiredTokensPerNPC;
-        
+
         // Parse token type requirements
-        foreach (var (typeStr, count) in dto.RequiredTokensPerType)
+        foreach ((string typeStr, int count) in dto.RequiredTokensPerType)
         {
-            if (EnumParser.TryParse<ConnectionType>(typeStr, out var tokenType))
+            if (EnumParser.TryParse<ConnectionType>(typeStr, out ConnectionType tokenType))
             {
                 requirement.RequiredTokensPerType[tokenType] = count;
             }
@@ -62,7 +61,7 @@ public static class AccessRequirementParser
                 Console.WriteLine($"[WARNING] Unknown token type: {typeStr}");
             }
         }
-        
+
         return requirement;
     }
 }

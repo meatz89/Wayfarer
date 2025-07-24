@@ -1,7 +1,7 @@
 ﻿public class MessageSystem
 {
     private readonly GameWorld _gameWorld;
-    
+
     public MessageSystem(GameWorld gameWorld)
     {
         _gameWorld = gameWorld;
@@ -18,8 +18,8 @@
             SystemMessageTypes.Info => 4000,     // 4 seconds for info
             _ => 5000
         };
-        
-        var systemMessage = new SystemMessage(message, type, duration);
+
+        SystemMessage systemMessage = new SystemMessage(message, type, duration);
         _gameWorld.SystemMessages.Add(systemMessage);
         // Also add to permanent event log
         _gameWorld.EventLog.Add(systemMessage);

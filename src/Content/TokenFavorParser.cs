@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Wayfarer.Content.Utilities;
 /// <summary>
 /// Parser for TokenFavor entities from JSON.
 /// </summary>
@@ -9,28 +8,28 @@ public static class TokenFavorParser
 {
     public static List<TokenFavor> ParseTokenFavorArray(string json)
     {
-        var favors = new List<TokenFavor>();
-        
+        List<TokenFavor> favors = new List<TokenFavor>();
+
         using JsonDocument doc = JsonDocument.Parse(json);
         foreach (JsonElement element in doc.RootElement.EnumerateArray())
         {
-            var favor = ParseTokenFavor(element);
+            TokenFavor favor = ParseTokenFavor(element);
             if (favor != null)
             {
                 favors.Add(favor);
             }
         }
-        
+
         return favors;
     }
-    
+
     public static TokenFavor ParseTokenFavor(JsonElement element)
     {
-        var dto = JsonSerializer.Deserialize<TokenFavorDTO>(element.GetRawText());
+        TokenFavorDTO? dto = JsonSerializer.Deserialize<TokenFavorDTO>(element.GetRawText());
         if (dto == null)
             return null;
-            
-        var favor = new TokenFavor
+
+        TokenFavor favor = new TokenFavor
         {
             Id = dto.Id ?? Guid.NewGuid().ToString(),
             NPCId = dto.NPCId,
@@ -45,9 +44,9 @@ public static class TokenFavorParser
             PurchaseText = dto.PurchaseText ?? "",
             RefusalText = dto.RefusalText ?? ""
         };
-        
+
         // Parse favor type
-        if (EnumParser.TryParse<TokenFavorType>(dto.FavorType, out var favorType))
+        if (EnumParser.TryParse<TokenFavorType>(dto.FavorType, out TokenFavorType favorType))
         {
             favor.FavorType = favorType;
         }
@@ -56,9 +55,9 @@ public static class TokenFavorParser
             Console.WriteLine($"[WARNING] Unknown favor type: {dto.FavorType}");
             return null;
         }
-        
+
         // Parse required token type
-        if (EnumParser.TryParse<ConnectionType>(dto.RequiredTokenType, out var tokenType))
+        if (EnumParser.TryParse<ConnectionType>(dto.RequiredTokenType, out ConnectionType tokenType))
         {
             favor.RequiredTokenType = tokenType;
         }
@@ -67,7 +66,7 @@ public static class TokenFavorParser
             Console.WriteLine($"[WARNING] Unknown token type: {dto.RequiredTokenType}");
             return null;
         }
-        
+
         return favor;
     }
 }

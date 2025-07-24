@@ -1,27 +1,19 @@
-﻿public class GameWorld
+﻿using System;
+
+public class GameWorld
 {
     public int CurrentDay
     {
         get
         {
-            return WorldState.CurrentDay;
-        }
-
-        set
-        {
-            WorldState.CurrentDay = value;
+            return TimeManager?.GetCurrentDay() ?? 1;
         }
     }
     public TimeBlocks CurrentTimeBlock
     {
         get
         {
-            return WorldState.CurrentTimeBlock;
-        }
-
-        set
-        {
-            WorldState.CurrentTimeBlock = value;
+            return TimeManager?.GetCurrentTimeBlock() ?? TimeBlocks.Morning;
         }
     }
     public WeatherCondition CurrentWeather
@@ -88,22 +80,28 @@
     public string DeadlineReason { get; set; }
     public Guid GameInstanceId { get; set; }
     public RouteOption CurrentRouteOption { get; internal set; }
-    public TimeManager TimeManager { get; internal set; }
-    
+    public ITimeManager TimeManager { get; internal set; }
+
     // System Messages State
     public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
     // Event Log - Permanent record of all messages
     public List<SystemMessage> EventLog { get; set; } = new List<SystemMessage>();
     
+    // Pending command for any command that doesn't complete instantly
+    public PendingCommand PendingCommand { get; set; }
+
     // Action-Conversation State
-    public ActionOption PendingAction { get; set; }
     public ConversationManager PendingConversationManager { get; set; }
     public bool ConversationPending { get; set; }
-    
+
     // Narrative System
     public FlagService FlagService { get; set; }
     public NarrativeManager NarrativeManager { get; set; }
     
+    // Injected by GameWorldInitializer
+    public CommandDiscoveryService CommandDiscoveryService { get; internal set; }
+    public IServiceProvider ServiceProvider { get; internal set; }
+
     // Temporary metadata for conversation context
     private Dictionary<string, string> _metadata = new Dictionary<string, string>();
 
@@ -114,14 +112,13 @@
         Player = new Player();
         WorldState = new WorldState();
 
-        TimeManager = new TimeManager(Player, WorldState);
+        // TimeManager will be injected by GameWorldInitializer
 
         StreamingContentState = new StreamingContentState();
-        
+
         // Initialize narrative system
         FlagService = new FlagService();
         NarrativeManager = new NarrativeManager();
-        NarrativeManager.Initialize(this, FlagService);
 
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;
@@ -141,18 +138,18 @@
     {
         return CurrentDay >= DeadlineDay;
     }
-    
+
     // Metadata management for conversation context
     public void SetMetadata(string key, string value)
     {
         _metadata[key] = value;
     }
-    
+
     public string GetMetadata(string key)
     {
-        return _metadata.TryGetValue(key, out var value) ? value : null;
+        return _metadata.TryGetValue(key, out string? value) ? value : null;
     }
-    
+
     public void ClearMetadata(string key)
     {
         _metadata.Remove(key);

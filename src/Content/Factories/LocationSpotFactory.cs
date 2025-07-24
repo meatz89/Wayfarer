@@ -12,7 +12,7 @@ public class LocationSpotFactory
     {
         // No dependencies in constructor
     }
-    
+
     /// <summary>
     /// Create a location spot with validated location reference
     /// </summary>
@@ -32,8 +32,8 @@ public class LocationSpotFactory
             throw new ArgumentException("Spot name cannot be empty", nameof(name));
         if (parentLocation == null)
             throw new ArgumentNullException(nameof(parentLocation), "Parent location cannot be null");
-        
-        var spot = new LocationSpot(spotId, name)
+
+        LocationSpot spot = new LocationSpot(spotId, name)
         {
             LocationId = parentLocation.Id,  // Extract ID from validated object
             Type = type,
@@ -42,10 +42,10 @@ public class LocationSpotFactory
             CurrentTimeBlocks = availableTimeBlocks ?? new List<TimeBlocks>(),
             DomainTags = domainTags ?? new List<string>()
         };
-        
+
         return spot;
     }
-    
+
     /// <summary>
     /// Create a location spot from string IDs with validation
     /// </summary>
@@ -61,13 +61,13 @@ public class LocationSpotFactory
         List<string> domainTags = null)
     {
         // Resolve location
-        var location = availableLocations.FirstOrDefault(l => l.Id == locationId);
+        Location? location = availableLocations.FirstOrDefault(l => l.Id == locationId);
         if (location == null)
             throw new InvalidOperationException($"Cannot create location spot: parent location '{locationId}' not found");
-        
+
         return CreateLocationSpot(spotId, name, location, type, description, initialState, availableTimeBlocks, domainTags);
     }
-    
+
     /// <summary>
     /// Connect an NPC to a location spot.
     /// This should be called after NPCs are loaded.
@@ -78,14 +78,14 @@ public class LocationSpotFactory
             throw new ArgumentNullException(nameof(spot));
         if (npc == null)
             throw new ArgumentNullException(nameof(npc));
-        
+
         // Validate NPC is in the same location as the spot
         if (npc.Location != spot.LocationId)
         {
             Console.WriteLine($"WARNING: NPC '{npc.Name}' (location: {npc.Location}) cannot be connected to spot '{spot.SpotID}' (location: {spot.LocationId})");
             return;
         }
-        
+
         spot.PrimaryNPC = npc;
     }
 }

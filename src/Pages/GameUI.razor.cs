@@ -7,17 +7,10 @@ public class GameUIBase : ComponentBase, IDisposable
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Inject] public NavigationService NavigationService { get; set; }
-    [Inject] public ScenarioManager ScenarioManager { get; set; }
 
     public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
 
-    public Player PlayerState
-    {
-        get
-        {
-            return GameWorld.GetPlayer();
-        }
-    }
+    public Player PlayerState => GameWorld.GetPlayer();
 
     [Inject] public LoadingStateService LoadingStateService { get; set; }
 
@@ -28,7 +21,8 @@ public class GameUIBase : ComponentBase, IDisposable
 
         if (missingReferences)
         {
-            NavigationService.NavigateTo(CurrentViews.MissingReferences);
+            NavigationResult result = NavigationService.NavigateTo(CurrentViews.MissingReferences);
+            if (result.Changed) StateHasChanged();
         }
         else if (!PlayerState.IsInitialized)
         {
@@ -36,21 +30,18 @@ public class GameUIBase : ComponentBase, IDisposable
         }
         else
         {
-            NavigationService.NavigateTo(NavigationService.GetDefaultView());
+            NavigationResult result = NavigationService.NavigateTo(NavigationService.GetDefaultView());
+            if (result.Changed) StateHasChanged();
         }
-        
-        // Subscribe to navigation changes
-        NavigationService.OnNavigationChanged += OnNavigationChanged;
+
+        // Events removed per architecture guidelines - handle navigation results directly
     }
-    
-    private void OnNavigationChanged(CurrentViews newView)
-    {
-        InvokeAsync(StateHasChanged);
-    }
-    
+
+    // Navigation changes now handled by checking NavigationResult directly
+
     public void Dispose()
     {
-        NavigationService.OnNavigationChanged -= OnNavigationChanged;
+        // Events removed - no subscription cleanup needed
     }
 
     public async Task ResolvedMissingReferences()
@@ -61,35 +52,23 @@ public class GameUIBase : ComponentBase, IDisposable
         }
         else
         {
-            NavigationService.NavigateTo(NavigationService.GetDefaultView());
+            NavigationResult result = NavigationService.NavigateTo(NavigationService.GetDefaultView());
+            if (result.Changed) StateHasChanged();
         }
     }
 
     public async Task InitializeGame()
     {
-        NavigationService.NavigateTo(CurrentViews.CharacterScreen);
+        NavigationResult result = NavigationService.NavigateTo(CurrentViews.CharacterScreen);
+        if (result.Changed) StateHasChanged();
     }
 
     public async Task HandleCharacterCreated(Player player)
     {
         await GameWorldManager.StartGame();
-        
-        // If a scenario was requested, start it now
-        if (_requestedScenarioId != null)
-        {
-            ScenarioManager.StartScenario(_requestedScenarioId);
-            _requestedScenarioId = null;
-        }
-        
+
         // Navigate to Letter Queue Screen as the primary gameplay screen
-        NavigationService.NavigateTo(CurrentViews.LetterQueueScreen);
+        NavigationResult result = NavigationService.NavigateTo(CurrentViews.LetterQueueScreen);
+        if (result.Changed) StateHasChanged();
     }
-    
-    public async Task HandleScenarioRequested(string scenarioId)
-    {
-        // Store the requested scenario to start after character creation
-        _requestedScenarioId = scenarioId;
-    }
-    
-    private string _requestedScenarioId = null;
 }

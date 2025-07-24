@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using Wayfarer.Content.Utilities;
+
 public class GameWorldInitializer : IGameWorldFactory
 {
     private readonly IContentDirectory _contentDirectory;
@@ -16,6 +16,10 @@ public class GameWorldInitializer : IGameWorldFactory
     private readonly NetworkUnlockFactory _networkUnlockFactory;
     private readonly LetterTemplateFactory _letterTemplateFactory;
     private readonly StandingObligationFactory _standingObligationFactory;
+    private readonly ValidatedContentLoader _contentLoader;
+    private readonly ITimeManager _timeManager;
+    private readonly CommandDiscoveryService _commandDiscoveryService;
+    private readonly IServiceProvider _serviceProvider;
 
     public GameWorldInitializer(
         IContentDirectory contentDirectory,
@@ -27,7 +31,11 @@ public class GameWorldInitializer : IGameWorldFactory
         RouteDiscoveryFactory routeDiscoveryFactory,
         NetworkUnlockFactory networkUnlockFactory,
         LetterTemplateFactory letterTemplateFactory,
-        StandingObligationFactory standingObligationFactory)
+        StandingObligationFactory standingObligationFactory,
+        ValidatedContentLoader contentLoader,
+        ITimeManager timeManager,
+        CommandDiscoveryService commandDiscoveryService,
+        IServiceProvider serviceProvider)
     {
         _contentDirectory = contentDirectory ?? throw new ArgumentNullException(nameof(contentDirectory));
         _locationFactory = locationFactory ?? throw new ArgumentNullException(nameof(locationFactory));
@@ -39,13 +47,17 @@ public class GameWorldInitializer : IGameWorldFactory
         _networkUnlockFactory = networkUnlockFactory ?? throw new ArgumentNullException(nameof(networkUnlockFactory));
         _letterTemplateFactory = letterTemplateFactory ?? throw new ArgumentNullException(nameof(letterTemplateFactory));
         _standingObligationFactory = standingObligationFactory ?? throw new ArgumentNullException(nameof(standingObligationFactory));
+        _contentLoader = contentLoader ?? throw new ArgumentNullException(nameof(contentLoader));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _commandDiscoveryService = commandDiscoveryService ?? throw new ArgumentNullException(nameof(commandDiscoveryService));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
     public GameWorld LoadGame()
     {
         return LoadGameFromTemplates();
     }
-    
+
     /// <summary>
     /// IGameWorldFactory implementation
     /// </summary>
@@ -62,44 +74,46 @@ public class GameWorldInitializer : IGameWorldFactory
         Console.WriteLine("\n=== PHASE 1: Loading base entities ===");
         List<Location> locations = LoadLocations(templatePath);
         List<Item> items = LoadItems(templatePath);
-        
+
         // PHASE 2: Create initial GameWorld with base entities
-        
+
         // Create GameWorld with base entities
+        string gameWorldPath = Path.Combine(templatePath, "gameWorld.json");
+        string gameWorldJson = _contentLoader.LoadValidatedContentWithParser(gameWorldPath, content => content);
         GameWorld gameWorld = GameWorldSerializer.DeserializeGameWorld(
-            File.ReadAllText(Path.Combine(templatePath, "gameWorld.json")),
+            gameWorldJson,
             locations, new List<LocationSpot>());
-        
+
         // Add items to GameWorld
         if (gameWorld.WorldState.Items == null)
         {
             gameWorld.WorldState.Items = new List<Item>();
         }
         gameWorld.WorldState.Items.AddRange(items);
-        
+
         // PHASE 3: Load entities with simple references (LocationSpots, NPCs)
         Console.WriteLine("\n=== PHASE 3: Loading entities with references ===");
         List<LocationSpot> spots = LoadLocationSpots(templatePath, gameWorld);
         gameWorld.WorldState.locationSpots.AddRange(spots);
-        
+
         List<NPC> npcs = LoadNPCs(templatePath, locations);
-        foreach (var npc in npcs)
+        foreach (NPC npc in npcs)
         {
             gameWorld.WorldState.AddCharacter(npc);
         }
-        
-        // Action system removed - location actions handled by LocationActionManager
-        
+
+        // Action system removed - location actions handled by CommandDiscoveryService
+
         // PHASE 4: Connect entities
         Console.WriteLine("\n=== PHASE 4: Connecting entities ===");
         ConnectLocationsToSpots(locations, spots);
         ConnectNPCsToLocationSpots(npcs, spots);
-        
+
         // PHASE 5: Load routes (reference locations)
         Console.WriteLine("\n=== PHASE 5: Loading routes ===");
         List<RouteOption> routes = LoadRoutes(templatePath, locations);
         ConnectRoutesToLocations(locations, routes);
-        
+
         if (gameWorld.DiscoveredRoutes == null)
         {
             gameWorld.DiscoveredRoutes = new List<RouteOption>();
@@ -145,7 +159,7 @@ public class GameWorldInitializer : IGameWorldFactory
         {
             Console.WriteLine("INFO: No standing obligations loaded. Create standing_obligations.json file to add obligation content.");
         }
-        
+
         // PHASE 2: Load progression content that references entities
         LoadProgressionContent(gameWorld, templatePath);
 
@@ -168,11 +182,17 @@ public class GameWorldInitializer : IGameWorldFactory
         // Systems depend on these values being valid
         InitializePlayerLocation(gameWorld);
 
-        gameWorld.TimeManager.SetNewTime(11); // Set initial time to noon
+        // Inject the time manager from DI
+        gameWorld.TimeManager = _timeManager;
+        // Note: Initial time is now set by TimeModel constructor to ACTIVE_DAY_START (6 AM)
+        
+        // Inject command discovery service and service provider
+        gameWorld.CommandDiscoveryService = _commandDiscoveryService;
+        gameWorld.ServiceProvider = _serviceProvider;
 
         return gameWorld;
     }
-    
+
     /// <summary>
     /// Phase 2 loading: Load progression content that references entities.
     /// This must happen after all entities (NPCs, routes, items) are loaded.
@@ -181,51 +201,49 @@ public class GameWorldInitializer : IGameWorldFactory
     {
         // Load route discoveries
         LoadRouteDiscoveries(gameWorld, templatePath);
-        
+
         // Load network unlocks
         LoadNetworkUnlocks(gameWorld, templatePath);
-        
+
         // Load token favors
         LoadTokenFavors(gameWorld, templatePath);
     }
-    
+
     private void LoadRouteDiscoveries(GameWorld gameWorld, string templatePath)
     {
         string progressionPath = Path.Combine(templatePath, "Progression");
         string routeDiscoveryPath = Path.Combine(progressionPath, "route_discovery.json");
-        
+
         if (!File.Exists(routeDiscoveryPath))
         {
             Console.WriteLine("INFO: No route discoveries loaded. Create route_discovery.json to add route discovery content.");
             return;
         }
-        
+
         try
         {
-            string json = File.ReadAllText(routeDiscoveryPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var discoveries = JsonSerializer.Deserialize<List<RouteDiscoveryDTO>>(json, options);
-            
+            List<RouteDiscoveryDTO> discoveries = _contentLoader.LoadValidatedContent<List<RouteDiscoveryDTO>>(routeDiscoveryPath);
+
             if (discoveries == null || !discoveries.Any())
             {
                 Console.WriteLine("WARNING: route_discovery.json exists but contains no route discoveries.");
                 return;
             }
-            
+
             int successCount = 0;
-            foreach (var dto in discoveries)
+            foreach (RouteDiscoveryDTO dto in discoveries)
             {
                 try
                 {
-                    var discovery = _routeDiscoveryFactory.CreateRouteDiscoveryFromIds(
+                    RouteDiscovery discovery = _routeDiscoveryFactory.CreateRouteDiscoveryFromIds(
                         dto.RouteId,
                         dto.KnownByNPCs,
                         gameWorld.DiscoveredRoutes,
                         gameWorld.WorldState.NPCs,
                         dto.RequiredTokensWithNPC);
-                    
+
                     // Add discovery contexts
-                    foreach (var (npcId, contextDto) in dto.DiscoveryContexts)
+                    foreach ((string npcId, RouteDiscoveryContextDTO contextDto) in dto.DiscoveryContexts)
                     {
                         _routeDiscoveryFactory.AddDiscoveryContextFromIds(
                             discovery,
@@ -235,7 +253,7 @@ public class GameWorldInitializer : IGameWorldFactory
                             gameWorld.WorldState.Items,
                             contextDto.Narrative);
                     }
-                    
+
                     gameWorld.WorldState.RouteDiscoveries.Add(discovery);
                     successCount++;
                 }
@@ -244,7 +262,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"WARNING: Failed to load route discovery for route '{dto.RouteId}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {successCount} route discoveries from JSON templates.");
         }
         catch (Exception ex)
@@ -252,46 +270,44 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine($"ERROR: Failed to load route discoveries from JSON: {ex.Message}");
         }
     }
-    
+
     private void LoadNetworkUnlocks(GameWorld gameWorld, string templatePath)
     {
         string networkUnlockPath = Path.Combine(templatePath, "progression_unlocks.json");
-        
+
         if (!File.Exists(networkUnlockPath))
         {
             Console.WriteLine("INFO: No network unlocks loaded. Create progression_unlocks.json to add network unlock content.");
             return;
         }
-        
+
         try
         {
-            string json = File.ReadAllText(networkUnlockPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var unlocks = JsonSerializer.Deserialize<List<NetworkUnlockDTO>>(json, options);
-            
+            List<NetworkUnlockDTO> unlocks = _contentLoader.LoadValidatedContent<List<NetworkUnlockDTO>>(networkUnlockPath);
+
             if (unlocks == null || !unlocks.Any())
             {
                 Console.WriteLine("WARNING: progression_unlocks.json exists but contains no network unlocks.");
                 return;
             }
-            
+
             int successCount = 0;
-            foreach (var dto in unlocks)
+            foreach (NetworkUnlockDTO dto in unlocks)
             {
                 try
                 {
-                    var targetDefinitions = dto.Unlocks
+                    List<(string NpcId, string IntroductionText)> targetDefinitions = dto.Unlocks
                         .Select(t => (t.NpcId, t.IntroductionText))
                         .ToList();
-                    
-                    var networkUnlock = _networkUnlockFactory.CreateNetworkUnlockFromIds(
+
+                    NetworkUnlock networkUnlock = _networkUnlockFactory.CreateNetworkUnlockFromIds(
                         dto.Id,
                         dto.UnlockerNpcId,
                         dto.TokensRequired,
                         dto.UnlockDescription,
                         targetDefinitions,
                         gameWorld.WorldState.NPCs);
-                    
+
                     gameWorld.WorldState.NetworkUnlocks.Add(networkUnlock);
                     successCount++;
                 }
@@ -300,7 +316,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"WARNING: Failed to load network unlock '{dto.Id}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {successCount} network unlocks from JSON templates.");
         }
         catch (Exception ex)
@@ -308,40 +324,40 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine($"ERROR: Failed to load network unlocks from JSON: {ex.Message}");
         }
     }
-    
+
     private void LoadTokenFavors(GameWorld gameWorld, string templatePath)
     {
         string tokenFavorsPath = Path.Combine(templatePath, "token_favors.json");
-        
+
         if (!File.Exists(tokenFavorsPath))
         {
             Console.WriteLine("INFO: No token favors loaded. Create token_favors.json to add token favor content.");
             return;
         }
-        
+
         try
         {
-            string json = File.ReadAllText(tokenFavorsPath);
-            var favors = TokenFavorParser.ParseTokenFavorArray(json);
-            
+            List<TokenFavor> favors = _contentLoader.LoadValidatedContentWithParser(tokenFavorsPath,
+                json => TokenFavorParser.ParseTokenFavorArray(json));
+
             if (favors == null || !favors.Any())
             {
                 Console.WriteLine("INFO: No token favors found in token_favors.json");
                 return;
             }
-            
+
             // Validate NPC references
-            var availableNPCs = gameWorld.WorldState.NPCs;
-            var validFavors = new List<TokenFavor>();
-            
-            foreach (var favor in favors)
+            List<NPC> availableNPCs = gameWorld.WorldState.NPCs;
+            List<TokenFavor> validFavors = new List<TokenFavor>();
+
+            foreach (TokenFavor? favor in favors)
             {
                 if (!availableNPCs.Any(n => n.ID == favor.NPCId))
                 {
                     Console.WriteLine($"WARNING: Token favor '{favor.Id}' references unknown NPC '{favor.NPCId}' - skipping");
                     continue;
                 }
-                
+
                 // Additional validation based on favor type
                 bool isValid = ValidateTokenFavor(favor, gameWorld);
                 if (isValid)
@@ -349,7 +365,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     validFavors.Add(favor);
                 }
             }
-            
+
             gameWorld.WorldState.TokenFavors = validFavors;
             Console.WriteLine($"Loaded {validFavors.Count} token favors from JSON templates.");
         }
@@ -358,7 +374,7 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine($"ERROR: Failed to load token favors from JSON: {ex.Message}");
         }
     }
-    
+
     private bool ValidateTokenFavor(TokenFavor favor, GameWorld gameWorld)
     {
         switch (favor.FavorType)
@@ -370,7 +386,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     return false;
                 }
                 break;
-                
+
             case TokenFavorType.ItemPurchase:
                 if (!gameWorld.WorldState.Items.Any(i => i.Id == favor.GrantsId))
                 {
@@ -378,7 +394,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     return false;
                 }
                 break;
-                
+
             case TokenFavorType.LocationAccess:
                 if (!gameWorld.WorldState.locations.Any(l => l.Id == favor.GrantsId))
                 {
@@ -386,7 +402,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     return false;
                 }
                 break;
-                
+
             case TokenFavorType.NPCIntroduction:
                 if (!gameWorld.WorldState.NPCs.Any(n => n.ID == favor.GrantsId))
                 {
@@ -395,7 +411,7 @@ public class GameWorldInitializer : IGameWorldFactory
                 }
                 break;
         }
-        
+
         return true;
     }
 
@@ -585,24 +601,10 @@ public class GameWorldInitializer : IGameWorldFactory
         return locations;
     }
 
-    private List<NPC> ParseNPCArray(string npcsJson)
-    {
-        List<NPC> npcs = new List<NPC>();
-
-        using (JsonDocument doc = JsonDocument.Parse(npcsJson))
-        {
-            foreach (JsonElement npcElement in doc.RootElement.EnumerateArray())
-            {
-                NPC npc = NPCParser.ParseNPC(npcElement.GetRawText());
-                npcs.Add(npc);
-            }
-        }
-
-        return npcs;
-    }
+    // Removed - using DTOs and factories instead
 
 
-    
+
     // PHASE 1: Load base entities without references
     private List<Location> LoadLocations(string templatePath)
     {
@@ -612,26 +614,24 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine("WARNING: locations.json not found");
             return new List<Location>();
         }
-        
+
         try
         {
-            string json = File.ReadAllText(locationsPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var locationDTOs = JsonSerializer.Deserialize<List<LocationDTO>>(json, options);
-            
+            List<LocationDTO> locationDTOs = _contentLoader.LoadValidatedContent<List<LocationDTO>>(locationsPath);
+
             if (locationDTOs == null || !locationDTOs.Any())
             {
                 Console.WriteLine("WARNING: No locations found in locations.json");
                 return new List<Location>();
             }
-            
-            var locations = new List<Location>();
-            foreach (var dto in locationDTOs)
+
+            List<Location> locations = new List<Location>();
+            foreach (LocationDTO dto in locationDTOs)
             {
                 try
                 {
                     // Parse environmental properties
-                    var envProps = new Dictionary<TimeBlocks, List<string>>();
+                    Dictionary<TimeBlocks, List<string>> envProps = new Dictionary<TimeBlocks, List<string>>();
                     if (dto.EnvironmentalProperties != null)
                     {
                         envProps[TimeBlocks.Morning] = dto.EnvironmentalProperties.Morning ?? new List<string>();
@@ -639,17 +639,17 @@ public class GameWorldInitializer : IGameWorldFactory
                         envProps[TimeBlocks.Evening] = dto.EnvironmentalProperties.Evening ?? new List<string>();
                         envProps[TimeBlocks.Night] = dto.EnvironmentalProperties.Night ?? new List<string>();
                     }
-                    
+
                     // Parse available professions by time
-                    var professionsByTime = new Dictionary<TimeBlocks, List<Professions>>();
-                    foreach (var (timeStr, professionStrs) in dto.AvailableProfessionsByTime)
+                    Dictionary<TimeBlocks, List<Professions>> professionsByTime = new Dictionary<TimeBlocks, List<Professions>>();
+                    foreach ((string timeStr, List<string> professionStrs) in dto.AvailableProfessionsByTime)
                     {
-                        if (EnumParser.TryParse<TimeBlocks>(timeStr, out var timeBlock))
+                        if (EnumParser.TryParse<TimeBlocks>(timeStr, out TimeBlocks timeBlock))
                         {
-                            var professions = new List<Professions>();
-                            foreach (var profStr in professionStrs)
+                            List<Professions> professions = new List<Professions>();
+                            foreach (string profStr in professionStrs)
                             {
-                                if (EnumParser.TryParse<Professions>(profStr, out var profession))
+                                if (EnumParser.TryParse<Professions>(profStr, out Professions profession))
                                 {
                                     professions.Add(profession);
                                 }
@@ -657,8 +657,8 @@ public class GameWorldInitializer : IGameWorldFactory
                             professionsByTime[timeBlock] = professions;
                         }
                     }
-                    
-                    var location = _locationFactory.CreateLocation(
+
+                    Location location = _locationFactory.CreateLocation(
                         dto.Id,
                         dto.Name,
                         dto.Description,
@@ -667,7 +667,7 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.DomainTags,
                         envProps,
                         professionsByTime);
-                    
+
                     locations.Add(location);
                     Console.WriteLine($"Loaded location: {location.Id} - {location.Name}");
                 }
@@ -676,7 +676,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"ERROR: Failed to load location '{dto.Id}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {locations.Count} locations");
             return locations;
         }
@@ -686,7 +686,7 @@ public class GameWorldInitializer : IGameWorldFactory
             return new List<Location>();
         }
     }
-    
+
     private List<Item> LoadItems(string templatePath)
     {
         string itemsPath = Path.Combine(templatePath, "items.json");
@@ -695,53 +695,51 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine("INFO: items.json not found");
             return new List<Item>();
         }
-        
+
         try
         {
-            string json = File.ReadAllText(itemsPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var itemDTOs = JsonSerializer.Deserialize<List<ItemDTO>>(json, options);
-            
+            List<ItemDTO> itemDTOs = _contentLoader.LoadValidatedContent<List<ItemDTO>>(itemsPath);
+
             if (itemDTOs == null || !itemDTOs.Any())
             {
                 Console.WriteLine("WARNING: No items found in items.json");
                 return new List<Item>();
             }
-            
-            var items = new List<Item>();
-            foreach (var dto in itemDTOs)
+
+            List<Item> items = new List<Item>();
+            foreach (ItemDTO dto in itemDTOs)
             {
                 try
                 {
                     // Parse categories
-                    var categories = new List<ItemCategory>();
-                    
+                    List<ItemCategory> categories = new List<ItemCategory>();
+
                     // Parse from "categories" field
-                    foreach (var catStr in dto.Categories ?? new List<string>())
+                    foreach (string catStr in dto.Categories ?? new List<string>())
                     {
-                        if (EnumParser.TryParse<ItemCategory>(catStr, out var cat))
+                        if (EnumParser.TryParse<ItemCategory>(catStr, out ItemCategory cat))
                         {
                             categories.Add(cat);
                         }
                     }
-                    
+
                     // Also parse from "itemCategories" for backwards compatibility
-                    foreach (var catStr in dto.ItemCategories ?? new List<string>())
+                    foreach (string catStr in dto.ItemCategories ?? new List<string>())
                     {
-                        if (EnumParser.TryParse<ItemCategory>(catStr, out var cat))
+                        if (EnumParser.TryParse<ItemCategory>(catStr, out ItemCategory cat))
                         {
                             categories.Add(cat);
                         }
                     }
-                    
-                    
+
+
                     // Parse size category
-                    if (!EnumParser.TryParse<SizeCategory>(dto.SizeCategory ?? "Small", out var sizeCategory))
+                    if (!EnumParser.TryParse<SizeCategory>(dto.SizeCategory ?? "Small", out SizeCategory sizeCategory))
                     {
                         sizeCategory = SizeCategory.Small;
                     }
-                    
-                    var item = _itemFactory.CreateItem(
+
+                    Item item = _itemFactory.CreateItem(
                         dto.Id,
                         dto.Name,
                         dto.Weight,
@@ -751,7 +749,7 @@ public class GameWorldInitializer : IGameWorldFactory
                         sizeCategory,
                         categories,
                         dto.Description);
-                    
+
                     items.Add(item);
                 }
                 catch (Exception ex)
@@ -759,7 +757,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"ERROR: Failed to load item '{dto.Id}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {items.Count} items");
             return items;
         }
@@ -769,7 +767,7 @@ public class GameWorldInitializer : IGameWorldFactory
             return new List<Item>();
         }
     }
-    
+
     private List<LocationSpot> LoadLocationSpots(string templatePath, GameWorld gameWorld)
     {
         string spotsPath = Path.Combine(templatePath, "location_spots.json");
@@ -778,41 +776,39 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine("WARNING: location_spots.json not found");
             return new List<LocationSpot>();
         }
-        
+
         try
         {
-            string json = File.ReadAllText(spotsPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var spotDTOs = JsonSerializer.Deserialize<List<LocationSpotDTO>>(json, options);
-            
+            List<LocationSpotDTO> spotDTOs = _contentLoader.LoadValidatedContent<List<LocationSpotDTO>>(spotsPath);
+
             if (spotDTOs == null || !spotDTOs.Any())
             {
                 Console.WriteLine("WARNING: No location spots found in location_spots.json");
                 return new List<LocationSpot>();
             }
-            
-            var spots = new List<LocationSpot>();
-            foreach (var dto in spotDTOs)
+
+            List<LocationSpot> spots = new List<LocationSpot>();
+            foreach (LocationSpotDTO dto in spotDTOs)
             {
                 try
                 {
                     // Parse type
-                    if (!EnumParser.TryParse<LocationSpotTypes>(dto.Type, out var spotType))
+                    if (!EnumParser.TryParse<LocationSpotTypes>(dto.Type, out LocationSpotTypes spotType))
                     {
                         spotType = LocationSpotTypes.FEATURE;
                     }
-                    
+
                     // Parse time blocks
-                    var timeBlocks = new List<TimeBlocks>();
-                    foreach (var timeStr in dto.CurrentTimeBlocks ?? new List<string>())
+                    List<TimeBlocks> timeBlocks = new List<TimeBlocks>();
+                    foreach (string timeStr in dto.CurrentTimeBlocks ?? new List<string>())
                     {
-                        if (EnumParser.TryParse<TimeBlocks>(timeStr, out var timeBlock))
+                        if (EnumParser.TryParse<TimeBlocks>(timeStr, out TimeBlocks timeBlock))
                         {
                             timeBlocks.Add(timeBlock);
                         }
                     }
-                    
-                    var spot = _locationSpotFactory.CreateLocationSpotFromIds(
+
+                    LocationSpot spot = _locationSpotFactory.CreateLocationSpotFromIds(
                         dto.Id,
                         dto.Name,
                         dto.LocationId,
@@ -822,7 +818,7 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.InitialState,
                         timeBlocks,
                         dto.DomainTags);
-                    
+
                     spots.Add(spot);
                     Console.WriteLine($"Loaded location spot: {spot.SpotID} at {spot.LocationId}");
                 }
@@ -831,7 +827,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"ERROR: Failed to load location spot '{dto.Id}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {spots.Count} location spots");
             return spots;
         }
@@ -841,7 +837,7 @@ public class GameWorldInitializer : IGameWorldFactory
             return new List<LocationSpot>();
         }
     }
-    
+
     private List<NPC> LoadNPCs(string templatePath, List<Location> availableLocations)
     {
         string npcsPath = Path.Combine(templatePath, "npcs.json");
@@ -850,47 +846,45 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine("INFO: npcs.json not found");
             return new List<NPC>();
         }
-        
+
         try
         {
-            string json = File.ReadAllText(npcsPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var npcDTOs = JsonSerializer.Deserialize<List<NPCDTO>>(json, options);
-            
+            List<NPCDTO> npcDTOs = _contentLoader.LoadValidatedContent<List<NPCDTO>>(npcsPath);
+
             if (npcDTOs == null || !npcDTOs.Any())
             {
                 Console.WriteLine("WARNING: No NPCs found in npcs.json");
                 return new List<NPC>();
             }
-            
-            var npcs = new List<NPC>();
-            foreach (var dto in npcDTOs)
+
+            List<NPC> npcs = new List<NPC>();
+            foreach (NPCDTO dto in npcDTOs)
             {
                 try
                 {
                     // Parse profession
-                    if (!EnumParser.TryParse<Professions>(dto.Profession, out var profession))
+                    if (!EnumParser.TryParse<Professions>(dto.Profession, out Professions profession))
                     {
                         profession = Professions.Merchant; // Default profession if parsing fails
                     }
-                    
+
                     // NPCs are always available - no schedule parsing needed
-                    
+
                     // Parse services
-                    var services = new List<ServiceTypes>();
-                    foreach (var serviceStr in dto.Services ?? new List<string>())
+                    List<ServiceTypes> services = new List<ServiceTypes>();
+                    foreach (string serviceStr in dto.Services ?? new List<string>())
                     {
-                        if (EnumParser.TryParse<ServiceTypes>(serviceStr, out var service))
+                        if (EnumParser.TryParse<ServiceTypes>(serviceStr, out ServiceTypes service))
                         {
                             services.Add(service);
                         }
                     }
-                    
+
                     // Parse letter token types
-                    var tokenTypes = new List<ConnectionType>();
-                    foreach (var tokenTypeStr in dto.LetterTokenTypes ?? new List<string>())
+                    List<ConnectionType> tokenTypes = new List<ConnectionType>();
+                    foreach (string tokenTypeStr in dto.LetterTokenTypes ?? new List<string>())
                     {
-                        if (EnumParser.TryParse<ConnectionType>(tokenTypeStr, out var parsed))
+                        if (EnumParser.TryParse<ConnectionType>(tokenTypeStr, out ConnectionType parsed))
                         {
                             tokenTypes.Add(parsed);
                         }
@@ -899,8 +893,8 @@ public class GameWorldInitializer : IGameWorldFactory
                             Console.WriteLine($"WARNING: Unknown token type '{tokenTypeStr}' for NPC '{dto.Id}'");
                         }
                     }
-                    
-                    var npc = _npcFactory.CreateNPCFromIds(
+
+                    NPC npc = _npcFactory.CreateNPCFromIds(
                         dto.Id,
                         dto.Name,
                         dto.LocationId,
@@ -911,7 +905,7 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.Description,
                         services,
                         tokenTypes);
-                    
+
                     npcs.Add(npc);
                     Console.WriteLine($"Loaded NPC: {npc.ID} - {npc.Name} at {npc.Location}");
                 }
@@ -920,7 +914,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"ERROR: Failed to load NPC '{dto.Id}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {npcs.Count} NPCs");
             return npcs;
         }
@@ -930,7 +924,7 @@ public class GameWorldInitializer : IGameWorldFactory
             return new List<NPC>();
         }
     }
-    
+
     private List<RouteOption> LoadRoutes(string templatePath, List<Location> locations)
     {
         string routesPath = Path.Combine(templatePath, "routes.json");
@@ -939,31 +933,29 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine("INFO: routes.json not found");
             return new List<RouteOption>();
         }
-        
+
         try
         {
-            string json = File.ReadAllText(routesPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var routeDTOs = JsonSerializer.Deserialize<List<RouteDTO>>(json, options);
-            
+            List<RouteDTO> routeDTOs = _contentLoader.LoadValidatedContent<List<RouteDTO>>(routesPath);
+
             if (routeDTOs == null || !routeDTOs.Any())
             {
                 Console.WriteLine("WARNING: No routes found in routes.json");
                 return new List<RouteOption>();
             }
-            
-            var routes = new List<RouteOption>();
-            foreach (var dto in routeDTOs)
+
+            List<RouteOption> routes = new List<RouteOption>();
+            foreach (RouteDTO dto in routeDTOs)
             {
                 try
                 {
                     // Parse travel method
-                    if (!EnumParser.TryParse<TravelMethods>(dto.Method, out var method))
+                    if (!EnumParser.TryParse<TravelMethods>(dto.Method, out TravelMethods method))
                     {
                         method = TravelMethods.Walking;
                     }
-                    
-                    var route = _routeFactory.CreateRouteFromIds(
+
+                    RouteOption route = _routeFactory.CreateRouteFromIds(
                         dto.Id,
                         dto.Name,
                         dto.Origin,
@@ -974,20 +966,20 @@ public class GameWorldInitializer : IGameWorldFactory
                         dto.BaseStaminaCost,
                         dto.BaseCoinCost,
                         dto.Description);
-                    
+
                     // Set additional properties
                     route.IsDiscovered = dto.IsDiscovered;
                     route.MaxItemCapacity = dto.MaxItemCapacity;
-                    
+
                     // Parse terrain categories
-                    foreach (var terrainStr in dto.TerrainCategories ?? new List<string>())
+                    foreach (string terrainStr in dto.TerrainCategories ?? new List<string>())
                     {
-                        if (EnumParser.TryParse<TerrainCategory>(terrainStr, out var terrain))
+                        if (EnumParser.TryParse<TerrainCategory>(terrainStr, out TerrainCategory terrain))
                         {
                             route.TerrainCategories.Add(terrain);
                         }
                     }
-                    
+
                     routes.Add(route);
                     Console.WriteLine($"Loaded route: {route.Id} from {route.Origin} to {route.Destination}");
                 }
@@ -996,7 +988,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"ERROR: Failed to load route '{dto.Id}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {routes.Count} routes");
             return routes;
         }
@@ -1006,7 +998,7 @@ public class GameWorldInitializer : IGameWorldFactory
             return new List<RouteOption>();
         }
     }
-    
+
     private List<LetterTemplate> LoadLetterTemplates(string templatePath, List<NPC> availableNPCs)
     {
         string letterTemplatesPath = Path.Combine(templatePath, "letter_templates.json");
@@ -1015,33 +1007,31 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine("INFO: letter_templates.json not found");
             return new List<LetterTemplate>();
         }
-        
+
         try
         {
-            string json = File.ReadAllText(letterTemplatesPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var templateDTOs = JsonSerializer.Deserialize<List<LetterTemplateDTO>>(json, options);
-            
+            List<LetterTemplateDTO> templateDTOs = _contentLoader.LoadValidatedContent<List<LetterTemplateDTO>>(letterTemplatesPath);
+
             if (templateDTOs == null || !templateDTOs.Any())
             {
                 Console.WriteLine("WARNING: No letter templates found in letter_templates.json");
                 return new List<LetterTemplate>();
             }
-            
-            var templates = new List<LetterTemplate>();
-            foreach (var dto in templateDTOs)
+
+            List<LetterTemplate> templates = new List<LetterTemplate>();
+            foreach (LetterTemplateDTO dto in templateDTOs)
             {
                 try
                 {
                     // Parse token type
-                    if (!EnumParser.TryParse<ConnectionType>(dto.TokenType, out var tokenType))
+                    if (!EnumParser.TryParse<ConnectionType>(dto.TokenType, out ConnectionType tokenType))
                     {
                         Console.WriteLine($"WARNING: Unknown token type '{dto.TokenType}' for template '{dto.Id}', skipping");
                         continue;
                     }
-                    
+
                     // Parse letter category
-                    var category = LetterCategory.Basic;
+                    LetterCategory category = LetterCategory.Basic;
                     if (!string.IsNullOrEmpty(dto.Category))
                     {
                         if (!EnumParser.TryParse<LetterCategory>(dto.Category, out category))
@@ -1050,12 +1040,12 @@ public class GameWorldInitializer : IGameWorldFactory
                             category = LetterCategory.Basic;
                         }
                     }
-                    
+
                     // Get minimum tokens required
                     int minTokensRequired = dto.MinTokensRequired ?? 3;
-                    
+
                     // Parse letter size
-                    var size = SizeCategory.Medium;
+                    SizeCategory size = SizeCategory.Medium;
                     if (!string.IsNullOrEmpty(dto.Size))
                     {
                         if (!EnumParser.TryParse<SizeCategory>(dto.Size, out size))
@@ -1064,14 +1054,14 @@ public class GameWorldInitializer : IGameWorldFactory
                             size = SizeCategory.Medium;
                         }
                     }
-                    
+
                     // Parse physical properties
-                    var physicalProperties = LetterPhysicalProperties.None;
+                    LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None;
                     if (dto.PhysicalProperties != null && dto.PhysicalProperties.Any())
                     {
-                        foreach (var prop in dto.PhysicalProperties)
+                        foreach (string prop in dto.PhysicalProperties)
                         {
-                            if (EnumParser.TryParse<LetterPhysicalProperties>(prop, out var propEnum))
+                            if (EnumParser.TryParse<LetterPhysicalProperties>(prop, out LetterPhysicalProperties propEnum))
                             {
                                 physicalProperties |= propEnum;
                             }
@@ -1081,12 +1071,12 @@ public class GameWorldInitializer : IGameWorldFactory
                             }
                         }
                     }
-                    
+
                     // Parse required equipment
                     ItemCategory? requiredEquipment = null;
                     if (!string.IsNullOrEmpty(dto.RequiredEquipment))
                     {
-                        if (EnumParser.TryParse<ItemCategory>(dto.RequiredEquipment, out var equipment))
+                        if (EnumParser.TryParse<ItemCategory>(dto.RequiredEquipment, out ItemCategory equipment))
                         {
                             requiredEquipment = equipment;
                         }
@@ -1095,8 +1085,8 @@ public class GameWorldInitializer : IGameWorldFactory
                             Console.WriteLine($"WARNING: Unknown equipment category '{dto.RequiredEquipment}' for template '{dto.Id}'");
                         }
                     }
-                    
-                    var template = _letterTemplateFactory.CreateLetterTemplateFromIds(
+
+                    LetterTemplate template = _letterTemplateFactory.CreateLetterTemplateFromIds(
                         dto.Id,
                         dto.Description,
                         tokenType,
@@ -1114,7 +1104,7 @@ public class GameWorldInitializer : IGameWorldFactory
                         size,
                         physicalProperties,
                         requiredEquipment);
-                    
+
                     templates.Add(template);
                 }
                 catch (Exception ex)
@@ -1122,7 +1112,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"ERROR: Failed to load letter template '{dto.Id}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {templates.Count} letter templates");
             return templates;
         }
@@ -1132,7 +1122,7 @@ public class GameWorldInitializer : IGameWorldFactory
             return new List<LetterTemplate>();
         }
     }
-    
+
     private List<StandingObligation> LoadStandingObligations(string templatePath, List<NPC> availableNPCs)
     {
         string obligationsPath = Path.Combine(templatePath, "standing_obligations.json");
@@ -1141,25 +1131,23 @@ public class GameWorldInitializer : IGameWorldFactory
             Console.WriteLine("INFO: standing_obligations.json not found");
             return new List<StandingObligation>();
         }
-        
+
         try
         {
-            string json = File.ReadAllText(obligationsPath);
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var obligationDTOs = JsonSerializer.Deserialize<List<StandingObligationDTO>>(json, options);
-            
+            List<StandingObligationDTO> obligationDTOs = _contentLoader.LoadValidatedContent<List<StandingObligationDTO>>(obligationsPath);
+
             if (obligationDTOs == null || !obligationDTOs.Any())
             {
                 Console.WriteLine("WARNING: No standing obligations found in standing_obligations.json");
                 return new List<StandingObligation>();
             }
-            
-            var obligations = new List<StandingObligation>();
-            foreach (var dto in obligationDTOs)
+
+            List<StandingObligation> obligations = new List<StandingObligation>();
+            foreach (StandingObligationDTO dto in obligationDTOs)
             {
                 try
                 {
-                    var obligation = _standingObligationFactory.CreateStandingObligationFromDTO(dto, availableNPCs);
+                    StandingObligation obligation = _standingObligationFactory.CreateStandingObligationFromDTO(dto, availableNPCs);
                     obligations.Add(obligation);
                 }
                 catch (Exception ex)
@@ -1167,7 +1155,7 @@ public class GameWorldInitializer : IGameWorldFactory
                     Console.WriteLine($"ERROR: Failed to load standing obligation '{dto.ID}': {ex.Message}");
                 }
             }
-            
+
             Console.WriteLine($"Loaded {obligations.Count} standing obligations");
             return obligations;
         }
@@ -1177,6 +1165,6 @@ public class GameWorldInitializer : IGameWorldFactory
             return new List<StandingObligation>();
         }
     }
-    
-    // Action system removed - location actions handled by LocationActionManager
+
+    // Action system removed - location actions handled by CommandDiscoveryService
 }

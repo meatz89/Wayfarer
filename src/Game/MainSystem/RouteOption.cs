@@ -4,7 +4,8 @@ public enum WeatherCondition
     Clear,
     Rain,
     Snow,
-    Fog
+    Fog,
+    Storm
 }
 
 public class RouteAccessResult
@@ -87,11 +88,9 @@ public class RouteOption
     public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
     public RouteUnlockCondition? UnlockCondition { get; set; }
 
-    // Route discovery tracking
-    public int UsageCount { get; set; } = 0;
-    
     // Enhanced Access Requirements (in addition to terrain categories)
     public AccessRequirement AccessRequirement { get; set; }
+    public RouteType RouteType { get; set; }
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
     {

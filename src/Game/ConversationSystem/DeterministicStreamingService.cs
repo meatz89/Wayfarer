@@ -10,17 +10,17 @@ using System.Threading.Tasks;
 public class DeterministicStreamingService
 {
     private readonly IConfiguration _configuration;
-    
+
     // Configuration defaults
     private const int DEFAULT_DELAY_PER_WORD_MS = 50;
     private const int DEFAULT_DELAY_PER_CHARACTER_MS = 10;
     private const bool DEFAULT_USE_WORD_MODE = true;
-    
+
     public DeterministicStreamingService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
-    
+
     /// <summary>
     /// Streams text through the provided watchers, simulating typing effect
     /// </summary>
@@ -28,28 +28,28 @@ public class DeterministicStreamingService
     {
         if (string.IsNullOrEmpty(text))
         {
-            foreach (var watcher in watchers)
+            foreach (IResponseStreamWatcher watcher in watchers)
             {
                 watcher.OnStreamComplete(string.Empty);
             }
             return;
         }
-        
+
         // Get configuration
-        var useWordMode = _configuration.GetValue<bool?>("DeterministicStreaming:UseWordMode") ?? DEFAULT_USE_WORD_MODE;
-        var delayMs = useWordMode 
+        bool useWordMode = _configuration.GetValue<bool?>("DeterministicStreaming:UseWordMode") ?? DEFAULT_USE_WORD_MODE;
+        int delayMs = useWordMode
             ? _configuration.GetValue<int?>("DeterministicStreaming:DelayPerWordMs") ?? DEFAULT_DELAY_PER_WORD_MS
             : _configuration.GetValue<int?>("DeterministicStreaming:DelayPerCharacterMs") ?? DEFAULT_DELAY_PER_CHARACTER_MS;
-        
+
         // Begin streaming for all watchers
-        foreach (var watcher in watchers)
+        foreach (IResponseStreamWatcher watcher in watchers)
         {
             if (watcher is StreamingContentStateWatcher streamWatcher)
             {
                 streamWatcher.BeginStreaming();
             }
         }
-        
+
         try
         {
             if (useWordMode)
@@ -64,70 +64,70 @@ public class DeterministicStreamingService
         catch (Exception ex)
         {
             // Notify watchers of error
-            foreach (var watcher in watchers)
+            foreach (IResponseStreamWatcher watcher in watchers)
             {
                 watcher.OnError(ex);
             }
             throw;
         }
     }
-    
+
     private async Task StreamByWords(string text, List<IResponseStreamWatcher> watchers, int delayMs)
     {
-        var words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        var buffer = new StringBuilder();
-        
+        string[] words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        StringBuilder buffer = new StringBuilder();
+
         for (int i = 0; i < words.Length; i++)
         {
-            var word = words[i];
-            var chunk = i == 0 ? word : " " + word;
+            string word = words[i];
+            string chunk = i == 0 ? word : " " + word;
             buffer.Append(chunk);
-            
+
             // Update all watchers with this chunk
-            foreach (var watcher in watchers)
+            foreach (IResponseStreamWatcher watcher in watchers)
             {
                 watcher.OnStreamUpdate(chunk);
             }
-            
+
             // Don't delay after the last word
             if (i < words.Length - 1)
             {
                 await Task.Delay(delayMs);
             }
         }
-        
+
         // Complete streaming with final text
-        var finalText = buffer.ToString();
-        foreach (var watcher in watchers)
+        string finalText = buffer.ToString();
+        foreach (IResponseStreamWatcher watcher in watchers)
         {
             watcher.OnStreamComplete(finalText);
         }
     }
-    
+
     private async Task StreamByCharacters(string text, List<IResponseStreamWatcher> watchers, int delayMs)
     {
-        var buffer = new StringBuilder();
-        
+        StringBuilder buffer = new StringBuilder();
+
         for (int i = 0; i < text.Length; i++)
         {
-            var character = text[i];
+            char character = text[i];
             buffer.Append(character);
-            
+
             // Update all watchers with this character
-            foreach (var watcher in watchers)
+            foreach (IResponseStreamWatcher watcher in watchers)
             {
                 watcher.OnStreamUpdate(character.ToString());
             }
-            
+
             // Don't delay after the last character
             if (i < text.Length - 1)
             {
                 await Task.Delay(delayMs);
             }
         }
-        
+
         // Complete streaming with final text
-        foreach (var watcher in watchers)
+        foreach (IResponseStreamWatcher watcher in watchers)
         {
             watcher.OnStreamComplete(buffer.ToString());
         }

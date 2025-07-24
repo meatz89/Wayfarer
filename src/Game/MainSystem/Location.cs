@@ -43,7 +43,7 @@
     public List<string> ConnectedLocationIds { get; internal set; }
     public List<Item> MarketItems { get; internal set; }
     public List<RestOption> RestOptions { get; internal set; }
-    
+
     // Access Requirements for this location
     public AccessRequirement AccessRequirement { get; set; }
 

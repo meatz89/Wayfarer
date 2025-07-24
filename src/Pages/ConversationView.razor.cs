@@ -12,10 +12,12 @@ public class ConversationViewBase : ComponentBase
 
     // State
     public GameWorldSnapshot currentSnapshot;
-    
+
     // Streaming state - comes from GameWorldSnapshot
     public bool IsStreaming => currentSnapshot?.IsStreaming ?? false;
+
     public string StreamingText => currentSnapshot?.StreamingText ?? "";
+
     public int StreamProgress => (int)(currentSnapshot?.StreamProgress ?? 0);
 
     // Tooltip state
@@ -27,7 +29,7 @@ public class ConversationViewBase : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         currentSnapshot = GameWorldManager.GetGameSnapshot();
-        
+
         // Start the conversation by showing introduction and getting first choices
         if (ConversationManager != null)
         {
@@ -66,11 +68,11 @@ public class ConversationViewBase : ComponentBase
             if (selectedChoice != null)
             {
                 // Process the player's choice
-                var outcome = await ConversationManager.ProcessPlayerChoice(selectedChoice);
-                
+                ConversationBeatOutcome outcome = await ConversationManager.ProcessPlayerChoice(selectedChoice);
+
                 // Update the game world with the last selected choice
                 GameWorldManager.SetLastSelectedChoice(selectedChoice);
-                
+
                 // Check if conversation is complete
                 if (outcome.IsConversationComplete)
                 {
@@ -103,16 +105,16 @@ public class ConversationViewBase : ComponentBase
             showTooltip = false;
         }
     }
-    
+
     public async Task CompleteConversation()
     {
         // Create simple outcome for completion
-        var outcome = new ConversationBeatOutcome
+        ConversationBeatOutcome outcome = new ConversationBeatOutcome
         {
             IsConversationComplete = true,
             NarrativeDescription = ConversationManager?.State?.CurrentNarrative ?? ""
         };
-        
+
         await OnConversationCompleted.InvokeAsync(outcome);
     }
 

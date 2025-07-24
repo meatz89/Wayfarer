@@ -1,10 +1,7 @@
 using System;
-using Wayfarer.GameState.StateContainers;
-
-namespace Wayfarer.GameState;
 
 /// <summary>
-/// Unified time model that serves as the single source of truth for all time-related state.
+/// Time model that serves as the single source of truth for all time-related state.
 /// Builds on TimeState to provide a complete time management system.
 /// </summary>
 public class TimeModel
@@ -14,7 +11,7 @@ public class TimeModel
     public const int ACTIVE_DAY_START = 6;   // 6 AM
     public const int ACTIVE_DAY_END = 22;    // 10 PM
     public const int ACTIVE_HOURS_PER_DAY = ACTIVE_DAY_END - ACTIVE_DAY_START;
-    
+
     // Time block boundaries
     public const int DAWN_START = 6;
     public const int DAWN_END = 8;
@@ -32,32 +29,28 @@ public class TimeModel
     private TimeState _currentState;
     private readonly object _lock = new object();
 
-    public TimeState CurrentState 
-    { 
-        get 
-        { 
-            lock (_lock) 
-            { 
-                return _currentState; 
-            } 
-        } 
+    public TimeState CurrentState
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _currentState;
+            }
+        }
     }
 
     public int CurrentHour => CurrentState.CurrentHour;
+
     public int CurrentDay => CurrentState.CurrentDay;
+
     public TimeBlocks CurrentTimeBlock => CurrentState.CurrentTimeBlock;
+
     public int ActiveHoursRemaining => CurrentState.ActiveHoursRemaining;
+
     public bool IsActiveTime => CurrentState.IsActiveTime;
 
-    /// <summary>
-    /// Event raised when time advances
-    /// </summary>
-    public event EventHandler<TimeAdvancementResult> TimeAdvanced;
-
-    /// <summary>
-    /// Event raised when a new day begins
-    /// </summary>
-    public event EventHandler<NewDayEventArgs> NewDayStarted;
+    // Events removed per architecture guidelines - use return values instead
 
     public TimeModel(int startDay = 1, int startHour = ACTIVE_DAY_START)
     {
@@ -88,22 +81,8 @@ public class TimeModel
 
         lock (_lock)
         {
-            var result = _currentState.AdvanceTime(hours);
+            TimeAdvancementResult result = _currentState.AdvanceTime(hours);
             _currentState = result.NewState;
-
-            // Raise time advanced event
-            TimeAdvanced?.Invoke(this, result);
-
-            // If we crossed a day boundary, raise new day event
-            if (result.CrossedDayBoundary)
-            {
-                NewDayStarted?.Invoke(this, new NewDayEventArgs
-                {
-                    NewDay = result.NewState.CurrentDay,
-                    OldDay = result.OldState.CurrentDay,
-                    StartingHour = result.NewState.CurrentHour
-                });
-            }
 
             return result;
         }
@@ -119,15 +98,16 @@ public class TimeModel
 
     /// <summary>
     /// Forces a new day to start at dawn.
+    /// Returns the time advancement result for the caller to handle.
     /// </summary>
-    public void StartNewDay()
+    public TimeAdvancementResult AdvanceToNextDay()
     {
         lock (_lock)
         {
-            var oldState = _currentState;
-            _currentState = _currentState.StartNewDay();
+            TimeState oldState = _currentState;
+            _currentState = _currentState.AdvanceToNextDay();
 
-            var result = new TimeAdvancementResult
+            TimeAdvancementResult result = new TimeAdvancementResult
             {
                 OldState = oldState,
                 NewState = _currentState,
@@ -139,13 +119,7 @@ public class TimeModel
                 CrossedTimeBlock = true
             };
 
-            TimeAdvanced?.Invoke(this, result);
-            NewDayStarted?.Invoke(this, new NewDayEventArgs
-            {
-                NewDay = _currentState.CurrentDay,
-                OldDay = oldState.CurrentDay,
-                StartingHour = _currentState.CurrentHour
-            });
+            return result;
         }
     }
 
@@ -154,8 +128,8 @@ public class TimeModel
     /// </summary>
     public int HoursUntilNextTimeBlock()
     {
-        var currentHour = CurrentHour;
-        var currentBlock = CurrentTimeBlock;
+        int currentHour = CurrentHour;
+        TimeBlocks currentBlock = CurrentTimeBlock;
 
         return currentBlock switch
         {
@@ -174,9 +148,9 @@ public class TimeModel
     /// </summary>
     public string GetTimeString()
     {
-        var hour = CurrentHour;
-        var period = hour >= 12 ? "PM" : "AM";
-        var displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        int hour = CurrentHour;
+        string period = hour >= 12 ? "PM" : "AM";
+        int displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
         return $"{displayHour}:00 {period}";
     }
 
@@ -190,48 +164,11 @@ public class TimeModel
 }
 
 /// <summary>
-/// Event arguments for new day events.
+/// Result data for new day transitions.
 /// </summary>
-public class NewDayEventArgs : EventArgs
+public class NewDayResult
 {
     public int OldDay { get; init; }
     public int NewDay { get; init; }
     public int StartingHour { get; init; }
-}
-
-/// <summary>
-/// Validation result for time operations.
-/// </summary>
-public class ValidationResult
-{
-    public bool IsValid { get; init; }
-    public string Message { get; init; }
-    public ValidationLevel Level { get; init; }
-
-    public static ValidationResult Success() => new ValidationResult 
-    { 
-        IsValid = true, 
-        Level = ValidationLevel.Success 
-    };
-
-    public static ValidationResult Warning(string message) => new ValidationResult 
-    { 
-        IsValid = true, 
-        Message = message, 
-        Level = ValidationLevel.Warning 
-    };
-
-    public static ValidationResult Failure(string message) => new ValidationResult 
-    { 
-        IsValid = false, 
-        Message = message, 
-        Level = ValidationLevel.Error 
-    };
-}
-
-public enum ValidationLevel
-{
-    Success,
-    Warning,
-    Error
 }

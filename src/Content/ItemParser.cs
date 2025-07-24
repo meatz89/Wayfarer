@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Wayfarer.Content.Utilities;
 
 public static class ItemParser
 {

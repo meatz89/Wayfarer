@@ -13,14 +13,8 @@
         MissingConnectedLocations.Add(new MissingConnectedLocationReference(locationId, referencingLocation));
     }
 
-    public bool HasMissingReferences
-    {
-        get
-        {
-            return MissingLocationSpots.Count > 0 ||
+    public bool HasMissingReferences => MissingLocationSpots.Count > 0 ||
                 MissingConnectedLocations.Count > 0;
-        }
-    }
 }
 
 public class MissingLocationSpotReference

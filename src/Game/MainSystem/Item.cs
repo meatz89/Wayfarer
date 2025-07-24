@@ -5,12 +5,12 @@ public enum ItemCategory
     // Equipment types
     Climbing_Equipment, // Ropes, grappling hooks, pitons
     Water_Transport,    // Boats, rafts, swimming gear
-    Special_Access,     // Keys, passes, credentials
     Navigation_Tools,   // Maps, compasses
     Weather_Protection, // Cloaks, boots, umbrellas
     Load_Distribution,  // Backpacks, carts, bags
     Light_Source,       // Lanterns, torches, candles
-    
+    Special_Access,     // Permits, official documents, keys
+
     // Other item types
     Food,              // Bread, meat, water
     Documents,         // Letters, contracts, books
@@ -52,41 +52,23 @@ public class Item
     public string SpotId { get; set; }
     public string Description { get; set; }
 
-    public string WeightDescription
+    public string WeightDescription => Weight switch
     {
-        get
-        {
-            return Weight switch
-            {
-                0 => "Weightless",
-                1 => "Light",
-                2 => "Medium",
-                3 => "Heavy",
-                _ => $"Very Heavy ({Weight})"
-            };
-        }
-    }
+        0 => "Weightless",
+        1 => "Light",
+        2 => "Medium",
+        3 => "Heavy",
+        _ => $"Very Heavy ({Weight})"
+    };
 
     // Helper properties for UI display
-    public string CategoriesDescription
-    {
-        get
-        {
-            return Categories.Any()
+    public string CategoriesDescription => Categories.Any()
         ? $"Categories: {string.Join(", ", Categories.Select(c => c.ToString().Replace('_', ' ')))}"
         : "";
-        }
-    }
 
 
 
-    public string SizeCategoryDescription
-    {
-        get
-        {
-            return $"Size: {Size.ToString()}";
-        }
-    }
+    public string SizeCategoryDescription => $"Size: {Size.ToString()}";
     public string AllCategoriesDescription
     {
         get
@@ -101,20 +83,14 @@ public class Item
 
 
 
-    public bool IsEquipment
-    {
-        get
-        {
-            return Categories.Any(c => 
-                c == ItemCategory.Climbing_Equipment ||
-                c == ItemCategory.Water_Transport ||
-                c == ItemCategory.Special_Access ||
-                c == ItemCategory.Navigation_Tools ||
-                c == ItemCategory.Weather_Protection ||
-                c == ItemCategory.Load_Distribution ||
-                c == ItemCategory.Light_Source);
-        }
-    }
+    public bool IsEquipment => Categories.Any(c =>
+                                            c == ItemCategory.Climbing_Equipment ||
+                                            c == ItemCategory.Water_Transport ||
+                                            c == ItemCategory.Special_Access ||
+                                            c == ItemCategory.Navigation_Tools ||
+                                            c == ItemCategory.Weather_Protection ||
+                                            c == ItemCategory.Load_Distribution ||
+                                            c == ItemCategory.Light_Source);
 
 
     // Categorical matching helper methods

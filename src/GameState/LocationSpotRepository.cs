@@ -36,7 +36,7 @@ public class LocationSpotRepository
     /// </summary>
     public LocationSpot GetLocationSpot(string locationId, string spotId)
     {
-        return _gameWorld.WorldState.locationSpots.FirstOrDefault(s => 
+        return _gameWorld.WorldState.locationSpots.FirstOrDefault(s =>
             s.LocationId.Equals(locationId, StringComparison.OrdinalIgnoreCase) &&
             s.SpotID.Equals(spotId, StringComparison.OrdinalIgnoreCase));
     }

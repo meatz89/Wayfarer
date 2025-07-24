@@ -12,7 +12,7 @@ public class LocationFactory
     {
         // No dependencies needed - locations are base entities
     }
-    
+
     /// <summary>
     /// Create a location from validated data.
     /// Note: ConnectedLocationIds and LocationSpotIds are stored as strings
@@ -32,19 +32,19 @@ public class LocationFactory
             throw new ArgumentException("Location ID cannot be empty", nameof(id));
         if (string.IsNullOrEmpty(name))
             throw new ArgumentException("Location name cannot be empty", nameof(name));
-        
-        var location = new Location(id, name)
+
+        Location location = new Location(id, name)
         {
             Description = description ?? "",
             ConnectedLocationIds = connectedLocationIds ?? new List<string>(),
             LocationSpotIds = locationSpotIds ?? new List<string>(),
             DomainTags = domainTags ?? new List<string>()
         };
-        
+
         // Set environmental properties
         if (environmentalProperties != null)
         {
-            foreach (var (timeBlock, properties) in environmentalProperties)
+            foreach ((TimeBlocks timeBlock, List<string> properties) in environmentalProperties)
             {
                 switch (timeBlock)
                 {
@@ -63,28 +63,28 @@ public class LocationFactory
                 }
             }
         }
-        
+
         // Set available professions by time
         if (availableProfessionsByTime != null)
         {
             location.AvailableProfessionsByTime = availableProfessionsByTime;
         }
-        
+
         return location;
     }
-    
+
     /// <summary>
     /// Validate that all connected location IDs actually exist
     /// This should be called after all locations are loaded
     /// </summary>
     public static void ValidateLocationConnections(Location location, IEnumerable<Location> allLocations)
     {
-        var allLocationIds = allLocations.Select(l => l.Id).ToHashSet();
-        
-        var invalidConnections = location.ConnectedLocationIds
+        HashSet<string> allLocationIds = allLocations.Select(l => l.Id).ToHashSet();
+
+        List<string> invalidConnections = location.ConnectedLocationIds
             .Where(id => !allLocationIds.Contains(id))
             .ToList();
-        
+
         if (invalidConnections.Any())
         {
             Console.WriteLine($"WARNING: Location '{location.Id}' has invalid connections: {string.Join(", ", invalidConnections)}");

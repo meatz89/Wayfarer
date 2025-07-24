@@ -60,17 +60,17 @@ public class GameConfiguration
             },
             WorkRewards = new WorkRewardConfig
             {
-                DefaultReward = new WorkReward { Coins = 3, Stamina = -2 },
+                DefaultReward = new WorkReward { BaseCoins = 3, BonusCoins = 0, Stamina = -2 },
                 ByProfession = new Dictionary<Professions, WorkReward>
                 {
-                    { Professions.Merchant, new WorkReward { Coins = 4, Stamina = -2 } },
-                    { Professions.TavernKeeper, new WorkReward { Coins = 4, Stamina = -2 } },
-                    { Professions.Scribe, new WorkReward { Coins = 3, Stamina = -1 } },
-                    { Professions.Innkeeper, new WorkReward { Coins = 4, Stamina = -2 } }
+                    { Professions.Merchant, new WorkReward { BaseCoins = 4, BonusCoins = 0, Stamina = -2 } },
+                    { Professions.TavernKeeper, new WorkReward { BaseCoins = 4, BonusCoins = 0, Stamina = -2 } },
+                    { Professions.Scribe, new WorkReward { BaseCoins = 3, BonusCoins = 0, Stamina = -1 } },
+                    { Professions.Innkeeper, new WorkReward { BaseCoins = 4, BonusCoins = 0, Stamina = -2 } }
                 },
                 SpecialRewards = new Dictionary<string, WorkReward>
                 {
-                    { "baker_dawn", new WorkReward { Coins = 2, Stamina = -1, Bonus = "bread" } }
+                    { "baker_dawn", new WorkReward { BaseCoins = 2, BonusCoins = 0, Stamina = -1, Bonus = "bread" } }
                 }
             },
             Time = new TimeConfig
@@ -208,9 +208,17 @@ public class WorkRewardConfig
 
 public class WorkReward
 {
-    public int Coins { get; set; }
+    public int BaseCoins { get; set; }
+    public int BonusCoins { get; set; }
     public int Stamina { get; set; }
     public string Bonus { get; set; }
+    
+    // For backward compatibility or simplified usage
+    public int Coins 
+    { 
+        get => BaseCoins + BonusCoins;
+        set => BaseCoins = value;
+    }
 }
 
 public class TimeConfig

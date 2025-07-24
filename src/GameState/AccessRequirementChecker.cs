@@ -11,7 +11,7 @@ public class AccessRequirementChecker
     private readonly ConnectionTokenManager _tokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
-    
+
     public AccessRequirementChecker(
         GameWorld gameWorld,
         ItemRepository itemRepository,
@@ -25,7 +25,7 @@ public class AccessRequirementChecker
         _npcRepository = npcRepository;
         _messageSystem = messageSystem;
     }
-    
+
     /// <summary>
     /// Check if player meets access requirements for a location.
     /// </summary>
@@ -33,10 +33,10 @@ public class AccessRequirementChecker
     {
         if (location.AccessRequirement == null)
             return AccessCheckResult.Allowed();
-            
+
         return CheckRequirements(location.AccessRequirement);
     }
-    
+
     /// <summary>
     /// Check if player meets access requirements for a location spot.
     /// </summary>
@@ -44,10 +44,10 @@ public class AccessRequirementChecker
     {
         if (spot.AccessRequirement == null)
             return AccessCheckResult.Allowed();
-            
+
         return CheckRequirements(spot.AccessRequirement);
     }
-    
+
     /// <summary>
     /// Check if player meets access requirements for a route (in addition to terrain checks).
     /// </summary>
@@ -55,39 +55,39 @@ public class AccessRequirementChecker
     {
         if (route.AccessRequirement == null)
             return AccessCheckResult.Allowed();
-            
+
         return CheckRequirements(route.AccessRequirement);
     }
-    
+
     /// <summary>
     /// Core requirement checking logic.
     /// </summary>
     private AccessCheckResult CheckRequirements(AccessRequirement requirement)
     {
-        var player = _gameWorld.GetPlayer();
-        var missingRequirements = new List<string>();
-        
+        Player player = _gameWorld.GetPlayer();
+        List<string> missingRequirements = new List<string>();
+
         bool equipmentMet = CheckEquipmentRequirements(requirement, player, missingRequirements);
         bool itemsMet = CheckItemRequirements(requirement, player, missingRequirements);
         bool npcTokensMet = CheckNPCTokenRequirements(requirement, missingRequirements);
         bool typeTokensMet = CheckTypeTokenRequirements(requirement, missingRequirements);
-        
+
         bool requirementsMet = requirement.Logic == RequirementLogic.And
             ? equipmentMet && itemsMet && npcTokensMet && typeTokensMet
             : equipmentMet || itemsMet || npcTokensMet || typeTokensMet;
-            
+
         if (requirementsMet)
         {
             return AccessCheckResult.Allowed();
         }
-        
+
         return AccessCheckResult.Blocked(
             requirement.BlockedMessage,
             requirement.HintMessage,
             missingRequirements
         );
     }
-    
+
     /// <summary>
     /// Check if player has required equipment categories.
     /// </summary>
@@ -95,9 +95,9 @@ public class AccessRequirementChecker
     {
         if (!requirement.RequiredEquipment.Any())
             return true;
-            
-        var playerEquipment = GetPlayerEquipmentCategories(player);
-        
+
+        List<ItemCategory> playerEquipment = GetPlayerEquipmentCategories(player);
+
         if (requirement.Logic == RequirementLogic.Or)
         {
             // Need ANY of the required equipment
@@ -111,10 +111,10 @@ public class AccessRequirementChecker
         else
         {
             // Need ALL of the required equipment
-            var missingEquipment = requirement.RequiredEquipment.Where(req => !playerEquipment.Contains(req)).ToList();
+            List<ItemCategory> missingEquipment = requirement.RequiredEquipment.Where(req => !playerEquipment.Contains(req)).ToList();
             if (missingEquipment.Any())
             {
-                foreach (var eq in missingEquipment)
+                foreach (ItemCategory eq in missingEquipment)
                 {
                     missing.Add($"Missing equipment: {GetEquipmentName(eq)}");
                 }
@@ -122,7 +122,7 @@ public class AccessRequirementChecker
             return !missingEquipment.Any();
         }
     }
-    
+
     /// <summary>
     /// Check if player has required specific items.
     /// </summary>
@@ -130,16 +130,16 @@ public class AccessRequirementChecker
     {
         if (!requirement.RequiredItemIds.Any())
             return true;
-            
-        var playerItems = player.Inventory.ItemSlots.Where(i => !string.IsNullOrEmpty(i)).ToList();
-        
+
+        List<string> playerItems = player.Inventory.ItemSlots.Where(i => !string.IsNullOrEmpty(i)).ToList();
+
         if (requirement.Logic == RequirementLogic.Or)
         {
             // Need ANY of the required items
             bool hasAny = requirement.RequiredItemIds.Any(req => playerItems.Contains(req));
             if (!hasAny)
             {
-                var itemNames = requirement.RequiredItemIds.Select(id => GetItemName(id));
+                IEnumerable<string> itemNames = requirement.RequiredItemIds.Select(id => GetItemName(id));
                 missing.Add($"Need one of: {string.Join(", ", itemNames)}");
             }
             return hasAny;
@@ -147,10 +147,10 @@ public class AccessRequirementChecker
         else
         {
             // Need ALL of the required items
-            var missingItems = requirement.RequiredItemIds.Where(req => !playerItems.Contains(req)).ToList();
+            List<string> missingItems = requirement.RequiredItemIds.Where(req => !playerItems.Contains(req)).ToList();
             if (missingItems.Any())
             {
-                foreach (var itemId in missingItems)
+                foreach (string? itemId in missingItems)
                 {
                     missing.Add($"Missing item: {GetItemName(itemId)}");
                 }
@@ -158,7 +158,7 @@ public class AccessRequirementChecker
             return !missingItems.Any();
         }
     }
-    
+
     /// <summary>
     /// Check if player has required tokens with specific NPCs.
     /// </summary>
@@ -166,25 +166,25 @@ public class AccessRequirementChecker
     {
         if (!requirement.RequiredTokensPerNPC.Any())
             return true;
-            
+
         if (requirement.Logic == RequirementLogic.Or)
         {
             // Need tokens with ANY of the specified NPCs
             bool hasAny = false;
-            foreach (var (npcId, requiredCount) in requirement.RequiredTokensPerNPC)
+            foreach ((string npcId, int requiredCount) in requirement.RequiredTokensPerNPC)
             {
-                var npcTokens = _tokenManager.GetTokensWithNPC(npcId);
-                var totalTokens = npcTokens.Values.Sum();
+                Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npcId);
+                int totalTokens = npcTokens.Values.Sum();
                 if (totalTokens >= requiredCount)
                 {
                     hasAny = true;
                     break;
                 }
             }
-            
+
             if (!hasAny)
             {
-                var options = requirement.RequiredTokensPerNPC.Select(kvp => 
+                IEnumerable<string> options = requirement.RequiredTokensPerNPC.Select(kvp =>
                     $"{kvp.Value} tokens with {GetNPCName(kvp.Key)}"
                 );
                 missing.Add($"Need one of: {string.Join(", ", options)}");
@@ -194,10 +194,10 @@ public class AccessRequirementChecker
         else
         {
             // Need tokens with ALL specified NPCs
-            foreach (var (npcId, requiredCount) in requirement.RequiredTokensPerNPC)
+            foreach ((string npcId, int requiredCount) in requirement.RequiredTokensPerNPC)
             {
-                var npcTokens = _tokenManager.GetTokensWithNPC(npcId);
-                var totalTokens = npcTokens.Values.Sum();
+                Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npcId);
+                int totalTokens = npcTokens.Values.Sum();
                 if (totalTokens < requiredCount)
                 {
                     missing.Add($"Need {requiredCount} tokens with {GetNPCName(npcId)} (have {totalTokens})");
@@ -206,7 +206,7 @@ public class AccessRequirementChecker
             return !missing.Any();
         }
     }
-    
+
     /// <summary>
     /// Check if player has required tokens of specific types.
     /// </summary>
@@ -214,24 +214,24 @@ public class AccessRequirementChecker
     {
         if (!requirement.RequiredTokensPerType.Any())
             return true;
-            
+
         if (requirement.Logic == RequirementLogic.Or)
         {
             // Need tokens of ANY specified type
             bool hasAny = false;
-            foreach (var (tokenType, requiredCount) in requirement.RequiredTokensPerType)
+            foreach ((ConnectionType tokenType, int requiredCount) in requirement.RequiredTokensPerType)
             {
-                var totalOfType = _tokenManager.GetTotalTokensOfType(tokenType);
+                int totalOfType = _tokenManager.GetTotalTokensOfType(tokenType);
                 if (totalOfType >= requiredCount)
                 {
                     hasAny = true;
                     break;
                 }
             }
-            
+
             if (!hasAny)
             {
-                var options = requirement.RequiredTokensPerType.Select(kvp => 
+                IEnumerable<string> options = requirement.RequiredTokensPerType.Select(kvp =>
                     $"{kvp.Value} {kvp.Key} tokens"
                 );
                 missing.Add($"Need one of: {string.Join(", ", options)}");
@@ -241,9 +241,9 @@ public class AccessRequirementChecker
         else
         {
             // Need tokens of ALL specified types
-            foreach (var (tokenType, requiredCount) in requirement.RequiredTokensPerType)
+            foreach ((ConnectionType tokenType, int requiredCount) in requirement.RequiredTokensPerType)
             {
-                var totalOfType = _tokenManager.GetTotalTokensOfType(tokenType);
+                int totalOfType = _tokenManager.GetTotalTokensOfType(tokenType);
                 if (totalOfType < requiredCount)
                 {
                     missing.Add($"Need {requiredCount} {tokenType} tokens (have {totalOfType})");
@@ -252,7 +252,7 @@ public class AccessRequirementChecker
             return !missing.Any();
         }
     }
-    
+
     /// <summary>
     /// Spend tokens to gain access (for token-gated areas).
     /// </summary>
@@ -268,11 +268,11 @@ public class AccessRequirementChecker
             );
             return false;
         }
-        
+
         // For type-based requirements, spend from any NPCs with those token types
-        foreach (var (tokenType, requiredCount) in requirement.RequiredTokensPerType)
+        foreach ((ConnectionType tokenType, int requiredCount) in requirement.RequiredTokensPerType)
         {
-            var spent = _tokenManager.SpendTokensOfType(tokenType, requiredCount);
+            bool spent = _tokenManager.SpendTokensOfType(tokenType, requiredCount);
             if (!spent)
             {
                 _messageSystem.AddSystemMessage(
@@ -282,50 +282,50 @@ public class AccessRequirementChecker
                 return false;
             }
         }
-        
+
         _messageSystem.AddSystemMessage(
             $"You spend tokens to {contextDescription}.",
             SystemMessageTypes.Success
         );
         return true;
     }
-    
+
     /// <summary>
     /// Get all equipment categories from player's inventory.
     /// </summary>
     private List<ItemCategory> GetPlayerEquipmentCategories(Player player)
     {
-        var categories = new List<ItemCategory>();
-        
+        List<ItemCategory> categories = new List<ItemCategory>();
+
         foreach (string itemId in player.Inventory.ItemSlots)
         {
             if (!string.IsNullOrEmpty(itemId))
             {
-                var item = _itemRepository.GetItemById(itemId);
+                Item item = _itemRepository.GetItemById(itemId);
                 if (item != null)
                 {
                     categories.AddRange(item.Categories);
                 }
             }
         }
-        
+
         return categories.Distinct().ToList();
     }
-    
+
     private string GetEquipmentName(ItemCategory category)
     {
         return category.ToString().Replace('_', ' ');
     }
-    
+
     private string GetItemName(string itemId)
     {
-        var item = _itemRepository.GetItemById(itemId);
+        Item item = _itemRepository.GetItemById(itemId);
         return item?.Name ?? itemId;
     }
-    
+
     private string GetNPCName(string npcId)
     {
-        var npc = _npcRepository.GetNPCById(npcId);
+        NPC npc = _npcRepository.GetById(npcId);
         return npc?.Name ?? npcId;
     }
 }

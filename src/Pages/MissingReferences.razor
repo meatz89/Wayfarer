@@ -87,7 +87,7 @@
         // First generate missing locations as actions may depend on them
         foreach (var missingLocation in validationResult.MissingLocationSpots)
         {
-            await LocationCreationSystem.CreateLocationSpot(missingLocation.ReferencingLocation.Id, missingLocation.LocationSpotId);
+            await LocationCreationSystem.CreateLocationSpot(missingLocation.LocationSpotId);
             generatedCount++;
             StateHasChanged();
         }

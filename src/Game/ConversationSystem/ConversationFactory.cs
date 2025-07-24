@@ -5,7 +5,7 @@ public class ConversationFactory
 {
     private readonly INarrativeProvider _narrativeProvider;
     private readonly ConnectionTokenManager _tokenManager;
-    
+
     public ConversationFactory(
         INarrativeProvider narrativeProvider,
         ConnectionTokenManager tokenManager)
@@ -13,7 +13,7 @@ public class ConversationFactory
         _narrativeProvider = narrativeProvider;
         _tokenManager = tokenManager;
     }
-    
+
     public async Task<ConversationManager> CreateConversation(
         ConversationContext context,
         Player player)
@@ -24,21 +24,22 @@ public class ConversationFactory
             context.CurrentTokens = _tokenManager.GetTokensWithNPC(context.TargetNPC.ID);
             context.RelationshipLevel = context.CurrentTokens.Values.Sum();
         }
-        
+
         // Create conversation state
-        var state = new ConversationState(
-            player, 
+        ConversationState state = new ConversationState(
+            player,
             context.TargetNPC,
+            context.GameWorld,
             context.StartingFocusPoints > 0 ? context.StartingFocusPoints : 10,
             8); // Default max duration
-            
+
         // Create the conversation manager
-        var conversationManager = new ConversationManager(
+        ConversationManager conversationManager = new ConversationManager(
             context,
             state,
             _narrativeProvider,
             context.GameWorld);
-            
+
         return conversationManager;
     }
 }

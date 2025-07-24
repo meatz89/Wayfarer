@@ -1,381 +1,294 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-    /// <summary>
-    /// Manages route discovery through NPC relationships and natural play.
-    /// Routes are learned from NPCs who know them, not through arbitrary counters.
-    /// </summary>
-    public class RouteDiscoveryManager
+/// <summary>
+/// Manages route discovery through NPC relationships and natural play.
+/// Routes are learned from NPCs who know them, not through arbitrary counters.
+/// </summary>
+public class RouteDiscoveryManager
+{
+    private readonly GameWorld _gameWorld;
+    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly NPCRepository _npcRepository;
+    private readonly RouteRepository _routeRepository;
+    private readonly RouteDiscoveryRepository _routeDiscoveryRepository;
+    private readonly ItemRepository _itemRepository;
+    private readonly MessageSystem _messageSystem;
+    private readonly NarrativeService _narrativeService;
+
+    public RouteDiscoveryManager(
+        GameWorld gameWorld,
+        ConnectionTokenManager connectionTokenManager,
+        NPCRepository npcRepository,
+        RouteRepository routeRepository,
+        RouteDiscoveryRepository routeDiscoveryRepository,
+        ItemRepository itemRepository,
+        MessageSystem messageSystem,
+        NarrativeService narrativeService)
     {
-        private readonly GameWorld _gameWorld;
-        private readonly ConnectionTokenManager _connectionTokenManager;
-        private readonly NPCRepository _npcRepository;
-        private readonly RouteRepository _routeRepository;
-        private readonly RouteDiscoveryRepository _routeDiscoveryRepository;
-        private readonly ItemRepository _itemRepository;
-        private readonly MessageSystem _messageSystem;
-        private readonly NarrativeService _narrativeService;
+        _gameWorld = gameWorld;
+        _connectionTokenManager = connectionTokenManager;
+        _npcRepository = npcRepository;
+        _routeRepository = routeRepository;
+        _routeDiscoveryRepository = routeDiscoveryRepository;
+        _itemRepository = itemRepository;
+        _messageSystem = messageSystem;
+        _narrativeService = narrativeService;
+    }
 
-        public RouteDiscoveryManager(
-            GameWorld gameWorld,
-            ConnectionTokenManager connectionTokenManager,
-            NPCRepository npcRepository,
-            RouteRepository routeRepository,
-            RouteDiscoveryRepository routeDiscoveryRepository,
-            ItemRepository itemRepository,
-            MessageSystem messageSystem,
-            NarrativeService narrativeService)
+    /// <summary>
+    /// Get routes that can be discovered from NPCs at the current location
+    /// </summary>
+    public List<RouteDiscoveryOption> GetAvailableDiscoveries(string locationId)
+    {
+        List<RouteDiscoveryOption> discoveryOptions = new List<RouteDiscoveryOption>();
+
+        // Get all NPCs at current location
+        List<NPC> availableNPCs = _npcRepository.GetNPCsForLocation(locationId);
+
+        foreach (NPC npc in availableNPCs)
         {
-            _gameWorld = gameWorld;
-            _connectionTokenManager = connectionTokenManager;
-            _npcRepository = npcRepository;
-            _routeRepository = routeRepository;
-            _routeDiscoveryRepository = routeDiscoveryRepository;
-            _itemRepository = itemRepository;
-            _messageSystem = messageSystem;
-            _narrativeService = narrativeService;
+            // Get routes this NPC knows about
+            List<RouteDiscoveryOption> npcDiscoveries = GetDiscoveriesFromNPC(npc);
+            discoveryOptions.AddRange(npcDiscoveries);
         }
 
-        /// <summary>
-        /// Get routes that can be discovered from NPCs at the current location
-        /// </summary>
-        public List<RouteDiscoveryOption> GetAvailableDiscoveries(string locationId)
-        {
-            var discoveryOptions = new List<RouteDiscoveryOption>();
-            
-            // Get all NPCs at current location
-            var availableNPCs = _npcRepository.GetNPCsForLocation(locationId);
-            
-            foreach (var npc in availableNPCs)
-            {
-                // Get routes this NPC knows about
-                var npcDiscoveries = GetDiscoveriesFromNPC(npc);
-                discoveryOptions.AddRange(npcDiscoveries);
-            }
+        return discoveryOptions;
+    }
 
-            return discoveryOptions;
+    /// <summary>
+    /// Get route discoveries available from a specific NPC
+    /// </summary>
+    public List<RouteDiscoveryOption> GetDiscoveriesFromNPC(NPC npc)
+    {
+        List<RouteDiscoveryOption> discoveryOptions = new List<RouteDiscoveryOption>();
+        Player player = _gameWorld.GetPlayer();
+
+        // Get all routes this NPC knows
+        List<RouteDiscovery> knownRoutes = _routeDiscoveryRepository.GetRoutesKnownByNPC(npc.ID);
+
+        foreach (RouteDiscovery discovery in knownRoutes)
+        {
+            // Get the actual route
+            RouteOption route = _routeRepository.GetRouteById(discovery.RouteId);
+            if (route == null || route.IsDiscovered) continue;
+
+            // Check if player meets requirements
+            RouteDiscoveryRequirements meetsRequirements = CheckDiscoveryRequirements(discovery, npc, player);
+
+            // Get total tokens with this NPC
+            Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+            int totalTokens = npcTokens.Values.Sum();
+            bool canAfford = totalTokens >= discovery.RequiredTokensWithNPC;
+
+            discoveryOptions.Add(new RouteDiscoveryOption
+            {
+                Discovery = discovery,
+                Route = route,
+                TeachingNPC = npc,
+                MeetsRequirements = meetsRequirements,
+                PlayerTokensWithNPC = totalTokens,
+                CanAfford = canAfford
+            });
         }
 
-        /// <summary>
-        /// Get route discoveries available from a specific NPC
-        /// </summary>
-        public List<RouteDiscoveryOption> GetDiscoveriesFromNPC(NPC npc)
+        return discoveryOptions;
+    }
+
+    /// <summary>
+    /// Check if player meets all requirements to discover a route
+    /// </summary>
+    private RouteDiscoveryRequirements CheckDiscoveryRequirements(RouteDiscovery discovery, NPC npc, Player player)
+    {
+        RouteDiscoveryRequirements requirements = new RouteDiscoveryRequirements();
+
+        // Check relationship trust based on required tokens
+        Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        int totalTokens = npcTokens.Values.Sum();
+        requirements.HasEnoughTrust = totalTokens >= discovery.RequiredTokensWithNPC;
+        requirements.TrustLevel = totalTokens;
+
+        // Check equipment requirements from the specific NPC context
+        requirements.HasRequiredEquipment = true;
+        requirements.MissingEquipment = new List<string>();
+
+        // Get context-specific requirements for this NPC
+        RouteDiscoveryContext? context = _routeDiscoveryRepository.GetDiscoveryContext(discovery.RouteId, npc.ID);
+        if (context != null && context.RequiredEquipment != null)
         {
-            var discoveryOptions = new List<RouteDiscoveryOption>();
-            var player = _gameWorld.GetPlayer();
-            
-            // Get all routes this NPC knows
-            var knownRoutes = _routeDiscoveryRepository.GetRoutesKnownByNPC(npc.ID);
-            
-            foreach (var discovery in knownRoutes)
+            foreach (string equipmentId in context.RequiredEquipment)
             {
-                // Get the actual route
-                var route = _routeRepository.GetRouteById(discovery.RouteId);
-                if (route == null || route.IsDiscovered) continue;
-                
-                // Check if player meets requirements
-                var meetsRequirements = CheckDiscoveryRequirements(discovery, npc, player);
-                
-                // Get total tokens with this NPC
-                var npcTokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-                var totalTokens = npcTokens.Values.Sum();
-                var canAfford = totalTokens >= discovery.RequiredTokensWithNPC;
-                
-                discoveryOptions.Add(new RouteDiscoveryOption
+                if (!PlayerHasItem(player, equipmentId))
                 {
-                    Discovery = discovery,
-                    Route = route,
-                    TeachingNPC = npc,
-                    MeetsRequirements = meetsRequirements,
-                    PlayerTokensWithNPC = totalTokens,
-                    CanAfford = canAfford
-                });
-            }
-
-            return discoveryOptions;
-        }
-
-        /// <summary>
-        /// Check if player meets all requirements to discover a route
-        /// </summary>
-        private RouteDiscoveryRequirements CheckDiscoveryRequirements(RouteDiscovery discovery, NPC npc, Player player)
-        {
-            var requirements = new RouteDiscoveryRequirements();
-            
-            // Check relationship trust based on required tokens
-            var npcTokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-            var totalTokens = npcTokens.Values.Sum();
-            requirements.HasEnoughTrust = totalTokens >= discovery.RequiredTokensWithNPC;
-            requirements.TrustLevel = totalTokens;
-            
-            // Check equipment requirements from the specific NPC context
-            requirements.HasRequiredEquipment = true;
-            requirements.MissingEquipment = new List<string>();
-            
-            // Get context-specific requirements for this NPC
-            var context = _routeDiscoveryRepository.GetDiscoveryContext(discovery.RouteId, npc.ID);
-            if (context != null && context.RequiredEquipment != null)
-            {
-                foreach (var equipmentId in context.RequiredEquipment)
-                {
-                    if (!PlayerHasItem(player, equipmentId))
-                    {
-                        requirements.HasRequiredEquipment = false;
-                        requirements.MissingEquipment.Add(equipmentId);
-                    }
+                    requirements.HasRequiredEquipment = false;
+                    requirements.MissingEquipment.Add(equipmentId);
                 }
             }
-            
-            // Standing obligations removed from new structure
-            requirements.HasRequiredObligation = true;
-            
-            requirements.MeetsAllRequirements = requirements.HasEnoughTrust && 
-                                               requirements.HasRequiredEquipment && 
-                                               requirements.HasRequiredObligation;
-            
-            return requirements;
         }
 
-        /// <summary>
-        /// Check if player has a specific item
-        /// </summary>
-        private bool PlayerHasItem(Player player, string itemId)
+        // Standing obligations removed from new structure
+        requirements.HasRequiredObligation = true;
+
+        requirements.MeetsAllRequirements = requirements.HasEnoughTrust &&
+                                           requirements.HasRequiredEquipment &&
+                                           requirements.HasRequiredObligation;
+
+        return requirements;
+    }
+
+    /// <summary>
+    /// Check if player has a specific item
+    /// </summary>
+    private bool PlayerHasItem(Player player, string itemId)
+    {
+        return player.Inventory.ItemSlots.Any(slot => slot == itemId);
+    }
+
+    /// <summary>
+    /// Attempt to discover a route by spending tokens with an NPC
+    /// </summary>
+    public bool TryDiscoverRoute(string routeId)
+    {
+        // Find the route
+        RouteOption route = _routeRepository.GetRouteById(routeId);
+        if (route == null)
         {
-            return player.Inventory.ItemSlots.Any(slot => slot == itemId);
+            _messageSystem.AddSystemMessage("Route not found.", SystemMessageTypes.Danger);
+            return false;
         }
 
-        /// <summary>
-        /// Attempt to discover a route by spending tokens with an NPC
-        /// </summary>
-        public bool TryDiscoverRoute(string routeId, string npcId)
+        // Check if route is already discovered
+        if (route.IsDiscovered)
         {
-            var npc = _npcRepository.GetNPCById(npcId);
-            if (npc == null)
-            {
-                _messageSystem.AddSystemMessage("Cannot find that person.", SystemMessageTypes.Danger);
-                return false;
-            }
-
-            // Find the discovery data
-            var discovery = _routeDiscoveryRepository.GetDiscoveryForRoute(routeId);
-            if (discovery == null || !discovery.KnownByNPCs.Contains(npcId))
-            {
-                _messageSystem.AddSystemMessage($"{npc.Name} doesn't know about that route.", SystemMessageTypes.Warning);
-                return false;
-            }
-
-            // Find the route
-            var route = _routeRepository.GetRouteById(routeId);
-            if (route == null)
-            {
-                _messageSystem.AddSystemMessage("Route not found.", SystemMessageTypes.Danger);
-                return false;
-            }
-
-            // Check if route is already discovered
-            if (route.IsDiscovered)
-            {
-                _messageSystem.AddSystemMessage("You already know that route.", SystemMessageTypes.Warning);
-                return false;
-            }
-
-            // Check all requirements
-            var player = _gameWorld.GetPlayer();
-            var requirements = CheckDiscoveryRequirements(discovery, npc, player);
-            
-            if (!requirements.HasEnoughTrust)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"{npc.Name} doesn't trust you enough yet. (Need {discovery.RequiredTokensWithNPC}+ total tokens, have {requirements.TrustLevel})",
-                    SystemMessageTypes.Warning
-                );
-                return false;
-            }
-            
-            if (!requirements.HasRequiredEquipment)
-            {
-                var missingItems = string.Join(", ", requirements.MissingEquipment);
-                _messageSystem.AddSystemMessage(
-                    $"{npc.Name} won't share dangerous routes without proper equipment: {missingItems}",
-                    SystemMessageTypes.Warning
-                );
-                return false;
-            }
-            
-            // No longer checking for required obligations in new structure
-            
-            // Check if player has enough total tokens with this NPC
-            var npcTokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-            var totalTokens = npcTokens.Values.Sum();
-            
-            if (totalTokens < discovery.RequiredTokensWithNPC)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"Need {discovery.RequiredTokensWithNPC} total tokens with {npc.Name} (have {totalTokens}).",
-                    SystemMessageTypes.Danger
-                );
-                return false;
-            }
-
-            // Spend tokens from this specific NPC relationship
-            // Determine token type based on the route context
-            var tokenTypeToSpend = DetermineTokenTypeForRoute(route, discovery, npc);
-            
-            // If player doesn't have enough of the contextual type, they can't discover the route
-            if (npcTokens.GetValueOrDefault(tokenTypeToSpend) < discovery.RequiredTokensWithNPC)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"Need {discovery.RequiredTokensWithNPC} {tokenTypeToSpend} tokens with {npc.Name} for this type of knowledge (have {npcTokens.GetValueOrDefault(tokenTypeToSpend)}).",
-                    SystemMessageTypes.Danger
-                );
-                return false;
-            }
-                
-            if (tokenTypeToSpend == default)
-            {
-                _messageSystem.AddSystemMessage("No tokens to spend!", SystemMessageTypes.Danger);
-                return false;
-            }
-            
-            // Spend tokens from the global pool
-            var tokensToSpend = Math.Min(discovery.RequiredTokensWithNPC, npcTokens[tokenTypeToSpend]);
-            _connectionTokenManager.SpendTokens(tokenTypeToSpend, tokensToSpend);
-            
-            // Also deduct from the NPC-specific relationship
-            var npcTokensDict = _connectionTokenManager.GetTokensWithNPC(npcId);
-            if (npcTokensDict.ContainsKey(tokenTypeToSpend))
-            {
-                // This will need to be handled through a proper method in ConnectionTokenManager
-                // For now, we've spent from the global pool which is sufficient
-            }
-            
-            // Discover the route
-            route.IsDiscovered = true;
-
-            // Show discovery narrative - use context-specific narrative if available
-            var context = _routeDiscoveryRepository.GetDiscoveryContext(routeId, npcId);
-            var narrative = context?.Narrative ?? $"{npc.Name} shares knowledge of a new route with you.";
-            _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Success);
-            
-            // Show route details
-            _messageSystem.AddSystemMessage($"🗺️ Route Discovered: {route.Name}!", SystemMessageTypes.Success);
-            _messageSystem.AddSystemMessage($"📍 {route.Origin} → {route.Destination}", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"⏱️ {route.TravelTimeHours} hours, 💪 {route.BaseStaminaCost} stamina", SystemMessageTypes.Info);
-            
-            return true;
+            _messageSystem.AddSystemMessage("You already know that route.", SystemMessageTypes.Warning);
+            return false;
         }
 
-        /// <summary>
-        /// Get a summary of discoverable routes at current location
-        /// </summary>
-        public string GetDiscoverySummary(string locationId)
+        // Check all requirements
+        Player player = _gameWorld.GetPlayer();
+
+        // Discover the route
+        route.IsDiscovered = true;
+
+        // Show route details
+        _messageSystem.AddSystemMessage($"🗺️ Route Discovered: {route.Name}!", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"📍 {route.Origin} → {route.Destination}", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"⏱️ {route.TravelTimeHours} hours, 💪 {route.BaseStaminaCost} stamina", SystemMessageTypes.Info);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Get a summary of discoverable routes at current location
+    /// </summary>
+    public string GetDiscoverySummary(string locationId)
+    {
+        List<RouteDiscoveryOption> availableDiscoveries = GetAvailableDiscoveries(locationId);
+
+        if (!availableDiscoveries.Any())
         {
-            var availableDiscoveries = GetAvailableDiscoveries(locationId);
-            
-            if (!availableDiscoveries.Any())
-            {
-                return "No new routes to discover at this location.";
-            }
-            
-            var discoverableCount = availableDiscoveries.Count(d => d.MeetsRequirements.MeetsAllRequirements && d.CanAfford);
-            var totalCount = availableDiscoveries.Count;
-            
-            return $"Routes to discover: {discoverableCount}/{totalCount} available";
+            return "No new routes to discover at this location.";
         }
 
-        /// <summary>
-        /// Check for newly available route discoveries and notify player
-        /// </summary>
-        public void CheckForNewDiscoveries(string locationId)
-        {
-            var availableDiscoveries = GetAvailableDiscoveries(locationId);
-            var discoverableNow = availableDiscoveries
+        int discoverableCount = availableDiscoveries.Count(d => d.MeetsRequirements.MeetsAllRequirements && d.CanAfford);
+        int totalCount = availableDiscoveries.Count;
+
+        return $"Routes to discover: {discoverableCount}/{totalCount} available";
+    }
+
+    /// <summary>
+    /// Check for newly available route discoveries and notify player
+    /// </summary>
+    public void CheckForNewDiscoveries(string locationId)
+    {
+        List<RouteDiscoveryOption> availableDiscoveries = GetAvailableDiscoveries(locationId);
+        List<RouteDiscoveryOption> discoverableNow = availableDiscoveries
                 .Where(d => d.MeetsRequirements.MeetsAllRequirements && d.CanAfford)
                 .ToList();
-            
-            if (discoverableNow.Any())
+
+        if (discoverableNow.Any())
+        {
+            _messageSystem.AddSystemMessage(
+                $"💡 You can discover {discoverableNow.Count} new route(s) from locals!",
+                SystemMessageTypes.Info
+            );
+
+            foreach (RouteDiscoveryOption? discovery in discoverableNow)
             {
+                ConnectionType tokenType = DetermineTokenTypeForRoute(discovery.Route, discovery.Discovery, discovery.TeachingNPC);
                 _messageSystem.AddSystemMessage(
-                    $"💡 You can discover {discoverableNow.Count} new route(s) from locals!", 
+                    $"  📍 {discovery.Route.Name} from {discovery.TeachingNPC.Name} " +
+                    $"({discovery.Discovery.RequiredTokensWithNPC} {tokenType} tokens)",
                     SystemMessageTypes.Info
                 );
-                
-                foreach (var discovery in discoverableNow)
-                {
-                    var tokenType = DetermineTokenTypeForRoute(discovery.Route, discovery.Discovery, discovery.TeachingNPC);
-                    _messageSystem.AddSystemMessage(
-                        $"  📍 {discovery.Route.Name} from {discovery.TeachingNPC.Name} " +
-                        $"({discovery.Discovery.RequiredTokensWithNPC} {tokenType} tokens)", 
-                        SystemMessageTypes.Info
-                    );
-                }
             }
         }
-        
-        /// <summary>
-        /// Determine which token type should be used based on the route context
-        /// </summary>
-        public ConnectionType DetermineTokenTypeForRoute(RouteOption route, RouteDiscovery discovery, NPC npc)
+    }
+
+    /// <summary>
+    /// Determine which token type should be used based on the route context
+    /// </summary>
+    public ConnectionType DetermineTokenTypeForRoute(RouteOption route, RouteDiscovery discovery, NPC npc)
+    {
+        // Check route name and description for context clues
+        string routeContext = $"{route.Name} {route.Description}".ToLower();
+
+        // Trade routes use Trade tokens
+        if (routeContext.Contains("trade") || routeContext.Contains("merchant") ||
+            routeContext.Contains("commercial") || routeContext.Contains("toll"))
         {
-            // Check route name and description for context clues
-            string routeContext = $"{route.Name} {route.Description}".ToLower();
-            
-            // Trade routes use Trade tokens
-            if (routeContext.Contains("trade") || routeContext.Contains("merchant") || 
-                routeContext.Contains("commercial") || routeContext.Contains("toll"))
-            {
-                return ConnectionType.Trade;
-            }
-            
-            // Noble/estate routes use Noble tokens
-            if (routeContext.Contains("noble") || routeContext.Contains("estate") || 
-                routeContext.Contains("court") || routeContext.Contains("palace"))
-            {
-                return ConnectionType.Noble;
-            }
-            
-            // Shadow/illegal routes use Shadow tokens
-            if (routeContext.Contains("shadow") || routeContext.Contains("smuggl") || 
-                routeContext.Contains("hidden") || routeContext.Contains("secret"))
-            {
-                return ConnectionType.Shadow;
-            }
-            
-            // Personal/trust routes use Trust tokens
-            if (routeContext.Contains("personal") || routeContext.Contains("private") || 
-                routeContext.Contains("trust") || routeContext.Contains("friend"))
-            {
-                return ConnectionType.Trust;
-            }
-            
-            // Mountain/forest/common routes use Common tokens
-            return ConnectionType.Common;
+            return ConnectionType.Trade;
         }
-    }
 
-    /// <summary>
-    /// Represents a route that can be discovered from an NPC
-    /// </summary>
-    public class RouteDiscoveryOption
-    {
-        public RouteDiscovery Discovery { get; set; }
-        public RouteOption Route { get; set; }
-        public NPC TeachingNPC { get; set; }
-        public RouteDiscoveryRequirements MeetsRequirements { get; set; }
-        public int PlayerTokensWithNPC { get; set; }
-        public bool CanAfford { get; set; }
-    }
+        // Noble/estate routes use Noble tokens
+        if (routeContext.Contains("noble") || routeContext.Contains("estate") ||
+            routeContext.Contains("court") || routeContext.Contains("palace"))
+        {
+            return ConnectionType.Noble;
+        }
 
-    /// <summary>
-    /// Requirements check result for route discovery
-    /// </summary>
-    public class RouteDiscoveryRequirements
-    {
-        public bool HasEnoughTrust { get; set; }
-        public int TrustLevel { get; set; }
-        public bool HasRequiredEquipment { get; set; }
-        public List<string> MissingEquipment { get; set; } = new List<string>();
-        public bool HasRequiredObligation { get; set; }
-        public string? RequiredObligation { get; set; }
-        public bool MeetsAllRequirements { get; set; }
+        // Shadow/illegal routes use Shadow tokens
+        if (routeContext.Contains("shadow") || routeContext.Contains("smuggl") ||
+            routeContext.Contains("hidden") || routeContext.Contains("secret"))
+        {
+            return ConnectionType.Shadow;
+        }
+
+        // Personal/trust routes use Trust tokens
+        if (routeContext.Contains("personal") || routeContext.Contains("private") ||
+            routeContext.Contains("trust") || routeContext.Contains("friend"))
+        {
+            return ConnectionType.Trust;
+        }
+
+        // Mountain/forest/common routes use Common tokens
+        return ConnectionType.Common;
     }
+}
+
+/// <summary>
+/// Represents a route that can be discovered from an NPC
+/// </summary>
+public class RouteDiscoveryOption
+{
+    public RouteDiscovery Discovery { get; set; }
+    public RouteOption Route { get; set; }
+    public NPC TeachingNPC { get; set; }
+    public RouteDiscoveryRequirements MeetsRequirements { get; set; }
+    public int PlayerTokensWithNPC { get; set; }
+    public bool CanAfford { get; set; }
+}
+
+/// <summary>
+/// Requirements check result for route discovery
+/// </summary>
+public class RouteDiscoveryRequirements
+{
+    public bool HasEnoughTrust { get; set; }
+    public int TrustLevel { get; set; }
+    public bool HasRequiredEquipment { get; set; }
+    public List<string> MissingEquipment { get; set; } = new List<string>();
+    public bool HasRequiredObligation { get; set; }
+    public string? RequiredObligation { get; set; }
+    public bool MeetsAllRequirements { get; set; }
+}
