@@ -1,6 +1,79 @@
 # Wayfarer Session Handoff - E2E Testing Implementation
 
-## Session Date: 2025-01-24 (Latest)
+## Session Date: 2025-01-24 (Latest Update - E2E Test Project Structure & Validator Fixes)
+
+### E2E Test Project Restructuring (✓ Complete)
+- Moved E2E test to separate project at `/mnt/c/git/Wayfarer.E2ETests/`
+- Key learning: E2E tests should run from their own directory, not mixed with main source
+- Solution: Use MSBuild Copy task to copy content files during build:
+  ```xml
+  <Target Name="CopyContentFiles" AfterTargets="Build">
+    <Copy SourceFiles="@(ContentFiles)" 
+          DestinationFiles="@(ContentFiles->'Content/Templates/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+  ```
+- Content files are copied to E2E project directory, not bin directory
+- This ensures consistent paths regardless of how the test is run
+
+### Content Validator Improvements (✓ Complete)
+- Created BaseValidator class with case-insensitive property matching
+- Key learning: JSON property names in content files use camelCase, but C# DTOs use PascalCase
+- Solution: TryGetPropertyCaseInsensitive helper method that:
+  1. First tries exact match for performance
+  2. Falls back to case-insensitive comparison
+- Updated RouteValidator to use correct field names matching actual JSON
+- Reduced validation warnings from 214 to 95 (119 route warnings fixed!)
+
+### Key Technical Learnings
+1. **Project Structure**: E2E tests need their own project to avoid conflicts (multiple Main methods)
+2. **Content Path Resolution**: Use relative paths and copy content files during build
+3. **JSON Property Matching**: Always support case-insensitive matching for robustness
+4. **Validator Inheritance**: Use base class for common validation logic across all validators
+
+## Session Date: 2025-01-24 (Earlier Update - Minimal Creation Strategy)
+
+## Current Session Progress
+
+1. **Implemented E2E Test** (✓ Complete)
+   - Updated E2E.Test.cs to run actual tests
+   - Test confirms the startup errors with JSON validation
+   - Test output clearly shows the 199 validation errors across 5 files
+   - Enhanced test to detect content_validation_errors.log file
+
+2. **Minimal Creation Strategy** (✓ Complete)
+   - Created MINIMAL-CREATION-STRATEGY.md documentation
+   - Updated all factories with CreateMinimal methods:
+     - LocationFactory.CreateMinimalLocation(id)
+     - NPCFactory.CreateMinimalNPC(id, locationId)
+     - LocationSpotFactory.CreateMinimalSpot(spotId, locationId)
+     - RouteFactory.CreateMinimalRoute(id, originId, destinationId)
+     - LetterTemplateFactory.CreateMinimalLetterTemplate(id)
+     - ItemFactory.CreateMinimalItem(id)
+     - StandingObligationFactory.CreateMinimalObligation(id, npcId)
+   - Updated Phase6_FinalValidation to use minimal factory methods
+   - Made logging HIGHLY VISIBLE with:
+     - Unicode warning symbols (⚠️, ❌)
+     - Error file creation (content_validation_errors.log)
+     - Console.Error output for CI/CD visibility
+     - 80-character separator lines with exclamation marks
+
+3. **Content Pipeline Redesign** (Started, then pivoted)
+   - Created comprehensive CONTENT-PIPELINE-REDESIGN.md document
+   - Designed graph-based multi-phase loading system
+   - Created initial ContentGraph implementation
+   - User requested different approach using existing repositories
+   - Pivoted to phase-based pipeline with dummy creation as final step
+
+## Key Innovation
+The game will NEVER fail to start due to content issues. Instead:
+1. Missing references are replaced with dummy entities
+2. Errors are logged to content_validation_errors.log
+3. Console output "glows up" with warnings and Unicode symbols
+4. E2E test detects the error log and fails the build
+5. Developers fix the JSON based on clear error messages
+
+## Session Date: 2025-01-24 (Earlier)
 
 ## CURRENT STATUS: E2E Test Successfully Catches Runtime Errors ✅
 
@@ -78,6 +151,52 @@ dotnet build RunE2ETest.csproj
 # Alternative: Run with dotnet (may timeout due to server startup)
 dotnet run --project RunE2ETest.csproj
 ```
+
+---
+
+## Session Update: 2025-01-24 (Latest - Content Pipeline Redesign)
+
+### Problem Identified
+The content validation and loading pipeline was failing with 199 errors across JSON files, preventing player initialization. The current system couldn't handle:
+- Multi-dimensional NPC relationships (Trade, Trust, Noble, Common, Shadow tokens per NPC)
+- Complex interdependencies between entities
+- Missing references causing cascade failures
+
+### Solution Approach
+1. **Created Multi-Phase Pipeline** (`GameWorldInitializationPipeline.cs`)
+   - Phase 1: Core entities (Locations, Items)
+   - Phase 2: Location-dependent entities (Spots, NPCs)  
+   - Phase 3: NPC-dependent entities (Routes, Letters)
+   - Phase 4: Complex entities (Obligations, Favors)
+   - Phase 5: Player initialization
+   - Phase 6: **Critical** - Create dummy entities for ANY missing references
+
+2. **Key Innovation: Defensive Dummy Creation**
+   - If any reference cannot be resolved, Phase 6 creates minimal dummy entities
+   - Game ALWAYS runs, even with broken content
+   - Logs what was auto-created for debugging
+
+3. **Started Factory Redesign**
+   - Goal: All factories should create objects with minimal input (just ID)
+   - This allows dummy creation without complex parameters
+
+### Current State
+- Created pipeline infrastructure but hit compilation errors
+- DTOs don't match expected properties (e.g., `Origin` vs `OriginId`)
+- Factories require too many parameters for dummy creation
+- Created `MinimalGameWorldInitializer.cs` as simpler alternative
+
+### Next Steps
+1. **Simplify Factories** - Add minimal creation methods that only need ID
+2. **Fix DTO Mismatches** - Update pipeline to use actual DTO properties
+3. **Test Minimal Loader** - Get game running with MinimalGameWorldInitializer
+4. **Iterate on Pipeline** - Once game runs, improve content loading
+
+### Key Files Created/Modified
+- `/src/Content/InitializationPipeline/` - New pipeline phases
+- `/src/Content/MinimalGameWorldInitializer.cs` - Simple loader
+- `/src/Content/GameWorldInitializer.cs` - Updated to use pipeline
+- `/src/CONTENT-PIPELINE-REDESIGN.md` - Design documentation
 
 ---
 

@@ -12,6 +12,39 @@ public class StandingObligationFactory
     {
         // No dependencies - factory is stateless
     }
+    
+    /// <summary>
+    /// Create a minimal standing obligation with just an ID.
+    /// Used for dummy/placeholder creation when references are missing.
+    /// </summary>
+    public StandingObligation CreateMinimalObligation(string id, string npcId = null)
+    {
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("Obligation ID cannot be empty", nameof(id));
+            
+        var name = FormatIdAsName(id);
+        
+        return new StandingObligation
+        {
+            ID = id,
+            Name = name,
+            Description = $"An obligation called {name}",
+            Source = npcId ?? "unknown_npc",
+            RelatedTokenType = ConnectionType.Common, // Most basic type
+            BenefitEffects = new List<ObligationEffect>(),
+            ConstraintEffects = new List<ObligationEffect>()
+        };
+    }
+    
+    private string FormatIdAsName(string id)
+    {
+        // Convert snake_case or kebab-case to Title Case
+        return string.Join(" ", 
+            id.Replace('_', ' ').Replace('-', ' ')
+              .Split(' ')
+              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+                  char.ToUpper(word[0]) + word.Substring(1).ToLower()));
+    }
 
     /// <summary>
     /// Create a standing obligation with validated references

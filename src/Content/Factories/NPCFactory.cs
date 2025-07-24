@@ -12,6 +12,38 @@ public class NPCFactory
     {
         // No dependencies - factory is stateless
     }
+    
+    /// <summary>
+    /// Create a minimal NPC with just an ID.
+    /// Used for dummy/placeholder creation when references are missing.
+    /// </summary>
+    public NPC CreateMinimalNPC(string id, string locationId = null)
+    {
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("NPC ID cannot be empty", nameof(id));
+            
+        var name = FormatIdAsName(id);
+        
+        return new NPC
+        {
+            ID = id,
+            Name = name,
+            Location = locationId ?? "unknown_location",
+            Profession = Professions.Merchant, // Default profession
+            Description = $"{name}, a local merchant",
+            LetterTokenTypes = new List<ConnectionType> { ConnectionType.Common }
+        };
+    }
+    
+    private string FormatIdAsName(string id)
+    {
+        // Convert snake_case or kebab-case to Title Case
+        return string.Join(" ", 
+            id.Replace('_', ' ').Replace('-', ' ')
+              .Split(' ')
+              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+                  char.ToUpper(word[0]) + word.Substring(1).ToLower()));
+    }
 
     /// <summary>
     /// Create an NPC with validated location reference

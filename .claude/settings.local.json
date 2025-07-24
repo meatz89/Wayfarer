@@ -60,7 +60,8 @@
       "Bash(bash:*)",
       "Bash(dotnet:*)",
       "Bash(./run-integration-test.sh:*)",
-      "Bash(./bin/Debug/net8.0/RunE2ETest)"
+      "Bash(./bin/Debug/net8.0/RunE2ETest)",
+      "Bash(./Wayfarer.E2ETests)"
     ],
     "deny": []
   }

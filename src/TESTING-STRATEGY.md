@@ -2,7 +2,7 @@
 
 ## Single E2E Test Approach
 
-We use ONE comprehensive E2E test (`E2E.Test.cs`) that catches ALL startup and runtime issues.
+We use ONE comprehensive E2E test that catches ALL startup and runtime issues. The test is located in a separate project to ensure proper isolation and dependency management.
 
 ### Why One Test?
 
@@ -16,17 +16,54 @@ We use ONE comprehensive E2E test (`E2E.Test.cs`) that catches ALL startup and r
 2. **Web Server Startup** - Verifies the application can serve HTTP requests  
 3. **Critical Services** - Ensures all key services can be created without circular dependencies
 
+### Project Structure
+
+The E2E test is located in a separate project:
+```
+/mnt/c/git/Wayfarer.E2ETests/
+├── E2E.Test.cs                 # The actual test code
+└── Wayfarer.E2ETests.csproj    # Project file with content copying
+
+/mnt/c/git/wayfarer/
+└── src/                        # Main game project
+    ├── Content/Templates/      # Game content files
+    └── Wayfarer.csproj
+```
+
+The E2E test project:
+- References the main Wayfarer project
+- Automatically copies content files to its output directory during build
+- Runs independently without polluting the main project
+
+### Content File Handling
+
+The E2E test project uses MSBuild to copy content files:
+```xml
+<ItemGroup>
+  <ContentFiles Include="../wayfarer/src/Content/Templates/**/*.*" />
+</ItemGroup>
+
+<Target Name="CopyContentFiles" AfterTargets="Build">
+  <Copy SourceFiles="@(ContentFiles)" 
+        DestinationFiles="@(ContentFiles->'Content/Templates/%(RecursiveDir)%(Filename)%(Extension)')"
+        SkipUnchangedFiles="true" />
+</Target>
+```
+
+This ensures content files are available where the test expects them, regardless of execution context.
+
 ### Running the Test
 
 ```bash
-# Build first
-dotnet build RunE2ETest.csproj
+# From the E2E test directory
+cd /mnt/c/git/Wayfarer.E2ETests
 
-# Run the executable directly (recommended - faster, no timeout)
-./bin/Debug/net8.0/RunE2ETest
+# Build and run
+dotnet build
+dotnet run
 
-# Alternative: Run with dotnet (may timeout due to server startup)
-dotnet run --project RunE2ETest.csproj
+# Or run the executable directly (faster, no timeout)
+./bin/Debug/net8.0/Wayfarer.E2ETests
 ```
 
 ### Example Output - Catching Errors
