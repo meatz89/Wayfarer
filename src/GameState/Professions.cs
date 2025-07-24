@@ -4,8 +4,11 @@ public enum Professions
     Scholar,        // Researchers, academics, librarians
     Merchant,       // Traders, shop owners, general merchants
     Craftsman,      // Smiths, carpenters, artisans
-    Innkeeper,       // Hotel and lodging managers, tavern keepers
+    Innkeeper,      // Hotel and lodging managers, tavern keepers
     TavernKeeper,
     Scribe,
-    Noble
+    Noble,
+    Beggar,         // Street dwellers who survive on charity
+    Dock_Boss,      // Manages dock workers and cargo operations
+    Agent           // Representatives of powerful patrons
 }
