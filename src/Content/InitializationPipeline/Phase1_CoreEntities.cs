@@ -39,7 +39,27 @@ public class Phase1_CoreEntities : IInitializationPhase
         
         try
         {
-            // For now, just log that we would load it
+            // Actually load and parse the gameWorld.json
+            var json = File.ReadAllText(gameWorldPath);
+            var gameWorldData = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(json);
+            
+            // Store the configuration data for Phase 5 to use
+            if (gameWorldData != null)
+            {
+                if (gameWorldData.CurrentLocationId != null)
+                {
+                    context.SharedData["StartingLocationId"] = (string)gameWorldData.CurrentLocationId;
+                }
+                if (gameWorldData.CurrentLocationSpotId != null)
+                {
+                    context.SharedData["StartingLocationSpotId"] = (string)gameWorldData.CurrentLocationSpotId;
+                }
+                if (gameWorldData.Player != null)
+                {
+                    context.SharedData["PlayerConfig"] = gameWorldData.Player;
+                }
+            }
+            
             Console.WriteLine("Loaded gameWorld.json configuration");
         }
         catch (Exception ex)

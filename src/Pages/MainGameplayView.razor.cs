@@ -98,6 +98,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         DebugLogger.LogDebug("MainGameplayView initialized - starting polling");
 
+        // Subscribe to navigation changes to ensure UI updates
+        NavigationService.OnNavigationChanged += HandleNavigationChanged;
+
         // Verify initial state
         if (IsGameDataReady())
         {
@@ -111,6 +114,15 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         // Poll state initially
         PollGameState();
         StateHasChanged();
+    }
+    
+    private void HandleNavigationChanged(CurrentViews newView)
+    {
+        InvokeAsync(() =>
+        {
+            DebugLogger.LogDebug($"Navigation changed to: {newView}");
+            StateHasChanged();
+        });
     }
 
     public GameWorldSnapshot oldSnapshot;
@@ -638,6 +650,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        // Events removed - no subscription cleanup needed
+        // Unsubscribe from navigation events
+        NavigationService.OnNavigationChanged -= HandleNavigationChanged;
     }
 }

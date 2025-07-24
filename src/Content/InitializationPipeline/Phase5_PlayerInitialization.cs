@@ -20,6 +20,23 @@ public class Phase5_PlayerInitialization : IInitializationPhase
         
         // Player is the single source of truth for location - no sync needed
         
+        // Check if we have starting location from gameWorld.json
+        if (context.SharedData.ContainsKey("StartingLocationId"))
+        {
+            var startingLocationId = (string)context.SharedData["StartingLocationId"];
+            var startingLocation = worldState.locations.FirstOrDefault(l => l.Id == startingLocationId);
+            
+            if (startingLocation != null)
+            {
+                player.CurrentLocation = startingLocation;
+                Console.WriteLine($"  Set player to configured starting location: {startingLocation.Id}");
+            }
+            else
+            {
+                context.Warnings.Add($"Configured starting location '{startingLocationId}' not found");
+            }
+        }
+        
         // If player still has no location, find a suitable starting location
         if (player.CurrentLocation == null)
         {
@@ -49,26 +66,47 @@ public class Phase5_PlayerInitialization : IInitializationPhase
         // Now find a spot in the player's location
         if (player.CurrentLocationSpot == null && player.CurrentLocation != null)
         {
-            var spotsInLocation = worldState.locationSpots
-                .Where(s => s.LocationId == player.CurrentLocation.Id)
-                .ToList();
-            
-            if (spotsInLocation.Any())
+            // Check if we have starting spot from gameWorld.json
+            if (context.SharedData.ContainsKey("StartingLocationSpotId"))
             {
-                // Prefer a market or tavern as starting spot
-                var preferredSpot = spotsInLocation.FirstOrDefault(s => 
-                    s.Name.Contains("Market", StringComparison.OrdinalIgnoreCase) ||
-                    s.Name.Contains("Tavern", StringComparison.OrdinalIgnoreCase) ||
-                    s.Name.Contains("Square", StringComparison.OrdinalIgnoreCase));
+                var startingSpotId = (string)context.SharedData["StartingLocationSpotId"];
+                var startingSpot = worldState.locationSpots.FirstOrDefault(s => s.SpotID == startingSpotId);
                 
-                player.CurrentLocationSpot = preferredSpot ?? spotsInLocation.First();
-                Console.WriteLine($"  Set player to spot: {player.CurrentLocationSpot.SpotID}");
+                if (startingSpot != null && startingSpot.LocationId == player.CurrentLocation.Id)
+                {
+                    player.CurrentLocationSpot = startingSpot;
+                    Console.WriteLine($"  Set player to configured starting spot: {startingSpot.SpotID}");
+                }
+                else
+                {
+                    context.Warnings.Add($"Configured starting spot '{startingSpotId}' not found or not in current location");
+                }
             }
-            else
+            
+            // If no configured spot or it failed, find one
+            if (player.CurrentLocationSpot == null)
             {
-                // No spots in this location - this will be fixed in Phase 6
-                context.SharedData["player_needs_spot"] = player.CurrentLocation.Id;
-                Console.WriteLine($"  WARNING: No spots found in {player.CurrentLocation.Id} - will create in Phase 6");
+                var spotsInLocation = worldState.locationSpots
+                    .Where(s => s.LocationId == player.CurrentLocation.Id)
+                    .ToList();
+                
+                if (spotsInLocation.Any())
+                {
+                    // Prefer a market or tavern as starting spot
+                    var preferredSpot = spotsInLocation.FirstOrDefault(s => 
+                        s.Name.Contains("Market", StringComparison.OrdinalIgnoreCase) ||
+                        s.Name.Contains("Tavern", StringComparison.OrdinalIgnoreCase) ||
+                        s.Name.Contains("Square", StringComparison.OrdinalIgnoreCase));
+                    
+                    player.CurrentLocationSpot = preferredSpot ?? spotsInLocation.First();
+                    Console.WriteLine($"  Set player to spot: {player.CurrentLocationSpot.SpotID}");
+                }
+                else
+                {
+                    // No spots in this location - this will be fixed in Phase 6
+                    context.SharedData["player_needs_spot"] = player.CurrentLocation.Id;
+                    Console.WriteLine($"  WARNING: No spots found in {player.CurrentLocation.Id} - will create in Phase 6");
+                }
             }
         }
         
@@ -87,8 +125,31 @@ public class Phase5_PlayerInitialization : IInitializationPhase
             Console.WriteLine("  Set default player archetype: Merchant");
         }
         
-        // Ensure player has basic resources
-        if (player.Coins < 10)
+        // Load player config from gameWorld.json if available
+        if (context.SharedData.ContainsKey("PlayerConfig"))
+        {
+            dynamic playerConfig = context.SharedData["PlayerConfig"];
+            
+            if (playerConfig.Coins != null)
+            {
+                player.Coins = (int)playerConfig.Coins;
+                Console.WriteLine($"  Set starting coins: {player.Coins}");
+            }
+            
+            if (playerConfig.StaminaPoints != null)
+            {
+                player.Stamina = (int)playerConfig.StaminaPoints;
+            }
+            
+            if (playerConfig.MaxStamina != null)
+            {
+                player.MaxStamina = (int)playerConfig.MaxStamina;
+                Console.WriteLine($"  Set stamina: {player.Stamina}/{player.MaxStamina}");
+            }
+        }
+        
+        // Ensure player has basic resources (fallback if not set)
+        if (player.Coins == 0)
         {
             player.Coins = 10;
             Console.WriteLine("  Set starting coins: 10");
@@ -97,8 +158,8 @@ public class Phase5_PlayerInitialization : IInitializationPhase
         if (player.MaxStamina == 0)
         {
             player.MaxStamina = 10;
-            player.Stamina = 10;
-            Console.WriteLine("  Set stamina: 10/10");
+            player.Stamina = 6;
+            Console.WriteLine("  Set stamina: 6/10");
         }
         
         // Final validation - if we still don't have a location, it will be handled in Phase 6
