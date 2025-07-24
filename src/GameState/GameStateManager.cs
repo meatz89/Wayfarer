@@ -11,15 +11,18 @@ public class GameStateManager
     private readonly ILogger<GameStateManager> _logger;
     private readonly CommandExecutor _commandExecutor;
     private readonly GameWorld _gameWorld;
+    private readonly ITimeManager _timeManager;
 
     public GameStateManager(
         ILogger<GameStateManager> logger,
         CommandExecutor commandExecutor,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        ITimeManager timeManager)
     {
         _logger = logger;
         _gameWorld = gameWorld;
         _commandExecutor = commandExecutor ?? throw new ArgumentNullException(nameof(commandExecutor));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
     }
 
     /// <summary>
@@ -120,7 +123,7 @@ public class GameStateManager
     /// </summary>
     public TimeState GetTimeState()
     {
-        return new TimeState(_gameWorld.CurrentDay, _gameWorld.TimeManager.GetCurrentTimeHours());
+        return new TimeState(_gameWorld.CurrentDay, _timeManager.GetCurrentTimeHours());
     }
 
     /// <summary>

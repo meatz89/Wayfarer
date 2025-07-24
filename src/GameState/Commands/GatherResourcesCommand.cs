@@ -48,14 +48,7 @@ public class GatherResourcesCommand : BaseGameCommand
             return CommandValidationResult.Failure("This location doesn't have resources to gather");
         }
 
-        // Check time availability (1 hour)
-        if (!gameWorld.TimeManager.CanPerformAction(1))
-        {
-            return CommandValidationResult.Failure(
-                "Not enough time remaining",
-                true,
-                "Rest or wait until tomorrow");
-        }
+        // Time cost check removed - handled by executing service
 
         // Check stamina cost (2 stamina)
         if (player.Stamina < 2)
@@ -83,8 +76,8 @@ public class GatherResourcesCommand : BaseGameCommand
         Player player = gameWorld.GetPlayer();
         LocationSpot spot = player.CurrentLocationSpot;
 
-        // Spend resources
-        gameWorld.TimeManager.SpendHours(1);
+        // Time spending handled by executing service
+        // Stamina cost still applied here
         player.ModifyStamina(-2);
 
         // Determine what resources can be gathered based on location
@@ -140,7 +133,7 @@ public class GatherResourcesCommand : BaseGameCommand
                 Location = spot.Name,
                 ItemsGathered = gatheredItems.Select(i => new { i.Name, i.SellPrice }),
                 StaminaSpent = 2,
-                HoursSpent = 1
+                TimeCost = 1  // Add time cost to result
             }
         );
     }

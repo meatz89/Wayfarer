@@ -39,14 +39,7 @@ public class PatronFundsCommand : BaseGameCommand
                 "Accept a patron's offer first");
         }
 
-        // Check time availability (1 hour to write letter)
-        if (!gameWorld.TimeManager.CanPerformAction(1))
-        {
-            return CommandValidationResult.Failure(
-                "Not enough time remaining",
-                true,
-                "Rest or wait until tomorrow");
-        }
+        // Time cost check removed - handled by executing service
 
         // Check token cost
         int tokenCost = _config.Patron.FundRequestCost;
@@ -82,7 +75,7 @@ public class PatronFundsCommand : BaseGameCommand
         int tokensSpent = _config.Patron.FundRequestCost;
         int coinsReceived = _config.Patron.FundRequestAmount;
 
-        gameWorld.TimeManager.SpendHours(1);
+        // Time spending handled by executing service
         _tokenManager.SpendTokens(ConnectionType.Noble, tokensSpent, "patron");
 
         // Add coins
@@ -126,7 +119,8 @@ public class PatronFundsCommand : BaseGameCommand
                 CoinsReceived = coinsReceived,
                 TokensSpent = tokensSpent,
                 RemainingLeverage = remainingTokens,
-                NextRequestDay = gameWorld.CurrentDay + 7
+                NextRequestDay = gameWorld.CurrentDay + 7,
+                TimeCost = 1  // Add time cost to result
             }
         );
     }

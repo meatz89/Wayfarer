@@ -1,4 +1,5 @@
 @inject NavigationService NavigationService
+@inject ITimeManager TimeManager
 @inject GameWorld GameWorld
 @inject StandingObligationManager ObligationManager
 
@@ -117,7 +118,7 @@
     
     private bool CanNavigateToLetterBoard()
     {
-        return GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
+        return TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
     }
     
     // Tutorial visibility methods based on player achievements

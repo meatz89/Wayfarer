@@ -14,6 +14,7 @@ public class NPCLetterOfferService
     private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly LetterQueueManager _letterQueueManager;
     private readonly MessageSystem _messageSystem;
+    private readonly ITimeManager _timeManager;
     private readonly Random _random = new Random();
 
     // Store pending offers for each NPC
@@ -29,7 +30,8 @@ public class NPCLetterOfferService
         LetterTemplateRepository letterTemplateRepository,
         ConnectionTokenManager connectionTokenManager,
         LetterQueueManager letterQueueManager,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _npcRepository = npcRepository;
@@ -37,6 +39,7 @@ public class NPCLetterOfferService
         _connectionTokenManager = connectionTokenManager;
         _letterQueueManager = letterQueueManager;
         _messageSystem = messageSystem;
+        _timeManager = timeManager;
     }
 
     /// <summary>
@@ -353,7 +356,7 @@ public class NPCLetterOfferService
     public void GeneratePeriodicOffers()
     {
         int currentDay = _gameWorld.CurrentDay;
-        TimeBlocks currentTimeBlock = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
 
         // Only generate once per time block
         if (currentDay == _lastGenerationDay && currentTimeBlock == _lastGenerationTimeBlock)
@@ -404,11 +407,11 @@ public class NPCLetterOfferService
         {
             LetterOffer offer = newOffers.First();
             offer.GeneratedDay = _gameWorld.CurrentDay;
-            offer.GeneratedTimeBlock = _gameWorld.TimeManager.GetCurrentTimeBlock();
+            offer.GeneratedTimeBlock = _timeManager.GetCurrentTimeBlock();
             offers.Add(offer);
 
             // Add rich narrative about why NPC is offering now
-            string timeNarrative = _gameWorld.TimeManager.GetCurrentTimeBlock() switch
+            string timeNarrative = _timeManager.GetCurrentTimeBlock() switch
             {
                 TimeBlocks.Dawn => "early this morning",
                 TimeBlocks.Morning => "this morning",

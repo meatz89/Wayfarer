@@ -11,6 +11,7 @@ public class LocationSpotMapBase : ComponentBase
     [Inject] public NetworkReferralService NetworkReferralService { get; set; }
     [Inject] public ConnectionTokenManager TokenManager { get; set; }
     [Inject] public MessageSystem MessageSystem { get; set; }
+    [Inject] public ITimeManager TimeManager { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
@@ -62,19 +63,19 @@ public class LocationSpotMapBase : ComponentBase
 
     public List<NPC> GetAvailableNPCs()
     {
-        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
         return NPCRepository.GetNPCsForLocationAndTime(CurrentLocation.Id, currentTime);
     }
 
     public List<NPC> GetAvailableNPCsForSpot(LocationSpot spot)
     {
-        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
         return NPCRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
     }
 
     public List<NPC> GetAvailableNPCsAtCurrentSpot()
     {
-        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
         return NPCRepository.GetNPCsForLocationSpotAndTime(CurrentSpot.SpotID, currentTime);
     }
 
@@ -102,7 +103,7 @@ public class LocationSpotMapBase : ComponentBase
     /// </summary>
     public string GetNextAvailableTime(NPC npc)
     {
-        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
 
         if (npc.IsAvailable(currentTime))
         {
@@ -137,7 +138,7 @@ public class LocationSpotMapBase : ComponentBase
     /// </summary>
     public bool IsNPCCurrentlyAvailable(NPC npc)
     {
-        TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
         return npc.IsAvailable(currentTime);
     }
 

@@ -8,6 +8,7 @@ public class MorningActivitiesManager
     private readonly StandingObligationManager _obligationManager;
     private readonly MessageSystem _messageSystem;
     private readonly PatronLetterService _patronLetterService;
+    private readonly ITimeManager _timeManager;
 
     // Track morning events for display
     public List<MorningEvent> MorningEvents { get; private set; } = new List<MorningEvent>();
@@ -17,12 +18,14 @@ public class MorningActivitiesManager
         LetterQueueManager letterQueueManager,
         StandingObligationManager obligationManager,
         MessageSystem messageSystem,
+        ITimeManager timeManager,
         PatronLetterService patronLetterService = null)
     {
         _gameWorld = gameWorld;
         _letterQueueManager = letterQueueManager;
         _obligationManager = obligationManager;
         _messageSystem = messageSystem;
+        _timeManager = timeManager;
         _patronLetterService = patronLetterService;
     }
 
@@ -142,7 +145,7 @@ public class MorningActivitiesManager
     // Check if it's morning (dawn)
     public bool IsMorningTime()
     {
-        return _gameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
+        return _timeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
     }
 
     // Clear morning events after display

@@ -4,6 +4,7 @@
 @inject RestManager RestManager
 @inject CommandDiscoveryService CommandDiscovery
 @inject CommandExecutor CommandExecutor
+@inject ITimeManager TimeManager
 
 <div class="rest-options">
     @* Show contextual rest options from RestManager *@
@@ -106,22 +107,22 @@
     
     <div class="wait-section">
         <h4>Wait</h4>
-        <p>Current Time: @GameWorld.TimeManager.GetCurrentTimeHours():00 (@GameWorld.TimeManager.GetCurrentTimeBlock())</p>
-        <p>Remaining Hours Today: @(24 - GameWorld.TimeManager.GetCurrentTimeHours())</p>
+        <p>Current Time: @TimeManager.GetCurrentTimeHours():00 (@TimeManager.GetCurrentTimeBlock())</p>
+        <p>Remaining Hours Today: @(24 - TimeManager.GetCurrentTimeHours())</p>
         
         <div class="wait-options">
             <button class="wait-button" 
-                    disabled="@(GameWorld.TimeManager.GetCurrentTimeHours() >= 23)"
+                    disabled="@(TimeManager.GetCurrentTimeHours() >= 23)"
                     @onclick="() => WaitHours(1)">
                 Wait 1 Hour
             </button>
             <button class="wait-button" 
-                    disabled="@(GameWorld.TimeManager.GetCurrentTimeHours() >= 22)"
+                    disabled="@(TimeManager.GetCurrentTimeHours() >= 22)"
                     @onclick="() => WaitHours(2)">
                 Wait 2 Hours  
             </button>
             <button class="wait-button" 
-                    disabled="@(GameWorld.TimeManager.GetCurrentTimeHours() >= 21)"
+                    disabled="@(TimeManager.GetCurrentTimeHours() >= 21)"
                     @onclick="() => WaitHours(3)">
                 Wait 3 Hours
             </button>

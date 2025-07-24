@@ -2,7 +2,10 @@
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
+        Console.WriteLine("[SERVICE] Starting service configuration...");
+        
         // Register configuration
+        Console.WriteLine("[SERVICE] Registering IContentDirectory...");
         services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
 
         // Register content validation
@@ -29,16 +32,30 @@
         services.AddSingleton<StandingObligationFactory>();
 
         // Register GameWorldInitializer as both itself and IGameWorldFactory
+        Console.WriteLine("[SERVICE] Registering GameWorldInitializer...");
         services.AddSingleton<GameWorldInitializer>();
         services.AddSingleton<IGameWorldFactory>(serviceProvider =>
             serviceProvider.GetRequiredService<GameWorldInitializer>());
+        Console.WriteLine("[SERVICE] GameWorldInitializer registered");
 
         // Register GameWorld using factory pattern
+        Console.WriteLine("[SERVICE] Registering GameWorld factory...");
         services.AddSingleton<GameWorld>(serviceProvider =>
         {
+            Console.WriteLine("[SERVICE] Creating GameWorld via factory...");
+            var logger = serviceProvider.GetRequiredService<ILogger<GameWorld>>();
+            logger.LogInformation("GameWorld factory method called");
+            
             IGameWorldFactory factory = serviceProvider.GetRequiredService<IGameWorldFactory>();
-            return factory.CreateGameWorld();
+            logger.LogInformation("Got IGameWorldFactory instance");
+            
+            var gameWorld = factory.CreateGameWorld();
+            logger.LogInformation("GameWorld instance created successfully");
+            
+            Console.WriteLine("[SERVICE] GameWorld created via factory");
+            return gameWorld;
         });
+        Console.WriteLine("[SERVICE] GameWorld factory registered");
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();

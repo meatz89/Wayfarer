@@ -25,62 +25,27 @@ public class AdvanceTimeCommand : BaseGameCommand
 
     public override CommandValidationResult CanExecute(GameWorld gameWorld)
     {
-        // Check if we can spend active hours (unless forced, like sleeping)
-        if (!_forceAdvance && !gameWorld.TimeManager.CanPerformAction(_hours))
-        {
-            int remaining = gameWorld.TimeManager.HoursRemaining;
-            return CommandValidationResult.Failure(
-                $"Not enough active hours remaining. Need {_hours}, have {remaining}",
-                canBeRemedied: true,
-                remediationHint: "Rest for the night to start a new day"
-            );
-        }
-
+        // Commands don't validate time constraints - that's handled by the executing service
+        // This command will request time advancement
         return CommandValidationResult.Success();
     }
 
     public override async Task<CommandResult> ExecuteAsync(GameWorld gameWorld)
     {
-        CommandValidationResult validation = CanExecute(gameWorld);
-        if (!validation.IsValid && !_forceAdvance)
-        {
-            return CommandResult.Failure(validation.FailureReason);
-        }
-
-        // Use TimeManager to advance time
-        if (_forceAdvance)
-        {
-            // For forced advances (like sleeping), use AdvanceTime which bypasses active hour checks
-            gameWorld.TimeManager.AdvanceTime(_hours);
-        }
-        else
-        {
-            // For normal actions, use SpendHours which enforces active hour limits
-            if (!gameWorld.TimeManager.SpendHours(_hours))
-            {
-                return CommandResult.Failure("Failed to advance time");
-            }
-        }
-
-        // Get new state from TimeManager
-        int newDay = gameWorld.TimeManager.GetCurrentDay();
-        int newHour = gameWorld.TimeManager.GetCurrentTimeHours();
-        TimeBlocks newTimeBlock = gameWorld.TimeManager.GetCurrentTimeBlock();
-        bool crossedDay = false; // TODO: Track day crossing in TimeManager
-
+        // Commands return metadata about what needs to be done
+        // The executing service will handle actual time advancement
+        
         // Add to event log
-        string message = $"Time advanced by {_hours} hour(s) for {_reason}";
-
+        string message = $"Time advancement requested: {_hours} hour(s) for {_reason}";
         gameWorld.SystemMessages.Add(new SystemMessage(message));
 
         return CommandResult.Success(
             message,
             new
             {
-                NewDay = newDay,
-                NewHour = newHour,
-                NewTimeBlock = newTimeBlock.ToString(),
-                CrossedDay = crossedDay
+                TimeCost = _hours,
+                Reason = _reason,
+                ForceAdvance = _forceAdvance
             }
         );
     }

@@ -39,14 +39,8 @@ public class ObserveCommand : BaseGameCommand
             return CommandValidationResult.Failure("Not at the specified location");
         }
 
-        // Check time availability (1 hour)
-        if (!gameWorld.TimeManager.CanPerformAction(1))
-        {
-            return CommandValidationResult.Failure(
-                "Not enough time remaining",
-                true,
-                "Rest or wait until tomorrow");
-        }
+        // Commands don't check time - that's handled by the service executing them
+        // This command requires 1 hour to execute
 
         return CommandValidationResult.Success();
     }
@@ -55,10 +49,7 @@ public class ObserveCommand : BaseGameCommand
     {
         Player player = gameWorld.GetPlayer();
         LocationSpot spot = player.CurrentLocationSpot;
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
-
-        // Spend time
-        gameWorld.TimeManager.SpendHours(1);
+        TimeBlocks currentTime = gameWorld.CurrentTimeBlock;
 
         // Start observation report
         _messageSystem.AddSystemMessage(
@@ -141,7 +132,14 @@ public class ObserveCommand : BaseGameCommand
 
         return CommandResult.Success(
             "Observation completed",
-            observationData
+            new 
+            {
+                observationData.Location,
+                observationData.Type,
+                observationData.CurrentTime,
+                observationData.Observations,
+                TimeCost = 1  // This command costs 1 hour
+            }
         );
     }
 

@@ -43,7 +43,7 @@ public class ConverseCommand : BaseGameCommand
         }
 
         // Check time availability
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = gameWorld.CurrentTimeBlock;
         if (!npc.IsAvailableAtTime(player.CurrentLocationSpot.SpotID, currentTime))
         {
             return CommandValidationResult.Failure(
@@ -52,14 +52,7 @@ public class ConverseCommand : BaseGameCommand
                 "Try visiting at a different time");
         }
 
-        // Check resource costs (1 hour)
-        if (!gameWorld.TimeManager.CanPerformAction(1))
-        {
-            return CommandValidationResult.Failure(
-                "Not enough time remaining",
-                true,
-                "Rest or wait until tomorrow");
-        }
+        // Time cost check removed - handled by executing service
 
         return CommandValidationResult.Success();
     }
@@ -88,8 +81,7 @@ public class ConverseCommand : BaseGameCommand
             player
         );
 
-        // Spend the hour
-        gameWorld.TimeManager.SpendHours(1);
+        // Time spending handled by executing service
 
         // Set up conversation for UI
         gameWorld.PendingConversationManager = conversationManager;
@@ -106,7 +98,8 @@ public class ConverseCommand : BaseGameCommand
             {
                 NPCName = npc.Name,
                 RequiresConversation = true,
-                ConversationManager = conversationManager
+                ConversationManager = conversationManager,
+                TimeCost = 1  // Add time cost to result
             }
         );
     }

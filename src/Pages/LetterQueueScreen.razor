@@ -3,6 +3,7 @@
 
 @inject ConnectionTokenManager TokenManager
 @inject StandingObligationManager ObligationManager
+@inject ITimeManager TimeManager
 
 <div class="letter-queue-screen">
     <div class="screen-header">
@@ -149,13 +150,13 @@
     
     private bool CanUseMorningSwap()
     {
-        return GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn &&
+        return TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn &&
                GameWorld.GetPlayer().LastMorningSwapDay != GameWorld.CurrentDay;
     }
     
     private bool IsLetterBoardAvailable()
     {
-        return GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
+        return TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
     }
     
     private List<LetterActivity> GetRecentLetterActivity()

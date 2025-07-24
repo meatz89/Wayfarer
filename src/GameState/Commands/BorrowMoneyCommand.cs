@@ -47,7 +47,7 @@ public class BorrowMoneyCommand : BaseGameCommand
             return CommandValidationResult.Failure("Player location not set");
         }
 
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = gameWorld.CurrentTimeBlock;
         if (!npc.IsAvailableAtTime(player.CurrentLocationSpot.SpotID, currentTime))
         {
             return CommandValidationResult.Failure(
@@ -65,14 +65,7 @@ public class BorrowMoneyCommand : BaseGameCommand
             return CommandValidationResult.Failure($"{npc.Name} doesn't offer loans");
         }
 
-        // Check time availability (1 hour)
-        if (!gameWorld.TimeManager.CanPerformAction(1))
-        {
-            return CommandValidationResult.Failure(
-                "Not enough time remaining",
-                true,
-                "Rest or wait until tomorrow");
-        }
+        // Time cost check removed - handled by executing service
 
         // Check token cost (2 tokens of NPC's type)
         int tokenCost = _config.Debt.BorrowMoneyCost;
@@ -106,8 +99,7 @@ public class BorrowMoneyCommand : BaseGameCommand
             coinsReceived = _config.Debt.IllegalWorkAmount; // More coins from shadow dealings
         }
 
-        // Spend resources
-        gameWorld.TimeManager.SpendHours(1);
+        // Time spending handled by executing service
         _tokenManager.SpendTokens(tokenType, tokenCost, _npcId);
 
         // Add coins
@@ -152,7 +144,8 @@ public class BorrowMoneyCommand : BaseGameCommand
                 CoinsReceived = coinsReceived,
                 TokenType = tokenType.ToString(),
                 TokensSpent = tokenCost,
-                RemainingTokens = _tokenManager.GetTokenCount(tokenType)
+                RemainingTokens = _tokenManager.GetTokenCount(tokenType),
+                TimeCost = 1  // Add time cost to result
             }
         );
     }

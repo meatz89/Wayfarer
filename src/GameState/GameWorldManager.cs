@@ -24,6 +24,7 @@ public class GameWorldManager
     private CommandExecutor commandExecutor;
     private CommandDiscoveryService commandDiscovery;
     private MessageSystem _messageSystem;
+    private readonly ITimeManager _timeManager;
 
     private bool isAiAvailable = true;
 
@@ -44,6 +45,7 @@ public class GameWorldManager
                        CommandDiscoveryService commandDiscovery,
                        MessageSystem messageSystem,
                        DebugLogger debugLogger,
+                       ITimeManager timeManager,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -65,6 +67,7 @@ public class GameWorldManager
         _messageSystem = messageSystem;
         this.logger = logger;
         _debugLogger = debugLogger;
+        _timeManager = timeManager;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
@@ -74,7 +77,7 @@ public class GameWorldManager
         _gameWorld.GetPlayer().HealFully();
 
         // Initialize time management - set to start of first day
-        bool spendHours = _gameWorld.TimeManager.SpendHours(6);  // 6:00 AM
+        bool spendHours = _timeManager.SpendHours(6);  // 6:00 AM
         // CurrentDay is readonly - managed by TimeManager
 
         Location startingLocation = await locationSystem.Initialize();
@@ -158,7 +161,7 @@ public class GameWorldManager
         }
 
         // Check if we have enough time in the day
-        if (GameWorld.TimeManager.GetCurrentTimeHours() + route.TravelTimeHours > 24)
+        if (_timeManager.GetCurrentTimeHours() + route.TravelTimeHours > 24)
         {
             throw new InvalidOperationException($"Cannot travel: Not enough time remaining in the day. Route requires {route.TravelTimeHours} hours.");
         }
@@ -191,7 +194,7 @@ public class GameWorldManager
     private void CompleteTravelToDestination(string destinationId, int travelTimeHours)
     {
         // Travel takes time
-        GameWorld.TimeManager.AdvanceTime(travelTimeHours);
+        _timeManager.AdvanceTime(travelTimeHours);
 
         // Check for periodic letter offers after time change
         CheckForPeriodicLetterOffers();
@@ -390,7 +393,7 @@ public class GameWorldManager
         if (option != null)
         {
             // Validate time availability before attempting rest
-            if (GameWorld.TimeManager.GetCurrentTimeHours() + option.RestTimeHours > 24)
+            if (_timeManager.GetCurrentTimeHours() + option.RestTimeHours > 24)
             {
                 throw new InvalidOperationException($"Cannot rest: Not enough time remaining in the day. Rest requires {option.RestTimeHours} hours.");
             }
@@ -505,7 +508,7 @@ public class GameWorldManager
     /// </summary>
     public List<NPC> GetCurrentlyAvailableNPCs(string locationId)
     {
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         return npcRepository.GetNPCsForLocationAndTime(locationId, currentTime);
     }
 
@@ -523,7 +526,7 @@ public class GameWorldManager
     /// </summary>
     public string GetNextAvailableTime(NPC npc)
     {
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
         if (npc.IsAvailable(currentTime))
         {

@@ -10,3 +10,20 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    [Inject] private ILogger<App> Logger { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation("App.razor OnInitialized called");
+        base.OnInitialized();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("App.razor OnInitializedAsync started");
+        await base.OnInitializedAsync();
+        Logger.LogInformation("App.razor OnInitializedAsync completed");
+    }
+}

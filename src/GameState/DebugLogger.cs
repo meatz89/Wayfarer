@@ -10,6 +10,12 @@ public class DebugLogger
     private readonly List<DebugLogEntry> _logs = new List<DebugLogEntry>();
     private readonly int _maxLogs = 1000;
     private bool _enabled = true;
+    private readonly ITimeManager _timeManager;
+
+    public DebugLogger(ITimeManager timeManager)
+    {
+        _timeManager = timeManager;
+    }
 
     public bool IsEnabled
     {
@@ -183,9 +189,9 @@ public class DebugLogger
         // Time state
         report.Add("TIME STATE:");
         report.Add($"  Current Day: {gameWorld.CurrentDay}");
-        report.Add($"  Time Block: {gameWorld.TimeManager.GetCurrentTimeBlock()}");
-        report.Add($"  Hours: {gameWorld.TimeManager.GetCurrentTimeHours()}");
-        report.Add($"  Hours Remaining: {gameWorld.TimeManager.HoursRemaining}");
+        report.Add($"  Time Block: {_timeManager.GetCurrentTimeBlock()}");
+        report.Add($"  Hours: {_timeManager.GetCurrentTimeHours()}");
+        report.Add($"  Hours Remaining: {_timeManager.HoursRemaining}");
         report.Add("");
 
         // Conversation state
@@ -206,7 +212,7 @@ public class DebugLogger
             List<NPC> allNpcs = gameWorld.WorldState.NPCs;
             List<NPC> locationNpcs = allNpcs.Where(n => n.Location == player.CurrentLocation.Id).ToList();
             List<NPC> spotNpcs = locationNpcs.Where(n => n.SpotId == player.CurrentLocationSpot.SpotID).ToList();
-            TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             List<NPC> availableNpcs = spotNpcs.Where(n => n.IsAvailable(currentTime)).ToList();
 
             report.Add($"  Total NPCs in game: {allNpcs.Count}");

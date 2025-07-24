@@ -21,6 +21,45 @@ var location = new Location("id", "name"); // This entity doesn't exist in the g
 3. **Repositories read from GameWorld** - They provide convenient access but don't store separate copies
 4. **Reference validation during loading** - Factories validate references during JSON loading, not at runtime
 5. **No parallel entity storage** - Never maintain separate collections of entities outside GameWorld
+6. **GameWorld has NO dependencies** - GameWorld is pure data and state, with NO references to services, managers, or external systems
+7. **All dependencies flow INWARD** - Services depend on GameWorld, never the other way around
+
+**Dependency Flow:**
+```
+Services/Managers → GameWorld (✅ CORRECT)
+GameWorld → Services/Managers (❌ FORBIDDEN)
+```
+
+**GameWorld Creation:**
+- GameWorld is created first during startup
+- GameWorld does NOT inject or reference any services
+- GameWorld does NOT create any managers or services
+- Services that need GameWorld inject it as a dependency
+
+**Testing:** See TESTING-STRATEGY.md for automated tests that validate GameWorld has no circular dependencies
+
+**Example:**
+```csharp
+// ❌ WRONG: GameWorld depending on services
+public class GameWorld {
+    public ITimeManager TimeManager { get; set; }  // NO!
+    public CommandDiscoveryService CommandService { get; set; }  // NO!
+}
+
+// ✅ CORRECT: GameWorld as pure data
+public class GameWorld {
+    public int CurrentDay { get; set; }
+    public TimeBlocks CurrentTimeBlock { get; set; }
+    // Only data and state, no service references
+}
+
+// ✅ CORRECT: Services depend on GameWorld
+public class LetterQueueManager {
+    private readonly GameWorld _gameWorld;
+    private readonly ITimeManager _timeManager;
+    // Services can depend on both GameWorld and other services
+}
+```
 
 **Factory Pattern Usage:**
 ```csharp

@@ -110,7 +110,7 @@
                 TimeBlock = timeBlock,
                 AvailableNPCs = availableNPCs,
                 AvailableServices = availableServices,
-                IsCurrentTimeBlock = timeBlock == _gameWorld.TimeManager.GetCurrentTimeBlock()
+                IsCurrentTimeBlock = timeBlock == _gameWorld.CurrentTimeBlock
             });
         }
 

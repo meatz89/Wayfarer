@@ -5,12 +5,14 @@
 public class NavigationService
 {
     private readonly GameWorld _gameWorld;
+    private readonly ITimeManager _timeManager;
     private readonly Stack<CurrentViews> _navigationHistory = new();
     private CurrentViews _currentScreen = CurrentViews.LetterQueueScreen;
 
-    public NavigationService(GameWorld gameWorld)
+    public NavigationService(GameWorld gameWorld, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
+        _timeManager = timeManager;
     }
 
     /// <summary>
@@ -23,23 +25,21 @@ public class NavigationService
     /// </summary>
     public IReadOnlyCollection<CurrentViews> NavigationHistory => _navigationHistory;
 
-    // Events removed per architecture guidelines - use return values instead
+    /// <summary>
+    /// Event fired when navigation changes
+    /// </summary>
+    public event Action<CurrentViews>? OnNavigationChanged;
 
     /// <summary>
     /// Navigate to a specific screen
-    /// Returns the navigation result including the new screen if successful
     /// </summary>
-    public NavigationResult NavigateTo(CurrentViews screen)
+    public void NavigateTo(CurrentViews screen)
     {
         // Don't navigate to the same screen
-        if (_currentScreen == screen)
-            return NavigationResult.NoChange(_currentScreen);
+        if (_currentScreen == screen) return;
 
         // Validate navigation is allowed
-        if (!CanNavigateTo(screen))
-            return NavigationResult.Blocked(_currentScreen, "Navigation not allowed to " + screen);
-
-        CurrentViews previousScreen = _currentScreen;
+        if (!CanNavigateTo(screen)) return;
 
         // Push current screen to history
         _navigationHistory.Push(_currentScreen);
@@ -47,23 +47,21 @@ public class NavigationService
         // Update current screen
         _currentScreen = screen;
 
-        return NavigationResult.Success(previousScreen, _currentScreen);
+        // Fire navigation event
+        OnNavigationChanged?.Invoke(_currentScreen);
     }
 
     /// <summary>
     /// Navigate back to previous screen
-    /// Returns the navigation result including the new screen if successful
     /// </summary>
-    public NavigationResult NavigateBack()
+    public void NavigateBack()
     {
-        if (!CanNavigateBack())
-            return NavigationResult.Blocked(_currentScreen, "No navigation history available");
+        if (!CanNavigateBack()) return;
 
-        CurrentViews fromScreen = _currentScreen;
-        CurrentViews previousScreen = _navigationHistory.Pop();
+        var previousScreen = _navigationHistory.Pop();
         _currentScreen = previousScreen;
 
-        return NavigationResult.Success(fromScreen, _currentScreen);
+        OnNavigationChanged?.Invoke(_currentScreen);
     }
 
     /// <summary>
@@ -83,7 +81,7 @@ public class NavigationService
         if (screen == CurrentViews.MissingReferences) return true;
 
         // Check if player exists for game screens
-        Player player = _gameWorld.GetPlayer();
+        var player = _gameWorld.GetPlayer();
         if (player == null || !player.IsInitialized)
         {
             return screen == CurrentViews.CharacterScreen;
@@ -98,7 +96,7 @@ public class NavigationService
         // Letter board only available at dawn
         if (screen == CurrentViews.LetterBoardScreen)
         {
-            return _gameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
+            return _timeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
         }
 
         return true;
@@ -134,7 +132,7 @@ public class NavigationService
     /// </summary>
     public List<CurrentViews> GetContextualScreens()
     {
-        NavigationContext context = GetContext(_currentScreen);
+        var context = GetContext(_currentScreen);
 
         return context switch
         {
@@ -187,7 +185,7 @@ public class NavigationService
     /// </summary>
     public CurrentViews GetDefaultView()
     {
-        Player player = _gameWorld.GetPlayer();
+        var player = _gameWorld.GetPlayer();
 
         // No player = character creation
         if (player == null || !player.IsInitialized)
@@ -196,7 +194,7 @@ public class NavigationService
         }
 
         // Dawn = letter board available
-        if (_gameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        if (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
         {
             return CurrentViews.LetterBoardScreen;
         }
@@ -215,31 +213,4 @@ public enum NavigationContext
     Location,   // Location-based activities
     Character,  // Character management
     System      // System/meta functions
-}
-
-/// <summary>
-/// Result of a navigation attempt
-/// </summary>
-public class NavigationResult
-{
-    public bool IsSuccess { get; init; }
-    public CurrentViews FromScreen { get; init; }
-    public CurrentViews ToScreen { get; init; }
-    public string Message { get; init; }
-    public bool Changed => FromScreen != ToScreen;
-
-    public static NavigationResult Success(CurrentViews from, CurrentViews to)
-    {
-        return new() { IsSuccess = true, FromScreen = from, ToScreen = to };
-    }
-
-    public static NavigationResult NoChange(CurrentViews current)
-    {
-        return new() { IsSuccess = true, FromScreen = current, ToScreen = current, Message = "Already on this screen" };
-    }
-
-    public static NavigationResult Blocked(CurrentViews current, string reason)
-    {
-        return new() { IsSuccess = false, FromScreen = current, ToScreen = current, Message = reason };
-    }
 }

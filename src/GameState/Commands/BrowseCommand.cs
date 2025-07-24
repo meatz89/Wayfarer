@@ -37,7 +37,7 @@ public class BrowseCommand : BaseGameCommand
         }
 
         // Check time (browsing is free but requires daylight)
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = gameWorld.CurrentTimeBlock;
         if (currentTime == TimeBlocks.Night)
         {
             return CommandValidationResult.Failure(

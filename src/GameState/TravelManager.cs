@@ -1,7 +1,7 @@
 ﻿public class TravelManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly TimeManager _timeManager;
+    private readonly ITimeManager _timeManager;
     private readonly TransportCompatibilityValidator _transportValidator;
     private readonly RouteRepository _routeRepository;
     private readonly AccessRequirementChecker _accessChecker;
@@ -18,16 +18,19 @@
         ItemRepository itemRepository,
         TransportCompatibilityValidator transportValidator,
         RouteRepository routeRepository,
-        AccessRequirementChecker accessChecker
+        AccessRequirementChecker accessChecker,
+        ITimeManager timeManager,
+        FlagService flagService,
+        NarrativeManager narrativeManager
         )
     {
         _gameWorld = gameWorld;
-        _timeManager = (TimeManager)gameWorld.TimeManager;
+        _timeManager = timeManager;
         _transportValidator = transportValidator;
         _routeRepository = routeRepository;
         _accessChecker = accessChecker;
-        _flagService = gameWorld.FlagService;
-        _narrativeManager = gameWorld.NarrativeManager;
+        _flagService = flagService;
+        _narrativeManager = narrativeManager;
         this.LocationSystem = locationSystem;
         this.LocationRepository = locationRepository;
         ItemRepository = itemRepository;

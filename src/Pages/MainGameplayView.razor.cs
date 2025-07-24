@@ -18,6 +18,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     [Inject] public NavigationService NavigationService { get; set; }
     [Inject] public NPCLetterOfferService NPCLetterOfferService { get; set; }
     [Inject] public DebugLogger DebugLogger { get; set; }
+    [Inject] public ITimeManager TimeManager { get; set; }
 
 
     public int StateVersion = 0;
@@ -74,9 +75,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
 
     public LocationSpot CurrentSpot => LocationRepository.GetCurrentLocationSpot();
-    public TimeBlocks CurrentTime => GameWorld.TimeManager.GetCurrentTimeBlock();
+    public TimeBlocks CurrentTime => TimeManager.GetCurrentTimeBlock();
 
-    public int CurrentHour => GameWorld.TimeManager.GetCurrentTimeHours();
+    public int CurrentHour => TimeManager.GetCurrentTimeHours();
 
     public WeatherCondition CurrentWeather => GameWorld.CurrentWeather;
 
@@ -584,7 +585,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         ShowMorningSummary = false;
 
         // If letter board is available, switch to it
-        if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        if (TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
         {
             SwitchToLetterBoardScreen();
         }
@@ -596,12 +597,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public void HandleNavigation(CurrentViews view)
     {
-        NavigationResult result = NavigationService.NavigateTo(view);
-        if (result.Changed)
-        {
-            // Navigation succeeded and screen changed - update UI
-            StateHasChanged();
-        }
+        NavigationService.NavigateTo(view);
+        StateHasChanged();
     }
 
     /// <summary>

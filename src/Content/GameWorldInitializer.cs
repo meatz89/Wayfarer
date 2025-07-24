@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 public class GameWorldInitializer : IGameWorldFactory
 {
@@ -17,9 +18,7 @@ public class GameWorldInitializer : IGameWorldFactory
     private readonly LetterTemplateFactory _letterTemplateFactory;
     private readonly StandingObligationFactory _standingObligationFactory;
     private readonly ValidatedContentLoader _contentLoader;
-    private readonly ITimeManager _timeManager;
-    private readonly CommandDiscoveryService _commandDiscoveryService;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<GameWorldInitializer> _logger;
 
     public GameWorldInitializer(
         IContentDirectory contentDirectory,
@@ -33,24 +32,22 @@ public class GameWorldInitializer : IGameWorldFactory
         LetterTemplateFactory letterTemplateFactory,
         StandingObligationFactory standingObligationFactory,
         ValidatedContentLoader contentLoader,
-        ITimeManager timeManager,
-        CommandDiscoveryService commandDiscoveryService,
-        IServiceProvider serviceProvider)
+        ILogger<GameWorldInitializer> logger)
     {
-        _contentDirectory = contentDirectory ?? throw new ArgumentNullException(nameof(contentDirectory));
-        _locationFactory = locationFactory ?? throw new ArgumentNullException(nameof(locationFactory));
-        _locationSpotFactory = locationSpotFactory ?? throw new ArgumentNullException(nameof(locationSpotFactory));
-        _npcFactory = npcFactory ?? throw new ArgumentNullException(nameof(npcFactory));
-        _itemFactory = itemFactory ?? throw new ArgumentNullException(nameof(itemFactory));
-        _routeFactory = routeFactory ?? throw new ArgumentNullException(nameof(routeFactory));
-        _routeDiscoveryFactory = routeDiscoveryFactory ?? throw new ArgumentNullException(nameof(routeDiscoveryFactory));
-        _networkUnlockFactory = networkUnlockFactory ?? throw new ArgumentNullException(nameof(networkUnlockFactory));
-        _letterTemplateFactory = letterTemplateFactory ?? throw new ArgumentNullException(nameof(letterTemplateFactory));
-        _standingObligationFactory = standingObligationFactory ?? throw new ArgumentNullException(nameof(standingObligationFactory));
-        _contentLoader = contentLoader ?? throw new ArgumentNullException(nameof(contentLoader));
-        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _commandDiscoveryService = commandDiscoveryService ?? throw new ArgumentNullException(nameof(commandDiscoveryService));
-        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _contentDirectory = contentDirectory;
+        _locationFactory = locationFactory;
+        _locationSpotFactory = locationSpotFactory;
+        _npcFactory = npcFactory;
+        _itemFactory = itemFactory;
+        _routeFactory = routeFactory;
+        _routeDiscoveryFactory = routeDiscoveryFactory;
+        _networkUnlockFactory = networkUnlockFactory;
+        _letterTemplateFactory = letterTemplateFactory;
+        _standingObligationFactory = standingObligationFactory;
+        _contentLoader = contentLoader;
+        _logger = logger;
+        
+        _logger?.LogInformation("GameWorldInitializer constructor completed");
     }
 
     public GameWorld LoadGame()
@@ -63,12 +60,21 @@ public class GameWorldInitializer : IGameWorldFactory
     /// </summary>
     public GameWorld CreateGameWorld()
     {
-        return LoadGame();
+        Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld called");
+        _logger?.LogInformation("CreateGameWorld method started");
+        
+        var gameWorld = LoadGame();
+        
+        _logger?.LogInformation("CreateGameWorld method completed, GameWorld instance created");
+        Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld completed");
+        return gameWorld;
     }
 
     private GameWorld LoadGameFromTemplates()
     {
+        Console.WriteLine("[FACTORY] LoadGameFromTemplates started");
         string templatePath = Path.Combine(_contentDirectory.Path, "Templates");
+        Console.WriteLine($"[FACTORY] Template path: {templatePath}");
 
         // PHASE 1: Load entities without references (Locations, Items)
         Console.WriteLine("\n=== PHASE 1: Loading base entities ===");
@@ -182,13 +188,9 @@ public class GameWorldInitializer : IGameWorldFactory
         // Systems depend on these values being valid
         InitializePlayerLocation(gameWorld);
 
-        // Inject the time manager from DI
-        gameWorld.TimeManager = _timeManager;
+        // GameWorld has NO dependencies according to architecture
+        // TimeManager is created internally by GameWorld
         // Note: Initial time is now set by TimeModel constructor to ACTIVE_DAY_START (6 AM)
-        
-        // Inject command discovery service and service provider
-        gameWorld.CommandDiscoveryService = _commandDiscoveryService;
-        gameWorld.ServiceProvider = _serviceProvider;
 
         return gameWorld;
     }
