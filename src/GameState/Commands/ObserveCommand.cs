@@ -115,7 +115,7 @@ public class ObserveCommand : BaseGameCommand
 
         // Show time-based opportunities
         ShowTimeBasedOpportunities(spot, currentTime);
-        
+
         // Show connections to other spots
         Location parentLocation = _locationRepository.GetLocation(spot.LocationId);
         if (parentLocation != null)
@@ -132,7 +132,7 @@ public class ObserveCommand : BaseGameCommand
 
         return CommandResult.Success(
             "Observation completed",
-            new 
+            new
             {
                 observationData.Location,
                 observationData.Type,

@@ -17,7 +17,7 @@ public class NPC
 
     // Letter Queue Properties
     public List<ConnectionType> LetterTokenTypes { get; set; } = new List<ConnectionType>();
-    
+
     // Work Properties
     public bool OffersWork => ProvidedServices.Contains(ServiceTypes.Work);
 
@@ -35,7 +35,7 @@ public class NPC
         // NPCs are always available by default
         return true;
     }
-    
+
     public bool IsAvailableAtTime(string locationSpotId, TimeBlocks currentTime)
     {
         // NPCs are always available by default

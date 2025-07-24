@@ -25,7 +25,7 @@ public class UpdateNPCRelationshipCommand : BaseGameCommand
     public override CommandValidationResult CanExecute(GameWorld gameWorld)
     {
         // Check if NPC exists
-        var npc = _npcRepository.GetById(_npcId);
+        NPC npc = _npcRepository.GetById(_npcId);
 
         if (npc == null)
         {
@@ -36,8 +36,8 @@ public class UpdateNPCRelationshipCommand : BaseGameCommand
         }
 
         // Validate relationship progression is reasonable
-        var currentRelationship = npc.PlayerRelationship;
-        var levelChange = Math.Abs(GetRelationshipLevel(_newRelationship) - GetRelationshipLevel(currentRelationship));
+        NPCRelationship currentRelationship = npc.PlayerRelationship;
+        int levelChange = Math.Abs(GetRelationshipLevel(_newRelationship) - GetRelationshipLevel(currentRelationship));
 
         if (levelChange > 2)
         {
@@ -60,7 +60,7 @@ public class UpdateNPCRelationshipCommand : BaseGameCommand
         }
 
         // Find the NPC
-        var npc = _npcRepository.GetById(_npcId);
+        NPC npc = _npcRepository.GetById(_npcId);
 
         // Get previous relationship for change description
         NPCRelationship previousRelationship = npc.PlayerRelationship;

@@ -12,7 +12,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     {
         // STUB: Constructor
     }
-    
+
     public Task<string> GenerateIntroduction(ConversationContext context)
     {
         // STUB: Return basic introduction

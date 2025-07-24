@@ -212,12 +212,19 @@ public class WorkReward
     public int BonusCoins { get; set; }
     public int Stamina { get; set; }
     public string Bonus { get; set; }
-    
+
     // For backward compatibility or simplified usage
-    public int Coins 
-    { 
-        get => BaseCoins + BonusCoins;
-        set => BaseCoins = value;
+    public int Coins
+    {
+        get
+        {
+            return BaseCoins + BonusCoins;
+        }
+
+        set
+        {
+            BaseCoins = value;
+        }
     }
 }
 

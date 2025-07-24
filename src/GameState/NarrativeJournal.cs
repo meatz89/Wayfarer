@@ -11,12 +11,12 @@ public class NarrativeJournal
     {
         // STUB: Constructor
     }
-    
+
     public void RecordEvent(string narrativeId, string eventType, string details)
     {
         // TODO: Implement
     }
-    
+
     public List<string> GetHistory(string narrativeId)
     {
         // TODO: Implement

@@ -11,7 +11,7 @@ public class NarrativeEffectRegistry
     {
         // STUB: Constructor
     }
-    
+
     public INarrativeEffect GetEffect(string effectType)
     {
         // TODO: Implement

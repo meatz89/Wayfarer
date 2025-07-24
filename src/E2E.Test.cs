@@ -1,8 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// SINGLE E2E TEST THAT CATCHES ALL STARTUP AND RUNTIME ISSUES
@@ -14,21 +14,21 @@ public class E2ETest
     {
         Console.WriteLine("=== WAYFARER E2E TEST ===");
         Console.WriteLine("This test catches ALL issues you see when starting the game\n");
-        
+
         bool allTestsPassed = true;
-        
+
         // TEST 1: Can we create GameWorld without errors?
         Console.WriteLine("TEST 1: GameWorld Creation");
         try
         {
-            var services = new ServiceCollection();
+            ServiceCollection services = new ServiceCollection();
             services.AddLogging(); // Add logging services
             services.ConfigureServices();
-            var provider = services.BuildServiceProvider();
-            var gameWorld = provider.GetRequiredService<GameWorld>();
-            
+            ServiceProvider provider = services.BuildServiceProvider();
+            GameWorld gameWorld = provider.GetRequiredService<GameWorld>();
+
             // Check player initialization
-            var player = gameWorld.GetPlayer();
+            Player player = gameWorld.GetPlayer();
             if (player.CurrentLocation == null || player.CurrentLocationSpot == null)
             {
                 Console.WriteLine("✗ FAIL: Player location not initialized - THIS IS YOUR CURRENT ERROR!");
@@ -46,7 +46,7 @@ public class E2ETest
                 Console.WriteLine($"  Inner: {ex.InnerException.Message}");
             allTestsPassed = false;
         }
-        
+
         // TEST 2: Can the web server start and serve pages?
         Console.WriteLine("\nTEST 2: Web Server Startup");
         Process serverProcess = null;
@@ -61,10 +61,11 @@ public class E2ETest
                 RedirectStandardError = true,
                 CreateNoWindow = true
             });
-            
+
             // Capture any startup errors
             bool startupError = false;
-            serverProcess.ErrorDataReceived += (s, e) => {
+            serverProcess.ErrorDataReceived += (s, e) =>
+            {
                 if (e.Data?.Contains("Exception") == true)
                 {
                     Console.WriteLine($"✗ STARTUP ERROR: {e.Data}");
@@ -72,10 +73,10 @@ public class E2ETest
                 }
             };
             serverProcess.BeginErrorReadLine();
-            
+
             // Wait for server to start
             await Task.Delay(5000);
-            
+
             if (startupError)
             {
                 allTestsPassed = false;
@@ -83,9 +84,9 @@ public class E2ETest
             else
             {
                 // Try to access the home page
-                using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) })
+                using (HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) })
                 {
-                    var response = await client.GetAsync("http://localhost:5013");
+                    HttpResponseMessage response = await client.GetAsync("http://localhost:5013");
                     if (response.IsSuccessStatusCode)
                     {
                         Console.WriteLine("✓ PASS: Server responds to requests");
@@ -108,30 +109,30 @@ public class E2ETest
             serverProcess?.Kill();
             serverProcess?.Dispose();
         }
-        
+
         // TEST 3: Check critical game services
         Console.WriteLine("\nTEST 3: Critical Services");
         try
         {
-            var services = new ServiceCollection();
+            ServiceCollection services = new ServiceCollection();
             services.AddLogging(); // Add logging services
             services.ConfigureServices();
-            var provider = services.BuildServiceProvider();
-            
+            ServiceProvider provider = services.BuildServiceProvider();
+
             // Check all critical services can be created
-            var criticalServices = new Type[] {
+            Type[] criticalServices = new Type[] {
                 typeof(GameWorldManager),
-                typeof(LocationRepository), 
+                typeof(LocationRepository),
                 typeof(NPCRepository),
                 typeof(LetterQueueManager),
                 typeof(ITimeManager)
             };
-            
-            foreach (var serviceType in criticalServices)
+
+            foreach (Type serviceType in criticalServices)
             {
                 try
                 {
-                    var service = provider.GetRequiredService(serviceType);
+                    object service = provider.GetRequiredService(serviceType);
                     Console.WriteLine($"✓ PASS: {serviceType.Name} created");
                 }
                 catch
@@ -146,7 +147,7 @@ public class E2ETest
             Console.WriteLine($"✗ FAIL: Service creation failed - {ex.Message}");
             allTestsPassed = false;
         }
-        
+
         // FINAL RESULT
         Console.WriteLine("\n=== TEST SUMMARY ===");
         if (allTestsPassed)

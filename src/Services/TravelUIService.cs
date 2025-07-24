@@ -50,7 +50,7 @@ public class TravelUIService
     public TravelViewModel GetTravelViewModel()
     {
         Player player = _gameWorld.GetPlayer();
-        var currentLocation = player.CurrentLocation;
+        Location currentLocation = player.CurrentLocation;
 
         TravelViewModel viewModel = new TravelViewModel
         {
@@ -106,9 +106,9 @@ public class TravelUIService
         {
             List<RouteOption> availableRoutes = _travelManager.GetAvailableRoutes(currentLocation.Id, location.Id);
             // Get all routes from connections
-            var connection = currentLocation.Connections?.FirstOrDefault(c => c.DestinationLocationId == location.Id);
-            var allRoutes = connection?.RouteOptions ?? new List<RouteOption>();
-            var lockedRoutes = allRoutes.Where(r => !r.IsDiscovered).ToList();
+            LocationConnection? connection = currentLocation.Connections?.FirstOrDefault(c => c.DestinationLocationId == location.Id);
+            List<RouteOption> allRoutes = connection?.RouteOptions ?? new List<RouteOption>();
+            List<RouteOption> lockedRoutes = allRoutes.Where(r => !r.IsDiscovered).ToList();
 
             if (!availableRoutes.Any() && !lockedRoutes.Any())
                 continue;
@@ -185,12 +185,12 @@ public class TravelUIService
         {
             RouteDiscovery discovery = discoveryOption.Discovery;
             NPC teachingNPC = discoveryOption.TeachingNPC;
-            
+
             // Check for equipment requirements first
             string requiredEquipment = null;
             bool hasRequiredEquipment = true;
             string description = $"Learn from {teachingNPC?.Name ?? "Unknown"}";
-            
+
             if (discovery.DiscoveryContexts.ContainsKey(teachingNPC.ID))
             {
                 RouteDiscoveryContext context = discovery.DiscoveryContexts[teachingNPC.ID];
@@ -201,7 +201,7 @@ public class TravelUIService
                     description += $" (requires {requiredEquipment})";
                 }
             }
-            
+
             // All discoveries in the new system are through NPC relationships and tokens
             DiscoveryMethodViewModel method = new DiscoveryMethodViewModel
             {
@@ -250,7 +250,7 @@ public class TravelUIService
     public async Task<bool> UnlockRouteAsync(string discoveryId)
     {
         List<RouteDiscoveryOption> discoveries = _discoveryManager.GetAvailableDiscoveries(_gameWorld.GetPlayer().CurrentLocation.Id);
-        var discovery = discoveries.FirstOrDefault(d => d.Discovery.RouteId == discoveryId);
+        RouteDiscoveryOption? discovery = discoveries.FirstOrDefault(d => d.Discovery.RouteId == discoveryId);
 
         if (discovery == null) return false;
 

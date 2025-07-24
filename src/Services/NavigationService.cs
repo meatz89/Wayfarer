@@ -58,7 +58,7 @@ public class NavigationService
     {
         if (!CanNavigateBack()) return;
 
-        var previousScreen = _navigationHistory.Pop();
+        CurrentViews previousScreen = _navigationHistory.Pop();
         _currentScreen = previousScreen;
 
         OnNavigationChanged?.Invoke(_currentScreen);
@@ -81,7 +81,7 @@ public class NavigationService
         if (screen == CurrentViews.MissingReferences) return true;
 
         // Check if player exists for game screens
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player == null || !player.IsInitialized)
         {
             return screen == CurrentViews.CharacterScreen;
@@ -132,7 +132,7 @@ public class NavigationService
     /// </summary>
     public List<CurrentViews> GetContextualScreens()
     {
-        var context = GetContext(_currentScreen);
+        NavigationContext context = GetContext(_currentScreen);
 
         return context switch
         {
@@ -185,7 +185,7 @@ public class NavigationService
     /// </summary>
     public CurrentViews GetDefaultView()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
 
         // No player = character creation
         if (player == null || !player.IsInitialized)

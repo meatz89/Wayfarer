@@ -74,7 +74,7 @@ public class GameWorld
     public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
     // Event Log - Permanent record of all messages
     public List<SystemMessage> EventLog { get; set; } = new List<SystemMessage>();
-    
+
     // Pending command for any command that doesn't complete instantly
     public PendingCommand PendingCommand { get; set; }
 
@@ -85,7 +85,7 @@ public class GameWorld
     // Narrative System
     public FlagService FlagService { get; set; }
     public NarrativeManager NarrativeManager { get; set; }
-    
+
     // Injected by GameWorldInitializer
     public CommandDiscoveryService CommandDiscoveryService { get; internal set; }
     public IServiceProvider ServiceProvider { get; internal set; }
