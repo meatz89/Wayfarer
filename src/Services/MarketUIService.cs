@@ -13,7 +13,7 @@ public class MarketUIService
     private readonly GameWorldManager _gameManager;
     private readonly ItemRepository _itemRepository;
     private readonly LocationRepository _locationRepository;
-    private readonly GameRuleEngine _ruleEngine;
+    private readonly IGameRuleEngine _ruleEngine;
     private readonly CommandExecutor _commandExecutor;
     private readonly MessageSystem _messageSystem;
 
@@ -22,7 +22,7 @@ public class MarketUIService
         GameWorldManager gameManager,
         ItemRepository itemRepository,
         LocationRepository locationRepository,
-        GameRuleEngine ruleEngine,
+        IGameRuleEngine ruleEngine,
         CommandExecutor commandExecutor,
         MessageSystem messageSystem)
     {

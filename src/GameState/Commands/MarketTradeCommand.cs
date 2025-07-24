@@ -11,7 +11,7 @@ public class MarketTradeCommand : BaseGameCommand
     private readonly TradeAction _action;
     private readonly string _locationId;
     private readonly ItemRepository _itemRepository;
-    private readonly GameRuleEngine _ruleEngine;
+    private readonly IGameRuleEngine _ruleEngine;
 
 
     public enum TradeAction
@@ -25,7 +25,7 @@ public class MarketTradeCommand : BaseGameCommand
         TradeAction action,
         string locationId,
         ItemRepository itemRepository,
-        GameRuleEngine ruleEngine)
+        IGameRuleEngine ruleEngine)
     {
         _itemId = itemId;
         _action = action;
