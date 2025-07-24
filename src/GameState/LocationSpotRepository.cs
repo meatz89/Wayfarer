@@ -20,7 +20,7 @@ public class LocationSpotRepository
     /// </summary>
     public LocationSpot GetCurrentLocationSpot()
     {
-        return _gameWorld.WorldState.CurrentLocationSpot;
+        return _gameWorld.GetPlayer().CurrentLocationSpot;
     }
 
     /// <summary>

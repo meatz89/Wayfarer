@@ -9,12 +9,12 @@
 
     public Location GetCurrentLocation()
     {
-        return _gameWorld.WorldState.CurrentLocation;
+        return _gameWorld.GetPlayer().CurrentLocation;
     }
 
     public LocationSpot GetCurrentLocationSpot()
     {
-        return _gameWorld.WorldState.CurrentLocationSpot;
+        return _gameWorld.GetPlayer().CurrentLocationSpot;
     }
 
     public Location GetLocation(string locationId)
@@ -57,7 +57,7 @@
     public LocationSpot GetSpot(string locationId, string spotId)
     {
         Location location = GetLocation(locationId);
-        if (location == null) location = _gameWorld.WorldState.CurrentLocation;
+        if (location == null) location = _gameWorld.GetPlayer().CurrentLocation;
         LocationSpot spot = location.AvailableSpots.FirstOrDefault(s => s.SpotID == spotId);
 
         return spot;
@@ -126,7 +126,8 @@
     // Set current location and spot
     public void SetCurrentLocation(Location location, LocationSpot spot)
     {
-        _gameWorld.WorldState.SetCurrentLocation(location, spot);
+        _gameWorld.GetPlayer().CurrentLocation = location;
+        _gameWorld.GetPlayer().CurrentLocationSpot = spot;
     }
 
     // Record location visit

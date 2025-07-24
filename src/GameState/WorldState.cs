@@ -20,10 +20,6 @@
     public List<Item> Items { get; set; } = new List<Item>();
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
 
-    // Current location tracking
-    public Location CurrentLocation { get; set; }
-    public LocationSpot CurrentLocationSpot { get; set; }
-
     // Card system removed - using conversation and location action systems
 
     // Progression tracking
@@ -60,17 +56,6 @@
         return GetLocationVisitCount(locationId) == 0;
     }
 
-    public void SetCurrentLocation(Location location, LocationSpot currentLocationSpot)
-    {
-        CurrentLocation = location;
-        if (location == null) return;
-        CurrentLocationSpot = currentLocationSpot;
-    }
-
-    public void SetCurrentLocationSpot(LocationSpot locationSpot)
-    {
-        CurrentLocationSpot = locationSpot;
-    }
 
     public bool IsConversationCompleted(string actionId)
     {
