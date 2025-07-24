@@ -20,7 +20,7 @@ We use ONE comprehensive E2E test that catches ALL startup and runtime issues. T
 
 The E2E test is located in a separate project:
 ```
-/mnt/c/git/Wayfarer.E2ETests/
+/mnt/c/git/Wayfarer/Wayfarer.E2ETests/
 ├── E2E.Test.cs                 # The actual test code
 └── Wayfarer.E2ETests.csproj    # Project file with content copying
 

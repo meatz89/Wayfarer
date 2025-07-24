@@ -556,6 +556,43 @@ if (item.Category == ItemCategory.Weapon) { damage = item.Damage; }
 3. **CONTENT IS DATA**: Content should be configurable, not coded
 4. **SEPARATE PROGRESSION FROM CONTENT**: Progression rules (unlocks, requirements) belong in dedicated progression files, not mixed with entity definitions
 
+### Enum-Content Alignment Principle (CRITICAL)
+**When content requires specific values, update enums to match content needs**
+
+**Core Principle**: Content drives enum values, not the other way around. If tutorial NPCs need specific professions (Beggar, Dock_Boss, Agent), add them to the enum rather than forcing content into ill-fitting categories.
+
+**Implementation Pattern**:
+```csharp
+// ✅ CORRECT: Expand enum to match content needs
+public enum Professions
+{
+    Merchant,
+    Scholar,
+    // Tutorial-specific professions added when needed
+    Beggar,         // Tam needs this profession
+    Dock_Boss,      // Martha needs this profession
+    Agent           // Patron's intermediary needs this
+}
+
+// ❌ WRONG: Force content into wrong categories
+{
+    "id": "tam_beggar",
+    "profession": "Merchant"  // NO! Tam is not a merchant
+}
+```
+
+**Why This Matters**:
+1. **Content Integrity** - NPCs have professions that match their narrative role
+2. **Clear Semantics** - Code is self-documenting when enums match usage
+3. **Validation Works** - Content validators can properly check enum values
+4. **Future Expansion** - Easy to add new professions as content grows
+
+**Process**:
+1. Design content with appropriate values
+2. Check if enum contains needed values
+3. If not, add to enum immediately
+4. Never compromise content design for code constraints
+
 ### Progression Separation Principle (CRITICAL)
 **Progression data must be completely separated from content definitions**
 
