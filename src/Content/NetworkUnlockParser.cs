@@ -1,18 +1,18 @@
-using System.Text.Json;
 using System.Collections.Generic;
+using System.Text.Json;
 
-    public static class NetworkUnlockParser
+public static class NetworkUnlockParser
+{
+    public static NetworkUnlock ParseNetworkUnlock(string json)
     {
-        public static NetworkUnlock ParseNetworkUnlock(string json)
+        JsonDocumentOptions options = new JsonDocumentOptions
         {
-            JsonDocumentOptions options = new JsonDocumentOptions
-            {
-                AllowTrailingCommas = true
-            };
+            AllowTrailingCommas = true
+        };
 
-            using (JsonDocument doc = JsonDocument.Parse(json, options))
-            {
-                JsonElement root = doc.RootElement;
+        using (JsonDocument doc = JsonDocument.Parse(json, options))
+        {
+            JsonElement root = doc.RootElement;
 
             NetworkUnlock unlock = new NetworkUnlock
             {
@@ -29,7 +29,7 @@ using System.Collections.Generic;
             {
                 foreach (JsonElement targetElement in unlocksElement.EnumerateArray())
                 {
-                    var target = new NetworkUnlockTarget
+                    NetworkUnlockTarget target = new NetworkUnlockTarget
                     {
                         NpcId = GetStringProperty(targetElement, "npcId", ""),
                         IntroductionText = GetStringProperty(targetElement, "introductionText", "")
@@ -39,27 +39,27 @@ using System.Collections.Generic;
             }
 
             return unlock;
-            }
-        }
-
-        private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
-        {
-            if (element.TryGetProperty(propertyName, out JsonElement property) &&
-                property.ValueKind == JsonValueKind.String)
-            {
-                string value = property.GetString() ?? defaultValue;
-                return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
-            }
-            return defaultValue;
-        }
-
-        private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
-        {
-            if (element.TryGetProperty(propertyName, out JsonElement property) &&
-                property.ValueKind == JsonValueKind.Number)
-            {
-                return property.GetInt32();
-            }
-            return defaultValue;
         }
     }
+
+    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.String)
+        {
+            string value = property.GetString() ?? defaultValue;
+            return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
+        }
+        return defaultValue;
+    }
+
+    private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
+    {
+        if (element.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.Number)
+        {
+            return property.GetInt32();
+        }
+        return defaultValue;
+    }
+}

@@ -16,6 +16,6 @@
         DurationMilliseconds = durationMs;
         ExpiresAt = Timestamp.AddMilliseconds(durationMs);
     }
-    
+
     public bool IsExpired => DateTime.Now > ExpiresAt;
 }

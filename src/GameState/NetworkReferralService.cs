@@ -15,10 +15,10 @@ public class NetworkReferralService
     private readonly NPCLetterOfferService _letterOfferService;
     private readonly MessageSystem _messageSystem;
     private readonly Random _random = new Random();
-    
+
     // Track active referrals
     private readonly Dictionary<string, List<NetworkReferral>> _activeReferrals = new();
-    
+
     public NetworkReferralService(
         GameWorld gameWorld,
         NPCRepository npcRepository,
@@ -36,28 +36,28 @@ public class NetworkReferralService
         _letterOfferService = letterOfferService;
         _messageSystem = messageSystem;
     }
-    
+
     /// <summary>
     /// Check if an NPC can provide network referrals.
     /// Requires 5+ tokens with the NPC.
     /// </summary>
     public bool CanProvideReferrals(string npcId)
     {
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        var totalTokens = tokens.Values.Sum();
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int totalTokens = tokens.Values.Sum();
         return totalTokens >= 5;
     }
-    
+
     /// <summary>
     /// Request a network referral from an NPC.
     /// Costs 1 token of the NPC's primary type.
     /// </summary>
     public NetworkReferral RequestReferral(string npcId, ConnectionType? specificType = null)
     {
-        var npc = _npcRepository.GetNPCById(npcId);
+        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null)
             return null;
-            
+
         if (!CanProvideReferrals(npcId))
         {
             _messageSystem.AddSystemMessage(
@@ -66,14 +66,14 @@ public class NetworkReferralService
             );
             return null;
         }
-        
+
         // Determine which token type to use
-        var tokenType = specificType ?? npc.LetterTokenTypes.FirstOrDefault();
+        ConnectionType tokenType = specificType ?? npc.LetterTokenTypes.FirstOrDefault();
         if (tokenType == default(ConnectionType))
             return null;
-            
+
         // Check if player has tokens of this type with the NPC
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
         if (tokens.GetValueOrDefault(tokenType, 0) < 1)
         {
             _messageSystem.AddSystemMessage(
@@ -82,55 +82,55 @@ public class NetworkReferralService
             );
             return null;
         }
-        
+
         // Spend the token
         if (!_connectionTokenManager.SpendTokens(tokenType, 1, npcId))
             return null;
-            
+
         // Generate referral
-        var referral = GenerateReferral(npc, tokenType);
-        
+        NetworkReferral? referral = GenerateReferral(npc, tokenType);
+
         if (referral != null)
         {
             // Store the referral
             if (!_activeReferrals.ContainsKey(npcId))
                 _activeReferrals[npcId] = new List<NetworkReferral>();
             _activeReferrals[npcId].Add(referral);
-            
+
             // Show narrative
             _messageSystem.AddSystemMessage(
                 $"🤝 {npc.Name}: \"{referral.IntroductionMessage}\"",
                 SystemMessageTypes.Success
             );
-            
+
             _messageSystem.AddSystemMessage(
                 $"You've received a letter of introduction to {referral.TargetNPCName}!",
                 SystemMessageTypes.Info
             );
         }
-        
+
         return referral;
     }
-    
+
     /// <summary>
     /// Generate a network referral to another NPC.
     /// </summary>
     private NetworkReferral GenerateReferral(NPC referringNPC, ConnectionType tokenType)
     {
         // Find NPCs who can offer letters of the same type
-        var allNPCs = _npcRepository.GetAllNPCs();
-        var eligibleTargets = allNPCs
+        List<NPC> allNPCs = _npcRepository.GetAllNPCs();
+        List<NPC> eligibleTargets = allNPCs
             .Where(n => n.ID != referringNPC.ID)
             .Where(n => n.LetterTokenTypes.Contains(tokenType))
             .ToList();
-            
+
         if (!eligibleTargets.Any())
             return null;
-            
-        var targetNPC = eligibleTargets[_random.Next(eligibleTargets.Count)];
-        
+
+        NPC targetNPC = eligibleTargets[_random.Next(eligibleTargets.Count)];
+
         // Create introduction messages based on token type
-        var introMessages = tokenType switch
+        string[] introMessages = tokenType switch
         {
             ConnectionType.Trust => new[]
             {
@@ -164,9 +164,9 @@ public class NetworkReferralService
             },
             _ => new[] { $"{targetNPC.Name} might have work for you." }
         };
-        
-        var referralLetter = GenerateReferralLetter(referringNPC, targetNPC, tokenType);
-        
+
+        Letter referralLetter = GenerateReferralLetter(referringNPC, targetNPC, tokenType);
+
         return new NetworkReferral
         {
             Id = Guid.NewGuid().ToString(),
@@ -181,21 +181,21 @@ public class NetworkReferralService
             IsUsed = false
         };
     }
-    
+
     /// <summary>
     /// Generate the actual referral letter to deliver.
     /// </summary>
     private Letter GenerateReferralLetter(NPC referrer, NPC target, ConnectionType tokenType)
     {
         // Use network referral templates
-        var templateIds = tokenType switch
+        string templateIds = tokenType switch
         {
             ConnectionType.Trust => "network_referral_trust",
             ConnectionType.Trade => "network_referral_trade",
             _ => "introduction_letter"
         };
-        
-        var template = _letterTemplateRepository.GetTemplateById(templateIds);
+
+        LetterTemplate template = _letterTemplateRepository.GetTemplateById(templateIds);
         if (template == null)
         {
             // Fallback template
@@ -211,8 +211,8 @@ public class NetworkReferralService
                 MaxPayment = 12
             };
         }
-        
-        var letter = new Letter
+
+        Letter letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = referrer.ID,
@@ -227,16 +227,16 @@ public class NetworkReferralService
             GenerationReason = "Network Referral",
             Message = $"{referrer.Name} speaks highly of your courier services and suggests we should meet."
         };
-        
+
         // Add chain letter properties if template has them
         if (template.UnlocksLetterIds?.Length > 0)
         {
             letter.UnlocksLetterIds = template.UnlocksLetterIds.ToList();
         }
-        
+
         return letter;
     }
-    
+
     /// <summary>
     /// Use a referral when visiting the target NPC.
     /// </summary>
@@ -244,11 +244,11 @@ public class NetworkReferralService
     {
         NetworkReferral referral = null;
         string referringNPCId = null;
-        
+
         // Find the referral
-        foreach (var kvp in _activeReferrals)
+        foreach (KeyValuePair<string, List<NetworkReferral>> kvp in _activeReferrals)
         {
-            var found = kvp.Value.FirstOrDefault(r => r.Id == referralId && r.TargetNPCId == targetNPCId);
+            NetworkReferral? found = kvp.Value.FirstOrDefault(r => r.Id == referralId && r.TargetNPCId == targetNPCId);
             if (found != null)
             {
                 referral = found;
@@ -256,10 +256,10 @@ public class NetworkReferralService
                 break;
             }
         }
-        
+
         if (referral == null || referral.IsUsed)
             return false;
-            
+
         if (_gameWorld.CurrentDay > referral.ExpiresDay)
         {
             _messageSystem.AddSystemMessage(
@@ -268,30 +268,30 @@ public class NetworkReferralService
             );
             return false;
         }
-        
-        var targetNPC = _npcRepository.GetNPCById(targetNPCId);
+
+        NPC targetNPC = _npcRepository.GetById(targetNPCId);
         if (targetNPC == null)
             return false;
-            
+
         // Mark as used
         referral.IsUsed = true;
-        
+
         // Add initial tokens with the new NPC
         _connectionTokenManager.AddTokensToNPC(referral.TokenType, 3, targetNPCId);
-        
+
         // Show introduction narrative
         _messageSystem.AddSystemMessage(
             $"🤝 {targetNPC.Name}: \"Ah, {referral.ReferringNPCName} sent you! Any friend of theirs...\"",
             SystemMessageTypes.Success
         );
-        
+
         _messageSystem.AddSystemMessage(
             $"You've established a {referral.TokenType} connection with {targetNPC.Name}!",
             SystemMessageTypes.Success
         );
-        
+
         // Generate immediate letter offer from the new connection
-        var offers = _letterOfferService.GenerateNPCLetterOffers(targetNPCId);
+        List<LetterOffer> offers = _letterOfferService.GenerateNPCLetterOffers(targetNPCId);
         if (offers.Any())
         {
             _messageSystem.AddSystemMessage(
@@ -299,17 +299,17 @@ public class NetworkReferralService
                 SystemMessageTypes.Info
             );
         }
-        
+
         return true;
     }
-    
+
     /// <summary>
     /// Get active referrals for a specific NPC or all.
     /// </summary>
     public List<NetworkReferral> GetActiveReferrals(string npcId = null)
     {
-        var activeReferrals = new List<NetworkReferral>();
-        
+        List<NetworkReferral> activeReferrals = new List<NetworkReferral>();
+
         if (npcId != null)
         {
             if (_activeReferrals.ContainsKey(npcId))
@@ -321,22 +321,22 @@ public class NetworkReferralService
         }
         else
         {
-            foreach (var referrals in _activeReferrals.Values)
+            foreach (List<NetworkReferral> referrals in _activeReferrals.Values)
             {
                 activeReferrals.AddRange(referrals
                     .Where(r => !r.IsUsed && _gameWorld.CurrentDay <= r.ExpiresDay));
             }
         }
-        
+
         return activeReferrals;
     }
-    
+
     /// <summary>
     /// Check if player has referral letter to deliver.
     /// </summary>
     public bool HasReferralLetter(string targetNPCId)
     {
-        var queue = _letterQueueManager.GetPlayerQueue();
+        Letter[] queue = _letterQueueManager.GetPlayerQueue();
         return queue.Any(l => l != null && l.RecipientId == targetNPCId && l.GenerationReason == "Network Referral");
     }
 }

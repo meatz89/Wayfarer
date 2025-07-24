@@ -3,5 +3,8 @@
     Helpful,
     Neutral,
     Wary,
-    Hostile
+    Hostile,
+    Unfriendly,
+    Friendly,
+    Allied
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 namespace Wayfarer.Pages;
 
 public class LocationSpotMapBase : ComponentBase
@@ -17,18 +16,15 @@ public class LocationSpotMapBase : ComponentBase
     [Parameter] public LocationSpot CurrentSpot { get; set; }
     [Parameter] public EventCallback<LocationSpot> OnSpotSelected { get; set; }
     [Parameter] public EventCallback OnActionExecuted { get; set; }
-    
+
     public bool showTooltip;
     public double mouseX;
     public double mouseY;
 
     // Selected NPC for interaction
     public NPC SelectedNPC { get; set; }
-    public List<ActionOption> SelectedNPCActions { get; set; } = new();
-
-    [Inject] public LocationActionManager LocationActionManager { get; set; }
     [Inject] public DebugLogger DebugLogger { get; set; }
-    
+
     protected override void OnInitialized()
     {
         // Initialize component
@@ -38,47 +34,16 @@ public class LocationSpotMapBase : ComponentBase
 
     public void SelectNPC(NPC npc)
     {
-        DebugLogger.LogAction("SelectNPC", npc.ID, $"Selected {npc.Name}");
-        
         SelectedNPC = npc;
-        
-        // Get actions for this NPC if they're available
-        if (IsNPCCurrentlyAvailable(npc))
-        {
-            var allActions = LocationActionManager.GetAvailableActions();
-            SelectedNPCActions = allActions.Where(a => a.NPCId == npc.ID).ToList();
-            DebugLogger.LogDebug($"Found {SelectedNPCActions.Count} actions for {npc.Name}");
-        }
-        else
-        {
-            SelectedNPCActions.Clear();
-        }
-        
         StateHasChanged();
     }
-    
+
     public void DeselectNPC()
     {
         SelectedNPC = null;
-        SelectedNPCActions.Clear();
         StateHasChanged();
     }
-    
-    public async Task ExecuteNPCAction(ActionOption action)
-    {
-        DebugLogger.LogAction("ExecuteNPCAction", action.Name, $"Via NPC {SelectedNPC?.Name}");
-        
-        // UI actions must go through GameWorldManager
-        bool success = await GameWorldManager.ExecuteAction(action);
-        
-        if (success)
-        {
-            DeselectNPC();
-            // Notify parent to refresh UI to check for pending conversations
-            await OnActionExecuted.InvokeAsync();
-        }
-    }
-    
+
     public void Dispose()
     {
         // Component disposal
@@ -106,7 +71,7 @@ public class LocationSpotMapBase : ComponentBase
         TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
         return NPCRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
     }
-    
+
     public List<NPC> GetAvailableNPCsAtCurrentSpot()
     {
         TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
@@ -122,7 +87,7 @@ public class LocationSpotMapBase : ComponentBase
             .Where(npc => npc.SpotId == spot.SpotID)
             .ToList();
     }
-    
+
     public List<NPC> GetAllNPCsAtCurrentSpot()
     {
         return NPCRepository.GetAllNPCs()
@@ -138,17 +103,17 @@ public class LocationSpotMapBase : ComponentBase
     public string GetNextAvailableTime(NPC npc)
     {
         TimeBlocks currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
-        
+
         if (npc.IsAvailable(currentTime))
         {
             return "Available now";
         }
 
         // Check upcoming time blocks in order
-        List<TimeBlocks> timeBlocks = new List<TimeBlocks> 
-        { 
-            TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, 
-            TimeBlocks.Evening, TimeBlocks.Night 
+        List<TimeBlocks> timeBlocks = new List<TimeBlocks>
+        {
+            TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon,
+            TimeBlocks.Evening, TimeBlocks.Night
         };
 
         // Start checking from the next time block
@@ -157,7 +122,7 @@ public class LocationSpotMapBase : ComponentBase
         {
             int nextIndex = (currentIndex + i) % timeBlocks.Count;
             TimeBlocks nextTime = timeBlocks[nextIndex];
-            
+
             if (npc.IsAvailable(nextTime))
             {
                 return $"Next available: {nextTime.ToString().Replace('_', ' ')}";
@@ -245,7 +210,7 @@ public class LocationSpotMapBase : ComponentBase
             _ => "⚪"
         };
     }
-    
+
     /// <summary>
     /// Check if player can request referral from NPC
     /// </summary>
@@ -254,13 +219,13 @@ public class LocationSpotMapBase : ComponentBase
         // Need at least 1 token with the NPC to ask for referrals
         return TokenManager.HasTokensWithNPC(npc.ID, 1);
     }
-    
+
     /// <summary>
     /// Request network referral from NPC
     /// </summary>
     public async Task RequestReferral(string npcId)
     {
-        var referral = NetworkReferralService.RequestReferral(npcId);
+        NetworkReferral referral = NetworkReferralService.RequestReferral(npcId);
         if (referral != null)
         {
             MessageSystem.AddSystemMessage($"Received introduction to {referral.TargetNPCName}!", SystemMessageTypes.Success);

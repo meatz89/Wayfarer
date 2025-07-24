@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Wayfarer.Content.Utilities;
 
 public static class GameWorldSerializer
 {
@@ -14,8 +13,8 @@ public static class GameWorldSerializer
         {
             CurrentLocationId = gameWorld.WorldState.CurrentLocation?.Id,
             CurrentLocationSpotId = gameWorld.WorldState.CurrentLocationSpot?.SpotID,
-            CurrentDay = gameWorld.WorldState.CurrentDay,
-            CurrentTimeHours = gameWorld.WorldState.CurrentTimeHours,
+            CurrentDay = gameWorld.CurrentDay,
+            CurrentTimeHours = gameWorld.TimeManager.GetCurrentTimeHours(),
 
             Player = new SerializablePlayerState
             {
@@ -33,41 +32,41 @@ public static class GameWorldSerializer
                     .Select(item => item.ToString())
                     .ToList(),
                 // Card system removed - using letter queue system
-                
+
                 // Letter Queue System
                 LetterQueue = SerializeLetterQueue(gameWorld.GetPlayer().LetterQueue),
                 ConnectionTokens = SerializeConnectionTokens(gameWorld.GetPlayer().ConnectionTokens),
                 NPCTokens = SerializeNPCTokens(gameWorld.GetPlayer().NPCTokens),
-                
+
                 // Physical Letter Carrying
                 CarriedLetters = gameWorld.GetPlayer().CarriedLetters.Select(SerializeLetter).ToList(),
-                
+
                 // Queue manipulation tracking
                 LastMorningSwapDay = gameWorld.GetPlayer().LastMorningSwapDay,
                 LastLetterBoardDay = gameWorld.GetPlayer().LastLetterBoardDay,
                 DailyBoardLetters = gameWorld.GetPlayer().DailyBoardLetters.Select(SerializeLetter).ToList(),
-                
+
                 // Letter history tracking
                 NPCLetterHistory = SerializeLetterHistory(gameWorld.GetPlayer().NPCLetterHistory),
-                
+
                 // Standing Obligations System
                 StandingObligations = gameWorld.GetPlayer().StandingObligations.Select(SerializeStandingObligation).ToList(),
-                
+
                 // Token Favor System
                 PurchasedFavors = new List<string>(gameWorld.GetPlayer().PurchasedFavors),
                 UnlockedLocationIds = new List<string>(gameWorld.GetPlayer().UnlockedLocationIds),
                 UnlockedServices = new List<string>(gameWorld.GetPlayer().UnlockedServices),
-                
+
                 // Scenario tracking
                 DeliveredLetters = gameWorld.GetPlayer().DeliveredLetters.Select(SerializeLetter).ToList(),
                 TotalLettersDelivered = gameWorld.GetPlayer().TotalLettersDelivered,
                 TotalLettersExpired = gameWorld.GetPlayer().TotalLettersExpired,
                 TotalTokensSpent = gameWorld.GetPlayer().TotalTokensSpent,
-                
+
                 // Patron tracking
                 PatronLeverage = gameWorld.GetPlayer().PatronLeverage
             },
-            
+
             // Narrative state
             FlagServiceState = gameWorld.FlagService?.GetState(),
             NarrativeManagerState = SerializeNarrativeManager(gameWorld.NarrativeManager)
@@ -75,27 +74,27 @@ public static class GameWorldSerializer
 
         return JsonSerializer.Serialize(serialized, _jsonOptions);
     }
-    
+
     // Helper methods for serialization
     private static List<SerializableLetter> SerializeLetterQueue(Letter[] letterQueue)
     {
-        var result = new List<SerializableLetter>();
+        List<SerializableLetter> result = new List<SerializableLetter>();
         for (int i = 0; i < letterQueue.Length; i++)
         {
             if (letterQueue[i] != null)
             {
-                var serialized = SerializeLetter(letterQueue[i]);
+                SerializableLetter serialized = SerializeLetter(letterQueue[i]);
                 serialized.QueuePosition = i + 1; // 1-based position
                 result.Add(serialized);
             }
         }
         return result;
     }
-    
+
     private static SerializableLetter SerializeLetter(Letter letter)
     {
         if (letter == null) return null;
-        
+
         return new SerializableLetter
         {
             Id = letter.Id,
@@ -124,31 +123,31 @@ public static class GameWorldSerializer
             Message = letter.Message
         };
     }
-    
+
     private static Dictionary<string, int> SerializeConnectionTokens(Dictionary<ConnectionType, int> tokens)
     {
-        var result = new Dictionary<string, int>();
-        foreach (var kvp in tokens)
+        Dictionary<string, int> result = new Dictionary<string, int>();
+        foreach (KeyValuePair<ConnectionType, int> kvp in tokens)
         {
             result[kvp.Key.ToString()] = kvp.Value;
         }
         return result;
     }
-    
+
     private static Dictionary<string, Dictionary<string, int>> SerializeNPCTokens(Dictionary<string, Dictionary<ConnectionType, int>> npcTokens)
     {
-        var result = new Dictionary<string, Dictionary<string, int>>();
-        foreach (var npc in npcTokens)
+        Dictionary<string, Dictionary<string, int>> result = new Dictionary<string, Dictionary<string, int>>();
+        foreach (KeyValuePair<string, Dictionary<ConnectionType, int>> npc in npcTokens)
         {
             result[npc.Key] = SerializeConnectionTokens(npc.Value);
         }
         return result;
     }
-    
+
     private static Dictionary<string, SerializableLetterHistory> SerializeLetterHistory(Dictionary<string, LetterHistory> history)
     {
-        var result = new Dictionary<string, SerializableLetterHistory>();
-        foreach (var kvp in history)
+        Dictionary<string, SerializableLetterHistory> result = new Dictionary<string, SerializableLetterHistory>();
+        foreach (KeyValuePair<string, LetterHistory> kvp in history)
         {
             result[kvp.Key] = new SerializableLetterHistory
             {
@@ -160,7 +159,7 @@ public static class GameWorldSerializer
         }
         return result;
     }
-    
+
     private static SerializableStandingObligation SerializeStandingObligation(StandingObligation obligation)
     {
         return new SerializableStandingObligation
@@ -172,24 +171,24 @@ public static class GameWorldSerializer
             BenefitEffects = obligation.BenefitEffects.Select(e => e.ToString()).ToList(),
             ConstraintEffects = obligation.ConstraintEffects.Select(e => e.ToString()).ToList(),
             RelatedTokenType = obligation.RelatedTokenType?.ToString(),
-            DateAccepted = obligation.DateAccepted,
+            DateAccepted = obligation.DayAccepted,
             IsActive = obligation.IsActive,
             DaysSinceLastForcedLetter = obligation.DaysSinceLastForcedLetter
         };
     }
-    
+
     private static NarrativeManagerState SerializeNarrativeManager(NarrativeManager narrativeManager)
     {
         if (narrativeManager == null) return null;
-        
+
         return new NarrativeManagerState
         {
-            ActiveNarratives = new Dictionary<string, NarrativeDefinition>(narrativeManager.GetActiveNarrativeIds()
+            ActiveNarratives = new Dictionary<string, NarrativeDefinition>(narrativeManager.GetActiveNarratives()
                 .ToDictionary(id => id, id => narrativeManager.GetNarrativeDefinition(id))),
             NarrativeDefinitions = new Dictionary<string, NarrativeDefinition>() // Will be populated from content files on load
         };
     }
-    
+
     // Helper methods for deserialization
     private static void DeserializeLetterQueue(List<SerializableLetter> letterQueue, Player player)
     {
@@ -198,23 +197,23 @@ public static class GameWorldSerializer
         {
             player.LetterQueue[i] = null;
         }
-        
+
         // Restore letters to their positions
-        foreach (var letterData in letterQueue)
+        foreach (SerializableLetter letterData in letterQueue)
         {
-            var letter = DeserializeLetter(letterData);
+            Letter letter = DeserializeLetter(letterData);
             if (letter != null && letterData.QueuePosition > 0 && letterData.QueuePosition <= player.LetterQueue.Length)
             {
                 player.LetterQueue[letterData.QueuePosition - 1] = letter; // Convert to 0-based index
             }
         }
     }
-    
+
     private static Letter DeserializeLetter(SerializableLetter data)
     {
         if (data == null) return null;
-        
-        var letter = new Letter
+
+        Letter letter = new Letter
         {
             Id = data.Id,
             SenderName = data.SenderName,
@@ -236,43 +235,43 @@ public static class GameWorldSerializer
             IsChainLetter = data.IsChainLetter,
             Message = data.Message
         };
-        
+
         // Parse enums
-        if (EnumParser.TryParse<ConnectionType>(data.TokenType, out var tokenType))
+        if (EnumParser.TryParse<ConnectionType>(data.TokenType, out ConnectionType tokenType))
             letter.TokenType = tokenType;
-        if (EnumParser.TryParse<LetterState>(data.State, out var state))
+        if (EnumParser.TryParse<LetterState>(data.State, out LetterState state))
             letter.State = state;
-        if (EnumParser.TryParse<SizeCategory>(data.Size, out var size))
+        if (EnumParser.TryParse<SizeCategory>(data.Size, out SizeCategory size))
             letter.Size = size;
-        if (EnumParser.TryParse<LetterPhysicalProperties>(data.PhysicalProperties, out var physicalProps))
+        if (EnumParser.TryParse<LetterPhysicalProperties>(data.PhysicalProperties, out LetterPhysicalProperties physicalProps))
             letter.PhysicalProperties = physicalProps;
-        if (!string.IsNullOrEmpty(data.RequiredEquipment) && EnumParser.TryParse<ItemCategory>(data.RequiredEquipment, out var equipment))
+        if (!string.IsNullOrEmpty(data.RequiredEquipment) && EnumParser.TryParse<ItemCategory>(data.RequiredEquipment, out ItemCategory equipment))
             letter.RequiredEquipment = equipment;
-            
+
         return letter;
     }
-    
+
     private static void DeserializeConnectionTokens(Dictionary<string, int> tokens, Player player)
     {
         player.ConnectionTokens.Clear();
-        foreach (var kvp in tokens)
+        foreach (KeyValuePair<string, int> kvp in tokens)
         {
-            if (EnumParser.TryParse<ConnectionType>(kvp.Key, out var tokenType))
+            if (EnumParser.TryParse<ConnectionType>(kvp.Key, out ConnectionType tokenType))
             {
                 player.ConnectionTokens[tokenType] = kvp.Value;
             }
         }
     }
-    
+
     private static void DeserializeNPCTokens(Dictionary<string, Dictionary<string, int>> npcTokens, Player player)
     {
         player.NPCTokens.Clear();
-        foreach (var npc in npcTokens)
+        foreach (KeyValuePair<string, Dictionary<string, int>> npc in npcTokens)
         {
-            var tokenDict = new Dictionary<ConnectionType, int>();
-            foreach (var token in npc.Value)
+            Dictionary<ConnectionType, int> tokenDict = new Dictionary<ConnectionType, int>();
+            foreach (KeyValuePair<string, int> token in npc.Value)
             {
-                if (EnumParser.TryParse<ConnectionType>(token.Key, out var tokenType))
+                if (EnumParser.TryParse<ConnectionType>(token.Key, out ConnectionType tokenType))
                 {
                     tokenDict[tokenType] = token.Value;
                 }
@@ -280,11 +279,11 @@ public static class GameWorldSerializer
             player.NPCTokens[npc.Key] = tokenDict;
         }
     }
-    
+
     private static void DeserializeLetterHistory(Dictionary<string, SerializableLetterHistory> history, Player player)
     {
         player.NPCLetterHistory.Clear();
-        foreach (var kvp in history)
+        foreach (KeyValuePair<string, SerializableLetterHistory> kvp in history)
         {
             player.NPCLetterHistory[kvp.Key] = new LetterHistory
             {
@@ -295,52 +294,52 @@ public static class GameWorldSerializer
             };
         }
     }
-    
+
     private static StandingObligation DeserializeStandingObligation(SerializableStandingObligation data)
     {
-        var obligation = new StandingObligation
+        StandingObligation obligation = new StandingObligation
         {
             ID = data.ID,
             Name = data.Name,
             Description = data.Description,
             Source = data.Source,
-            DateAccepted = data.DateAccepted,
+            DayAccepted = data.DateAccepted,
             IsActive = data.IsActive,
             DaysSinceLastForcedLetter = data.DaysSinceLastForcedLetter
         };
-        
+
         // Parse benefit effects
-        foreach (var effect in data.BenefitEffects ?? new List<string>())
+        foreach (string effect in data.BenefitEffects ?? new List<string>())
         {
-            if (EnumParser.TryParse<ObligationEffect>(effect, out var effectEnum))
+            if (EnumParser.TryParse<ObligationEffect>(effect, out ObligationEffect effectEnum))
             {
                 obligation.BenefitEffects.Add(effectEnum);
             }
         }
-        
+
         // Parse constraint effects
-        foreach (var effect in data.ConstraintEffects ?? new List<string>())
+        foreach (string effect in data.ConstraintEffects ?? new List<string>())
         {
-            if (EnumParser.TryParse<ObligationEffect>(effect, out var effectEnum))
+            if (EnumParser.TryParse<ObligationEffect>(effect, out ObligationEffect effectEnum))
             {
                 obligation.ConstraintEffects.Add(effectEnum);
             }
         }
-        
+
         // Parse related token type
-        if (!string.IsNullOrEmpty(data.RelatedTokenType) && EnumParser.TryParse<ConnectionType>(data.RelatedTokenType, out var tokenType))
+        if (!string.IsNullOrEmpty(data.RelatedTokenType) && EnumParser.TryParse<ConnectionType>(data.RelatedTokenType, out ConnectionType tokenType))
         {
             obligation.RelatedTokenType = tokenType;
         }
-        
+
         return obligation;
     }
-    
+
     private static void DeserializeNarrativeManager(NarrativeManagerState state, NarrativeManager narrativeManager)
     {
         // Restore active narratives
         // Note: The narrative definitions should be loaded from content files first
-        foreach (var narrative in state.ActiveNarratives ?? new Dictionary<string, NarrativeDefinition>())
+        foreach (KeyValuePair<string, NarrativeDefinition> narrative in state.ActiveNarratives ?? new Dictionary<string, NarrativeDefinition>())
         {
             // Only start narratives that are defined
             if (narrativeManager.GetNarrativeDefinition(narrative.Key) != null)
@@ -373,8 +372,24 @@ public static class GameWorldSerializer
         // Card system removed - using letter queue system
 
         // Apply basic state data
-        gameWorld.WorldState.CurrentDay = serialized.CurrentDay;
-        gameWorld.TimeManager.SetNewTime(serialized.CurrentTimeHours);
+        // Time is restored through TimeManager
+        // Calculate hours to advance from start of day to reach saved time
+        int savedHours = serialized.CurrentTimeHours;
+        int savedDay = serialized.CurrentDay;
+        
+        // First, advance days if needed
+        while (gameWorld.TimeManager.GetCurrentDay() < savedDay)
+        {
+            // Advance 24 hours to get to next day
+            gameWorld.TimeManager.AdvanceTime(24);
+        }
+        
+        // Then advance to the correct hour within the day
+        int currentHour = gameWorld.TimeManager.GetCurrentTimeHours();
+        if (currentHour < savedHours)
+        {
+            gameWorld.TimeManager.AdvanceTime(savedHours - currentHour);
+        }
 
         // Apply player state if character exists
         if (!string.IsNullOrEmpty(serialized.Player.Name))
@@ -401,61 +416,61 @@ public static class GameWorldSerializer
             gameWorld.GetPlayer().Inventory.Clear();
 
             // Card system removed - using conversation and location action systems
-            
+
             // Apply letter queue system
             DeserializeLetterQueue(serialized.Player.LetterQueue, gameWorld.GetPlayer());
             DeserializeConnectionTokens(serialized.Player.ConnectionTokens, gameWorld.GetPlayer());
             DeserializeNPCTokens(serialized.Player.NPCTokens, gameWorld.GetPlayer());
-            
+
             // Apply physical letters
             gameWorld.GetPlayer().CarriedLetters.Clear();
-            foreach (var letterData in serialized.Player.CarriedLetters)
+            foreach (SerializableLetter letterData in serialized.Player.CarriedLetters)
             {
-                var letter = DeserializeLetter(letterData);
+                Letter letter = DeserializeLetter(letterData);
                 if (letter != null)
                     gameWorld.GetPlayer().CarriedLetters.Add(letter);
             }
-            
+
             // Apply queue manipulation tracking
             gameWorld.GetPlayer().LastMorningSwapDay = serialized.Player.LastMorningSwapDay;
             gameWorld.GetPlayer().LastLetterBoardDay = serialized.Player.LastLetterBoardDay;
             gameWorld.GetPlayer().DailyBoardLetters.Clear();
-            foreach (var letterData in serialized.Player.DailyBoardLetters)
+            foreach (SerializableLetter letterData in serialized.Player.DailyBoardLetters)
             {
-                var letter = DeserializeLetter(letterData);
+                Letter letter = DeserializeLetter(letterData);
                 if (letter != null)
                     gameWorld.GetPlayer().DailyBoardLetters.Add(letter);
             }
-            
+
             // Apply letter history
             DeserializeLetterHistory(serialized.Player.NPCLetterHistory, gameWorld.GetPlayer());
-            
+
             // Apply standing obligations
             gameWorld.GetPlayer().StandingObligations.Clear();
-            foreach (var obligationData in serialized.Player.StandingObligations)
+            foreach (SerializableStandingObligation obligationData in serialized.Player.StandingObligations)
             {
-                var obligation = DeserializeStandingObligation(obligationData);
+                StandingObligation obligation = DeserializeStandingObligation(obligationData);
                 if (obligation != null)
                     gameWorld.GetPlayer().StandingObligations.Add(obligation);
             }
-            
+
             // Apply token favor system
             gameWorld.GetPlayer().PurchasedFavors = new List<string>(serialized.Player.PurchasedFavors);
             gameWorld.GetPlayer().UnlockedLocationIds = new List<string>(serialized.Player.UnlockedLocationIds);
             gameWorld.GetPlayer().UnlockedServices = new List<string>(serialized.Player.UnlockedServices);
-            
+
             // Apply scenario tracking
             gameWorld.GetPlayer().DeliveredLetters.Clear();
-            foreach (var letterData in serialized.Player.DeliveredLetters)
+            foreach (SerializableLetter letterData in serialized.Player.DeliveredLetters)
             {
-                var letter = DeserializeLetter(letterData);
+                Letter letter = DeserializeLetter(letterData);
                 if (letter != null)
                     gameWorld.GetPlayer().DeliveredLetters.Add(letter);
             }
             gameWorld.GetPlayer().TotalLettersDelivered = serialized.Player.TotalLettersDelivered;
             gameWorld.GetPlayer().TotalLettersExpired = serialized.Player.TotalLettersExpired;
             gameWorld.GetPlayer().TotalTokensSpent = serialized.Player.TotalTokensSpent;
-            
+
             // Apply patron tracking
             gameWorld.GetPlayer().PatronLeverage = serialized.Player.PatronLeverage;
         }
@@ -486,13 +501,13 @@ public static class GameWorldSerializer
                 }
             }
         }
-        
+
         // Apply FlagService state
         if (serialized.FlagServiceState != null && gameWorld.FlagService != null)
         {
             gameWorld.FlagService.LoadState(serialized.FlagServiceState);
         }
-        
+
         // Apply NarrativeManager state
         if (serialized.NarrativeManagerState != null && gameWorld.NarrativeManager != null)
         {

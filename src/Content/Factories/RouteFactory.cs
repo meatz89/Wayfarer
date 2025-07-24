@@ -12,7 +12,7 @@ public class RouteFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create a route with validated location references
     /// </summary>
@@ -35,9 +35,9 @@ public class RouteFactory
             throw new ArgumentException("Route ID cannot be empty", nameof(id));
         if (string.IsNullOrEmpty(name))
             throw new ArgumentException("Route name cannot be empty", nameof(name));
-        
+
         // Create route with validated references
-        var route = new RouteOption
+        RouteOption route = new RouteOption
         {
             Id = id,
             Name = name,
@@ -51,10 +51,10 @@ public class RouteFactory
             IsDiscovered = false, // Routes start undiscovered by default
             MaxItemCapacity = method == TravelMethods.Walking ? 3 : 5
         };
-        
+
         return route;
     }
-    
+
     /// <summary>
     /// Create a route from string IDs with validation
     /// </summary>
@@ -71,15 +71,15 @@ public class RouteFactory
         string description = "")
     {
         // Resolve to actual objects
-        var origin = availableLocations.FirstOrDefault(l => l.Id == originId);
-        var destination = availableLocations.FirstOrDefault(l => l.Id == destinationId);
-        
+        Location? origin = availableLocations.FirstOrDefault(l => l.Id == originId);
+        Location? destination = availableLocations.FirstOrDefault(l => l.Id == destinationId);
+
         if (origin == null)
             throw new InvalidOperationException($"Cannot create route: origin location '{originId}' not found");
         if (destination == null)
             throw new InvalidOperationException($"Cannot create route: destination location '{destinationId}' not found");
-        
-        return CreateRoute(id, name, origin, destination, method, travelTimeHours, 
+
+        return CreateRoute(id, name, origin, destination, method, travelTimeHours,
                           baseStaminaCost, baseCoinCost, description);
     }
 }

@@ -85,39 +85,6 @@
                                             <button class="close-npc-button" @onclick="DeselectNPC">✕</button>
                                         </div>
                                         
-                                        @if (isCurrentlyAvailable && SelectedNPCActions.Any())
-                                        {
-                                            <div class="npc-action-list">
-                                                <h4>Available Actions:</h4>
-                                                @foreach (var action in SelectedNPCActions)
-                                                {
-                                                    <div class="npc-action-item">
-                                                        <div class="action-header">
-                                                            <span class="action-name">@action.Name</span>
-                                                            <div class="action-costs">
-                                                                @if (action.HourCost > 0)
-                                                                {
-                                                                    <span class="cost">⏰ @action.HourCost hr</span>
-                                                                }
-                                                                @if (action.StaminaCost > 0)
-                                                                {
-                                                                    <span class="cost">💪 @action.StaminaCost</span>
-                                                                }
-                                                                @if (action.CoinCost > 0)
-                                                                {
-                                                                    <span class="cost">💰 @action.CoinCost</span>
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                        <p class="action-description">@action.Description</p>
-                                                        <p class="action-effect">➜ @action.Effect</p>
-                                                        <button class="action-button" @onclick="async () => await ExecuteNPCAction(action)">
-                                                            Perform Action
-                                                        </button>
-                                                    </div>
-                                                }
-                                            </div>
-                                        }
                                         else if (isCurrentlyAvailable)
                                         {
                                             <div class="npc-no-actions">

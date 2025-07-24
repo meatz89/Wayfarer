@@ -68,30 +68,6 @@
             Begin Your Journey
         </button>
     </div>
-    
-    @* Optional Scenario Selection *@
-    <div class="scenario-option-section">
-        <h4>Optional: Start with a Challenge</h4>
-        <div class="scenario-toggle">
-            <label class="scenario-checkbox">
-                <input type="checkbox" @bind="startWithScenario" />
-                <span>Begin with the 14-Day Challenge scenario</span>
-            </label>
-            @if (startWithScenario)
-            {
-                <div class="scenario-info">
-                    <p>📜 <strong>Master the Queue - Survive 14 Days</strong></p>
-                    <ul>
-                        <li>Start with 3 letters already in your queue</li>
-                        <li>Limited starting resources (12 coins)</li>
-                        <li>Maintain 3+ positive relationships</li>
-                        <li>Deliver your patron's final letter</li>
-                    </ul>
-                    <p class="scenario-warning">⚠️ This is a challenging start for experienced players!</p>
-                </div>
-            }
-        </div>
-    </div>
 </div>
 
 @code {

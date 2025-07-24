@@ -1,30 +1,21 @@
 using System.Collections.Generic;
-
-namespace Wayfarer.Core.Repositories
+/// <summary>
+/// Repository interface for LocationSpot entities
+/// </summary>
+public interface ILocationSpotRepository : IRepository<LocationSpot>
 {
     /// <summary>
-    /// Repository interface for LocationSpot entities
+    /// Get spots for a specific location
     /// </summary>
-    public interface ILocationSpotRepository : IRepository<LocationSpot>
-    {
-        /// <summary>
-        /// Get spots for a specific location
-        /// </summary>
-        IEnumerable<LocationSpot> GetSpotsForLocation(string locationId);
+    IEnumerable<LocationSpot> GetSpotsForLocation(string locationId);
 
-        /// <summary>
-        /// Get a spot by its SpotID
-        /// </summary>
-        LocationSpot GetBySpotId(string spotId);
+    /// <summary>
+    /// Get a spot by its SpotID
+    /// </summary>
+    LocationSpot GetBySpotId(string spotId);
 
-        /// <summary>
-        /// Get spots by type
-        /// </summary>
-        IEnumerable<LocationSpot> GetSpotsByType(LocationSpotType spotType);
-
-        /// <summary>
-        /// Get spots that have NPCs
-        /// </summary>
-        IEnumerable<LocationSpot> GetSpotsWithNPCs();
-    }
+    /// <summary>
+    /// Get spots that have NPCs
+    /// </summary>
+    IEnumerable<LocationSpot> GetSpotsWithNPCs();
 }

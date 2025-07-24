@@ -12,7 +12,7 @@ public static class NPCParser
         JsonElement root = doc.RootElement;
 
         string locationId = GetStringProperty(root, "locationId", "");
-        
+
         NPC npc = new NPC
         {
             ID = GetStringProperty(root, "id", ""),
@@ -22,7 +22,7 @@ public static class NPCParser
             Location = locationId, // Use locationId for location
             SpotId = GetStringProperty(root, "spotId", ""), // Map spotId from JSON
         };
-        
+
         Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{locationId}'");
 
         // Parse profession with mapping from JSON values to enum
@@ -46,10 +46,10 @@ public static class NPCParser
         npc.PlayerRelationship = NPCRelationship.Neutral;
 
         // Parse letter token types for letter queue system
-        var letterTokenTypes = GetStringArray(root, "letterTokenTypes");
-        foreach (var tokenTypeStr in letterTokenTypes)
+        List<string> letterTokenTypes = GetStringArray(root, "letterTokenTypes");
+        foreach (string tokenTypeStr in letterTokenTypes)
         {
-            var tokenType = ParseConnectionType(tokenTypeStr);
+            ConnectionType? tokenType = ParseConnectionType(tokenTypeStr);
             if (tokenType.HasValue && !npc.LetterTokenTypes.Contains(tokenType.Value))
             {
                 npc.LetterTokenTypes.Add(tokenType.Value);

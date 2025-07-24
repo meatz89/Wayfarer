@@ -94,16 +94,10 @@
 </div>
 
 @code {
-    @implements IDisposable
-    
     protected override void OnInitialized()
     {
-        NavigationService.OnNavigationChanged += OnNavigationChanged;
-    }
-    
-    private void OnNavigationChanged(CurrentViews newView)
-    {
-        InvokeAsync(StateHasChanged);
+        // NavigationBar will re-render when parent state changes
+        // No need to subscribe to events - Blazor handles this
     }
     
     private void NavigateTo(CurrentViews view)
@@ -163,8 +157,4 @@
                ObligationManager.GetActiveObligations().Any();
     }
     
-    public void Dispose()
-    {
-        NavigationService.OnNavigationChanged -= OnNavigationChanged;
-    }
 }

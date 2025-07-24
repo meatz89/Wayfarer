@@ -10,7 +10,7 @@ public class MarketManager
     private readonly ItemRepository _itemRepository;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
-    private readonly TimeManager _timeManager;
+    private readonly ITimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
 
     /// <summary>
@@ -305,7 +305,7 @@ public class MarketManager
             $"💰 Purchasing {item.Name} for {buyPrice} coins...",
             SystemMessageTypes.Info
         );
-        
+
         player.Coins -= buyPrice;
 
         // Use size-aware inventory method
@@ -320,13 +320,13 @@ public class MarketManager
             );
             return false;
         }
-        
+
         // Success narrative
         _messageSystem.AddSystemMessage(
             $"✅ Purchased {item.Name} for {buyPrice} coins.",
             SystemMessageTypes.Success
         );
-        
+
         _messageSystem.AddSystemMessage(
             $"  • Remaining coins: {player.Coins}",
             SystemMessageTypes.Info
@@ -356,22 +356,22 @@ public class MarketManager
 
         // Get item for narrative context
         Item item = _itemRepository.GetItemById(itemId);
-        
+
         // Show the transaction
         _messageSystem.AddSystemMessage(
             $"💰 Selling {item.Name} for {sellPrice} coins...",
             SystemMessageTypes.Info
         );
-        
+
         player.Inventory.RemoveItem(itemId);
         player.Coins += sellPrice;
-        
+
         // Success narrative
         _messageSystem.AddSystemMessage(
             $"✅ Sold {item.Name} for {sellPrice} coins.",
             SystemMessageTypes.Success
         );
-        
+
         _messageSystem.AddSystemMessage(
             $"  • Total coins: {player.Coins}",
             SystemMessageTypes.Info
@@ -633,7 +633,7 @@ public class MarketManager
             .ToList();
 
         Console.WriteLine($"[DEBUG] IsMarketAvailableAtLocation: location={locationId}, time={currentTime}, tradeNPCs={tradeNPCs.Count}");
-        
+
         // Market is available if at least one trade NPC is present
         bool available = tradeNPCs.Any();
         Console.WriteLine($"[DEBUG] Market available at {locationId}: {available}");
@@ -697,7 +697,7 @@ public class MarketManager
 
         if (currentlyAvailable.Any())
         {
-            var traderNames = string.Join(", ", currentlyAvailable.Select(npc => npc.Name));
+            string traderNames = string.Join(", ", currentlyAvailable.Select(npc => npc.Name));
             return $"Market Open - Traders available: {traderNames}";
         }
         else

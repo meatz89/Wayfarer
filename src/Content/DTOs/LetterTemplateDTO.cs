@@ -13,19 +13,19 @@ public class LetterTemplateDTO
     public int MaxDeadline { get; set; }
     public int MinPayment { get; set; }
     public int MaxPayment { get; set; }
-    
+
     // Letter category and requirements
     public string Category { get; set; } = "Basic";
     public int? MinTokensRequired { get; set; } = 3;
-    
+
     // Optional fields
     public List<string> PossibleSenders { get; set; }
     public List<string> PossibleRecipients { get; set; }
-    
+
     // Letter chain properties
     public List<string> UnlocksLetterIds { get; set; }
     public bool IsChainLetter { get; set; }
-    
+
     // Physical properties
     public string Size { get; set; } = "Medium";
     public List<string> PhysicalProperties { get; set; }

@@ -10,14 +10,13 @@ namespace Wayfarer.GameState;
 public class GameTransaction
 {
     private readonly List<IGameOperation> _operations = new();
-    private readonly List<IGameOperation> _completed = new();
     private readonly GameWorld _gameWorld;
-    
+
     public GameTransaction(GameWorld gameWorld)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
     }
-    
+
     /// <summary>
     /// Adds an operation to the transaction
     /// </summary>
@@ -27,77 +26,65 @@ public class GameTransaction
         _operations.Add(operation);
         return this;
     }
-    
+
     /// <summary>
     /// Validates whether all operations in the transaction can execute
     /// </summary>
     public TransactionValidationResult Validate()
     {
-        var failedOperations = new List<string>();
-        
-        foreach (var operation in _operations)
+        List<string> failedOperations = new List<string>();
+
+        foreach (IGameOperation operation in _operations)
         {
             if (!operation.CanExecute(_gameWorld))
             {
                 failedOperations.Add(operation.Description);
             }
         }
-        
+
         return new TransactionValidationResult
         {
             IsValid = !failedOperations.Any(),
             FailedOperations = failedOperations
         };
     }
-    
+
     /// <summary>
     /// Executes all operations in the transaction atomically
     /// </summary>
     public TransactionResult Execute()
     {
         // First validate all operations
-        var validation = Validate();
+        TransactionValidationResult validation = Validate();
         if (!validation.IsValid)
         {
             return TransactionResult.ValidationFailure(validation.FailedOperations);
         }
-        
+
         try
         {
             // Execute each operation
-            foreach (var operation in _operations)
+            int completedCount = 0;
+            foreach (IGameOperation operation in _operations)
             {
                 operation.Execute(_gameWorld);
-                _completed.Add(operation);
+                completedCount++;
             }
-            
+
             return TransactionResult.Success(_operations.Select(o => o.Description).ToList());
         }
         catch (Exception ex)
         {
-            // Rollback completed operations in reverse order
-            foreach (var operation in _completed.AsEnumerable().Reverse())
-            {
-                try
-                {
-                    operation.Rollback(_gameWorld);
-                }
-                catch (Exception rollbackEx)
-                {
-                    // Log rollback failure but continue rolling back other operations
-                    Console.WriteLine($"Rollback failed for operation '{operation.Description}': {rollbackEx.Message}");
-                }
-            }
-            
-            return TransactionResult.ExecutionFailure(ex, _completed.Count, _operations.Count);
+            // Cannot rollback - operations are not reversible
+            return TransactionResult.ExecutionFailure(ex, 0, _operations.Count);
         }
     }
-    
+
     /// <summary>
     /// Gets the number of operations in this transaction
     /// </summary>
     public int OperationCount => _operations.Count;
-    
+
     /// <summary>
     /// Gets descriptions of all operations in the transaction
     /// </summary>
@@ -121,40 +108,40 @@ public class TransactionValidationResult
 /// </summary>
 public class TransactionResult
 {
-    public bool Success { get; private set; }
+    public bool IsSuccess { get; private set; }
     public string Message { get; private set; }
     public TransactionFailureType? FailureType { get; private set; }
     public List<string> CompletedOperations { get; private set; } = new();
     public List<string> FailedOperations { get; private set; } = new();
     public Exception Exception { get; private set; }
-    
+
     public static TransactionResult Success(List<string> completedOperations)
     {
         return new TransactionResult
         {
-            Success = true,
+            IsSuccess = true,
             Message = $"Transaction completed successfully with {completedOperations.Count} operations",
             CompletedOperations = completedOperations
         };
     }
-    
+
     public static TransactionResult ValidationFailure(List<string> failedOperations)
     {
         return new TransactionResult
         {
-            Success = false,
+            IsSuccess = false,
             Message = $"Transaction validation failed. {failedOperations.Count} operations cannot execute.",
             FailureType = TransactionFailureType.ValidationFailed,
             FailedOperations = failedOperations
         };
     }
-    
+
     public static TransactionResult ExecutionFailure(Exception ex, int completedCount, int totalCount)
     {
         return new TransactionResult
         {
-            Success = false,
-            Message = $"Transaction failed after completing {completedCount}/{totalCount} operations. All changes have been rolled back.",
+            IsSuccess = false,
+            Message = $"Transaction failed after completing {completedCount}/{totalCount} operations.",
             FailureType = TransactionFailureType.ExecutionFailed,
             Exception = ex
         };

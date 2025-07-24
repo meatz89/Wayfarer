@@ -1,6 +1,5 @@
 using System;
 using System.Text.Json;
-using Wayfarer.Content.Utilities;
 
 /// <summary>
 /// Parser for deserializing standing obligation data from JSON.
@@ -22,41 +21,41 @@ public static class StandingObligationParser
 
     public static StandingObligation ParseStandingObligation(JsonElement element)
     {
-        var obligation = new StandingObligation();
+        StandingObligation obligation = new StandingObligation();
 
-        if (element.TryGetProperty("ID", out var idElement))
+        if (element.TryGetProperty("ID", out JsonElement idElement))
             obligation.ID = idElement.GetString() ?? "";
 
-        if (element.TryGetProperty("Name", out var nameElement))
+        if (element.TryGetProperty("Name", out JsonElement nameElement))
             obligation.Name = nameElement.GetString() ?? "";
 
-        if (element.TryGetProperty("Description", out var descElement))
+        if (element.TryGetProperty("Description", out JsonElement descElement))
             obligation.Description = descElement.GetString() ?? "";
 
-        if (element.TryGetProperty("Source", out var sourceElement))
+        if (element.TryGetProperty("Source", out JsonElement sourceElement))
             obligation.Source = sourceElement.GetString() ?? "";
 
-        if (element.TryGetProperty("RelatedTokenType", out var tokenElement) && 
+        if (element.TryGetProperty("RelatedTokenType", out JsonElement tokenElement) &&
             !tokenElement.ValueKind.Equals(JsonValueKind.Null))
         {
-            if (EnumParser.TryParse<ConnectionType>(tokenElement.GetString(), out var tokenType))
+            if (EnumParser.TryParse<ConnectionType>(tokenElement.GetString(), out ConnectionType tokenType))
                 obligation.RelatedTokenType = tokenType;
         }
 
-        if (element.TryGetProperty("BenefitEffects", out var benefitsElement))
+        if (element.TryGetProperty("BenefitEffects", out JsonElement benefitsElement))
         {
-            foreach (var benefitElement in benefitsElement.EnumerateArray())
+            foreach (JsonElement benefitElement in benefitsElement.EnumerateArray())
             {
-                if (EnumParser.TryParse<ObligationEffect>(benefitElement.GetString(), out var effect))
+                if (EnumParser.TryParse<ObligationEffect>(benefitElement.GetString(), out ObligationEffect effect))
                     obligation.BenefitEffects.Add(effect);
             }
         }
 
-        if (element.TryGetProperty("ConstraintEffects", out var constraintsElement))
+        if (element.TryGetProperty("ConstraintEffects", out JsonElement constraintsElement))
         {
-            foreach (var constraintElement in constraintsElement.EnumerateArray())
+            foreach (JsonElement constraintElement in constraintsElement.EnumerateArray())
             {
-                if (EnumParser.TryParse<ObligationEffect>(constraintElement.GetString(), out var effect))
+                if (EnumParser.TryParse<ObligationEffect>(constraintElement.GetString(), out ObligationEffect effect))
                     obligation.ConstraintEffects.Add(effect);
             }
         }

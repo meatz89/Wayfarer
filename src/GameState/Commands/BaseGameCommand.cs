@@ -1,34 +1,21 @@
-using System;
-using System.Threading.Tasks;
-
-namespace Wayfarer.GameState.Commands;
-
 /// <summary>
 /// Base class for game commands providing common functionality.
 /// </summary>
 public abstract class BaseGameCommand : IGameCommand
 {
     public string CommandId { get; }
-    public abstract string Description { get; }
-    public virtual bool CanUndo => true;
-    
+    public string CommandType { get; protected set; }
+    public string Description { get; protected set; }
+
     protected BaseGameCommand()
     {
         CommandId = Guid.NewGuid().ToString();
     }
-    
+
     public abstract CommandValidationResult CanExecute(GameWorld gameWorld);
-    
+
     public abstract Task<CommandResult> ExecuteAsync(GameWorld gameWorld);
-    
-    public virtual Task UndoAsync(GameWorld gameWorld)
-    {
-        if (!CanUndo)
-            throw new InvalidOperationException($"Command {GetType().Name} does not support undo operations");
-            
-        throw new NotImplementedException($"Undo not implemented for {GetType().Name}");
-    }
-    
+
     /// <summary>
     /// Helper method to check if player has sufficient resources.
     /// </summary>
@@ -42,7 +29,7 @@ public abstract class BaseGameCommand : IGameCommand
                 remediationHint: $"Earn {coinsRequired - player.Coins} more coins"
             );
         }
-        
+
         if (staminaRequired > 0 && player.Stamina < staminaRequired)
         {
             return CommandValidationResult.Failure(
@@ -51,7 +38,7 @@ public abstract class BaseGameCommand : IGameCommand
                 remediationHint: "Rest to restore stamina"
             );
         }
-        
+
         return CommandValidationResult.Success();
     }
 }

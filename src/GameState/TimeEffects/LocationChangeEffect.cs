@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using Wayfarer.GameState.StateContainers;
 
-namespace Wayfarer.GameState.TimeEffects;
 
 /// <summary>
 /// Effect that changes the player's location as part of a time-based action.
@@ -34,7 +32,7 @@ public class LocationChangeEffect : ITimeBasedEffect
         _previousLocation = _player.CurrentLocation;
         _player.CurrentLocation = _newLocation;
 
-        var result = EffectResult.Succeeded($"Moved to {_newLocation.Name}");
+        EffectResult result = EffectResult.Succeeded($"Moved to {_newLocation.Name}");
         result.OutputData["previous_location"] = _previousLocation;
         result.OutputData["new_location"] = _newLocation;
 

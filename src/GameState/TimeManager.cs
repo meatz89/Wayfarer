@@ -1,135 +1,171 @@
 /// <summary>
-/// TimeManager manages the game's hour-based time system.
-/// 
-/// ARCHITECTURAL PRINCIPLE: Hours as Primary Resource
-/// - Players have 16 active hours per day (6 AM - 10 PM)
-/// - Every meaningful action costs 1+ hours
-/// - Time periods (Dawn/Morning/etc) are for NPC availability only
-/// - No complex time mechanics - just hour consumption
-/// 
-/// TIME PERIODS (for NPC scheduling):
-/// - Dawn: 6:00-7:59 (2 hours) - Early risers available
-/// - Morning: 8:00-11:59 (4 hours) - Most NPCs active  
-/// - Afternoon: 12:00-15:59 (4 hours) - Business hours
-/// - Evening: 16:00-19:59 (4 hours) - Social hours
-/// - Night: 20:00-21:59 (2 hours) - Limited availability
-/// - Late Night: 22:00-5:59 (8 hours) - Sleep/rest only
+/// Manages all time-related operations in the game.
+/// Single source of truth for time state and progression.
 /// </summary>
-public class TimeManager
+public class TimeManager : ITimeManager
 {
-    public const int TimeDayStart = 6;
-    public const int TimeNightStart = 22;
-    public const int HoursPerDay = 16; // 6 AM to 10 PM
+    private readonly TimeModel _timeModel;
+    private readonly ILogger<TimeManager> _logger;
+    private readonly MessageSystem _messageSystem;
 
-    private Player player;
-    private WorldState worldState;
+    public TimeModel TimeModel => _timeModel;
 
-    public int CurrentTimeHours { get; private set; }
+    public int CurrentHour => _timeModel.CurrentHour;
 
-    public int HoursRemaining => Math.Max(0, TimeNightStart - CurrentTimeHours);
-    
-    public bool CanPerformAction(int hoursRequired = 1)
+    public int CurrentDay => _timeModel.CurrentDay;
+
+    public TimeBlocks CurrentTimeBlock => _timeModel.CurrentTimeBlock;
+
+    public int ActiveHoursRemaining => _timeModel.ActiveHoursRemaining;
+
+    // ITimeManager compatibility properties
+    public int HoursRemaining => ActiveHoursRemaining;
+
+    public int CurrentTimeHours => CurrentHour;
+
+    public TimeManager(
+        TimeModel timeModel,
+        MessageSystem messageSystem,
+        ILogger<TimeManager> logger)
     {
-        return CurrentTimeHours + hoursRequired <= TimeNightStart;
-    }
+        _timeModel = timeModel ?? throw new ArgumentNullException(nameof(timeModel));
+        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public TimeManager(Player player, WorldState worldState)
-    {
-        this.player = player;
-        this.worldState = worldState;
-
-        // Initialize time to start of day if not set
-        if (CurrentTimeHours == 0)
-        {
-            CurrentTimeHours = TimeDayStart;
-        }
-    }
-
-    public void SetNewTime(int hours)
-    {
-        CurrentTimeHours = hours;
-        // Update WorldState to stay synchronized
-        worldState.CurrentTimeBlock = GetCurrentTimeBlock();
-    }
-
-    public void StartNewDay()
-    {
-        worldState.CurrentDay++;
-
-        // Reset time blocks for the new day
-
-        // Reset time to dawn - no action point regeneration per Period-Based Activity Planning user story
-        SetNewTime(TimeDayStart);
+        // Events removed per architecture guidelines - handle results directly
     }
 
     /// <summary>
-    /// Get current time hours
+    /// Checks if an action requiring specified hours can be performed.
     /// </summary>
-    /// <returns>Current time hours</returns>
+    public bool CanPerformAction(int hoursRequired = 1)
+    {
+        return _timeModel.CanPerformAction(hoursRequired);
+    }
+
+    // ITimeManager implementation methods
     public int GetCurrentTimeHours()
     {
         return CurrentTimeHours;
     }
 
-    /// <summary>
-    /// Get current day from WorldState
-    /// </summary>
-    /// <returns>Current day</returns>
     public int GetCurrentDay()
     {
-        return worldState.CurrentDay;
+        return CurrentDay;
     }
 
-    /// <summary>
-    /// Get current time block calculated from current hour.
-    /// This is the core architectural fix: TimeBlocks calculated, not stored.
-    /// Maps 24 hours to 5 time blocks: Dawn, Morning, Afternoon, Evening, Night
-    /// </summary>
-    /// <returns>Current time block</returns>
     public TimeBlocks GetCurrentTimeBlock()
     {
-        return CurrentTimeHours switch
-        {
-            >= 6 and < 9 => TimeBlocks.Dawn,      // 6:00-8:59 (3 hours)
-            >= 9 and < 12 => TimeBlocks.Morning,   // 9:00-11:59 (3 hours)
-            >= 12 and < 16 => TimeBlocks.Afternoon, // 12:00-15:59 (4 hours)
-            >= 16 and < 20 => TimeBlocks.Evening,   // 16:00-19:59 (4 hours)
-            _ => TimeBlocks.Night                   // 20:00-5:59 (10 hours) - covers >= 20 or < 6
-        };
+        return CurrentTimeBlock;
     }
-    
-    /// <summary>
-    /// Advance time by the specified number of hours
-    /// </summary>
+
+    // Compatibility method from old TimeManager
     public bool SpendHours(int hours)
     {
         if (hours <= 0) return false;
         if (!CanPerformAction(hours)) return false;
-        
-        CurrentTimeHours += hours;
-        
-        // Update WorldState to stay synchronized
-        worldState.CurrentTimeBlock = GetCurrentTimeBlock();
-        return true;
+
+        Task<bool> task = SpendTime(hours, "Action");
+        task.Wait(); // Synchronous for compatibility
+        return task.Result;
     }
-    
-    /// <summary>
-    /// Force time advancement (for sleep, etc)
-    /// </summary>
+
     public void AdvanceTime(int hours)
     {
         if (hours <= 0) return;
-        
-        CurrentTimeHours += hours;
-        
-        // Handle day rollover
-        while (CurrentTimeHours >= 24)
+
+        TimeTransaction transaction = CreateTransaction()
+            .WithHours(hours, "Time advancement")
+            .RequireActiveHours(false);
+
+        transaction.Execute();
+    }
+
+    public void SetNewTime(int hours)
+    {
+        // This is a bit tricky - we need to calculate the difference
+        int currentHour = CurrentHour;
+        int difference = hours - currentHour;
+
+        if (difference > 0)
         {
-            CurrentTimeHours -= 24;
-            StartNewDay();
+            AdvanceTime(difference);
         }
-        
-        // Update WorldState to stay synchronized
-        worldState.CurrentTimeBlock = GetCurrentTimeBlock();
+        else if (difference < 0)
+        {
+            // Can't go backwards in time, advance to next day at target hour
+            int hoursToAdvance = (24 - currentHour) + hours;
+            AdvanceTime(hoursToAdvance);
+        }
+    }
+
+    /// <summary>
+    /// Creates a new time transaction for complex time-based operations.
+    /// </summary>
+    public TimeTransaction CreateTransaction()
+    {
+        return new TimeTransaction(_timeModel);
+    }
+
+    /// <summary>
+    /// Simple time advancement for basic actions.
+    /// </summary>
+    public async Task<bool> SpendTime(int hours, string description = null)
+    {
+        if (!CanPerformAction(hours))
+        {
+            _messageSystem.AddSystemMessage(
+                $"Not enough time remaining. Need {hours} hours, have {ActiveHoursRemaining}.",
+                SystemMessageTypes.Warning);
+            return false;
+        }
+
+        TimeTransaction transaction = CreateTransaction()
+            .WithHours(hours, description);
+
+        TimeTransactionResult result = transaction.Execute();
+
+        if (result.IsSuccess)
+        {
+            string timeDesc = hours == 1 ? "1 hour" : $"{hours} hours";
+            _messageSystem.AddSystemMessage(
+                $"⏱️ {description ?? "Time passed"}: {timeDesc}",
+                SystemMessageTypes.Info);
+        }
+
+        return result.IsSuccess;
+    }
+
+    /// <summary>
+    /// Gets a description of the current time state.
+    /// </summary>
+    public string GetTimeDescription()
+    {
+        return _timeModel.GetTimeDescription();
+    }
+
+    /// <summary>
+    /// Gets the current time as a formatted string.
+    /// </summary>
+    public string GetTimeString()
+    {
+        return _timeModel.GetTimeString();
+    }
+
+    // Handle time advancement result directly
+    private void HandleTimeAdvancement(TimeAdvancementResult result)
+    {
+        _logger.LogDebug("Time advanced by {Hours} hours to Day {Day}, Hour {Hour}",
+            result.HoursAdvanced,
+            result.NewState.CurrentDay,
+            result.NewState.CurrentHour);
+
+        // Log time block transitions
+        if (result.CrossedTimeBlock)
+        {
+            _logger.LogInformation("Time block changed from {OldBlock} to {NewBlock}",
+                result.OldTimeBlock,
+                result.NewTimeBlock);
+        }
     }
 }

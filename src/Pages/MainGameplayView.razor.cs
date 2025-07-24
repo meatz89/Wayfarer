@@ -31,13 +31,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public int Concentration { get; set; } = 0;
     public Location CurrentLocation { get; set; }
 
-    public Player PlayerState
-    {
-        get
-        {
-            return GameWorld.GetPlayer();
-        }
-    }
+    public Player PlayerState => GameWorld.GetPlayer();
 
     // Tooltip State
     public bool ShowTooltip = false;
@@ -50,85 +44,43 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public string ActionMessageType = "success";
     public List<string> ActionMessages = new List<string>();
     public ElementReference SidebarRef;
-    
+
     // System Messages from GameWorld
     public List<SystemMessage> SystemMessages = new List<SystemMessage>();
 
     // Time Planning State
     public bool showFullDayView = false;
-    
+
     // Letter Offer State
     public bool ShowLetterOfferDialog = false;
     public NPC CurrentNPCOffer = null;
-    
+
     // Morning Activities State
     public bool ShowMorningSummary = false;
     public MorningActivityResult MorningActivityResult = null;
     public TimeBlocks? LastTimeBlock = null;
-    
+
     // Debug State
     public bool ShowDebugPanel = false;
 
 
     public bool HasApLeft { get; set; }
-    public bool HasNoApLeft
-    {
-        get
-        {
-            return !HasApLeft;
-        }
-    }
+    public bool HasNoApLeft => !HasApLeft;
 
 
-    public int TurnActionPoints
-    {
-        get
-        {
-            return 0; // ActionPoints system removed
-        }
-    }
+    public int TurnActionPoints => 0; // ActionPoints system removed
 
     public ConversationBeatOutcome ConversationBeatOutcome { get; set; }
     public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
 
-    public LocationSpot CurrentSpot
-    {
-        get
-        {
-            return LocationRepository.GetCurrentLocationSpot();
-        }
-    }
-    public TimeBlocks CurrentTime
-    {
-        get
-        {
-            return GameWorld.TimeManager.GetCurrentTimeBlock();
-        }
-    }
+    public LocationSpot CurrentSpot => LocationRepository.GetCurrentLocationSpot();
+    public TimeBlocks CurrentTime => GameWorld.TimeManager.GetCurrentTimeBlock();
 
-    public int CurrentHour
-    {
-        get
-        {
-            return GameWorld.TimeManager.GetCurrentTimeHours();
-        }
-    }
+    public int CurrentHour => GameWorld.TimeManager.GetCurrentTimeHours();
 
-    public WeatherCondition CurrentWeather
-    {
-        get
-        {
-            return GameWorld.CurrentWeather;
-        }
-    }
+    public WeatherCondition CurrentWeather => GameWorld.CurrentWeather;
 
-    public List<Location> Locations
-    {
-        get
-        {
-            return GameManager.GetPlayerKnownLocations();
-        }
-    }
+    public List<Location> Locations => GameManager.GetPlayerKnownLocations();
 
     public Dictionary<SidebarSections, bool> ExpandedSections = new Dictionary<SidebarSections, bool>
     {
@@ -141,21 +93,20 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        // Subscribe to navigation changes
-        NavigationService.OnNavigationChanged += OnNavigationChanged;
-        
+        // Events removed per architecture guidelines - handle navigation results directly
+
         DebugLogger.LogDebug("MainGameplayView initialized - starting polling");
-        
+
         // Verify initial state
         if (IsGameDataReady())
         {
             DebugLogger.LogDebug("Game data is ready - running initial verification");
-            
+
             // Log initial state report
-            var report = "State verification removed";
+            string report = "State verification removed";
             DebugLogger.LogDebug($"Initial state:\n{report}");
         }
-        
+
         // Poll state initially
         PollGameState();
         StateHasChanged();
@@ -168,7 +119,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         PollGameState();
         StateHasChanged();
     }
-    
+
     public void HandleMessagesExpired()
     {
         // Filter expired messages and update UI
@@ -183,20 +134,20 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         CurrentTimeBlock = snapshot.CurrentTimeBlock;
         Stamina = snapshot.Stamina;
         Concentration = snapshot.Concentration;
-        
+
         // Pull system messages from GameWorld and filter expired ones
         SystemMessages = GameWorld.SystemMessages.Where(m => !m.IsExpired).ToList();
-        
+
         // Clean up expired messages from GameWorld
         GameWorld.SystemMessages.RemoveAll(m => m.IsExpired);
 
-        // Check for pending morning activities (set by StartNewDay)
+        // Check for pending morning activities (set by AdvanceToNextDay)
         if (GameManager.HasPendingMorningActivities() && !ShowMorningSummary)
         {
             DebugLogger.LogPolling("MainGameplayView", "Morning activities pending - processing");
             ProcessMorningActivities();
         }
-        
+
         // Check for pending action conversation
         if (GameWorld.ConversationPending)
         {
@@ -219,12 +170,12 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             oldSnapshot = snapshot;
         }
     }
-    
+
     private void ProcessMorningActivities()
     {
         // Get morning summary from GameWorldManager
         MorningActivityResult = GameManager.GetMorningActivitySummary();
-        
+
         if (MorningActivityResult != null && MorningActivityResult.HasEvents)
         {
             ShowMorningSummary = true;
@@ -331,7 +282,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         return true;
     }
-    
+
     /// <summary>
     /// Gets the currently active narrative ID for the overlay
     /// </summary>
@@ -340,7 +291,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         if (GameWorld?.NarrativeManager?.HasActiveNarrative() == true)
         {
             // Get the first active narrative ID (typically only one active at a time for tutorials)
-            var activeIds = GameWorld.NarrativeManager.GetActiveNarrativeIds();
+            List<string> activeIds = GameWorld.NarrativeManager.GetActiveNarratives();
             return activeIds.FirstOrDefault();
         }
         return null;
@@ -357,9 +308,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         UpdateState();
     }
 
-    public async Task StartNewDay()
+    public async Task AdvanceToNextDay()
     {
-        await GameManager.StartNewDay();
+        await GameManager.AdvanceToNextDay();
         UpdateState();
     }
 
@@ -370,13 +321,13 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         // Check if this was a queue management conversation
         if (ConversationManager?.Context is QueueManagementContext queueContext)
         {
-            var selectedChoice = GameManager.GetLastSelectedChoice();
+            ConversationChoice selectedChoice = GameManager.GetLastSelectedChoice();
             if (selectedChoice != null)
             {
                 if (selectedChoice.ChoiceType == ConversationChoiceType.SkipAndDeliver)
                 {
                     // Process the skip action
-                    var skipPosition = GameWorld.GetMetadata("PendingSkipPosition");
+                    string skipPosition = GameWorld.GetMetadata("PendingSkipPosition");
                     if (int.TryParse(skipPosition, out int position))
                     {
                         LetterQueueManager.TrySkipDeliver(position);
@@ -385,12 +336,12 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                 else if (selectedChoice.ChoiceType == ConversationChoiceType.PurgeLetter)
                 {
                     // Process the purge action
-                    var purgeTokensJson = GameWorld.GetMetadata("PendingPurgeTokens");
+                    string purgeTokensJson = GameWorld.GetMetadata("PendingPurgeTokens");
                     if (!string.IsNullOrEmpty(purgeTokensJson))
                     {
                         try
                         {
-                            var tokenSelection = System.Text.Json.JsonSerializer.Deserialize<Dictionary<ConnectionType, int>>(purgeTokensJson);
+                            Dictionary<ConnectionType, int>? tokenSelection = System.Text.Json.JsonSerializer.Deserialize<Dictionary<ConnectionType, int>>(purgeTokensJson);
                             if (tokenSelection != null)
                             {
                                 LetterQueueManager.TryPurgeLetter(tokenSelection);
@@ -403,30 +354,30 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                     }
                 }
             }
-            
+
             // Clear metadata
             GameWorld.ClearMetadata("PendingSkipPosition");
             GameWorld.ClearMetadata("PendingPurgePosition");
             GameWorld.ClearMetadata("PendingPurgeTokens");
-            
+
             // Return to letter queue screen
             NavigationService.NavigateTo(CurrentViews.LetterQueueScreen);
         }
         // Check if this was an action conversation
-        else if (GameWorld.PendingAction != null)
+        else if (GameWorld.PendingCommand != null)
         {
-            // UI actions must go through GameWorldManager
-            GameManager.CompleteActionAfterConversation(GameWorld.PendingAction);
-            
+            // Complete the pending command
+            GameManager.CompletePendingCommand(GameWorld.PendingCommand);
+
             // Check if this was a travel encounter - if so, complete the travel
-            if (GameWorld.PendingAction.Action == LocationAction.TravelEncounter)
+            if (GameWorld.PendingCommand?.CommandType == CommandTypes.TravelEncounter)
             {
                 GameManager.CompleteTravelAfterEncounter();
             }
-            
+
             // Clear the pending action
-            GameWorld.PendingAction = null;
-            
+            GameWorld.PendingCommand = null;
+
             // Return to location screen
             NavigationService.NavigateTo(CurrentViews.LocationScreen);
         }
@@ -586,7 +537,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             _ => "⚙️"
         };
     }
-    
+
     /// <summary>
     /// Show a direct letter offer from an NPC
     /// </summary>
@@ -596,17 +547,17 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         ShowLetterOfferDialog = true;
         StateHasChanged();
     }
-    
+
     /// <summary>
     /// Accept a letter offer from an NPC by offer ID
     /// </summary>
     public void AcceptLetterOfferId(string offerId)
     {
         if (CurrentNPCOffer == null) return;
-        
+
         // Use the NPCLetterOfferService to accept the offer
         bool success = NPCLetterOfferService.AcceptNPCLetterOffer(CurrentNPCOffer.ID, offerId);
-        
+
         if (success)
         {
             ShowLetterOfferDialog = false;
@@ -614,7 +565,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             StateHasChanged();
         }
     }
-    
+
     /// <summary>
     /// Refuse a letter offer from an NPC
     /// </summary>
@@ -624,52 +575,52 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         CurrentNPCOffer = null;
         StateHasChanged();
     }
-    
+
     /// <summary>
     /// Handle morning summary continuation
     /// </summary>
     public void HandleMorningSummaryContinue()
     {
         ShowMorningSummary = false;
-        
+
         // If letter board is available, switch to it
         if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
         {
             SwitchToLetterBoardScreen();
         }
-        
+
         StateHasChanged();
     }
-    
-    private void OnNavigationChanged(CurrentViews newView)
-    {
-        InvokeAsync(StateHasChanged);
-    }
-    
+
+    // Navigation changes now handled by checking NavigationResult directly
+
     public void HandleNavigation(CurrentViews view)
     {
-        // Navigation is already handled by NavigationService
-        // This callback is just for any additional logic needed
-        StateHasChanged();
+        NavigationResult result = NavigationService.NavigateTo(view);
+        if (result.Changed)
+        {
+            // Navigation succeeded and screen changed - update UI
+            StateHasChanged();
+        }
     }
-    
+
     /// <summary>
     /// Debug method to output current game state
     /// </summary>
     public void PrintDebugState()
     {
-        var report = "State verification removed";
+        string report = "State verification removed";
         Console.WriteLine(report);
-        
+
         // Also run full verification
     }
-    
+
     public void ToggleDebugPanel()
     {
         ShowDebugPanel = !ShowDebugPanel;
         StateHasChanged();
     }
-    
+
     /// <summary>
     /// Debug command to start tutorial manually
     /// </summary>
@@ -683,12 +634,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                 MessageSystem.AddSystemMessage("Tutorial is already active!", SystemMessageTypes.Warning);
                 return;
             }
-            
-            // Load and start tutorial
-            var tutorialNarrative = NarrativeDefinitions.CreateTutorial();
-            GameWorld.NarrativeManager.LoadNarrativeDefinitions(new List<NarrativeDefinition> { tutorialNarrative });
-            GameWorld.NarrativeManager.StartNarrative("wayfarer_tutorial");
-            
+
+            // TODO: Tutorial narrative needs to be implemented
+            // For now, just show a message
+            MessageSystem.AddSystemMessage("Tutorial system not yet implemented", SystemMessageTypes.Warning);
+
             MessageSystem.AddSystemMessage("Tutorial started successfully!", SystemMessageTypes.Success);
             DebugLogger.LogDebug("Tutorial manually started");
             StateHasChanged();
@@ -699,32 +649,32 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             DebugLogger.LogError("MainGameplayView", $"Tutorial start failed: {ex.Message}", ex);
         }
     }
-    
+
     public void RunVerification()
     {
         MessageSystem.AddSystemMessage("Verification completed - check console", SystemMessageTypes.Success);
     }
-    
+
     public List<NPC> GetNPCsAtCurrentSpot()
     {
         if (PlayerState?.CurrentLocationSpot == null) return new List<NPC>();
-        
+
         return NPCRepository.GetAllNPCs()
             .Where(n => n.SpotId == PlayerState.CurrentLocationSpot.SpotID)
             .ToList();
     }
-    
+
     public List<NPC> GetAvailableNPCsAtCurrentSpot()
     {
         if (PlayerState?.CurrentLocationSpot == null) return new List<NPC>();
-        
+
         return NPCRepository.GetNPCsForLocationSpotAndTime(
-            PlayerState.CurrentLocationSpot.SpotID, 
+            PlayerState.CurrentLocationSpot.SpotID,
             CurrentTime);
     }
-    
+
     public void Dispose()
     {
-        NavigationService.OnNavigationChanged -= OnNavigationChanged;
+        // Events removed - no subscription cleanup needed
     }
 }

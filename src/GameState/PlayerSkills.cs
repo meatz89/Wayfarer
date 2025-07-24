@@ -2,13 +2,7 @@
 {
     public int Level { get; set; } = 1;
     public int XP { get; set; } = 0;
-    public int XPToNextLevel
-    {
-        get
-        {
-            return Level * 100;
-        }
-    }
+    public int XPToNextLevel => Level * 100;
 }
 
 public class PlayerSkills

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Content.Utilities;
 
 /// <summary>
 /// Factory for creating standing obligations with guaranteed valid references.
@@ -13,7 +12,7 @@ public class StandingObligationFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create a standing obligation with validated references
     /// </summary>
@@ -34,8 +33,8 @@ public class StandingObligationFactory
             throw new ArgumentException("Standing obligation description cannot be empty", nameof(description));
         if (source == null)
             throw new ArgumentNullException(nameof(source), "Source NPC cannot be null");
-        
-        var obligation = new StandingObligation
+
+        StandingObligation obligation = new StandingObligation
         {
             ID = id,
             Name = name,
@@ -45,10 +44,10 @@ public class StandingObligationFactory
             BenefitEffects = benefitEffects?.ToList() ?? new List<ObligationEffect>(),
             ConstraintEffects = constraintEffects?.ToList() ?? new List<ObligationEffect>()
         };
-        
+
         return obligation;
     }
-    
+
     /// <summary>
     /// Create a standing obligation from string IDs with validation
     /// </summary>
@@ -63,7 +62,7 @@ public class StandingObligationFactory
         IEnumerable<ObligationEffect> constraintEffects = null)
     {
         // Validate source NPC
-        var sourceNpc = availableNPCs.FirstOrDefault(n => n.ID == sourceNpcId);
+        NPC? sourceNpc = availableNPCs.FirstOrDefault(n => n.ID == sourceNpcId);
         if (sourceNpc == null)
         {
             Console.WriteLine($"WARNING: Standing obligation '{id}' references non-existent source NPC '{sourceNpcId}'");
@@ -79,11 +78,11 @@ public class StandingObligationFactory
                 ConstraintEffects = constraintEffects?.ToList() ?? new List<ObligationEffect>()
             };
         }
-        
-        return CreateStandingObligation(id, name, description, sourceNpc, 
+
+        return CreateStandingObligation(id, name, description, sourceNpc,
                                        relatedTokenType, benefitEffects, constraintEffects);
     }
-    
+
     /// <summary>
     /// Create a standing obligation from DTO with validation
     /// </summary>
@@ -93,12 +92,12 @@ public class StandingObligationFactory
     {
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
-        
+
         // Parse token type
         ConnectionType? tokenType = null;
         if (!string.IsNullOrEmpty(dto.RelatedTokenType))
         {
-            if (EnumParser.TryParse<ConnectionType>(dto.RelatedTokenType, out var parsed))
+            if (EnumParser.TryParse<ConnectionType>(dto.RelatedTokenType, out ConnectionType parsed))
             {
                 tokenType = parsed;
             }
@@ -107,12 +106,12 @@ public class StandingObligationFactory
                 Console.WriteLine($"WARNING: Unknown token type '{dto.RelatedTokenType}' for obligation '{dto.ID}'");
             }
         }
-        
+
         // Parse benefit effects
-        var benefitEffects = new List<ObligationEffect>();
-        foreach (var effectStr in dto.BenefitEffects ?? new List<string>())
+        List<ObligationEffect> benefitEffects = new List<ObligationEffect>();
+        foreach (string effectStr in dto.BenefitEffects ?? new List<string>())
         {
-            if (EnumParser.TryParse<ObligationEffect>(effectStr, out var effect))
+            if (EnumParser.TryParse<ObligationEffect>(effectStr, out ObligationEffect effect))
             {
                 benefitEffects.Add(effect);
             }
@@ -121,12 +120,12 @@ public class StandingObligationFactory
                 Console.WriteLine($"WARNING: Unknown benefit effect '{effectStr}' for obligation '{dto.ID}'");
             }
         }
-        
+
         // Parse constraint effects
-        var constraintEffects = new List<ObligationEffect>();
-        foreach (var effectStr in dto.ConstraintEffects ?? new List<string>())
+        List<ObligationEffect> constraintEffects = new List<ObligationEffect>();
+        foreach (string effectStr in dto.ConstraintEffects ?? new List<string>())
         {
-            if (EnumParser.TryParse<ObligationEffect>(effectStr, out var effect))
+            if (EnumParser.TryParse<ObligationEffect>(effectStr, out ObligationEffect effect))
             {
                 constraintEffects.Add(effect);
             }
@@ -135,7 +134,7 @@ public class StandingObligationFactory
                 Console.WriteLine($"WARNING: Unknown constraint effect '{effectStr}' for obligation '{dto.ID}'");
             }
         }
-        
+
         return CreateStandingObligationFromIds(
             dto.ID,
             dto.Name,

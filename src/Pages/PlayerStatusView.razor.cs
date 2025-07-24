@@ -3,237 +3,240 @@
 namespace Wayfarer.Pages
 {
 
-public class PlayerStatusViewBase : ComponentBase
-{
-    [Inject] public GameWorld GameWorld { get; set; }
-    [Inject] public GameWorldManager GameManager { get; set; }
-    [Inject] public ItemRepository ItemRepository { get; set; }
-    [Inject] public LocationRepository LocationRepository { get; set; }
-    [Inject] public RouteRepository RouteRepository { get; set; }
-    [Inject] public NavigationManager NavigationManager { get; set; }
-
-    [Parameter] public EventCallback OnClose { get; set; }
-
-    public Player PlayerState => GameWorld.GetPlayer();
-    public Location CurrentLocation => LocationRepository.GetCurrentLocation();
-    public int CurrentStamina => PlayerState.Stamina;
-    public int CurrentConcentration => PlayerState.Concentration;
-
-    protected override void OnInitialized()
+    public class PlayerStatusViewBase : ComponentBase
     {
-        base.OnInitialized();
-    }
+        [Inject] public GameWorld GameWorld { get; set; }
+        [Inject] public GameWorldManager GameManager { get; set; }
+        [Inject] public ItemRepository ItemRepository { get; set; }
+        [Inject] public LocationRepository LocationRepository { get; set; }
+        [Inject] public RouteRepository RouteRepository { get; set; }
+        [Inject] public NavigationManager NavigationManager { get; set; }
 
-    public async Task ClosePlayerStatus()
-    {
-        if (OnClose.HasDelegate)
+        [Parameter] public EventCallback OnClose { get; set; }
+
+        public Player PlayerState => GameWorld.GetPlayer();
+
+        public Location CurrentLocation => LocationRepository.GetCurrentLocation();
+
+        public int CurrentStamina => PlayerState.Stamina;
+
+        public int CurrentConcentration => PlayerState.Concentration;
+
+        protected override void OnInitialized()
         {
-            await OnClose.InvokeAsync();
+            base.OnInitialized();
         }
-        else
+
+        public async Task ClosePlayerStatus()
         {
-            NavigationManager.NavigateTo("/");
-        }
-    }
-
-    public string GetArchetypePortrait()
-    {
-        string gender = PlayerState.Gender.ToString().ToLower();
-        string archetype = PlayerState.Archetype.ToString().ToLower();
-        return $"/images/characters/{gender}_{archetype}.png";
-    }
-
-    public string GetArchetypeIcon(Professions archetype)
-    {
-        return archetype switch
-        {
-            Professions.Soldier => "⚔️",
-            Professions.Merchant => "💰",
-            Professions.Scholar => "📚",
-            _ => "👤"
-        };
-    }
-
-    public int GetStaminaCost()
-    {
-        // This would check for pending actions that consume stamina
-        return 0;
-    }
-
-    public string GetWeightStatus(int totalWeight)
-    {
-        if (totalWeight <= 3) return "Light load";
-        if (totalWeight <= 6) return "Medium load (+1 stamina)";
-        return "Heavy load (+2 stamina)";
-    }
-
-    public string GetWeightStatusClass(int totalWeight)
-    {
-        if (totalWeight <= 3) return "weight-light";
-        if (totalWeight <= 6) return "weight-medium";
-        return "weight-heavy";
-    }
-
-    public List<ItemCategory> GetCurrentEquipmentCategories()
-    {
-        var categories = new List<ItemCategory>();
-
-        foreach (string itemName in PlayerState.Inventory.ItemSlots)
-        {
-            if (itemName != null)
+            if (OnClose.HasDelegate)
             {
-                Item item = ItemRepository.GetItemByName(itemName);
-                if (item != null)
-                {
-                    categories.AddRange(item.Categories);
-                }
+                await OnClose.InvokeAsync();
             }
-        }
-
-        return categories.Distinct().ToList();
-    }
-
-    public (int accessible, int blocked, int total) GetAccessibleRoutes()
-    {
-        var allRoutes = RouteRepository.GetAll();
-        var equipmentCategories = GetCurrentEquipmentCategories();
-        int accessible = 0;
-        int blocked = 0;
-
-        foreach (var route in allRoutes)
-        {
-            bool canAccess = true;
-
-            // Check terrain requirements
-            foreach (var terrain in route.TerrainCategories)
-            {
-                if (terrain == TerrainCategory.Requires_Climbing && !equipmentCategories.Contains(ItemCategory.Climbing_Equipment))
-                {
-                    canAccess = false;
-                    break;
-                }
-                if (terrain == TerrainCategory.Wilderness_Terrain && !equipmentCategories.Contains(ItemCategory.Navigation_Tools))
-                {
-                    canAccess = false;
-                    break;
-                }
-            }
-
-            if (canAccess)
-                accessible++;
             else
-                blocked++;
+            {
+                NavigationManager.NavigateTo("/");
+            }
         }
 
-        return (accessible, blocked, allRoutes.Count);
-    }
-
-    public string GetEquipmentIcon(ItemCategory category)
-    {
-        return category switch
+        public string GetArchetypePortrait()
         {
-            ItemCategory.Climbing_Equipment => "🧗",
-            ItemCategory.Navigation_Tools => "🧭",
-            ItemCategory.Weather_Protection => "☂️",
-            ItemCategory.Light_Source => "🔦",
-            _ => "🛠️"
-        };
-    }
+            string gender = PlayerState.Gender.ToString().ToLower();
+            string archetype = PlayerState.Archetype.ToString().ToLower();
+            return $"/images/characters/{gender}_{archetype}.png";
+        }
 
-    public string GetEquipmentEffect(ItemCategory category)
-    {
-        return category switch
+        public string GetArchetypeIcon(Professions archetype)
         {
-            ItemCategory.Climbing_Equipment => "Enables mountain routes",
-            ItemCategory.Navigation_Tools => "Enables wilderness routes",
-            ItemCategory.Weather_Protection => "Travel in bad weather",
-            ItemCategory.Light_Source => "Night travel enabled",
-            _ => "Special capability"
-        };
-    }
+            return archetype switch
+            {
+                Professions.Soldier => "⚔️",
+                Professions.Merchant => "💰",
+                Professions.Scholar => "📚",
+                _ => "👤"
+            };
+        }
 
-    public List<Location> GetDiscoveredLocations()
-    {
-        return GameManager.GetPlayerKnownLocations();
-    }
-
-    public string GetLocationIcon(LocationTypes type)
-    {
-        return type switch
+        public int GetStaminaCost()
         {
-            LocationTypes.Town => "🏘️",
-            LocationTypes.City => "🏛️",
-            LocationTypes.Village => "🏚️",
-            LocationTypes.Outpost => "🏕️",
-            LocationTypes.Wilderness => "🌲",
-            LocationTypes.Castle => "🏰",
-            LocationTypes.Temple => "⛪",
-            LocationTypes.Ruin => "🏛️",
-            LocationTypes.Cave => "🕳️",
-            LocationTypes.Market => "🏪",
-            LocationTypes.Port => "⚓",
-            LocationTypes.Farm => "🌾",
-            LocationTypes.Mine => "⛏️",
-            LocationTypes.Forest => "🌳",
-            LocationTypes.Mountain => "⛰️",
-            LocationTypes.Swamp => "🌿",
-            LocationTypes.Beach => "🏖️",
-            LocationTypes.River => "🏞️",
-            LocationTypes.Lake => "🏞️",
-            LocationTypes.Road => "🛤️",
-            LocationTypes.Bridge => "🌉",
-            LocationTypes.Crossroads => "🚏",
-            LocationTypes.Tavern => "🍺",
-            LocationTypes.Inn => "🏨",
-            LocationTypes.Shop => "🏪",
-            LocationTypes.Guild => "🛡️",
-            LocationTypes.Library => "📚",
-            LocationTypes.Barracks => "⚔️",
-            LocationTypes.Prison => "🔒",
-            LocationTypes.Palace => "👑",
-            LocationTypes.Tower => "🏰",
-            LocationTypes.Crypt => "⚰️",
-            LocationTypes.Graveyard => "🪦",
-            LocationTypes.Other => "📍",
-            _ => "📍"
-        };
-    }
+            // This would check for pending actions that consume stamina
+            return 0;
+        }
 
-    public string GetSkillIcon(SkillTypes skill)
-    {
-        return skill switch
+        public string GetWeightStatus(int totalWeight)
         {
-            SkillTypes.BruteForce => "💪",
-            SkillTypes.Finesse => "🤸",
-            SkillTypes.Endurance => "🏃",
-            SkillTypes.Knowledge => "🧠",
-            SkillTypes.Perception => "👁️",
-            SkillTypes.Reasoning => "🔍",
-            SkillTypes.Charm => "😊",
-            SkillTypes.Intimidation => "😠",
-            SkillTypes.Deception => "🎭",
-            _ => "⭐"
-        };
+            if (totalWeight <= 3) return "Light load";
+            if (totalWeight <= 6) return "Medium load (+1 stamina)";
+            return "Heavy load (+2 stamina)";
+        }
+
+        public string GetWeightStatusClass(int totalWeight)
+        {
+            if (totalWeight <= 3) return "weight-light";
+            if (totalWeight <= 6) return "weight-medium";
+            return "weight-heavy";
+        }
+
+        public List<ItemCategory> GetCurrentEquipmentCategories()
+        {
+            List<ItemCategory> categories = new List<ItemCategory>();
+
+            foreach (string itemName in PlayerState.Inventory.ItemSlots)
+            {
+                if (itemName != null)
+                {
+                    Item item = ItemRepository.GetItemByName(itemName);
+                    if (item != null)
+                    {
+                        categories.AddRange(item.Categories);
+                    }
+                }
+            }
+
+            return categories.Distinct().ToList();
+        }
+
+        public (int accessible, int blocked, int total) GetAccessibleRoutes()
+        {
+            List<RouteOption> allRoutes = RouteRepository.GetAll();
+            List<ItemCategory> equipmentCategories = GetCurrentEquipmentCategories();
+            int accessible = 0;
+            int blocked = 0;
+
+            foreach (RouteOption route in allRoutes)
+            {
+                bool canAccess = true;
+
+                // Check terrain requirements
+                foreach (TerrainCategory terrain in route.TerrainCategories)
+                {
+                    if (terrain == TerrainCategory.Requires_Climbing && !equipmentCategories.Contains(ItemCategory.Climbing_Equipment))
+                    {
+                        canAccess = false;
+                        break;
+                    }
+                    if (terrain == TerrainCategory.Wilderness_Terrain && !equipmentCategories.Contains(ItemCategory.Navigation_Tools))
+                    {
+                        canAccess = false;
+                        break;
+                    }
+                }
+
+                if (canAccess)
+                    accessible++;
+                else
+                    blocked++;
+            }
+
+            return (accessible, blocked, allRoutes.Count);
+        }
+
+        public string GetEquipmentIcon(ItemCategory category)
+        {
+            return category switch
+            {
+                ItemCategory.Climbing_Equipment => "🧗",
+                ItemCategory.Navigation_Tools => "🧭",
+                ItemCategory.Weather_Protection => "☂️",
+                ItemCategory.Light_Source => "🔦",
+                _ => "🛠️"
+            };
+        }
+
+        public string GetEquipmentEffect(ItemCategory category)
+        {
+            return category switch
+            {
+                ItemCategory.Climbing_Equipment => "Enables mountain routes",
+                ItemCategory.Navigation_Tools => "Enables wilderness routes",
+                ItemCategory.Weather_Protection => "Travel in bad weather",
+                ItemCategory.Light_Source => "Night travel enabled",
+                _ => "Special capability"
+            };
+        }
+
+        public List<Location> GetDiscoveredLocations()
+        {
+            return GameManager.GetPlayerKnownLocations();
+        }
+
+        public string GetLocationIcon(LocationTypes type)
+        {
+            return type switch
+            {
+                LocationTypes.Town => "🏘️",
+                LocationTypes.City => "🏛️",
+                LocationTypes.Village => "🏚️",
+                LocationTypes.Outpost => "🏕️",
+                LocationTypes.Wilderness => "🌲",
+                LocationTypes.Castle => "🏰",
+                LocationTypes.Temple => "⛪",
+                LocationTypes.Ruin => "🏛️",
+                LocationTypes.Cave => "🕳️",
+                LocationTypes.Market => "🏪",
+                LocationTypes.Port => "⚓",
+                LocationTypes.Farm => "🌾",
+                LocationTypes.Mine => "⛏️",
+                LocationTypes.Forest => "🌳",
+                LocationTypes.Mountain => "⛰️",
+                LocationTypes.Swamp => "🌿",
+                LocationTypes.Beach => "🏖️",
+                LocationTypes.River => "🏞️",
+                LocationTypes.Lake => "🏞️",
+                LocationTypes.Road => "🛤️",
+                LocationTypes.Bridge => "🌉",
+                LocationTypes.Crossroads => "🚏",
+                LocationTypes.Tavern => "🍺",
+                LocationTypes.Inn => "🏨",
+                LocationTypes.Shop => "🏪",
+                LocationTypes.Guild => "🛡️",
+                LocationTypes.Library => "📚",
+                LocationTypes.Barracks => "⚔️",
+                LocationTypes.Prison => "🔒",
+                LocationTypes.Palace => "👑",
+                LocationTypes.Tower => "🏰",
+                LocationTypes.Crypt => "⚰️",
+                LocationTypes.Graveyard => "🪦",
+                LocationTypes.Other => "📍",
+                _ => "📍"
+            };
+        }
+
+        public string GetSkillIcon(SkillTypes skill)
+        {
+            return skill switch
+            {
+                SkillTypes.BruteForce => "💪",
+                SkillTypes.Finesse => "🤸",
+                SkillTypes.Endurance => "🏃",
+                SkillTypes.Knowledge => "🧠",
+                SkillTypes.Perception => "👁️",
+                SkillTypes.Reasoning => "🔍",
+                SkillTypes.Charm => "😊",
+                SkillTypes.Intimidation => "😠",
+                SkillTypes.Deception => "🎭",
+                _ => "⭐"
+            };
+        }
+
     }
 
-}
+    // Supporting classes for player strategic overview
+    public class PlayerStrategicOverview
+    {
+        public List<string> EquipmentCapabilities { get; set; } = new();
+        public int AccessibleRoutes { get; set; }
+        public int BlockedRoutes { get; set; }
+        public List<string> CriticalMissingEquipment { get; set; } = new();
+        public int ReadyContracts { get; set; }
+        public int PendingContracts { get; set; }
+        public int UrgentContracts { get; set; }
+    }
 
-// Supporting classes for player strategic overview
-public class PlayerStrategicOverview
-{
-    public List<string> EquipmentCapabilities { get; set; } = new();
-    public int AccessibleRoutes { get; set; }
-    public int BlockedRoutes { get; set; }
-    public List<string> CriticalMissingEquipment { get; set; } = new();
-    public int ReadyContracts { get; set; }
-    public int PendingContracts { get; set; }
-    public int UrgentContracts { get; set; }
-}
-
-public class TimeAwarenessAnalysis
-{
-    public string CurrentStatus { get; set; } = "";
-    public string Recommendation { get; set; } = "";
-}
+    public class TimeAwarenessAnalysis
+    {
+        public string CurrentStatus { get; set; } = "";
+        public string Recommendation { get; set; } = "";
+    }
 
 } // namespace Wayfarer.Pages

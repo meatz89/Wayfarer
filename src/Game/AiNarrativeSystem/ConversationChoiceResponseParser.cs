@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.RegularExpressions;
-using Wayfarer.Content.Utilities;
 
 public class ConversationChoiceResponseParser
 {
@@ -144,26 +143,7 @@ public class ConversationChoiceResponseParser
             choice.FocusCost = focusCostElement.GetInt32();
         }
 
-        // Parse choice type
-        if (choiceElement.TryGetProperty("choiceType", out JsonElement choiceTypeElement))
-        {
-            var choiceTypeStr = choiceTypeElement.GetString();
-            if (EnumParser.TryParse<ConversationChoiceType>(choiceTypeStr, out var choiceType))
-            {
-                choice.ChoiceType = choiceType;
-            }
-        }
-        // Fallback: try to parse from template for AI responses that use old format
-        else if (choiceElement.TryGetProperty("template", out JsonElement templateElement) || 
-                 choiceElement.TryGetProperty("templateUsed", out templateElement))
-        {
-            var templateStr = templateElement.GetString();
-            if (!string.IsNullOrWhiteSpace(templateStr) && 
-                EnumParser.TryParse<ConversationChoiceType>(templateStr, out var choiceType))
-            {
-                choice.ChoiceType = choiceType;
-            }
-        }
+        // Parse choice type - removed, no longer used
 
         if (choiceElement.TryGetProperty("templatePurpose", out JsonElement templatePurposeElement))
         {

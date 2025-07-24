@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using Wayfarer.GameState.StateContainers;
 
-namespace Wayfarer.GameState.TimeEffects;
 
 /// <summary>
 /// Effect that deducts stamina as part of a time-based action.

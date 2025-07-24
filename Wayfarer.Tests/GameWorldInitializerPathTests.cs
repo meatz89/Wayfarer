@@ -40,18 +40,18 @@ namespace Wayfarer.Tests
         public void GameWorldInitializer_WithCorrectPath_ShouldLoadSuccessfully()
         {
             // Test that GameWorldInitializer works with the correct path
-            var contentDirectory = new ContentDirectory { Path = "Content" }; // Correct path from test bin directory
+            ContentDirectory contentDirectory = new ContentDirectory { Path = "Content" }; // Correct path from test bin directory
             // Create factories needed for GameWorldInitializer
-            var locationFactory = new LocationFactory();
-            var locationSpotFactory = new LocationSpotFactory();
-            var npcFactory = new NPCFactory();
-            var itemFactory = new ItemFactory();
-            var routeFactory = new RouteFactory();
-            var routeDiscoveryFactory = new RouteDiscoveryFactory();
-            var networkUnlockFactory = new NetworkUnlockFactory();
-            var letterTemplateFactory = new LetterTemplateFactory();
-            var standingObligationFactory = new StandingObligationFactory();
-            
+            LocationFactory locationFactory = new LocationFactory();
+            LocationSpotFactory locationSpotFactory = new LocationSpotFactory();
+            NPCFactory npcFactory = new NPCFactory();
+            ItemFactory itemFactory = new ItemFactory();
+            RouteFactory routeFactory = new RouteFactory();
+            RouteDiscoveryFactory routeDiscoveryFactory = new RouteDiscoveryFactory();
+            NetworkUnlockFactory networkUnlockFactory = new NetworkUnlockFactory();
+            LetterTemplateFactory letterTemplateFactory = new LetterTemplateFactory();
+            StandingObligationFactory standingObligationFactory = new StandingObligationFactory();
+
             GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(
                 contentDirectory,
                 locationFactory,
@@ -77,18 +77,18 @@ namespace Wayfarer.Tests
         public void GameWorldInitializer_WithWrongPath_ShouldFail()
         {
             // Test that GameWorldInitializer fails with a wrong path
-            var contentDirectory = new ContentDirectory { Path = "wrong_path" }; // Path that doesn't exist
+            ContentDirectory contentDirectory = new ContentDirectory { Path = "wrong_path" }; // Path that doesn't exist
             // Create factories needed for GameWorldInitializer
-            var locationFactory = new LocationFactory();
-            var locationSpotFactory = new LocationSpotFactory();
-            var npcFactory = new NPCFactory();
-            var itemFactory = new ItemFactory();
-            var routeFactory = new RouteFactory();
-            var routeDiscoveryFactory = new RouteDiscoveryFactory();
-            var networkUnlockFactory = new NetworkUnlockFactory();
-            var letterTemplateFactory = new LetterTemplateFactory();
-            var standingObligationFactory = new StandingObligationFactory();
-            
+            LocationFactory locationFactory = new LocationFactory();
+            LocationSpotFactory locationSpotFactory = new LocationSpotFactory();
+            NPCFactory npcFactory = new NPCFactory();
+            ItemFactory itemFactory = new ItemFactory();
+            RouteFactory routeFactory = new RouteFactory();
+            RouteDiscoveryFactory routeDiscoveryFactory = new RouteDiscoveryFactory();
+            NetworkUnlockFactory networkUnlockFactory = new NetworkUnlockFactory();
+            LetterTemplateFactory letterTemplateFactory = new LetterTemplateFactory();
+            StandingObligationFactory standingObligationFactory = new StandingObligationFactory();
+
             GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(
                 contentDirectory,
                 locationFactory,

@@ -26,13 +26,7 @@ public interface ILocationProperty
 }
 public sealed class Illumination : ILocationProperty, IEquatable<Illumination>
 {
-    public static ILocationProperty Any
-    {
-        get
-        {
-            return new LocationPropertyAny(nameof(Illumination));
-        }
-    }
+    public static ILocationProperty Any => new LocationPropertyAny(nameof(Illumination));
 
     public static Illumination Bright = new Illumination("Bright");
     public static Illumination Thiefy = new Illumination("Thiefy");
@@ -88,13 +82,7 @@ public sealed class Illumination : ILocationProperty, IEquatable<Illumination>
 
 public sealed class Population : ILocationProperty, IEquatable<Population>
 {
-    public static ILocationProperty Any
-    {
-        get
-        {
-            return new LocationPropertyAny(nameof(Population));
-        }
-    }
+    public static ILocationProperty Any => new LocationPropertyAny(nameof(Population));
 
     public static Population Crowded = new Population("Crowded");
     public static Population Quiet = new Population("Quiet");
@@ -150,13 +138,7 @@ public sealed class Population : ILocationProperty, IEquatable<Population>
 
 public sealed class Physical : ILocationProperty, IEquatable<Physical>
 {
-    public static ILocationProperty Any
-    {
-        get
-        {
-            return new LocationPropertyAny(nameof(Physical));
-        }
-    }
+    public static ILocationProperty Any => new LocationPropertyAny(nameof(Physical));
 
     public static Physical Confined = new Physical("Confined");
     public static Physical Expansive = new Physical("Expansive");
@@ -212,13 +194,7 @@ public sealed class Physical : ILocationProperty, IEquatable<Physical>
 
 public sealed class Atmosphere : ILocationProperty, IEquatable<Atmosphere>
 {
-    public static ILocationProperty Any
-    {
-        get
-        {
-            return new LocationPropertyAny(nameof(Atmosphere));
-        }
-    }
+    public static ILocationProperty Any => new LocationPropertyAny(nameof(Atmosphere));
 
     public static Atmosphere Formal = new Atmosphere("Formal");
     public static Atmosphere Calm = new Atmosphere("Calm");

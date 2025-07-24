@@ -1,7 +1,7 @@
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 /// <summary>
 /// Simple, synchronous initializer for creating GameWorld instances for testing.
@@ -38,17 +38,17 @@ public static class TestGameWorldInitializer
     {
         // Load test content from JSON files
         // Create factories needed for GameWorldInitializer
-        var locationFactory = new LocationFactory();
-        var locationSpotFactory = new LocationSpotFactory();
-        var npcFactory = new NPCFactory();
-        var itemFactory = new ItemFactory();
-        var routeFactory = new RouteFactory();
-        var routeDiscoveryFactory = new RouteDiscoveryFactory();
-        var networkUnlockFactory = new NetworkUnlockFactory();
-        var letterTemplateFactory = new LetterTemplateFactory();
-        var standingObligationFactory = new StandingObligationFactory();
-        
-        var contentDirectory = new ContentDirectory { Path = "Content" };
+        LocationFactory locationFactory = new LocationFactory();
+        LocationSpotFactory locationSpotFactory = new LocationSpotFactory();
+        NPCFactory npcFactory = new NPCFactory();
+        ItemFactory itemFactory = new ItemFactory();
+        RouteFactory routeFactory = new RouteFactory();
+        RouteDiscoveryFactory routeDiscoveryFactory = new RouteDiscoveryFactory();
+        NetworkUnlockFactory networkUnlockFactory = new NetworkUnlockFactory();
+        LetterTemplateFactory letterTemplateFactory = new LetterTemplateFactory();
+        StandingObligationFactory standingObligationFactory = new StandingObligationFactory();
+
+        ContentDirectory contentDirectory = new ContentDirectory { Path = "Content" };
         GameWorldInitializer initializer = new GameWorldInitializer(
             contentDirectory,
             locationFactory,
@@ -284,7 +284,7 @@ public static class TestGameWorldInitializer
         {
             // If no locations loaded from test data, create a minimal one
             startLocation = new Location("test_location", "Test Location");
-            var locationRepo = new LocationRepository(gameWorld);
+            LocationRepository locationRepo = new LocationRepository(gameWorld);
             locationRepo.AddLocation(startLocation);
         }
         player.CurrentLocation = startLocation;

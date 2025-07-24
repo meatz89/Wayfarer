@@ -12,7 +12,7 @@ public class LetterTemplateFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create a letter template with validated references
     /// </summary>
@@ -46,8 +46,8 @@ public class LetterTemplateFactory
             throw new ArgumentException("Minimum payment cannot be negative", nameof(minPayment));
         if (maxPayment < minPayment)
             throw new ArgumentException("Maximum payment must be greater than or equal to minimum payment", nameof(maxPayment));
-        
-        var template = new LetterTemplate
+
+        LetterTemplate template = new LetterTemplate
         {
             Id = id,
             Description = description,
@@ -66,10 +66,10 @@ public class LetterTemplateFactory
             PhysicalProperties = physicalProperties,
             RequiredEquipment = requiredEquipment
         };
-        
+
         return template;
     }
-    
+
     /// <summary>
     /// Create a letter template from string IDs with validation
     /// </summary>
@@ -93,22 +93,22 @@ public class LetterTemplateFactory
         ItemCategory? requiredEquipment = null)
     {
         // Special narrative letter templates that use placeholder names, not NPC IDs
-        var narrativeTemplates = new HashSet<string> 
+        HashSet<string> narrativeTemplates = new HashSet<string>
         {
             "forced_patron_resources", "forced_patron_instructions", "forced_patron_summons",
             "patron_letter_resources", "patron_letter_instructions",
             "forced_shadow_dead_drop", "forced_shadow_intelligence", "forced_shadow_blackmail"
         };
-        
+
         // Skip NPC validation for narrative templates
         bool isNarrativeTemplate = narrativeTemplates.Contains(id);
         // Validate senders
-        var senders = new List<NPC>();
+        List<NPC> senders = new List<NPC>();
         if (possibleSenderIds != null && !isNarrativeTemplate)
         {
-            foreach (var senderId in possibleSenderIds)
+            foreach (string senderId in possibleSenderIds)
             {
-                var npc = availableNPCs.FirstOrDefault(n => n.ID == senderId);
+                NPC? npc = availableNPCs.FirstOrDefault(n => n.ID == senderId);
                 if (npc == null)
                 {
                     Console.WriteLine($"WARNING: Letter template '{id}' references non-existent sender NPC '{senderId}'");
@@ -119,14 +119,14 @@ public class LetterTemplateFactory
                 }
             }
         }
-        
+
         // Validate recipients
-        var recipients = new List<NPC>();
+        List<NPC> recipients = new List<NPC>();
         if (possibleRecipientIds != null && !isNarrativeTemplate)
         {
-            foreach (var recipientId in possibleRecipientIds)
+            foreach (string recipientId in possibleRecipientIds)
             {
-                var npc = availableNPCs.FirstOrDefault(n => n.ID == recipientId);
+                NPC? npc = availableNPCs.FirstOrDefault(n => n.ID == recipientId);
                 if (npc == null)
                 {
                     Console.WriteLine($"WARNING: Letter template '{id}' references non-existent recipient NPC '{recipientId}'");
@@ -137,8 +137,8 @@ public class LetterTemplateFactory
                 }
             }
         }
-        
-        return CreateLetterTemplate(id, description, tokenType, minDeadline, maxDeadline, 
+
+        return CreateLetterTemplate(id, description, tokenType, minDeadline, maxDeadline,
                                    minPayment, maxPayment, category, minTokensRequired,
                                    senders, recipients, unlocksLetterIds, isChainLetter,
                                    size, physicalProperties, requiredEquipment);

@@ -73,7 +73,7 @@ public class CheckMemoryEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        if (state.Player.HasMemory(memoryKey))
+        if (state.Player.HasMemory(memoryKey, state.GameWorld?.CurrentDay ?? 1))
         {
             effectIfPresent.Apply(state);
         }

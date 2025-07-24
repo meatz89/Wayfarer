@@ -2,7 +2,7 @@
 {
     // Core identity
     public string Name { get; set; }
-    public Genders Gender { get; private set; }
+    public Genders Gender { get; set; }
     public string Background { get; set; }
 
     // Archetype
@@ -21,6 +21,8 @@
     public int Health { get; set; }
     public int Food { get; set; }
     public int PatronLeverage { get; set; } = 0;
+    public bool HasPatron { get; set; } = false;
+    public int LastPatronFundDay { get; set; } = -7; // Allow immediate request on game start
 
     public int MaxStamina { get; set; } = 10;  // Changed to 10 to match 0-10 scale
     public int MaxConcentration { get; set; }
@@ -42,7 +44,7 @@
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
-    
+
     // Network tracking
     public List<string> UnlockedNPCIds { get; set; } = new List<string>();
 
@@ -57,8 +59,6 @@
     public Location CurrentLocation { get; set; }
     public LocationSpot CurrentLocationSpot { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
-    public int CurrentDay { get; private set; }
-
 
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
 
@@ -72,26 +72,26 @@
     public Letter[] LetterQueue { get; private set; } = new Letter[8];
     public Dictionary<ConnectionType, int> ConnectionTokens { get; private set; } = new Dictionary<ConnectionType, int>();
     public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
-    
+
     // Physical Letter Carrying
     public List<Letter> CarriedLetters { get; private set; } = new List<Letter>(); // Letters physically in inventory for delivery
-    
+
     // Queue manipulation tracking
     public int LastMorningSwapDay { get; set; } = -1; // Track when morning swap was last used
     public int LastLetterBoardDay { get; set; } = -1; // Track when letter board was last generated
     public List<Letter> DailyBoardLetters { get; set; } = new List<Letter>(); // Store today's board letters
-    
+
     // Letter history tracking
     public Dictionary<string, LetterHistory> NPCLetterHistory { get; private set; } = new Dictionary<string, LetterHistory>();
-    
+
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
-    
+
     // Token Favor System
     public List<string> PurchasedFavors { get; set; } = new List<string>();
     public List<string> UnlockedLocationIds { get; set; } = new List<string>();
     public List<string> UnlockedServices { get; set; } = new List<string>();
-    
+
     // Scenario tracking
     public List<Letter> DeliveredLetters { get; set; } = new List<Letter>();
     public int TotalLettersDelivered { get; set; } = 0;
@@ -103,7 +103,7 @@
         ActiveGoals.Add(goal);
     }
 
-    public void UpdateGoals()
+    public void UpdateGoals(int currentDay)
     {
         for (int i = ActiveGoals.Count - 1; i >= 0; i--)
         {
@@ -114,7 +114,7 @@
                 ActiveGoals.RemoveAt(i);
                 CompletedGoals.Add(goal);
             }
-            else if (goal.CheckFailure(CurrentDay))
+            else if (goal.CheckFailure(currentDay))
             {
                 ActiveGoals.RemoveAt(i);
                 FailedGoals.Add(goal);
@@ -153,10 +153,7 @@
         }
     }
 
-
-
-
-    public void AddMemory(string key, string description, int importance, int expirationDays = -1)
+    public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)
     {
         // Remove any existing memory with same key
         Memories.RemoveAll(m => m.Key == key);
@@ -166,21 +163,21 @@
         {
             Key = key,
             Description = description,
-            CreationDay = CurrentDay,
-            ExpirationDay = expirationDays == -1 ? -1 : CurrentDay + expirationDays,
+            CreationDay = currentDay,
+            ExpirationDay = expirationDays == -1 ? -1 : currentDay + expirationDays,
             Importance = importance
         });
     }
 
-    public bool HasMemory(string key)
+    public bool HasMemory(string key, int currentDay)
     {
-        return Memories.Any(m => m.Key == key && m.IsActive(CurrentDay));
+        return Memories.Any(m => m.Key == key && m.IsActive(currentDay));
     }
 
-    public List<MemoryFlag> GetRecentMemories(int count = 5)
+    public List<MemoryFlag> GetRecentMemories(int currentDay, int count = 5)
     {
         return Memories
-            .Where(m => m.IsActive(CurrentDay))
+            .Where(m => m.IsActive(currentDay))
             .OrderByDescending(m => m.Importance)
             .ThenByDescending(m => m.CreationDay)
             .Take(count)
@@ -259,7 +256,7 @@
     {
         ClearInventory();
     }
-    
+
     private void InitializeMerchant()
     {
         ClearInventory();
@@ -573,5 +570,13 @@
         ModifyStamina(recoveryAmount);
     }
 
+    internal void SetCoins(int value)
+    {
+        throw new NotImplementedException();
+    }
 
+    internal void SetStamina(int value)
+    {
+        throw new NotImplementedException();
+    }
 }

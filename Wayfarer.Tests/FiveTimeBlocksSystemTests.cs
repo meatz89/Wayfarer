@@ -207,12 +207,12 @@ namespace Wayfarer.Tests
 
             // Should have progressed through multiple time blocks
             Assert.True(timeBlockProgression.Count == 5, "Should have consumed all 5 time blocks");
-            
+
             // Verify we went through different time blocks
-            var distinctTimeBlocks = timeBlockProgression.Distinct().Count();
-            Assert.True(distinctTimeBlocks >= 3, 
+            int distinctTimeBlocks = timeBlockProgression.Distinct().Count();
+            Assert.True(distinctTimeBlocks >= 3,
                 $"Should progress through at least 3 different time blocks, but only went through {distinctTimeBlocks}");
-            
+
             // Final time should have rolled over to next day
             int finalDay = timeManager.GetCurrentDay();
             Assert.True(finalDay > 1, "After advancing 20 hours from 6:00, should be on the next day");

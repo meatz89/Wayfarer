@@ -11,7 +11,7 @@ public class RouteRepository
     // Check if a route is blocked
     public bool IsRouteBlocked(string routeId)
     {
-        return _gameWorld.WorldState.IsRouteBlocked(routeId);
+        return _gameWorld.WorldState.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
     }
 
     // Get current weather (weather affects route availability)
@@ -68,11 +68,11 @@ public class RouteRepository
 
         return allRoutes;
     }
-    
+
     // Get a specific route by ID
     public RouteOption GetRouteById(string routeId)
     {
-        var allRoutes = GetAll();
+        List<RouteOption> allRoutes = GetAll();
         return allRoutes.FirstOrDefault(r => r.Id == routeId);
     }
 }

@@ -10,11 +10,6 @@
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
     public List<string> CompletedConversations { get; } = new List<string>();
 
-    // Game time
-    public int CurrentDay { get; set; } = 1;
-    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
-    public int CurrentTimeHours { get; set; }
-
     // Weather conditions (no seasons - game timeframe is only days/weeks)
     public WeatherCondition CurrentWeather { get; set; } = WeatherCondition.Clear;
 
@@ -30,11 +25,11 @@
     public LocationSpot CurrentLocationSpot { get; set; }
 
     // Card system removed - using conversation and location action systems
-    
+
     // Progression tracking
     public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
     public List<NetworkUnlock> NetworkUnlocks { get; set; } = new List<NetworkUnlock>();
-    
+
     // Token Favor System
     public List<TokenFavor> TokenFavors { get; set; } = new List<TokenFavor>();
 
@@ -102,19 +97,19 @@
     /// <summary>
     /// Add a temporary route block that expires after specified days
     /// </summary>
-    public void AddTemporaryRouteBlock(string routeId, int daysBlocked)
+    public void AddTemporaryRouteBlock(string routeId, int daysBlocked, int currentDay)
     {
-        TemporaryRouteBlocks[routeId] = CurrentDay + daysBlocked;
+        TemporaryRouteBlocks[routeId] = currentDay + daysBlocked;
     }
 
     /// <summary>
     /// Check if a route is temporarily blocked
     /// </summary>
-    public bool IsRouteBlocked(string routeId)
+    public bool IsRouteBlocked(string routeId, int currentDay)
     {
         if (TemporaryRouteBlocks.TryGetValue(routeId, out int unblockDay))
         {
-            if (CurrentDay >= unblockDay)
+            if (currentDay >= unblockDay)
             {
                 TemporaryRouteBlocks.Remove(routeId);
                 return false;
