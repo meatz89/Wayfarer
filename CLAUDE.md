@@ -2,6 +2,13 @@
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 
+**🚨 CRITICAL RULE: NEVER MARK ANYTHING AS COMPLETE WITHOUT TESTING 🚨**
+- You MUST build and run tests before claiming completion
+- You MUST verify the code works before saying "done" or "complete"
+- NEVER assume code works - ALWAYS TEST
+- If you haven't run `dotnet build` and the E2E test, IT'S NOT COMPLETE
+- Saying something is "complete" without testing is UNACCEPTABLE
+
 **📋 NARRATIVE SYSTEM: See NARRATIVE-IMPLEMENTATION-PLAN.md for tutorial/quest/story system design**
 
 **🚧 TUTORIAL IMPLEMENTATION: See TUTORIAL-IMPLEMENTATION-TODOS.md for current state and remaining work**
