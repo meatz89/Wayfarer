@@ -5,20 +5,20 @@ using System.Text.Json;
 /// <summary>
 /// Validates route JSON content files.
 /// </summary>
-public class RouteValidator : IContentValidator
+public class RouteValidator : BaseValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "fromLocationId", "toLocationId", "method", "baseTravelTime", "baseCost"
+            "id", "origin", "destination", "method", "travelTimeHours", "baseCoinCost", "baseStaminaCost"
         };
 
-    public bool CanValidate(string fileName)
+    public override bool CanValidate(string fileName)
     {
         return fileName.Equals("routes.json", StringComparison.OrdinalIgnoreCase) ||
                fileName.EndsWith("_routes.json", StringComparison.OrdinalIgnoreCase);
     }
 
-    public IEnumerable<ValidationError> Validate(string content, string fileName)
+    public override IEnumerable<ValidationError> Validate(string content, string fileName)
     {
         List<ValidationError> errors = new List<ValidationError>();
 
@@ -73,7 +73,7 @@ public class RouteValidator : IContentValidator
         // Check required fields
         foreach (string field in _requiredFields)
         {
-            if (!route.TryGetProperty(field, out _))
+            if (!TryGetPropertyCaseInsensitive(route, field, out _))
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:{routeId}",
@@ -83,7 +83,7 @@ public class RouteValidator : IContentValidator
         }
 
         // Validate travel method
-        if (route.TryGetProperty("method", out JsonElement method) &&
+        if (TryGetPropertyCaseInsensitive(route, "method", out JsonElement method) &&
             method.ValueKind == JsonValueKind.String)
         {
             string? methodStr = method.GetString();
@@ -98,35 +98,30 @@ public class RouteValidator : IContentValidator
         }
 
         // Validate numeric fields
-        ValidateNumericField(route, "baseTravelTime", routeId, fileName, errors, min: 1);
-        ValidateNumericField(route, "baseCost", routeId, fileName, errors, min: 0);
+        ValidateNumericField(route, "travelTimeHours", routeId, fileName, errors, min: 1);
+        ValidateNumericField(route, "baseCoinCost", routeId, fileName, errors, min: 0);
+        ValidateNumericField(route, "baseStaminaCost", routeId, fileName, errors, min: 0);
 
-        // Validate departure times
-        if (route.TryGetProperty("departureTimes", out JsonElement departureTimes) &&
-            departureTimes.ValueKind == JsonValueKind.Array)
+        // Validate departure time (single value in DTO)
+        if (TryGetPropertyCaseInsensitive(route, "departureTime", out JsonElement departureTime) &&
+            departureTime.ValueKind == JsonValueKind.String)
         {
-            foreach (JsonElement time in departureTimes.EnumerateArray())
+            string? timeStr = departureTime.GetString();
+            if (!string.IsNullOrEmpty(timeStr) &&
+                !EnumParser.TryParse<TimeBlocks>(timeStr, out _))
             {
-                if (time.ValueKind == JsonValueKind.String)
-                {
-                    string? timeStr = time.GetString();
-                    if (!string.IsNullOrEmpty(timeStr) &&
-                        !EnumParser.TryParse<TimeBlocks>(timeStr, out _))
-                    {
-                        errors.Add(new ValidationError(
-                            $"{fileName}:{routeId}",
-                            $"Invalid departure time: '{timeStr}'",
-                            ValidationSeverity.Warning));
-                    }
-                }
+                errors.Add(new ValidationError(
+                    $"{fileName}:{routeId}",
+                    $"Invalid departure time: '{timeStr}'",
+                    ValidationSeverity.Warning));
             }
         }
 
-        // Validate terrain types
-        if (route.TryGetProperty("terrainTypes", out JsonElement terrainTypes) &&
-            terrainTypes.ValueKind == JsonValueKind.Array)
+        // Validate terrain categories (RouteDTO uses TerrainCategories)
+        if (TryGetPropertyCaseInsensitive(route, "terrainCategories", out JsonElement terrainCategories) &&
+            terrainCategories.ValueKind == JsonValueKind.Array)
         {
-            foreach (JsonElement terrain in terrainTypes.EnumerateArray())
+            foreach (JsonElement terrain in terrainCategories.EnumerateArray())
             {
                 if (terrain.ValueKind == JsonValueKind.String)
                 {
@@ -136,7 +131,7 @@ public class RouteValidator : IContentValidator
                     {
                         errors.Add(new ValidationError(
                             $"{fileName}:{routeId}",
-                            $"Invalid terrain type: '{terrainStr}'",
+                            $"Invalid terrain category: '{terrainStr}'",
                             ValidationSeverity.Warning));
                     }
                 }
@@ -144,57 +139,16 @@ public class RouteValidator : IContentValidator
         }
 
         // Validate route consistency
-        string fromId = GetStringProperty(route, "fromLocationId");
-        string toId = GetStringProperty(route, "toLocationId");
+        string fromId = GetStringProperty(route, "Origin");
+        string toId = GetStringProperty(route, "Destination");
 
         if (!string.IsNullOrEmpty(fromId) && !string.IsNullOrEmpty(toId) && fromId == toId)
         {
             errors.Add(new ValidationError(
                 $"{fileName}:{routeId}",
-                "Route cannot have the same from and to location",
+                "Route cannot have the same origin and destination location",
                 ValidationSeverity.Critical));
         }
     }
 
-    private void ValidateNumericField(JsonElement item, string fieldName, string itemId,
-        string fileName, List<ValidationError> errors, int? min = null, int? max = null)
-    {
-        if (item.TryGetProperty(fieldName, out JsonElement field))
-        {
-            if (field.ValueKind != JsonValueKind.Number || !field.TryGetInt32(out int value))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:{itemId}",
-                    $"Field '{fieldName}' must be a valid integer",
-                    ValidationSeverity.Critical));
-            }
-            else
-            {
-                if (min.HasValue && value < min.Value)
-                {
-                    errors.Add(new ValidationError(
-                        $"{fileName}:{itemId}",
-                        $"Field '{fieldName}' value {value} is below minimum {min.Value}",
-                        ValidationSeverity.Critical));
-                }
-                if (max.HasValue && value > max.Value)
-                {
-                    errors.Add(new ValidationError(
-                        $"{fileName}:{itemId}",
-                        $"Field '{fieldName}' value {value} is above maximum {max.Value}",
-                        ValidationSeverity.Critical));
-                }
-            }
-        }
-    }
-
-    private string GetStringProperty(JsonElement element, string propertyName)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.String)
-        {
-            return property.GetString();
-        }
-        return null;
-    }
 }

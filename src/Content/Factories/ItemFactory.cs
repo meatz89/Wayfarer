@@ -11,6 +11,41 @@ public class ItemFactory
     {
         // No dependencies - factory is stateless
     }
+    
+    /// <summary>
+    /// Create a minimal item with just an ID.
+    /// Used for dummy/placeholder creation when references are missing.
+    /// </summary>
+    public Item CreateMinimalItem(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("Item ID cannot be empty", nameof(id));
+            
+        var name = FormatIdAsName(id);
+        
+        return new Item
+        {
+            Id = id,
+            Name = name,
+            Weight = 1,
+            BuyPrice = 5, // Basic price
+            SellPrice = 2, // Lower sell price
+            InventorySlots = 1,
+            Size = SizeCategory.Small,
+            Categories = new List<ItemCategory>(),
+            Description = $"An item called {name}"
+        };
+    }
+    
+    private string FormatIdAsName(string id)
+    {
+        // Convert snake_case or kebab-case to Title Case
+        return string.Join(" ", 
+            id.Replace('_', ' ').Replace('-', ' ')
+              .Split(' ')
+              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+                  char.ToUpper(word[0]) + word.Substring(1).ToLower()));
+    }
 
     /// <summary>
     /// Create an item with validated data.

@@ -12,6 +12,48 @@ public class LetterTemplateFactory
     {
         // No dependencies - factory is stateless
     }
+    
+    /// <summary>
+    /// Create a minimal letter template with just an ID.
+    /// Used for dummy/placeholder creation when references are missing.
+    /// </summary>
+    public LetterTemplate CreateMinimalLetterTemplate(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
+            
+        var name = FormatIdAsName(id);
+        
+        return new LetterTemplate
+        {
+            Id = id,
+            Description = $"A letter template called {name}",
+            TokenType = ConnectionType.Common, // Most basic type
+            MinDeadline = 24, // One day minimum
+            MaxDeadline = 48, // Two days maximum
+            MinPayment = 2, // Low but reasonable
+            MaxPayment = 5,
+            Category = LetterCategory.Basic,
+            MinTokensRequired = 0, // No token requirements
+            PossibleSenders = new string[0],
+            PossibleRecipients = new string[0],
+            UnlocksLetterIds = new string[0],
+            IsChainLetter = false,
+            Size = SizeCategory.Small, // Easy to carry
+            PhysicalProperties = LetterPhysicalProperties.None,
+            RequiredEquipment = null
+        };
+    }
+    
+    private string FormatIdAsName(string id)
+    {
+        // Convert snake_case or kebab-case to Title Case
+        return string.Join(" ", 
+            id.Replace('_', ' ').Replace('-', ' ')
+              .Split(' ')
+              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+                  char.ToUpper(word[0]) + word.Substring(1).ToLower()));
+    }
 
     /// <summary>
     /// Create a letter template with validated references

@@ -12,6 +12,43 @@ public class RouteFactory
     {
         // No dependencies - factory is stateless
     }
+    
+    /// <summary>
+    /// Create a minimal route with just an ID.
+    /// Used for dummy/placeholder creation when references are missing.
+    /// </summary>
+    public RouteOption CreateMinimalRoute(string id, string originId = null, string destinationId = null)
+    {
+        if (string.IsNullOrEmpty(id))
+            throw new ArgumentException("Route ID cannot be empty", nameof(id));
+            
+        var name = FormatIdAsName(id);
+        
+        return new RouteOption
+        {
+            Id = id,
+            Name = name,
+            Origin = originId ?? "unknown_origin",
+            Destination = destinationId ?? "unknown_destination",
+            Method = TravelMethods.Walking, // Most basic method
+            TravelTimeHours = 8, // Standard day travel
+            BaseStaminaCost = 2, // Minimal cost
+            BaseCoinCost = 0, // Free
+            Description = $"A route called {name}",
+            IsDiscovered = true, // Make it available immediately
+            MaxItemCapacity = 3 // Basic walking capacity
+        };
+    }
+    
+    private string FormatIdAsName(string id)
+    {
+        // Convert snake_case or kebab-case to Title Case
+        return string.Join(" ", 
+            id.Replace('_', ' ').Replace('-', ' ')
+              .Split(' ')
+              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+                  char.ToUpper(word[0]) + word.Substring(1).ToLower()));
+    }
 
     /// <summary>
     /// Create a route with validated location references

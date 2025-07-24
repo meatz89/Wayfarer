@@ -99,8 +99,8 @@ public class LocationSpotValidator : IContentValidator
             }
         }
 
-        // Validate currentTimeBlocks array
-        if (spot.TryGetProperty("currentTimeBlocks", out JsonElement timeBlocks) &&
+        // Validate CurrentTimeBlocks array (capital C to match JSON)
+        if (spot.TryGetProperty("CurrentTimeBlocks", out JsonElement timeBlocks) &&
             timeBlocks.ValueKind == JsonValueKind.Array)
         {
             foreach (JsonElement timeBlock in timeBlocks.EnumerateArray())

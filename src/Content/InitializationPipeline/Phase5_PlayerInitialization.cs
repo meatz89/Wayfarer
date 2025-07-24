@@ -1,0 +1,126 @@
+using System;
+using System.Linq;
+
+/// <summary>
+/// Phase 5: Initialize the player with a valid location and spot.
+/// This MUST happen after locations and spots are loaded.
+/// </summary>
+public class Phase5_PlayerInitialization : IInitializationPhase
+{
+    public int PhaseNumber => 5;
+    public string Name => "Player Initialization";
+    public bool IsCritical => true; // MUST succeed
+
+    public void Execute(InitializationContext context)
+    {
+        var player = context.GameWorld.GetPlayer();
+        var worldState = context.GameWorld.WorldState;
+        
+        Console.WriteLine("Initializing player location...");
+        
+        // Try to sync with WorldState first
+        if (worldState.CurrentLocation != null && player.CurrentLocation == null)
+        {
+            player.CurrentLocation = worldState.CurrentLocation;
+            Console.WriteLine($"  Set player location from WorldState: {worldState.CurrentLocation.Id}");
+        }
+        
+        if (worldState.CurrentLocationSpot != null && player.CurrentLocationSpot == null)
+        {
+            player.CurrentLocationSpot = worldState.CurrentLocationSpot;
+            Console.WriteLine($"  Set player spot from WorldState: {worldState.CurrentLocationSpot.SpotID}");
+        }
+        
+        // If player still has no location, find a suitable starting location
+        if (player.CurrentLocation == null)
+        {
+            // Try to find Millbrook as the default starting location
+            var millbrook = worldState.locations.FirstOrDefault(l => 
+                l.Id == "millbrook" || 
+                l.Name.Contains("Millbrook", StringComparison.OrdinalIgnoreCase));
+            
+            if (millbrook != null)
+            {
+                player.CurrentLocation = millbrook;
+                Console.WriteLine($"  Set player to default starting location: {millbrook.Id}");
+            }
+            else if (worldState.locations.Any())
+            {
+                // Fall back to first available location
+                player.CurrentLocation = worldState.locations.First();
+                Console.WriteLine($"  Set player to first available location: {player.CurrentLocation.Id}");
+            }
+            else
+            {
+                context.Errors.Add("No locations available for player initialization");
+                return;
+            }
+        }
+        
+        // Now find a spot in the player's location
+        if (player.CurrentLocationSpot == null && player.CurrentLocation != null)
+        {
+            var spotsInLocation = worldState.locationSpots
+                .Where(s => s.LocationId == player.CurrentLocation.Id)
+                .ToList();
+            
+            if (spotsInLocation.Any())
+            {
+                // Prefer a market or tavern as starting spot
+                var preferredSpot = spotsInLocation.FirstOrDefault(s => 
+                    s.Name.Contains("Market", StringComparison.OrdinalIgnoreCase) ||
+                    s.Name.Contains("Tavern", StringComparison.OrdinalIgnoreCase) ||
+                    s.Name.Contains("Square", StringComparison.OrdinalIgnoreCase));
+                
+                player.CurrentLocationSpot = preferredSpot ?? spotsInLocation.First();
+                Console.WriteLine($"  Set player to spot: {player.CurrentLocationSpot.SpotID}");
+            }
+            else
+            {
+                // No spots in this location - this will be fixed in Phase 6
+                context.SharedData["player_needs_spot"] = player.CurrentLocation.Id;
+                Console.WriteLine($"  WARNING: No spots found in {player.CurrentLocation.Id} - will create in Phase 6");
+            }
+        }
+        
+        // Sync WorldState with player
+        if (player.CurrentLocation != null && player.CurrentLocationSpot != null)
+        {
+            worldState.SetCurrentLocation(player.CurrentLocation, player.CurrentLocationSpot);
+        }
+        
+        // Initialize other player properties if needed
+        if (string.IsNullOrEmpty(player.Name))
+        {
+            player.Name = "Courier";
+            Console.WriteLine("  Set default player name: Courier");
+        }
+        
+        if (player.Archetype == 0)
+        {
+            player.Archetype = Professions.Merchant;
+            Console.WriteLine("  Set default player archetype: Merchant");
+        }
+        
+        // Ensure player has basic resources
+        if (player.Coins < 10)
+        {
+            player.Coins = 10;
+            Console.WriteLine("  Set starting coins: 10");
+        }
+        
+        if (player.MaxStamina == 0)
+        {
+            player.MaxStamina = 10;
+            player.Stamina = 10;
+            Console.WriteLine("  Set stamina: 10/10");
+        }
+        
+        // Final validation - if we still don't have a location, it will be handled in Phase 6
+        if (player.CurrentLocation == null)
+        {
+            context.SharedData["player_needs_location"] = true;
+            Console.WriteLine("  CRITICAL: Player still has no location - will create in Phase 6");
+        }
+    }
+}
