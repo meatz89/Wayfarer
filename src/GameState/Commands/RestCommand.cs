@@ -42,14 +42,7 @@ public class RestCommand : BaseGameCommand
             return CommandValidationResult.Failure("Already at maximum stamina");
         }
 
-        // Check time availability
-        if (!gameWorld.TimeManager.CanPerformAction(_hours))
-        {
-            return CommandValidationResult.Failure(
-                $"Not enough time remaining (need {_hours} hours)",
-                true,
-                "Try resting for fewer hours or wait until tomorrow");
-        }
+        // Time cost check removed - handled by executing service
 
         return CommandValidationResult.Success();
     }
@@ -62,8 +55,7 @@ public class RestCommand : BaseGameCommand
         int currentStamina = player.Stamina;
         int potentialRecovery = Math.Min(_staminaRecovery, player.MaxStamina - currentStamina);
 
-        // Apply time cost
-        gameWorld.TimeManager.SpendHours(_hours);
+        // Time spending handled by executing service
 
         // Apply stamina recovery
         player.ModifyStamina(potentialRecovery);
@@ -77,7 +69,7 @@ public class RestCommand : BaseGameCommand
             "Rest completed",
             new
             {
-                HoursSpent = _hours,
+                TimeCost = _hours,  // Use TimeCost instead of HoursSpent
                 StaminaRecovered = potentialRecovery,
                 CurrentStamina = player.Stamina,
                 MaxStamina = player.MaxStamina

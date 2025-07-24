@@ -6,6 +6,7 @@
 @inject MessageSystem MessageSystem
 @inject StandingObligationRepository ObligationRepository
 @inject StandingObligationManager ObligationManager
+@inject ITimeManager TimeManager
 
 <div class="letter-queue-container">
     <h3>Letter Queue</h3>
@@ -135,7 +136,7 @@
         
         <div class="actions-grid">
             @* Morning Swap (only available at dawn) *@
-            @if (GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+            @if (TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
             {
                 <div class="action-group">
                     <button class="btn btn-info btn-sm" @onclick="ShowMorningSwap" disabled="@(GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay)">

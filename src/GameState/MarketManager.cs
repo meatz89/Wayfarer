@@ -25,14 +25,15 @@ public class MarketManager
     }
 
     public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
-                        NPCRepository npcRepository, LocationRepository locationRepository, MessageSystem messageSystem)
+                        NPCRepository npcRepository, LocationRepository locationRepository, MessageSystem messageSystem,
+                        ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _locationSystem = locationSystem;
         _itemRepository = itemRepository;
         _npcRepository = npcRepository;
         _locationRepository = locationRepository;
-        _timeManager = gameWorld.TimeManager;
+        _timeManager = timeManager;
         _messageSystem = messageSystem;
     }
 
@@ -50,7 +51,7 @@ public class MarketManager
         }
 
         // Check if market is available based on NPC schedules
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
 
         if (!marketAvailable)
@@ -119,7 +120,7 @@ public class MarketManager
         List<Item> availableItems = new List<Item>();
 
         // Check market availability once upfront
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
 
         if (!marketAvailable)
@@ -645,7 +646,7 @@ public class MarketManager
     /// </summary>
     public string GetMarketAvailabilityStatus(string locationId)
     {
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         bool isAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
 
         if (isAvailable)
@@ -683,7 +684,7 @@ public class MarketManager
     /// </summary>
     public string GetDetailedMarketStatus(string locationId)
     {
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocation(locationId)
             .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
             .ToList();
@@ -721,7 +722,7 @@ public class MarketManager
     /// </summary>
     public List<NPC> GetCurrentTraders(string locationId)
     {
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         return _npcRepository.GetNPCsForLocationAndTime(locationId, currentTime)
             .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
             .ToList();

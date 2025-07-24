@@ -16,6 +16,7 @@ public class MarketUIService
     private readonly IGameRuleEngine _ruleEngine;
     private readonly CommandExecutor _commandExecutor;
     private readonly MessageSystem _messageSystem;
+    private readonly ITimeManager _timeManager;
 
     public MarketUIService(
         GameWorld gameWorld,
@@ -24,7 +25,8 @@ public class MarketUIService
         LocationRepository locationRepository,
         IGameRuleEngine ruleEngine,
         CommandExecutor commandExecutor,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _gameManager = gameManager;
@@ -33,6 +35,7 @@ public class MarketUIService
         _ruleEngine = ruleEngine;
         _commandExecutor = commandExecutor;
         _messageSystem = messageSystem;
+        _timeManager = timeManager;
     }
 
     /// <summary>
@@ -44,7 +47,7 @@ public class MarketUIService
         Player player = _gameWorld.GetPlayer();
         string marketStatus = _gameManager.GetMarketAvailabilityStatus(locationId);
         List<NPC> traders = _gameManager.GetTradingNPCs(locationId)
-            .Where(npc => npc.IsAvailable(_gameWorld.TimeManager.GetCurrentTimeBlock()))
+            .Where(npc => npc.IsAvailable(_timeManager.GetCurrentTimeBlock()))
             .ToList();
 
         // Get all available items

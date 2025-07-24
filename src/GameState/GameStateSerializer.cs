@@ -7,6 +7,19 @@ public static class GameWorldSerializer
         WriteIndented = true
     };
 
+    private static int GetHoursFromTimeBlock(TimeBlocks timeBlock)
+    {
+        return timeBlock switch
+        {
+            TimeBlocks.Dawn => 6,
+            TimeBlocks.Morning => 10,
+            TimeBlocks.Afternoon => 14,
+            TimeBlocks.Evening => 18,
+            TimeBlocks.Night => 22,
+            _ => 10 // Default to morning
+        };
+    }
+
     public static string SerializeGameWorld(GameWorld gameWorld)
     {
         SerializableGameWorld serialized = new SerializableGameWorld
@@ -14,7 +27,7 @@ public static class GameWorldSerializer
             CurrentLocationId = gameWorld.WorldState.CurrentLocation?.Id,
             CurrentLocationSpotId = gameWorld.WorldState.CurrentLocationSpot?.SpotID,
             CurrentDay = gameWorld.CurrentDay,
-            CurrentTimeHours = gameWorld.TimeManager.GetCurrentTimeHours(),
+            CurrentTimeHours = GetHoursFromTimeBlock(gameWorld.CurrentTimeBlock),
 
             Player = new SerializablePlayerState
             {
@@ -377,19 +390,17 @@ public static class GameWorldSerializer
         int savedHours = serialized.CurrentTimeHours;
         int savedDay = serialized.CurrentDay;
         
-        // First, advance days if needed
-        while (gameWorld.TimeManager.GetCurrentDay() < savedDay)
+        // Restore time state directly to GameWorld
+        gameWorld.CurrentDay = savedDay;
+        // Convert hours to time block (6=Dawn, 10=Morning, 14=Afternoon, 18=Evening, 22=Night)
+        gameWorld.CurrentTimeBlock = savedHours switch
         {
-            // Advance 24 hours to get to next day
-            gameWorld.TimeManager.AdvanceTime(24);
-        }
-        
-        // Then advance to the correct hour within the day
-        int currentHour = gameWorld.TimeManager.GetCurrentTimeHours();
-        if (currentHour < savedHours)
-        {
-            gameWorld.TimeManager.AdvanceTime(savedHours - currentHour);
-        }
+            >= 6 and < 10 => TimeBlocks.Dawn,
+            >= 10 and < 14 => TimeBlocks.Morning,
+            >= 14 and < 18 => TimeBlocks.Afternoon,
+            >= 18 and < 22 => TimeBlocks.Evening,
+            _ => TimeBlocks.Night
+        };
 
         // Apply player state if character exists
         if (!string.IsNullOrEmpty(serialized.Player.Name))

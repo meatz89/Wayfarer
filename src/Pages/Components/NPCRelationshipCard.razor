@@ -7,6 +7,7 @@
 @inject NPCLetterOfferService LetterOfferService
 @inject TokenFavorManager TokenFavorManager
 @inject LetterCategoryService CategoryService
+@inject ITimeManager TimeManager
 
 <div class="npc-relationship-card @GetRelationshipStatusClass()">
     <div class="npc-header">
@@ -305,7 +306,7 @@
     
     private bool IsNPCCurrentlyAvailable()
     {
-        var currentTime = GameWorld.TimeManager.GetCurrentTimeBlock();
+        var currentTime = TimeManager.GetCurrentTimeBlock();
         return NPC.IsAvailable(currentTime);
     }
     

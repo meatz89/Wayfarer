@@ -17,6 +17,7 @@ public class LetterQueueUIService
     private readonly CommandExecutor _commandExecutor;
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
+    private readonly ITimeManager _timeManager;
 
     public LetterQueueUIService(
         GameWorld gameWorld,
@@ -25,7 +26,8 @@ public class LetterQueueUIService
         StandingObligationManager obligationManager,
         CommandExecutor commandExecutor,
         MessageSystem messageSystem,
-        NPCRepository npcRepository)
+        NPCRepository npcRepository,
+        ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _queueManager = queueManager;
@@ -34,6 +36,7 @@ public class LetterQueueUIService
         _commandExecutor = commandExecutor;
         _messageSystem = messageSystem;
         _npcRepository = npcRepository;
+        _timeManager = timeManager;
     }
 
     /// <summary>
@@ -42,7 +45,7 @@ public class LetterQueueUIService
     public LetterQueueViewModel GetQueueViewModel()
     {
         Player player = _gameWorld.GetPlayer();
-        ITimeManager currentTime = _gameWorld.TimeManager;
+        ITimeManager currentTime = _timeManager;
 
         LetterQueueViewModel viewModel = new LetterQueueViewModel
         {
@@ -139,7 +142,7 @@ public class LetterQueueUIService
     private QueueActionsViewModel GetQueueActions()
     {
         Player player = _gameWorld.GetPlayer();
-        ITimeManager currentTime = _gameWorld.TimeManager;
+        ITimeManager currentTime = _timeManager;
 
         QueueActionsViewModel actions = new QueueActionsViewModel
         {
@@ -157,7 +160,7 @@ public class LetterQueueUIService
     private string GetMorningSwapReason()
     {
         Player player = _gameWorld.GetPlayer();
-        ITimeManager currentTime = _gameWorld.TimeManager;
+        ITimeManager currentTime = _timeManager;
 
         if (currentTime.GetCurrentTimeBlock() != TimeBlocks.Dawn)
             return "Only available at dawn";

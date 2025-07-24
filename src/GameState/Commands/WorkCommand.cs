@@ -51,7 +51,7 @@ public class WorkCommand : BaseGameCommand
         }
 
         // Check time availability
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = gameWorld.CurrentTimeBlock;
         if (!npc.IsAvailableAtTime(player.CurrentLocationSpot.SpotID, currentTime))
         {
             return CommandValidationResult.Failure(
@@ -60,14 +60,7 @@ public class WorkCommand : BaseGameCommand
                 "Try visiting at a different time");
         }
 
-        // Check resource costs (1 hour, 1 stamina)
-        if (!gameWorld.TimeManager.CanPerformAction(1))
-        {
-            return CommandValidationResult.Failure(
-                "Not enough time remaining",
-                true,
-                "Rest or wait until tomorrow");
-        }
+        // Check resource costs (1 stamina) - time check handled by executing service
 
         if (player.Stamina < 1)
         {
@@ -91,8 +84,8 @@ public class WorkCommand : BaseGameCommand
         // Apply costs
         int hoursSpent = 1;
         int staminaSpent = 1;
-        gameWorld.TimeManager.SpendHours(hoursSpent);
         player.ModifyStamina(-staminaSpent);
+        // Time spending is handled by the executing service
 
         // Apply rewards
         int coinsEarned = reward.BaseCoins + reward.BonusCoins;
@@ -116,7 +109,7 @@ public class WorkCommand : BaseGameCommand
                 BaseCoins = reward.BaseCoins,
                 BonusCoins = reward.BonusCoins,
                 StaminaSpent = staminaSpent,
-                HoursSpent = hoursSpent
+                TimeCost = hoursSpent
             }
         );
     }

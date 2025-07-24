@@ -2,20 +2,9 @@
 
 public class GameWorld
 {
-    public int CurrentDay
-    {
-        get
-        {
-            return TimeManager?.GetCurrentDay() ?? 1;
-        }
-    }
-    public TimeBlocks CurrentTimeBlock
-    {
-        get
-        {
-            return TimeManager?.GetCurrentTimeBlock() ?? TimeBlocks.Morning;
-        }
-    }
+    // Time is now tracked in WorldState, not through external dependencies
+    public int CurrentDay { get; set; } = 1;
+    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
     public WeatherCondition CurrentWeather
     {
         get
@@ -80,7 +69,6 @@ public class GameWorld
     public string DeadlineReason { get; set; }
     public Guid GameInstanceId { get; set; }
     public RouteOption CurrentRouteOption { get; internal set; }
-    public ITimeManager TimeManager { get; internal set; }
 
     // System Messages State
     public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
@@ -112,13 +100,11 @@ public class GameWorld
         Player = new Player();
         WorldState = new WorldState();
 
-        // TimeManager will be injected by GameWorldInitializer
+        // GameWorld has NO dependencies and creates NO managers
 
         StreamingContentState = new StreamingContentState();
 
-        // Initialize narrative system
-        FlagService = new FlagService();
-        NarrativeManager = new NarrativeManager();
+        // FlagService and NarrativeManager are created by DI, not GameWorld
 
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;

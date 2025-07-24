@@ -54,7 +54,7 @@ public class SocializeCommand : BaseGameCommand
         }
 
         // Check time availability
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = gameWorld.CurrentTimeBlock;
         if (!npc.IsAvailableAtTime(player.CurrentLocationSpot.SpotID, currentTime))
         {
             return CommandValidationResult.Failure(
@@ -63,14 +63,7 @@ public class SocializeCommand : BaseGameCommand
                 "Try visiting at a different time");
         }
 
-        // Check resource costs (1 hour, 1 stamina)
-        if (!gameWorld.TimeManager.CanPerformAction(1))
-        {
-            return CommandValidationResult.Failure(
-                "Not enough time remaining",
-                true,
-                "Rest or wait until tomorrow");
-        }
+        // Time cost check removed - handled by executing service
 
         if (player.Stamina < 1)
         {
@@ -88,8 +81,8 @@ public class SocializeCommand : BaseGameCommand
         NPC npc = _npcRepository.GetById(_npcId);
         Player player = gameWorld.GetPlayer();
 
-        // Apply costs
-        gameWorld.TimeManager.SpendHours(1);
+        // Time spending handled by executing service
+        // Stamina cost still applied here
         player.ModifyStamina(-1);
 
         // 50% chance to earn a token (same as letter delivery)
@@ -121,7 +114,7 @@ public class SocializeCommand : BaseGameCommand
                 EarnedToken = earnedToken,
                 TokenType = tokenType,
                 StaminaSpent = 1,
-                HoursSpent = 1
+                TimeCost = 1  // Add time cost to result
             }
         );
     }

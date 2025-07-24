@@ -13,17 +13,20 @@ public class LocationActionsUIService
     private readonly CommandDiscoveryService _commandDiscovery;
     private readonly CommandExecutor _commandExecutor;
     private readonly MessageSystem _messageSystem;
+    private readonly ITimeManager _timeManager;
 
     public LocationActionsUIService(
         GameWorld gameWorld,
         CommandDiscoveryService commandDiscovery,
         CommandExecutor commandExecutor,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _commandDiscovery = commandDiscovery;
         _commandExecutor = commandExecutor;
         _messageSystem = messageSystem;
+        _timeManager = timeManager;
     }
 
     /// <summary>
@@ -39,8 +42,8 @@ public class LocationActionsUIService
             return new LocationActionsViewModel
             {
                 LocationName = "Unknown Location",
-                CurrentTimeBlock = _gameWorld.TimeManager.GetCurrentTimeBlock().ToString(),
-                HoursRemaining = _gameWorld.TimeManager.HoursRemaining,
+                CurrentTimeBlock = _timeManager.GetCurrentTimeBlock().ToString(),
+                HoursRemaining = _timeManager.HoursRemaining,
                 PlayerStamina = player.Stamina,
                 PlayerCoins = player.Coins,
                 ActionGroups = new List<ActionGroupViewModel>()
@@ -53,8 +56,8 @@ public class LocationActionsUIService
         LocationActionsViewModel viewModel = new LocationActionsViewModel
         {
             LocationName = currentSpot.Name,
-            CurrentTimeBlock = _gameWorld.TimeManager.GetCurrentTimeBlock().ToString(),
-            HoursRemaining = _gameWorld.TimeManager.HoursRemaining,
+            CurrentTimeBlock = _timeManager.GetCurrentTimeBlock().ToString(),
+            HoursRemaining = _timeManager.HoursRemaining,
             PlayerStamina = player.Stamina,
             PlayerCoins = player.Coins,
             ActionGroups = new List<ActionGroupViewModel>()
@@ -89,7 +92,7 @@ public class LocationActionsUIService
             CoinCost = cmd.CoinCost,
 
             // Affordability
-            HasEnoughTime = cmd.TimeCost == 0 || _gameWorld.TimeManager.HoursRemaining >= cmd.TimeCost,
+            HasEnoughTime = cmd.TimeCost == 0 || _timeManager.HoursRemaining >= cmd.TimeCost,
             HasEnoughStamina = cmd.StaminaCost == 0 || _gameWorld.GetPlayer().Stamina >= cmd.StaminaCost,
             HasEnoughCoins = cmd.CoinCost == 0 || _gameWorld.GetPlayer().Coins >= cmd.CoinCost,
 

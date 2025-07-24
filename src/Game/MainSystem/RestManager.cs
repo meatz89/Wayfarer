@@ -7,11 +7,12 @@
 
     public RestManager(
         GameWorld gameWorld,
+        ITimeManager timeManager,
         LocationRepository locationRepository,
         MessageSystem messageSystem)
     {
         this.gameWorld = gameWorld;
-        this.timeManager = gameWorld.TimeManager;
+        this.timeManager = timeManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
     }
@@ -23,7 +24,7 @@
 
         List<RestOption> restOptions = new List<RestOption>();
 
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = timeManager.GetCurrentTimeBlock();
 
         // During day/evening - only short rest/wait options
         if (currentTime != TimeBlocks.Night)
@@ -214,19 +215,19 @@
         if (option.EnablesDawnDeparture)
         {
             // Calculate hours until dawn (6 AM) of next day
-            int currentHour = gameWorld.TimeManager.GetCurrentTimeHours();
+            int currentHour = timeManager.GetCurrentTimeHours();
             int hoursUntilDawn = (24 - currentHour) + 6; // Hours to midnight + 6 hours to dawn
-            gameWorld.TimeManager.AdvanceTime(hoursUntilDawn);
+            timeManager.AdvanceTime(hoursUntilDawn);
         }
         else
         {
             // Advance to next day at 6 AM
-            int currentHour = gameWorld.TimeManager.GetCurrentTimeHours();
+            int currentHour = timeManager.GetCurrentTimeHours();
             int hoursUntilDawn = (24 - currentHour) + 6;
-            gameWorld.TimeManager.AdvanceTime(hoursUntilDawn);
+            timeManager.AdvanceTime(hoursUntilDawn);
             // Time advances to next day at dawn (6 AM)
             // If we need to start at a different time, we can advance additional hours
-            gameWorld.TimeManager.AdvanceTime(3); // Advance to 9 AM (Morning)
+            timeManager.AdvanceTime(3); // Advance to 9 AM (Morning)
         }
 
         // Skill cards removed - using letter queue system

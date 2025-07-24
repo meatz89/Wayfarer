@@ -45,7 +45,7 @@ public class MorningSwapCommand : LetterQueueActionCommand
 
     public override CommandValidationResult CanExecute(GameWorld gameWorld)
     {
-        if (gameWorld.TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+        if (gameWorld.CurrentTimeBlock != TimeBlocks.Dawn)
             return CommandValidationResult.Failure("Morning swap only available at dawn");
 
         Player player = gameWorld.GetPlayer();

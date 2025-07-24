@@ -5,11 +5,12 @@
 @inject ConnectionTokenManager TokenManager
 @inject StandingObligationManager ObligationManager
 @inject NoticeBoardService NoticeBoardService
+@inject ITimeManager TimeManager
 
 <div class="letter-board-container">
     <h2>Morning Letter Board</h2>
     
-    @if (GameWorld.TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+    @if (TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
     {
         <div class="time-restriction">
             <span class="restriction-icon">⏰</span>
@@ -243,14 +244,14 @@
         var currentDay = GameWorld.CurrentDay;
         
         // Only generate if we haven't generated for today
-        if (player.LastLetterBoardDay < currentDay && GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        if (player.LastLetterBoardDay < currentDay && TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
         {
             GenerateAvailableLetters();
             player.LastLetterBoardDay = currentDay;
             // Store the generated letters in the player state
             player.DailyBoardLetters = availableLetters.ToList();
         }
-        else if (player.LastLetterBoardDay == currentDay && GameWorld.TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        else if (player.LastLetterBoardDay == currentDay && TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
         {
             // Restore previously generated letters for today (minus any already accepted)
             availableLetters = player.DailyBoardLetters?.ToList() ?? new List<Letter>();

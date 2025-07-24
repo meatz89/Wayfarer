@@ -63,7 +63,7 @@ public class CommandDiscoveryService
         }
 
         LocationSpot spot = player.CurrentLocationSpot;
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = gameWorld.CurrentTimeBlock;
 
         // Discover NPC-based commands
         List<NPC> npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);

@@ -60,7 +60,7 @@ public class CollectLetterCommand : BaseGameCommand
         }
 
         // Check time availability
-        TimeBlocks currentTime = gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = gameWorld.CurrentTimeBlock;
         if (!sender.IsAvailableAtTime(player.CurrentLocationSpot.SpotID, currentTime))
         {
             return CommandValidationResult.Failure(
@@ -69,14 +69,7 @@ public class CollectLetterCommand : BaseGameCommand
                 "Try visiting at a different time");
         }
 
-        // Check resource cost (1 hour)
-        if (!gameWorld.TimeManager.CanPerformAction(1))
-        {
-            return CommandValidationResult.Failure(
-                "Not enough time remaining",
-                true,
-                "Rest or wait until tomorrow");
-        }
+        // Time cost check removed - handled by executing service
 
         // Check inventory space
         if (player.Inventory.IsFull())
@@ -97,8 +90,7 @@ public class CollectLetterCommand : BaseGameCommand
         Letter letter = player.LetterQueue.FirstOrDefault(l => l?.Id == _letterId);
         NPC sender = _npcRepository.GetById(letter.SenderId);
 
-        // Spend time
-        gameWorld.TimeManager.SpendHours(1);
+        // Time spending handled by executing service
 
         // Mark letter as collected
         letter.State = LetterState.Collected;
@@ -122,7 +114,8 @@ public class CollectLetterCommand : BaseGameCommand
                 SenderName = sender.Name,
                 RecipientName = letter.RecipientName,
                 Payment = letter.Payment,
-                Deadline = letter.Deadline
+                Deadline = letter.Deadline,
+                TimeCost = 1  // Add time cost to result
             }
         );
     }

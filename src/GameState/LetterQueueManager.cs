@@ -12,9 +12,10 @@ public class LetterQueueManager
     private readonly ConversationFactory _conversationFactory;
     private readonly GameConfiguration _config;
     private readonly IGameRuleEngine _ruleEngine;
+    private readonly ITimeManager _timeManager;
     private readonly Random _random = new Random();
 
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, ConversationFactory conversationFactory, GameConfiguration config, IGameRuleEngine ruleEngine)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, ConversationFactory conversationFactory, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -26,6 +27,7 @@ public class LetterQueueManager
         _conversationFactory = conversationFactory;
         _config = config;
         _ruleEngine = ruleEngine;
+        _timeManager = timeManager;
     }
 
     // Get the player's letter queue
@@ -1328,7 +1330,7 @@ public class LetterQueueManager
     public bool TryMorningSwap(int position1, int position2)
     {
         // Validate it's morning (dawn time block)
-        if (_gameWorld.TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+        if (_timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
         {
             return false; // Can only use during dawn
         }
