@@ -125,37 +125,31 @@
     private bool ShouldShowLetterManagement()
     {
         // Show letter management section once player has learned about letters
-        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
-               GameWorld.FlagService.GetFlag("first_letter_accepted");
+        return true;
     }
     
     private bool ShouldShowQueue()
     {
         // Show queue after player accepts their first letter
-        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
-               GameWorld.FlagService.GetFlag("first_letter_accepted");
+        return true;
     }
     
     private bool ShouldShowLetterBoard()
     {
         // Show letter board after player delivers their first letter
-        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
-               GameWorld.FlagService.GetFlag("first_letter_delivered");
+        return true;
     }
     
     private bool ShouldShowRelations()
     {
         // Show relations after player earns their first token
-        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
-               GameWorld.FlagService.GetFlag("first_token_earned");
+        return true;
     }
     
     private bool ShouldShowObligations()
     {
         // Show obligations after player meets patron or has any obligation
-        return !GameWorld.NarrativeManager.IsNarrativeActive("wayfarer_tutorial") || 
-               GameWorld.FlagService.GetFlag("tutorial_patron_met") ||
-               ObligationManager.GetActiveObligations().Any();
+        return true;
     }
     
 }

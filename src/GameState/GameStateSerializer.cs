@@ -79,10 +79,6 @@ public static class GameWorldSerializer
                 // Patron tracking
                 PatronLeverage = gameWorld.GetPlayer().PatronLeverage
             },
-
-            // Narrative state
-            FlagServiceState = gameWorld.FlagService?.GetState(),
-            NarrativeManagerState = SerializeNarrativeManager(gameWorld.NarrativeManager)
         };
 
         return JsonSerializer.Serialize(serialized, _jsonOptions);
@@ -187,18 +183,6 @@ public static class GameWorldSerializer
             DateAccepted = obligation.DayAccepted,
             IsActive = obligation.IsActive,
             DaysSinceLastForcedLetter = obligation.DaysSinceLastForcedLetter
-        };
-    }
-
-    private static NarrativeManagerState SerializeNarrativeManager(NarrativeManager narrativeManager)
-    {
-        if (narrativeManager == null) return null;
-
-        return new NarrativeManagerState
-        {
-            ActiveNarratives = new Dictionary<string, NarrativeDefinition>(narrativeManager.GetActiveNarratives()
-                .ToDictionary(id => id, id => narrativeManager.GetNarrativeDefinition(id))),
-            NarrativeDefinitions = new Dictionary<string, NarrativeDefinition>() // Will be populated from content files on load
         };
     }
 
@@ -346,20 +330,6 @@ public static class GameWorldSerializer
         }
 
         return obligation;
-    }
-
-    private static void DeserializeNarrativeManager(NarrativeManagerState state, NarrativeManager narrativeManager)
-    {
-        // Restore active narratives
-        // Note: The narrative definitions should be loaded from content files first
-        foreach (KeyValuePair<string, NarrativeDefinition> narrative in state.ActiveNarratives ?? new Dictionary<string, NarrativeDefinition>())
-        {
-            // Only start narratives that are defined
-            if (narrativeManager.GetNarrativeDefinition(narrative.Key) != null)
-            {
-                narrativeManager.StartNarrative(narrative.Key);
-            }
-        }
     }
 
     public static GameWorld DeserializeGameWorld(string json, List<Location> locations, List<LocationSpot> spots)
@@ -512,18 +482,6 @@ public static class GameWorldSerializer
                     gameWorld.GetPlayer().CurrentLocationSpot = currentSpot;
                 }
             }
-        }
-
-        // Apply FlagService state
-        if (serialized.FlagServiceState != null && gameWorld.FlagService != null)
-        {
-            gameWorld.FlagService.LoadState(serialized.FlagServiceState);
-        }
-
-        // Apply NarrativeManager state
-        if (serialized.NarrativeManagerState != null && gameWorld.NarrativeManager != null)
-        {
-            DeserializeNarrativeManager(serialized.NarrativeManagerState, gameWorld.NarrativeManager);
         }
 
         return gameWorld;

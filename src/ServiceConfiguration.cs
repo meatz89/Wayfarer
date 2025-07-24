@@ -78,16 +78,9 @@
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 
-        // FlagService is created by GameWorld
-        services.AddSingleton<FlagService>(provider => provider.GetRequiredService<GameWorld>().FlagService);
-        // NarrativeManager is created by GameWorldInitializer
-        services.AddSingleton<NarrativeManager>(provider => provider.GetRequiredService<GameWorld>().NarrativeManager);
         services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
-        // services.AddSingleton<PersistentChangeProcessor>(); // TODO: Class removed in refactoring
         services.AddSingleton<LocationPropertyManager>();
-
-        // Time System - single source of truth for all time operations
         services.AddTimeSystem();
 
         // Managers that depend on TimeManager
