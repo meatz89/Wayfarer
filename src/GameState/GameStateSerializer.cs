@@ -24,8 +24,8 @@ public static class GameWorldSerializer
     {
         SerializableGameWorld serialized = new SerializableGameWorld
         {
-            CurrentLocationId = gameWorld.WorldState.CurrentLocation?.Id,
-            CurrentLocationSpotId = gameWorld.WorldState.CurrentLocationSpot?.SpotID,
+            CurrentLocationId = gameWorld.GetPlayer().CurrentLocation?.Id,
+            CurrentLocationSpotId = gameWorld.GetPlayer().CurrentLocationSpot?.SpotID,
             CurrentDay = gameWorld.CurrentDay,
             CurrentTimeHours = GetHoursFromTimeBlock(gameWorld.CurrentTimeBlock),
 
@@ -508,7 +508,8 @@ public static class GameWorldSerializer
 
                 if (currentSpot != null)
                 {
-                    gameWorld.WorldState.SetCurrentLocation(currentLocation, currentSpot);
+                    gameWorld.GetPlayer().CurrentLocation = currentLocation;
+                    gameWorld.GetPlayer().CurrentLocationSpot = currentSpot;
                 }
             }
         }

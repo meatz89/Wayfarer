@@ -18,18 +18,7 @@ public class Phase5_PlayerInitialization : IInitializationPhase
         
         Console.WriteLine("Initializing player location...");
         
-        // Try to sync with WorldState first
-        if (worldState.CurrentLocation != null && player.CurrentLocation == null)
-        {
-            player.CurrentLocation = worldState.CurrentLocation;
-            Console.WriteLine($"  Set player location from WorldState: {worldState.CurrentLocation.Id}");
-        }
-        
-        if (worldState.CurrentLocationSpot != null && player.CurrentLocationSpot == null)
-        {
-            player.CurrentLocationSpot = worldState.CurrentLocationSpot;
-            Console.WriteLine($"  Set player spot from WorldState: {worldState.CurrentLocationSpot.SpotID}");
-        }
+        // Player is the single source of truth for location - no sync needed
         
         // If player still has no location, find a suitable starting location
         if (player.CurrentLocation == null)
@@ -83,11 +72,7 @@ public class Phase5_PlayerInitialization : IInitializationPhase
             }
         }
         
-        // Sync WorldState with player
-        if (player.CurrentLocation != null && player.CurrentLocationSpot != null)
-        {
-            worldState.SetCurrentLocation(player.CurrentLocation, player.CurrentLocationSpot);
-        }
+        // No need to sync - Player is the single source of truth for current location
         
         // Initialize other player properties if needed
         if (string.IsNullOrEmpty(player.Name))

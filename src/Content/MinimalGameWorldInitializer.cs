@@ -298,11 +298,7 @@ Size = SizeCategory.Small
         player.MaxStamina = 10;
         player.Stamina = 10;
         
-        // Sync with WorldState
-        if (player.CurrentLocation != null && player.CurrentLocationSpot != null)
-        {
-            gameWorld.WorldState.SetCurrentLocation(player.CurrentLocation, player.CurrentLocationSpot);
-        }
+        // Player is the single source of truth for location - no sync needed
         
         // Final validation
         if (player.CurrentLocation == null || player.CurrentLocationSpot == null)

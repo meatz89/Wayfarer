@@ -80,7 +80,7 @@
     
     private bool IsAtNPCLocation(NPC npc)
     {
-        var currentLocation = GameWorld.WorldState.CurrentLocation;
+        var currentLocation = GameWorld.GetPlayer().CurrentLocation;
         return currentLocation != null && currentLocation.Id == npc.Location;
     }
     

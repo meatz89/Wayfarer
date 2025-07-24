@@ -26,24 +26,26 @@ public class GameWorld
     {
         get
         {
-            return WorldState.CurrentLocation;
+            return Player?.CurrentLocation;
         }
 
         private set
         {
-            WorldState.SetCurrentLocation(value, WorldState.CurrentLocationSpot);
+            if (Player != null)
+                Player.CurrentLocation = value;
         }
     }
     public LocationSpot CurrentLocationSpot
     {
         get
         {
-            return WorldState.CurrentLocationSpot;
+            return Player?.CurrentLocationSpot;
         }
 
         set
         {
-            WorldState.SetCurrentLocationSpot(value);
+            if (Player != null)
+                Player.CurrentLocationSpot = value;
         }
     }
 
