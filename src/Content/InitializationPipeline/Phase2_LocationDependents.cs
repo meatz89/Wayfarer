@@ -92,6 +92,10 @@ public class Phase2_LocationDependents : IInitializationPhase
                     );
                     
                     context.GameWorld.WorldState.locationSpots.Add(spot);
+                    
+                    // Also add spot to the location's AvailableSpots list
+                    location.AvailableSpots.Add(spot);
+                    
                     Console.WriteLine($"  Loaded spot: {spot.SpotID} at {spot.LocationId}");
                 }
                 catch (Exception ex)

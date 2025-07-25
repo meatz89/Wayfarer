@@ -4,6 +4,15 @@ using System.IO;
 using System.Linq;
 
 /// <summary>
+/// Defines the game mode for content loading
+/// </summary>
+public enum GameMode
+{
+    MainGame,
+    Tutorial
+}
+
+/// <summary>
 /// Manages the initialization of GameWorld from JSON content in a deterministic order.
 /// Ensures all dependencies are created before entities that depend on them.
 /// </summary>
@@ -41,9 +50,9 @@ public class GameWorldInitializationPipeline
         };
     }
     
-    public GameWorld Initialize()
+    public GameWorld Initialize(GameMode gameMode = GameMode.MainGame)
     {
-        Console.WriteLine("=== GAME WORLD INITIALIZATION PIPELINE ===");
+        Console.WriteLine($"=== GAME WORLD INITIALIZATION PIPELINE ({gameMode}) ===");
         
         // Create empty GameWorld
         var gameWorld = new GameWorld();
@@ -53,7 +62,8 @@ public class GameWorldInitializationPipeline
             ContentPath = Path.Combine(_contentDirectory.Path, "Templates"),
             ContentLoader = _contentLoader,
             Errors = new List<string>(),
-            Warnings = new List<string>()
+            Warnings = new List<string>(),
+            GameMode = gameMode
         };
         
         // Execute each phase in order
@@ -128,9 +138,20 @@ public class InitializationContext
     public ValidatedContentLoader ContentLoader { get; set; }
     public List<string> Errors { get; set; }
     public List<string> Warnings { get; set; }
+    public GameMode GameMode { get; set; } = GameMode.MainGame;
     
     // Temporary storage for cross-phase data
     public Dictionary<string, object> SharedData { get; set; } = new();
+    
+    /// <summary>
+    /// Gets the content path based on game mode
+    /// </summary>
+    public string GetContentPath()
+    {
+        return GameMode == GameMode.Tutorial 
+            ? Path.Combine(ContentPath, "Tutorial")
+            : ContentPath;
+    }
 }
 
 /// <summary>

@@ -5,21 +5,21 @@ using System.Text.Json;
 /// <summary>
 /// Validates standing obligation JSON content files.
 /// </summary>
-public class StandingObligationValidator : IContentValidator
+public class StandingObligationValidator : BaseValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "name", "description", "sourceNpcId", "relatedTokenType",
+            "id", "name", "description", "source", "relatedTokenType",
             "benefitEffects", "constraintEffects"
         };
 
-    public bool CanValidate(string fileName)
+    public override bool CanValidate(string fileName)
     {
         return fileName.Equals("standing_obligations.json", StringComparison.OrdinalIgnoreCase) ||
                fileName.EndsWith("_standing_obligations.json", StringComparison.OrdinalIgnoreCase);
     }
 
-    public IEnumerable<ValidationError> Validate(string content, string fileName)
+    public override IEnumerable<ValidationError> Validate(string content, string fileName)
     {
         List<ValidationError> errors = new List<ValidationError>();
 
@@ -73,10 +73,10 @@ public class StandingObligationValidator : IContentValidator
             }
         }
 
-        // Check required fields
+        // Check required fields using case-insensitive matching
         foreach (string field in _requiredFields)
         {
-            if (!obligation.TryGetProperty(field, out _))
+            if (!TryGetPropertyCaseInsensitive(obligation, field, out _))
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:{obligationId}",
@@ -86,7 +86,7 @@ public class StandingObligationValidator : IContentValidator
         }
 
         // Validate relatedTokenType
-        if (obligation.TryGetProperty("relatedTokenType", out JsonElement tokenType) &&
+        if (TryGetPropertyCaseInsensitive(obligation, "relatedTokenType", out JsonElement tokenType) &&
             tokenType.ValueKind == JsonValueKind.String)
         {
             string? tokenStr = tokenType.GetString();
@@ -107,11 +107,11 @@ public class StandingObligationValidator : IContentValidator
         ValidateEffectArray(obligation, obligationId, fileName, errors, "constraintEffects");
 
         // Validate letter template configuration
-        if (obligation.TryGetProperty("letterTemplateConfig", out JsonElement templateConfig) &&
+        if (TryGetPropertyCaseInsensitive(obligation, "letterTemplateConfig", out JsonElement templateConfig) &&
             templateConfig.ValueKind == JsonValueKind.Object)
         {
             // Validate frequency
-            if (templateConfig.TryGetProperty("frequency", out JsonElement frequency) &&
+            if (TryGetPropertyCaseInsensitive(templateConfig, "frequency", out JsonElement frequency) &&
                 frequency.ValueKind == JsonValueKind.String)
             {
                 string? freqStr = frequency.GetString();
@@ -133,7 +133,7 @@ public class StandingObligationValidator : IContentValidator
 
     private void ValidateEffectArray(JsonElement element, string id, string fileName, List<ValidationError> errors, string arrayName)
     {
-        if (element.TryGetProperty(arrayName, out JsonElement effects) &&
+        if (TryGetPropertyCaseInsensitive(element, arrayName, out JsonElement effects) &&
             effects.ValueKind == JsonValueKind.Array)
         {
             foreach (JsonElement effect in effects.EnumerateArray())
@@ -156,7 +156,7 @@ public class StandingObligationValidator : IContentValidator
 
     private void ValidatePositiveNumber(JsonElement element, string id, string fileName, List<ValidationError> errors, string fieldName)
     {
-        if (element.TryGetProperty(fieldName, out JsonElement field) &&
+        if (TryGetPropertyCaseInsensitive(element, fieldName, out JsonElement field) &&
             field.ValueKind == JsonValueKind.Number)
         {
             int value = field.GetInt32();
@@ -168,15 +168,5 @@ public class StandingObligationValidator : IContentValidator
                     ValidationSeverity.Warning));
             }
         }
-    }
-
-    private string GetStringProperty(JsonElement element, string propertyName)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.String)
-        {
-            return property.GetString();
-        }
-        return null;
     }
 }
