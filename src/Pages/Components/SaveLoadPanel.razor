@@ -1,0 +1,165 @@
+@inject GameWorld GameWorld
+@inject NarrativeManager NarrativeManager
+@inject IJSRuntime JSRuntime
+
+@namespace Wayfarer.Pages.Components
+
+<div class="save-load-panel">
+    <h4>Game Management</h4>
+    <div class="save-load-buttons">
+        @if (CanSaveLoad())
+        {
+            <button class="save-button" @onclick="SaveGame">
+                Save Game
+            </button>
+            <button class="load-button" @onclick="LoadGame">
+                Load Game
+            </button>
+        }
+        else
+        {
+            <div class="tutorial-message">
+                Cannot save during tutorial
+            </div>
+        }
+    </div>
+    
+    @if (!string.IsNullOrEmpty(StatusMessage))
+    {
+        <div class="status-message @(IsError ? "error" : "success")">
+            @StatusMessage
+        </div>
+    }
+</div>
+
+@code {
+    private string StatusMessage = "";
+    private bool IsError = false;
+    
+    private bool CanSaveLoad()
+    {
+        // Cannot save/load during tutorial
+        return !NarrativeManager.IsNarrativeActive("wayfarer_tutorial");
+    }
+    
+    private async Task SaveGame()
+    {
+        try
+        {
+            // Serialize the game state
+            string serializedState = GameWorldSerializer.SerializeGameWorld(GameWorld);
+            
+            // Save to browser local storage
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "wayfarer-save", serializedState);
+            
+            StatusMessage = "Game saved successfully!";
+            IsError = false;
+            
+            // Clear message after 3 seconds
+            _ = Task.Delay(3000).ContinueWith(_ => 
+            {
+                StatusMessage = "";
+                InvokeAsync(StateHasChanged);
+            });
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to save game: {ex.Message}";
+            IsError = true;
+        }
+    }
+    
+    private async Task LoadGame()
+    {
+        try
+        {
+            // Load from browser local storage
+            string serializedState = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "wayfarer-save");
+            
+            if (string.IsNullOrEmpty(serializedState))
+            {
+                StatusMessage = "No saved game found";
+                IsError = true;
+                return;
+            }
+            
+            // TODO: Implement GameWorldSerializer.DeserializeGameWorld
+            // For now, just show a message
+            StatusMessage = "Load functionality coming soon";
+            IsError = false;
+            
+            // Clear message after 3 seconds
+            _ = Task.Delay(3000).ContinueWith(_ => 
+            {
+                StatusMessage = "";
+                InvokeAsync(StateHasChanged);
+            });
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to load game: {ex.Message}";
+            IsError = true;
+        }
+    }
+}
+
+<style>
+    .save-load-panel {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px;
+        margin: 16px 0;
+    }
+    
+    .save-load-panel h4 {
+        margin: 0 0 12px 0;
+        color: var(--text-primary);
+    }
+    
+    .save-load-buttons {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .save-button, .load-button {
+        padding: 8px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background: var(--button-bg);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .save-button:hover, .load-button:hover {
+        background: var(--button-hover-bg);
+        border-color: var(--primary-color);
+    }
+    
+    .tutorial-message {
+        color: var(--text-muted);
+        font-style: italic;
+        padding: 8px;
+    }
+    
+    .status-message {
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin-top: 8px;
+        font-size: 0.9em;
+    }
+    
+    .status-message.success {
+        background: rgba(34, 197, 94, 0.1);
+        color: rgb(34, 197, 94);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    
+    .status-message.error {
+        background: rgba(239, 68, 68, 0.1);
+        color: rgb(239, 68, 68);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+</style>

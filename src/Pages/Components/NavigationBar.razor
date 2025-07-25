@@ -2,6 +2,8 @@
 @inject ITimeManager TimeManager
 @inject GameWorld GameWorld
 @inject StandingObligationManager ObligationManager
+@inject FlagService FlagService
+@inject NarrativeManager NarrativeManager
 
 @namespace Wayfarer.Pages.Components
 
@@ -125,31 +127,56 @@
     private bool ShouldShowLetterManagement()
     {
         // Show letter management section once player has learned about letters
-        return true;
+        // Always show if tutorial is not active
+        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+            return true;
+            
+        // During tutorial, show after first letter is offered
+        return FlagService.HasFlag(FlagService.TUTORIAL_FIRST_LETTER_OFFERED);
     }
     
     private bool ShouldShowQueue()
     {
         // Show queue after player accepts their first letter
-        return true;
+        // Always show if tutorial is not active
+        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+            return true;
+            
+        // During tutorial, show after first letter is accepted
+        return FlagService.HasFlag(FlagService.TUTORIAL_FIRST_LETTER_ACCEPTED);
     }
     
     private bool ShouldShowLetterBoard()
     {
         // Show letter board after player delivers their first letter
-        return true;
+        // Always show if tutorial is not active
+        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+            return true;
+            
+        // During tutorial, show after first letter is delivered
+        return FlagService.HasFlag(FlagService.TUTORIAL_FIRST_LETTER_DELIVERED);
     }
     
     private bool ShouldShowRelations()
     {
         // Show relations after player earns their first token
-        return true;
+        // Always show if tutorial is not active
+        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+            return true;
+            
+        // During tutorial, show after first token is earned
+        return FlagService.HasFlag(FlagService.TUTORIAL_FIRST_TOKEN_EARNED);
     }
     
     private bool ShouldShowObligations()
     {
         // Show obligations after player meets patron or has any obligation
-        return true;
+        // Always show if tutorial is not active
+        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+            return true;
+            
+        // During tutorial, show after meeting patron
+        return FlagService.HasFlag(FlagService.TUTORIAL_PATRON_MET);
     }
     
 }

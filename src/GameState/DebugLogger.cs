@@ -11,10 +11,12 @@ public class DebugLogger
     private readonly int _maxLogs = 1000;
     private bool _enabled = true;
     private readonly ITimeManager _timeManager;
+    private readonly ConversationStateManager _conversationStateManager;
 
-    public DebugLogger(ITimeManager timeManager)
+    public DebugLogger(ITimeManager timeManager, ConversationStateManager conversationStateManager)
     {
         _timeManager = timeManager;
+        _conversationStateManager = conversationStateManager;
     }
 
     public bool IsEnabled
@@ -196,12 +198,12 @@ public class DebugLogger
 
         // Conversation state
         report.Add("CONVERSATION STATE:");
-        report.Add($"  Pending: {gameWorld.ConversationPending}");
-        report.Add($"  Manager exists: {gameWorld.PendingConversationManager != null}");
-        if (gameWorld.PendingConversationManager != null)
+        report.Add($"  Pending: {_conversationStateManager.ConversationPending}");
+        report.Add($"  Manager exists: {_conversationStateManager.PendingConversationManager != null}");
+        if (_conversationStateManager.PendingConversationManager != null)
         {
-            report.Add($"  Is Awaiting Response: {gameWorld.PendingConversationManager.IsAwaitingResponse}");
-            report.Add($"  Choices Count: {gameWorld.PendingConversationManager.Choices?.Count ?? 0}");
+            report.Add($"  Is Awaiting Response: {_conversationStateManager.PendingConversationManager.IsAwaitingResponse}");
+            report.Add($"  Choices Count: {_conversationStateManager.PendingConversationManager.Choices?.Count ?? 0}");
         }
         report.Add("");
 

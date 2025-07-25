@@ -82,11 +82,11 @@ public class GameRuleEngine : IGameRuleEngine
     public bool CanSkipToPosition(Letter letter, int targetPosition)
     {
         // Can't skip to an occupied position
-        // Can't skip patron letters
+        // Can't skip patron letters (identified by IsFromPatron)
         // Can't skip obligated letters
         return targetPosition >= 1 &&
                targetPosition <= _config.LetterQueue.MaxQueueSize &&
-               !letter.IsPatronLetter;
+               !letter.IsFromPatron;
     }
 
     // Token economy

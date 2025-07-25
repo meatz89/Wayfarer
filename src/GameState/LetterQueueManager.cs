@@ -13,9 +13,10 @@ public class LetterQueueManager
     private readonly GameConfiguration _config;
     private readonly IGameRuleEngine _ruleEngine;
     private readonly ITimeManager _timeManager;
+    private readonly ConversationStateManager _conversationStateManager;
     private readonly Random _random = new Random();
 
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, ConversationFactory conversationFactory, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, ConversationFactory conversationFactory, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager, ConversationStateManager conversationStateManager)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -28,6 +29,7 @@ public class LetterQueueManager
         _config = config;
         _ruleEngine = ruleEngine;
         _timeManager = timeManager;
+        _conversationStateManager = conversationStateManager;
     }
 
     // Get the player's letter queue
@@ -86,16 +88,45 @@ public class LetterQueueManager
     {
         if (letter == null) return 0;
 
-        // Handle patron letters specially
-        if (letter.IsFromPatron)
-        {
-            return AddPatronLetter(letter);
-        }
+        // Apply deadline bonuses from obligations
+        ApplyDeadlineBonuses(letter);
+
+        // Patron letters use extreme leverage through debt, not special handling
+        // Their massive debt (e.g., -20 tokens) naturally pushes them to top positions
 
         // Calculate leverage position
         int targetPosition = CalculateLeveragePosition(letter);
 
         return AddLetterWithLeverage(letter, targetPosition);
+    }
+
+    // Apply deadline bonuses from active obligations
+    private void ApplyDeadlineBonuses(Letter letter)
+    {
+        var activeObligations = _obligationManager.GetActiveObligations();
+        
+        foreach (var obligation in activeObligations)
+        {
+            // Check if obligation applies to this letter type
+            if (!obligation.AppliesTo(letter.TokenType)) continue;
+            
+            // Check for DeadlinePlus2Days effect
+            if (obligation.HasEffect(ObligationEffect.DeadlinePlus2Days))
+            {
+                // Check if the letter is from the specific NPC if obligation is NPC-specific
+                if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
+                {
+                    var npc = _npcRepository.GetByName(letter.SenderName);
+                    if (npc == null || npc.ID != obligation.RelatedNPCId) continue;
+                }
+                
+                letter.Deadline += 2;
+                _messageSystem.AddSystemMessage(
+                    $"📅 {obligation.Name} grants +2 days to deadline for letter from {letter.SenderName}",
+                    SystemMessageTypes.Info
+                );
+            }
+        }
     }
 
     // Calculate leverage-based entry position for a letter
@@ -121,6 +152,14 @@ public class LetterQueueManager
         {
             // Debt creates leverage - each negative token moves position up
             leveragePosition += tokenBalance; // Subtracts since negative
+            
+            // Extreme debt (patron-level) can push to position 1
+            // This replaces the special patron letter handling
+            if (tokenBalance <= -10)
+            {
+                // Massive debt creates overwhelming leverage
+                leveragePosition = Math.Max(1, leveragePosition);
+            }
         }
         else if (tokenBalance >= 4)
         {
@@ -248,15 +287,34 @@ public class LetterQueueManager
 
         if (tokenBalance < 0)
         {
-            // Debt leverage narrative
-            _messageSystem.AddSystemMessage(
-                $"💸 {letter.SenderName} has LEVERAGE! Your debt gives them power.",
-                SystemMessageTypes.Warning
-            );
-            _messageSystem.AddSystemMessage(
-                $"  • Enters at position {position} (normally {basePosition}) due to {Math.Abs(tokenBalance)} token debt",
-                SystemMessageTypes.Info
-            );
+            // Special messaging for patron letters with extreme debt
+            if (letter.IsFromPatron && tokenBalance <= -10)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"🌟 A GOLD-SEALED LETTER ARRIVES FROM YOUR PATRON!",
+                    SystemMessageTypes.Warning
+                );
+                _messageSystem.AddSystemMessage(
+                    $"💸 Your MASSIVE DEBT ({Math.Abs(tokenBalance)} tokens) gives them ABSOLUTE LEVERAGE!",
+                    SystemMessageTypes.Danger
+                );
+                _messageSystem.AddSystemMessage(
+                    $"  • Commands priority position {position} - all other obligations must wait!",
+                    SystemMessageTypes.Warning
+                );
+            }
+            else
+            {
+                // Normal debt leverage narrative
+                _messageSystem.AddSystemMessage(
+                    $"💸 {letter.SenderName} has LEVERAGE! Your debt gives them power.",
+                    SystemMessageTypes.Warning
+                );
+                _messageSystem.AddSystemMessage(
+                    $"  • Enters at position {position} (normally {basePosition}) due to {Math.Abs(tokenBalance)} token debt",
+                    SystemMessageTypes.Info
+                );
+            }
 
             if (position <= 3 && basePosition >= 5)
             {
@@ -364,153 +422,6 @@ public class LetterQueueManager
     }
 
     // Handle patron letters that jump to top positions
-    public int AddPatronLetter(Letter letter)
-    {
-        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-
-        // Show dramatic patron letter arrival
-        _messageSystem.AddSystemMessage(
-            $"🌟 A GOLD-SEALED LETTER ARRIVES FROM YOUR PATRON!",
-            SystemMessageTypes.Warning
-        );
-
-        // Determine target position (1-3)
-        int targetPos = 0;
-        if (letter.IsPatronLetter && letter.PatronQueuePosition > 0 && letter.PatronQueuePosition <= 3)
-        {
-            targetPos = letter.PatronQueuePosition - 1; // Convert to 0-based
-        }
-        else
-        {
-            // Choose random position 1-3 if not specified
-            targetPos = _random.Next(0, 3);
-        }
-
-        // Check if queue is completely full
-        if (IsQueueFull())
-        {
-            _messageSystem.AddSystemMessage(
-                $"🚫 CRISIS: Cannot accept patron letter - queue completely full!",
-                SystemMessageTypes.Danger
-            );
-
-            _messageSystem.AddSystemMessage(
-                $"  • Your patron will not be pleased with this failure",
-                SystemMessageTypes.Danger
-            );
-
-            return 0;
-        }
-
-        // If target position is empty, simple placement
-        if (queue[targetPos] == null)
-        {
-            queue[targetPos] = letter;
-            letter.QueuePosition = targetPos + 1;
-
-            _messageSystem.AddSystemMessage(
-                $"  • Commands priority position {targetPos + 1} - all other obligations must wait!",
-                SystemMessageTypes.Warning
-            );
-
-            _messageSystem.AddSystemMessage(
-                $"  • Your mysterious patron's needs supersede all else",
-                SystemMessageTypes.Info
-            );
-
-            return targetPos + 1;
-        }
-
-        // Target position is occupied - need to push letters down
-        _messageSystem.AddSystemMessage(
-            $"  ⚡ Patron demands position {targetPos + 1} - displacing existing obligations!",
-            SystemMessageTypes.Warning
-        );
-
-        // Collect all letters that need to be pushed down
-        List<Letter> lettersToPush = new System.Collections.Generic.List<Letter>();
-        for (int i = targetPos; i < _config.LetterQueue.MaxQueueSize; i++)
-        {
-            if (queue[i] != null)
-            {
-                lettersToPush.Add(queue[i]);
-                queue[i] = null; // Clear old position
-            }
-        }
-
-        // Place patron letter at target position
-        queue[targetPos] = letter;
-        letter.QueuePosition = targetPos + 1;
-
-        _messageSystem.AddSystemMessage(
-            $"  • Patron letter seizes position {targetPos + 1}!",
-            SystemMessageTypes.Success
-        );
-
-        // Push other letters down
-        int nextAvailable = targetPos + 1;
-        List<string> pushedLetters = new System.Collections.Generic.List<string>();
-
-        foreach (Letter pushedLetter in lettersToPush)
-        {
-            // Find next available slot
-            while (nextAvailable < _config.LetterQueue.MaxQueueSize && queue[nextAvailable] != null)
-            {
-                nextAvailable++;
-            }
-
-            if (nextAvailable < _config.LetterQueue.MaxQueueSize)
-            {
-                // Place pushed letter
-                int oldPos = pushedLetter.QueuePosition;
-                queue[nextAvailable] = pushedLetter;
-                pushedLetter.QueuePosition = nextAvailable + 1;
-
-                pushedLetters.Add($"{pushedLetter.SenderName}'s letter: {oldPos} → {pushedLetter.QueuePosition}");
-                nextAvailable++;
-            }
-            else
-            {
-                // No room - letter falls off queue
-                _messageSystem.AddSystemMessage(
-                    $"  💥 {pushedLetter.SenderName}'s letter PUSHED OUT OF QUEUE!",
-                    SystemMessageTypes.Danger
-                );
-
-                // Apply relationship damage for forced removal
-                ApplyRelationshipDamage(pushedLetter, _connectionTokenManager);
-
-                _messageSystem.AddSystemMessage(
-                    $"  • Your patron's demands have cost you dearly with {pushedLetter.SenderName}",
-                    SystemMessageTypes.Danger
-                );
-            }
-        }
-
-        // Show all the disruption
-        if (pushedLetters.Any())
-        {
-            _messageSystem.AddSystemMessage(
-                $"📬 Queue disrupted by patron's authority:",
-                SystemMessageTypes.Warning
-            );
-
-            foreach (string pushed in pushedLetters)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"  • {pushed}",
-                    SystemMessageTypes.Info
-                );
-            }
-        }
-
-        _messageSystem.AddSystemMessage(
-            $"  • The gold seal brooks no argument - your patron's will is absolute",
-            SystemMessageTypes.Info
-        );
-
-        return targetPos + 1;
-    }
 
     // Remove letter from queue
     public bool RemoveLetterFromQueue(int position)
@@ -1046,9 +957,8 @@ public class LetterQueueManager
         // Create conversation
         ConversationManager conversation = await _conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
 
-        // Set as pending conversation
-        _gameWorld.PendingConversationManager = conversation;
-        _gameWorld.ConversationPending = true;
+        // Set as pending conversation using ConversationStateManager
+        _conversationStateManager.SetPendingConversation(conversation);
 
         return true;
     }
@@ -1091,9 +1001,8 @@ public class LetterQueueManager
         // Create conversation
         ConversationManager conversation = await _conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
 
-        // Set as pending conversation
-        _gameWorld.PendingConversationManager = conversation;
-        _gameWorld.ConversationPending = true;
+        // Set as pending conversation using ConversationStateManager
+        _conversationStateManager.SetPendingConversation(conversation);
 
         return true;
     }

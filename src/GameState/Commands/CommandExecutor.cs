@@ -12,11 +12,13 @@ public class CommandExecutor
 {
     private readonly ILogger<CommandExecutor> _logger;
     private readonly GameWorld _gameWorld;
+    private readonly NarrativeManager _narrativeManager;
 
-    public CommandExecutor(ILogger<CommandExecutor> logger, GameWorld gameWorld)
+    public CommandExecutor(ILogger<CommandExecutor> logger, GameWorld gameWorld, NarrativeManager narrativeManager = null)
     {
         _logger = logger;
         _gameWorld = gameWorld;
+        _narrativeManager = narrativeManager;
     }
 
     /// <summary>
@@ -46,6 +48,12 @@ public class CommandExecutor
             if (result.IsSuccess)
             {
                 _logger.LogInformation("Command executed successfully: {CommandType}", command.GetType().Name);
+                
+                // Notify narrative manager of successful command completion
+                if (_narrativeManager != null)
+                {
+                    _narrativeManager.OnCommandCompleted(command, result);
+                }
             }
             else
             {

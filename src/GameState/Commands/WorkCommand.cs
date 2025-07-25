@@ -11,6 +11,7 @@ public class WorkCommand : BaseGameCommand
     private readonly IGameRuleEngine _ruleEngine;
     private readonly GameConfiguration _gameConfiguration;
     private readonly MessageSystem _messageSystem;
+    private readonly ConnectionTokenManager _tokenManager;
 
 
     public WorkCommand(
@@ -18,15 +19,40 @@ public class WorkCommand : BaseGameCommand
         NPCRepository npcRepository,
         IGameRuleEngine ruleEngine,
         GameConfiguration gameConfiguration,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ConnectionTokenManager tokenManager)
     {
         _npcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
         _npcRepository = npcRepository ?? throw new ArgumentNullException(nameof(npcRepository));
         _ruleEngine = ruleEngine ?? throw new ArgumentNullException(nameof(ruleEngine));
         _gameConfiguration = gameConfiguration ?? throw new ArgumentNullException(nameof(gameConfiguration));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
 
         Description = $"Work for NPC {npcId}";
+        
+        // Determine token type based on work context
+        NPC npc = _npcRepository.GetById(_npcId);
+        if (npc != null)
+        {
+            // Dock work grants Trade tokens (loading/unloading cargo)
+            if (npc.Profession == Professions.Dock_Boss || npc.Profession == Professions.Soldier)
+            {
+                TokenTypeGranted = ConnectionType.Trade;
+            }
+            // Most other work grants Common tokens (everyday labor)
+            else if (npc.Profession == Professions.Craftsman || npc.Profession == Professions.Innkeeper ||
+                     npc.Profession == Professions.TavernKeeper || npc.Profession == Professions.Merchant)
+            {
+                TokenTypeGranted = ConnectionType.Common;
+            }
+            // Noble work might grant Noble tokens
+            else if (npc.Profession == Professions.Noble || npc.Profession == Professions.Scholar)
+            {
+                TokenTypeGranted = ConnectionType.Noble;
+            }
+            // Otherwise fall back to NPC's primary type
+        }
     }
 
     public override CommandValidationResult CanExecute(GameWorld gameWorld)
@@ -91,11 +117,24 @@ public class WorkCommand : BaseGameCommand
         int coinsEarned = reward.BaseCoins + reward.BonusCoins;
         player.ModifyCoins(coinsEarned);
 
+        // 50% chance to earn a token (same as socializing/delivery)
+        bool earnedToken = new Random().Next(2) == 0;
+        ConnectionType tokenType = TokenTypeGranted ?? npc.LetterTokenTypes.FirstOrDefault();
+        
+        if (earnedToken && tokenType != default)
+        {
+            _tokenManager.AddTokensToNPC(tokenType, 1, _npcId);
+        }
+
         // Success message
         string message = $"Worked for {npc.Name} and earned {coinsEarned} coins";
         if (reward.BonusCoins > 0)
         {
             message += $" (including {reward.BonusCoins} bonus)";
+        }
+        if (earnedToken)
+        {
+            message += $". Your diligent work strengthened your connection! (+1 {tokenType} token)";
         }
 
         _messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
@@ -109,7 +148,9 @@ public class WorkCommand : BaseGameCommand
                 BaseCoins = reward.BaseCoins,
                 BonusCoins = reward.BonusCoins,
                 StaminaSpent = staminaSpent,
-                TimeCost = hoursSpent
+                TimeCost = hoursSpent,
+                EarnedToken = earnedToken,
+                TokenType = tokenType
             }
         );
     }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 namespace Wayfarer.Pages;
 
-public class GameUIBase : ComponentBase, IDisposable
+public class GameUIBase : ComponentBase, INavigationHandler, IDisposable
 {
     [Inject] public ContentValidator ContentValidator { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
@@ -39,21 +39,17 @@ public class GameUIBase : ComponentBase, IDisposable
             NavigationService.NavigateTo(NavigationService.GetDefaultView());
         }
 
-        // Subscribe to navigation changes
-        Console.WriteLine("[GameUIBase.OnInitializedAsync] Subscribing to navigation changes...");
-        NavigationService.OnNavigationChanged += OnNavigationChanged;
-
         Console.WriteLine("[GameUIBase.OnInitializedAsync] Initialization completed.");
     }
 
-    private void OnNavigationChanged(CurrentViews newView)
+    public void HandleNavigationChange(CurrentViews previousScreen, CurrentViews newScreen)
     {
         InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        NavigationService.OnNavigationChanged -= OnNavigationChanged;
+        // Clean architecture - no events to unsubscribe from
     }
 
     public async Task ResolvedMissingReferences()

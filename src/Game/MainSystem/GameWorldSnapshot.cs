@@ -19,7 +19,7 @@
     public bool LastChoiceSuccess { get; private set; }
     public bool IsConversationComplete { get; private set; }
 
-    public GameWorldSnapshot(GameWorld gameWorld)
+    public GameWorldSnapshot(GameWorld gameWorld, ConversationStateManager conversationStateManager)
     {
         // Encounter system removed - using letter queue and conversations
         HasActiveEncounter = false;
@@ -29,13 +29,13 @@
         IsStreaming = streamingState.IsStreaming;
         StreamProgress = streamingState.StreamProgress;
 
-        // Conversation state
-        if (gameWorld.PendingConversationManager != null)
+        // Conversation state from ConversationStateManager
+        if (conversationStateManager.PendingConversationManager != null)
         {
-            IsAwaitingAIResponse = gameWorld.PendingConversationManager.IsAwaitingResponse;
-            AvailableChoices = gameWorld.PendingConversationManager.Choices ?? new List<ConversationChoice>();
+            IsAwaitingAIResponse = conversationStateManager.PendingConversationManager.IsAwaitingResponse;
+            AvailableChoices = conversationStateManager.PendingConversationManager.Choices ?? new List<ConversationChoice>();
             CanSelectChoice = AvailableChoices.Any() && !IsAwaitingAIResponse;
-            IsConversationComplete = gameWorld.PendingConversationManager.State?.IsConversationComplete ?? false;
+            IsConversationComplete = conversationStateManager.PendingConversationManager.State?.IsConversationComplete ?? false;
         }
         else
         {

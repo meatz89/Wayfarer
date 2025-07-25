@@ -36,15 +36,14 @@ public class Letter
     // Additional properties for future use but set defaults for POC
     public int QueuePosition { get; set; } = 0;
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
-    public bool IsFromPatron { get; set; } = false;
+    public bool IsFromPatron { get; set; } = false; // Used for messaging only, not positioning
 
     // Physical properties
     public LetterPhysicalProperties PhysicalProperties { get; set; } = LetterPhysicalProperties.None;
     public ItemCategory? RequiredEquipment { get; set; } = null;
 
     // Patron letter properties
-    public bool IsPatronLetter { get; set; } = false;
-    public int PatronQueuePosition { get; set; } = 0; // 1-3 for patron letters
+    // Patron letters use standing obligations and debt leverage, not special properties
 
     // Tracking
     public string SenderId { get; set; }

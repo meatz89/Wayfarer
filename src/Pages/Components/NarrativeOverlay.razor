@@ -1,0 +1,149 @@
+@using Wayfarer.ViewModels
+@inject NarrativeManager NarrativeManager
+@implements IDisposable
+
+@if (_viewModel.IsVisible)
+{
+    <div class="narrative-overlay @(_viewModel.IsMinimized ? "minimized" : "expanded")">
+        <div class="narrative-header" @onclick="ToggleMinimize">
+            <div class="narrative-title-section">
+                <span class="narrative-icon">📜</span>
+                <h3 class="narrative-title">@_viewModel.NarrativeTitle</h3>
+                @if (_viewModel.TotalSteps > 0)
+                {
+                    <span class="narrative-progress">Step @(_viewModel.CurrentStep + 1) of @_viewModel.TotalSteps</span>
+                }
+            </div>
+            <button class="minimize-toggle" aria-label="@(_viewModel.IsMinimized ? "Expand" : "Minimize")">
+                <span class="toggle-icon">@(_viewModel.IsMinimized ? "▼" : "▲")</span>
+            </button>
+        </div>
+        
+        @if (!_viewModel.IsMinimized)
+        {
+            <div class="narrative-content">
+                @if (!string.IsNullOrEmpty(_viewModel.StepName))
+                {
+                    <div class="step-info">
+                        <h4 class="step-name">@_viewModel.StepName</h4>
+                        @if (!string.IsNullOrEmpty(_viewModel.StepDescription))
+                        {
+                            <p class="step-description">@_viewModel.StepDescription</p>
+                        }
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(_viewModel.GuidanceText))
+                {
+                    <div class="guidance-section">
+                        <span class="guidance-icon">💡</span>
+                        <p class="guidance-text">@_viewModel.GuidanceText</p>
+                    </div>
+                }
+                
+                @if (_viewModel.AllowedActions.Any())
+                {
+                    <div class="allowed-actions">
+                        <span class="actions-label">Available Actions:</span>
+                        <div class="action-tags">
+                            @foreach (var action in _viewModel.AllowedActions)
+                            {
+                                <span class="action-tag">@action</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private NarrativeOverlayViewModel _viewModel = new();
+    private System.Threading.Timer _updateTimer;
+    private readonly string MinimizedStateKey = "narrative_overlay_minimized";
+
+    protected override void OnInitialized()
+    {
+        // Start update timer to check narrative state
+        _updateTimer = new System.Threading.Timer(
+            callback: _ => InvokeAsync(UpdateNarrativeState),
+            state: null,
+            dueTime: TimeSpan.Zero,
+            period: TimeSpan.FromSeconds(1)
+        );
+        
+        // Load minimized state from local storage equivalent (using static for demo)
+        LoadMinimizedState();
+    }
+
+    private async Task UpdateNarrativeState()
+    {
+        var activeNarratives = NarrativeManager.GetActiveNarratives();
+        
+        if (!activeNarratives.Any())
+        {
+            _viewModel.IsVisible = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+        
+        // Show the first active narrative
+        var narrativeId = activeNarratives.First();
+        var currentStep = NarrativeManager.GetCurrentStep(narrativeId);
+        var currentStepIndex = NarrativeManager.GetCurrentStepIndex(narrativeId);
+        var totalSteps = NarrativeManager.GetTotalSteps(narrativeId);
+        
+        // Get narrative definition for title
+        var narrativeTitle = narrativeId; // Default to ID if we can't get the definition
+        
+        _viewModel.IsVisible = true;
+        _viewModel.NarrativeId = narrativeId;
+        _viewModel.NarrativeTitle = FormatNarrativeTitle(narrativeTitle);
+        _viewModel.CurrentStep = currentStepIndex;
+        _viewModel.TotalSteps = totalSteps;
+        
+        if (currentStep != null)
+        {
+            _viewModel.StepName = currentStep.Name;
+            _viewModel.StepDescription = currentStep.Description;
+            _viewModel.GuidanceText = currentStep.GuidanceText;
+            _viewModel.AllowedActions = currentStep.AllowedActions ?? new List<string>();
+        }
+        
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private string FormatNarrativeTitle(string narrativeId)
+    {
+        // Format narrative ID for display
+        return narrativeId.Replace("_", " ")
+            .Replace("tutorial", "Tutorial")
+            .Replace("quest", "Quest")
+            .Replace("story", "Story");
+    }
+    
+    private void ToggleMinimize()
+    {
+        _viewModel.IsMinimized = !_viewModel.IsMinimized;
+        SaveMinimizedState();
+    }
+    
+    private void LoadMinimizedState()
+    {
+        // In a real implementation, this would load from browser local storage
+        // For now, default to expanded
+        _viewModel.IsMinimized = false;
+    }
+    
+    private void SaveMinimizedState()
+    {
+        // In a real implementation, this would save to browser local storage
+        // For now, just keep in memory
+    }
+
+    public void Dispose()
+    {
+        _updateTimer?.Dispose();
+    }
+}

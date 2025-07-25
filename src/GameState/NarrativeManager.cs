@@ -3,83 +3,496 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// STUB: Manages narrative flows including tutorials, quests, and story sequences.
-/// TODO: Implement full narrative system
+/// Manages narrative flows including tutorials, quests, and story sequences.
+/// Works by filtering available actions based on narrative state, NOT by adding special mechanics.
 /// </summary>
 public class NarrativeManager
 {
-    public NarrativeManager()
+    private readonly FlagService _flagService;
+    private readonly NPCRepository _npcRepository;
+    private readonly Dictionary<string, NarrativeDefinition> _narrativeDefinitions = new Dictionary<string, NarrativeDefinition>();
+    private readonly Dictionary<string, NarrativeState> _activeNarratives = new Dictionary<string, NarrativeState>();
+    
+    public NarrativeManager(FlagService flagService, NPCRepository npcRepository)
     {
-        // STUB: Constructor
+        _flagService = flagService;
+        _npcRepository = npcRepository;
     }
-
-    // STUB: Basic methods to prevent compilation errors
-    public List<string> GetActiveNarratives()
+    
+    /// <summary>
+    /// Load narrative definitions (called during initialization)
+    /// </summary>
+    public void LoadNarrativeDefinitions(List<NarrativeDefinition> definitions)
     {
-        // TODO: Implement
-        return new List<string>();
+        _narrativeDefinitions.Clear();
+        foreach (var definition in definitions)
+        {
+            _narrativeDefinitions[definition.Id] = definition;
+        }
     }
-
-    public NarrativeStep GetCurrentStep(string narrativeId)
-    {
-        // TODO: Implement
-        return null;
-    }
-
-    public void OnCommandCompleted(IGameCommand command, CommandResult result)
-    {
-        // TODO: Implement narrative progression based on commands
-    }
-
-    public bool IsNarrativeActive(string narrativeId)
-    {
-        // TODO: Implement
-        return false;
-    }
-
+    
+    /// <summary>
+    /// Start a narrative (e.g., tutorial)
+    /// </summary>
     public void StartNarrative(string narrativeId)
     {
-        // TODO: Implement
+        if (!_narrativeDefinitions.ContainsKey(narrativeId))
+        {
+            throw new InvalidOperationException($"Narrative '{narrativeId}' not found");
+        }
+        
+        var definition = _narrativeDefinitions[narrativeId];
+        
+        // Check starting conditions
+        if (!CheckStartingConditions(definition))
+        {
+            return;
+        }
+        
+        // Create active narrative state
+        var state = new NarrativeState
+        {
+            NarrativeId = narrativeId,
+            CurrentStepIndex = 0,
+            StartedAt = DateTime.Now,
+            IsActive = true
+        };
+        
+        _activeNarratives[narrativeId] = state;
+        
+        // Set narrative started flag
+        _flagService.SetFlag($"narrative_{narrativeId}_started", true);
+        
+        // Apply starting effects
+        ApplyStartingEffects(definition);
     }
-
-    public void CompleteNarrative(string narrativeId)
+    
+    /// <summary>
+    /// Get all active narrative IDs
+    /// </summary>
+    public List<string> GetActiveNarratives()
     {
-        // TODO: Implement
+        return _activeNarratives.Where(kvp => kvp.Value.IsActive)
+            .Select(kvp => kvp.Key)
+            .ToList();
     }
-
+    
+    /// <summary>
+    /// Check if a narrative is currently active
+    /// </summary>
+    public bool IsNarrativeActive(string narrativeId)
+    {
+        return _activeNarratives.TryGetValue(narrativeId, out var state) && state.IsActive;
+    }
+    
+    /// <summary>
+    /// Check if any narrative is active
+    /// </summary>
     public bool HasActiveNarrative()
     {
-        // STUB: Check if any narrative is active
-        return false;
+        return _activeNarratives.Any(kvp => kvp.Value.IsActive);
     }
-
-    public void LoadNarrativeDefinitions(object definitions)
+    
+    /// <summary>
+    /// Get the current step of a narrative
+    /// </summary>
+    public NarrativeStep GetCurrentStep(string narrativeId)
     {
-        // STUB: Load narrative definitions
+        if (!_activeNarratives.TryGetValue(narrativeId, out var state) || !state.IsActive)
+        {
+            return null;
+        }
+        
+        var definition = _narrativeDefinitions[narrativeId];
+        if (state.CurrentStepIndex >= definition.Steps.Count)
+        {
+            return null;
+        }
+        
+        return definition.Steps[state.CurrentStepIndex];
     }
-
+    
+    /// <summary>
+    /// Get the current step index (for progress tracking)
+    /// </summary>
+    public int GetCurrentStepIndex(string narrativeId)
+    {
+        if (!_activeNarratives.TryGetValue(narrativeId, out var state))
+        {
+            return -1;
+        }
+        return state.CurrentStepIndex;
+    }
+    
+    /// <summary>
+    /// Get total steps in a narrative
+    /// </summary>
+    public int GetTotalSteps(string narrativeId)
+    {
+        if (!_narrativeDefinitions.TryGetValue(narrativeId, out var definition))
+        {
+            return 0;
+        }
+        return definition.Steps.Count;
+    }
+    
+    /// <summary>
+    /// Called when a command is completed to check for narrative progression
+    /// </summary>
+    public void OnCommandCompleted(IGameCommand command, CommandResult result)
+    {
+        if (!result.IsSuccess) return;
+        
+        // Drop appropriate flags based on command type
+        DropCommandFlags(command);
+        
+        // Check each active narrative for progression
+        foreach (var kvp in _activeNarratives.ToList())
+        {
+            if (!kvp.Value.IsActive) continue;
+            
+            CheckNarrativeProgression(kvp.Key);
+        }
+    }
+    
+    /// <summary>
+    /// Filter available commands based on active narratives
+    /// </summary>
+    public List<DiscoveredCommand> FilterCommands(List<DiscoveredCommand> commands)
+    {
+        // If no active narratives, return all commands
+        if (!HasActiveNarrative())
+        {
+            return commands;
+        }
+        
+        // Get allowed command types from all active narratives
+        var allowedCommandTypes = new HashSet<string>();
+        var allowedCommands = new List<DiscoveredCommand>();
+        
+        foreach (var narrativeId in GetActiveNarratives())
+        {
+            var currentStep = GetCurrentStep(narrativeId);
+            if (currentStep != null && currentStep.AllowedActions.Any())
+            {
+                // This step has specific allowed actions
+                foreach (var action in currentStep.AllowedActions)
+                {
+                    allowedCommandTypes.Add(action);
+                }
+            }
+        }
+        
+        // If no specific restrictions, allow all commands
+        if (!allowedCommandTypes.Any())
+        {
+            return commands;
+        }
+        
+        // Filter commands based on allowed types
+        foreach (var command in commands)
+        {
+            var commandType = GetCommandType(command.Command);
+            if (allowedCommandTypes.Contains(commandType))
+            {
+                allowedCommands.Add(command);
+            }
+        }
+        
+        return allowedCommands;
+    }
+    
+    /// <summary>
+    /// Check if an NPC should be visible based on narrative state
+    /// </summary>
+    public bool IsNPCVisible(string npcId)
+    {
+        // If no active narratives, all NPCs are visible
+        if (!HasActiveNarrative())
+        {
+            return true;
+        }
+        
+        // Check each active narrative for NPC visibility rules
+        foreach (var narrativeId in GetActiveNarratives())
+        {
+            var currentStep = GetCurrentStep(narrativeId);
+            if (currentStep != null)
+            {
+                // If this step has visibility rules and NPC is not in the list, hide them
+                if (currentStep.VisibleNPCs.Any() && !currentStep.VisibleNPCs.Contains(npcId))
+                {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+    
+    /// <summary>
+    /// Get narrative-specific dialogue for an NPC
+    /// </summary>
+    public string GetNarrativeDialogue(string npcId)
+    {
+        // Check each active narrative for dialogue overrides
+        foreach (var narrativeId in GetActiveNarratives())
+        {
+            var currentStep = GetCurrentStep(narrativeId);
+            if (currentStep != null && currentStep.DialogueOverrides.ContainsKey(npcId))
+            {
+                return currentStep.DialogueOverrides[npcId];
+            }
+        }
+        
+        return null;
+    }
+    
+    /// <summary>
+    /// Complete a narrative
+    /// </summary>
+    public void CompleteNarrative(string narrativeId)
+    {
+        if (!_activeNarratives.TryGetValue(narrativeId, out var state))
+        {
+            return;
+        }
+        
+        state.IsActive = false;
+        state.CompletedAt = DateTime.Now;
+        
+        // Set completion flag
+        _flagService.SetFlag($"narrative_{narrativeId}_completed", true);
+        
+        // Apply completion rewards
+        if (_narrativeDefinitions.TryGetValue(narrativeId, out var definition))
+        {
+            ApplyCompletionRewards(definition);
+        }
+    }
+    
+    /// <summary>
+    /// Get a narrative definition by ID
+    /// </summary>
     public NarrativeDefinition GetNarrativeDefinition(string narrativeId)
     {
-        // STUB: Get narrative definition by ID
-        return null;
+        return _narrativeDefinitions.TryGetValue(narrativeId, out var definition) ? definition : null;
+    }
+    
+    /// <summary>
+    /// Get state for serialization
+    /// </summary>
+    public Dictionary<string, NarrativeState> GetActiveNarrativeStates()
+    {
+        return new Dictionary<string, NarrativeState>(_activeNarratives);
+    }
+    
+    /// <summary>
+    /// Restore state from serialization
+    /// </summary>
+    public void RestoreNarrativeStates(Dictionary<string, NarrativeState> states)
+    {
+        _activeNarratives.Clear();
+        if (states != null)
+        {
+            foreach (var kvp in states)
+            {
+                _activeNarratives[kvp.Key] = kvp.Value;
+            }
+        }
+    }
+    
+    // Private helper methods
+    
+    private bool CheckStartingConditions(NarrativeDefinition definition)
+    {
+        foreach (var condition in definition.StartingConditions)
+        {
+            if (!CheckCondition(condition))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private bool CheckCondition(NarrativeCondition condition)
+    {
+        switch (condition.Type)
+        {
+            case ConditionType.FlagSet:
+                return _flagService.HasFlag(condition.Value);
+            case ConditionType.FlagNotSet:
+                return !_flagService.HasFlag(condition.Value);
+            case ConditionType.CounterGreaterThan:
+                return _flagService.GetCounter(condition.Key) > int.Parse(condition.Value);
+            case ConditionType.CounterLessThan:
+                return _flagService.GetCounter(condition.Key) < int.Parse(condition.Value);
+            case ConditionType.CounterEquals:
+                return _flagService.GetCounter(condition.Key) == int.Parse(condition.Value);
+            default:
+                return true;
+        }
+    }
+    
+    private void ApplyStartingEffects(NarrativeDefinition definition)
+    {
+        // Apply any flags or counters needed at start
+        foreach (var effect in definition.StartingEffects)
+        {
+            ApplyEffect(effect);
+        }
+    }
+    
+    private void ApplyCompletionRewards(NarrativeDefinition definition)
+    {
+        // Apply any completion rewards
+        foreach (var reward in definition.CompletionRewards)
+        {
+            ApplyEffect(reward);
+        }
+    }
+    
+    private void ApplyEffect(NarrativeEffect effect)
+    {
+        switch (effect.Type)
+        {
+            case EffectType.SetFlag:
+                _flagService.SetFlag(effect.Value, true);
+                break;
+            case EffectType.ClearFlag:
+                _flagService.SetFlag(effect.Value, false);
+                break;
+            case EffectType.SetCounter:
+                _flagService.SetCounter(effect.Key, int.Parse(effect.Value));
+                break;
+            case EffectType.IncrementCounter:
+                _flagService.IncrementCounter(effect.Key, int.Parse(effect.Value));
+                break;
+        }
+    }
+    
+    private void DropCommandFlags(IGameCommand command)
+    {
+        // Drop flags based on command type
+        switch (command)
+        {
+            case TravelCommand:
+                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_MOVEMENT, true);
+                break;
+            case ConverseCommand converseCmd:
+                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_NPC_TALK, true);
+                break;
+            case WorkCommand:
+                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_WORK, true);
+                break;
+            case CollectLetterCommand:
+                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_LETTER_COLLECTED, true);
+                break;
+            case DeliverLetterCommand:
+                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_LETTER_DELIVERED, true);
+                _flagService.IncrementCounter("letters_delivered_count");
+                break;
+            case LetterQueueActionCommand queueCmd:
+                if (queueCmd.Description.Contains("Accept"))
+                {
+                    _flagService.SetFlag(FlagService.TUTORIAL_FIRST_LETTER_ACCEPTED, true);
+                }
+                else if (queueCmd.Description.Contains("Burn"))
+                {
+                    _flagService.SetFlag(FlagService.TUTORIAL_FIRST_TOKEN_BURNED, true);
+                }
+                break;
+        }
+    }
+    
+    private void CheckNarrativeProgression(string narrativeId)
+    {
+        var state = _activeNarratives[narrativeId];
+        var definition = _narrativeDefinitions[narrativeId];
+        var currentStep = definition.Steps[state.CurrentStepIndex];
+        
+        // Check if current step requirements are met
+        bool stepComplete = true;
+        foreach (var requirement in currentStep.CompletionRequirements)
+        {
+            if (!CheckCondition(requirement))
+            {
+                stepComplete = false;
+                break;
+            }
+        }
+        
+        if (stepComplete)
+        {
+            // Apply step completion effects
+            foreach (var effect in currentStep.CompletionEffects)
+            {
+                ApplyEffect(effect);
+            }
+            
+            // Move to next step
+            state.CurrentStepIndex++;
+            
+            // Check if narrative is complete
+            if (state.CurrentStepIndex >= definition.Steps.Count)
+            {
+                CompleteNarrative(narrativeId);
+            }
+        }
+    }
+    
+    private string GetCommandType(IGameCommand command)
+    {
+        // Map command types to action names used in narrative definitions
+        return command switch
+        {
+            TravelCommand => "Travel",
+            ConverseCommand => "Converse",
+            WorkCommand => "Work",
+            RestCommand => "Rest",
+            CollectLetterCommand => "CollectLetter",
+            DeliverLetterCommand => "DeliverLetter",
+            LetterQueueActionCommand => "QueueAction",
+            SocializeCommand => "Socialize",
+            BorrowMoneyCommand => "BorrowMoney",
+            GatherResourcesCommand => "Gather",
+            BrowseCommand => "Browse",
+            ObserveCommand => "Observe",
+            PatronFundsCommand => "PatronFunds",
+            _ => command.GetType().Name.Replace("Command", "")
+        };
     }
 }
 
 /// <summary>
-/// STUB: Represents a single step in a narrative
+/// Represents a single step in a narrative
 /// </summary>
 public class NarrativeStep
 {
     public string Id { get; set; }
-    public string RequiredCommandType { get; set; }
-    public string RequiredNPC { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
     public string GuidanceText { get; set; }
-
-    // TODO: Add more properties as needed
+    
+    // Which actions are allowed during this step (empty = all allowed)
+    public List<string> AllowedActions { get; set; } = new List<string>();
+    
+    // Which NPCs should be visible during this step (empty = all visible)
+    public List<string> VisibleNPCs { get; set; } = new List<string>();
+    
+    // Dialogue overrides for NPCs during this step
+    public Dictionary<string, string> DialogueOverrides { get; set; } = new Dictionary<string, string>();
+    
+    // Requirements to complete this step
+    public List<NarrativeCondition> CompletionRequirements { get; set; } = new List<NarrativeCondition>();
+    
+    // Effects when step is completed
+    public List<NarrativeEffect> CompletionEffects { get; set; } = new List<NarrativeEffect>();
 }
 
 /// <summary>
-/// STUB: Represents a narrative definition
+/// Represents a narrative definition
 /// </summary>
 public class NarrativeDefinition
 {
@@ -87,14 +500,82 @@ public class NarrativeDefinition
     public string Title { get; set; }
     public string Description { get; set; }
     public List<NarrativeStep> Steps { get; set; } = new List<NarrativeStep>();
-
-    // TODO: Add more properties as needed
+    public List<NarrativeCondition> StartingConditions { get; set; } = new List<NarrativeCondition>();
+    public List<NarrativeEffect> StartingEffects { get; set; } = new List<NarrativeEffect>();
+    public List<NarrativeEffect> CompletionRewards { get; set; } = new List<NarrativeEffect>();
 }
 
 /// <summary>
-/// STUB: Collection of narrative definitions
+/// Represents the current state of an active narrative
+/// </summary>
+public class NarrativeState
+{
+    public string NarrativeId { get; set; }
+    public int CurrentStepIndex { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public bool IsActive { get; set; }
+}
+
+/// <summary>
+/// Represents a condition that must be met
+/// </summary>
+public class NarrativeCondition
+{
+    public ConditionType Type { get; set; }
+    public string Key { get; set; }
+    public string Value { get; set; }
+}
+
+/// <summary>
+/// Types of conditions
+/// </summary>
+public enum ConditionType
+{
+    FlagSet,
+    FlagNotSet,
+    CounterGreaterThan,
+    CounterLessThan,
+    CounterEquals
+}
+
+/// <summary>
+/// Represents an effect to apply
+/// </summary>
+public class NarrativeEffect
+{
+    public EffectType Type { get; set; }
+    public string Key { get; set; }
+    public string Value { get; set; }
+}
+
+/// <summary>
+/// Types of effects
+/// </summary>
+public enum EffectType
+{
+    SetFlag,
+    ClearFlag,
+    SetCounter,
+    IncrementCounter
+}
+
+/// <summary>
+/// Collection of narrative definitions
 /// </summary>
 public static class NarrativeDefinitions
 {
-    public static List<NarrativeDefinition> All { get; } = new List<NarrativeDefinition>();
+    private static List<NarrativeDefinition> _definitions = new List<NarrativeDefinition>();
+    
+    public static List<NarrativeDefinition> All => _definitions;
+    
+    public static void Add(NarrativeDefinition definition)
+    {
+        _definitions.Add(definition);
+    }
+    
+    public static void Clear()
+    {
+        _definitions.Clear();
+    }
 }
