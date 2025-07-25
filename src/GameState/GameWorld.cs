@@ -2,6 +2,9 @@
 
 public class GameWorld
 {
+    // Game mode determines content loading and tutorial state
+    public GameMode GameMode { get; set; } = GameMode.MainGame;
+    
     // Time is now tracked in WorldState, not through external dependencies
     public int CurrentDay { get; set; } = 1;
     public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
