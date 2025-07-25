@@ -115,7 +115,7 @@ public class LetterQueueUIService
             TokenIcon = GetTokenIcon(letter.TokenType),
             Size = letter.Size.ToString(),
             SizeIcon = GetSizeIcon(letter.Size),
-            IsPatronLetter = letter.IsPatronLetter,
+            IsPatronLetter = letter.IsFromPatron,
             IsCollected = letter.State == LetterState.Collected,
             PhysicalConstraints = letter.GetPhysicalConstraintsDescription(),
             PhysicalIcon = GetPhysicalIcon(letter.PhysicalProperties),

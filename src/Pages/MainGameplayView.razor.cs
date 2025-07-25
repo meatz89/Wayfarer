@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 
 namespace Wayfarer.Pages;
 
-public class MainGameplayViewBase : ComponentBase, IDisposable
+public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposable
 {
     [Inject] public IJSRuntime JSRuntime { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
@@ -19,6 +19,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     [Inject] public NPCLetterOfferService NPCLetterOfferService { get; set; }
     [Inject] public DebugLogger DebugLogger { get; set; }
     [Inject] public ITimeManager TimeManager { get; set; }
+    [Inject] public ConversationStateManager ConversationStateManager { get; set; }
 
 
     public int StateVersion = 0;
@@ -98,9 +99,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         DebugLogger.LogDebug("MainGameplayView initialized - starting polling");
 
-        // Subscribe to navigation changes to ensure UI updates
-        NavigationService.OnNavigationChanged += HandleNavigationChanged;
-
         // Verify initial state
         if (IsGameDataReady())
         {
@@ -116,11 +114,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         StateHasChanged();
     }
     
-    private void HandleNavigationChanged(CurrentViews newView)
+    public void HandleNavigationChange(CurrentViews previousScreen, CurrentViews newScreen)
     {
         InvokeAsync(() =>
         {
-            DebugLogger.LogDebug($"Navigation changed to: {newView}");
+            DebugLogger.LogDebug($"Navigation changed from {previousScreen} to {newScreen}");
             StateHasChanged();
         });
     }
@@ -162,12 +160,12 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         }
 
         // Check for pending action conversation
-        if (GameWorld.ConversationPending)
+        if (ConversationStateManager.ConversationPending)
         {
-            DebugLogger.LogPolling("MainGameplayView", $"ConversationPending detected! Manager exists: {GameWorld.PendingConversationManager != null}");
-            ConversationManager = GameWorld.PendingConversationManager;
+            DebugLogger.LogPolling("MainGameplayView", $"ConversationPending detected! Manager exists: {ConversationStateManager.PendingConversationManager != null}");
+            ConversationManager = ConversationStateManager.PendingConversationManager;
             NavigationService.NavigateTo(CurrentViews.ConversationScreen);
-            GameWorld.ConversationPending = false;
+            ConversationStateManager.ConversationPending = false;
             DebugLogger.LogNavigation(CurrentScreen.ToString(), "ConversationScreen", "Pending conversation detected");
             StateHasChanged();
         }
@@ -650,7 +648,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        // Unsubscribe from navigation events
-        NavigationService.OnNavigationChanged -= HandleNavigationChanged;
+        // Clean architecture - no events to unsubscribe from
     }
 }

@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -24,6 +26,18 @@ public class E2ETest
         {
             ServiceCollection services = new ServiceCollection();
             services.AddLogging(); // Add logging services
+            
+            // Add IConfiguration (required by GameWorldManager)
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    { "useMemory", "false" },
+                    { "processStateChanges", "true" },
+                    { "DefaultAIProvider", "Ollama" }
+                })
+                .Build();
+            services.AddSingleton<IConfiguration>(configuration);
+            
             services.ConfigureServices();
             ServiceProvider provider = services.BuildServiceProvider();
             GameWorld gameWorld = provider.GetRequiredService<GameWorld>();
@@ -80,7 +94,7 @@ public class E2ETest
                     
                     // Test the actual StartGame method that crashes
                     Console.WriteLine("\nTesting GameWorldManager.StartGame()...");
-                    gameWorldManager.StartGame();
+                    await gameWorldManager.StartGame();
                     Console.WriteLine("✓ PASS: Game started successfully");
                 }
                 catch (NullReferenceException nre)
@@ -196,6 +210,18 @@ public class E2ETest
         {
             ServiceCollection services = new ServiceCollection();
             services.AddLogging(); // Add logging services
+            
+            // Add IConfiguration (required by GameWorldManager)
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string>
+                {
+                    { "useMemory", "false" },
+                    { "processStateChanges", "true" },
+                    { "DefaultAIProvider", "Ollama" }
+                })
+                .Build();
+            services.AddSingleton<IConfiguration>(configuration);
+            
             services.ConfigureServices();
             ServiceProvider provider = services.BuildServiceProvider();
 

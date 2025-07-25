@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 /// <summary>
 /// Centralized navigation management service for the letter queue game.
 /// Manages screen transitions, navigation history, and context awareness.
@@ -6,13 +8,21 @@ public class NavigationService
 {
     private readonly GameWorld _gameWorld;
     private readonly ITimeManager _timeManager;
+    private readonly INavigationHandler _navigationHandler;
+    private readonly ILogger<NavigationService> _logger;
     private readonly Stack<CurrentViews> _navigationHistory = new();
     private CurrentViews _currentScreen = CurrentViews.LetterQueueScreen;
 
-    public NavigationService(GameWorld gameWorld, ITimeManager timeManager)
+    public NavigationService(
+        GameWorld gameWorld, 
+        ITimeManager timeManager,
+        INavigationHandler navigationHandler,
+        ILogger<NavigationService> logger)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
+        _navigationHandler = navigationHandler;
+        _logger = logger;
     }
 
     /// <summary>
@@ -24,11 +34,6 @@ public class NavigationService
     /// Navigation history for back button support
     /// </summary>
     public IReadOnlyCollection<CurrentViews> NavigationHistory => _navigationHistory;
-
-    /// <summary>
-    /// Event fired when navigation changes
-    /// </summary>
-    public event Action<CurrentViews>? OnNavigationChanged;
 
     /// <summary>
     /// Navigate to a specific screen
@@ -43,12 +48,18 @@ public class NavigationService
 
         // Push current screen to history
         _navigationHistory.Push(_currentScreen);
+        
+        // Store previous screen for handler
+        var previousScreen = _currentScreen;
 
         // Update current screen
         _currentScreen = screen;
 
-        // Fire navigation event
-        OnNavigationChanged?.Invoke(_currentScreen);
+        // Notify handler of navigation change
+        _navigationHandler.HandleNavigationChange(previousScreen, _currentScreen);
+        
+        _logger.LogInformation("Navigated from {PreviousScreen} to {NewScreen}", 
+            previousScreen, _currentScreen);
     }
 
     /// <summary>
@@ -58,10 +69,15 @@ public class NavigationService
     {
         if (!CanNavigateBack()) return;
 
+        var currentScreen = _currentScreen;
         CurrentViews previousScreen = _navigationHistory.Pop();
         _currentScreen = previousScreen;
 
-        OnNavigationChanged?.Invoke(_currentScreen);
+        // Notify handler of navigation change
+        _navigationHandler.HandleNavigationChange(currentScreen, _currentScreen);
+        
+        _logger.LogInformation("Navigated back from {CurrentScreen} to {PreviousScreen}", 
+            currentScreen, _currentScreen);
     }
 
     /// <summary>

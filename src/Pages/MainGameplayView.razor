@@ -5,7 +5,7 @@
 <SystemMessageDisplay Messages="@SystemMessages" OnMessagesExpired="HandleMessagesExpired" />
 <ObjectiveView StateVersion="@StateVersion" />
 
-@* Narrative overlay for tutorials and quests - STUB *@
+<NarrativeOverlay />
 
 <NavigationBar />
 
@@ -237,8 +237,8 @@
             
             <div class="debug-section">
                 <h4>Conversation State</h4>
-                <p>Pending: @GameWorld.ConversationPending</p>
-                <p>Manager Exists: @(GameWorld.PendingConversationManager != null)</p>
+                <p>Pending: @ConversationStateManager.ConversationPending</p>
+                <p>Manager Exists: @(ConversationStateManager.PendingConversationManager != null)</p>
                 @if (GameWorld.PendingCommand != null)
                 {
                     <p>Pending Command: @GameWorld.PendingCommand.Description</p>
@@ -573,6 +573,8 @@
                     </div>
                 }
             </div>
+            
+            <SaveLoadPanel />
         </div>
     </text>;
 }

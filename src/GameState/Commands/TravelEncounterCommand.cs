@@ -52,8 +52,9 @@ public class TravelEncounterCommand : BaseGameCommand
         ConversationManager conversationManager = await _conversationFactory.CreateConversation(travelContext, player);
 
         // Set up conversation for UI
-        gameWorld.PendingConversationManager = conversationManager;
-        gameWorld.ConversationPending = true;
+        // TODO: This command is not used anywhere - needs to be updated if reintroduced
+        // Should inject ConversationStateManager and use:
+        // _conversationStateManager.SetPendingConversation(conversationManager);
 
         return CommandResult.Success(
             "Travel encounter initiated",

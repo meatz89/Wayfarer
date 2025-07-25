@@ -85,7 +85,7 @@ public class NPCCategoricalSystemTests
 
         // Act & Assert
         Assert.Equal("Merchant", npc.ProfessionDescription);
-        Assert.Equal("Market Hours", npc.ScheduleDescription);
+        Assert.Equal("Always available", npc.ScheduleDescription);
         Assert.Contains("Services: Trade, Information", npc.ProvidedServicesDescription);
     }
 

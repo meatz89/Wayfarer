@@ -20,6 +20,9 @@ public class CommandDiscoveryService
     private readonly LocationRepository _locationRepository;
     private readonly GameConfiguration _gameConfiguration;
     private readonly StandingObligationManager _obligationManager;
+    private readonly ConversationStateManager _conversationStateManager;
+    private readonly NarrativeManager _narrativeManager;
+    private readonly NarrativeRequirement _narrativeRequirement;
 
     public CommandDiscoveryService(
         NPCRepository npcRepository,
@@ -33,7 +36,10 @@ public class CommandDiscoveryService
         ItemRepository itemRepository,
         LocationRepository locationRepository,
         GameConfiguration gameConfiguration,
-        StandingObligationManager obligationManager)
+        StandingObligationManager obligationManager,
+        ConversationStateManager conversationStateManager,
+        NarrativeManager narrativeManager = null,
+        NarrativeRequirement narrativeRequirement = null)
     {
         _npcRepository = npcRepository;
         _letterQueueManager = letterQueueManager;
@@ -47,6 +53,9 @@ public class CommandDiscoveryService
         _locationRepository = locationRepository;
         _gameConfiguration = gameConfiguration;
         _obligationManager = obligationManager;
+        _conversationStateManager = conversationStateManager;
+        _narrativeManager = narrativeManager;
+        _narrativeRequirement = narrativeRequirement;
     }
 
     /// <summary>
@@ -67,6 +76,13 @@ public class CommandDiscoveryService
 
         // Discover NPC-based commands
         List<NPC> npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+        
+        // Filter NPCs based on narrative visibility if narrative manager is available
+        if (_narrativeManager != null)
+        {
+            npcsHere = npcsHere.Where(npc => _narrativeManager.IsNPCVisible(npc.ID)).ToList();
+        }
+        
         foreach (NPC npc in npcsHere)
         {
             DiscoverNPCCommands(npc, player, gameWorld, result);
@@ -78,13 +94,28 @@ public class CommandDiscoveryService
         // Discover letter-related commands
         DiscoverLetterCommands(player, gameWorld, result);
 
+        // Filter commands based on narrative restrictions if narrative manager is available
+        if (_narrativeManager != null)
+        {
+            var allCommands = result.AllCommands.ToList();
+            var filteredCommands = _narrativeManager.FilterCommands(allCommands);
+            
+            // Create new result with filtered commands
+            var filteredResult = new CommandDiscoveryResult();
+            foreach (var command in filteredCommands)
+            {
+                filteredResult.AddCommand(command);
+            }
+            return filteredResult;
+        }
+
         return result;
     }
 
     private void DiscoverNPCCommands(NPC npc, Player player, GameWorld gameWorld, CommandDiscoveryResult result)
     {
         // Converse command - always available if NPC is present
-        ConverseCommand converseCommand = new ConverseCommand(npc.ID, _conversationFactory, _npcRepository, _messageSystem);
+        ConverseCommand converseCommand = new ConverseCommand(npc.ID, _conversationFactory, _npcRepository, _messageSystem, _conversationStateManager);
         CommandValidationResult converseValidation = converseCommand.CanExecute(gameWorld);
 
         result.AddCommand(new DiscoveredCommand
@@ -97,6 +128,130 @@ public class CommandDiscoveryService
             StaminaCost = 0,
             CoinCost = 0,
         });
+
+        // Work command - if NPC offers work
+        if (npc.OffersWork)
+        {
+            WorkCommand workCommand = new WorkCommand(npc.ID, _npcRepository, _ruleEngine, _gameConfiguration, _messageSystem, _tokenManager);
+            CommandValidationResult workValidation = workCommand.CanExecute(gameWorld);
+
+            // Get the token type this work will grant
+            ConnectionType tokenType = workCommand.TokenTypeGranted ?? npc.LetterTokenTypes.FirstOrDefault();
+            string tokenReward = tokenType != default ? $", 50% chance of +1 {tokenType} token" : "";
+
+            result.AddCommand(new DiscoveredCommand
+            {
+                Command = workCommand,
+                Category = CommandCategory.Economic,
+                DisplayName = $"Work for {npc.Name}",
+                Description = $"Earn coins by working",
+                TimeCost = 1,
+                StaminaCost = 1,
+                CoinCost = 0,
+                PotentialReward = $"Coins based on profession{tokenReward}",
+                IsAvailable = workValidation.IsValid,
+                UnavailableReason = workValidation.FailureReason,
+                CanRemediate = workValidation.CanBeRemedied,
+                RemediationHint = workValidation.RemediationHint
+            });
+        }
+
+        // Socialize command - if player has existing relationship with NPC
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        int currentTokens = npcTokens.Values.Sum();
+        if (currentTokens > 0)
+        {
+            SocializeCommand socializeCommand = new SocializeCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem);
+            CommandValidationResult socializeValidation = socializeCommand.CanExecute(gameWorld);
+
+            // Get the token type this social action will grant
+            ConnectionType tokenType = socializeCommand.TokenTypeGranted ?? npc.LetterTokenTypes.FirstOrDefault();
+            
+            result.AddCommand(new DiscoveredCommand
+            {
+                Command = socializeCommand,
+                Category = CommandCategory.Social,
+                DisplayName = $"Socialize with {npc.Name}",
+                Description = $"Spend time together to strengthen connection",
+                TimeCost = 1,
+                StaminaCost = 1,
+                CoinCost = 0,
+                PotentialReward = $"50% chance of +1 {tokenType} token",
+                IsAvailable = socializeValidation.IsValid,
+                UnavailableReason = socializeValidation.FailureReason,
+                CanRemediate = socializeValidation.CanBeRemedied,
+                RemediationHint = socializeValidation.RemediationHint
+            });
+        }
+
+        // Share lunch command - if afternoon and have relationship
+        if (gameWorld.CurrentTimeBlock == TimeBlocks.Afternoon && currentTokens > 0)
+        {
+            ShareLunchCommand lunchCommand = new ShareLunchCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem, _itemRepository);
+            CommandValidationResult lunchValidation = lunchCommand.CanExecute(gameWorld);
+
+            result.AddCommand(new DiscoveredCommand
+            {
+                Command = lunchCommand,
+                Category = CommandCategory.Social,
+                DisplayName = $"Share lunch with {npc.Name}",
+                Description = "Bond over a meal together",
+                TimeCost = 1,
+                StaminaCost = 1,
+                CoinCost = 0,
+                PotentialReward = "75% chance of +1 Common token (requires food)",
+                IsAvailable = lunchValidation.IsValid,
+                UnavailableReason = lunchValidation.FailureReason,
+                CanRemediate = lunchValidation.CanBeRemedied,
+                RemediationHint = lunchValidation.RemediationHint
+            });
+        }
+
+        // Keep secret command - if have enough trust (3+ tokens)
+        if (currentTokens >= 3)
+        {
+            KeepSecretCommand secretCommand = new KeepSecretCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem);
+            CommandValidationResult secretValidation = secretCommand.CanExecute(gameWorld);
+
+            result.AddCommand(new DiscoveredCommand
+            {
+                Command = secretCommand,
+                Category = CommandCategory.Social,
+                DisplayName = $"Keep {npc.Name}'s secret",
+                Description = "Be trusted with confidential information",
+                TimeCost = 1,
+                StaminaCost = 0,
+                CoinCost = 0,
+                PotentialReward = "+1 Trust token (guaranteed)",
+                IsAvailable = secretValidation.IsValid,
+                UnavailableReason = secretValidation.FailureReason,
+                CanRemediate = secretValidation.CanBeRemedied,
+                RemediationHint = secretValidation.RemediationHint
+            });
+        }
+
+        // Personal errand command - if have some relationship (2+ tokens)
+        if (currentTokens >= 2)
+        {
+            PersonalErrandCommand errandCommand = new PersonalErrandCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem, _itemRepository);
+            CommandValidationResult errandValidation = errandCommand.CanExecute(gameWorld);
+
+            result.AddCommand(new DiscoveredCommand
+            {
+                Command = errandCommand,
+                Category = CommandCategory.Social,
+                DisplayName = $"Help {npc.Name} with personal matter",
+                Description = "Run an important personal errand",
+                TimeCost = 2,
+                StaminaCost = 2,
+                CoinCost = 0,
+                PotentialReward = "+1 Trust token (requires medicine)",
+                IsAvailable = errandValidation.IsValid,
+                UnavailableReason = errandValidation.FailureReason,
+                CanRemediate = errandValidation.CanBeRemedied,
+                RemediationHint = errandValidation.RemediationHint
+            });
+        }
 
         // Borrow money command - if NPC offers loans (trade or shadow types)
         bool canLend = npc.LetterTokenTypes.Contains(ConnectionType.Trade) ||
@@ -121,6 +276,10 @@ public class CommandDiscoveryService
                 StaminaCost = 0,
                 CoinCost = 0,
                 PotentialReward = $"{loanAmount} coins (-2 {tokenType} tokens)",
+                IsAvailable = borrowValidation.IsValid,
+                UnavailableReason = borrowValidation.FailureReason,
+                CanRemediate = borrowValidation.CanBeRemedied,
+                RemediationHint = borrowValidation.RemediationHint
             });
         }
     }
@@ -177,6 +336,21 @@ public class CommandDiscoveryService
             _marketManager,
             _messageSystem);
         CommandValidationResult browseValidation = browseCommand.CanExecute(gameWorld);
+
+        if (browseValidation.IsValid)
+        {
+            result.AddCommand(new DiscoveredCommand
+            {
+                Command = browseCommand,
+                Category = CommandCategory.Economic,
+                DisplayName = "Browse market",
+                Description = "View available items and prices",
+                TimeCost = 0,
+                StaminaCost = 0,
+                CoinCost = 0,
+                IsAvailable = true
+            });
+        }
 
         // Observe location (always available)
         ObserveCommand observeCommand = new ObserveCommand(spot.SpotID, _npcRepository,

@@ -6,6 +6,12 @@ public abstract class BaseGameCommand : IGameCommand
     public string CommandId { get; }
     public string CommandType { get; protected set; }
     public string Description { get; protected set; }
+    
+    /// <summary>
+    /// The type of connection token this command grants when executed.
+    /// If null, falls back to NPC's primary token type (for backward compatibility).
+    /// </summary>
+    public ConnectionType? TokenTypeGranted { get; protected set; }
 
     protected BaseGameCommand()
     {

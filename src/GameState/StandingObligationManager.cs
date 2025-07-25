@@ -6,13 +6,17 @@ public class StandingObligationManager
     private readonly MessageSystem _messageSystem;
     private readonly LetterTemplateRepository _letterTemplateRepository;
     private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly StandingObligationRepository _obligationRepository;
+    private readonly ITimeManager _timeManager;
 
-    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, LetterTemplateRepository letterTemplateRepository, ConnectionTokenManager connectionTokenManager)
+    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, LetterTemplateRepository letterTemplateRepository, ConnectionTokenManager connectionTokenManager, StandingObligationRepository obligationRepository, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
         _letterTemplateRepository = letterTemplateRepository;
         _connectionTokenManager = connectionTokenManager;
+        _obligationRepository = obligationRepository;
+        _timeManager = timeManager;
     }
 
     // Get all active obligations for the player
@@ -391,6 +395,142 @@ public class StandingObligationManager
         }
 
         return string.Join("\n", lines);
+    }
+
+    // Check for threshold-based obligations that should activate or deactivate
+    public void CheckThresholdActivations()
+    {
+        Player player = _gameWorld.GetPlayer();
+        List<StandingObligation> allTemplates = _obligationRepository.GetAllObligationTemplates();
+        
+        // Check each threshold-based obligation template
+        foreach (StandingObligation template in allTemplates.Where(o => o.IsThresholdBased))
+        {
+            // Skip if not properly configured
+            if (!template.ActivationThreshold.HasValue || !template.RelatedTokenType.HasValue)
+                continue;
+
+            // Get relevant token count
+            int tokenCount = GetRelevantTokenCount(template);
+            
+            // Check if player already has this obligation
+            StandingObligation? existingObligation = player.StandingObligations
+                .FirstOrDefault(o => o.ID == template.ID);
+
+            if (existingObligation == null)
+            {
+                // Check if we should activate this obligation
+                if (template.ShouldBeActiveForTokenCount(tokenCount))
+                {
+                    ActivateThresholdObligation(template, tokenCount);
+                }
+            }
+            else if (existingObligation.WasAutoActivated)
+            {
+                // Check if we should deactivate this obligation
+                if (existingObligation.ShouldDeactivateForTokenCount(tokenCount))
+                {
+                    DeactivateThresholdObligation(existingObligation, tokenCount);
+                }
+            }
+        }
+    }
+
+    // Get the relevant token count for a threshold-based obligation
+    private int GetRelevantTokenCount(StandingObligation obligation)
+    {
+        if (!obligation.RelatedTokenType.HasValue)
+            return 0;
+
+        if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
+        {
+            // Get tokens with specific NPC
+            Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(obligation.RelatedNPCId);
+            return npcTokens.GetValueOrDefault(obligation.RelatedTokenType.Value, 0);
+        }
+        else
+        {
+            // Get total tokens of type
+            return _connectionTokenManager.GetTokenCount(obligation.RelatedTokenType.Value);
+        }
+    }
+
+    // Activate a threshold-based obligation
+    private void ActivateThresholdObligation(StandingObligation template, int currentTokenCount)
+    {
+        // Create a copy of the template for the player
+        StandingObligation newObligation = new StandingObligation
+        {
+            ID = template.ID,
+            Name = template.Name,
+            Description = template.Description,
+            Source = template.Source,
+            BenefitEffects = new List<ObligationEffect>(template.BenefitEffects),
+            ConstraintEffects = new List<ObligationEffect>(template.ConstraintEffects),
+            RelatedTokenType = template.RelatedTokenType,
+            RelatedNPCId = template.RelatedNPCId,
+            ActivationThreshold = template.ActivationThreshold,
+            DeactivationThreshold = template.DeactivationThreshold,
+            IsThresholdBased = true,
+            ActivatesAboveThreshold = template.ActivatesAboveThreshold,
+            DayAccepted = _gameWorld.CurrentDay,
+            IsActive = true,
+            WasAutoActivated = true,
+            DaysSinceAccepted = 0,
+            DaysSinceLastForcedLetter = 0
+        };
+
+        Player player = _gameWorld.GetPlayer();
+        player.StandingObligations.Add(newObligation);
+
+        // Announce activation
+        string thresholdDirection = template.ActivatesAboveThreshold ? "reached" : "dropped to";
+        string npcInfo = !string.IsNullOrEmpty(template.RelatedNPCId) ? $" with {template.RelatedNPCId}" : "";
+        
+        _messageSystem.AddSystemMessage(
+            $"Standing Obligation Activated: {newObligation.Name}",
+            SystemMessageTypes.Warning
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"Your {template.RelatedTokenType} tokens{npcInfo} have {thresholdDirection} {currentTokenCount}.",
+            SystemMessageTypes.Info
+        );
+        
+        _messageSystem.AddSystemMessage(
+            newObligation.GetEffectsSummary(),
+            SystemMessageTypes.Info
+        );
+    }
+
+    // Deactivate a threshold-based obligation
+    private void DeactivateThresholdObligation(StandingObligation obligation, int currentTokenCount)
+    {
+        obligation.IsActive = false;
+
+        // Announce deactivation
+        string thresholdDirection = obligation.ActivatesAboveThreshold ? "dropped below" : "risen above";
+        string npcInfo = !string.IsNullOrEmpty(obligation.RelatedNPCId) ? $" with {obligation.RelatedNPCId}" : "";
+        
+        _messageSystem.AddSystemMessage(
+            $"Standing Obligation Deactivated: {obligation.Name}",
+            SystemMessageTypes.Success
+        );
+        
+        _messageSystem.AddSystemMessage(
+            $"Your {obligation.RelatedTokenType} tokens{npcInfo} have {thresholdDirection} the required threshold.",
+            SystemMessageTypes.Info
+        );
+    }
+
+    // This should be called whenever tokens change
+    public void OnTokensChanged(string npcId, ConnectionType tokenType, int oldCount, int newCount)
+    {
+        // Only check if the token count actually changed
+        if (oldCount != newCount)
+        {
+            CheckThresholdActivations();
+        }
     }
 
     // Helper methods

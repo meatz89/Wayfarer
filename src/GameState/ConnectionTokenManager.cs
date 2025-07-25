@@ -7,6 +7,7 @@ public class ConnectionTokenManager
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
     private LetterCategoryService _categoryService;
+    private StandingObligationManager _obligationManager;
 
     public ConnectionTokenManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository)
     {
@@ -18,6 +19,11 @@ public class ConnectionTokenManager
     public void SetCategoryService(LetterCategoryService categoryService)
     {
         _categoryService = categoryService;
+    }
+
+    public void SetObligationManager(StandingObligationManager obligationManager)
+    {
+        _obligationManager = obligationManager;
     }
 
     // Get player's total tokens by type
@@ -43,6 +49,7 @@ public class ConnectionTokenManager
     }
 
     // Add tokens through Socialize (1 hour → 1 token) or Delivery (1 stamina → 1 token)
+    // This method is kept for backward compatibility but should not be used for new commands
     public void AddTokensFromSocialize(string npcId)
     {
         NPC npc = _npcRepository.GetById(npcId);
@@ -53,6 +60,15 @@ public class ConnectionTokenManager
         if (tokenType == default) return;
 
         AddTokensToNPC(tokenType, 1, npcId);
+    }
+    
+    // Add tokens with specific type (used by context-aware commands)
+    public void AddTokensFromAction(string npcId, ConnectionType tokenType, int count = 1)
+    {
+        NPC npc = _npcRepository.GetById(npcId);
+        if (npc == null) return;
+
+        AddTokensToNPC(tokenType, count, npcId);
     }
 
     // Add tokens to specific NPC relationship
@@ -102,6 +118,12 @@ public class ConnectionTokenManager
             {
                 _categoryService.CheckCategoryUnlock(npcId, type, oldTokenCount, newTokenCount);
             }
+        }
+
+        // Check threshold-based obligations if we have the manager
+        if (_obligationManager != null)
+        {
+            _obligationManager.OnTokensChanged(npcId, type, oldTokenCount, newTokenCount);
         }
     }
 
@@ -180,6 +202,13 @@ public class ConnectionTokenManager
             }
         }
 
+        // Check threshold-based obligations if we have the manager
+        if (_obligationManager != null)
+        {
+            int oldCount = player.NPCTokens[npcId][type] + count; // Calculate what it was before spending
+            _obligationManager.OnTokensChanged(npcId, type, oldCount, player.NPCTokens[npcId][type]);
+        }
+
         return true;
     }
 
@@ -242,6 +271,9 @@ public class ConnectionTokenManager
             }
         }
 
+        // Track old count for obligation checking
+        int oldCount = npcTokens[npcId][type];
+
         // Remove tokens from NPC relationship (can go negative)
         npcTokens[npcId][type] -= count;
 
@@ -265,6 +297,12 @@ public class ConnectionTokenManager
                     SystemMessageTypes.Danger
                 );
             }
+        }
+
+        // Check threshold-based obligations if we have the manager
+        if (_obligationManager != null)
+        {
+            _obligationManager.OnTokensChanged(npcId, type, oldCount, npcTokens[npcId][type]);
         }
     }
 

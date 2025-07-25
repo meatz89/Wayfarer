@@ -10,18 +10,20 @@ public class ConverseCommand : BaseGameCommand
     private readonly ConversationFactory _conversationFactory;
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
-
+    private readonly ConversationStateManager _conversationStateManager;
 
     public ConverseCommand(
         string npcId,
         ConversationFactory conversationFactory,
         NPCRepository npcRepository,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ConversationStateManager conversationStateManager)
     {
         _npcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
         _conversationFactory = conversationFactory ?? throw new ArgumentNullException(nameof(conversationFactory));
         _npcRepository = npcRepository ?? throw new ArgumentNullException(nameof(npcRepository));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _conversationStateManager = conversationStateManager ?? throw new ArgumentNullException(nameof(conversationStateManager));
 
         Description = $"Converse with NPC {npcId}";
     }
@@ -83,9 +85,8 @@ public class ConverseCommand : BaseGameCommand
 
         // Time spending handled by executing service
 
-        // Set up conversation for UI
-        gameWorld.PendingConversationManager = conversationManager;
-        gameWorld.ConversationPending = true;
+        // Set up conversation for UI using ConversationStateManager
+        _conversationStateManager.SetPendingConversation(conversationManager);
 
         _messageSystem.AddSystemMessage(
             $"Starting conversation with {npc.Name}",

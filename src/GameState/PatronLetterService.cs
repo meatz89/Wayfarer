@@ -28,16 +28,20 @@ public class PatronLetterService
         "forced_patron_summons"
     };
 
+    private readonly ConnectionTokenManager _tokenManager;
+
     public PatronLetterService(
         GameWorld gameWorld,
         LetterQueueManager letterQueueManager,
         LetterTemplateRepository letterTemplateRepository,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ConnectionTokenManager tokenManager)
     {
         _gameWorld = gameWorld;
         _letterQueueManager = letterQueueManager;
         _letterTemplateRepository = letterTemplateRepository;
         _messageSystem = messageSystem;
+        _tokenManager = tokenManager;
     }
 
     /// <summary>
@@ -60,8 +64,37 @@ public class PatronLetterService
     }
 
     /// <summary>
-    /// Generate a patron letter that jumps to queue position 1-3.
-    /// These letters create immediate priority crises.
+    /// Initialize patron relationship with extreme debt for leverage.
+    /// Called when patron obligation is applied (e.g., Day 10 tutorial).
+    /// </summary>
+    public void InitializePatronDebt()
+    {
+        // Check if patron debt already exists
+        var patronTokens = _tokenManager.GetTokensWithNPC("patron");
+        if (patronTokens[ConnectionType.Noble] >= -10)
+        {
+            // Set extreme debt to create natural leverage
+            // This debt makes patron letters naturally reach positions 1-3
+            _tokenManager.AddTokensToNPC(ConnectionType.Noble, -20, "patron");
+            
+            _messageSystem.AddSystemMessage(
+                "Your patron has saved you from destitution - but at a steep price.",
+                SystemMessageTypes.Warning
+            );
+            _messageSystem.AddSystemMessage(
+                "Your debt of 20 Noble tokens gives them extreme leverage over your priorities.",
+                SystemMessageTypes.Info
+            );
+            _messageSystem.AddSystemMessage(
+                "Their letters will naturally demand top positions in your queue.",
+                SystemMessageTypes.Info
+            );
+        }
+    }
+
+    /// <summary>
+    /// Generate a patron letter that uses leverage for queue position.
+    /// These letters create immediate priority crises through debt.
     /// </summary>
     public Letter GeneratePatronLetter()
     {
@@ -97,6 +130,7 @@ public class PatronLetterService
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = "patron", // Special ID for patron
+            IsFromPatron = true, // Mark as patron letter for special messaging
             SenderName = sender,
             RecipientId = $"patron_contact_{_random.Next(1, 10)}", // Various patron contacts
             RecipientName = recipient,
@@ -106,9 +140,7 @@ public class PatronLetterService
             Deadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1),
             DaysInQueue = 0,
             IsGenerated = true,
-            GenerationReason = "Patron Directive",
-            IsPatronLetter = true,
-            PatronQueuePosition = _random.Next(1, 4) // Positions 1-3
+            GenerationReason = "Patron Directive"
         };
 
         // Update tracking
@@ -122,7 +154,7 @@ public class PatronLetterService
     /// </summary>
     public bool AddPatronLetterToQueue(Letter patronLetter)
     {
-        if (!patronLetter.IsPatronLetter)
+        if (!patronLetter.IsFromPatron)
             return false;
 
         // Show dramatic arrival message
@@ -132,7 +164,7 @@ public class PatronLetterService
         );
 
         _messageSystem.AddSystemMessage(
-            $"The letter must be placed in position {patronLetter.PatronQueuePosition} of your queue.",
+            "Your extreme debt gives this letter overwhelming leverage in your queue.",
             SystemMessageTypes.Warning
         );
 
@@ -151,8 +183,8 @@ public class PatronLetterService
             SystemMessageTypes.Info
         );
 
-        // Use special queue manager method for patron letters
-        int position = _letterQueueManager.AddPatronLetter(patronLetter);
+        // Use leverage-based queue positioning for patron letters
+        int position = _letterQueueManager.AddLetterWithObligationEffects(patronLetter);
         return position > 0;
     }
 
@@ -161,6 +193,9 @@ public class PatronLetterService
     /// </summary>
     public Letter CheckForPatronLetter()
     {
+        // Ensure patron debt is initialized for leverage
+        InitializePatronDebt();
+        
         if (ShouldGeneratePatronLetter())
         {
             Letter patronLetter = GeneratePatronLetter();
@@ -173,15 +208,9 @@ public class PatronLetterService
     /// <summary>
     /// Force generate a patron letter (for testing or specific events).
     /// </summary>
-    public void ForcePatronLetter(int queuePosition = 0)
+    public void ForcePatronLetter()
     {
         Letter patronLetter = GeneratePatronLetter();
-
-        if (queuePosition > 0 && queuePosition <= 3)
-        {
-            patronLetter.PatronQueuePosition = queuePosition;
-        }
-
         AddPatronLetterToQueue(patronLetter);
     }
 

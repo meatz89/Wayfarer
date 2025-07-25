@@ -25,6 +25,9 @@ public class GameWorldManager
     private CommandDiscoveryService commandDiscovery;
     private MessageSystem _messageSystem;
     private readonly ITimeManager _timeManager;
+    private readonly ConversationStateManager _conversationStateManager;
+    private readonly NarrativeManager _narrativeManager;
+    private readonly FlagService _flagService;
 
     private bool isAiAvailable = true;
 
@@ -46,6 +49,9 @@ public class GameWorldManager
                        MessageSystem messageSystem,
                        DebugLogger debugLogger,
                        ITimeManager timeManager,
+                       ConversationStateManager conversationStateManager,
+                       NarrativeManager narrativeManager,
+                       FlagService flagService,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -68,6 +74,9 @@ public class GameWorldManager
         this.logger = logger;
         _debugLogger = debugLogger;
         _timeManager = timeManager;
+        _conversationStateManager = conversationStateManager;
+        _narrativeManager = narrativeManager;
+        _flagService = flagService;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
@@ -342,7 +351,7 @@ public class GameWorldManager
 
     public GameWorldSnapshot GetGameSnapshot()
     {
-        return new GameWorldSnapshot(_gameWorld);
+        return new GameWorldSnapshot(_gameWorld, _conversationStateManager);
     }
 
     private void GameOver()
@@ -663,7 +672,19 @@ public class GameWorldManager
     /// </summary>
     private void InitializeTutorialIfNeeded()
     {
-        // TODO: Tutorial narrative needs to be implemented
-        _debugLogger.LogDebug("Tutorial system not yet implemented");
+        // ALWAYS start tutorial for new games - no player choice
+        if (_narrativeManager != null && !_flagService.HasFlag(FlagService.TUTORIAL_COMPLETE))
+        {
+            _debugLogger.LogDebug("Starting Wayfarer tutorial for new game");
+            
+            // Load tutorial narrative definitions
+            NarrativeContentBuilder.BuildAllNarratives();
+            _narrativeManager.LoadNarrativeDefinitions(NarrativeDefinitions.All);
+            
+            // Start the tutorial
+            _narrativeManager.StartNarrative("wayfarer_tutorial");
+            
+            _messageSystem.AddSystemMessage("Welcome to Wayfarer. Your journey begins in the Lower Ward...", SystemMessageTypes.Tutorial);
+        }
     }
 }

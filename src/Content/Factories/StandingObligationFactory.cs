@@ -168,7 +168,7 @@ public class StandingObligationFactory
             }
         }
 
-        return CreateStandingObligationFromIds(
+        var obligation = CreateStandingObligationFromIds(
             dto.ID,
             dto.Name,
             dto.Description,
@@ -177,5 +177,14 @@ public class StandingObligationFactory
             tokenType,
             benefitEffects,
             constraintEffects);
+            
+        // Apply threshold-based activation settings
+        obligation.RelatedNPCId = dto.RelatedNPCId;
+        obligation.ActivationThreshold = dto.ActivationThreshold;
+        obligation.DeactivationThreshold = dto.DeactivationThreshold;
+        obligation.IsThresholdBased = dto.IsThresholdBased;
+        obligation.ActivatesAboveThreshold = dto.ActivatesAboveThreshold;
+        
+        return obligation;
     }
 }

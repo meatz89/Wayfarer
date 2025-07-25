@@ -8,13 +8,18 @@ public enum ObligationEffect
     NoblesPriority,        // Noble letters enter at slot 5
     CommonFolksPriority,   // Common letters enter at slot 6
     PatronJumpToTop,       // Patron letters jump to slots 1-3
+    PatronLettersPosition3, // Patron letters enter at position 3
+    PatronLettersPosition1, // Patron letters enter at position 1
+    TrustLettersPosition7,  // Trust letters enter at position 7
 
     // Payment Bonuses
     TradeBonus,            // Trade letters +10 coins
     ShadowTriplePay,       // Shadow letters pay triple
+    TradeBonusPlus3,       // Trade letters +3 coins bonus
 
     // Deadline Extensions
     TrustFreeExtend,       // Trust letters can extend deadline free
+    DeadlinePlus2Days,     // Letters get +2 days to deadline
 
     // Forced Letter Generation
     ShadowForced,          // Forced shadow letter every 3 days
@@ -25,6 +30,7 @@ public enum ObligationEffect
     NoTradePurge,          // Cannot purge trade letters
     TrustSkipDoubleCost,   // Skipping trust letters costs double
     NoCommonRefusal,       // Refusing common letters loses 2 tokens
+    CannotRefuseLetters,   // Cannot refuse any letters
 
     // Leverage Modifiers
     ShadowEqualsNoble,     // Shadow letters use Noble base position (3)
@@ -47,10 +53,18 @@ public class StandingObligation
     public List<ObligationEffect> ConstraintEffects { get; set; } = new List<ObligationEffect>();
     public ConnectionType? RelatedTokenType { get; set; } // Which token type this obligation affects
 
+    // Threshold-based activation
+    public string? RelatedNPCId { get; set; } // NPC whose tokens trigger this obligation
+    public int? ActivationThreshold { get; set; } // Token threshold that activates this obligation
+    public int? DeactivationThreshold { get; set; } // Token threshold that deactivates this obligation
+    public bool IsThresholdBased { get; set; } = false; // Whether this obligation auto-activates
+    public bool ActivatesAboveThreshold { get; set; } = true; // True = activates when above threshold, False = below
+
     // Status
     public int DayAccepted { get; set; } // Game day when obligation was accepted
     public bool IsActive { get; set; } = true;
     public int DaysSinceAccepted { get; set; } // Calculated during day transitions
+    public bool WasAutoActivated { get; set; } = false; // Track if this was auto-activated by threshold
 
     // Tracking for forced generation effects
     public int DaysSinceLastForcedLetter { get; set; } = 0;
@@ -82,6 +96,11 @@ public class StandingObligation
             return 10; // Flat +10 bonus
         }
 
+        if (HasEffect(ObligationEffect.TradeBonusPlus3) && letter.TokenType == ConnectionType.Trade)
+        {
+            return 3; // Flat +3 bonus
+        }
+
         if (HasEffect(ObligationEffect.ShadowTriplePay) && letter.TokenType == ConnectionType.Shadow)
         {
             return basePayment * 2; // Triple = base + (2 * base)
@@ -105,9 +124,19 @@ public class StandingObligation
             return Math.Min(6, defaultPosition); // Enter at slot 6 or higher
         }
 
-        if (HasEffect(ObligationEffect.PatronJumpToTop) && letter.IsFromPatron)
+        if (HasEffect(ObligationEffect.PatronLettersPosition1))
         {
-            return 1; // Jump to position 1-3 (will be handled by queue manager)
+            return 1; // Force to position 1
+        }
+
+        if (HasEffect(ObligationEffect.PatronLettersPosition3))
+        {
+            return 3; // Force to position 3
+        }
+
+        if (HasEffect(ObligationEffect.TrustLettersPosition7) && letter.TokenType == ConnectionType.Trust)
+        {
+            return 7; // Force to position 7
         }
 
         return defaultPosition;
@@ -147,6 +176,11 @@ public class StandingObligation
             return true;
         }
 
+        if (actionType == "refuse" && HasEffect(ObligationEffect.CannotRefuseLetters))
+        {
+            return true; // Cannot refuse any letters
+        }
+
         if (actionType == "purge" && HasEffect(ObligationEffect.NoTradePurge) &&
             letter.TokenType == ConnectionType.Trade)
         {
@@ -178,6 +212,45 @@ public class StandingObligation
         DaysSinceLastForcedLetter = 0;
     }
 
+    // Check if this obligation should be active based on current token count
+    public bool ShouldBeActiveForTokenCount(int currentTokenCount)
+    {
+        if (!IsThresholdBased || !ActivationThreshold.HasValue)
+            return IsActive; // Non-threshold based obligations maintain their current state
+
+        if (ActivatesAboveThreshold)
+        {
+            // Activates when tokens are above threshold (e.g., Elena's Devotion at 5+)
+            return currentTokenCount >= ActivationThreshold.Value;
+        }
+        else
+        {
+            // Activates when tokens are below threshold (e.g., Patron's Heavy Hand at -3 or worse)
+            return currentTokenCount <= ActivationThreshold.Value;
+        }
+    }
+
+    // Check if this obligation should deactivate based on current token count
+    public bool ShouldDeactivateForTokenCount(int currentTokenCount)
+    {
+        if (!IsThresholdBased || !IsActive || !WasAutoActivated)
+            return false; // Only auto-activated obligations can auto-deactivate
+
+        // If no deactivation threshold is set, use activation threshold
+        int deactivationPoint = DeactivationThreshold ?? ActivationThreshold ?? 0;
+
+        if (ActivatesAboveThreshold)
+        {
+            // Deactivates when tokens drop below threshold
+            return currentTokenCount < deactivationPoint;
+        }
+        else
+        {
+            // Deactivates when tokens rise above threshold
+            return currentTokenCount > deactivationPoint;
+        }
+    }
+
     // Get summary of this obligation's effects
     public string GetEffectsSummary()
     {
@@ -205,6 +278,18 @@ public class StandingObligation
             result += "Constraints: " + string.Join(", ", constraints);
         }
 
+        // Add threshold information if applicable
+        if (IsThresholdBased && ActivationThreshold.HasValue)
+        {
+            if (result != "") result += "\n";
+            string thresholdOperator = ActivatesAboveThreshold ? "≥" : "≤";
+            result += $"Triggers at {RelatedTokenType} tokens {thresholdOperator} {ActivationThreshold}";
+            if (!string.IsNullOrEmpty(RelatedNPCId))
+            {
+                result += $" with {RelatedNPCId}";
+            }
+        }
+
         return result;
     }
 
@@ -215,15 +300,21 @@ public class StandingObligation
             ObligationEffect.NoblesPriority => "Noble letters enter at slot 5",
             ObligationEffect.CommonFolksPriority => "Common letters enter at slot 6",
             ObligationEffect.PatronJumpToTop => "Patron letters jump to top slots",
+            ObligationEffect.PatronLettersPosition3 => "Patron letters enter at position 3",
+            ObligationEffect.PatronLettersPosition1 => "Patron letters enter at position 1",
+            ObligationEffect.TrustLettersPosition7 => "Trust letters enter at position 7",
             ObligationEffect.TradeBonus => "Trade letters +10 coins",
+            ObligationEffect.TradeBonusPlus3 => "Trade letters pay +3 coins bonus",
             ObligationEffect.ShadowTriplePay => "Shadow letters pay triple",
             ObligationEffect.TrustFreeExtend => "Trust letters extend deadline free",
+            ObligationEffect.DeadlinePlus2Days => "Letters get +2 days to deadline",
             ObligationEffect.ShadowForced => "Forced shadow letter every 3 days",
             ObligationEffect.PatronMonthly => "Monthly patron resource package",
             ObligationEffect.NoNobleRefusal => "Cannot refuse noble letters",
             ObligationEffect.NoTradePurge => "Cannot purge trade letters",
             ObligationEffect.TrustSkipDoubleCost => "Skipping trust letters costs double",
             ObligationEffect.NoCommonRefusal => "Refusing common letters loses 2 tokens",
+            ObligationEffect.CannotRefuseLetters => "Cannot refuse any letters",
             _ => effect.ToString()
         };
     }

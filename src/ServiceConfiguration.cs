@@ -69,7 +69,17 @@
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
-        services.AddSingleton<LetterTemplateRepository>();
+        services.AddSingleton<LetterTemplateRepository>(serviceProvider =>
+        {
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var letterTemplateRepository = new LetterTemplateRepository(gameWorld);
+            
+            // Wire up after construction
+            var categoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
+            letterTemplateRepository.SetCategoryService(categoryService);
+            
+            return letterTemplateRepository;
+        });
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
@@ -97,13 +107,31 @@
 
         // Conversation System
         services.AddSingleton<DeterministicStreamingService>();
+        services.AddSingleton<ConversationStateManager>();
 
         // Wire up circular dependencies after initial creation
-        services.AddSingleton<ConnectionTokenManager>();
+        services.AddSingleton<ConnectionTokenManager>(serviceProvider =>
+        {
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
+            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
+            
+            var connectionTokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepository);
+            
+            // Defer wiring to avoid circular dependency during construction
+            var categoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
+            var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
+            
+            connectionTokenManager.SetCategoryService(categoryService);
+            connectionTokenManager.SetObligationManager(obligationManager);
+            
+            return connectionTokenManager;
+        });
 
         services.AddSingleton<LetterQueueManager>();
 
         // Transaction and Preview System
+        services.AddSingleton<INavigationHandler, NavigationHandler>();
         services.AddSingleton<NavigationService>();
         services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<TokenFavorRepository>();
@@ -122,7 +150,9 @@
         services.AddSingleton<ConversationFactory>();
 
         // Narrative system components
-        // services.AddSingleton<NarrativeLoader>(); // TODO: Class removed in refactoring
+        services.AddSingleton<FlagService>();
+        services.AddSingleton<NarrativeManager>();
+        services.AddSingleton<NarrativeRequirement>();
         services.AddSingleton<NarrativeJournal>();
         services.AddSingleton<NarrativeEffectRegistry>();
 
@@ -142,8 +172,7 @@
 
         // UI Razor Services
 
-        // Navigation Service
-        services.AddSingleton<NavigationService>();
+        // Navigation Service - remove duplicate registration
 
         // State Management Services
         services.AddSingleton<GameStateManager>();

@@ -86,8 +86,8 @@ public class MorningActivitiesManager
             Letter patronLetter = _patronLetterService.CheckForPatronLetter();
             if (patronLetter != null)
             {
-                // Add patron letter to queue - it will jump to positions 1-3
-                int position = _letterQueueManager.AddPatronLetter(patronLetter);
+                // Add patron letter to queue - extreme debt gives it leverage
+                int position = _letterQueueManager.AddLetterWithObligationEffects(patronLetter);
 
                 if (position > 0)
                 {

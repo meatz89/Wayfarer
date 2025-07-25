@@ -21,9 +21,9 @@
                 <div class="slot-number">[@position]</div>
                 @if (letter != null)
                 {
-                    <div class="letter-card @(letter.IsPatronLetter ? "patron-letter" : "")">
+                    <div class="letter-card @(letter.IsFromPatron ? "patron-letter" : "")">
                         <div class="letter-header">
-                            @if (letter.IsPatronLetter)
+                            @if (letter.IsFromPatron)
                             {
                                 <span class="patron-seal" title="Patron Letter">🏵️</span>
                             }
@@ -38,7 +38,7 @@
                             }
                         </div>
                         <div class="letter-route">
-                            <span class="sender @(letter.IsPatronLetter ? "patron-sender" : "")">@letter.SenderName</span>
+                            <span class="sender @(letter.IsFromPatron ? "patron-sender" : "")">@letter.SenderName</span>
                             <span class="arrow">→</span>
                             <span class="recipient">@letter.RecipientName</span>
                         </div>
@@ -294,35 +294,51 @@
         {
             new Letter 
             { 
+                Id = System.Guid.NewGuid().ToString(),
+                SenderId = "elena",
                 SenderName = "Elena", 
+                RecipientId = "marcus",
                 RecipientName = "Marcus", 
                 Deadline = 3, 
                 Payment = 5, 
-                TokenType = ConnectionType.Trust 
+                TokenType = ConnectionType.Trust,
+                State = LetterState.Accepted 
             },
             new Letter 
             { 
+                Id = System.Guid.NewGuid().ToString(),
+                SenderId = "lord_ashford",
                 SenderName = "Lord Ashford", 
+                RecipientId = "lady_winters",
                 RecipientName = "Lady Winters", 
                 Deadline = 1, 
                 Payment = 12, 
-                TokenType = ConnectionType.Noble 
+                TokenType = ConnectionType.Noble,
+                State = LetterState.Accepted 
             },
             new Letter 
             { 
+                Id = System.Guid.NewGuid().ToString(),
+                SenderId = "merchant_guild",
                 SenderName = "Merchant Guild", 
+                RecipientId = "dock_master",
                 RecipientName = "Dock Master", 
                 Deadline = 5, 
                 Payment = 8, 
-                TokenType = ConnectionType.Trade 
+                TokenType = ConnectionType.Trade,
+                State = LetterState.Accepted 
             },
             new Letter 
             { 
+                Id = System.Guid.NewGuid().ToString(),
+                SenderId = "anonymous",
                 SenderName = "Anonymous", 
+                RecipientId = "the_fence",
                 RecipientName = "The Fence", 
                 Deadline = 2, 
                 Payment = 15, 
-                TokenType = ConnectionType.Shadow 
+                TokenType = ConnectionType.Shadow,
+                State = LetterState.Accepted 
             }
         };
         

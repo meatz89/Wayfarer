@@ -15,6 +15,7 @@
             SystemMessageTypes.Danger => 8000,   // 8 seconds for critical messages
             SystemMessageTypes.Warning => 6000,  // 6 seconds for warnings
             SystemMessageTypes.Success => 5000,  // 5 seconds for success
+            SystemMessageTypes.Tutorial => 6000, // 6 seconds for tutorial
             SystemMessageTypes.Info => 4000,     // 4 seconds for info
             _ => 5000
         };

@@ -10,20 +10,24 @@
 		"minPayment": 2,
 		"maxPayment": 2,
 		"size": "Small",
-		"physicalProperties": ["Package"]
+		"physicalProperties": ["Package"],
+		"possibleSenders": ["martha_docker"],
+		"possibleRecipients": ["fishmonger_giles"]
 	},
 	{
 		"id": "martha_medicine",
 		"description": "Urgent medicine for a sick child",
 		"tokenType": "Trade",
-		"category": "Urgent",
+		"category": "Quality",
 		"minTokensRequired": 1,
 		"minDeadline": 24,
 		"maxDeadline": 24,
-		"minPayment": 5,
-		"maxPayment": 5,
+		"minPayment": 0,
+		"maxPayment": 0,
 		"size": "Small",
-		"physicalProperties": ["Fragile", "Urgent"]
+		"physicalProperties": ["Fragile", "Urgent"],
+		"possibleSenders": ["martha_docker"],
+		"possibleRecipients": ["elena_scribe"]
 	},
 	{
 		"id": "fishmonger_routine",
@@ -35,19 +39,23 @@
 		"maxDeadline": 96,
 		"minPayment": 3,
 		"maxPayment": 4,
-		"size": "Small"
+		"size": "Small",
+		"possibleSenders": ["fishmonger_giles"],
+		"possibleRecipients": ["martha_docker", "elena_scribe"]
 	},
 	{
 		"id": "patron_first_letter",
 		"description": "Confidential letter from your patron",
 		"tokenType": "Noble",
-		"category": "Patron",
+		"category": "Premium",
 		"minTokensRequired": 3,
 		"minDeadline": 72,
 		"maxDeadline": 72,
-		"minPayment": 15,
-		"maxPayment": 15,
+		"minPayment": 0,
+		"maxPayment": 0,
 		"size": "Small",
-		"physicalProperties": ["Sealed", "Confidential"]
+		"physicalProperties": ["Sealed", "Confidential"],
+		"possibleSenders": ["patron_intermediary"],
+		"possibleRecipients": ["tam_beggar", "martha_docker", "elena_scribe", "fishmonger_giles"]
 	}
 ]

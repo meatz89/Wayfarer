@@ -61,8 +61,6 @@ public class SerializableLetter
     public bool IsFromPatron { get; set; }
     public string PhysicalProperties { get; set; }
     public string RequiredEquipment { get; set; }
-    public bool IsPatronLetter { get; set; }
-    public int PatronQueuePosition { get; set; }
     public string SenderId { get; set; }
     public string RecipientId { get; set; }
     public int DaysInQueue { get; set; }

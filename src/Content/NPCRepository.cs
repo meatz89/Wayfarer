@@ -26,6 +26,11 @@
         return _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
     }
 
+    public NPC GetByName(string name)
+    {
+        return _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
     public List<NPC> GetAllNPCs()
     {
         return _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();

@@ -44,10 +44,6 @@ public class GameWorld
     // Pending command for any command that doesn't complete instantly
     public PendingCommand PendingCommand { get; set; }
 
-    // Action-Conversation State
-    public ConversationManager PendingConversationManager { get; set; }
-    public bool ConversationPending { get; set; }
-
     // Temporary metadata for conversation context
     private Dictionary<string, string> _metadata = new Dictionary<string, string>();
 
