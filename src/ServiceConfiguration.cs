@@ -77,6 +77,10 @@
             // Wire up after construction
             var categoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
             letterTemplateRepository.SetCategoryService(categoryService);
+            categoryService.SetLetterTemplateRepository(letterTemplateRepository);
+            
+            var narrativeManager = serviceProvider.GetRequiredService<NarrativeManager>();
+            letterTemplateRepository.SetNarrativeManager(narrativeManager);
             
             return letterTemplateRepository;
         });
@@ -157,6 +161,7 @@
         services.AddSingleton<NarrativeRequirement>();
         services.AddSingleton<NarrativeJournal>();
         services.AddSingleton<NarrativeEffectRegistry>();
+        services.AddSingleton<NarrativeItemService>();
 
         services.AddScoped<MusicService>();
 
@@ -169,6 +174,7 @@
         services.AddSingleton<TravelUIService>();
         services.AddSingleton<RestUIService>();
         services.AddSingleton<LocationActionsUIService>();
+        services.AddSingleton<ReadableLetterUIService>();
         services.AddSingleton<NPCService>();
         services.AddSingleton<LetterGenerationService>();
 

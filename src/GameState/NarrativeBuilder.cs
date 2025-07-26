@@ -233,6 +233,16 @@ public class NarrativeBuilder
     }
     
     /// <summary>
+    /// Give an item to the player when step starts
+    /// </summary>
+    public NarrativeBuilder GiveItemOnStepStart(string itemId)
+    {
+        if (_currentStep == null) throw new InvalidOperationException("No step being defined");
+        _currentStep.ItemToGiveOnStart = itemId;
+        return this;
+    }
+    
+    /// <summary>
     /// Build the narrative definition
     /// </summary>
     public NarrativeDefinition Build()
@@ -446,7 +456,8 @@ public static class NarrativeContentBuilder
             .AllowActions("Travel", "Converse")
             .ShowNPCs("tam_beggar")
             .ForceLocationOnStepStart("lower_ward", "lower_ward_square")
-            .WithNPCDialogue("tam_beggar", "There you are! Someone's been asking about you - someone important. There's a letter waiting at Merchant's Rest. Gold seal and everything. This could change your life, friend.")
+            .GiveItemOnStepStart("mysterious_letter")
+            .WithNPCDialogue("tam_beggar", "There you are! Someone's been asking about you - someone important. A courier left this for you - gold seal and everything! The letter mentions meeting at Merchant's Rest. This could change your life, friend.")
             .CompleteWhenFlag(FlagService.TUTORIAL_PATRON_LETTER_RECEIVED)
             
             // Step 20: Meet the patron

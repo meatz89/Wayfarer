@@ -99,5 +99,19 @@
 		"spotId": "dockside_inn",
 		"description": "A collection of local brews perfect for sharing. Enhances bonds with common folk.",
 		"tokenGenerationModifiers": { "Common": 1.5 }
+	},
+	{
+		"id": "mysterious_letter",
+		"name": "Mysterious Gold-Sealed Letter",
+		"weight": 0,
+		"buyPrice": 0,
+		"sellPrice": 0,
+		"inventorySlots": 1,
+		"categories": ["Special_Document"],
+		"itemCategories": ["Documents"],
+		"size": "Tiny",
+		"description": "An elegant letter sealed with gold wax, bearing an unfamiliar crest. The parchment feels expensive.",
+		"readableContent": "To the Bearer of this Letter,\n\nYour recent activities have come to my attention. I represent certain interests that could benefit from someone of your... unique position and capabilities.\n\nIf you seek more than mere survival—if you desire purpose and proper compensation for your efforts—then I invite you to meet with my representative.\n\nSeek out the private room at the Merchant's Rest tomorrow evening. Mention that you carry the golden seal.\n\nTime is of the essence. This opportunity will not present itself again.\n\n—A Friend",
+		"readFlagToSet": "tutorial_patron_letter_received"
 	}
 ]

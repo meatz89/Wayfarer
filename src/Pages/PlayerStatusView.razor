@@ -118,6 +118,14 @@
                                             <span class="token-effects-value">@item.GetTokenEffectsDescription()</span>
                                         </div>
                                     }
+                                    @if (item.IsReadable())
+                                    {
+                                        <div class="item-actions">
+                                            <button class="read-action-button" @onclick="() => ReadItem(item.Id)">
+                                                📜 Read
+                                            </button>
+                                        </div>
+                                    }
                                 </div>
                             }
                         }
@@ -248,3 +256,6 @@
         }
     </div>
 </div>
+
+@* Readable Letter Display Modal *@
+<ReadableLetterDisplay @ref="letterDisplay" ItemId="@selectedLetterItemId" OnClose="OnLetterClosed" />

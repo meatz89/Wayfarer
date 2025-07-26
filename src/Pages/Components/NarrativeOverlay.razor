@@ -1,31 +1,44 @@
 @using Wayfarer.ViewModels
 @inject NarrativeManager NarrativeManager
+@inject NarrativeItemService NarrativeItemService
+@inject IJSRuntime JSRuntime
 @implements IDisposable
 
 @if (_viewModel.IsVisible)
 {
-    <div class="narrative-overlay @(_viewModel.IsMinimized ? "minimized" : "expanded")">
+    <div class="narrative-overlay @(_viewModel.IsMinimized ? "minimized" : "expanded") @GetNarrativeTypeClass() @(_isAnimating ? "animating" : "")">
         <div class="narrative-header" @onclick="ToggleMinimize">
             <div class="narrative-title-section">
-                <span class="narrative-icon">📜</span>
+                <span class="narrative-icon">@GetNarrativeIcon()</span>
+                <span class="narrative-type-badge @GetNarrativeTypeClass()">@GetNarrativeType()</span>
                 <h3 class="narrative-title">@_viewModel.NarrativeTitle</h3>
                 @if (_viewModel.TotalSteps > 0)
                 {
-                    <span class="narrative-progress">Step @(_viewModel.CurrentStep + 1) of @_viewModel.TotalSteps</span>
+                    <div class="narrative-progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @GetProgressPercentage()%"></div>
+                        </div>
+                        <span class="progress-text">@(_viewModel.CurrentStep + 1) / @_viewModel.TotalSteps</span>
+                    </div>
                 }
             </div>
-            <button class="minimize-toggle" aria-label="@(_viewModel.IsMinimized ? "Expand" : "Minimize")">
-                <span class="toggle-icon">@(_viewModel.IsMinimized ? "▼" : "▲")</span>
+            <button class="minimize-toggle" aria-label="@(_viewModel.IsMinimized ? "Expand" : "Minimize")" @onclick:stopPropagation="true" @onclick="ToggleMinimize">
+                <span class="toggle-icon">@(_viewModel.IsMinimized ? "▶" : "▼")</span>
             </button>
         </div>
         
-        @if (!_viewModel.IsMinimized)
-        {
+        <div class="narrative-content-wrapper @(_viewModel.IsMinimized ? "collapsed" : "expanded")">
             <div class="narrative-content">
                 @if (!string.IsNullOrEmpty(_viewModel.StepName))
                 {
                     <div class="step-info">
-                        <h4 class="step-name">@_viewModel.StepName</h4>
+                        <div class="step-header">
+                            <h4 class="step-name">@_viewModel.StepName</h4>
+                            @if (_hasTimeLimit)
+                            {
+                                <span class="time-limit-badge @GetTimeLimitClass()">@GetTimeLimitText()</span>
+                            }
+                        </div>
                         @if (!string.IsNullOrEmpty(_viewModel.StepDescription))
                         {
                             <p class="step-description">@_viewModel.StepDescription</p>
@@ -36,7 +49,10 @@
                 @if (!string.IsNullOrEmpty(_viewModel.GuidanceText))
                 {
                     <div class="guidance-section">
-                        <span class="guidance-icon">💡</span>
+                        <div class="guidance-header">
+                            <span class="guidance-icon">✦</span>
+                            <span class="guidance-label">Guidance</span>
+                        </div>
                         <p class="guidance-text">@_viewModel.GuidanceText</p>
                     </div>
                 }
@@ -44,17 +60,28 @@
                 @if (_viewModel.AllowedActions.Any())
                 {
                     <div class="allowed-actions">
-                        <span class="actions-label">Available Actions:</span>
+                        <div class="actions-header">
+                            <span class="actions-icon">⚡</span>
+                            <span class="actions-label">Available Actions</span>
+                        </div>
                         <div class="action-tags">
                             @foreach (var action in _viewModel.AllowedActions)
                             {
-                                <span class="action-tag">@action</span>
+                                <span class="action-tag @GetActionTagClass(action)">@FormatActionName(action)</span>
                             }
                         </div>
                     </div>
                 }
+                
+                @if (_showCompletionHint)
+                {
+                    <div class="completion-hint">
+                        <span class="hint-icon">✓</span>
+                        <span class="hint-text">Ready to complete this step</span>
+                    </div>
+                }
             </div>
-        }
+        </div>
     </div>
 }
 
@@ -62,8 +89,13 @@
     private NarrativeOverlayViewModel _viewModel = new();
     private System.Threading.Timer _updateTimer;
     private readonly string MinimizedStateKey = "narrative_overlay_minimized";
+    private bool _isAnimating = false;
+    private bool _hasTimeLimit = false;
+    private int _timeRemaining = 0;
+    private bool _showCompletionHint = false;
+    private string _previousNarrativeId = "";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Start update timer to check narrative state
         _updateTimer = new System.Threading.Timer(
@@ -73,36 +105,58 @@
             period: TimeSpan.FromSeconds(1)
         );
         
-        // Load minimized state from local storage equivalent (using static for demo)
-        LoadMinimizedState();
+        // Load minimized state from local storage
+        await LoadMinimizedState();
     }
 
     private async Task UpdateNarrativeState()
     {
         try
         {
-            var activeNarratives = NarrativeManager.GetActiveNarratives();
+            // Check for narrative items to give
+            await NarrativeItemService.CheckAndGiveNarrativeItems();
             
-            Console.WriteLine($"[NarrativeOverlay] Active narratives: {activeNarratives.Count}");
+            var activeNarratives = NarrativeManager.GetActiveNarratives();
             
             if (!activeNarratives.Any())
             {
-                _viewModel.IsVisible = false;
+                if (_viewModel.IsVisible)
+                {
+                    // Animate out
+                    _isAnimating = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(300);
+                    _viewModel.IsVisible = false;
+                    _isAnimating = false;
+                }
                 await InvokeAsync(StateHasChanged);
                 return;
             }
             
             // Show the first active narrative
             var narrativeId = activeNarratives.First();
+            
+            // Check if narrative changed
+            if (narrativeId != _previousNarrativeId)
+            {
+                _isAnimating = true;
+                _previousNarrativeId = narrativeId;
+                
+                // Auto-expand on new narrative
+                if (_viewModel.IsMinimized)
+                {
+                    _viewModel.IsMinimized = false;
+                    await SaveMinimizedState();
+                }
+            }
+            
             var currentStep = NarrativeManager.GetCurrentStep(narrativeId);
             var currentStepIndex = NarrativeManager.GetCurrentStepIndex(narrativeId);
             var totalSteps = NarrativeManager.GetTotalSteps(narrativeId);
             
-            Console.WriteLine($"[NarrativeOverlay] Showing narrative: {narrativeId}, Step: {currentStepIndex}/{totalSteps}");
-            
             // Get narrative definition for title
             var narrativeDef = NarrativeManager.GetNarrativeDefinition(narrativeId);
-            var narrativeTitle = narrativeDef?.Title ?? narrativeId;
+            var narrativeTitle = narrativeDef?.Title ?? FormatNarrativeTitle(narrativeId);
             
             _viewModel.IsVisible = true;
             _viewModel.NarrativeId = narrativeId;
@@ -116,10 +170,23 @@
                 _viewModel.StepDescription = currentStep.Description;
                 _viewModel.GuidanceText = currentStep.GuidanceText;
                 _viewModel.AllowedActions = currentStep.AllowedActions ?? new List<string>();
-                Console.WriteLine($"[NarrativeOverlay] Step: {currentStep.Name} - {currentStep.GuidanceText}");
+                
+                // Check for time limits (would need to be added to step definition)
+                UpdateTimeLimit(currentStep);
+                
+                // Check if ready for completion
+                UpdateCompletionHint(currentStep);
             }
             
             await InvokeAsync(StateHasChanged);
+            
+            // Remove animation class after delay
+            if (_isAnimating)
+            {
+                await Task.Delay(300);
+                _isAnimating = false;
+                await InvokeAsync(StateHasChanged);
+            }
         }
         catch (Exception ex)
         {
@@ -130,29 +197,128 @@
     private string FormatNarrativeTitle(string narrativeId)
     {
         // Format narrative ID for display
-        return narrativeId.Replace("_", " ")
-            .Replace("tutorial", "Tutorial")
-            .Replace("quest", "Quest")
-            .Replace("story", "Story");
+        return narrativeId
+            .Replace("_", " ")
+            .Replace("tutorial", "Tutorial", StringComparison.OrdinalIgnoreCase)
+            .Replace("quest", "Quest", StringComparison.OrdinalIgnoreCase)
+            .Replace("story", "Story", StringComparison.OrdinalIgnoreCase);
     }
     
-    private void ToggleMinimize()
+    private string GetNarrativeType()
+    {
+        if (_viewModel.NarrativeId == null) return "Narrative";
+        
+        if (_viewModel.NarrativeId.ToLower().Contains("tutorial")) return "Tutorial";
+        if (_viewModel.NarrativeId.ToLower().Contains("quest")) return "Quest";
+        if (_viewModel.NarrativeId.ToLower().Contains("story")) return "Story";
+        
+        return "Narrative";
+    }
+    
+    private string GetNarrativeIcon()
+    {
+        var type = GetNarrativeType();
+        return type switch
+        {
+            "Tutorial" => "📚",
+            "Quest" => "⚔",
+            "Story" => "📜",
+            _ => "📋"
+        };
+    }
+    
+    private string GetNarrativeTypeClass()
+    {
+        return GetNarrativeType().ToLower();
+    }
+    
+    private double GetProgressPercentage()
+    {
+        if (_viewModel.TotalSteps == 0) return 0;
+        return (_viewModel.CurrentStep + 1) * 100.0 / _viewModel.TotalSteps;
+    }
+    
+    private string GetActionTagClass(string action)
+    {
+        // Add specific classes based on action type
+        if (action.ToLower().Contains("talk") || action.ToLower().Contains("conversation")) return "action-social";
+        if (action.ToLower().Contains("deliver") || action.ToLower().Contains("pickup")) return "action-delivery";
+        if (action.ToLower().Contains("trade") || action.ToLower().Contains("buy")) return "action-trade";
+        if (action.ToLower().Contains("explore") || action.ToLower().Contains("travel")) return "action-explore";
+        
+        return "action-default";
+    }
+    
+    private string FormatActionName(string action)
+    {
+        // Clean up action names for display
+        return action.Replace("_", " ");
+    }
+    
+    private void UpdateTimeLimit(NarrativeStep step)
+    {
+        // This would check if the step has a time limit
+        // For now, simulate based on step name
+        _hasTimeLimit = step.Name?.ToLower().Contains("urgent") == true ||
+                       step.Description?.ToLower().Contains("before") == true;
+        
+        if (_hasTimeLimit)
+        {
+            // Simulate time remaining (would be from actual game state)
+            _timeRemaining = 3; // time blocks
+        }
+    }
+    
+    private void UpdateCompletionHint(NarrativeStep step)
+    {
+        // Check if conditions are met to complete the step
+        // This would check actual game state
+        _showCompletionHint = step.AllowedActions?.Any() == true && 
+                             _viewModel.CurrentStep == _viewModel.TotalSteps - 1;
+    }
+    
+    private string GetTimeLimitClass()
+    {
+        if (_timeRemaining <= 1) return "urgent";
+        if (_timeRemaining <= 3) return "warning";
+        return "normal";
+    }
+    
+    private string GetTimeLimitText()
+    {
+        if (_timeRemaining == 1) return "1 time block left";
+        return $"{_timeRemaining} time blocks left";
+    }
+    
+    private async void ToggleMinimize()
     {
         _viewModel.IsMinimized = !_viewModel.IsMinimized;
-        SaveMinimizedState();
+        await SaveMinimizedState();
     }
     
-    private void LoadMinimizedState()
+    private async Task LoadMinimizedState()
     {
-        // In a real implementation, this would load from browser local storage
-        // For now, default to expanded
-        _viewModel.IsMinimized = false;
+        try
+        {
+            var value = await JSRuntime.InvokeAsync<string>("localStorage.getItem", MinimizedStateKey);
+            _viewModel.IsMinimized = value == "true";
+        }
+        catch
+        {
+            _viewModel.IsMinimized = false;
+        }
     }
     
-    private void SaveMinimizedState()
+    private async Task SaveMinimizedState()
     {
-        // In a real implementation, this would save to browser local storage
-        // For now, just keep in memory
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", MinimizedStateKey, _viewModel.IsMinimized.ToString().ToLower());
+        }
+        catch
+        {
+            // Silently fail if localStorage is not available
+        }
     }
 
     public void Dispose()

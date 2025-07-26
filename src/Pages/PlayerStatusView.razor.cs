@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Wayfarer.GameState.Constants;
+using Wayfarer.Pages.Components;
 
 namespace Wayfarer.Pages
 {
@@ -12,10 +13,15 @@ namespace Wayfarer.Pages
         [Inject] public LocationRepository LocationRepository { get; set; }
         [Inject] public RouteRepository RouteRepository { get; set; }
         [Inject] public NavigationManager NavigationManager { get; set; }
+        [Inject] public ReadableLetterUIService LetterUIService { get; set; }
 
         [Parameter] public EventCallback OnClose { get; set; }
 
         public Player PlayerState => GameWorld.GetPlayer();
+        
+        // For readable letter display
+        protected ReadableLetterDisplay letterDisplay;
+        protected string selectedLetterItemId;
 
         public Location CurrentLocation => LocationRepository.GetCurrentLocation();
 
@@ -218,6 +224,21 @@ namespace Wayfarer.Pages
                 SkillTypes.Deception => "🎭",
                 _ => "⭐"
             };
+        }
+
+        public async Task ReadItem(string itemId)
+        {
+            if (LetterUIService.CanReadItem(itemId))
+            {
+                selectedLetterItemId = itemId;
+                StateHasChanged();
+            }
+        }
+
+        public void OnLetterClosed()
+        {
+            selectedLetterItemId = null;
+            StateHasChanged();
         }
 
     }

@@ -148,6 +148,38 @@
 	background-color: rgba(76, 111, 68, 0.05);
 }
 
+/* Readable Item Actions */
+.item-actions {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--bg-lighter);
+}
+
+.read-action-button {
+	background-color: var(--oak-mid);
+	color: var(--text-light);
+	border: 1px solid var(--oak-dark);
+	padding: 6px 12px;
+	border-radius: 4px;
+	font-size: 0.9rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.read-action-button:hover {
+	background-color: var(--oak-dark);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.read-action-button:active {
+	transform: translateY(0);
+	box-shadow: none;
+}
+
 .trader-unavailable {
 	border-left: 4px solid var(--rust);
 	background-color: rgba(158, 42, 43, 0.05);

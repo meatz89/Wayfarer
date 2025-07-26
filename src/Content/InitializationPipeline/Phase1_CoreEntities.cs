@@ -186,7 +186,9 @@ public class Phase1_CoreEntities : IInitializationPhase
                         Weight = dto.Weight,
                         InventorySlots = dto.InventorySlots,
                         Size = size,
-                        Categories = categories
+                        Categories = categories,
+                        ReadableContent = dto.ReadableContent,
+                        ReadFlagToSet = dto.ReadFlagToSet
                     };
                     
                     // Parse token generation modifiers
