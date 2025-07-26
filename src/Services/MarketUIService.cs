@@ -72,7 +72,8 @@ public class MarketUIService
                 SellPrice = item.SellPrice,
                 CanBuy = canBuy,
                 CanSell = canSell,
-                Categories = item.Categories.Select(c => c.ToString()).ToList()
+                Categories = item.Categories.Select(c => c.ToString()).ToList(),
+                Item = item
             });
 
             // Collect categories

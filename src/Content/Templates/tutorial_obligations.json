@@ -1,0 +1,44 @@
+[
+  {
+    "ID": "tutorial_merchants_priority",
+    "Name": "Merchant's Priority",
+    "Description": "Trade letters pay extra coins but cannot be refused - merchants expect prompt service.",
+    "Source": "merchant_guild",
+    "BenefitEffects": ["TradeBonusPlus3"],
+    "ConstraintEffects": ["CannotRefuseLetters"],
+    "RelatedTokenType": "Trade",
+    "RelatedNPCId": null,
+    "ActivationThreshold": null,
+    "DeactivationThreshold": null,
+    "IsThresholdBased": false,
+    "ActivatesAboveThreshold": false
+  },
+  {
+    "ID": "tutorial_elenas_leverage",
+    "Name": "Elena's Leverage",
+    "Description": "Your debt to Elena means her letters enter at position 3 instead of the normal position 7.",
+    "Source": "elena_scribe",
+    "BenefitEffects": [],
+    "ConstraintEffects": ["PatronLettersPosition3"],
+    "RelatedTokenType": "Trust",
+    "RelatedNPCId": "elena_scribe",
+    "ActivationThreshold": -2,
+    "DeactivationThreshold": -1,
+    "IsThresholdBased": true,
+    "ActivatesAboveThreshold": false
+  },
+  {
+    "ID": "tutorial_patrons_expectation",
+    "Name": "Patron's Expectation",
+    "Description": "Patron letters enter at position 1 and cannot be refused due to your employment contract.",
+    "Source": "patron_intermediary",
+    "BenefitEffects": [],
+    "ConstraintEffects": ["PatronLettersPosition1", "CannotRefuseLetters"],
+    "RelatedTokenType": "Noble",
+    "RelatedNPCId": "patron_intermediary",
+    "ActivationThreshold": null,
+    "DeactivationThreshold": null,
+    "IsThresholdBased": false,
+    "ActivatesAboveThreshold": false
+  }
+]

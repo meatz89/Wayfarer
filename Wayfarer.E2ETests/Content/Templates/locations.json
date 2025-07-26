@@ -33,7 +33,7 @@
 			"night": [ "DARK", "QUIET", "MARITIME" ]
 		},
 		"domainTags": [ "LABOR", "COMMERCE", "TRANSPORT" ],
-		"locationSpots": [ "wharf" ],
+		"locationSpots": [ "wharf", "fishmongers_stall" ],
 		"connectedTo": [ "lower_ward", "merchants_rest" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",

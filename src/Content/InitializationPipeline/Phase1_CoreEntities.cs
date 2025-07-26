@@ -189,6 +189,38 @@ public class Phase1_CoreEntities : IInitializationPhase
                         Categories = categories
                     };
                     
+                    // Parse token generation modifiers
+                    if (dto.TokenGenerationModifiers != null && dto.TokenGenerationModifiers.Any())
+                    {
+                        foreach (var modifier in dto.TokenGenerationModifiers)
+                        {
+                            if (Enum.TryParse<ConnectionType>(modifier.Key, true, out var tokenType))
+                            {
+                                item.TokenGenerationModifiers[tokenType] = modifier.Value;
+                            }
+                            else
+                            {
+                                context.Warnings.Add($"Invalid token type '{modifier.Key}' in modifiers for item {dto.Id}");
+                            }
+                        }
+                    }
+                    
+                    // Parse enabled token types
+                    if (dto.EnablesTokenGeneration != null && dto.EnablesTokenGeneration.Any())
+                    {
+                        foreach (var tokenTypeStr in dto.EnablesTokenGeneration)
+                        {
+                            if (Enum.TryParse<ConnectionType>(tokenTypeStr, true, out var tokenType))
+                            {
+                                item.EnablesTokenGeneration.Add(tokenType);
+                            }
+                            else
+                            {
+                                context.Warnings.Add($"Invalid token type '{tokenTypeStr}' in EnablesTokenGeneration for item {dto.Id}");
+                            }
+                        }
+                    }
+                    
                     context.GameWorld.WorldState.Items.Add(item);
                     
                     // Validate price logic

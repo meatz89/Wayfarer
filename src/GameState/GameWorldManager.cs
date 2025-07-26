@@ -28,6 +28,7 @@ public class GameWorldManager
     private readonly ConversationStateManager _conversationStateManager;
     private readonly NarrativeManager _narrativeManager;
     private readonly FlagService _flagService;
+    private readonly CollapseManager _collapseManager;
 
     private bool isAiAvailable = true;
 
@@ -52,6 +53,7 @@ public class GameWorldManager
                        ConversationStateManager conversationStateManager,
                        NarrativeManager narrativeManager,
                        FlagService flagService,
+                       CollapseManager collapseManager,
                        IConfiguration configuration, ILogger<GameWorldManager> logger)
     {
         _gameWorld = gameWorld;
@@ -77,6 +79,7 @@ public class GameWorldManager
         _conversationStateManager = conversationStateManager;
         _narrativeManager = narrativeManager;
         _flagService = flagService;
+        _collapseManager = collapseManager;
         _useMemory = configuration.GetValue<bool>("useMemory");
         _processStateChanges = configuration.GetValue<bool>("processStateChanges");
     }
@@ -84,6 +87,9 @@ public class GameWorldManager
     public async Task StartGame()
     {
         _gameWorld.GetPlayer().HealFully();
+        
+        // Register collapse callback
+        _gameWorld.GetPlayer().OnStaminaExhausted = () => CheckForCollapse();
 
         // Initialize time management - set to start of first day
         bool spendHours = _timeManager.SpendHours(6);  // 6:00 AM
@@ -672,19 +678,56 @@ public class GameWorldManager
     /// </summary>
     private void InitializeTutorialIfNeeded()
     {
+        _debugLogger.LogDebug($"InitializeTutorialIfNeeded called. NarrativeManager: {_narrativeManager != null}, Tutorial Complete: {_flagService?.HasFlag(FlagService.TUTORIAL_COMPLETE) ?? false}");
+        
         // ALWAYS start tutorial for new games - no player choice
         if (_narrativeManager != null && !_flagService.HasFlag(FlagService.TUTORIAL_COMPLETE))
         {
             _debugLogger.LogDebug("Starting Wayfarer tutorial for new game");
             
+            // Set tutorial starting conditions
+            var player = _gameWorld.GetPlayer();
+            player.Coins = 2; // Tutorial starts with 2 coins
+            player.Stamina = 4; // Tutorial starts with 4/10 stamina
+            
             // Load tutorial narrative definitions
             NarrativeContentBuilder.BuildAllNarratives();
             _narrativeManager.LoadNarrativeDefinitions(NarrativeDefinitions.All);
             
+            _debugLogger.LogDebug($"Narrative definitions loaded. Count: {NarrativeDefinitions.All.Count}");
+            
             // Start the tutorial
             _narrativeManager.StartNarrative("wayfarer_tutorial");
             
+            _debugLogger.LogDebug($"Tutorial narrative started. Active narratives: {string.Join(", ", _narrativeManager.GetActiveNarratives())}");
+            
             _messageSystem.AddSystemMessage("Welcome to Wayfarer. Your journey begins in the Lower Ward...", SystemMessageTypes.Tutorial);
+        }
+        else
+        {
+            _debugLogger.LogDebug($"Tutorial not started. NarrativeManager null: {_narrativeManager == null}, Tutorial already complete: {_flagService?.HasFlag(FlagService.TUTORIAL_COMPLETE) ?? false}");
+        }
+    }
+
+    /// <summary>
+    /// Check for collapse after any stamina modification.
+    /// Should be called by any system that modifies player stamina.
+    /// </summary>
+    public void CheckForCollapse()
+    {
+        if (_collapseManager != null)
+        {
+            bool collapsed = _collapseManager.CheckAndHandleCollapse();
+            
+            // Show low stamina warning if at risk
+            if (!collapsed && _collapseManager.IsAtRiskOfCollapse())
+            {
+                string warning = _collapseManager.GetLowStaminaWarning();
+                if (!string.IsNullOrEmpty(warning))
+                {
+                    _messageSystem.AddSystemMessage(warning, SystemMessageTypes.Warning);
+                }
+            }
         }
     }
 }

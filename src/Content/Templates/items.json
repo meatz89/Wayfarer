@@ -54,5 +54,50 @@
 		"locationId": "merchants_rest",
 		"spotId": "private_room",
 		"description": "A professional courier's satchel, provided by your patron. Increases letter carrying capacity."
+	},
+	{
+		"id": "fine_clothes",
+		"name": "Fine Clothes",
+		"weight": 1,
+		"buyPrice": 15,
+		"sellPrice": 7,
+		"inventorySlots": 1,
+		"categories": [],
+		"itemCategories": [ "Equipment", "Clothing" ],
+		"size": "Small",
+		"locationId": "upper_ward",
+		"spotId": "tailor_shop",
+		"description": "Elegant attire suitable for formal occasions. Opens doors to noble society.",
+		"enablesTokenGeneration": [ "Noble" ]
+	},
+	{
+		"id": "merchant_ledger",
+		"name": "Merchant Ledger",
+		"weight": 1,
+		"buyPrice": 20,
+		"sellPrice": 10,
+		"inventorySlots": 1,
+		"categories": [],
+		"itemCategories": [ "Equipment", "Tools" ],
+		"size": "Small",
+		"locationId": "merchants_rest",
+		"spotId": "market_square",
+		"description": "A well-organized ledger for tracking business deals. Essential for trade relationships.",
+		"enablesTokenGeneration": [ "Trade" ]
+	},
+	{
+		"id": "local_ale_set",
+		"name": "Local Ale Set",
+		"weight": 2,
+		"buyPrice": 10,
+		"sellPrice": 5,
+		"inventorySlots": 1,
+		"categories": [],
+		"itemCategories": [ "Equipment", "Food" ],
+		"size": "Medium",
+		"locationId": "lower_ward",
+		"spotId": "dockside_inn",
+		"description": "A collection of local brews perfect for sharing. Enhances bonds with common folk.",
+		"tokenGenerationModifiers": { "Common": 1.5 }
 	}
 ]

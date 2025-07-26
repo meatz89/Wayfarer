@@ -79,39 +79,52 @@
 
     private async Task UpdateNarrativeState()
     {
-        var activeNarratives = NarrativeManager.GetActiveNarratives();
-        
-        if (!activeNarratives.Any())
+        try
         {
-            _viewModel.IsVisible = false;
+            var activeNarratives = NarrativeManager.GetActiveNarratives();
+            
+            Console.WriteLine($"[NarrativeOverlay] Active narratives: {activeNarratives.Count}");
+            
+            if (!activeNarratives.Any())
+            {
+                _viewModel.IsVisible = false;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+            
+            // Show the first active narrative
+            var narrativeId = activeNarratives.First();
+            var currentStep = NarrativeManager.GetCurrentStep(narrativeId);
+            var currentStepIndex = NarrativeManager.GetCurrentStepIndex(narrativeId);
+            var totalSteps = NarrativeManager.GetTotalSteps(narrativeId);
+            
+            Console.WriteLine($"[NarrativeOverlay] Showing narrative: {narrativeId}, Step: {currentStepIndex}/{totalSteps}");
+            
+            // Get narrative definition for title
+            var narrativeDef = NarrativeManager.GetNarrativeDefinition(narrativeId);
+            var narrativeTitle = narrativeDef?.Title ?? narrativeId;
+            
+            _viewModel.IsVisible = true;
+            _viewModel.NarrativeId = narrativeId;
+            _viewModel.NarrativeTitle = narrativeTitle;
+            _viewModel.CurrentStep = currentStepIndex;
+            _viewModel.TotalSteps = totalSteps;
+            
+            if (currentStep != null)
+            {
+                _viewModel.StepName = currentStep.Name;
+                _viewModel.StepDescription = currentStep.Description;
+                _viewModel.GuidanceText = currentStep.GuidanceText;
+                _viewModel.AllowedActions = currentStep.AllowedActions ?? new List<string>();
+                Console.WriteLine($"[NarrativeOverlay] Step: {currentStep.Name} - {currentStep.GuidanceText}");
+            }
+            
             await InvokeAsync(StateHasChanged);
-            return;
         }
-        
-        // Show the first active narrative
-        var narrativeId = activeNarratives.First();
-        var currentStep = NarrativeManager.GetCurrentStep(narrativeId);
-        var currentStepIndex = NarrativeManager.GetCurrentStepIndex(narrativeId);
-        var totalSteps = NarrativeManager.GetTotalSteps(narrativeId);
-        
-        // Get narrative definition for title
-        var narrativeTitle = narrativeId; // Default to ID if we can't get the definition
-        
-        _viewModel.IsVisible = true;
-        _viewModel.NarrativeId = narrativeId;
-        _viewModel.NarrativeTitle = FormatNarrativeTitle(narrativeTitle);
-        _viewModel.CurrentStep = currentStepIndex;
-        _viewModel.TotalSteps = totalSteps;
-        
-        if (currentStep != null)
+        catch (Exception ex)
         {
-            _viewModel.StepName = currentStep.Name;
-            _viewModel.StepDescription = currentStep.Description;
-            _viewModel.GuidanceText = currentStep.GuidanceText;
-            _viewModel.AllowedActions = currentStep.AllowedActions ?? new List<string>();
+            Console.WriteLine($"[NarrativeOverlay] Error updating narrative state: {ex.Message}");
         }
-        
-        await InvokeAsync(StateHasChanged);
     }
     
     private string FormatNarrativeTitle(string narrativeId)

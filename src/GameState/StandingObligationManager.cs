@@ -240,7 +240,19 @@ public class StandingObligationManager
 
         foreach (StandingObligation obligation in activeObligations)
         {
+            // Static bonuses
             totalBonus += obligation.CalculateCoinBonus(letter, letter.Payment);
+            
+            // Dynamic payment bonuses that scale with tokens
+            if (obligation.HasEffect(ObligationEffect.DynamicPaymentBonus))
+            {
+                string senderId = GetNPCIdByName(letter.SenderName);
+                if (!string.IsNullOrEmpty(senderId))
+                {
+                    int tokenCount = GetRelevantTokenCountForLetter(obligation, letter, senderId);
+                    totalBonus += obligation.CalculateDynamicPaymentBonus(letter, letter.Payment, tokenCount);
+                }
+            }
         }
 
         return totalBonus;
@@ -269,56 +281,116 @@ public class StandingObligationManager
 
         foreach (StandingObligation obligation in activeObligations)
         {
-            // Shadow equals noble leverage
-            if (obligation.HasEffect(ObligationEffect.ShadowEqualsNoble) && letter.TokenType == ConnectionType.Shadow)
-            {
-                modifiedPosition = Math.Min(modifiedPosition, 3); // Noble base position
-            }
-
-            // Common revenge - common letters from debt get noble priority
-            if (obligation.HasEffect(ObligationEffect.CommonRevenge) && letter.TokenType == ConnectionType.Common)
-            {
-                string senderId = GetNPCIdByName(letter.SenderName);
-                if (!string.IsNullOrEmpty(senderId))
-                {
-                    int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Common];
-                    if (tokenBalance < 0)
-                    {
-                        modifiedPosition = 3; // Noble position for debt leverage
-                    }
-                }
-            }
-
-            // Debt spiral - all negative positions get extra leverage
-            if (obligation.HasEffect(ObligationEffect.DebtSpiral))
-            {
-                string senderId = GetNPCIdByName(letter.SenderName);
-                if (!string.IsNullOrEmpty(senderId))
-                {
-                    int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
-                    if (tokenBalance < 0)
-                    {
-                        modifiedPosition -= 1; // Additional leverage from debt
-                    }
-                }
-            }
-
-            // Merchant respect - trade letters with 5+ tokens get additional position down
-            if (obligation.HasEffect(ObligationEffect.MerchantRespect) && letter.TokenType == ConnectionType.Trade)
-            {
-                string senderId = GetNPCIdByName(letter.SenderName);
-                if (!string.IsNullOrEmpty(senderId))
-                {
-                    int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Trade];
-                    if (tokenBalance >= 5)
-                    {
-                        modifiedPosition += 1; // Less leverage due to respect
-                    }
-                }
-            }
+            modifiedPosition = ApplySingleObligationLeverage(obligation, letter, modifiedPosition);
         }
 
         return modifiedPosition;
+    }
+
+    // Apply leverage modifier from a single obligation
+    private int ApplySingleObligationLeverage(StandingObligation obligation, Letter letter, int currentPosition)
+    {
+        if (obligation.HasEffect(ObligationEffect.ShadowEqualsNoble))
+        {
+            return ApplyShadowNobleEffect(letter, currentPosition);
+        }
+
+        if (obligation.HasEffect(ObligationEffect.CommonRevenge))
+        {
+            return ApplyCommonRevengeEffect(obligation, letter, currentPosition);
+        }
+
+        if (obligation.HasEffect(ObligationEffect.DebtSpiral))
+        {
+            return ApplyDebtSpiralEffect(letter, currentPosition);
+        }
+
+        if (obligation.HasEffect(ObligationEffect.MerchantRespect))
+        {
+            return ApplyMerchantRespectEffect(letter, currentPosition);
+        }
+
+        if (obligation.HasEffect(ObligationEffect.DynamicLeverageModifier))
+        {
+            return ApplyDynamicLeverageEffect(obligation, letter, currentPosition);
+        }
+
+        return currentPosition;
+    }
+
+    // Apply shadow equals noble leverage effect
+    private int ApplyShadowNobleEffect(Letter letter, int currentPosition)
+    {
+        if (letter.TokenType == ConnectionType.Shadow)
+        {
+            return Math.Min(currentPosition, 3); // Noble base position
+        }
+        return currentPosition;
+    }
+
+    // Apply common revenge effect - common letters from debt get noble priority
+    private int ApplyCommonRevengeEffect(StandingObligation obligation, Letter letter, int currentPosition)
+    {
+        if (letter.TokenType != ConnectionType.Common)
+            return currentPosition;
+
+        string senderId = GetNPCIdByName(letter.SenderName);
+        if (string.IsNullOrEmpty(senderId))
+            return currentPosition;
+
+        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Common];
+        if (tokenBalance < 0)
+        {
+            return 3; // Noble position for debt leverage
+        }
+
+        return currentPosition;
+    }
+
+    // Apply debt spiral effect - all negative positions get extra leverage
+    private int ApplyDebtSpiralEffect(Letter letter, int currentPosition)
+    {
+        string senderId = GetNPCIdByName(letter.SenderName);
+        if (string.IsNullOrEmpty(senderId))
+            return currentPosition;
+
+        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
+        if (tokenBalance < 0)
+        {
+            return currentPosition - 1; // Additional leverage from debt
+        }
+
+        return currentPosition;
+    }
+
+    // Apply merchant respect effect - trade letters with 5+ tokens get less leverage
+    private int ApplyMerchantRespectEffect(Letter letter, int currentPosition)
+    {
+        if (letter.TokenType != ConnectionType.Trade)
+            return currentPosition;
+
+        string senderId = GetNPCIdByName(letter.SenderName);
+        if (string.IsNullOrEmpty(senderId))
+            return currentPosition;
+
+        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Trade];
+        if (tokenBalance >= 5)
+        {
+            return currentPosition + 1; // Less leverage due to respect
+        }
+
+        return currentPosition;
+    }
+
+    // Apply dynamic leverage effect - scales with token count
+    private int ApplyDynamicLeverageEffect(StandingObligation obligation, Letter letter, int currentPosition)
+    {
+        string senderId = GetNPCIdByName(letter.SenderName);
+        if (string.IsNullOrEmpty(senderId))
+            return currentPosition;
+
+        int tokenCount = GetRelevantTokenCountForLetter(obligation, letter, senderId);
+        return obligation.CalculateDynamicLeverage(letter, currentPosition, tokenCount);
     }
 
     // Helper to get NPC ID from name
@@ -455,6 +527,23 @@ public class StandingObligationManager
         }
     }
 
+    // Get the relevant token count for a letter-based calculation
+    private int GetRelevantTokenCountForLetter(StandingObligation obligation, Letter letter, string senderId)
+    {
+        // If obligation is NPC-specific, only apply if letter is from that NPC
+        if (!string.IsNullOrEmpty(obligation.RelatedNPCId) && obligation.RelatedNPCId != senderId)
+        {
+            return 0;
+        }
+
+        // Get tokens with the letter sender
+        Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(senderId);
+        
+        // Use obligation's token type if specified, otherwise use letter's token type
+        ConnectionType relevantType = obligation.RelatedTokenType ?? letter.TokenType;
+        return npcTokens.GetValueOrDefault(relevantType, 0);
+    }
+
     // Activate a threshold-based obligation
     private void ActivateThresholdObligation(StandingObligation template, int currentTokenCount)
     {
@@ -573,4 +662,31 @@ public class StandingObligationManager
         }
     }
 
+    // Apply dynamic deadline bonuses from obligations
+    public void ApplyDynamicDeadlineBonuses(Letter letter)
+    {
+        List<StandingObligation> activeObligations = GetActiveObligations();
+        
+        foreach (StandingObligation obligation in activeObligations)
+        {
+            if (obligation.HasEffect(ObligationEffect.DynamicDeadlineBonus))
+            {
+                string senderId = GetNPCIdByName(letter.SenderName);
+                if (!string.IsNullOrEmpty(senderId))
+                {
+                    int tokenCount = GetRelevantTokenCountForLetter(obligation, letter, senderId);
+                    int deadlineBonus = obligation.CalculateDynamicDeadlineBonus(letter, tokenCount);
+                    
+                    if (deadlineBonus > 0)
+                    {
+                        letter.Deadline += deadlineBonus;
+                        _messageSystem.AddSystemMessage(
+                            $"📅 {obligation.Name} grants +{deadlineBonus} days deadline (scaled by {tokenCount} tokens)",
+                            SystemMessageTypes.Info
+                        );
+                    }
+                }
+            }
+        }
+    }
 }

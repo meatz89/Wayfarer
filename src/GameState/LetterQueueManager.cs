@@ -127,6 +127,9 @@ public class LetterQueueManager
                 );
             }
         }
+        
+        // Apply dynamic deadline bonuses that scale with tokens
+        _obligationManager.ApplyDynamicDeadlineBonuses(letter);
     }
 
     // Calculate leverage-based entry position for a letter
@@ -205,33 +208,47 @@ public class LetterQueueManager
     // Add letter with leverage-based displacement
     private int AddLetterWithLeverage(Letter letter, int targetPosition)
     {
+        if (!ValidateLetterCanBeAdded(letter))
+            return 0;
+
         Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
 
-        // Check if queue is completely full
+        // If target position is empty, simple insertion
+        if (queue[targetPosition - 1] == null)
+        {
+            return InsertLetterAtPosition(letter, targetPosition);
+        }
+
+        // Target occupied - need displacement
+        return DisplaceAndInsertLetter(letter, targetPosition);
+    }
+
+    // Validate that a letter can be added to the queue
+    private bool ValidateLetterCanBeAdded(Letter letter)
+    {
         if (IsQueueFull())
         {
             _messageSystem.AddSystemMessage(
                 $"🚫 Cannot accept letter from {letter.SenderName} - your queue is completely full!",
                 SystemMessageTypes.Danger
             );
-            return 0;
+            return false;
         }
+        return true;
+    }
 
-        // If target position is empty, simple insertion
-        if (queue[targetPosition - 1] == null)
-        {
-            queue[targetPosition - 1] = letter;
-            letter.QueuePosition = targetPosition;
-            letter.State = LetterState.Accepted;
+    // Insert letter at an empty position
+    private int InsertLetterAtPosition(Letter letter, int position)
+    {
+        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        queue[position - 1] = letter;
+        letter.QueuePosition = position;
+        letter.State = LetterState.Accepted;
 
-            // Show leverage narrative if position differs from normal
-            ShowLeverageNarrative(letter, targetPosition);
+        // Show leverage narrative if position differs from normal
+        ShowLeverageNarrative(letter, position);
 
-            return targetPosition;
-        }
-
-        // Target occupied - need displacement
-        return DisplaceAndInsertLetter(letter, targetPosition);
+        return position;
     }
 
     // Displace letters to insert at leverage position
@@ -287,64 +304,90 @@ public class LetterQueueManager
 
         if (tokenBalance < 0)
         {
-            // Special messaging for patron letters with extreme debt
-            if (letter.IsFromPatron && tokenBalance <= -10)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"🌟 A GOLD-SEALED LETTER ARRIVES FROM YOUR PATRON!",
-                    SystemMessageTypes.Warning
-                );
-                _messageSystem.AddSystemMessage(
-                    $"💸 Your MASSIVE DEBT ({Math.Abs(tokenBalance)} tokens) gives them ABSOLUTE LEVERAGE!",
-                    SystemMessageTypes.Danger
-                );
-                _messageSystem.AddSystemMessage(
-                    $"  • Commands priority position {position} - all other obligations must wait!",
-                    SystemMessageTypes.Warning
-                );
-            }
-            else
-            {
-                // Normal debt leverage narrative
-                _messageSystem.AddSystemMessage(
-                    $"💸 {letter.SenderName} has LEVERAGE! Your debt gives them power.",
-                    SystemMessageTypes.Warning
-                );
-                _messageSystem.AddSystemMessage(
-                    $"  • Enters at position {position} (normally {basePosition}) due to {Math.Abs(tokenBalance)} token debt",
-                    SystemMessageTypes.Info
-                );
-            }
-
-            if (position <= 3 && basePosition >= 5)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"  • Social hierarchy inverts when you owe money!",
-                    SystemMessageTypes.Warning
-                );
-            }
+            ShowDebtLeverageNarrative(letter, position, basePosition, tokenBalance);
         }
         else if (position > basePosition)
         {
-            // Reduced leverage narrative
-            _messageSystem.AddSystemMessage(
-                $"✨ Strong relationship with {letter.SenderName} reduces their demands.",
-                SystemMessageTypes.Success
-            );
-            _messageSystem.AddSystemMessage(
-                $"  • Enters at position {position} (normally {basePosition}) due to mutual respect",
-                SystemMessageTypes.Info
-            );
+            ShowReducedLeverageNarrative(letter, position, basePosition);
         }
         else
         {
-            // Normal entry
-            string urgency = letter.Deadline <= 3 ? " ⚠️" : "";
+            ShowNormalEntryNarrative(letter, position);
+        }
+    }
+
+    // Show narrative for debt-based leverage
+    private void ShowDebtLeverageNarrative(Letter letter, int position, int basePosition, int tokenBalance)
+    {
+        if (letter.IsFromPatron && tokenBalance <= -10)
+        {
+            ShowPatronLeverageNarrative(letter, position, tokenBalance);
+        }
+        else
+        {
+            ShowNormalDebtNarrative(letter, position, basePosition, tokenBalance);
+        }
+
+        if (position <= 3 && basePosition >= 5)
+        {
             _messageSystem.AddSystemMessage(
-                $"📨 New letter from {letter.SenderName} enters queue at position {position}{urgency}",
-                SystemMessageTypes.Info
+                $"  • Social hierarchy inverts when you owe money!",
+                SystemMessageTypes.Warning
             );
         }
+    }
+
+    // Show narrative for patron letters with extreme debt
+    private void ShowPatronLeverageNarrative(Letter letter, int position, int tokenBalance)
+    {
+        _messageSystem.AddSystemMessage(
+            $"🌟 A GOLD-SEALED LETTER ARRIVES FROM YOUR PATRON!",
+            SystemMessageTypes.Warning
+        );
+        _messageSystem.AddSystemMessage(
+            $"💸 Your MASSIVE DEBT ({Math.Abs(tokenBalance)} tokens) gives them ABSOLUTE LEVERAGE!",
+            SystemMessageTypes.Danger
+        );
+        _messageSystem.AddSystemMessage(
+            $"  • Commands priority position {position} - all other obligations must wait!",
+            SystemMessageTypes.Warning
+        );
+    }
+
+    // Show narrative for normal debt leverage
+    private void ShowNormalDebtNarrative(Letter letter, int position, int basePosition, int tokenBalance)
+    {
+        _messageSystem.AddSystemMessage(
+            $"💸 {letter.SenderName} has LEVERAGE! Your debt gives them power.",
+            SystemMessageTypes.Warning
+        );
+        _messageSystem.AddSystemMessage(
+            $"  • Enters at position {position} (normally {basePosition}) due to {Math.Abs(tokenBalance)} token debt",
+            SystemMessageTypes.Info
+        );
+    }
+
+    // Show narrative for reduced leverage due to good relationship
+    private void ShowReducedLeverageNarrative(Letter letter, int position, int basePosition)
+    {
+        _messageSystem.AddSystemMessage(
+            $"✨ Strong relationship with {letter.SenderName} reduces their demands.",
+            SystemMessageTypes.Success
+        );
+        _messageSystem.AddSystemMessage(
+            $"  • Enters at position {position} (normally {basePosition}) due to mutual respect",
+            SystemMessageTypes.Info
+        );
+    }
+
+    // Show narrative for normal letter entry
+    private void ShowNormalEntryNarrative(Letter letter, int position)
+    {
+        string urgency = letter.Deadline <= 3 ? " ⚠️" : "";
+        _messageSystem.AddSystemMessage(
+            $"📨 New letter from {letter.SenderName} enters queue at position {position}{urgency}",
+            SystemMessageTypes.Info
+        );
     }
 
     // Show displacement narrative
@@ -591,51 +634,76 @@ public class LetterQueueManager
     // Apply token penalty when a letter expires
     private void ApplyRelationshipDamage(Letter letter, ConnectionTokenManager _connectionTokenManager)
     {
-        // Determine penalty amount from configuration
-        int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
-
-        // Get the sender's NPC ID (for per-NPC tracking)
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId)) return;
 
-        // Get the sender NPC for narrative context
+        int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
         NPC senderNpc = _npcRepository.GetById(senderId);
 
-        // Show the dramatic moment of failure
+        ShowExpiryFailure(letter);
+        ApplyTokenPenalty(letter, senderId, tokenPenalty);
+        RecordExpiryInHistory(senderId);
+        ShowRelationshipDamageNarrative(letter, senderNpc, tokenPenalty, senderId);
+    }
+
+    // Show the dramatic moment of letter expiry
+    private void ShowExpiryFailure(Letter letter)
+    {
         _messageSystem.AddSystemMessage(
             $"⏰ TIME'S UP! {letter.SenderName}'s letter has expired!",
             SystemMessageTypes.Danger
         );
+    }
 
-        // Remove tokens from the relationship with this NPC
+    // Apply token penalty for expired letter
+    private void ApplyTokenPenalty(Letter letter, string senderId, int tokenPenalty)
+    {
         _connectionTokenManager.RemoveTokensFromNPC(letter.TokenType, tokenPenalty, senderId);
+    }
 
-        // Record the expiry in letter history
+    // Record the expiry in letter history
+    private void RecordExpiryInHistory(string senderId)
+    {
         Player player = _gameWorld.GetPlayer();
         if (!player.NPCLetterHistory.ContainsKey(senderId))
         {
             player.NPCLetterHistory[senderId] = new LetterHistory();
         }
         player.NPCLetterHistory[senderId].RecordExpiry();
+    }
 
-        // Show the relationship damage with narrative weight
+    // Show narrative for relationship damage
+    private void ShowRelationshipDamageNarrative(Letter letter, NPC senderNpc, int tokenPenalty, string senderId)
+    {
         _messageSystem.AddSystemMessage(
             $"💔 Lost {tokenPenalty} {letter.TokenType} tokens with {letter.SenderName}. Trust broken.",
             SystemMessageTypes.Danger
         );
 
-        // Add contextual reaction based on NPC type
         if (senderNpc != null)
         {
-            string consequence = GetExpiryConsequence(senderNpc, letter);
-            _messageSystem.AddSystemMessage(
-                $"  • {consequence}",
-                SystemMessageTypes.Warning
-            );
+            ShowConsequenceNarrative(senderNpc, letter);
         }
 
-        // Show cumulative damage
+        ShowCumulativeDamage(letter, senderId);
+    }
+
+    // Show contextual consequence for expired letter
+    private void ShowConsequenceNarrative(NPC senderNpc, Letter letter)
+    {
+        string consequence = GetExpiryConsequence(senderNpc, letter);
+        _messageSystem.AddSystemMessage(
+            $"  • {consequence}",
+            SystemMessageTypes.Warning
+        );
+    }
+
+    // Show cumulative damage if multiple letters expired
+    private void ShowCumulativeDamage(Letter letter, string senderId)
+    {
+        Player player = _gameWorld.GetPlayer();
         LetterHistory history = player.NPCLetterHistory[senderId];
+        
         if (history.ExpiredCount > 1)
         {
             _messageSystem.AddSystemMessage(
@@ -700,6 +768,11 @@ public class LetterQueueManager
     private string GetNPCIdByName(string npcName)
     {
         NPC? npc = _npcRepository.GetAllNPCs().FirstOrDefault(n => n.Name == npcName);
+        if (npc == null)
+        {
+            // Try case-insensitive search as fallback
+            npc = _npcRepository.GetByName(npcName);
+        }
         return npc?.ID ?? "";
     }
 
@@ -1010,12 +1083,34 @@ public class LetterQueueManager
     // Skip letter delivery by spending tokens
     public bool TrySkipDeliver(int position)
     {
-        if (position <= 1 || position > _config.LetterQueue.MaxQueueSize) return false;
+        if (!ValidateSkipDeliverPosition(position))
+            return false;
 
         Letter letter = GetLetterAt(position);
         if (letter == null) return false;
 
-        // Check if position 1 is occupied (can't skip to occupied slot)
+        if (!ValidatePosition1Available())
+            return false;
+
+        int tokenCost = CalculateSkipCost(position, letter);
+        string senderId = GetNPCIdByName(letter.SenderName);
+
+        if (!ProcessSkipPayment(letter, tokenCost, senderId))
+            return false;
+
+        PerformSkipDelivery(letter, position, tokenCost);
+        return true;
+    }
+
+    // Validate position for skip delivery
+    private bool ValidateSkipDeliverPosition(int position)
+    {
+        return position > 1 && position <= _config.LetterQueue.MaxQueueSize;
+    }
+
+    // Validate position 1 is available
+    private bool ValidatePosition1Available()
+    {
         if (GetLetterAt(1) != null)
         {
             _messageSystem.AddSystemMessage(
@@ -1024,22 +1119,34 @@ public class LetterQueueManager
             );
             return false;
         }
+        return true;
+    }
 
-        // Calculate token cost: position - 1 (skip from position 3 costs 2 tokens)
+    // Calculate token cost for skipping
+    private int CalculateSkipCost(int position, Letter letter)
+    {
         int baseCost = position - 1;
         int multiplier = _obligationManager.CalculateSkipCostMultiplier(letter);
-        int tokenCost = baseCost * multiplier;
+        return baseCost * multiplier;
+    }
 
-        // Get sender NPC for narrative context
-        string senderId = GetNPCIdByName(letter.SenderName);
-
-        // Show what's about to happen
+    // Process token payment for skip delivery
+    private bool ProcessSkipPayment(Letter letter, int tokenCost, string senderId)
+    {
         _messageSystem.AddSystemMessage(
             $"💸 Attempting to skip {letter.SenderName}'s letter to position 1...",
             SystemMessageTypes.Info
         );
 
-        // Validate token availability through ConnectionTokenManager
+        if (!ValidateTokenAvailability(letter, tokenCost))
+            return false;
+
+        return SpendTokensForSkip(letter, tokenCost, senderId);
+    }
+
+    // Validate player has enough tokens
+    private bool ValidateTokenAvailability(Letter letter, int tokenCost)
+    {
         if (!_connectionTokenManager.HasTokens(letter.TokenType, tokenCost))
         {
             _messageSystem.AddSystemMessage(
@@ -1048,25 +1155,41 @@ public class LetterQueueManager
             );
             return false;
         }
+        return true;
+    }
 
-        // Spend the tokens with specific NPC context
+    // Spend tokens for skip action
+    private bool SpendTokensForSkip(Letter letter, int tokenCost, string senderId)
+    {
         _messageSystem.AddSystemMessage(
             $"  • Spending {tokenCost} {letter.TokenType} tokens with {letter.SenderName}...",
             SystemMessageTypes.Warning
         );
 
-        if (!_connectionTokenManager.SpendTokensWithNPC(letter.TokenType, tokenCost, senderId))
-        {
-            return false;
-        }
+        return _connectionTokenManager.SpendTokensWithNPC(letter.TokenType, tokenCost, senderId);
+    }
 
-        // Move letter to position 1
+    // Perform the skip delivery action
+    private void PerformSkipDelivery(Letter letter, int position, int tokenCost)
+    {
+        MoveLetterToPosition1(letter, position);
+        ShowSkipSuccessNarrative(letter, tokenCost);
+        ShiftQueueUp(position);
+        RecordLetterSkip(letter);
+    }
+
+    // Move letter to position 1
+    private void MoveLetterToPosition1(Letter letter, int fromPosition)
+    {
         Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-        queue[0] = letter; // Position 1 is index 0
-        queue[position - 1] = null; // Clear original position
+        queue[0] = letter;
+        queue[fromPosition - 1] = null;
         letter.QueuePosition = 1;
+    }
 
-        // Success narrative
+    // Show success narrative for skip
+    private void ShowSkipSuccessNarrative(Letter letter, int tokenCost)
+    {
         _messageSystem.AddSystemMessage(
             $"✅ {letter.SenderName}'s letter jumps the queue to position 1!",
             SystemMessageTypes.Success
@@ -1076,132 +1199,23 @@ public class LetterQueueManager
             $"  • You call in {tokenCost} favors with {letter.SenderName} for urgent handling",
             SystemMessageTypes.Info
         );
-
-        // Shift remaining letters
-        ShiftQueueUp(position);
-
-        // Track the skip
-        RecordLetterSkip(letter);
-
-        return true;
     }
 
     // Generate 1-2 daily letters from available NPCs and templates
     public int GenerateDailyLetters()
     {
-        // Generate 1-2 letters per day
         int lettersToGenerate = _random.Next(1, 3);
         int lettersGenerated = 0;
 
-        // Check if we can generate any letters
-        if (IsQueueFull())
-        {
-            _messageSystem.AddSystemMessage(
-                "📬 Your letter queue is full - no new correspondence can be accepted today.",
-                SystemMessageTypes.Warning
-            );
+        if (!CanGenerateLetters())
             return 0;
-        }
 
-        // Announce the arrival of new correspondence
-        _messageSystem.AddSystemMessage(
-            "🌅 Dawn brings new correspondence:",
-            SystemMessageTypes.Info
-        );
+        AnnounceNewCorrespondence();
 
         for (int i = 0; i < lettersToGenerate; i++)
         {
-            // Check if queue has space
-            if (IsQueueFull())
-            {
-                _messageSystem.AddSystemMessage(
-                    "  📭 Additional letters arrive but your queue is now full.",
-                    SystemMessageTypes.Warning
-                );
+            if (!TryGenerateSingleLetter(ref lettersGenerated))
                 break;
-            }
-
-            // Get random NPCs for sender and recipient
-            List<NPC> allNpcs = _npcRepository.GetAllNPCs();
-            if (allNpcs.Count < 2) continue; // Need at least 2 NPCs
-
-            // Find NPCs who can send letters (have token types and player has relationship)
-            List<NPC> eligibleSenders = allNpcs.Where(npc =>
-                npc.LetterTokenTypes.Any() &&
-                _categoryService.CanNPCOfferLetters(npc.ID)).ToList();
-
-            if (!eligibleSenders.Any())
-            {
-                // Fallback to any NPC with letter token types
-                eligibleSenders = allNpcs.Where(npc => npc.LetterTokenTypes.Any()).ToList();
-            }
-
-            if (!eligibleSenders.Any()) continue;
-
-            NPC sender = eligibleSenders[_random.Next(eligibleSenders.Count)];
-
-            // Pick a token type the sender can offer
-            Dictionary<ConnectionType, LetterCategory> availableCategories = _categoryService.GetAvailableCategories(sender.ID);
-            ConnectionType tokenType;
-
-            if (availableCategories.Any())
-            {
-                // Use a token type where we have enough relationship
-                List<ConnectionType> tokenTypes = availableCategories.Keys.ToList();
-                tokenType = tokenTypes[_random.Next(tokenTypes.Count)];
-            }
-            else
-            {
-                // Fallback to sender's first token type
-                tokenType = sender.LetterTokenTypes.FirstOrDefault();
-                if (tokenType == default) continue;
-            }
-
-            // Generate letter respecting category thresholds
-            Letter letter = _letterTemplateRepository.GenerateLetterFromNPC(sender.ID, sender.Name, tokenType);
-            if (letter == null)
-            {
-                // Try with basic template if category system fails
-                LetterTemplate template = _letterTemplateRepository.GetRandomTemplateByTokenType(tokenType);
-                if (template == null) continue;
-
-                NPC? recipient = allNpcs.Where(n => n.ID != sender.ID).FirstOrDefault();
-                if (recipient == null) continue;
-
-                letter = _letterTemplateRepository.GenerateLetterFromTemplate(template, sender.Name, recipient.Name);
-            }
-
-            if (letter != null)
-            {
-                // Add to first empty slot
-                int position = AddLetter(letter);
-                if (position > 0)
-                {
-                    lettersGenerated++;
-
-                    // Narrative context for each new letter
-                    string urgency = letter.Deadline <= 3 ? " - needs urgent delivery!" : "";
-                    string tokenTypeText = GetTokenTypeDescription(letter.TokenType);
-
-                    // Show category if from relationship
-                    LetterCategory category = _categoryService.GetAvailableCategory(sender.ID, tokenType);
-                    string categoryText = "";
-                    if (_categoryService.CanNPCOfferLetters(sender.ID))
-                    {
-                        categoryText = $" [{category} letter]";
-                    }
-
-                    _messageSystem.AddSystemMessage(
-                        $"  • Letter from {sender.Name} to {letter.RecipientName} ({tokenTypeText} correspondence{categoryText}){urgency}",
-                        letter.Deadline <= 3 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
-                    );
-
-                    _messageSystem.AddSystemMessage(
-                        $"    → Enters your queue at position {position} - {letter.Payment} coins on delivery",
-                        SystemMessageTypes.Info
-                    );
-                }
-            }
         }
 
         if (lettersGenerated == 0 && !IsQueueFull())
@@ -1213,6 +1227,165 @@ public class LetterQueueManager
         }
 
         return lettersGenerated;
+    }
+
+    // Check if letters can be generated
+    private bool CanGenerateLetters()
+    {
+        if (IsQueueFull())
+        {
+            _messageSystem.AddSystemMessage(
+                "📬 Your letter queue is full - no new correspondence can be accepted today.",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+        return true;
+    }
+
+    // Announce the arrival of new correspondence
+    private void AnnounceNewCorrespondence()
+    {
+        _messageSystem.AddSystemMessage(
+            "🌅 Dawn brings new correspondence:",
+            SystemMessageTypes.Info
+        );
+    }
+
+    // Try to generate a single letter
+    private bool TryGenerateSingleLetter(ref int lettersGenerated)
+    {
+        if (IsQueueFull())
+        {
+            _messageSystem.AddSystemMessage(
+                "  📭 Additional letters arrive but your queue is now full.",
+                SystemMessageTypes.Warning
+            );
+            return false;
+        }
+
+        NPC sender = SelectLetterSender();
+        if (sender == null) return true; // Continue trying
+
+        ConnectionType tokenType = SelectTokenType(sender);
+        if (tokenType == default) return true; // Continue trying
+
+        Letter letter = GenerateLetterFromSender(sender, tokenType);
+        if (letter != null)
+        {
+            AddGeneratedLetter(letter, sender, tokenType, ref lettersGenerated);
+        }
+
+        return true;
+    }
+
+    // Select an eligible NPC to send a letter
+    private NPC SelectLetterSender()
+    {
+        List<NPC> allNpcs = _npcRepository.GetAllNPCs();
+        if (allNpcs.Count < 2) return null;
+
+        List<NPC> eligibleSenders = FindEligibleSenders(allNpcs);
+        if (!eligibleSenders.Any()) return null;
+
+        return eligibleSenders[_random.Next(eligibleSenders.Count)];
+    }
+
+    // Find NPCs eligible to send letters
+    private List<NPC> FindEligibleSenders(List<NPC> allNpcs)
+    {
+        // First try NPCs with existing relationships
+        List<NPC> eligibleSenders = allNpcs.Where(npc =>
+            npc.LetterTokenTypes.Any() &&
+            _categoryService.CanNPCOfferLetters(npc.ID)).ToList();
+
+        if (!eligibleSenders.Any())
+        {
+            // Fallback to any NPC with letter token types
+            eligibleSenders = allNpcs.Where(npc => npc.LetterTokenTypes.Any()).ToList();
+        }
+
+        return eligibleSenders;
+    }
+
+    // Select appropriate token type for the sender
+    private ConnectionType SelectTokenType(NPC sender)
+    {
+        Dictionary<ConnectionType, LetterCategory> availableCategories = _categoryService.GetAvailableCategories(sender.ID);
+
+        if (availableCategories.Any())
+        {
+            List<ConnectionType> tokenTypes = availableCategories.Keys.ToList();
+            return tokenTypes[_random.Next(tokenTypes.Count)];
+        }
+        else
+        {
+            return sender.LetterTokenTypes.FirstOrDefault();
+        }
+    }
+
+    // Generate a letter from the selected sender
+    private Letter GenerateLetterFromSender(NPC sender, ConnectionType tokenType)
+    {
+        // Try category-based generation first
+        Letter letter = _letterTemplateRepository.GenerateLetterFromNPC(sender.ID, sender.Name, tokenType);
+        if (letter != null) return letter;
+
+        // Fallback to template-based generation
+        return GenerateLetterFromTemplate(sender, tokenType);
+    }
+
+    // Generate letter using template system
+    private Letter GenerateLetterFromTemplate(NPC sender, ConnectionType tokenType)
+    {
+        LetterTemplate template = _letterTemplateRepository.GetRandomTemplateByTokenType(tokenType);
+        if (template == null) return null;
+
+        List<NPC> allNpcs = _npcRepository.GetAllNPCs();
+        NPC recipient = allNpcs.Where(n => n.ID != sender.ID).FirstOrDefault();
+        if (recipient == null) return null;
+
+        return _letterTemplateRepository.GenerateLetterFromTemplate(template, sender.Name, recipient.Name);
+    }
+
+    // Add generated letter to queue and show narrative
+    private void AddGeneratedLetter(Letter letter, NPC sender, ConnectionType tokenType, ref int lettersGenerated)
+    {
+        int position = AddLetter(letter);
+        if (position > 0)
+        {
+            lettersGenerated++;
+            ShowGeneratedLetterNarrative(letter, sender, tokenType, position);
+        }
+    }
+
+    // Show narrative for newly generated letter
+    private void ShowGeneratedLetterNarrative(Letter letter, NPC sender, ConnectionType tokenType, int position)
+    {
+        string urgency = letter.Deadline <= 3 ? " - needs urgent delivery!" : "";
+        string tokenTypeText = GetTokenTypeDescription(letter.TokenType);
+        string categoryText = GetCategoryText(sender, tokenType);
+
+        _messageSystem.AddSystemMessage(
+            $"  • Letter from {sender.Name} to {letter.RecipientName} ({tokenTypeText} correspondence{categoryText}){urgency}",
+            letter.Deadline <= 3 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+        );
+
+        _messageSystem.AddSystemMessage(
+            $"    → Enters your queue at position {position} - {letter.Payment} coins on delivery",
+            SystemMessageTypes.Info
+        );
+    }
+
+    // Get category text for letter narrative
+    private string GetCategoryText(NPC sender, ConnectionType tokenType)
+    {
+        if (_categoryService.CanNPCOfferLetters(sender.ID))
+        {
+            LetterCategory category = _categoryService.GetAvailableCategory(sender.ID, tokenType);
+            return $" [{category} letter]";
+        }
+        return "";
     }
 
     // Helper method to get descriptive text for token types
@@ -1556,49 +1729,64 @@ public class LetterQueueManager
     // Process chain letters when a letter is delivered
     private void ProcessChainLetters(Letter deliveredLetter)
     {
+        List<Letter> chainLetters = CollectChainLetters(deliveredLetter);
+        AddChainLettersToQueue(chainLetters, deliveredLetter);
+    }
+
+    // Collect all chain letters from delivered letter
+    private List<Letter> CollectChainLetters(Letter deliveredLetter)
+    {
         List<Letter> chainLetters = new System.Collections.Generic.List<Letter>();
 
-        // Check if this letter unlocks any chain letters
-        if (deliveredLetter.UnlocksLetterIds.Any())
+        // Check letter's own chain letters
+        chainLetters.AddRange(GenerateChainLettersFromIds(deliveredLetter.UnlocksLetterIds.ToArray(), deliveredLetter));
+
+        // Check template's chain letters if letter has none
+        if (!deliveredLetter.UnlocksLetterIds.Any())
         {
-            // Generate follow-up letters from template IDs
-            foreach (string templateId in deliveredLetter.UnlocksLetterIds)
-            {
-                Letter chainLetter = GenerateChainLetter(templateId, deliveredLetter);
-                if (chainLetter != null)
-                {
-                    chainLetters.Add(chainLetter);
-                }
-            }
-        }
-        else
-        {
-            // Check if the letter's template has chain letters
             LetterTemplate letterTemplate = FindLetterTemplate(deliveredLetter);
             if (letterTemplate != null && letterTemplate.UnlocksLetterIds.Any())
             {
-                // Generate follow-up letters from template
-                foreach (string templateId in letterTemplate.UnlocksLetterIds)
-                {
-                    Letter chainLetter = GenerateChainLetter(templateId, deliveredLetter);
-                    if (chainLetter != null)
-                    {
-                        chainLetters.Add(chainLetter);
-                    }
-                }
+                chainLetters.AddRange(GenerateChainLettersFromIds(letterTemplate.UnlocksLetterIds, deliveredLetter));
             }
         }
 
-        // Add chain letters to the queue
+        return chainLetters;
+    }
+
+    // Generate chain letters from template IDs
+    private List<Letter> GenerateChainLettersFromIds(string[] templateIds, Letter parentLetter)
+    {
+        List<Letter> chainLetters = new System.Collections.Generic.List<Letter>();
+        
+        foreach (string templateId in templateIds)
+        {
+            Letter chainLetter = GenerateChainLetter(templateId, parentLetter);
+            if (chainLetter != null)
+            {
+                chainLetters.Add(chainLetter);
+            }
+        }
+        
+        return chainLetters;
+    }
+
+    // Add chain letters to queue with narrative
+    private void AddChainLettersToQueue(List<Letter> chainLetters, Letter deliveredLetter)
+    {
         foreach (Letter chainLetter in chainLetters)
         {
             AddLetterWithObligationEffects(chainLetter);
-
-            // Provide feedback about chain letter generation
-            _messageSystem.AddSystemMessage($"📬 Follow-up letter generated!", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"✉️ {chainLetter.SenderName} → {chainLetter.RecipientName}", SystemMessageTypes.Info);
-            _messageSystem.AddSystemMessage($"🔗 Chain letter from completing {deliveredLetter.SenderName}'s delivery", SystemMessageTypes.Info);
+            ShowChainLetterNarrative(chainLetter, deliveredLetter);
         }
+    }
+
+    // Show narrative for chain letter generation
+    private void ShowChainLetterNarrative(Letter chainLetter, Letter parentLetter)
+    {
+        _messageSystem.AddSystemMessage($"📬 Follow-up letter generated!", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"✉️ {chainLetter.SenderName} → {chainLetter.RecipientName}", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"🔗 Chain letter from completing {parentLetter.SenderName}'s delivery", SystemMessageTypes.Info);
     }
 
     // Generate a chain letter from a template ID

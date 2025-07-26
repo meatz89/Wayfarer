@@ -37,7 +37,20 @@ public enum ObligationEffect
     MerchantRespect,       // Trade letters with 5+ tokens get additional +1 position
     CommonRevenge,         // Common letters from debt relationships use position 3
     PatronAbsolute,        // Patron letters push everything down (no displacement limit)
-    DebtSpiral             // All negative token positions get additional -1
+    DebtSpiral,            // All negative token positions get additional -1
+
+    // Dynamic Scaling Effects
+    DynamicLeverageModifier,   // Leverage scales with token level
+    DynamicPaymentBonus,       // Payment bonus scales with token level
+    DynamicDeadlineBonus       // Deadline bonus scales with token level
+}
+
+public enum ScalingType
+{
+    None,          // No scaling (static effect)
+    Linear,        // Linear scaling: effect = base + (tokens * scalingFactor)
+    Stepped,       // Stepped scaling: effect changes at specific thresholds
+    Threshold      // Threshold scaling: effect only applies above/below threshold
 }
 
 public class StandingObligation
@@ -68,6 +81,16 @@ public class StandingObligation
 
     // Tracking for forced generation effects
     public int DaysSinceLastForcedLetter { get; set; } = 0;
+
+    // Dynamic Scaling Properties
+    public ScalingType ScalingType { get; set; } = ScalingType.None;
+    public float ScalingFactor { get; set; } = 1.0f; // How much per token for linear scaling
+    public float BaseValue { get; set; } = 0f; // Base value before scaling
+    public float MinValue { get; set; } = 0f; // Minimum scaled value
+    public float MaxValue { get; set; } = 100f; // Maximum scaled value
+    
+    // Stepped scaling thresholds (token count -> effect value)
+    public Dictionary<int, float> SteppedThresholds { get; set; } = new Dictionary<int, float>();
 
     public StandingObligation()
     {
@@ -315,7 +338,83 @@ public class StandingObligation
             ObligationEffect.TrustSkipDoubleCost => "Skipping trust letters costs double",
             ObligationEffect.NoCommonRefusal => "Refusing common letters loses 2 tokens",
             ObligationEffect.CannotRefuseLetters => "Cannot refuse any letters",
+            ObligationEffect.DynamicLeverageModifier => "Leverage scales with relationship",
+            ObligationEffect.DynamicPaymentBonus => "Payment bonus scales with relationship",
+            ObligationEffect.DynamicDeadlineBonus => "Deadline bonus scales with relationship",
             _ => effect.ToString()
         };
+    }
+
+    // Calculate dynamic value based on current token count
+    public float CalculateDynamicValue(int tokenCount)
+    {
+        switch (ScalingType)
+        {
+            case ScalingType.None:
+                return BaseValue;
+                
+            case ScalingType.Linear:
+                // Linear scaling: base + (tokens * factor)
+                float linearValue = BaseValue + (tokenCount * ScalingFactor);
+                return Math.Max(MinValue, Math.Min(MaxValue, linearValue));
+                
+            case ScalingType.Stepped:
+                // Find the highest threshold that we meet
+                float steppedValue = BaseValue;
+                foreach (var threshold in SteppedThresholds.OrderBy(t => t.Key))
+                {
+                    if (tokenCount >= threshold.Key)
+                    {
+                        steppedValue = threshold.Value;
+                    }
+                }
+                return steppedValue;
+                
+            case ScalingType.Threshold:
+                // Only apply effect if we meet the threshold
+                if (ActivationThreshold.HasValue)
+                {
+                    bool meetsThreshold = ActivatesAboveThreshold ? 
+                        tokenCount >= ActivationThreshold.Value : 
+                        tokenCount <= ActivationThreshold.Value;
+                    return meetsThreshold ? BaseValue : 0f;
+                }
+                return BaseValue;
+                
+            default:
+                return BaseValue;
+        }
+    }
+
+    // Calculate dynamic leverage modifier
+    public int CalculateDynamicLeverage(Letter letter, int currentPosition, int tokenCount)
+    {
+        if (!HasEffect(ObligationEffect.DynamicLeverageModifier)) return currentPosition;
+        if (!AppliesTo(letter.TokenType)) return currentPosition;
+        
+        float modifier = CalculateDynamicValue(tokenCount);
+        int newPosition = currentPosition - (int)modifier; // Negative modifier improves position
+        
+        return Math.Max(1, Math.Min(8, newPosition)); // Clamp to valid queue range
+    }
+
+    // Calculate dynamic payment bonus
+    public int CalculateDynamicPaymentBonus(Letter letter, int basePayment, int tokenCount)
+    {
+        if (!HasEffect(ObligationEffect.DynamicPaymentBonus)) return 0;
+        if (!AppliesTo(letter.TokenType)) return 0;
+        
+        float bonus = CalculateDynamicValue(tokenCount);
+        return (int)bonus;
+    }
+
+    // Calculate dynamic deadline bonus
+    public int CalculateDynamicDeadlineBonus(Letter letter, int tokenCount)
+    {
+        if (!HasEffect(ObligationEffect.DynamicDeadlineBonus)) return 0;
+        if (!AppliesTo(letter.TokenType)) return 0;
+        
+        float bonus = CalculateDynamicValue(tokenCount);
+        return (int)bonus;
     }
 }

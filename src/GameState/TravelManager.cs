@@ -1,4 +1,6 @@
-﻿public class TravelManager
+﻿using Wayfarer.GameState.Constants;
+
+public class TravelManager
 {
     private readonly GameWorld _gameWorld;
     private readonly ITimeManager _timeManager;
@@ -41,9 +43,9 @@
         // Check if any route exists and is available
         List<RouteOption> routes = GetAvailableRoutes(currentLocation.Id, destination.Id);
 
-        // Check if player has enough stamina for cheapest route (fixed 2 stamina per route)
+        // Check if player has enough stamina for cheapest route
         Player player = _gameWorld.GetPlayer();
-        if (player.Stamina < 2)
+        if (player.Stamina < 2) // Base travel stamina cost
         {
             return false; // Not enough stamina for any travel
         }
@@ -182,8 +184,8 @@
             }
         }
 
-        // Add coin weight (10 coins = 1 weight unit)
-        totalWeight += _gameWorld.GetPlayer().Coins / 10;
+        // Add coin weight
+        totalWeight += _gameWorld.GetPlayer().Coins / GameConstants.Inventory.COINS_PER_WEIGHT_UNIT;
 
         return totalWeight;
     }
@@ -207,8 +209,8 @@
     {
         return totalWeight switch
         {
-            < 4 => "Light load",
-            < 7 => "Medium load (+1 stamina cost)",
+            _ when totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX => "Light load",
+            _ when totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX => "Medium load (+1 stamina cost)",
             _ => "Heavy load (+2 stamina cost)"
         };
     }
@@ -228,6 +230,16 @@
         return route.CheckRouteAccess(ItemRepository, _gameWorld.GetPlayer(), _routeRepository.GetCurrentWeather());
     }
 
+    /// <summary>
+    /// Get token-based access information for UI display
+    /// </summary>
+    public AccessCheckResult GetTokenAccessInfo(RouteOption route)
+    {
+        if (route.AccessRequirement == null)
+            return AccessCheckResult.Allowed();
+        
+        return _accessChecker.CheckRouteAccess(route);
+    }
 
     /// <summary>
     /// Check if boat schedule is available based on weather conditions and river state

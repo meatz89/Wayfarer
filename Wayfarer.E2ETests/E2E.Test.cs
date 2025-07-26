@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Constants;
 
 /// <summary>
 /// SINGLE E2E TEST THAT CATCHES ALL STARTUP AND RUNTIME ISSUES
@@ -117,7 +118,7 @@ public class E2ETest
                     var errors = File.ReadAllLines("content_validation_errors.log");
                     Console.WriteLine($"⚠️ {errors[0]}"); // First line has count
                     Console.WriteLine("\nMissing content references:");
-                    for (int i = 1; i < Math.Min(errors.Length, 11); i++) // Show first 10
+                    for (int i = 1; i < Math.Min(errors.Length, GameConstants.UI.MAX_ERROR_DISPLAY_COUNT + 1); i++) // Show first 10
                     {
                         Console.WriteLine($"  {errors[i]}");
                     }
@@ -178,7 +179,7 @@ public class E2ETest
             else
             {
                 // Try to access the home page
-                using (HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) })
+                using (HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(GameConstants.Network.HTTP_CLIENT_TIMEOUT_SECONDS) })
                 {
                     HttpResponseMessage response = await client.GetAsync("http://localhost:5013");
                     if (response.IsSuccessStatusCode)

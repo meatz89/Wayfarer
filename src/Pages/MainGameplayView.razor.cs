@@ -20,6 +20,8 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
     [Inject] public DebugLogger DebugLogger { get; set; }
     [Inject] public ITimeManager TimeManager { get; set; }
     [Inject] public ConversationStateManager ConversationStateManager { get; set; }
+    [Inject] public NarrativeManager NarrativeManager { get; set; }
+    [Inject] public FlagService FlagService { get; set; }
 
 
     public int StateVersion = 0;
@@ -608,12 +610,24 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
     {
         try
         {
-            // TODO: Tutorial narrative needs to be implemented
-            // For now, just show a message
-            MessageSystem.AddSystemMessage("Tutorial system not yet implemented", SystemMessageTypes.Warning);
-
+            // Clear tutorial complete flag if set
+            FlagService.SetFlag(FlagService.TUTORIAL_COMPLETE, false);
+            
+            // Set tutorial starting conditions
+            var player = GameWorld.GetPlayer();
+            player.Coins = 2; // Tutorial starts with 2 coins
+            player.Stamina = 4; // Tutorial starts with 4/10 stamina
+            
+            // Load tutorial narrative definitions
+            NarrativeContentBuilder.BuildAllNarratives();
+            NarrativeManager.LoadNarrativeDefinitions(NarrativeDefinitions.All);
+            
+            // Start the tutorial
+            NarrativeManager.StartNarrative("wayfarer_tutorial");
+            
+            MessageSystem.AddSystemMessage("Welcome to Wayfarer. Your journey begins in the Lower Ward...", SystemMessageTypes.Tutorial);
             MessageSystem.AddSystemMessage("Tutorial started successfully!", SystemMessageTypes.Success);
-            DebugLogger.LogDebug("Tutorial manually started");
+            DebugLogger.LogDebug($"Tutorial manually started. Active narratives: {string.Join(", ", NarrativeManager.GetActiveNarratives())}");
             StateHasChanged();
         }
         catch (Exception ex)

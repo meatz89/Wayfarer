@@ -1541,3 +1541,42 @@
 	font-style: italic;
 	margin-left: 2px;
 }
+
+/* Token requirement styles */
+.route-tokens {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 5px 0;
+}
+
+.token-requirement {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 8px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--clay);
+	border-radius: 3px;
+	font-family: var(--font-tertiary);
+	font-size: 0.8rem;
+	color: var(--text-primary);
+}
+
+.token-requirement.insufficient {
+	background-color: rgba(158, 42, 43, 0.1);
+	border-color: var(--rust);
+	color: var(--negative);
+}
+
+.route-hint {
+	background-color: rgba(188, 108, 37, 0.1);
+	border: 1px solid var(--clay);
+	border-radius: 3px;
+	padding: 6px 10px;
+	margin: 5px 0;
+	font-family: var(--font-tertiary);
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+	font-style: italic;
+}

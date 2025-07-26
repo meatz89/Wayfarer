@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using Wayfarer.GameState.Constants;
+
+/// <summary>
 /// Manages location-specific item pricing and trading operations.
 /// Implements dynamic pricing system that creates arbitrage opportunities
 /// between different locations for strategic trading gameplay.
@@ -260,7 +262,7 @@ public class MarketManager
             2 => "medium",
             3 => "heavy",
             4 => "very heavy",
-            _ => weight > 4 ? "extremely heavy" : "light"
+            _ => weight > GameConstants.Inventory.HEAVY_ITEM_WEIGHT_THRESHOLD ? "extremely heavy" : "light"
         };
     }
 

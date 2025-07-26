@@ -1,4 +1,6 @@
-﻿public class StreamingContentState
+﻿using Wayfarer.GameState.Constants;
+
+public class StreamingContentState
 {
     public string CurrentText { get; private set; } = string.Empty;
     public bool IsStreaming { get; private set; }
@@ -6,7 +8,7 @@
     public bool HasError { get; private set; }
     public string ErrorMessage { get; private set; }
 
-    private const int ESTIMATED_TOTAL_TOKENS = 1000;
+    private const int ESTIMATED_TOTAL_TOKENS = GameConstants.UI.ESTIMATED_STREAMING_TOKENS;
 
     public StreamingContentState()
     {
@@ -32,7 +34,7 @@
         CurrentText = partialText;
 
         // Estimate progress based on token count (approximate)
-        int estimatedTokens = partialText.Length / 4; // Rough estimate: 4 chars per token
+        int estimatedTokens = partialText.Length / GameConstants.UI.CHARS_PER_TOKEN_ESTIMATE; // Rough estimate
         StreamProgress = Math.Min(0.95f, (float)estimatedTokens / ESTIMATED_TOTAL_TOKENS);
     }
 

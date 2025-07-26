@@ -50,7 +50,16 @@
         @foreach (var item in GetFilteredItems())
         {
             <div class="market-item">
-                <div class="item-name">@item.Name</div>
+                <div class="item-info">
+                    <div class="item-name">@item.Name</div>
+                    <div class="item-description">@item.Item.Description</div>
+                    @if (item.Item.HasTokenEffects())
+                    {
+                        <div class="item-token-effects">
+                            <span class="token-icon">🎯</span> @item.Item.GetTokenEffectsDescription()
+                        </div>
+                    }
+                </div>
                 <div class="item-buy">@item.BuyPrice</div>
                 <div class="item-sell">@item.SellPrice</div>
                 <div class="item-actions">

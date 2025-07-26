@@ -78,7 +78,7 @@ public class GatherResourcesCommand : BaseGameCommand
 
         // Time spending handled by executing service
         // Stamina cost still applied here
-        player.ModifyStamina(-2);
+        player.ModifyStamina(-2); // Work action stamina cost
 
         // Determine what resources can be gathered based on location
         List<Item> availableResources = GetGatherableResources(spot);
@@ -132,7 +132,7 @@ public class GatherResourcesCommand : BaseGameCommand
             {
                 Location = spot.Name,
                 ItemsGathered = gatheredItems.Select(i => new { i.Name, i.SellPrice }),
-                StaminaSpent = 2,
+                StaminaSpent = 2, // Work action stamina cost
                 TimeCost = 1  // Add time cost to result
             }
         );

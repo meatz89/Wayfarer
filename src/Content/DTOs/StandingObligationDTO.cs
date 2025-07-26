@@ -20,4 +20,12 @@ public class StandingObligationDTO
     public int? DeactivationThreshold { get; set; }
     public bool IsThresholdBased { get; set; } = false;
     public bool ActivatesAboveThreshold { get; set; } = true;
+    
+    // Dynamic scaling fields
+    public string ScalingType { get; set; } = "None";
+    public float ScalingFactor { get; set; } = 1.0f;
+    public float BaseValue { get; set; } = 0f;
+    public float MinValue { get; set; } = 0f;
+    public float MaxValue { get; set; } = 100f;
+    public Dictionary<int, float> SteppedThresholds { get; set; } = new Dictionary<int, float>();
 }

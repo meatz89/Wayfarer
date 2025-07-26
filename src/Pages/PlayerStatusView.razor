@@ -111,6 +111,13 @@
                                             @* ItemCategories removed - using Categories instead *@
                                         </div>
                                     }
+                                    @if (item.HasTokenEffects())
+                                    {
+                                        <div class="item-token-effects">
+                                            <span class="token-effects-label">Token Effects:</span>
+                                            <span class="token-effects-value">@item.GetTokenEffectsDescription()</span>
+                                        </div>
+                                    }
                                 </div>
                             }
                         }

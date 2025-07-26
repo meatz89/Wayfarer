@@ -6,14 +6,16 @@ public class ConnectionTokenManager
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
+    private readonly ItemRepository _itemRepository;
     private LetterCategoryService _categoryService;
     private StandingObligationManager _obligationManager;
 
-    public ConnectionTokenManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository)
+    public ConnectionTokenManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository, ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
         _npcRepository = npcRepository;
+        _itemRepository = itemRepository;
     }
 
     public void SetCategoryService(LetterCategoryService categoryService)
@@ -79,9 +81,13 @@ public class ConnectionTokenManager
         Player player = _gameWorld.GetPlayer();
         Dictionary<ConnectionType, int> playerTokens = player.ConnectionTokens;
         Dictionary<string, Dictionary<ConnectionType, int>> npcTokens = player.NPCTokens;
+        
+        // Apply equipment modifiers
+        float modifier = GetEquipmentTokenModifier(type);
+        int modifiedCount = (int)Math.Ceiling(count * modifier);
 
-        // Update global token count
-        playerTokens[type] = playerTokens.GetValueOrDefault(type) + count;
+        // Update global token count with modified amount
+        playerTokens[type] = playerTokens.GetValueOrDefault(type) + modifiedCount;
 
         // Initialize NPC token tracking if needed
         if (!npcTokens.ContainsKey(npcId))
@@ -96,16 +102,17 @@ public class ConnectionTokenManager
         // Track old token count for category unlock checking
         int oldTokenCount = npcTokens[npcId][type];
 
-        // Update NPC-specific tokens
-        npcTokens[npcId][type] += count;
+        // Update NPC-specific tokens with modified amount
+        npcTokens[npcId][type] += modifiedCount;
         int newTokenCount = npcTokens[npcId][type];
 
         // Get NPC for narrative feedback
         NPC npc = _npcRepository.GetById(npcId);
         if (npc != null)
         {
+            string bonusText = modifiedCount > count ? $" (+{modifiedCount - count} from equipment)" : "";
             _messageSystem.AddSystemMessage(
-                $"🤝 +{count} {type} token{(count > 1 ? "s" : "")} with {npc.Name} (Total: {newTokenCount})",
+                $"🤝 +{modifiedCount} {type} token{(modifiedCount > 1 ? "s" : "")} with {npc.Name}{bonusText} (Total: {newTokenCount})",
                 SystemMessageTypes.Success
             );
 
@@ -485,5 +492,64 @@ public class ConnectionTokenManager
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Get the token generation modifier from equipped items
+    /// </summary>
+    private float GetEquipmentTokenModifier(ConnectionType tokenType)
+    {
+        if (_itemRepository == null) return 1.0f;
+        
+        Player player = _gameWorld.GetPlayer();
+        float totalModifier = 1.0f;
+        
+        // Check all items in inventory for token modifiers
+        foreach (string itemId in player.Inventory.GetAllItems())
+        {
+            if (string.IsNullOrEmpty(itemId)) continue;
+            
+            Item item = _itemRepository.GetItemById(itemId);
+            if (item != null && item.TokenGenerationModifiers != null && 
+                item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
+            {
+                // Multiply modifiers (e.g., 1.5 * 1.2 = 1.8 for +50% and +20%)
+                totalModifier *= modifier;
+            }
+        }
+        
+        return totalModifier;
+    }
+
+    /// <summary>
+    /// Check if player has equipment that enables generation of a specific token type
+    /// </summary>
+    public bool CanGenerateTokenType(ConnectionType tokenType, string npcId)
+    {
+        // First check if NPC naturally offers this token type
+        NPC npc = _npcRepository.GetById(npcId);
+        if (npc != null && npc.LetterTokenTypes.Contains(tokenType))
+        {
+            return true;
+        }
+        
+        // Then check equipment
+        if (_itemRepository == null) return false;
+        
+        Player player = _gameWorld.GetPlayer();
+        
+        foreach (string itemId in player.Inventory.GetAllItems())
+        {
+            if (string.IsNullOrEmpty(itemId)) continue;
+            
+            Item item = _itemRepository.GetItemById(itemId);
+            if (item != null && item.EnablesTokenGeneration != null && 
+                item.EnablesTokenGeneration.Contains(tokenType))
+            {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

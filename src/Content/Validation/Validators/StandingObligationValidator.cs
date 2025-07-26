@@ -16,7 +16,9 @@ public class StandingObligationValidator : BaseValidator
     public override bool CanValidate(string fileName)
     {
         return fileName.Equals("standing_obligations.json", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith("_standing_obligations.json", StringComparison.OrdinalIgnoreCase);
+               fileName.Equals("scaling_obligations.json", StringComparison.OrdinalIgnoreCase) ||
+               fileName.EndsWith("_standing_obligations.json", StringComparison.OrdinalIgnoreCase) ||
+               fileName.EndsWith("_scaling_obligations.json", StringComparison.OrdinalIgnoreCase);
     }
 
     public override IEnumerable<ValidationError> Validate(string content, string fileName)
@@ -129,6 +131,9 @@ public class StandingObligationValidator : BaseValidator
             ValidatePositiveNumber(templateConfig, obligationId, fileName, errors, "daysBetweenLetters");
             ValidatePositiveNumber(templateConfig, obligationId, fileName, errors, "minimumTokensRequired");
         }
+        
+        // Validate scaling configuration
+        ValidateScalingConfiguration(obligation, obligationId, fileName, errors);
     }
 
     private void ValidateEffectArray(JsonElement element, string id, string fileName, List<ValidationError> errors, string arrayName)
@@ -166,6 +171,68 @@ public class StandingObligationValidator : BaseValidator
                     $"{fileName}:{id}",
                     $"{fieldName} must be a positive number (got {value})",
                     ValidationSeverity.Warning));
+            }
+        }
+    }
+    
+    private void ValidateScalingConfiguration(JsonElement obligation, string id, string fileName, List<ValidationError> errors)
+    {
+        // Validate ScalingType
+        if (TryGetPropertyCaseInsensitive(obligation, "scalingType", out JsonElement scalingType) &&
+            scalingType.ValueKind == JsonValueKind.String)
+        {
+            string? scalingStr = scalingType.GetString();
+            if (!string.IsNullOrEmpty(scalingStr) &&
+                !EnumParser.TryParse<ScalingType>(scalingStr, out _))
+            {
+                errors.Add(new ValidationError(
+                    $"{fileName}:{id}",
+                    $"Invalid scaling type: '{scalingStr}'",
+                    ValidationSeverity.Warning));
+            }
+        }
+        
+        // Validate MinValue < MaxValue if both present
+        if (TryGetPropertyCaseInsensitive(obligation, "minValue", out JsonElement minValue) &&
+            TryGetPropertyCaseInsensitive(obligation, "maxValue", out JsonElement maxValue) &&
+            minValue.ValueKind == JsonValueKind.Number &&
+            maxValue.ValueKind == JsonValueKind.Number)
+        {
+            float min = minValue.GetSingle();
+            float max = maxValue.GetSingle();
+            
+            if (min > max)
+            {
+                errors.Add(new ValidationError(
+                    $"{fileName}:{id}",
+                    $"MinValue ({min}) cannot be greater than MaxValue ({max})",
+                    ValidationSeverity.Warning));
+            }
+        }
+        
+        // Validate SteppedThresholds if present
+        if (TryGetPropertyCaseInsensitive(obligation, "steppedThresholds", out JsonElement thresholds) &&
+            thresholds.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty threshold in thresholds.EnumerateObject())
+            {
+                // Validate key is an integer
+                if (!int.TryParse(threshold.Name, out _))
+                {
+                    errors.Add(new ValidationError(
+                        $"{fileName}:{id}",
+                        $"SteppedThresholds key must be an integer: '{threshold.Name}'",
+                        ValidationSeverity.Warning));
+                }
+                
+                // Validate value is a number
+                if (threshold.Value.ValueKind != JsonValueKind.Number)
+                {
+                    errors.Add(new ValidationError(
+                        $"{fileName}:{id}",
+                        $"SteppedThresholds value must be a number for key: '{threshold.Name}'",
+                        ValidationSeverity.Warning));
+                }
             }
         }
     }

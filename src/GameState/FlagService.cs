@@ -22,6 +22,7 @@ public class FlagService
     public const string TUTORIAL_STARTED = "tutorial_started";
     public const string TUTORIAL_COMPLETE = "tutorial_complete";
     public const string TUTORIAL_FIRST_MOVEMENT = "tutorial_first_movement";
+    public const string TUTORIAL_FIRST_REST = "tutorial_first_rest";
     public const string TUTORIAL_FIRST_NPC_TALK = "tutorial_first_npc_talk";
     public const string TUTORIAL_FIRST_WORK = "tutorial_first_work";
     public const string TUTORIAL_FIRST_TOKEN_EARNED = "tutorial_first_token_earned";
@@ -34,6 +35,23 @@ public class FlagService
     public const string TUTORIAL_PATRON_LETTER_RECEIVED = "tutorial_patron_letter_received";
     public const string TUTORIAL_PATRON_MET = "tutorial_patron_met";
     public const string TUTORIAL_PATRON_ACCEPTED = "tutorial_patron_accepted";
+    
+    // Additional tutorial flags
+    public const string TUTORIAL_TAM_ADVICE_RECEIVED = "tutorial_tam_advice_received";
+    public const string TUTORIAL_MARTHA_MET = "tutorial_martha_met";
+    public const string TUTORIAL_FOOD_PURCHASED = "tutorial_food_purchased";
+    public const string TUTORIAL_MARTHA_LETTER_OFFERED = "tutorial_martha_letter_offered";
+    public const string TUTORIAL_ELENA_LETTER_ACCEPTED = "tutorial_elena_letter_accepted";
+    public const string TUTORIAL_DAY1_COMPLETE = "tutorial_day1_complete";
+    public const string TUTORIAL_URGENT_LETTER_HANDLED = "tutorial_urgent_letter_handled";
+    public const string TUTORIAL_GUILD_TRIAL_COMPLETE = "tutorial_guild_trial_complete";
+    public const string TUTORIAL_OBLIGATION_UNDERSTOOD = "tutorial_obligation_understood";
+    public const string TUTORIAL_DAY2_COMPLETE = "tutorial_day2_complete";
+    public const string TUTORIAL_MONEY_BORROWED = "tutorial_money_borrowed";
+    public const string TUTORIAL_DEBT_CREATED = "tutorial_debt_created";
+    public const string TUTORIAL_LEVERAGE_UNDERSTOOD = "tutorial_leverage_understood";
+    public const string TUTORIAL_FIRST_PATRON_LETTER_DELIVERED = "tutorial_first_patron_letter_delivered";
+    public const string TUTORIAL_COMPLETE_FINAL = "tutorial_complete_final";
     
     // General game event flags
     public const string FIRST_COLLAPSE = "first_collapse";

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Constants;
 /// <summary>
 /// Service for managing patron letters - mysterious gold-sealed letters that jump to queue positions 1-3.
 /// These represent the core tension: are you an agent with purpose or just a pawn being used?
@@ -71,18 +72,18 @@ public class PatronLetterService
     {
         // Check if patron debt already exists
         var patronTokens = _tokenManager.GetTokensWithNPC("patron");
-        if (patronTokens[ConnectionType.Noble] >= -10)
+        if (patronTokens[ConnectionType.Noble] >= GameConstants.Patron.PATRON_DEBT_THRESHOLD)
         {
             // Set extreme debt to create natural leverage
             // This debt makes patron letters naturally reach positions 1-3
-            _tokenManager.AddTokensToNPC(ConnectionType.Noble, -20, "patron");
+            _tokenManager.AddTokensToNPC(ConnectionType.Noble, GameConstants.Patron.INITIAL_PATRON_DEBT, "patron");
             
             _messageSystem.AddSystemMessage(
                 "Your patron has saved you from destitution - but at a steep price.",
                 SystemMessageTypes.Warning
             );
             _messageSystem.AddSystemMessage(
-                "Your debt of 20 Noble tokens gives them extreme leverage over your priorities.",
+                $"Your debt of {Math.Abs(GameConstants.Patron.INITIAL_PATRON_DEBT)} Noble tokens gives them extreme leverage over your priorities.",
                 SystemMessageTypes.Info
             );
             _messageSystem.AddSystemMessage(
