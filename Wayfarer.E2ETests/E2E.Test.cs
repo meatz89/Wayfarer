@@ -97,6 +97,28 @@ public class E2ETest
                     Console.WriteLine("\nTesting GameWorldManager.StartGame()...");
                     await gameWorldManager.StartGame();
                     Console.WriteLine("✓ PASS: Game started successfully");
+                    
+                    // Test tutorial auto-start
+                    Console.WriteLine("\nChecking tutorial auto-start...");
+                    var narrativeManager = provider.GetRequiredService<NarrativeManager>();
+                    var flagService = provider.GetRequiredService<FlagService>();
+                    
+                    if (narrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+                    {
+                        Console.WriteLine("✓ PASS: Tutorial auto-started successfully");
+                        var currentStep = narrativeManager.GetCurrentStep("wayfarer_tutorial");
+                        if (currentStep != null)
+                        {
+                            Console.WriteLine($"  Current step: {currentStep.Name} ({currentStep.Id})");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("✗ FAIL: Tutorial did not auto-start!");
+                        Console.WriteLine($"  Tutorial started flag: {flagService.HasFlag(FlagService.TUTORIAL_STARTED)}");
+                        Console.WriteLine($"  Tutorial complete flag: {flagService.HasFlag(FlagService.TUTORIAL_COMPLETE)}");
+                        allTestsPassed = false;
+                    }
                 }
                 catch (NullReferenceException nre)
                 {

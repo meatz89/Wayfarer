@@ -5,7 +5,6 @@ using System.Linq;
 
 public class ConversationViewBase : ComponentBase
 {
-    [Inject] public IJSRuntime JSRuntime { get; set; }
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Parameter] public EventCallback<ConversationBeatOutcome> OnConversationCompleted { get; set; }
     [Parameter] public ConversationManager ConversationManager { get; set; }
