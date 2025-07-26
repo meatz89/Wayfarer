@@ -1,99 +1,75 @@
+@* LetterQueueDisplay.razor - Pure presentation layer, no game logic *@
 @using Wayfarer.Pages.Components
-
-@inject GameWorld GameWorld
-@inject LetterQueueManager LetterQueueManager
-@inject ConnectionTokenManager TokenManager
-@inject MessageSystem MessageSystem
-@inject StandingObligationRepository ObligationRepository
-@inject StandingObligationManager ObligationManager
-@inject ITimeManager TimeManager
+@inject LetterQueueUIService QueueUIService
 
 <div class="letter-queue-container">
     <h3>Letter Queue</h3>
-    
-    
+
     @* Letter Queue Display *@
     <div class="letter-queue">
-        @for (int position = 1; position <= 8; position++)
+        @foreach (var slot in _viewModel.QueueSlots)
         {
-            var letter = LetterQueueManager.GetLetterAt(position);
-            <div class="queue-slot @(letter != null ? "occupied" : "empty") @(position == 1 ? "position-one" : "")">
-                <div class="slot-number">[@position]</div>
-                @if (letter != null)
+            <div class="queue-slot @(slot.IsOccupied ? "occupied" : "empty") @(slot.Position == 1 ? "position-one" : "")">
+                <div class="slot-number">[@slot.Position]</div>
+                @if (slot.IsOccupied && slot.Letter != null)
                 {
-                    <div class="letter-card @(letter.IsFromPatron ? "patron-letter" : "")">
+                    var letter = slot.Letter;
+                    <div class="letter-card @(letter.IsPatronLetter ? "patron-letter" : "")">
                         <div class="letter-header">
-                            @if (letter.IsFromPatron)
+                            @if (letter.IsPatronLetter)
                             {
                                 <span class="patron-seal" title="Patron Letter">🏵️</span>
                             }
-                            <span class="token-icon">@letter.GetTokenTypeIcon()</span>
+                            <span class="token-icon">@letter.TokenIcon</span>
                             <span class="letter-type">@letter.TokenType</span>
-                            @{
-                                var leverageIndicator = GetLeverageIndicator(letter);
-                                if (!string.IsNullOrEmpty(leverageIndicator))
-                                {
-                                    <span class="leverage-indicator" title="@GetLeverageTooltip(letter)">@leverageIndicator</span>
-                                }
+                            @if (!string.IsNullOrEmpty(letter.LeverageIndicator))
+                            {
+                                <span class="leverage-indicator" title="@letter.LeverageTooltip">@letter.LeverageIndicator</span>
                             }
                         </div>
                         <div class="letter-route">
-                            <span class="sender @(letter.IsFromPatron ? "patron-sender" : "")">@letter.SenderName</span>
+                            <span class="sender @(letter.IsPatronLetter ? "patron-sender" : "")">@letter.SenderName</span>
                             <span class="arrow">→</span>
                             <span class="recipient">@letter.RecipientName</span>
                         </div>
                         <div class="letter-details">
-                            <div class="deadline @GetDeadlineWarningClass(letter.Deadline)">
-                                @GetDeadlineWarningIcon(letter.Deadline) @GetDeadlineDescription(letter.Deadline)
+                            <div class="deadline @letter.DeadlineClass">
+                                @letter.DeadlineIcon @letter.DeadlineDescription
                             </div>
                             <div class="payment">@letter.Payment coins</div>
-                            <div class="letter-size" title="@GetSizeCategoryTooltip(letter)">
-                                @GetSizeCategoryIcon(letter.Size) @letter.Size
+                            <div class="letter-size" title="@letter.Size letter - Requires @GetRequiredSlots(letter.Size) slot(s)">
+                                @letter.SizeIcon @letter.Size
                             </div>
-                            @if (letter.State != LetterState.Collected)
+                            <div class="collection-status @(letter.IsCollected ? "collected" : "uncollected")"
+                                 title="@(letter.IsCollected ? "Letter in inventory" : "Visit sender to collect physical letter")">
+                                @(letter.IsCollected ? "📬" : "📭") @(letter.IsCollected ? "Collected" : "Not Collected")
+                            </div>
+                            @if (!string.IsNullOrEmpty(letter.PhysicalConstraints))
                             {
-                                <div class="collection-status uncollected" title="Visit sender to collect physical letter">
-                                    📭 Not Collected
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="collection-status collected" title="Letter in inventory">
-                                    📬 Collected
-                                </div>
-                            }
-                            @if (letter.PhysicalProperties != LetterPhysicalProperties.None)
-                            {
-                                <div class="physical-properties" title="@letter.GetPhysicalConstraintsDescription()">
-                                    @GetPhysicalPropertiesIcon(letter.PhysicalProperties)
+                                <div class="physical-properties" title="@letter.PhysicalConstraints">
+                                    @letter.PhysicalIcon
                                 </div>
                             }
                         </div>
-                        @if (position == 1)
+                        @if (slot.Position == 1 && slot.CanDeliver)
                         {
-                            <button class="btn btn-primary btn-sm deliver-btn" @onclick="() => DeliverLetter(letter)">
+                            <button class="btn btn-primary btn-sm deliver-btn" @onclick="() => DeliverLetter(slot.Position)">
                                 Deliver
                             </button>
                         }
-                        else if (position > 1 && LetterQueueManager.GetLetterAt(1) == null)
+                        else if (slot.CanSkip && slot.SkipAction != null)
                         {
-                            var baseCost = position - 1;
-                            var multiplier = ObligationManager.CalculateSkipCostMultiplier(letter);
-                            var tokenCost = baseCost * multiplier;
-                            var hasEnoughTokens = TokenManager.HasTokens(letter.TokenType, tokenCost);
-                            var availableTokens = TokenManager.GetTokenCount(letter.TokenType);
-                            
-                            <button class="btn btn-secondary btn-sm skip-btn" 
-                                    disabled="@(!hasEnoughTokens)" 
-                                    @onclick="async () => await SkipLetter(letter)"
+                            <button class="btn btn-secondary btn-sm skip-btn"
+                                    disabled="@(!slot.SkipAction.HasEnoughTokens)"
+                                    @onclick="async () => await SkipLetter(slot.Position)"
                                     title="Skip to position 1">
                                 Skip
                             </button>
-                            <TokenCostPreview ActionName="Skip" 
-                                            TokenCost="tokenCost" 
-                                            TokenType="letter.TokenType" 
-                                            AvailableTokens="availableTokens"
-                                            AdditionalInfo="@(multiplier > 1 ? $"x{multiplier} cost from obligations" : null)" />
+                            <TokenCostPreview ActionName="Skip"
+                                              TokenCost="slot.SkipAction.TotalCost"
+                                              TokenType="@(Enum.TryParse<ConnectionType>(slot.SkipAction.TokenType, out var tokenType) ? tokenType : (ConnectionType?)null)"
+                                              AvailableTokens="slot.SkipAction.AvailableTokens"
+                                              AdditionalInfo="@slot.SkipAction.MultiplierReason" />
                         }
                     </div>
                 }
@@ -106,47 +82,41 @@
             </div>
         }
     </div>
-    
+
     @* Queue Status *@
     <div class="queue-status">
-        <p>Letters in queue: @LetterQueueManager.GetLetterCount() / 8</p>
-        @{
-            var expiredLetters = LetterQueueManager.GetExpiringLetters(0);
-            var urgentLetters = LetterQueueManager.GetExpiringLetters(1);
-            var warningLetters = LetterQueueManager.GetExpiringLetters(2);
-            
-            if (expiredLetters.Any())
-            {
-                <p class="deadline-expired">💀 @expiredLetters.Length letter(s) EXPIRED!</p>
-            }
-            if (urgentLetters.Any())
-            {
-                <p class="deadline-urgent">🚨 @urgentLetters.Length letter(s) due TODAY!</p>
-            }
-            if (warningLetters.Any())
-            {
-                <p class="deadline-warning">⚠️ @warningLetters.Length letter(s) due in 2 days or less!</p>
-            }
+        <p>Letters in queue: @_viewModel.Status.LetterCount / @_viewModel.Status.MaxCapacity</p>
+        @if (_viewModel.Status.ExpiredCount > 0)
+        {
+            <p class="deadline-expired">💀 @_viewModel.Status.ExpiredCount letter(s) EXPIRED!</p>
+        }
+        @if (_viewModel.Status.UrgentCount > 0)
+        {
+            <p class="deadline-urgent">🚨 @_viewModel.Status.UrgentCount letter(s) due TODAY!</p>
+        }
+        @if (_viewModel.Status.WarningCount > 0)
+        {
+            <p class="deadline-warning">⚠️ @_viewModel.Status.WarningCount letter(s) due in 2 days or less!</p>
         }
     </div>
-    
+
     @* Queue Management Actions *@
     <div class="queue-actions">
         <h4>Queue Actions</h4>
-        
+
         <div class="actions-grid">
             @* Morning Swap (only available at dawn) *@
-            @if (TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+            @if (_viewModel.Actions.CanMorningSwap || _viewModel.CurrentTimeBlock == TimeBlocks.Dawn)
             {
                 <div class="action-group">
-                    <button class="btn btn-info btn-sm" @onclick="ShowMorningSwap" disabled="@(GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay)">
+                    <button class="btn btn-info btn-sm" @onclick="ShowMorningSwap" disabled="@(!_viewModel.Actions.CanMorningSwap)">
                         Morning Swap
                     </button>
-                    <TokenCostPreview ActionName="Morning Swap" 
-                                    TokenCost="0" 
-                                    TokenType="null"
-                                    ShowAvailability="false"
-                                    AdditionalInfo="@(GameWorld.GetPlayer().LastMorningSwapDay == GameWorld.CurrentDay ? "Already used today" : "Once per day at dawn")" />
+                    <TokenCostPreview ActionName="Morning Swap"
+                                      TokenCost="0"
+                                      TokenType="null"
+                                      ShowAvailability="false"
+                                      AdditionalInfo="@_viewModel.Actions.MorningSwapReason" />
                     @if (showMorningSwap)
                     {
                         <div class="action-controls">
@@ -159,96 +129,70 @@
                     }
                 </div>
             }
-            
+
             @* Priority Move *@
             <div class="action-group">
                 <button class="btn btn-warning btn-sm" @onclick="ShowPriorityOptions">
                     Priority Move
                 </button>
-                @if (showPriorityOptions && priorityFromPos >= 2 && priorityFromPos <= 8)
-                {
-                    var letter = LetterQueueManager.GetLetterAt(priorityFromPos);
-                    if (letter != null)
-                    {
-                        <TokenCostPreview ActionName="Priority Move" 
-                                        TokenCost="5" 
-                                        TokenType="letter.TokenType"
-                                        AvailableTokens="TokenManager.GetTokenCount(letter.TokenType)"
-                                        AdditionalInfo="Move to position 1 (must be empty)" />
-                    }
-                }
                 @if (showPriorityOptions)
                 {
                     <div class="action-controls">
                         <input type="number" min="2" max="8" @bind="priorityFromPos" placeholder="Position" />
-                        <button class="btn btn-primary btn-sm" @onclick="PerformPriority" disabled="@(!CanPerformPriority())">
+                        <button class="btn btn-primary btn-sm" @onclick="PerformPriority">
                             → Slot 1
                         </button>
                         <button class="btn btn-secondary btn-sm" @onclick="() => showPriorityOptions = false">×</button>
                     </div>
                 }
             </div>
-            
+
             @* Extend Deadline *@
             <div class="action-group">
                 <button class="btn btn-success btn-sm" @onclick="ShowExtendOptions">
                     Extend Deadline
                 </button>
-                @if (showExtendOptions && extendPos >= 1 && extendPos <= 8)
-                {
-                    var letter = LetterQueueManager.GetLetterAt(extendPos);
-                    if (letter != null)
-                    {
-                        <TokenCostPreview ActionName="Extend Deadline" 
-                                        TokenCost="2" 
-                                        TokenType="letter.TokenType"
-                                        AvailableTokens="TokenManager.GetTokenCount(letter.TokenType)"
-                                        AdditionalInfo="Adds 2 days to deadline" />
-                    }
-                }
                 @if (showExtendOptions)
                 {
                     <div class="action-controls">
                         <input type="number" min="1" max="8" @bind="extendPos" placeholder="Position" />
-                        <button class="btn btn-primary btn-sm" @onclick="PerformExtend" disabled="@(!CanPerformExtend())">
+                        <button class="btn btn-primary btn-sm" @onclick="PerformExtend">
                             +2 Days
                         </button>
                         <button class="btn btn-secondary btn-sm" @onclick="() => showExtendOptions = false">×</button>
                     </div>
                 }
             </div>
-            
+
             @* Purge Bottom Letter *@
-            @if (LetterQueueManager.GetLetterAt(8) != null)
+            @if (_viewModel.Actions.HasBottomLetter)
             {
                 <div class="action-group">
                     <button class="btn btn-danger btn-sm" @onclick="ShowPurgeOptions">
                         Purge Bottom
                     </button>
-                    <TokenCostPreview ActionName="Purge Bottom Letter" 
-                                    TokenCost="3" 
-                                    TokenType="null"
-                                    AvailableTokens="GetTotalAvailableTokens()"
-                                    AdditionalInfo="Any combination of tokens" />
+                    <TokenCostPreview ActionName="Purge Bottom Letter"
+                                      TokenCost="3"
+                                      TokenType="null"
+                                      AvailableTokens="@_viewModel.Actions.TotalAvailableTokens"
+                                      AdditionalInfo="Any combination of tokens" />
                     @if (showPurgeOptions)
                     {
                         <div class="action-controls purge-controls">
                             <p class="purge-instructions">Select 3 tokens total:</p>
-                            @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+                            @foreach (var tokenOption in _viewModel.Actions.PurgeTokenOptions)
                             {
-                                var available = TokenManager.GetTokenCount(tokenType);
-                                if (available > 0)
-                                {
-                                    <div class="token-input">
-                                        <span>@GetTokenIcon(tokenType)</span>
-                                        <input type="number" min="0" max="@available" value="@GetPurgeTokenCount(tokenType)" 
-                                               @onchange="@(e => SetPurgeTokenCount(tokenType, int.Parse(e.Value?.ToString() ?? "0")))" />
-                                        <small>(@available available)</small>
-                                    </div>
-                                }
+                                <div class="token-input">
+                                    <span>@tokenOption.TokenIcon</span>
+                                    <input type="number" min="0" max="@tokenOption.Available"
+                                           value="@GetPurgeTokenCount(tokenOption.TokenType)"
+                                           @onchange="@(e => SetPurgeTokenCount(tokenOption.TokenType, int.Parse(e.Value?.ToString() ?? "0")))" />
+                                    <small>(@tokenOption.Available available)</small>
+                                </div>
                             }
                             <div class="purge-total">Total selected: @GetTotalPurgeTokens() / 3</div>
-                            <button class="btn btn-primary btn-sm" @onclick="async () => await PerformPurge()" disabled="@(GetTotalPurgeTokens() != 3)">
+                            <button class="btn btn-primary btn-sm" @onclick="async () => await PerformPurge()"
+                                    disabled="@(GetTotalPurgeTokens() != 3)">
                                 Purge
                             </button>
                             <button class="btn btn-secondary btn-sm" @onclick="() => { showPurgeOptions = false; purgeTokenSelection.Clear(); }">×</button>
@@ -258,399 +202,122 @@
             }
         </div>
     </div>
-    
+
 </div>
 
 @code {
+    @namespace Wayfarer.Pages
+    private LetterQueueViewModel _viewModel;
 
-@namespace Wayfarer.Pages
     // UI state for queue manipulation
     private bool showMorningSwap = false;
     private int swapPos1 = 1;
     private int swapPos2 = 2;
-    
+
     private bool showPurgeOptions = false;
-    private Dictionary<ConnectionType, int> purgeTokenSelection = new Dictionary<ConnectionType, int>();
-    
+    private Dictionary<string, int> purgeTokenSelection = new Dictionary<string, int>();
+
     private bool showPriorityOptions = false;
     private int priorityFromPos = 2;
-    
+
     private bool showExtendOptions = false;
     private int extendPos = 1;
-    
+
     protected override void OnInitialized()
     {
-        // Add test letters for minimal POC demonstration
-        if (LetterQueueManager.GetLetterCount() == 0)
-        {
-            AddTestLetters();
-        }
+        RefreshViewModel();
     }
-    
-    private void AddTestLetters()
+
+    private void RefreshViewModel()
     {
-        // Create a few test letters to show in the queue
-        var testLetters = new[]
-        {
-            new Letter 
-            { 
-                Id = System.Guid.NewGuid().ToString(),
-                SenderId = "elena",
-                SenderName = "Elena", 
-                RecipientId = "marcus",
-                RecipientName = "Marcus", 
-                Deadline = 3, 
-                Payment = 5, 
-                TokenType = ConnectionType.Trust,
-                State = LetterState.Accepted 
-            },
-            new Letter 
-            { 
-                Id = System.Guid.NewGuid().ToString(),
-                SenderId = "lord_ashford",
-                SenderName = "Lord Ashford", 
-                RecipientId = "lady_winters",
-                RecipientName = "Lady Winters", 
-                Deadline = 1, 
-                Payment = 12, 
-                TokenType = ConnectionType.Noble,
-                State = LetterState.Accepted 
-            },
-            new Letter 
-            { 
-                Id = System.Guid.NewGuid().ToString(),
-                SenderId = "merchant_guild",
-                SenderName = "Merchant Guild", 
-                RecipientId = "dock_master",
-                RecipientName = "Dock Master", 
-                Deadline = 5, 
-                Payment = 8, 
-                TokenType = ConnectionType.Trade,
-                State = LetterState.Accepted 
-            },
-            new Letter 
-            { 
-                Id = System.Guid.NewGuid().ToString(),
-                SenderId = "anonymous",
-                SenderName = "Anonymous", 
-                RecipientId = "the_fence",
-                RecipientName = "The Fence", 
-                Deadline = 2, 
-                Payment = 15, 
-                TokenType = ConnectionType.Shadow,
-                State = LetterState.Accepted 
-            }
-        };
-        
-        foreach (var letter in testLetters)
-        {
-            LetterQueueManager.AddLetter(letter);
-        }
-        
-        // Test tokens removed - tokens must be associated with specific NPCs
+        _viewModel = QueueUIService.GetQueueViewModel();
     }
-    
-    private string GetTokenIcon(ConnectionType type)
+
+    private async Task DeliverLetter(int position)
     {
-        return type switch
-        {
-            ConnectionType.Trust => "❤️",
-            ConnectionType.Trade => "🪙",
-            ConnectionType.Noble => "👑",
-            ConnectionType.Common => "🍺",
-            ConnectionType.Shadow => "🌑",
-            _ => "❓"
-        };
-    }
-    
-    private void DeliverLetter(Letter letter)
-    {
-        if (letter == null) return;
-        
-        // Check if letter is collected
-        if (letter.State != LetterState.Collected)
-        {
-            MessageSystem.AddSystemMessage(
-                $"⚠️ Cannot deliver! Letter from {letter.SenderName} is not collected yet.",
-                SystemMessageTypes.Warning
-            );
-            MessageSystem.AddSystemMessage(
-                $"  • Visit {letter.SenderName} to collect the physical letter",
-                SystemMessageTypes.Info
-            );
-            StateHasChanged();
-            return;
-        }
-        
-        // Calculate payment with obligation bonuses
-        var player = GameWorld.GetPlayer();
-        int basePayment = letter.Payment;
-        int bonusPayment = ObligationManager.CalculateTotalCoinBonus(letter);
-        int totalPayment = basePayment + bonusPayment;
-        
-        player.ModifyCoins(totalPayment);
-        
-        // 50% chance to earn a token
-        var random = new Random();
-        bool earnedToken = random.Next(2) == 0;
-        if (earnedToken && !string.IsNullOrEmpty(letter.SenderId))
-        {
-            TokenManager.AddTokensToNPC(letter.TokenType, 1, letter.SenderId);
-        }
-        
-        // Track delivery in letter history
-        LetterQueueManager.RecordLetterDelivery(letter);
-        
-        // Remove from queue
-        LetterQueueManager.RemoveLetterFromQueue(1);
-        
-        // Show feedback using MessageSystem
-        string message = $"Delivered letter! Earned {totalPayment} coins";
-        if (bonusPayment > 0)
-        {
-            message += $" (base {basePayment} + {bonusPayment} bonus)";
-        }
-        if (earnedToken)
-        {
-            message += $" and 1 {letter.TokenType} token!";
-        }
-        MessageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
-        
+        await QueueUIService.DeliverLetterAsync(position);
+        RefreshViewModel();
         StateHasChanged();
     }
-    
-    private async Task SkipLetter(Letter letter)
+
+    private async Task SkipLetter(int position)
     {
-        if (letter == null) return;
-        
-        // Trigger conversation for skip action
-        await LetterQueueManager.TriggerSkipConversation(letter.QueuePosition);
-        
+        await QueueUIService.TriggerSkipConversationAsync(position);
+        RefreshViewModel();
         StateHasChanged();
     }
-    
-    private string GetDeadlineWarningClass(int deadline)
-    {
-        return deadline switch
-        {
-            <= 0 => "deadline-expired",
-            1 => "deadline-urgent",
-            2 => "deadline-warning",
-            _ => "deadline-normal"
-        };
-    }
-    
-    private string GetDeadlineWarningIcon(int deadline)
-    {
-        return deadline switch
-        {
-            <= 0 => "💀",
-            1 => "🚨",
-            2 => "⚠️",
-            _ => "⏰"
-        };
-    }
-    
-    private string GetDeadlineDescription(int deadline)
-    {
-        return deadline switch
-        {
-            <= 0 => "EXPIRED",
-            1 => "Due TODAY",
-            2 => "Due in 2 days",
-            _ => $"Due in {deadline} days"
-        };
-    }
-    
-    private string GetSizeCategoryIcon(SizeCategory size)
-    {
-        return size switch
-        {
-            SizeCategory.Small => "📄",
-            SizeCategory.Medium => "📦",
-            SizeCategory.Large => "📦",
-            _ => "📦"
-        };
-    }
-    
-    private string GetSizeCategoryTooltip(Letter letter)
-    {
-        var slots = letter.GetRequiredSlots();
-        return $"{letter.Size} letter - Requires {slots} inventory slot{(slots > 1 ? "s" : "")}";
-    }
-    
-    private string GetPhysicalPropertiesIcon(LetterPhysicalProperties properties)
-    {
-        // Show the most important property icon
-        if (properties.HasFlag(LetterPhysicalProperties.Fragile)) return "🔮";
-        if (properties.HasFlag(LetterPhysicalProperties.Heavy)) return "⚖️";
-        if (properties.HasFlag(LetterPhysicalProperties.Perishable)) return "🍃";
-        if (properties.HasFlag(LetterPhysicalProperties.Valuable)) return "💎";
-        if (properties.HasFlag(LetterPhysicalProperties.RequiresProtection)) return "☔";
-        if (properties.HasFlag(LetterPhysicalProperties.Bulky)) return "📏";
-        return "📋";
-    }
-    
+
     // Queue manipulation UI methods
     private void ShowMorningSwap() => showMorningSwap = true;
     private void ShowPurgeOptions() => showPurgeOptions = true;
     private void ShowPriorityOptions() => showPriorityOptions = true;
     private void ShowExtendOptions() => showExtendOptions = true;
-    
-    private void PerformMorningSwap()
+
+    private async Task PerformMorningSwap()
     {
-        if (LetterQueueManager.TryMorningSwap(swapPos1, swapPos2))
+        if (await QueueUIService.MorningSwapAsync(swapPos1, swapPos2))
         {
-            MessageSystem.AddSystemMessage($"Swapped letters in positions {swapPos1} and {swapPos2}!", SystemMessageTypes.Success);
             showMorningSwap = false;
+            RefreshViewModel();
+            StateHasChanged();
         }
-        else
+    }
+
+    private async Task PerformPriority()
+    {
+        if (await QueueUIService.PriorityMoveAsync(priorityFromPos))
         {
-            MessageSystem.AddSystemMessage("Cannot swap: positions must be adjacent and contain at least one letter", SystemMessageTypes.Warning);
+            showPriorityOptions = false;
+            RefreshViewModel();
+            StateHasChanged();
         }
+    }
+
+    private async Task PerformExtend()
+    {
+        if (await QueueUIService.ExtendDeadlineAsync(extendPos))
+        {
+            showExtendOptions = false;
+            RefreshViewModel();
+            StateHasChanged();
+        }
+    }
+
+    private async Task PerformPurge()
+    {
+        await QueueUIService.InitiatePurgeAsync(purgeTokenSelection);
+        showPurgeOptions = false;
+        purgeTokenSelection.Clear();
+        RefreshViewModel();
         StateHasChanged();
     }
-    
-    private int GetPurgeTokenCount(ConnectionType type)
+
+    private int GetPurgeTokenCount(string tokenType)
     {
-        return purgeTokenSelection.ContainsKey(type) ? purgeTokenSelection[type] : 0;
+        return purgeTokenSelection.ContainsKey(tokenType) ? purgeTokenSelection[tokenType] : 0;
     }
-    
-    private void SetPurgeTokenCount(ConnectionType type, int count)
+
+    private void SetPurgeTokenCount(string tokenType, int count)
     {
         if (count > 0)
-            purgeTokenSelection[type] = count;
+            purgeTokenSelection[tokenType] = count;
         else
-            purgeTokenSelection.Remove(type);
+            purgeTokenSelection.Remove(tokenType);
     }
-    
+
     private int GetTotalPurgeTokens()
     {
         return purgeTokenSelection.Values.Sum();
     }
-    
-    private async Task PerformPurge()
+
+    private int GetRequiredSlots(string size)
     {
-        // Store the selected tokens for later use in conversation completion
-        var tokenSelectionJson = System.Text.Json.JsonSerializer.Serialize(purgeTokenSelection);
-        GameWorld.SetMetadata("PendingPurgeTokens", tokenSelectionJson);
-        
-        // Trigger conversation for purge action
-        await LetterQueueManager.TriggerPurgeConversation();
-        
-        showPurgeOptions = false;
-        purgeTokenSelection.Clear();
-        StateHasChanged();
-    }
-    
-    private bool CanPerformPriority()
-    {
-        if (priorityFromPos < 2 || priorityFromPos > 8) return false;
-        if (LetterQueueManager.GetLetterAt(1) != null) return false; // Position 1 must be empty
-        
-        var letter = LetterQueueManager.GetLetterAt(priorityFromPos);
-        if (letter == null) return false;
-        
-        return TokenManager.GetTokenCount(letter.TokenType) >= 5;
-    }
-    
-    private void PerformPriority()
-    {
-        if (LetterQueueManager.TryPriorityMove(priorityFromPos))
+        return size switch
         {
-            var letter = LetterQueueManager.GetLetterAt(1); // It's now in position 1
-            MessageSystem.AddSystemMessage($"Moved letter to position 1! Spent 5 {letter.TokenType} tokens", SystemMessageTypes.Success);
-            showPriorityOptions = false;
-        }
-        else
-        {
-            MessageSystem.AddSystemMessage("Failed to perform priority move", SystemMessageTypes.Danger);
-        }
-        StateHasChanged();
-    }
-    
-    private bool CanPerformExtend()
-    {
-        if (extendPos < 1 || extendPos > 8) return false;
-        
-        var letter = LetterQueueManager.GetLetterAt(extendPos);
-        if (letter == null) return false;
-        
-        return TokenManager.GetTokenCount(letter.TokenType) >= 2;
-    }
-    
-    private void PerformExtend()
-    {
-        var letter = LetterQueueManager.GetLetterAt(extendPos);
-        if (LetterQueueManager.TryExtendDeadline(extendPos))
-        {
-            MessageSystem.AddSystemMessage($"Extended deadline by 2 days! Spent 2 {letter.TokenType} tokens", SystemMessageTypes.Success);
-            showExtendOptions = false;
-        }
-        else
-        {
-            MessageSystem.AddSystemMessage("Failed to extend deadline", SystemMessageTypes.Danger);
-        }
-        StateHasChanged();
-    }
-    
-    
-    private int GetTotalAvailableTokens()
-    {
-        int total = 0;
-        foreach (var tokenType in Enum.GetValues<ConnectionType>())
-        {
-            total += TokenManager.GetTokenCount(tokenType);
-        }
-        return total;
-    }
-    
-    private string GetLeverageIndicator(Letter letter)
-    {
-        // Get sender's token balance to determine leverage
-        var senderId = GetNPCIdByName(letter.SenderName);
-        if (string.IsNullOrEmpty(senderId)) return "";
-        
-        var tokens = TokenManager.GetTokensWithNPC(senderId);
-        var balance = tokens[letter.TokenType];
-        
-        // Visual indicators for leverage state
-        return balance switch
-        {
-            <= -3 => "🔴🔴🔴", // Extreme leverage
-            -2 => "🔴🔴",      // High leverage  
-            -1 => "🔴",        // Some leverage
-            0 => "",           // Neutral
-            >= 1 and <= 3 => "", // Normal relationship
-            >= 4 => "🟢",      // Mutual respect
+            "Small" => 1,
+            "Medium" => 2,
+            "Large" => 3,
+            _ => 1
         };
-    }
-    
-    private string GetLeverageTooltip(Letter letter)
-    {
-        var senderId = GetNPCIdByName(letter.SenderName);
-        if (string.IsNullOrEmpty(senderId)) return "";
-        
-        var tokens = TokenManager.GetTokensWithNPC(senderId);
-        var balance = tokens[letter.TokenType];
-        
-        if (balance < 0)
-        {
-            return $"You owe {letter.SenderName} {Math.Abs(balance)} {letter.TokenType} tokens - they have leverage!";
-        }
-        else if (balance >= 4)
-        {
-            return $"Strong relationship ({balance} tokens) - reduced leverage";
-        }
-        
-        return "";
-    }
-    
-    // Helper to get NPC ID from name
-    private string GetNPCIdByName(string npcName)
-    {
-        // In a real implementation, this would use NPCRepository
-        // For now, just return a consistent ID based on the name
-        return npcName?.ToLower().Replace(" ", "_") ?? "";
     }
 }

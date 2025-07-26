@@ -63,7 +63,13 @@
         // Register repositories
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<LocationSpotRepository>();
-        services.AddSingleton<ItemRepository>();
+        services.AddSingleton<ItemRepository>(serviceProvider =>
+        {
+            Console.WriteLine("[SERVICE] Creating ItemRepository...");
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            Console.WriteLine($"[SERVICE] GameWorld has {gameWorld.WorldState.Items?.Count ?? 0} items when creating ItemRepository");
+            return new ItemRepository(gameWorld);
+        });
         services.AddSingleton<NPCRepository>();
         services.AddSingleton<RouteRepository>();
         services.AddSingleton<StandingObligationRepository>();
