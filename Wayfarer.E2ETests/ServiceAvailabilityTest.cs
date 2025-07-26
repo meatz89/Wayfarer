@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 public class ServiceAvailabilityTest
 {
-    public static async Task Main()
+    public static async Task RunServiceTest()
     {
         Console.WriteLine("=== SERVICE AVAILABILITY TEST ===\n");
 

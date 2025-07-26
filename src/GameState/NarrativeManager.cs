@@ -593,6 +593,9 @@ public class NarrativeStep
     // Which NPCs should be visible during this step (empty = all visible)
     public List<string> VisibleNPCs { get; set; } = new List<string>();
     
+    // Which locations should be visible during this step (empty = all visible)
+    public List<string> VisibleLocations { get; set; } = new List<string>();
+    
     // Dialogue overrides for NPCs during this step
     public Dictionary<string, string> DialogueOverrides { get; set; } = new Dictionary<string, string>();
     

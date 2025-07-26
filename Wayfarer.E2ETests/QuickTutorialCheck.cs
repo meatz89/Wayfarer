@@ -2,20 +2,20 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
-class MinimalTutorialTest
+public class QuickTutorialCheck
 {
-    static void RunMinimalTest()
+    public static async Task Main()
     {
-        Console.WriteLine("=== MINIMAL TUTORIAL TEST ===\n");
+        Console.WriteLine("=== QUICK TUTORIAL CHECK ===\n");
         
         try
         {
-            // Setup minimal services
+            // Minimal setup
             var services = new ServiceCollection();
             services.AddLogging();
             
-            // Add configuration
             var configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
@@ -26,42 +26,47 @@ class MinimalTutorialTest
                 .Build();
             services.AddSingleton<IConfiguration>(configuration);
             
-            // Register only the services we need
             services.ConfigureServices();
-            
             var provider = services.BuildServiceProvider();
             
-            // Get services
             var gameWorldManager = provider.GetRequiredService<GameWorldManager>();
             var narrativeManager = provider.GetRequiredService<NarrativeManager>();
             var flagService = provider.GetRequiredService<FlagService>();
             
             Console.WriteLine("Starting game...");
-            gameWorldManager.StartGame().GetAwaiter().GetResult();
+            await gameWorldManager.StartGame();
             
-            // Check tutorial
-            Console.WriteLine($"\nTutorial Started: {flagService.HasFlag(FlagService.TUTORIAL_STARTED)}");
-            Console.WriteLine($"Active Narratives: {string.Join(", ", narrativeManager.GetActiveNarratives())}");
+            // Quick check
+            bool tutorialActive = narrativeManager.IsNarrativeActive("wayfarer_tutorial");
+            bool tutorialStarted = flagService.HasFlag(FlagService.TUTORIAL_STARTED);
             
-            if (narrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+            Console.WriteLine($"\nTutorial Active: {tutorialActive}");
+            Console.WriteLine($"Tutorial Started Flag: {tutorialStarted}");
+            
+            if (tutorialActive)
             {
-                Console.WriteLine("\n✓ Tutorial is active!");
                 var step = narrativeManager.GetCurrentStep("wayfarer_tutorial");
-                if (step != null)
-                {
-                    Console.WriteLine($"Current Step: {step.Name}");
-                    Console.WriteLine($"Guidance: {step.GuidanceText}");
-                }
+                Console.WriteLine($"Current Step: {step?.Name ?? "none"}");
+                Console.WriteLine("\n✓ TUTORIAL IS WORKING!");
             }
             else
             {
-                Console.WriteLine("\n✗ Tutorial is NOT active!");
+                Console.WriteLine("\n✗ TUTORIAL NOT ACTIVE!");
+                
+                // Check why
+                bool tutorialComplete = flagService.HasFlag(FlagService.TUTORIAL_COMPLETE);
+                Console.WriteLine($"Tutorial Complete Flag: {tutorialComplete}");
+                
+                if (!tutorialComplete)
+                {
+                    Console.WriteLine("\nThe tutorial should have started but didn't.");
+                    Console.WriteLine("This means InitializeTutorialIfNeeded is not working correctly.");
+                }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"\nERROR: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
         }
     }
 }

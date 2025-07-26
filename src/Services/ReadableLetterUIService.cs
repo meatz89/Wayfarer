@@ -1,26 +1,22 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.JSInterop;
 
 /// <summary>
 /// Service for handling UI display of readable letters and special documents
 /// </summary>
 public class ReadableLetterUIService
 {
-    private readonly IJSRuntime _jsRuntime;
     private readonly ItemRepository _itemRepository;
     private readonly FlagService _flagService;
     private readonly CommandExecutor _commandExecutor;
     private readonly MessageSystem _messageSystem;
 
     public ReadableLetterUIService(
-        IJSRuntime jsRuntime,
         ItemRepository itemRepository,
         FlagService flagService,
         CommandExecutor commandExecutor,
         MessageSystem messageSystem)
     {
-        _jsRuntime = jsRuntime;
         _itemRepository = itemRepository;
         _flagService = flagService;
         _commandExecutor = commandExecutor;
