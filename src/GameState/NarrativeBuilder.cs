@@ -299,9 +299,9 @@ public static class NarrativeContentBuilder
             .SetTimeOnStepStart(6) // Dawn
             .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_REST)
             
-            // Step 2: Forced movement tutorial
-            .AddStep("day1_square", "The Lower Ward Square")
-            .WithStepDescription("After resting, you gather the strength to venture out. You stumble into the square. Your vision blurs from exhaustion. You need work or food immediately.")
+            // Step 2: First conversation
+            .AddStep("day1_square", "Finding Help")
+            .WithStepDescription("You've rested and regained some strength. In the square, you see locals who might help. Your vision blurs from exhaustion. You need work or food immediately.")
             .WithGuidance("Find someone who can help - talk to the locals")
             .AllowActions("Converse") // FORCED: Only allow talking
             .ShowNPCs("tam_beggar", "elena_scribe") // Only show specific NPCs

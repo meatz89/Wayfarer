@@ -112,7 +112,7 @@
 		"name": "Evening Noble Carriage",
 		"origin": "merchants_rest",
 		"destination": "lower_ward",
-		"method": "Vehicle",
+		"method": "Carriage",
 		"baseCoinCost": 2,
 		"baseStaminaCost": 0,
 		"travelTimeHours": 1,

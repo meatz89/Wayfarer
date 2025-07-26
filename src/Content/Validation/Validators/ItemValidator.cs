@@ -6,20 +6,20 @@ using System.Text.Json;
 /// <summary>
 /// Validates item JSON content files.
 /// </summary>
-public class ItemValidator : IContentValidator
+public class ItemValidator : BaseValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
             "id", "name", "weight", "buyPrice", "sellPrice", "inventorySlots"
         };
 
-    public bool CanValidate(string fileName)
+    public override bool CanValidate(string fileName)
     {
         return fileName.Equals("items.json", StringComparison.OrdinalIgnoreCase) ||
                fileName.EndsWith("_items.json", StringComparison.OrdinalIgnoreCase);
     }
 
-    public IEnumerable<ValidationError> Validate(string content, string fileName)
+    public override IEnumerable<ValidationError> Validate(string content, string fileName)
     {
         List<ValidationError> errors = new List<ValidationError>();
 
@@ -62,7 +62,7 @@ public class ItemValidator : IContentValidator
         // Check required fields
         foreach (string field in _requiredFields)
         {
-            if (!item.TryGetProperty(field, out _))
+            if (!TryGetPropertyCaseInsensitive(item, field, out _))
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:{itemId}",
@@ -78,8 +78,8 @@ public class ItemValidator : IContentValidator
         ValidateNumericField(item, "inventorySlots", itemId, fileName, errors, min: 1);
 
         // Validate categories
-        if (item.TryGetProperty("categories", out JsonElement categories) ||
-            item.TryGetProperty("itemCategories", out categories))
+        if (TryGetPropertyCaseInsensitive(item, "categories", out JsonElement categories) ||
+            TryGetPropertyCaseInsensitive(item, "itemCategories", out categories))
         {
             if (categories.ValueKind == JsonValueKind.Array)
             {
@@ -102,7 +102,7 @@ public class ItemValidator : IContentValidator
         }
 
         // Validate size
-        if (item.TryGetProperty("size", out JsonElement size) &&
+        if (TryGetPropertyCaseInsensitive(item, "size", out JsonElement size) &&
             size.ValueKind == JsonValueKind.String)
         {
             string? sizeStr = size.GetString();
@@ -117,8 +117,8 @@ public class ItemValidator : IContentValidator
         }
 
         // Validate price consistency
-        if (item.TryGetProperty("buyPrice", out JsonElement buyPrice) &&
-            item.TryGetProperty("sellPrice", out JsonElement sellPrice))
+        if (TryGetPropertyCaseInsensitive(item, "buyPrice", out JsonElement buyPrice) &&
+            TryGetPropertyCaseInsensitive(item, "sellPrice", out JsonElement sellPrice))
         {
             if (buyPrice.TryGetInt32(out int buy) && sellPrice.TryGetInt32(out int sell))
             {
@@ -133,45 +133,7 @@ public class ItemValidator : IContentValidator
         }
     }
 
-    private void ValidateNumericField(JsonElement item, string fieldName, string itemId,
-        string fileName, List<ValidationError> errors, int? min = null, int? max = null)
-    {
-        if (item.TryGetProperty(fieldName, out JsonElement field))
-        {
-            if (field.ValueKind != JsonValueKind.Number || !field.TryGetInt32(out int value))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:{itemId}",
-                    $"Field '{fieldName}' must be a valid integer",
-                    ValidationSeverity.Critical));
-            }
-            else
-            {
-                if (min.HasValue && value < min.Value)
-                {
-                    errors.Add(new ValidationError(
-                        $"{fileName}:{itemId}",
-                        $"Field '{fieldName}' value {value} is below minimum {min.Value}",
-                        ValidationSeverity.Critical));
-                }
-                if (max.HasValue && value > max.Value)
-                {
-                    errors.Add(new ValidationError(
-                        $"{fileName}:{itemId}",
-                        $"Field '{fieldName}' value {value} is above maximum {max.Value}",
-                        ValidationSeverity.Critical));
-                }
-            }
-        }
-    }
+    // ValidateNumericField is now inherited from BaseValidator
 
-    private string GetStringProperty(JsonElement element, string propertyName)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.String)
-        {
-            return property.GetString();
-        }
-        return null;
-    }
+    // GetStringProperty is now inherited from BaseValidator
 }
