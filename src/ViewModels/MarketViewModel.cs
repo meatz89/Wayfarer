@@ -39,4 +39,5 @@ public class MarketItemViewModel
     public bool CanBuy { get; init; }
     public bool CanSell { get; init; }
     public List<string> Categories { get; init; } = new();
+    public Item Item { get; init; } // Reference to the full item for description and token effects
 }

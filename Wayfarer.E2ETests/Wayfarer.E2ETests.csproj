@@ -9,6 +9,8 @@
     <ProjectReference Include="../src/Wayfarer.csproj" />
     <Compile Include="E2E.Test.cs" />
     <Compile Include="TutorialTest.cs" />
+    <Compile Include="ServiceAvailabilityTest.cs" />
+    <Compile Include="MinimalTutorialTest.cs" />
   </ItemGroup>
   
   <!-- Copy content files to project directory for E2E test -->

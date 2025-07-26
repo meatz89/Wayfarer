@@ -185,6 +185,23 @@ public class StandingObligationFactory
         obligation.IsThresholdBased = dto.IsThresholdBased;
         obligation.ActivatesAboveThreshold = dto.ActivatesAboveThreshold;
         
+        // Apply dynamic scaling settings
+        if (!string.IsNullOrEmpty(dto.ScalingType) && 
+            EnumParser.TryParse<ScalingType>(dto.ScalingType, out ScalingType scalingType))
+        {
+            obligation.ScalingType = scalingType;
+        }
+        
+        obligation.ScalingFactor = dto.ScalingFactor;
+        obligation.BaseValue = dto.BaseValue;
+        obligation.MinValue = dto.MinValue;
+        obligation.MaxValue = dto.MaxValue;
+        
+        if (dto.SteppedThresholds != null && dto.SteppedThresholds.Any())
+        {
+            obligation.SteppedThresholds = new Dictionary<int, float>(dto.SteppedThresholds);
+        }
+        
         return obligation;
     }
 }

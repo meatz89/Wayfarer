@@ -136,6 +136,27 @@
                                 </div>
                             </div>
                             
+                            @* Display token requirements *@
+                            @{
+                                var tokenReqs = GetRouteTokenRequirements(route);
+                            }
+                            @if (tokenReqs.Any())
+                            {
+                                <div class="route-tokens">
+                                    @foreach (var (key, (required, current, displayName)) in tokenReqs)
+                                    {
+                                        var isTypeReq = key.StartsWith("type_");
+                                        var hasEnough = current >= required;
+                                        var tokenType = isTypeReq ? Enum.Parse<ConnectionType>(key.Substring(5)) : ConnectionType.Trust;
+                                        var icon = isTypeReq ? GetTokenIcon(tokenType) : "🎭";
+                                        
+                                        <span class="token-requirement @(!hasEnough ? "insufficient" : "")">
+                                            @icon @GetTokenRequirementDisplay(required, current) @displayName
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            
                             @if (route.TerrainCategories.Any())
                             {
                                 <div class="route-terrain">
@@ -154,10 +175,22 @@
                                 </div>
                             }
                             
-                            @* Show blocking reason only once *@
-                            @if (isBlocked && !string.IsNullOrEmpty(accessInfo.BlockingReason))
+                            @* Show blocking reason and hint *@
+                            @if (isBlocked)
                             {
-                                <div class="route-blocked">🚫 @accessInfo.BlockingReason</div>
+                                var tokenAccessInfo = TravelManager.GetTokenAccessInfo(route);
+                                @if (!tokenAccessInfo.IsAllowed && !string.IsNullOrEmpty(tokenAccessInfo.BlockedMessage))
+                                {
+                                    <div class="route-blocked">🚫 @tokenAccessInfo.BlockedMessage</div>
+                                    @if (!string.IsNullOrEmpty(tokenAccessInfo.HintMessage))
+                                    {
+                                        <div class="route-hint">💡 @tokenAccessInfo.HintMessage</div>
+                                    }
+                                }
+                                else if (!string.IsNullOrEmpty(accessInfo.BlockingReason))
+                                {
+                                    <div class="route-blocked">🚫 @accessInfo.BlockingReason</div>
+                                }
                             }
                             
                             @* Show only the most critical warning *@

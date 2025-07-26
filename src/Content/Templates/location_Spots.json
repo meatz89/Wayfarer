@@ -38,5 +38,15 @@
 		"locationId": "merchants_rest",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
 		"domainTags": [ "SOCIAL", "REFINED" ]
+	},
+	{
+		"id": "fishmongers_stall",
+		"name": "Fishmonger's Stall",
+		"type": "FEATURE",
+		"description": "Frans' fish stall, where fresh catches are sold and dock gossip is traded freely.",
+		"initialState": "Fish laid out on ice, scales glittering in the light. The sharp smell of brine fills the air.",
+		"locationId": "millbrook_docks",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon" ],
+		"domainTags": [ "COMMERCE", "SOCIAL" ]
 	}
 ]

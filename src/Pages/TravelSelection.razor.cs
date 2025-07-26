@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Wayfarer.GameState.Constants;
 
 namespace Wayfarer.Pages
 {
@@ -10,6 +11,8 @@ namespace Wayfarer.Pages
         [Inject] public RouteRepository RouteRepository { get; set; }
         // ItemRepository allowed for read-only UI data binding
         [Inject] public ItemRepository ItemRepository { get; set; }
+        [Inject] public ConnectionTokenManager TokenManager { get; set; }
+        [Inject] public NPCRepository NPCRepository { get; set; }
         [Parameter] public Location CurrentLocation { get; set; }
         [Parameter] public List<Location> Locations { get; set; }
         [Parameter] public EventCallback<string> OnTravel { get; set; }
@@ -47,8 +50,8 @@ namespace Wayfarer.Pages
             }
 
             int totalWeight = GameWorldManager.CalculateTotalWeight();
-            string weightStatus = totalWeight <= 3 ? "Light load" :
-                                    (totalWeight <= 6 ? "Medium load (+1 stamina cost)" : "Heavy load (+2 stamina cost)");
+            string weightStatus = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? "Light load" :
+                                    (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? "Medium load (+1 stamina cost)" : "Heavy load (+2 stamina cost)");
 
             Console.WriteLine($"Current load: {weightStatus} ({totalWeight} weight units)");
             Console.WriteLine();
@@ -61,13 +64,13 @@ namespace Wayfarer.Pages
 
                 // Calculate adjusted stamina cost
                 int adjustedStaminaCost = route.BaseStaminaCost;
-                if (totalWeight >= 4 && totalWeight <= 6)
+                if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
                 {
-                    adjustedStaminaCost += 1;
+                    adjustedStaminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY;
                 }
-                else if (totalWeight >= 7)
+                else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
                 {
-                    adjustedStaminaCost += 2;
+                    adjustedStaminaCost += GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY;
                 }
 
                 string staminaCostDisplay = route.BaseStaminaCost == adjustedStaminaCost ?
@@ -267,6 +270,75 @@ namespace Wayfarer.Pages
             return allRoutes.Where(r => r.Destination == locationId).ToList();
         }
 
+        /// <summary>
+        /// Get token requirements for a route
+        /// </summary>
+        public Dictionary<string, (int required, int current, string displayName)> GetRouteTokenRequirements(RouteOption route)
+        {
+            var requirements = new Dictionary<string, (int, int, string)>();
+            
+            if (route.AccessRequirement == null)
+                return requirements;
+
+            // Check type-based requirements
+            foreach (var (tokenType, requiredCount) in route.AccessRequirement.RequiredTokensPerType)
+            {
+                int currentCount = TokenManager.GetTotalTokensOfType(tokenType);
+                string displayName = $"{tokenType} tokens (any NPC)";
+                requirements[$"type_{tokenType}"] = (requiredCount, currentCount, displayName);
+            }
+
+            // Check NPC-specific requirements
+            foreach (var (npcId, requiredCount) in route.AccessRequirement.RequiredTokensPerNPC)
+            {
+                var npcTokens = TokenManager.GetTokensWithNPC(npcId);
+                int currentCount = npcTokens.Values.Sum();
+                var npc = NPCRepository.GetById(npcId);
+                string displayName = $"tokens with {npc?.Name ?? npcId}";
+                requirements[$"npc_{npcId}"] = (requiredCount, currentCount, displayName);
+            }
+
+            return requirements;
+        }
+
+        /// <summary>
+        /// Get icon for token type
+        /// </summary>
+        public string GetTokenIcon(ConnectionType tokenType)
+        {
+            return tokenType switch
+            {
+                ConnectionType.Trust => "💝",
+                ConnectionType.Trade => "🤝",
+                ConnectionType.Noble => "👑",
+                ConnectionType.Common => "🏘️",
+                ConnectionType.Shadow => "🌑",
+                _ => "🎭"
+            };
+        }
+
+        /// <summary>
+        /// Check if player has required tokens for a route
+        /// </summary>
+        public bool HasRequiredTokens(RouteOption route)
+        {
+            if (route.AccessRequirement == null)
+                return true;
+
+            var tokenReqs = GetRouteTokenRequirements(route);
+            return tokenReqs.All(kvp => kvp.Value.current >= kvp.Value.required);
+        }
+
+        /// <summary>
+        /// Get formatted token requirement display
+        /// </summary>
+        public string GetTokenRequirementDisplay(int required, int current)
+        {
+            if (current >= required)
+                return $"{required}";
+            else
+                return $"{required} (have {current})";
+        }
 
     }
 

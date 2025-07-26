@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Wayfarer.GameState.Constants;
 
 namespace Wayfarer.Pages
 {
@@ -65,15 +66,15 @@ namespace Wayfarer.Pages
 
         public string GetWeightStatus(int totalWeight)
         {
-            if (totalWeight <= 3) return "Light load";
-            if (totalWeight <= 6) return "Medium load (+1 stamina)";
+            if (totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX) return "Light load";
+            if (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX) return "Medium load (+1 stamina)";
             return "Heavy load (+2 stamina)";
         }
 
         public string GetWeightStatusClass(int totalWeight)
         {
-            if (totalWeight <= 3) return "weight-light";
-            if (totalWeight <= 6) return "weight-medium";
+            if (totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX) return "weight-light";
+            if (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX) return "weight-medium";
             return "weight-heavy";
         }
 

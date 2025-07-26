@@ -1,5 +1,80 @@
 [
 	{
+		"id": "tutorial_martha_fish_oil",
+		"description": "Package of fish oil for Frans the fishmonger",
+		"tokenType": "Common",
+		"category": "Basic",
+		"minTokensRequired": 0,
+		"minDeadline": 72,
+		"maxDeadline": 72,
+		"minPayment": 2,
+		"maxPayment": 2,
+		"size": "Small",
+		"physicalProperties": [],
+		"possibleSenders": ["martha_docker"],
+		"possibleRecipients": ["fishmonger_frans"]
+	},
+	{
+		"id": "tutorial_martha_urgent_medicine",
+		"description": "Urgent medicine request for sick daughter",
+		"tokenType": "Trust",
+		"category": "Quality",
+		"minTokensRequired": 0,
+		"minDeadline": 24,
+		"maxDeadline": 24,
+		"minPayment": 0,
+		"maxPayment": 0,
+		"size": "Small",
+		"physicalProperties": ["Fragile"],
+		"possibleSenders": ["martha_docker"],
+		"possibleRecipients": ["elena_scribe"]
+	},
+	{
+		"id": "tutorial_elena_personal_letter",
+		"description": "Personal letter to Elena's sister",
+		"tokenType": "Trust",
+		"category": "Basic",
+		"minTokensRequired": 0,
+		"minDeadline": 72,
+		"maxDeadline": 72,
+		"minPayment": 1,
+		"maxPayment": 1,
+		"size": "Small",
+		"physicalProperties": [],
+		"possibleSenders": ["elena_scribe"],
+		"possibleRecipients": ["martha_docker"]
+	},
+	{
+		"id": "tutorial_fishmonger_routine",
+		"description": "Routine business correspondence",
+		"tokenType": "Common",
+		"category": "Basic",
+		"minTokensRequired": 0,
+		"minDeadline": 72,
+		"maxDeadline": 72,
+		"minPayment": 3,
+		"maxPayment": 3,
+		"size": "Small",
+		"physicalProperties": [],
+		"possibleSenders": ["fishmonger_frans"],
+		"possibleRecipients": ["martha_docker"]
+	},
+	{
+		"id": "tutorial_patron_first_letter",
+		"description": "Confidential instructions from your patron",
+		"tokenType": "Noble",
+		"category": "Premium",
+		"minTokensRequired": 0,
+		"minDeadline": 72,
+		"maxDeadline": 72,
+		"minPayment": 0,
+		"maxPayment": 0,
+		"size": "Small",
+		"physicalProperties": [],
+		"possibleSenders": ["patron_intermediary"],
+		"possibleRecipients": ["tam_beggar"]
+	},
+	{
 		"id": "martha_fish_oil",
 		"description": "Fish oil package for the fishmonger",
 		"tokenType": "Trade",
@@ -12,7 +87,7 @@
 		"size": "Small",
 		"physicalProperties": ["Package"],
 		"possibleSenders": ["martha_docker"],
-		"possibleRecipients": ["fishmonger_giles"]
+		"possibleRecipients": ["fishmonger_frans"]
 	},
 	{
 		"id": "martha_medicine",
@@ -40,7 +115,7 @@
 		"minPayment": 3,
 		"maxPayment": 4,
 		"size": "Small",
-		"possibleSenders": ["fishmonger_giles"],
+		"possibleSenders": ["fishmonger_frans"],
 		"possibleRecipients": ["martha_docker", "elena_scribe"]
 	},
 	{
@@ -56,6 +131,6 @@
 		"size": "Small",
 		"physicalProperties": ["Sealed", "Confidential"],
 		"possibleSenders": ["patron_intermediary"],
-		"possibleRecipients": ["tam_beggar", "martha_docker", "elena_scribe", "fishmonger_giles"]
+		"possibleRecipients": ["tam_beggar", "martha_docker", "elena_scribe", "fishmonger_frans"]
 	}
 ]

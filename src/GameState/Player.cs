@@ -1,4 +1,6 @@
-﻿public class Player
+﻿using Wayfarer.GameState.Constants;
+
+public class Player
 {
     // Core identity
     public string Name { get; set; }
@@ -11,26 +13,26 @@
     // Progression systems
     public int Level { get; set; } = 1;
     public int CurrentXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = 100;
+    public int XPToNextLevel { get; set; } = GameConstants.Game.XP_TO_NEXT_LEVEL_BASE;
 
     // Resources
-    public int Coins { get; set; } = 10;
-    public int Stamina { get; set; } = 6;
-    public int Concentration { get; set; } = 10;
+    public int Coins { get; set; } = 10; // Starting coins - intentionally kept as literal as it's game balance
+    public int Stamina { get; set; } = 6; // Starting stamina - from GameConfiguration.StartingStamina
+    public int Concentration { get; set; } = 10; // Starting concentration - intentionally kept as literal
     public int Reputation { get; set; } = 0;
     public int Health { get; set; }
     public int Food { get; set; }
     public int PatronLeverage { get; set; } = 0;
     public bool HasPatron { get; set; } = false;
-    public int LastPatronFundDay { get; set; } = -7; // Allow immediate request on game start
+    public int LastPatronFundDay { get; set; } = -7; // Allow immediate request on game start - intentionally negative
 
-    public int MaxStamina { get; set; } = 10;  // Changed to 10 to match 0-10 scale
+    public int MaxStamina { get; set; } = 10;  // From GameConfiguration.MaxStamina
     public int MaxConcentration { get; set; }
     public int MinHealth { get; set; }
     public int MaxHealth { get; set; }
 
 
-    public Inventory Inventory { get; set; } = new Inventory(6);
+    public Inventory Inventory { get; set; } = new Inventory(6); // Starting inventory size - game balance
 
     // Relationships with characters
     public RelationshipList Relationships { get; set; } = new();
@@ -91,6 +93,9 @@
     public List<string> PurchasedFavors { get; set; } = new List<string>();
     public List<string> UnlockedLocationIds { get; set; } = new List<string>();
     public List<string> UnlockedServices { get; set; } = new List<string>();
+
+    // Collapse callback - set by GameWorldManager
+    public Action OnStaminaExhausted { get; set; }
 
     // Scenario tracking
     public List<Letter> DeliveredLetters { get; set; } = new List<Letter>();
@@ -351,7 +356,13 @@
 
     public void SetNewStamina(int newStamina)
     {
-        this.Stamina = newStamina;
+        this.Stamina = Math.Clamp(newStamina, 0, MaxStamina);
+        
+        // Trigger collapse check if stamina reaches 0
+        if (Stamina == 0 && OnStaminaExhausted != null)
+        {
+            OnStaminaExhausted();
+        }
     }
 
     // ModifyStamina moved to categorical stamina system section below
@@ -493,6 +504,12 @@
 
         Stamina -= amount;
 
+        // Trigger collapse check if stamina reaches 0
+        if (Stamina == 0 && OnStaminaExhausted != null)
+        {
+            OnStaminaExhausted();
+        }
+
         return true;
     }
 
@@ -529,6 +546,13 @@
         if (newStamina != Stamina)
         {
             Stamina = newStamina;
+            
+            // Trigger collapse check if stamina reaches 0
+            if (Stamina == 0 && OnStaminaExhausted != null)
+            {
+                OnStaminaExhausted();
+            }
+            
             return true;
         }
         return false;

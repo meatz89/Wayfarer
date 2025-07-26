@@ -161,6 +161,7 @@ public class CommandDiscoveryService
         int currentTokens = npcTokens.Values.Sum();
         if (currentTokens > 0)
         {
+            // First add the basic socialize command (Common tokens)
             SocializeCommand socializeCommand = new SocializeCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem);
             CommandValidationResult socializeValidation = socializeCommand.CanExecute(gameWorld);
 
@@ -182,6 +183,52 @@ public class CommandDiscoveryService
                 CanRemediate = socializeValidation.CanBeRemedied,
                 RemediationHint = socializeValidation.RemediationHint
             });
+
+            // Check for equipment-enabled token types
+            ConnectionType[] equipmentTokenTypes = { ConnectionType.Noble, ConnectionType.Trade };
+            foreach (ConnectionType equipmentTokenType in equipmentTokenTypes)
+            {
+                // Check if equipment enables this token type (and NPC doesn't naturally offer it)
+                if (_tokenManager.CanGenerateTokenType(equipmentTokenType, npc.ID) && 
+                    !npc.LetterTokenTypes.Contains(equipmentTokenType))
+                {
+                    // Create a specialized socialize command for this token type
+                    EquipmentSocializeCommand specializedCommand = new EquipmentSocializeCommand(
+                        npc.ID, equipmentTokenType, _npcRepository, _tokenManager, _messageSystem);
+                    
+                    string actionName = equipmentTokenType switch
+                    {
+                        ConnectionType.Noble => "Discuss refined topics",
+                        ConnectionType.Trade => "Talk business",
+                        _ => "Socialize"
+                    };
+                    
+                    string actionDesc = equipmentTokenType switch
+                    {
+                        ConnectionType.Noble => "Use your fine clothes to engage in noble discourse",
+                        ConnectionType.Trade => "Use your merchant ledger to discuss trade opportunities",
+                        _ => "Spend time together"
+                    };
+                    
+                    CommandValidationResult equipmentValidation = specializedCommand.CanExecute(gameWorld);
+                    
+                    result.AddCommand(new DiscoveredCommand
+                    {
+                        Command = specializedCommand,
+                        Category = CommandCategory.Social,
+                        DisplayName = $"{actionName} with {npc.Name}",
+                        Description = actionDesc,
+                        TimeCost = 1,
+                        StaminaCost = 1,
+                        CoinCost = 0,
+                        PotentialReward = $"50% chance of +1 {equipmentTokenType} token (equipment enabled)",
+                        IsAvailable = equipmentValidation.IsValid,
+                        UnavailableReason = equipmentValidation.FailureReason,
+                        CanRemediate = equipmentValidation.CanBeRemedied,
+                        RemediationHint = equipmentValidation.RemediationHint
+                    });
+                }
+            }
         }
 
         // Share lunch command - if afternoon and have relationship

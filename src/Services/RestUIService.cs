@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Constants;
 
 
 /// <summary>
@@ -128,8 +129,8 @@ public class RestUIService
         return new List<WaitOptionViewModel>
         {
             new WaitOptionViewModel { Hours = 1, Description = "Wait 1 hour" },
-            new WaitOptionViewModel { Hours = 2, Description = "Wait 2 hours" },
-            new WaitOptionViewModel { Hours = 4, Description = "Wait 4 hours" }
+            new WaitOptionViewModel { Hours = GameConstants.UI.WAIT_OPTION_SHORT_HOURS, Description = $"Wait {GameConstants.UI.WAIT_OPTION_SHORT_HOURS} hours" },
+            new WaitOptionViewModel { Hours = GameConstants.UI.WAIT_OPTION_LONG_HOURS, Description = $"Wait {GameConstants.UI.WAIT_OPTION_LONG_HOURS} hours" }
         };
     }
 
@@ -190,14 +191,14 @@ public class RestUIService
 
     private string ExtractNPCName(string displayName)
     {
-        if (displayName.Contains(" with "))
+        if (displayName.Contains(GameConstants.StringParsing.WITH_SEPARATOR))
         {
-            int startIndex = displayName.IndexOf(" with ") + 6;
+            int startIndex = displayName.IndexOf(GameConstants.StringParsing.WITH_SEPARATOR) + GameConstants.StringParsing.WITH_SEPARATOR_LENGTH;
             return displayName.Substring(startIndex);
         }
-        if (displayName.Contains(" at "))
+        if (displayName.Contains(GameConstants.StringParsing.AT_SEPARATOR))
         {
-            int startIndex = displayName.IndexOf(" at ") + 4;
+            int startIndex = displayName.IndexOf(GameConstants.StringParsing.AT_SEPARATOR) + GameConstants.StringParsing.AT_SEPARATOR_LENGTH;
             return displayName.Substring(startIndex);
         }
         return null;

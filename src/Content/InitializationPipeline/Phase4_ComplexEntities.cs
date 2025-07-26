@@ -30,52 +30,64 @@ public class Phase4_ComplexEntities : IInitializationPhase
     
     private void LoadStandingObligations(InitializationContext context)
     {
-        var obligationsPath = Path.Combine(context.ContentPath, "standing_obligations.json");
+        var obligationFiles = new[] { "standing_obligations.json", "scaling_obligations.json", "tutorial_obligations.json" };
+        var allObligationDTOs = new List<StandingObligationDTO>();
         
-        if (!File.Exists(obligationsPath))
+        foreach (var fileName in obligationFiles)
         {
-            Console.WriteLine("INFO: standing_obligations.json not found, no obligations loaded");
+            var obligationsPath = Path.Combine(context.ContentPath, fileName);
+            
+            if (!File.Exists(obligationsPath))
+            {
+                Console.WriteLine($"INFO: {fileName} not found, skipping");
+                continue;
+            }
+            
+            try
+            {
+                var obligationDTOs = context.ContentLoader.LoadValidatedContent<List<StandingObligationDTO>>(obligationsPath);
+                
+                if (obligationDTOs != null && obligationDTOs.Any())
+                {
+                    allObligationDTOs.AddRange(obligationDTOs);
+                    Console.WriteLine($"  Loaded {obligationDTOs.Count} obligations from {fileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                context.Warnings.Add($"Failed to load {fileName}: {ex.Message}");
+            }
+        }
+        
+        if (!allObligationDTOs.Any())
+        {
+            Console.WriteLine("INFO: No standing obligations found in any file");
             return;
         }
         
-        try
+        var obligationFactory = new StandingObligationFactory();
+        var npcs = context.GameWorld.WorldState.NPCs;
+        
+        foreach (var dto in allObligationDTOs)
         {
-            var obligationDTOs = context.ContentLoader.LoadValidatedContent<List<StandingObligationDTO>>(obligationsPath);
-            
-            if (obligationDTOs == null || !obligationDTOs.Any())
+            try
             {
-                Console.WriteLine("INFO: No standing obligations found");
-                return;
+                // Store NPC reference for Phase 6 validation
+                context.SharedData[$"obligation_{dto.ID}_npc"] = dto.Source;
+                
+                // Create obligation (don't validate NPC yet - Phase 6 will handle missing refs)
+                var obligation = obligationFactory.CreateStandingObligationFromDTO(dto, npcs);
+                
+                context.GameWorld.WorldState.StandingObligationTemplates.Add(obligation);
+                Console.WriteLine($"  Loaded obligation: {obligation.Name} from {dto.Source}");
             }
-            
-            var obligationFactory = new StandingObligationFactory();
-            var npcs = context.GameWorld.WorldState.NPCs;
-            
-            foreach (var dto in obligationDTOs)
+            catch (Exception ex)
             {
-                try
-                {
-                    // Store NPC reference for Phase 6 validation
-                    context.SharedData[$"obligation_{dto.ID}_npc"] = dto.Source;
-                    
-                    // Create obligation (don't validate NPC yet - Phase 6 will handle missing refs)
-                    var obligation = obligationFactory.CreateStandingObligationFromDTO(dto, npcs);
-                    
-                    context.GameWorld.WorldState.StandingObligationTemplates.Add(obligation);
-                    Console.WriteLine($"  Loaded obligation: {obligation.Name} from {dto.Source}");
-                }
-                catch (Exception ex)
-                {
-                    context.Warnings.Add($"Failed to create obligation {dto.ID}: {ex.Message}");
-                }
+                context.Warnings.Add($"Failed to create obligation {dto.ID}: {ex.Message}");
             }
-            
-            Console.WriteLine($"Loaded {context.GameWorld.WorldState.StandingObligationTemplates.Count} standing obligations");
         }
-        catch (Exception ex)
-        {
-            context.Warnings.Add($"Failed to load standing obligations: {ex.Message}");
-        }
+        
+        Console.WriteLine($"Loaded {context.GameWorld.WorldState.StandingObligationTemplates.Count} standing obligations total");
     }
     
     private void LoadTokenFavors(InitializationContext context)

@@ -58,5 +58,125 @@
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
 		"description": "The path back down to the working waterfront."
+	},
+	{
+		"id": "docks_market_shortcut",
+		"name": "Market Shortcuts",
+		"origin": "millbrook_docks",
+		"destination": "merchants_rest",
+		"method": "Walking",
+		"baseCoinCost": 0,
+		"baseStaminaCost": 1,
+		"travelTimeHours": 1,
+		"departureTime": null,
+		"isDiscovered": true,
+		"terrainCategories": [],
+		"maxItemCapacity": 5,
+		"description": "Secret shortcuts through market alleys known only to locals.",
+		"accessRequirement": {
+			"name": "Market Insider Access",
+			"requiredTokensPerType": {
+				"Common": 2
+			},
+			"logic": "And",
+			"blockedMessage": "The market vendors eye you suspiciously and block your path through their shortcuts.",
+			"hintMessage": "Build rapport with local merchants to learn their secret routes."
+		}
+	},
+	{
+		"id": "docks_guild_ferry",
+		"name": "Guild Ferry Service",
+		"origin": "millbrook_docks",
+		"destination": "merchants_rest",
+		"method": "Boat",
+		"baseCoinCost": 1,
+		"baseStaminaCost": 0,
+		"travelTimeHours": 1,
+		"departureTime": "Afternoon",
+		"isDiscovered": true,
+		"terrainCategories": [],
+		"maxItemCapacity": 8,
+		"description": "A comfortable ferry service reserved for guild members and their associates.",
+		"accessRequirement": {
+			"name": "Guild Associate Status",
+			"requiredTokensPerType": {
+				"Trade": 3
+			},
+			"logic": "And",
+			"blockedMessage": "The ferry captain checks his ledger. 'Guild associates only,' he says firmly.",
+			"hintMessage": "Establish strong trade relationships with guild merchants."
+		}
+	},
+	{
+		"id": "merchants_noble_carriage",
+		"name": "Evening Noble Carriage",
+		"origin": "merchants_rest",
+		"destination": "lower_ward",
+		"method": "Vehicle",
+		"baseCoinCost": 2,
+		"baseStaminaCost": 0,
+		"travelTimeHours": 1,
+		"departureTime": "Evening",
+		"isDiscovered": true,
+		"terrainCategories": [],
+		"maxItemCapacity": 10,
+		"description": "A private carriage service that discreetly transports nobility through the lower districts.",
+		"accessRequirement": {
+			"name": "Noble Recognition",
+			"requiredTokensPerType": {
+				"Noble": 1
+			},
+			"logic": "And",
+			"blockedMessage": "The footman looks you over dismissively. 'This conveyance is reserved for persons of quality.'",
+			"hintMessage": "Even minimal noble connections grant access to exclusive services."
+		}
+	},
+	{
+		"id": "ward_shadow_passage",
+		"name": "Shadow Passage",
+		"origin": "lower_ward",
+		"destination": "merchants_rest",
+		"method": "Walking",
+		"baseCoinCost": 0,
+		"baseStaminaCost": 1,
+		"travelTimeHours": 1,
+		"departureTime": "Night",
+		"isDiscovered": false,
+		"terrainCategories": ["Dark_Passage"],
+		"maxItemCapacity": 5,
+		"description": "A dangerous route through criminal territory, but swift for those with the right connections.",
+		"accessRequirement": {
+			"name": "Criminal Contacts",
+			"requiredTokensPerType": {
+				"Shadow": 2
+			},
+			"logic": "And",
+			"blockedMessage": "Shadowy figures block the alley entrance. 'Not for you, stranger,' one growls.",
+			"hintMessage": "Underground connections open dangerous but efficient routes."
+		}
+	},
+	{
+		"id": "docks_scholar_library",
+		"name": "Scholar's Library Route",
+		"origin": "millbrook_docks",
+		"destination": "merchants_rest",
+		"method": "Walking",
+		"baseCoinCost": 0,
+		"baseStaminaCost": 2,
+		"travelTimeHours": 2,
+		"departureTime": null,
+		"isDiscovered": true,
+		"terrainCategories": [],
+		"maxItemCapacity": 5,
+		"description": "A quiet path through the scholar's quarter, accessible only to trusted friends of Elena.",
+		"accessRequirement": {
+			"name": "Elena's Trust",
+			"requiredTokensPerNpc": {
+				"elena_scribe": 3
+			},
+			"logic": "And",
+			"blockedMessage": "The library guard shakes his head. 'Elena hasn't vouched for you.'",
+			"hintMessage": "Build a deep trust with Elena the Scribe to access scholarly routes."
+		}
 	}
 ]

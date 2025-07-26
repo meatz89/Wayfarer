@@ -10,13 +10,24 @@ public class NarrativeManager
 {
     private readonly FlagService _flagService;
     private readonly NPCRepository _npcRepository;
+    private readonly LocationRepository _locationRepository;
+    private readonly LocationSystem _locationSystem;
+    private readonly ITimeManager _timeManager;
     private readonly Dictionary<string, NarrativeDefinition> _narrativeDefinitions = new Dictionary<string, NarrativeDefinition>();
     private readonly Dictionary<string, NarrativeState> _activeNarratives = new Dictionary<string, NarrativeState>();
     
-    public NarrativeManager(FlagService flagService, NPCRepository npcRepository)
+    public NarrativeManager(
+        FlagService flagService, 
+        NPCRepository npcRepository,
+        LocationRepository locationRepository,
+        LocationSystem locationSystem,
+        ITimeManager timeManager)
     {
         _flagService = flagService;
         _npcRepository = npcRepository;
+        _locationRepository = locationRepository;
+        _locationSystem = locationSystem;
+        _timeManager = timeManager;
     }
     
     /// <summary>
@@ -65,6 +76,12 @@ public class NarrativeManager
         
         // Apply starting effects
         ApplyStartingEffects(definition);
+        
+        // Apply forced state changes for the first step
+        if (definition.Steps.Count > 0)
+        {
+            ApplyStepStartEffects(narrativeId, definition.Steps[0]);
+        }
     }
     
     /// <summary>
@@ -145,6 +162,9 @@ public class NarrativeManager
         
         // Drop appropriate flags based on command type
         DropCommandFlags(command);
+        
+        // Drop narrative-specific flags based on current narrative context
+        DropNarrativeSpecificFlags(command);
         
         // Check each active narrative for progression
         foreach (var kvp in _activeNarratives.ToList())
@@ -374,34 +394,43 @@ public class NarrativeManager
     
     private void DropCommandFlags(IGameCommand command)
     {
-        // Drop flags based on command type
+        // Drop generic flags based on command type - no narrative-specific logic here
+        // The narrative system should observe these generic flags and interpret them
         switch (command)
         {
             case TravelCommand:
-                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_MOVEMENT, true);
+                _flagService.SetFlag("player_moved", true);
+                _flagService.IncrementCounter("movements_made");
                 break;
-            case ConverseCommand converseCmd:
-                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_NPC_TALK, true);
+            case ConverseCommand:
+                _flagService.SetFlag("npc_conversed", true);
+                _flagService.IncrementCounter("npcs_talked_to");
                 break;
             case WorkCommand:
-                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_WORK, true);
+                _flagService.SetFlag("work_performed", true);
+                _flagService.IncrementCounter("work_actions_taken");
                 break;
             case CollectLetterCommand:
-                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_LETTER_COLLECTED, true);
+                _flagService.SetFlag("letter_collected", true);
+                _flagService.IncrementCounter("letters_collected_count");
                 break;
             case DeliverLetterCommand:
-                _flagService.SetFlag(FlagService.TUTORIAL_FIRST_LETTER_DELIVERED, true);
+                _flagService.SetFlag("letter_delivered", true);
                 _flagService.IncrementCounter("letters_delivered_count");
                 break;
-            case LetterQueueActionCommand queueCmd:
-                if (queueCmd.Description.Contains("Accept"))
-                {
-                    _flagService.SetFlag(FlagService.TUTORIAL_FIRST_LETTER_ACCEPTED, true);
-                }
-                else if (queueCmd.Description.Contains("Burn"))
-                {
-                    _flagService.SetFlag(FlagService.TUTORIAL_FIRST_TOKEN_BURNED, true);
-                }
+            case LetterQueueActionCommand:
+                _flagService.SetFlag("queue_action_taken", true);
+                break;
+            case BrowseCommand:
+                _flagService.SetFlag("market_browsed", true);
+                break;
+            case BorrowMoneyCommand:
+                _flagService.SetFlag("money_borrowed", true);
+                _flagService.IncrementCounter("total_debt");
+                break;
+            case AdvanceTimeCommand:
+            case RestCommand:
+                _flagService.IncrementCounter("time_blocks_passed");
                 break;
         }
     }
@@ -439,6 +468,11 @@ public class NarrativeManager
             {
                 CompleteNarrative(narrativeId);
             }
+            else
+            {
+                // Apply forced state changes for the new step
+                ApplyStepStartEffects(narrativeId, definition.Steps[state.CurrentStepIndex]);
+            }
         }
     }
     
@@ -462,6 +496,76 @@ public class NarrativeManager
             PatronFundsCommand => "PatronFunds",
             _ => command.GetType().Name.Replace("Command", "")
         };
+    }
+    
+    /// <summary>
+    /// Drop narrative-specific flags based on current narrative context
+    /// </summary>
+    private void DropNarrativeSpecificFlags(IGameCommand command)
+    {
+        // Check if tutorial is active
+        if (_activeNarratives.TryGetValue("wayfarer_tutorial", out var tutorialState) && tutorialState.IsActive)
+        {
+            var currentStep = GetCurrentStep("wayfarer_tutorial");
+            if (currentStep == null) return;
+            
+            // Map generic events to tutorial-specific flags based on current step
+            switch (currentStep.Id)
+            {
+                case "day1_wake":
+                    if (command is RestCommand)
+                    {
+                        _flagService.SetFlag(FlagService.TUTORIAL_FIRST_REST, true);
+                        _flagService.SetFlag(FlagService.TUTORIAL_FIRST_MOVEMENT, true); // For backward compatibility
+                    }
+                    break;
+                    
+                case "day1_square":
+                    if (command is ConverseCommand)
+                        _flagService.SetFlag(FlagService.TUTORIAL_FIRST_NPC_TALK, true);
+                    break;
+                    
+                case "day1_first_work":
+                    if (command is WorkCommand)
+                    {
+                        _flagService.SetFlag(FlagService.TUTORIAL_FIRST_WORK, true);
+                        _flagService.SetFlag(FlagService.TUTORIAL_FIRST_TOKEN_EARNED, true);
+                    }
+                    break;
+                    
+                case "day1_buy_food":
+                    if (command is BrowseCommand)
+                        _flagService.SetFlag(FlagService.TUTORIAL_FOOD_PURCHASED, true);
+                    break;
+                    
+                // Add more step-specific flag mappings as needed
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Apply forced state changes when a narrative step starts
+    /// </summary>
+    private void ApplyStepStartEffects(string narrativeId, NarrativeStep step)
+    {
+        // Apply forced location change
+        if (!string.IsNullOrEmpty(step.ForcedLocation) && !string.IsNullOrEmpty(step.ForcedSpot))
+        {
+            var location = _locationSystem.GetLocation(step.ForcedLocation);
+            var spot = _locationSystem.GetLocationSpot(step.ForcedLocation, step.ForcedSpot);
+            
+            if (location != null && spot != null)
+            {
+                _locationRepository.SetCurrentLocation(location, spot);
+            }
+        }
+        
+        // Apply forced time change
+        // TODO: Add SetTimeOfDay method to ITimeManager interface when needed
+        // if (step.ForcedHour.HasValue)
+        // {
+        //     _timeManager.SetTimeOfDay(step.ForcedHour.Value);
+        // }
     }
 }
 
@@ -489,6 +593,11 @@ public class NarrativeStep
     
     // Effects when step is completed
     public List<NarrativeEffect> CompletionEffects { get; set; } = new List<NarrativeEffect>();
+    
+    // Forced state changes when step starts
+    public string ForcedLocation { get; set; }
+    public string ForcedSpot { get; set; }
+    public int? ForcedHour { get; set; }
 }
 
 /// <summary>

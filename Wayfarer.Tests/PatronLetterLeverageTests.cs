@@ -36,15 +36,17 @@ public class PatronLetterLeverageTests
 
         _messageSystem = new MessageSystem(_gameWorld);
         _npcRepo = new NPCRepository(_gameWorld, null);
-        _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, _npcRepo);
+        var itemRepo = new ItemRepository(_gameWorld);
+        _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, _npcRepo, itemRepo);
         _templateRepo = new LetterTemplateRepository(_gameWorld);
         _conversationStateManager = new ConversationStateManager();
         var timeModel = new TimeModel();
-        _timeManager = new TimeManager(timeModel, _messageSystem, null);
+        var logger = new Microsoft.Extensions.Logging.Abstractions.NullLogger<TimeManager>();
+        _timeManager = new TimeManager(timeModel, _messageSystem, logger);
         _debugLogger = new DebugLogger(_timeManager, _conversationStateManager);
         var obligationRepo = new StandingObligationRepository(_gameWorld);
         _obligationManager = new StandingObligationManager(_gameWorld, _messageSystem, _templateRepo, _tokenManager, obligationRepo, _timeManager);
-        _categoryService = new LetterCategoryService(_gameWorld, _tokenManager, _npcRepo, _messageSystem);
+        _categoryService = new LetterCategoryService(_gameWorld, _tokenManager, _npcRepo, _messageSystem, _gameConfig);
         _conversationFactory = new ConversationFactory(null, _tokenManager);
         _gameConfig = new GameConfiguration();
         _ruleEngine = new GameRuleEngine(_gameConfig, _tokenManager, _npcRepo, _timeManager as TimeManager);

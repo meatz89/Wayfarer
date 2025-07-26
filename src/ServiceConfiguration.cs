@@ -99,6 +99,7 @@
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
         services.AddSingleton<TransportCompatibilityValidator>();
+        services.AddSingleton<CollapseManager>();
 
         // Letter Queue System
         services.AddSingleton<StandingObligationManager>();
@@ -115,8 +116,9 @@
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
             var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
+            var itemRepository = serviceProvider.GetRequiredService<ItemRepository>();
             
-            var connectionTokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepository);
+            var connectionTokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepository, itemRepository);
             
             // Defer wiring to avoid circular dependency during construction
             var categoryService = serviceProvider.GetRequiredService<LetterCategoryService>();

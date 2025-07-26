@@ -1,4 +1,5 @@
-﻿
+﻿using Wayfarer.GameState.Constants;
+
 public enum WeatherCondition
 {
     Clear,
@@ -225,13 +226,13 @@ public class RouteOption
         int adjustedStaminaCost = BaseStaminaCost;
 
         // Apply weight penalties
-        if (totalWeight >= 4 && totalWeight <= 6)
+        if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            adjustedStaminaCost += 1;
+            adjustedStaminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY;
         }
-        else if (totalWeight >= 7)
+        else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            adjustedStaminaCost += 2;
+            adjustedStaminaCost += GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY;
         }
 
         return adjustedStaminaCost;
@@ -262,20 +263,20 @@ public class RouteOption
         int staminaCost = BaseStaminaCost;
 
         // Physical weight penalties (realistic cargo limitations)
-        if (totalWeight >= 4 && totalWeight <= 6)
+        if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            staminaCost += 1; // Moderate load
+            staminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY; // Moderate load
         }
-        else if (totalWeight >= 7)
+        else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            staminaCost += 2; // Heavy load
+            staminaCost += GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY; // Heavy load
         }
 
         // Overload penalties (instead of blocking - player choice with consequences)
         if (itemCount > MaxItemCapacity)
         {
             int overload = itemCount - MaxItemCapacity;
-            staminaCost += overload * 1; // +1 stamina per item over capacity
+            staminaCost += overload * GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY; // +1 stamina per item over capacity
         }
 
         return Math.Max(1, staminaCost);

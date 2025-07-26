@@ -12,14 +12,16 @@ public class LetterCategoryService
     private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
+    private readonly GameConfiguration _config;
 
     public LetterCategoryService(GameWorld gameWorld, ConnectionTokenManager connectionTokenManager,
-        NPCRepository npcRepository, MessageSystem messageSystem)
+        NPCRepository npcRepository, MessageSystem messageSystem, GameConfiguration config)
     {
         _gameWorld = gameWorld;
         _connectionTokenManager = connectionTokenManager;
         _npcRepository = npcRepository;
         _messageSystem = messageSystem;
+        _config = config;
     }
 
     /// <summary>
@@ -127,9 +129,9 @@ public class LetterCategoryService
     {
         return category switch
         {
-            LetterCategory.Basic => (3, 5),      // 1-2 tokens: 3-5 coins
-            LetterCategory.Quality => (8, 12),   // 3-4 tokens: 8-12 coins
-            LetterCategory.Premium => (15, 20),  // 5+ tokens: 15-20 coins
+            LetterCategory.Basic => (_config.LetterPayment.BasicMin, _config.LetterPayment.BasicMax),      // 1-2 tokens
+            LetterCategory.Quality => (_config.LetterPayment.QualityMin, _config.LetterPayment.QualityMax),   // 3-4 tokens
+            LetterCategory.Premium => (_config.LetterPayment.PremiumMin, _config.LetterPayment.PremiumMax),  // 5+ tokens
             _ => (3, 5)
         };
     }
@@ -150,7 +152,7 @@ public class LetterCategoryService
                 SystemMessageTypes.Success
             );
             _messageSystem.AddSystemMessage(
-                $"  • Basic letters (3-5 coins) are now available",
+                $"  • Basic letters ({_config.LetterPayment.BasicMin}-{_config.LetterPayment.BasicMax} coins) are now available",
                 SystemMessageTypes.Info
             );
         }
@@ -161,7 +163,7 @@ public class LetterCategoryService
                 SystemMessageTypes.Success
             );
             _messageSystem.AddSystemMessage(
-                $"  • Quality {tokenType} letters (8-12 coins) are now available",
+                $"  • Quality {tokenType} letters ({_config.LetterPayment.QualityMin}-{_config.LetterPayment.QualityMax} coins) are now available",
                 SystemMessageTypes.Info
             );
         }
@@ -172,7 +174,7 @@ public class LetterCategoryService
                 SystemMessageTypes.Success
             );
             _messageSystem.AddSystemMessage(
-                $"  • Premium {tokenType} letters (15-20 coins) are now available",
+                $"  • Premium {tokenType} letters ({_config.LetterPayment.PremiumMin}-{_config.LetterPayment.PremiumMax} coins) are now available",
                 SystemMessageTypes.Info
             );
         }

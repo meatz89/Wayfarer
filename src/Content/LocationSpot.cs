@@ -1,4 +1,4 @@
-﻿
+﻿using Wayfarer.GameState.Constants;
 
 public class LocationSpot
 {
@@ -9,7 +9,7 @@ public class LocationSpot
     public LocationSpotTypes Type { get; set; }
     public int CurrentLevel { get; set; } = 1;
     public int CurrentSpotXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = 100;
+    public int XPToNextLevel { get; set; } = GameConstants.Game.XP_TO_NEXT_LEVEL_BASE;
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
     public bool PlayerKnowledge { get; set; }

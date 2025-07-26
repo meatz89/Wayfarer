@@ -67,6 +67,20 @@ public class NarrativeBuilder
     }
     
     /// <summary>
+    /// Set a counter value on start
+    /// </summary>
+    public NarrativeBuilder SetCounterOnStart(string counterName, int value)
+    {
+        _definition.StartingEffects.Add(new NarrativeEffect
+        {
+            Type = EffectType.SetCounter,
+            Key = counterName,
+            Value = value.ToString()
+        });
+        return this;
+    }
+    
+    /// <summary>
     /// Add a completion reward
     /// </summary>
     public NarrativeBuilder SetFlagOnComplete(string flagName)
@@ -198,6 +212,27 @@ public class NarrativeBuilder
     }
     
     /// <summary>
+    /// Force specific game state when step starts
+    /// </summary>
+    public NarrativeBuilder ForceLocationOnStepStart(string locationId, string spotId)
+    {
+        if (_currentStep == null) throw new InvalidOperationException("No step being defined");
+        _currentStep.ForcedLocation = locationId;
+        _currentStep.ForcedSpot = spotId;
+        return this;
+    }
+    
+    /// <summary>
+    /// Set time of day when step starts
+    /// </summary>
+    public NarrativeBuilder SetTimeOnStepStart(int hour)
+    {
+        if (_currentStep == null) throw new InvalidOperationException("No step being defined");
+        _currentStep.ForcedHour = hour;
+        return this;
+    }
+    
+    /// <summary>
     /// Build the narrative definition
     /// </summary>
     public NarrativeDefinition Build()
@@ -233,161 +268,219 @@ public static class NarrativeContentBuilder
     public static void BuildTutorialNarrative()
     {
         NarrativeBuilder.Create("wayfarer_tutorial", "From Destitute to Patronage")
-            .WithDescription("A 10-day journey teaching all game mechanics")
+            .WithDescription("A 3-day journey teaching all game mechanics through forced narrative")
             .RequireFlag(FlagService.TUTORIAL_COMPLETE, false) // Don't start if already completed
             .SetFlagOnStart(FlagService.TUTORIAL_STARTED)
             .SetFlagOnComplete(FlagService.TUTORIAL_COMPLETE)
+            // Set initial tutorial state
+            .SetCounterOnStart("tutorial_day", 1)
+            .SetCounterOnStart("time_blocks_passed", 0)
+            .SetCounterOnStart("letters_in_queue", 0)
+            .SetCounterOnStart("npcs_talked_to", 0)
             
-            // Day 1: Movement and Survival
-            .AddStep("day1_wake", "Wake in Abandoned Warehouse")
-            .WithStepDescription("You wake in the Lower Ward, destitute and alone")
-            .WithGuidance("Leave the warehouse to explore the Lower Ward")
-            .AllowActions("Travel", "Rest")
-            .ShowNPCs("tam_beggar")
-            .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_MOVEMENT)
+            // DAY 1: SURVIVAL AND FIRST TOKEN
+            // Step 1: Wake up with minimal resources
+            .AddStep("day1_wake", "Awakening")
+            .WithStepDescription("You wake in the Abandoned Warehouse with only 2 coins and dangerously low stamina (4/10)")
+            .WithGuidance("You need to gather your strength before venturing out. Rest for a moment to clear your head.")
+            .AllowActions("Rest") // FORCED: Only allow rest
+            .ShowNPCs() // No NPCs visible yet
+            .ForceLocationOnStepStart("lower_ward", "abandoned_warehouse")
+            .SetTimeOnStepStart(6) // Dawn
+            .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_REST)
             
-            .AddStep("day1_meet_tam", "Meet Tam the Beggar")
-            .WithStepDescription("Tam offers advice about survival in the city")
-            .WithGuidance("Talk to Tam to learn about finding work")
-            .AllowActions("Converse", "Travel", "Rest")
-            .ShowNPCs("tam_beggar")
-            .WithNPCDialogue("tam_beggar", "Hey there, new blood. First day on the streets? Let me give you some advice - the docks always need workers. Martha's usually hiring if you can handle heavy lifting.")
+            // Step 2: Forced movement tutorial
+            .AddStep("day1_square", "The Lower Ward Square")
+            .WithStepDescription("After resting, you gather the strength to venture out. You stumble into the square. Your vision blurs from exhaustion. You need work or food immediately.")
+            .WithGuidance("Find someone who can help - talk to the locals")
+            .AllowActions("Converse") // FORCED: Only allow talking
+            .ShowNPCs("tam_beggar", "elena_scribe") // Only show specific NPCs
+            .ForceLocationOnStepStart("lower_ward", "lower_ward_square") // Move player to the square
             .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_NPC_TALK)
             
-            .AddStep("day1_survival_choice", "Make First Survival Choice")
-            .WithStepDescription("You're hungry and tired. What will you prioritize?")
-            .WithGuidance("Choose: Rest to recover stamina, or save your coins for later")
-            .AllowActions("Rest", "Travel")
+            // Step 3: Learn about work from Tam
+            .AddStep("day1_tam_advice", "Tam's Advice")
+            .WithStepDescription("Tam notices your desperation and offers guidance")
+            .WithGuidance("Listen to Tam's advice about finding work")
+            .AllowActions("Converse", "Travel") // Can now travel
             .ShowNPCs("tam_beggar")
-            .CompleteWhenCounter("time_blocks_passed", 3, ConditionType.CounterGreaterThan)
+            .WithNPCDialogue("tam_beggar", "You look about ready to collapse, friend. The docks - Martha's always hiring there. Hard work, but honest pay. Go now, before you fall over. Tell her Tam sent you.")
+            .CompleteWhenFlag("tutorial_tam_advice_received")
+            .SetFlagOnStepComplete("tutorial_tam_advice_received")
             
-            // Day 2: Work and Tokens
-            .AddStep("day2_find_work", "Find Work at the Docks")
-            .WithStepDescription("Time to earn your first honest coins")
-            .WithGuidance("Travel to the Docks and find Martha to work")
-            .AllowActions("Travel", "Rest", "Converse", "Work")
-            .ShowNPCs("tam_beggar", "martha_docks")
+            // Step 4: Travel to docks and meet Martha
+            .AddStep("day1_meet_martha", "Finding Martha")
+            .WithStepDescription("Following Tam's advice, you head to the docks")
+            .WithGuidance("Travel to Millbrook Docks and find Martha")
+            .AllowActions("Travel", "Converse")
+            .ShowNPCs("martha_docker")
+            .ForceLocationOnStepStart("millbrook_docks", "wharf")
+            .CompleteWhenFlag("tutorial_martha_met")
+            
+            // Step 5: Forced to take dock work
+            .AddStep("day1_first_work", "Desperate for Work")
+            .WithStepDescription("Martha eyes you skeptically but sees your desperation")
+            .WithGuidance("Accept Martha's work offer - you have no choice")
+            .AllowActions("Work") // FORCED: Only work available
+            .ShowNPCs("martha_docker")
+            .WithNPCDialogue("martha_docker", "Tam sent you? Hmm. You look half-dead already, but I suppose you'll do. 2 stamina for 4 coins. Take it or leave it - though by the look of you, you don't have much choice.")
             .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_WORK)
             
-            .AddStep("day2_earn_token", "Earn Your First Token")
-            .WithStepDescription("Martha appreciates hard workers")
-            .WithGuidance("Continue working to build trust with Martha")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe")
-            .WithNPCDialogue("martha_docks", "Good work today. You're not like the usual drifters. Keep this up and I might have something special for you.")
-            .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_TOKEN_EARNED)
-            .SetFlagOnStepComplete("first_token_earned")
+            // Step 6: Work action tutorial (2 stamina → 4 coins + 1 Trade token)
+            .AddStep("day1_work_complete", "First Day's Labor")
+            .WithStepDescription("You complete the work, earning 4 coins and Martha's grudging respect (1 Trade token)")
+            .WithGuidance("You now have 6 coins total. Buy food before you collapse!")
+            .AllowActions("Browse", "Travel") // Can browse market
+            .ShowNPCs("martha_docker")
+            .CompleteWhenFlag("tutorial_food_purchased")
             
-            .AddStep("day2_meet_elena", "Meet Elena the Scribe")
-            .WithStepDescription("A chance encounter at Merchant's Rest")
-            .WithGuidance("Talk to Elena at the inn")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe")
-            .WithNPCDialogue("elena_scribe", "Oh! I haven't seen you before. New to Millbrook? I'm Elena - I handle correspondence for merchants. Speaking of which... no, never mind. You probably aren't interested in letter work.")
-            .CompleteWhenCounter("npcs_talked_to", 3, ConditionType.CounterGreaterThan)
+            // Step 7: Buy food to avoid collapse
+            .AddStep("day1_buy_food", "Survival Secured")
+            .WithStepDescription("With food in your belly, you feel strength returning")
+            .WithGuidance("Return to Martha - she mentioned having something special for hard workers")
+            .AllowActions("Travel", "Converse", "Rest")
+            .ShowNPCs("martha_docker", "elena_scribe")
+            .CompleteWhenFlag("tutorial_martha_letter_offered")
             
-            // Day 3: Letter Discovery
-            .AddStep("day3_letter_offer", "First Letter Offer")
-            .WithStepDescription("Elena has a proposition for you")
-            .WithGuidance("Talk to Elena about the letter delivery job")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe", "fishmonger")
-            .WithNPCDialogue("elena_scribe", "Actually, I do have a simple letter that needs delivering. The fishmonger at the docks ordered supplies. It pays 3 coins - interested?")
-            .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_LETTER_OFFERED)
-            
-            .AddStep("day3_accept_letter", "Accept Your First Letter")
-            .WithStepDescription("Your first step into the letter trade")
-            .WithGuidance("Accept Elena's letter in your queue")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "QueueAction")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe", "fishmonger")
+            // Step 8: Accept Martha's first letter delivery
+            .AddStep("day1_first_letter", "A Letter Job")
+            .WithStepDescription("Martha has a letter that needs delivering")
+            .WithGuidance("Accept Martha's letter delivery job")
+            .AllowActions("QueueAction") // FORCED: Must accept letter
+            .ShowNPCs("martha_docker")
+            .WithNPCDialogue("martha_docker", "You did good work today. I have a letter for the fishmonger - simple delivery, pays 3 coins. Consider it a test. Don't mess it up.")
             .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_LETTER_ACCEPTED)
-            .SetFlagOnStepComplete("tutorial_first_letter_accepted")
+            .SetFlagOnStepComplete(FlagService.TUTORIAL_MARTHA_LETTER_OFFERED)
             
-            .AddStep("day3_collect_letter", "Collect the Letter")
-            .WithStepDescription("Pick up the letter from Elena")
-            .WithGuidance("Collect the letter from Elena to begin delivery")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "CollectLetter")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe", "fishmonger")
-            .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_LETTER_COLLECTED)
+            // Step 9: Meet Elena and accept personal letter
+            .AddStep("day1_elena_letter", "A Second Opportunity")
+            .WithStepDescription("Elena the Scribe has noticed your new profession")
+            .WithGuidance("Talk to Elena about her letter")
+            .AllowActions("Converse", "QueueAction", "CollectLetter")
+            .ShowNPCs("martha_docker", "elena_scribe")
+            .WithNPCDialogue("elena_scribe", "Oh! You're doing letter work now? Perfect timing - I have a personal letter for my cousin. It's not urgent, but I'd appreciate the help. I'll remember your kindness.")
+            .CompleteWhenFlag(FlagService.TUTORIAL_ELENA_LETTER_ACCEPTED)
+            .SetFlagOnStepComplete(FlagService.TUTORIAL_FIRST_LETTER_OFFERED)
             
-            .AddStep("day3_deliver_letter", "Complete First Delivery")
-            .WithStepDescription("Deliver the letter to earn your payment")
-            .WithGuidance("Find the fishmonger at the docks and deliver the letter")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "DeliverLetter")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe", "fishmonger")
-            .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_LETTER_DELIVERED)
+            // Step 10: End of Day 1
+            .AddStep("day1_complete", "Day's End")
+            .WithStepDescription("As night falls, you reflect on your first day. You've learned basic survival and discovered the letter trade.")
+            .WithGuidance("Rest for the night. Tomorrow will bring new challenges.")
+            .AllowActions("Rest", "AdvanceTime") // Force time advancement
+            .CompleteWhenCounter("tutorial_day", 2, ConditionType.CounterEquals)
+            .SetFlagOnStepComplete("tutorial_day1_complete")
             
-            // Day 4-5: Queue Pressure
-            .AddStep("day4_multiple_letters", "Managing Multiple Letters")
-            .WithStepDescription("More merchants want your services")
-            .WithGuidance("Accept and manage multiple letters in your queue")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "QueueAction", "CollectLetter", "DeliverLetter")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe", "fishmonger")
-            .CompleteWhenCounter("letters_in_queue", 2, ConditionType.CounterGreaterThan)
+            // DAY 2: QUEUE PRIORITY AND TOKEN BURNING
+            // Step 11: Morning - Multiple letters create conflict
+            .AddStep("day2_morning", "A Busy Morning")
+            .WithStepDescription("You wake to find merchants eager for your services. Multiple letter offers await.")
+            .WithGuidance("Check your letter queue and accept new offers")
+            .AllowActions("Travel", "Converse", "QueueAction", "CollectLetter", "DeliverLetter")
+            .ShowNPCs("martha_docker", "elena_scribe", "fishmonger_frans", "merchant_guild")
+            .CompleteWhenCounter("letters_in_queue", 3, ConditionType.CounterGreaterThan)
             
-            .AddStep("day5_urgent_letter", "Crisis: Urgent Medicine")
-            .WithStepDescription("Martha's child is sick and needs medicine urgently")
-            .WithGuidance("Martha needs medicine delivered TODAY. Choose wisely.")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "QueueAction", "CollectLetter", "DeliverLetter")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe", "fishmonger")
-            .WithNPCDialogue("martha_docks", "Please! My daughter is burning with fever. This letter is for the apothecary - it's for medicine. I'll remember if you help me... or if you don't.")
-            .CompleteWhenCounter("tutorial_day", 5, ConditionType.CounterGreaterThan)
+            // Step 12: Elena's urgent letter forces queue management
+            .AddStep("day2_urgent", "An Urgent Request")
+            .WithStepDescription("Elena rushes to you with an urgent letter that must be delivered immediately!")
+            .WithGuidance("Elena's urgent letter enters at position 1, pushing others down. You must manage your queue!")
+            .AllowActions("QueueAction") // FORCED: Must handle queue
+            .ShowNPCs("elena_scribe")
+            .WithNPCDialogue("elena_scribe", "Please! My mother is ill and this medicine request must reach the apothecary TODAY! I know you have other letters, but... I have these Trust tokens. Would burning one help move my letter up?")
+            .CompleteWhenFlag("tutorial_urgent_letter_handled")
             
-            .AddStep("day5_token_burn", "Learn Token Burning")
-            .WithStepDescription("Sometimes sacrifices must be made")
-            .WithGuidance("Use tokens to manage your queue if needed")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "QueueAction", "CollectLetter", "DeliverLetter")
-            .ShowNPCs("tam_beggar", "martha_docks", "elena_scribe", "fishmonger")
+            // Step 13: Learn about token burning
+            .AddStep("day2_token_burn", "The Power of Tokens")
+            .WithStepDescription("You learn that tokens can be burned to manipulate queue positions")
+            .WithGuidance("Burn a token to manage your queue priorities")
+            .AllowActions("QueueAction", "CollectLetter", "DeliverLetter")
+            .ShowNPCs("elena_scribe")
             .CompleteWhenFlag(FlagService.TUTORIAL_FIRST_TOKEN_BURNED)
             
-            // Day 6-7: Desperation
-            .AddStep("day6_consequences", "Face the Consequences")
-            .WithStepDescription("Your choices have shaped relationships")
-            .WithGuidance("See how NPCs remember your actions")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "QueueAction", "CollectLetter", "DeliverLetter", "BorrowMoney")
-            .CompleteWhenCounter("hostile_npcs", 1, ConditionType.CounterGreaterThan)
+            // Step 14: Merchant Guild trial
+            .AddStep("day2_guild_trial", "The Merchant Guild Trial")
+            .WithStepDescription("The Merchant Guild offers you a trial - complete it to earn their standing obligation")
+            .WithGuidance("Complete the Guild's delivery challenge")
+            .AllowActions("Travel", "Converse", "QueueAction", "CollectLetter", "DeliverLetter")
+            .ShowNPCs("merchant_guild")
+            .WithNPCDialogue("merchant_guild", "We've heard of your reliability. Complete this trade route delivery within the time limit, and we'll establish a standing arrangement. Our 'Merchant's Priority' obligation will ensure our letters always get favorable queue positions.")
+            .CompleteWhenFlag("tutorial_guild_trial_complete")
             
-            .AddStep("day7_desperation", "Reach Rock Bottom")
-            .WithStepDescription("Debt, exhaustion, and few friends")
-            .WithGuidance("Survive however you can")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "QueueAction", "CollectLetter", "DeliverLetter", "BorrowMoney", "Gather")
-            .CompleteWhenFlag(FlagService.TUTORIAL_DESPERATION_REACHED)
+            // Step 15: Learn about standing obligations
+            .AddStep("day2_obligation", "Standing Obligations")
+            .WithStepDescription("You've earned the 'Merchant's Priority' obligation - Guild letters now get +1 queue position")
+            .WithGuidance("Check your obligations panel to see how this affects future letters")
+            .AllowActions("Travel", "Rest", "Converse")
+            .CompleteWhenFlag("tutorial_obligation_understood")
+            .SetFlagOnStepComplete("tutorial_day2_complete")
             
-            // Day 8-9: Hope
-            .AddStep("day8_tam_returns", "Tam Has News")
-            .WithStepDescription("Your old friend brings unexpected tidings")
-            .WithGuidance("Find Tam in the Lower Ward")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "QueueAction", "CollectLetter", "DeliverLetter", "BorrowMoney", "Gather")
-            .WithNPCDialogue("tam_beggar", "Hey! Remember me? I've been watching you work these streets. Someone else has been watching too. There's a letter waiting for you - not the usual kind. Gold seal and everything.")
-            .CompleteWhenCounter("tutorial_day", 8, ConditionType.CounterGreaterThan)
+            // DAY 3: DEBT AND PATRONAGE
+            // Step 16: Financial crisis
+            .AddStep("day3_crisis", "Financial Crisis")
+            .WithStepDescription("You wake to find your money stolen! With no coins and letters to deliver, you face a crisis.")
+            .WithGuidance("You need money for food and supplies. Someone might lend you coins...")
+            .AllowActions("Converse", "BorrowMoney") // FORCED: Must borrow
+            .ShowNPCs("elena_scribe", "martha_docker")
+            .CompleteWhenFlag("tutorial_money_borrowed")
             
-            .AddStep("day9_mysterious_letter", "The Mysterious Letter")
-            .WithStepDescription("A letter with a gold seal awaits")
-            .WithGuidance("Investigate this unusual correspondence")
-            .AllowActions("Travel", "Rest", "Converse", "Work", "Socialize", "QueueAction", "CollectLetter", "DeliverLetter", "BorrowMoney", "Gather")
+            // Step 17: Borrow from Elena (-2 Trust tokens)
+            .AddStep("day3_debt", "The Weight of Debt")
+            .WithStepDescription("Elena lends you money but the debt costs you 2 Trust tokens")
+            .WithGuidance("Your debt to Elena has consequences...")
+            .AllowActions("Travel", "Converse")
+            .ShowNPCs("elena_scribe")
+            .WithNPCDialogue("elena_scribe", "Of course I'll help you! But... borrowing creates obligations. Those 2 Trust tokens I'm losing represent my faith in you. And now... well, my letters will naturally take priority in your queue. It's only fair, right?")
+            .CompleteWhenFlag("tutorial_debt_created")
+            
+            // Step 18: Debt activates "Elena's Leverage"
+            .AddStep("day3_leverage", "The Leverage System")
+            .WithStepDescription("Your debt has activated 'Elena's Leverage' - her letters now jump ahead in queue")
+            .WithGuidance("Check how Elena's leverage affects your letter queue")
+            .AllowActions("QueueAction", "Travel", "CollectLetter", "DeliverLetter")
+            .ShowNPCs("elena_scribe")
+            .CompleteWhenFlag("tutorial_leverage_understood")
+            
+            // Step 19: Mysterious letter arrives
+            .AddStep("day3_mystery", "A Mysterious Letter")
+            .WithStepDescription("Tam finds you with news of a gold-sealed letter waiting at Merchant's Rest")
+            .WithGuidance("Travel to Merchant's Rest to investigate")
+            .AllowActions("Travel", "Converse")
+            .ShowNPCs("tam_beggar")
+            .ForceLocationOnStepStart("lower_ward", "lower_ward_square")
+            .WithNPCDialogue("tam_beggar", "There you are! Someone's been asking about you - someone important. There's a letter waiting at Merchant's Rest. Gold seal and everything. This could change your life, friend.")
             .CompleteWhenFlag(FlagService.TUTORIAL_PATRON_LETTER_RECEIVED)
             
-            // Day 10: Transformation
-            .AddStep("day10_meet_patron", "Meeting at Merchant's Rest")
-            .WithStepDescription("Your mysterious benefactor awaits")
-            .WithGuidance("Go to the private room at Merchant's Rest")
-            .AllowActions("Travel", "Rest", "Converse")
+            // Step 20: Meet the patron
+            .AddStep("day3_patron", "The Patron")
+            .WithStepDescription("In the private room at Merchant's Rest, a well-dressed intermediary awaits")
+            .WithGuidance("Speak with the mysterious patron")
+            .AllowActions("Converse") // FORCED: Must talk
             .ShowNPCs("patron_intermediary")
-            .WithNPCDialogue("patron_intermediary", "Ah, the industrious letter carrier. My employer has been watching your progress with interest. Despite starting with nothing, you've shown resourcefulness and determination. We have a proposition.")
+            .ForceLocationOnStepStart("merchants_rest", "private_room")
+            .WithNPCDialogue("patron_intermediary", "Ah, the industrious letter carrier. My employer has watched your progress with interest. From nothing to a reliable courier in just three days. Impressive. We have a proposition that could lift you from these streets permanently.")
             .CompleteWhenFlag(FlagService.TUTORIAL_PATRON_MET)
             
-            .AddStep("day10_choice", "The Patron's Offer")
-            .WithStepDescription("A chance to change your life")
-            .WithGuidance("Accept or refuse the patron's offer")
-            .AllowActions("Converse")
+            // Step 21: Accept patronage
+            .AddStep("day3_patronage", "The Offer of Patronage")
+            .WithStepDescription("The patron offers regular work, good pay, and social advancement")
+            .WithGuidance("Accept the patronage to secure your future")
+            .AllowActions("Converse") // FORCED: Must accept
             .ShowNPCs("patron_intermediary")
-            .WithNPCDialogue("patron_intermediary", "We offer patronage: regular letters, good pay, and status. In return, you carry our letters first, always. You'll rise from these slums to serve Millbrook's elite. What say you?")
+            .WithNPCDialogue("patron_intermediary", "We offer patronage: steady Noble letters, premium rates, and entry to exclusive locations. In return, our letters take absolute priority. You'll wear our seal and represent our interests. Do you accept?")
             .CompleteWhenFlag(FlagService.TUTORIAL_PATRON_ACCEPTED)
             
-            .AddStep("day10_complete", "New Life Begins")
-            .WithStepDescription("From destitute to patronage in 10 days")
-            .WithGuidance("Your tutorial is complete. The real game begins!")
-            .CompleteWhenFlag("tutorial_complete_final")
+            // Step 22: First patron letter
+            .AddStep("day3_first_patron", "Your First Patron Letter")
+            .WithStepDescription("Your patron immediately provides a Noble letter - it enters at queue position 1")
+            .WithGuidance("Deliver your first patron letter to complete the tutorial")
+            .AllowActions("QueueAction", "CollectLetter", "DeliverLetter", "Travel")
+            .ShowNPCs("patron_intermediary")
+            .CompleteWhenFlag("tutorial_first_patron_letter_delivered")
+            
+            // Step 23: Tutorial complete
+            .AddStep("tutorial_complete", "From Rags to Patronage")
+            .WithStepDescription("In just 3 days, you've risen from destitute to patronized. The real journey begins now.")
+            .WithGuidance("Tutorial complete! You now understand survival, letters, tokens, obligations, and leverage.")
+            .CompleteWhenFlag(FlagService.TUTORIAL_COMPLETE_FINAL)
             .SetFlagOnStepComplete(FlagService.TUTORIAL_COMPLETE)
             
             .BuildAndRegister();

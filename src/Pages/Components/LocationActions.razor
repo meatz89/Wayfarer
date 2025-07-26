@@ -32,48 +32,72 @@
                 <div class="actions-list">
                     @foreach (var action in group.Actions)
                     {
-                        <div class="action-item @(CanAffordAction(action) ? "" : "disabled")">
+                        <div class="action-item @(action.IsServiceClosed ? "service-closed" : (CanAffordAction(action) ? "" : "disabled"))">
                             <div class="action-info">
                                 <div class="action-name">@action.Description</div>
                                 @if (!string.IsNullOrEmpty(action.NPCName))
                                 {
                                     <div class="action-npc">with @action.NPCName</div>
                                 }
-                            </div>
-                            
-                            <div class="action-costs">
-                                @if (action.TimeCost > 0)
+                                
+                                @if (action.IsServiceClosed)
                                 {
-                                    <span class="cost-item @(action.HasEnoughTime ? "" : "insufficient")">
-                                        ⏰ @action.TimeCost hr
-                                    </span>
-                                }
-                                @if (action.StaminaCost > 0)
-                                {
-                                    <span class="cost-item @(action.HasEnoughStamina ? "" : "insufficient")">
-                                        💪 @action.StaminaCost
-                                    </span>
-                                }
-                                @if (action.CoinCost > 0)
-                                {
-                                    <span class="cost-item @(action.HasEnoughCoins ? "" : "insufficient")">
-                                        🪙 @action.CoinCost
-                                    </span>
+                                    <div class="service-status">
+                                        <span class="closed-icon">🔒</span>
+                                        <span class="closed-text">@action.NextAvailableTime</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(action.ServiceSchedule))
+                                    {
+                                        <div class="service-schedule">@action.ServiceSchedule</div>
+                                    }
                                 }
                             </div>
                             
-                            @if (!string.IsNullOrEmpty(action.RewardsDescription))
+                            @if (!action.IsServiceClosed)
                             {
-                                <div class="action-rewards">
-                                    <span class="reward-label">Rewards:</span> @action.RewardsDescription
+                                <div class="action-costs">
+                                    @if (action.TimeCost > 0)
+                                    {
+                                        <span class="cost-item @(action.HasEnoughTime ? "" : "insufficient")">
+                                            ⏰ @action.TimeCost hr
+                                        </span>
+                                    }
+                                    @if (action.StaminaCost > 0)
+                                    {
+                                        <span class="cost-item @(action.HasEnoughStamina ? "" : "insufficient")">
+                                            💪 @action.StaminaCost
+                                        </span>
+                                    }
+                                    @if (action.CoinCost > 0)
+                                    {
+                                        <span class="cost-item @(action.HasEnoughCoins ? "" : "insufficient")">
+                                            🪙 @action.CoinCost
+                                        </span>
+                                    }
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(action.RewardsDescription))
+                                {
+                                    <div class="action-rewards">
+                                        <span class="reward-label">Rewards:</span> @action.RewardsDescription
+                                    </div>
+                                }
+                                
+                                <button class="action-button" 
+                                        disabled="@(!CanAffordAction(action))"
+                                        @onclick="async () => await ExecuteAction(action.Id)">
+                                    @(CanAffordAction(action) ? "Do This" : "Cannot Afford")
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="unavailable-reasons">
+                                    @foreach (var reason in action.UnavailableReasons)
+                                    {
+                                        <div class="unavailable-reason">@reason</div>
+                                    }
                                 </div>
                             }
-                            
-                            <button class="action-button" 
-                                    disabled="@(!CanAffordAction(action))"
-                                    @onclick="async () => await ExecuteAction(action.Id)">
-                                @(CanAffordAction(action) ? "Do This" : "Cannot Afford")
-                            </button>
                         </div>
                     }
                 </div>
@@ -239,4 +263,41 @@
         opacity: 0.6;
     }
     
+    /* Service closed styles */
+    .action-item.service-closed {
+        background: var(--surface-color);
+        border-color: var(--warning-color);
+        opacity: 0.9;
+    }
+    
+    .service-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        color: var(--warning-color);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .closed-icon {
+        font-size: 1.1rem;
+    }
+    
+    .service-schedule {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.3rem;
+        font-style: italic;
+    }
+    
+    .unavailable-reasons {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    .unavailable-reason {
+        margin-top: 0.2rem;
+    }
 </style>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Constants;
 
 /// <summary>
 /// Service that provides UI data and handles UI actions for Travel Selection
@@ -66,10 +67,11 @@ public class TravelUIService
     private TravelStatusViewModel GetTravelStatus(Player player)
     {
         int totalWeight = _gameManager.CalculateTotalWeight();
-        string weightClass = totalWeight <= 3 ? "" : (totalWeight <= 6 ? "warning" : "danger");
-        string weightStatus = totalWeight <= 3 ? "Normal load" :
-                          (totalWeight <= 6 ? "Medium load (+1 stamina)" : "Heavy load (+2 stamina)");
-        int baseStaminaCost = totalWeight <= 3 ? 0 : (totalWeight <= 6 ? 1 : 2);
+        string weightClass = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? "" : (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? "warning" : "danger");
+        string weightStatus = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? "Normal load" :
+                          (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? "Medium load (+1 stamina)" : "Heavy load (+2 stamina)");
+        int baseStaminaCost = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? GameConstants.LoadWeight.LIGHT_LOAD_STAMINA_PENALTY : 
+                             (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY : GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY);
 
         List<Letter> carriedLetters = player.CarriedLetters ?? new List<Letter>();
         bool hasHeavyLetters = carriedLetters.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy));

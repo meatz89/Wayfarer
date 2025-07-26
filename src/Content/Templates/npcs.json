@@ -33,11 +33,11 @@
 		"letterTokenTypes": ["Trust"]
 	},
 	{
-		"id": "fishmonger_giles",
-		"name": "Fishmonger Giles",
+		"id": "fishmonger_frans",
+		"name": "Frans the Fishmonger",
 		"profession": "Merchant",
 		"locationId": "millbrook_docks",
-		"spotId": "wharf",
+		"spotId": "fishmongers_stall",
 		"description": "A merchant who deals in fresh fish and always needs messages delivered to other traders.",
 		"personality": "Businesslike and efficient, always thinking of profit.",
 		"services": ["trade_goods", "delivery_contracts"],
@@ -53,5 +53,137 @@
 		"personality": "Professional and discreet, reveals nothing about their employer.",
 		"services": ["patron_contracts"],
 		"letterTokenTypes": ["Noble"]
+	},
+	{
+		"id": "merchant_guild",
+		"name": "Guild Representative",
+		"profession": "Guild_Agent",
+		"locationId": "millbrook_docks",
+		"spotId": "wharf",
+		"description": "A representative of the Merchant's Guild who manages trade relationships and contracts.",
+		"personality": "Businesslike and methodical, values long-term partnerships.",
+		"services": ["trade_contracts", "guild_membership"],
+		"letterTokenTypes": ["Trade"]
+	},
+	{
+		"id": "community",
+		"name": "Community Board",
+		"profession": "Community_Service",
+		"locationId": "lower_ward",
+		"spotId": "lower_ward_square",
+		"description": "A public board where community members post requests for help and mutual aid.",
+		"personality": "Represents the collective voice and needs of the common folk.",
+		"services": ["community_tasks", "mutual_aid"],
+		"letterTokenTypes": ["Common", "Trust"]
+	},
+	{
+		"id": "shadow_network",
+		"name": "The Contact",
+		"profession": "Information_Broker",
+		"locationId": "lower_ward",
+		"spotId": "abandoned_warehouse",
+		"description": "A shadowy figure who deals in secrets and operates outside the law.",
+		"personality": "Enigmatic and dangerous, never forgets a debt.",
+		"services": ["illicit_contracts", "information"],
+		"letterTokenTypes": ["Shadow"]
+	},
+	{
+		"id": "noble_court",
+		"name": "Court Liaison",
+		"profession": "Noble_Representative",
+		"locationId": "merchants_rest",
+		"spotId": "private_room",
+		"description": "A representative of the noble court who manages correspondence between nobles.",
+		"personality": "Refined and condescending, expects perfect service.",
+		"services": ["noble_contracts", "court_invitations"],
+		"letterTokenTypes": ["Noble"]
+	},
+	{
+		"id": "brother_marcus",
+		"name": "Brother Marcus",
+		"profession": "TavernKeeper",
+		"locationId": "lower_ward",
+		"spotId": "lower_ward_square",
+		"description": "A former monk who runs a humble tavern, providing warmth and wisdom to those who seek it.",
+		"personality": "Patient and philosophical, sees all patrons as souls in need of guidance.",
+		"services": ["information", "community_tasks"],
+		"letterTokenTypes": ["Trust", "Common", "Shadow"]
+	},
+	{
+		"id": "lydia_herbalist",
+		"name": "Lydia the Herbalist",
+		"profession": "Craftsman",
+		"locationId": "lower_ward",
+		"spotId": "abandoned_warehouse",
+		"description": "A skilled healer operating from the shadows, treating those the official physicians won't see.",
+		"personality": "Compassionate but cautious, protective of her patients' secrets.",
+		"services": ["information", "illicit_contracts"],
+		"letterTokenTypes": ["Shadow", "Trust", "Common"]
+	},
+	{
+		"id": "captain_thorne",
+		"name": "Captain Thorne",
+		"profession": "Harbor_Master",
+		"locationId": "millbrook_docks",
+		"spotId": "wharf",
+		"description": "A grizzled sea captain who controls the harbor's shipping schedules and knows every smuggler's trick.",
+		"personality": "Strict but fair, respects those who prove their worth through actions.",
+		"services": ["trade_goods", "delivery_contracts", "information"],
+		"letterTokenTypes": ["Trade", "Noble", "Shadow"]
+	},
+	{
+		"id": "madame_rosalind",
+		"name": "Madame Rosalind",
+		"profession": "Boarding_House_Keeper",
+		"locationId": "merchants_rest",
+		"spotId": "private_room",
+		"description": "A widow who runs a respectable boarding house and acts as a social hub for the middle class.",
+		"personality": "Gossipy but discreet, motherly to her tenants, sharp in business.",
+		"services": ["information", "community_tasks"],
+		"letterTokenTypes": ["Common", "Trust", "Noble"]
+	},
+	{
+		"id": "old_henrik",
+		"name": "Old Henrik the Ferryman",
+		"profession": "Ferryman",
+		"locationId": "millbrook_docks",
+		"spotId": "wharf",
+		"description": "An ancient ferryman who has transported souls across the harbor for decades, full of stories and secrets.",
+		"personality": "Mysterious and cryptic, speaks in riddles but rewards those who listen.",
+		"services": ["information", "delivery_contracts"],
+		"letterTokenTypes": ["Common", "Shadow", "Trust"]
+	},
+	{
+		"id": "sister_agatha",
+		"name": "Sister Agatha",
+		"profession": "Almshouse_Keeper",
+		"locationId": "lower_ward",
+		"spotId": "lower_ward_square",
+		"description": "A determined woman who runs the almshouse, fighting daily to feed and shelter the city's poorest.",
+		"personality": "Fiercely protective of the vulnerable, distrustful of authority, pragmatic about survival.",
+		"services": ["community_tasks", "mutual_aid", "information"],
+		"letterTokenTypes": ["Trust", "Common", "Shadow"]
+	},
+	{
+		"id": "garrett_fence",
+		"name": "Garrett the Fence",
+		"profession": "Pawnbroker",
+		"locationId": "lower_ward",
+		"spotId": "abandoned_warehouse",
+		"description": "A shrewd dealer in used goods who asks no questions about provenance but drives hard bargains.",
+		"personality": "Calculating and opportunistic, but keeps his word once a deal is struck.",
+		"services": ["trade_goods", "illicit_contracts"],
+		"letterTokenTypes": ["Shadow", "Trade", "Common"]
+	},
+	{
+		"id": "master_willem",
+		"name": "Master Willem",
+		"profession": "Scrivener",
+		"locationId": "merchants_rest",
+		"spotId": "private_room",
+		"description": "A meticulous scrivener who prepares legal documents and knows everyone's business dealings.",
+		"personality": "Pedantic about proper form, discrete about client affairs, fascinated by legal loopholes.",
+		"services": ["writing_services", "noble_contracts"],
+		"letterTokenTypes": ["Noble", "Trade", "Trust"]
 	}
 ]

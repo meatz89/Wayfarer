@@ -1,5 +1,8 @@
 @inject GameWorld GameWorld
 @inject NarrativeManager NarrativeManager
+@inject FlagService FlagService
+@inject LocationRepository LocationRepository
+@inject LocationSpotRepository LocationSpotRepository
 @inject IJSRuntime JSRuntime
 
 @namespace Wayfarer.Pages.Components
@@ -46,8 +49,8 @@
     {
         try
         {
-            // Serialize the game state
-            string serializedState = GameWorldSerializer.SerializeGameWorld(GameWorld);
+            // Serialize the game state including narrative state
+            string serializedState = GameWorldSerializer.SerializeGameWorld(GameWorld, FlagService, NarrativeManager);
             
             // Save to browser local storage
             await JSRuntime.InvokeVoidAsync("localStorage.setItem", "wayfarer-save", serializedState);
@@ -83,9 +86,25 @@
                 return;
             }
             
-            // TODO: Implement GameWorldSerializer.DeserializeGameWorld
-            // For now, just show a message
-            StatusMessage = "Load functionality coming soon";
+            // Get the current locations and spots
+            List<Location> locations = LocationRepository.GetAllLocations();
+            List<LocationSpot> spots = LocationSpotRepository.GetAllLocationSpots();
+            
+            // Deserialize and restore the game world
+            GameWorld restoredWorld = GameWorldSerializer.DeserializeGameWorld(
+                serializedState, 
+                locations, 
+                spots, 
+                FlagService, 
+                NarrativeManager
+            );
+            
+            // Apply the restored state to the current GameWorld
+            // Note: This is a bit tricky since GameWorld is a singleton
+            // We need to copy the state from the restored world to the current one
+            CopyGameWorldState(restoredWorld, GameWorld);
+            
+            StatusMessage = "Game loaded successfully!";
             IsError = false;
             
             // Clear message after 3 seconds
@@ -100,6 +119,108 @@
             StatusMessage = $"Failed to load game: {ex.Message}";
             IsError = true;
         }
+    }
+    
+    private void CopyGameWorldState(GameWorld source, GameWorld target)
+    {
+        // Copy basic world state
+        target.CurrentDay = source.CurrentDay;
+        target.CurrentTimeBlock = source.CurrentTimeBlock;
+        
+        // Copy world state content
+        target.WorldState.locations.Clear();
+        target.WorldState.locations.AddRange(source.WorldState.locations);
+        
+        target.WorldState.locationSpots.Clear();
+        target.WorldState.locationSpots.AddRange(source.WorldState.locationSpots);
+        
+        // Copy player state
+        Player sourcePlayer = source.GetPlayer();
+        Player targetPlayer = target.GetPlayer();
+        
+        // Initialize player if needed
+        if (sourcePlayer.IsInitialized && !targetPlayer.IsInitialized)
+        {
+            targetPlayer.Initialize(sourcePlayer.Name, sourcePlayer.Archetype, sourcePlayer.Gender);
+        }
+        
+        // Copy player resources
+        targetPlayer.Coins = sourcePlayer.Coins;
+        targetPlayer.MaxStamina = sourcePlayer.MaxStamina;
+        targetPlayer.Stamina = sourcePlayer.Stamina;
+        targetPlayer.MaxHealth = sourcePlayer.MaxHealth;
+        targetPlayer.Health = sourcePlayer.Health;
+        targetPlayer.Level = sourcePlayer.Level;
+        targetPlayer.CurrentXP = sourcePlayer.CurrentXP;
+        
+        // Copy location
+        targetPlayer.CurrentLocation = sourcePlayer.CurrentLocation;
+        targetPlayer.CurrentLocationSpot = sourcePlayer.CurrentLocationSpot;
+        
+        // Copy inventory
+        targetPlayer.Inventory.Clear();
+        foreach (var item in sourcePlayer.Inventory.GetAllItems())
+        {
+            targetPlayer.Inventory.AddItem(item);
+        }
+        
+        // Copy letter queue
+        for (int i = 0; i < sourcePlayer.LetterQueue.Length; i++)
+        {
+            targetPlayer.LetterQueue[i] = sourcePlayer.LetterQueue[i];
+        }
+        
+        // Copy tokens
+        targetPlayer.ConnectionTokens.Clear();
+        foreach (var kvp in sourcePlayer.ConnectionTokens)
+        {
+            targetPlayer.ConnectionTokens[kvp.Key] = kvp.Value;
+        }
+        
+        targetPlayer.NPCTokens.Clear();
+        foreach (var npc in sourcePlayer.NPCTokens)
+        {
+            targetPlayer.NPCTokens[npc.Key] = new Dictionary<ConnectionType, int>(npc.Value);
+        }
+        
+        // Copy carried letters
+        targetPlayer.CarriedLetters.Clear();
+        targetPlayer.CarriedLetters.AddRange(sourcePlayer.CarriedLetters);
+        
+        // Copy queue manipulation tracking
+        targetPlayer.LastMorningSwapDay = sourcePlayer.LastMorningSwapDay;
+        targetPlayer.LastLetterBoardDay = sourcePlayer.LastLetterBoardDay;
+        targetPlayer.DailyBoardLetters.Clear();
+        targetPlayer.DailyBoardLetters.AddRange(sourcePlayer.DailyBoardLetters);
+        
+        // Copy letter history
+        targetPlayer.NPCLetterHistory.Clear();
+        foreach (var kvp in sourcePlayer.NPCLetterHistory)
+        {
+            targetPlayer.NPCLetterHistory[kvp.Key] = kvp.Value;
+        }
+        
+        // Copy standing obligations
+        targetPlayer.StandingObligations.Clear();
+        targetPlayer.StandingObligations.AddRange(sourcePlayer.StandingObligations);
+        
+        // Copy token favor system
+        targetPlayer.PurchasedFavors = new List<string>(sourcePlayer.PurchasedFavors);
+        targetPlayer.UnlockedLocationIds = new List<string>(sourcePlayer.UnlockedLocationIds);
+        targetPlayer.UnlockedServices = new List<string>(sourcePlayer.UnlockedServices);
+        
+        // Copy delivered letters
+        targetPlayer.DeliveredLetters.Clear();
+        targetPlayer.DeliveredLetters.AddRange(sourcePlayer.DeliveredLetters);
+        targetPlayer.TotalLettersDelivered = sourcePlayer.TotalLettersDelivered;
+        targetPlayer.TotalLettersExpired = sourcePlayer.TotalLettersExpired;
+        targetPlayer.TotalTokensSpent = sourcePlayer.TotalTokensSpent;
+        
+        // Copy patron tracking
+        targetPlayer.PatronLeverage = sourcePlayer.PatronLeverage;
+        
+        // Force UI refresh
+        StateHasChanged();
     }
 }
 

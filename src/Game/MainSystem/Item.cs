@@ -52,6 +52,12 @@ public class Item
     public string SpotId { get; set; }
     public string Description { get; set; }
 
+    // Token generation modifiers for equipment
+    public Dictionary<ConnectionType, float> TokenGenerationModifiers { get; set; } = new Dictionary<ConnectionType, float>();
+    
+    // Token types this equipment enables (e.g., Fine Clothes enables Noble token generation)
+    public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();
+
     public string WeightDescription => Weight switch
     {
         0 => "Weightless",
@@ -129,5 +135,44 @@ public class Item
     public bool IsHeavyForTransport()
     {
         return Size == SizeCategory.Large || Size == SizeCategory.Massive;
+    }
+
+    /// <summary>
+    /// Check if this item has any token generation effects
+    /// </summary>
+    public bool HasTokenEffects()
+    {
+        return (TokenGenerationModifiers != null && TokenGenerationModifiers.Any()) ||
+               (EnablesTokenGeneration != null && EnablesTokenGeneration.Any());
+    }
+
+    /// <summary>
+    /// Get a description of this item's token effects for UI display
+    /// </summary>
+    public string GetTokenEffectsDescription()
+    {
+        var effects = new List<string>();
+
+        if (EnablesTokenGeneration != null && EnablesTokenGeneration.Any())
+        {
+            foreach (var tokenType in EnablesTokenGeneration)
+            {
+                effects.Add($"Enables {tokenType} token generation");
+            }
+        }
+
+        if (TokenGenerationModifiers != null && TokenGenerationModifiers.Any())
+        {
+            foreach (var modifier in TokenGenerationModifiers)
+            {
+                if (modifier.Value > 1.0f)
+                {
+                    int percentBonus = (int)((modifier.Value - 1.0f) * 100);
+                    effects.Add($"+{percentBonus}% {modifier.Key} tokens");
+                }
+            }
+        }
+
+        return effects.Any() ? string.Join(", ", effects) : "";
     }
 }
