@@ -13,6 +13,7 @@ public class LetterCategoryService
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
     private readonly GameConfiguration _config;
+    private LetterTemplateRepository _letterTemplateRepository;
 
     public LetterCategoryService(GameWorld gameWorld, ConnectionTokenManager connectionTokenManager,
         NPCRepository npcRepository, MessageSystem messageSystem, GameConfiguration config)
@@ -22,6 +23,11 @@ public class LetterCategoryService
         _npcRepository = npcRepository;
         _messageSystem = messageSystem;
         _config = config;
+    }
+
+    public void SetLetterTemplateRepository(LetterTemplateRepository letterTemplateRepository)
+    {
+        _letterTemplateRepository = letterTemplateRepository;
     }
 
     /// <summary>
@@ -102,9 +108,12 @@ public class LetterCategoryService
             return new List<LetterTemplate>();
 
         // Get all templates of the appropriate type and category or lower
-        return _gameWorld.WorldState.LetterTemplates
-            .Where(t => t.TokenType == tokenType &&
-                       t.Category <= category &&
+        // Use repository to ensure tutorial filtering is applied
+        var templates = _letterTemplateRepository?.GetTemplatesByTokenType(tokenType) 
+            ?? _gameWorld.WorldState.LetterTemplates.Where(t => t.TokenType == tokenType).ToList();
+            
+        return templates
+            .Where(t => t.Category <= category &&
                        t.MinTokensRequired <= tokenCount)
             .ToList();
     }

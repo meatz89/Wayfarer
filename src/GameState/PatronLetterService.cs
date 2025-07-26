@@ -19,15 +19,7 @@ public class PatronLetterService
     private readonly int _minDaysBetweenPatronLetters = 5;
     private readonly int _maxDaysBetweenPatronLetters = 10;
 
-    // Patron letter template IDs
-    private readonly string[] _patronLetterTemplateIds = new[]
-    {
-        "patron_letter_resources",
-        "patron_letter_instructions",
-        "forced_patron_resources",
-        "forced_patron_instructions",
-        "forced_patron_summons"
-    };
+    // Patron letter template IDs - no longer hardcoded, we'll get them dynamically
 
     private readonly ConnectionTokenManager _tokenManager;
 
@@ -99,9 +91,17 @@ public class PatronLetterService
     /// </summary>
     public Letter GeneratePatronLetter()
     {
-        // Select a patron letter template
-        string templateId = _patronLetterTemplateIds[_random.Next(_patronLetterTemplateIds.Length)];
-        LetterTemplate template = _letterTemplateRepository.GetTemplateById(templateId);
+        // Get available patron letter templates - this will respect tutorial filtering
+        var patronTemplates = _letterTemplateRepository.GetTemplatesByTokenType(ConnectionType.Noble)
+            .Where(t => t.Category == LetterCategory.Premium || 
+                       t.Id.StartsWith("patron_") || 
+                       t.Id.StartsWith("forced_patron_") ||
+                       t.Id.StartsWith("tutorial_patron_"))
+            .ToList();
+
+        LetterTemplate template = patronTemplates.Any() 
+            ? patronTemplates[_random.Next(patronTemplates.Count)] 
+            : null;
 
         if (template == null)
         {

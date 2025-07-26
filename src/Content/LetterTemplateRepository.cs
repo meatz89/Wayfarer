@@ -6,6 +6,7 @@ public class LetterTemplateRepository
     private readonly GameWorld _gameWorld;
     private readonly Random _random = new Random();
     private LetterCategoryService _categoryService;
+    private NarrativeManager _narrativeManager;
 
     public LetterTemplateRepository(GameWorld gameWorld)
     {
@@ -17,20 +18,64 @@ public class LetterTemplateRepository
         _categoryService = categoryService;
     }
 
+    public void SetNarrativeManager(NarrativeManager narrativeManager)
+    {
+        _narrativeManager = narrativeManager;
+    }
+
     public List<LetterTemplate> GetAllTemplates()
     {
-        return _gameWorld.WorldState.LetterTemplates;
+        var templates = _gameWorld.WorldState.LetterTemplates;
+        
+        // Filter based on tutorial state if narrative manager is available
+        if (_narrativeManager != null && _narrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        {
+            // During tutorial, only show tutorial letters
+            return templates.Where(t => t.Id.StartsWith("tutorial_")).ToList();
+        }
+        else if (_narrativeManager != null && _narrativeManager.GetActiveNarratives().Any())
+        {
+            // If any narrative is active but not tutorial, exclude tutorial letters
+            return templates.Where(t => !t.Id.StartsWith("tutorial_")).ToList();
+        }
+        else
+        {
+            // No active narratives, exclude tutorial letters (they're only for tutorial)
+            return templates.Where(t => !t.Id.StartsWith("tutorial_")).ToList();
+        }
     }
 
     public LetterTemplate GetTemplateById(string templateId)
     {
-        return _gameWorld.WorldState.LetterTemplates
+        // For specific template requests, check if it's allowed
+        var template = _gameWorld.WorldState.LetterTemplates
             .FirstOrDefault(t => t.Id == templateId);
+            
+        if (template == null) return null;
+        
+        // Check if this template should be accessible
+        if (_narrativeManager != null)
+        {
+            bool isTutorialTemplate = templateId.StartsWith("tutorial_");
+            bool isTutorialActive = _narrativeManager.IsNarrativeActive("wayfarer_tutorial");
+            
+            // Only allow tutorial templates during tutorial
+            if (isTutorialTemplate && !isTutorialActive) return null;
+            
+            // Don't allow non-tutorial templates during tutorial
+            if (!isTutorialTemplate && isTutorialActive) return null;
+        }
+        
+        return template;
     }
 
     public List<LetterTemplate> GetTemplatesByTokenType(ConnectionType tokenType)
     {
-        return _gameWorld.WorldState.LetterTemplates
+        // First get all templates (which applies tutorial filtering)
+        var templates = GetAllTemplates();
+        
+        // Then filter by token type
+        return templates
             .Where(t => t.TokenType == tokenType)
             .ToList();
     }
@@ -53,14 +98,18 @@ public class LetterTemplateRepository
 
     public List<LetterTemplate> GetForcedShadowTemplates()
     {
-        return _gameWorld.WorldState.LetterTemplates
+        // Apply tutorial filtering
+        var templates = GetAllTemplates();
+        return templates
             .Where(t => t.Id.StartsWith("forced_shadow_") && t.TokenType == ConnectionType.Shadow)
             .ToList();
     }
 
     public List<LetterTemplate> GetForcedPatronTemplates()
     {
-        return _gameWorld.WorldState.LetterTemplates
+        // Apply tutorial filtering
+        var templates = GetAllTemplates();
+        return templates
             .Where(t => t.Id.StartsWith("forced_patron_") && t.TokenType == ConnectionType.Noble)
             .ToList();
     }
@@ -85,6 +134,21 @@ public class LetterTemplateRepository
     public Letter GenerateLetterFromTemplate(LetterTemplate template, string senderName, string recipientName)
     {
         if (template == null) return null;
+
+        // Override sender/recipient if template specifies them (for tutorial letters)
+        if (template.PossibleSenders != null && template.PossibleSenders.Length > 0)
+        {
+            string senderId = template.PossibleSenders[_random.Next(template.PossibleSenders.Length)];
+            var senderNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == senderId);
+            if (senderNpc != null) senderName = senderNpc.Name;
+        }
+        
+        if (template.PossibleRecipients != null && template.PossibleRecipients.Length > 0)
+        {
+            string recipientId = template.PossibleRecipients[_random.Next(template.PossibleRecipients.Length)];
+            var recipientNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == recipientId);
+            if (recipientNpc != null) recipientName = recipientNpc.Name;
+        }
 
         Letter letter = new Letter
         {
@@ -186,15 +250,29 @@ public class LetterTemplateRepository
         // Select a random template from category-appropriate ones
         LetterTemplate template = categoryTemplates[_random.Next(categoryTemplates.Count)];
 
-        // Find a random recipient (not the sender)
-        List<NPC> allNpcs = _gameWorld.WorldState.NPCs;
-        List<NPC> possibleRecipients = allNpcs.Where(n => n.Name != senderName).ToList();
-        if (!possibleRecipients.Any()) return null;
+        // Determine recipient based on template constraints
+        string recipientName = null;
+        
+        if (template.PossibleRecipients != null && template.PossibleRecipients.Length > 0)
+        {
+            // Use specific recipients from template (for tutorial letters)
+            string recipientId = template.PossibleRecipients[_random.Next(template.PossibleRecipients.Length)];
+            var recipientNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == recipientId);
+            if (recipientNpc != null) recipientName = recipientNpc.Name;
+        }
+        else
+        {
+            // Find a random recipient (not the sender)
+            List<NPC> allNpcs = _gameWorld.WorldState.NPCs;
+            List<NPC> possibleRecipients = allNpcs.Where(n => n.Name != senderName).ToList();
+            if (!possibleRecipients.Any()) return null;
 
-        NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
+            NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
+            recipientName = recipient.Name;
+        }
 
         // Generate letter with category-appropriate payment
-        Letter letter = GenerateLetterFromTemplate(template, senderName, recipient.Name);
+        Letter letter = GenerateLetterFromTemplate(template, senderName, recipientName);
 
         // Override payment to match category if needed
         if (_categoryService != null)

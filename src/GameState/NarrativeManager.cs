@@ -566,6 +566,14 @@ public class NarrativeManager
         // {
         //     _timeManager.SetTimeOfDay(step.ForcedHour.Value);
         // }
+        
+        // Give item to player if specified
+        if (!string.IsNullOrEmpty(step.ItemToGiveOnStart))
+        {
+            // Note: This requires GameWorld access, which NarrativeManager doesn't have directly
+            // The item giving should be handled through the command system or a dedicated service
+            _flagService.SetFlag($"narrative_give_item_{step.ItemToGiveOnStart}", true);
+        }
     }
 }
 
@@ -598,6 +606,9 @@ public class NarrativeStep
     public string ForcedLocation { get; set; }
     public string ForcedSpot { get; set; }
     public int? ForcedHour { get; set; }
+    
+    // Item to give the player when step starts
+    public string ItemToGiveOnStart { get; set; }
 }
 
 /// <summary>

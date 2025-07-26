@@ -48,6 +48,28 @@
     --font-primary: 'Cinzel', serif;
     --font-secondary: 'Lora', 'Georgia', serif;
     --font-tertiary: 'EB Garamond', serif;
+    
+    /* Additional UI Colors */
+    --bg-hover: #7E6C5E;
+    --oak-light: #A5948C;
+    
+    /* Status/Alert Colors */
+    --danger: #C73E41;
+    --danger-bg: rgba(199, 62, 65, 0.1);
+    --danger-dark: #9E2A2B;
+    --warning: #E89F3C;
+    --warning-bg: rgba(232, 159, 60, 0.1);
+    --warning-dark: #BC6C25;
+    --success: #7D9352;
+    --success-bg: rgba(125, 147, 82, 0.1);
+    --success-dark: #606C38;
+    --success-rgb: 125, 147, 82;
+    
+    /* Dark variants for tags */
+    --moss-dark: #4A5330;
+    --leather-dark: #8A6546;
+    --oak-dark: #4A332A;
+    --approach-tag-dark: #4A5330;
 }
 
 html body * {
