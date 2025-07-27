@@ -22,6 +22,9 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
     [Inject] public ConversationStateManager ConversationStateManager { get; set; }
     [Inject] public NarrativeManager NarrativeManager { get; set; }
     [Inject] public FlagService FlagService { get; set; }
+    [Inject] public StandingObligationManager StandingObligationManager { get; set; }
+    [Inject] public StandingObligationRepository StandingObligationRepository { get; set; }
+    [Inject] public PatronLetterService PatronLetterService { get; set; }
 
 
     public int StateVersion = 0;
@@ -369,6 +372,42 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
         }
         else
         {
+            // Check if this was a patron acceptance conversation during tutorial
+            if (ConversationManager?.Context?.TargetNPC?.ID == "patron_intermediary")
+            {
+                // Check if we're in the patronage acceptance step of the tutorial
+                if (NarrativeManager != null && NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+                {
+                    var currentStep = NarrativeManager.GetCurrentStep("wayfarer_tutorial");
+                    if (currentStep?.Id == "day3_patronage")
+                    {
+                        // The player has accepted patronage!
+                        
+                        // Set the patron acceptance flag
+                        FlagService?.SetFlag(FlagService.TUTORIAL_PATRON_ACCEPTED, true);
+                        
+                        // Set HasPatron on the player
+                        GameWorld.GetPlayer().HasPatron = true;
+                        
+                        // Initialize patron debt for leverage
+                        PatronLetterService?.InitializePatronDebt();
+                        
+                        // Create and add the patron's expectation obligation
+                        var patronObligation = StandingObligationRepository?.GetObligationTemplate("tutorial_patrons_expectation");
+                        if (patronObligation != null && StandingObligationManager != null)
+                        {
+                            StandingObligationManager.AddObligation(patronObligation);
+                            
+                            // Add message about the new obligation
+                            MessageSystem.AddSystemMessage(
+                                "You have accepted the patron's offer. Their letters will now take absolute priority.",
+                                SystemMessageTypes.Warning
+                            );
+                        }
+                    }
+                }
+            }
+            
             // Store the result for narrative view
             ConversationBeatOutcome = result;
 
