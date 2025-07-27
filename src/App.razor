@@ -1,7 +1,6 @@
 ﻿@{
     Console.WriteLine("[App.razor] Component is rendering!");
 }
-<h1>APP COMPONENT IS RENDERING!</h1>
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         @{
@@ -20,7 +19,3 @@
         </LayoutView>
     </NotFound>
 </Router>
-@code {
-    // This code block is intentionally left empty.
-    // The Router component handles routing and layout.
-}

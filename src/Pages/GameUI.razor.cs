@@ -31,6 +31,10 @@ public class GameUIBase : ComponentBase
         try
         {
             Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
+            Console.WriteLine($"[GameUIBase.OnInitializedAsync] ContentValidator null? {ContentValidator == null}");
+            Console.WriteLine($"[GameUIBase.OnInitializedAsync] GameWorld null? {GameWorld == null}");
+            Console.WriteLine($"[GameUIBase.OnInitializedAsync] TimeManager null? {TimeManager == null}");
+            Console.WriteLine($"[GameUIBase.OnInitializedAsync] LoadingStateService null? {LoadingStateService == null}");
 
             Console.WriteLine("[GameUIBase.OnInitializedAsync] Calling ContentValidator.ValidateContent()...");
             ContentValidationResult validationResult = ContentValidator.ValidateContent();

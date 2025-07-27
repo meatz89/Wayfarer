@@ -68,9 +68,19 @@
             Console.WriteLine("[SERVICE] Creating ItemRepository...");
             var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
             Console.WriteLine($"[SERVICE] GameWorld has {gameWorld.WorldState.Items?.Count ?? 0} items when creating ItemRepository");
-            return new ItemRepository(gameWorld);
+            var repo = new ItemRepository(gameWorld);
+            Console.WriteLine("[SERVICE] ItemRepository created successfully");
+            return repo;
         });
-        services.AddSingleton<NPCRepository>();
+        services.AddSingleton<NPCRepository>(serviceProvider =>
+        {
+            Console.WriteLine("[SERVICE] Creating NPCRepository...");
+            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
+            var debugLogger = serviceProvider.GetRequiredService<DebugLogger>();
+            var repo = new NPCRepository(gameWorld, debugLogger);
+            Console.WriteLine("[SERVICE] NPCRepository created successfully");
+            return repo;
+        });
         services.AddSingleton<RouteRepository>();
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
