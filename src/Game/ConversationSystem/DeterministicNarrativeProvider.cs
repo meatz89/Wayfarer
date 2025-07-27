@@ -3,25 +3,46 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 /// <summary>
-/// STUB: Provides deterministic narrative content for conversations.
-/// TODO: Implement full narrative provider system
+/// Provides deterministic narrative content for conversations with narrative override support.
 /// </summary>
 public class DeterministicNarrativeProvider : INarrativeProvider
 {
-    public DeterministicNarrativeProvider()
+    private readonly NarrativeManager _narrativeManager;
+
+    public DeterministicNarrativeProvider(NarrativeManager narrativeManager)
     {
-        // STUB: Constructor
+        _narrativeManager = narrativeManager;
     }
 
     public Task<string> GenerateIntroduction(ConversationContext context)
     {
-        // STUB: Return basic introduction
+        // Check for narrative dialogue override
+        if (context.TargetNPC != null)
+        {
+            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
+            if (!string.IsNullOrEmpty(narrativeDialogue))
+            {
+                return Task.FromResult(narrativeDialogue);
+            }
+        }
+
+        // Default introduction
         return Task.FromResult("You begin a conversation.");
     }
 
     public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
     {
-        // STUB: Return basic introduction
+        // Check for narrative dialogue override
+        if (context.TargetNPC != null)
+        {
+            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
+            if (!string.IsNullOrEmpty(narrativeDialogue))
+            {
+                return Task.FromResult(narrativeDialogue);
+            }
+        }
+
+        // Default introduction
         return Task.FromResult("You begin a conversation.");
     }
 
@@ -33,13 +54,33 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 
     public Task<string> GenerateReaction(ConversationContext context, ConversationState state, ConversationChoice selectedChoice, bool success)
     {
-        // STUB: Return basic reaction
+        // Check for narrative dialogue override
+        if (context.TargetNPC != null)
+        {
+            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
+            if (!string.IsNullOrEmpty(narrativeDialogue))
+            {
+                return Task.FromResult(narrativeDialogue);
+            }
+        }
+
+        // Default reaction
         return Task.FromResult("They respond to your choice.");
     }
 
     public Task<string> GenerateConclusion(ConversationContext context, ConversationState state, ConversationChoice lastChoice)
     {
-        // STUB: Return basic conclusion
+        // Check for narrative dialogue override
+        if (context.TargetNPC != null)
+        {
+            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
+            if (!string.IsNullOrEmpty(narrativeDialogue))
+            {
+                return Task.FromResult(narrativeDialogue);
+            }
+        }
+
+        // Default conclusion
         return Task.FromResult("The conversation ends.");
     }
 

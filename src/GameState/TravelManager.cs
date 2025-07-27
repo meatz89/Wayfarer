@@ -7,6 +7,7 @@ public class TravelManager
     private readonly TransportCompatibilityValidator _transportValidator;
     private readonly RouteRepository _routeRepository;
     private readonly AccessRequirementChecker _accessChecker;
+    private readonly FlagService _flagService;
     public LocationSystem LocationSystem { get; }
     public LocationRepository LocationRepository { get; }
     public ItemRepository ItemRepository { get; }
@@ -19,7 +20,8 @@ public class TravelManager
         TransportCompatibilityValidator transportValidator,
         RouteRepository routeRepository,
         AccessRequirementChecker accessChecker,
-        ITimeManager timeManager
+        ITimeManager timeManager,
+        FlagService flagService
         )
     {
         _gameWorld = gameWorld;
@@ -27,6 +29,7 @@ public class TravelManager
         _transportValidator = transportValidator;
         _routeRepository = routeRepository;
         _accessChecker = accessChecker;
+        _flagService = flagService;
         this.LocationSystem = locationSystem;
         this.LocationRepository = locationRepository;
         ItemRepository = itemRepository;
@@ -104,6 +107,18 @@ public class TravelManager
         {
             LocationRepository.RecordLocationVisit(targetLocation.Id);
             // Discovery bonuses removed - new locations provide natural opportunities through different markets
+        }
+
+        // Set tutorial flags for movement tracking
+        if (!_flagService.HasFlag(FlagService.TUTORIAL_FIRST_MOVEMENT))
+        {
+            _flagService.SetFlag(FlagService.TUTORIAL_FIRST_MOVEMENT);
+        }
+
+        // Check if arriving at docks for tutorial
+        if (targetLocation.Id == "millbrook_docks" && !_flagService.HasFlag("tutorial_docks_visited"))
+        {
+            _flagService.SetFlag("tutorial_docks_visited");
         }
     }
 

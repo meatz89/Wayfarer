@@ -21,9 +21,12 @@
                     </div>
                 }
             </div>
-            <button class="minimize-toggle" aria-label="@(_viewModel.IsMinimized ? "Expand" : "Minimize")" @onclick:stopPropagation="true" @onclick="ToggleMinimize">
-                <span class="toggle-icon">@(_viewModel.IsMinimized ? "▶" : "▼")</span>
-            </button>
+            @if (IsMinimizable)
+            {
+                <button class="minimize-toggle" aria-label="@(_viewModel.IsMinimized ? "Expand" : "Minimize")" @onclick:stopPropagation="true" @onclick="ToggleMinimize">
+                    <span class="toggle-icon">@(_viewModel.IsMinimized ? "▶" : "▼")</span>
+                </button>
+            }
         </div>
         
         <div class="narrative-content-wrapper @(_viewModel.IsMinimized ? "collapsed" : "expanded")">
@@ -85,6 +88,8 @@
 }
 
 @code {
+    [Parameter] public bool IsMinimizable { get; set; } = true;
+    
     private NarrativeOverlayViewModel _viewModel = new();
     private System.Threading.Timer _updateTimer;
     private readonly string MinimizedStateKey = "narrative_overlay_minimized";
@@ -141,8 +146,8 @@
                 _isAnimating = true;
                 _previousNarrativeId = narrativeId;
 
-                // Auto-expand on new narrative
-                if (_viewModel.IsMinimized)
+                // Auto-expand on new narrative or if not minimizable
+                if (_viewModel.IsMinimized || !IsMinimizable)
                 {
                     _viewModel.IsMinimized = false;
                     await SaveMinimizedState();
@@ -291,6 +296,8 @@
 
     private async void ToggleMinimize()
     {
+        if (!IsMinimizable) return;
+        
         _viewModel.IsMinimized = !_viewModel.IsMinimized;
         await SaveMinimizedState();
     }

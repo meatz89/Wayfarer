@@ -139,6 +139,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         StateHasChanged();
     }
 
+    public bool IsTutorialActive()
+    {
+        return FlagService.HasFlag("tutorial_active");
+    }
+
     public void HandleMessagesExpired()
     {
         // Filter expired messages and update UI

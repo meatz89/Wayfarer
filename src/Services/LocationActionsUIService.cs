@@ -17,6 +17,7 @@ public class LocationActionsUIService
     private readonly ITimeManager _timeManager;
     private readonly NPCRepository _npcRepository;
     private readonly MarketManager _marketManager;
+    private readonly NarrativeManager _narrativeManager;
 
     public LocationActionsUIService(
         GameWorld gameWorld,
@@ -25,7 +26,8 @@ public class LocationActionsUIService
         MessageSystem messageSystem,
         ITimeManager timeManager,
         NPCRepository npcRepository,
-        MarketManager marketManager)
+        MarketManager marketManager,
+        NarrativeManager narrativeManager = null)
     {
         _gameWorld = gameWorld;
         _commandDiscovery = commandDiscovery;
@@ -34,6 +36,7 @@ public class LocationActionsUIService
         _timeManager = timeManager;
         _npcRepository = npcRepository;
         _marketManager = marketManager;
+        _narrativeManager = narrativeManager;
     }
 
     /// <summary>
@@ -59,6 +62,13 @@ public class LocationActionsUIService
 
         // Discover available commands
         CommandDiscoveryResult discovery = _commandDiscovery.DiscoverCommands(_gameWorld);
+        
+        // Get allowed command types from narrative if available
+        HashSet<string> allowedCommandTypes = null;
+        if (_narrativeManager != null && _narrativeManager.HasActiveNarrative())
+        {
+            allowedCommandTypes = _narrativeManager.GetAllowedCommandTypes();
+        }
 
         LocationActionsViewModel viewModel = new LocationActionsViewModel
         {
@@ -76,7 +86,7 @@ public class LocationActionsUIService
             ActionGroupViewModel group = new ActionGroupViewModel
             {
                 ActionType = categoryGroup.Key.ToString(),
-                Actions = ConvertCommands(categoryGroup.Value)
+                Actions = ConvertCommands(categoryGroup.Value, allowedCommandTypes)
             };
 
             viewModel.ActionGroups.Add(group);
@@ -88,30 +98,38 @@ public class LocationActionsUIService
         return viewModel;
     }
 
-    private List<ActionOptionViewModel> ConvertCommands(List<DiscoveredCommand> commands)
+    private List<ActionOptionViewModel> ConvertCommands(List<DiscoveredCommand> commands, HashSet<string> allowedCommandTypes = null)
     {
-        return commands.Select(cmd => new ActionOptionViewModel
-        {
-            Id = cmd.UniqueId,
-            Description = cmd.DisplayName,
-            NPCName = ExtractNPCName(cmd.DisplayName),
+        return commands.Select(cmd => {
+            string commandType = GetCommandType(cmd.Command);
+            bool isAllowedInTutorial = allowedCommandTypes == null || !allowedCommandTypes.Any() || allowedCommandTypes.Contains(commandType);
+            
+            return new ActionOptionViewModel
+            {
+                Id = cmd.UniqueId,
+                Description = cmd.DisplayName,
+                NPCName = ExtractNPCName(cmd.DisplayName),
 
-            // Costs
-            TimeCost = cmd.TimeCost,
-            StaminaCost = cmd.StaminaCost,
-            CoinCost = cmd.CoinCost,
+                // Costs
+                TimeCost = cmd.TimeCost,
+                StaminaCost = cmd.StaminaCost,
+                CoinCost = cmd.CoinCost,
 
-            // Affordability
-            HasEnoughTime = cmd.TimeCost == 0 || _timeManager.HoursRemaining >= cmd.TimeCost,
-            HasEnoughStamina = cmd.StaminaCost == 0 || _gameWorld.GetPlayer().Stamina >= cmd.StaminaCost,
-            HasEnoughCoins = cmd.CoinCost == 0 || _gameWorld.GetPlayer().Coins >= cmd.CoinCost,
+                // Affordability
+                HasEnoughTime = cmd.TimeCost == 0 || _timeManager.HoursRemaining >= cmd.TimeCost,
+                HasEnoughStamina = cmd.StaminaCost == 0 || _gameWorld.GetPlayer().Stamina >= cmd.StaminaCost,
+                HasEnoughCoins = cmd.CoinCost == 0 || _gameWorld.GetPlayer().Coins >= cmd.CoinCost,
 
-            // Rewards
-            RewardsDescription = cmd.PotentialReward,
+                // Rewards
+                RewardsDescription = cmd.PotentialReward,
 
-            // Availability
-            IsAvailable = cmd.IsAvailable,
-            UnavailableReasons = cmd.IsAvailable ? new List<string>() : new List<string> { cmd.UnavailableReason }
+                // Availability
+                IsAvailable = cmd.IsAvailable,
+                UnavailableReasons = cmd.IsAvailable ? new List<string>() : new List<string> { cmd.UnavailableReason },
+                
+                // Tutorial allowed action
+                IsAllowedInTutorial = isAllowedInTutorial
+            };
         }).ToList();
     }
 
@@ -454,6 +472,29 @@ public class LocationActionsUIService
             _ => timeBlock.ToString()
         };
     }
+    
+    private string GetCommandType(IGameCommand command)
+    {
+        // Map command types to action names used in narrative definitions
+        return command switch
+        {
+            TravelCommand => "Travel",
+            ConverseCommand => "Converse",
+            WorkCommand => "Work",
+            RestCommand => "Rest",
+            CollectLetterCommand => "CollectLetter",
+            DeliverLetterCommand => "DeliverLetter",
+            AcceptLetterBoardOfferCommand => "AcceptLetter",
+            LetterQueueActionCommand => "QueueAction",
+            SocializeCommand => "Socialize",
+            BorrowMoneyCommand => "BorrowMoney",
+            GatherResourcesCommand => "Gather",
+            BrowseCommand => "Browse",
+            ObserveCommand => "Observe",
+            PatronFundsCommand => "PatronFunds",
+            _ => command.GetType().Name.Replace("Command", "")
+        };
+    }
 }
 
 /// <summary>
@@ -514,4 +555,7 @@ public class ActionOptionViewModel
     public bool IsServiceClosed { get; init; }
     public string NextAvailableTime { get; init; }
     public string ServiceSchedule { get; init; }
+    
+    // Tutorial restriction
+    public bool IsAllowedInTutorial { get; init; } = true;
 }
