@@ -1,4 +1,3 @@
-@inject NavigationService NavigationService
 @inject ITimeManager TimeManager
 @inject GameWorld GameWorld
 @inject StandingObligationManager ObligationManager
@@ -86,17 +85,12 @@
         </div>
     </div>
     
-    @if (NavigationService.CanNavigateBack())
-    {
-        <div class="nav-section nav-back">
-            <button class="nav-button nav-back-button" @onclick="NavigateBack">
-                ← Back
-            </button>
-        </div>
-    }
 </div>
 
 @code {
+    [Parameter] public CurrentViews CurrentView { get; set; }
+    [Parameter] public Action<CurrentViews> OnNavigate { get; set; }
+    
     protected override void OnInitialized()
     {
         // NavigationBar will re-render when parent state changes
@@ -105,17 +99,17 @@
     
     private void NavigateTo(CurrentViews view)
     {
-        NavigationService.NavigateTo(view);
+        OnNavigate?.Invoke(view);
     }
     
     private void NavigateBack()
     {
-        NavigationService.NavigateBack();
+        // Back navigation removed - not needed in simple state-based navigation
     }
     
     private bool IsActive(CurrentViews view)
     {
-        return NavigationService.CurrentScreen == view;
+        return CurrentView == view;
     }
     
     private bool CanNavigateToLetterBoard()

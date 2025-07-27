@@ -171,16 +171,16 @@
     
     private void NavigateToLetterBoard()
     {
-        NavigationService.NavigateTo(CurrentViews.LetterBoardScreen);
+        OnNavigate?.Invoke(CurrentViews.LetterBoardScreen);
     }
     
     private void NavigateToLocation()
     {
-        NavigationService.NavigateTo(CurrentViews.LocationScreen);
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
     }
     
     private void NavigateToRelationships()
     {
-        NavigationService.NavigateTo(CurrentViews.RelationshipScreen);
+        OnNavigate?.Invoke(CurrentViews.RelationshipScreen);
     }
 }

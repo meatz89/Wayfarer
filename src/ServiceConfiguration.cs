@@ -143,8 +143,6 @@
         services.AddSingleton<LetterQueueManager>();
 
         // Transaction and Preview System
-        services.AddSingleton<INavigationHandler, NavigationHandler>();
-        services.AddSingleton<NavigationService>();
         services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<TokenFavorRepository>();
         services.AddSingleton<TokenFavorManager>();

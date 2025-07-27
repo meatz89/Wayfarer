@@ -7,7 +7,7 @@
 
 <NarrativeOverlay />
 
-<NavigationBar />
+<NavigationBar CurrentView="@CurrentView" OnNavigate="@OnNavigate" />
 
 <div class="game-status-bar">
     <div class="player-status">
@@ -137,7 +137,7 @@
                     <div class="location-header">
                         <h2 class="location-title">Character Status</h2>
                     </div>
-                    <PlayerStatusView OnClose="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)" />
+                    <PlayerStatusView OnClose="() => OnNavigate?.Invoke(CurrentViews.LocationScreen)" />
                 </div>
                 break;
                     
