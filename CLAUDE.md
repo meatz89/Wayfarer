@@ -2,8 +2,15 @@
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 
-**⚠️ CRITICAL: USE THE PERSONAL AGENTS PROACTIVELY WHENEVER APPRORIATE ⚠️**
-**⚠️ CRITICAL: USE YOUR AGENTS FOR ALL TASKS THEY CAN DO: DON'T DO IT ALL YOURSELF: BETTER SAVE YOUR CONTEXT FOR PROJECT MANAGEMENT TASKS! ⚠️**
+**🚨 MANDATORY: ANALYZE BEFORE ANY CHANGE 🚨**
+- You MUST ALWAYS proactively think ahead and plan your steps BEFORE making ANY change
+- You MUST analyze ALL related files and understand the complete system BEFORE modifying anything
+- You MUST understand how components interact and depend on each other
+- You MUST check for compilation errors BEFORE assuming a change will work
+- NEVER make changes based on assumptions - ALWAYS verify first
+- NEVER make partial changes without understanding the full impact
+- If you haven't analyzed the codebase thoroughly, DO NOT MAKE THE CHANGE
+
 
 **🚨 CRITICAL RULE: NEVER MARK ANYTHING AS COMPLETE WITHOUT TESTING 🚨**
 - You MUST build and run tests before claiming completion
@@ -19,6 +26,7 @@
 
 **⚠️ CRITICAL: ALWAYS READ ALL FILES FULLY BEFORE MODIFYING IT ⚠️**
 **NEVER make changes to a file without reading it completely first. This is non-negotiable.**
+**DOUBLE-CHECK core architectural components (navigation, routing, service registration) - analyze ALL related files and dependencies before making ANY changes to avoid breaking the application architecture.**
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -51,6 +59,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **GENERAL PRINCIPLES**:
 - **GAMEWORLD HAS NO DEPENDENCIES (CRITICAL)** - GameWorld is the single source of truth and must have NO dependencies on any services, managers, or external components. All dependencies flow INWARD towards GameWorld, never outward from it. GameWorld does NOT create any managers or services.
+- **NAVIGATION HANDLER ARCHITECTURE (CRITICAL)** - GameUIBase (the root component at @page "/") is the ONLY navigation handler in the application. MainGameplayView is a regular component rendered by GameUIBase, NOT a navigation handler. NavigationService accepts registration via RegisterNavigationHandler() method. This pattern avoids circular dependencies while maintaining clean architecture. NO other components should implement INavigationHandler. This architectural decision prevents navigation conflicts and maintains a single point of control for all navigation operations.
 - **SINGLE SOURCE OF TRUTH FOR STATE** - Never duplicate state tracking across multiple objects. When you find duplicate state (e.g., location tracked in both Player and WorldState), identify which is used more frequently and make that the single source of truth. Other objects should delegate to it, not maintain their own copies.
 - **never rename classes that already exist unless specifically ordered to (i.e. ConversationManager -> DeterministicConversationManager). Before creating classes, always check if classes with similar or overlapping functionality already exist**
 - **NEVER use class inheritance/extensions** - Add helper methods to existing classes instead of creating subclasses

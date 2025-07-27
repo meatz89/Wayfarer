@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 
 namespace Wayfarer.Pages;
 
-public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposable
+public class MainGameplayViewBase : ComponentBase, IDisposable
 {
     [Inject] public IJSRuntime JSRuntime { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
@@ -15,8 +15,11 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
     [Inject] public LoadingStateService? LoadingStateService { get; set; }
     [Inject] public ConnectionTokenManager ConnectionTokenManager { get; set; }
     [Inject] public LetterQueueManager LetterQueueManager { get; set; }
-    [Inject] public NavigationService NavigationService { get; set; }
     [Inject] public NPCLetterOfferService NPCLetterOfferService { get; set; }
+    
+    // Navigation parameters from parent component
+    [Parameter] public CurrentViews CurrentView { get; set; }
+    [Parameter] public Action<CurrentViews> OnNavigate { get; set; }
     [Inject] public DebugLogger DebugLogger { get; set; }
     [Inject] public ITimeManager TimeManager { get; set; }
     [Inject] public ConversationStateManager ConversationStateManager { get; set; }
@@ -78,7 +81,7 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
     public int TurnActionPoints => 0; // ActionPoints system removed
 
     public ConversationBeatOutcome ConversationBeatOutcome { get; set; }
-    public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
+    public CurrentViews CurrentScreen => CurrentView;
 
     public LocationSpot CurrentSpot => LocationRepository.GetCurrentLocationSpot();
     public TimeBlocks CurrentTime => TimeManager.GetCurrentTimeBlock();
@@ -169,7 +172,7 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
         {
             DebugLogger.LogPolling("MainGameplayView", $"ConversationPending detected! Manager exists: {ConversationStateManager.PendingConversationManager != null}");
             ConversationManager = ConversationStateManager.PendingConversationManager;
-            NavigationService.NavigateTo(CurrentViews.ConversationScreen);
+            OnNavigate?.Invoke(CurrentViews.ConversationScreen);
             ConversationStateManager.ConversationPending = false;
             DebugLogger.LogNavigation(CurrentScreen.ToString(), "ConversationScreen", "Pending conversation detected");
             StateHasChanged();
@@ -202,45 +205,45 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
     public async Task SwitchToTravelScreen()
     {
         Console.WriteLine($"SwitchToTravelScreen called. Current screen: {CurrentScreen}");
-        NavigationService.NavigateTo(CurrentViews.TravelScreen);
+        OnNavigate?.Invoke(CurrentViews.TravelScreen);
         Console.WriteLine($"New current screen: {CurrentScreen}");
         RefreshUI();
     }
 
     public void SwitchToMarketScreen()
     {
-        NavigationService.NavigateTo(CurrentViews.MarketScreen);
+        OnNavigate?.Invoke(CurrentViews.MarketScreen);
         RefreshUI();
     }
 
     public void SwitchToRestScreen()
     {
-        NavigationService.NavigateTo(CurrentViews.RestScreen);
+        OnNavigate?.Invoke(CurrentViews.RestScreen);
         RefreshUI();
     }
 
 
     public void SwitchToPlayerStatusScreen()
     {
-        NavigationService.NavigateTo(CurrentViews.PlayerStatusScreen);
+        OnNavigate?.Invoke(CurrentViews.PlayerStatusScreen);
         RefreshUI();
     }
 
     public void SwitchToRelationshipScreen()
     {
-        NavigationService.NavigateTo(CurrentViews.RelationshipScreen);
+        OnNavigate?.Invoke(CurrentViews.RelationshipScreen);
         RefreshUI();
     }
 
     public void SwitchToObligationsScreen()
     {
-        NavigationService.NavigateTo(CurrentViews.ObligationsScreen);
+        OnNavigate?.Invoke(CurrentViews.ObligationsScreen);
         RefreshUI();
     }
 
     public void SwitchToLetterBoardScreen()
     {
-        NavigationService.NavigateTo(CurrentViews.LetterBoardScreen);
+        OnNavigate?.Invoke(CurrentViews.LetterBoardScreen);
         RefreshUI();
     }
 
@@ -257,13 +260,13 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
     public async Task HandleTravelWithTransport((RouteOption route, TravelMethods transport) travelData)
     {
         await GameManager.TravelWithTransport(travelData.route, travelData.transport);
-        NavigationService.NavigateTo(CurrentViews.LocationScreen);
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
         UpdateState();
     }
 
     public async Task HandleRestComplete()
     {
-        NavigationService.NavigateTo(CurrentViews.LocationScreen);
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
         UpdateState();
     }
 
@@ -350,7 +353,7 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
             GameWorld.ClearMetadata("PendingPurgeTokens");
 
             // Return to letter queue screen
-            NavigationService.NavigateTo(CurrentViews.LetterQueueScreen);
+            OnNavigate?.Invoke(CurrentViews.LetterQueueScreen);
         }
         // Check if this was an action conversation
         else if (GameWorld.PendingCommand != null)
@@ -368,7 +371,7 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
             GameWorld.PendingCommand = null;
 
             // Return to location screen
-            NavigationService.NavigateTo(CurrentViews.LocationScreen);
+            OnNavigate?.Invoke(CurrentViews.LocationScreen);
         }
         else
         {
@@ -412,7 +415,7 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
             ConversationBeatOutcome = result;
 
             // Switch to narrative screen to show result
-            NavigationService.NavigateTo(CurrentViews.NarrativeScreen);
+            OnNavigate?.Invoke(CurrentViews.NarrativeScreen);
         }
 
         UpdateState();
@@ -425,7 +428,7 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
 
         await GameManager.Travel(routeOption);
 
-        NavigationService.NavigateTo(CurrentViews.LocationScreen);
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
         UpdateState();
     }
 
@@ -433,7 +436,7 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
     {
         ConversationBeatOutcome = null;
 
-        NavigationService.NavigateTo(CurrentViews.LocationScreen);
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
         UpdateState();
     }
 
@@ -621,7 +624,7 @@ public class MainGameplayViewBase : ComponentBase, INavigationHandler, IDisposab
 
     public void HandleNavigation(CurrentViews view)
     {
-        NavigationService.NavigateTo(view);
+        OnNavigate?.Invoke(view);
         StateHasChanged();
     }
 

@@ -1,74 +1,93 @@
 ﻿using Microsoft.AspNetCore.Components;
 namespace Wayfarer.Pages;
 
-public class GameUIBase : ComponentBase, INavigationHandler, IDisposable
+public class GameUIBase : ComponentBase
 {
     [Inject] public ContentValidator ContentValidator { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameWorldManager GameWorldManager { get; set; }
-    [Inject] public NavigationService NavigationService { get; set; }
-
-    public CurrentViews CurrentScreen => NavigationService.CurrentScreen;
-
+    [Inject] public ITimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
+
+    // Navigation state managed directly in this component
+    public CurrentViews CurrentView { get; set; } = CurrentViews.LocationScreen;
+
+    // Navigation method for child components to use
+    public void NavigateTo(CurrentViews view)
+    {
+        // Simple time-based validation for Letter Board
+        if (view == CurrentViews.LetterBoardScreen && 
+            TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+        {
+            return; // Don't navigate
+        }
+
+        CurrentView = view;
+        StateHasChanged();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
-
-        Console.WriteLine("[GameUIBase.OnInitializedAsync] Calling ContentValidator.ValidateContent()...");
-        ContentValidationResult validationResult = ContentValidator.ValidateContent();
-        Console.WriteLine($"[GameUIBase.OnInitializedAsync] ContentValidator.ValidateContent() completed. HasMissingReferences: {validationResult.HasMissingReferences}");
-
-        bool missingReferences = validationResult.HasMissingReferences;
-
-        if (missingReferences)
+        try
         {
-            Console.WriteLine("[GameUIBase.OnInitializedAsync] Missing references detected. Navigating to MissingReferences view...");
-            NavigationService.NavigateTo(CurrentViews.MissingReferences);
-        }
-        else if (!GameWorld.GetPlayer().IsInitialized)
-        {
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] Player not initialized. Calling InitializeGame()...");
-            await InitializeGame();
-            Console.WriteLine("[GameUIBase.OnInitializedAsync] InitializeGame() completed.");
-        }
-        else
-        {
-            Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Navigating to default view...");
-            NavigationService.NavigateTo(NavigationService.GetDefaultView());
-        }
+            Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
 
-        Console.WriteLine("[GameUIBase.OnInitializedAsync] Initialization completed.");
+            Console.WriteLine("[GameUIBase.OnInitializedAsync] Calling ContentValidator.ValidateContent()...");
+            ContentValidationResult validationResult = ContentValidator.ValidateContent();
+            Console.WriteLine($"[GameUIBase.OnInitializedAsync] ContentValidator.ValidateContent() completed. HasMissingReferences: {validationResult.HasMissingReferences}");
+
+            bool missingReferences = validationResult.HasMissingReferences;
+
+            if (missingReferences)
+            {
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Missing references detected. Navigating to MissingReferences view...");
+                CurrentView = CurrentViews.MissingReferences;
+            }
+            else if (!GameWorld.GetPlayer().IsInitialized)
+            {
+                Console.WriteLine($"[GameUIBase.OnInitializedAsync] Player not initialized. Navigating to CharacterScreen...");
+                CurrentView = CurrentViews.CharacterScreen;
+            }
+            else
+            {
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Navigating to default view...");
+                CurrentView = GetDefaultView();
+            }
+
+            Console.WriteLine($"[GameUIBase.OnInitializedAsync] Initialization completed. CurrentView: {CurrentView}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GameUIBase.OnInitializedAsync] ERROR: {ex.Message}");
+            Console.WriteLine($"[GameUIBase.OnInitializedAsync] STACK: {ex.StackTrace}");
+            throw;
+        }
     }
 
-    public void HandleNavigationChange(CurrentViews previousScreen, CurrentViews newScreen)
+    private CurrentViews GetDefaultView()
     {
-        InvokeAsync(StateHasChanged);
+        // Dawn = letter board available
+        if (TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        {
+            return CurrentViews.LetterBoardScreen;
+        }
+
+        // Default to location screen (primary interface)
+        return CurrentViews.LocationScreen;
     }
 
-    public void Dispose()
-    {
-        // Clean architecture - no events to unsubscribe from
-    }
 
     public async Task ResolvedMissingReferences()
     {
         if (!GameWorld.GetPlayer().IsInitialized)
         {
-            await InitializeGame();
+            CurrentView = CurrentViews.CharacterScreen;
         }
         else
         {
-            NavigationService.NavigateTo(NavigationService.GetDefaultView());
+            CurrentView = GetDefaultView();
         }
-    }
-
-    public async Task InitializeGame()
-    {
-        Console.WriteLine("[GameUIBase.InitializeGame] Navigating to CharacterScreen...");
-        NavigationService.NavigateTo(CurrentViews.CharacterScreen);
-        Console.WriteLine("[GameUIBase.InitializeGame] Navigation to CharacterScreen completed.");
+        StateHasChanged();
     }
 
     public async Task HandleCharacterCreated(Player player)
@@ -78,7 +97,8 @@ public class GameUIBase : ComponentBase, INavigationHandler, IDisposable
         await GameWorldManager.StartGame();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] GameWorldManager.StartGame() completed.");
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigating to LocationScreen...");
-        NavigationService.NavigateTo(CurrentViews.LocationScreen);
+        CurrentView = CurrentViews.LocationScreen;
+        StateHasChanged();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigation to LocationScreen completed.");
     }
 }

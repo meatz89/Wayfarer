@@ -220,7 +220,7 @@
     
     @* Back Button *@
     <div class="navigation-buttons">
-        <button class="btn btn-secondary" @onclick="() => NavigationService.NavigateTo(CurrentViews.LocationScreen)">Back to Location</button>
+        <button class="btn btn-secondary" @onclick="() => OnNavigate?.Invoke(CurrentViews.LocationScreen)">Back to Location</button>
     </div>
 </div>
 

@@ -4,19 +4,25 @@
 
 @namespace Wayfarer.Pages
 
+@{
+    Console.WriteLine($"[GameUI.razor] Rendering component. CurrentView: {CurrentView}");
+}
+
 <div class="game-container">
+    <h1>TEST: GameUI is rendering!</h1>
+    <p>CurrentView: @CurrentView</p>
     
-    @if (CurrentScreen == CurrentViews.MissingReferences)
+    @if (CurrentView == CurrentViews.MissingReferences)
     {
         <MissingReferences OnMissingReferencesResolved="ResolvedMissingReferences" />
     }
-    else if (CurrentScreen == CurrentViews.CharacterScreen)
+    else if (CurrentView == CurrentViews.CharacterScreen)
     {
         <CharacterCreation OnCharacterCreated="HandleCharacterCreated" />
     }
     else
     {
-        <MainGameplayView />
+        <MainGameplayView CurrentView="@CurrentView" OnNavigate="@NavigateTo" />
     }
     <MusicSelector />
     <MusicPlayer />
