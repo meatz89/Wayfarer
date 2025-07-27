@@ -23,7 +23,8 @@ public class EquipmentTokenTests
         
         _messageSystem = new MessageSystem(_gameWorld);
         _itemRepository = new ItemRepository(_gameWorld);
-        _npcRepository = new NPCRepository(_gameWorld, null);
+        var visibilityService = new NPCVisibilityService();
+        _npcRepository = new NPCRepository(_gameWorld, null, visibilityService);
         _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, _npcRepository, _itemRepository);
     }
 

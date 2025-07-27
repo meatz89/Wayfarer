@@ -38,6 +38,9 @@
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();
+        
+        // Core services that have no dependencies
+        services.AddSingleton<NPCVisibilityService>();
 
         // Register repositories
         services.AddSingleton<LocationRepository>();
@@ -101,7 +104,7 @@
         services.AddSingleton<CommandDiscoveryService>();
         services.AddSingleton<ConversationFactory>();
 
-        // Narrative system components
+        // Narrative system components (after NPCRepository and NPCVisibilityService)
         services.AddSingleton<FlagService>();
         services.AddSingleton<NarrativeManager>();
         services.AddSingleton<NarrativeRequirement>();

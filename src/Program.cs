@@ -19,6 +19,7 @@ Console.WriteLine("[STARTUP] Kestrel configured");
 Console.WriteLine("[STARTUP] Adding Razor Pages and Blazor services...");
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddControllers(); // Add controller support
 Console.WriteLine("[STARTUP] Razor Pages and Blazor services added");
 
 Console.WriteLine("[STARTUP] Building configuration...");
@@ -72,6 +73,7 @@ app.Use(async (context, next) =>
 
 app.UseStaticFiles();
 app.UseRouting();
+app.MapControllers(); // Map controller endpoints
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 Console.WriteLine("[STARTUP] HTTP pipeline configured");

@@ -35,7 +35,8 @@ public class PatronLetterLeverageTests
         };
 
         _messageSystem = new MessageSystem(_gameWorld);
-        _npcRepo = new NPCRepository(_gameWorld, null);
+        var visibilityService = new NPCVisibilityService();
+        _npcRepo = new NPCRepository(_gameWorld, null, visibilityService);
         var itemRepo = new ItemRepository(_gameWorld);
         _tokenManager = new ConnectionTokenManager(_gameWorld, _messageSystem, _npcRepo, itemRepo);
         _templateRepo = new LetterTemplateRepository(_gameWorld);
