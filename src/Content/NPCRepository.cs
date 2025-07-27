@@ -2,11 +2,13 @@
 {
     private readonly GameWorld _gameWorld;
     private readonly DebugLogger _debugLogger;
+    private readonly NarrativeManager _narrativeManager;
 
-    public NPCRepository(GameWorld gameWorld, DebugLogger debugLogger)
+    public NPCRepository(GameWorld gameWorld, DebugLogger debugLogger, NarrativeManager narrativeManager = null)
     {
         _gameWorld = gameWorld;
         _debugLogger = debugLogger;
+        _narrativeManager = narrativeManager;
 
         if (_gameWorld.WorldState.GetCharacters() == null)
         {
@@ -21,43 +23,76 @@
 
     #region Read Methods
 
+    /// <summary>
+    /// Checks if an NPC should be visible based on narrative state
+    /// </summary>
+    private bool IsNPCVisibleInNarrative(NPC npc)
+    {
+        if (_narrativeManager == null)
+            return true;
+            
+        return _narrativeManager.IsNPCVisible(npc.ID);
+    }
+
+    /// <summary>
+    /// Filters a list of NPCs based on narrative visibility
+    /// </summary>
+    private List<NPC> FilterByNarrativeVisibility(List<NPC> npcs)
+    {
+        if (_narrativeManager == null)
+            return npcs;
+            
+        return npcs.Where(npc => IsNPCVisibleInNarrative(npc)).ToList();
+    }
+
     public NPC GetById(string id)
     {
-        return _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
+        var npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
+        if (npc != null && !IsNPCVisibleInNarrative(npc))
+            return null;
+        return npc;
     }
 
     public NPC GetByName(string name)
     {
-        return _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        var npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (npc != null && !IsNPCVisibleInNarrative(npc))
+            return null;
+        return npc;
     }
 
     public List<NPC> GetAllNPCs()
     {
-        return _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
+        var npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
+        return FilterByNarrativeVisibility(npcs);
     }
 
     public List<NPC> GetNPCsForLocation(string locationId)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.Location == locationId).ToList();
+        var locationNpcs = npcs.Where(n => n.Location == locationId).ToList();
+        return FilterByNarrativeVisibility(locationNpcs);
     }
 
     public List<NPC> GetAvailableNPCs(TimeBlocks currentTime)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.IsAvailable(currentTime)).ToList();
+        var availableNpcs = npcs.Where(n => n.IsAvailable(currentTime)).ToList();
+        return FilterByNarrativeVisibility(availableNpcs);
     }
 
     public List<NPC> GetNPCsByProfession(Professions profession)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.Profession == profession).ToList();
+        var professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
+        return FilterByNarrativeVisibility(professionNpcs);
     }
 
     public List<NPC> GetNPCsProvidingService(ServiceTypes service)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.ProvidedServices.Contains(service)).ToList();
+        var serviceNpcs = npcs.Where(n => n.ProvidedServices.Contains(service)).ToList();
+        return FilterByNarrativeVisibility(serviceNpcs);
     }
 
     public List<NPC> GetNPCsForLocationAndTime(string locationId, TimeBlocks currentTime)
@@ -65,7 +100,8 @@
         // Return all NPCs at location, regardless of availability
         // UI will handle whether they're interactable based on availability
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.Location == locationId).ToList();
+        var locationNpcs = npcs.Where(n => n.Location == locationId).ToList();
+        return FilterByNarrativeVisibility(locationNpcs);
     }
 
     /// <summary>
@@ -81,7 +117,11 @@
             $"Looking for NPCs at spot '{locationSpotId}' during {currentTime}");
 
         List<NPC> npcsAtSpot = npcs.Where(n => n.SpotId == locationSpotId).ToList();
-        _debugLogger.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}': " +
+        
+        // Apply narrative filtering
+        npcsAtSpot = FilterByNarrativeVisibility(npcsAtSpot);
+        
+        _debugLogger.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}' (after narrative filtering): " +
             string.Join(", ", npcsAtSpot.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
 
         return npcsAtSpot;
@@ -93,7 +133,10 @@
     public NPC GetPrimaryNPCForSpot(string locationSpotId, TimeBlocks currentTime)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.FirstOrDefault(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime));
+        var npc = npcs.FirstOrDefault(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime));
+        if (npc != null && !IsNPCVisibleInNarrative(npc))
+            return null;
+        return npc;
     }
 
     /// <summary>
@@ -103,6 +146,7 @@
     {
         List<TimeBlockServiceInfo> timeBlockPlan = new List<TimeBlockServiceInfo>();
         TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
+        // GetNPCsForLocation already applies narrative filtering
         List<NPC> locationNPCs = GetNPCsForLocation(locationId);
 
         foreach (TimeBlocks timeBlock in allTimeBlocks)

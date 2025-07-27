@@ -1,1 +1,5 @@
-[]
+[
+  {
+    "$ref": "tutorial_narrative.json"
+  }
+]

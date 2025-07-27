@@ -2,12 +2,18 @@
 
 @inherits MainGameplayViewBase
 
-<SystemMessageDisplay Messages="@SystemMessages" OnMessagesExpired="HandleMessagesExpired" />
-<ObjectiveView StateVersion="@StateVersion" />
+@if (!IsTutorialActive())
+{
+    <SystemMessageDisplay Messages="@SystemMessages" OnMessagesExpired="HandleMessagesExpired" />
+    <ObjectiveView StateVersion="@StateVersion" />
+}
 
-<NarrativeOverlay />
+<NarrativeOverlay IsMinimizable="@(!IsTutorialActive())" />
 
-<NavigationBar CurrentView="@CurrentView" OnNavigate="@OnNavigate" />
+@if (!IsTutorialActive())
+{
+    <NavigationBar CurrentView="@CurrentView" OnNavigate="@OnNavigate" />
+}
 
 <div class="game-status-bar">
     <div class="player-status">
@@ -36,7 +42,11 @@
     </div>
 </div>
 
-<div class="game-content">
+<div class="game-content @(IsTutorialActive() ? "tutorial-mode" : "")">
+    @if (IsTutorialActive())
+    {
+        <div class="tutorial-blocking-overlay"></div>
+    }
     <div class="main-content">
         @switch (CurrentScreen)
         {
@@ -195,7 +205,7 @@
         }
     </div>
 
-    @if (CurrentScreen == CurrentViews.LocationScreen)
+    @if (CurrentScreen == CurrentViews.LocationScreen && !IsTutorialActive())
     {
         @RenderSidebar()
     }
@@ -213,9 +223,12 @@
 }
 
 @* Debug Panel Toggle *@
-<button class="debug-toggle" @onclick="ToggleDebugPanel" title="Toggle Debug Panel">
-    🔧
-</button>
+@if (!IsTutorialActive())
+{
+    <button class="debug-toggle" @onclick="ToggleDebugPanel" title="Toggle Debug Panel">
+        🔧
+    </button>
+}
 
 @* Debug Panel *@
 @if (ShowDebugPanel)

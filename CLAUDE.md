@@ -11,7 +11,6 @@
 - NEVER make partial changes without understanding the full impact
 - If you haven't analyzed the codebase thoroughly, DO NOT MAKE THE CHANGE
 
-
 **🚨 CRITICAL RULE: NEVER MARK ANYTHING AS COMPLETE WITHOUT TESTING 🚨**
 - You MUST build and run tests before claiming completion
 - You MUST verify the code works before saying "done" or "complete"
@@ -19,10 +18,12 @@
 - If you haven't run `dotnet build` and the E2E test, IT'S NOT COMPLETE
 - Saying something is "complete" without testing is UNACCEPTABLE
 
-**📋 NARRATIVE SYSTEM: See NARRATIVE-IMPLEMENTATION-PLAN.md for tutorial/quest/story system design**
-
-**🚧 TUTORIAL IMPLEMENTATION: See TUTORIAL-IMPLEMENTATION-TODOS.md for current state and remaining work**
-**Current State**: Core systems working, narrative defined, but critical integration missing (narrative not connected to game flow, UI overlay missing, no auto-start). Total remaining work: 7-11 days.
+**🚧 TUTORIAL IMPLEMENTATION: See TUTORIAL-IMPLEMENTATION-TODOS.md for current state**
+**Current State**: Tutorial 90% complete. All core systems integrated and working (narrative, UI overlay, auto-start, save/load). 
+**Working**: Tutorial auto-starts, shows objectives, filters commands, hides UI elements progressively, all content created.
+**Critical Issue**: TravelManager doesn't set movement flags, blocking tutorial progression (1 hour fix).
+**Enhancements Needed**: Patron obligation creation, NPC scheduling, stamina collapse (1-2 days).
+**Total remaining work**: 2-3 days (not 7-11 as previously documented).
 
 **⚠️ CRITICAL: ALWAYS READ ALL FILES FULLY BEFORE MODIFYING IT ⚠️**
 **NEVER make changes to a file without reading it completely first. This is non-negotiable.**

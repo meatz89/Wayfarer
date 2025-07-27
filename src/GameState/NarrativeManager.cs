@@ -74,6 +74,13 @@ public class NarrativeManager
         // Set narrative started flag
         _flagService.SetFlag($"narrative_{narrativeId}_started", true);
         
+        // Set tutorial-specific flags if starting tutorial
+        if (narrativeId == "wayfarer_tutorial")
+        {
+            _flagService.SetFlag("tutorial_active", true);
+            _flagService.SetFlag(FlagService.TUTORIAL_STARTED, true);
+        }
+        
         // Apply starting effects
         ApplyStartingEffects(definition);
         
@@ -176,6 +183,34 @@ public class NarrativeManager
     }
     
     /// <summary>
+    /// Get allowed command types from current narrative step
+    /// </summary>
+    public HashSet<string> GetAllowedCommandTypes()
+    {
+        var allowedCommandTypes = new HashSet<string>();
+        
+        // If no active narratives, all commands are allowed
+        if (!HasActiveNarrative())
+        {
+            return allowedCommandTypes;
+        }
+        
+        foreach (var narrativeId in GetActiveNarratives())
+        {
+            var currentStep = GetCurrentStep(narrativeId);
+            if (currentStep != null && currentStep.AllowedActions.Any())
+            {
+                foreach (var action in currentStep.AllowedActions)
+                {
+                    allowedCommandTypes.Add(action);
+                }
+            }
+        }
+        
+        return allowedCommandTypes;
+    }
+    
+    /// <summary>
     /// Filter available commands based on active narratives
     /// </summary>
     public List<DiscoveredCommand> FilterCommands(List<DiscoveredCommand> commands)
@@ -187,21 +222,8 @@ public class NarrativeManager
         }
         
         // Get allowed command types from all active narratives
-        var allowedCommandTypes = new HashSet<string>();
+        var allowedCommandTypes = GetAllowedCommandTypes();
         var allowedCommands = new List<DiscoveredCommand>();
-        
-        foreach (var narrativeId in GetActiveNarratives())
-        {
-            var currentStep = GetCurrentStep(narrativeId);
-            if (currentStep != null && currentStep.AllowedActions.Any())
-            {
-                // This step has specific allowed actions
-                foreach (var action in currentStep.AllowedActions)
-                {
-                    allowedCommandTypes.Add(action);
-                }
-            }
-        }
         
         // If no specific restrictions, allow all commands
         if (!allowedCommandTypes.Any())
@@ -283,6 +305,13 @@ public class NarrativeManager
         
         // Set completion flag
         _flagService.SetFlag($"narrative_{narrativeId}_completed", true);
+        
+        // Clear tutorial-specific flags if completing tutorial
+        if (narrativeId == "wayfarer_tutorial")
+        {
+            _flagService.SetFlag("tutorial_active", false);
+            _flagService.SetFlag(FlagService.TUTORIAL_COMPLETE, true);
+        }
         
         // Apply completion rewards
         if (_narrativeDefinitions.TryGetValue(narrativeId, out var definition))
@@ -487,6 +516,7 @@ public class NarrativeManager
             RestCommand => "Rest",
             CollectLetterCommand => "CollectLetter",
             DeliverLetterCommand => "DeliverLetter",
+            AcceptLetterBoardOfferCommand => "AcceptLetter",
             LetterQueueActionCommand => "QueueAction",
             SocializeCommand => "Socialize",
             BorrowMoneyCommand => "BorrowMoney",

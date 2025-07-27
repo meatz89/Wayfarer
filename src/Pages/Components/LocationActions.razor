@@ -1,5 +1,6 @@
 @using Wayfarer.Pages.Components
 @inject LocationActionsUIService ActionsService
+@inject FlagService FlagService
 
 <div class="location-actions">
     @{
@@ -31,7 +32,7 @@
                 <div class="actions-list">
                     @foreach (var action in group.Actions)
                     {
-                        <div class="action-item @(action.IsServiceClosed ? "service-closed" : (CanAffordAction(action) ? "" : "disabled"))">
+                        <div class="action-item @(action.IsServiceClosed ? "service-closed" : (CanAffordAction(action) ? "" : "disabled")) @(IsTutorialActive && action.IsAllowedInTutorial ? "tutorial-highlight" : "")">
                             <div class="action-info">
                                 <div class="action-name">@action.Description</div>
                                 @if (!string.IsNullOrEmpty(action.NPCName))
@@ -82,8 +83,8 @@
                                     </div>
                                 }
                                 
-                                <button class="action-button" 
-                                        disabled="@(!CanAffordAction(action))"
+                                <button class="action-button @(IsTutorialActive && action.IsAllowedInTutorial ? "allowed-action" : "")" 
+                                        disabled="@(!CanAffordAction(action) || (IsTutorialActive && !action.IsAllowedInTutorial))"
                                         @onclick="async () => await ExecuteAction(action.Id)">
                                     @(CanAffordAction(action) ? "Do This" : "Cannot Afford")
                                 </button>
@@ -106,6 +107,8 @@
 </div>
 
 @code {
+    private bool IsTutorialActive => FlagService.HasFlag("tutorial_active");
+    
     private bool CanAffordAction(ActionOptionViewModel action)
     {
         return action.HasEnoughTime && action.HasEnoughStamina && action.HasEnoughCoins;

@@ -1,0 +1,1058 @@
+{
+  "id": "wayfarer_tutorial",
+  "title": "A Carrier's Beginning",
+  "description": "Learn the ways of letter carrying in Millbrook",
+  "startingConditions": [
+    {
+      "type": "FlagNotSet",
+      "value": "tutorial_complete"
+    }
+  ],
+  "startingEffects": [
+    {
+      "type": "SetFlag",
+      "value": "tutorial_started"
+    },
+    {
+      "type": "SetFlag",
+      "value": "tutorial_active"
+    },
+    {
+      "type": "ForcePlayerState",
+      "location": "lower_ward",
+      "spot": "abandoned_warehouse",
+      "coins": 2,
+      "stamina": 4,
+      "hour": 6
+    }
+  ],
+  "completionEffects": [
+    {
+      "type": "SetFlag",
+      "value": "tutorial_complete"
+    },
+    {
+      "type": "RemoveFlag",
+      "value": "tutorial_active"
+    },
+    {
+      "type": "UnlockAllContent"
+    }
+  ],
+  "steps": [
+    {
+      "id": "day1_wake",
+      "name": "Cold Morning",
+      "description": "You wake in an abandoned warehouse. The morning air is cold, and your stomach growls. With only 2 coins to your name, you need to find work quickly.",
+      "guidanceText": "Leave the warehouse and go to the Lower Ward Square",
+      "allowedActions": ["Travel"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "visibleSpots": ["lower_ward_square"],
+      "dialogueOverrides": {},
+      "completionRequirements": [
+        {
+          "type": "LocationIs",
+          "location": "lower_ward",
+          "spot": "lower_ward_square"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_left_warehouse"
+        }
+      ]
+    },
+    {
+      "id": "day1_meet_martha",
+      "name": "Finding Work",
+      "description": "The Lower Ward Square bustles with morning activity. Among the workers, you spot Martha the Docker - a sturdy woman who might have work.",
+      "guidanceText": "Talk to Martha the Docker about work",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["martha_docker"],
+      "visibleLocations": ["lower_ward"],
+      "dialogueOverrides": {
+        "martha_docker": "You there! You look like you need work. Got strong arms? The docks always need hauling done. 2 hours of honest work for 4 coins. What say you?"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_met_martha"
+        }
+      ]
+    },
+    {
+      "id": "day1_first_work",
+      "name": "Honest Labor",
+      "description": "Martha has offered you dock work. It's hard labor, but the 4 coins will help you survive another day.",
+      "guidanceText": "Work for Martha at the docks (2 hours, 4 coins)",
+      "allowedActions": ["Work"],
+      "visibleNPCs": ["martha_docker"],
+      "visibleLocations": ["lower_ward"],
+      "workOverride": {
+        "npcId": "martha_docker",
+        "hours": 2,
+        "coins": 4,
+        "stamina": 2
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "work_performed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_first_work_complete"
+        }
+      ]
+    },
+    {
+      "id": "day1_post_work",
+      "name": "After Work",
+      "description": "Your back aches from the dock work, but you now have 6 coins. Martha seems impressed by your effort.",
+      "guidanceText": "Talk to Martha again - she mentioned something about letters",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["martha_docker"],
+      "visibleLocations": ["lower_ward"],
+      "dialogueOverrides": {
+        "martha_docker": "Good work today. Say, you can read, can't you? I've got a letter needs delivering. My friend Frans at the docks - the fishmonger. Simple delivery, 2 coins. Interested?"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_letter_offered"
+        }
+      ]
+    },
+    {
+      "id": "day1_dawn_arrival",
+      "name": "Dawn Opportunity",
+      "description": "The church bells chime - it's dawn, when letters are offered. Martha's letter should be available now at the Letter Board.",
+      "guidanceText": "Go to the Letter Board to accept Martha's delivery job",
+      "allowedActions": ["VisitLetterBoard"],
+      "visibleNPCs": ["martha_docker"],
+      "visibleLocations": ["lower_ward"],
+      "letterBoardOverride": {
+        "letters": [
+          {
+            "id": "tutorial_martha_fish_oil",
+            "title": "Fish Oil Order",
+            "description": "Deliver to Frans the Fishmonger at Millbrook Docks",
+            "payment": 2,
+            "sender": "martha_docker"
+          }
+        ]
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "letter_board_visited"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_letter_board_seen"
+        }
+      ]
+    },
+    {
+      "id": "day1_accept_letter",
+      "name": "First Letter",
+      "description": "Martha's letter sits on the board. A simple delivery to the docks for 2 coins. This could be the start of a new career.",
+      "guidanceText": "Accept Martha's letter from the Letter Board",
+      "allowedActions": ["AcceptLetter"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "letterAcceptOverride": {
+        "onlyLetter": "tutorial_martha_fish_oil"
+      },
+      "completionRequirements": [
+        {
+          "type": "LetterInQueue",
+          "letterId": "tutorial_martha_fish_oil"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_first_letter_accepted"
+        }
+      ]
+    },
+    {
+      "id": "day1_travel_to_docks",
+      "name": "Journey to the Docks",
+      "description": "With Martha's letter in hand, you need to reach the Millbrook Docks. The morning traffic is light, making travel easier.",
+      "guidanceText": "Travel to Millbrook Docks",
+      "allowedActions": ["Travel"],
+      "visibleNPCs": [],
+      "visibleLocations": ["millbrook_docks"],
+      "travelOverride": {
+        "forcedRoute": "Dockside Path",
+        "reducedCost": true
+      },
+      "completionRequirements": [
+        {
+          "type": "LocationIs",
+          "location": "millbrook_docks"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_arrived_at_docks"
+        }
+      ]
+    },
+    {
+      "id": "day1_find_frans",
+      "name": "Finding Frans",
+      "description": "The docks smell of salt and fish. Among the morning bustle, you need to find Frans the Fishmonger to deliver Martha's letter.",
+      "guidanceText": "Find Frans the Fishmonger at his stall",
+      "allowedActions": ["Observe"],
+      "visibleNPCs": ["fishmonger_frans"],
+      "visibleLocations": ["millbrook_docks"],
+      "visibleSpots": ["fishmongers_stall"],
+      "completionRequirements": [
+        {
+          "type": "LocationIs",
+          "location": "millbrook_docks",
+          "spot": "fishmongers_stall"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_found_frans"
+        }
+      ]
+    },
+    {
+      "id": "day1_deliver_letter",
+      "name": "First Delivery",
+      "description": "Frans is here, gutting fish with practiced ease. Time to make your first delivery as a letter carrier.",
+      "guidanceText": "Deliver Martha's letter to Frans",
+      "allowedActions": ["DeliverLetter"],
+      "visibleNPCs": ["fishmonger_frans"],
+      "visibleLocations": ["millbrook_docks"],
+      "deliveryOverride": {
+        "forcedRecipient": "fishmonger_frans",
+        "forcedLetter": "tutorial_martha_fish_oil"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "letter_delivered"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_first_delivery_complete"
+        },
+        {
+          "type": "GiveCoins",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "day1_frans_reaction",
+      "name": "A New Connection",
+      "description": "Frans reads the letter and nods approvingly. 'Good timing,' he says. 'Martha's oil order - always reliable.' He seems to remember you now.",
+      "guidanceText": "Talk to Frans about letter carrying",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["fishmonger_frans"],
+      "visibleLocations": ["millbrook_docks"],
+      "dialogueOverrides": {
+        "fishmonger_frans": "You know, I send letters too sometimes. Come by during dawn if you're looking for delivery work. Oh, and there's a scribe - Elena - in the Lower Ward. She often needs help with... personal matters. Might be worth meeting her."
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_frans_advice_received"
+        }
+      ]
+    },
+    {
+      "id": "day1_return_elena",
+      "name": "Finding Elena",
+      "description": "Frans mentioned Elena the Scribe. With 8 coins now, you're doing better, but more opportunities wouldn't hurt.",
+      "guidanceText": "Return to Lower Ward and find Elena the Scribe",
+      "allowedActions": ["Travel"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "completionRequirements": [
+        {
+          "type": "LocationIs",
+          "location": "lower_ward"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_returned_for_elena"
+        }
+      ]
+    },
+    {
+      "id": "day1_meet_elena",
+      "name": "The Scribe's Request",
+      "description": "Elena sits at a small desk, surrounded by papers. She looks up as you approach, hope flickering in her eyes.",
+      "guidanceText": "Talk to Elena about her personal matter",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["elena_scribe"],
+      "visibleLocations": ["lower_ward"],
+      "dialogueOverrides": {
+        "elena_scribe": "Oh! You're new to carrying letters? I... I have something personal. Not business. A letter to my mother in the Merchant's Rest. But it's private, and I need someone I can trust. Would you... could you deliver it? I can only pay 1 coin, but I'd be so grateful."
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_elena_met"
+        },
+        {
+          "type": "SetFlag",
+          "value": "tutorial_trust_letter_offered"
+        }
+      ]
+    },
+    {
+      "id": "day1_elena_explanation",
+      "name": "A Matter of Trust",
+      "description": "Elena seems nervous but determined. This personal letter clearly means a lot to her.",
+      "guidanceText": "Accept Elena's personal delivery request",
+      "allowedActions": ["AcceptPersonalRequest"],
+      "visibleNPCs": ["elena_scribe"],
+      "visibleLocations": ["lower_ward"],
+      "dialogueOverrides": {
+        "elena_scribe": "Thank you! This means everything to me. When you deliver personal letters like this, you build trust with people. That trust... it matters more than coins sometimes. People remember who they can rely on."
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "personal_request_accepted"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_trust_explained"
+        },
+        {
+          "type": "AddToQueue",
+          "letter": "tutorial_elena_personal_letter"
+        }
+      ]
+    },
+    {
+      "id": "day1_rest_reminder",
+      "name": "Growing Tired",
+      "description": "The day's work is catching up with you. Your stamina is running low. Elena notices your fatigue.",
+      "guidanceText": "Talk to Elena about resting",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["elena_scribe"],
+      "visibleLocations": ["lower_ward"],
+      "dialogueOverrides": {
+        "elena_scribe": "You look tired. The Merchant's Rest Inn has good food that'll restore your energy. Since you're heading there anyway with my letter... And the innkeeper is discrete about personal deliveries."
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_rest_hint_received"
+        }
+      ]
+    },
+    {
+      "id": "day1_travel_merchants",
+      "name": "To Merchant's Rest",
+      "description": "With Elena's personal letter, you head to the Merchant's Rest district. The afternoon sun warms the cobblestones.",
+      "guidanceText": "Travel to Merchant's Rest Inn",
+      "allowedActions": ["Travel"],
+      "visibleNPCs": [],
+      "visibleLocations": ["merchants_rest"],
+      "completionRequirements": [
+        {
+          "type": "LocationIs",
+          "location": "merchants_rest"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_arrived_merchants_rest"
+        }
+      ]
+    },
+    {
+      "id": "day1_deliver_personal",
+      "name": "Personal Delivery",
+      "description": "The inn is warm and inviting. You need to find Elena's mother to deliver this personal letter.",
+      "guidanceText": "Deliver Elena's letter to her mother",
+      "allowedActions": ["DeliverLetter"],
+      "visibleNPCs": ["elena_mother"],
+      "visibleLocations": ["merchants_rest"],
+      "deliveryOverride": {
+        "forcedRecipient": "elena_mother",
+        "forcedLetter": "tutorial_elena_personal_letter",
+        "isPersonal": true
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "letter_delivered"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_personal_letter_delivered"
+        },
+        {
+          "type": "GiveCoins",
+          "amount": 1
+        },
+        {
+          "type": "GainTrust",
+          "npc": "elena_scribe",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "day1_rest_at_inn",
+      "name": "Well-Earned Rest",
+      "description": "Elena's mother thanks you warmly. With 9 coins now, you can afford a meal to restore your stamina.",
+      "guidanceText": "Rest at the inn to restore stamina (costs 3 coins)",
+      "allowedActions": ["Rest"],
+      "visibleNPCs": [],
+      "visibleLocations": ["merchants_rest"],
+      "restOverride": {
+        "forcedOption": "meal",
+        "cost": 3,
+        "staminaGain": 6
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "rest_taken"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_first_rest_complete"
+        }
+      ]
+    },
+    {
+      "id": "day1_evening_choice",
+      "name": "Evening Plans",
+      "description": "Refreshed from your meal, you consider the evening ahead. You have 6 coins and restored energy. Time to head back and see what tomorrow brings.",
+      "guidanceText": "Return to Lower Ward for the night",
+      "allowedActions": ["Travel"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "completionRequirements": [
+        {
+          "type": "LocationIs",
+          "location": "lower_ward"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_day1_evening_reached"
+        }
+      ]
+    },
+    {
+      "id": "day1_night_rest",
+      "name": "First Night",
+      "description": "Back at the warehouse, you reflect on the day. You've earned coins, delivered letters, and begun building trust. Tomorrow brings new opportunities.",
+      "guidanceText": "Rest for the night at the warehouse",
+      "allowedActions": ["Sleep"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "sleepOverride": {
+        "location": "lower_ward",
+        "spot": "abandoned_warehouse",
+        "advanceToDay": 2
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "sleep_taken"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_day1_complete"
+        },
+        {
+          "type": "SetDay",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "day2_morning_letters",
+      "name": "Dawn of Opportunities",
+      "description": "Day 2 begins. Dawn has arrived, and the Letter Board should have new opportunities. Both Martha and Elena mentioned they might have more work.",
+      "guidanceText": "Check the Letter Board for new deliveries",
+      "allowedActions": ["VisitLetterBoard"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "letterBoardOverride": {
+        "letters": [
+          {
+            "id": "tutorial_martha_urgent_medicine",
+            "title": "URGENT: Medicine for Dock Worker",
+            "description": "Time-sensitive delivery to the docks",
+            "payment": 3,
+            "sender": "martha_docker",
+            "urgent": true
+          },
+          {
+            "id": "tutorial_fishmonger_routine",
+            "title": "Weekly Fish Order",
+            "description": "Regular delivery to Merchant's Rest",
+            "payment": 2,
+            "sender": "fishmonger_frans"
+          }
+        ]
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "letter_board_visited"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_day2_letters_seen"
+        }
+      ]
+    },
+    {
+      "id": "day2_queue_conflict",
+      "name": "Queue Management",
+      "description": "Two letters are available, but your letter queue can only hold 3 letters. Martha's is marked URGENT. You must decide what to prioritize.",
+      "guidanceText": "Accept Martha's URGENT medicine delivery",
+      "allowedActions": ["AcceptLetter"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "letterAcceptOverride": {
+        "mustAccept": "tutorial_martha_urgent_medicine"
+      },
+      "completionRequirements": [
+        {
+          "type": "LetterInQueue",
+          "letterId": "tutorial_martha_urgent_medicine"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_urgent_letter_accepted"
+        }
+      ]
+    },
+    {
+      "id": "day2_urgent_delivery",
+      "name": "Race Against Time",
+      "description": "Martha's urgent medicine must be delivered quickly. A dock worker's health depends on it. Time is of the essence.",
+      "guidanceText": "Deliver the urgent medicine to the docks immediately",
+      "allowedActions": ["Travel", "DeliverLetter"],
+      "visibleNPCs": ["injured_docker"],
+      "visibleLocations": ["millbrook_docks", "lower_ward"],
+      "timeLimit": true,
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "letter_delivered"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_urgent_delivery_complete"
+        },
+        {
+          "type": "GiveCoins",
+          "amount": 3
+        },
+        {
+          "type": "GainTrust",
+          "npc": "martha_docker",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "day2_martha_thanks",
+      "name": "Trust Earned",
+      "description": "The medicine arrived in time. Martha grips your shoulder with genuine gratitude. 'You saved his life. I won't forget this.'",
+      "guidanceText": "Talk to Martha about your growing reputation",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["martha_docker"],
+      "visibleLocations": ["millbrook_docks"],
+      "dialogueOverrides": {
+        "martha_docker": "You've proven yourself reliable. That trust token I just gave you? It's worth more than coins. Some deliveries require trust - personal letters, sensitive business. Build enough trust with folks, and better opportunities open up. Speaking of which, the Merchant Guild is watching. They might have something special for you."
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_trust_tokens_explained"
+        }
+      ]
+    },
+    {
+      "id": "day2_guild_opportunity",
+      "name": "Guild Interest",
+      "description": "As Martha predicted, a well-dressed guild representative approaches you at the docks.",
+      "guidanceText": "Speak with the Merchant Guild representative",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["merchant_guild"],
+      "visibleLocations": ["millbrook_docks"],
+      "dialogueOverrides": {
+        "merchant_guild": "We've been watching your work. Reliable carriers are valuable to the guild. We have a trial delivery - sensitive merchant correspondence. Complete it successfully, and we'll establish a standing arrangement. Guaranteed letter each week, premium rates. Interested?"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_guild_offer_received"
+        }
+      ]
+    },
+    {
+      "id": "day2_accept_obligation",
+      "name": "Commitment",
+      "description": "The guild offers steady work, but it comes with obligations. Accepting means you'll need to deliver their letters regularly.",
+      "guidanceText": "Accept the Merchant Guild's standing arrangement",
+      "allowedActions": ["AcceptObligation"],
+      "visibleNPCs": ["merchant_guild"],
+      "visibleLocations": ["millbrook_docks"],
+      "obligationOverride": {
+        "type": "weekly",
+        "sender": "merchant_guild",
+        "payment": 4,
+        "trust_required": 0
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "obligation_accepted"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_first_obligation_created"
+        },
+        {
+          "type": "CreateObligation",
+          "obligation": "merchant_guild_weekly"
+        }
+      ]
+    },
+    {
+      "id": "day2_elena_worry",
+      "name": "A Friend's Concern",
+      "description": "Returning to Lower Ward, you find Elena looking worried. She waves you over urgently.",
+      "guidanceText": "Check on Elena",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["elena_scribe"],
+      "visibleLocations": ["lower_ward"],
+      "dialogueOverrides": {
+        "elena_scribe": "Thank goodness you're here! That trust token I gave you yesterday? I need to ask a huge favor. My brother's in trouble - gambling debts. I need someone trustworthy to deliver payment to his creditor. It's risky, but I trust you. Will you help?"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_elena_favor_requested"
+        }
+      ]
+    },
+    {
+      "id": "day2_spend_trust",
+      "name": "Trust Spent",
+      "description": "Elena needs you to use the trust token she gave you. This sensitive delivery requires spending that trust.",
+      "guidanceText": "Accept Elena's risky delivery (costs 1 Elena trust token)",
+      "allowedActions": ["SpendTrust"],
+      "visibleNPCs": ["elena_scribe"],
+      "visibleLocations": ["lower_ward"],
+      "trustOverride": {
+        "npc": "elena_scribe",
+        "cost": 1,
+        "letter": "tutorial_elena_debt_payment"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "trust_spent"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_trust_token_used"
+        },
+        {
+          "type": "AddToQueue",
+          "letter": "tutorial_elena_debt_payment"
+        }
+      ]
+    },
+    {
+      "id": "day2_risky_delivery",
+      "name": "Dangerous Ground",
+      "description": "The creditor waits in a shadowy part of Lower Ward. This delivery feels different - more dangerous than your usual work.",
+      "guidanceText": "Deliver the debt payment carefully",
+      "allowedActions": ["DeliverLetter"],
+      "visibleNPCs": ["creditor"],
+      "visibleLocations": ["lower_ward"],
+      "deliveryOverride": {
+        "forcedRecipient": "creditor",
+        "forcedLetter": "tutorial_elena_debt_payment",
+        "risky": true
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "letter_delivered"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_risky_delivery_complete"
+        },
+        {
+          "type": "GiveCoins",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "day2_shadow_approach",
+      "name": "From the Shadows",
+      "description": "The delivery is complete, but someone was watching. A figure emerges from the shadows - they represent certain 'interests' in the city.",
+      "guidanceText": "Listen to the shadow network contact",
+      "allowedActions": ["Converse"],
+      "visibleNPCs": ["shadow_network"],
+      "visibleLocations": ["lower_ward"],
+      "dialogueOverrides": {
+        "shadow_network": "Impressive work. Not many would take such risks. We could use someone with your... discretion. Interested in more lucrative opportunities? The pay is exceptional, though the work requires absolute secrecy."
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_shadow_network_introduced"
+        }
+      ]
+    },
+    {
+      "id": "day2_evening_reflection",
+      "name": "Growing Network",
+      "description": "The second day draws to a close. You've handled urgent deliveries, earned trust, accepted obligations, and caught the attention of powerful groups.",
+      "guidanceText": "Rest for the night",
+      "allowedActions": ["Sleep"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "sleep_taken"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_day2_complete"
+        },
+        {
+          "type": "SetDay",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "day3_morning_summons",
+      "name": "An Invitation",
+      "description": "Day 3 dawns. You wake to find an elegant letter slipped under your door. The wax seal bears a noble crest.",
+      "guidanceText": "Read the mysterious letter",
+      "allowedActions": ["ReadLetter"],
+      "visibleNPCs": [],
+      "visibleLocations": ["lower_ward"],
+      "specialLetter": {
+        "id": "patron_invitation",
+        "content": "Your work has not gone unnoticed. A patron of considerable influence wishes to discuss a permanent arrangement. Come to the Merchant's Rest private room at your earliest convenience. - The Intermediary"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "letter_read"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_patron_letter_received"
+        }
+      ]
+    },
+    {
+      "id": "day3_patron_meeting",
+      "name": "The Patron",
+      "description": "The private room at Merchant's Rest is luxurious. The Intermediary, a well-dressed figure, awaits you.",
+      "guidanceText": "Meet with the Patron's Intermediary",
+      "allowedActions": ["Travel", "Converse"],
+      "visibleNPCs": ["patron_intermediary"],
+      "visibleLocations": ["merchants_rest", "lower_ward"],
+      "dialogueOverrides": {
+        "patron_intermediary": "Ah, the promising young carrier. My employer values reliable service above all. We offer patronage - steady employment, protection, and opportunities beyond simple deliveries. In exchange, you prioritize our letters above all others. Our correspondence ALWAYS takes precedence. Do you understand?"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "conversation_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_patron_terms_heard"
+        }
+      ]
+    },
+    {
+      "id": "day3_patron_decision",
+      "name": "The Patronage Offer",
+      "description": "The terms are clear: security and advancement, but at the cost of independence. Patron letters will always jump to the front of your queue.",
+      "guidanceText": "Accept the Patron's offer of employment",
+      "allowedActions": ["AcceptPatronage"],
+      "visibleNPCs": ["patron_intermediary"],
+      "visibleLocations": ["merchants_rest"],
+      "patronageOverride": {
+        "benefits": "Regular pay, letter satchel upgrade, exclusive opportunities",
+        "obligations": "Patron letters get absolute priority"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "patronage_accepted"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_patron_accepted"
+        },
+        {
+          "type": "GiveItem",
+          "item": "letter_satchel"
+        },
+        {
+          "type": "SetFlag",
+          "value": "patron_employed"
+        }
+      ]
+    },
+    {
+      "id": "day3_patron_gift",
+      "name": "Tools of the Trade",
+      "description": "The Intermediary presents you with a fine leather letter satchel. 'This will help you carry more letters. You'll need it for our work.'",
+      "guidanceText": "Examine your new letter satchel (increases queue size)",
+      "allowedActions": ["CheckInventory"],
+      "visibleNPCs": ["patron_intermediary"],
+      "visibleLocations": ["merchants_rest"],
+      "inventoryFocus": "letter_satchel",
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "inventory_checked"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_satchel_received"
+        },
+        {
+          "type": "IncreaseQueueSize",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "day3_first_patron_letter",
+      "name": "First Assignment",
+      "description": "Your patron wastes no time. The Intermediary hands you a sealed letter. 'Deliver this to the Noble Court liaison immediately. This is how our arrangement works.'",
+      "guidanceText": "Accept your first patron letter",
+      "allowedActions": ["AcceptPatronLetter"],
+      "visibleNPCs": ["patron_intermediary"],
+      "visibleLocations": ["merchants_rest"],
+      "patronLetterOverride": {
+        "priority": "absolute",
+        "payment": 5,
+        "destination": "noble_court"
+      },
+      "completionRequirements": [
+        {
+          "type": "LetterInQueue",
+          "letterId": "tutorial_patron_first_letter",
+          "position": 1
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_first_patron_letter_accepted"
+        }
+      ]
+    },
+    {
+      "id": "day3_queue_demonstration",
+      "name": "Priority Demonstrated",
+      "description": "Notice how the patron's letter jumped to the front of your queue? This will always happen with patron letters - they take absolute priority.",
+      "guidanceText": "Check your letter queue to see the patron letter at position 1",
+      "allowedActions": ["ViewLetterQueue"],
+      "visibleNPCs": [],
+      "visibleLocations": ["merchants_rest"],
+      "queueHighlight": {
+        "position": 1,
+        "message": "Patron letters ALWAYS go here"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "queue_viewed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_priority_understood"
+        }
+      ]
+    },
+    {
+      "id": "day3_final_delivery",
+      "name": "Noble Connections",
+      "description": "The Noble Court liaison awaits at Merchant's Rest. This delivery marks your entry into a more complex world of obligations and opportunities.",
+      "guidanceText": "Deliver the patron's letter to the Noble Court liaison",
+      "allowedActions": ["DeliverLetter"],
+      "visibleNPCs": ["noble_court"],
+      "visibleLocations": ["merchants_rest"],
+      "deliveryOverride": {
+        "forcedRecipient": "noble_court",
+        "forcedLetter": "tutorial_patron_first_letter"
+      },
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "letter_delivered"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_final_delivery_complete"
+        },
+        {
+          "type": "GiveCoins",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "day3_tutorial_complete",
+      "name": "A Carrier's Path",
+      "description": "In three days, you've transformed from a desperate vagrant to an employed letter carrier. You understand work, deliveries, trust tokens, obligations, and patronage. The city of Millbrook now opens before you, full of opportunities and choices.",
+      "guidanceText": "Congratulations! You've completed the tutorial. The full game awaits!",
+      "allowedActions": ["CompleteTutorial"],
+      "visibleNPCs": [],
+      "visibleLocations": ["merchants_rest"],
+      "completionRequirements": [
+        {
+          "type": "FlagSet",
+          "value": "tutorial_completed"
+        }
+      ],
+      "completionEffects": [
+        {
+          "type": "SetFlag",
+          "value": "tutorial_complete"
+        },
+        {
+          "type": "RemoveFlag", 
+          "value": "tutorial_active"
+        },
+        {
+          "type": "UnlockAllContent"
+        }
+      ]
+    }
+  ]
+}
