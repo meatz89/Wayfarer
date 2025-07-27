@@ -13,11 +13,7 @@
 
         // Register game configuration and rule engine
         services.AddSingleton<GameConfigurationLoader>();
-        services.AddSingleton<GameConfiguration>(serviceProvider =>
-        {
-            GameConfigurationLoader loader = serviceProvider.GetRequiredService<GameConfigurationLoader>();
-            return loader.LoadConfiguration();
-        });
+        services.AddSingleton<GameConfiguration>();
         services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
 
         // Register factories for reference-safe content creation
@@ -31,31 +27,14 @@
         services.AddSingleton<LetterTemplateFactory>();
         services.AddSingleton<StandingObligationFactory>();
 
-        // Register GameWorldInitializer as both itself and IGameWorldFactory
-        Console.WriteLine("[SERVICE] Registering GameWorldInitializer...");
-        services.AddSingleton<GameWorldInitializer>();
-        services.AddSingleton<IGameWorldFactory>(serviceProvider =>
-            serviceProvider.GetRequiredService<GameWorldInitializer>());
-        Console.WriteLine("[SERVICE] GameWorldInitializer registered");
-
-        // Register GameWorld using factory pattern
-        Console.WriteLine("[SERVICE] Registering GameWorld factory...");
-        services.AddSingleton<GameWorld>(serviceProvider =>
+        // Register GameWorld using static GameWorldInitializer
+        Console.WriteLine("[SERVICE] Registering GameWorld...");
+        services.AddSingleton<GameWorld>(_ =>
         {
-            Console.WriteLine("[SERVICE] Creating GameWorld via factory...");
-            ILogger<GameWorld> logger = serviceProvider.GetRequiredService<ILogger<GameWorld>>();
-            logger.LogInformation("GameWorld factory method called");
-
-            IGameWorldFactory factory = serviceProvider.GetRequiredService<IGameWorldFactory>();
-            logger.LogInformation("Got IGameWorldFactory instance");
-
-            GameWorld gameWorld = factory.CreateGameWorld();
-            logger.LogInformation("GameWorld instance created successfully");
-
-            Console.WriteLine("[SERVICE] GameWorld created via factory");
-            return gameWorld;
+            // Call GameWorldInitializer statically - no DI dependencies needed
+            return GameWorldInitializer.CreateGameWorld();
         });
-        Console.WriteLine("[SERVICE] GameWorld factory registered");
+        Console.WriteLine("[SERVICE] GameWorld registered");
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();
@@ -63,43 +42,13 @@
         // Register repositories
         services.AddSingleton<LocationRepository>();
         services.AddSingleton<LocationSpotRepository>();
-        services.AddSingleton<ItemRepository>(serviceProvider =>
-        {
-            Console.WriteLine("[SERVICE] Creating ItemRepository...");
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            Console.WriteLine($"[SERVICE] GameWorld has {gameWorld.WorldState.Items?.Count ?? 0} items when creating ItemRepository");
-            var repo = new ItemRepository(gameWorld);
-            Console.WriteLine("[SERVICE] ItemRepository created successfully");
-            return repo;
-        });
-        services.AddSingleton<NPCRepository>(serviceProvider =>
-        {
-            Console.WriteLine("[SERVICE] Creating NPCRepository...");
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var debugLogger = serviceProvider.GetRequiredService<DebugLogger>();
-            var repo = new NPCRepository(gameWorld, debugLogger);
-            Console.WriteLine("[SERVICE] NPCRepository created successfully");
-            return repo;
-        });
+        services.AddSingleton<ItemRepository>();
+        services.AddSingleton<NPCRepository>();
         services.AddSingleton<RouteRepository>();
         services.AddSingleton<StandingObligationRepository>();
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
-        services.AddSingleton<LetterTemplateRepository>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var letterTemplateRepository = new LetterTemplateRepository(gameWorld);
-            
-            // Wire up after construction
-            var categoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
-            letterTemplateRepository.SetCategoryService(categoryService);
-            categoryService.SetLetterTemplateRepository(letterTemplateRepository);
-            
-            var narrativeManager = serviceProvider.GetRequiredService<NarrativeManager>();
-            letterTemplateRepository.SetNarrativeManager(narrativeManager);
-            
-            return letterTemplateRepository;
-        });
+        services.AddSingleton<LetterTemplateRepository>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
@@ -131,24 +80,7 @@
         services.AddSingleton<ConversationStateManager>();
 
         // Wire up circular dependencies after initial creation
-        services.AddSingleton<ConnectionTokenManager>(serviceProvider =>
-        {
-            var gameWorld = serviceProvider.GetRequiredService<GameWorld>();
-            var messageSystem = serviceProvider.GetRequiredService<MessageSystem>();
-            var npcRepository = serviceProvider.GetRequiredService<NPCRepository>();
-            var itemRepository = serviceProvider.GetRequiredService<ItemRepository>();
-            
-            var connectionTokenManager = new ConnectionTokenManager(gameWorld, messageSystem, npcRepository, itemRepository);
-            
-            // Defer wiring to avoid circular dependency during construction
-            var categoryService = serviceProvider.GetRequiredService<LetterCategoryService>();
-            var obligationManager = serviceProvider.GetRequiredService<StandingObligationManager>();
-            
-            connectionTokenManager.SetCategoryService(categoryService);
-            connectionTokenManager.SetObligationManager(obligationManager);
-            
-            return connectionTokenManager;
-        });
+        services.AddSingleton<ConnectionTokenManager>();
 
         services.AddSingleton<LetterQueueManager>();
 
@@ -210,8 +142,9 @@
         services.AddSingleton<ConversationHistoryManager>();
         services.AddSingleton<NarrativeLogManager>();
         services.AddSingleton<LoadingStateService>();
-        services.AddSingleton<AIGameMaster>();
-        services.AddSingleton<AIClient>();
+        // Commented out until IAIProvider is configured
+        // services.AddSingleton<AIGameMaster>();
+        // services.AddSingleton<AIClient>();
 
         // Register updated services
         services.AddSingleton<AIPromptBuilder>();
@@ -225,19 +158,17 @@
         // For full game with AI: Uncomment this and comment out the line above
         // services.AddSingleton<INarrativeProvider, AIGameMaster>();
 
-        // Register AI provider factory
-        services.AddSingleton<IAIProvider>(serviceProvider =>
-        {
-            IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-            ILogger<ConversationFactory> logger = serviceProvider.GetRequiredService<ILogger<ConversationFactory>>();
-            string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "Ollama";
+        //// Register AI provider factory
+        //services.AddSingleton<IAIProvider>(serviceProvider =>
+        //{
+        //    string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "Ollama";
 
-            return defaultProvider.ToLower() switch
-            {
-                "ollama" => new OllamaProvider(configuration, logger),
-                _ => new OllamaProvider(configuration, logger)
-            };
-        });
+        //    return defaultProvider.ToLower() switch
+        //    {
+        //        "ollama" => new OllamaProvider(configuration, logger),
+        //        _ => new OllamaProvider(configuration, logger)
+        //    };
+        //});
 
         return services;
     }
