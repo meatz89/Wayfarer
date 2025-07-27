@@ -2,48 +2,30 @@ using System;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Factory for creating and initializing GameWorld instances.
+/// Static factory for creating and initializing GameWorld instances.
 /// Uses the new pipeline that gracefully handles missing references.
+/// This is static to ensure clean initialization during startup without DI dependencies.
 /// </summary>
-public class GameWorldInitializer : IGameWorldFactory
+public static class GameWorldInitializer
 {
-    private readonly IContentDirectory _contentDirectory;
-    private readonly ILogger<GameWorldInitializer> _logger;
-
-    public GameWorldInitializer(
-        IContentDirectory contentDirectory,
-        ILogger<GameWorldInitializer> logger = null)
-    {
-        _contentDirectory = contentDirectory;
-        _logger = logger;
-    }
-
-    public GameWorld LoadGame()
-    {
-        return LoadGameFromTemplates();
-    }
-
     /// <summary>
-    /// IGameWorldFactory implementation
+    /// Creates a new GameWorld instance using the default content directory.
+    /// This method must be static to avoid circular dependencies during startup.
     /// </summary>
-    public GameWorld CreateGameWorld()
+    public static GameWorld CreateGameWorld()
     {
         Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld called");
-        _logger?.LogInformation("CreateGameWorld method started");
-
-        GameWorld gameWorld = LoadGame();
-
-        _logger?.LogInformation("CreateGameWorld method completed, GameWorld instance created");
-        Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld completed");
-        return gameWorld;
-    }
-
-    private GameWorld LoadGameFromTemplates()
-    {
+        
+        // Use default content directory path
+        var contentDirectory = new ContentDirectory { Path = "Content" };
+        
         Console.WriteLine("[FACTORY] LoadGameFromTemplates started - using new pipeline");
         
         // Use new pipeline that handles missing references gracefully
-        var pipeline = new GameWorldInitializationPipeline(_contentDirectory);
-        return pipeline.Initialize();
+        var pipeline = new GameWorldInitializationPipeline(contentDirectory);
+        var gameWorld = pipeline.Initialize();
+        
+        Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld completed");
+        return gameWorld;
     }
 }
