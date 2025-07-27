@@ -5,7 +5,14 @@
 @namespace Wayfarer.Pages
 
 @{
-    Console.WriteLine($"[GameUI.razor] Rendering component. CurrentView: {CurrentView}");
+    Console.WriteLine($"[GameUI.razor] Starting render...");
+    try {
+        Console.WriteLine($"[GameUI.razor] ContentValidator null? {ContentValidator == null}");
+        Console.WriteLine($"[GameUI.razor] GameWorld null? {GameWorld == null}");
+        Console.WriteLine($"[GameUI.razor] CurrentView: {CurrentView}");
+    } catch (Exception ex) {
+        Console.WriteLine($"[GameUI.razor] ERROR accessing services: {ex.Message}");
+    }
 }
 
 <div class="game-container">
@@ -28,7 +35,10 @@
     <MusicPlayer />
 </div>
 
-<LoadingIndicator IsVisible="@LoadingStateService.IsLoading"
-                  Message="@LoadingStateService.Message"
-                  ShowProgress="true"
-                  Progress="@LoadingStateService.Progress" />
+@if (LoadingStateService != null)
+{
+    <LoadingIndicator IsVisible="@LoadingStateService.IsLoading"
+                      Message="@LoadingStateService.Message"
+                      ShowProgress="true"
+                      Progress="@LoadingStateService.Progress" />
+}
