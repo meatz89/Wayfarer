@@ -6,28 +6,31 @@ using System.Linq;
 /// Manages narrative flows including tutorials, quests, and story sequences.
 /// Works by filtering available actions based on narrative state, NOT by adding special mechanics.
 /// </summary>
-public class NarrativeManager
+public class NarrativeManager : INPCVisibilityRule
 {
     private readonly FlagService _flagService;
-    private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
     private readonly LocationSystem _locationSystem;
     private readonly ITimeManager _timeManager;
+    private readonly NPCVisibilityService _visibilityService;
     private readonly Dictionary<string, NarrativeDefinition> _narrativeDefinitions = new Dictionary<string, NarrativeDefinition>();
     private readonly Dictionary<string, NarrativeState> _activeNarratives = new Dictionary<string, NarrativeState>();
     
     public NarrativeManager(
         FlagService flagService, 
-        NPCRepository npcRepository,
         LocationRepository locationRepository,
         LocationSystem locationSystem,
-        ITimeManager timeManager)
+        ITimeManager timeManager,
+        NPCVisibilityService visibilityService)
     {
         _flagService = flagService;
-        _npcRepository = npcRepository;
         _locationRepository = locationRepository;
         _locationSystem = locationSystem;
         _timeManager = timeManager;
+        _visibilityService = visibilityService;
+        
+        // Register this manager as a visibility rule provider
+        _visibilityService.RegisterVisibilityRule(this);
     }
     
     /// <summary>
