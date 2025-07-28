@@ -2,6 +2,8 @@
 
 **CRITICAL**: This document captures the essential design and implementation principles for Wayfarer's letter queue UI system.
 
+**ARCHITECTURAL MANDATE**: All UI components MUST use the GameFacade pattern. Direct service injection is FORBIDDEN. See [GAME-FACADE-ARCHITECTURE.md](/mnt/c/git/wayfarer/GAME-FACADE-ARCHITECTURE.md) for details.
+
 ## Core UI Design Principles
 
 ### 0. Distance-Based Information Principle
@@ -61,14 +63,19 @@
 
 **Implementation**:
 ```razor
+@inject IGameFacade GameFacade
+
 <!-- Queue always visible and central -->
 <div class="letter-queue-container">
+    @{
+        var letterQueue = GameFacade.GetLetterQueue();
+    }
     @for (int i = 1; i <= 8; i++)
     {
         <div class="queue-slot" data-position="@i">
-            @if (queue.GetLetter(i) != null)
+            @if (letterQueue.GetLetterAtPosition(i) != null)
             {
-                <LetterCard Letter="queue.GetLetter(i)" Position="i" />
+                <LetterCard Letter="letterQueue.GetLetterAtPosition(i)" Position="i" />
             }
         </div>
     }
@@ -92,22 +99,20 @@
 
 **Implementation**:
 ```razor
+@inject IGameFacade GameFacade
+
 <div class="npc-relationship-card">
     <div class="npc-info">
-        <h3>@npc.Name</h3>
-        <p>Location: @npc.Location</p>
+        <h3>@npcRelationship.Name</h3>
+        <p>Location: @npcRelationship.CurrentLocation</p>
     </div>
     <div class="token-display">
-        @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+        @foreach (var token in npcRelationship.Tokens)
         {
-            var count = GetTokensWithNPC(npc.Id, tokenType);
-            if (count > 0)
-            {
-                <div class="token-count">
-                    <TokenIcon Type="tokenType" />
-                    <span>@count</span>
-                </div>
-            }
+            <div class="token-count">
+                <TokenIcon Type="@token.Type" />
+                <span>@token.Count</span>
+            </div>
         }
     </div>
 </div>

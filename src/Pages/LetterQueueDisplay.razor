@@ -1,6 +1,6 @@
 @* LetterQueueDisplay.razor - Pure presentation layer, no game logic *@
 @using Wayfarer.Pages.Components
-@inject LetterQueueUIService QueueUIService
+@inject IGameFacade GameFacade
 
 <div class="letter-queue-container">
     <h3>Letter Queue</h3>
@@ -230,19 +230,24 @@
 
     private void RefreshViewModel()
     {
-        _viewModel = QueueUIService.GetQueueViewModel();
+        _viewModel = GameFacade.GetLetterQueue();
     }
 
     private async Task DeliverLetter(int position)
     {
-        await QueueUIService.DeliverLetterAsync(position);
-        RefreshViewModel();
-        StateHasChanged();
+        var letterQueue = GameFacade.GetLetterQueue();
+        var letter = letterQueue.QueueSlots.FirstOrDefault(s => s.Position == position)?.Letter;
+        if (letter != null)
+        {
+            await GameFacade.DeliverLetterAsync(letter.Id);
+            RefreshViewModel();
+            StateHasChanged();
+        }
     }
 
     private async Task SkipLetter(int position)
     {
-        await QueueUIService.TriggerSkipConversationAsync(position);
+        await GameFacade.SkipLetterAsync(position);
         RefreshViewModel();
         StateHasChanged();
     }
@@ -255,7 +260,7 @@
 
     private async Task PerformMorningSwap()
     {
-        if (await QueueUIService.MorningSwapAsync(swapPos1, swapPos2))
+        if (await GameFacade.LetterQueueMorningSwapAsync(swapPos1, swapPos2))
         {
             showMorningSwap = false;
             RefreshViewModel();
@@ -265,7 +270,7 @@
 
     private async Task PerformPriority()
     {
-        if (await QueueUIService.PriorityMoveAsync(priorityFromPos))
+        if (await GameFacade.LetterQueuePriorityMoveAsync(priorityFromPos))
         {
             showPriorityOptions = false;
             RefreshViewModel();
@@ -275,7 +280,7 @@
 
     private async Task PerformExtend()
     {
-        if (await QueueUIService.ExtendDeadlineAsync(extendPos))
+        if (await GameFacade.LetterQueueExtendDeadlineAsync(extendPos))
         {
             showExtendOptions = false;
             RefreshViewModel();
@@ -285,7 +290,7 @@
 
     private async Task PerformPurge()
     {
-        await QueueUIService.InitiatePurgeAsync(purgeTokenSelection);
+        await GameFacade.LetterQueuePurgeAsync(purgeTokenSelection);
         showPurgeOptions = false;
         purgeTokenSelection.Clear();
         RefreshViewModel();

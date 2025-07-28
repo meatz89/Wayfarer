@@ -1,9 +1,7 @@
 @page "/queue"
 @inherits MainGameplayViewBase
 
-@inject ConnectionTokenManager TokenManager
-@inject StandingObligationManager ObligationManager
-@inject ITimeManager TimeManager
+@* All services now accessed through GameFacade in base class *@
 
 <div class="letter-queue-screen">
     <div class="screen-header">
@@ -21,7 +19,7 @@
         <div class="obligations-summary">
             <h3>⚖️ Active Obligations</h3>
             @{
-                var activeObligations = ObligationManager.GetActiveObligations();
+                var activeObligations = GameFacade.GetStandingObligations();
                 if (activeObligations.Any())
                 {
                     <ul class="obligation-list">
@@ -47,7 +45,7 @@
             <div class="token-grid">
                 @foreach (var tokenType in Enum.GetValues<ConnectionType>())
                 {
-                    var count = TokenManager.GetTokenCount(tokenType);
+                    var count = GetTokenCount(tokenType);
                     <div class="token-item @(count < 0 ? "debt" : "")">
                         <span class="token-icon">@GetTokenIcon(tokenType)</span>
                         <span class="token-type">@tokenType</span>
@@ -67,15 +65,15 @@
             <div class="stats-grid">
                 <div class="stat-item">
                     <span class="stat-label">Letters in Queue</span>
-                    <span class="stat-value">@LetterQueueManager.GetLetterCount() / 8</span>
+                    <span class="stat-value">@GameFacade.GetLetterQueue().Status.LetterCount / 8</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Urgent Letters</span>
-                    <span class="stat-value urgent">@LetterQueueManager.GetExpiringLetters(1).Length</span>
+                    <span class="stat-value urgent">@GameFacade.GetLetterQueue().Status.UrgentCount</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Total Delivered</span>
-                    <span class="stat-value success">@GameWorld.GetPlayer().TotalLettersDelivered</span>
+                    <span class="stat-value success">@GameFacade.GetPlayer().TotalLettersDelivered</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">Morning Swap Available</span>
@@ -148,15 +146,33 @@
         };
     }
     
+    private int GetTokenCount(ConnectionType type)
+    {
+        // Get token count from relationships data
+        var relationships = GameFacade.GetNPCRelationships();
+        int totalTokens = 0;
+        
+        foreach (var rel in relationships)
+        {
+            if (rel.TokensByType.ContainsKey(type))
+            {
+                totalTokens += rel.TokensByType[type];
+            }
+        }
+        
+        return totalTokens;
+    }
+    
     private bool CanUseMorningSwap()
     {
-        return TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn &&
-               GameWorld.GetPlayer().LastMorningSwapDay != GameWorld.CurrentDay;
+        var timeInfo = GameFacade.GetTimeInfo();
+        return timeInfo.timeBlock == TimeBlocks.Dawn &&
+               GameFacade.GetPlayer().LastMorningSwapDay != timeInfo.currentDay;
     }
     
     private bool IsLetterBoardAvailable()
     {
-        return TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
+        return GameFacade.GetTimeInfo().timeBlock == TimeBlocks.Dawn;
     }
     
     private List<LetterActivity> GetRecentLetterActivity()

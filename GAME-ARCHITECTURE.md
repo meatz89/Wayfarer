@@ -54,6 +54,12 @@ services.AddSingleton<GameWorld>(_ =>
 ```
 UI Components
     ↓
+IGameFacade (Single Interface)
+    ↓
+GameFacade (Implementation)
+    ↓
+UIServices (Domain Translation)
+    ↓
 Managers/Services
     ↓
 Repositories
@@ -62,6 +68,8 @@ GameWorld (No Dependencies)
 ```
 
 GameWorld is the single source of truth and has NO dependencies on any services, managers, or external components.
+
+**Key Addition**: The GameFacade pattern now provides a clean separation between UI and domain layers. UI components ONLY interact with IGameFacade, never with domain services directly.
 
 ### 3. Navigation Architecture
 
@@ -106,21 +114,25 @@ public class SomeService
 - Test individual components in isolation
 - Verify GameWorld can be created without dependencies
 - Ensure static initialization pattern
+- Mock IGameFacade for UI component testing
 
 ### 2. Architecture Tests
 - Enforce architectural rules through reflection
 - Prevent accidental breaking changes
 - Validate dependency directions
+- Ensure UI components only depend on IGameFacade
 
 ### 3. Integration Tests
 - Test the full startup sequence
 - Verify no hangs during prerendering
 - Ensure all services can be resolved
+- Test GameFacade delegates correctly to UIServices
 
 ### 4. E2E Tests
 - Validate the entire game can start
 - Check critical services are available
 - Ensure UI renders properly
+- Test complete UI workflows through IGameFacade
 
 ## Common Pitfalls to Avoid
 
@@ -128,6 +140,9 @@ public class SomeService
 2. **Adding Dependencies to GameWorld**: This violates the core architecture
 3. **Using Events in Navigation**: This creates circular dependencies
 4. **Service Locator Anti-Pattern**: Always use constructor injection
+5. **Direct Service Injection in UI**: UI components must ONLY use IGameFacade
+6. **Exposing Domain Objects to UI**: Always use ViewModels for data transfer
+7. **Bypassing GameFacade**: Never access backend services directly from UI
 
 ## Monitoring Architecture Health
 
@@ -142,6 +157,14 @@ dotnet test --filter "FullyQualifiedName~GameWorldInitializationTests"
 
 # Run startup validation
 dotnet test --filter "FullyQualifiedName~StartupValidationTests"
+
+# Run GameFacade pattern tests
+dotnet test --filter "FullyQualifiedName~GameFacadeTests"
+
+# Check for direct service usage in UI
+grep -r "@inject.*Service" src/Pages/ --include="*.razor"
+grep -r "@inject.*Manager" src/Pages/ --include="*.razor"
+grep -r "@inject.*Repository" src/Pages/ --include="*.razor"
 ```
 
 ## When to Revisit This Architecture

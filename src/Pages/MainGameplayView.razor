@@ -313,7 +313,7 @@
             @* Compact Time Planning UI *@
             @if (currentLocation != null)
             {
-                var timeBlockServicePlan = NPCRepository.GetTimeBlockServicePlan(currentLocation.Id);
+                var timeBlockServicePlan = GameFacade.GetTimeBlockServicePlan();
                 var currentTimeBlock = timeBlockServicePlan.FirstOrDefault(t => t.IsCurrentTimeBlock);
                 var nextTimeBlock = timeBlockServicePlan.Where(t => !t.IsCurrentTimeBlock).FirstOrDefault();
                 <div class="time-planning-compact">
@@ -385,11 +385,7 @@
 
             @* NPCs with Direct Letter Offers *@
             @{
-                var currentNPCs = NPCRepository.GetNPCsForLocationAndTime(GetCurrentLocation().Id, CurrentTime);
-                var npcsWithOffers = currentNPCs.Where(npc => 
-                    ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID) || 
-                    NPCLetterOfferService.HasPendingOffers(npc.ID)
-                ).ToList();
+                var npcsWithOffers = GameFacade.GetNPCsWithOffers();
                 
                 if (npcsWithOffers.Any())
                 {
@@ -399,23 +395,19 @@
                             @foreach (var npc in npcsWithOffers)
                             {
                                 <div class="npc-offer-card">
-                                    <div class="npc-name">@npc.Name</div>
+                                    <div class="npc-name">@npc.NPCName</div>
                                     <div class="npc-role">@npc.Role</div>
-                                    @{
-                                        var pendingCount = NPCLetterOfferService.GetPendingOffersForNPC(npc.ID).Count;
-                                        var hasRelationshipOffer = ConnectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID);
-                                    }
-                                    <button class="offer-button" @onclick="() => ShowLetterOffer(npc)">
-                                        @if (pendingCount > 0)
+                                    <button class="offer-button" @onclick="() => ShowLetterOfferForNPC(npc.NPCId)">
+                                        @if (npc.PendingOfferCount > 0)
                                         {
-                                            <span>View Offers (@pendingCount) 📮</span>
+                                            <span>View Offers (@npc.PendingOfferCount) 📮</span>
                                         }
                                         else
                                         {
                                             <span>View Letter Offer 📮</span>
                                         }
                                     </button>
-                                    @if (pendingCount > 0)
+                                    @if (npc.PendingOfferCount > 0)
                                     {
                                         <div class="offer-badge">🔔 New!</div>
                                     }
@@ -436,10 +428,10 @@
             
                              
             @* Letter Offer Dialog *@
-            @if (ShowLetterOfferDialog && CurrentNPCOffer != null)
+            @if (ShowLetterOfferDialog && CurrentLetterOffer != null && CurrentNPCOfferId != null)
             {
                 <MultipleLetterOfferDialog 
-                    NPC="@CurrentNPCOffer"
+                    NPC="@GetNPCById(CurrentNPCOfferId)"
                     OnAcceptOffer="@AcceptLetterOfferId"
                     OnRefuse="@RefuseLetterOffer" />
             }
@@ -554,7 +546,7 @@
                 {
                     <div class="section-content">
                         @{
-                            int totalWeight = GameManager.CalculateTotalWeight();
+                            int totalWeight = CalculateTotalWeight();
                             int coinWeight = PlayerState.Coins / 10;
                             string weightStatus = totalWeight <= 3 ? "Light load" :
                             (totalWeight <= 6 ? "Medium load (+1 stamina)" :
@@ -570,7 +562,7 @@
                             {
                                 if (itemName != null)
                                 {
-                                    Item item = ItemRepository.GetItemByName(itemName);
+                                    Item item = GetItemByName(itemName);
                                     <div class="inventory-item" title="@itemName">
                                         <span class="item-icon">🧰</span>
                                         <span class="item-name">@itemName</span>

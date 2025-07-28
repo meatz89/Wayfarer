@@ -36,6 +36,8 @@ public class GameFacade : IGameFacade
     private readonly FlagService _flagService;
     private readonly ItemRepository _itemRepository;
     private readonly ConversationStateManager _conversationStateManager;
+    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly NPCLetterOfferService _npcLetterOfferService;
     
     public GameFacade(
         GameWorld gameWorld,
@@ -57,7 +59,9 @@ public class GameFacade : IGameFacade
         NarrativeManager narrativeManager,
         FlagService flagService,
         ItemRepository itemRepository,
-        ConversationStateManager conversationStateManager)
+        ConversationStateManager conversationStateManager,
+        ConnectionTokenManager connectionTokenManager,
+        NPCLetterOfferService npcLetterOfferService)
     {
         _gameWorld = gameWorld;
         _gameWorldManager = gameWorldManager;
@@ -79,6 +83,8 @@ public class GameFacade : IGameFacade
         _flagService = flagService;
         _itemRepository = itemRepository;
         _conversationStateManager = conversationStateManager;
+        _connectionTokenManager = connectionTokenManager;
+        _npcLetterOfferService = npcLetterOfferService;
     }
     
     // ========== GAME STATE QUERIES ==========
@@ -289,6 +295,64 @@ public class GameFacade : IGameFacade
             default:
                 return false;
         }
+    }
+    
+    public async Task<bool> DeliverLetterAsync(string letterId)
+    {
+        // For now, we only support delivering from position 1
+        // The letterId parameter is kept for future flexibility if we need to deliver by ID
+        return await _letterQueueService.DeliverLetterAsync(1);
+    }
+    
+    public async Task<bool> SkipLetterAsync(int position)
+    {
+        // Validate position is valid for skipping (positions 2-8 when position 1 is empty)
+        if (position < 2 || position > 8)
+            return false;
+            
+        await _letterQueueService.TriggerSkipConversationAsync(position);
+        return true;
+    }
+    
+    public async Task<bool> LetterQueueMorningSwapAsync(int position1, int position2)
+    {
+        // Validate positions are within range
+        if (position1 < 1 || position1 > 8 || position2 < 1 || position2 > 8)
+            return false;
+            
+        if (position1 == position2)
+            return false;
+            
+        return await _letterQueueService.MorningSwapAsync(position1, position2);
+    }
+    
+    public async Task<bool> LetterQueuePriorityMoveAsync(int fromPosition)
+    {
+        // Validate position is within range and not already at position 1
+        if (fromPosition < 2 || fromPosition > 8)
+            return false;
+            
+        return await _letterQueueService.PriorityMoveAsync(fromPosition);
+    }
+    
+    public async Task<bool> LetterQueueExtendDeadlineAsync(int position)
+    {
+        // Validate position is within range
+        if (position < 1 || position > 8)
+            return false;
+            
+        return await _letterQueueService.ExtendDeadlineAsync(position);
+    }
+    
+    public async Task<bool> LetterQueuePurgeAsync(Dictionary<string, int> tokenSelection)
+    {
+        // Validate token selection
+        if (tokenSelection == null || tokenSelection.Count == 0)
+            return false;
+            
+        // InitiatePurgeAsync handles the conversation trigger
+        await _letterQueueService.InitiatePurgeAsync(tokenSelection);
+        return true;
     }
     
     public LetterBoardViewModel GetLetterBoard()
@@ -520,5 +584,131 @@ public class GameFacade : IGameFacade
         // Clear messages from GameWorld
         if (_gameWorld.SystemMessages != null)
             _gameWorld.SystemMessages.Clear();
+    }
+    
+    // ========== NPC & RELATIONSHIPS ==========
+    
+    public List<TimeBlockServiceViewModel> GetTimeBlockServicePlan()
+    {
+        var player = _gameWorld.GetPlayer();
+        if (player.CurrentLocation == null) return new List<TimeBlockServiceViewModel>();
+        
+        var timeBlockServicePlan = _npcRepository.GetTimeBlockServicePlan(player.CurrentLocation.Id);
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        
+        return timeBlockServicePlan.Select(plan => new TimeBlockServiceViewModel
+        {
+            TimeBlock = plan.TimeBlock,
+            IsCurrentTimeBlock = plan.TimeBlock == currentTimeBlock,
+            AvailableServices = plan.AvailableServices,
+            AvailableNPCs = plan.AvailableNPCs?.Select(npc => npc.Name).ToList() ?? new List<string>()
+        }).ToList();
+    }
+    
+    public List<NPCWithOffersViewModel> GetNPCsWithOffers()
+    {
+        var player = _gameWorld.GetPlayer();
+        if (player.CurrentLocation == null) return new List<NPCWithOffersViewModel>();
+        
+        var currentTime = _timeManager.GetCurrentTimeBlock();
+        var currentNPCs = _npcRepository.GetNPCsForLocationAndTime(player.CurrentLocation.Id, currentTime);
+        
+        return currentNPCs.Select(npc => new NPCWithOffersViewModel
+        {
+            NPCId = npc.ID,
+            NPCName = npc.Name,
+            Role = npc.Role,
+            HasDirectOfferAvailable = _connectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID),
+            PendingOfferCount = _npcLetterOfferService.GetPendingOffersForNPC(npc.ID).Count,
+            IsAvailable = npc.IsAvailable(currentTime)
+        })
+        .Where(npc => npc.HasDirectOfferAvailable || npc.PendingOfferCount > 0)
+        .ToList();
+    }
+    
+    public List<NPCRelationshipViewModel> GetNPCRelationships()
+    {
+        var player = _gameWorld.GetPlayer();
+        var relationships = new List<NPCRelationshipViewModel>();
+        
+        // Get all NPCs from all locations
+        var allLocations = _locationRepository.GetAllLocations();
+        
+        foreach (var location in allLocations)
+        {
+            var npcs = _npcRepository.GetNPCsForLocation(location.Id);
+            foreach (var npc in npcs)
+            {
+                // Get tokens with this NPC
+                var npcTokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+                var totalTokens = npcTokens.Values.Sum();
+                
+                if (totalTokens > 0)
+                {
+                    relationships.Add(new NPCRelationshipViewModel
+                    {
+                        NPCId = npc.ID,
+                        NPCName = npc.Name,
+                        Role = npc.Role,
+                        LocationId = location.Id,
+                        LocationName = location.Name,
+                        ConnectionTokens = totalTokens,
+                        CanMakeDirectOffer = _connectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID),
+                        TokensByType = npcTokens
+                    });
+                }
+            }
+        }
+        
+        return relationships.OrderByDescending(r => r.ConnectionTokens).ToList();
+    }
+    
+    public List<ObligationViewModel> GetStandingObligations()
+    {
+        var obligations = new List<ObligationViewModel>();
+        
+        // Get active standing obligations from player
+        var player = _gameWorld.GetPlayer();
+        foreach (var obligation in player.StandingObligations.Where(o => o.IsActive))
+        {
+            obligations.Add(new ObligationViewModel
+            {
+                Name = obligation.Name,
+                Description = obligation.GetEffectsSummary(),
+                Type = obligation.Source,
+                Priority = 1
+            });
+        }
+        
+        // Check for patron obligations based on leverage
+        if (player.HasPatron && player.PatronLeverage > 0)
+        {
+            obligations.Add(new ObligationViewModel
+            {
+                Name = "Patron Employment",
+                Description = $"Patron has {player.PatronLeverage} leverage over you",
+                Type = "Patron",
+                Priority = 2
+            });
+        }
+        
+        // Check for token debts (negative tokens)
+        var allNpcs = _npcRepository.GetAllNPCs();
+        foreach (var npc in allNpcs)
+        {
+            var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+            foreach (var tokenType in tokens.Where(t => t.Value < 0))
+            {
+                obligations.Add(new ObligationViewModel
+                {
+                    Name = $"Debt to {npc.Name}",
+                    Description = $"{Math.Abs(tokenType.Value)} {tokenType.Key} tokens owed",
+                    Type = "Debt",
+                    Priority = 3
+                });
+            }
+        }
+        
+        return obligations.OrderBy(o => o.Priority).ToList();
     }
 }
