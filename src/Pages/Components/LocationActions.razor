@@ -1,10 +1,9 @@
 @using Wayfarer.Pages.Components
-@inject LocationActionsUIService ActionsService
-@inject FlagService FlagService
+@inject IGameFacade GameFacade
 
 <div class="location-actions">
     @{
-        var viewModel = ActionsService.GetLocationActionsViewModel();
+        var viewModel = GameFacade.GetLocationActions();
     }
     
     <div class="actions-header">
@@ -107,7 +106,7 @@
 </div>
 
 @code {
-    private bool IsTutorialActive => FlagService.HasFlag("tutorial_active");
+    private bool IsTutorialActive => GameFacade.IsTutorialActive();
     
     private bool CanAffordAction(ActionOptionViewModel action)
     {
@@ -116,7 +115,7 @@
     
     private async Task ExecuteAction(string actionId)
     {
-        var success = await ActionsService.ExecuteActionAsync(actionId);
+        var success = await GameFacade.ExecuteLocationActionAsync(actionId);
         
         // Whether success or failure, refresh the UI
         // The CommandExecutor will have updated game state and shown messages

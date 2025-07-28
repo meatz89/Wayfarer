@@ -130,3 +130,45 @@ public class LetterOfferViewModel
     public string CannotAcceptReason { get; set; }
     public List<string> TokenTypes { get; set; }
 }
+
+// ========== NPC & RELATIONSHIP VIEW MODELS ==========
+
+public class TimeBlockServiceViewModel
+{
+    public TimeBlocks TimeBlock { get; set; }
+    public bool IsCurrentTimeBlock { get; set; }
+    public List<ServiceTypes> AvailableServices { get; set; }
+    public List<string> AvailableNPCs { get; set; }
+}
+
+public class NPCWithOffersViewModel
+{
+    public string NPCId { get; set; }
+    public string NPCName { get; set; }
+    public string Role { get; set; }
+    public bool HasDirectOfferAvailable { get; set; }
+    public int PendingOfferCount { get; set; }
+    public bool IsAvailable { get; set; }
+}
+
+public class NPCRelationshipViewModel
+{
+    public string NPCId { get; set; }
+    public string NPCName { get; set; }
+    public string Role { get; set; }
+    public string LocationId { get; set; }
+    public string LocationName { get; set; }
+    public int ConnectionTokens { get; set; }
+    public bool CanMakeDirectOffer { get; set; }
+    public Dictionary<ConnectionType, int> TokensByType { get; set; } = new();
+}
+
+// ========== OBLIGATION VIEW MODELS ==========
+
+public class ObligationViewModel
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Type { get; set; }
+    public int Priority { get; set; }
+}

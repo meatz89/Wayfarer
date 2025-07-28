@@ -1,8 +1,20 @@
 # GameFacade Architecture Pattern
 
+*Last Updated: 2025-01-28*
+
 ## Overview
 
 The GameFacade pattern is THE ONLY way UI components and test controllers should communicate with the game backend. This architectural pattern provides a single, well-defined interface between the presentation layer and the domain layer, ensuring consistency, testability, and maintainability.
+
+## Recent Architectural Changes (2025-01-28)
+
+### Major Refactoring Completed
+1. **Created IGameFacade Interface** - Single entry point for all UI-backend communication
+2. **Implemented GameFacade Service** - Delegates to specialized UIServices for domain operations
+3. **Refactored MainGameplayViewBase** - Removed 30+ direct service injections, now uses only IGameFacade
+4. **Updated UI Components** - LocationActions, LetterQueueScreen, LetterQueueDisplay all migrated to GameFacade
+5. **Introduced ViewModels** - All data transfer now uses ViewModels instead of exposing domain objects
+6. **Extended Facade Methods** - Added comprehensive support for letter queue management, NPC relationships, etc.
 
 ## Core Principles
 
@@ -204,54 +216,28 @@ await GameFacade.AcceptLetterOfferAsync(offerId);
 
 ## Migration Guide
 
-### Step 1: Identify Direct Service Usage
-Look for patterns like:
-```csharp
-// OLD - Direct injection
-@inject GameWorld GameWorld
-@inject TravelManager TravelManager
-@inject CommandExecutor CommandExecutor
+For a comprehensive guide on migrating UI components to the GameFacade pattern, see [GAME-FACADE-MIGRATION-GUIDE.md](/mnt/c/git/wayfarer/GAME-FACADE-MIGRATION-GUIDE.md).
 
-// NEW - Single facade
-@inject IGameFacade GameFacade
-```
+### Quick Migration Steps
 
-### Step 2: Replace Service Calls
-```csharp
-// OLD
-var player = GameWorld.GetPlayer();
-var destinations = TravelManager.GetDestinations(player.CurrentLocation);
-var command = new TravelCommand(destination);
-CommandExecutor.Execute(command);
+1. **Replace all service injections** with `@inject IGameFacade GameFacade`
+2. **Update data access** to use ViewModels from GameFacade methods
+3. **Replace command execution** with GameFacade action methods
+4. **Update tests** to use mock IGameFacade instead of complex service setup
 
-// NEW
-var destinations = await GameFacade.GetTravelDestinations();
-await GameFacade.TravelToDestinationAsync(destinationId, routeId);
-```
+### Components Successfully Migrated (2025-01-28)
+- ✅ MainGameplayViewBase
+- ✅ LocationActions
+- ✅ LetterQueueScreen
+- ✅ LetterQueueDisplay
 
-### Step 3: Update Data Models
-```csharp
-// OLD - Using domain objects
-Location currentLocation = player.CurrentLocation;
-List<NPC> npcs = locationService.GetNPCs();
-
-// NEW - Using ViewModels
-var snapshot = GameFacade.GetGameSnapshot();
-var locationActions = GameFacade.GetLocationActions();
-```
-
-### Step 4: Update Tests
-```csharp
-// OLD - Complex setup with multiple services
-var gameWorld = new GameWorld();
-var travelManager = new TravelManager(gameWorld);
-// ... setup continues
-
-// NEW - Simple facade usage
-var facade = serviceProvider.GetRequiredService<IGameFacade>();
-await facade.StartGameAsync();
-var result = await facade.TravelToDestinationAsync("town_square", "walking");
-```
+### Components Still Requiring Migration
+- ⏳ TravelScreen
+- ⏳ MarketScreen
+- ⏳ RestScreen
+- ⏳ NPCInteractionModal
+- ⏳ CharacterStatusHub
+- ⏳ ObligationScreen
 
 ## Common Patterns
 

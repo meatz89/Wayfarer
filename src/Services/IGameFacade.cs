@@ -101,6 +101,36 @@ public interface IGameFacade
     Task<bool> ExecuteLetterActionAsync(string actionType, string letterId);
     
     /// <summary>
+    /// Deliver a letter that's in position 1
+    /// </summary>
+    Task<bool> DeliverLetterAsync(string letterId);
+    
+    /// <summary>
+    /// Skip a letter to position 1 (triggers conversation)
+    /// </summary>
+    Task<bool> SkipLetterAsync(int position);
+    
+    /// <summary>
+    /// Morning swap two letter positions (Dawn only)
+    /// </summary>
+    Task<bool> LetterQueueMorningSwapAsync(int position1, int position2);
+    
+    /// <summary>
+    /// Priority move a letter to position 1
+    /// </summary>
+    Task<bool> LetterQueuePriorityMoveAsync(int fromPosition);
+    
+    /// <summary>
+    /// Extend deadline of a letter
+    /// </summary>
+    Task<bool> LetterQueueExtendDeadlineAsync(int position);
+    
+    /// <summary>
+    /// Purge bottom letter using tokens
+    /// </summary>
+    Task<bool> LetterQueuePurgeAsync(Dictionary<string, int> tokenSelection);
+    
+    /// <summary>
     /// Get letter board offers (Dawn only)
     /// </summary>
     LetterBoardViewModel GetLetterBoard();
@@ -184,4 +214,27 @@ public interface IGameFacade
     /// Clear system messages
     /// </summary>
     void ClearSystemMessages();
+    
+    // ========== NPC & RELATIONSHIPS ==========
+    
+    /// <summary>
+    /// Get time block service plan for current location
+    /// Shows what services/NPCs are available at different times
+    /// </summary>
+    List<TimeBlockServiceViewModel> GetTimeBlockServicePlan();
+    
+    /// <summary>
+    /// Get NPCs at current location and time with offer information
+    /// </summary>
+    List<NPCWithOffersViewModel> GetNPCsWithOffers();
+    
+    /// <summary>
+    /// Get NPC relationships for UI display
+    /// </summary>
+    List<NPCRelationshipViewModel> GetNPCRelationships();
+    
+    /// <summary>
+    /// Get standing obligations affecting the letter queue
+    /// </summary>
+    List<ObligationViewModel> GetStandingObligations();
 }
