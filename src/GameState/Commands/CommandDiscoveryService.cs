@@ -337,7 +337,11 @@ public class CommandDiscoveryService
         int[] restOptions = { 1, 2, 4 }; // 1, 2, or 4 hour rest options
         int[] staminaRecovery = { 2, 4, 10 }; // Full recovery at 4 hours
 
-        for (int i = 0; i < restOptions.Length; i++)
+        // During tutorial, only show the first rest option
+        bool isTutorialActive = _narrativeManager != null && _narrativeManager.IsNarrativeActive("wayfarer_tutorial");
+        int maxOptions = isTutorialActive ? 1 : restOptions.Length;
+
+        for (int i = 0; i < maxOptions; i++)
         {
             RestCommand restCommand = new RestCommand(spot.SpotID, restOptions[i], staminaRecovery[i], _messageSystem);
             CommandValidationResult restValidation = restCommand.CanExecute(gameWorld);
@@ -352,6 +356,10 @@ public class CommandDiscoveryService
                 StaminaCost = 0,
                 CoinCost = 0,
                 PotentialReward = $"+{staminaRecovery[i]} stamina",
+                IsAvailable = restValidation.IsValid,
+                UnavailableReason = restValidation.FailureReason,
+                CanRemediate = restValidation.CanBeRemedied,
+                RemediationHint = restValidation.RemediationHint
             });
         }
 
@@ -540,8 +548,33 @@ public class DiscoveredCommand
     public bool CanRemediate { get; init; }
     public string RemediationHint { get; init; }
 
-    // UI helper
-    public string UniqueId => $"{Command.GetType().Name}_{Command.GetHashCode()}";
+    // UI helper - Generate a stable ID based on command type and properties
+    public string UniqueId => GenerateStableId();
+    
+    private string GenerateStableId()
+    {
+        // For RestCommand, include location, hours, and stamina recovery
+        if (Command is RestCommand)
+        {
+            // Replace spaces and special characters to make URL-safe
+            var safeReward = PotentialReward?
+                .Replace(" ", "_")
+                .Replace("+", "plus")
+                .Replace("-", "minus") ?? "0";
+            return $"RestCommand_{TimeCost}h_{safeReward}";
+        }
+        
+        // For ConverseCommand, use the NPC ID for stable identification
+        if (Command is ConverseCommand converseCmd)
+        {
+            // Add debug logging to verify this is being used
+            Console.WriteLine($"[DEBUG] Generating stable ID for ConverseCommand with NPC: {converseCmd.NpcId}");
+            return $"ConverseCommand_{converseCmd.NpcId}";
+        }
+        
+        // For other commands, use CommandId which is stable for the session
+        return $"{Command.GetType().Name}_{Command.CommandId}";
+    }
 }
 
 /// <summary>

@@ -8,6 +8,7 @@ public class GameUIBase : ComponentBase
     [Inject] public GameWorldManager GameWorldManager { get; set; }
     [Inject] public ITimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
+    [Inject] public FlagService FlagService { get; set; }
 
     // Navigation state managed directly in this component
     public CurrentViews CurrentView { get; set; } = CurrentViews.LocationScreen;
@@ -70,6 +71,12 @@ public class GameUIBase : ComponentBase
 
     private CurrentViews GetDefaultView()
     {
+        // During tutorial, always show location screen
+        if (FlagService.HasFlag("tutorial_active"))
+        {
+            return CurrentViews.LocationScreen;
+        }
+        
         // Dawn = letter board available
         if (TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
         {

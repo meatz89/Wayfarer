@@ -124,6 +124,9 @@
         services.AddSingleton<RestUIService>();
         services.AddSingleton<LocationActionsUIService>();
         services.AddSingleton<ReadableLetterUIService>();
+        
+        // Game Facade - THE single entry point for all UI-Backend communication
+        services.AddSingleton<IGameFacade, GameFacade>();
         services.AddSingleton<NPCService>();
         services.AddSingleton<LetterGenerationService>();
 

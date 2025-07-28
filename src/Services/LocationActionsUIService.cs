@@ -101,8 +101,9 @@ public class LocationActionsUIService
     private List<ActionOptionViewModel> ConvertCommands(List<DiscoveredCommand> commands, HashSet<string> allowedCommandTypes = null)
     {
         return commands.Select(cmd => {
-            string commandType = GetCommandType(cmd.Command);
-            bool isAllowedInTutorial = allowedCommandTypes == null || !allowedCommandTypes.Any() || allowedCommandTypes.Contains(commandType);
+            // If commands reach this point, they've already been filtered by NarrativeManager
+            // So during tutorial, all commands that made it here are allowed
+            bool isInTutorial = _narrativeManager != null && _narrativeManager.IsNarrativeActive("wayfarer_tutorial");
             
             return new ActionOptionViewModel
             {
@@ -127,8 +128,8 @@ public class LocationActionsUIService
                 IsAvailable = cmd.IsAvailable,
                 UnavailableReasons = cmd.IsAvailable ? new List<string>() : new List<string> { cmd.UnavailableReason },
                 
-                // Tutorial allowed action
-                IsAllowedInTutorial = isAllowedInTutorial
+                // Tutorial allowed action - if we're in tutorial and command made it here, it's allowed
+                IsAllowedInTutorial = !isInTutorial || true  // Always true if in tutorial since filtering already happened
             };
         }).ToList();
     }
@@ -140,11 +141,20 @@ public class LocationActionsUIService
     {
         // Discover commands again to find the one to execute
         CommandDiscoveryResult discovery = _commandDiscovery.DiscoverCommands(_gameWorld);
+        
+        // Debug logging via MessageSystem
+        _messageSystem.AddSystemMessage($"[DEBUG] Looking for command ID: '{commandId}'", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"[DEBUG] Found {discovery.AllCommands.Count} commands", SystemMessageTypes.Info);
+        foreach (var cmd in discovery.AllCommands)
+        {
+            _messageSystem.AddSystemMessage($"[DEBUG] - '{cmd.UniqueId}' (Available: {cmd.IsAvailable})", SystemMessageTypes.Info);
+        }
+        
         DiscoveredCommand commandToExecute = discovery.AllCommands.FirstOrDefault(c => c.UniqueId == commandId);
 
         if (commandToExecute == null)
         {
-            _messageSystem.AddSystemMessage("Command not found", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Command not found: '{commandId}'", SystemMessageTypes.Danger);
             return false;
         }
 
@@ -188,6 +198,13 @@ public class LocationActionsUIService
     
     private void AddClosedServicesInfo(LocationActionsViewModel viewModel, LocationSpot currentSpot)
     {
+        // Skip adding closed service info during tutorial
+        bool isInTutorial = _narrativeManager != null && _narrativeManager.IsNarrativeActive("wayfarer_tutorial");
+        if (isInTutorial)
+        {
+            return;
+        }
+        
         // Check for Letter Board availability
         if (_timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
         {

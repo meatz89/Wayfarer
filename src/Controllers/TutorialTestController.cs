@@ -1,26 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Wayfarer.Controllers;
 
+/// <summary>
+/// Test controller that uses THE SAME GameFacade interface as the UI.
+/// This ensures we're testing the actual game flow, not a parallel implementation.
+/// </summary>
 [ApiController]
 [Route("api/tutorial")]
 public class TutorialTestController : ControllerBase
 {
-    private readonly FlagService _flagService;
-    private readonly NarrativeManager _narrativeManager;
-    private readonly GameWorld _gameWorld;
+    private readonly IGameFacade _gameFacade;
     private readonly ILogger<TutorialTestController> _logger;
 
     public TutorialTestController(
-        FlagService flagService,
-        NarrativeManager narrativeManager,
-        GameWorld gameWorld,
+        IGameFacade gameFacade,
         ILogger<TutorialTestController> logger)
     {
-        _flagService = flagService;
-        _narrativeManager = narrativeManager;
-        _gameWorld = gameWorld;
+        _gameFacade = gameFacade;
         _logger = logger;
     }
 
@@ -29,201 +29,301 @@ public class TutorialTestController : ControllerBase
     {
         var sb = new StringBuilder();
         sb.AppendLine("=== Tutorial Status Report ===");
-        sb.AppendLine($"Tutorial Active Flag: {_flagService.HasFlag("tutorial_active")}");
-        sb.AppendLine($"Tutorial Complete Flag: {_flagService.HasFlag(FlagService.TUTORIAL_COMPLETE)}");
-        sb.AppendLine($"Patron Accepted Flag: {_flagService.HasFlag(FlagService.TUTORIAL_PATRON_ACCEPTED)}");
+        
+        // Get narrative state
+        var narrativeState = _gameFacade.GetNarrativeState();
+        sb.AppendLine($"Tutorial Active: {narrativeState.IsTutorialActive}");
+        sb.AppendLine($"Tutorial Complete: {narrativeState.TutorialComplete}");
         sb.AppendLine();
         
         sb.AppendLine("Active Narratives:");
-        var activeNarratives = _narrativeManager.GetActiveNarratives();
-        foreach (var narrative in activeNarratives)
+        foreach (var narrative in narrativeState.ActiveNarratives)
         {
-            sb.AppendLine($"  - {narrative}");
+            sb.AppendLine($"  - {narrative.NarrativeId}: {narrative.StepName}");
         }
         sb.AppendLine();
         
-        sb.AppendLine("Current Narrative Step:");
-        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        // Get tutorial guidance
+        var tutorialGuidance = _gameFacade.GetTutorialGuidance();
+        if (tutorialGuidance.IsActive)
         {
-            var currentStep = _narrativeManager.GetCurrentStep("wayfarer_tutorial");
-            if (currentStep != null)
+            sb.AppendLine("Current Tutorial Step:");
+            sb.AppendLine($"  Step: {tutorialGuidance.CurrentStep}/{tutorialGuidance.TotalSteps}");
+            sb.AppendLine($"  Title: {tutorialGuidance.StepTitle}");
+            sb.AppendLine($"  Guidance: {tutorialGuidance.GuidanceText}");
+            sb.AppendLine($"  Allowed Actions: {tutorialGuidance.AllowedActions.Count}");
+            foreach (var action in tutorialGuidance.AllowedActions)
             {
-                sb.AppendLine($"  ID: {currentStep.Id}");
-                sb.AppendLine($"  Name: {currentStep.Name}");
-                sb.AppendLine($"  Description: {currentStep.Description}");
-                sb.AppendLine($"  Guidance: {currentStep.GuidanceText}");
-                sb.AppendLine($"  Allowed Actions: {currentStep.AllowedActions?.Count ?? 0}");
-                if (currentStep.AllowedActions != null && currentStep.AllowedActions.Any())
-                {
-                    foreach (var action in currentStep.AllowedActions)
-                    {
-                        sb.AppendLine($"    - {action}");
-                    }
-                }
-                sb.AppendLine($"  Visible NPCs: {currentStep.VisibleNPCs?.Count ?? 0}");
-                sb.AppendLine($"  Visible Locations: {currentStep.VisibleLocations?.Count ?? 0}");
-            }
-            else
-            {
-                sb.AppendLine("  No current step found");
+                sb.AppendLine($"    - {action}");
             }
         }
         else
         {
-            sb.AppendLine("  Tutorial narrative is not active");
+            sb.AppendLine("Tutorial is not active");
         }
         sb.AppendLine();
         
+        // Get player state
+        var player = _gameFacade.GetPlayer();
+        var (location, spot) = _gameFacade.GetCurrentLocation();
         sb.AppendLine("Player State:");
-        var player = _gameWorld.GetPlayer();
         sb.AppendLine($"  Coins: {player.Coins}");
         sb.AppendLine($"  Stamina: {player.Stamina}/{player.MaxStamina}");
         sb.AppendLine($"  Has Patron: {player.HasPatron}");
-        sb.AppendLine($"  Current Location: {player.CurrentLocation?.Name ?? "Unknown"}");
-        sb.AppendLine();
-        
-        sb.AppendLine("Tutorial Actions Blocked:");
-        // Check if we're in tutorial mode by looking at allowed actions
-        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial"))
-        {
-            var currentStep = _narrativeManager.GetCurrentStep("wayfarer_tutorial");
-            if (currentStep != null && currentStep.AllowedActions != null && currentStep.AllowedActions.Any())
-            {
-                sb.AppendLine($"  Actions Blocked: Yes (only {currentStep.AllowedActions.Count} actions allowed)");
-            }
-            else
-            {
-                sb.AppendLine($"  Actions Blocked: No (all actions allowed)");
-            }
-        }
-        else
-        {
-            sb.AppendLine($"  Tutorial not active");
-        }
+        sb.AppendLine($"  Current Location: {location?.Name ?? "Unknown"} - {spot?.Name ?? "Unknown"}");
         
         return Ok(sb.ToString());
     }
     
-    [HttpPost("start")]
-    public IActionResult StartTutorial()
+    [HttpPost("start-game")]
+    public async Task<IActionResult> StartGame()
     {
         try
         {
-            _logger.LogInformation("Starting tutorial via API");
+            _logger.LogInformation("Starting game via API");
             
-            // Clear tutorial complete flag
-            _flagService.SetFlag(FlagService.TUTORIAL_COMPLETE, false);
+            await _gameFacade.StartGameAsync();
             
-            // Set tutorial starting conditions
-            var player = _gameWorld.GetPlayer();
-            player.Coins = 2;
-            player.Stamina = 4;
-            
-            // Load and start tutorial
-            NarrativeContentBuilder.BuildAllNarratives();
-            _narrativeManager.LoadNarrativeDefinitions(NarrativeDefinitions.All);
-            _narrativeManager.StartNarrative("wayfarer_tutorial");
-            
-            return Ok("Tutorial started successfully");
+            return Ok("Game started successfully. Tutorial should auto-start for new players.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to start tutorial");
-            return StatusCode(500, $"Failed to start tutorial: {ex.Message}");
+            _logger.LogError(ex, "Failed to start game");
+            return StatusCode(500, $"Failed to start game: {ex.Message}");
         }
     }
     
-    [HttpPost("advance")]
-    public IActionResult AdvanceTutorial([FromQuery] string stepId)
-    {
-        try
-        {
-            if (!_narrativeManager.IsNarrativeActive("wayfarer_tutorial"))
-            {
-                return BadRequest("Tutorial is not active");
-            }
-            
-            var currentStep = _narrativeManager.GetCurrentStep("wayfarer_tutorial");
-            if (currentStep == null)
-            {
-                return BadRequest("No current tutorial step");
-            }
-            
-            // For now, we'll just return info about manual advancement
-            // The actual advancement happens through game actions
-            return Ok($"To advance tutorial, complete the current step requirements. Current step: {currentStep.Id}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to advance tutorial");
-            return StatusCode(500, $"Failed to advance tutorial: {ex.Message}");
-        }
-    }
-    
-    [HttpPost("create-test-player")]
-    public IActionResult CreateTestPlayer()
-    {
-        try
-        {
-            var player = _gameWorld.GetPlayer();
-            if (player.IsInitialized)
-            {
-                return BadRequest("Player already initialized");
-            }
-            
-            // Initialize player for testing
-            player.Initialize("TestCourier", Professions.Merchant, Genders.Male);
-            
-            _logger.LogInformation("Test player created: TestCourier");
-            
-            return Ok("Test player created successfully");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to create test player");
-            return StatusCode(500, $"Failed to create test player: {ex.Message}");
-        }
-    }
-    
-    [HttpGet("npcs")]
-    public IActionResult GetNPCVisibilityStatus([FromServices] NPCRepository npcRepository)
+    [HttpGet("location-actions")]
+    public IActionResult GetLocationActions()
     {
         var sb = new StringBuilder();
-        sb.AppendLine("=== NPC Visibility Status ===");
+        sb.AppendLine("=== Location Actions ===");
         
-        // Get current location
-        var player = _gameWorld.GetPlayer();
-        sb.AppendLine($"Current Location: {player.CurrentLocation?.Name} ({player.CurrentLocation?.Id})");
-        sb.AppendLine($"Current Spot: {player.CurrentLocationSpot?.Name} ({player.CurrentLocationSpot?.SpotID})");
+        var (location, spot) = _gameFacade.GetCurrentLocation();
+        sb.AppendLine($"Current Location: {location?.Name} - {spot?.Name}");
         sb.AppendLine();
         
-        // Get all NPCs at current spot
-        var allNPCs = npcRepository.GetAllNPCs()
-            .Where(npc => npc.SpotId == player.CurrentLocationSpot?.SpotID)
-            .ToList();
-            
-        sb.AppendLine($"Total NPCs at current spot: {allNPCs.Count}");
-        foreach (var npc in allNPCs)
-        {
-            bool isVisible = _narrativeManager.IsNPCVisible(npc.ID);
-            sb.AppendLine($"  - {npc.Name} ({npc.ID}): {(isVisible ? "VISIBLE" : "HIDDEN")}");
-        }
+        var actions = _gameFacade.GetLocationActions();
+        sb.AppendLine($"Time: {actions.CurrentTimeBlock}, {actions.HoursRemaining} hours remaining");
+        sb.AppendLine($"Resources: {actions.PlayerStamina} stamina, {actions.PlayerCoins} coins");
         sb.AppendLine();
         
-        // Check what the current tutorial step says about visible NPCs
-        if (_narrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        foreach (var group in actions.ActionGroups)
         {
-            var currentStep = _narrativeManager.GetCurrentStep("wayfarer_tutorial");
-            if (currentStep != null)
+            sb.AppendLine($"{group.ActionType}:");
+            foreach (var action in group.Actions)
             {
-                sb.AppendLine($"Current tutorial step visible NPCs: {currentStep.VisibleNPCs.Count}");
-                foreach (var npcId in currentStep.VisibleNPCs)
+                var status = action.IsAvailable ? "Available" : "Unavailable";
+                var tutorialStatus = action.IsAllowedInTutorial ? "" : " [BLOCKED BY TUTORIAL]";
+                sb.AppendLine($"  [{action.Id}] {action.Description} - {status}{tutorialStatus}");
+                
+                if (action.TimeCost > 0 || action.StaminaCost > 0 || action.CoinCost > 0)
                 {
-                    sb.AppendLine($"  - {npcId}");
+                    sb.AppendLine($"    Cost: {action.TimeCost}h, {action.StaminaCost} stamina, {action.CoinCost} coins");
+                }
+                
+                if (!action.IsAvailable)
+                {
+                    foreach (var reason in action.UnavailableReasons)
+                    {
+                        sb.AppendLine($"    Reason: {reason}");
+                    }
                 }
             }
         }
         
         return Ok(sb.ToString());
+    }
+    
+    [HttpPost("execute-action/{actionId}")]
+    public async Task<IActionResult> ExecuteAction(string actionId)
+    {
+        try
+        {
+            _logger.LogInformation($"Executing action: {actionId}");
+            
+            var success = await _gameFacade.ExecuteLocationActionAsync(actionId);
+            
+            if (success)
+            {
+                // Get updated state
+                var player = _gameFacade.GetPlayer();
+                var messages = _gameFacade.GetSystemMessages();
+                
+                var sb = new StringBuilder();
+                sb.AppendLine($"Action executed successfully!");
+                sb.AppendLine($"Player state: {player.Stamina}/{player.MaxStamina} stamina, {player.Coins} coins");
+                
+                if (messages.Any())
+                {
+                    sb.AppendLine("\nSystem messages:");
+                    foreach (var msg in messages)
+                    {
+                        sb.AppendLine($"  [{msg.Type}] {msg.Message}");
+                    }
+                }
+                
+                // Clear messages after reading
+                _gameFacade.ClearSystemMessages();
+                
+                return Ok(sb.ToString());
+            }
+            else
+            {
+                // Get system messages to see what went wrong
+                var messages = _gameFacade.GetSystemMessages();
+                var errorDetails = new StringBuilder();
+                errorDetails.AppendLine("Action execution failed. System messages:");
+                foreach (var msg in messages)
+                {
+                    errorDetails.AppendLine($"  [{msg.Type}] {msg.Message}");
+                }
+                _gameFacade.ClearSystemMessages();
+                return BadRequest(errorDetails.ToString());
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to execute action: {actionId}");
+            return StatusCode(500, $"Failed to execute action: {ex.Message}");
+        }
+    }
+    
+    [HttpGet("travel-options")]
+    public IActionResult GetTravelOptions()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("=== Travel Options ===");
+        
+        var destinations = _gameFacade.GetTravelDestinations();
+        
+        foreach (var dest in destinations)
+        {
+            sb.AppendLine($"\n{dest.LocationName} ({dest.LocationId}):");
+            sb.AppendLine($"  {dest.Description}");
+            
+            if (dest.CanTravel)
+            {
+                sb.AppendLine($"  Min cost: {dest.MinimumCost} coins, {dest.MinimumTime} hours");
+                
+                var routes = _gameFacade.GetRoutesToDestination(dest.LocationId);
+                sb.AppendLine("  Routes:");
+                foreach (var route in routes)
+                {
+                    var status = route.CanTravel ? "Available" : "Unavailable";
+                    sb.AppendLine($"    [{route.RouteId}] {route.RouteName} - {status}");
+                    sb.AppendLine($"      Method: {route.TransportMethod}, Cost: {route.TimeCost}h, {route.StaminaCost} stamina, {route.CoinCost} coins");
+                    
+                    if (!route.CanTravel)
+                    {
+                        sb.AppendLine($"      Reason: {route.CannotTravelReason}");
+                    }
+                }
+            }
+            else
+            {
+                sb.AppendLine($"  Cannot travel: {dest.CannotTravelReason}");
+            }
+        }
+        
+        return Ok(sb.ToString());
+    }
+    
+    [HttpPost("travel/{destinationId}/{routeId}")]
+    public async Task<IActionResult> Travel(string destinationId, string routeId)
+    {
+        try
+        {
+            _logger.LogInformation($"Traveling to {destinationId} via {routeId}");
+            
+            var success = await _gameFacade.TravelToDestinationAsync(destinationId, routeId);
+            
+            if (success)
+            {
+                var (location, spot) = _gameFacade.GetCurrentLocation();
+                return Ok($"Travel successful! Now at: {location.Name} - {spot?.Name ?? "arrival point"}");
+            }
+            else
+            {
+                return BadRequest("Travel failed. Check system messages.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to travel");
+            return StatusCode(500, $"Failed to travel: {ex.Message}");
+        }
+    }
+    
+    [HttpGet("conversation/{npcId}")]
+    public async Task<IActionResult> StartConversation(string npcId)
+    {
+        try
+        {
+            var conversation = await _gameFacade.StartConversationAsync(npcId);
+            
+            if (conversation == null)
+            {
+                return NotFound($"Cannot start conversation with NPC: {npcId}");
+            }
+            
+            return Ok(FormatConversation(conversation));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to start conversation with {npcId}");
+            return StatusCode(500, $"Failed to start conversation: {ex.Message}");
+        }
+    }
+    
+    [HttpPost("conversation/choice/{choiceId}")]
+    public async Task<IActionResult> SelectConversationChoice(string choiceId)
+    {
+        try
+        {
+            var conversation = await _gameFacade.ContinueConversationAsync(choiceId);
+            
+            if (conversation == null)
+            {
+                return BadRequest("No active conversation or invalid choice");
+            }
+            
+            return Ok(FormatConversation(conversation));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to select choice: {choiceId}");
+            return StatusCode(500, $"Failed to continue conversation: {ex.Message}");
+        }
+    }
+    
+    private string FormatConversation(ConversationViewModel conv)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"=== Conversation with {conv.NpcName} ===");
+        sb.AppendLine($"Topic: {conv.ConversationTopic}");
+        sb.AppendLine();
+        sb.AppendLine(conv.CurrentText);
+        sb.AppendLine();
+        
+        if (conv.IsComplete)
+        {
+            sb.AppendLine("[Conversation Complete]");
+        }
+        else if (conv.Choices.Any())
+        {
+            sb.AppendLine("Choices:");
+            foreach (var choice in conv.Choices)
+            {
+                var status = choice.IsAvailable ? "" : " [UNAVAILABLE]";
+                sb.AppendLine($"  [{choice.Id}] {choice.Text}{status}");
+                if (!choice.IsAvailable)
+                {
+                    sb.AppendLine($"    Reason: {choice.UnavailableReason}");
+                }
+            }
+        }
+        
+        return sb.ToString();
     }
 }
