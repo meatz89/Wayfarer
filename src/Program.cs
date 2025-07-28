@@ -11,7 +11,7 @@ Console.WriteLine("[STARTUP] WebApplicationBuilder created");
 Console.WriteLine("[STARTUP] Configuring Kestrel...");
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    serverOptions.ListenLocalhost(5011); // HTTP only on different port
+    serverOptions.ListenLocalhost(5200); // HTTP only on different port
 });
 Console.WriteLine("[STARTUP] Kestrel configured");
 

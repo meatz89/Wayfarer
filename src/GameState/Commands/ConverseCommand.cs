@@ -12,6 +12,9 @@ public class ConverseCommand : BaseGameCommand
     private readonly MessageSystem _messageSystem;
     private readonly ConversationStateManager _conversationStateManager;
 
+    // Expose NPC ID for stable command identification
+    public string NpcId => _npcId;
+
     public ConverseCommand(
         string npcId,
         ConversationFactory conversationFactory,

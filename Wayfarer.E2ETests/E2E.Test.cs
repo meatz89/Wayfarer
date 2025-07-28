@@ -173,6 +173,7 @@ public class E2ETest
             {
                 FileName = "dotnet",
                 Arguments = "run --urls http://localhost:5013",
+                WorkingDirectory = "/mnt/c/git/wayfarer",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

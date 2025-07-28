@@ -264,8 +264,9 @@ public class NarrativeManager : INPCVisibilityRule
             var currentStep = GetCurrentStep(narrativeId);
             if (currentStep != null)
             {
-                // If this step has visibility rules and NPC is not in the list, hide them
-                if (currentStep.VisibleNPCs.Any() && !currentStep.VisibleNPCs.Contains(npcId))
+                // If this step has visibility rules defined (even if empty), check them
+                // Empty list means NO NPCs are visible, null means all NPCs are visible
+                if (currentStep.VisibleNPCs != null && !currentStep.VisibleNPCs.Contains(npcId))
                 {
                     return false;
                 }
@@ -461,7 +462,11 @@ public class NarrativeManager : INPCVisibilityRule
                 _flagService.IncrementCounter("total_debt");
                 break;
             case AdvanceTimeCommand:
+                _flagService.IncrementCounter("time_blocks_passed");
+                break;
             case RestCommand:
+                _flagService.SetFlag("player_rested", true);
+                _flagService.IncrementCounter("rest_actions_taken");
                 _flagService.IncrementCounter("time_blocks_passed");
                 break;
         }
