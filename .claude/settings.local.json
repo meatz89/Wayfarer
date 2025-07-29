@@ -84,7 +84,9 @@
       "Bash(node:*)",
       "Bash(timeout:*)",
       "Bash(npm test:*)",
-      "Bash(./run-fast-tests.sh:*)"
+      "Bash(./run-fast-tests.sh:*)",
+      "Bash(sudo rm:*)",
+      "Bash(./run-conversation-test.sh:*)"
     ],
     "deny": []
   }

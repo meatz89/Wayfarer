@@ -8,7 +8,7 @@
     <ObjectiveView StateVersion="@StateVersion" />
 }
 
-<NarrativeOverlay IsMinimizable="@(!IsTutorialActive())" />
+<NarrativeOverlay IsMinimizable="true" />
 
 @if (!IsTutorialActive())
 {
@@ -43,10 +43,6 @@
 </div>
 
 <div class="game-content @(IsTutorialActive() ? "tutorial-mode" : "")">
-    @if (IsTutorialActive())
-    {
-        <div class="tutorial-blocking-overlay"></div>
-    }
     <div class="main-content">
         @switch (CurrentScreen)
         {
@@ -424,7 +420,7 @@
                              OnActionExecuted="@RefreshUI" />
             
             @* Show available actions for current location *@
-            <LocationActions />
+            <LocationActions OnActionExecuted="@RefreshUI" />
             
                              
             @* Letter Offer Dialog *@

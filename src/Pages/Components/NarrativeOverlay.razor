@@ -5,7 +5,14 @@
 
 @if (_viewModel.IsVisible)
 {
-    <div class="narrative-overlay @(_viewModel.IsMinimized ? "minimized" : "expanded") @GetNarrativeTypeClass() @(_isAnimating ? "animating" : "")">
+    <div class="narrative-overlay @(_viewModel.IsMinimized ? "minimized" : "expanded") @GetNarrativeTypeClass() @(_isAnimating ? "animating" : "") @(_isTransitioning ? "transitioning" : "")">
+        @if (_isTransitioning)
+        {
+            <div class="transition-message">
+                <span class="transition-icon">✓</span>
+                <span class="transition-text">Action completed! Next step coming...</span>
+            </div>
+        }
         <div class="narrative-header" @onclick="ToggleMinimize">
             <div class="narrative-title-section">
                 <span class="narrative-icon">@GetNarrativeIcon()</span>
@@ -98,6 +105,9 @@
     private int _timeRemaining = 0;
     private bool _showCompletionHint = false;
     private string _previousNarrativeId = "";
+    private int _previousStepIndex = -1;
+    private bool _isTransitioning = false;
+    private const int STEP_TRANSITION_DELAY = 2000; // 2 seconds to see effects
 
     protected override async Task OnInitializedAsync()
     {
@@ -165,10 +175,21 @@
             _viewModel.IsVisible = true;
             _viewModel.NarrativeId = narrativeId;
             _viewModel.NarrativeTitle = narrativeTitle;
+            // Check if step changed
+            if (currentStepIndex != _previousStepIndex && _previousStepIndex != -1)
+            {
+                // Delay showing new step to let player see effects
+                _isTransitioning = true;
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(STEP_TRANSITION_DELAY);
+                _isTransitioning = false;
+            }
+
+            _previousStepIndex = currentStepIndex;
             _viewModel.CurrentStep = currentStepIndex;
             _viewModel.TotalSteps = totalSteps;
 
-            if (currentStep != null)
+            if (currentStep != null && !_isTransitioning)
             {
                 _viewModel.StepName = currentStep.Name;
                 _viewModel.StepDescription = currentStep.Description;

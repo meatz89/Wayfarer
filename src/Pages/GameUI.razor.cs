@@ -29,6 +29,10 @@ public class GameUIBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        // IMPORTANT: For testing purposes, this ALWAYS starts a fresh game
+        // No save/load functionality is implemented or desired
+        // The game state is never persisted between sessions
+        
         try
         {
             Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
