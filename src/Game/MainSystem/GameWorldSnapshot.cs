@@ -18,6 +18,7 @@
     public string LastChoiceLabel { get; private set; }
     public bool LastChoiceSuccess { get; private set; }
     public bool IsConversationComplete { get; private set; }
+    public bool ConversationPending { get; internal set; }
 
     public GameWorldSnapshot(GameWorld gameWorld, ConversationStateManager conversationStateManager)
     {
@@ -30,6 +31,8 @@
         StreamProgress = streamingState.StreamProgress;
 
         // Conversation state from ConversationStateManager
+        ConversationPending = conversationStateManager.ConversationPending;
+        
         if (conversationStateManager.PendingConversationManager != null)
         {
             IsAwaitingAIResponse = conversationStateManager.PendingConversationManager.IsAwaitingResponse;

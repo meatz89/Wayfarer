@@ -86,6 +86,10 @@ public class GameWorldManager
 
     public async Task StartGame()
     {
+        // IMPORTANT: For testing purposes, this method ALWAYS starts a fresh game
+        // No save/load functionality is implemented or desired
+        // DO NOT add any save game loading here
+        
         _gameWorld.GetPlayer().HealFully();
         
         // Register collapse callback
@@ -160,6 +164,9 @@ public class GameWorldManager
         // Create conversation using factory
         ConversationManager conversationManager = await conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
         await conversationManager.InitializeConversation();
+
+        // Set up conversation for UI using ConversationStateManager
+        _conversationStateManager.SetPendingConversation(conversationManager);
 
         return conversationManager;
     }

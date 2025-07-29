@@ -1,62 +1,63 @@
 /* Tutorial Mode Styles */
 
-/* Hide non-essential UI elements during tutorial */
+/* Tutorial mode should NOT restrict the interface */
 .tutorial-mode {
-    /* Simplified interface during tutorial */
+    /* All UI elements remain fully interactive */
 }
 
-/* Tutorial Blocking Overlay - dims non-essential parts of UI */
-.tutorial-blocking-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    pointer-events: none;
-    z-index: 900;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
+/* NO blocking overlay during tutorial - players should see the real game */
+/* The tutorial guidance comes from the NarrativeOverlay component which can be minimized */
 
-.tutorial-mode .tutorial-blocking-overlay {
-    opacity: 1;
-}
-
-/* Allow interactions with allowed elements */
+/* Highlight tutorial-relevant elements */
 .tutorial-mode .allowed-action,
 .tutorial-mode .narrative-overlay,
 .tutorial-mode .navigation-bar,
 .tutorial-mode .game-status-bar {
     position: relative;
     z-index: 901;
-    pointer-events: auto;
 }
 
-/* Highlight allowed interactive areas */
+/* Subtle highlight for tutorial-relevant elements */
 .tutorial-highlight {
     position: relative;
-    z-index: 902;
-    pointer-events: auto;
-    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.6),
-                0 0 20px rgba(255, 215, 0, 0.4);
+    /* Subtle glow instead of heavy highlighting */
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3),
+                0 0 10px rgba(255, 215, 0, 0.2);
+    transition: box-shadow 0.3s ease;
+}
+
+.tutorial-highlight:hover {
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.5),
+                0 0 15px rgba(255, 215, 0, 0.3);
 }
 
 
-/* Narrative overlay during tutorial - always prominent */
-.tutorial .narrative-overlay {
+/* Narrative overlay during tutorial - positioned to not block the game view */
+.tutorial-mode .narrative-overlay {
+    /* Move to the right side during tutorial so game screen is visible */
     position: fixed;
     top: 20px;
     right: 20px;
+    left: auto;
+    transform: none;
+    width: auto;
+    max-width: 380px;
+    min-width: 320px;
     z-index: 1000;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    border: 2px solid var(--color-gold);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--color-gold);
+    /* Make it slightly transparent so players can see behind it if needed */
+    opacity: 0.95;
+}
+
+.tutorial-mode .narrative-overlay:hover {
+    opacity: 1;
 }
 
 
-/* Ensure tutorial narrative is never collapsed */
+/* Allow tutorial narrative to be minimized */
 .tutorial .narrative-overlay.minimized {
-    display: none;
+    /* Keep visible but collapsed */
 }
 
 /* Tutorial-specific narrative styling */
@@ -70,10 +71,10 @@
     color: var(--color-dark);
 }
 
-/* Highlight allowed actions during tutorial */
+/* Subtle indication of available actions during tutorial */
 .tutorial-mode .location-actions {
-    border: 2px solid var(--color-gold);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    /* No heavy borders - let players see the normal UI */
+    position: relative;
 }
 
 /* Hide letter count and other distracting elements */
@@ -145,15 +146,32 @@
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
 
-/* Tutorial action buttons */
-.tutorial-mode .action-button:not(.allowed-action) {
-    opacity: 0.3;
-    cursor: not-allowed;
-    pointer-events: none;
+/* Tutorial action buttons - all remain clickable */
+.tutorial-mode .action-button {
+    /* All buttons remain fully functional */
+    cursor: pointer;
+    pointer-events: auto;
 }
 
+/* Subtle indication for recommended actions */
 .tutorial-mode .action-button.allowed-action {
-    border: 2px solid var(--color-gold);
+    /* Small golden indicator instead of heavy border */
+    position: relative;
+}
+
+.tutorial-mode .action-button.allowed-action::after {
+    content: "✦";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    color: var(--color-gold);
+    font-size: 0.8rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
 }
 
 
@@ -217,5 +235,58 @@
     font-size: 1.2rem;
     margin-bottom: 30px;
     line-height: 1.6;
+}
+
+/* Transition effect when tutorial steps change */
+.narrative-overlay.transitioning .narrative-content-wrapper {
+    /* Keep content visible during transitions so players can see game effects */
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.transition-message {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-gold);
+    color: var(--color-dark);
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+.transition-icon {
+    font-size: 1.5rem;
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Make narrative overlay position relative for transition message */
+.narrative-overlay {
+    position: relative;
 }
 

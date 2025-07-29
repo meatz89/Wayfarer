@@ -31,6 +31,8 @@ public class Program
                     return await E2ETest.Main(args);
                 case "FocusedWorkflowTests":
                     return await FocusedWorkflowTests.Main(args);
+                case "TutorialConversationDebugTest":
+                    return await TutorialConversationDebugTest.Main(args);
                 default:
                     Console.WriteLine($"Unknown program: {programName}");
                     return 1;

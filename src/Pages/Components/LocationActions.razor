@@ -83,7 +83,7 @@
                                 }
                                 
                                 <button class="action-button @(IsTutorialActive && action.IsAllowedInTutorial ? "allowed-action" : "")" 
-                                        disabled="@(!CanAffordAction(action) || (IsTutorialActive && !action.IsAllowedInTutorial))"
+                                        disabled="@(!CanAffordAction(action))"
                                         @onclick="async () => await ExecuteAction(action.Id)">
                                     @(CanAffordAction(action) ? "Do This" : "Cannot Afford")
                                 </button>
@@ -106,6 +106,8 @@
 </div>
 
 @code {
+    [Parameter] public EventCallback OnActionExecuted { get; set; }
+    
     private bool IsTutorialActive => GameFacade.IsTutorialActive();
     
     private bool CanAffordAction(ActionOptionViewModel action)
@@ -120,6 +122,12 @@
         // Whether success or failure, refresh the UI
         // The CommandExecutor will have updated game state and shown messages
         StateHasChanged();
+        
+        // Notify parent to poll for state changes (e.g., pending conversations)
+        if (OnActionExecuted.HasDelegate)
+        {
+            await OnActionExecuted.InvokeAsync();
+        }
     }
 }
 

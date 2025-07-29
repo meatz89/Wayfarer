@@ -1,5 +1,8 @@
 ﻿using System.Text.Json;
 
+// IMPORTANT: For testing purposes, save/load functionality is DISABLED
+// This serializer exists but is NOT used for persisting game state
+// The game ALWAYS starts fresh - do not implement save/load functionality
 public static class GameWorldSerializer
 {
     private static JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
