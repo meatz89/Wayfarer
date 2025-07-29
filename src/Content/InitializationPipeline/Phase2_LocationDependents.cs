@@ -126,127 +126,67 @@ public class Phase2_LocationDependents : IInitializationPhase
         if (!File.Exists(npcsPath))
         {
             Console.WriteLine("INFO: npcs.json not found, creating default NPCs");
-            CreateDefaultNPCs(context);
             return;
         }
         
-        try
-        {
             var npcDTOs = context.ContentLoader.LoadValidatedContent<List<NPCDTO>>(npcsPath);
             
             if (npcDTOs == null || !npcDTOs.Any())
             {
                 Console.WriteLine("WARNING: No NPCs found in npcs.json, creating defaults");
-                CreateDefaultNPCs(context);
                 return;
             }
             
             var npcFactory = new NPCFactory();
             var locations = context.GameWorld.WorldState.locations;
-            
-            foreach (var dto in npcDTOs)
+
+        foreach (var dto in npcDTOs)
+        {
+            // Verify location exists
+            var location = locations.FirstOrDefault(l => l.Id == dto.LocationId);
+            if (location == null)
             {
-                try
+                context.Warnings.Add($"NPC {dto.Id} references unknown location {dto.LocationId}");
+                continue;
+            }
+
+            // Parse profession
+            if (!Enum.TryParse<Professions>(dto.Profession, true, out var profession))
+            {
+                profession = Professions.Merchant;
+                context.Warnings.Add($"Invalid profession '{dto.Profession}' for {dto.Id}, defaulting to Merchant");
+            }
+
+            // Parse letter token types
+            var tokenTypes = new List<ConnectionType>();
+            foreach (var tokenStr in dto.LetterTokenTypes ?? new List<string> { "Common" })
+            {
+                if (Enum.TryParse<ConnectionType>(tokenStr, true, out var tokenType))
                 {
-                    // Verify location exists
-                    var location = locations.FirstOrDefault(l => l.Id == dto.LocationId);
-                    if (location == null)
-                    {
-                        context.Warnings.Add($"NPC {dto.Id} references unknown location {dto.LocationId}");
-                        continue;
-                    }
-                    
-                    // Parse profession
-                    if (!Enum.TryParse<Professions>(dto.Profession, true, out var profession))
-                    {
-                        profession = Professions.Merchant;
-                        context.Warnings.Add($"Invalid profession '{dto.Profession}' for {dto.Id}, defaulting to Merchant");
-                    }
-                    
-                    // Parse letter token types
-                    var tokenTypes = new List<ConnectionType>();
-                    foreach (var tokenStr in dto.LetterTokenTypes ?? new List<string> { "Common" })
-                    {
-                        if (Enum.TryParse<ConnectionType>(tokenStr, true, out var tokenType))
-                        {
-                            tokenTypes.Add(tokenType);
-                        }
-                    }
-                    
-                    // Create NPC using ID-based method
-                    var npc = npcFactory.CreateNPCFromIds(
-                        dto.Id,
-                        dto.Name,
-                        dto.LocationId,
-                        locations,
-                        profession,
-                        dto.SpotId,
-                        dto.Role ?? profession.ToString(),
-                        dto.Description ?? $"A {profession} in {location.Name}",
-                        new List<ServiceTypes>(), // Services can be added later
-                        tokenTypes
-                    );
-                    
-                    // Token types already set during creation
-                    
-                    context.GameWorld.WorldState.NPCs.Add(npc);
-                    Console.WriteLine($"  Loaded NPC: {npc.Name} ({npc.ID}) at {npc.Location}");
-                }
-                catch (Exception ex)
-                {
-                    context.Warnings.Add($"Failed to create NPC {dto.Id}: {ex.Message}");
+                    tokenTypes.Add(tokenType);
                 }
             }
-            
-            Console.WriteLine($"Loaded {context.GameWorld.WorldState.NPCs.Count} NPCs");
-        }
-        catch (ContentValidationException ex)
-        {
-            foreach (var error in ex.Errors.Where(e => e.Severity == ValidationSeverity.Critical))
-            {
-                context.Errors.Add($"NPC validation: {error.Message}");
-            }
-            
-            // If we have critical errors, try defaults
-            if (context.Errors.Any())
-            {
-                Console.WriteLine("Critical NPC errors, creating default NPCs");
-                CreateDefaultNPCs(context);
-                context.Errors.Clear(); // Clear errors since we're recovering
-            }
-        }
-        catch (Exception ex)
-        {
-            context.Warnings.Add($"Failed to load NPCs: {ex.Message}");
-            CreateDefaultNPCs(context);
-        }
-    }
-    
-    private void CreateDefaultNPCs(InitializationContext context)
-    {
-        var npcFactory = new NPCFactory();
-        var locations = context.GameWorld.WorldState.locations;
-        
-        // Create at least one NPC in the first location for letter generation
-        if (locations.Any())
-        {
-            var firstLocation = locations.First();
-            var defaultNPC = npcFactory.CreateNPCFromIds(
-                "default_npc",
-                "Village Elder",
-                firstLocation.Id,
+
+            // Create NPC using ID-based method
+            var npc = npcFactory.CreateNPCFromIds(
+                dto.Id,
+                dto.Name,
+                dto.LocationId,
                 locations,
-                Professions.Merchant,
-                null, // No specific spot
-                "Elder",
-                "A wise elder who knows everyone in the village",
-                new List<ServiceTypes>(),
-                new List<ConnectionType> { ConnectionType.Common, ConnectionType.Trust }
+                profession,
+                dto.SpotId,
+                dto.Role ?? profession.ToString(),
+                dto.Description ?? $"A {profession} in {location.Name}",
+                new List<ServiceTypes>(), // Services can be added later
+                tokenTypes
             );
+
             // Token types already set during creation
-            
-            context.GameWorld.WorldState.NPCs.Add(defaultNPC);
-            Console.WriteLine($"  Created default NPC: {defaultNPC.Name} at {firstLocation.Id}");
+
+            context.GameWorld.WorldState.NPCs.Add(npc);
+            Console.WriteLine($"  Loaded NPC: {npc.Name} ({npc.ID}) at {npc.Location}");
+
+            Console.WriteLine($"Loaded {context.GameWorld.WorldState.NPCs.Count} NPCs");
         }
     }
 }

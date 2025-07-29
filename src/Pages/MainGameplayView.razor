@@ -55,8 +55,8 @@
                 break;
 
             case CurrentViews.ConversationScreen:
-                <ConversationView ConversationManager="ConversationManager"
-                               OnConversationCompleted="OnConversationCompleted"
+                <ConversationView NPCId="@CurrentNPCOfferId"
+                               OnConversationCompleted="@(() => OnConversationCompleted())"
                                @key="StateVersion" />
                 break;
 

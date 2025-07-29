@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Wayfarer.GameState.Constants;
-using Wayfarer.Pages.Components;
 
 namespace Wayfarer.Pages
 {
@@ -20,7 +19,6 @@ namespace Wayfarer.Pages
         public Player PlayerState => GameWorld.GetPlayer();
         
         // For readable letter display
-        protected ReadableLetterDisplay letterDisplay;
         protected string selectedLetterItemId;
 
         public Location CurrentLocation => LocationRepository.GetCurrentLocation();

@@ -6,115 +6,67 @@ namespace Wayfarer.Pages
 
     public class TravelSelectionBase : ComponentBase
     {
-        [Inject] public GameWorld GameWorld { get; set; }
-        [Inject] public GameWorldManager GameWorldManager { get; set; }
-        [Inject] public RouteRepository RouteRepository { get; set; }
-        // ItemRepository allowed for read-only UI data binding
-        [Inject] public ItemRepository ItemRepository { get; set; }
-        [Inject] public ConnectionTokenManager TokenManager { get; set; }
-        [Inject] public NPCRepository NPCRepository { get; set; }
+        [Inject] public IGameFacade GameFacade { get; set; }
         [Parameter] public Location CurrentLocation { get; set; }
         [Parameter] public List<Location> Locations { get; set; }
         [Parameter] public EventCallback<string> OnTravel { get; set; }
         [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
         [Parameter] public EventCallback<(RouteOption route, TravelMethods transport)> OnTravelWithTransport { get; set; }
+        
+        protected async Task HandleTravelRoute(TravelRouteViewModel routeViewModel)
+        {
+            // Convert TravelRouteViewModel to RouteOption for backward compatibility
+            var routeOption = new RouteOption
+            {
+                Id = routeViewModel.RouteId,
+                Name = routeViewModel.RouteName,
+                Method = routeViewModel.TransportMethod,
+                BaseStaminaCost = routeViewModel.BaseStaminaCost,
+                BaseCoinCost = routeViewModel.CoinCost,
+                TravelTimeHours = routeViewModel.TimeCost,
+                Description = routeViewModel.Description,
+                Destination = Destinations.FirstOrDefault(d => d.Routes.Contains(routeViewModel))?.LocationId ?? "",
+                TerrainCategories = routeViewModel.TerrainCategories ?? new List<TerrainCategory>(),
+                DepartureTime = routeViewModel.DepartureTime,
+                IsDiscovered = routeViewModel.IsDiscovered
+            };
+            
+            await OnTravelRoute.InvokeAsync(routeOption);
+        }
 
-        public bool ShowEquipmentCategories => GameWorld.GetPlayer().Inventory.ItemSlots
-            .Select(name => ItemRepository.GetItemByName(name))
-            .Any(item => item != null && item.Categories.Any());
+        protected TravelContextViewModel TravelContext { get; set; }
+        protected List<TravelDestinationViewModel> Destinations { get; set; }
 
-        public WeatherCondition CurrentWeather => GameWorld.CurrentWeather;
+        public bool ShowEquipmentCategories => TravelContext?.CurrentEquipmentCategories?.Any() ?? false;
+
+        public WeatherCondition CurrentWeather => TravelContext?.CurrentWeather ?? WeatherCondition.Clear;
 
         protected override void OnInitialized()
         {
             base.OnInitialized();
+            RefreshTravelData();
         }
-
-        public List<Location> GetTravelableLocations()
+        
+        protected override void OnParametersSet()
         {
-            return Locations?.Where(loc => loc.Id != CurrentLocation?.Id &&
-                                  GameWorldManager.CanTravelTo(loc.Id)).ToList() ?? new List<Location>();
+            base.OnParametersSet();
+            RefreshTravelData();
         }
-
-
-        public void ShowRouteOptions(GameWorld gameWorld, string destinationName, string destinationId)
+        
+        private void RefreshTravelData()
         {
-            List<RouteOption> availableRoutes = GameWorldManager.GetAvailableRoutes(CurrentLocation.Id, destinationId);
-
-            Console.WriteLine($"=== Travel to {destinationName} ===");
-
-            if (availableRoutes.Count == 0)
-            {
-                Console.WriteLine("No routes available at this time.");
-                return;
-            }
-
-            int totalWeight = GameWorldManager.CalculateTotalWeight();
-            string weightStatus = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? "Light load" :
-                                    (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? "Medium load (+1 stamina cost)" : "Heavy load (+2 stamina cost)");
-
-            Console.WriteLine($"Current load: {weightStatus} ({totalWeight} weight units)");
-            Console.WriteLine();
-
-            Console.WriteLine("How do you want to travel?");
-
-            for (int i = 0; i < availableRoutes.Count; i++)
-            {
-                RouteOption route = availableRoutes[i];
-
-                // Calculate adjusted stamina cost
-                int adjustedStaminaCost = route.BaseStaminaCost;
-                if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
-                {
-                    adjustedStaminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY;
-                }
-                else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
-                {
-                    adjustedStaminaCost += GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY;
-                }
-
-                string staminaCostDisplay = route.BaseStaminaCost == adjustedStaminaCost ?
-                    $"{adjustedStaminaCost} stamina" :
-                    $"{adjustedStaminaCost} stamina (base {route.BaseStaminaCost} + weight penalty)";
-
-                string departureInfo = route.DepartureTime.HasValue ? $", departs at {route.DepartureTime}" : "";
-                string affordabilityMarker = GameWorldManager.CanTravelRoute(route) ? "" : " (Cannot afford)";
-
-                Console.WriteLine($"[{i + 1}] {route.Name} - {route.BaseCoinCost} coins, {staminaCostDisplay}{departureInfo}{affordabilityMarker}");
-
-                // Show terrain categories if any
-                if (route.TerrainCategories.Count > 0)
-                {
-                    Console.WriteLine($"    Terrain: {string.Join(", ", route.TerrainCategories.Select(c => c.ToString().Replace('_', ' ')))}");
-                }
-            }
-
-            Console.WriteLine();
-            Console.WriteLine($"Current resources: {gameWorld.PlayerCoins} coins, {gameWorld.PlayerStamina} stamina");
-
-            // Show equipment categories
-            List<string> equipmentItems = new List<string>();
-            foreach (string itemName in gameWorld.PlayerInventory.ItemSlots)
-            {
-                if (itemName != null)
-                {
-                    Item item = ItemRepository.GetItemByName(itemName);
-                    if (item != null && item.Categories.Count > 0)
-                    {
-                        equipmentItems.Add($"{itemName} ({string.Join(", ", item.Categories.Select(c => c.ToString().Replace('_', ' ')))})");
-                    }
-                }
-            }
-
-            if (equipmentItems.Count > 0)
-            {
-                Console.WriteLine("Equipment categories:");
-                foreach (string itemInfo in equipmentItems)
-                {
-                    Console.WriteLine($"- {itemInfo}");
-                }
-            }
+            TravelContext = GameFacade.GetTravelContext();
+            Destinations = GameFacade.GetTravelDestinationsWithRoutes();
         }
+
+        public List<TravelDestinationViewModel> GetTravelableLocations()
+        {
+            return Destinations?.Where(d => d.LocationId != CurrentLocation?.Id && d.CanTravel).ToList() 
+                ?? new List<TravelDestinationViewModel>();
+        }
+
+
+        // Removed ShowRouteOptions method - no longer needed with ViewModels
 
 
         /// <summary>
@@ -241,61 +193,31 @@ namespace Wayfarer.Pages
         /// </summary>
         public List<ItemCategory> GetCurrentEquipmentCategories()
         {
-            List<ItemCategory> ownedCategories = new List<ItemCategory>();
-
-            foreach (string itemName in GameWorld.GetPlayer().Inventory.ItemSlots)
-            {
-                if (itemName != null)
-                {
-                    Item item = ItemRepository.GetItemByName(itemName);
-                    if (item != null)
-                    {
-                        ownedCategories.AddRange(item.Categories);
-                    }
-                }
-            }
-
-            return ownedCategories.Distinct().ToList();
+            return TravelContext?.CurrentEquipmentCategories ?? new List<ItemCategory>();
         }
 
         /// <summary>
         /// Get all routes to a destination, including locked ones
         /// </summary>
-        public List<RouteOption> GetAllRoutesToLocation(string locationId)
+        public List<TravelRouteViewModel> GetAllRoutesToLocation(string locationId)
         {
-            // Get all routes from current location
-            List<RouteOption> allRoutes = RouteRepository.GetRoutesFromLocation(CurrentLocation.Id);
-
-            // Filter to only routes going to the specified destination
-            return allRoutes.Where(r => r.Destination == locationId).ToList();
+            var destination = Destinations?.FirstOrDefault(d => d.LocationId == locationId);
+            return destination?.Routes ?? new List<TravelRouteViewModel>();
         }
 
         /// <summary>
         /// Get token requirements for a route
         /// </summary>
-        public Dictionary<string, (int required, int current, string displayName)> GetRouteTokenRequirements(RouteOption route)
+        public Dictionary<string, (int required, int current, string displayName)> GetRouteTokenRequirements(TravelRouteViewModel route)
         {
             var requirements = new Dictionary<string, (int, int, string)>();
             
-            if (route.AccessRequirement == null)
+            if (route.TokenRequirements == null || !route.TokenRequirements.Any())
                 return requirements;
 
-            // Check type-based requirements
-            foreach (var (tokenType, requiredCount) in route.AccessRequirement.RequiredTokensPerType)
+            foreach (var (key, req) in route.TokenRequirements)
             {
-                int currentCount = TokenManager.GetTotalTokensOfType(tokenType);
-                string displayName = $"{tokenType} tokens (any NPC)";
-                requirements[$"type_{tokenType}"] = (requiredCount, currentCount, displayName);
-            }
-
-            // Check NPC-specific requirements
-            foreach (var (npcId, requiredCount) in route.AccessRequirement.RequiredTokensPerNPC)
-            {
-                var npcTokens = TokenManager.GetTokensWithNPC(npcId);
-                int currentCount = npcTokens.Values.Sum();
-                var npc = NPCRepository.GetById(npcId);
-                string displayName = $"tokens with {npc?.Name ?? npcId}";
-                requirements[$"npc_{npcId}"] = (requiredCount, currentCount, displayName);
+                requirements[key] = (req.RequiredAmount, req.CurrentAmount, req.DisplayName);
             }
 
             return requirements;
@@ -320,13 +242,12 @@ namespace Wayfarer.Pages
         /// <summary>
         /// Check if player has required tokens for a route
         /// </summary>
-        public bool HasRequiredTokens(RouteOption route)
+        public bool HasRequiredTokens(TravelRouteViewModel route)
         {
-            if (route.AccessRequirement == null)
+            if (route.TokenRequirements == null || !route.TokenRequirements.Any())
                 return true;
 
-            var tokenReqs = GetRouteTokenRequirements(route);
-            return tokenReqs.All(kvp => kvp.Value.current >= kvp.Value.required);
+            return route.TokenRequirements.All(kvp => kvp.Value.IsMet);
         }
 
         /// <summary>

@@ -8,7 +8,7 @@
     <div class="encounter-content">
         <div class="encounter-main">
             <div class="encounter-stage">
-                @if (ConversationManager != null && ConversationManager.State != null)
+                @if (CurrentConversation != null)
                 {
                     @if (IsStreaming)
                     {
@@ -23,7 +23,7 @@
                     else
                     {
                         <div class="stage-situation fade-in">
-                            @ConversationManager.State.CurrentNarrative
+                            @CurrentConversation.CurrentText
                         </div>
                     }
                 }
@@ -34,24 +34,20 @@
             </div>
 
             <div class="encounter-choices">
-                @if (ConversationManager != null && ConversationManager.Choices?.Any() == true && !ConversationManager.IsAwaitingResponse)
+                @if (CurrentConversation?.Choices?.Any() == true && !CurrentConversation.IsComplete)
                 {
-                    @foreach (var choice in ConversationManager.Choices)
+                    @foreach (var choice in CurrentConversation.Choices)
                     {
-                        <div class="choice-option @GetChoiceClass(choice) @(choice.IsAffordable ? "" : "disabled")"
-                             @onclick="(() => MakeChoice(choice.ChoiceID))"
+                        <div class="choice-option @GetChoiceClass(choice) @(choice.IsAvailable ? "" : "disabled")"
+                             @onclick="(() => MakeChoice(choice.Id))"
                              @onmouseover="(e => ShowTooltip(e, choice))"
                              @onmouseout="HideTooltip">
-                            <div class="choice-index">@choice.ChoiceID</div>
+                            <div class="choice-index">@choice.Id</div>
                             <div class="choice-content">
-                                <div class="choice-name">@choice.NarrativeText</div>
-                                @if (!choice.IsAffordable)
+                                <div class="choice-name">@choice.Text</div>
+                                @if (!choice.IsAvailable)
                                 {
-                                    <div class="choice-unavailable">Insufficient resources</div>
-                                }
-                                @if (choice.FocusCost > 0)
-                                {
-                                    <div class="choice-cost">@choice.FocusCost focus</div>
+                                    <div class="choice-unavailable">@(choice.UnavailableReason ?? "Insufficient resources")</div>
                                 }
                             </div>
                             @if (GetChoiceIcon(choice) != null)
@@ -61,27 +57,19 @@
                         </div>
                     }
 
+                    @* TODO: Update ConversationChoiceTooltip to use ConversationChoiceViewModel
                     @if (showTooltip && hoveredChoice != null)
                     {
                         <ConversationChoiceTooltip hoveredChoice="hoveredChoice" tooltipX="tooltipX" tooltipY="tooltipY" />
                     }
+                    *@
                 }
             </div>
-            @if (ConversationManager?.IsAwaitingResponse == true)
-            {
-                <div class="loading-indicator">
-                    <span>Thinking</span>
-                    <div class="thinking-dots">
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                    </div>
-                </div>
-            }
+            @* Remove the thinking indicator for now as we don't have that state in the view model *@
         </div>
     </div>
 
-    @if (ConversationManager?.State?.IsConversationComplete == true)
+    @if (CurrentConversation?.IsComplete == true)
     {
         <div class="conversation-complete">
             <button class="nav-button primary" @onclick="CompleteConversation">

@@ -14,7 +14,7 @@ using Wayfarer.GameState.Constants;
 /// </summary>
 public class E2ETest
 {
-    static async Task<int> Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         Console.WriteLine("=== WAYFARER E2E TEST ===");
         Console.WriteLine("This test catches ALL issues you see when starting the game\n");

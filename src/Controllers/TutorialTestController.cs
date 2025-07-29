@@ -212,7 +212,7 @@ public class TutorialTestController : ControllerBase
                 {
                     var status = route.CanTravel ? "Available" : "Unavailable";
                     sb.AppendLine($"    [{route.RouteId}] {route.RouteName} - {status}");
-                    sb.AppendLine($"      Method: {route.TransportMethod}, Cost: {route.TimeCost}h, {route.StaminaCost} stamina, {route.CoinCost} coins");
+                    sb.AppendLine($"      Method: {route.TransportMethod}, Cost: {route.TimeCost}h, {route.TotalStaminaCost} stamina, {route.CoinCost} coins");
                     
                     if (!route.CanTravel)
                     {
