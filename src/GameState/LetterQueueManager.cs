@@ -211,7 +211,27 @@ public class LetterQueueManager
         if (!ValidateLetterCanBeAdded(letter))
             return 0;
 
+        // Validate target position is within bounds
+        if (targetPosition < 1 || targetPosition > _config.LetterQueue.MaxQueueSize)
+        {
+            _messageSystem.AddSystemMessage(
+                $"⚠️ Invalid queue position {targetPosition} calculated for letter from {letter.SenderName}. Using default position.",
+                SystemMessageTypes.Warning
+            );
+            targetPosition = Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, targetPosition));
+        }
+
         Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+
+        // Additional safety check for array bounds
+        if (targetPosition - 1 < 0 || targetPosition - 1 >= queue.Length)
+        {
+            _messageSystem.AddSystemMessage(
+                $"❌ Critical error: position {targetPosition} is outside queue bounds. Defaulting to last position.",
+                SystemMessageTypes.Danger
+            );
+            targetPosition = _config.LetterQueue.MaxQueueSize;
+        }
 
         // If target position is empty, simple insertion
         if (queue[targetPosition - 1] == null)

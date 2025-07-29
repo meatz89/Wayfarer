@@ -322,12 +322,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         UpdateState();
     }
 
-    public async Task OnConversationCompleted(ConversationBeatOutcome result)
+    public async Task OnConversationCompleted()
     {
-        // Store the result for narrative view
-        ConversationBeatOutcome = result;
-
-        // Check if this was a queue management conversation
+        // Get current conversation result from facade if needed
         var conversation = GameFacade.GetCurrentConversation();
         if (conversation != null && conversation.ConversationTopic == "QueueManagement")
         {

@@ -72,6 +72,7 @@ public class MarketUIService
                 SellPrice = item.SellPrice,
                 CanBuy = canBuy,
                 CanSell = canSell,
+                TraderId = locationId, // Use location as trader ID for now since items are location-based
                 Categories = item.Categories.Select(c => c.ToString()).ToList(),
                 Item = item
             });

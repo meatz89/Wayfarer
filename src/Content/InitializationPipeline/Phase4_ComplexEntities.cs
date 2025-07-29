@@ -142,67 +142,60 @@ public class Phase4_ComplexEntities : IInitializationPhase
             return;
         }
         
-        try
+        var unlockDTOs = context.ContentLoader.LoadValidatedContent<List<NetworkUnlockDTO>>(unlocksPath);
+            
+        if (unlockDTOs == null || !unlockDTOs.Any())
         {
-            var unlockDTOs = context.ContentLoader.LoadValidatedContent<List<NetworkUnlockDTO>>(unlocksPath);
-            
-            if (unlockDTOs == null || !unlockDTOs.Any())
-            {
-                Console.WriteLine("INFO: No network unlocks found");
-                return;
-            }
-            
-            var unlockFactory = new NetworkUnlockFactory();
-            
-            foreach (var dto in unlockDTOs)
-            {
-                try
-                {
-                    // Store references for Phase 6
-                    context.SharedData[$"unlock_{dto.Id}_unlocker"] = dto.UnlockerNpcId;
-                    foreach (var target in dto.Unlocks ?? new List<NetworkUnlockTargetDTO>())
-                    {
-                        context.SharedData[$"unlock_{dto.Id}_target_{target.NpcId}"] = target.NpcId;
-                    }
-                    
-                    // Create unlock targets
-                    var targets = new List<NetworkUnlockTarget>();
-                    foreach (var targetDTO in dto.Unlocks ?? new List<NetworkUnlockTargetDTO>())
-                    {
-                        var target = new NetworkUnlockTarget
-                        {
-                            NpcId = targetDTO.NpcId,
-                            IntroductionText = targetDTO.IntroductionText ?? "You've been introduced."
-                        };
-                        targets.Add(target);
-                    }
-                    
-                    // Create network unlock
-                    var targetDefinitions = targets.Select(t => (t.NpcId, t.IntroductionText)).ToList();
-                    var unlock = unlockFactory.CreateNetworkUnlockFromIds(
-                        dto.Id,
-                        dto.UnlockerNpcId,
-                        dto.TokensRequired,
-                        dto.UnlockDescription ?? $"Unlock connections through {dto.UnlockerNpcId}",
-                        targetDefinitions,
-                        context.GameWorld.WorldState.NPCs
-                    );
-                    
-                    context.GameWorld.WorldState.NetworkUnlocks.Add(unlock);
-                    Console.WriteLine($"  Loaded network unlock: {unlock.Id} via {dto.UnlockerNpcId}");
-                }
-                catch (Exception ex)
-                {
-                    context.Warnings.Add($"Failed to create network unlock {dto.Id}: {ex.Message}");
-                }
-            }
-            
-            Console.WriteLine($"Loaded {context.GameWorld.WorldState.NetworkUnlocks.Count} network unlocks");
+            Console.WriteLine("INFO: No network unlocks found");
+            return;
         }
-        catch (Exception ex)
+            
+        var unlockFactory = new NetworkUnlockFactory();
+            
+        foreach (var dto in unlockDTOs)
         {
-            context.Warnings.Add($"Failed to load network unlocks: {ex.Message}");
+            try
+            {
+                // Store references for Phase 6
+                context.SharedData[$"unlock_{dto.Id}_unlocker"] = dto.UnlockerNpcId;
+                foreach (var target in dto.Unlocks ?? new List<NetworkUnlockTargetDTO>())
+                {
+                    context.SharedData[$"unlock_{dto.Id}_target_{target.NpcId}"] = target.NpcId;
+                }
+                    
+                // Create unlock targets
+                var targets = new List<NetworkUnlockTarget>();
+                foreach (var targetDTO in dto.Unlocks ?? new List<NetworkUnlockTargetDTO>())
+                {
+                    var target = new NetworkUnlockTarget
+                    {
+                        NpcId = targetDTO.NpcId,
+                        IntroductionText = targetDTO.IntroductionText ?? "You've been introduced."
+                    };
+                    targets.Add(target);
+                }
+                    
+                // Create network unlock
+                var targetDefinitions = targets.Select(t => (t.NpcId, t.IntroductionText)).ToList();
+                var unlock = unlockFactory.CreateNetworkUnlockFromIds(
+                    dto.Id,
+                    dto.UnlockerNpcId,
+                    dto.TokensRequired,
+                    dto.UnlockDescription ?? $"Unlock connections through {dto.UnlockerNpcId}",
+                    targetDefinitions,
+                    context.GameWorld.WorldState.NPCs
+                );
+                    
+                context.GameWorld.WorldState.NetworkUnlocks.Add(unlock);
+                Console.WriteLine($"  Loaded network unlock: {unlock.Id} via {dto.UnlockerNpcId}");
+            }
+            catch (Exception ex)
+            {
+                context.Warnings.Add($"Failed to create network unlock {dto.Id}: {ex.Message}");
+            }
         }
+            
+        Console.WriteLine($"Loaded {context.GameWorld.WorldState.NetworkUnlocks.Count} network unlocks");
     }
     
     private void LoadRouteDiscovery(InitializationContext context)
@@ -215,52 +208,38 @@ public class Phase4_ComplexEntities : IInitializationPhase
             return;
         }
         
-        try
+        var discoveryDTOs = context.ContentLoader.LoadValidatedContent<List<RouteDiscoveryDTO>>(discoveryPath);
+            
+        if (discoveryDTOs == null || !discoveryDTOs.Any())
         {
-            var discoveryDTOs = context.ContentLoader.LoadValidatedContent<List<RouteDiscoveryDTO>>(discoveryPath);
-            
-            if (discoveryDTOs == null || !discoveryDTOs.Any())
-            {
-                Console.WriteLine("INFO: No route discoveries found");
-                return;
-            }
-            
-            var discoveryFactory = new RouteDiscoveryFactory();
-            
-            foreach (var dto in discoveryDTOs)
-            {
-                try
-                {
-                    // Store references for Phase 6
-                    context.SharedData[$"discovery_{dto.RouteId}_route"] = dto.RouteId;
-                    foreach (var npcId in dto.KnownByNPCs ?? new List<string>())
-                    {
-                        context.SharedData[$"discovery_{dto.RouteId}_npc_{npcId}"] = npcId;
-                    }
-                    
-                    // Create discovery
-                    var discovery = discoveryFactory.CreateRouteDiscoveryFromIds(
-                        dto.RouteId,
-                        dto.KnownByNPCs ?? new List<string>(),
-                        context.GameWorld.WorldState.Routes,
-                        context.GameWorld.WorldState.NPCs,
-                        dto.RequiredTokensWithNPC
-                    );
-                    
-                    context.GameWorld.WorldState.RouteDiscoveries.Add(discovery);
-                    Console.WriteLine($"  Loaded route discovery: {dto.RouteId}");
-                }
-                catch (Exception ex)
-                {
-                    context.Warnings.Add($"Failed to create route discovery for {dto.RouteId}: {ex.Message}");
-                }
-            }
-            
-            Console.WriteLine($"Loaded {context.GameWorld.WorldState.RouteDiscoveries.Count} route discoveries");
+            Console.WriteLine("INFO: No route discoveries found");
+            return;
         }
-        catch (Exception ex)
+            
+        var discoveryFactory = new RouteDiscoveryFactory();
+            
+        foreach (var dto in discoveryDTOs)
         {
-            context.Warnings.Add($"Failed to load route discoveries: {ex.Message}");
+                // Store references for Phase 6
+                context.SharedData[$"discovery_{dto.RouteId}_route"] = dto.RouteId;
+                foreach (var npcId in dto.KnownByNPCs ?? new List<string>())
+                {
+                    context.SharedData[$"discovery_{dto.RouteId}_npc_{npcId}"] = npcId;
+                }
+                    
+                // Create discovery
+                var discovery = discoveryFactory.CreateRouteDiscoveryFromIds(
+                    dto.RouteId,
+                    dto.KnownByNPCs ?? new List<string>(),
+                    context.GameWorld.WorldState.Routes,
+                    context.GameWorld.WorldState.NPCs,
+                    dto.RequiredTokensWithNPC
+                );
+                    
+                context.GameWorld.WorldState.RouteDiscoveries.Add(discovery);
+                Console.WriteLine($"  Loaded route discovery: {dto.RouteId}");
         }
+            
+        Console.WriteLine($"Loaded {context.GameWorld.WorldState.RouteDiscoveries.Count} route discoveries");
     }
 }

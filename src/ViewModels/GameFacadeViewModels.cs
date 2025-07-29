@@ -31,6 +31,34 @@ public class TravelDestinationViewModel
     public string CannotTravelReason { get; set; }
     public int MinimumCost { get; set; }
     public int MinimumTime { get; set; }
+    public bool IsCurrent { get; set; }
+    public List<TravelRouteViewModel> Routes { get; set; } = new();
+}
+
+// New travel context ViewModel
+public class TravelContextViewModel
+{
+    // Player travel resources
+    public int CurrentStamina { get; set; }
+    public int TotalWeight { get; set; }
+    public string WeightStatus { get; set; } // "Light load", "Medium load (+1 stamina)", etc.
+    public string WeightClass { get; set; } // CSS class: "", "warning", "danger"
+    public int BaseStaminaPenalty { get; set; } // 0, 1, or 2
+    
+    // Letter effects
+    public int CarriedLetterCount { get; set; }
+    public bool HasHeavyLetters { get; set; }
+    public bool HasFragileLetters { get; set; }
+    public bool HasBulkyLetters { get; set; }
+    public bool HasPerishableLetters { get; set; }
+    public string LetterWarning { get; set; }
+    
+    // Equipment
+    public List<ItemCategory> CurrentEquipmentCategories { get; set; } = new();
+    
+    // Weather
+    public WeatherCondition CurrentWeather { get; set; }
+    public string WeatherIcon { get; set; }
 }
 
 public class TravelRouteViewModel
@@ -40,10 +68,45 @@ public class TravelRouteViewModel
     public string Description { get; set; }
     public TravelMethods TransportMethod { get; set; }
     public int TimeCost { get; set; }
-    public int StaminaCost { get; set; }
+    public int BaseStaminaCost { get; set; }
+    public int TotalStaminaCost { get; set; } // Includes weight and letter penalties
     public int CoinCost { get; set; }
     public bool CanTravel { get; set; }
     public string CannotTravelReason { get; set; }
+    
+    // New properties for enhanced UI
+    public bool IsDiscovered { get; set; }
+    public bool IsBlocked { get; set; }
+    public string BlockingReason { get; set; }
+    public string HintMessage { get; set; }
+    public List<string> Warnings { get; set; } = new();
+    public List<TerrainCategory> TerrainCategories { get; set; } = new();
+    public TimeBlocks? DepartureTime { get; set; }
+    
+    // Token requirements
+    public Dictionary<string, RouteTokenRequirementViewModel> TokenRequirements { get; set; } = new();
+    
+    // Discovery information for locked routes
+    public List<RouteDiscoveryOptionViewModel> DiscoveryOptions { get; set; } = new();
+}
+
+public class RouteTokenRequirementViewModel
+{
+    public string RequirementKey { get; set; } // e.g., "type_Trust" or "npc_123"
+    public int RequiredAmount { get; set; }
+    public int CurrentAmount { get; set; }
+    public string DisplayName { get; set; }
+    public string Icon { get; set; }
+    public bool IsMet { get; set; }
+}
+
+public class RouteDiscoveryOptionViewModel
+{
+    public string TeachingNPCId { get; set; }
+    public string TeachingNPCName { get; set; }
+    public int RequiredTokens { get; set; }
+    public int PlayerTokens { get; set; }
+    public bool CanAfford { get; set; }
 }
 
 // ========== INVENTORY VIEW MODELS ==========

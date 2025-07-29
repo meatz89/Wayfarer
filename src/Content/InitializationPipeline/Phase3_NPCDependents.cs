@@ -105,6 +105,9 @@ public class Phase3_NPCDependents : IInitializationPhase
             }
             
             Console.WriteLine($"Loaded {context.GameWorld.WorldState.Routes.Count} routes");
+            
+            // Connect routes to locations
+            ConnectRoutesToLocations(context);
         }
         catch (ContentValidationException ex)
         {
@@ -252,5 +255,49 @@ public class Phase3_NPCDependents : IInitializationPhase
             context.GameWorld.WorldState.LetterTemplates.Add(template);
             Console.WriteLine($"  Created basic template: {template.Id}");
         }
+    }
+    
+    private void ConnectRoutesToLocations(InitializationContext context)
+    {
+        Console.WriteLine("Connecting routes to locations...");
+        
+        var locations = context.GameWorld.WorldState.locations;
+        var routes = context.GameWorld.WorldState.Routes;
+        
+        // Clear any existing connections first
+        foreach (var location in locations)
+        {
+            location.Connections.Clear();
+        }
+        
+        // Group routes by origin location
+        var routesByOrigin = routes.GroupBy(r => r.Origin);
+        
+        foreach (var group in routesByOrigin)
+        {
+            var originLocation = locations.FirstOrDefault(l => l.Id == group.Key);
+            if (originLocation == null)
+            {
+                context.Warnings.Add($"Route origin location '{group.Key}' not found");
+                continue;
+            }
+            
+            // Group by destination
+            var routesByDestination = group.GroupBy(r => r.Destination);
+            
+            foreach (var destGroup in routesByDestination)
+            {
+                var connection = new LocationConnection
+                {
+                    DestinationLocationId = destGroup.Key,
+                    RouteOptions = destGroup.ToList()
+                };
+                
+                originLocation.Connections.Add(connection);
+                Console.WriteLine($"  Connected {originLocation.Id} -> {destGroup.Key} with {connection.RouteOptions.Count} routes");
+            }
+        }
+        
+        Console.WriteLine($"Connected {routesByOrigin.Count()} locations with routes");
     }
 }

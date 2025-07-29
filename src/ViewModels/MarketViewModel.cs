@@ -38,6 +38,7 @@ public class MarketItemViewModel
     public int SellPrice { get; init; }
     public bool CanBuy { get; init; }
     public bool CanSell { get; init; }
+    public string TraderId { get; init; } // ID of the trader selling this item
     public List<string> Categories { get; init; } = new();
     public Item Item { get; init; } // Reference to the full item for description and token effects
 }

@@ -1,5 +1,5 @@
 ﻿@* MarketUI.razor - Pure presentation layer, no game logic *@
-@inject MarketUIService MarketUIService
+@inject IGameFacade GameFacade
 
 <div class="market-container">
     <h2>@_viewModel.LocationName Market</h2>
@@ -101,19 +101,19 @@
 
     private void RefreshViewModel()
     {
-        _viewModel = MarketUIService.GetMarketViewModel(LocationId);
+        _viewModel = GameFacade.GetMarket();
     }
 
     private async Task BuyItem(MarketItemViewModel item)
     {
-        await MarketUIService.ExecuteTradeAsync(item.ItemId, "buy", LocationId);
+        await GameFacade.BuyItemAsync(item.ItemId, item.TraderId);
         RefreshViewModel();
         StateHasChanged();
     }
 
     private async Task SellItem(MarketItemViewModel item)
     {
-        await MarketUIService.ExecuteTradeAsync(item.ItemId, "sell", LocationId);
+        await GameFacade.SellItemAsync(item.ItemId, item.TraderId);
         RefreshViewModel();
         StateHasChanged();
     }
@@ -126,6 +126,12 @@
 
     private List<MarketItemViewModel> GetFilteredItems()
     {
-        return MarketUIService.GetFilteredItems(_viewModel, _viewModel.SelectedCategory);
+        if (_viewModel == null || _viewModel.Items == null)
+            return new List<MarketItemViewModel>();
+            
+        if (string.IsNullOrEmpty(_viewModel.SelectedCategory) || _viewModel.SelectedCategory == "All")
+            return _viewModel.Items;
+            
+        return _viewModel.Items.Where(i => i.Categories.Contains(_viewModel.SelectedCategory)).ToList();
     }
 }

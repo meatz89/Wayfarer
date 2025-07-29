@@ -52,7 +52,7 @@ services.AddSingleton<GameWorld>(_ =>
 **Rule**: All dependencies flow INWARD towards GameWorld, never outward from it.
 
 ```
-UI Components
+UI Components (Blazor)
     ↓
 IGameFacade (Single Interface)
     ↓
@@ -69,9 +69,54 @@ GameWorld (No Dependencies)
 
 GameWorld is the single source of truth and has NO dependencies on any services, managers, or external components.
 
-**Key Addition**: The GameFacade pattern now provides a clean separation between UI and domain layers. UI components ONLY interact with IGameFacade, never with domain services directly.
+### 3. GameFacade Architecture Pattern
 
-### 3. Navigation Architecture
+**Rule**: UI components MUST only interact with the backend through IGameFacade.
+
+#### The Pattern
+
+The GameFacade pattern provides THE ONLY way UI components and test controllers should communicate with the game backend. This architectural pattern was implemented to solve multiple critical issues:
+
+1. **Eliminated Circular Dependencies**: Previously, UI components directly injected 30+ services, creating complex dependency graphs that caused startup hangs
+2. **Improved Testability**: UI components can now be tested with simple mock IGameFacade implementations
+3. **Enforced Clean Architecture**: Clear separation between presentation and domain layers
+
+#### Implementation Details
+
+```csharp
+// Before: MainGameplayView had 30+ service injections
+@inject GameWorld GameWorld
+@inject TravelManager TravelManager
+@inject CommandExecutor CommandExecutor
+@inject NPCRepository NPCRepository
+// ... 26 more injections
+
+// After: Single facade injection
+@inject IGameFacade GameFacade
+```
+
+#### ViewModels for Data Transfer
+
+All data returned from GameFacade uses ViewModels to prevent domain objects from leaking to the UI layer:
+
+- **ConversationViewModel** - Conversation state and choices
+- **TravelDestinationViewModel** - Available travel destinations
+- **TravelRouteViewModel** - Route details with token requirements
+- **InventoryViewModel** - Player inventory state
+- **LetterQueueViewModel** - Letter queue management
+- **LocationActionsViewModel** - Available actions at current location
+- **NPCRelationshipViewModel** - NPC relationship tracking
+- **ObligationViewModel** - Player obligations and debts
+
+#### Benefits Achieved
+
+1. **Startup Performance**: Eliminated circular dependency resolution that caused hangs
+2. **Test Coverage**: UI components can be unit tested in isolation
+3. **Maintainability**: Backend changes don't break UI components
+4. **Consistency**: All UI components interact with backend the same way
+5. **Documentation**: Single interface documents all available UI operations
+
+### 4. Navigation Architecture
 
 **Rule**: GameUIBase is the ONLY navigation handler in the application.
 
@@ -80,7 +125,7 @@ GameWorld is the single source of truth and has NO dependencies on any services,
 - No NavigationService with events or delegates
 - Simple component-based navigation using CurrentView property
 
-### 4. No Service Locator Pattern
+### 5. No Service Locator Pattern
 
 **Rule**: Never use GetRequiredService outside of ServiceConfiguration.
 

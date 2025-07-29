@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Constants;
 
 /// <summary>
 /// Implementation of IGameFacade - THE single entry point for all UI-Backend communication.
@@ -170,7 +171,7 @@ public class GameFacade : IGameFacade
                 Description = route.TransportRequirement ?? "Standard route",
                 TransportMethod = TravelMethods.Walking, // TODO: Determine from route
                 TimeCost = route.TravelTimeHours,
-                StaminaCost = route.TotalStaminaCost,
+                TotalStaminaCost = route.TotalStaminaCost,
                 CoinCost = route.CoinCost,
                 CanTravel = !route.IsBlocked,
                 CannotTravelReason = route.BlockedReason
@@ -195,6 +196,277 @@ public class GameFacade : IGameFacade
         var command = new TravelCommand(routeOption, _travelManager, _messageSystem);
         var result = await _commandExecutor.ExecuteAsync(command);
         return result.IsSuccess;
+    }
+    
+    public TravelContextViewModel GetTravelContext()
+    {
+        var player = _gameWorld.GetPlayer();
+        var totalWeight = CalculateTotalWeight();
+        var carriedLetters = player.CarriedLetters;
+        
+        // Calculate weight status
+        string weightStatus;
+        string weightClass;
+        int baseStaminaPenalty;
+        
+        if (totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX)
+        {
+            weightStatus = "Light load";
+            weightClass = "";
+            baseStaminaPenalty = 0;
+        }
+        else if (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
+        {
+            weightStatus = "Medium load (+1 stamina)";
+            weightClass = "warning";
+            baseStaminaPenalty = GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY;
+        }
+        else
+        {
+            weightStatus = "Heavy load (+2 stamina)";
+            weightClass = "danger";
+            baseStaminaPenalty = GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY;
+        }
+        
+        // Check letter properties
+        bool hasHeavyLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy)) ?? false;
+        bool hasFragileLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Fragile)) ?? false;
+        bool hasBulkyLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Bulky)) ?? false;
+        bool hasPerishableLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Perishable)) ?? false;
+        
+        // Determine letter warning
+        string letterWarning = "";
+        if (hasHeavyLetters)
+            letterWarning = "Heavy letters +1 stamina cost";
+        else if (hasBulkyLetters)
+            letterWarning = "Bulky letters restrict movement";
+        else if (hasPerishableLetters)
+            letterWarning = "Perishable letters - time sensitive";
+        else if (hasFragileLetters)
+            letterWarning = "Fragile letters need careful handling";
+        
+        // Get equipment categories
+        var equipmentCategories = new List<ItemCategory>();
+        foreach (var itemName in player.Inventory.ItemSlots)
+        {
+            if (!string.IsNullOrEmpty(itemName))
+            {
+                var item = _itemRepository.GetItemByName(itemName);
+                if (item != null)
+                {
+                    equipmentCategories.AddRange(item.Categories);
+                }
+            }
+        }
+        
+        return new TravelContextViewModel
+        {
+            CurrentStamina = player.Stamina,
+            TotalWeight = totalWeight,
+            WeightStatus = weightStatus,
+            WeightClass = weightClass,
+            BaseStaminaPenalty = baseStaminaPenalty,
+            CarriedLetterCount = carriedLetters?.Count ?? 0,
+            HasHeavyLetters = hasHeavyLetters,
+            HasFragileLetters = hasFragileLetters,
+            HasBulkyLetters = hasBulkyLetters,
+            HasPerishableLetters = hasPerishableLetters,
+            LetterWarning = letterWarning,
+            CurrentEquipmentCategories = equipmentCategories.Distinct().ToList(),
+            CurrentWeather = _gameWorld.CurrentWeather,
+            WeatherIcon = GetWeatherIcon(_gameWorld.CurrentWeather)
+        };
+    }
+    
+    public List<TravelDestinationViewModel> GetTravelDestinationsWithRoutes()
+    {
+        var currentLocation = _locationRepository.GetCurrentLocation();
+        var destinations = new List<TravelDestinationViewModel>();
+        var travelContext = GetTravelContext();
+        
+        // Get all locations that can be traveled to
+        var allLocations = _locationRepository.GetAllLocations();
+        
+        foreach (var location in allLocations)
+        {
+            if (location.Id == currentLocation.Id) continue;
+            
+            // Get all routes to this destination
+            var allRoutes = _routeRepository.GetRoutesFromLocation(currentLocation.Id)
+                .Where(r => r.Destination == location.Id)
+                .ToList();
+            
+            if (!allRoutes.Any()) continue;
+            
+            var routeViewModels = new List<TravelRouteViewModel>();
+            
+            foreach (var route in allRoutes)
+            {
+                routeViewModels.Add(CreateTravelRouteViewModel(route, travelContext));
+            }
+            
+            bool canTravel = routeViewModels.Any(r => r.CanTravel);
+            
+            destinations.Add(new TravelDestinationViewModel
+            {
+                LocationId = location.Id,
+                LocationName = location.Name,
+                Description = location.Description,
+                CanTravel = canTravel,
+                CannotTravelReason = !canTravel ? "No available routes" : null,
+                MinimumCost = routeViewModels.Where(r => r.CanTravel).Select(r => r.CoinCost).DefaultIfEmpty(0).Min(),
+                MinimumTime = routeViewModels.Where(r => r.CanTravel).Select(r => r.TimeCost).DefaultIfEmpty(0).Min(),
+                IsCurrent = false,
+                Routes = routeViewModels
+            });
+        }
+        
+        return destinations;
+    }
+    
+    private TravelRouteViewModel CreateTravelRouteViewModel(RouteOption route, TravelContextViewModel travelContext)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        // Calculate costs
+        var coinCost = _travelManager.CalculateCoinCost(route);
+        var baseStaminaCost = _travelManager.CalculateStaminaCost(route);
+        var letterStaminaPenalty = travelContext.HasHeavyLetters ? 1 : 0;
+        var totalStaminaCost = baseStaminaCost + letterStaminaPenalty;
+        
+        // Check if can travel
+        var canAffordStamina = player.Stamina >= totalStaminaCost;
+        var canAffordCoins = player.Coins >= coinCost;
+        var accessInfo = _travelManager.GetRouteAccessInfo(route);
+        var tokenAccessInfo = _travelManager.GetTokenAccessInfo(route);
+        
+        var canTravel = canAffordStamina && canAffordCoins && accessInfo.IsAllowed && tokenAccessInfo.IsAllowed;
+        
+        // Build token requirements
+        var tokenRequirements = new Dictionary<string, RouteTokenRequirementViewModel>();
+        
+        if (route.AccessRequirement != null)
+        {
+            // Type-based requirements
+            foreach (var (tokenType, requiredCount) in route.AccessRequirement.RequiredTokensPerType)
+            {
+                var currentCount = _connectionTokenManager.GetTotalTokensOfType(tokenType);
+                var key = $"type_{tokenType}";
+                tokenRequirements[key] = new RouteTokenRequirementViewModel
+                {
+                    RequirementKey = key,
+                    RequiredAmount = requiredCount,
+                    CurrentAmount = currentCount,
+                    DisplayName = $"{tokenType} tokens (any NPC)",
+                    Icon = GetTokenIcon(tokenType),
+                    IsMet = currentCount >= requiredCount
+                };
+            }
+            
+            // NPC-specific requirements
+            foreach (var (npcId, requiredCount) in route.AccessRequirement.RequiredTokensPerNPC)
+            {
+                var npcTokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+                var currentCount = npcTokens.Values.Sum();
+                var npc = _npcRepository.GetById(npcId);
+                var key = $"npc_{npcId}";
+                tokenRequirements[key] = new RouteTokenRequirementViewModel
+                {
+                    RequirementKey = key,
+                    RequiredAmount = requiredCount,
+                    CurrentAmount = currentCount,
+                    DisplayName = $"tokens with {npc?.Name ?? npcId}",
+                    Icon = "🎭",
+                    IsMet = currentCount >= requiredCount
+                };
+            }
+        }
+        
+        // Build warnings
+        var warnings = new List<string>(accessInfo.Warnings);
+        
+        // Add fragile letter warnings
+        if (travelContext.HasFragileLetters && 
+            (route.TerrainCategories.Contains(TerrainCategory.Requires_Climbing) || 
+             route.TerrainCategories.Contains(TerrainCategory.Wilderness_Terrain)))
+        {
+            warnings.Insert(0, "Fragile letters at risk on this route!");
+        }
+        
+        // Get discovery options if route is locked
+        var discoveryOptions = new List<RouteDiscoveryOptionViewModel>();
+        if (!route.IsDiscovered)
+        {
+            // Note: RouteDiscoveryManager would need to be injected for this to work fully
+            // For now, leaving empty as it would require more refactoring
+        }
+        
+        // Determine cannot travel reason
+        string cannotTravelReason = null;
+        if (!canTravel)
+        {
+            if (!accessInfo.IsAllowed)
+                cannotTravelReason = accessInfo.BlockingReason;
+            else if (!tokenAccessInfo.IsAllowed)
+                cannotTravelReason = tokenAccessInfo.BlockedMessage;
+            else if (!canAffordCoins)
+                cannotTravelReason = "Not enough coins";
+            else if (!canAffordStamina)
+                cannotTravelReason = "Not enough stamina";
+        }
+        
+        return new TravelRouteViewModel
+        {
+            RouteId = route.Id,
+            RouteName = route.Name,
+            Description = route.Description,
+            TransportMethod = route.Method,
+            TimeCost = route.TravelTimeHours,
+            BaseStaminaCost = route.BaseStaminaCost,
+            TotalStaminaCost = totalStaminaCost,
+            CoinCost = coinCost,
+            CanTravel = canTravel,
+            CannotTravelReason = cannotTravelReason,
+            IsDiscovered = route.IsDiscovered,
+            IsBlocked = !accessInfo.IsAllowed || !tokenAccessInfo.IsAllowed,
+            BlockingReason = !tokenAccessInfo.IsAllowed ? tokenAccessInfo.BlockedMessage : accessInfo.BlockingReason,
+            HintMessage = tokenAccessInfo.HintMessage,
+            Warnings = warnings,
+            TerrainCategories = route.TerrainCategories,
+            DepartureTime = route.DepartureTime,
+            TokenRequirements = tokenRequirements,
+            DiscoveryOptions = discoveryOptions
+        };
+    }
+    
+    public int CalculateTotalWeight()
+    {
+        return _gameWorldManager.CalculateTotalWeight();
+    }
+    
+    private string GetWeatherIcon(WeatherCondition weather)
+    {
+        return weather switch
+        {
+            WeatherCondition.Clear => "☀️",
+            WeatherCondition.Rain => "🌧️",
+            WeatherCondition.Snow => "❄️",
+            WeatherCondition.Fog => "🌫️",
+            _ => "❓"
+        };
+    }
+    
+    private string GetTokenIcon(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => "💝",
+            ConnectionType.Trade => "🤝",
+            ConnectionType.Noble => "👑",
+            ConnectionType.Common => "🏘️",
+            ConnectionType.Shadow => "🌑",
+            _ => "🎭"
+        };
     }
     
     // ========== REST ==========
@@ -414,30 +686,16 @@ public class GameFacade : IGameFacade
     
     public async Task<bool> BuyItemAsync(string itemId, string traderId)
     {
-        var player = _gameWorld.GetPlayer();
-        var command = new MarketTradeCommand(
-            itemId,
-            MarketTradeCommand.TradeAction.Buy,
-            player.CurrentLocation.Id,
-            _itemRepository,
-            null // TODO: Inject IGameRuleEngine
-        );
-        var result = await _commandExecutor.ExecuteAsync(command);
-        return result.IsSuccess;
+        // traderId is actually locationId in our current implementation
+        // since items are sold by location, not specific traders
+        return await _marketService.ExecuteTradeAsync(itemId, "buy", traderId);
     }
     
     public async Task<bool> SellItemAsync(string itemId, string traderId)
     {
-        var player = _gameWorld.GetPlayer();
-        var command = new MarketTradeCommand(
-            itemId,
-            MarketTradeCommand.TradeAction.Sell,
-            player.CurrentLocation.Id,
-            _itemRepository,
-            null // TODO: Inject IGameRuleEngine
-        );
-        var result = await _commandExecutor.ExecuteAsync(command);
-        return result.IsSuccess;
+        // traderId is actually locationId in our current implementation
+        // since items are sold by location, not specific traders
+        return await _marketService.ExecuteTradeAsync(itemId, "sell", traderId);
     }
     
     // ========== INVENTORY ==========

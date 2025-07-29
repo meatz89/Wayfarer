@@ -239,14 +239,6 @@ public class Phase1_CoreEntities : IInitializationPhase
             
             Console.WriteLine($"Loaded {context.GameWorld.WorldState.Items.Count} items");
         }
-        catch (ContentValidationException ex)
-        {
-            // Items aren't critical, so just warn
-            foreach (var error in ex.Errors)
-            {
-                context.Warnings.Add($"Item validation: {error.Message}");
-            }
-        }
         catch (Exception ex)
         {
             context.Warnings.Add($"Failed to load items: {ex.Message}");

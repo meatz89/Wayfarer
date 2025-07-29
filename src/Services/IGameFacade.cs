@@ -45,7 +45,17 @@ public interface IGameFacade
     // ========== TRAVEL ==========
     
     /// <summary>
-    /// Get available travel destinations
+    /// Get travel context information (weight, stamina, equipment, etc.)
+    /// </summary>
+    TravelContextViewModel GetTravelContext();
+    
+    /// <summary>
+    /// Get available travel destinations with all routes
+    /// </summary>
+    List<TravelDestinationViewModel> GetTravelDestinationsWithRoutes();
+    
+    /// <summary>
+    /// Get available travel destinations (legacy)
     /// </summary>
     List<TravelDestinationViewModel> GetTravelDestinations();
     
@@ -58,6 +68,11 @@ public interface IGameFacade
     /// Execute travel to a destination
     /// </summary>
     Task<bool> TravelToDestinationAsync(string destinationId, string routeId);
+    
+    /// <summary>
+    /// Calculate total weight including inventory and letters
+    /// </summary>
+    int CalculateTotalWeight();
     
     // ========== REST ==========
     

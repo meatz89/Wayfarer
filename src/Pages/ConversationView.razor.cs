@@ -5,53 +5,48 @@ using System.Linq;
 
 public class ConversationViewBase : ComponentBase
 {
-    [Inject] public GameWorldManager GameWorldManager { get; set; }
-    [Parameter] public EventCallback<ConversationBeatOutcome> OnConversationCompleted { get; set; }
-    [Parameter] public ConversationManager ConversationManager { get; set; }
+    [Inject] public IGameFacade GameFacade { get; set; }
+    [Parameter] public EventCallback OnConversationCompleted { get; set; }
+    [Parameter] public string NPCId { get; set; }
 
     // State
-    public GameWorldSnapshot currentSnapshot;
-
-    // Streaming state - comes from GameWorldSnapshot
-    public bool IsStreaming => currentSnapshot?.IsStreaming ?? false;
-
-    public string StreamingText => currentSnapshot?.StreamingText ?? "";
-
-    public int StreamProgress => (int)(currentSnapshot?.StreamProgress ?? 0);
+    public ConversationViewModel CurrentConversation { get; set; }
+    
+    // Streaming state - for now, disable streaming until we refactor it
+    public bool IsStreaming => false;
+    public string StreamingText => "";
+    public int StreamProgress => 0;
 
     // Tooltip state
-    public ConversationChoice hoveredChoice;
+    public ConversationChoiceViewModel hoveredChoice;
     public bool showTooltip = false;
     public double tooltipX;
     public double tooltipY;
 
     protected override async Task OnInitializedAsync()
     {
-        currentSnapshot = GameWorldManager.GetGameSnapshot();
-
-        // Start the conversation by showing introduction and getting first choices
-        if (ConversationManager != null)
+        // Start the conversation if NPCId is provided
+        if (!string.IsNullOrEmpty(NPCId))
         {
-            await ConversationManager.InitializeConversation();
-            await ConversationManager.ProcessNextBeat();
-            currentSnapshot = GameWorldManager.GetGameSnapshot();
+            CurrentConversation = await GameFacade.StartConversationAsync(NPCId);
+        }
+        else
+        {
+            // Get current active conversation
+            CurrentConversation = GameFacade.GetCurrentConversation();
         }
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        currentSnapshot = GameWorldManager.GetGameSnapshot();
-
-        if (!currentSnapshot.IsStreaming &&
-            !currentSnapshot.IsAwaitingAIResponse &&
-            ConversationManager != null)
+        // Refresh conversation state
+        if (!string.IsNullOrEmpty(NPCId))
         {
-            // Process next beat if conversation is active
-            if (!currentSnapshot.IsConversationComplete)
-            {
-                await ConversationManager.ProcessNextBeat();
-                currentSnapshot = GameWorldManager.GetGameSnapshot();
-            }
+            CurrentConversation = await GameFacade.StartConversationAsync(NPCId);
+        }
+        else
+        {
+            CurrentConversation = GameFacade.GetCurrentConversation();
         }
     }
 
@@ -59,36 +54,30 @@ public class ConversationViewBase : ComponentBase
     {
         HideTooltip();
 
-        if (ConversationManager != null && ConversationManager.Choices?.Any() == true)
+        if (CurrentConversation?.Choices?.Any() == true)
         {
-            ConversationChoice selectedChoice = ConversationManager.Choices
-                .FirstOrDefault(c => c.ChoiceID == choiceId);
+            var selectedChoice = CurrentConversation.Choices
+                .FirstOrDefault(c => c.Id == choiceId);
 
-            if (selectedChoice != null)
+            if (selectedChoice != null && selectedChoice.IsAvailable)
             {
                 // Process the player's choice
-                ConversationBeatOutcome outcome = await ConversationManager.ProcessPlayerChoice(selectedChoice);
-
-                // Update the game world with the last selected choice
-                GameWorldManager.SetLastSelectedChoice(selectedChoice);
+                CurrentConversation = await GameFacade.ContinueConversationAsync(choiceId);
 
                 // Check if conversation is complete
-                if (outcome.IsConversationComplete)
+                if (CurrentConversation?.IsComplete == true)
                 {
-                    await OnConversationCompleted.InvokeAsync(outcome);
+                    await OnConversationCompleted.InvokeAsync();
                 }
                 else
                 {
-                    // Continue conversation
-                    await ConversationManager.ProcessNextBeat();
-                    currentSnapshot = GameWorldManager.GetGameSnapshot();
                     StateHasChanged();
                 }
             }
         }
     }
 
-    public void ShowTooltip(MouseEventArgs e, ConversationChoice choice)
+    public void ShowTooltip(MouseEventArgs e, ConversationChoiceViewModel choice)
     {
         hoveredChoice = choice;
         showTooltip = false;
@@ -107,55 +96,21 @@ public class ConversationViewBase : ComponentBase
 
     public async Task CompleteConversation()
     {
-        // Create simple outcome for completion
-        ConversationBeatOutcome outcome = new ConversationBeatOutcome
-        {
-            IsConversationComplete = true,
-            NarrativeDescription = ConversationManager?.State?.CurrentNarrative ?? ""
-        };
-
-        await OnConversationCompleted.InvokeAsync(outcome);
+        await OnConversationCompleted.InvokeAsync();
     }
 
-    public string GetChoiceClass(ConversationChoice choice)
+    public string GetChoiceClass(ConversationChoiceViewModel choice)
     {
-        // Return CSS class based on choice type
-        return choice.ChoiceType switch
-        {
-            ConversationChoiceType.AcceptLetterOffer => "choice-letter",
-            ConversationChoiceType.DeclineLetterOffer => "choice-decline",
-            ConversationChoiceType.Introduction => "choice-introduction",
-            ConversationChoiceType.DiscoverRoute => "choice-discovery",
-            ConversationChoiceType.SkipAndDeliver => "choice-skip",
-            ConversationChoiceType.RespectQueueOrder => "choice-respect",
-            ConversationChoiceType.PurgeLetter => "choice-purge",
-            ConversationChoiceType.KeepLetter => "choice-keep",
-            ConversationChoiceType.TravelCautious => "choice-cautious",
-            ConversationChoiceType.TravelUseEquipment => "choice-equipment",
-            ConversationChoiceType.TravelForceThrough => "choice-force",
-            ConversationChoiceType.TravelSlowProgress => "choice-slow",
-            ConversationChoiceType.TravelTradeHelp => "choice-trade",
-            ConversationChoiceType.TravelExchangeInfo => "choice-info",
-            _ => "choice-default"
-        };
+        // For now, return a default class. We can enhance this later
+        // based on choice text patterns if needed
+        return "choice-default";
     }
 
-    public string GetChoiceIcon(ConversationChoice choice)
+    public string GetChoiceIcon(ConversationChoiceViewModel choice)
     {
-        // Return icon based on choice type
-        return choice.ChoiceType switch
-        {
-            ConversationChoiceType.AcceptLetterOffer => "📨",
-            ConversationChoiceType.DeclineLetterOffer => "🚫",
-            ConversationChoiceType.Introduction => "👋",
-            ConversationChoiceType.DiscoverRoute => "🗺️",
-            ConversationChoiceType.SkipAndDeliver => "⏩",
-            ConversationChoiceType.PurgeLetter => "🗑️",
-            ConversationChoiceType.TravelUseEquipment => "🛠️",
-            ConversationChoiceType.TravelTradeHelp => "🤝",
-            ConversationChoiceType.TravelExchangeInfo => "💬",
-            _ => null
-        };
+        // For now, return null. We can enhance this later
+        // based on choice text patterns if needed
+        return null;
     }
 
 }
