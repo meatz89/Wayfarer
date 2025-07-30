@@ -2,6 +2,11 @@
 
 @inherits MainGameplayViewBase
 
+@{
+    Console.WriteLine($"[MainGameplayView.razor] Rendering with CurrentScreen: {CurrentScreen}");
+    Console.WriteLine($"[MainGameplayView.razor] CurrentView parameter: {CurrentView}");
+}
+
 @if (!IsTutorialActive())
 {
     <SystemMessageDisplay Messages="@SystemMessages" OnMessagesExpired="HandleMessagesExpired" />
@@ -51,7 +56,7 @@
                 break;
 
             case CurrentViews.ConversationScreen:
-                <ConversationView NPCId="@CurrentNPCOfferId"
+                <ConversationView NPCId="@CurrentConversation?.NpcId"
                                OnConversationCompleted="@(() => OnConversationCompleted())"
                                @key="StateVersion" />
                 break;
@@ -238,7 +243,7 @@
             <div class="debug-section">
                 <h4>Current State</h4>
                 <p>Screen: @CurrentScreen</p>
-                <p>Location: @PlayerState?.CurrentLocation?.Name (@PlayerState?.CurrentLocation?.Id)</p>
+                <p>Location: @(LocationRepository?.GetLocation(PlayerState?.CurrentLocationSpot?.LocationId)?.Name) (@PlayerState?.CurrentLocationSpot?.LocationId)</p>
                 <p>Spot: @PlayerState?.CurrentLocationSpot?.Name (@PlayerState?.CurrentLocationSpot?.SpotID)</p>
                 <p>Time: @CurrentTime (@CurrentHour:00)</p>
                 <p>Day: @GameWorld.CurrentDay</p>
@@ -419,8 +424,8 @@
                              OnSpotSelected="@HandleSpotSelection"
                              OnActionExecuted="@RefreshUI" />
             
-            @* Show available actions for current location *@
-            <LocationActions OnActionExecuted="@RefreshUI" />
+            @* Show NPCs and available actions *@
+            <NPCActionsView OnActionExecuted="@RefreshUI" />
             
                              
             @* Letter Offer Dialog *@

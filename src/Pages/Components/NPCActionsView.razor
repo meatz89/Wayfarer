@@ -1,0 +1,463 @@
+@using Wayfarer.Pages.Components
+@inject IGameFacade GameFacade
+@inject NarrativeManager NarrativeManager
+@inject ITimeManager TimeManager
+@inject NPCRepository NPCRepository
+
+<div class="npc-actions-view">
+    @{
+        var viewModel = GameFacade.GetLocationActions();
+        var allNPCs = GetVisibleNPCs();
+        var locationActions = GetLocationActions(viewModel);
+        var npcActions = GroupActionsByNPC(viewModel);
+    }
+    
+    @if (!allNPCs.Any() && !locationActions.Any())
+    {
+        <div class="no-content">
+            <p>This location appears empty.</p>
+        </div>
+    }
+    else
+    {
+        @* Location Actions (Travel, Rest, etc.) *@
+        @if (locationActions.Any())
+        {
+            <div class="location-actions-section">
+                <h3>Location Actions</h3>
+                <div class="actions-list">
+                    @foreach (var action in locationActions)
+                    {
+                        <div class="action-card @(CanAffordAction(action) ? "" : "disabled")">
+                            <div class="action-info">
+                                <div class="action-name">@action.Description</div>
+                                @if (!string.IsNullOrEmpty(action.RewardsDescription))
+                                {
+                                    <div class="action-rewards">@action.RewardsDescription</div>
+                                }
+                            </div>
+                            <div class="action-costs">
+                                @if (action.TimeCost > 0)
+                                {
+                                    <span class="cost @(action.HasEnoughTime ? "" : "insufficient")">⏰ @action.TimeCost hr</span>
+                                }
+                                @if (action.StaminaCost > 0)
+                                {
+                                    <span class="cost @(action.HasEnoughStamina ? "" : "insufficient")">💪 @action.StaminaCost</span>
+                                }
+                                @if (action.CoinCost > 0)
+                                {
+                                    <span class="cost @(action.HasEnoughCoins ? "" : "insufficient")">🪙 @action.CoinCost</span>
+                                }
+                            </div>
+                            <button class="action-button" 
+                                    disabled="@(!CanAffordAction(action))"
+                                    @onclick="@(() => ExecuteAction(action.Id))">
+                                Do This
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        
+        @* NPCs and their actions *@
+        @if (allNPCs.Any())
+        {
+            <div class="npcs-section">
+                <h3>People</h3>
+                @foreach (var npc in allNPCs)
+                {
+                    var npcActionList = npcActions.ContainsKey(npc.ID) ? npcActions[npc.ID] : new List<ActionOptionViewModel>();
+                    <div class="npc-card @(npcActionList.Any() ? "has-actions" : "no-actions")">
+                        <div class="npc-header">
+                            <div class="npc-info">
+                                <span class="npc-name">@npc.Name</span>
+                                <span class="npc-role">@npc.Profession.ToString().Replace("_", " ")</span>
+                            </div>
+                            @if (npc.IsAvailable(CurrentTime))
+                            {
+                                <span class="availability-indicator available">●</span>
+                            }
+                            else
+                            {
+                                <span class="availability-indicator unavailable">●</span>
+                            }
+                        </div>
+                        
+                        @if (npcActionList.Any())
+                        {
+                            <div class="npc-actions">
+                                @foreach (var action in npcActionList)
+                                {
+                                    <button class="npc-action-button @(CanAffordAction(action) ? "" : "disabled")" 
+                                            disabled="@(!CanAffordAction(action))"
+                                            @onclick="@(() => ExecuteAction(action.Id))">
+                                        <span class="action-text">@GetActionVerb(action)</span>
+                                        @if (action.TimeCost > 0 || action.StaminaCost > 0 || action.CoinCost > 0)
+                                        {
+                                            <span class="action-costs-inline">
+                                                @if (action.TimeCost > 0)
+                                                {
+                                                    <span class="cost-inline @(action.HasEnoughTime ? "" : "insufficient")">@action.TimeCost⏰</span>
+                                                }
+                                                @if (action.StaminaCost > 0)
+                                                {
+                                                    <span class="cost-inline @(action.HasEnoughStamina ? "" : "insufficient")">@action.StaminaCost💪</span>
+                                                }
+                                                @if (action.CoinCost > 0)
+                                                {
+                                                    <span class="cost-inline @(action.HasEnoughCoins ? "" : "insufficient")">@action.CoinCost🪙</span>
+                                                }
+                                            </span>
+                                        }
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else if (npc.IsAvailable(CurrentTime))
+                        {
+                            <div class="no-actions-message">
+                                <p>No actions available with @npc.Name</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="unavailable-message">
+                                <p>@npc.Name is not available right now</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback OnActionExecuted { get; set; }
+    
+    private TimeBlocks CurrentTime => TimeManager.GetCurrentTimeBlock();
+    
+    private List<NPC> GetVisibleNPCs()
+    {
+        var player = GameFacade.GetPlayer();
+        if (player?.CurrentLocationSpot == null) return new List<NPC>();
+        
+        var npcs = NPCRepository.GetAllNPCs()
+            .Where(npc => npc.SpotId == player.CurrentLocationSpot.SpotID)
+            .ToList();
+        
+        // Apply narrative visibility filter
+        if (NarrativeManager != null && NarrativeManager.HasActiveNarrative())
+        {
+            npcs = npcs.Where(npc => NarrativeManager.IsNPCVisible(npc.ID)).ToList();
+        }
+        
+        return npcs;
+    }
+    
+    private List<ActionOptionViewModel> GetLocationActions(LocationActionsViewModel viewModel)
+    {
+        var locationActions = new List<ActionOptionViewModel>();
+        
+        // Extract non-NPC actions (Travel, Rest, etc.)
+        foreach (var group in viewModel.ActionGroups)
+        {
+            foreach (var action in group.Actions)
+            {
+                // Skip actions that have an NPC associated
+                if (string.IsNullOrEmpty(action.NPCName))
+                {
+                    locationActions.Add(action);
+                }
+            }
+        }
+        
+        return locationActions;
+    }
+    
+    private Dictionary<string, List<ActionOptionViewModel>> GroupActionsByNPC(LocationActionsViewModel viewModel)
+    {
+        var npcActions = new Dictionary<string, List<ActionOptionViewModel>>();
+        
+        foreach (var group in viewModel.ActionGroups)
+        {
+            foreach (var action in group.Actions)
+            {
+                if (!string.IsNullOrEmpty(action.NPCName))
+                {
+                    // Extract NPC ID from action ID (e.g., "converse_tam_beggar" -> "tam_beggar")
+                    var npcId = ExtractNPCIdFromAction(action);
+                    if (!string.IsNullOrEmpty(npcId))
+                    {
+                        if (!npcActions.ContainsKey(npcId))
+                        {
+                            npcActions[npcId] = new List<ActionOptionViewModel>();
+                        }
+                        npcActions[npcId].Add(action);
+                    }
+                }
+            }
+        }
+        
+        return npcActions;
+    }
+    
+    private string ExtractNPCIdFromAction(ActionOptionViewModel action)
+    {
+        // Try to extract NPC ID from action ID
+        // Common patterns: "converse_npc_id", "work_npc_id", etc.
+        if (!string.IsNullOrEmpty(action.Id))
+        {
+            var parts = action.Id.Split('_');
+            if (parts.Length >= 2)
+            {
+                // Skip the first part (action type) and join the rest
+                return string.Join("_", parts.Skip(1));
+            }
+        }
+        
+        return null;
+    }
+    
+    private async Task ExecuteAction(string actionId)
+    {
+        Console.WriteLine($"[NPCActionsView] Executing action: {actionId}");
+        var success = await GameFacade.ExecuteLocationActionAsync(actionId);
+        
+        Console.WriteLine($"[NPCActionsView] Action {actionId} completed with result: {success}");
+        
+        // Always refresh UI
+        StateHasChanged();
+        
+        // Notify parent
+        if (OnActionExecuted.HasDelegate)
+        {
+            await OnActionExecuted.InvokeAsync();
+        }
+    }
+    
+    private bool CanAffordAction(ActionOptionViewModel action)
+    {
+        return action.HasEnoughTime && action.HasEnoughStamina && action.HasEnoughCoins;
+    }
+    
+    private string GetActionVerb(ActionOptionViewModel action)
+    {
+        // Extract clean action verb from description
+        var desc = action.Description;
+        if (desc.StartsWith("Talk to")) return "Talk";
+        if (desc.StartsWith("Work for")) return "Work";
+        if (desc.StartsWith("Socialize with")) return "Socialize";
+        if (desc.StartsWith("Borrow money from")) return "Borrow Money";
+        if (desc.StartsWith("Learn route:")) return "Learn Route";
+        if (desc.StartsWith("Learn about")) return "Learn Route";
+        
+        // Handle location actions that appear in the location section
+        if (desc == "Gather resources") return "Gather Resources";
+        if (desc == "Browse market") return "Browse Market";
+        if (desc == "Observe location") return "Observe";
+        if (desc.StartsWith("Travel to")) return desc; // Keep full "Travel to X"
+        if (desc.StartsWith("Rest for")) return desc; // Keep full "Rest for X hours"
+        if (desc == "Request patron funds") return "Request Funds";
+        
+        return desc;
+    }
+}
+
+<style>
+    .npc-actions-view {
+        padding: 1rem;
+    }
+    
+    .no-content {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+    }
+    
+    .location-actions-section {
+        margin-bottom: 2rem;
+    }
+    
+    .location-actions-section h3 {
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .action-card {
+        background: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .action-card:hover:not(.disabled) {
+        border-color: var(--primary-color);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .action-card.disabled {
+        opacity: 0.6;
+    }
+    
+    .npcs-section h3 {
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .npc-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .npc-card.has-actions {
+        border-color: var(--primary-color);
+    }
+    
+    .npc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .npc-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .npc-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+    
+    .npc-role {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    .availability-indicator {
+        font-size: 1.2rem;
+    }
+    
+    .availability-indicator.available {
+        color: var(--success-color);
+    }
+    
+    .availability-indicator.unavailable {
+        color: var(--danger-color);
+    }
+    
+    .npc-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .npc-action-button {
+        padding: 0.5rem 1rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .npc-action-button:hover:not(:disabled) {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+    
+    .npc-action-button:disabled {
+        background: var(--disabled-color);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    .action-costs-inline {
+        display: flex;
+        gap: 0.3rem;
+        font-size: 0.8rem;
+    }
+    
+    .cost-inline.insufficient {
+        color: var(--danger-color);
+        font-weight: bold;
+    }
+    
+    .no-actions-message, .unavailable-message {
+        font-style: italic;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .action-costs {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+        font-size: 0.85rem;
+    }
+    
+    .cost {
+        color: var(--success-color);
+    }
+    
+    .cost.insufficient {
+        color: var(--danger-color);
+        font-weight: 600;
+    }
+    
+    .action-rewards {
+        font-size: 0.85rem;
+        color: var(--info-color);
+        margin-top: 0.3rem;
+    }
+    
+    .action-button {
+        width: 100%;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s ease;
+    }
+    
+    .action-button:hover:not(:disabled) {
+        background: var(--primary-hover);
+    }
+    
+    .action-button:disabled {
+        background: var(--disabled-color);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+</style>

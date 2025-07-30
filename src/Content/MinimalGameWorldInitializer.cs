@@ -53,7 +53,9 @@ public class MinimalGameWorldInitializer
         Console.WriteLine($"NPCs: {gameWorld.WorldState.NPCs.Count}");
         Console.WriteLine($"Routes: {gameWorld.WorldState.Routes.Count}");
         Console.WriteLine($"Letter Templates: {gameWorld.WorldState.LetterTemplates.Count}");
-        Console.WriteLine($"Player at: {gameWorld.GetPlayer().CurrentLocation?.Id ?? "NULL"} / {gameWorld.GetPlayer().CurrentLocationSpot?.SpotID ?? "NULL"}");
+        var playerSpot = gameWorld.GetPlayer().CurrentLocationSpot;
+        var playerLocation = playerSpot != null ? gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == playerSpot.LocationId) : null;
+        Console.WriteLine($"Player at: {playerLocation?.Id ?? "NULL"} / {playerSpot?.SpotID ?? "NULL"}");
         
         return gameWorld;
     }
@@ -266,14 +268,12 @@ Size = SizeCategory.Small
         
         var player = gameWorld.GetPlayer();
         
-        // Set starting location
+        // Set starting spot (location is derived from spot)
         var startLocation = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "millbrook") 
                           ?? gameWorld.WorldState.locations.FirstOrDefault();
                           
         if (startLocation != null)
         {
-            player.CurrentLocation = startLocation;
-            
             var startSpot = gameWorld.WorldState.locationSpots
                 .FirstOrDefault(s => s.LocationId == startLocation.Id);
                 
@@ -298,13 +298,11 @@ Size = SizeCategory.Small
         player.MaxStamina = 10;
         player.Stamina = 10;
         
-        // Player is the single source of truth for location - no sync needed
-        
-        // Final validation
-        if (player.CurrentLocation == null || player.CurrentLocationSpot == null)
+        // Final validation - player must have a spot
+        if (player.CurrentLocationSpot == null)
         {
             throw new InvalidOperationException(
-                "CRITICAL: Failed to initialize player location even with minimal data");
+                "CRITICAL: Failed to initialize player spot even with minimal data");
         }
     }
     

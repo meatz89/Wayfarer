@@ -4,6 +4,15 @@
 
 @namespace Wayfarer.Pages
 
+@{
+    Console.WriteLine($"[ConversationView.razor] Rendering with CurrentConversation null? {CurrentConversation == null}");
+    if (CurrentConversation != null)
+    {
+        Console.WriteLine($"[ConversationView.razor] CurrentConversation.CurrentText: {CurrentConversation.CurrentText?.Substring(0, Math.Min(50, CurrentConversation.CurrentText?.Length ?? 0))}");
+        Console.WriteLine($"[ConversationView.razor] CurrentConversation.IsComplete: {CurrentConversation.IsComplete}");
+    }
+}
+
 <div class="encounter-container">
     <div class="encounter-content">
         <div class="encounter-main">

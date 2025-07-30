@@ -300,7 +300,7 @@
     private bool IsPlayerAtSameLocation()
     {
         var player = GameWorld.GetPlayer();
-        return player.CurrentLocation?.Id == NPC.Location;
+        return player.CurrentLocationSpot?.LocationId == NPC.Location;
     }
     
     

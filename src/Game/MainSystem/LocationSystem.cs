@@ -43,15 +43,8 @@ public class LocationSystem
             }
         }
 
-        // CRITICAL: Ensure player always has valid current location and spot
-        // Systems depend on these never being null
+        // CRITICAL: Ensure player always has valid spot (location is derived)
         Player player = gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
-        {
-            player.CurrentLocation = startLoc;
-            Console.WriteLine($"Set player CurrentLocation to: {startLoc.Id}");
-        }
-
         if (player.CurrentLocationSpot == null)
         {
             List<LocationSpot> startLocationSpots = GetLocationSpots(startLoc.Id);
@@ -59,6 +52,10 @@ public class LocationSystem
             {
                 player.CurrentLocationSpot = startLocationSpots.First();
                 Console.WriteLine($"Set player CurrentLocationSpot to: {player.CurrentLocationSpot.SpotID}");
+            }
+            else
+            {
+                throw new InvalidOperationException($"No spots found in starting location {startLoc.Id}");
             }
         }
 

@@ -11,6 +11,7 @@ public class CollapseManager
     private readonly ITimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
     private readonly RestManager _restManager;
+    private readonly LocationRepository _locationRepository;
     private readonly ILogger<CollapseManager> _logger;
     private readonly Random _random = new Random();
 
@@ -25,12 +26,14 @@ public class CollapseManager
         ITimeManager timeManager,
         MessageSystem messageSystem,
         RestManager restManager,
+        LocationRepository locationRepository,
         ILogger<CollapseManager> logger)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _restManager = restManager ?? throw new ArgumentNullException(nameof(restManager));
+        _locationRepository = locationRepository ?? throw new ArgumentNullException(nameof(locationRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -58,8 +61,8 @@ public class CollapseManager
     private void HandleCollapse()
     {
         var player = _gameWorld.GetPlayer();
-        var location = player.CurrentLocation;
         var locationSpot = player.CurrentLocationSpot;
+        var location = locationSpot != null ? _locationRepository.GetLocation(locationSpot.LocationId) : null;
 
         // Show collapse narrative
         _messageSystem.AddSystemMessage(

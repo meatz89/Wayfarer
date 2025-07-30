@@ -73,7 +73,7 @@ public class ConverseCommand : BaseGameCommand
             GameWorld = gameWorld,
             Player = player,
             TargetNPC = npc,
-            LocationName = player.CurrentLocation?.Name ?? "Unknown",
+            LocationName = player.CurrentLocationSpot?.LocationId ?? "Unknown",
             LocationSpotName = player.CurrentLocationSpot?.Name ?? "Unknown",
             LocationProperties = player.CurrentLocationSpot?.GetCurrentProperties() ?? new List<string>(),
             ConversationTopic = "General conversation",
@@ -85,10 +85,17 @@ public class ConverseCommand : BaseGameCommand
             context,
             player
         );
+        
+        // Initialize the conversation to generate initial narrative
+        await conversationManager.InitializeConversation();
+        
+        // Process the first beat to generate choices
+        await conversationManager.ProcessNextBeat();
 
         // Time spending handled by executing service
 
         // Set up conversation for UI using ConversationStateManager
+        Console.WriteLine($"[ConverseCommand] Setting pending conversation for NPC: {npc.Name}");
         _conversationStateManager.SetPendingConversation(conversationManager);
 
         _messageSystem.AddSystemMessage(
@@ -96,6 +103,7 @@ public class ConverseCommand : BaseGameCommand
             SystemMessageTypes.Info
         );
 
+        Console.WriteLine($"[ConverseCommand] Conversation initiated successfully");
         return CommandResult.Success(
             "Conversation initiated",
             new

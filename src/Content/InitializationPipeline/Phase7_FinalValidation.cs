@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Phase 6: Final validation and creation of dummy entities for missing references.
+/// Phase 7: Final validation and creation of dummy entities for missing references.
 /// This ensures the game can ALWAYS run, even with broken content.
 /// </summary>
-public class Phase6_FinalValidation : IInitializationPhase
+public class Phase7_FinalValidation : IInitializationPhase
 {
-    public int PhaseNumber => 6;
+    public int PhaseNumber => 7;
     public string Name => "Final Validation & Dummy Data Creation";
     public bool IsCritical => true; // Must succeed to ensure game runs
 
@@ -72,28 +72,27 @@ public class Phase6_FinalValidation : IInitializationPhase
     {
         var player = gameWorld.GetPlayer();
         
-        // Create missing location
-        if (player.CurrentLocation == null || context.SharedData.ContainsKey("player_needs_location"))
+        // Player must always have a spot
+        if (player.CurrentLocationSpot == null)
         {
-            var locationFactory = new LocationFactory();
-            var dummyLocation = locationFactory.CreateMinimalLocation("dummy_start_location");
-            dummyLocation.Description = "A small village where your journey begins.";
-            dummyLocation.DomainTags = new List<string> { "SAFE", "STARTING" };
+            // First, ensure we have at least one location
+            if (!gameWorld.WorldState.locations.Any())
+            {
+                var locationFactory = new LocationFactory();
+                var dummyLocation = locationFactory.CreateMinimalLocation("dummy_start_location");
+                dummyLocation.Description = "A small village where your journey begins.";
+                dummyLocation.DomainTags = new List<string> { "SAFE", "STARTING" };
+                
+                gameWorld.WorldState.locations.Add(dummyLocation);
+                createdDummies.Add($"Location: {dummyLocation.Id} (fallback) - NO LOCATIONS IN JSON");
+                Console.WriteLine($"  ⚠️ Created dummy location: {dummyLocation.Id}");
+                Console.Error.WriteLine($"CONTENT ERROR: No locations defined in JSON");
+            }
             
-            gameWorld.WorldState.locations.Add(dummyLocation);
-            player.CurrentLocation = dummyLocation;
-            createdDummies.Add($"Location: {dummyLocation.Id} (player start) - MISSING FROM JSON");
-            Console.WriteLine($"  ⚠️ Created dummy location for player: {dummyLocation.Id}");
-            Console.Error.WriteLine($"CONTENT ERROR: Missing player start location");
-        }
-        
-        // Create missing spot
-        if (player.CurrentLocationSpot == null || context.SharedData.ContainsKey("player_needs_spot"))
-        {
-            var locationId = player.CurrentLocation?.Id ?? "dummy_start_location";
-            
+            // Now create a spot
+            var targetLocationId = gameWorld.WorldState.locations.First().Id;
             var spotFactory = new LocationSpotFactory();
-            var dummySpot = spotFactory.CreateMinimalSpot($"{locationId}_square", locationId);
+            var dummySpot = spotFactory.CreateMinimalSpot($"{targetLocationId}_square", targetLocationId);
             dummySpot.Description = "The central square of the village.";
             dummySpot.InitialState = "A quiet village square with a few people going about their day.";
             dummySpot.DomainTags = new List<string> { "SOCIAL", "SAFE" };
@@ -147,7 +146,7 @@ public class Phase6_FinalValidation : IInitializationPhase
         foreach (var missingId in missingNPCs)
         {
             // Determine a reasonable location for the NPC
-            var location = gameWorld.WorldState.locations.FirstOrDefault() ?? gameWorld.GetPlayer().CurrentLocation;
+            var location = gameWorld.WorldState.locations.FirstOrDefault();
             if (location == null) continue;
             
             var dummyNPC = npcFactory.CreateMinimalNPC(missingId, location.Id);
@@ -242,30 +241,31 @@ public class Phase6_FinalValidation : IInitializationPhase
     {
         var player = gameWorld.GetPlayer();
         
-        // CRITICAL: These must NEVER be null
-        if (player.CurrentLocation == null || player.CurrentLocationSpot == null)
+        // CRITICAL: Player must ALWAYS have a spot
+        if (player.CurrentLocationSpot == null)
         {
             throw new InvalidOperationException(
-                "CRITICAL: Player location initialization failed after all phases. " +
-                $"CurrentLocation: {player.CurrentLocation?.Id ?? "NULL"}, " +
+                "CRITICAL: Player spot initialization failed after all phases. " +
                 $"CurrentLocationSpot: {player.CurrentLocationSpot?.SpotID ?? "NULL"}");
         }
         
-        // Verify the location and spot are in WorldState
-        if (!gameWorld.WorldState.locations.Contains(player.CurrentLocation))
-        {
-            throw new InvalidOperationException(
-                $"CRITICAL: Player location {player.CurrentLocation.Id} not found in WorldState");
-        }
-        
+        // Verify the spot is in WorldState
         if (!gameWorld.WorldState.locationSpots.Contains(player.CurrentLocationSpot))
         {
             throw new InvalidOperationException(
                 $"CRITICAL: Player spot {player.CurrentLocationSpot.SpotID} not found in WorldState");
         }
         
+        // Verify the spot's location exists
+        var spotLocation = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == player.CurrentLocationSpot.LocationId);
+        if (spotLocation == null)
+        {
+            throw new InvalidOperationException(
+                $"CRITICAL: Player spot's location {player.CurrentLocationSpot.LocationId} not found in WorldState");
+        }
+        
         Console.WriteLine($"\nPlayer initialized successfully:");
-        Console.WriteLine($"  Location: {player.CurrentLocation.Id} ({player.CurrentLocation.Name})");
+        Console.WriteLine($"  Location: {spotLocation.Id} ({spotLocation.Name})");
         Console.WriteLine($"  Spot: {player.CurrentLocationSpot.SpotID} ({player.CurrentLocationSpot.Name})");
         Console.WriteLine($"  Resources: {player.Coins} coins, {player.Stamina}/{player.MaxStamina} stamina");
     }

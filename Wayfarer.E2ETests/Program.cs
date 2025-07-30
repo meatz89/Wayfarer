@@ -33,6 +33,22 @@ public class Program
                     return await FocusedWorkflowTests.Main(args);
                 case "TutorialConversationDebugTest":
                     return await TutorialConversationDebugTest.Main(args);
+                case "ConversationFlowTest":
+                    await Wayfarer.E2ETests.ConversationFlowTest.RunTest();
+                    return 0;
+                case "SimpleConversationTest":
+                    return await SimpleConversationTest.Main(args);
+                case "ManualConversationFlowTest":
+                    return await ManualConversationFlowTest.Main(args);
+                case "DebugTamConversation":
+                    return await DebugTamConversation.Main(args);
+                case "TestMissingUIFeatures":
+                    return await TestMissingUIFeatures.Main(args);
+                case "CheckUICommands":
+                    return await CheckUICommands.Main(args);
+                case "TestThreeCommands":
+                    await TestThreeCommands.RunTest();
+                    return 0;
                 default:
                     Console.WriteLine($"Unknown program: {programName}");
                     return 1;

@@ -4,21 +4,7 @@
 
 @namespace Wayfarer.Pages
 
-@{
-    Console.WriteLine($"[GameUI.razor] Starting render...");
-    try {
-        Console.WriteLine($"[GameUI.razor] ContentValidator null? {ContentValidator == null}");
-        Console.WriteLine($"[GameUI.razor] GameWorld null? {GameWorld == null}");
-        Console.WriteLine($"[GameUI.razor] CurrentView: {CurrentView}");
-    } catch (Exception ex) {
-        Console.WriteLine($"[GameUI.razor] ERROR accessing services: {ex.Message}");
-    }
-}
-
 <div class="game-container">
-    <h1>TEST: GameUI is rendering!</h1>
-    <p>CurrentView: @CurrentView</p>
-    
     @if (CurrentView == CurrentViews.MissingReferences)
     {
         <MissingReferences OnMissingReferencesResolved="ResolvedMissingReferences" />

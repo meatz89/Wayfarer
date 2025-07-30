@@ -12,6 +12,7 @@ public class LocationSpotMapBase : ComponentBase
     [Inject] public ConnectionTokenManager TokenManager { get; set; }
     [Inject] public MessageSystem MessageSystem { get; set; }
     [Inject] public ITimeManager TimeManager { get; set; }
+    [Inject] public NarrativeManager NarrativeManager { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
@@ -91,9 +92,17 @@ public class LocationSpotMapBase : ComponentBase
 
     public List<NPC> GetAllNPCsAtCurrentSpot()
     {
-        return NPCRepository.GetAllNPCs()
+        var npcs = NPCRepository.GetAllNPCs()
             .Where(npc => npc.SpotId == CurrentSpot.SpotID)
             .ToList();
+        
+        // Filter NPCs based on narrative visibility
+        if (NarrativeManager != null && NarrativeManager.HasActiveNarrative())
+        {
+            npcs = npcs.Where(npc => NarrativeManager.IsNPCVisible(npc.ID)).ToList();
+        }
+        
+        return npcs;
     }
 
     /// <summary>

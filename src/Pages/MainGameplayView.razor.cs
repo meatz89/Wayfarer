@@ -110,6 +110,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public void RefreshUI()
     {
+        Console.WriteLine("[MainGameplayView] RefreshUI called");
         PollGameState();
         StateHasChanged();
     }
@@ -160,9 +161,17 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         // Check for pending conversation
         CurrentConversation = GameFacade.GetCurrentConversation();
+        Console.WriteLine($"[MainGameplayView.PollGameState] CurrentConversation null? {CurrentConversation == null}");
+        if (CurrentConversation != null)
+        {
+            Console.WriteLine($"[MainGameplayView.PollGameState] CurrentConversation.IsComplete = {CurrentConversation.IsComplete}");
+        }
+        
         if (CurrentConversation != null && CurrentConversation.IsComplete == false)
         {
-            Console.WriteLine("MainGameplayView - ConversationPending detected!");
+            Console.WriteLine("[MainGameplayView.PollGameState] ConversationPending detected!");
+            Console.WriteLine($"[MainGameplayView.PollGameState] OnNavigate null? {OnNavigate == null}");
+            Console.WriteLine($"[MainGameplayView.PollGameState] CurrentScreen before invoke: {CurrentScreen}");
             
             // For backward compatibility, create a ConversationManager if needed
             if (ConversationManager == null)
@@ -171,9 +180,21 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                 ConversationManager = new ConversationManager(null, null, null, null);
             }
             
-            OnNavigate?.Invoke(CurrentViews.ConversationScreen);
-            Console.WriteLine($"Navigation: {CurrentScreen} -> ConversationScreen - Pending conversation detected");
+            if (OnNavigate != null)
+            {
+                Console.WriteLine($"[MainGameplayView.PollGameState] Invoking OnNavigate with ConversationScreen...");
+                OnNavigate.Invoke(CurrentViews.ConversationScreen);
+                Console.WriteLine($"[MainGameplayView.PollGameState] OnNavigate invoked successfully");
+            }
+            else
+            {
+                Console.WriteLine($"[MainGameplayView.PollGameState] ERROR: OnNavigate is null!");
+            }
+            
+            Console.WriteLine($"[MainGameplayView.PollGameState] CurrentScreen after invoke: {CurrentScreen}");
+            Console.WriteLine($"[MainGameplayView.PollGameState] Calling StateHasChanged...");
             StateHasChanged();
+            Console.WriteLine($"[MainGameplayView.PollGameState] StateHasChanged completed");
         }
 
         // Update travel destinations

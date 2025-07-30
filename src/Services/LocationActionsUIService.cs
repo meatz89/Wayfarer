@@ -142,31 +142,29 @@ public class LocationActionsUIService
         // Discover commands again to find the one to execute
         CommandDiscoveryResult discovery = _commandDiscovery.DiscoverCommands(_gameWorld);
         
-        // Debug logging via MessageSystem
-        _messageSystem.AddSystemMessage($"[DEBUG] Looking for command ID: '{commandId}'", SystemMessageTypes.Info);
-        _messageSystem.AddSystemMessage($"[DEBUG] Found {discovery.AllCommands.Count} commands", SystemMessageTypes.Info);
-        foreach (var cmd in discovery.AllCommands)
-        {
-            _messageSystem.AddSystemMessage($"[DEBUG] - '{cmd.UniqueId}' (Available: {cmd.IsAvailable})", SystemMessageTypes.Info);
-        }
+        Console.WriteLine($"[LocationActionsUIService] ExecuteActionAsync called with commandId: '{commandId}'");
         
         DiscoveredCommand commandToExecute = discovery.AllCommands.FirstOrDefault(c => c.UniqueId == commandId);
 
         if (commandToExecute == null)
         {
+            Console.WriteLine($"[LocationActionsUIService] Command not found: '{commandId}'");
             _messageSystem.AddSystemMessage($"Command not found: '{commandId}'", SystemMessageTypes.Danger);
             return false;
         }
 
         if (!commandToExecute.IsAvailable)
         {
+            Console.WriteLine($"[LocationActionsUIService] Command not available: {commandToExecute.UnavailableReason}");
             _messageSystem.AddSystemMessage(commandToExecute.UnavailableReason, SystemMessageTypes.Warning);
             return false;
         }
 
+        Console.WriteLine($"[LocationActionsUIService] Executing command: {commandToExecute.Command.GetType().Name}");
         // Execute through CommandExecutor
         CommandResult result = await _commandExecutor.ExecuteAsync(commandToExecute.Command);
 
+        Console.WriteLine($"[LocationActionsUIService] Command result: Success={result.IsSuccess}, Message={result.Message}");
         return result.IsSuccess;
     }
 

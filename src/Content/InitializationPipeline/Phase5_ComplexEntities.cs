@@ -4,12 +4,12 @@ using System.IO;
 using System.Linq;
 
 /// <summary>
-/// Phase 4: Load complex entities that may have multiple dependencies.
+/// Phase 5: Load complex entities that may have multiple dependencies.
 /// This includes: Standing Obligations, Token Favors, Network Unlocks, Route Discovery
 /// </summary>
-public class Phase4_ComplexEntities : IInitializationPhase
+public class Phase5_ComplexEntities : IInitializationPhase
 {
-    public int PhaseNumber => 4;
+    public int PhaseNumber => 5;
     public string Name => "Complex Entities";
     public bool IsCritical => false; // Game can run without these
 

@@ -51,7 +51,7 @@ public class TravelUIService
     public TravelViewModel GetTravelViewModel()
     {
         Player player = _gameWorld.GetPlayer();
-        Location currentLocation = player.CurrentLocation;
+        Location currentLocation = player.GetCurrentLocation(_locationRepository);
 
         TravelViewModel viewModel = new TravelViewModel
         {
@@ -251,7 +251,7 @@ public class TravelUIService
     /// </summary>
     public async Task<bool> UnlockRouteAsync(string discoveryId)
     {
-        List<RouteDiscoveryOption> discoveries = _discoveryManager.GetAvailableDiscoveries(_gameWorld.GetPlayer().CurrentLocation.Id);
+        List<RouteDiscoveryOption> discoveries = _discoveryManager.GetAvailableDiscoveries(_gameWorld.GetPlayer().CurrentLocationSpot?.LocationId);
         RouteDiscoveryOption? discovery = discoveries.FirstOrDefault(d => d.Discovery.RouteId == discoveryId);
 
         if (discovery == null) return false;

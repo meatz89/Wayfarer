@@ -9,7 +9,9 @@
 
     public Location GetCurrentLocation()
     {
-        return _gameWorld.GetPlayer().CurrentLocation;
+        var player = _gameWorld.GetPlayer();
+        if (player.CurrentLocationSpot == null) return null;
+        return GetLocation(player.CurrentLocationSpot.LocationId);
     }
 
     public LocationSpot GetCurrentLocationSpot()
@@ -57,7 +59,7 @@
     public LocationSpot GetSpot(string locationId, string spotId)
     {
         Location location = GetLocation(locationId);
-        if (location == null) location = _gameWorld.GetPlayer().CurrentLocation;
+        if (location == null) location = GetCurrentLocation();
         LocationSpot spot = location.AvailableSpots.FirstOrDefault(s => s.SpotID == spotId);
 
         return spot;
@@ -123,10 +125,20 @@
         _gameWorld.WorldState.locationSpots.Add(spot);
     }
 
-    // Set current location and spot
+    // Set current spot (location is derived from spot)
     public void SetCurrentLocation(Location location, LocationSpot spot)
     {
-        _gameWorld.GetPlayer().CurrentLocation = location;
+        // Validate that the spot belongs to the location
+        if (spot != null && spot.LocationId != location.Id)
+        {
+            throw new InvalidOperationException($"Spot {spot.SpotID} does not belong to location {location.Id}");
+        }
+        _gameWorld.GetPlayer().CurrentLocationSpot = spot;
+    }
+    
+    // New method: Set spot directly
+    public void SetCurrentSpot(LocationSpot spot)
+    {
         _gameWorld.GetPlayer().CurrentLocationSpot = spot;
     }
 
