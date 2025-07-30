@@ -25,28 +25,46 @@ public class ConversationViewBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
-        // Start the conversation if NPCId is provided
-        if (!string.IsNullOrEmpty(NPCId))
+        Console.WriteLine($"[ConversationView.OnInitializedAsync] Called with NPCId: '{NPCId}'");
+        
+        // Always get the current conversation from facade first
+        // The conversation should already be started by ConverseCommand
+        Console.WriteLine($"[ConversationView.OnInitializedAsync] Getting current conversation from facade");
+        CurrentConversation = GameFacade.GetCurrentConversation();
+        Console.WriteLine($"[ConversationView.OnInitializedAsync] GetCurrentConversation returned: {CurrentConversation?.CurrentText ?? "null"}");
+        
+        // Only start a new conversation if there's no current one and we have an NPCId
+        if (CurrentConversation == null && !string.IsNullOrEmpty(NPCId))
         {
+            Console.WriteLine($"[ConversationView.OnInitializedAsync] No current conversation, starting new one with NPC: {NPCId}");
             CurrentConversation = await GameFacade.StartConversationAsync(NPCId);
+            Console.WriteLine($"[ConversationView.OnInitializedAsync] StartConversationAsync returned: {CurrentConversation?.CurrentText ?? "null"}");
         }
-        else
+        
+        Console.WriteLine($"[ConversationView.OnInitializedAsync] CurrentConversation null? {CurrentConversation == null}");
+        if (CurrentConversation != null)
         {
-            // Get current active conversation
-            CurrentConversation = GameFacade.GetCurrentConversation();
+            Console.WriteLine($"[ConversationView.OnInitializedAsync] CurrentConversation.IsComplete: {CurrentConversation.IsComplete}");
+            Console.WriteLine($"[ConversationView.OnInitializedAsync] CurrentConversation.Choices count: {CurrentConversation.Choices?.Count ?? 0}");
         }
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        // Refresh conversation state
-        if (!string.IsNullOrEmpty(NPCId))
+        Console.WriteLine($"[ConversationView.OnParametersSetAsync] Called with NPCId: '{NPCId}'");
+        
+        // Always get the current conversation from facade first
+        // The conversation should already be started by ConverseCommand
+        Console.WriteLine($"[ConversationView.OnParametersSetAsync] Getting current conversation from facade");
+        CurrentConversation = GameFacade.GetCurrentConversation();
+        Console.WriteLine($"[ConversationView.OnParametersSetAsync] GetCurrentConversation returned: {CurrentConversation?.CurrentText ?? "null"}");
+        
+        // Only start a new conversation if there's no current one and we have an NPCId
+        if (CurrentConversation == null && !string.IsNullOrEmpty(NPCId))
         {
+            Console.WriteLine($"[ConversationView.OnParametersSetAsync] No current conversation, starting new one with NPC: {NPCId}");
             CurrentConversation = await GameFacade.StartConversationAsync(NPCId);
-        }
-        else
-        {
-            CurrentConversation = GameFacade.GetCurrentConversation();
+            Console.WriteLine($"[ConversationView.OnParametersSetAsync] StartConversationAsync returned: {CurrentConversation?.CurrentText ?? "null"}");
         }
     }
 

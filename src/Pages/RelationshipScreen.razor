@@ -80,8 +80,8 @@
     
     private bool IsAtNPCLocation(NPC npc)
     {
-        var currentLocation = GameWorld.GetPlayer().CurrentLocation;
-        return currentLocation != null && currentLocation.Id == npc.Location;
+        var currentLocationSpot = GameWorld.GetPlayer().CurrentLocationSpot;
+        return currentLocationSpot != null && currentLocationSpot.LocationId == npc.Location;
     }
     
     private string GetTokenIcon(ConnectionType type)

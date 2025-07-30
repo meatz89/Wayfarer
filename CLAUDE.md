@@ -18,27 +18,22 @@
 - If you haven't run `dotnet build` and the E2E test, IT'S NOT COMPLETE
 - Saying something is "complete" without testing is UNACCEPTABLE
 
-**🎉 TUTORIAL IMPLEMENTATION: See TUTORIAL-IMPLEMENTATION-TODOS.md for details**
-**Current State**: Tutorial is 95% complete and PRODUCTION READY!
-**Recent Fixes (2025-07-29)**: 
-  - Save/load disabled for testing (game always starts fresh)
-  - SetPendingConversation fixed for smooth conversation flow
-  - UI made less restrictive: all buttons clickable, subtle star indicators, transparent overlay
-**Working**: Everything critical - auto-start, less restrictive UI, command filtering, NPC visibility, movement flags, conversations.
-**Minor Enhancements**: Stamina collapse (nice to have), emergent mechanics (design improvement), E2E tests (recommended), re-enable save/load.
-**Total remaining work**: 1-2 days of optional enhancements. Tutorial is production-ready.
-
 **⚠️ CRITICAL: ALWAYS READ ALL FILES FULLY BEFORE MODIFYING IT ⚠️**
 **NEVER make changes to a file without reading it completely first. This is non-negotiable.**
 **DOUBLE-CHECK core architectural components (navigation, routing, service registration) - analyze ALL related files and dependencies before making ANY changes to avoid breaking the application architecture.**
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+*** PRIME PRINCIPLES ***
+- You are too agreeable by default. I want you objective. I want a partner. Not a sycophant.
+- You have Gemini as a registered MCP tool. Everytime before you implement a solution, you must first fight Gemini and me about it until everyone is in agreement about the correct way to implement it.
+
 ** CODE WRITING PRINCIPLES **
 
 *** Error Handling Philosophy ***
 - **Let exceptions bubble up** naturally for better error visibility
-- Only catch exceptions when you can meaningfully recover from them
+- NEVER THROW EXCEPTIONS
+- NEVER USE TRY CATCH
 - Prefer clear failures over hidden bugs
 
 ** Code Style Guidelines **

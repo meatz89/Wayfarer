@@ -23,6 +23,8 @@ public class CommandDiscoveryService
     private readonly ConversationStateManager _conversationStateManager;
     private readonly NarrativeManager _narrativeManager;
     private readonly NarrativeRequirement _narrativeRequirement;
+    private readonly LocationSpotRepository _spotRepository;
+    private readonly RouteDiscoveryManager _routeDiscoveryManager;
 
     public CommandDiscoveryService(
         NPCRepository npcRepository,
@@ -38,6 +40,8 @@ public class CommandDiscoveryService
         GameConfiguration gameConfiguration,
         StandingObligationManager obligationManager,
         ConversationStateManager conversationStateManager,
+        LocationSpotRepository spotRepository,
+        RouteDiscoveryManager routeDiscoveryManager = null,
         NarrativeManager narrativeManager = null,
         NarrativeRequirement narrativeRequirement = null)
     {
@@ -56,6 +60,8 @@ public class CommandDiscoveryService
         _conversationStateManager = conversationStateManager;
         _narrativeManager = narrativeManager;
         _narrativeRequirement = narrativeRequirement;
+        _spotRepository = spotRepository;
+        _routeDiscoveryManager = routeDiscoveryManager;
     }
 
     /// <summary>
@@ -127,6 +133,11 @@ public class CommandDiscoveryService
             TimeCost = 1,
             StaminaCost = 0,
             CoinCost = 0,
+            PotentialReward = "Information and relationship building",
+            IsAvailable = converseValidation.IsValid,
+            UnavailableReason = converseValidation.FailureReason,
+            CanRemediate = converseValidation.CanBeRemedied,
+            RemediationHint = converseValidation.RemediationHint
         });
 
         // Work command - if NPC offers work
@@ -329,10 +340,92 @@ public class CommandDiscoveryService
                 RemediationHint = borrowValidation.RemediationHint
             });
         }
+
+        // Discover routes from this NPC
+        if (_routeDiscoveryManager != null)
+        {
+            List<RouteDiscoveryOption> routeDiscoveries = _routeDiscoveryManager.GetDiscoveriesFromNPC(npc);
+            
+            foreach (var discovery in routeDiscoveries)
+            {
+                // Only show undiscovered routes
+                if (!discovery.Route.IsDiscovered)
+                {
+                    DiscoverRouteCommand discoverCommand = new DiscoverRouteCommand(
+                        discovery, 
+                        _routeDiscoveryManager, 
+                        _messageSystem);
+                    CommandValidationResult discoverValidation = discoverCommand.CanExecute(gameWorld);
+                    
+                    // Determine token type for this route
+                    ConnectionType tokenType = _routeDiscoveryManager.DetermineTokenTypeForRoute(
+                        discovery.Route, 
+                        discovery.Discovery, 
+                        discovery.TeachingNPC);
+                    
+                    result.AddCommand(new DiscoveredCommand
+                    {
+                        Command = discoverCommand,
+                        Category = CommandCategory.Social,
+                        DisplayName = $"Learn route: {discovery.Route.Name}",
+                        Description = $"Learn about {discovery.Route.Name} from {npc.Name}",
+                        TimeCost = 1,
+                        StaminaCost = 0,
+                        CoinCost = 0,
+                        PotentialReward = $"Discover route to {discovery.Route.Destination} (costs {discovery.Discovery.RequiredTokensWithNPC} tokens)",
+                        IsAvailable = discoverValidation.IsValid,
+                        UnavailableReason = discoverValidation.FailureReason,
+                        CanRemediate = discoverValidation.CanBeRemedied,
+                        RemediationHint = discoverValidation.RemediationHint
+                    });
+                }
+            }
+        }
     }
 
     private void DiscoverLocationCommands(LocationSpot spot, Player player, GameWorld gameWorld, CommandDiscoveryResult result)
     {
+        // Travel to other spots in the same location
+        var currentLocation = _locationRepository.GetCurrentLocation();
+        var allSpots = _spotRepository.GetAllLocationSpots()
+            .Where(s => s.LocationId == currentLocation.Id && s.SpotID != spot.SpotID)
+            .ToList();
+        
+        // During narrative, filter visible spots
+        if (_narrativeManager != null && _narrativeManager.HasActiveNarrative())
+        {
+            foreach (var narrativeId in _narrativeManager.GetActiveNarratives())
+            {
+                var currentStep = _narrativeManager.GetCurrentStep(narrativeId);
+                if (currentStep != null && currentStep.VisibleSpots != null && currentStep.VisibleSpots.Any())
+                {
+                    // Only show spots explicitly marked as visible in the narrative
+                    allSpots = allSpots.Where(s => currentStep.VisibleSpots.Contains(s.SpotID)).ToList();
+                }
+            }
+        }
+        
+        foreach (var targetSpot in allSpots)
+        {
+            var travelCommand = new TravelToSpotCommand(targetSpot.SpotID, _locationRepository, _spotRepository, _messageSystem);
+            var validation = travelCommand.CanExecute(gameWorld);
+            
+            result.AddCommand(new DiscoveredCommand
+            {
+                Command = travelCommand,
+                Category = CommandCategory.Travel,
+                DisplayName = $"Travel to {targetSpot.Name}",
+                Description = "Move to another area",
+                TimeCost = 0,
+                StaminaCost = 1,
+                CoinCost = 0,
+                IsAvailable = validation.IsValid,
+                UnavailableReason = validation.FailureReason,
+                CanRemediate = validation.CanBeRemedied,
+                RemediationHint = validation.RemediationHint
+            });
+        }
+        
         // Rest commands - always available at any location
         int[] restOptions = { 1, 2, 4 }; // 1, 2, or 4 hour rest options
         int[] staminaRecovery = { 2, 4, 10 }; // Full recovery at 4 hours

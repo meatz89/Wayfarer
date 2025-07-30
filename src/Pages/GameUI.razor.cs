@@ -16,15 +16,22 @@ public class GameUIBase : ComponentBase
     // Navigation method for child components to use
     public void NavigateTo(CurrentViews view)
     {
+        Console.WriteLine($"[GameUIBase.NavigateTo] Called with view: {view}");
+        Console.WriteLine($"[GameUIBase.NavigateTo] Current view before: {CurrentView}");
+        
         // Simple time-based validation for Letter Board
         if (view == CurrentViews.LetterBoardScreen && 
             TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
         {
+            Console.WriteLine($"[GameUIBase.NavigateTo] Blocking navigation to LetterBoardScreen - not Dawn");
             return; // Don't navigate
         }
 
         CurrentView = view;
+        Console.WriteLine($"[GameUIBase.NavigateTo] Current view after: {CurrentView}");
+        Console.WriteLine($"[GameUIBase.NavigateTo] Calling StateHasChanged...");
         StateHasChanged();
+        Console.WriteLine($"[GameUIBase.NavigateTo] StateHasChanged completed");
     }
 
     protected override async Task OnInitializedAsync()

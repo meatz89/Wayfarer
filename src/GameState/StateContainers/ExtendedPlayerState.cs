@@ -244,7 +244,7 @@ public sealed class ExtendedPlayerState
             player.KnownLocationSpots,
             player.KnownRoutes,
             player.KnownContracts,
-            player.CurrentLocation?.Id,
+            player.CurrentLocationSpot?.LocationId,
             player.CurrentLocationSpot?.SpotID,
             player.LetterQueue,
             player.ConnectionTokens,
@@ -397,7 +397,7 @@ public sealed class ExtendedPlayerState
             _knownLocationSpots = new List<string>(player.KnownLocationSpots);
             _knownRoutes = new Dictionary<string, List<RouteOption>>(player.KnownRoutes);
             _knownContracts = new List<string>(player.KnownContracts);
-            _currentLocationId = player.CurrentLocation?.Id;
+            _currentLocationId = player.CurrentLocationSpot?.LocationId;
             _currentLocationSpotId = player.CurrentLocationSpot?.SpotID;
             _letterQueue = player.LetterQueue.ToArray();
             _connectionTokens = new Dictionary<ConnectionType, int>(player.ConnectionTokens);

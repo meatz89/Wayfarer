@@ -39,7 +39,9 @@ public class ConversationStateManager
     /// </summary>
     public void SetPendingConversation(ConversationManager conversationManager)
     {
+        Console.WriteLine($"[ConversationStateManager] SetPendingConversation called. Manager null? {conversationManager == null}");
         _pendingConversationManager = conversationManager;
         _conversationPending = true;
+        Console.WriteLine($"[ConversationStateManager] ConversationPending = {_conversationPending}");
     }
 }

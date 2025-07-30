@@ -221,3 +221,87 @@ This architecture should ONLY be changed if:
 3. Complete rewrite of the game engine
 
 Even then, the principle of static initialization for the root aggregate should be maintained.
+
+## UI Completeness Requirements
+
+### Action Pipeline Audit Results
+
+As of 2025-07-30, an action pipeline audit revealed that approximately **30% of backend game mechanics lack UI exposure**. This violates our core architecture principle that all game features must be player-accessible.
+
+### Architecture Principle: Complete UI Coverage
+
+**Rule**: Every backend command, manager, and game mechanic MUST have corresponding UI exposure.
+
+#### Why This Matters
+
+1. **Player Experience**: Hidden features are effectively non-existent from the player's perspective
+2. **Design Validation**: Features without UI cannot be tested or validated through play
+3. **Code Waste**: Backend code without UI is dead code that adds maintenance burden
+
+#### Required UI Elements for Each Command
+
+```csharp
+// For every CommandType enum value:
+public enum CommandType
+{
+    Work,           // ✅ Exposed in LocationActions
+    Converse,       // ✅ Exposed in ConversationView
+    Travel,         // ✅ Exposed in TravelSelection
+    GatherResources,// ❌ NO UI - Need "Gather" button at FEATURE locations
+    BorrowMoney,    // ❌ NO UI - Need borrowing interface in conversations
+    Browse,         // ❌ NO UI - Need browse action at shops
+    // ... etc
+}
+```
+
+#### UI Coverage Checklist
+
+1. **Command Discovery**: Every command must be discoverable through UI
+2. **Cost Display**: All costs (time, stamina, coins, tokens) must be visible
+3. **Error Feedback**: Failed commands must show clear error messages
+4. **Progress Indication**: Long-running commands need progress feedback
+5. **Result Display**: Command outcomes must be clearly communicated
+
+#### Missing UI Elements (High Priority)
+
+1. **Economic Commands**:
+   - GatherResourcesCommand - Resource gathering at FEATURE locations
+   - BorrowMoneyCommand - Borrowing interface in NPC conversations
+   - BrowseCommand - Discovery interface at shops/markets
+
+2. **Social Commands**:
+   - ShareLunchCommand - Meal sharing with NPCs
+   - KeepSecretCommand - Secret-keeping interactions
+   - PersonalErrandCommand - Personal favor system
+   - EquipmentSocializeCommand - Equipment-based social interactions
+
+3. **System Features**:
+   - Route Discovery - Active exploration interface
+   - Standing Obligations - Interaction and resolution mechanics
+   - Transport Methods - Selection beyond hardcoded "Walking"
+
+### Testing UI Completeness
+
+```csharp
+// Test that verifies all commands have UI
+[Test]
+public void AllCommandTypes_ShouldHaveUI()
+{
+    var allCommands = Enum.GetValues<CommandType>();
+    var uiExposedCommands = GetUIExposedCommands();
+    
+    var missingUI = allCommands.Except(uiExposedCommands);
+    
+    Assert.That(missingUI, Is.Empty, 
+        $"Commands without UI: {string.Join(", ", missingUI)}");
+}
+```
+
+### Enforcement
+
+1. **Code Review**: No new commands without corresponding UI
+2. **Testing**: UI exposure tests must pass before merge
+3. **Documentation**: Update UI documentation when adding commands
+4. **Audit**: Quarterly review of command-UI mapping
+
+This architecture principle ensures that Wayfarer's rich backend mechanics are fully accessible to players, maximizing the value of implemented features.

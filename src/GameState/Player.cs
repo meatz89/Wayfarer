@@ -58,9 +58,17 @@ public class Player
     public List<string> KnownLocationSpots { get; private set; } = new List<string>();
     public PlayerSkills Skills { get; private set; } = new();
 
-    public Location CurrentLocation { get; set; }
     public LocationSpot CurrentLocationSpot { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
+    
+    /// <summary>
+    /// Gets the current location derived from the current location spot.
+    /// </summary>
+    public Location GetCurrentLocation(LocationRepository locationRepository)
+    {
+        if (CurrentLocationSpot == null) return null;
+        return locationRepository.GetLocation(CurrentLocationSpot.LocationId);
+    }
 
     public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
 
@@ -413,7 +421,6 @@ public class Player
         clone.MaxHealth = this.MaxHealth;
         clone.MaxConcentration = this.MaxConcentration;
         clone.IsInitialized = this.IsInitialized;
-        clone.CurrentLocation = this.CurrentLocation;
         clone.CurrentLocationSpot = this.CurrentLocationSpot;
 
         // Deep copy Inventory

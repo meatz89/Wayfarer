@@ -39,10 +39,29 @@ public class NarrativeManager : INPCVisibilityRule
     public void LoadNarrativeDefinitions(List<NarrativeDefinition> definitions)
     {
         _narrativeDefinitions.Clear();
+        if (definitions == null)
+        {
+            Console.WriteLine("[NarrativeManager] LoadNarrativeDefinitions called with null definitions list");
+            return;
+        }
+        
+        Console.WriteLine($"[NarrativeManager] Loading {definitions.Count} narrative definitions");
         foreach (var definition in definitions)
         {
+            if (definition == null)
+            {
+                Console.WriteLine("[NarrativeManager] Skipping null narrative definition");
+                continue;
+            }
+            if (string.IsNullOrEmpty(definition.Id))
+            {
+                Console.WriteLine("[NarrativeManager] Skipping narrative definition with null/empty Id");
+                continue;
+            }
             _narrativeDefinitions[definition.Id] = definition;
+            Console.WriteLine($"[NarrativeManager] Loaded narrative: {definition.Id} - {definition.Title ?? "[no title]"}");
         }
+        Console.WriteLine($"[NarrativeManager] Total narratives loaded: {_narrativeDefinitions.Count}");
     }
     
     /// <summary>
@@ -281,16 +300,31 @@ public class NarrativeManager : INPCVisibilityRule
     /// </summary>
     public string GetNarrativeDialogue(string npcId)
     {
+        Console.WriteLine($"[NarrativeManager.GetNarrativeDialogue] Looking for dialogue for NPC: {npcId}");
         // Check each active narrative for dialogue overrides
         foreach (var narrativeId in GetActiveNarratives())
         {
+            Console.WriteLine($"[NarrativeManager.GetNarrativeDialogue] Checking narrative: {narrativeId}");
             var currentStep = GetCurrentStep(narrativeId);
-            if (currentStep != null && currentStep.DialogueOverrides.ContainsKey(npcId))
+            Console.WriteLine($"[NarrativeManager.GetNarrativeDialogue] Current step: {currentStep?.Id ?? "null"}");
+            if (currentStep != null)
             {
-                return currentStep.DialogueOverrides[npcId];
+                Console.WriteLine($"[NarrativeManager.GetNarrativeDialogue] Step has {currentStep.DialogueOverrides.Count} dialogue overrides");
+                foreach (var kvp in currentStep.DialogueOverrides)
+                {
+                    Console.WriteLine($"[NarrativeManager.GetNarrativeDialogue]   - {kvp.Key}: {kvp.Value.Substring(0, Math.Min(30, kvp.Value.Length))}...");
+                }
+                
+                if (currentStep.DialogueOverrides.ContainsKey(npcId))
+                {
+                    var dialogue = currentStep.DialogueOverrides[npcId];
+                    Console.WriteLine($"[NarrativeManager.GetNarrativeDialogue] Found dialogue: {dialogue}");
+                    return dialogue;
+                }
             }
         }
         
+        Console.WriteLine($"[NarrativeManager.GetNarrativeDialogue] No dialogue found for {npcId}");
         return null;
     }
     
@@ -383,6 +417,41 @@ public class NarrativeManager : INPCVisibilityRule
                 return _flagService.GetCounter(condition.Key) < int.Parse(condition.Value);
             case ConditionType.CounterEquals:
                 return _flagService.GetCounter(condition.Key) == int.Parse(condition.Value);
+            case ConditionType.LocationIs:
+                var currentLocation = _locationRepository.GetCurrentLocation();
+                var currentSpot = _locationRepository.GetCurrentLocationSpot();
+                if (!string.IsNullOrEmpty(condition.Location) && currentLocation?.Id != condition.Location)
+                    return false;
+                if (!string.IsNullOrEmpty(condition.Spot) && currentSpot?.SpotID != condition.Spot)
+                    return false;
+                return true;
+            case ConditionType.HasLetter:
+            case ConditionType.LetterInQueue:
+                // TODO: Check if player has specific letter
+                Console.WriteLine($"[NarrativeManager] HasLetter/LetterInQueue condition not implemented - Template: {condition.LetterTemplate}");
+                return true;
+            case ConditionType.HasTokens:
+                // TODO: Check if player has tokens
+                Console.WriteLine($"[NarrativeManager] HasTokens condition not implemented - NPC: {condition.NpcId}, Type: {condition.TokenType}, Amount: {condition.Amount}");
+                return true;
+            case ConditionType.HasCoins:
+                // TODO: Check player coins - needs GameWorld access
+                Console.WriteLine($"[NarrativeManager] HasCoins condition not implemented - Amount: {condition.Amount ?? int.Parse(condition.Value ?? "0")}");
+                return true;
+            case ConditionType.HasStamina:
+                // TODO: Check player stamina - needs GameWorld access
+                Console.WriteLine($"[NarrativeManager] HasStamina condition not implemented - Amount: {condition.Amount ?? int.Parse(condition.Value ?? "0")}");
+                return true;
+            case ConditionType.TimeIs:
+                return _timeManager.GetCurrentTimeBlock() == (condition.TimeBlock ?? TimeBlocks.Morning);
+            case ConditionType.NPCMet:
+                // TODO: Check if player has met NPC
+                Console.WriteLine($"[NarrativeManager] NPCMet condition not implemented - NPC: {condition.NpcId}");
+                return true;
+            case ConditionType.RouteDiscovered:
+                // TODO: Check if route is discovered
+                Console.WriteLine($"[NarrativeManager] RouteDiscovered condition not implemented - Route: {condition.Value}");
+                return true;
             default:
                 return true;
         }
@@ -414,6 +483,7 @@ public class NarrativeManager : INPCVisibilityRule
                 _flagService.SetFlag(effect.Value, true);
                 break;
             case EffectType.ClearFlag:
+            case EffectType.RemoveFlag:
                 _flagService.SetFlag(effect.Value, false);
                 break;
             case EffectType.SetCounter:
@@ -421,6 +491,36 @@ public class NarrativeManager : INPCVisibilityRule
                 break;
             case EffectType.IncrementCounter:
                 _flagService.IncrementCounter(effect.Key, int.Parse(effect.Value));
+                break;
+            case EffectType.ForcePlayerState:
+                // This should be handled by the tutorial system when it starts
+                // For now, just log it
+                Console.WriteLine($"[NarrativeManager] ForcePlayerState effect - Location: {effect.Location}, Spot: {effect.Spot}, Coins: {effect.Coins}, Stamina: {effect.Stamina}");
+                break;
+            case EffectType.UnlockAllContent:
+                // This would unlock all game content after tutorial
+                Console.WriteLine("[NarrativeManager] UnlockAllContent effect");
+                break;
+            case EffectType.GrantTokens:
+                // This would grant connection tokens
+                Console.WriteLine($"[NarrativeManager] GrantTokens effect - NPC: {effect.NpcId}, Type: {effect.TokenType}, Amount: {effect.Amount}");
+                break;
+            case EffectType.AddLetterToQueue:
+                // This would add a letter to the player's queue
+                Console.WriteLine($"[NarrativeManager] AddLetterToQueue effect - Template: {effect.LetterTemplate}");
+                break;
+            case EffectType.ModifyStamina:
+                // This would modify player stamina
+                Console.WriteLine($"[NarrativeManager] ModifyStamina effect - Amount: {effect.Amount}");
+                break;
+            case EffectType.ModifyCoins:
+            case EffectType.GiveCoins:
+                // This would modify player coins
+                Console.WriteLine($"[NarrativeManager] ModifyCoins/GiveCoins effect - Amount: {effect.Amount}");
+                break;
+            case EffectType.SetTime:
+                // This would set the game time
+                Console.WriteLine($"[NarrativeManager] SetTime effect - Hour: {effect.Hour}");
                 break;
         }
     }
@@ -618,7 +718,7 @@ public class NarrativeManager : INPCVisibilityRule
 /// <summary>
 /// Represents a single step in a narrative
 /// </summary>
-public class NarrativeStep
+public partial class NarrativeStep
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -686,6 +786,15 @@ public class NarrativeCondition
     public ConditionType Type { get; set; }
     public string Key { get; set; }
     public string Value { get; set; }
+    
+    // Additional properties for specific condition types
+    public string Location { get; set; }
+    public string Spot { get; set; }
+    public string NpcId { get; set; }
+    public string TokenType { get; set; }
+    public int? Amount { get; set; }
+    public string LetterTemplate { get; set; }
+    public TimeBlocks? TimeBlock { get; set; }
 }
 
 /// <summary>
@@ -697,7 +806,16 @@ public enum ConditionType
     FlagNotSet,
     CounterGreaterThan,
     CounterLessThan,
-    CounterEquals
+    CounterEquals,
+    LocationIs,
+    HasLetter,
+    LetterInQueue, // Same as HasLetter
+    HasTokens,
+    HasCoins,
+    HasStamina,
+    TimeIs,
+    NPCMet,
+    RouteDiscovered
 }
 
 /// <summary>
@@ -708,6 +826,17 @@ public class NarrativeEffect
     public EffectType Type { get; set; }
     public string Key { get; set; }
     public string Value { get; set; }
+    
+    // Additional properties for specific effect types
+    public string Location { get; set; }
+    public string Spot { get; set; }
+    public int? Coins { get; set; }
+    public int? Stamina { get; set; }
+    public int? Hour { get; set; }
+    public string NpcId { get; set; }
+    public string TokenType { get; set; }
+    public int? Amount { get; set; }
+    public string LetterTemplate { get; set; }
 }
 
 /// <summary>
@@ -717,8 +846,17 @@ public enum EffectType
 {
     SetFlag,
     ClearFlag,
+    RemoveFlag, // Same as ClearFlag
     SetCounter,
-    IncrementCounter
+    IncrementCounter,
+    ForcePlayerState,
+    UnlockAllContent,
+    GrantTokens,
+    AddLetterToQueue,
+    ModifyStamina,
+    ModifyCoins,
+    GiveCoins, // Same as ModifyCoins
+    SetTime
 }
 
 /// <summary>

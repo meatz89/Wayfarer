@@ -378,6 +378,48 @@ The tutorial system is now essentially complete and working. All critical infras
 
 **The tutorial is now 95% complete and fully functional.** Players can successfully complete the entire 10-day tutorial experience with proper guidance and progression.
 
+## Action Pipeline Audit Results (2025-07-30)
+
+**CRITICAL FINDING**: While the tutorial is production-ready, the action pipeline audit revealed that approximately **30% of backend game mechanics lack UI exposure**, making them inaccessible to players.
+
+### Missing UI Elements for Backend Features
+
+#### ❌ Commands Without UI Exposure
+1. **GatherResourcesCommand** - Resource gathering at FEATURE locations completely inaccessible
+2. **BorrowMoneyCommand** - Economic strategy option unavailable to players
+3. **BrowseCommand** - Discovery mechanics inaccessible
+4. **KeepSecretCommand** - Narrative mechanic unavailable
+5. **ShareLunchCommand** - Social interaction missing
+6. **PersonalErrandCommand** - Alternative quest type unavailable
+7. **EquipmentSocializeCommand** - Equipment utility limited
+
+#### ⚠️ Partially Exposed Features
+1. **Route Discovery** - Backend exists but no UI for active discovery
+2. **Standing Obligations** - Display only, no interaction possible
+3. **Letter Board** - Button exists but dawn-only restriction unclear
+
+### Priority UI Implementation Tasks
+
+**High Priority** (Core Economic Mechanics):
+1. Add "Gather Resources" button at FEATURE locations
+2. Add "Borrow Money" option in NPC conversations
+3. Add "Browse" action for discoverable locations
+
+**Medium Priority** (Gameplay Expansion):
+1. Create route discovery interface
+2. Add obligation interaction mechanics
+3. Expose alternative transport methods (currently hardcoded to walking)
+
+**Low Priority** (Polish):
+1. Add bulk market operations
+2. Implement conversation history
+3. Add undo functionality for queue actions
+
+### Impact on Tutorial
+- Tutorial remains fully functional and production-ready
+- These missing features are post-tutorial content
+- Players can complete tutorial but miss significant gameplay options afterward
+
 ## Recent Changes (2025-07-29)
 
 1. **Save/Load Disabled**: Game always starts fresh for testing purposes

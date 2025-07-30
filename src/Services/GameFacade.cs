@@ -103,7 +103,10 @@ public class GameFacade : IGameFacade
     public (Location location, LocationSpot spot) GetCurrentLocation()
     {
         var player = _gameWorld.GetPlayer();
-        return (player.CurrentLocation, player.CurrentLocationSpot);
+        var location = player.CurrentLocationSpot != null 
+            ? _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId)
+            : null;
+        return (location, player.CurrentLocationSpot);
     }
     
     public (TimeBlocks timeBlock, int hoursRemaining, int currentDay) GetTimeInfo()
@@ -122,7 +125,10 @@ public class GameFacade : IGameFacade
     
     public async Task<bool> ExecuteLocationActionAsync(string commandId)
     {
-        return await _locationActionsService.ExecuteActionAsync(commandId);
+        Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Starting execution for action: {commandId}");
+        var result = await _locationActionsService.ExecuteActionAsync(commandId);
+        Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Action {commandId} completed with result: {result}");
+        return result;
     }
     
     // ========== TRAVEL ==========
@@ -506,19 +512,39 @@ public class GameFacade : IGameFacade
         var choice = currentConversation.Choices?.FirstOrDefault(c => c.ChoiceID == choiceId);
         if (choice == null) return null;
         
-        // Process choice - conversation manager handles choice processing internally
-        // The choice selection would trigger events that update the conversation state
-        // TODO: Implement proper choice processing mechanism
+        // Process the choice
+        var outcome = await currentConversation.ProcessPlayerChoice(choice);
+        
+        // If conversation is complete, clear it from state manager
+        if (outcome.IsConversationComplete)
+        {
+            _conversationStateManager.ClearPendingConversation();
+        }
+        else
+        {
+            // Generate new choices for the next beat
+            await currentConversation.ProcessNextBeat();
+        }
         
         return CreateConversationViewModel(currentConversation);
     }
     
     public ConversationViewModel GetCurrentConversation()
     {
-        var currentConversation = _conversationStateManager.PendingConversationManager;
-        if (currentConversation == null || !_conversationStateManager.ConversationPending) return null;
+        Console.WriteLine($"[GameFacade.GetCurrentConversation] Called");
+        Console.WriteLine($"[GameFacade.GetCurrentConversation] ConversationPending: {_conversationStateManager.ConversationPending}");
+        Console.WriteLine($"[GameFacade.GetCurrentConversation] PendingConversationManager null? {_conversationStateManager.PendingConversationManager == null}");
         
-        return CreateConversationViewModel(currentConversation);
+        var currentConversation = _conversationStateManager.PendingConversationManager;
+        if (currentConversation == null || !_conversationStateManager.ConversationPending)
+        {
+            Console.WriteLine($"[GameFacade.GetCurrentConversation] Returning null - no pending conversation");
+            return null;
+        }
+        
+        var viewModel = CreateConversationViewModel(currentConversation);
+        Console.WriteLine($"[GameFacade.GetCurrentConversation] Created ViewModel with NpcId: {viewModel?.NpcId}, Text: {viewModel?.CurrentText?.Substring(0, Math.Min(50, viewModel?.CurrentText?.Length ?? 0))}");
+        return viewModel;
     }
     
     private ConversationViewModel CreateConversationViewModel(ConversationManager conversation)
@@ -681,7 +707,10 @@ public class GameFacade : IGameFacade
     public MarketViewModel GetMarket()
     {
         var player = _gameWorld.GetPlayer();
-        return _marketService.GetMarketViewModel(player.CurrentLocation.Id);
+        var location = player.CurrentLocationSpot != null 
+            ? _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId)
+            : null;
+        return location != null ? _marketService.GetMarketViewModel(location.Id) : null;
     }
     
     public async Task<bool> BuyItemAsync(string itemId, string traderId)
@@ -849,9 +878,10 @@ public class GameFacade : IGameFacade
     public List<TimeBlockServiceViewModel> GetTimeBlockServicePlan()
     {
         var player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null) return new List<TimeBlockServiceViewModel>();
+        if (player.CurrentLocationSpot == null) return new List<TimeBlockServiceViewModel>();
         
-        var timeBlockServicePlan = _npcRepository.GetTimeBlockServicePlan(player.CurrentLocation.Id);
+        var location = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
+        var timeBlockServicePlan = _npcRepository.GetTimeBlockServicePlan(location.Id);
         var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         
         return timeBlockServicePlan.Select(plan => new TimeBlockServiceViewModel
@@ -866,10 +896,11 @@ public class GameFacade : IGameFacade
     public List<NPCWithOffersViewModel> GetNPCsWithOffers()
     {
         var player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null) return new List<NPCWithOffersViewModel>();
+        if (player.CurrentLocationSpot == null) return new List<NPCWithOffersViewModel>();
         
         var currentTime = _timeManager.GetCurrentTimeBlock();
-        var currentNPCs = _npcRepository.GetNPCsForLocationAndTime(player.CurrentLocation.Id, currentTime);
+        var location = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
+        var currentNPCs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
         
         return currentNPCs.Select(npc => new NPCWithOffersViewModel
         {

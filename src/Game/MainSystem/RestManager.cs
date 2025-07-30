@@ -19,7 +19,9 @@
 
     public List<RestOption> GetAvailableRestOptions()
     {
-        Location currentLocation = gameWorld.GetPlayer().CurrentLocation;
+        var player = gameWorld.GetPlayer();
+        if (player.CurrentLocationSpot == null) return new List<RestOption>();
+        Location currentLocation = locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
         if (currentLocation == null) return new List<RestOption>();
 
         List<RestOption> restOptions = new List<RestOption>();
@@ -117,7 +119,6 @@
         }
 
         // Filter by player requirements
-        Player player = gameWorld.GetPlayer();
         return restOptions.Where(r =>
             r.RequiredItem == null ||
             Array.IndexOf(player.Inventory.ItemSlots, r.RequiredItem) != -1).ToList();
@@ -126,7 +127,9 @@
     public void Rest(RestOption option)
     {
         Player player = gameWorld.GetPlayer();
-        Location currentLocation = player.CurrentLocation;
+        Location currentLocation = player.CurrentLocationSpot != null 
+            ? locationRepository.GetLocation(player.CurrentLocationSpot.LocationId) 
+            : null;
 
         // Validate time block availability
         // Check if we have enough hours left in the day

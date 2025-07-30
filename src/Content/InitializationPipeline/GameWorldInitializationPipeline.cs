@@ -39,14 +39,17 @@ public class GameWorldInitializationPipeline
             // Phase 3: Entities that depend on NPCs and locations
             new Phase3_NPCDependents(),
             
-            // Phase 4: Complex entities with multiple dependencies
-            new Phase4_ComplexEntities(),
+            // Phase 4: Narrative definitions from JSON
+            new Phase4_Narratives(),
             
-            // Phase 5: Player initialization (depends on locations and spots)
-            new Phase5_PlayerInitialization(),
+            // Phase 5: Complex entities with multiple dependencies
+            new Phase5_ComplexEntities(),
             
-            // Phase 6: Final validation and cross-references
-            new Phase6_FinalValidation()
+            // Phase 6: Player initialization (depends on locations and spots)
+            new Phase6_PlayerInitialization(),
+            
+            // Phase 7: Final validation and cross-references
+            new Phase7_FinalValidation()
         };
     }
     

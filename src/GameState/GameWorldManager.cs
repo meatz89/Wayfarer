@@ -92,6 +92,9 @@ public class GameWorldManager
         
         _gameWorld.GetPlayer().HealFully();
         
+        // Load narrative definitions into NarrativeManager
+        _narrativeManager.LoadNarrativeDefinitions(NarrativeDefinitions.All);
+        
         // Register collapse callback
         _gameWorld.GetPlayer().OnStaminaExhausted = () => CheckForCollapse();
 
@@ -164,6 +167,9 @@ public class GameWorldManager
         // Create conversation using factory
         ConversationManager conversationManager = await conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
         await conversationManager.InitializeConversation();
+        
+        // Process the first beat to generate choices
+        await conversationManager.ProcessNextBeat();
 
         // Set up conversation for UI using ConversationStateManager
         _conversationStateManager.SetPendingConversation(conversationManager);
@@ -230,7 +236,6 @@ public class GameWorldManager
 
         // Also update the Player's location to keep them in sync
         Player player = _gameWorld.GetPlayer();
-        player.CurrentLocation = destination;
         player.CurrentLocationSpot = destinationSpot;
 
         // Clear pending travel state
@@ -697,10 +702,7 @@ public class GameWorldManager
             player.Coins = 2; // Tutorial starts with 2 coins
             player.Stamina = 4; // Tutorial starts with 4/10 stamina
             
-            // Load tutorial narrative definitions
-            NarrativeContentBuilder.BuildAllNarratives();
-            _narrativeManager.LoadNarrativeDefinitions(NarrativeDefinitions.All);
-            
+            // Narratives should already be loaded from JSON by GameWorldInitializationPipeline
             _debugLogger.LogDebug($"Narrative definitions loaded. Count: {NarrativeDefinitions.All.Count}");
             
             // Start the tutorial

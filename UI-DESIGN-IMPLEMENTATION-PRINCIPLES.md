@@ -676,3 +676,129 @@ This navigation architecture reinforces that **letter queue management** is the 
 - **Use proper reactive patterns** - Let Blazor's change detection handle rendering optimization
 
 **Remember**: The game is about **personal relationships and trust**, not mechanical progression systems. Every introduction should feel like a meaningful expansion of your social network through earned trust.
+
+## Action Pipeline Audit - UI Gaps (2025-07-30)
+
+### Critical Finding: 30% of Backend Features Lack UI Access
+
+The action pipeline audit revealed significant gaps between implemented backend mechanics and player-accessible UI. These missing elements prevent players from experiencing the full game despite backend functionality being complete.
+
+### Missing Command UI Elements
+
+#### Resource Gathering System
+**Backend**: `GatherResourcesCommand` fully implemented
+**Missing UI**: No "Gather Resources" button at FEATURE locations
+**Implementation Required**:
+```razor
+@if (location.HasTag("FEATURE") && commandDiscovery.IsCommandAvailable(CommandType.GatherResources))
+{
+    <button class="action-button" @onclick="() => GameFacade.ExecuteLocationActionAsync(CommandType.GatherResources)">
+        <span class="action-icon">🌿</span>
+        Gather Resources
+        <span class="action-cost">⏱️ 2h</span>
+    </button>
+}
+```
+
+#### Economic Actions
+**Backend**: `BorrowMoneyCommand` complete with token requirements
+**Missing UI**: No borrowing interface in NPC conversations
+**Implementation Required**:
+- Add "Ask for Loan" conversation option
+- Show token cost for borrowing
+- Display repayment terms
+
+#### Discovery Mechanics
+**Backend**: `BrowseCommand` and `DiscoverRouteCommand` implemented
+**Missing UI**: No exploration interface
+**Implementation Required**:
+- "Browse" action at shops/markets
+- "Explore Area" for route discovery
+- Discovery notifications
+
+#### Social Interactions
+**Backend**: Multiple social commands implemented
+**Missing UI**: No interface for:
+- `ShareLunchCommand` - meal sharing
+- `KeepSecretCommand` - secret keeping
+- `PersonalErrandCommand` - personal favors
+- `EquipmentSocializeCommand` - equipment-based interactions
+
+### Partially Exposed Features
+
+#### Standing Obligations
+**Current**: Display-only in LetterQueueScreen
+**Missing**: Interaction mechanics
+- No way to fulfill obligations
+- No obligation negotiation interface
+- No clear consequence display
+
+#### Transport Methods
+**Current**: Hardcoded to "Walking" in GameFacade
+**Missing**: Transport selection UI
+- No way to choose horses, carriages, etc.
+- Equipment requirements not shown
+- Speed/cost tradeoffs hidden
+
+#### Letter Board
+**Current**: Button exists but unclear availability
+**Missing**: Clear dawn-only indication
+- No time-of-day restrictions shown
+- Public vs private letters unclear
+- Board interaction mechanics hidden
+
+### UI Implementation Priority
+
+#### High Priority - Core Economic Loop
+1. **Resource Gathering UI** - Essential for economic gameplay
+2. **Borrowing Interface** - Critical for cash flow management
+3. **Browse/Discovery UI** - Core exploration mechanic
+
+#### Medium Priority - Gameplay Depth
+1. **Route Discovery Interface** - Expands travel options
+2. **Obligation Interactions** - Completes obligation system
+3. **Transport Selection** - Strategic travel choices
+
+#### Low Priority - Polish
+1. **Social Command UI** - Enriches NPC interactions
+2. **Bulk Market Operations** - Quality of life
+3. **Conversation History** - Reference tool
+
+### Implementation Guidelines
+
+**Command Discovery Integration**:
+```csharp
+// Always check command availability before showing UI
+var availableCommands = GameFacade.GetAvailableCommands();
+if (availableCommands.Contains(CommandType.GatherResources))
+{
+    // Show gather button
+}
+```
+
+**Cost Display Pattern**:
+```razor
+<div class="action-cost-display">
+    @if (command.TimeCost > 0) { <span>⏱️ @command.TimeCost</span> }
+    @if (command.StaminaCost > 0) { <span>💪 @command.StaminaCost</span> }
+    @if (command.CoinCost > 0) { <span>🪙 @command.CoinCost</span> }
+</div>
+```
+
+**Error Feedback**:
+- Show why commands fail
+- Provide actionable feedback
+- Never fail silently
+
+### Testing UI Completeness
+
+**Audit Checklist**:
+- [ ] Every CommandType enum value has UI exposure
+- [ ] All backend managers have corresponding UI services
+- [ ] Each game mechanic is player-discoverable
+- [ ] No "hidden" features requiring external documentation
+
+**Coverage Metrics**:
+- Current: ~70% of backend features accessible
+- Target: 100% UI coverage for all commands
+- Exception: Debug/admin commands only

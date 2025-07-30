@@ -193,7 +193,7 @@ public class NoticeBoardService
         NPC recipient = targetNpcs[_random.Next(targetNpcs.Count)];
 
         // Get a random sender from current location
-        string currentLocation = _gameWorld.GetPlayer().CurrentLocation?.Id ?? "millbrook";
+        string currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId ?? "millbrook";
         List<NPC> senderNpcs = _npcRepository.GetNPCsForLocation(currentLocation);
         if (!senderNpcs.Any()) return null;
 
@@ -276,7 +276,7 @@ public class NoticeBoardService
     {
         // This is simplified - in a full implementation, you'd have actual geography
         List<string> allLocations = new List<string> { "millbrook", "crossbridge", "thornwood" };
-        string currentLocation = _gameWorld.GetPlayer().CurrentLocation?.Id ?? "millbrook";
+        string currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId ?? "millbrook";
 
         // Remove current location
         allLocations.Remove(currentLocation);
