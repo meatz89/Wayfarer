@@ -349,6 +349,44 @@ case CurrentViews.SpecificScreen:
 - ❌ **NO INLINE STYLES** - Never add `<style>` sections to Razor components; this violates UI architecture principles
 - ❌ **NO DUPLICATE STYLES** - Never create new CSS that duplicates existing functionality
 
+### Tutorial UI Design Principles (Updated 2025-07-29)
+
+**Philosophy**: The tutorial should guide without restricting player agency. Players learn best through experimentation, not forced paths.
+
+#### **Non-Restrictive Guidance**
+**Principle**: Show recommended actions clearly but allow all actions to remain clickable.
+
+**Implementation**:
+- ✅ **Subtle Visual Indicators**: Small golden stars mark recommended actions
+- ✅ **All Buttons Clickable**: Players can experiment with non-tutorial actions
+- ✅ **Transparent Overlay**: Narrative guidance uses transparency, not blocking
+- ✅ **Side Positioning**: Tutorial overlay positioned to the right, not center-blocking
+- ✅ **Transition Delays**: 2-second delay allows players to see action results
+
+**Why**: Players feel more engaged when they can explore and make mistakes rather than being forced down a rigid path.
+
+#### **Progressive Disclosure**
+**Principle**: UI elements appear as they become relevant to the player's journey.
+
+**Implementation**:
+- Letter Management: Hidden until `TUTORIAL_FIRST_LETTER_OFFERED`
+- Queue button: Hidden until `TUTORIAL_FIRST_LETTER_ACCEPTED`
+- Relations button: Hidden until `FIRST_TOKEN_EARNED`
+- Obligations button: Hidden until `TUTORIAL_PATRON_MET`
+
+**Why**: Reduces cognitive overload and makes each new system feel like a meaningful unlock.
+
+#### **Clear Progress Communication**
+**Principle**: Players should always know where they are in the tutorial.
+
+**Implementation**:
+- Progress bar showing current step vs total steps
+- Current objective clearly stated
+- Guidance text provides context
+- Minimizable overlay preserves player control
+
+**Why**: Reduces anxiety about tutorial length and provides sense of advancement.
+
 ## Implementation Anti-Patterns
 
 ### Forbidden UI Elements
