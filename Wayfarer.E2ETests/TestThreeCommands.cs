@@ -107,7 +107,7 @@ public class TestThreeCommands
             
             var allNPCs = npcRepository.GetAllNPCs();
             var lenderNPCs = allNPCs.Where(npc => 
-                npc.LetterTokenTypes.Contains(ConnectionType.Trade) || 
+                npc.LetterTokenTypes.Contains(ConnectionType.Commerce) || 
                 npc.LetterTokenTypes.Contains(ConnectionType.Shadow)
             ).ToList();
             

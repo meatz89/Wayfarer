@@ -526,7 +526,7 @@ public class GameWorldManager
     public List<NPC> GetTradingNPCs(string locationId)
     {
         return npcRepository.GetNPCsForLocation(locationId)
-            .Where(npc => npc.ProvidedServices.Contains(ServiceTypes.Trade))
+            .Where(npc => npc.ProvidedServices.Contains(ServiceTypes.Commerce))
             .ToList();
     }
 

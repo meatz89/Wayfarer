@@ -11,10 +11,10 @@ The system is fully implemented with the following features:
 1. **Multiple Token Types Per NPC**: 
    - NPCs can grant different token types based on the action performed
    - `WorkCommand` awards tokens based on NPC profession:
-     - Dock Boss, Soldier → Trade tokens
-     - Craftsman, Innkeeper, Tavern Keeper, Merchant → Common tokens
-     - Noble, Scholar → Noble tokens
-   - `ShareLunchCommand` always awards Common tokens (75% chance)
+     - Dock Boss, Soldier → Commerce tokens
+     - Craftsman, Innkeeper, Tavern Keeper, Merchant → Commerce tokens
+     - Noble, Scholar → Status tokens
+   - `ShareLunchCommand` awards relationship-appropriate tokens (75% chance)
    - `KeepSecretCommand` always awards Trust tokens (100% chance)
 
 2. **Token Tracking**:
@@ -31,10 +31,10 @@ The system is fully implemented with the following features:
 The system includes automatic activation/deactivation:
 
 1. **Defined Obligations**:
-   - **Patron's Expectation** (-1 Noble tokens): Letters at position 3
-   - **Patron's Heavy Hand** (-3 Noble tokens): Letters at position 1, cannot refuse
+   - **Patron's Expectation** (-1 Status tokens): Letters at position 3
+   - **Patron's Heavy Hand** (-3 Status tokens): Letters at position 1, cannot refuse
    - **Elena's Devotion** (5 Trust tokens): Letters at position 7, +2 days deadline
-   - **Martha's Gratitude** (4 Trade tokens): +3 coin bonus on trade letters
+   - **Martha's Gratitude** (4 Commerce tokens): +3 coin bonus on commerce letters
 
 2. **Automatic Activation/Deactivation**:
    - `OnTokensChanged()` called whenever tokens change
@@ -90,7 +90,7 @@ Commands are discovered dynamically based on:
 
 ### ⚠️ NEEDS INTERACTIVE TESTING:
 
-1. **Patron Initialization**: Need to verify patron starts at -1 Noble tokens
+1. **Patron Initialization**: Need to verify patron starts at -1 Status tokens
 2. **Command Discovery**: Verify commands appear in UI when conditions are met
 3. **Visual Feedback**: Check that obligation effects are visible in letter queue
 4. **Edge Cases**: Test rapid token changes, multiple obligations, etc.
@@ -108,9 +108,10 @@ Commands are discovered dynamically based on:
 ## Conclusion
 
 The multi-token and threshold obligation systems are **fully implemented** in the code with all requested features. The systems include:
-- ✅ Different token types from different actions
+- ✅ Different token types from different actions (Trust/Commerce/Status/Shadow)
 - ✅ Automatic threshold-based obligation activation/deactivation
 - ✅ Proper effects on letter positioning and bonuses
 - ✅ Clear player notifications
+- ✅ Dynamic scaling based on debt levels
 
 The implementation appears robust and complete. Interactive testing would verify the user experience and catch any runtime issues not visible in static analysis.

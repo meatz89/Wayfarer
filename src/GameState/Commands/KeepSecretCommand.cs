@@ -111,7 +111,7 @@ public class KeepSecretCommand : BaseGameCommand
         {
             Professions.Dock_Boss => "My daughter is sick, but I can't afford to miss work",
             Professions.Merchant => "I'm expecting a valuable shipment that's not on the books",
-            Professions.Noble => "There are political moves being made against my house",
+            Professions.Status => "There are political moves being made against my house",
             Professions.Innkeeper => "Some of my guests are not who they claim to be",
             Professions.TavernKeeper => "There's been talk of trouble brewing in the back rooms",
             Professions.Scholar => "I've discovered something that could change everything",

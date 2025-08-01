@@ -566,8 +566,8 @@ public class LetterQueueManager
             // Determine position based on token type
             int basePosition = tokenType switch
             {
-                ConnectionType.Noble => 3,
-                ConnectionType.Trade => 5,
+                ConnectionType.Status => 3,
+                ConnectionType.Commerce => 5,
                 ConnectionType.Shadow => 5,
                 ConnectionType.Common => 7,
                 ConnectionType.Trust => 7,
@@ -740,11 +740,11 @@ public class LetterQueueManager
         {
             return $"{npc.Name} waited for your help that never came. Some wounds don't heal.";
         }
-        else if (npc.LetterTokenTypes.Contains(ConnectionType.Trade))
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Commerce))
         {
             return $"{npc.Name}'s opportunity has passed. 'Time is money, and you've cost me both.'";
         }
-        else if (npc.LetterTokenTypes.Contains(ConnectionType.Noble))
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Status))
         {
             return $"Word of your failure reaches {npc.Name}. Your reputation in court circles suffers.";
         }
@@ -907,11 +907,11 @@ public class LetterQueueManager
         {
             return $"{npc.Name} looks hurt as you prioritize other obligations over their {GetTokenTypeDescription(letter.TokenType)} request.";
         }
-        else if (npc.LetterTokenTypes.Contains(ConnectionType.Trade))
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Commerce))
         {
             return $"{npc.Name} frowns at the delay. 'Business waits for no one,' they mutter.";
         }
-        else if (npc.LetterTokenTypes.Contains(ConnectionType.Noble))
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Status))
         {
             return $"{npc.Name} raises an eyebrow coldly. Such delays are noted in aristocratic circles.";
         }
@@ -1415,9 +1415,9 @@ public class LetterQueueManager
         {
             case ConnectionType.Trust:
                 return "personal";
-            case ConnectionType.Trade:
+            case ConnectionType.Commerce:
                 return "commercial";
-            case ConnectionType.Noble:
+            case ConnectionType.Status:
                 return "aristocratic";
             case ConnectionType.Common:
                 return "local";

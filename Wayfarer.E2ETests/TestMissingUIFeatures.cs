@@ -73,7 +73,7 @@ public class TestMissingUIFeatures
             // Find NPCs that can lend money
             var allNPCs = npcRepo.GetAllNPCs();
             var lendingNPCs = allNPCs.Where(npc => 
-                npc.LetterTokenTypes.Contains(ConnectionType.Trade) ||
+                npc.LetterTokenTypes.Contains(ConnectionType.Commerce) ||
                 npc.LetterTokenTypes.Contains(ConnectionType.Shadow)).ToList();
                 
             Console.WriteLine($"Found {lendingNPCs.Count} NPCs who can lend money:");

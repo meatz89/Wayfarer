@@ -275,7 +275,7 @@
 **So that** I can maintain critical relationships  
 
 **Acceptance Criteria:**
-- Route selection shows: "Requires 3+ Common tokens with Guide"
+- Route selection shows: "Requires 3+ Commerce tokens with Guide"
 - Warning if current tokens exactly at threshold
 - "Route locked" if below threshold
 - Alternative routes always visible

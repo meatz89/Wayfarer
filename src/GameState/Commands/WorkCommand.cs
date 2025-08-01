@@ -38,7 +38,7 @@ public class WorkCommand : BaseGameCommand
             // Dock work grants Trade tokens (loading/unloading cargo)
             if (npc.Profession == Professions.Dock_Boss || npc.Profession == Professions.Soldier)
             {
-                TokenTypeGranted = ConnectionType.Trade;
+                TokenTypeGranted = ConnectionType.Commerce;
             }
             // Most other work grants Common tokens (everyday labor)
             else if (npc.Profession == Professions.Craftsman || npc.Profession == Professions.Innkeeper ||
@@ -47,9 +47,9 @@ public class WorkCommand : BaseGameCommand
                 TokenTypeGranted = ConnectionType.Common;
             }
             // Noble work might grant Noble tokens
-            else if (npc.Profession == Professions.Noble || npc.Profession == Professions.Scholar)
+            else if (npc.Profession == Professions.Status || npc.Profession == Professions.Scholar)
             {
-                TokenTypeGranted = ConnectionType.Noble;
+                TokenTypeGranted = ConnectionType.Status;
             }
             // Otherwise fall back to NPC's primary type
         }

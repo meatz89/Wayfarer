@@ -1,8 +1,7 @@
 public enum ConnectionType
 {
-    Trust,   // Personal relationships, romance, family
-    Trade,   // Commercial relationships, guilds, merchants
-    Noble,   // Aristocratic relationships, court connections
-    Common,  // Everyday relationships, tavern folk, workers
-    Shadow   // Underground relationships, illicit contacts
+    Trust,     // Personal bonds, emotional connections
+    Commerce,  // Professional reliability, business trust  
+    Status,    // Social standing, formal recognition
+    Shadow     // Shared secrets, complicity
 }

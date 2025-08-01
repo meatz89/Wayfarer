@@ -80,7 +80,7 @@ Implemented the full "From Destitute to Patronage" tutorial exactly as specified
 
 **Day 2: Work and Token Introduction**
 - Meet Martha, do first work
-- Earn first Trade token
+- Earn first Commerce token
 - Meet Elena the scribe
 - Choice to share food or information
 

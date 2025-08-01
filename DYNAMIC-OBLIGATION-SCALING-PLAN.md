@@ -10,19 +10,31 @@ Implement dynamic obligation scaling based on token levels, where debt obligatio
 4. **Emergent Difficulty**: Harder gameplay emerges from player choices
 
 ## Target Examples
-### Patron Debt Scaling
+### Status Debt Scaling (Noble Obligations)
 - At -1 to -2 tokens: "Patron's Expectation" (letters enter at position 3)
 - At -3 to -4 tokens: "Patron's Leverage" (letters enter at position 2) 
 - At -5+ tokens: "Patron's Heavy Hand" (letters enter at position 1, cannot refuse)
 
-### Merchant Leverage Scaling
+### Commerce Debt Scaling (Business Leverage)
 - At -1 token: Letters enter at position 5
 - At -2 tokens: Letters enter at position 4
 - At -3+ tokens: Letters enter at position 3
 
+### Trust Debt Scaling (Personal Betrayals)
+- At -1 token: -1 day on all deadlines
+- At -2 tokens: -2 days on deadlines
+- At -3+ tokens: Letters arrive already expired
+
+### Shadow Debt Scaling (Dangerous Entanglements)
+- At -1 token: Random "accidents" damage inventory
+- At -2 tokens: Mysterious letters appear in queue
+- At -3+ tokens: Cannot refuse Shadow letters, severe consequences
+
 ### Positive Token Scaling
-- At 5+ tokens: "Elena's Devotion" (Trust letters get +2 days deadline)
-- At 10+ tokens: Enhanced benefits scale with relationship strength
+- At 5+ Trust tokens: "Elena's Devotion" (Trust letters get +2 days deadline)
+- At 5+ Commerce tokens: "Trade Network" (bonus coins on deliveries)
+- At 5+ Status tokens: "Noble Favor" (access to exclusive contracts)
+- At 5+ Shadow tokens: "Underground Connections" (hidden opportunities)
 
 ## Implementation Approach
 
@@ -65,11 +77,14 @@ public class ObligationScaler
 - `PatronLettersPosition3` 
 - `NoblesPriority`
 - `CommonFolksPriority`
+- All reputation-based effects
+- All TokenFavor mechanics
 
 **Add**:
 - `DynamicLeverage` - Scales position with token balance
 - `DebtConstraints` - Scales restrictions with debt depth
 - `RelationshipBenefits` - Scales benefits with positive tokens
+- `TierGatedEffects` - Effects that require specific tier access
 
 ### 4. Update Obligation Processing
 Modify `StandingObligationManager.ApplyLeverageModifiers()` to:
@@ -79,9 +94,10 @@ Modify `StandingObligationManager.ApplyLeverageModifiers()` to:
 
 ### 5. UI Feedback System
 Show players how obligations scale:
-- "Patron's Leverage: -3 tokens (Position 2)"
+- "Patron's Leverage: -3 Status tokens (Position 2)"
 - "As debt deepens, leverage increases"
 - Visual indicators when crossing thresholds
+- Tier requirements for accessing new obligation types
 
 ## Implementation Steps
 
@@ -136,5 +152,7 @@ Show players how obligations scale:
 ## Future Extensions
 - Compound scaling (debt + relationship history)
 - Time-based scaling (obligations get stronger over time)
-- Cross-token scaling (shadow debt affects noble letters)
+- Cross-token scaling (Shadow debt affects Status letters)
 - Obligation "interest" (debt obligations worsen daily)
+- Tier-locked obligations (only available at certain NPC/location tiers)
+- Information discovery integration (learn about obligations through play)

@@ -501,7 +501,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         return service switch
         {
             ServiceTypes.Rest => "🛌",
-            ServiceTypes.Trade => "🛒",
+            ServiceTypes.Commerce => "🛒",
             ServiceTypes.Healing => "❤️",
             ServiceTypes.Information => "📖",
             ServiceTypes.Training => "⚔️",

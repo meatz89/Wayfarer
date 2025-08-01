@@ -632,7 +632,7 @@ public class MarketManager
     {
         // Get NPCs who provide Trade services at this location
         List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocationAndTime(locationId, currentTime)
-            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .Where(npc => npc.CanProvideService(ServiceTypes.Commerce))
             .ToList();
 
         Console.WriteLine($"[DEBUG] IsMarketAvailableAtLocation: location={locationId}, time={currentTime}, tradeNPCs={tradeNPCs.Count}");
@@ -659,7 +659,7 @@ public class MarketManager
         {
             // Find when market will be available next
             List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocation(locationId)
-                .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+                .Where(npc => npc.CanProvideService(ServiceTypes.Commerce))
                 .ToList();
 
             if (!tradeNPCs.Any())
@@ -688,7 +688,7 @@ public class MarketManager
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocation(locationId)
-            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .Where(npc => npc.CanProvideService(ServiceTypes.Commerce))
             .ToList();
 
         if (!tradeNPCs.Any())
@@ -715,7 +715,7 @@ public class MarketManager
     public List<NPC> GetAllTraders(string locationId)
     {
         return _npcRepository.GetNPCsForLocation(locationId)
-            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .Where(npc => npc.CanProvideService(ServiceTypes.Commerce))
             .ToList();
     }
 
@@ -726,7 +726,7 @@ public class MarketManager
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         return _npcRepository.GetNPCsForLocationAndTime(locationId, currentTime)
-            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .Where(npc => npc.CanProvideService(ServiceTypes.Commerce))
             .ToList();
     }
 }

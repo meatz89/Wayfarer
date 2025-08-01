@@ -80,17 +80,17 @@ public static class NPCParser
         {
             "equipment_commissioning" => ServiceTypes.EquipmentRepair,
             "workshop_contracts" => ServiceTypes.Training,
-            "trade_goods" => ServiceTypes.Trade,
+            "trade_goods" => ServiceTypes.Commerce,
             "delivery_contracts" => ServiceTypes.Trading,
             "rest_services" => ServiceTypes.Rest,
             "labor_contracts" => ServiceTypes.Training,
-            "lumber_sales" => ServiceTypes.Trade,
+            "lumber_sales" => ServiceTypes.Commerce,
             "logging_contracts" => ServiceTypes.Training,
-            "herb_sales" => ServiceTypes.Trade,
+            "herb_sales" => ServiceTypes.Commerce,
             "gathering_contracts" => ServiceTypes.Training,
             "heavy_labor" => ServiceTypes.Training,
             "equipment_repair" => ServiceTypes.EquipmentRepair,
-            "fish_sales" => ServiceTypes.Trade,
+            "fish_sales" => ServiceTypes.Commerce,
             "dock_work" => ServiceTypes.Training,
             "transport_contracts" => ServiceTypes.Trading,
             "bulk_trade" => ServiceTypes.Trading,
@@ -105,8 +105,8 @@ public static class NPCParser
         return connectionTypeStr.ToLower() switch
         {
             "trust" => ConnectionType.Trust,
-            "trade" => ConnectionType.Trade,
-            "noble" => ConnectionType.Noble,
+            "trade" => ConnectionType.Commerce,
+            "noble" => ConnectionType.Status,
             "common" => ConnectionType.Common,
             "shadow" => ConnectionType.Shadow,
             _ => null

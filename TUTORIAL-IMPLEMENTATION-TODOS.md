@@ -100,11 +100,11 @@ The tutorial system is now essentially complete and working. All critical infras
 **Status**: ✅ COMPLETE
 
 **Tutorial NPCs**: ✅ ALL CREATED
-- tam_beggar: Tam the Beggar (Common type) at lower_ward
-- martha_docker: Martha the Docker (Trade type) at millbrook_docks
+- tam_beggar: Tam the Beggar (Commerce type) at lower_ward
+- martha_docker: Martha the Docker (Commerce type) at millbrook_docks
 - elena_scribe: Elena the Scribe (Trust type) at lower_ward
-- fishmonger_frans: Frans the Fishmonger (Common type) at millbrook_docks
-- patron_intermediary: The Intermediary (Noble type) at merchants_rest
+- fishmonger_frans: Frans the Fishmonger (Commerce type) at millbrook_docks
+- patron_intermediary: The Intermediary (Status type) at merchants_rest
 - All NPCs properly configured with locations, spots, and token types
 
 ### Story 3.2: NPC Availability Schedule  
@@ -197,7 +197,7 @@ The tutorial system is now essentially complete and working. All critical infras
 
 **TODO 7.3.1**: Implement Child Death Consequence
 - [ ] Add flag for `medicine_delivered_in_time`
-- [ ] Make Martha hostile if medicine not delivered
+- [ ] Make Martha hostile if medicine not delivered (remove Commerce tokens)
 - [ ] Change Martha's conversation based on outcome
 - [ ] Update Elena's dialogue to reference the choice
 
@@ -236,11 +236,12 @@ The tutorial system is now essentially complete and working. All critical infras
 **Current State**:
 - Patron obligation removed from game start ✅
 - Tutorial teaches obligation concept through narrative
+- Standing obligations now use dynamic scaling based on token debt levels
 
 **Design Note**:
-- Could be replaced with emergent mechanics (leverage system)
+- Leverage system scales with negative Status tokens
 - Following "No Special Rules" principle
-- Tutorial still complete without hardcoded obligation
+- Tutorial demonstrates emergent obligation mechanics
 
 ### Story 10.3: First Patron Letter
 **Status**: ✅ COMPLETE
@@ -266,10 +267,10 @@ The tutorial system is now essentially complete and working. All critical infras
 
 **TODO 11.1.1**: Create Tutorial Letter Templates
 - [ ] Add to letter templates:
-  - Martha's fish oil package (Common, 2 coins, 3 days)
+  - Martha's fish oil package (Commerce, 2 coins, 3 days)
   - Martha's urgent medicine (Trust, 0 coins, 1 day, high urgency)
-  - Fishmonger's routine letter (Common, 3 coins, 3 days)
-  - First patron letter (Noble, 0 coins, 3 days, Harbor Master)
+  - Fishmonger's routine letter (Commerce, 3 coins, 3 days)
+  - First patron letter (Status, 0 coins, 3 days, Harbor Master)
 - [ ] Ensure only tutorial letters appear during tutorial
 
 ### Story 11.2: Tutorial Conversation Scripts

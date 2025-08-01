@@ -258,10 +258,17 @@ public List<Letter> GetExpiredLetters()
 ### Obligation Management Display
 
 **Active Obligations**:
-- **Obligation name** and **acquisition date**
-- **Benefit description** (e.g., "Noble letters enter at slot 5")
-- **Constraint description** (e.g., "Cannot refuse noble letters")
-- **Queue behavior changes** with examples
+- **Obligation name** and **token debt level**
+- **Dynamic scaling** based on negative tokens
+- **Benefit description** (e.g., "Status letters enter at slot 5")
+- **Constraint description** (e.g., "Cannot refuse Status letters")
+- **Queue behavior changes** scaling with debt depth
+
+**Debt Mechanics by Token Type**:
+- **Trust Debt**: Personal betrayals affect letter deadlines
+- **Commerce Debt**: Business leverage affects letter positions  
+- **Status Debt**: Social obligations restrict refusal options
+- **Shadow Debt**: Dangerous entanglements with severe consequences
 
 **Conflict Detection**:
 - **Conflicting obligations** highlighted in red

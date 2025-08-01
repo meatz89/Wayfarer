@@ -1,3 +1,48 @@
+# Wayfarer Game Design
+
+## Token System Overview
+
+The game uses four connection token types that represent HOW you relate to NPCs:
+- **Trust** - Personal bonds and emotional connections
+- **Commerce** - Business relationships and trade networks  
+- **Status** - Social standing and noble connections
+- **Shadow** - Underground and illicit connections
+
+Tokens represent relationship context, not NPC identity. An NPC might grant different token types based on how you interact with them.
+
+## Information Discovery System
+
+Two-phase progression for all game content:
+1. **Learn Existence** - Discover that something exists (NPCs, locations, mechanics)
+2. **Gain Access** - Earn the right to interact through tokens, permits, or capabilities
+
+## Special Letters
+
+Four types provide unique progression mechanics:
+1. **Introduction Letters** (Trust) - Meet new NPCs in trust networks
+2. **Access Permits** (Commerce) - Enter restricted commercial locations
+3. **Endorsements** (Status) - Access high-society venues
+4. **Information Letters** (Shadow) - Learn hidden knowledge
+
+## Tier System
+
+Everything has tiers 1-5 with triple-gated access:
+1. **Knowledge Gate** - Must know it exists
+2. **Permission Gate** - Must have access rights
+3. **Capability Gate** - Must have resources/skills
+
+## Standing Obligations
+
+Dynamic debt mechanics per token type:
+- **Trust Debt** - Personal betrayals affecting deadlines
+- **Commerce Debt** - Business leverage affecting positions
+- **Status Debt** - Social obligations restricting refusals
+- **Shadow Debt** - Dangerous entanglements
+
+---
+
+## Original Game Design Notes
+
 Great. That's a good tutorial. Looking at the system interactions, what's left need to make this a real "game". I'm not talking about blinking lights or great story. I'm also not talking about winning or losing or end game. 
 
 I just want to have a vertical slice, a small starting area after the tutorial. What's important to me is that the player can only do a limited number of actions and can only visit a limited number of locations. But the player should still see what progression paths there are, like special characters, special locations, new action options, level up and so on, and should have some understanding of how to reach it. 

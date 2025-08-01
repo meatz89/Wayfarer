@@ -196,7 +196,7 @@ public class CommandDiscoveryService
             });
 
             // Check for equipment-enabled token types
-            ConnectionType[] equipmentTokenTypes = { ConnectionType.Noble, ConnectionType.Trade };
+            ConnectionType[] equipmentTokenTypes = { ConnectionType.Status, ConnectionType.Commerce };
             foreach (ConnectionType equipmentTokenType in equipmentTokenTypes)
             {
                 // Check if equipment enables this token type (and NPC doesn't naturally offer it)
@@ -209,15 +209,15 @@ public class CommandDiscoveryService
                     
                     string actionName = equipmentTokenType switch
                     {
-                        ConnectionType.Noble => "Discuss refined topics",
-                        ConnectionType.Trade => "Talk business",
+                        ConnectionType.Status => "Discuss refined topics",
+                        ConnectionType.Commerce => "Talk business",
                         _ => "Socialize"
                     };
                     
                     string actionDesc = equipmentTokenType switch
                     {
-                        ConnectionType.Noble => "Use your fine clothes to engage in noble discourse",
-                        ConnectionType.Trade => "Use your merchant ledger to discuss trade opportunities",
+                        ConnectionType.Status => "Use your fine clothes to engage in noble discourse",
+                        ConnectionType.Commerce => "Use your merchant ledger to discuss trade opportunities",
                         _ => "Spend time together"
                     };
                     
@@ -312,7 +312,7 @@ public class CommandDiscoveryService
         }
 
         // Borrow money command - if NPC offers loans (trade or shadow types)
-        bool canLend = npc.LetterTokenTypes.Contains(ConnectionType.Trade) ||
+        bool canLend = npc.LetterTokenTypes.Contains(ConnectionType.Commerce) ||
                       npc.LetterTokenTypes.Contains(ConnectionType.Shadow);
 
         if (canLend)

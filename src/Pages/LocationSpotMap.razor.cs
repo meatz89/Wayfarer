@@ -167,7 +167,7 @@ public class LocationSpotMapBase : ComponentBase
         return service switch
         {
             ServiceTypes.Rest => "🛌",
-            ServiceTypes.Trade => "🛒",
+            ServiceTypes.Commerce => "🛒",
             ServiceTypes.Healing => "❤️",
             ServiceTypes.Information => "📖",
             ServiceTypes.Training => "⚔️",
@@ -213,8 +213,8 @@ public class LocationSpotMapBase : ComponentBase
         return tokenType switch
         {
             ConnectionType.Trust => "💚",
-            ConnectionType.Trade => "💙",
-            ConnectionType.Noble => "💜",
+            ConnectionType.Commerce => "💙",
+            ConnectionType.Status => "💜",
             ConnectionType.Common => "🤎",
             ConnectionType.Shadow => "🖤",
             _ => "⚪"
