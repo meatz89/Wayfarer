@@ -204,7 +204,7 @@ public class StandingObligationManager
         {
             SenderName = "Your Patron",
             RecipientName = "Resources Contact",
-            TokenType = ConnectionType.Noble, // Patron letters usually noble
+            TokenType = ConnectionType.Status, // Patron letters usually noble
             Payment = random.Next(50, 100), // Large resource package
             Deadline = random.Next(3, 7), // Reasonable deadline
             IsGenerated = true,
@@ -366,14 +366,14 @@ public class StandingObligationManager
     // Apply merchant respect effect - trade letters with 5+ tokens get less leverage
     private int ApplyMerchantRespectEffect(Letter letter, int currentPosition)
     {
-        if (letter.TokenType != ConnectionType.Trade)
+        if (letter.TokenType != ConnectionType.Commerce)
             return currentPosition;
 
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId))
             return currentPosition;
 
-        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Trade];
+        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Commerce];
         if (tokenBalance >= 5)
         {
             return currentPosition + 1; // Less leverage due to respect

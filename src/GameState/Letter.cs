@@ -162,9 +162,8 @@ public class Letter
         return TokenType switch
         {
             ConnectionType.Trust => "❤️",
-            ConnectionType.Trade => "🪙",
-            ConnectionType.Noble => "👑",
-            ConnectionType.Common => "🍺",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
         };

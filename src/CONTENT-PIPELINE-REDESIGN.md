@@ -157,10 +157,10 @@ public class MultiPhaseContentLoader
   "profession": "Docker",
   
   "tokenContexts": {
-    "Trade": {
+    "Commerce": {
       "enabled": true,
       "startingRelationship": 1,
-      "letterTypes": ["dock_manifest", "trade_delivery"],
+      "letterTypes": ["dock_manifest", "commerce_delivery"],
       "actions": ["help_load_cargo", "negotiate_rates"],
       "obligations": {
         "5": {
@@ -207,7 +207,7 @@ public class MultiPhaseContentLoader
     "urgency": "high",
     "payment": { "min": 8, "max": 12 },
     "deadline": { "min": 24, "max": 36 },
-    "queuePosition": "calculated" // Based on Trade token count
+    "queuePosition": "calculated" // Based on Commerce token count
   }
 }
 ```

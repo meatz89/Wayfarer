@@ -467,8 +467,8 @@ public class GameFacade : IGameFacade
         return tokenType switch
         {
             ConnectionType.Trust => "💝",
-            ConnectionType.Trade => "🤝",
-            ConnectionType.Noble => "👑",
+            ConnectionType.Commerce => "🤝",
+            ConnectionType.Status => "👑",
             ConnectionType.Common => "🏘️",
             ConnectionType.Shadow => "🌑",
             _ => "🎭"

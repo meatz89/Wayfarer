@@ -138,13 +138,13 @@ public class NetworkReferralService
                 $"{targetNPC.Name} is good people - tell them I sent you.",
                 $"I've known {targetNPC.Name} for years. They'll treat you right."
             },
-            ConnectionType.Trade => new[]
+            ConnectionType.Commerce => new[]
             {
                 $"{targetNPC.Name} runs a solid business and needs courier services.",
                 $"I do regular trade with {targetNPC.Name} - profitable connection.",
                 $"{targetNPC.Name} pays well for prompt deliveries."
             },
-            ConnectionType.Noble => new[]
+            ConnectionType.Status => new[]
             {
                 $"{targetNPC.Name} serves the same circles and requires discretion.",
                 $"I can arrange an introduction to {targetNPC.Name} - quite influential.",
@@ -191,7 +191,7 @@ public class NetworkReferralService
         string templateIds = tokenType switch
         {
             ConnectionType.Trust => "network_referral_trust",
-            ConnectionType.Trade => "network_referral_trade",
+            ConnectionType.Commerce => "network_referral_trade",
             _ => "introduction_letter"
         };
 

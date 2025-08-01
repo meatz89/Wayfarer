@@ -222,6 +222,50 @@ This architecture should ONLY be changed if:
 
 Even then, the principle of static initialization for the root aggregate should be maintained.
 
+## Token System Architecture
+
+### Connection Token Types
+
+The game uses four connection token types that represent HOW you relate to NPCs, not WHO they are:
+
+1. **Trust** - Personal bonds and emotional connections
+2. **Commerce** - Business relationships and trade networks  
+3. **Status** - Social standing and noble connections
+4. **Shadow** - Underground and illicit connections
+
+### Information Discovery System
+
+The game features a two-phase progression system for discovering game content:
+
+1. **Learn Existence** - First discover that something exists (NPC, location, mechanic)
+2. **Gain Access** - Then earn the right to interact with it through tokens, permissions, or capabilities
+
+### Special Letters
+
+Four types of special letters provide unique mechanics:
+
+1. **Introduction Letters** (Trust) - Introduce you to new NPCs in your trust network
+2. **Access Permits** (Commerce) - Grant access to restricted commercial locations
+3. **Endorsements** (Status) - Vouch for your standing in noble circles
+4. **Information Letters** (Shadow) - Reveal hidden knowledge and opportunities
+
+### Tier System
+
+Everything in the game has tiers 1-5 with triple-gated access:
+
+1. **Knowledge Gate** - Must know it exists
+2. **Permission Gate** - Must have access rights (tokens, permits, endorsements)
+3. **Capability Gate** - Must have resources/skills to actually use it
+
+### Standing Obligations
+
+Each token type has unique debt mechanics when going negative:
+
+- **Trust Debt** - Personal betrayals affecting letter deadlines
+- **Commerce Debt** - Business leverage affecting letter positions
+- **Status Debt** - Social obligations restricting refusal options
+- **Shadow Debt** - Dangerous entanglements with severe consequences
+
 ## UI Completeness Requirements
 
 ### Action Pipeline Audit Results

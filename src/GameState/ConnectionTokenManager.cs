@@ -401,13 +401,13 @@ public class ConnectionTokenManager
                 $"{npc.Name} clasps your hand. \"Thank you, my friend.\"",
                 $"\"You've proven yourself trustworthy,\" {npc.Name} says with appreciation."
             },
-            ConnectionType.Trade => new[]
+            ConnectionType.Commerce => new[]
             {
                 $"{npc.Name} nods approvingly. \"Good business, as always.\"",
                 $"\"Reliable couriers are worth their weight in gold,\" says {npc.Name}.",
                 $"{npc.Name} makes a note. \"I'll remember this efficiency.\""
             },
-            ConnectionType.Noble => new[]
+            ConnectionType.Status => new[]
             {
                 $"{npc.Name} inclines their head graciously. \"Your service honors us both.\"",
                 $"\"The nobility appreciates discretion,\" {npc.Name} says formally.",

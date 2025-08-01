@@ -177,7 +177,7 @@ public class LetterGenerationService
                     shadowRecipients[_random.Next(shadowRecipients.Length)]
                 );
 
-            case ConnectionType.Noble:
+            case ConnectionType.Status:
                 string[] patronSenders = new[] { "Your Patron", "Patron's Secretary", "House Steward" };
                 string[] patronRecipients = new[] { "Field Agent", "Local Contact", "Resource Master" };
                 return (

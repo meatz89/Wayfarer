@@ -64,11 +64,11 @@ public class PatronLetterService
     {
         // Check if patron debt already exists
         var patronTokens = _tokenManager.GetTokensWithNPC("patron");
-        if (patronTokens[ConnectionType.Noble] >= GameConstants.Patron.PATRON_DEBT_THRESHOLD)
+        if (patronTokens[ConnectionType.Status] >= GameConstants.Patron.PATRON_DEBT_THRESHOLD)
         {
             // Set extreme debt to create natural leverage
             // This debt makes patron letters naturally reach positions 1-3
-            _tokenManager.AddTokensToNPC(ConnectionType.Noble, GameConstants.Patron.INITIAL_PATRON_DEBT, "patron");
+            _tokenManager.AddTokensToNPC(ConnectionType.Status, GameConstants.Patron.INITIAL_PATRON_DEBT, "patron");
             
             _messageSystem.AddSystemMessage(
                 "Your patron has saved you from destitution - but at a steep price.",
@@ -92,7 +92,7 @@ public class PatronLetterService
     public Letter GeneratePatronLetter()
     {
         // Get available patron letter templates - this will respect tutorial filtering
-        var patronTemplates = _letterTemplateRepository.GetTemplatesByTokenType(ConnectionType.Noble)
+        var patronTemplates = _letterTemplateRepository.GetTemplatesByTokenType(ConnectionType.Status)
             .Where(t => t.Category == LetterCategory.Premium || 
                        t.Id.StartsWith("patron_") || 
                        t.Id.StartsWith("forced_patron_") ||
@@ -110,7 +110,7 @@ public class PatronLetterService
             {
                 Id = "patron_generic",
                 Description = "Urgent instructions from your patron",
-                TokenType = ConnectionType.Noble,
+                TokenType = ConnectionType.Status,
                 Category = LetterCategory.Premium,
                 MinDeadline = 2,
                 MaxDeadline = 4,

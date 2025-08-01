@@ -230,9 +230,9 @@ public class Phase3_NPCDependents : IInitializationPhase
         var tokenTypes = new[] 
         { 
             ConnectionType.Common, 
-            ConnectionType.Trade, 
+            ConnectionType.Commerce, 
             ConnectionType.Trust,
-            ConnectionType.Noble,
+            ConnectionType.Status,
             ConnectionType.Shadow
         };
         

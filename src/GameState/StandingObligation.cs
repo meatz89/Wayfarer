@@ -114,12 +114,12 @@ public class StandingObligation
     {
         if (!AppliesTo(letter.TokenType)) return 0;
 
-        if (HasEffect(ObligationEffect.TradeBonus) && letter.TokenType == ConnectionType.Trade)
+        if (HasEffect(ObligationEffect.TradeBonus) && letter.TokenType == ConnectionType.Commerce)
         {
             return 10; // Flat +10 bonus
         }
 
-        if (HasEffect(ObligationEffect.TradeBonusPlus3) && letter.TokenType == ConnectionType.Trade)
+        if (HasEffect(ObligationEffect.TradeBonusPlus3) && letter.TokenType == ConnectionType.Commerce)
         {
             return 3; // Flat +3 bonus
         }
@@ -137,7 +137,7 @@ public class StandingObligation
     {
         if (!AppliesTo(letter.TokenType)) return defaultPosition;
 
-        if (HasEffect(ObligationEffect.NoblesPriority) && letter.TokenType == ConnectionType.Noble)
+        if (HasEffect(ObligationEffect.NoblesPriority) && letter.TokenType == ConnectionType.Status)
         {
             return Math.Min(5, defaultPosition); // Enter at slot 5 or higher
         }
@@ -188,7 +188,7 @@ public class StandingObligation
     public bool IsForbiddenAction(string actionType, Letter letter)
     {
         if (actionType == "refuse" && HasEffect(ObligationEffect.NoNobleRefusal) &&
-            letter.TokenType == ConnectionType.Noble)
+            letter.TokenType == ConnectionType.Status)
         {
             return true;
         }
@@ -205,7 +205,7 @@ public class StandingObligation
         }
 
         if (actionType == "purge" && HasEffect(ObligationEffect.NoTradePurge) &&
-            letter.TokenType == ConnectionType.Trade)
+            letter.TokenType == ConnectionType.Commerce)
         {
             return true;
         }

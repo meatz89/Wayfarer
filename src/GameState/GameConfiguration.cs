@@ -30,8 +30,8 @@ public class GameConfiguration
                 MaxQueueSize = 8,
                 BasePositions = new Dictionary<ConnectionType, int>
                 {
-                    { ConnectionType.Noble, 3 },
-                    { ConnectionType.Trade, 5 },
+                    { ConnectionType.Status, 3 },
+                    { ConnectionType.Commerce, 5 },
                     { ConnectionType.Shadow, 5 },
                     { ConnectionType.Common, 7 },
                     { ConnectionType.Trust, 7 }

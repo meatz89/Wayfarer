@@ -43,7 +43,7 @@ public class PatronFundsCommand : BaseGameCommand
 
         // Check token cost
         int tokenCost = _config.Patron.FundRequestCost;
-        int patronTokens = _tokenManager.GetTokensWithNPC("patron").GetValueOrDefault(ConnectionType.Noble);
+        int patronTokens = _tokenManager.GetTokensWithNPC("patron").GetValueOrDefault(ConnectionType.Status);
 
         if (patronTokens < tokenCost)
         {
@@ -76,7 +76,7 @@ public class PatronFundsCommand : BaseGameCommand
         int coinsReceived = _config.Patron.FundRequestAmount;
 
         // Time spending handled by executing service
-        _tokenManager.SpendTokens(ConnectionType.Noble, tokensSpent, "patron");
+        _tokenManager.SpendTokens(ConnectionType.Status, tokensSpent, "patron");
 
         // Add coins
         player.ModifyCoins(coinsReceived);
@@ -96,7 +96,7 @@ public class PatronFundsCommand : BaseGameCommand
         );
 
         // Add context based on remaining leverage
-        int remainingTokens = _tokenManager.GetTokensWithNPC("patron").GetValueOrDefault(ConnectionType.Noble);
+        int remainingTokens = _tokenManager.GetTokensWithNPC("patron").GetValueOrDefault(ConnectionType.Status);
         if (remainingTokens < 0)
         {
             _messageSystem.AddSystemMessage(

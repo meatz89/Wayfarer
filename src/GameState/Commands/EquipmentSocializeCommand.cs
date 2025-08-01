@@ -134,8 +134,8 @@ public class EquipmentSocializeCommand : BaseGameCommand
     {
         return tokenType switch
         {
-            ConnectionType.Noble => "Fine Clothes required for noble connections",
-            ConnectionType.Trade => "Merchant Ledger required for trade connections",
+            ConnectionType.Status => "Fine Clothes required for noble connections",
+            ConnectionType.Commerce => "Merchant Ledger required for trade connections",
             _ => "Special equipment required"
         };
     }
@@ -144,8 +144,8 @@ public class EquipmentSocializeCommand : BaseGameCommand
     {
         return tokenType switch
         {
-            ConnectionType.Noble => $"Your refined attire impressed {npcName}, opening doors to noble discourse",
-            ConnectionType.Trade => $"Your merchant ledger facilitated productive business discussions with {npcName}",
+            ConnectionType.Status => $"Your refined attire impressed {npcName}, opening doors to noble discourse",
+            ConnectionType.Commerce => $"Your merchant ledger facilitated productive business discussions with {npcName}",
             _ => $"Had a pleasant time with {npcName} and strengthened your connection!"
         };
     }

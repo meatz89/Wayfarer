@@ -57,7 +57,7 @@ public class BorrowMoneyCommand : BaseGameCommand
         }
 
         // Check if NPC offers loans (must have trade or shadow tokens)
-        bool canLend = npc.LetterTokenTypes.Contains(ConnectionType.Trade) ||
+        bool canLend = npc.LetterTokenTypes.Contains(ConnectionType.Commerce) ||
                       npc.LetterTokenTypes.Contains(ConnectionType.Shadow);
 
         if (!canLend)
@@ -106,7 +106,7 @@ public class BorrowMoneyCommand : BaseGameCommand
         player.ModifyCoins(coinsReceived);
 
         // Narrative feedback based on NPC type
-        if (tokenType == ConnectionType.Trade)
+        if (tokenType == ConnectionType.Commerce)
         {
             _messageSystem.AddSystemMessage(
                 $"💰 {npc.Name} counts out {coinsReceived} coins. \"Pay me back when you can, friend.\"",

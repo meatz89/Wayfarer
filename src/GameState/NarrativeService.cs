@@ -286,14 +286,14 @@ public class NarrativeService
                     $"\"You've proven yourself trustworthy,\" {npcName} says with appreciation.",
                     $"{npcName} nods gratefully. \"It's good to have someone reliable.\""
                 },
-            ConnectionType.Trade => new[]
+            ConnectionType.Commerce => new[]
             {
                     $"{npcName} nods approvingly. \"Good business, as always.\"",
                     $"\"Reliable couriers are worth their weight in gold,\" says {npcName}.",
                     $"{npcName} makes a note. \"I'll remember this efficiency.\"",
                     $"\"Professional work deserves professional relationships,\" {npcName} remarks."
                 },
-            ConnectionType.Noble => new[]
+            ConnectionType.Status => new[]
             {
                     $"{npcName} acknowledges you formally. \"Your service honors us both.\"",
                     $"\"Discretion and duty - admirable qualities,\" {npcName} observes.",

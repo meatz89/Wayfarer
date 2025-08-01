@@ -47,7 +47,7 @@ public class DeliveryConversationService
         bool playerIsDesperate = player.Coins < 5;
         bool playerIsExhausted = player.Stamina < 2;
         bool hasPatronObligation = _obligationManager.GetActiveObligations().Any(o => o.Name == "Patron's Expectation");
-        bool recipientIsPatron = recipient.Profession == Professions.Noble;
+        bool recipientIsPatron = recipient.Profession == Professions.Status;
 
         return new DeliveryConversationContext
         {

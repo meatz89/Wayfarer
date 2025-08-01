@@ -237,14 +237,14 @@ public class RouteDiscoveryManager
         if (routeContext.Contains("trade") || routeContext.Contains("merchant") ||
             routeContext.Contains("commercial") || routeContext.Contains("toll"))
         {
-            return ConnectionType.Trade;
+            return ConnectionType.Commerce;
         }
 
         // Noble/estate routes use Noble tokens
         if (routeContext.Contains("noble") || routeContext.Contains("estate") ||
             routeContext.Contains("court") || routeContext.Contains("palace"))
         {
-            return ConnectionType.Noble;
+            return ConnectionType.Status;
         }
 
         // Shadow/illegal routes use Shadow tokens

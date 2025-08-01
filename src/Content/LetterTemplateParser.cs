@@ -37,8 +37,8 @@ public static class LetterTemplateParser
         return connectionTypeStr switch
         {
             "Trust" => ConnectionType.Trust,
-            "Trade" => ConnectionType.Trade,
-            "Noble" => ConnectionType.Noble,
+            "Trade" => ConnectionType.Commerce,
+            "Noble" => ConnectionType.Status,
             "Common" => ConnectionType.Common,
             "Shadow" => ConnectionType.Shadow,
             _ => ConnectionType.Common // Default fallback

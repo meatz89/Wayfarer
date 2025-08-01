@@ -110,7 +110,7 @@ public class LetterTemplateRepository
         // Apply tutorial filtering
         var templates = GetAllTemplates();
         return templates
-            .Where(t => t.Id.StartsWith("forced_patron_") && t.TokenType == ConnectionType.Noble)
+            .Where(t => t.Id.StartsWith("forced_patron_") && t.TokenType == ConnectionType.Status)
             .ToList();
     }
 
@@ -185,7 +185,7 @@ public class LetterTemplateRepository
                 recipientName = shadowRecipients[_random.Next(shadowRecipients.Length)];
                 break;
 
-            case ConnectionType.Noble:
+            case ConnectionType.Status:
                 string[] patronSenders = new[] { "Your Patron", "Patron's Secretary", "House Steward" };
                 string[] patronRecipients = new[] { "Field Agent", "Local Contact", "Resource Master" };
                 senderName = patronSenders[_random.Next(patronSenders.Length)];
