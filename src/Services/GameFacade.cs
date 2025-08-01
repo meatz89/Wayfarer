@@ -469,7 +469,7 @@ public class GameFacade : IGameFacade
             ConnectionType.Trust => "💝",
             ConnectionType.Commerce => "🤝",
             ConnectionType.Status => "👑",
-            ConnectionType.Common => "🏘️",
+            ConnectionType.Trust => "🏘️",
             ConnectionType.Shadow => "🌑",
             _ => "🎭"
         };

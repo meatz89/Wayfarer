@@ -30,7 +30,7 @@ public class ShareLunchCommand : BaseGameCommand
         Description = $"Share lunch with NPC {npcId}";
         
         // Sharing lunch is a common social activity that builds everyday connections
-        TokenTypeGranted = ConnectionType.Common;
+        TokenTypeGranted = ConnectionType.Trust;
     }
 
     public override CommandValidationResult CanExecute(GameWorld gameWorld)

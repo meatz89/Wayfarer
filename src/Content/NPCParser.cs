@@ -107,7 +107,7 @@ public static class NPCParser
             "trust" => ConnectionType.Trust,
             "trade" => ConnectionType.Commerce,
             "noble" => ConnectionType.Status,
-            "common" => ConnectionType.Common,
+            "common" => ConnectionType.Trust,
             "shadow" => ConnectionType.Shadow,
             _ => null
         };

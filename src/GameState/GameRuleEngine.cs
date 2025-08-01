@@ -182,7 +182,7 @@ public class GameRuleEngine : IGameRuleEngine
         return timeBlock switch
         {
             TimeBlocks.Night => npc.LetterTokenTypes.Contains(ConnectionType.Shadow),
-            TimeBlocks.Dawn => npc.LetterTokenTypes.Contains(ConnectionType.Common),
+            TimeBlocks.Dawn => npc.LetterTokenTypes.Contains(ConnectionType.Trust),
             _ => true // Most NPCs available during day
         };
     }

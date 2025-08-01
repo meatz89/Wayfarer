@@ -124,7 +124,7 @@ public class NoticeBoardService
                 generatedLetter = GenerateDirectionalLetter(direction);
                 break;
             case NoticeBoardOption.LookingForWork:
-                generatedLetter = GenerateSpecificTypeLetter(specificType ?? ConnectionType.Common);
+                generatedLetter = GenerateSpecificTypeLetter(specificType ?? ConnectionType.Trust);
                 break;
             case NoticeBoardOption.UrgentDeliveries:
                 generatedLetter = GenerateUrgentHighPayLetter();

@@ -27,7 +27,7 @@ public class SocializeCommand : BaseGameCommand
         
         // Socialize grants Common tokens by default (casual conversation)
         // More specific social actions can grant other token types
-        TokenTypeGranted = ConnectionType.Common;
+        TokenTypeGranted = ConnectionType.Trust;
     }
 
     public override CommandValidationResult CanExecute(GameWorld gameWorld)

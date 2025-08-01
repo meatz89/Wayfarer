@@ -296,7 +296,7 @@ public class LetterQueueUIService
             ConnectionType.Trust => "❤️",
             ConnectionType.Commerce => "🪙",
             ConnectionType.Status => "👑",
-            ConnectionType.Common => "🍺",
+            ConnectionType.Trust => "🍺",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
         };
