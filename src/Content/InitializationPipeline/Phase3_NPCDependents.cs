@@ -153,7 +153,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                     // Parse token type
                     if (!Enum.TryParse<ConnectionType>(dto.TokenType, true, out var tokenType))
                     {
-                        tokenType = ConnectionType.Common;
+                        tokenType = ConnectionType.Trust;
                         context.Warnings.Add($"Invalid token type '{dto.TokenType}' for template {dto.Id}, defaulting to Common");
                     }
                     
@@ -229,7 +229,7 @@ public class Phase3_NPCDependents : IInitializationPhase
         // Create one template for each token type
         var tokenTypes = new[] 
         { 
-            ConnectionType.Common, 
+            ConnectionType.Trust, 
             ConnectionType.Commerce, 
             ConnectionType.Trust,
             ConnectionType.Status,

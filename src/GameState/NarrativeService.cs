@@ -300,7 +300,7 @@ public class NarrativeService
                     $"{npcName} inclines their head. \"The nobility remembers its friends.\"",
                     $"\"Such dedication deserves recognition,\" {npcName} states."
                 },
-            ConnectionType.Common => new[]
+            ConnectionType.Trust => new[]
             {
                     $"{npcName} grins. \"You're one of us, through and through!\"",
                     $"\"The common folk won't forget this,\" {npcName} promises.",

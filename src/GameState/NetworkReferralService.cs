@@ -150,7 +150,7 @@ public class NetworkReferralService
                 $"I can arrange an introduction to {targetNPC.Name} - quite influential.",
                 $"{targetNPC.Name} appreciates proper etiquette and timely service."
             },
-            ConnectionType.Common => new[]
+            ConnectionType.Trust => new[]
             {
                 $"{targetNPC.Name} is one of us - always has work for honest folk.",
                 $"My neighbor {targetNPC.Name} mentioned needing help.",

@@ -30,7 +30,7 @@ public class StandingObligationFactory
             Name = name,
             Description = $"An obligation called {name}",
             Source = npcId ?? "unknown_npc",
-            RelatedTokenType = ConnectionType.Common, // Most basic type
+            RelatedTokenType = ConnectionType.Trust, // Most basic type
             BenefitEffects = new List<ObligationEffect>(),
             ConstraintEffects = new List<ObligationEffect>()
         };

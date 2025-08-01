@@ -262,7 +262,7 @@ public class RouteDiscoveryManager
         }
 
         // Mountain/forest/common routes use Common tokens
-        return ConnectionType.Common;
+        return ConnectionType.Trust;
     }
 }
 

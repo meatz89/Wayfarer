@@ -331,14 +331,14 @@ public class StandingObligationManager
     // Apply common revenge effect - common letters from debt get noble priority
     private int ApplyCommonRevengeEffect(StandingObligation obligation, Letter letter, int currentPosition)
     {
-        if (letter.TokenType != ConnectionType.Common)
+        if (letter.TokenType != ConnectionType.Trust)
             return currentPosition;
 
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId))
             return currentPosition;
 
-        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Common];
+        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Trust];
         if (tokenBalance < 0)
         {
             return 3; // Noble position for debt leverage

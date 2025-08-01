@@ -33,7 +33,7 @@ public class GameConfiguration
                     { ConnectionType.Status, 3 },
                     { ConnectionType.Commerce, 5 },
                     { ConnectionType.Shadow, 5 },
-                    { ConnectionType.Common, 7 },
+                    { ConnectionType.Trust, 7 },
                     { ConnectionType.Trust, 7 }
                 },
                 LeverageMultiplier = 1,

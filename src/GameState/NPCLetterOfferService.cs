@@ -533,7 +533,7 @@ public class NPCLetterOfferService
         }
         else
         {
-            letter.TokenType = ConnectionType.Common;
+            letter.TokenType = ConnectionType.Trust;
         }
 
         // Add urgency sometimes

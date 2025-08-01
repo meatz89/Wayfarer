@@ -569,7 +569,7 @@ public class LetterQueueManager
                 ConnectionType.Status => 3,
                 ConnectionType.Commerce => 5,
                 ConnectionType.Shadow => 5,
-                ConnectionType.Common => 7,
+                ConnectionType.Trust => 7,
                 ConnectionType.Trust => 7,
                 _ => 7
             };
@@ -1419,7 +1419,7 @@ public class LetterQueueManager
                 return "commercial";
             case ConnectionType.Status:
                 return "aristocratic";
-            case ConnectionType.Common:
+            case ConnectionType.Trust:
                 return "local";
             case ConnectionType.Shadow:
                 return "clandestine";

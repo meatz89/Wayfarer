@@ -39,9 +39,9 @@ public static class LetterTemplateParser
             "Trust" => ConnectionType.Trust,
             "Trade" => ConnectionType.Commerce,
             "Noble" => ConnectionType.Status,
-            "Common" => ConnectionType.Common,
+            "Common" => ConnectionType.Trust,
             "Shadow" => ConnectionType.Shadow,
-            _ => ConnectionType.Common // Default fallback
+            _ => ConnectionType.Trust // Default fallback
         };
     }
 

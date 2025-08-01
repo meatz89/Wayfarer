@@ -413,7 +413,7 @@ public class ConnectionTokenManager
                 $"\"The nobility appreciates discretion,\" {npc.Name} says formally.",
                 $"{npc.Name} acknowledges your service with courtly grace."
             },
-            ConnectionType.Common => new[]
+            ConnectionType.Trust => new[]
             {
                 $"{npc.Name} grins. \"You're good people, you are!\"",
                 $"\"Folk like you keep our communities connected,\" says {npc.Name}.",

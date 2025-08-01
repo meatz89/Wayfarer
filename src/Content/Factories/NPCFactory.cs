@@ -31,7 +31,7 @@ public class NPCFactory
             Location = locationId ?? "unknown_location",
             Profession = Professions.Merchant, // Default profession
             Description = $"{name}, a local merchant",
-            LetterTokenTypes = new List<ConnectionType> { ConnectionType.Common }
+            LetterTokenTypes = new List<ConnectionType> { ConnectionType.Trust }
         };
     }
     

@@ -142,7 +142,7 @@ public class StandingObligation
             return Math.Min(5, defaultPosition); // Enter at slot 5 or higher
         }
 
-        if (HasEffect(ObligationEffect.CommonFolksPriority) && letter.TokenType == ConnectionType.Common)
+        if (HasEffect(ObligationEffect.CommonFolksPriority) && letter.TokenType == ConnectionType.Trust)
         {
             return Math.Min(6, defaultPosition); // Enter at slot 6 or higher
         }
@@ -194,7 +194,7 @@ public class StandingObligation
         }
 
         if (actionType == "refuse" && HasEffect(ObligationEffect.NoCommonRefusal) &&
-            letter.TokenType == ConnectionType.Common)
+            letter.TokenType == ConnectionType.Trust)
         {
             return true;
         }

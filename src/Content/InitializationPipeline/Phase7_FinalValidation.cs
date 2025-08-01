@@ -151,7 +151,7 @@ public class Phase7_FinalValidation : IInitializationPhase
             
             var dummyNPC = npcFactory.CreateMinimalNPC(missingId, location.Id);
             dummyNPC.Profession = Professions.Merchant;
-            dummyNPC.LetterTokenTypes = new List<ConnectionType> { ConnectionType.Common, ConnectionType.Trust };
+            dummyNPC.LetterTokenTypes = new List<ConnectionType> { ConnectionType.Trust, ConnectionType.Trust };
             
             gameWorld.WorldState.NPCs.Add(dummyNPC);
             npcIds.Add(missingId);

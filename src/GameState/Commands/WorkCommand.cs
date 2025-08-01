@@ -44,7 +44,7 @@ public class WorkCommand : BaseGameCommand
             else if (npc.Profession == Professions.Craftsman || npc.Profession == Professions.Innkeeper ||
                      npc.Profession == Professions.TavernKeeper || npc.Profession == Professions.Merchant)
             {
-                TokenTypeGranted = ConnectionType.Common;
+                TokenTypeGranted = ConnectionType.Trust;
             }
             // Noble work might grant Noble tokens
             else if (npc.Profession == Professions.Status || npc.Profession == Professions.Scholar)

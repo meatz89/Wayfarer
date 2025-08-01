@@ -28,7 +28,7 @@ public class LetterTemplateFactory
         {
             Id = id,
             Description = $"A letter template called {name}",
-            TokenType = ConnectionType.Common, // Most basic type
+            TokenType = ConnectionType.Trust, // Most basic type
             MinDeadline = 24, // One day minimum
             MaxDeadline = 48, // Two days maximum
             MinPayment = 2, // Low but reasonable

@@ -126,7 +126,7 @@ public class MinimalGameWorldInitializer
                 var defaultNPC = npcFactory.CreateMinimalNPC($"elder_{location.Id}", location.Id);
                 defaultNPC.Name = $"{location.Name} Elder";
                 defaultNPC.Description = $"A wise elder of {location.Name}";
-                defaultNPC.LetterTokenTypes = new List<ConnectionType> { ConnectionType.Common, ConnectionType.Trust };
+                defaultNPC.LetterTokenTypes = new List<ConnectionType> { ConnectionType.Trust, ConnectionType.Trust };
                 
                 gameWorld.WorldState.NPCs.Add(defaultNPC);
                 Console.WriteLine($"  Created default NPC for {location.Id}");
@@ -247,7 +247,7 @@ Size = SizeCategory.Small
             {
                 Id = "basic_delivery",
                 Description = "A simple letter delivery",
-                TokenType = ConnectionType.Common,
+                TokenType = ConnectionType.Trust,
                 MinPayment = 2,
                 MaxPayment = 5,
                 MinDeadline = 24,
