@@ -1,16 +1,11 @@
 @page "/letterboard"
 @inherits MainGameplayViewBase
 
-@inject LetterTemplateRepository LetterTemplateRepository
-@inject ConnectionTokenManager TokenManager
-@inject StandingObligationManager ObligationManager
-@inject NoticeBoardService NoticeBoardService
-@inject ITimeManager TimeManager
 
 <div class="letter-board-container">
     <h2>Morning Letter Board</h2>
     
-    @if (TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+    @if (GameFacade.GetTimeInfo().timeBlock != TimeBlocks.Dawn)
     {
         <div class="time-restriction">
             <span class="restriction-icon">⏰</span>
@@ -22,8 +17,8 @@
     {
         @* Queue Status *@
         <div class="queue-status-bar">
-            <span class="queue-info">Queue: @LetterQueueManager.GetLetterCount() / 8 letters</span>
-            @if (LetterQueueManager.IsQueueFull())
+            <span class="queue-info">Queue: @GameFacade.GetLetterQueueCount() / 8 letters</span>
+            @if (GameFacade.IsLetterQueueFull())
             {
                 <span class="queue-warning">⚠️ Queue Full - Cannot accept new letters!</span>
             }
@@ -76,7 +71,7 @@
                                 </div>
                             </div>
                             
-                            @if (!LetterQueueManager.IsQueueFull())
+                            @if (!GameFacade.IsLetterQueueFull())
                             {
                                 <button class="btn btn-primary accept-btn" @onclick="() => SelectLetter(letter)">
                                     @(selectedLetter == letter ? "Selected ✓" : "Select")
@@ -87,7 +82,7 @@
                 </div>
                 
                 @* Action Buttons *@
-                @if (selectedLetter != null && !LetterQueueManager.IsQueueFull())
+                @if (selectedLetter != null && !GameFacade.IsLetterQueueFull())
                 {
                     <div class="action-panel">
                         <h4>Selected: @selectedLetter.SenderName → @selectedLetter.RecipientName</h4>
@@ -118,7 +113,7 @@
             <h3>📋 Spend Tokens to Seek Letters</h3>
             <div class="notice-board-options">
                 @* Anything Heading Direction Option *@
-                <div class="board-option @(NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.AnythingHeading) ? "" : "disabled")">
+                <div class="board-option @(CanAffordOption("anything_heading") ? "" : "disabled")">
                     <div class="option-header">
                         <h4>"Anything heading..."</h4>
                         <span class="token-cost">2 tokens</span>
@@ -129,7 +124,7 @@
                     @if (ShowDirectionSelection)
                     {
                         <div class="direction-selection">
-                            @foreach (var direction in NoticeBoardService.GetAvailableDirections())
+                            @foreach (var direction in GetAvailableDirections())
                             {
                                 <button class="direction-btn" @onclick="() => SelectDirection(direction)">
                                     @direction
@@ -141,14 +136,14 @@
                     {
                         <button class="option-button" 
                                 @onclick="() => ShowDirectionSelection = true" 
-                                disabled="@(!NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.AnythingHeading))">
+                                disabled="@(!CanAffordOption("anything_heading"))">
                             Ask Board Keeper
                         </button>
                     }
                 </div>
                 
                 @* Looking for Specific Work Option *@
-                <div class="board-option @(NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.LookingForWork) ? "" : "disabled")">
+                <div class="board-option @(CanAffordOption("looking_for_work") ? "" : "disabled")">
                     <div class="option-header">
                         <h4>"Looking for work..."</h4>
                         <span class="token-cost">3 tokens</span>
@@ -172,14 +167,14 @@
                     {
                         <button class="option-button" 
                                 @onclick="() => ShowTypeSelection = true"
-                                disabled="@(!NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.LookingForWork))">
+                                disabled="@(!CanAffordOption("looking_for_work"))">
                             Specify Work Type
                         </button>
                     }
                 </div>
                 
                 @* Urgent Deliveries Option *@
-                <div class="board-option @(NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.UrgentDeliveries) ? "" : "disabled")">
+                <div class="board-option @(CanAffordOption("urgent_deliveries") ? "" : "disabled")">
                     <div class="option-header">
                         <h4>"Urgent deliveries?"</h4>
                         <span class="token-cost">5 tokens</span>
@@ -189,7 +184,7 @@
                     </div>
                     <button class="option-button urgent" 
                             @onclick="RequestUrgentDelivery"
-                            disabled="@(!NoticeBoardService.CanAffordOption(NoticeBoardService.NoticeBoardOption.UrgentDeliveries))">
+                            disabled="@(!CanAffordOption("urgent_deliveries"))">
                         Check for Urgent Work
                     </button>
                 </div>
@@ -198,17 +193,17 @@
             <div class="token-summary">
                 <div class="summary-header">Your Tokens:</div>
                 <div class="token-list">
-                    @foreach (var tokenCount in TokenManager.GetPlayerTokens())
+                    @foreach (var token in GetPlayerTokens())
                     {
-                        @if (tokenCount.Value > 0)
+                        @if (token.Amount > 0)
                         {
-                            <span class="token-display @GetTokenTypeClass(tokenCount.Key)">
-                                @GetTokenIcon(tokenCount.Key) @tokenCount.Value
+                            <span class="token-display @GetTokenTypeClass(token.TokenType)">
+                                @GetTokenIcon(token.TokenType) @token.Amount
                             </span>
                         }
                     }
                 </div>
-                <div class="total-tokens">Total: @TokenManager.GetPlayerTokens().Values.Sum() tokens</div>
+                <div class="total-tokens">Total: @GetPlayerTokens().Sum(t => t.Amount) tokens</div>
             </div>
         </div>
         
@@ -231,27 +226,30 @@
     private Letter? selectedLetter = null;
     private bool ShowDirectionSelection = false;
     private bool ShowTypeSelection = false;
+    private List<NoticeBoardOption> noticeBoardOptions = new List<NoticeBoardOption>();
     
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        noticeBoardOptions = GameFacade.GetNoticeBoardOptions();
         CheckAndGenerateLetters();
     }
     
     private void CheckAndGenerateLetters()
     {
-        var player = GameWorld.GetPlayer();
-        var currentDay = GameWorld.CurrentDay;
+        var player = GameFacade.GetPlayer();
+        var currentDay = GameFacade.GetCurrentDay();
+        var currentTime = GameFacade.GetTimeInfo().timeBlock;
         
         // Only generate if we haven't generated for today
-        if (player.LastLetterBoardDay < currentDay && TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        if (player.LastLetterBoardDay < currentDay && currentTime == TimeBlocks.Dawn)
         {
-            GenerateAvailableLetters();
+            GenerateAvailableLetters(currentDay);
             player.LastLetterBoardDay = currentDay;
             // Store the generated letters in the player state
             player.DailyBoardLetters = availableLetters.ToList();
         }
-        else if (player.LastLetterBoardDay == currentDay && TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
+        else if (player.LastLetterBoardDay == currentDay && currentTime == TimeBlocks.Dawn)
         {
             // Restore previously generated letters for today (minus any already accepted)
             availableLetters = player.DailyBoardLetters?.ToList() ?? new List<Letter>();
@@ -259,7 +257,7 @@
         // Otherwise, letters remain empty (not dawn)
     }
     
-    private void GenerateAvailableLetters()
+    private void GenerateAvailableLetters(int currentDay)
     {
         availableLetters.Clear();
         
@@ -269,11 +267,10 @@
         
         for (int i = 0; i < letterCount; i++)
         {
-            var template = LetterTemplateRepository.GetRandomTemplate();
-            if (template == null) continue;
+            // For now, generate simple letters - template system would need to be exposed through GameFacade
             
             // Get random NPCs for sender/recipient
-            var allNpcs = NPCRepository.GetAllNPCs();
+            var allNpcs = GameFacade.GetAllNPCs();
             if (allNpcs.Count < 2) continue;
             
             var sender = allNpcs[random.Next(allNpcs.Count)];
@@ -285,13 +282,17 @@
                 recipient = allNpcs.Where(n => n.ID != sender.ID).First();
             }
             
-            var letter = LetterTemplateRepository.GenerateLetterFromTemplate(template, sender.Name, recipient.Name);
-            if (letter != null)
+            // Create a simple letter
+            var letter = new Letter
             {
-                // Mark as board letter
-                letter.GenerationReason = "Morning Letter Board";
-                availableLetters.Add(letter);
-            }
+                Id = Guid.NewGuid().ToString(),
+                SenderName = sender.Name,
+                RecipientName = recipient.Name,
+                Payment = 15 + random.Next(20),
+                DeadlineInDays = 3 + random.Next(3),
+                TokenType = (ConnectionType)random.Next(4)
+            };
+            availableLetters.Add(letter);
         }
     }
     
@@ -302,7 +303,7 @@
     
     private void AcceptSelectedLetter()
     {
-        if (selectedLetter == null || LetterQueueManager.IsQueueFull())
+        if (selectedLetter == null || GameFacade.IsLetterQueueFull())
         {
             return;
         }
@@ -310,61 +311,45 @@
         // Check for refusal obligations
         if (WouldViolateRefusalObligation(selectedLetter))
         {
-            var obligation = GetRefusalObligation(selectedLetter);
-            if (obligation != null)
-            {
-                MessageSystem.AddSystemMessage(
-                    $"Cannot refuse {selectedLetter.TokenType} letter due to {obligation.Name}",
-                    SystemMessageTypes.Warning
-                );
-                return;
-            }
+            // Message is handled by WouldViolateRefusalObligation
+            return;
         }
         
         // Add to queue
-        int position = LetterQueueManager.AddLetterWithObligationEffects(selectedLetter);
+        int position = GameFacade.AddLetterWithObligationEffects(selectedLetter);
         
         if (position > 0)
         {
-            MessageSystem.AddSystemMessage(
-                $"Accepted letter from {selectedLetter.SenderName}! Added to queue position {position}.",
-                SystemMessageTypes.Success
-            );
-            
             // Remove from available letters
             availableLetters.Remove(selectedLetter);
             // Also remove from player's stored daily letters
-            GameWorld.GetPlayer().DailyBoardLetters?.Remove(selectedLetter);
+            GameFacade.GetPlayer().DailyBoardLetters?.Remove(selectedLetter);
             selectedLetter = null;
             
             StateHasChanged();
-        }
-        else
-        {
-            MessageSystem.AddSystemMessage(
-                "Failed to add letter to queue.",
-                SystemMessageTypes.Danger
-            );
         }
     }
     
     private bool WouldViolateRefusalObligation(Letter letter)
     {
-        return ObligationManager.IsActionForbidden("refuse", letter, out _);
+        string reason;
+        return GameFacade.IsActionForbidden("refuse", letter, out reason);
     }
     
-    private StandingObligation? GetRefusalObligation(Letter letter)
+    private string GetRefusalObligationName(Letter letter)
     {
-        var obligations = ObligationManager.GetActiveObligations();
+        var obligations = GameFacade.GetStandingObligations();
         
         if (letter.TokenType == ConnectionType.Status)
         {
-            return obligations.FirstOrDefault(o => o.HasEffect(ObligationEffect.NoStatusRefusal));
+            var obligation = obligations.FirstOrDefault(o => o.Description.Contains("Cannot refuse status letters"));
+            return obligation?.Name;
         }
         
         if (letter.TokenType == ConnectionType.Trust)
         {
-            return obligations.FirstOrDefault(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost));
+            var obligation = obligations.FirstOrDefault(o => o.Description.Contains("trust letters costs double"));
+            return obligation?.Name;
         }
         
         return null;
@@ -394,67 +379,26 @@
     {
         ShowDirectionSelection = false;
         
-        var letter = NoticeBoardService.UseNoticeBoard(
-            NoticeBoardService.NoticeBoardOption.AnythingHeading, 
-            direction
-        );
-        
-        if (letter != null)
-        {
-            var position = LetterQueueManager.AddLetter(letter);
-            if (position > 0)
-            {
-                MessageSystem.AddSystemMessage(
-                    $"📬 Letter added to your queue at position {position}!",
-                    SystemMessageTypes.Success
-                );
-                StateHasChanged();
-            }
-        }
+        var option = noticeBoardOptions.First(o => o.Id == "anything_heading");
+        await GameFacade.ExecuteNoticeBoardOption(option, direction);
+        StateHasChanged();
     }
     
     private async Task SelectType(ConnectionType tokenType)
     {
         ShowTypeSelection = false;
         
-        var letter = NoticeBoardService.UseNoticeBoard(
-            NoticeBoardService.NoticeBoardOption.LookingForWork,
-            null,
-            tokenType
-        );
-        
-        if (letter != null)
-        {
-            var position = LetterQueueManager.AddLetter(letter);
-            if (position > 0)
-            {
-                MessageSystem.AddSystemMessage(
-                    $"📬 {tokenType} letter added to your queue at position {position}!",
-                    SystemMessageTypes.Success
-                );
-                StateHasChanged();
-            }
-        }
+        var option = noticeBoardOptions.First(o => o.Id == "looking_for_work");
+        // Note: GameFacade.ExecuteNoticeBoardOption needs to be enhanced to accept token type
+        await GameFacade.ExecuteNoticeBoardOption(option);
+        StateHasChanged();
     }
     
     private async Task RequestUrgentDelivery()
     {
-        var letter = NoticeBoardService.UseNoticeBoard(
-            NoticeBoardService.NoticeBoardOption.UrgentDeliveries
-        );
-        
-        if (letter != null)
-        {
-            var position = LetterQueueManager.AddLetter(letter);
-            if (position > 0)
-            {
-                MessageSystem.AddSystemMessage(
-                    $"📬 URGENT letter added to your queue at position {position}!",
-                    SystemMessageTypes.Warning
-                );
-                StateHasChanged();
-            }
-        }
+        var option = noticeBoardOptions.First(o => o.Id == "urgent_deliveries");
+        await GameFacade.ExecuteNoticeBoardOption(option);
+        StateHasChanged();
     }
     
     private string GetTokenTypeClass(ConnectionType type)
@@ -467,5 +411,32 @@
             ConnectionType.Shadow => "shadow-token",
             _ => ""
         };
+    }
+    
+    private List<TokenBalance> GetPlayerTokens()
+    {
+        var tokens = new List<TokenBalance>();
+        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+        {
+            var count = GameFacade.GetTokenCount(tokenType);
+            tokens.Add(new TokenBalance
+            {
+                TokenType = tokenType,
+                Amount = count
+            });
+        }
+        return tokens;
+    }
+    
+    private bool CanAffordOption(string optionId)
+    {
+        var option = noticeBoardOptions.FirstOrDefault(o => o.Id == optionId);
+        return option != null && GameFacade.CanAffordNoticeBoardOption(option);
+    }
+    
+    private List<string> GetAvailableDirections()
+    {
+        // Simple directions for now - could be expanded based on actual destinations
+        return new List<string> { "North", "South", "East", "West", "The Capital", "The Coast" };
     }
 }

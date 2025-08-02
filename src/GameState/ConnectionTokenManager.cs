@@ -49,6 +49,24 @@ public class ConnectionTokenManager
         }
         return emptyTokens;
     }
+    
+    // Get tokens with specific NPC as strongly typed object
+    public NPCTokenBalance GetNPCTokenBalance(string npcId)
+    {
+        var tokenDict = GetTokensWithNPC(npcId);
+        var balance = new NPCTokenBalance();
+        
+        foreach (var kvp in tokenDict)
+        {
+            balance.Balances.Add(new TokenBalance 
+            { 
+                TokenType = kvp.Key, 
+                Amount = kvp.Value 
+            });
+        }
+        
+        return balance;
+    }
 
     // Add tokens through Socialize (1 hour → 1 token) or Delivery (1 stamina → 1 token)
     // This method is kept for backward compatibility but should not be used for new commands

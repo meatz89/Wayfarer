@@ -60,6 +60,26 @@ public class LetterViewModel
     public string DeadlineDescription { get; init; }
     public string LeverageIndicator { get; init; }
     public string LeverageTooltip { get; init; }
+    
+    // Enhanced leverage information
+    public bool HasLeverage { get; init; }
+    public int LeverageStrength { get; init; }
+    public int TokenBalance { get; init; }
+    public string LeverageClass { get; init; }
+    public int OriginalPosition { get; init; }
+    public int CurrentPosition { get; init; }
+    
+    // Obligation effects
+    public bool HasPaymentBonus { get; init; }
+    public int PaymentBonusAmount { get; init; }
+    public string PaymentBonusSource { get; init; }
+    public bool HasDeadlineExtension { get; init; }
+    public int DeadlineExtensionDays { get; init; }
+    public string DeadlineExtensionSource { get; init; }
+    public bool HasPositionModifier { get; init; }
+    public int PositionModifierAmount { get; init; }
+    public string PositionModifierSource { get; init; }
+    public List<string> ActiveObligationEffects { get; init; } = new();
 }
 
 /// <summary>
@@ -111,4 +131,50 @@ public class TokenOptionViewModel
     public string TokenType { get; init; }
     public string TokenIcon { get; init; }
     public int Available { get; init; }
+}
+
+/// <summary>
+/// Strongly typed leverage information
+/// </summary>
+public class LeverageInfo
+{
+    public string Indicator { get; set; }
+    public string Tooltip { get; set; }
+    public int TokenBalance { get; set; }
+    public bool HasLeverage { get; set; }
+    public int LeverageStrength { get; set; } // 0-3 for negative leverage
+}
+
+/// <summary>
+/// Strongly typed token selection for purge action
+/// </summary>
+public class TokenSelection
+{
+    public ConnectionType TokenType { get; set; }
+    public int Count { get; set; }
+}
+
+/// <summary>
+/// Strongly typed NPC token balance
+/// </summary>
+public class NPCTokenBalance
+{
+    public List<TokenBalance> Balances { get; set; } = new();
+    
+    public int GetBalance(ConnectionType tokenType)
+    {
+        var balance = Balances.FirstOrDefault(b => b.TokenType == tokenType);
+        return balance?.Amount ?? 0;
+    }
+    
+    public int TotalTokens => Balances.Sum(b => b.Amount);
+}
+
+/// <summary>
+/// Individual token balance
+/// </summary>
+public class TokenBalance
+{
+    public ConnectionType TokenType { get; set; }
+    public int Amount { get; set; }
 }

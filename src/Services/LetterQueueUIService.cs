@@ -121,7 +121,8 @@ public class LetterQueueUIService
 
     private LetterViewModel ConvertToLetterViewModel(Letter letter)
     {
-        (string indicator, string tooltip) leverage = GetLeverageInfo(letter);
+        var leverage = GetLeverageInfo(letter);
+        var obligationEffects = GetObligationEffects(letter);
 
         return new LetterViewModel
         {
@@ -144,8 +145,26 @@ public class LetterQueueUIService
             DeadlineClass = GetDeadlineClass(letter.DeadlineInDays),
             DeadlineIcon = GetDeadlineIcon(letter.DeadlineInDays),
             DeadlineDescription = GetDeadlineDescription(letter.DeadlineInDays),
-            LeverageIndicator = leverage.indicator,
-            LeverageTooltip = leverage.tooltip
+            LeverageIndicator = leverage.Indicator,
+            LeverageTooltip = leverage.Tooltip,
+            // Enhanced leverage information
+            HasLeverage = leverage.HasLeverage,
+            LeverageStrength = leverage.LeverageStrength,
+            TokenBalance = leverage.TokenBalance,
+            LeverageClass = GetLeverageClass(leverage.LeverageStrength),
+            OriginalPosition = letter.OriginalQueuePosition ?? 0,
+            CurrentPosition = _queueManager.GetLetterPosition(letter.Id) ?? 0,
+            // Obligation effects
+            HasPaymentBonus = obligationEffects.paymentBonus > 0,
+            PaymentBonusAmount = obligationEffects.paymentBonus,
+            PaymentBonusSource = obligationEffects.paymentBonusSource,
+            HasDeadlineExtension = obligationEffects.deadlineExtension > 0,
+            DeadlineExtensionDays = obligationEffects.deadlineExtension,
+            DeadlineExtensionSource = obligationEffects.deadlineExtensionSource,
+            HasPositionModifier = obligationEffects.positionModifier != 0,
+            PositionModifierAmount = obligationEffects.positionModifier,
+            PositionModifierSource = obligationEffects.positionModifierSource,
+            ActiveObligationEffects = obligationEffects.activeEffects
         };
     }
 
@@ -290,16 +309,13 @@ public class LetterQueueUIService
     /// <summary>
     /// Store purge token selection and trigger conversation
     /// </summary>
-    public async Task InitiatePurgeAsync(Dictionary<string, int> tokenSelection)
+    public async Task InitiatePurgeAsync(List<TokenSelection> tokenSelections)
     {
-        // Convert string keys to enum
-        Dictionary<ConnectionType, int> enumSelection = new Dictionary<ConnectionType, int>();
-        foreach ((string tokenTypeStr, int count) in tokenSelection)
+        // Convert to dictionary for serialization (legacy interface)
+        var enumSelection = new Dictionary<ConnectionType, int>();
+        foreach (var selection in tokenSelections)
         {
-            if (Enum.TryParse<ConnectionType>(tokenTypeStr, out ConnectionType tokenType))
-            {
-                enumSelection[tokenType] = count;
-            }
+            enumSelection[selection.TokenType] = selection.Count;
         }
 
         // Store for later use in conversation
@@ -378,15 +394,29 @@ public class LetterQueueUIService
         };
     }
 
-    private (string indicator, string tooltip) GetLeverageInfo(Letter letter)
+    private LeverageInfo GetLeverageInfo(Letter letter)
     {
-        NPC? npc = _npcRepository.GetAllNPCs().FirstOrDefault(n => n.Name == letter.SenderName);
-        if (npc == null) return ("", "");
+        var leverageInfo = new LeverageInfo();
+        
+        var npc = _npcRepository.GetAllNPCs().FirstOrDefault(n => n.Name == letter.SenderName);
+        if (npc == null) 
+        {
+            leverageInfo.Indicator = "";
+            leverageInfo.Tooltip = "";
+            leverageInfo.TokenBalance = 0;
+            leverageInfo.HasLeverage = false;
+            leverageInfo.LeverageStrength = 0;
+            return leverageInfo;
+        }
 
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
-        int balance = tokens[letter.TokenType];
+        var tokenBalance = _tokenManager.GetNPCTokenBalance(npc.ID);
+        int balance = tokenBalance.GetBalance(letter.TokenType);
+        
+        leverageInfo.TokenBalance = balance;
+        leverageInfo.HasLeverage = balance < 0;
+        leverageInfo.LeverageStrength = balance < 0 ? Math.Min(Math.Abs(balance), 3) : 0;
 
-        string indicator = balance switch
+        leverageInfo.Indicator = balance switch
         {
             <= -3 => "🔴🔴🔴",
             -2 => "🔴🔴",
@@ -396,18 +426,127 @@ public class LetterQueueUIService
             _ => ""
         };
 
-        string tooltip = balance < 0
+        leverageInfo.Tooltip = balance < 0
             ? $"You owe {letter.SenderName} {Math.Abs(balance)} {letter.TokenType} tokens - they have leverage!"
             : balance >= 4
                 ? $"Strong relationship ({balance} tokens) - reduced leverage"
                 : "";
 
-        return (indicator, tooltip);
+        return leverageInfo;
+    }
+    
+    private (int paymentBonus, string paymentBonusSource, int deadlineExtension, string deadlineExtensionSource, 
+             int positionModifier, string positionModifierSource, List<string> activeEffects) GetObligationEffects(Letter letter)
+    {
+        int paymentBonus = 0;
+        string paymentBonusSource = "";
+        int deadlineExtension = 0;
+        string deadlineExtensionSource = "";
+        int positionModifier = 0;
+        string positionModifierSource = "";
+        List<string> activeEffects = new();
+        
+        // Calculate payment bonus
+        int calculatedBonus = _obligationManager.CalculateTotalCoinBonus(letter);
+        if (calculatedBonus > 0)
+        {
+            paymentBonus = calculatedBonus;
+            var paymentObligations = _obligationManager.GetActiveObligations()
+                .Where(o => o.AppliesTo(letter.TokenType) && 
+                       (o.HasEffect(ObligationEffect.CommerceBonus) || 
+                        o.HasEffect(ObligationEffect.CommerceBonusPlus3) ||
+                        o.HasEffect(ObligationEffect.ShadowTriplePay) ||
+                        o.HasEffect(ObligationEffect.DynamicPaymentBonus)))
+                .ToList();
+            
+            if (paymentObligations.Any())
+            {
+                paymentBonusSource = string.Join(", ", paymentObligations.Select(o => o.Name));
+                activeEffects.Add($"+{calculatedBonus} coins from {paymentBonusSource}");
+            }
+        }
+        
+        // Calculate deadline extensions
+        var deadlineObligations = _obligationManager.GetActiveObligations()
+            .Where(o => o.AppliesTo(letter.TokenType) && 
+                   (o.HasEffect(ObligationEffect.DeadlinePlus2Days) || 
+                    o.HasEffect(ObligationEffect.DynamicDeadlineBonus)))
+            .ToList();
+            
+        foreach (var obligation in deadlineObligations)
+        {
+            if (obligation.HasEffect(ObligationEffect.DeadlinePlus2Days))
+            {
+                deadlineExtension += 2;
+                deadlineExtensionSource = obligation.Name;
+                activeEffects.Add($"+2 days deadline from {obligation.Name}");
+            }
+        }
+        
+        // Calculate position modifiers
+        var positionObligations = _obligationManager.GetActiveObligations()
+            .Where(o => o.AppliesTo(letter.TokenType) && 
+                   (o.HasEffect(ObligationEffect.StatusPriority) ||
+                    o.HasEffect(ObligationEffect.CommercePriority) ||
+                    o.HasEffect(ObligationEffect.TrustPriority) ||
+                    o.HasEffect(ObligationEffect.PatronLettersPosition1) ||
+                    o.HasEffect(ObligationEffect.PatronLettersPosition3) ||
+                    o.HasEffect(ObligationEffect.DynamicLeverageModifier)))
+            .ToList();
+            
+        if (positionObligations.Any())
+        {
+            var bestPosition = _obligationManager.CalculateBestEntryPosition(letter, 8);
+            if (bestPosition < 8)
+            {
+                positionModifier = bestPosition - 8; // Negative value means better position
+                positionModifierSource = string.Join(", ", positionObligations.Select(o => o.Name));
+                activeEffects.Add($"Position {bestPosition} from {positionModifierSource}");
+            }
+        }
+        
+        // Add restriction effects
+        if (_obligationManager.IsActionForbidden("refuse", letter, out string refuseReason))
+        {
+            activeEffects.Add($"Cannot refuse: {refuseReason}");
+        }
+        
+        if (_obligationManager.IsActionForbidden("purge", letter, out string purgeReason))
+        {
+            activeEffects.Add($"Cannot purge: {purgeReason}");
+        }
+        
+        // Check for skip cost multipliers
+        int skipMultiplier = _obligationManager.CalculateSkipCostMultiplier(letter);
+        if (skipMultiplier > 1)
+        {
+            var skipObligations = _obligationManager.GetActiveObligations()
+                .Where(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost) && o.AppliesTo(letter.TokenType))
+                .ToList();
+            if (skipObligations.Any())
+            {
+                activeEffects.Add($"Skip costs ×{skipMultiplier} from {string.Join(", ", skipObligations.Select(o => o.Name))}");
+            }
+        }
+        
+        return (paymentBonus, paymentBonusSource, deadlineExtension, deadlineExtensionSource, 
+                positionModifier, positionModifierSource, activeEffects);
     }
 
     private int GetTotalAvailableTokens()
     {
         return Enum.GetValues<ConnectionType>()
             .Sum(type => _tokenManager.GetTokenCount(type));
+    }
+    
+    private string GetLeverageClass(int leverageStrength)
+    {
+        return leverageStrength switch
+        {
+            >= 3 => "leverage-strong",
+            2 => "leverage-medium",
+            1 => "leverage-weak",
+            _ => "no-leverage"
+        };
     }
 }

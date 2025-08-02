@@ -1,9 +1,14 @@
 @* LetterQueueDisplay.razor - Pure presentation layer, no game logic *@
 @using Wayfarer.Pages.Components
-@inject IGameFacade GameFacade
+@inject GameFacade GameFacade
 
 <div class="letter-queue-container">
     <h3>Letter Queue</h3>
+    
+    @* Obligation Effects Panel *@
+    <ObligationEffectsPanel 
+        ActiveObligations="@_obligationSummaries"
+        ApproachingThresholds="@_thresholdAlerts" />
 
     @* Letter Queue Display *@
     <div class="letter-queue">
@@ -14,7 +19,7 @@
                 @if (slot.IsOccupied && slot.Letter != null)
                 {
                     var letter = slot.Letter;
-                    <div class="letter-card @(letter.IsPatronLetter ? "patron-letter" : "")">
+                    <div class="letter-card @(letter.IsPatronLetter ? "patron-letter" : "") @(letter.HasLeverage ? "leveraged" : "") @(letter.ActiveObligationEffects.Any() ? "obligation-affected" : "") @(GetForbiddenClasses(letter))">
                         <div class="letter-header">
                             @if (letter.IsPatronLetter)
                             {
@@ -28,19 +33,46 @@
                             }
                             @if (!string.IsNullOrEmpty(letter.LeverageIndicator))
                             {
-                                <span class="leverage-indicator" title="@letter.LeverageTooltip">@letter.LeverageIndicator</span>
+                                <span class="leverage-indicator @letter.LeverageClass" title="@letter.LeverageTooltip">
+                                    @letter.LeverageIndicator
+                                    @if (letter.HasLeverage)
+                                    {
+                                        <span class="leverage-strength">×@letter.LeverageStrength</span>
+                                    }
+                                </span>
                             }
                         </div>
                         <div class="letter-route">
                             <span class="sender @(letter.IsPatronLetter ? "patron-sender" : "")">@letter.SenderName</span>
                             <span class="arrow">→</span>
                             <span class="recipient">@letter.RecipientName</span>
+                            @if (letter.HasLeverage && letter.OriginalPosition > 0 && letter.CurrentPosition < letter.OriginalPosition)
+                            {
+                                <span class="queue-position-change">
+                                    <span class="arrow">↑</span>
+                                    Jumped from #@letter.OriginalPosition
+                                </span>
+                            }
                         </div>
                         <div class="letter-details">
                             <div class="deadline @letter.DeadlineClass">
                                 @letter.DeadlineIcon @letter.DeadlineDescription
+                                @if (letter.HasDeadlineExtension)
+                                {
+                                    <span class="deadline-extension" title="@letter.DeadlineExtensionSource">
+                                        (+@letter.DeadlineExtensionDays days)
+                                    </span>
+                                }
                             </div>
-                            <div class="payment">@letter.Payment coins</div>
+                            <div class="payment">
+                                @letter.Payment coins
+                                @if (letter.HasPaymentBonus)
+                                {
+                                    <span class="payment-bonus" title="@letter.PaymentBonusSource">
+                                        (+@letter.PaymentBonusAmount bonus)
+                                    </span>
+                                }
+                            </div>
                             <div class="letter-size" title="@letter.Size letter - Requires @GetRequiredSlots(letter.Size) slot(s)">
                                 @letter.SizeIcon @letter.Size
                             </div>
@@ -55,6 +87,41 @@
                                 </div>
                             }
                         </div>
+                        @if (letter.HasLeverage && letter.TokenBalance < 0)
+                        {
+                            <div class="leverage-details">
+                                <div class="leverage-calculation">
+                                    <span>Token Debt:</span>
+                                    <span class="leverage-effect">@letter.TokenBalance @letter.TokenType tokens</span>
+                                </div>
+                                <div class="leverage-calculation">
+                                    <span>Leverage Strength:</span>
+                                    <span class="leverage-effect">×@letter.LeverageStrength queue priority</span>
+                                </div>
+                                @if (letter.OriginalPosition > 0 && letter.CurrentPosition < letter.OriginalPosition)
+                                {
+                                    <div class="leverage-calculation">
+                                        <span>Queue Jump:</span>
+                                        <span class="leverage-effect">Moved @(letter.OriginalPosition - letter.CurrentPosition) positions forward</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        @if (letter.ActiveObligationEffects.Any())
+                        {
+                            <div class="obligation-effects-summary">
+                                <div class="effects-header">
+                                    <span class="effects-icon">⚖️</span>
+                                    <span class="effects-title">Active Obligation Effects:</span>
+                                </div>
+                                <ul class="effects-list">
+                                    @foreach (var effect in letter.ActiveObligationEffects)
+                                    {
+                                        <li class="effect-item">@effect</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
                         @if (slot.Position == 1 && slot.CanDeliver)
                         {
                             <button class="btn btn-primary btn-sm deliver-btn" @onclick="() => DeliverLetter(slot.Position)">
@@ -93,6 +160,137 @@
                 }
             </div>
         }
+    </div>
+
+    @* Queue Management Actions *@
+    <div class="queue-actions">
+        <h4>Queue Management</h4>
+        <div class="actions-grid">
+            @* Morning Swap (Dawn only) *@
+            <div class="action-group">
+                <h5>Morning Swap</h5>
+                @if (GameFacade.GetTimeInfo().timeBlock == TimeBlocks.Dawn)
+                {
+                    @if (!_hasMorningSwapped)
+                    {
+                        <div class="action-controls">
+                            <input type="number" min="1" max="8" @bind="_swapPosition1" placeholder="Pos 1" />
+                            <span>↔</span>
+                            <input type="number" min="1" max="8" @bind="_swapPosition2" placeholder="Pos 2" />
+                            <button class="btn btn-primary btn-sm" 
+                                    disabled="@(_isProcessing || _swapPosition1 < 1 || _swapPosition1 > 8 || _swapPosition2 < 1 || _swapPosition2 > 8)"
+                                    @onclick="PerformMorningSwap">
+                                Swap
+                            </button>
+                        </div>
+                        <small class="text-muted">Free swap (once per dawn)</small>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Already used today</p>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">Available at Dawn only</p>
+                }
+            </div>
+            
+            @* Priority Move *@
+            <div class="action-group">
+                <h5>Priority Move</h5>
+                @if (_viewModel.QueueSlots[0].Letter == null)
+                {
+                    <div class="action-controls">
+                        <input type="number" min="2" max="8" @bind="_priorityMovePosition" placeholder="Position" />
+                        <button class="btn btn-secondary btn-sm"
+                                disabled="@(_isProcessing || _priorityMovePosition < 2 || _priorityMovePosition > 8)"
+                                @onclick="ShowPriorityMoveConfirm">
+                            Move to #1
+                        </button>
+                    </div>
+                    @if (_showPriorityConfirm && _selectedLetter != null)
+                    {
+                        <div class="cost-preview">
+                            <TokenCostPreview ActionName="Priority Move"
+                                              TokenCost="5"
+                                              TokenType="@(Enum.TryParse<ConnectionType>(_selectedLetter.TokenType, out var pType) ? pType : (ConnectionType?)null)"
+                                              AvailableTokens="@GetTokenCount(Enum.Parse<ConnectionType>(_selectedLetter.TokenType))"
+                                              AdditionalInfo="Move to position 1" />
+                            <button class="btn btn-primary btn-sm" @onclick="PerformPriorityMove">Confirm</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => _showPriorityConfirm = false">Cancel</button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">Position 1 must be empty</p>
+                }
+            </div>
+            
+            @* Extend Deadline *@
+            <div class="action-group">
+                <h5>Extend Deadline</h5>
+                <div class="action-controls">
+                    <input type="number" min="1" max="8" @bind="_extendDeadlinePosition" placeholder="Position" />
+                    <button class="btn btn-info btn-sm"
+                            disabled="@(_isProcessing || _extendDeadlinePosition < 1 || _extendDeadlinePosition > 8)"
+                            @onclick="ShowExtendDeadlineConfirm">
+                        +2 Days
+                    </button>
+                </div>
+                @if (_showExtendConfirm && _selectedLetter != null)
+                {
+                    <div class="cost-preview">
+                        <TokenCostPreview ActionName="Extend Deadline"
+                                          TokenCost="2"
+                                          TokenType="@(Enum.TryParse<ConnectionType>(_selectedLetter.TokenType, out var eType) ? eType : (ConnectionType?)null)"
+                                          AvailableTokens="@GetTokenCount(Enum.Parse<ConnectionType>(_selectedLetter.TokenType))"
+                                          AdditionalInfo="+2 days to deadline" />
+                        <button class="btn btn-primary btn-sm" @onclick="PerformExtendDeadline">Confirm</button>
+                        <button class="btn btn-secondary btn-sm" @onclick="() => _showExtendConfirm = false">Cancel</button>
+                    </div>
+                }
+            </div>
+            
+            @* Purge Bottom Letter *@
+            <div class="action-group">
+                <h5>Purge Bottom Letter</h5>
+                @if (_viewModel.QueueSlots[7].Letter != null)
+                {
+                    <p class="text-warning">Remove: @_viewModel.QueueSlots[7].Letter.SenderName → @_viewModel.QueueSlots[7].Letter.RecipientName</p>
+                    <div class="action-controls purge-controls">
+                        @foreach (var tokenType in Enum.GetValues<ConnectionType>())
+                        {
+                            <div class="token-input">
+                                <span class="token-icon">@GetTokenIcon(tokenType)</span>
+                                <span>@tokenType</span>
+                                <input type="number" min="0" max="3" value="0"
+                                       @onchange="(e) => UpdatePurgeTokens(tokenType, e)" />
+                                <span class="available">(@GetTokenCount(tokenType) available)</span>
+                            </div>
+                        }
+                        <button class="btn btn-danger btn-sm"
+                                disabled="@(_isProcessing || _purgeTokenTotal != 3)"
+                                @onclick="ShowPurgeConfirm">
+                            Purge (Cost: 3 tokens)
+                        </button>
+                        @if (_showPurgeConfirm)
+                        {
+                            <div class="confirm-dialog">
+                                <p class="text-danger">This will trigger a difficult conversation!</p>
+                                <button class="btn btn-danger btn-sm" @onclick="PerformPurge">Confirm Purge</button>
+                                <button class="btn btn-secondary btn-sm" @onclick="() => _showPurgeConfirm = false">Cancel</button>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No letter at position 8</p>
+                }
+            </div>
+        </div>
     </div>
 
     @* Queue Status *@
@@ -220,6 +418,8 @@
 @code {
     @namespace Wayfarer.Pages
     private LetterQueueViewModel _viewModel;
+    private List<ObligationEffectsPanel.ObligationSummary> _obligationSummaries = new();
+    private List<ObligationEffectsPanel.ThresholdAlert> _thresholdAlerts = new();
 
     // UI state for queue manipulation
     private bool showMorningSwap = false;
@@ -234,15 +434,33 @@
 
     private bool showExtendOptions = false;
     private int extendPos = 1;
+    
+    // New state for improved UI
+    private bool _isProcessing = false;
+    private int _swapPosition1 = 1;
+    private int _swapPosition2 = 2;
+    private int _priorityMovePosition = 2;
+    private int _extendDeadlinePosition = 1;
+    private bool _hasMorningSwapped = false;
+    private bool _showPriorityConfirm = false;
+    private bool _showExtendConfirm = false;
+    private bool _showPurgeConfirm = false;
+    private LetterViewModel _selectedLetter;
+    private Dictionary<ConnectionType, int> _purgeTokens = new();
+    private int _purgeTokenTotal = 0;
 
     protected override void OnInitialized()
     {
         RefreshViewModel();
+        var player = GameFacade.GetPlayer();
+        var timeInfo = GameFacade.GetTimeInfo();
+        _hasMorningSwapped = player.LastMorningSwapDay == timeInfo.currentDay;
     }
 
     private void RefreshViewModel()
     {
         _viewModel = GameFacade.GetLetterQueue();
+        LoadObligationData();
     }
 
     private async Task DeliverLetter(int position)
@@ -272,12 +490,15 @@
 
     private async Task PerformMorningSwap()
     {
-        if (await GameFacade.LetterQueueMorningSwapAsync(swapPos1, swapPos2))
+        _isProcessing = true;
+        if (await GameFacade.LetterQueueMorningSwapAsync(_swapPosition1, _swapPosition2))
         {
+            _hasMorningSwapped = true;
             showMorningSwap = false;
             RefreshViewModel();
             StateHasChanged();
         }
+        _isProcessing = false;
     }
 
     private async Task PerformPriority()
@@ -302,10 +523,27 @@
 
     private async Task PerformPurge()
     {
-        await GameFacade.LetterQueuePurgeAsync(purgeTokenSelection);
+        _isProcessing = true;
+        _showPurgeConfirm = false;
+        
+        // Convert token dictionary to list of TokenSelection
+        var tokenSelections = new List<TokenSelection>();
+        foreach (var kvp in _purgeTokens)
+        {
+            tokenSelections.Add(new TokenSelection
+            {
+                TokenType = kvp.Key,
+                Count = kvp.Value
+            });
+        }
+            
+        await GameFacade.LetterQueuePurgeAsync(tokenSelections);
         showPurgeOptions = false;
         purgeTokenSelection.Clear();
+        _purgeTokens.Clear();
+        _purgeTokenTotal = 0;
         RefreshViewModel();
+        _isProcessing = false;
         StateHasChanged();
     }
 
@@ -380,5 +618,158 @@
         if (letter.SpecialDescription.Contains("Information"))
             return "🔍 Reveals hidden content";
         return null;
+    }
+    
+    // New methods for improved queue management UI
+    
+    private void ShowPriorityMoveConfirm()
+    {
+        if (_priorityMovePosition >= 2 && _priorityMovePosition <= 8)
+        {
+            _selectedLetter = _viewModel.QueueSlots[_priorityMovePosition - 1].Letter;
+            _showPriorityConfirm = true;
+        }
+    }
+    
+    private async Task PerformPriorityMove()
+    {
+        _isProcessing = true;
+        _showPriorityConfirm = false;
+        await GameFacade.LetterQueuePriorityMoveAsync(_priorityMovePosition);
+        RefreshViewModel();
+        _isProcessing = false;
+        StateHasChanged();
+    }
+    
+    private void ShowExtendDeadlineConfirm()
+    {
+        if (_extendDeadlinePosition >= 1 && _extendDeadlinePosition <= 8)
+        {
+            _selectedLetter = _viewModel.QueueSlots[_extendDeadlinePosition - 1].Letter;
+            if (_selectedLetter != null)
+            {
+                _showExtendConfirm = true;
+            }
+        }
+    }
+    
+    private async Task PerformExtendDeadline()
+    {
+        _isProcessing = true;
+        _showExtendConfirm = false;
+        await GameFacade.LetterQueueExtendDeadlineAsync(_extendDeadlinePosition);
+        RefreshViewModel();
+        _isProcessing = false;
+        StateHasChanged();
+    }
+    
+    private void UpdatePurgeTokens(ConnectionType tokenType, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int count))
+        {
+            if (count > 0)
+                _purgeTokens[tokenType] = count;
+            else
+                _purgeTokens.Remove(tokenType);
+            
+            _purgeTokenTotal = _purgeTokens.Values.Sum();
+        }
+    }
+    
+    private void ShowPurgeConfirm()
+    {
+        if (_purgeTokenTotal == 3)
+        {
+            _showPurgeConfirm = true;
+        }
+    }
+    
+    
+    private int GetTokenCount(ConnectionType tokenType)
+    {
+        var tokens = GameFacade.GetPlayer().ConnectionTokens;
+        return tokens.TryGetValue(tokenType, out var count) ? count : 0;
+    }
+    
+    private string GetTokenIcon(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => "💝",
+            ConnectionType.Commerce => "💰",
+            ConnectionType.Status => "👑",
+            ConnectionType.Shadow => "🌙",
+            _ => "🪙"
+        };
+    }
+    
+    private string GetTokenIcon(string tokenType)
+    {
+        if (Enum.TryParse<ConnectionType>(tokenType, out var type))
+        {
+            return GetTokenIcon(type);
+        }
+        return "🪙";
+    }
+    
+    private void LoadObligationData()
+    {
+        _obligationSummaries.Clear();
+        _thresholdAlerts.Clear();
+        
+        var obligationsData = GameFacade.GetDetailedObligations();
+        
+        // Convert active obligations to summaries
+        foreach (var obligation in obligationsData.ActiveObligations)
+        {
+            var summary = new ObligationEffectsPanel.ObligationSummary
+            {
+                Name = obligation.Name,
+                Effects = new List<string>(),
+                AffectedLetterTypes = new List<string>(),
+                ForcedLetterCountdown = obligation.DaysUntilForcedLetter
+            };
+            
+            // Add benefit effects
+            summary.Effects.AddRange(obligation.BenefitDescriptions);
+            
+            // Add constraint effects  
+            summary.Effects.AddRange(obligation.ConstraintDescriptions);
+            
+            // Add affected letter types
+            if (obligation.RelatedTokenType.HasValue)
+            {
+                summary.AffectedLetterTypes.Add(obligation.RelatedTokenType.Value.ToString());
+            }
+            
+            _obligationSummaries.Add(summary);
+        }
+        
+        // Convert threshold warnings to alerts
+        foreach (var warning in obligationsData.ThresholdWarnings)
+        {
+            _thresholdAlerts.Add(new ObligationEffectsPanel.ThresholdAlert
+            {
+                NPCName = warning.NPCName,
+                TokenType = warning.TokenType?.ToString() ?? "",
+                CurrentTokens = warning.CurrentValue,
+                ThresholdValue = warning.ThresholdValue,
+                TriggerDescription = warning.Message,
+                IsPositive = warning.WarningType == "HighTokens"
+            });
+        }
+    }
+    
+    private string GetForbiddenClasses(LetterViewModel letter)
+    {
+        var classes = new List<string>();
+        
+        if (letter.ActiveObligationEffects.Any(e => e.Contains("Cannot refuse")))
+            classes.Add("cannot-refuse");
+            
+        if (letter.ActiveObligationEffects.Any(e => e.Contains("Cannot purge")))
+            classes.Add("cannot-purge");
+            
+        return string.Join(" ", classes);
     }
 }

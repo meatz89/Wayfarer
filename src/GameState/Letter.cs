@@ -47,6 +47,10 @@ public class Letter
     
     // Special letter type
     public LetterSpecialType SpecialType { get; set; } = LetterSpecialType.None;
+    
+    // Queue position tracking for leverage visualization
+    public int? OriginalQueuePosition { get; set; }
+    public int LeverageBoost { get; set; } = 0;
 
     // Additional properties for future use but set defaults for POC
     public int QueuePosition { get; set; } = 0;

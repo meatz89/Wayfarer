@@ -1,0 +1,93 @@
+@namespace Wayfarer.Pages.Components
+
+<div class="info-card tier-@Info.Tier @(Info.IsAccessUnlocked ? "unlocked" : "locked")">
+    <div class="info-header">
+        <h4 class="info-name">@Info.Name</h4>
+        @if (!Info.IsAccessUnlocked)
+        {
+            <span class="lock-icon">🔒</span>
+        }
+        else
+        {
+            <span class="unlock-icon">🔓</span>
+        }
+    </div>
+    
+    <div class="info-description">
+        @Info.Description
+    </div>
+    
+    <div class="info-meta">
+        <span class="discovered-date">Discovered: Day @Info.DayDiscovered</span>
+        <span class="tier-badge">Tier @Info.Tier</span>
+    </div>
+    
+    @if (!Info.IsAccessUnlocked)
+    {
+        <div class="access-requirements">
+            <h5>Access Requirements:</h5>
+            <div class="requirement-list">
+                @if (Info.TokenRequirements.Any())
+                {
+                    foreach (var tokenReq in Info.TokenRequirements)
+                    {
+                        <div class="requirement-item">
+                            <span class="req-icon">🪙</span>
+                            <span>@tokenReq.Value @tokenReq.Key tokens</span>
+                        </div>
+                    }
+                }
+                @if (Info.SealRequirements.Any())
+                {
+                    foreach (var seal in Info.SealRequirements)
+                    {
+                        <div class="requirement-item">
+                            <span class="req-icon">🏅</span>
+                            <span>@seal</span>
+                        </div>
+                    }
+                }
+                @if (Info.EquipmentRequirements.Any())
+                {
+                    foreach (var equipment in Info.EquipmentRequirements)
+                    {
+                        <div class="requirement-item">
+                            <span class="req-icon">🛠️</span>
+                            <span>@equipment</span>
+                        </div>
+                    }
+                }
+                @if (Info.CoinCost > 0)
+                {
+                    <div class="requirement-item">
+                        <span class="req-icon">💰</span>
+                        <span>@Info.CoinCost coins</span>
+                    </div>
+                }
+            </div>
+            
+            <button class="btn-unlock @(Info.CanAfford ? "" : "disabled")" 
+                    @onclick="OnUnlock"
+                    disabled="@(!Info.CanAfford)">
+                @(Info.CanAfford ? "Unlock Access" : "Cannot Afford")
+            </button>
+        </div>
+    }
+    else if (Info.CanBeUsedAsLeverage)
+    {
+        <div class="leverage-section">
+            <h5>Leverage Opportunity</h5>
+            <p>Can be used against: @Info.LeverageTargetName</p>
+            <p>Value: @Info.LeverageValue points</p>
+            <button class="btn-leverage" @onclick="OnUseLeverage">
+                Use as Leverage
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public DiscoveredInfoViewModel Info { get; set; }
+    [Parameter] public EventCallback OnUnlock { get; set; }
+    [Parameter] public EventCallback OnUseLeverage { get; set; }
+}

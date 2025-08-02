@@ -1,0 +1,129 @@
+@namespace Wayfarer.Pages.Components
+
+@if (ActiveObligations.Any() || ApproachingThresholds.Any())
+{
+    <div class="obligation-effects-panel">
+        <h4><span class="panel-icon">⚖️</span> Active Obligation Effects</h4>
+        
+        @if (ActiveObligations.Any())
+        {
+            <div class="active-obligations">
+                @foreach (var obligation in ActiveObligations)
+                {
+                    <div class="obligation-summary-card">
+                        <div class="obligation-header">
+                            <span class="obligation-name">@obligation.Name</span>
+                            @if (obligation.ForcedLetterCountdown > 0)
+                            {
+                                <span class="forced-countdown" title="Forced letter will be generated">
+                                    ⏰ @obligation.ForcedLetterCountdown days
+                                </span>
+                            }
+                        </div>
+                        
+                        <div class="obligation-effects">
+                            @foreach (var effect in obligation.Effects)
+                            {
+                                <div class="effect-item @GetEffectClass(effect)">
+                                    <span class="effect-icon">@GetEffectIcon(effect)</span>
+                                    <span class="effect-text">@effect</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        @if (obligation.AffectedLetterTypes.Any())
+                        {
+                            <div class="affected-types">
+                                Affects: 
+                                @foreach (var tokenType in obligation.AffectedLetterTypes)
+                                {
+                                    <span class="token-badge @tokenType.ToLower()">
+                                        @GetTokenIcon(tokenType) @tokenType
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        
+        @if (ApproachingThresholds.Any())
+        {
+            <div class="threshold-alerts">
+                <h5>Approaching Obligation Triggers</h5>
+                @foreach (var threshold in ApproachingThresholds)
+                {
+                    <div class="threshold-alert @(threshold.IsPositive ? "positive" : "negative")">
+                        <div class="threshold-progress">
+                            <span class="npc-name">@threshold.NPCName</span>
+                            <span class="token-progress">
+                                @threshold.CurrentTokens → @threshold.ThresholdValue @threshold.TokenType
+                            </span>
+                        </div>
+                        <div class="threshold-effect">@threshold.TriggerDescription</div>
+                    </div>
+                }
+            </div>
+        }
+        
+        <div class="obligation-acquisition">
+            <p class="acquisition-hint">
+                <span class="hint-icon">💡</span>
+                Obligations are gained through special letters that appear in your daily generation
+            </p>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<ObligationSummary> ActiveObligations { get; set; } = new();
+    [Parameter] public List<ThresholdAlert> ApproachingThresholds { get; set; } = new();
+    
+    private string GetEffectClass(string effect)
+    {
+        if (effect.Contains("Cannot") || effect.Contains("Forbidden") || effect.Contains("costs"))
+            return "constraint";
+        if (effect.Contains("bonus") || effect.Contains("Position") || effect.Contains("Free"))
+            return "benefit";
+        return "neutral";
+    }
+    
+    private string GetEffectIcon(string effect)
+    {
+        if (effect.Contains("coins")) return "🪙";
+        if (effect.Contains("Position")) return "📌";
+        if (effect.Contains("deadline")) return "📅";
+        if (effect.Contains("Cannot") || effect.Contains("Forbidden")) return "🚫";
+        if (effect.Contains("Skip costs")) return "💸";
+        if (effect.Contains("Forced")) return "⚡";
+        return "•";
+    }
+    
+    private string GetTokenIcon(string tokenType) => tokenType switch
+    {
+        "Trust" => "❤️",
+        "Commerce" => "🪙",
+        "Status" => "👑",
+        "Shadow" => "🌑",
+        _ => "❓"
+    };
+    
+    public class ObligationSummary
+    {
+        public string Name { get; set; } = "";
+        public List<string> Effects { get; set; } = new();
+        public List<string> AffectedLetterTypes { get; set; } = new();
+        public int ForcedLetterCountdown { get; set; }
+    }
+    
+    public class ThresholdAlert
+    {
+        public string NPCName { get; set; } = "";
+        public string TokenType { get; set; } = "";
+        public int CurrentTokens { get; set; }
+        public int ThresholdValue { get; set; }
+        public string TriggerDescription { get; set; } = "";
+        public bool IsPositive { get; set; }
+    }
+}

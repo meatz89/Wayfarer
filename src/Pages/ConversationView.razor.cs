@@ -5,7 +5,7 @@ using System.Linq;
 
 public class ConversationViewBase : ComponentBase
 {
-    [Inject] public IGameFacade GameFacade { get; set; }
+    [Inject] public GameFacade GameFacade { get; set; }
     [Parameter] public EventCallback OnConversationCompleted { get; set; }
     [Parameter] public string NPCId { get; set; }
 

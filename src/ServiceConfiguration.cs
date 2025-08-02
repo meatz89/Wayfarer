@@ -125,15 +125,12 @@ public static class ServiceConfiguration
         services.AddSingleton<CommandExecutor>();
 
         // UI Services - Clean separation between UI and game logic
-        services.AddSingleton<MarketUIService>();
         services.AddSingleton<LetterQueueUIService>();
         services.AddSingleton<TravelUIService>();
-        services.AddSingleton<RestUIService>();
-        services.AddSingleton<LocationActionsUIService>();
         services.AddSingleton<ReadableLetterUIService>();
         
         // Game Facade - THE single entry point for all UI-Backend communication
-        services.AddSingleton<IGameFacade, GameFacade>();
+        services.AddSingleton<GameFacade>();
         services.AddSingleton<NPCService>();
         services.AddSingleton<LetterGenerationService>();
 

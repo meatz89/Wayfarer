@@ -11,7 +11,7 @@ public class ActionExecutionService
 {
     private readonly TimeImpactCalculator _timeImpactCalculator;
     private readonly CommandExecutor _commandExecutor;
-    private readonly LocationActionsUIService _locationActionsService;
+    private readonly GameFacade _gameFacade;
     
     // State for pending action
     private string _pendingActionId;
@@ -20,11 +20,11 @@ public class ActionExecutionService
     public ActionExecutionService(
         TimeImpactCalculator timeImpactCalculator,
         CommandExecutor commandExecutor,
-        LocationActionsUIService locationActionsService)
+        GameFacade gameFacade)
     {
         _timeImpactCalculator = timeImpactCalculator;
         _commandExecutor = commandExecutor;
-        _locationActionsService = locationActionsService;
+        _gameFacade = gameFacade;
     }
     
     /// <summary>
@@ -33,7 +33,7 @@ public class ActionExecutionService
     public TimeImpactInfo CheckActionTimeImpact(string actionId)
     {
         // Get the action details to determine time cost
-        var actions = _locationActionsService.GetLocationActionsViewModel();
+        var actions = _gameFacade.GetLocationActions();
         
         foreach (var group in actions.ActionGroups)
         {
@@ -65,7 +65,7 @@ public class ActionExecutionService
         }
         
         // No warning needed, execute immediately
-        var result = await _locationActionsService.ExecuteActionAsync(actionId);
+        var result = await _gameFacade.ExecuteLocationActionAsync(actionId);
         return (false, null);
     }
     
@@ -81,7 +81,7 @@ public class ActionExecutionService
         
         try
         {
-            var result = await _locationActionsService.ExecuteActionAsync(_pendingActionId);
+            var result = await _gameFacade.ExecuteLocationActionAsync(_pendingActionId);
             _pendingActionCompletion.SetResult(result);
             return result;
         }

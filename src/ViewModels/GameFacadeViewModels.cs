@@ -168,8 +168,51 @@ public class RestOptionsViewModel
     public List<WaitOptionViewModel> WaitOptions { get; set; }
 }
 
-// Note: RestOptionViewModel, LocationActionViewModel, and WaitOptionViewModel
-// are already defined in RestUIService.cs
+/// <summary>
+/// ViewModel for a rest option
+/// </summary>
+public class RestOptionViewModel
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int StaminaRecovery { get; set; }
+    public int CoinCost { get; set; }
+    public int TimeHours { get; set; }
+    public string RequiredItem { get; set; }
+    public bool CanAffordCoins { get; set; }
+    public bool HasRequiredItem { get; set; }
+    public bool IsAvailable { get; set; }
+    public string UnavailableReason { get; set; }
+}
+
+/// <summary>
+/// ViewModel for a location action
+/// </summary>
+public class LocationActionViewModel
+{
+    public string Id { get; set; }
+    public string Description { get; set; }
+    public string NPCName { get; set; }
+    public string NPCProfession { get; set; }
+    public int TimeCost { get; set; }
+    public int StaminaCost { get; set; }
+    public int CoinCost { get; set; }
+    public int StaminaReward { get; set; }
+    public bool IsAvailable { get; set; }
+    public string UnavailableReason { get; set; }
+    public bool CanBeRemedied { get; set; }
+    public string RemediationHint { get; set; }
+}
+
+/// <summary>
+/// ViewModel for wait options
+/// </summary>
+public class WaitOptionViewModel
+{
+    public int Hours { get; set; }
+    public string Description { get; set; }
+}
 
 // ========== LETTER BOARD VIEW MODELS ==========
 
@@ -234,4 +277,182 @@ public class ObligationViewModel
     public string Description { get; set; }
     public string Type { get; set; }
     public int Priority { get; set; }
+}
+
+// ========== DETAILED OBLIGATION VIEW MODELS ==========
+
+public class DetailedObligationsViewModel
+{
+    public List<ActiveObligationViewModel> ActiveObligations { get; set; } = new();
+    public List<DebtObligationViewModel> DebtObligations { get; set; } = new();
+    public List<ThresholdWarningViewModel> ThresholdWarnings { get; set; } = new();
+    public List<ObligationTemplateViewModel> AvailableTemplates { get; set; } = new();
+}
+
+public class ActiveObligationViewModel
+{
+    public string ID { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Source { get; set; }
+    public int DaysSinceAccepted { get; set; }
+    public List<string> BenefitDescriptions { get; set; } = new();
+    public List<string> ConstraintDescriptions { get; set; } = new();
+    public ConnectionType? RelatedTokenType { get; set; }
+    public int TokenCount { get; set; }
+    public bool HasConflicts { get; set; }
+    public bool HasForcedLetterWarning { get; set; }
+    public int DaysUntilForcedLetter { get; set; }
+}
+
+public class DebtObligationViewModel
+{
+    public string ID { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string LeverageHolderName { get; set; }
+    public int LeverageAmount { get; set; }
+    public List<string> EffectDescriptions { get; set; } = new();
+}
+
+public class ThresholdWarningViewModel
+{
+    public string WarningType { get; set; } // "Debt" or "HighTokens"
+    public string Message { get; set; }
+    public string NPCName { get; set; }
+    public int CurrentValue { get; set; }
+    public int ThresholdValue { get; set; }
+    public ConnectionType? TokenType { get; set; }
+}
+
+public class ObligationTemplateViewModel
+{
+    public string ID { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string TriggerDescription { get; set; }
+    public string RequirementDescription { get; set; }
+    public bool CanAccept { get; set; }
+    public string CannotAcceptReason { get; set; }
+    public List<string> ConflictingObligations { get; set; } = new();
+}
+
+// ========== INFORMATION DISCOVERY VIEW MODELS ==========
+
+/// <summary>
+/// View model for discovered information
+/// </summary>
+public class InformationDiscoveryViewModel
+{
+    public List<DiscoveredInfoViewModel> RouteInformation { get; set; } = new();
+    public List<DiscoveredInfoViewModel> LocationInformation { get; set; } = new();
+    public List<DiscoveredInfoViewModel> NPCInformation { get; set; } = new();
+    public List<DiscoveredInfoViewModel> ServiceInformation { get; set; } = new();
+    public List<DiscoveredInfoViewModel> SecretInformation { get; set; } = new();
+    public int TotalDiscovered { get; set; }
+    public int TotalUnlocked { get; set; }
+}
+
+/// <summary>
+/// View model for individual discovered information
+/// </summary>
+public class DiscoveredInfoViewModel
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public InformationType Type { get; set; }
+    public int Tier { get; set; }
+    public bool IsAccessUnlocked { get; set; }
+    public int DayDiscovered { get; set; }
+    
+    // Access requirements
+    public Dictionary<ConnectionType, int> TokenRequirements { get; set; } = new();
+    public List<string> SealRequirements { get; set; } = new();
+    public List<string> EquipmentRequirements { get; set; } = new();
+    public int CoinCost { get; set; }
+    public bool CanAfford { get; set; }
+    
+    // Leverage info
+    public bool CanBeUsedAsLeverage { get; set; }
+    public string LeverageTargetName { get; set; }
+    public int LeverageValue { get; set; }
+}
+
+// ========== OBLIGATION EFFECT VIEW MODELS ==========
+
+/// <summary>
+/// ViewModel for displaying real-time obligation effects on letters
+/// </summary>
+public class ObligationEffectViewModel
+{
+    public string ObligationName { get; set; }
+    public string Type { get; set; } // PositionBoost, PaymentBonus, Restriction, etc.
+    public string Description { get; set; }
+    public int Value { get; set; } // Effect magnitude
+}
+
+// ========== LOCATION ACTIONS VIEW MODELS ==========
+
+/// <summary>
+/// ViewModel for location actions display
+/// </summary>
+public class LocationActionsViewModel
+{
+    public string LocationName { get; set; }
+    public string CurrentTimeBlock { get; set; }
+    public int HoursRemaining { get; set; }
+    public int PlayerStamina { get; set; }
+    public int PlayerCoins { get; set; }
+
+    public List<ActionGroupViewModel> ActionGroups { get; set; } = new();
+}
+
+/// <summary>
+/// ViewModel for a group of actions
+/// </summary>
+public class ActionGroupViewModel
+{
+    public string ActionType { get; set; }
+    public List<ActionOptionViewModel> Actions { get; set; } = new();
+}
+
+/// <summary>
+/// ViewModel for an individual action option
+/// </summary>
+public class ActionOptionViewModel
+{
+    public string Id { get; set; }
+    public string Description { get; set; }
+    public string NPCName { get; set; }
+    public string NPCProfession { get; set; }
+
+    // Costs
+    public int TimeCost { get; set; }
+    public int StaminaCost { get; set; }
+    public int CoinCost { get; set; }
+
+    // Affordability
+    public bool HasEnoughTime { get; set; }
+    public bool HasEnoughStamina { get; set; }
+    public bool HasEnoughCoins { get; set; }
+
+    // Rewards
+    public int StaminaReward { get; set; }
+    public int CoinReward { get; set; }
+    public string TokenType { get; set; }
+    public int TokenReward { get; set; }
+    public string RewardsDescription { get; set; }
+
+    // Overall availability
+    public bool IsAvailable { get; set; }
+    public List<string> UnavailableReasons { get; set; } = new();
+    
+    // Service availability info
+    public bool IsServiceClosed { get; set; }
+    public string NextAvailableTime { get; set; }
+    public string ServiceSchedule { get; set; }
+    
+    // Tutorial restriction
+    public bool IsAllowedInTutorial { get; set; } = true;
 }

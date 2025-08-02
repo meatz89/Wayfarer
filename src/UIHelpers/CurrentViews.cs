@@ -14,8 +14,6 @@
     // ACTIVITY SCREENS (Supporting Letter Delivery)
     MarketScreen,           // Trading items for letter delivery needs
     RestScreen,             // Rest and recovery management
-    DebtScreen,             // Debt management and borrowing interface
-    PersonalErrandScreen,   // Personal errands for NPCs
     SealProgressionScreen,  // Seal and endorsement management
 
     // EVENT AND NARRATIVE SCREENS
@@ -25,6 +23,9 @@
     // CHARACTER MANAGEMENT SCREENS
     CharacterScreen,        // Character sheet and inventory
     PlayerStatusScreen,     // Player stats and condition
+
+    // DISCOVERY SCREENS
+    InformationDiscoveryScreen, // Discovered information and secrets
 
     // SYSTEM SCREENS
     EventLogScreen,         // Event log showing all system messages

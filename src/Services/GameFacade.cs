@@ -6,10 +6,10 @@ using Wayfarer.GameState.Constants;
 using Wayfarer.ViewModels;
 
 /// <summary>
-/// Implementation of IGameFacade - THE single entry point for all UI-Backend communication.
+/// GameFacade - THE single entry point for all UI-Backend communication.
 /// This class delegates to existing UIServices and managers to maintain clean separation.
 /// </summary>
-public class GameFacade : IGameFacade
+public class GameFacade
 {
     // Core dependencies
     private readonly GameWorld _gameWorld;
@@ -17,17 +17,16 @@ public class GameFacade : IGameFacade
     private readonly ITimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
     private readonly CommandExecutor _commandExecutor;
+    private readonly IGameRuleEngine _ruleEngine;
     
     // UI Services
-    private readonly LocationActionsUIService _locationActionsService;
     private readonly TravelUIService _travelService;
-    private readonly RestUIService _restService;
     private readonly LetterQueueUIService _letterQueueService;
-    private readonly MarketUIService _marketService;
     private readonly ReadableLetterUIService _readableLetterService;
     
     // Managers
     private readonly TravelManager _travelManager;
+    private readonly RestManager _restManager;
     
     // Domain services
     private readonly ConversationFactory _conversationFactory;
@@ -39,8 +38,15 @@ public class GameFacade : IGameFacade
     private readonly ItemRepository _itemRepository;
     private readonly ConversationStateManager _conversationStateManager;
     private readonly ConnectionTokenManager _connectionTokenManager;
-    private readonly NPCLetterOfferService _npcLetterOfferService;
+    private readonly NPCLetterOfferService _letterOfferService;
     private readonly GameConfiguration _gameConfiguration;
+    private readonly InformationDiscoveryManager _informationDiscoveryManager;
+    private readonly StandingObligationManager _standingObligationManager;
+    private readonly StandingObligationRepository _standingObligationRepository;
+    private readonly CommandDiscoveryService _commandDiscoveryService;
+    private readonly MarketManager _marketManager;
+    private readonly LetterCategoryService _letterCategoryService;
+    private readonly SpecialLetterGenerationService _specialLetterService;
     
     public GameFacade(
         GameWorld gameWorld,
@@ -48,11 +54,8 @@ public class GameFacade : IGameFacade
         ITimeManager timeManager,
         MessageSystem messageSystem,
         CommandExecutor commandExecutor,
-        LocationActionsUIService locationActionsService,
         TravelUIService travelService,
-        RestUIService restService,
         LetterQueueUIService letterQueueService,
-        MarketUIService marketService,
         ReadableLetterUIService readableLetterService,
         TravelManager travelManager,
         ConversationFactory conversationFactory,
@@ -64,19 +67,25 @@ public class GameFacade : IGameFacade
         ItemRepository itemRepository,
         ConversationStateManager conversationStateManager,
         ConnectionTokenManager connectionTokenManager,
-        NPCLetterOfferService npcLetterOfferService,
-        GameConfiguration gameConfiguration)
+        NPCLetterOfferService letterOfferService,
+        GameConfiguration gameConfiguration,
+        InformationDiscoveryManager informationDiscoveryManager = null,
+        StandingObligationManager standingObligationManager = null,
+        StandingObligationRepository standingObligationRepository = null,
+        CommandDiscoveryService commandDiscoveryService = null,
+        MarketManager marketManager = null,
+        RestManager restManager = null,
+        IGameRuleEngine ruleEngine = null,
+        LetterCategoryService letterCategoryService = null,
+        SpecialLetterGenerationService specialLetterService = null)
     {
         _gameWorld = gameWorld;
         _gameWorldManager = gameWorldManager;
         _timeManager = timeManager;
         _messageSystem = messageSystem;
         _commandExecutor = commandExecutor;
-        _locationActionsService = locationActionsService;
         _travelService = travelService;
-        _restService = restService;
         _letterQueueService = letterQueueService;
-        _marketService = marketService;
         _readableLetterService = readableLetterService;
         _travelManager = travelManager;
         _conversationFactory = conversationFactory;
@@ -88,8 +97,17 @@ public class GameFacade : IGameFacade
         _itemRepository = itemRepository;
         _conversationStateManager = conversationStateManager;
         _connectionTokenManager = connectionTokenManager;
-        _npcLetterOfferService = npcLetterOfferService;
+        _letterOfferService = letterOfferService;
         _gameConfiguration = gameConfiguration;
+        _informationDiscoveryManager = informationDiscoveryManager;
+        _standingObligationManager = standingObligationManager;
+        _standingObligationRepository = standingObligationRepository;
+        _commandDiscoveryService = commandDiscoveryService;
+        _marketManager = marketManager;
+        _restManager = restManager;
+        _ruleEngine = ruleEngine;
+        _letterCategoryService = letterCategoryService;
+        _specialLetterService = specialLetterService;
     }
     
     // ========== GAME STATE QUERIES ==========
@@ -120,19 +138,107 @@ public class GameFacade : IGameFacade
                 _gameWorld.CurrentDay);
     }
     
+    public int GetCurrentDay()
+    {
+        return _gameWorld.CurrentDay;
+    }
+    
     // ========== LOCATION ACTIONS ==========
     
     public LocationActionsViewModel GetLocationActions()
     {
-        return _locationActionsService.GetLocationActionsViewModel();
+        var player = _gameWorld.GetPlayer();
+        var currentSpot = player.CurrentLocationSpot;
+
+        if (currentSpot == null)
+        {
+            return new LocationActionsViewModel
+            {
+                LocationName = "Unknown Location",
+                CurrentTimeBlock = _timeManager.GetCurrentTimeBlock().ToString(),
+                HoursRemaining = _timeManager.HoursRemaining,
+                PlayerStamina = player.Stamina,
+                PlayerCoins = player.Coins,
+                ActionGroups = new List<ActionGroupViewModel>()
+            };
+        }
+
+        // Discover available commands
+        var discovery = _commandDiscoveryService?.DiscoverCommands(_gameWorld);
+        
+        // Get allowed command types from narrative if available
+        HashSet<string> allowedCommandTypes = null;
+        if (_narrativeManager != null && _narrativeManager.HasActiveNarrative())
+        {
+            allowedCommandTypes = _narrativeManager.GetAllowedCommandTypes();
+        }
+
+        var viewModel = new LocationActionsViewModel
+        {
+            LocationName = currentSpot.Name,
+            CurrentTimeBlock = _timeManager.GetCurrentTimeBlock().ToString(),
+            HoursRemaining = _timeManager.HoursRemaining,
+            PlayerStamina = player.Stamina,
+            PlayerCoins = player.Coins,
+            ActionGroups = new List<ActionGroupViewModel>()
+        };
+
+        if (discovery != null)
+        {
+            // Convert command categories to action groups
+            foreach (var categoryGroup in discovery.CommandsByCategory)
+            {
+                var group = new ActionGroupViewModel
+                {
+                    ActionType = categoryGroup.Key.ToString(),
+                    Actions = ConvertCommands(categoryGroup.Value, allowedCommandTypes)
+                };
+
+                viewModel.ActionGroups.Add(group);
+            }
+        }
+        
+        // Add closed services information
+        AddClosedServicesInfo(viewModel, currentSpot);
+
+        return viewModel;
     }
     
     public async Task<bool> ExecuteLocationActionAsync(string commandId)
     {
         Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Starting execution for action: {commandId}");
-        var result = await _locationActionsService.ExecuteActionAsync(commandId);
-        Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Action {commandId} completed with result: {result}");
-        return result;
+        
+        if (_commandDiscoveryService == null)
+        {
+            Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] CommandDiscoveryService not available");
+            return false;
+        }
+        
+        // Discover commands again to find the one to execute
+        var discovery = _commandDiscoveryService.DiscoverCommands(_gameWorld);
+        
+        var commandToExecute = discovery.AllCommands.FirstOrDefault(c => c.UniqueId == commandId);
+
+        if (commandToExecute == null)
+        {
+            Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Command not found: '{commandId}'");
+            _messageSystem.AddSystemMessage($"Command not found: '{commandId}'", SystemMessageTypes.Danger);
+            return false;
+        }
+
+        if (!commandToExecute.IsAvailable)
+        {
+            Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Command not available: {commandToExecute.UnavailableReason}");
+            _messageSystem.AddSystemMessage(commandToExecute.UnavailableReason, SystemMessageTypes.Warning);
+            return false;
+        }
+
+        Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Executing command: {commandToExecute.Command.GetType().Name}");
+        // Execute through CommandExecutor
+        var result = await _commandExecutor.ExecuteAsync(commandToExecute.Command);
+
+        Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Command result: Success={result.IsSuccess}, Message={result.Message}");
+        return result.IsSuccess;
     }
     
     // ========== TRAVEL ==========
@@ -482,19 +588,160 @@ public class GameFacade : IGameFacade
     
     public RestOptionsViewModel GetRestOptions()
     {
-        var restViewModel = _restService.GetRestViewModel();
-        
         return new RestOptionsViewModel
         {
-            RestOptions = restViewModel.RestOptions,
-            LocationActions = restViewModel.LocationActions,
-            WaitOptions = restViewModel.WaitOptions
+            RestOptions = GetRestOptionsList(),
+            LocationActions = GetRestLocationActions(),
+            WaitOptions = GetWaitOptionsList()
         };
     }
     
     public async Task<bool> ExecuteRestAsync(string restOptionId)
     {
-        return await _restService.ExecuteRestOptionAsync(restOptionId);
+        if (_restManager == null)
+        {
+            _messageSystem.AddSystemMessage("Rest manager not available", SystemMessageTypes.Danger);
+            return false;
+        }
+        
+        var option = _restManager.GetAvailableRestOptions().FirstOrDefault(o => o.Id == restOptionId);
+        if (option == null)
+        {
+            _messageSystem.AddSystemMessage("Rest option not found", SystemMessageTypes.Danger);
+            return false;
+        }
+
+        // Create rest command
+        var restCommand = new RestCommand(
+            _gameWorld.GetPlayer().CurrentLocationSpot?.SpotID,
+            option.RestTimeHours,
+            option.StaminaRecovery,
+            _messageSystem
+        );
+
+        // Apply costs if any
+        if (option.CoinCost > 0)
+        {
+            var spendCoinsCommand = new SpendCoinsCommand(option.CoinCost, $"Rest at {option.Name}");
+            var coinResult = await _commandExecutor.ExecuteAsync(spendCoinsCommand);
+            if (!coinResult.IsSuccess)
+            {
+                return false;
+            }
+        }
+
+        // Execute rest command
+        var result = await _commandExecutor.ExecuteAsync(restCommand);
+        return result.IsSuccess;
+    }
+    
+    private List<RestOptionViewModel> GetRestOptionsList()
+    {
+        if (_restManager == null)
+            return new List<RestOptionViewModel>();
+            
+        var player = _gameWorld.GetPlayer();
+        var restOptions = _restManager.GetAvailableRestOptions()
+            .Where(o => o.StaminaRecovery > 0 && o.RestTimeHours >= 1)
+            .ToList();
+
+        return restOptions.Select(option =>
+        {
+            bool hasRequiredItem = string.IsNullOrEmpty(option.RequiredItem) ||
+                                 player.Inventory.HasItem(option.RequiredItem);
+            bool canAffordCoins = player.Coins >= option.CoinCost;
+            bool isAvailable = canAffordCoins && hasRequiredItem;
+
+            string unavailableReason = null;
+            if (!canAffordCoins)
+                unavailableReason = $"Need {option.CoinCost} coins";
+            else if (!hasRequiredItem)
+                unavailableReason = $"Need {option.RequiredItem}";
+
+            return new RestOptionViewModel
+            {
+                Id = option.Id,
+                Name = option.Name,
+                Description = option.Name, // RestOption doesn't have Description, use Name
+                StaminaRecovery = option.StaminaRecovery,
+                CoinCost = option.CoinCost,
+                TimeHours = option.RestTimeHours,
+                RequiredItem = option.RequiredItem,
+                CanAffordCoins = canAffordCoins,
+                HasRequiredItem = hasRequiredItem,
+                IsAvailable = isAvailable,
+                UnavailableReason = unavailableReason
+            };
+        }).ToList();
+    }
+    
+    private List<LocationActionViewModel> GetRestLocationActions()
+    {
+        if (_commandDiscoveryService == null)
+            return new List<LocationActionViewModel>();
+            
+        // Discover commands and filter for Rest category
+        var discovery = _commandDiscoveryService.DiscoverCommands(_gameWorld);
+        var restCommands = discovery.CommandsByCategory
+            .Where(kvp => kvp.Key == CommandCategory.Rest)
+            .SelectMany(kvp => kvp.Value)
+            .ToList();
+
+        return restCommands.Select(cmd =>
+        {
+            string npcName = ExtractNPCName(cmd.DisplayName);
+            var npc = string.IsNullOrEmpty(npcName) ? null : _npcRepository.GetAllNPCs().FirstOrDefault(n => n.Name == npcName);
+
+            return new LocationActionViewModel
+            {
+                Id = cmd.UniqueId,
+                Description = cmd.Description,
+                NPCName = npc?.Name,
+                NPCProfession = npc?.Profession.ToString(),
+                TimeCost = cmd.TimeCost,
+                StaminaCost = cmd.StaminaCost,
+                CoinCost = cmd.CoinCost,
+                StaminaReward = ExtractStaminaReward(cmd.PotentialReward),
+                IsAvailable = cmd.IsAvailable,
+                UnavailableReason = cmd.UnavailableReason,
+                CanBeRemedied = cmd.CanRemediate,
+                RemediationHint = cmd.RemediationHint
+            };
+        }).ToList();
+    }
+    
+    private List<WaitOptionViewModel> GetWaitOptionsList()
+    {
+        // Simple wait options - could be expanded
+        return new List<WaitOptionViewModel>
+        {
+            new WaitOptionViewModel { Hours = 1, Description = "Wait 1 hour" },
+            new WaitOptionViewModel { Hours = GameConstants.UI.WAIT_OPTION_SHORT_HOURS, Description = $"Wait {GameConstants.UI.WAIT_OPTION_SHORT_HOURS} hours" },
+            new WaitOptionViewModel { Hours = GameConstants.UI.WAIT_OPTION_LONG_HOURS, Description = $"Wait {GameConstants.UI.WAIT_OPTION_LONG_HOURS} hours" }
+        };
+    }
+    
+    private int ExtractStaminaReward(string rewardDescription)
+    {
+        if (string.IsNullOrEmpty(rewardDescription))
+            return 0;
+
+        // Simple extraction from "+X stamina" format
+        if (rewardDescription.Contains("stamina"))
+        {
+            string[] parts = rewardDescription.Split(' ');
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                if (parts[i].StartsWith("+") && parts[i + 1].StartsWith("stamina"))
+                {
+                    if (int.TryParse(parts[i].Substring(1), out int stamina))
+                    {
+                        return stamina;
+                    }
+                }
+            }
+        }
+        return 0;
     }
     
     // ========== CONVERSATIONS ==========
@@ -645,14 +892,14 @@ public class GameFacade : IGameFacade
         return await _letterQueueService.ExtendDeadlineAsync(position);
     }
     
-    public async Task<bool> LetterQueuePurgeAsync(Dictionary<string, int> tokenSelection)
+    public async Task<bool> LetterQueuePurgeAsync(List<TokenSelection> tokenSelections)
     {
         // Validate token selection
-        if (tokenSelection == null || tokenSelection.Count == 0)
+        if (tokenSelections == null || tokenSelections.Count == 0)
             return false;
             
         // InitiatePurgeAsync handles the conversation trigger
-        await _letterQueueService.InitiatePurgeAsync(tokenSelection);
+        await _letterQueueService.InitiatePurgeAsync(tokenSelections);
         return true;
     }
     
@@ -710,253 +957,109 @@ public class GameFacade : IGameFacade
     public MarketViewModel GetMarket()
     {
         var player = _gameWorld.GetPlayer();
-        var location = player.CurrentLocationSpot != null 
-            ? _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId)
-            : null;
-        return location != null ? _marketService.GetMarketViewModel(location.Id) : null;
+        var locationSpot = player.CurrentLocationSpot;
+        if (locationSpot == null)
+            return null;
+            
+        var location = _locationRepository.GetLocation(locationSpot.LocationId);
+        if (location == null)
+            return null;
+            
+        string marketStatus = _gameWorldManager.GetMarketAvailabilityStatus(location.Id);
+        var traders = _gameWorldManager.GetTradingNPCs(location.Id)
+            .Where(npc => npc.IsAvailable(_timeManager.GetCurrentTimeBlock()))
+            .ToList();
+
+        // Get all available items
+        var marketItems = _gameWorldManager.GetAvailableMarketItems(location.Id);
+
+        // Convert items to view models
+        var allCategories = new HashSet<string> { "All" };
+        var itemViewModels = new List<MarketItemViewModel>();
+
+        foreach (var item in marketItems)
+        {
+            if (item == null) continue;
+
+            bool canBuy = _gameWorldManager.CanBuyMarketItem(item.Id ?? item.Name, location.Id);
+            bool canSell = player.Inventory.HasItem(item.Name);
+
+            itemViewModels.Add(new MarketItemViewModel
+            {
+                ItemId = item.Id ?? item.Name,
+                Name = item.Name,
+                BuyPrice = item.BuyPrice,
+                SellPrice = item.SellPrice,
+                CanBuy = canBuy,
+                CanSell = canSell,
+                TraderId = location.Id, // Use location as trader ID for now since items are location-based
+                Categories = item.Categories.Select(c => c.ToString()).ToList(),
+                Item = item
+            });
+
+            // Collect categories
+            foreach (var category in item.Categories)
+            {
+                allCategories.Add(category.ToString());
+            }
+        }
+
+        // Build view model
+        return new MarketViewModel
+        {
+            LocationName = location.Name,
+            MarketStatus = marketStatus,
+            IsOpen = marketStatus.Contains("Open"),
+            TraderCount = traders.Count,
+            PlayerCoins = player.Coins,
+            InventoryUsed = player.Inventory.UsedCapacity,
+            InventoryCapacity = player.Inventory.Size,
+            Items = itemViewModels,
+            AvailableCategories = allCategories.OrderBy(c => c).ToList()
+        };
     }
     
     public async Task<bool> BuyItemAsync(string itemId, string traderId)
     {
-        // traderId is actually locationId in our current implementation
-        // since items are sold by location, not specific traders
-        return await _marketService.ExecuteTradeAsync(itemId, "buy", traderId);
+        return await ExecuteMarketTradeAsync(itemId, "buy", traderId);
     }
     
     public async Task<bool> SellItemAsync(string itemId, string traderId)
     {
-        // traderId is actually locationId in our current implementation
-        // since items are sold by location, not specific traders
-        return await _marketService.ExecuteTradeAsync(itemId, "sell", traderId);
+        return await ExecuteMarketTradeAsync(itemId, "sell", traderId);
     }
     
-    // ========== DEBT MANAGEMENT ==========
-    
-    public DebtViewModel GetDebtInformation()
+    private async Task<bool> ExecuteMarketTradeAsync(string itemId, string action, string locationId)
     {
-        var player = _gameWorld.GetPlayer();
-        var currentDay = _gameWorld.CurrentDay;
-        var viewModel = new DebtViewModel
+        if (_ruleEngine == null || _itemRepository == null)
         {
-            PlayerCoins = player.Coins
-        };
-        
-        // Get active debts
-        foreach (var debt in player.ActiveDebts.Where(d => !d.IsPaid))
-        {
-            var creditor = _npcRepository.GetById(debt.CreditorId);
-            if (creditor != null)
-            {
-                var totalOwed = debt.GetTotalOwed(currentDay);
-                var accruedInterest = totalOwed - debt.Principal;
-                
-                viewModel.ActiveDebts.Add(new DebtInfo
-                {
-                    CreditorId = debt.CreditorId,
-                    CreditorName = creditor.Name,
-                    Principal = debt.Principal,
-                    InterestRate = debt.InterestRate,
-                    DaysActive = currentDay - debt.StartDay,
-                    AccruedInterest = accruedInterest,
-                    TotalOwed = totalOwed,
-                    TokenDebt = GetTokenDebt(debt.CreditorId)
-                });
-            }
-        }
-        
-        viewModel.TotalDebt = viewModel.ActiveDebts.Sum(d => d.TotalOwed);
-        viewModel.TotalDailyInterest = viewModel.ActiveDebts.Sum(d => (int)(d.Principal * d.InterestRate / 100.0));
-        
-        // Get available lenders (merchants at current location)
-        var currentLocation = player.CurrentLocationSpot;
-        if (currentLocation != null)
-        {
-            var npcsAtLocation = _npcRepository.GetNPCsForLocationSpotAndTime(
-                currentLocation.SpotID, 
-                _timeManager.GetCurrentTimeBlock());
-                
-            foreach (var npc in npcsAtLocation)
-            {
-                // Check if NPC can lend (has Commerce or Shadow tokens)
-                if ((npc.LetterTokenTypes.Contains(ConnectionType.Commerce) || 
-                     npc.LetterTokenTypes.Contains(ConnectionType.Shadow)) &&
-                    !viewModel.ActiveDebts.Any(d => d.CreditorId == npc.ID))
-                {
-                    viewModel.AvailableLenders.Add(new LenderInfo
-                    {
-                        NPCId = npc.ID,
-                        Name = npc.Name,
-                        LocationId = currentLocation.LocationId,
-                        LocationName = _locationRepository.GetLocation(currentLocation.LocationId)?.Name ?? "Unknown",
-                        MaxLoanAmount = 100,
-                        InterestRate = 5,
-                        IsAvailable = true
-                    });
-                }
-            }
-        }
-        
-        return viewModel;
-    }
-    
-    public async Task<bool> BorrowMoneyAsync(string npcId)
-    {
-        var command = new BorrowMoneyCommand(
-            npcId,
-            _npcRepository,
-            _connectionTokenManager,
-            _messageSystem,
-            _gameConfiguration);
-            
-        var validation = command.CanExecute(_gameWorld);
-        if (!validation.IsValid)
-        {
-            _messageSystem.AddSystemMessage(validation.FailureReason, SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Market trading not available", SystemMessageTypes.Danger);
             return false;
         }
         
+        var tradeAction = action.ToLower() == "buy"
+            ? MarketTradeCommand.TradeAction.Buy
+            : MarketTradeCommand.TradeAction.Sell;
+
+        var command = new MarketTradeCommand(
+            itemId,
+            tradeAction,
+            locationId,
+            _itemRepository,
+            _ruleEngine);
+
         var result = await _commandExecutor.ExecuteAsync(command);
+
+        if (result.IsSuccess)
+        {
+            _messageSystem.AddSystemMessage(result.Message, SystemMessageTypes.Success);
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage(result.ErrorMessage, SystemMessageTypes.Danger);
+        }
+
         return result.IsSuccess;
-    }
-    
-    public async Task<bool> RepayDebtAsync(string npcId, int amount)
-    {
-        var command = new RepayDebtCommand(
-            npcId,
-            amount,
-            _npcRepository,
-            _messageSystem);
-            
-        var validation = command.CanExecute(_gameWorld);
-        if (!validation.IsValid)
-        {
-            _messageSystem.AddSystemMessage(validation.FailureReason, SystemMessageTypes.Warning);
-            return false;
-        }
-        
-        var result = await _commandExecutor.ExecuteAsync(command);
-        return result.IsSuccess;
-    }
-    
-    private int GetTokenDebt(string creditorId)
-    {
-        var tokens = _connectionTokenManager.GetTokensWithNPC(creditorId);
-        var commerceTokens = tokens[ConnectionType.Commerce];
-        return commerceTokens < 0 ? Math.Abs(commerceTokens) : 0;
-    }
-    
-    // ========== PERSONAL ERRANDS ==========
-    
-    public PersonalErrandViewModel GetPersonalErrands()
-    {
-        var viewModel = new PersonalErrandViewModel();
-        var player = _gameWorld.GetPlayer();
-        
-        // Get player status
-        viewModel.PlayerStatus.CurrentStamina = player.Stamina;
-        
-        // Count medicine items
-        foreach (var itemId in player.Inventory.ItemSlots.Where(id => !string.IsNullOrEmpty(id)))
-        {
-            var item = _itemRepository.GetItemById(itemId);
-            if (item != null && item.Categories.Contains(ItemCategory.Medicine))
-            {
-                viewModel.PlayerStatus.MedicineCount++;
-                viewModel.PlayerStatus.MedicineItems.Add(item.Name);
-            }
-        }
-        
-        // Get all NPCs with 2+ tokens
-        var allNPCs = _npcRepository.GetAllNPCs();
-        foreach (var npc in allNPCs)
-        {
-            var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-            var totalTokens = tokens.Values.Sum();
-            
-            if (totalTokens >= 2)
-            {
-                // Create personal errand command to check if valid
-                var command = new PersonalErrandCommand(
-                    npc.ID,
-                    _npcRepository,
-                    _connectionTokenManager,
-                    _messageSystem,
-                    _itemRepository);
-                    
-                var validation = command.CanExecute(_gameWorld);
-                
-                var errand = new AvailableErrand
-                {
-                    NPCId = npc.ID,
-                    NPCName = npc.Name,
-                    NPCProfession = npc.Profession.ToString().Replace('_', ' '),
-                    LocationId = npc.Location,
-                    LocationName = _locationRepository.GetLocation(npc.Location)?.Name ?? "Unknown",
-                    Description = GetErrandDescription(npc),
-                    CanPerform = validation.IsValid,
-                    BlockingReason = validation.FailureReason,
-                    PlayerTokens = totalTokens,
-                    HasMedicine = viewModel.PlayerStatus.MedicineCount > 0,
-                    ContextualDescription = GetErrandContext(npc)
-                };
-                
-                viewModel.AvailableErrands.Add(errand);
-            }
-        }
-        
-        return viewModel;
-    }
-    
-    public async Task<bool> ExecutePersonalErrandAsync(string npcId)
-    {
-        var command = new PersonalErrandCommand(
-            npcId,
-            _npcRepository,
-            _connectionTokenManager,
-            _messageSystem,
-            _itemRepository);
-            
-        var validation = command.CanExecute(_gameWorld);
-        if (!validation.IsValid)
-        {
-            _messageSystem.AddSystemMessage(validation.FailureReason, SystemMessageTypes.Warning);
-            return false;
-        }
-        
-        var result = await _commandExecutor.ExecuteAsync(command);
-        return result.IsSuccess;
-    }
-    
-    private string GetErrandDescription(NPC npc)
-    {
-        return npc.Profession switch
-        {
-            Professions.Dock_Boss => "Their daughter needs medicine urgently",
-            Professions.Merchant => "They need help finding important documents",
-            Professions.Noble => "They require a discreet remedy delivery",
-            Professions.Innkeeper => "A regular patron has fallen ill",
-            Professions.TavernKeeper => "Emergency supplies needed at the tavern",
-            Professions.Scholar => "Rare ink ingredients are desperately needed",
-            Professions.Craftsman => "Workshop accident requires healing salve",
-            Professions.Soldier => "Wounds that can't be officially reported",
-            _ => "They need help with an urgent personal matter"
-        };
-    }
-    
-    private string GetErrandContext(NPC npc)
-    {
-        return npc.Profession switch
-        {
-            Professions.Dock_Boss => "Delivered medicine to their sick daughter",
-            Professions.Merchant => "Found their missing ledger before the audit",
-            Professions.Noble => "Discreetly delivered a remedy for their ailment",
-            Professions.Innkeeper => "Helped treat a regular patron who fell ill",
-            Professions.TavernKeeper => "Brought supplies for an emergency at the tavern",
-            Professions.Scholar => "Retrieved rare ink ingredients they desperately needed",
-            Professions.Craftsman => "Delivered healing salve for a workshop accident",
-            Professions.Soldier => "Brought medicine for wounds they couldn't report",
-            _ => "Helped with an urgent personal matter"
-        };
     }
     
     // ========== INVENTORY ==========
@@ -1140,7 +1243,7 @@ public class GameFacade : IGameFacade
             NPCName = npc.Name,
             Role = npc.Role,
             HasDirectOfferAvailable = _connectionTokenManager.HasEnoughTokensForDirectOffer(npc.ID),
-            PendingOfferCount = _npcLetterOfferService.GetPendingOffersForNPC(npc.ID).Count,
+            PendingOfferCount = _letterOfferService.GetPendingOffersForNPC(npc.ID).Count,
             IsAvailable = npc.IsAvailable(currentTime)
         })
         .Where(npc => npc.HasDirectOfferAvailable || npc.PendingOfferCount > 0)
@@ -1231,6 +1334,260 @@ public class GameFacade : IGameFacade
         }
         
         return obligations.OrderBy(o => o.Priority).ToList();
+    }
+    
+    public DetailedObligationsViewModel GetDetailedObligations()
+    {
+        var vm = new DetailedObligationsViewModel();
+        var player = _gameWorld.GetPlayer();
+        
+        if (_standingObligationManager == null || _standingObligationRepository == null)
+        {
+            return vm; // Return empty view model if managers not available
+        }
+        
+        // Get active obligations
+        foreach (var obligation in _standingObligationManager.GetActiveObligations())
+        {
+            var activeVm = new ActiveObligationViewModel
+            {
+                ID = obligation.ID,
+                Name = obligation.Name,
+                Description = obligation.Description,
+                Source = obligation.Source,
+                DaysSinceAccepted = obligation.DaysSinceAccepted,
+                RelatedTokenType = obligation.RelatedTokenType,
+                TokenCount = 0,
+                HasForcedLetterWarning = false,
+                DaysUntilForcedLetter = 0
+            };
+            
+            // Add benefit descriptions
+            foreach (var effect in obligation.BenefitEffects)
+            {
+                activeVm.BenefitDescriptions.Add(GetEffectDescription(effect));
+            }
+            
+            // Add constraint descriptions
+            foreach (var effect in obligation.ConstraintEffects)
+            {
+                activeVm.ConstraintDescriptions.Add(GetEffectDescription(effect));
+            }
+            
+            // Get token count if applicable
+            if (obligation.RelatedTokenType.HasValue)
+            {
+                activeVm.TokenCount = _connectionTokenManager.GetTokenCount(obligation.RelatedTokenType.Value);
+            }
+            
+            // Check for forced letter warnings
+            if (obligation.HasEffect(ObligationEffect.ShadowForced))
+            {
+                activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedLetter >= 2;
+                activeVm.DaysUntilForcedLetter = Math.Max(0, 3 - obligation.DaysSinceLastForcedLetter);
+            }
+            else if (obligation.HasEffect(ObligationEffect.PatronMonthly))
+            {
+                activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedLetter >= 28;
+                activeVm.DaysUntilForcedLetter = Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
+            }
+            
+            // Check for conflicts
+            activeVm.HasConflicts = CheckForConflicts(obligation, _standingObligationManager.GetActiveObligations());
+            
+            vm.ActiveObligations.Add(activeVm);
+        }
+        
+        // Get debt obligations
+        foreach (var obligation in vm.ActiveObligations.Where(o => o.ID.StartsWith("debt_")))
+        {
+            var parts = obligation.ID.Split('_');
+            if (parts.Length >= 3)
+            {
+                var npcId = parts[1];
+                var npc = _npcRepository.GetById(npcId);
+                if (npc != null && obligation.RelatedTokenType.HasValue)
+                {
+                    var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+                    var debtAmount = tokens[obligation.RelatedTokenType.Value];
+                    
+                    var debtVm = new DebtObligationViewModel
+                    {
+                        ID = obligation.ID,
+                        Name = obligation.Name,
+                        Description = obligation.Description,
+                        LeverageHolderName = npc.Name,
+                        LeverageAmount = Math.Abs(debtAmount)
+                    };
+                    
+                    // Add effect descriptions
+                    debtVm.EffectDescriptions.Add($"Letters get {Math.Abs(debtAmount)} position priority");
+                    if (obligation.ConstraintDescriptions.Any(c => c.Contains("Skip costs doubled")))
+                        debtVm.EffectDescriptions.Add("Skip costs doubled");
+                    if (obligation.ConstraintDescriptions.Any(c => c.Contains("Cannot refuse")))
+                        debtVm.EffectDescriptions.Add("Cannot refuse letters");
+                    
+                    vm.DebtObligations.Add(debtVm);
+                }
+            }
+        }
+        
+        // Check threshold warnings
+        var allNpcs = _npcRepository.GetAllNPCs();
+        foreach (var npc in allNpcs)
+        {
+            var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+            
+            foreach (var (tokenType, balance) in tokens)
+            {
+                // Warning for approaching debt
+                if (balance == -1 || balance == -2)
+                {
+                    vm.ThresholdWarnings.Add(new ThresholdWarningViewModel
+                    {
+                        WarningType = "Debt",
+                        Message = $"At -3 {tokenType} tokens, '{GetDebtObligationName(tokenType)}' will activate",
+                        NPCName = npc.Name,
+                        CurrentValue = balance,
+                        ThresholdValue = -3,
+                        TokenType = tokenType
+                    });
+                }
+                
+                // Warning for extreme debt
+                if (balance == -4)
+                {
+                    vm.ThresholdWarnings.Add(new ThresholdWarningViewModel
+                    {
+                        WarningType = "Debt",
+                        Message = $"At -5 {tokenType} tokens, extreme leverage effects will apply",
+                        NPCName = npc.Name,
+                        CurrentValue = balance,
+                        ThresholdValue = -5,
+                        TokenType = tokenType
+                    });
+                }
+                
+                // Warning for high positive tokens
+                if (balance == 4)
+                {
+                    vm.ThresholdWarnings.Add(new ThresholdWarningViewModel
+                    {
+                        WarningType = "HighTokens",
+                        Message = $"At 5 {tokenType} tokens, new benefits may unlock",
+                        NPCName = npc.Name,
+                        CurrentValue = balance,
+                        ThresholdValue = 5,
+                        TokenType = tokenType
+                    });
+                }
+                
+                if (balance == 9)
+                {
+                    vm.ThresholdWarnings.Add(new ThresholdWarningViewModel
+                    {
+                        WarningType = "HighTokens",
+                        Message = $"At 10 {tokenType} tokens, powerful benefits may activate",
+                        NPCName = npc.Name,
+                        CurrentValue = balance,
+                        ThresholdValue = 10,
+                        TokenType = tokenType
+                    });
+                }
+            }
+        }
+        
+        // Sort warnings by proximity to threshold
+        vm.ThresholdWarnings = vm.ThresholdWarnings
+            .OrderBy(w => Math.Abs(w.CurrentValue - w.ThresholdValue))
+            .Take(5) // Show top 5 most relevant
+            .ToList();
+        
+        // Get available templates
+        var allTemplates = _standingObligationRepository.GetAllObligationTemplates();
+        foreach (var template in allTemplates.Where(t => !HasObligation(t.ID, vm.ActiveObligations)))
+        {
+            var templateVm = new ObligationTemplateViewModel
+            {
+                ID = template.ID,
+                Name = template.Name,
+                Description = template.Description,
+                TriggerDescription = template.Source,
+                RequirementDescription = "Available through special letters",
+                CanAccept = true
+            };
+            
+            // Check for conflicts
+            var conflicts = _standingObligationManager.CheckObligationConflicts(template);
+            if (conflicts.Any())
+            {
+                templateVm.CanAccept = false;
+                templateVm.CannotAcceptReason = "Conflicts with existing obligations";
+                templateVm.ConflictingObligations = conflicts.Select(c => c.Name).ToList();
+            }
+            
+            vm.AvailableTemplates.Add(templateVm);
+        }
+        
+        return vm;
+    }
+    
+    private bool CheckForConflicts(StandingObligation obligation, List<StandingObligation> allObligations)
+    {
+        return allObligations
+            .Where(other => other.ID != obligation.ID && other.RelatedTokenType == obligation.RelatedTokenType)
+            .Any(other => 
+                (obligation.BenefitEffects.Any(b => other.ConstraintEffects.Contains(b)) ||
+                 obligation.ConstraintEffects.Any(c => other.BenefitEffects.Contains(c))));
+    }
+    
+    private bool HasObligation(string obligationId, List<ActiveObligationViewModel> activeObligations)
+    {
+        return activeObligations.Any(o => o.ID.Equals(obligationId, StringComparison.OrdinalIgnoreCase));
+    }
+    
+    private string GetEffectDescription(ObligationEffect effect)
+    {
+        return effect switch
+        {
+            ObligationEffect.StatusPriority => "Status letters enter at slot 3",
+            ObligationEffect.CommercePriority => "Commerce letters enter at slot 5",
+            ObligationEffect.TrustPriority => "Trust letters enter at slot 7",
+            ObligationEffect.PatronJumpToTop => "Patron letters jump to top slots",
+            ObligationEffect.CommerceBonus => "Commerce letters +10 coins",
+            ObligationEffect.CommerceBonusPlus3 => "Commerce letters +3 coins bonus",
+            ObligationEffect.ShadowTriplePay => "Shadow letters pay triple",
+            ObligationEffect.TrustFreeExtend => "Trust letters extend deadline free",
+            ObligationEffect.ShadowForced => "Forced shadow letter every 3 days",
+            ObligationEffect.PatronMonthly => "Monthly patron resource package",
+            ObligationEffect.NoStatusRefusal => "Cannot refuse status letters",
+            ObligationEffect.NoCommercePurge => "Cannot purge commerce letters",
+            ObligationEffect.TrustSkipDoubleCost => "Skipping trust letters costs double",
+            ObligationEffect.PatronLettersPosition1 => "Patron letters locked to position 1",
+            ObligationEffect.PatronLettersPosition3 => "Patron letters locked to position 3",
+            ObligationEffect.DeadlinePlus2Days => "All letters get +2 days deadline",
+            ObligationEffect.CannotRefuseLetters => "Cannot refuse any letters",
+            ObligationEffect.ShadowEqualsStatus => "Shadow letters use Status position",
+            ObligationEffect.MerchantRespect => "Commerce 5+ tokens: +1 position",
+            ObligationEffect.PatronAbsolute => "Patron letters push everything down",
+            ObligationEffect.DebtSpiral => "All debts get extra leverage",
+            ObligationEffect.DynamicLeverageModifier => "Leverage scales with tokens",
+            ObligationEffect.DynamicPaymentBonus => "Payment scales with tokens",
+            ObligationEffect.DynamicDeadlineBonus => "Deadline bonus scales with tokens",
+            _ => effect.ToString()
+        };
+    }
+    
+    private string GetDebtObligationName(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => "Personal Betrayal",
+            ConnectionType.Commerce => "Outstanding Payment",
+            ConnectionType.Status => "Social Disgrace",
+            ConnectionType.Shadow => "Dangerous Enemy",
+            _ => "Debt Obligation"
+        };
     }
     
     // ========== SEAL MANAGEMENT ==========
@@ -1447,5 +1804,849 @@ public class GameFacade : IGameFacade
             "scholar_guild" => "Scholar's Atheneum",
             _ => "Unknown Guild"
         };
+    }
+    
+    // ========== INFORMATION DISCOVERY ==========
+    
+    public InformationDiscoveryViewModel GetDiscoveredInformation()
+    {
+        var vm = new InformationDiscoveryViewModel();
+        
+        if (_informationDiscoveryManager == null)
+        {
+            // Information discovery not yet implemented
+            return vm;
+        }
+        
+        var allInfo = _informationDiscoveryManager.GetDiscoveredInformation();
+        var player = _gameWorld.GetPlayer();
+        
+        foreach (var info in allInfo)
+        {
+            var infoVm = new DiscoveredInfoViewModel
+            {
+                Id = info.Id,
+                Name = info.Name,
+                Description = info.Description,
+                Type = info.Type,
+                Tier = info.Tier,
+                IsAccessUnlocked = info.IsAccessUnlocked,
+                DayDiscovered = info.DayDiscovered,
+                TokenRequirements = info.TokenRequirements,
+                SealRequirements = info.SealRequirements,
+                EquipmentRequirements = info.EquipmentRequirements,
+                CoinCost = info.CoinCost,
+                CanBeUsedAsLeverage = info.CanBeUsedAsLeverage,
+                LeverageValue = info.LeverageValue
+            };
+            
+            // Check if player can afford to unlock
+            infoVm.CanAfford = CanAffordInformationAccess(info);
+            
+            // Get leverage target name if applicable
+            if (info.CanBeUsedAsLeverage && !string.IsNullOrEmpty(info.LeverageAgainstNpcId))
+            {
+                var npc = _npcRepository.GetById(info.LeverageAgainstNpcId);
+                infoVm.LeverageTargetName = npc?.Name ?? "Unknown";
+            }
+            
+            // Categorize by type
+            switch (info.Type)
+            {
+                case InformationType.RouteExistence:
+                    vm.RouteInformation.Add(infoVm);
+                    break;
+                case InformationType.LocationExistence:
+                    vm.LocationInformation.Add(infoVm);
+                    break;
+                case InformationType.NPCExistence:
+                    vm.NPCInformation.Add(infoVm);
+                    break;
+                case InformationType.ServiceAvailability:
+                    vm.ServiceInformation.Add(infoVm);
+                    break;
+                case InformationType.SecretKnowledge:
+                    vm.SecretInformation.Add(infoVm);
+                    break;
+            }
+        }
+        
+        vm.TotalDiscovered = allInfo.Count;
+        vm.TotalUnlocked = allInfo.Count(i => i.IsAccessUnlocked);
+        
+        return vm;
+    }
+    
+    public async Task<bool> UnlockInformationAccessAsync(string informationId)
+    {
+        if (_informationDiscoveryManager == null)
+            return false;
+            
+        var result = _informationDiscoveryManager.TryUnlockAccess(informationId);
+        
+        // Save will be handled by the command system
+        
+        return result;
+    }
+    
+    public async Task<bool> UseInformationAsLeverageAsync(string informationId, string targetNpcId)
+    {
+        if (_informationDiscoveryManager == null)
+            return false;
+            
+        var result = _informationDiscoveryManager.UseAsLeverage(informationId, targetNpcId);
+        
+        // Save will be handled by the command system
+        
+        return result;
+    }
+    
+    private bool CanAffordInformationAccess(Information info)
+    {
+        var player = _gameWorld.GetPlayer();
+        
+        // Check tokens
+        foreach (var tokenReq in info.TokenRequirements)
+        {
+            if (!_connectionTokenManager.HasTokens(tokenReq.Key, tokenReq.Value))
+                return false;
+        }
+        
+        // Check seals
+        foreach (var sealId in info.SealRequirements)
+        {
+            if (!player.Seals.Any(s => s.Id == sealId))
+                return false;
+        }
+        
+        // Check equipment
+        foreach (var equipmentId in info.EquipmentRequirements)
+        {
+            if (!player.Inventory.HasItem(equipmentId))
+                return false;
+        }
+        
+        // Check coins
+        if (player.Coins < info.CoinCost)
+            return false;
+            
+        return true;
+    }
+    
+    // ========== LOCATION ACTIONS HELPER METHODS ==========
+    
+    private List<ActionOptionViewModel> ConvertCommands(List<DiscoveredCommand> commands, HashSet<string> allowedCommandTypes = null)
+    {
+        return commands.Select(cmd => {
+            // If commands reach this point, they've already been filtered by NarrativeManager
+            // So during tutorial, all commands that made it here are allowed
+            bool isInTutorial = _narrativeManager != null && _narrativeManager.IsNarrativeActive("wayfarer_tutorial");
+            
+            return new ActionOptionViewModel
+            {
+                Id = cmd.UniqueId,
+                Description = cmd.DisplayName,
+                NPCName = ExtractNPCName(cmd.DisplayName),
+
+                // Costs
+                TimeCost = cmd.TimeCost,
+                StaminaCost = cmd.StaminaCost,
+                CoinCost = cmd.CoinCost,
+
+                // Affordability
+                HasEnoughTime = cmd.TimeCost == 0 || _timeManager.HoursRemaining >= cmd.TimeCost,
+                HasEnoughStamina = cmd.StaminaCost == 0 || _gameWorld.GetPlayer().Stamina >= cmd.StaminaCost,
+                HasEnoughCoins = cmd.CoinCost == 0 || _gameWorld.GetPlayer().Coins >= cmd.CoinCost,
+
+                // Rewards
+                RewardsDescription = cmd.PotentialReward,
+
+                // Availability
+                IsAvailable = cmd.IsAvailable,
+                UnavailableReasons = cmd.IsAvailable ? new List<string>() : new List<string> { cmd.UnavailableReason },
+                
+                // Tutorial allowed action - if we're in tutorial and command made it here, it's allowed
+                IsAllowedInTutorial = !isInTutorial || true  // Always true if in tutorial since filtering already happened
+            };
+        }).ToList();
+    }
+
+    private string ExtractNPCName(string displayName)
+    {
+        // Simple extraction - could be improved
+        if (displayName.Contains(" with "))
+        {
+            int startIndex = displayName.IndexOf(" with ") + 6;
+            return displayName.Substring(startIndex);
+        }
+        if (displayName.Contains(" for "))
+        {
+            int startIndex = displayName.IndexOf(" for ") + 5;
+            return displayName.Substring(startIndex);
+        }
+        if (displayName.Contains(" from "))
+        {
+            int startIndex = displayName.IndexOf(" from ") + 6;
+            return displayName.Substring(startIndex);
+        }
+        if (displayName.Contains(" to "))
+        {
+            int startIndex = displayName.IndexOf(" to ") + 4;
+            return displayName.Substring(startIndex);
+        }
+        return null;
+    }
+    
+    private void AddClosedServicesInfo(LocationActionsViewModel viewModel, LocationSpot currentSpot)
+    {
+        // Skip adding closed service info during tutorial
+        bool isInTutorial = _narrativeManager != null && _narrativeManager.IsNarrativeActive("wayfarer_tutorial");
+        if (isInTutorial)
+        {
+            return;
+        }
+        
+        // Check for Letter Board availability
+        if (_timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+        {
+            ActionOptionViewModel letterBoardInfo = new ActionOptionViewModel
+            {
+                Id = "letter_board_closed",
+                Description = "Visit Letter Board",
+                IsAvailable = false,
+                IsServiceClosed = true,
+                NextAvailableTime = GetNextAvailableTime(TimeBlocks.Dawn),
+                ServiceSchedule = "Available only at Dawn",
+                UnavailableReasons = new List<string> { "Letter Board is closed. Only available during Dawn hours." }
+            };
+            
+            // Add to Special category
+            ActionGroupViewModel specialGroup = viewModel.ActionGroups.FirstOrDefault(g => g.ActionType == CommandCategory.Special.ToString());
+            if (specialGroup == null)
+            {
+                specialGroup = new ActionGroupViewModel
+                {
+                    ActionType = CommandCategory.Special.ToString(),
+                    Actions = new List<ActionOptionViewModel>()
+                };
+                viewModel.ActionGroups.Add(specialGroup);
+            }
+            specialGroup.Actions.Add(letterBoardInfo);
+        }
+        
+        // Check for Market availability
+        if (_marketManager != null)
+        {
+            string marketStatus = _marketManager.GetMarketAvailabilityStatus(currentSpot.LocationId);
+            if (!marketStatus.Contains("Market Open"))
+            {
+                List<NPC> allTraders = _marketManager.GetAllTraders(currentSpot.LocationId);
+                if (allTraders.Any())
+                {
+                    string schedule = GetTradersSchedule(allTraders);
+                    string nextAvailable = GetNextMarketAvailable(currentSpot.LocationId, allTraders);
+                    
+                    ActionOptionViewModel marketInfo = new ActionOptionViewModel
+                    {
+                        Id = "market_closed",
+                        Description = "Browse Market",
+                        IsAvailable = false,
+                        IsServiceClosed = true,
+                        NextAvailableTime = nextAvailable,
+                        ServiceSchedule = schedule,
+                        UnavailableReasons = new List<string> { marketStatus }
+                    };
+                    
+                    // Add to Economic category
+                    ActionGroupViewModel economicGroup = viewModel.ActionGroups.FirstOrDefault(g => g.ActionType == CommandCategory.Economic.ToString());
+                    if (economicGroup == null)
+                    {
+                        economicGroup = new ActionGroupViewModel
+                        {
+                            ActionType = CommandCategory.Economic.ToString(),
+                            Actions = new List<ActionOptionViewModel>()
+                        };
+                        viewModel.ActionGroups.Add(economicGroup);
+                    }
+                    economicGroup.Actions.Add(marketInfo);
+                }
+            }
+        }
+        
+        // Check for missing NPCs and their schedules
+        List<NPC> allNPCs = _npcRepository.GetNPCsForLocation(currentSpot.LocationId);
+        List<NPC> currentNPCs = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeManager.GetCurrentTimeBlock());
+        List<NPC> missingNPCs = allNPCs.Where(npc => !currentNPCs.Any(c => c.ID == npc.ID)).ToList();
+        
+        foreach (NPC missingNPC in missingNPCs)
+        {
+            string schedule = GetNPCSchedule(missingNPC);
+            string nextAvailable = GetNextNPCAvailable(missingNPC);
+            
+            // Add info about when this NPC will be available
+            ActionOptionViewModel npcInfo = new ActionOptionViewModel
+            {
+                Id = $"npc_unavailable_{missingNPC.ID}",
+                Description = $"Wait for {missingNPC.Name}",
+                NPCName = missingNPC.Name,
+                NPCProfession = missingNPC.Profession.ToString(),
+                IsAvailable = false,
+                IsServiceClosed = true,
+                NextAvailableTime = nextAvailable,
+                ServiceSchedule = schedule,
+                UnavailableReasons = new List<string> { $"{missingNPC.Name} is not here right now." }
+            };
+            
+            // Add to Social category
+            ActionGroupViewModel socialGroup = viewModel.ActionGroups.FirstOrDefault(g => g.ActionType == CommandCategory.Social.ToString());
+            if (socialGroup == null)
+            {
+                socialGroup = new ActionGroupViewModel
+                {
+                    ActionType = CommandCategory.Social.ToString(),
+                    Actions = new List<ActionOptionViewModel>()
+                };
+                viewModel.ActionGroups.Add(socialGroup);
+            }
+            socialGroup.Actions.Add(npcInfo);
+        }
+    }
+    
+    private string GetNextAvailableTime(TimeBlocks targetTime)
+    {
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        int currentHour = _timeManager.GetCurrentTimeHours();
+        
+        // Calculate hours until target time
+        int hoursUntilTarget = CalculateHoursUntilTimeBlock(currentTime, targetTime, currentHour);
+        
+        if (hoursUntilTarget <= 0)
+        {
+            // It's available next day
+            return "Available tomorrow at " + GetTimeBlockDisplayName(targetTime);
+        }
+        else if (hoursUntilTarget == 1)
+        {
+            return "Available in 1 hour";
+        }
+        else if (hoursUntilTarget < 12)
+        {
+            return $"Available in {hoursUntilTarget} hours";
+        }
+        else
+        {
+            return "Available tomorrow at " + GetTimeBlockDisplayName(targetTime);
+        }
+    }
+    
+    private string GetTradersSchedule(List<NPC> traders)
+    {
+        List<string> schedules = new List<string>();
+        foreach (NPC trader in traders)
+        {
+            List<TimeBlocks> availableTimes = GetNPCAvailableTimes(trader);
+            if (availableTimes.Any())
+            {
+                string timeList = string.Join(", ", availableTimes.Select(t => GetTimeBlockDisplayName(t)));
+                schedules.Add($"{trader.Name}: {timeList}");
+            }
+        }
+        return string.Join("; ", schedules);
+    }
+    
+    private string GetNPCSchedule(NPC npc)
+    {
+        List<TimeBlocks> availableTimes = GetNPCAvailableTimes(npc);
+        if (!availableTimes.Any())
+        {
+            return "Schedule unknown";
+        }
+        
+        string timeList = string.Join(", ", availableTimes.Select(t => GetTimeBlockDisplayName(t)));
+        return $"Available: {timeList}";
+    }
+    
+    private List<TimeBlocks> GetNPCAvailableTimes(NPC npc)
+    {
+        List<TimeBlocks> availableTimes = new List<TimeBlocks>();
+        TimeBlocks[] allTimes = new[] { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
+        
+        foreach (TimeBlocks time in allTimes)
+        {
+            if (npc.IsAvailable(time))
+            {
+                availableTimes.Add(time);
+            }
+        }
+        
+        return availableTimes;
+    }
+    
+    private string GetNextNPCAvailable(NPC npc)
+    {
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        List<TimeBlocks> availableTimes = GetNPCAvailableTimes(npc);
+        
+        if (!availableTimes.Any())
+        {
+            return "Availability unknown";
+        }
+        
+        // Find next available time
+        TimeBlocks? nextTime = GetNextAvailableTimeBlock(currentTime, availableTimes);
+        if (nextTime.HasValue)
+        {
+            return GetNextAvailableTime(nextTime.Value);
+        }
+        
+        return "Available tomorrow";
+    }
+    
+    private string GetNextMarketAvailable(string locationId, List<NPC> traders)
+    {
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        
+        // Find all times when at least one trader is available
+        HashSet<TimeBlocks> marketTimes = new HashSet<TimeBlocks>();
+        foreach (NPC trader in traders)
+        {
+            List<TimeBlocks> traderTimes = GetNPCAvailableTimes(trader);
+            foreach (TimeBlocks time in traderTimes)
+            {
+                marketTimes.Add(time);
+            }
+        }
+        
+        if (!marketTimes.Any())
+        {
+            return "Market schedule unknown";
+        }
+        
+        TimeBlocks? nextTime = GetNextAvailableTimeBlock(currentTime, marketTimes.ToList());
+        if (nextTime.HasValue)
+        {
+            return GetNextAvailableTime(nextTime.Value);
+        }
+        
+        return "Available tomorrow";
+    }
+    
+    private TimeBlocks? GetNextAvailableTimeBlock(TimeBlocks current, List<TimeBlocks> availableTimes)
+    {
+        TimeBlocks[] timeOrder = new[] { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
+        int currentIndex = Array.IndexOf(timeOrder, current);
+        
+        // Check remaining times today
+        for (int i = currentIndex + 1; i < timeOrder.Length; i++)
+        {
+            if (availableTimes.Contains(timeOrder[i]))
+            {
+                return timeOrder[i];
+            }
+        }
+        
+        // Check times tomorrow (starting from Dawn)
+        for (int i = 0; i <= currentIndex; i++)
+        {
+            if (availableTimes.Contains(timeOrder[i]))
+            {
+                return timeOrder[i];
+            }
+        }
+        
+        return null;
+    }
+    
+    private int CalculateHoursUntilTimeBlock(TimeBlocks current, TimeBlocks target, int currentHour)
+    {
+        // Map time blocks to hour ranges
+        int targetStartHour = target switch
+        {
+            TimeBlocks.Dawn => 4,
+            TimeBlocks.Morning => 8,
+            TimeBlocks.Afternoon => 12,
+            TimeBlocks.Evening => 17,
+            TimeBlocks.Night => 20,
+            _ => 0
+        };
+        
+        if (targetStartHour > currentHour)
+        {
+            return targetStartHour - currentHour;
+        }
+        else
+        {
+            // Next day
+            return (24 - currentHour) + targetStartHour;
+        }
+    }
+    
+    private string GetTimeBlockDisplayName(TimeBlocks timeBlock)
+    {
+        return timeBlock switch
+        {
+            TimeBlocks.Dawn => "Dawn (4-8 AM)",
+            TimeBlocks.Morning => "Morning (8 AM-12 PM)",
+            TimeBlocks.Afternoon => "Afternoon (12-5 PM)",
+            TimeBlocks.Evening => "Evening (5-8 PM)",
+            TimeBlocks.Night => "Night (8 PM-4 AM)",
+            _ => timeBlock.ToString()
+        };
+    }
+    
+    // ========== TOKEN MANAGEMENT ==========
+    
+    public NPCTokenBalance GetTokensWithNPC(string npcId)
+    {
+        var tokenDict = _connectionTokenManager?.GetTokensWithNPC(npcId) ?? new Dictionary<ConnectionType, int>();
+        
+        var balance = new NPCTokenBalance();
+        
+        foreach (var kvp in tokenDict)
+        {
+            balance.Balances.Add(new TokenBalance
+            {
+                TokenType = kvp.Key,
+                Amount = kvp.Value
+            });
+        }
+        
+        return balance;
+    }
+    
+    public int GetTokenCount(ConnectionType tokenType)
+    {
+        return _connectionTokenManager?.GetTokenCount(tokenType) ?? 0;
+    }
+    
+    // ========== NPC & LOCATION QUERIES ==========
+    
+    public List<NPC> GetAllNPCs()
+    {
+        return _npcRepository?.GetAllNPCs() ?? new List<NPC>();
+    }
+    
+    public NPC GetNPCById(string npcId)
+    {
+        return _npcRepository?.GetById(npcId);
+    }
+    
+    public NPC GetNPCByName(string name)
+    {
+        return _npcRepository?.GetByName(name);
+    }
+    
+    public Location GetLocation(string locationId)
+    {
+        return _locationRepository?.GetLocation(locationId);
+    }
+    
+    // ========== LETTER SERVICES ==========
+    
+    public bool CanNPCOfferLetters(string npcId)
+    {
+        // Check if NPC has tokens to offer letters
+        var npc = _npcRepository?.GetById(npcId);
+        if (npc == null) return false;
+        
+        // Check if NPC can offer letters based on tokens
+        var tokens = _connectionTokenManager?.GetTokensWithNPC(npcId);
+        return tokens != null && tokens.Any(t => t.Value > 0);
+    }
+    
+    public List<SpecialLetterOption> GetAvailableSpecialLetters(string npcId)
+    {
+        return _specialLetterService?.GetAvailableSpecialLetters(npcId) ?? new List<SpecialLetterOption>();
+    }
+    
+    public bool RequestSpecialLetter(string npcId, ConnectionType tokenType)
+    {
+        return _specialLetterService?.RequestSpecialLetter(npcId, tokenType) ?? false;
+    }
+    
+    public LetterCategory GetAvailableCategory(string npcId, ConnectionType tokenType)
+    {
+        return _letterCategoryService?.GetAvailableCategory(npcId, tokenType) ?? LetterCategory.Basic;
+    }
+    
+    public int GetTokensToNextCategory(string npcId, ConnectionType tokenType)
+    {
+        return _letterCategoryService?.GetTokensToNextCategory(npcId, tokenType) ?? 0;
+    }
+    
+    public (int min, int max) GetCategoryPaymentRange(LetterCategory category)
+    {
+        return _letterCategoryService?.GetCategoryPaymentRange(category) ?? (0, 0);
+    }
+    
+    // ========== ITEM MANAGEMENT ==========
+    
+    public Item GetItemById(string itemId)
+    {
+        return _itemRepository?.GetItemById(itemId);
+    }
+    
+    public async Task<bool> ReadLetterAsync(string itemId)
+    {
+        if (_readableLetterService == null) return false;
+        return await _readableLetterService.ReadLetterAsync(itemId);
+    }
+    
+    // ========== LETTER QUEUE MANAGEMENT ==========
+    
+    public int GetLetterQueueCount()
+    {
+        return _gameWorld.GetPlayer()?.CarriedLetters?.Count ?? 0;
+    }
+    
+    public bool IsLetterQueueFull()
+    {
+        var count = GetLetterQueueCount();
+        return count >= 8; // MAX_LETTER_QUEUE_SIZE
+    }
+    
+    public int AddLetterWithObligationEffects(Letter letter)
+    {
+        if (letter == null || IsLetterQueueFull())
+            return -1;
+            
+        // Add letter to player's queue
+        var player = _gameWorld.GetPlayer();
+        player.CarriedLetters.Add(letter);
+        
+        // Calculate position with obligation effects
+        if (_standingObligationManager != null)
+        {
+            int basePosition = player.CarriedLetters.Count;
+            int positionModifier = 0;
+            if (letter.TokenType == ConnectionType.Status)
+            {
+                var obligations = _standingObligationManager.GetActiveObligations();
+                foreach (var obligation in obligations)
+                {
+                    if (obligation.HasEffect(ObligationEffect.StatusPriority))
+                        positionModifier = -2; // Move up to position 3
+                }
+            }
+            int finalPosition = Math.Max(1, Math.Min(basePosition + positionModifier, 8));
+            
+            // Reorder queue if needed
+            if (finalPosition != basePosition)
+            {
+                player.CarriedLetters.Remove(letter);
+                player.CarriedLetters.Insert(finalPosition - 1, letter);
+            }
+            
+            return finalPosition;
+        }
+        
+        return player.CarriedLetters.Count;
+    }
+    
+    public bool IsActionForbidden(string actionType, Letter letter, out string reason)
+    {
+        reason = null;
+        
+        if (_standingObligationManager == null)
+            return false;
+            
+        return _standingObligationManager.IsActionForbidden(actionType, letter, out reason);
+    }
+    
+    // ========== NOTICE BOARD ==========
+    
+    public List<NoticeBoardOption> GetNoticeBoardOptions()
+    {
+        var options = new List<NoticeBoardOption>();
+        
+        // Define the three standard notice board options
+        options.Add(new NoticeBoardOption
+        {
+            Id = "anything_heading",
+            Name = "Anything heading...",
+            Description = "Ask about letters going to specific locations",
+            TokenCost = 2,
+            OptionType = NoticeBoardOptionType.AnythingHeading,
+            RequiresDirection = true
+        });
+        
+        options.Add(new NoticeBoardOption
+        {
+            Id = "looking_for_work",
+            Name = "Looking for work...",
+            Description = "Request letters of a specific type",
+            TokenCost = 3,
+            OptionType = NoticeBoardOptionType.LookingForWork,
+            RequiresTokenType = true
+        });
+        
+        options.Add(new NoticeBoardOption
+        {
+            Id = "urgent_deliveries",
+            Name = "Urgent deliveries?",
+            Description = "High-paying letters with tight deadlines",
+            TokenCost = 5,
+            OptionType = NoticeBoardOptionType.UrgentDeliveries
+        });
+        
+        return options;
+    }
+    
+    public bool CanAffordNoticeBoardOption(NoticeBoardOption option)
+    {
+        if (option == null)
+            return false;
+            
+        var player = _gameWorld.GetPlayer();
+        var totalTokens = 0;
+        
+        // Count all tokens
+        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+        {
+            totalTokens += _connectionTokenManager?.GetTokenCount(tokenType) ?? 0;
+        }
+        
+        return totalTokens >= option.TokenCost;
+    }
+    
+    public async Task<bool> ExecuteNoticeBoardOption(NoticeBoardOption option, string direction = null)
+    {
+        if (option == null || !CanAffordNoticeBoardOption(option))
+            return false;
+            
+        var player = _gameWorld.GetPlayer();
+        
+        // Deduct tokens (randomly from available types)
+        var availableTokens = new List<(ConnectionType type, int count)>();
+        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+        {
+            int count = _connectionTokenManager?.GetTokenCount(tokenType) ?? 0;
+            if (count > 0)
+                availableTokens.Add((tokenType, count));
+        }
+        
+        if (!availableTokens.Any())
+            return false;
+            
+        // Deduct tokens randomly
+        var random = new Random();
+        int tokensToDeduct = option.TokenCost;
+        
+        while (tokensToDeduct > 0 && availableTokens.Any())
+        {
+            int index = random.Next(availableTokens.Count);
+            var (tokenType, count) = availableTokens[index];
+            
+            // Find an NPC to deduct from
+            var allNpcs = _npcRepository?.GetAllNPCs() ?? new List<NPC>();
+            foreach (var npc in allNpcs)
+            {
+                var npcTokens = _connectionTokenManager?.GetTokensWithNPC(npc.ID);
+                if (npcTokens != null && npcTokens.ContainsKey(tokenType) && npcTokens[tokenType] > 0)
+                {
+                    // Deduct token directly from player's balance with NPC
+                    var playerTokens = _gameWorld.GetPlayer().NPCTokens;
+                    if (playerTokens.ContainsKey(npc.ID) && playerTokens[npc.ID].ContainsKey(tokenType))
+                    {
+                        playerTokens[npc.ID][tokenType]--;
+                        if (playerTokens[npc.ID][tokenType] <= 0)
+                        {
+                            playerTokens[npc.ID].Remove(tokenType);
+                            if (playerTokens[npc.ID].Count == 0)
+                                playerTokens.Remove(npc.ID);
+                        }
+                    }
+                    tokensToDeduct--;
+                    
+                    availableTokens[index] = (tokenType, count - 1);
+                    if (availableTokens[index].count == 0)
+                        availableTokens.RemoveAt(index);
+                    
+                    break;
+                }
+            }
+        }
+        
+        // Generate a letter based on the option type
+        Letter generatedLetter = null;
+        
+        switch (option.OptionType)
+        {
+            case NoticeBoardOptionType.AnythingHeading:
+                // Generate letter heading to specified direction
+                generatedLetter = GenerateDirectionalLetter(direction);
+                break;
+                
+            case NoticeBoardOptionType.LookingForWork:
+                // Generate letter of specific type (would need token type parameter)
+                generatedLetter = GenerateTypedLetter(ConnectionType.Commerce); // Default for now
+                break;
+                
+            case NoticeBoardOptionType.UrgentDeliveries:
+                // Generate urgent high-paying letter
+                generatedLetter = GenerateUrgentLetter();
+                break;
+        }
+        
+        if (generatedLetter != null)
+        {
+            int position = AddLetterWithObligationEffects(generatedLetter);
+            if (position > 0)
+            {
+                _messageSystem?.AddSystemMessage(
+                    $"📬 Letter added to your queue at position {position}!",
+                    SystemMessageTypes.Success
+                );
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private Letter GenerateDirectionalLetter(string direction)
+    {
+        var letter = new Letter
+        {
+            Id = Guid.NewGuid().ToString(),
+            SenderName = "Notice Board Client",
+            RecipientName = $"Recipient in {direction}",
+            Payment = 20 + new Random().Next(10),
+            DeadlineInDays = 3 + new Random().Next(2),
+            TokenType = (ConnectionType)new Random().Next(4)
+        };
+        
+        return letter;
+    }
+    
+    private Letter GenerateTypedLetter(ConnectionType tokenType)
+    {
+        var letter = new Letter
+        {
+            Id = Guid.NewGuid().ToString(),
+            SenderName = $"{tokenType} Contact",
+            RecipientName = $"{tokenType} Recipient",
+            Payment = tokenType == ConnectionType.Shadow ? 40 : 25,
+            DeadlineInDays = 4,
+            TokenType = tokenType
+        };
+        
+        return letter;
+    }
+    
+    private Letter GenerateUrgentLetter()
+    {
+        var letter = new Letter
+        {
+            Id = Guid.NewGuid().ToString(),
+            SenderName = "Urgent Client",
+            RecipientName = "Time-Sensitive Recipient",
+            Payment = 50 + new Random().Next(20),
+            DeadlineInDays = 2,
+            TokenType = (ConnectionType)new Random().Next(4),
+            PhysicalProperties = LetterPhysicalProperties.Fragile
+        };
+        
+        return letter;
     }
 }

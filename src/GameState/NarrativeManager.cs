@@ -539,10 +539,6 @@ public class NarrativeManager : INPCVisibilityRule
                 _flagService.SetFlag("npc_conversed", true);
                 _flagService.IncrementCounter("npcs_talked_to");
                 break;
-            case WorkCommand:
-                _flagService.SetFlag("work_performed", true);
-                _flagService.IncrementCounter("work_actions_taken");
-                break;
             case CollectLetterCommand:
                 _flagService.SetFlag("letter_collected", true);
                 _flagService.IncrementCounter("letters_collected_count");
@@ -553,10 +549,6 @@ public class NarrativeManager : INPCVisibilityRule
                 break;
             case LetterQueueActionCommand:
                 _flagService.SetFlag("queue_action_taken", true);
-                break;
-            case BorrowMoneyCommand:
-                _flagService.SetFlag("money_borrowed", true);
-                _flagService.IncrementCounter("total_debt");
                 break;
             case AdvanceTimeCommand:
                 _flagService.IncrementCounter("time_blocks_passed");
@@ -617,14 +609,11 @@ public class NarrativeManager : INPCVisibilityRule
         {
             TravelCommand => "Travel",
             ConverseCommand => "Converse",
-            WorkCommand => "Work",
             RestCommand => "Rest",
             CollectLetterCommand => "CollectLetter",
             DeliverLetterCommand => "DeliverLetter",
             AcceptLetterBoardOfferCommand => "AcceptLetter",
             LetterQueueActionCommand => "QueueAction",
-            SocializeCommand => "Socialize",
-            BorrowMoneyCommand => "BorrowMoney",
             ObserveCommand => "Observe",
             PatronFundsCommand => "PatronFunds",
             _ => command.GetType().Name.Replace("Command", "")
@@ -658,13 +647,6 @@ public class NarrativeManager : INPCVisibilityRule
                         _flagService.SetFlag(FlagService.TUTORIAL_FIRST_NPC_TALK, true);
                     break;
                     
-                case "day1_first_work":
-                    if (command is WorkCommand)
-                    {
-                        _flagService.SetFlag(FlagService.TUTORIAL_FIRST_WORK, true);
-                        _flagService.SetFlag(FlagService.TUTORIAL_FIRST_TOKEN_EARNED, true);
-                    }
-                    break;
                     
                     
                 // Add more step-specific flag mappings as needed

@@ -1,0 +1,173 @@
+@using System.Linq
+
+<div class="token-threshold-display">
+    <h4>@TokenIcon @TokenType Progress</h4>
+    
+    @* Progress bar with threshold markers *@
+    <div class="threshold-progress-bar">
+        <div class="threshold-fill" style="width: @GetProgressPercentage()%"></div>
+        
+        <div class="threshold-markers">
+            <div class="threshold-marker basic"></div>
+            <div class="threshold-marker quality"></div>
+            <div class="threshold-marker premium"></div>
+        </div>
+        
+        @* Current token indicator *@
+        <div class="current-token-indicator" style="left: @GetProgressPercentage()%">
+            @CurrentTokens tokens
+        </div>
+    </div>
+    
+    @* Threshold labels *@
+    <div class="threshold-labels">
+        <div class="threshold-label @GetThresholdClass(GameRules.TOKENS_BASIC_THRESHOLD)">
+            <span class="threshold-icon">📄</span>
+            <span class="threshold-name">Basic Letters</span>
+            <span class="threshold-requirement">@GameRules.TOKENS_BASIC_THRESHOLD+ tokens</span>
+            <span class="threshold-benefits">3-5 coin jobs</span>
+        </div>
+        
+        <div class="threshold-label @GetThresholdClass(GameRules.TOKENS_QUALITY_THRESHOLD)">
+            <span class="threshold-icon">📜</span>
+            <span class="threshold-name">Quality Letters</span>
+            <span class="threshold-requirement">@GameRules.TOKENS_QUALITY_THRESHOLD+ tokens</span>
+            <span class="threshold-benefits">8-12 coin jobs</span>
+        </div>
+        
+        <div class="threshold-label @GetThresholdClass(GameRules.TOKENS_PREMIUM_THRESHOLD)">
+            <span class="threshold-icon">📋</span>
+            <span class="threshold-name">Premium Letters</span>
+            <span class="threshold-requirement">@GameRules.TOKENS_PREMIUM_THRESHOLD+ tokens</span>
+            <span class="threshold-benefits">15-20 coin jobs</span>
+        </div>
+    </div>
+    
+    @* Milestone effects *@
+    <div class="token-milestone-effects">
+        <h5>Relationship Effects:</h5>
+        
+        @if (CurrentTokens < 0)
+        {
+            <div class="milestone-effect active">
+                ⚠️ Negative balance creates leverage for @NPCName
+            </div>
+        }
+        
+        @if (CurrentTokens >= GameRules.TOKENS_BASIC_THRESHOLD)
+        {
+            <div class="milestone-effect active">
+                ✅ Can request letters directly
+            </div>
+        }
+        else
+        {
+            <div class="milestone-effect next">
+                🔒 @(GameRules.TOKENS_BASIC_THRESHOLD - CurrentTokens) more tokens to unlock direct letter requests
+            </div>
+        }
+        
+        @if (CurrentTokens >= GameRules.TOKENS_QUALITY_THRESHOLD)
+        {
+            <div class="milestone-effect active">
+                ✅ Access to higher-paying letters
+            </div>
+        }
+        else if (CurrentTokens >= GameRules.TOKENS_BASIC_THRESHOLD)
+        {
+            <div class="milestone-effect next">
+                🔒 @(GameRules.TOKENS_QUALITY_THRESHOLD - CurrentTokens) more tokens for quality letters
+            </div>
+        }
+        
+        @if (CurrentTokens >= GameRules.TOKENS_PREMIUM_THRESHOLD)
+        {
+            <div class="milestone-effect active">
+                ✅ Most trusted courier - premium access
+            </div>
+            
+            <div class="special-letter-preview">
+                <span class="special-icon">@GetSpecialLetterIcon()</span>
+                <span class="special-type">Special Letter Available: @GetSpecialLetterType()</span>
+                <span class="special-desc">@GetSpecialLetterDescription()</span>
+                <span class="special-cost">Cost: 3 @TokenType tokens</span>
+            </div>
+        }
+        else if (CurrentTokens >= GameRules.TOKENS_QUALITY_THRESHOLD)
+        {
+            <div class="milestone-effect next">
+                🔒 @(GameRules.TOKENS_PREMIUM_THRESHOLD - CurrentTokens) more tokens for premium access
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    @namespace Wayfarer.Pages.Components
+    
+    [Parameter] public string NPCId { get; set; }
+    [Parameter] public string NPCName { get; set; }
+    [Parameter] public ConnectionType TokenType { get; set; }
+    [Parameter] public int CurrentTokens { get; set; }
+    
+    private string TokenIcon => TokenType switch
+    {
+        ConnectionType.Trust => "❤️",
+        ConnectionType.Commerce => "🪙",
+        ConnectionType.Status => "👑",
+        ConnectionType.Shadow => "🌑",
+        _ => "❓"
+    };
+    
+    private double GetProgressPercentage()
+    {
+        // Map 0-5 tokens to 0-100%
+        if (CurrentTokens < 0) return 0;
+        if (CurrentTokens >= 5) return 100;
+        return (CurrentTokens / 5.0) * 100;
+    }
+    
+    private string GetThresholdClass(int threshold)
+    {
+        if (CurrentTokens >= threshold)
+        {
+            // Check if this is the current tier
+            if (threshold == GameRules.TOKENS_BASIC_THRESHOLD && CurrentTokens < GameRules.TOKENS_QUALITY_THRESHOLD)
+                return "current";
+            if (threshold == GameRules.TOKENS_QUALITY_THRESHOLD && CurrentTokens < GameRules.TOKENS_PREMIUM_THRESHOLD)
+                return "current";
+            if (threshold == GameRules.TOKENS_PREMIUM_THRESHOLD)
+                return "current";
+                
+            return "unlocked";
+        }
+        return "locked";
+    }
+    
+    private string GetSpecialLetterIcon() => TokenType switch
+    {
+        ConnectionType.Trust => "🤝",
+        ConnectionType.Commerce => "🔓",
+        ConnectionType.Status => "📜",
+        ConnectionType.Shadow => "🔍",
+        _ => "⭐"
+    };
+    
+    private string GetSpecialLetterType() => TokenType switch
+    {
+        ConnectionType.Trust => "Letter of Introduction",
+        ConnectionType.Commerce => "Access Permit",
+        ConnectionType.Status => "Letter of Endorsement",
+        ConnectionType.Shadow => "Information Letter",
+        _ => "Special Letter"
+    };
+    
+    private string GetSpecialLetterDescription() => TokenType switch
+    {
+        ConnectionType.Trust => "Unlocks access to new contacts in the network",
+        ConnectionType.Commerce => "Grants permission to enter restricted areas",
+        ConnectionType.Status => "Provides temporary relationship bonuses",
+        ConnectionType.Shadow => "Reveals hidden information and secrets",
+        _ => "Provides unique benefits"
+    };
+}
