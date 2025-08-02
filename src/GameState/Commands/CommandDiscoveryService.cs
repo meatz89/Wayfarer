@@ -152,127 +152,14 @@ public class CommandDiscoveryService
             RemediationHint = converseValidation.RemediationHint
         });
 
-        // Work command - if NPC offers work
-        if (npc.OffersWork)
-        {
-            WorkCommand workCommand = new WorkCommand(npc.ID, _npcRepository, _ruleEngine, _gameConfiguration, _messageSystem, _tokenManager);
-            CommandValidationResult workValidation = workCommand.CanExecute(gameWorld);
 
-            // Get the token type this work will grant
-            ConnectionType tokenType = workCommand.TokenTypeGranted ?? npc.LetterTokenTypes.FirstOrDefault();
-            string tokenReward = tokenType != default ? $", 50% chance of +1 {tokenType} token" : "";
-
-            result.AddCommand(new DiscoveredCommand
-            {
-                Command = workCommand,
-                Category = CommandCategory.Economic,
-                DisplayName = $"Work for {npc.Name}",
-                Description = $"Earn coins by working",
-                TimeCost = 1,
-                StaminaCost = 1,
-                CoinCost = 0,
-                PotentialReward = $"Coins based on profession{tokenReward}",
-                IsAvailable = workValidation.IsValid,
-                UnavailableReason = workValidation.FailureReason,
-                CanRemediate = workValidation.CanBeRemedied,
-                RemediationHint = workValidation.RemediationHint
-            });
-        }
-
-        // Socialize command - if player has existing relationship with NPC
+        // Get current relationship for later commands
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
         int currentTokens = npcTokens.Values.Sum();
-        if (currentTokens > 0)
-        {
-            // First add the basic socialize command (Common tokens)
-            SocializeCommand socializeCommand = new SocializeCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem);
-            CommandValidationResult socializeValidation = socializeCommand.CanExecute(gameWorld);
-
-            // Get the token type this social action will grant
-            ConnectionType tokenType = socializeCommand.TokenTypeGranted ?? npc.LetterTokenTypes.FirstOrDefault();
-            
-            result.AddCommand(new DiscoveredCommand
-            {
-                Command = socializeCommand,
-                Category = CommandCategory.Social,
-                DisplayName = $"Socialize with {npc.Name}",
-                Description = $"Spend time together to strengthen connection",
-                TimeCost = 1,
-                StaminaCost = 1,
-                CoinCost = 0,
-                PotentialReward = $"50% chance of +1 {tokenType} token",
-                IsAvailable = socializeValidation.IsValid,
-                UnavailableReason = socializeValidation.FailureReason,
-                CanRemediate = socializeValidation.CanBeRemedied,
-                RemediationHint = socializeValidation.RemediationHint
-            });
-
-            // Check for equipment-enabled token types
-            ConnectionType[] equipmentTokenTypes = { ConnectionType.Status, ConnectionType.Commerce };
-            foreach (ConnectionType equipmentTokenType in equipmentTokenTypes)
-            {
-                // Check if equipment enables this token type (and NPC doesn't naturally offer it)
-                if (_tokenManager.CanGenerateTokenType(equipmentTokenType, npc.ID) && 
-                    !npc.LetterTokenTypes.Contains(equipmentTokenType))
-                {
-                }
-            }
-        }
 
 
 
-        // Personal errand command - if have some relationship (2+ tokens)
-        if (currentTokens >= 2)
-        {
-            PersonalErrandCommand errandCommand = new PersonalErrandCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem, _itemRepository);
-            CommandValidationResult errandValidation = errandCommand.CanExecute(gameWorld);
 
-            result.AddCommand(new DiscoveredCommand
-            {
-                Command = errandCommand,
-                Category = CommandCategory.Social,
-                DisplayName = $"Help {npc.Name} with personal matter",
-                Description = "Run an important personal errand",
-                TimeCost = 2,
-                StaminaCost = 2,
-                CoinCost = 0,
-                PotentialReward = "+1 Trust token (requires medicine)",
-                IsAvailable = errandValidation.IsValid,
-                UnavailableReason = errandValidation.FailureReason,
-                CanRemediate = errandValidation.CanBeRemedied,
-                RemediationHint = errandValidation.RemediationHint
-            });
-        }
-
-        // Borrow money command - if NPC offers loans (trade or shadow types)
-        bool canLend = npc.LetterTokenTypes.Contains(ConnectionType.Commerce) ||
-                      npc.LetterTokenTypes.Contains(ConnectionType.Shadow);
-
-        if (canLend)
-        {
-            BorrowMoneyCommand borrowCommand = new BorrowMoneyCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem,
-                _gameConfiguration);
-            CommandValidationResult borrowValidation = borrowCommand.CanExecute(gameWorld);
-
-            int loanAmount = npc.LetterTokenTypes.Contains(ConnectionType.Shadow) ? 30 : 20;
-            ConnectionType tokenType = npc.LetterTokenTypes.FirstOrDefault();
-
-            result.AddCommand(new DiscoveredCommand
-            {
-                Command = borrowCommand,
-                Category = CommandCategory.Economic,
-                DisplayName = $"Borrow money from {npc.Name}",
-                Description = $"Request a loan of {loanAmount} coins",
-                TimeCost = 1,
-                StaminaCost = 0,
-                CoinCost = 0,
-                PotentialReward = $"{loanAmount} coins (-2 {tokenType} tokens)",
-                IsAvailable = borrowValidation.IsValid,
-                UnavailableReason = borrowValidation.FailureReason,
-                CanRemediate = borrowValidation.CanBeRemedied,
-                RemediationHint = borrowValidation.RemediationHint
-            });
-        }
 
         // Discover routes from this NPC
         if (_routeDiscoveryManager != null)

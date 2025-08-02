@@ -7,7 +7,7 @@ namespace Wayfarer.Pages
 
     public class TravelSelectionBase : ComponentBase
     {
-        [Inject] public IGameFacade GameFacade { get; set; }
+        [Inject] public GameFacade GameFacade { get; set; }
         [Inject] public TimeImpactCalculator TimeCalculator { get; set; }
         [Inject] public ActionExecutionService ActionExecutor { get; set; }
         [Parameter] public Location CurrentLocation { get; set; }

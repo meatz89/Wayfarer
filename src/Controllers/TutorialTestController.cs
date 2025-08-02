@@ -13,11 +13,11 @@ namespace Wayfarer.Controllers;
 [Route("api/tutorial")]
 public class TutorialTestController : ControllerBase
 {
-    private readonly IGameFacade _gameFacade;
+    private readonly GameFacade _gameFacade;
     private readonly ILogger<TutorialTestController> _logger;
 
     public TutorialTestController(
-        IGameFacade gameFacade,
+        GameFacade gameFacade,
         ILogger<TutorialTestController> logger)
     {
         _gameFacade = gameFacade;

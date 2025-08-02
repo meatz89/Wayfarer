@@ -85,13 +85,10 @@ public class NarrativeRequirement
         {
             TravelCommand => "Travel",
             ConverseCommand => "Converse",
-            WorkCommand => "Work",
             RestCommand => "Rest",
             CollectLetterCommand => "CollectLetter",
             DeliverLetterCommand => "DeliverLetter",
             LetterQueueActionCommand => "QueueAction",
-            SocializeCommand => "Socialize",
-            BorrowMoneyCommand => "BorrowMoney",
             ObserveCommand => "Observe",
             PatronFundsCommand => "PatronFunds",
             _ => command.GetType().Name.Replace("Command", "")

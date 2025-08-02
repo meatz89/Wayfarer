@@ -1,23 +1,18 @@
 @page "/obligations"
-@inject GameWorld GameWorld
-@inject StandingObligationRepository ObligationRepository
-@inject StandingObligationManager ObligationManager
-@inject ConnectionTokenManager TokenManager
-@inject NPCRepository NPCRepository
-@inject GameWorldManager GameManager
+@inherits MainGameplayViewBase
 
 <div class="obligations-container">
     <h2>Standing Obligations</h2>
     
     <div class="obligations-summary">
-        <p>Active Obligations: @activeObligations.Count</p>
-        @if (activeObligations.Any(o => HasConflicts(o)))
+        <p>Active Obligations: @obligationsData.ActiveObligations.Count</p>
+        @if (obligationsData.ActiveObligations.Any(o => o.HasConflicts))
         {
             <p class="warning">⚠️ Some obligations have conflicts</p>
         }
     </div>
     
-    @if (!activeObligations.Any())
+    @if (!obligationsData.ActiveObligations.Any())
     {
         <div class="no-obligations">
             <h3>No Active Obligations</h3>
@@ -28,7 +23,7 @@
     else
     {
         <div class="obligations-grid">
-            @foreach (var obligation in activeObligations)
+            @foreach (var obligation in obligationsData.ActiveObligations)
             {
                 <div class="obligation-card @GetObligationStatusClass(obligation)">
                     <div class="obligation-header">
@@ -44,12 +39,12 @@
                     <div class="obligation-effects">
                         <div class="benefits">
                             <h4>Benefits</h4>
-                            @if (obligation.BenefitEffects.Any())
+                            @if (obligation.BenefitDescriptions.Any())
                             {
                                 <ul>
-                                    @foreach (var benefit in obligation.BenefitEffects)
+                                    @foreach (var benefit in obligation.BenefitDescriptions)
                                     {
-                                        <li class="benefit-item">✓ @GetEffectDescription(benefit)</li>
+                                        <li class="benefit-item">✓ @benefit</li>
                                     }
                                 </ul>
                             }
@@ -61,12 +56,12 @@
                         
                         <div class="constraints">
                             <h4>Constraints</h4>
-                            @if (obligation.ConstraintEffects.Any())
+                            @if (obligation.ConstraintDescriptions.Any())
                             {
                                 <ul>
-                                    @foreach (var constraint in obligation.ConstraintEffects)
+                                    @foreach (var constraint in obligation.ConstraintDescriptions)
                                     {
-                                        <li class="constraint-item">⚠️ @GetEffectDescription(constraint)</li>
+                                        <li class="constraint-item">⚠️ @constraint</li>
                                     }
                                 </ul>
                             }
@@ -84,20 +79,20 @@
                             <div class="token-display">
                                 <span class="token-icon">@GetTokenIcon(obligation.RelatedTokenType.Value)</span>
                                 <span class="token-type">@obligation.RelatedTokenType.Value</span>
-                                <span class="token-count">(@TokenManager.GetTokenCount(obligation.RelatedTokenType.Value) owned)</span>
+                                <span class="token-count">(@obligation.TokenCount owned)</span>
                             </div>
                         </div>
                     }
                     
-                    @if (ShouldShowForcedLetterWarning(obligation))
+                    @if (obligation.HasForcedLetterWarning)
                     {
                         <div class="forced-letter-warning">
                             <span class="warning-icon">⏰</span>
-                            <span class="warning-text">Forced letter due in @GetDaysUntilForcedLetter(obligation) days</span>
+                            <span class="warning-text">Forced letter due in @obligation.DaysUntilForcedLetter days</span>
                         </div>
                     }
                     
-                    @if (HasConflicts(obligation))
+                    @if (obligation.HasConflicts)
                     {
                         <div class="conflict-warning">
                             <span class="conflict-icon">⚡</span>
@@ -115,14 +110,14 @@
         <h3>Approaching Thresholds</h3>
         <p class="section-subtitle">Token relationships approaching obligation triggers</p>
         
-        @if (ThresholdWarnings.Any())
+        @if (obligationsData.ThresholdWarnings.Any())
         {
             <div class="threshold-warnings">
-                @foreach (var warning in ThresholdWarnings)
+                @foreach (var warning in obligationsData.ThresholdWarnings)
                 {
-                    <div class="threshold-warning @warning.CssClass">
+                    <div class="threshold-warning @(warning.WarningType == "HighTokens" ? "warning-positive" : "warning-negative")">
                         <div class="warning-icon">
-                            @if (warning.IsPositive)
+                            @if (warning.WarningType == "HighTokens")
                             {
                                 <span class="positive-icon">✨</span>
                             }
@@ -133,10 +128,10 @@
                         </div>
                         <div class="warning-content">
                             <div class="warning-header">
-                                <span class="warning-title">@warning.Title</span>
+                                <span class="warning-title">@(warning.WarningType == "HighTokens" ? $"Growing Bond - {warning.NPCName}" : $"Approaching Debt - {warning.NPCName}")</span>
                                 <span class="threshold-indicator">@warning.CurrentValue → @warning.ThresholdValue</span>
                             </div>
-                            <div class="warning-description">@warning.Description</div>
+                            <div class="warning-description">@warning.Message</div>
                         </div>
                     </div>
                 }
@@ -151,40 +146,26 @@
     </div>
     
     @* Debt Obligations Display - Phase 8.3 *@
-    @if (activeObligations.Any(o => o.ID.StartsWith("debt_")))
+    @if (obligationsData.DebtObligations.Any())
     {
         <div class="debt-obligations-section">
             <h3>Active Debts</h3>
             <p class="section-subtitle">Negative token balances creating leverage effects</p>
             
             <div class="debt-cards">
-                @foreach (var debtObligation in activeObligations.Where(o => o.ID.StartsWith("debt_")))
+                @foreach (var debtObligation in obligationsData.DebtObligations)
                 {
-                    var npc = GetNPCFromDebtId(debtObligation.ID);
-                    var debtAmount = GetDebtAmount(debtObligation);
-                    
-                    <div class="debt-card @GetDebtSeverityClass(debtAmount)">
+                    <div class="debt-card @GetDebtSeverityClass(debtObligation.LeverageAmount)">
                         <div class="debt-header">
-                            <span class="npc-name">@(npc?.Name ?? "Unknown")</span>
-                            <span class="debt-amount">@Math.Abs(debtAmount) @GetTokenIcon(debtObligation.RelatedTokenType.Value) debt</span>
+                            <span class="npc-name">@debtObligation.LeverageHolderName</span>
+                            <span class="debt-amount">@debtObligation.LeverageAmount debt</span>
                         </div>
                         <div class="debt-effects">
-                            <div class="leverage-effect">
-                                <span class="effect-icon">📌</span>
-                                <span>Letters get @Math.Abs(debtAmount) position priority</span>
-                            </div>
-                            @if (debtObligation.ConstraintEffects.Contains(ObligationEffect.TrustSkipDoubleCost))
+                            @foreach (var effect in debtObligation.EffectDescriptions)
                             {
-                                <div class="cost-effect">
-                                    <span class="effect-icon">💰</span>
-                                    <span>Skip costs doubled</span>
-                                </div>
-                            }
-                            @if (debtObligation.ConstraintEffects.Contains(ObligationEffect.NoStatusRefusal))
-                            {
-                                <div class="restriction-effect">
-                                    <span class="effect-icon">🚫</span>
-                                    <span>Cannot refuse letters</span>
+                                <div class="leverage-effect">
+                                    <span class="effect-icon">@(effect.Contains("position") ? "📌" : effect.Contains("costs") ? "💰" : "🚫")</span>
+                                    <span>@effect</span>
                                 </div>
                             }
                         </div>
@@ -199,43 +180,32 @@
         <p class="info-text">These obligations can be acquired through special letters:</p>
         
         <div class="templates-grid">
-            @foreach (var template in allTemplates.Where(t => !HasObligation(t.ID)))
+            @foreach (var template in obligationsData.AvailableTemplates)
             {
-                <div class="template-card">
+                <div class="template-card @(!template.CanAccept ? "unavailable" : "")">
                     <div class="template-header">
                         <h4>@template.Name</h4>
-                        <span class="template-source">@template.Source</span>
+                        <span class="template-source">@template.TriggerDescription</span>
                     </div>
                     
                     <div class="template-description">
                         <p>@template.Description</p>
+                        @if (!string.IsNullOrEmpty(template.RequirementDescription))
+                        {
+                            <p class="requirement-text">@template.RequirementDescription</p>
+                        }
                     </div>
                     
-                    <div class="template-effects-preview">
-                        <div class="benefits-preview">
-                            <strong>Benefits:</strong>
-                            @if (template.BenefitEffects.Any())
+                    @if (!template.CanAccept)
+                    {
+                        <div class="conflict-notice">
+                            <p class="conflict-reason">@template.CannotAcceptReason</p>
+                            @if (template.ConflictingObligations.Any())
                             {
-                                <span>@string.Join(", ", template.BenefitEffects.Select(GetEffectDescription))</span>
-                            }
-                            else
-                            {
-                                <span class="muted">None</span>
+                                <p class="conflict-list">Conflicts with: @string.Join(", ", template.ConflictingObligations)</p>
                             }
                         </div>
-                        
-                        <div class="constraints-preview">
-                            <strong>Constraints:</strong>
-                            @if (template.ConstraintEffects.Any())
-                            {
-                                <span>@string.Join(", ", template.ConstraintEffects.Select(GetEffectDescription))</span>
-                            }
-                            else
-                            {
-                                <span class="muted">None</span>
-                            }
-                        </div>
-                    </div>
+                    }
                 </div>
             }
         </div>
@@ -245,147 +215,30 @@
 @code {
 
 @namespace Wayfarer.Pages
-    private List<StandingObligation> activeObligations = new List<StandingObligation>();
-    private List<StandingObligation> allTemplates = new List<StandingObligation>();
-    private List<ThresholdWarning> ThresholdWarnings = new List<ThresholdWarning>();
+    private DetailedObligationsViewModel obligationsData = new DetailedObligationsViewModel();
     
     protected override void OnInitialized()
     {
+        base.OnInitialized();
         LoadObligationData();
-        CheckApproachingThresholds();
     }
     
     private void LoadObligationData()
     {
-        activeObligations = ObligationManager.GetActiveObligations();
-        allTemplates = ObligationRepository.GetAllObligationTemplates();
+        obligationsData = GameFacade.GetDetailedObligations();
     }
     
-    private void CheckApproachingThresholds()
-    {
-        ThresholdWarnings.Clear();
-        
-        // Check for approaching debt thresholds
-        var allNPCs = NPCRepository.GetAllNPCs();
-        foreach (var npc in allNPCs)
-        {
-            var tokens = TokenManager.GetTokensWithNPC(npc.ID);
-            
-            foreach (var (tokenType, balance) in tokens)
-            {
-                // Warning for approaching debt
-                if (balance == -1 || balance == -2)
-                {
-                    ThresholdWarnings.Add(new ThresholdWarning
-                    {
-                        Title = $"Approaching Debt - {npc.Name}",
-                        Description = $"At -3 {tokenType} tokens, '{GetDebtObligationName(tokenType)}' will activate",
-                        CurrentValue = balance,
-                        ThresholdValue = -3,
-                        IsPositive = false,
-                        CssClass = "warning-negative"
-                    });
-                }
-                
-                // Warning for extreme debt
-                if (balance == -4)
-                {
-                    ThresholdWarnings.Add(new ThresholdWarning
-                    {
-                        Title = $"Severe Debt - {npc.Name}",
-                        Description = $"At -5 {tokenType} tokens, extreme leverage effects will apply",
-                        CurrentValue = balance,
-                        ThresholdValue = -5,
-                        IsPositive = false,
-                        CssClass = "warning-negative"
-                    });
-                }
-                
-                // Warning for high positive tokens
-                if (balance == 4)
-                {
-                    ThresholdWarnings.Add(new ThresholdWarning
-                    {
-                        Title = $"Growing Bond - {npc.Name}",
-                        Description = $"At 5 {tokenType} tokens, new benefits may unlock",
-                        CurrentValue = balance,
-                        ThresholdValue = 5,
-                        IsPositive = true,
-                        CssClass = "warning-positive"
-                    });
-                }
-                
-                if (balance == 9)
-                {
-                    ThresholdWarnings.Add(new ThresholdWarning
-                    {
-                        Title = $"Strong Alliance - {npc.Name}",
-                        Description = $"At 10 {tokenType} tokens, powerful benefits may activate",
-                        CurrentValue = balance,
-                        ThresholdValue = 10,
-                        IsPositive = true,
-                        CssClass = "warning-positive"
-                    });
-                }
-            }
-        }
-        
-        // Sort warnings by proximity to threshold
-        ThresholdWarnings = ThresholdWarnings
-            .OrderBy(w => Math.Abs(w.CurrentValue - w.ThresholdValue))
-            .Take(5) // Show top 5 most relevant
-            .ToList();
-    }
-    
-    private bool HasObligation(string obligationId)
-    {
-        return activeObligations.Any(o => o.ID.Equals(obligationId, StringComparison.OrdinalIgnoreCase));
-    }
-    
-    private string GetObligationStatusClass(StandingObligation obligation)
+    private string GetObligationStatusClass(ActiveObligationViewModel obligation)
     {
         var classes = new List<string> { "obligation" };
         
-            
-        if (HasConflicts(obligation))
+        if (obligation.HasConflicts)
             classes.Add("conflicts");
             
-        if (ShouldShowForcedLetterWarning(obligation))
+        if (obligation.HasForcedLetterWarning)
             classes.Add("forced-pending");
             
         return string.Join(" ", classes);
-    }
-    
-    private bool HasConflicts(StandingObligation obligation)
-    {
-        // Simple conflict detection - same token type with conflicting effects
-        return activeObligations
-            .Where(other => other.ID != obligation.ID && other.RelatedTokenType == obligation.RelatedTokenType)
-            .Any(other => 
-                (obligation.BenefitEffects.Any(b => other.ConstraintEffects.Contains(b)) ||
-                 obligation.ConstraintEffects.Any(c => other.BenefitEffects.Contains(c))));
-    }
-    
-    private bool ShouldShowForcedLetterWarning(StandingObligation obligation)
-    {
-        if (obligation.HasEffect(ObligationEffect.ShadowForced))
-            return obligation.DaysSinceLastForcedLetter >= 2; // Warning 1 day before
-            
-        if (obligation.HasEffect(ObligationEffect.PatronMonthly))
-            return obligation.DaysSinceLastForcedLetter >= 28; // Warning 2 days before
-            
-        return false;
-    }
-    
-    private int GetDaysUntilForcedLetter(StandingObligation obligation)
-    {
-        if (obligation.HasEffect(ObligationEffect.ShadowForced))
-            return Math.Max(0, 3 - obligation.DaysSinceLastForcedLetter);
-            
-        if (obligation.HasEffect(ObligationEffect.PatronMonthly))
-            return Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
-            
-        return 0;
     }
     
     private string GetTokenIcon(ConnectionType type)
@@ -400,71 +253,6 @@
         };
     }
     
-    private string GetEffectDescription(ObligationEffect effect)
-    {
-        return effect switch
-        {
-            ObligationEffect.StatusPriority => "Status letters enter at slot 3",
-            ObligationEffect.CommercePriority => "Commerce letters enter at slot 5",
-            ObligationEffect.TrustPriority => "Trust letters enter at slot 7",
-            ObligationEffect.PatronJumpToTop => "Patron letters jump to top slots",
-            ObligationEffect.CommerceBonus => "Commerce letters +10 coins",
-            ObligationEffect.CommerceBonusPlus3 => "Commerce letters +3 coins bonus",
-            ObligationEffect.ShadowTriplePay => "Shadow letters pay triple",
-            ObligationEffect.TrustFreeExtend => "Trust letters extend deadline free",
-            ObligationEffect.ShadowForced => "Forced shadow letter every 3 days",
-            ObligationEffect.PatronMonthly => "Monthly patron resource package",
-            ObligationEffect.NoStatusRefusal => "Cannot refuse status letters",
-            ObligationEffect.NoCommercePurge => "Cannot purge commerce letters",
-            ObligationEffect.TrustSkipDoubleCost => "Skipping trust letters costs double",
-            ObligationEffect.PatronLettersPosition1 => "Patron letters locked to position 1",
-            ObligationEffect.PatronLettersPosition3 => "Patron letters locked to position 3",
-            ObligationEffect.DeadlinePlus2Days => "All letters get +2 days deadline",
-            ObligationEffect.CannotRefuseLetters => "Cannot refuse any letters",
-            ObligationEffect.ShadowEqualsStatus => "Shadow letters use Status position",
-            ObligationEffect.MerchantRespect => "Commerce 5+ tokens: +1 position",
-            ObligationEffect.PatronAbsolute => "Patron letters push everything down",
-            ObligationEffect.DebtSpiral => "All debts get extra leverage",
-            ObligationEffect.DynamicLeverageModifier => "Leverage scales with tokens",
-            ObligationEffect.DynamicPaymentBonus => "Payment scales with tokens",
-            ObligationEffect.DynamicDeadlineBonus => "Deadline bonus scales with tokens",
-            _ => effect.ToString()
-        };
-    }
-    
-    private string GetDebtObligationName(ConnectionType tokenType)
-    {
-        return tokenType switch
-        {
-            ConnectionType.Trust => "Personal Betrayal",
-            ConnectionType.Commerce => "Outstanding Payment",
-            ConnectionType.Status => "Social Disgrace",
-            ConnectionType.Shadow => "Dangerous Enemy",
-            _ => "Debt Obligation"
-        };
-    }
-    
-    private NPC GetNPCFromDebtId(string debtId)
-    {
-        // debt_npcId_tokenType format
-        var parts = debtId.Split('_');
-        if (parts.Length >= 2)
-        {
-            return NPCRepository.GetById(parts[1]);
-        }
-        return null;
-    }
-    
-    private int GetDebtAmount(StandingObligation debtObligation)
-    {
-        if (!string.IsNullOrEmpty(debtObligation.RelatedNPCId) && debtObligation.RelatedTokenType.HasValue)
-        {
-            var tokens = TokenManager.GetTokensWithNPC(debtObligation.RelatedNPCId);
-            return tokens[debtObligation.RelatedTokenType.Value];
-        }
-        return 0;
-    }
-    
     private string GetDebtSeverityClass(int debtAmount)
     {
         return Math.Abs(debtAmount) switch
@@ -475,220 +263,5 @@
             _ => "debt-minor"
         };
     }
-    
-    private class ThresholdWarning
-    {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public int CurrentValue { get; set; }
-        public int ThresholdValue { get; set; }
-        public bool IsPositive { get; set; }
-        public string CssClass { get; set; }
-    }
 }
 
-<style>
-    /* Threshold Warnings Section */
-    .threshold-warnings-section {
-        margin-top: 2rem;
-        background: var(--surface-color);
-        border-radius: 8px;
-        padding: 1.5rem;
-    }
-    
-    .section-subtitle {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-    }
-    
-    .threshold-warnings {
-        margin-top: 1rem;
-    }
-    
-    .threshold-warning {
-        display: flex;
-        gap: 1rem;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-        border-radius: 6px;
-        border: 1px solid var(--border-color);
-        transition: all 0.2s ease;
-    }
-    
-    .threshold-warning:hover {
-        transform: translateX(4px);
-    }
-    
-    .warning-positive {
-        background: rgba(40, 167, 69, 0.1);
-        border-color: var(--success-color);
-    }
-    
-    .warning-negative {
-        background: rgba(220, 53, 69, 0.1);
-        border-color: var(--danger-color);
-    }
-    
-    .warning-icon {
-        font-size: 1.5rem;
-        display: flex;
-        align-items: center;
-    }
-    
-    .positive-icon {
-        color: var(--success-color);
-    }
-    
-    .negative-icon {
-        color: var(--danger-color);
-    }
-    
-    .warning-content {
-        flex: 1;
-    }
-    
-    .warning-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-    
-    .warning-title {
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-    
-    .threshold-indicator {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        font-family: monospace;
-    }
-    
-    .warning-description {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-    }
-    
-    .no-warnings {
-        text-align: center;
-        padding: 2rem;
-        color: var(--text-secondary);
-    }
-    
-    /* Debt Obligations Section */
-    .debt-obligations-section {
-        margin-top: 2rem;
-        background: var(--surface-color);
-        border-radius: 8px;
-        padding: 1.5rem;
-        border: 2px solid var(--danger-color);
-    }
-    
-    .debt-cards {
-        margin-top: 1rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
-    }
-    
-    .debt-card {
-        background: var(--background-color);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 1rem;
-    }
-    
-    .debt-minor {
-        border-color: var(--warning-color);
-    }
-    
-    .debt-moderate {
-        border-color: var(--warning-color);
-        background: rgba(255, 193, 7, 0.05);
-    }
-    
-    .debt-severe {
-        border-color: var(--danger-color);
-        background: rgba(220, 53, 69, 0.05);
-    }
-    
-    .debt-critical {
-        border-color: var(--danger-color);
-        background: rgba(220, 53, 69, 0.1);
-        box-shadow: 0 0 10px rgba(220, 53, 69, 0.2);
-    }
-    
-    .debt-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-    
-    .npc-name {
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-    
-    .debt-amount {
-        color: var(--danger-color);
-        font-weight: bold;
-    }
-    
-    .debt-effects {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .leverage-effect, .cost-effect, .restriction-effect {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-    }
-    
-    .effect-icon {
-        font-size: 1rem;
-    }
-    
-    /* Enhanced existing styles */
-    .obligation-card.conflicts {
-        border-color: var(--warning-color);
-    }
-    
-    .obligation-card.forced-pending {
-        box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.3);
-    }
-    
-    .forced-letter-warning {
-        margin-top: 1rem;
-        padding: 0.75rem;
-        background: rgba(255, 193, 7, 0.15);
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .warning-icon {
-        font-size: 1.2rem;
-    }
-    
-    .conflict-warning {
-        margin-top: 1rem;
-        padding: 0.75rem;
-        background: rgba(220, 53, 69, 0.15);
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .conflict-icon {
-        font-size: 1.2rem;
-    }
-</style>

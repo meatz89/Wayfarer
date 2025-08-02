@@ -152,6 +152,10 @@
                 </div>
                 break;
                     
+            case CurrentViews.InformationDiscoveryScreen:
+                <InformationDiscoveryScreen />
+                break;
+                    
             case CurrentViews.EventLogScreen:
                 <EventLogScreen />
                 break;
@@ -201,38 +205,6 @@
                 else
                 {
                     <div class="loading-message">Loading letter board...</div>
-                }
-                break;
-                
-            case CurrentViews.DebtScreen:
-                <div class="location-container">
-                    <div class="location-header">
-                        <h2 class="location-title">Debt Management</h2>
-                    </div>
-                </div>
-                @if (IsGameDataReady())
-                {
-                    <DebtManagementScreen />
-                }
-                else
-                {
-                    <div class="loading-message">Loading debt information...</div>
-                }
-                break;
-                
-            case CurrentViews.PersonalErrandScreen:
-                <div class="location-container">
-                    <div class="location-header">
-                        <h2 class="location-title">Personal Errands</h2>
-                    </div>
-                </div>
-                @if (IsGameDataReady())
-                {
-                    <PersonalErrandScreen OnActionExecuted="RefreshUI" />
-                }
-                else
-                {
-                    <div class="loading-message">Loading errands...</div>
                 }
                 break;
                 
@@ -477,10 +449,6 @@
             
             @* Show guild interaction if at a guild *@
             <GuildInteractionView />
-            
-            @* Show debt warnings *@
-            <DebtWarningDisplay />
-            
                              
             @* Letter Offer Dialog *@
             @if (ShowLetterOfferDialog && CurrentLetterOffer != null && CurrentNPCOfferId != null)

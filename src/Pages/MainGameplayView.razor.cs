@@ -6,7 +6,7 @@ namespace Wayfarer.Pages;
 public class MainGameplayViewBase : ComponentBase, IDisposable
 {
     // Single facade injection - THE ONLY SERVICE INJECTION
-    [Inject] public IGameFacade GameFacade { get; set; }
+    [Inject] public GameFacade GameFacade { get; set; }
     [Inject] public IJSRuntime JSRuntime { get; set; }
     
     // Navigation parameters from parent component
@@ -267,11 +267,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         RefreshUI();
     }
 
-    public void SwitchToDebtScreen()
-    {
-        OnNavigate?.Invoke(CurrentViews.DebtScreen);
-        RefreshUI();
-    }
 
     // Travel Handling
     public async Task HandleTravelRoute(RouteOption route)

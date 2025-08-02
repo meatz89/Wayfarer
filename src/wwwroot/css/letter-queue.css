@@ -124,6 +124,34 @@
     flex-direction: row;
     align-items: center;
     gap: 1rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* Leveraged letter highlight */
+.letter-card.leveraged {
+    background-color: rgba(158, 42, 43, 0.05);
+    border: 1px solid rgba(158, 42, 43, 0.2);
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.letter-card.leveraged::before {
+    content: "";
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, rgba(158, 42, 43, 0.3), transparent);
+    border-radius: 4px;
+    pointer-events: none;
+    animation: leverage-pulse 2s ease-in-out infinite;
+}
+
+@keyframes leverage-pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
 }
 
 /* Patron Letter Styles */
@@ -176,6 +204,38 @@
     align-items: center;
     gap: 0.25rem;
     font-size: 0.85rem;
+}
+
+/* Queue Position Change Indicator */
+.queue-position-change {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    background-color: rgba(158, 42, 43, 0.1);
+    border: 1px solid rgba(158, 42, 43, 0.3);
+    border-radius: 3px;
+    font-size: 0.75rem;
+    color: var(--negative);
+    font-weight: 600;
+    animation: slide-in 0.5s ease-out;
+}
+
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.queue-position-change .arrow {
+    color: var(--negative);
+    font-size: 1rem;
 }
 
 .sender {
@@ -257,6 +317,75 @@
     background-color: rgba(177, 112, 67, 0.1);
     border: 1px solid rgba(177, 112, 67, 0.3);
     border-radius: 3px;
+}
+
+/* Leverage Indicator Styles */
+.leverage-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: relative;
+    cursor: help;
+}
+
+.leverage-indicator.leverage-weak {
+    background-color: rgba(158, 42, 43, 0.1);
+    border: 1px solid rgba(158, 42, 43, 0.2);
+    color: var(--negative);
+}
+
+.leverage-indicator.leverage-medium {
+    background-color: rgba(158, 42, 43, 0.15);
+    border: 1px solid rgba(158, 42, 43, 0.3);
+    color: var(--negative);
+}
+
+.leverage-indicator.leverage-strong {
+    background-color: rgba(158, 42, 43, 0.2);
+    border: 1px solid rgba(158, 42, 43, 0.4);
+    color: var(--negative);
+    animation: leverage-glow 2s ease-in-out infinite;
+}
+
+@keyframes leverage-glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(158, 42, 43, 0.3); }
+    50% { box-shadow: 0 0 10px rgba(158, 42, 43, 0.5); }
+}
+
+.leverage-strength {
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* Leverage Details Panel */
+.leverage-details {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(158, 42, 43, 0.05);
+    border: 1px solid rgba(158, 42, 43, 0.2);
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.leverage-calculation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    padding: 0.2rem 0;
+}
+
+.leverage-calculation span:first-child {
+    color: var(--text-secondary);
+}
+
+.leverage-effect {
+    color: var(--negative);
+    font-weight: 600;
 }
 
 .empty-slot {
@@ -409,6 +538,109 @@
     font-size: 0.8rem;
 }
 
+/* Obligation Effects in Letter Cards */
+.payment-bonus {
+    color: var(--positive);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+    padding: 0.1rem 0.3rem;
+    background-color: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+    border-radius: 3px;
+}
+
+.deadline-extension {
+    color: var(--positive);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+    padding: 0.1rem 0.3rem;
+    background-color: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+    border-radius: 3px;
+}
+
+/* Obligation-affected letter highlight */
+.letter-card.obligation-affected {
+    border: 1px solid var(--special);
+    background-color: rgba(188, 108, 37, 0.05);
+    padding: 0.5rem;
+    border-radius: 4px;
+    position: relative;
+}
+
+.letter-card.obligation-affected::before {
+    content: "⚖️";
+    position: absolute;
+    top: -8px;
+    right: 0.5rem;
+    background-color: var(--bg-panel);
+    padding: 0 0.25rem;
+    font-size: 0.9rem;
+}
+
+/* Forbidden action indicators */
+.letter-card.cannot-refuse .skip-btn:disabled::after,
+.letter-card.cannot-purge .purge-btn:disabled::after {
+    content: "🚫 Forbidden by obligation";
+    position: absolute;
+    bottom: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: var(--negative);
+    white-space: nowrap;
+    background-color: var(--bg-dark);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    border: 1px solid var(--negative);
+}
+
+.obligation-effects-summary {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(188, 108, 37, 0.1);
+    border: 1px solid var(--special);
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.obligation-effects-summary .effects-header {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 600;
+    color: var(--special);
+    margin-bottom: 0.25rem;
+}
+
+.obligation-effects-summary .effects-icon {
+    font-size: 1rem;
+}
+
+.obligation-effects-summary .effects-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.obligation-effects-summary .effect-item {
+    color: var(--text-secondary);
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.obligation-effects-summary .effect-item::before {
+    content: "•";
+    position: absolute;
+    left: 0.5rem;
+    color: var(--special);
+}
+
 .benefit {
     color: var(--positive);
 }
@@ -497,6 +729,32 @@
     font-size: 0.8rem;
 }
 
+.action-group h5 {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.cost-preview {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--bg-panel);
+    border-radius: 4px;
+}
+
+.confirm-dialog {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--bg-warning);
+    border-radius: 4px;
+    text-align: center;
+}
+
+.confirm-dialog button {
+    margin: 0.25rem;
+}
+
 .purge-controls {
     flex-direction: column;
     align-items: stretch;
@@ -507,10 +765,24 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    padding: 0.25rem;
+    background-color: var(--bg-panel);
+    border-radius: 3px;
+}
+
+.token-input .token-icon {
+    font-size: 1.2rem;
 }
 
 .token-input input[type="number"] {
     width: 50px;
+}
+
+.token-input .available {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
 }
 
 /* Controls for queue actions */
@@ -795,6 +1067,75 @@
 .no-information small {
     font-size: 0.8rem;
     opacity: 0.8;
+}
+
+/* Queue Jump Animation */
+.queue-slot.queue-jumped {
+    animation: queue-jump-highlight 1.5s ease-out;
+}
+
+@keyframes queue-jump-highlight {
+    0% {
+        background-color: rgba(158, 42, 43, 0.3);
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(158, 42, 43, 0.5);
+    }
+    20% {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(158, 42, 43, 0.7);
+    }
+    100% {
+        background-color: var(--bg-panel);
+        transform: scale(1);
+        box-shadow: none;
+    }
+}
+
+/* Leverage Glow Effect */
+.letter-card.leverage-applied {
+    position: relative;
+    overflow: hidden;
+}
+
+.letter-card.leverage-applied::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(158, 42, 43, 0.2) 0%, transparent 70%);
+    animation: leverage-ripple 2s ease-out;
+}
+
+@keyframes leverage-ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* Queue Position Number Animation */
+.queue-position-change.new {
+    animation: position-bounce 0.6s ease-out;
+}
+
+@keyframes position-bounce {
+    0% {
+        transform: scale(0) translateX(-10px);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) translateX(0);
+    }
+    100% {
+        transform: scale(1) translateX(0);
+        opacity: 1;
+    }
 }
 
 /* Responsive adjustments */

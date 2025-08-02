@@ -98,9 +98,6 @@ public class Player
     
     // Seal System
     public List<Seal> Seals { get; private set; } = new List<Seal>();
-    
-    // Debt System
-    public List<Debt> ActiveDebts { get; private set; } = new List<Debt>();
 
     // Token Favor System
     public List<string> PurchasedFavors { get; set; } = new List<string>();

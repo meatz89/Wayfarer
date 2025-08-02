@@ -66,6 +66,32 @@
         </div>
     }
     
+    @* Token Threshold Progress Overview *@
+    @if (activeTab != "All")
+    {
+        var tokenType = Enum.Parse<ConnectionType>(activeTab);
+        var totalTokens = GetTotalTokensOfType(tokenType);
+        <div class="token-overview">
+            <h3>@GetTokenIcon(tokenType) @tokenType Token Progress</h3>
+            <div class="threshold-progress-bar">
+                <div class="threshold-fill" style="width: @GetOverallProgressPercentage(totalTokens)%"></div>
+                <div class="threshold-markers">
+                    <div class="threshold-marker basic"></div>
+                    <div class="threshold-marker quality"></div>
+                    <div class="threshold-marker premium"></div>
+                </div>
+            </div>
+            <div class="threshold-summary">
+                <p>Total @tokenType tokens: @totalTokens</p>
+                <p>NPCs offering @tokenType letters: @GetNPCsOfferingTokenType(tokenType).Count()</p>
+                @if (totalTokens < GameRules.TOKENS_PREMIUM_THRESHOLD)
+                {
+                    <p>Next milestone in: @GetTokensToNextMilestone(totalTokens) tokens</p>
+                }
+            </div>
+        </div>
+    }
+    
     @* Leverage & Debt Overview *@
     @if (GetAllDebts().Any())
     {
@@ -257,6 +283,36 @@ Special Letters:
 • Commerce 5+ → Access Permit (unlocks locations)
 • Status 5+ → Endorsement (temporary bonuses)
 • Shadow 5+ → Information (reveals secrets)";
+    }
+    
+    private int GetTotalTokensOfType(ConnectionType tokenType)
+    {
+        return GameWorld.GetPlayer().ConnectionTokens.GetValueOrDefault(tokenType, 0);
+    }
+    
+    private double GetOverallProgressPercentage(int tokens)
+    {
+        // Map 0-5 tokens to 0-100%
+        if (tokens < 0) return 0;
+        if (tokens >= 5) return 100;
+        return (tokens / 5.0) * 100;
+    }
+    
+    private int GetTokensToNextMilestone(int currentTokens)
+    {
+        if (currentTokens < GameRules.TOKENS_BASIC_THRESHOLD)
+            return GameRules.TOKENS_BASIC_THRESHOLD - currentTokens;
+        if (currentTokens < GameRules.TOKENS_QUALITY_THRESHOLD)
+            return GameRules.TOKENS_QUALITY_THRESHOLD - currentTokens;
+        if (currentTokens < GameRules.TOKENS_PREMIUM_THRESHOLD)
+            return GameRules.TOKENS_PREMIUM_THRESHOLD - currentTokens;
+        return 0;
+    }
+    
+    private IEnumerable<NPC> GetNPCsOfferingTokenType(ConnectionType tokenType)
+    {
+        return NPCRepository.GetAllNPCs()
+            .Where(npc => npc.LetterTokenTypes?.Contains(tokenType) ?? false);
     }
     
     private int GetLeveragePosition(ConnectionType tokenType, int tokenBalance)

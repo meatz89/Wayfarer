@@ -1,18 +1,17 @@
 @namespace Wayfarer.Pages.Components
 @using Microsoft.AspNetCore.Components
-@inject ReadableLetterUIService LetterUIService
-@inject ItemRepository ItemRepository
+@inject GameFacade GameFacade
 
 <div class="readable-letter-display @(IsVisible ? "visible" : "hidden")">
     @if (CurrentLetter != null)
     {
-        <div class="letter-container">
-            <div class="letter-header">
+        <div class="readable-letter-container" data-letter-id="@CurrentLetter.Id">
+            <div class="readable-letter-header">
                 <h3>@CurrentLetter.Name</h3>
-                <button class="close-button" @onclick="CloseLetter">×</button>
+                <button class="readable-letter-close" @onclick="CloseLetter">×</button>
             </div>
             
-            <div class="letter-content">
+            <div class="readable-letter-content">
                 @if (IsReading)
                 {
                     <div class="reading-animation">
@@ -21,7 +20,7 @@
                 }
                 else if (!string.IsNullOrEmpty(LetterContent))
                 {
-                    <div class="letter-text">
+                    <div class="readable-letter-text">
                         @((MarkupString)LetterContent)
                     </div>
                 }
@@ -29,7 +28,7 @@
             
             @if (ShowEffect)
             {
-                <div class="letter-effect-message">
+                <div class="readable-letter-effect">
                     @EffectMessage
                 </div>
             }
@@ -58,7 +57,7 @@
 
     private async Task ShowLetter(string itemId)
     {
-        CurrentLetter = ItemRepository.GetItemById(itemId);
+        CurrentLetter = GameFacade.GetItemById(itemId);
         
         if (CurrentLetter != null && CurrentLetter.IsReadable())
         {
@@ -73,7 +72,7 @@
             LetterContent = FormatLetterContent(CurrentLetter.ReadableContent);
             
             // Execute the read command to set flags
-            await LetterUIService.ReadLetterAsync(itemId);
+            await GameFacade.ReadLetterAsync(itemId);
             
             // Show special effect message if applicable
             if (!string.IsNullOrEmpty(CurrentLetter.ReadFlagToSet))
@@ -113,138 +112,3 @@
     }
 
 }
-
-<style>
-    .readable-letter-display {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        transition: opacity 0.3s ease;
-    }
-
-    .readable-letter-display.hidden {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .readable-letter-display.visible {
-        opacity: 1;
-    }
-
-    .letter-container {
-        background: #f9f5e9;
-        border: 3px solid #8b7355;
-        border-radius: 8px;
-        max-width: 600px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        font-family: 'Georgia', serif;
-    }
-
-    .letter-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px;
-        border-bottom: 2px solid #8b7355;
-        background: #fff8dc;
-    }
-
-    .letter-header h3 {
-        margin: 0;
-        color: #5a4a3a;
-        font-size: 1.5em;
-    }
-
-    .close-button {
-        background: none;
-        border: none;
-        font-size: 2em;
-        cursor: pointer;
-        color: #8b7355;
-        padding: 0;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color 0.2s;
-    }
-
-    .close-button:hover {
-        color: #5a4a3a;
-    }
-
-    .letter-content {
-        padding: 30px;
-        min-height: 200px;
-    }
-
-    .reading-animation {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 200px;
-    }
-
-    .reading-text {
-        font-style: italic;
-        color: #8b7355;
-        font-size: 1.2em;
-        animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @@keyframes pulse {
-        0%, 100% { opacity: 0.6; }
-        50% { opacity: 1; }
-    }
-
-    .letter-text {
-        color: #3a3a3a;
-        line-height: 1.8;
-        font-size: 1.1em;
-    }
-
-    .letter-text p {
-        margin-bottom: 1em;
-    }
-
-    .letter-text p:last-child {
-        margin-bottom: 0;
-    }
-
-    .letter-effect-message {
-        padding: 20px;
-        background: #fff8dc;
-        border-top: 2px solid #8b7355;
-        text-align: center;
-        font-style: italic;
-        color: #5a4a3a;
-        animation: fadeIn 0.5s ease-in;
-    }
-
-    @@keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    /* Special styling for the mysterious letter */
-    .letter-container[data-letter-id="mysterious_letter"] {
-        background: linear-gradient(135deg, #faf8f3 0%, #f0e6d2 100%);
-        border-color: #d4af37;
-    }
-
-    .letter-container[data-letter-id="mysterious_letter"] .letter-header {
-        background: linear-gradient(to bottom, #fff8dc, #faecc5);
-        border-bottom-color: #d4af37;
-    }
-</style>

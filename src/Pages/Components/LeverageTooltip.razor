@@ -1,0 +1,95 @@
+@namespace Wayfarer.Pages.Components
+
+<div class="leverage-tooltip-content">
+    <div class="tooltip-header">
+        <span class="tooltip-icon">💸</span>
+        <span class="tooltip-title">Leverage System</span>
+    </div>
+    
+    <div class="tooltip-body">
+        @if (TokenBalance < 0)
+        {
+            <div class="debt-section">
+                <p class="debt-amount">You owe @Math.Abs(TokenBalance) @TokenType tokens</p>
+                <p class="debt-explanation">Debt creates leverage - they can demand priority!</p>
+            </div>
+            
+            <div class="leverage-formula">
+                <div class="formula-row">
+                    <span>Base Position:</span>
+                    <span class="formula-value">@BasePosition</span>
+                </div>
+                <div class="formula-row">
+                    <span>Debt Leverage:</span>
+                    <span class="formula-value negative">-@Math.Abs(TokenBalance)</span>
+                </div>
+                @if (ObligationModifier != 0)
+                {
+                    <div class="formula-row">
+                        <span>Obligation Effect:</span>
+                        <span class="formula-value @(ObligationModifier < 0 ? "negative" : "positive")">@(ObligationModifier < 0 ? "-" : "+")@Math.Abs(ObligationModifier)</span>
+                    </div>
+                }
+                <div class="formula-row total">
+                    <span>Final Position:</span>
+                    <span class="formula-value">@CurrentPosition</span>
+                </div>
+            </div>
+            
+            @if (Math.Abs(TokenBalance) >= 10)
+            {
+                <div class="extreme-debt-warning">
+                    <span class="warning-icon">⚠️</span>
+                    <span>Extreme debt grants overwhelming leverage!</span>
+                </div>
+            }
+        }
+        else if (TokenBalance >= 4)
+        {
+            <div class="positive-section">
+                <p class="token-amount">You have @TokenBalance @TokenType tokens</p>
+                <p class="positive-explanation">Strong relationship reduces their leverage</p>
+            </div>
+            
+            <div class="leverage-formula">
+                <div class="formula-row">
+                    <span>Base Position:</span>
+                    <span class="formula-value">@BasePosition</span>
+                </div>
+                <div class="formula-row">
+                    <span>Relationship Bonus:</span>
+                    <span class="formula-value positive">+1</span>
+                </div>
+                <div class="formula-row total">
+                    <span>Final Position:</span>
+                    <span class="formula-value">@CurrentPosition</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="neutral-section">
+                <p class="token-amount">@TokenBalance @TokenType tokens</p>
+                <p class="neutral-explanation">No leverage effects apply</p>
+            </div>
+        }
+        
+        <div class="leverage-mechanics">
+            <h4>How Leverage Works:</h4>
+            <ul>
+                <li><span class="icon">🔴</span> Each negative token = 1 position boost</li>
+                <li><span class="icon">🟢</span> 4+ positive tokens = reduced leverage</li>
+                <li><span class="icon">⚖️</span> Obligations can modify positions</li>
+                <li><span class="icon">👑</span> Extreme debt (-10+) = maximum priority</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int TokenBalance { get; set; }
+    [Parameter] public string TokenType { get; set; } = "Trust";
+    [Parameter] public int BasePosition { get; set; }
+    [Parameter] public int CurrentPosition { get; set; }
+    [Parameter] public int ObligationModifier { get; set; }
+}

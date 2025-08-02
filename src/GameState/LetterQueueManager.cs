@@ -243,6 +243,20 @@ public class LetterQueueManager
         return DisplaceAndInsertLetter(letter, targetPosition);
     }
 
+    // Get the current position of a letter in the queue
+    public int? GetLetterPosition(string letterId)
+    {
+        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        for (int i = 0; i < queue.Length; i++)
+        {
+            if (queue[i]?.Id == letterId)
+            {
+                return i + 1; // Return 1-based position
+            }
+        }
+        return null;
+    }
+
     // Validate that a letter can be added to the queue
     private bool ValidateLetterCanBeAdded(Letter letter)
     {
@@ -264,6 +278,14 @@ public class LetterQueueManager
         queue[position - 1] = letter;
         letter.QueuePosition = position;
         letter.State = LetterState.Accepted;
+
+        // Track original vs actual position for leverage visibility
+        int basePosition = GetBasePositionForTokenType(letter.TokenType);
+        if (position < basePosition)
+        {
+            letter.OriginalQueuePosition = basePosition;
+            letter.LeverageBoost = basePosition - position;
+        }
 
         // Show leverage narrative if position differs from normal
         ShowLeverageNarrative(letter, position);
@@ -338,6 +360,14 @@ public class LetterQueueManager
         // Insert new letter at its leverage position
         queue[targetPosition - 1] = letter;
         letter.QueuePosition = targetPosition;
+        
+        // Track leverage effect
+        int basePosition = GetBasePositionForTokenType(letter.TokenType);
+        if (targetPosition < basePosition)
+        {
+            letter.OriginalQueuePosition = basePosition;
+            letter.LeverageBoost = basePosition - targetPosition;
+        }
         letter.State = LetterState.Accepted;
 
         // Reinsert displaced letters

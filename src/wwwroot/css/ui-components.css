@@ -1598,6 +1598,97 @@
     color: var(--special);
 }
 
+/* Leverage Effects Styling */
+.leverage-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: help;
+}
+
+.leverage-indicator.leverage-strong {
+    background-color: rgba(158, 42, 43, 0.2);
+    border: 1px solid var(--negative);
+    color: var(--negative);
+}
+
+.leverage-indicator.leverage-medium {
+    background-color: rgba(188, 108, 37, 0.2);
+    border: 1px solid var(--special);
+    color: var(--special);
+}
+
+.leverage-indicator.leverage-weak {
+    background-color: rgba(255, 193, 7, 0.2);
+    border: 1px solid #ffc107;
+    color: #b87c00;
+}
+
+.leverage-indicator.no-leverage {
+    display: none;
+}
+
+.letter-card.leveraged {
+    position: relative;
+    border-color: var(--negative);
+    box-shadow: 0 0 0 2px rgba(158, 42, 43, 0.3);
+}
+
+.letter-card.leveraged::before {
+    content: "⚠️ LEVERAGED";
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background: var(--negative);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.625rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.queue-position-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.5rem;
+    background: rgba(158, 42, 43, 0.1);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: var(--negative);
+}
+
+.queue-position-change .arrow {
+    font-size: 0.875rem;
+}
+
+.leverage-details {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.leverage-details .leverage-calculation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.leverage-details .leverage-effect {
+    color: var(--negative);
+    font-weight: 600;
+}
+
 .conflict-warning {
     background-color: rgba(188, 108, 37, 0.1);
     color: var(--special);
@@ -2024,4 +2115,205 @@
 	color: var(--text-muted);
 	font-style: italic;
 	padding: 1.5rem;
+}
+
+/* ==================== Standing Obligations Screen - Extended Styles ==================== */
+
+/* Threshold Warnings Section */
+.threshold-warnings-section {
+    margin-top: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.threshold-warnings {
+    margin-top: 1rem;
+}
+
+.threshold-warning {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--oak-mid);
+    transition: all 0.2s ease;
+}
+
+.threshold-warning:hover {
+    transform: translateX(4px);
+}
+
+.warning-positive {
+    background: rgba(96, 108, 56, 0.1);
+    border-color: var(--positive);
+}
+
+.warning-negative {
+    background: rgba(158, 42, 43, 0.1);
+    border-color: var(--negative);
+}
+
+.warning-icon {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.positive-icon {
+    color: var(--positive);
+}
+
+.negative-icon {
+    color: var(--negative);
+}
+
+.warning-content {
+    flex: 1;
+}
+
+.warning-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.warning-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.threshold-indicator {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-family: var(--font-tertiary);
+}
+
+.warning-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.no-warnings {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+/* Debt Obligations Section */
+.debt-obligations-section {
+    margin-top: 2rem;
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 2px solid var(--negative);
+}
+
+.debt-cards {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.debt-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+.debt-minor {
+    border-color: var(--special);
+}
+
+.debt-moderate {
+    border-color: var(--special);
+    background: rgba(188, 108, 37, 0.05);
+}
+
+.debt-severe {
+    border-color: var(--negative);
+    background: rgba(158, 42, 43, 0.05);
+}
+
+.debt-critical {
+    border-color: var(--negative);
+    background: rgba(158, 42, 43, 0.1);
+    box-shadow: 0 0 10px rgba(158, 42, 43, 0.2);
+}
+
+.debt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.npc-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.debt-amount {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+.debt-effects {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.leverage-effect {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.effect-icon {
+    font-size: 1rem;
+}
+
+/* Template cards */
+.template-card.unavailable {
+    opacity: 0.7;
+    border-color: var(--negative);
+}
+
+.requirement-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.conflict-notice {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(158, 42, 43, 0.1);
+    border-radius: 4px;
+}
+
+.conflict-reason {
+    color: var(--negative);
+    font-weight: 500;
+    margin: 0;
+}
+
+.conflict-list {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0.5rem 0 0 0;
 }
