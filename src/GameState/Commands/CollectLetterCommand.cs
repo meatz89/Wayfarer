@@ -114,7 +114,7 @@ public class CollectLetterCommand : BaseGameCommand
                 SenderName = sender.Name,
                 RecipientName = letter.RecipientName,
                 Payment = letter.Payment,
-                Deadline = letter.Deadline,
+                DeadlineInDays = letter.DeadlineInDays,
                 TimeCost = 1  // Add time cost to result
             }
         );

@@ -267,6 +267,12 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         RefreshUI();
     }
 
+    public void SwitchToDebtScreen()
+    {
+        OnNavigate?.Invoke(CurrentViews.DebtScreen);
+        RefreshUI();
+    }
+
     // Travel Handling
     public async Task HandleTravelRoute(RouteOption route)
     {
@@ -501,7 +507,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         return service switch
         {
             ServiceTypes.Rest => "🛌",
-            ServiceTypes.Commerce => "🛒",
+            ServiceTypes.Trade => "🛒",
             ServiceTypes.Healing => "❤️",
             ServiceTypes.Information => "📖",
             ServiceTypes.Training => "⚔️",

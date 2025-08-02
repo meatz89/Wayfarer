@@ -300,13 +300,6 @@ public class NarrativeService
                     $"{npcName} inclines their head. \"The nobility remembers its friends.\"",
                     $"\"Such dedication deserves recognition,\" {npcName} states."
                 },
-            ConnectionType.Trust => new[]
-            {
-                    $"{npcName} grins. \"You're one of us, through and through!\"",
-                    $"\"The common folk won't forget this,\" {npcName} promises.",
-                    $"{npcName} slaps your back. \"Good to have you on our side!\"",
-                    $"\"Salt of the earth, you are,\" {npcName} says warmly."
-                },
             ConnectionType.Shadow => new[]
             {
                     $"{npcName} whispers, \"Your discretion is... appreciated.\"",

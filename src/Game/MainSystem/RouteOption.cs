@@ -75,6 +75,9 @@ public class RouteOption
     public string Name { get; set; }
     public string Origin { get; set; }
     public string Destination { get; set; }
+    
+    // Tier system (1-5) for difficulty/content progression
+    public int Tier { get; set; } = 1;
     public TravelMethods Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }

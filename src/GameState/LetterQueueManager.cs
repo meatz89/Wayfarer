@@ -120,7 +120,7 @@ public class LetterQueueManager
                     if (npc == null || npc.ID != obligation.RelatedNPCId) continue;
                 }
                 
-                letter.Deadline += 2;
+                letter.DeadlineInDays += 2;
                 _messageSystem.AddSystemMessage(
                     $"📅 {obligation.Name} grants +2 days to deadline for letter from {letter.SenderName}",
                     SystemMessageTypes.Info
@@ -270,6 +270,51 @@ public class LetterQueueManager
 
         return position;
     }
+    
+    // Show narrative explaining why letter entered at this position
+    private void ShowLeverageNarrative(Letter letter, int actualPosition)
+    {
+        int basePosition = GetBasePositionForTokenType(letter.TokenType);
+        
+        if (actualPosition < basePosition)
+        {
+            string senderId = GetNPCIdByName(letter.SenderName);
+            if (!string.IsNullOrEmpty(senderId))
+            {
+                var tokens = _connectionTokenManager.GetTokensWithNPC(senderId);
+                int balance = tokens[letter.TokenType];
+                
+                if (balance < 0)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"💸 Debt leverage: {letter.SenderName}'s letter jumps to position {actualPosition} (you owe {Math.Abs(balance)} {letter.TokenType} tokens)",
+                        SystemMessageTypes.Warning
+                    );
+                }
+                else if (letter.IsFromPatron)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"👑 Patron privilege: Letter enters at position {actualPosition} due to patronage debt",
+                        SystemMessageTypes.Warning
+                    );
+                }
+            }
+        }
+        else if (actualPosition > basePosition)
+        {
+            _messageSystem.AddSystemMessage(
+                $"💚 Strong relationship: {letter.SenderName}'s letter enters at position {actualPosition} (reduced leverage)",
+                SystemMessageTypes.Success
+            );
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage(
+                $"📨 Letter from {letter.SenderName} enters queue at position {actualPosition}",
+                SystemMessageTypes.Info
+            );
+        }
+    }
 
     // Displace letters to insert at leverage position
     private int DisplaceAndInsertLetter(Letter letter, int targetPosition)
@@ -315,26 +360,6 @@ public class LetterQueueManager
         return targetPosition;
     }
 
-    // Show leverage narrative when letter enters
-    private void ShowLeverageNarrative(Letter letter, int position)
-    {
-        int basePosition = GetBasePositionForTokenType(letter.TokenType);
-        string senderId = GetNPCIdByName(letter.SenderName);
-        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
-
-        if (tokenBalance < 0)
-        {
-            ShowDebtLeverageNarrative(letter, position, basePosition, tokenBalance);
-        }
-        else if (position > basePosition)
-        {
-            ShowReducedLeverageNarrative(letter, position, basePosition);
-        }
-        else
-        {
-            ShowNormalEntryNarrative(letter, position);
-        }
-    }
 
     // Show narrative for debt-based leverage
     private void ShowDebtLeverageNarrative(Letter letter, int position, int basePosition, int tokenBalance)
@@ -403,7 +428,7 @@ public class LetterQueueManager
     // Show narrative for normal letter entry
     private void ShowNormalEntryNarrative(Letter letter, int position)
     {
-        string urgency = letter.Deadline <= 3 ? " ⚠️" : "";
+        string urgency = letter.DeadlineInDays <= 3 ? " ⚠️" : "";
         _messageSystem.AddSystemMessage(
             $"📨 New letter from {letter.SenderName} enters queue at position {position}{urgency}",
             SystemMessageTypes.Info
@@ -439,10 +464,10 @@ public class LetterQueueManager
     // Notify when letter is shifted
     private void NotifyLetterShifted(Letter letter, int newPosition)
     {
-        string urgency = letter.Deadline <= 2 ? " 🆘" : "";
+        string urgency = letter.DeadlineInDays <= 2 ? " 🆘" : "";
         _messageSystem.AddSystemMessage(
             $"  • {letter.SenderName}'s letter pushed to position {newPosition}{urgency}",
-            letter.Deadline <= 2 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+            letter.DeadlineInDays <= 2 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
         );
     }
 
@@ -570,7 +595,6 @@ public class LetterQueueManager
                 ConnectionType.Commerce => 5,
                 ConnectionType.Shadow => 5,
                 ConnectionType.Trust => 7,
-                ConnectionType.Trust => 7,
                 _ => 7
             };
 
@@ -638,8 +662,8 @@ public class LetterQueueManager
             Letter letter = queue[i];
             if (letter != null)
             {
-                letter.Deadline--;
-                if (letter.Deadline <= 0)
+                letter.DeadlineInDays--;
+                if (letter.DeadlineInDays <= 0)
                 {
                     // Apply relationship damage before removing
                     ApplyRelationshipDamage(letter, _connectionTokenManager);
@@ -746,7 +770,7 @@ public class LetterQueueManager
         }
         else if (npc.LetterTokenTypes.Contains(ConnectionType.Status))
         {
-            return $"Word of your failure reaches {npc.Name}. Your reputation in court circles suffers.";
+            return $"Word of your failure reaches {npc.Name}. Your standing in court circles suffers.";
         }
         else if (npc.LetterTokenTypes.Contains(ConnectionType.Shadow))
         {
@@ -834,7 +858,7 @@ public class LetterQueueManager
             else if (history.DeliveredCount % 5 == 0)
             {
                 _messageSystem.AddSystemMessage(
-                    $"  • {history.DeliveredCount} letters delivered! Your reputation with {letter.SenderName} grows stronger.",
+                    $"  • {history.DeliveredCount} letters delivered! Your relationship with {letter.SenderName} grows stronger.",
                     SystemMessageTypes.Success
                 );
             }
@@ -929,8 +953,8 @@ public class LetterQueueManager
     public Letter[] GetExpiringLetters(int daysThreshold)
     {
         return _gameWorld.GetPlayer().LetterQueue
-            .Where(l => l != null && l.Deadline <= daysThreshold)
-            .OrderBy(l => l.Deadline)
+            .Where(l => l != null && l.DeadlineInDays <= daysThreshold)
+            .OrderBy(l => l.DeadlineInDays)
             .ToArray();
     }
 
@@ -988,12 +1012,12 @@ public class LetterQueueManager
                 letter.QueuePosition = writePosition + 1; // Convert back to 1-based
 
                 // Provide narrative context for each letter moving
-                string urgency = letter.Deadline <= 2 ? " ⚠️ URGENT!" : "";
-                string deadlineText = letter.Deadline == 1 ? "expires tomorrow!" : $"{letter.Deadline} days left";
+                string urgency = letter.DeadlineInDays <= 2 ? " ⚠️ URGENT!" : "";
+                string deadlineText = letter.DeadlineInDays == 1 ? "expires tomorrow!" : $"{letter.DeadlineInDays} days left";
 
                 _messageSystem.AddSystemMessage(
                     $"  • {letter.SenderName}'s letter moves from slot {oldPosition} → {letter.QueuePosition} ({deadlineText}){urgency}",
-                    letter.Deadline <= 2 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+                    letter.DeadlineInDays <= 2 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
                 );
             }
         }
@@ -1382,13 +1406,13 @@ public class LetterQueueManager
     // Show narrative for newly generated letter
     private void ShowGeneratedLetterNarrative(Letter letter, NPC sender, ConnectionType tokenType, int position)
     {
-        string urgency = letter.Deadline <= 3 ? " - needs urgent delivery!" : "";
+        string urgency = letter.DeadlineInDays <= 3 ? " - needs urgent delivery!" : "";
         string tokenTypeText = GetTokenTypeDescription(letter.TokenType);
         string categoryText = GetCategoryText(sender, tokenType);
 
         _messageSystem.AddSystemMessage(
             $"  • Letter from {sender.Name} to {letter.RecipientName} ({tokenTypeText} correspondence{categoryText}){urgency}",
-            letter.Deadline <= 3 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+            letter.DeadlineInDays <= 3 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
         );
 
         _messageSystem.AddSystemMessage(
@@ -1419,8 +1443,6 @@ public class LetterQueueManager
                 return "commercial";
             case ConnectionType.Status:
                 return "aristocratic";
-            case ConnectionType.Trust:
-                return "local";
             case ConnectionType.Shadow:
                 return "clandestine";
             default:
@@ -1692,10 +1714,10 @@ public class LetterQueueManager
         );
 
         // Show current deadline pressure
-        string urgency = letter.Deadline <= 2 ? " 🆘 CRITICAL!" : "";
+        string urgency = letter.DeadlineInDays <= 2 ? " 🆘 CRITICAL!" : "";
         _messageSystem.AddSystemMessage(
-            $"  • Current deadline: {letter.Deadline} days{urgency}",
-            letter.Deadline <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
+            $"  • Current deadline: {letter.DeadlineInDays} days{urgency}",
+            letter.DeadlineInDays <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
         );
 
         // Check token cost (2 matching tokens)
@@ -1724,8 +1746,8 @@ public class LetterQueueManager
         }
 
         // Extend the deadline
-        int oldDeadline = letter.Deadline;
-        letter.Deadline += 2;
+        int oldDeadline = letter.DeadlineInDays;
+        letter.DeadlineInDays += 2;
 
         // Success narrative
         _messageSystem.AddSystemMessage(
@@ -1734,7 +1756,7 @@ public class LetterQueueManager
         );
 
         _messageSystem.AddSystemMessage(
-            $"  • New deadline: {letter.Deadline} days (was {oldDeadline})",
+            $"  • New deadline: {letter.DeadlineInDays} days (was {oldDeadline})",
             SystemMessageTypes.Info
         );
 
@@ -1837,7 +1859,7 @@ public class LetterQueueManager
             chainLetter.ParentLetterId = parentLetter.Id;
 
             // Chain letters typically have similar or longer deadlines
-            chainLetter.Deadline = Math.Max(chainLetter.Deadline, parentLetter.Deadline + 1);
+            chainLetter.DeadlineInDays = Math.Max(chainLetter.DeadlineInDays, parentLetter.DeadlineInDays + 1);
 
             // Chain letters often have better payment (reward for completing the chain)
             chainLetter.Payment = (int)(chainLetter.Payment * 1.2f);

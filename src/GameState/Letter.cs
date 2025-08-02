@@ -9,13 +9,22 @@ public enum LetterState
     Delivering  // Currently being delivered
 }
 
+public enum LetterSpecialType
+{
+    None,         // Regular letter
+    Introduction, // Trust - Unlocks NPCs
+    AccessPermit, // Commerce - Unlocks locations
+    Endorsement,  // Status - Grants temporary bonuses
+    Information   // Shadow - Triggers discovery events
+}
+
 [Flags]
 public enum LetterPhysicalProperties
 {
     None = 0,
     Fragile = 1,      // Requires careful handling, can't use fast travel
     Heavy = 2,        // Slows movement, requires strength
-    Perishable = 4,   // Deadline decreases faster
+    Perishable = 4,   // DeadlineInDays decreases faster
     Valuable = 8,     // Attracts unwanted attention
     Bulky = 16,       // Can't stack with other bulky items
     RequiresProtection = 32  // Needs waterproof container in rain
@@ -26,12 +35,18 @@ public class Letter
     public string Id { get; set; }
     public string SenderName { get; set; }  // Just a string for minimal POC
     public string RecipientName { get; set; }
-    public int Deadline { get; set; }
+    public int DeadlineInDays { get; set; }
     public int Payment { get; set; }
     public ConnectionType TokenType { get; set; }
+    
+    // Tier system (1-5) for difficulty progression
+    public int Tier { get; set; } = 1;
 
     // Three-state system
     public LetterState State { get; set; } = LetterState.Offered;
+    
+    // Special letter type
+    public LetterSpecialType SpecialType { get; set; } = LetterSpecialType.None;
 
     // Additional properties for future use but set defaults for POC
     public int QueuePosition { get; set; } = 0;
@@ -62,9 +77,16 @@ public class Letter
 
     // Content
     public string Message { get; set; } = "";
+    
+    // Special letter properties
+    public string UnlocksNPCId { get; set; } = "";  // For Introduction letters
+    public string UnlocksLocationId { get; set; } = "";  // For Access Permit letters
+    public int BonusDuration { get; set; } = 0;  // For Endorsement letters (days)
+    public string InformationId { get; set; } = "";  // For Information letters
 
     // Helper properties
-    public bool IsExpired => Deadline <= 0;
+    public bool IsExpired => DeadlineInDays <= 0;
+    public bool IsSpecial => SpecialType != LetterSpecialType.None;
 
     /// <summary>
     /// Get the number of inventory slots this letter requires
@@ -105,7 +127,7 @@ public class Letter
         {
             Id = $"letter_{Id}",
             Name = $"Letter: {SenderName} to {RecipientName}",
-            Description = $"A sealed letter to be delivered. Deadline: {GetDeadlineDescription()}",
+            Description = $"A sealed letter to be delivered. DeadlineInDays: {GetDeadlineInDaysDescription()}",
             Categories = new List<ItemCategory> { ItemCategory.Documents },
             Size = GetItemSizeCategory(),
             Weight = HasPhysicalProperty(LetterPhysicalProperties.Heavy) ? 3 : 1,
@@ -149,12 +171,12 @@ public class Letter
         return constraints.Any() ? string.Join(", ", constraints) : "None";
     }
 
-    public string GetDeadlineDescription()
+    public string GetDeadlineInDaysDescription()
     {
         if (IsExpired) return "EXPIRED";
-        if (Deadline == 1) return "1 day (URGENT!)";
-        if (Deadline <= 3) return $"{Deadline} days (urgent)";
-        return $"{Deadline} days";
+        if (DeadlineInDays == 1) return "1 day (URGENT!)";
+        if (DeadlineInDays <= 3) return $"{DeadlineInDays} days (urgent)";
+        return $"{DeadlineInDays} days";
     }
 
     public string GetTokenTypeIcon()
@@ -166,6 +188,30 @@ public class Letter
             ConnectionType.Status => "👑",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
+        };
+    }
+
+    public string GetSpecialDescription()
+    {
+        return SpecialType switch
+        {
+            LetterSpecialType.Introduction => "Letter of Introduction - Will unlock access to a new contact",
+            LetterSpecialType.AccessPermit => "Access Permit - Grants permission to visit restricted locations",
+            LetterSpecialType.Endorsement => "Letter of Endorsement - Provides temporary relationship benefits",
+            LetterSpecialType.Information => "Confidential Information - Contains valuable intelligence",
+            _ => ""
+        };
+    }
+
+    public string GetSpecialIcon()
+    {
+        return SpecialType switch
+        {
+            LetterSpecialType.Introduction => "🤝",
+            LetterSpecialType.AccessPermit => "🔓",
+            LetterSpecialType.Endorsement => "📜",
+            LetterSpecialType.Information => "🔍",
+            _ => ""
         };
     }
 

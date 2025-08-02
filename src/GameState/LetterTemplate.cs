@@ -11,14 +11,18 @@ public class LetterTemplate
     public string Id { get; set; }
     public string Description { get; set; }
     public ConnectionType TokenType { get; set; }
-    public int MinDeadline { get; set; }
-    public int MaxDeadline { get; set; }
+    public int MinDeadlineInDays { get; set; }
+    public int MaxDeadlineInDays { get; set; }
     public int MinPayment { get; set; }
     public int MaxPayment { get; set; }
 
     // Letter category and requirements
     public LetterCategory Category { get; set; } = LetterCategory.Basic;
     public int MinTokensRequired { get; set; } = 1; // Minimum tokens with NPC to unlock this template
+    
+    // Special letter properties
+    public LetterSpecialType SpecialType { get; set; } = LetterSpecialType.None;
+    public string SpecialTargetId { get; set; } = ""; // NPC/Location/Information ID for special letters
 
     // Optional fields for future expansion
     public string[] PossibleSenders { get; set; } // NPCs who can send this type

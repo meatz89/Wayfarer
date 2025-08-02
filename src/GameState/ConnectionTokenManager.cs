@@ -413,12 +413,6 @@ public class ConnectionTokenManager
                 $"\"The nobility appreciates discretion,\" {npc.Name} says formally.",
                 $"{npc.Name} acknowledges your service with courtly grace."
             },
-            ConnectionType.Trust => new[]
-            {
-                $"{npc.Name} grins. \"You're good people, you are!\"",
-                $"\"Folk like you keep our communities connected,\" says {npc.Name}.",
-                $"{npc.Name} slaps your shoulder friendly. \"Always knew you were one of us.\""
-            },
             ConnectionType.Shadow => new[]
             {
                 $"{npc.Name} gives a subtle nod. \"Your discretion is... noted.\"",

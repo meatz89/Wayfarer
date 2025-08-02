@@ -15,8 +15,8 @@ public static class LetterTemplateParser
         {
             Id = GetStringProperty(root, "id", ""),
             Description = GetStringProperty(root, "description", ""),
-            MinDeadline = GetIntProperty(root, "minDeadline", 3),
-            MaxDeadline = GetIntProperty(root, "maxDeadline", 5),
+            MinDeadlineInDays = GetIntProperty(root, "minDeadlineInDays", 3),
+            MaxDeadlineInDays = GetIntProperty(root, "maxDeadlineInDays", 5),
             MinPayment = GetIntProperty(root, "minPayment", 3),
             MaxPayment = GetIntProperty(root, "maxPayment", 5)
         };
@@ -28,6 +28,11 @@ public static class LetterTemplateParser
         // Parse optional arrays
         template.PossibleSenders = GetStringArray(root, "possibleSenders").ToArray();
         template.PossibleRecipients = GetStringArray(root, "possibleRecipients").ToArray();
+        
+        // Parse special letter properties
+        string specialTypeStr = GetStringProperty(root, "specialType", "None");
+        template.SpecialType = ParseSpecialType(specialTypeStr);
+        template.SpecialTargetId = GetStringProperty(root, "specialTargetId", "");
 
         return template;
     }
@@ -42,6 +47,19 @@ public static class LetterTemplateParser
             "Common" => ConnectionType.Trust,
             "Shadow" => ConnectionType.Shadow,
             _ => ConnectionType.Trust // Default fallback
+        };
+    }
+
+    private static LetterSpecialType ParseSpecialType(string specialTypeStr)
+    {
+        return specialTypeStr switch
+        {
+            "Introduction" => LetterSpecialType.Introduction,
+            "AccessPermit" => LetterSpecialType.AccessPermit,
+            "Endorsement" => LetterSpecialType.Endorsement,
+            "Information" => LetterSpecialType.Information,
+            "None" => LetterSpecialType.None,
+            _ => LetterSpecialType.None // Default fallback
         };
     }
 

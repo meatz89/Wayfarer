@@ -48,8 +48,9 @@ public class StandingObligationRepository
     {
         return GetPlayerObligations()
             .Where(o => o.BenefitEffects.Any(e =>
-                e == ObligationEffect.NoblesPriority ||
-                e == ObligationEffect.CommonFolksPriority ||
+                e == ObligationEffect.StatusPriority ||
+                e == ObligationEffect.CommercePriority ||
+                e == ObligationEffect.TrustPriority ||
                 e == ObligationEffect.PatronJumpToTop))
             .ToList();
     }
@@ -59,7 +60,8 @@ public class StandingObligationRepository
     {
         return GetPlayerObligations()
             .Where(o => o.BenefitEffects.Any(e =>
-                e == ObligationEffect.TradeBonus ||
+                e == ObligationEffect.CommerceBonus ||
+                e == ObligationEffect.CommerceBonusPlus3 ||
                 e == ObligationEffect.ShadowTriplePay))
             .ToList();
     }

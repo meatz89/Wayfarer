@@ -166,7 +166,7 @@ public class PersonalErrandCommand : BaseGameCommand
         {
             Professions.Dock_Boss => "Delivered medicine to their sick daughter",
             Professions.Merchant => "Found their missing ledger before the audit",
-            Professions.Status => "Discreetly delivered a remedy for their ailment",
+            Professions.Noble => "Discreetly delivered a remedy for their ailment",
             Professions.Innkeeper => "Helped treat a regular patron who fell ill",
             Professions.TavernKeeper => "Brought supplies for an emergency at the tavern",
             Professions.Scholar => "Retrieved rare ink ingredients they desperately needed",

@@ -554,9 +554,6 @@ public class NarrativeManager : INPCVisibilityRule
             case LetterQueueActionCommand:
                 _flagService.SetFlag("queue_action_taken", true);
                 break;
-            case BrowseCommand:
-                _flagService.SetFlag("market_browsed", true);
-                break;
             case BorrowMoneyCommand:
                 _flagService.SetFlag("money_borrowed", true);
                 _flagService.IncrementCounter("total_debt");
@@ -628,8 +625,6 @@ public class NarrativeManager : INPCVisibilityRule
             LetterQueueActionCommand => "QueueAction",
             SocializeCommand => "Socialize",
             BorrowMoneyCommand => "BorrowMoney",
-            GatherResourcesCommand => "Gather",
-            BrowseCommand => "Browse",
             ObserveCommand => "Observe",
             PatronFundsCommand => "PatronFunds",
             _ => command.GetType().Name.Replace("Command", "")
@@ -671,10 +666,6 @@ public class NarrativeManager : INPCVisibilityRule
                     }
                     break;
                     
-                case "day1_buy_food":
-                    if (command is BrowseCommand)
-                        _flagService.SetFlag(FlagService.TUTORIAL_FOOD_PURCHASED, true);
-                    break;
                     
                 // Add more step-specific flag mappings as needed
             }

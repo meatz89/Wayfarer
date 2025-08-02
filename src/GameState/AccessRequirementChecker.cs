@@ -11,19 +11,22 @@ public class AccessRequirementChecker
     private readonly ConnectionTokenManager _tokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
+    private readonly InformationDiscoveryManager _informationManager;
 
     public AccessRequirementChecker(
         GameWorld gameWorld,
         ItemRepository itemRepository,
         ConnectionTokenManager tokenManager,
         NPCRepository npcRepository,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        InformationDiscoveryManager informationManager)
     {
         _gameWorld = gameWorld;
         _itemRepository = itemRepository;
         _tokenManager = tokenManager;
         _npcRepository = npcRepository;
         _messageSystem = messageSystem;
+        _informationManager = informationManager;
     }
 
     /// <summary>
@@ -67,14 +70,30 @@ public class AccessRequirementChecker
         Player player = _gameWorld.GetPlayer();
         List<string> missingRequirements = new List<string>();
 
+        // First check the triple-gate system
+        bool informationMet = CheckInformationRequirement(requirement, missingRequirements);
+        bool tierMet = CheckTierRequirement(requirement, player, missingRequirements);
+        
+        // If information gate or tier gate fails, block access immediately
+        if (!informationMet || !tierMet)
+        {
+            return AccessCheckResult.Blocked(
+                requirement.BlockedMessage,
+                requirement.HintMessage,
+                missingRequirements
+            );
+        }
+
+        // Then check permission and capability gates
         bool equipmentMet = CheckEquipmentRequirements(requirement, player, missingRequirements);
         bool itemsMet = CheckItemRequirements(requirement, player, missingRequirements);
         bool npcTokensMet = CheckNPCTokenRequirements(requirement, missingRequirements);
         bool typeTokensMet = CheckTypeTokenRequirements(requirement, missingRequirements);
+        bool sealsMet = CheckSealRequirements(requirement, player, missingRequirements);
 
         bool requirementsMet = requirement.Logic == RequirementLogic.And
-            ? equipmentMet && itemsMet && npcTokensMet && typeTokensMet
-            : equipmentMet || itemsMet || npcTokensMet || typeTokensMet;
+            ? equipmentMet && itemsMet && npcTokensMet && typeTokensMet && sealsMet
+            : equipmentMet || itemsMet || npcTokensMet || typeTokensMet || sealsMet;
 
         if (requirementsMet)
         {
@@ -171,11 +190,11 @@ public class AccessRequirementChecker
         {
             // Need tokens with ANY of the specified NPCs
             bool hasAny = false;
-            foreach ((string npcId, int requiredCount) in requirement.RequiredTokensPerNPC)
+            foreach (var tokenReq in requirement.RequiredTokensPerNPC)
             {
-                Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npcId);
+                Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(tokenReq.NPCId);
                 int totalTokens = npcTokens.Values.Sum();
-                if (totalTokens >= requiredCount)
+                if (totalTokens >= tokenReq.MinimumCount)
                 {
                     hasAny = true;
                     break;
@@ -184,8 +203,8 @@ public class AccessRequirementChecker
 
             if (!hasAny)
             {
-                IEnumerable<string> options = requirement.RequiredTokensPerNPC.Select(kvp =>
-                    $"{kvp.Value} tokens with {GetNPCName(kvp.Key)}"
+                IEnumerable<string> options = requirement.RequiredTokensPerNPC.Select(req =>
+                    $"{req.MinimumCount} tokens with {GetNPCName(req.NPCId)}"
                 );
                 missing.Add($"Need one of: {string.Join(", ", options)}");
             }
@@ -194,13 +213,13 @@ public class AccessRequirementChecker
         else
         {
             // Need tokens with ALL specified NPCs
-            foreach ((string npcId, int requiredCount) in requirement.RequiredTokensPerNPC)
+            foreach (var tokenReq in requirement.RequiredTokensPerNPC)
             {
-                Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npcId);
+                Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(tokenReq.NPCId);
                 int totalTokens = npcTokens.Values.Sum();
-                if (totalTokens < requiredCount)
+                if (totalTokens < tokenReq.MinimumCount)
                 {
-                    missing.Add($"Need {requiredCount} tokens with {GetNPCName(npcId)} (have {totalTokens})");
+                    missing.Add($"Need {tokenReq.MinimumCount} tokens with {GetNPCName(tokenReq.NPCId)} (have {totalTokens})");
                 }
             }
             return !missing.Any();
@@ -219,10 +238,10 @@ public class AccessRequirementChecker
         {
             // Need tokens of ANY specified type
             bool hasAny = false;
-            foreach ((ConnectionType tokenType, int requiredCount) in requirement.RequiredTokensPerType)
+            foreach (var typeReq in requirement.RequiredTokensPerType)
             {
-                int totalOfType = _tokenManager.GetTotalTokensOfType(tokenType);
-                if (totalOfType >= requiredCount)
+                int totalOfType = _tokenManager.GetTotalTokensOfType(typeReq.TokenType);
+                if (totalOfType >= typeReq.MinimumCount)
                 {
                     hasAny = true;
                     break;
@@ -231,8 +250,8 @@ public class AccessRequirementChecker
 
             if (!hasAny)
             {
-                IEnumerable<string> options = requirement.RequiredTokensPerType.Select(kvp =>
-                    $"{kvp.Value} {kvp.Key} tokens"
+                IEnumerable<string> options = requirement.RequiredTokensPerType.Select(req =>
+                    $"{req.MinimumCount} {req.TokenType} tokens"
                 );
                 missing.Add($"Need one of: {string.Join(", ", options)}");
             }
@@ -241,12 +260,56 @@ public class AccessRequirementChecker
         else
         {
             // Need tokens of ALL specified types
-            foreach ((ConnectionType tokenType, int requiredCount) in requirement.RequiredTokensPerType)
+            foreach (var typeReq in requirement.RequiredTokensPerType)
             {
-                int totalOfType = _tokenManager.GetTotalTokensOfType(tokenType);
-                if (totalOfType < requiredCount)
+                int totalOfType = _tokenManager.GetTotalTokensOfType(typeReq.TokenType);
+                if (totalOfType < typeReq.MinimumCount)
                 {
-                    missing.Add($"Need {requiredCount} {tokenType} tokens (have {totalOfType})");
+                    missing.Add($"Need {typeReq.MinimumCount} {typeReq.TokenType} tokens (have {totalOfType})");
+                }
+            }
+            return !missing.Any();
+        }
+    }
+    
+    /// <summary>
+    /// Check if player has required seals.
+    /// </summary>
+    private bool CheckSealRequirements(AccessRequirement requirement, Player player, List<string> missing)
+    {
+        if (!requirement.RequiredSeals.Any())
+            return true;
+
+        if (requirement.Logic == RequirementLogic.Or)
+        {
+            // Need ANY of the required seals
+            bool hasAny = false;
+            foreach (var sealReq in requirement.RequiredSeals)
+            {
+                if (player.HasSeal(sealReq.Type, sealReq.MinimumTier))
+                {
+                    hasAny = true;
+                    break;
+                }
+            }
+
+            if (!hasAny)
+            {
+                IEnumerable<string> options = requirement.RequiredSeals.Select(req =>
+                    $"{req.MinimumTier} {req.Type} Seal"
+                );
+                missing.Add($"Need one of: {string.Join(", ", options)}");
+            }
+            return hasAny;
+        }
+        else
+        {
+            // Need ALL of the required seals
+            foreach (var sealReq in requirement.RequiredSeals)
+            {
+                if (!player.HasSeal(sealReq.Type, sealReq.MinimumTier))
+                {
+                    missing.Add($"Need {sealReq.MinimumTier} {sealReq.Type} Seal");
                 }
             }
             return !missing.Any();
@@ -270,13 +333,13 @@ public class AccessRequirementChecker
         }
 
         // For type-based requirements, spend from any NPCs with those token types
-        foreach ((ConnectionType tokenType, int requiredCount) in requirement.RequiredTokensPerType)
+        foreach (var typeReq in requirement.RequiredTokensPerType)
         {
-            bool spent = _tokenManager.SpendTokensOfType(tokenType, requiredCount);
+            bool spent = _tokenManager.SpendTokensOfType(typeReq.TokenType, typeReq.MinimumCount);
             if (!spent)
             {
                 _messageSystem.AddSystemMessage(
-                    $"Insufficient {tokenType} tokens for access.",
+                    $"Insufficient {typeReq.TokenType} tokens for access.",
                     SystemMessageTypes.Danger
                 );
                 return false;
@@ -327,5 +390,68 @@ public class AccessRequirementChecker
     {
         NPC npc = _npcRepository.GetById(npcId);
         return npc?.Name ?? npcId;
+    }
+    
+    /// <summary>
+    /// Check if player has discovered required information (Knowledge Gate).
+    /// </summary>
+    private bool CheckInformationRequirement(AccessRequirement requirement, List<string> missing)
+    {
+        if (string.IsNullOrEmpty(requirement.RequiredInformationId))
+            return true;
+            
+        bool hasDiscovered = _informationManager.IsInformationDiscovered(requirement.RequiredInformationId);
+        if (!hasDiscovered)
+        {
+            missing.Add("You haven't discovered the required information yet");
+        }
+        return hasDiscovered;
+    }
+    
+    /// <summary>
+    /// Check if player meets tier requirement for access.
+    /// </summary>
+    private bool CheckTierRequirement(AccessRequirement requirement, Player player, List<string> missing)
+    {
+        if (requirement.MinimumTier <= 1)
+            return true; // Tier 1 is always accessible
+            
+        // For now, use player level as a proxy for tier access
+        // In a full implementation, this could check:
+        // - Total tokens earned
+        // - Seals acquired
+        // - Specific achievements
+        int playerTier = CalculatePlayerTier(player);
+        
+        if (playerTier < requirement.MinimumTier)
+        {
+            missing.Add($"Requires Tier {requirement.MinimumTier} access (you are Tier {playerTier})");
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /// <summary>
+    /// Calculate the player's effective tier based on progression.
+    /// </summary>
+    private int CalculatePlayerTier(Player player)
+    {
+        // Base tier from player level
+        int tierFromLevel = Math.Min(5, 1 + (player.Level - 1) / 2);
+        
+        // Bonus tier from total tokens (every 10 tokens = potential tier increase)
+        int totalTokens = _tokenManager.GetTokenCount(ConnectionType.Trust) +
+                         _tokenManager.GetTokenCount(ConnectionType.Commerce) +
+                         _tokenManager.GetTokenCount(ConnectionType.Status) +
+                         _tokenManager.GetTokenCount(ConnectionType.Shadow);
+        int tierFromTokens = Math.Min(5, 1 + totalTokens / 10);
+        
+        // Bonus from seals
+        int tierFromSeals = player.WornSeals.Any() ? 
+            player.WornSeals.Max(s => (int)s.Tier) : 1;
+        
+        // Take the highest tier achieved
+        return Math.Max(tierFromLevel, Math.Max(tierFromTokens, tierFromSeals));
     }
 }

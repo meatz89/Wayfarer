@@ -67,5 +67,77 @@
 			"Evening": [],
 			"Night": []
 		}
+	},
+	{
+		"id": "merchant_guild",
+		"name": "Millbrook Merchant Guild",
+		"description": "An imposing stone building where the merchant houses conduct their business. The guild controls trade licenses and endorses worthy traders.",
+		"tier": 2,
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "BUSY", "REFINED" ],
+			"afternoon": [ "WELL-LIT", "BUSY", "REFINED" ],
+			"evening": [ "SHADOWY", "QUIET", "REFINED" ],
+			"night": [ "DARK", "QUIET", "REFINED" ]
+		},
+		"domainTags": [ "COMMERCE", "AUTHORITY", "REFINED" ],
+		"locationSpots": [ "guild_offices", "guild_registry" ],
+		"connectedTo": [ "merchants_rest" ],
+		"socialExpectation": "Proper",
+		"accessLevel": "Restricted",
+		"requiredSocialClasses": [ "Merchant", "Noble" ],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": [],
+			"Evening": [],
+			"Night": []
+		}
+	},
+	{
+		"id": "messenger_guild",
+		"name": "Courier's Guild Hall",
+		"description": "The official headquarters of licensed messengers and couriers. The guild certifies carriers and validates messenger seals.",
+		"tier": 2,
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "BUSY", "PROFESSIONAL" ],
+			"afternoon": [ "WELL-LIT", "BUSY", "PROFESSIONAL" ],
+			"evening": [ "SHADOWY", "QUIET", "PROFESSIONAL" ],
+			"night": [ "DARK", "QUIET", "PROFESSIONAL" ]
+		},
+		"domainTags": [ "TRANSPORT", "AUTHORITY", "PROFESSIONAL" ],
+		"locationSpots": [ "dispatch_office", "seal_registry" ],
+		"connectedTo": [ "millbrook_docks" ],
+		"socialExpectation": "Professional",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": [],
+			"Evening": [],
+			"Night": []
+		}
+	},
+	{
+		"id": "scholar_guild",
+		"name": "Scholar's Atheneum",
+		"description": "A grand library and meeting hall where scholars gather to share knowledge. The guild endorses learned individuals and grants academic seals.",
+		"tier": 3,
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "QUIET", "SCHOLARLY" ],
+			"afternoon": [ "WELL-LIT", "QUIET", "SCHOLARLY" ],
+			"evening": [ "SHADOWY", "QUIET", "SCHOLARLY" ],
+			"night": [ "DARK", "QUIET", "SCHOLARLY" ]
+		},
+		"domainTags": [ "KNOWLEDGE", "AUTHORITY", "SCHOLARLY" ],
+		"locationSpots": [ "reading_hall", "certification_chamber" ],
+		"connectedTo": [ "merchant_guild" ],
+		"socialExpectation": "Refined",
+		"accessLevel": "Restricted",
+		"requiredSocialClasses": [ "Scholar", "Noble" ],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": [],
+			"Evening": [],
+			"Night": []
+		}
 	}
 ]

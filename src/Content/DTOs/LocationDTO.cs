@@ -17,6 +17,7 @@ public class LocationDTO
     public List<string> RequiredSocialClasses { get; set; } = new List<string>();
     public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
     public AccessRequirementDTO AccessRequirement { get; set; }
+    public int Tier { get; set; } = 1; // Default to tier 1 for backwards compatibility
 }
 
 /// <summary>

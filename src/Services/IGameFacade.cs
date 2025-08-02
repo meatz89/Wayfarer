@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Wayfarer.ViewModels;
 
 /// <summary>
 /// Single interface for ALL UI-Backend communication.
@@ -172,6 +173,35 @@ public interface IGameFacade
     /// </summary>
     Task<bool> SellItemAsync(string itemId, string traderId);
     
+    // ========== DEBT MANAGEMENT ==========
+    
+    /// <summary>
+    /// Get all active debts and available lenders
+    /// </summary>
+    DebtViewModel GetDebtInformation();
+    
+    /// <summary>
+    /// Borrow money from an NPC
+    /// </summary>
+    Task<bool> BorrowMoneyAsync(string npcId);
+    
+    /// <summary>
+    /// Repay debt to an NPC
+    /// </summary>
+    Task<bool> RepayDebtAsync(string npcId, int amount);
+    
+    // ========== PERSONAL ERRANDS ==========
+    
+    /// <summary>
+    /// Get available personal errands
+    /// </summary>
+    PersonalErrandViewModel GetPersonalErrands();
+    
+    /// <summary>
+    /// Execute a personal errand for an NPC
+    /// </summary>
+    Task<bool> ExecutePersonalErrandAsync(string npcId);
+    
     // ========== INVENTORY ==========
     
     /// <summary>
@@ -252,4 +282,21 @@ public interface IGameFacade
     /// Get standing obligations affecting the letter queue
     /// </summary>
     List<ObligationViewModel> GetStandingObligations();
+    
+    // ========== SEAL MANAGEMENT ==========
+    
+    /// <summary>
+    /// Get seal progression information
+    /// </summary>
+    SealProgressionViewModel GetSealProgression();
+    
+    /// <summary>
+    /// Equip a seal
+    /// </summary>
+    Task<bool> EquipSealAsync(string sealId);
+    
+    /// <summary>
+    /// Unequip a seal
+    /// </summary>
+    Task<bool> UnequipSealAsync(string sealId);
 }

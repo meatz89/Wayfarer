@@ -102,7 +102,8 @@ public class Phase1_CoreEntities : IInitializationPhase
                         dto.LocationSpots ?? new List<string>(),
                         dto.DomainTags ?? new List<string>(),
                         null, // environmentalProperties - TODO: convert from DTO
-                        null  // availableProfessionsByTime - TODO: convert from DTO
+                        null, // availableProfessionsByTime - TODO: convert from DTO
+                        dto.Tier
                     );
                     
                     context.GameWorld.WorldState.locations.Add(location);

@@ -57,7 +57,8 @@ public class NPCFactory
         string role,
         string description,
         List<ServiceTypes> providedServices,
-        List<ConnectionType> letterTokenTypes)
+        List<ConnectionType> letterTokenTypes,
+        int tier = 1)
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("NPC ID cannot be empty", nameof(id));
@@ -76,7 +77,8 @@ public class NPCFactory
             Role = role ?? profession.ToString().Replace('_', ' '),
             Description = description ?? $"A {profession} in {location.Name}",
             ProvidedServices = providedServices ?? new List<ServiceTypes>(),
-            LetterTokenTypes = letterTokenTypes ?? new List<ConnectionType>()
+            LetterTokenTypes = letterTokenTypes ?? new List<ConnectionType>(),
+            Tier = tier
         };
 
         return npc;
@@ -95,7 +97,8 @@ public class NPCFactory
         string role,
         string description,
         List<ServiceTypes> providedServices,
-        List<ConnectionType> letterTokenTypes)
+        List<ConnectionType> letterTokenTypes,
+        int tier = 1)
     {
         // Resolve location
         Location? location = availableLocations.FirstOrDefault(l => l.Id == locationId);
@@ -103,7 +106,7 @@ public class NPCFactory
             throw new InvalidOperationException($"Cannot create NPC: location '{locationId}' not found");
 
         return CreateNPC(id, name, location, profession, spotId, role, description,
-                        providedServices, letterTokenTypes);
+                        providedServices, letterTokenTypes, tier);
     }
 
     /// <summary>

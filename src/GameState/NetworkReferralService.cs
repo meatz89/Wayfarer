@@ -150,12 +150,6 @@ public class NetworkReferralService
                 $"I can arrange an introduction to {targetNPC.Name} - quite influential.",
                 $"{targetNPC.Name} appreciates proper etiquette and timely service."
             },
-            ConnectionType.Trust => new[]
-            {
-                $"{targetNPC.Name} is one of us - always has work for honest folk.",
-                $"My neighbor {targetNPC.Name} mentioned needing help.",
-                $"{targetNPC.Name} takes care of those who help the community."
-            },
             ConnectionType.Shadow => new[]
             {
                 $"{targetNPC.Name}... operates in similar circles. Mention my name.",
@@ -205,8 +199,8 @@ public class NetworkReferralService
                 Description = $"Letter of introduction from {referrer.Name}",
                 TokenType = tokenType,
                 Category = LetterCategory.Quality,
-                MinDeadline = 3,
-                MaxDeadline = 5,
+                MinDeadlineInDays = 3,
+                MaxDeadlineInDays = 5,
                 MinPayment = 8,
                 MaxPayment = 12
             };
@@ -222,7 +216,7 @@ public class NetworkReferralService
             Description = $"Introduction letter to {target.Name}",
             TokenType = tokenType,
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
-            Deadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1),
+            DeadlineInDays = _random.Next(template.MinDeadlineInDays, template.MaxDeadlineInDays + 1),
             IsGenerated = true,
             GenerationReason = "Network Referral",
             Message = $"{referrer.Name} speaks highly of your courier services and suggests we should meet."

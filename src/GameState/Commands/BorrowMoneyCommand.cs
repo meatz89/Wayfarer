@@ -104,6 +104,17 @@ public class BorrowMoneyCommand : BaseGameCommand
 
         // Add coins
         player.ModifyCoins(coinsReceived);
+        
+        // Create actual debt
+        var debt = new Debt
+        {
+            CreditorId = _npcId,
+            Principal = coinsReceived,
+            InterestRate = 5, // 5% per day interest
+            StartDay = gameWorld.CurrentDay,
+            IsPaid = false
+        };
+        player.ActiveDebts.Add(debt);
 
         // Narrative feedback based on NPC type
         if (tokenType == ConnectionType.Commerce)

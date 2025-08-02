@@ -47,7 +47,7 @@ public class WorkCommand : BaseGameCommand
                 TokenTypeGranted = ConnectionType.Trust;
             }
             // Noble work might grant Noble tokens
-            else if (npc.Profession == Professions.Status || npc.Profession == Professions.Scholar)
+            else if (npc.Profession == Professions.Noble || npc.Profession == Professions.Scholar)
             {
                 TokenTypeGranted = ConnectionType.Status;
             }

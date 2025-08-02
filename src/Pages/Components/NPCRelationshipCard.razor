@@ -5,9 +5,10 @@
 @inject NPCRepository NPCRepository
 @inject LocationRepository LocationRepository
 @inject NPCLetterOfferService LetterOfferService
-@inject TokenFavorManager TokenFavorManager
 @inject LetterCategoryService CategoryService
 @inject ITimeManager TimeManager
+@inject SpecialLetterGenerationService SpecialLetterService
+@inject IGameFacade GameFacade
 
 <div class="npc-relationship-card @GetRelationshipStatusClass()">
     <div class="npc-header">
@@ -16,29 +17,33 @@
     </div>
     
     <div class="token-display">
-        <h4>Connection Tokens</h4>
-        <div class="token-list">
-            @foreach (var tokenType in NPC.LetterTokenTypes ?? new List<ConnectionType>())
+        <h4>Relationship Status</h4>
+        <div class="token-context-grid">
+            @foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
             {
                 var tokenCount = GetNPCTokenCount(tokenType);
-                <div class="token-item @(tokenCount < 0 ? "debt" : tokenCount > 0 ? "positive" : "neutral")">
-                    <span class="token-icon">@GetTokenIcon(tokenType)</span>
-                    <span class="token-type">@tokenType</span>
-                    <span class="token-count">@tokenCount</span>
+                var contextDescription = GetContextDescription(tokenType, tokenCount);
+                <div class="token-context-item @(tokenCount < 0 ? "debt" : tokenCount > 0 ? "positive" : "neutral")">
+                    <div class="context-header">
+                        <span class="token-icon">@GetTokenIcon(tokenType)</span>
+                        <span class="token-type">@tokenType</span>
+                        <span class="token-count">@tokenCount</span>
+                    </div>
+                    <div class="context-description">@contextDescription</div>
                     @if (tokenCount < 0)
                     {
-                        <span class="debt-label">(debt)</span>
-                        <span class="leverage-warning" title="Letters from @NPC.Name will enter at position @GetLeveragePosition(tokenType, tokenCount)">⚠️ Leverage</span>
+                        <div class="context-effects">
+                            <span class="debt-label">💸 In Debt</span>
+                            <span class="leverage-warning" title="Letters will enter at position @GetLeveragePosition(tokenType, tokenCount)">⚠️ Has Leverage</span>
+                        </div>
                     }
-                    else if (tokenCount >= 4)
+                    else if (tokenCount >= 5)
                     {
-                        <span class="respect-indicator" title="Strong relationship reduces leverage">⭐</span>
+                        <div class="context-effects">
+                            <span class="special-available" title="Can request special @tokenType letter">✨ Special Available</span>
+                        </div>
                     }
                 </div>
-            }
-            @if (!(NPC.LetterTokenTypes?.Any() ?? false))
-            {
-                <div class="no-tokens">This NPC doesn't offer letters</div>
             }
         </div>
         
@@ -188,15 +193,59 @@
                     <div class="queue-letter">
                         <span class="position">[Pos @letter.QueuePosition]</span>
                         <span class="route">@(letter.SenderName == NPC.Name ? $"→ {letter.RecipientName}" : $"← {letter.SenderName}")</span>
-                        <span class="deadline @(letter.Deadline <= 1 ? "urgent" : "")">@letter.Deadline days</span>
+                        <span class="deadline @(letter.DeadlineInDays <= 1 ? "urgent" : "")">@letter.DeadlineInDays days</span>
                     </div>
                 }
             </div>
         }
     }
     
-    @* Token Favors *@
-    <TokenFavorDisplay CurrentNPC="@NPC" />
+    
+    @* Special Letter Request Section *@
+    @{
+        var specialLetterOptions = SpecialLetterService.GetAvailableSpecialLetters(NPC.ID);
+        if (specialLetterOptions.Any() && IsPlayerAtSameLocation())
+        {
+            <div class="special-letter-section">
+                <h4>Special Letters Available</h4>
+                <div class="special-letter-options">
+                    @foreach (var option in specialLetterOptions)
+                    {
+                        <div class="special-letter-card @(option.CanAfford ? "" : "insufficient-tokens")">
+                            <div class="special-letter-header">
+                                <span class="special-icon">@GetSpecialLetterIcon(option.SpecialType)</span>
+                                <span class="special-type">@option.SpecialType</span>
+                            </div>
+                            <div class="special-description">@option.Description</div>
+                            <div class="special-target">@option.TargetInfo</div>
+                            <div class="special-cost">
+                                <span class="token-requirement">
+                                    @GetTokenIcon(option.TokenType) @option.Cost tokens
+                                    (You have: @option.CurrentTokens)
+                                </span>
+                            </div>
+                            <button class="request-button" 
+                                    disabled="@(!option.CanAfford || !CanRequestSpecialLetterNow())"
+                                    @onclick="@(() => RequestSpecialLetter(option.TokenType))">
+                                @if (!option.CanAfford)
+                                {
+                                    <span>Need @(option.Cost - option.CurrentTokens) more tokens</span>
+                                }
+                                else if (!CanRequestSpecialLetterNow())
+                                {
+                                    <span>Must be available</span>
+                                }
+                                else
+                                {
+                                    <span>Request Letter (1 hour)</span>
+                                }
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
     
     <div class="relationship-status">
         <div class="status-indicator @GetRelationshipStatusClass()">
@@ -280,12 +329,52 @@
         return type switch
         {
             ConnectionType.Trust => "❤️",
-            ConnectionType.Trade => "🪙",
-            ConnectionType.Noble => "👑",
-            ConnectionType.Common => "🍺",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
         };
+    }
+    
+    private string GetContextDescription(ConnectionType type, int tokenCount)
+    {
+        switch (type)
+        {
+            case ConnectionType.Trust:
+                if (tokenCount < -3) return "distrusts you";
+                if (tokenCount < 0) return "wary of you";
+                if (tokenCount == 0) return "neutral";
+                if (tokenCount < 3) return "acquaintance";
+                if (tokenCount < 5) return "friend";
+                return "close friend";
+                
+            case ConnectionType.Commerce:
+                if (tokenCount < -3) return "major creditor";
+                if (tokenCount < 0) return "owes you money";
+                if (tokenCount == 0) return "no dealings";
+                if (tokenCount < 3) return "occasional trade";
+                if (tokenCount < 5) return "regular partner";
+                return "trusted merchant";
+                
+            case ConnectionType.Status:
+                if (tokenCount < -3) return "sees you as beneath them";
+                if (tokenCount < 0) return "unimpressed";
+                if (tokenCount == 0) return "no opinion";
+                if (tokenCount < 3) return "acknowledges you";
+                if (tokenCount < 5) return "respects you";
+                return "holds you in high regard";
+                
+            case ConnectionType.Shadow:
+                if (tokenCount < -3) return "blackmailing you";
+                if (tokenCount < 0) return "has leverage";
+                if (tokenCount == 0) return "no secrets";
+                if (tokenCount < 3) return "shares rumors";
+                if (tokenCount < 5) return "trusted informant";
+                return "shadow network ally";
+                
+            default:
+                return "unknown";
+        }
     }
     
     private Location GetNPCLocation()
@@ -408,11 +497,10 @@
         // Get base position for token type
         int basePosition = tokenType switch
         {
-            ConnectionType.Noble => 3,     // High social status
-            ConnectionType.Trade => 5,     // Middle class
+            ConnectionType.Status => 3,     // High social status
+            ConnectionType.Commerce => 5,     // Middle class
             ConnectionType.Shadow => 5,    // Underworld
-            ConnectionType.Common => 7,    // Lower class
-            ConnectionType.Trust => 7,     // Personal relationships
+            ConnectionType.Trust => 7,    // Lower class
             _ => 8
         };
         
@@ -433,4 +521,143 @@
         // Clamp to valid queue positions
         return Math.Max(1, Math.Min(8, leveragePosition));
     }
+    
+    private string GetSpecialLetterIcon(LetterSpecialType type)
+    {
+        return type switch
+        {
+            LetterSpecialType.Introduction => "🤝",
+            LetterSpecialType.AccessPermit => "🔓",
+            LetterSpecialType.Endorsement => "⭐",
+            LetterSpecialType.Information => "🔍",
+            _ => "📜"
+        };
+    }
+    
+    private bool CanRequestSpecialLetterNow()
+    {
+        // Check if NPC is available and player has time
+        return IsNPCCurrentlyAvailable() && GameWorld.GetPlayer().Stamina > 0;
+    }
+    
+    private async Task RequestSpecialLetter(ConnectionType tokenType)
+    {
+        // Execute the special letter request
+        bool success = SpecialLetterService.RequestSpecialLetter(NPC.ID, tokenType);
+        
+        if (success)
+        {
+            // Deduct 1 hour of time for the negotiation
+            TimeManager.AdvanceTime(1);
+        }
+        
+        // Refresh the UI
+        StateHasChanged();
+    }
 }
+
+<style>
+    .special-letter-section {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: var(--bg-card);
+        border-radius: 8px;
+        border: 2px solid var(--leather);
+    }
+    
+    .special-letter-section h4 {
+        margin-bottom: 0.75rem;
+        color: var(--leather);
+        font-family: var(--font-primary);
+    }
+    
+    .special-letter-options {
+        display: grid;
+        gap: 0.75rem;
+    }
+    
+    .special-letter-card {
+        background-color: var(--bg-panel);
+        border: 1px solid var(--oak-mid);
+        border-radius: 6px;
+        padding: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .special-letter-card:hover:not(.insufficient-tokens) {
+        border-color: var(--leather);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .special-letter-card.insufficient-tokens {
+        opacity: 0.7;
+    }
+    
+    .special-letter-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .special-icon {
+        font-size: 1.5rem;
+    }
+    
+    .special-type {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        font-family: var(--font-primary);
+    }
+    
+    .special-description {
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+        font-family: var(--font-secondary);
+    }
+    
+    .special-target {
+        font-size: 0.9rem;
+        color: var(--special);
+        margin-bottom: 0.75rem;
+        font-family: var(--font-secondary);
+    }
+    
+    .special-cost {
+        margin-bottom: 0.75rem;
+    }
+    
+    .token-requirement {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        font-family: var(--font-secondary);
+    }
+    
+    .request-button {
+        width: 100%;
+        padding: 0.5rem 1rem;
+        background-color: var(--leather);
+        color: var(--parchment);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        font-family: var(--font-primary);
+    }
+    
+    .request-button:hover:not(:disabled) {
+        background-color: var(--clay);
+        transform: translateY(-1px);
+    }
+    
+    .request-button:disabled {
+        background-color: var(--text-muted);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}</style>

@@ -155,13 +155,34 @@ public class LetterTemplateRepository
             SenderName = senderName,
             RecipientName = recipientName,
             TokenType = template.TokenType,
-            Deadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1),
+            DeadlineInDays = _random.Next(template.MinDeadlineInDays, template.MaxDeadlineInDays + 1),
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
             Size = template.Size,
             PhysicalProperties = template.PhysicalProperties,
             RequiredEquipment = template.RequiredEquipment,
-            Description = template.Description
+            Description = template.Description,
+            SpecialType = template.SpecialType
         };
+        
+        // Set special letter properties based on type
+        if (template.SpecialType != LetterSpecialType.None && !string.IsNullOrEmpty(template.SpecialTargetId))
+        {
+            switch (template.SpecialType)
+            {
+                case LetterSpecialType.Introduction:
+                    letter.UnlocksNPCId = template.SpecialTargetId;
+                    break;
+                case LetterSpecialType.AccessPermit:
+                    letter.UnlocksLocationId = template.SpecialTargetId;
+                    break;
+                case LetterSpecialType.Endorsement:
+                    letter.BonusDuration = 7; // Default 7 days for endorsements
+                    break;
+                case LetterSpecialType.Information:
+                    letter.InformationId = template.SpecialTargetId;
+                    break;
+            }
+        }
 
         return letter;
     }
@@ -204,15 +225,36 @@ public class LetterTemplateRepository
             SenderName = senderName,
             RecipientName = recipientName,
             TokenType = template.TokenType,
-            Deadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1),
+            DeadlineInDays = _random.Next(template.MinDeadlineInDays, template.MaxDeadlineInDays + 1),
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
             IsGenerated = true,
             GenerationReason = $"Forced from template: {template.Id}",
             Size = template.Size,
             PhysicalProperties = template.PhysicalProperties,
             RequiredEquipment = template.RequiredEquipment,
-            Description = template.Description
+            Description = template.Description,
+            SpecialType = template.SpecialType
         };
+        
+        // Set special letter properties for forced letters
+        if (template.SpecialType != LetterSpecialType.None && !string.IsNullOrEmpty(template.SpecialTargetId))
+        {
+            switch (template.SpecialType)
+            {
+                case LetterSpecialType.Introduction:
+                    letter.UnlocksNPCId = template.SpecialTargetId;
+                    break;
+                case LetterSpecialType.AccessPermit:
+                    letter.UnlocksLocationId = template.SpecialTargetId;
+                    break;
+                case LetterSpecialType.Endorsement:
+                    letter.BonusDuration = 7;
+                    break;
+                case LetterSpecialType.Information:
+                    letter.InformationId = template.SpecialTargetId;
+                    break;
+            }
+        }
 
         return letter;
     }

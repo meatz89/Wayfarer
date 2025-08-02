@@ -81,8 +81,8 @@ public class LetterQueue
     public Letter[] GetExpiringLetters(int days)
     {
         return slots
-            .Where(letter => letter != null && letter.Deadline <= days)
-            .OrderBy(letter => letter.Deadline)
+            .Where(letter => letter != null && letter.DeadlineInDays <= days)
+            .OrderBy(letter => letter.DeadlineInDays)
             .ToArray();
     }
 }

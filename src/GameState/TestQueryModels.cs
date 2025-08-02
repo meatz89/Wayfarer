@@ -11,7 +11,6 @@ public class PlayerStateSnapshot
     public string CurrentLocationId { get; set; } = "";
     public string CurrentLocationSpotId { get; set; } = "";
     public List<string> InventoryItems { get; set; } = new List<string>();
-    public int Reputation { get; set; }
 }
 
 /// <summary>

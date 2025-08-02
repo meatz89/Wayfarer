@@ -1,4 +1,5 @@
 ﻿@inherits TravelSelectionBase
+@using Wayfarer.Services
 
 @namespace Wayfarer.Pages
 
@@ -199,11 +200,25 @@
                             {
                                 <div class="route-description">@route.Description</div>
                             }
+                            
+                            @* Show time impact for travel *@
+                            @if (route.TimeCost > 0)
+                            {
+                                var timeImpact = TimeCalculator.CalculateTimeImpact(route.TimeCost);
+                                <ActionTimePreview Hours="@timeImpact.Hours"
+                                                   CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
+                                                   ResultTimeBlock="@timeImpact.ResultTimeBlock"
+                                                   WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
+                                                   LettersExpiring="@timeImpact.LettersExpiring"
+                                                   ShowDeadlineWarning="true"
+                                                   ShowTimeProgression="true" />
+                            }
+                            
                             @if (canAfford && !isBlocked)
                             {
                                 <button class="travel-button"
-                                        @onclick="() => HandleTravelRoute(route)">
-                                    Travel via @route.TransportMethod
+                                        @onclick="() => ShowTransportOptions(route)">
+                                    Select Transport
                                 </button>
                             }
                             else
@@ -271,3 +286,32 @@
         }
     </div>
 </div>
+
+@* Deadline Warning Modal *@
+<DeadlineWarningModal IsVisible="@ShowDeadlineWarning"
+                      TimeImpact="@PendingTimeImpact"
+                      OnConfirm="ConfirmTravelWithDeadline"
+                      OnCancel="CancelTravelWithDeadline" />
+
+@* Transport Selection Modal *@
+@if (ShowTransportSelector)
+{
+    <div class="modal-overlay" @onclick="CloseTransportSelector">
+        <div class="modal-content transport-modal" @onclick:stopPropagation="true">
+            <h3>Choose Transport for @SelectedRoute?.RouteName</h3>
+            
+            <TransportSelector Route="@GetRouteOption(SelectedRoute)"
+                             Player="@GetPlayer()"
+                             SelectedTransport="@SelectedTransport"
+                             OnTransportSelected="@OnTransportSelected" />
+            
+            <div class="modal-actions">
+                <button class="btn-cancel" @onclick="CloseTransportSelector">Cancel</button>
+                <button class="btn-confirm" @onclick="ConfirmTransportSelection">
+                    Travel by @SelectedTransport
+                </button>
+            </div>
+        </div>
+    </div>
+}
+

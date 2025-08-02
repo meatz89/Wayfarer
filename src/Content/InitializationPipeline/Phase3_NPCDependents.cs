@@ -92,7 +92,8 @@ public class Phase3_NPCDependents : IInitializationPhase
                         Method = method,
                         IsDiscovered = dto.IsDiscovered,
                         DepartureTime = departureTime,
-                        Description = dto.Description ?? $"Route from {origin.Name} to {destination.Name}"
+                        Description = dto.Description ?? $"Route from {origin.Name} to {destination.Name}",
+                        Tier = dto.Tier
                     };
                     
                     context.GameWorld.WorldState.Routes.Add(route);
@@ -183,8 +184,8 @@ public class Phase3_NPCDependents : IInitializationPhase
                         Id = dto.Id,
                         Description = dto.Description ?? $"A {tokenType} letter",
                         TokenType = tokenType,
-                        MinDeadline = dto.MinDeadline,
-                        MaxDeadline = dto.MaxDeadline,
+                        MinDeadlineInDays = dto.MinDeadlineInDays,
+                        MaxDeadlineInDays = dto.MaxDeadlineInDays,
                         MinPayment = dto.MinPayment,
                         MaxPayment = dto.MaxPayment,
                         Category = category,
@@ -245,8 +246,8 @@ public class Phase3_NPCDependents : IInitializationPhase
                 TokenType = tokenType,
                 MinPayment = 2,
                 MaxPayment = 8,
-                MinDeadline = 24,
-                MaxDeadline = 72,
+                MinDeadlineInDays = 24,
+                MaxDeadlineInDays = 72,
                 Size = SizeCategory.Small,
                 Category = LetterCategory.Basic,
                 MinTokensRequired = 1

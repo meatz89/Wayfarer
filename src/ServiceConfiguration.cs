@@ -1,4 +1,6 @@
-﻿public static class ServiceConfiguration
+﻿using Wayfarer.Services;
+
+public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
@@ -86,14 +88,17 @@
         services.AddSingleton<ConnectionTokenManager>();
 
         services.AddSingleton<LetterQueueManager>();
+        services.AddSingleton<EndorsementManager>();
 
         // Transaction and Preview System
         services.AddSingleton<AccessRequirementChecker>();
-        services.AddSingleton<TokenFavorRepository>();
-        services.AddSingleton<TokenFavorManager>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<NetworkUnlockManager>();
+        services.AddSingleton<InformationDiscoveryManager>();
+        services.AddSingleton<SpecialLetterHandler>();
+        services.AddSingleton<SpecialLetterGenerationService>();
+        services.AddSingleton<InformationRevealService>();
         services.AddSingleton<NPCLetterOfferService>();
         services.AddSingleton<PatronLetterService>();
         services.AddSingleton<NetworkReferralService>();
@@ -113,6 +118,8 @@
         services.AddSingleton<NarrativeItemService>();
 
         services.AddScoped<MusicService>();
+        services.AddScoped<TimeImpactCalculator>();
+        services.AddScoped<ActionExecutionService>();
 
         // Command System
         services.AddSingleton<CommandExecutor>();

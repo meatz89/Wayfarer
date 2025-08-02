@@ -112,7 +112,7 @@ public class TutorialStartupTests
         // Assert
         Assert.Equal(2, player.Coins); // Tutorial starts with 2 coins
         Assert.Equal(4, player.Stamina); // Tutorial starts with 4/10 stamina
-        Assert.Equal("lower_ward", player.CurrentLocation.Id);
-        Assert.Equal("abandoned_warehouse", player.CurrentLocationSpot.SpotID);
+        Assert.Equal("abandoned_warehouse", player.CurrentLocationSpot?.SpotID);
+        Assert.Equal("lower_ward", player.CurrentLocationSpot?.LocationId);
     }
 }

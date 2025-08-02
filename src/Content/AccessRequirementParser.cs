@@ -47,18 +47,35 @@ public static class AccessRequirementParser
         requirement.RequiredItemIds = dto.RequiredItemIds;
 
         // Parse NPC token requirements
-        requirement.RequiredTokensPerNPC = dto.RequiredTokensPerNPC;
+        if (dto.RequiredTokensPerNPC != null)
+        {
+            foreach (var kvp in dto.RequiredTokensPerNPC)
+            {
+                requirement.RequiredTokensPerNPC.Add(new TokenRequirement
+                {
+                    NPCId = kvp.Key,
+                    MinimumCount = kvp.Value
+                });
+            }
+        }
 
         // Parse token type requirements
-        foreach ((string typeStr, int count) in dto.RequiredTokensPerType)
+        if (dto.RequiredTokensPerType != null)
         {
-            if (EnumParser.TryParse<ConnectionType>(typeStr, out ConnectionType tokenType))
+            foreach (var kvp in dto.RequiredTokensPerType)
             {
-                requirement.RequiredTokensPerType[tokenType] = count;
-            }
-            else
-            {
-                Console.WriteLine($"[WARNING] Unknown token type: {typeStr}");
+                if (EnumParser.TryParse<ConnectionType>(kvp.Key, out ConnectionType tokenType))
+                {
+                    requirement.RequiredTokensPerType.Add(new TokenTypeRequirement
+                    {
+                        TokenType = tokenType,
+                        MinimumCount = kvp.Value
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"[WARNING] Unknown token type: {kvp.Key}");
+                }
             }
         }
 

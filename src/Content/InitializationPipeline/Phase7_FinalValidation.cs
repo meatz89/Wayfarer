@@ -132,14 +132,6 @@ public class Phase7_FinalValidation : IInitializationPhase
             }
         }
         
-        // Check token favors
-        foreach (var favor in gameWorld.WorldState.TokenFavors)
-        {
-            if (!npcIds.Contains(favor.NPCId))
-            {
-                missingNPCs.Add(favor.NPCId);
-            }
-        }
         
         // Create missing NPCs
         var npcFactory = new NPCFactory();

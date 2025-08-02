@@ -26,8 +26,6 @@
     public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
     public List<NetworkUnlock> NetworkUnlocks { get; set; } = new List<NetworkUnlock>();
 
-    // Token Favor System
-    public List<TokenFavor> TokenFavors { get; set; } = new List<TokenFavor>();
 
 
     public string GetLocationIdForSpot(string locationSpotId)

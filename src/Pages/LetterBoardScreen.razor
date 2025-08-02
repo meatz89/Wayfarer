@@ -68,7 +68,7 @@
                                 </div>
                                 <div class="detail-item">
                                     <span class="icon">⏳</span>
-                                    <span class="value">@letter.Deadline days</span>
+                                    <span class="value">@letter.DeadlineInDays days</span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="icon">📍</span>
@@ -357,14 +357,14 @@
     {
         var obligations = ObligationManager.GetActiveObligations();
         
-        if (letter.TokenType == ConnectionType.Noble)
+        if (letter.TokenType == ConnectionType.Status)
         {
-            return obligations.FirstOrDefault(o => o.HasEffect(ObligationEffect.NoNobleRefusal));
+            return obligations.FirstOrDefault(o => o.HasEffect(ObligationEffect.NoStatusRefusal));
         }
         
-        if (letter.TokenType == ConnectionType.Common)
+        if (letter.TokenType == ConnectionType.Trust)
         {
-            return obligations.FirstOrDefault(o => o.HasEffect(ObligationEffect.NoCommonRefusal));
+            return obligations.FirstOrDefault(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost));
         }
         
         return null;
@@ -375,9 +375,8 @@
         return type switch
         {
             ConnectionType.Trust => "❤️",
-            ConnectionType.Trade => "🪙",
-            ConnectionType.Noble => "👑",
-            ConnectionType.Common => "🍺",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
         };
@@ -463,9 +462,8 @@
         return type switch
         {
             ConnectionType.Trust => "trust-token",
-            ConnectionType.Trade => "trade-token",
-            ConnectionType.Noble => "noble-token",
-            ConnectionType.Common => "common-token",
+            ConnectionType.Commerce => "trade-token",
+            ConnectionType.Status => "noble-token",
             ConnectionType.Shadow => "shadow-token",
             _ => ""
         };

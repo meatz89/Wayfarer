@@ -72,6 +72,25 @@ public class LetterQueueUIService
                 int tokenCost = baseCost * multiplier;
                 int availableTokens = _tokenManager.GetTokenCount(letter.TokenType);
 
+                // Build detailed multiplier reason
+                string multiplierReason = null;
+                if (multiplier > 1)
+                {
+                    var activeObligations = _obligationManager.GetActiveObligations()
+                        .Where(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost) && o.AppliesTo(letter.TokenType))
+                        .ToList();
+                    
+                    if (activeObligations.Any())
+                    {
+                        var obligationNames = activeObligations.Select(o => o.Name);
+                        multiplierReason = $"×{multiplier} from: {string.Join(", ", obligationNames)}";
+                    }
+                    else
+                    {
+                        multiplierReason = $"×{multiplier} from active obligations";
+                    }
+                }
+
                 skipAction = new SkipActionViewModel
                 {
                     BaseCost = baseCost,
@@ -80,7 +99,7 @@ public class LetterQueueUIService
                     TokenType = letter.TokenType.ToString(),
                     AvailableTokens = availableTokens,
                     HasEnoughTokens = availableTokens >= tokenCost,
-                    MultiplierReason = multiplier > 1 ? "Increased cost from obligations" : null
+                    MultiplierReason = multiplierReason
                 };
             }
 
@@ -109,7 +128,7 @@ public class LetterQueueUIService
             Id = letter.Id,
             SenderName = letter.SenderName,
             RecipientName = letter.RecipientName,
-            Deadline = letter.Deadline,
+            DeadlineInDays = letter.DeadlineInDays,
             Payment = letter.Payment,
             TokenType = letter.TokenType.ToString(),
             TokenIcon = GetTokenIcon(letter.TokenType),
@@ -119,9 +138,12 @@ public class LetterQueueUIService
             IsCollected = letter.State == LetterState.Collected,
             PhysicalConstraints = letter.GetPhysicalConstraintsDescription(),
             PhysicalIcon = GetPhysicalIcon(letter.PhysicalProperties),
-            DeadlineClass = GetDeadlineClass(letter.Deadline),
-            DeadlineIcon = GetDeadlineIcon(letter.Deadline),
-            DeadlineDescription = GetDeadlineDescription(letter.Deadline),
+            IsSpecial = letter.IsSpecial,
+            SpecialIcon = letter.GetSpecialIcon(),
+            SpecialDescription = letter.GetSpecialDescription(),
+            DeadlineClass = GetDeadlineClass(letter.DeadlineInDays),
+            DeadlineIcon = GetDeadlineIcon(letter.DeadlineInDays),
+            DeadlineDescription = GetDeadlineDescription(letter.DeadlineInDays),
             LeverageIndicator = leverage.indicator,
             LeverageTooltip = leverage.tooltip
         };
@@ -296,7 +318,6 @@ public class LetterQueueUIService
             ConnectionType.Trust => "❤️",
             ConnectionType.Commerce => "🪙",
             ConnectionType.Status => "👑",
-            ConnectionType.Trust => "🍺",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
         };

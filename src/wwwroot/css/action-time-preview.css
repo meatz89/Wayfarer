@@ -1,0 +1,192 @@
+/* Action Time Preview Component Styles */
+
+.action-time-preview {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--oak-mid);
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.action-time-preview.has-warning {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.05);
+}
+
+/* Time Header */
+.time-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.time-icon {
+    font-size: 1.125rem;
+}
+
+.time-label {
+    color: var(--text-secondary);
+}
+
+.time-amount {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+/* Time Progression */
+.time-progression {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--bg-card);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.current-time, .result-time {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+}
+
+.current-time {
+    background-color: var(--oak-mid);
+    color: var(--text-primary);
+}
+
+.result-time {
+    background-color: var(--resource-stamina);
+    color: var(--text-on-dark);
+    font-weight: 500;
+}
+
+.result-time.next-day {
+    background-color: var(--special);
+}
+
+.time-block-icon {
+    font-size: 1rem;
+}
+
+.arrow {
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.day-indicator {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-left: 0.25rem;
+}
+
+/* Deadline Warning */
+.deadline-warning {
+    background-color: rgba(158, 42, 43, 0.1);
+    border: 1px solid var(--negative);
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.warning-icon {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+}
+
+.warning-text {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+/* Affected Letters */
+.affected-letters {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--negative);
+}
+
+.affected-letter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    font-size: 0.8rem;
+}
+
+.affected-letter .route {
+    color: var(--text-primary);
+}
+
+.affected-letter .deadline {
+    font-weight: bold;
+}
+
+.affected-letter .deadline.expired {
+    color: var(--negative);
+}
+
+.affected-letter .deadline.expiring {
+    color: var(--special);
+}
+
+/* Remaining Time */
+.remaining-time {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--oak-mid);
+    text-align: center;
+}
+
+.remaining-time small {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Inline Variant */
+.action-time-preview.inline {
+    display: inline-flex;
+    padding: 0.25rem 0.75rem;
+    margin: 0;
+}
+
+.action-time-preview.inline .time-header {
+    margin-bottom: 0;
+}
+
+.action-time-preview.inline .time-progression,
+.action-time-preview.inline .deadline-warning,
+.action-time-preview.inline .remaining-time {
+    display: none;
+}
+
+/* Compact Mode */
+.action-time-preview.compact {
+    padding: 0.5rem;
+}
+
+.action-time-preview.compact .time-header {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.action-time-preview.compact .time-progression {
+    font-size: 0.8rem;
+    padding: 0.25rem;
+}
+
+/* Hover Effects */
+.action-time-preview:hover {
+    border-color: var(--oak-dark);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-time-preview.has-warning:hover {
+    border-color: var(--negative);
+    box-shadow: 0 2px 4px rgba(158, 42, 43, 0.2);
+}

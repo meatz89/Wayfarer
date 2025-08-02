@@ -182,7 +182,7 @@ public class StandingObligationManager
             RecipientName = shadowRecipients[random.Next(shadowRecipients.Length)],
             TokenType = ConnectionType.Shadow,
             Payment = random.Next(20, 40), // High base payment for dangerous work
-            Deadline = random.Next(1, 4), // Urgent deadlines
+            DeadlineInDays = random.Next(1, 4), // Urgent deadlines
             IsGenerated = true,
             GenerationReason = "Shadow Obligation Forced (Fallback)"
         };
@@ -206,7 +206,7 @@ public class StandingObligationManager
             RecipientName = "Resources Contact",
             TokenType = ConnectionType.Status, // Patron letters usually noble
             Payment = random.Next(50, 100), // Large resource package
-            Deadline = random.Next(3, 7), // Reasonable deadline
+            DeadlineInDays = random.Next(3, 7), // Reasonable deadline
             IsGenerated = true,
             GenerationReason = "Patron Monthly Package (Fallback)"
         };
@@ -290,14 +290,9 @@ public class StandingObligationManager
     // Apply leverage modifier from a single obligation
     private int ApplySingleObligationLeverage(StandingObligation obligation, Letter letter, int currentPosition)
     {
-        if (obligation.HasEffect(ObligationEffect.ShadowEqualsNoble))
+        if (obligation.HasEffect(ObligationEffect.ShadowEqualsStatus))
         {
-            return ApplyShadowNobleEffect(letter, currentPosition);
-        }
-
-        if (obligation.HasEffect(ObligationEffect.CommonRevenge))
-        {
-            return ApplyCommonRevengeEffect(obligation, letter, currentPosition);
+            return ApplyShadowStatusEffect(letter, currentPosition);
         }
 
         if (obligation.HasEffect(ObligationEffect.DebtSpiral))
@@ -318,34 +313,16 @@ public class StandingObligationManager
         return currentPosition;
     }
 
-    // Apply shadow equals noble leverage effect
-    private int ApplyShadowNobleEffect(Letter letter, int currentPosition)
+    // Apply shadow equals status leverage effect
+    private int ApplyShadowStatusEffect(Letter letter, int currentPosition)
     {
         if (letter.TokenType == ConnectionType.Shadow)
         {
-            return Math.Min(currentPosition, 3); // Noble base position
+            return Math.Min(currentPosition, 3); // Status base position
         }
         return currentPosition;
     }
 
-    // Apply common revenge effect - common letters from debt get noble priority
-    private int ApplyCommonRevengeEffect(StandingObligation obligation, Letter letter, int currentPosition)
-    {
-        if (letter.TokenType != ConnectionType.Trust)
-            return currentPosition;
-
-        string senderId = GetNPCIdByName(letter.SenderName);
-        if (string.IsNullOrEmpty(senderId))
-            return currentPosition;
-
-        int tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[ConnectionType.Trust];
-        if (tokenBalance < 0)
-        {
-            return 3; // Noble position for debt leverage
-        }
-
-        return currentPosition;
-    }
 
     // Apply debt spiral effect - all negative positions get extra leverage
     private int ApplyDebtSpiralEffect(Letter letter, int currentPosition)
@@ -619,7 +596,133 @@ public class StandingObligationManager
         if (oldCount != newCount)
         {
             CheckThresholdActivations();
+            
+            // Check for debt obligations
+            CheckDebtObligations(npcId, tokenType, oldCount, newCount);
         }
+    }
+    
+    // Check and create debt obligations when tokens go negative
+    private void CheckDebtObligations(string npcId, ConnectionType tokenType, int oldCount, int newCount)
+    {
+        // Only create debt obligation when crossing from positive/zero to negative
+        if (oldCount >= 0 && newCount < 0)
+        {
+            CreateDebtObligation(npcId, tokenType, newCount);
+        }
+        // Remove debt obligation when debt is paid off
+        else if (oldCount < 0 && newCount >= 0)
+        {
+            RemoveDebtObligation(npcId, tokenType);
+        }
+    }
+    
+    // Create a debt obligation for a specific NPC and token type
+    private void CreateDebtObligation(string npcId, ConnectionType tokenType, int debtAmount)
+    {
+        var npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null) return;
+        
+        // Check if debt obligation already exists
+        var existingDebt = GetActiveObligations().FirstOrDefault(o => 
+            o.ID == $"debt_{npcId}_{tokenType}" && o.IsActive);
+        if (existingDebt != null) return;
+        
+        // Create new debt obligation based on token type
+        var debtObligation = CreateTokenTypeDebtObligation(npcId, npc.Name, tokenType, debtAmount);
+        if (debtObligation != null)
+        {
+            debtObligation.DayAccepted = _gameWorld.CurrentDay;
+            AddObligation(debtObligation);
+            
+            _messageSystem.AddSystemMessage(
+                $"⚠️ You are now in debt to {npc.Name}! {GetDebtConsequenceMessage(tokenType)}",
+                SystemMessageTypes.Warning
+            );
+        }
+    }
+    
+    // Remove debt obligation when debt is paid
+    private void RemoveDebtObligation(string npcId, ConnectionType tokenType)
+    {
+        var debtObligation = GetActiveObligations().FirstOrDefault(o => 
+            o.ID == $"debt_{npcId}_{tokenType}" && o.IsActive);
+            
+        if (debtObligation != null)
+        {
+            RemoveObligation(debtObligation.ID, false);
+            
+            var npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
+            _messageSystem.AddSystemMessage(
+                $"✅ Debt to {npc?.Name ?? "unknown"} has been repaid!",
+                SystemMessageTypes.Success
+            );
+        }
+    }
+    
+    // Create specific debt obligation based on token type
+    private StandingObligation CreateTokenTypeDebtObligation(string npcId, string npcName, ConnectionType tokenType, int debtAmount)
+    {
+        var obligation = new StandingObligation
+        {
+            ID = $"debt_{npcId}_{tokenType}",
+            Source = npcId,
+            RelatedNPCId = npcId,
+            RelatedTokenType = tokenType,
+            IsActive = true,
+            IsThresholdBased = true,
+            ActivationThreshold = -1,
+            ActivatesAboveThreshold = false,
+            WasAutoActivated = true
+        };
+        
+        switch (tokenType)
+        {
+            case ConnectionType.Trust:
+                obligation.Name = $"Personal Betrayal - {npcName}";
+                obligation.Description = $"You've betrayed {npcName}'s trust. Their letters demand immediate attention.";
+                obligation.ConstraintEffects.Add(ObligationEffect.TrustPriority);
+                break;
+                
+            case ConnectionType.Commerce:
+                obligation.Name = $"Outstanding Payment - {npcName}";
+                obligation.Description = $"You owe {npcName} for business dealings. Work is scarce until debts are settled.";
+                obligation.ConstraintEffects.Add(ObligationEffect.NoCommercePurge);
+                obligation.BenefitEffects.Add(ObligationEffect.DynamicLeverageModifier);
+                obligation.ScalingType = ScalingType.Linear;
+                obligation.ScalingFactor = -1f; // Each debt point improves position by 1
+                obligation.BaseValue = 0f;
+                break;
+                
+            case ConnectionType.Status:
+                obligation.Name = $"Social Disgrace - {npcName}";
+                obligation.Description = $"Your standing with {npcName} has fallen. Noble venues may refuse you.";
+                obligation.ConstraintEffects.Add(ObligationEffect.NoStatusRefusal);
+                obligation.BenefitEffects.Add(ObligationEffect.StatusPriority);
+                break;
+                
+            case ConnectionType.Shadow:
+                obligation.Name = $"Dangerous Enemy - {npcName}";
+                obligation.Description = $"{npcName} considers you a liability. Expect unwelcome attention.";
+                obligation.ConstraintEffects.Add(ObligationEffect.ShadowForced);
+                obligation.BenefitEffects.Add(ObligationEffect.ShadowTriplePay);
+                break;
+        }
+        
+        return obligation;
+    }
+    
+    // Get consequence message for debt type
+    private string GetDebtConsequenceMessage(ConnectionType tokenType)
+    {
+        return tokenType switch
+        {
+            ConnectionType.Trust => "Personal requests cannot be refused.",
+            ConnectionType.Commerce => "Business opportunities will be limited.",
+            ConnectionType.Status => "Social obligations must be met.",
+            ConnectionType.Shadow => "Dangerous work will find you.",
+            _ => "Consequences will follow."
+        };
     }
 
     // Helper methods
@@ -679,7 +782,7 @@ public class StandingObligationManager
                     
                     if (deadlineBonus > 0)
                     {
-                        letter.Deadline += deadlineBonus;
+                        letter.DeadlineInDays += deadlineBonus;
                         _messageSystem.AddSystemMessage(
                             $"📅 {obligation.Name} grants +{deadlineBonus} days deadline (scaled by {tokenCount} tokens)",
                             SystemMessageTypes.Info
