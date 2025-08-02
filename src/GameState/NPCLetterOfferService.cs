@@ -151,7 +151,7 @@ public class NPCLetterOfferService
         int payment = _random.Next(template.MinPayment, template.MaxPayment + 1);
 
         // Calculate deadline - Direct Approaches tend to be more generous
-        int baseDeadline = _random.Next(template.MinDeadline, template.MaxDeadline + 1);
+        int baseDeadline = _random.Next(template.MinDeadlineInDays, template.MaxDeadlineInDays + 1);
         int deadlineBonus = tokensOfType >= GameRules.TOKENS_QUALITY_THRESHOLD ? 1 : 0; // +1 day for quality relationships
         int finalDeadline = baseDeadline + deadlineBonus;
 
@@ -163,7 +163,7 @@ public class NPCLetterOfferService
             LetterType = letterType,
             Message = message,
             Payment = payment,
-            Deadline = finalDeadline,
+            DeadlineInDays = finalDeadline,
             TemplateId = template.Id,
             IsDirectApproach = true,
             Category = template.Category
@@ -246,18 +246,36 @@ public class NPCLetterOfferService
             return false;
         }
 
-        // Add letter to queue
-        _letterQueueManager.AddLetterWithObligationEffects(letter);
+        // Check if this is an Information letter that goes to inventory instead of queue
+        if (letter.SpecialType == LetterSpecialType.Information)
+        {
+            // Add Information letter to carried letters (satchel) instead of queue
+            _gameWorld.GetPlayer().CarriedLetters.Add(letter);
+            letter.State = LetterState.Collected; // Mark as physical item
+            
+            // Enhanced feedback for Information letters
+            _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"📜 Information letter added to your satchel", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"🎒 Takes inventory space but not queue slot", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"💰 Payment: {offer.Payment} coins", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"⏰ Deadline: {offer.DeadlineInDays} days", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"🤝 Relationship with {npc.Name} strengthened", SystemMessageTypes.Success);
+        }
+        else
+        {
+            // Regular letters go to queue
+            _letterQueueManager.AddLetterWithObligationEffects(letter);
+            
+            // Enhanced success feedback
+            _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"✉️ {offer.LetterType} letter added to queue", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"💰 Payment: {offer.Payment} coins", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"⏰ Deadline: {offer.DeadlineInDays} days", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"🤝 Relationship with {npc.Name} strengthened", SystemMessageTypes.Success);
+        }
 
         // Strengthen relationship with this NPC (1 token for accepting Direct Approach)
         _connectionTokenManager.AddTokensToNPC(offer.LetterType, 1, npcId);
-
-        // Enhanced success feedback
-        _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);
-        _messageSystem.AddSystemMessage($"✉️ {offer.LetterType} letter added to queue", SystemMessageTypes.Info);
-        _messageSystem.AddSystemMessage($"💰 Payment: {offer.Payment} coins", SystemMessageTypes.Info);
-        _messageSystem.AddSystemMessage($"⏰ Deadline: {offer.Deadline} days", SystemMessageTypes.Info);
-        _messageSystem.AddSystemMessage($"🤝 Relationship with {npc.Name} strengthened", SystemMessageTypes.Success);
 
         // Remove from pending offers
         RemovePendingOffer(npcId, offerId);
@@ -294,7 +312,7 @@ public class NPCLetterOfferService
         {
             // Apply offer-specific properties
             letter.Payment = offer.Payment;
-            letter.Deadline = offer.Deadline;
+            letter.DeadlineInDays = offer.DeadlineInDays;
             letter.TokenType = offer.LetterType;
 
             // Mark as Direct Approach
@@ -519,7 +537,7 @@ public class NPCLetterOfferService
             RecipientId = returnRecipient.ID,
             RecipientName = returnRecipient.Name,
             Payment = _random.Next(8, 16), // Return letters pay slightly more
-            Deadline = _gameWorld.CurrentDay + _random.Next(3, 5),
+            DeadlineInDays = _gameWorld.CurrentDay + _random.Next(3, 5),
             IsGenerated = true,
             GenerationReason = "Return Letter",
             State = LetterState.Accepted,
@@ -558,7 +576,7 @@ public class LetterOffer
     public ConnectionType LetterType { get; set; }
     public string Message { get; set; }
     public int Payment { get; set; }
-    public int Deadline { get; set; }
+    public int DeadlineInDays { get; set; }
     public string TemplateId { get; set; }
     public bool IsDirectApproach { get; set; }
     public int GeneratedDay { get; set; }

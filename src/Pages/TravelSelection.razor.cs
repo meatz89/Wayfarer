@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Wayfarer.GameState.Constants;
+using Wayfarer.Services;
 
 namespace Wayfarer.Pages
 {
@@ -7,35 +8,156 @@ namespace Wayfarer.Pages
     public class TravelSelectionBase : ComponentBase
     {
         [Inject] public IGameFacade GameFacade { get; set; }
+        [Inject] public TimeImpactCalculator TimeCalculator { get; set; }
+        [Inject] public ActionExecutionService ActionExecutor { get; set; }
         [Parameter] public Location CurrentLocation { get; set; }
         [Parameter] public List<Location> Locations { get; set; }
         [Parameter] public EventCallback<string> OnTravel { get; set; }
         [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
         [Parameter] public EventCallback<(RouteOption route, TravelMethods transport)> OnTravelWithTransport { get; set; }
         
-        protected async Task HandleTravelRoute(TravelRouteViewModel routeViewModel)
+        // Transport selection state
+        protected bool ShowTransportSelector { get; set; }
+        protected TravelRouteViewModel SelectedRoute { get; set; }
+        protected TravelMethods SelectedTransport { get; set; } = TravelMethods.Walking;
+        
+        protected void ShowTransportOptions(TravelRouteViewModel route)
         {
-            // Convert TravelRouteViewModel to RouteOption for backward compatibility
-            var routeOption = new RouteOption
+            SelectedRoute = route;
+            ShowTransportSelector = true;
+            StateHasChanged();
+        }
+        
+        protected void CloseTransportSelector()
+        {
+            ShowTransportSelector = false;
+            StateHasChanged();
+        }
+        
+        protected void OnTransportSelected(TravelMethods transport)
+        {
+            SelectedTransport = transport;
+            StateHasChanged();
+        }
+        
+        protected async Task ConfirmTransportSelection()
+        {
+            if (SelectedRoute != null)
             {
-                Id = routeViewModel.RouteId,
-                Name = routeViewModel.RouteName,
-                Method = routeViewModel.TransportMethod,
-                BaseStaminaCost = routeViewModel.BaseStaminaCost,
-                BaseCoinCost = routeViewModel.CoinCost,
-                TravelTimeHours = routeViewModel.TimeCost,
-                Description = routeViewModel.Description,
-                Destination = Destinations.FirstOrDefault(d => d.Routes.Contains(routeViewModel))?.LocationId ?? "",
-                TerrainCategories = routeViewModel.TerrainCategories ?? new List<TerrainCategory>(),
-                DepartureTime = routeViewModel.DepartureTime,
-                IsDiscovered = routeViewModel.IsDiscovered
+                ShowTransportSelector = false;
+                await HandleTravelRouteWithTransport(SelectedRoute, SelectedTransport);
+            }
+        }
+        
+        protected RouteOption GetRouteOption(TravelRouteViewModel viewModel)
+        {
+            if (viewModel == null) return null;
+            
+            return new RouteOption
+            {
+                Id = viewModel.RouteId,
+                Name = viewModel.RouteName,
+                Method = viewModel.TransportMethod,
+                BaseStaminaCost = viewModel.BaseStaminaCost,
+                BaseCoinCost = viewModel.CoinCost,
+                TravelTimeHours = viewModel.TimeCost,
+                TerrainCategories = viewModel.TerrainCategories ?? new List<TerrainCategory>(),
+                Description = viewModel.Description
+            };
+        }
+        
+        protected Player GetPlayer()
+        {
+            return GameFacade.GetPlayer();
+        }
+        
+        protected async Task HandleTravelRouteWithTransport(TravelRouteViewModel routeViewModel, TravelMethods transport)
+        {
+            // Check for deadline impacts
+            var adjustedTimeCost = CalculateAdjustedTimeCost(routeViewModel.TimeCost, transport);
+            if (adjustedTimeCost > 0)
+            {
+                var timeImpact = TimeCalculator.CalculateTimeImpact(adjustedTimeCost);
+                if (timeImpact?.LettersExpiring > 0)
+                {
+                    // Show warning modal
+                    PendingRoute = routeViewModel;
+                    PendingTimeImpact = timeImpact;
+                    ShowDeadlineWarning = true;
+                    StateHasChanged();
+                    return;
+                }
+            }
+            
+            // No warning needed, proceed with travel
+            await ExecuteTravelWithTransport(routeViewModel, transport);
+        }
+        
+        private int CalculateAdjustedTimeCost(int baseTime, TravelMethods transport)
+        {
+            var multiplier = transport switch
+            {
+                TravelMethods.Walking => 1.0,
+                TravelMethods.Horseback => 0.5,
+                TravelMethods.Cart => 0.8,
+                TravelMethods.Carriage => 0.4,
+                TravelMethods.Boat => 0.6,
+                _ => 1.0
             };
             
-            await OnTravelRoute.InvokeAsync(routeOption);
+            return (int)Math.Ceiling(baseTime * multiplier);
+        }
+        
+        protected async Task HandleTravelRoute(TravelRouteViewModel routeViewModel)
+        {
+            // Check for deadline impacts
+            if (routeViewModel.TimeCost > 0)
+            {
+                var timeImpact = TimeCalculator.CalculateTimeImpact(routeViewModel.TimeCost);
+                if (timeImpact?.LettersExpiring > 0)
+                {
+                    // Show warning modal
+                    PendingRoute = routeViewModel;
+                    PendingTimeImpact = timeImpact;
+                    ShowDeadlineWarning = true;
+                    StateHasChanged();
+                    return;
+                }
+            }
+            
+            // No warning needed, proceed with travel
+            await ExecuteTravel(routeViewModel);
+        }
+        
+        private async Task ExecuteTravelWithTransport(TravelRouteViewModel routeViewModel, TravelMethods transport)
+        {
+            var routeOption = GetRouteOption(routeViewModel);
+            
+            // Fire the event with transport selection
+            if (OnTravelWithTransport.HasDelegate)
+            {
+                await OnTravelWithTransport.InvokeAsync((routeOption, transport));
+            }
+            else if (OnTravelRoute.HasDelegate)
+            {
+                // Fallback to regular route travel
+                await OnTravelRoute.InvokeAsync(routeOption);
+            }
+        }
+        
+        private async Task ExecuteTravel(TravelRouteViewModel routeViewModel)
+        {
+            // Default to walking if no transport selected
+            await ExecuteTravelWithTransport(routeViewModel, TravelMethods.Walking);
         }
 
         protected TravelContextViewModel TravelContext { get; set; }
         protected List<TravelDestinationViewModel> Destinations { get; set; }
+        
+        // Deadline warning state
+        protected bool ShowDeadlineWarning = false;
+        protected TimeImpactInfo PendingTimeImpact = null;
+        protected TravelRouteViewModel PendingRoute = null;
 
         public bool ShowEquipmentCategories => TravelContext?.CurrentEquipmentCategories?.Any() ?? false;
 
@@ -233,7 +355,6 @@ namespace Wayfarer.Pages
                 ConnectionType.Trust => "💝",
                 ConnectionType.Commerce => "🤝",
                 ConnectionType.Status => "👑",
-                ConnectionType.Trust => "🏘️",
                 ConnectionType.Shadow => "🌑",
                 _ => "🎭"
             };
@@ -259,6 +380,33 @@ namespace Wayfarer.Pages
                 return $"{required}";
             else
                 return $"{required} (have {current})";
+        }
+        
+        /// <summary>
+        /// Called when user confirms travel despite deadline warning
+        /// </summary>
+        protected async Task ConfirmTravelWithDeadline()
+        {
+            ShowDeadlineWarning = false;
+            StateHasChanged();
+            
+            if (PendingRoute != null)
+            {
+                await ExecuteTravel(PendingRoute);
+                PendingRoute = null;
+                PendingTimeImpact = null;
+            }
+        }
+        
+        /// <summary>
+        /// Called when user cancels travel due to deadline warning
+        /// </summary>
+        protected void CancelTravelWithDeadline()
+        {
+            ShowDeadlineWarning = false;
+            PendingRoute = null;
+            PendingTimeImpact = null;
+            StateHasChanged();
         }
 
     }

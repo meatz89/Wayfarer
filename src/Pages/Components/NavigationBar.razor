@@ -64,6 +64,14 @@
                     @onclick="() => NavigateTo(CurrentViews.MarketScreen)">
                 Market
             </button>
+            <button class="nav-button @(IsActive(CurrentViews.DebtScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.DebtScreen)">
+                Debts
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.PersonalErrandScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.PersonalErrandScreen)">
+                Errands
+            </button>
             <button class="nav-button @(IsActive(CurrentViews.RestScreen) ? "active" : "")" 
                     @onclick="() => NavigateTo(CurrentViews.RestScreen)">
                 Rest
@@ -77,6 +85,10 @@
             <button class="nav-button @(IsActive(CurrentViews.PlayerStatusScreen) ? "active" : "")" 
                     @onclick="() => NavigateTo(CurrentViews.PlayerStatusScreen)">
                 Status
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.SealProgressionScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.SealProgressionScreen)">
+                Seals
             </button>
             <button class="nav-button @(IsActive(CurrentViews.EventLogScreen) ? "active" : "")" 
                     @onclick="() => NavigateTo(CurrentViews.EventLogScreen)">

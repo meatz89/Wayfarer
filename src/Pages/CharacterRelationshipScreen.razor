@@ -4,64 +4,83 @@
 @inherits MainGameplayViewBase
 
 @inject ConnectionTokenManager TokenManager
+@inject SpecialLetterGenerationService SpecialLetterService
 
 <div class="character-relationship-container">
     <h2>Character Relationships</h2>
     
-    <div class="relationship-summary">
-        <p>Active Relationships: @npcsWithRelationships.Count</p>
-        <p>In Debt: @GetDebtRelationshipCount()</p>
-        <p>Letter-Ready: @GetLetterReadyCount()</p>
-        <div class="help-icon" title="@GetHelpTooltip()">?</div>
-    </div>
-    
-    <div class="npc-relationship-grid">
-        @foreach (var npc in npcsWithRelationships)
+    @* Token Context Tabs *@
+    <div class="token-context-tabs">
+        <button class="context-tab @(activeTab == "All" ? "active" : "")" @onclick='() => SetActiveTab("All")'>
+            All Relationships
+        </button>
+        @foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
         {
-            <div class="npc-relationship-card-condensed @GetRelationshipStatusClass(npc)">
-                <div class="npc-essential">
-                    <div class="npc-name">@npc.Name</div>
-                    <div class="npc-tokens">
-                        @foreach (var tokenType in npc.LetterTokenTypes ?? new List<ConnectionType>())
-                        {
-                            var tokenCount = GetNPCTokenCount(npc, tokenType);
-                            if (tokenCount != 0)
-                            {
-                                <span class="token-display @(tokenCount < 0 ? "debt" : "positive")" 
-                                      title="@GetTokenTooltip(tokenType, tokenCount)">
-                                    @GetTokenIcon(tokenType) @tokenCount
-                                    @if (tokenCount < 0)
-                                    {
-                                        <span class="debt-indicator">!</span>
-                                    }
-                                </span>
-                            }
-                        }
-                    </div>
-                    <div class="npc-status">
-                        @if (IsNPCInDebt(npc))
-                        {
-                            <span class="status-debt" title="You owe this NPC tokens - they have leverage">DEBT</span>
-                        }
-                        else if (CanOfferLetters(npc))
-                        {
-                            <span class="status-ready" title="Has enough tokens to offer letters">LETTERS</span>
-                        }
-                        @if (HasLettersInQueue(npc))
-                        {
-                            <span class="status-queue" title="Has letters in your queue">QUEUE</span>
-                        }
-                    </div>
-                </div>
-            </div>
+            <button class="context-tab @(activeTab == tokenType.ToString() ? "active" : "")" 
+                    @onclick="@(() => SetActiveTab(tokenType.ToString()))">
+                @GetTokenIcon(tokenType) @tokenType
+                <span class="tab-count">(@GetNPCCountForContext(tokenType))</span>
+            </button>
         }
     </div>
     
-    @if (!npcsWithRelationships.Any())
+    @* Summary Stats for Active Tab *@
+    <div class="relationship-summary">
+        @if (activeTab == "All")
+        {
+            <p>Active Relationships: @GetFilteredNPCs().Count()</p>
+            <p>Total Debts: @GetTotalDebts()</p>
+            <p>Special Letters Available: @GetSpecialLetterCount()</p>
+        }
+        else
+        {
+            var tokenType = Enum.Parse<ConnectionType>(activeTab);
+            <p>@activeTab Relationships: @GetFilteredNPCs().Count()</p>
+            <p>Debts: @GetDebtsForContext(tokenType)</p>
+            <p>Ready for Special Letters: @GetSpecialLetterReadyCount(tokenType)</p>
+        }
+        <div class="help-icon" title="@GetHelpTooltip()">?</div>
+    </div>
+    
+    @* NPC Grid for Active Context *@
+    <div class="npc-relationship-grid">
+        @foreach (var npc in GetFilteredNPCs())
+        {
+            <NPCRelationshipCard NPC="@npc" GameWorld="@GameWorld" />
+        }
+    </div>
+    
+    @if (!GetFilteredNPCs().Any())
     {
         <div class="no-relationships">
-            <p>No established relationships yet.</p>
-            <p>Meet NPCs at locations and build connections!</p>
+            @if (activeTab == "All")
+            {
+                <p>No established relationships yet.</p>
+                <p>Meet NPCs at locations and build connections!</p>
+            }
+            else
+            {
+                <p>No @activeTab relationships established.</p>
+                <p>Build @activeTab connections through appropriate actions!</p>
+            }
+        </div>
+    }
+    
+    @* Leverage & Debt Overview *@
+    @if (GetAllDebts().Any())
+    {
+        <div class="debt-overview">
+            <h3>⚠️ Active Debts & Leverage</h3>
+            <div class="debt-list">
+                @foreach (var debt in GetAllDebts())
+                {
+                    <div class="debt-item">
+                        <span class="debt-npc">@debt.NPCName</span>
+                        <span class="debt-amount">@debt.TokenType: @debt.Amount</span>
+                        <span class="debt-effect">Letters enter at position @debt.LeveragePosition</span>
+                    </div>
+                }
+            </div>
         </div>
     }
     
@@ -74,16 +93,48 @@
 @code {
 
 @namespace Wayfarer.Pages
-    private List<NPC> npcsWithRelationships = new List<NPC>();
+    private string activeTab = "All";
+    private List<NPC> allNPCsWithRelationships = new List<NPC>();
     
     protected override void OnInitialized()
     {
-        // Only show NPCs that the player has actually interacted with (non-zero tokens)
-        npcsWithRelationships = NPCRepository.GetAllNPCs()
+        RefreshNPCList();
+    }
+    
+    private void RefreshNPCList()
+    {
+        // Get all NPCs that have any token relationships
+        allNPCsWithRelationships = NPCRepository.GetAllNPCs()
             .Where(npc => !string.IsNullOrEmpty(npc.ID) && HasAnyTokens(npc))
-            .OrderByDescending(npc => GetRelationshipPriority(npc))
-            .ThenBy(npc => npc.Name)
             .ToList();
+    }
+    
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+        StateHasChanged();
+    }
+    
+    private IEnumerable<NPC> GetFilteredNPCs()
+    {
+        if (activeTab == "All")
+        {
+            return allNPCsWithRelationships
+                .OrderByDescending(npc => GetRelationshipPriority(npc))
+                .ThenBy(npc => npc.Name);
+        }
+        
+        var tokenType = Enum.Parse<ConnectionType>(activeTab);
+        return allNPCsWithRelationships
+            .Where(npc => GetNPCTokenCount(npc, tokenType) != 0)
+            .OrderByDescending(npc => Math.Abs(GetNPCTokenCount(npc, tokenType)))
+            .ThenBy(npc => npc.Name);
+    }
+    
+    private int GetNPCCountForContext(ConnectionType tokenType)
+    {
+        return allNPCsWithRelationships
+            .Count(npc => GetNPCTokenCount(npc, tokenType) != 0);
     }
     
     private bool HasAnyTokens(NPC npc)
@@ -94,11 +145,12 @@
     
     private int GetRelationshipPriority(NPC npc)
     {
-        // Sort by: Debt first, then letters in queue, then letter-ready, then others
-        if (IsNPCInDebt(npc)) return 3;
-        if (HasLettersInQueue(npc)) return 2;
-        if (CanOfferLetters(npc)) return 1;
-        return 0;
+        // Sort by: Debt first, then special letter ready, then positive tokens
+        if (IsNPCInDebt(npc)) return 100;
+        if (CanRequestSpecialLetter(npc)) return 50;
+        
+        var tokens = TokenManager.GetTokensWithNPC(npc.ID);
+        return tokens.Sum(kvp => Math.Abs(kvp.Value));
     }
     
     private bool IsNPCInDebt(NPC npc)
@@ -107,15 +159,9 @@
         return tokens.Any(kvp => kvp.Value < 0);
     }
     
-    private bool CanOfferLetters(NPC npc)
+    private bool CanRequestSpecialLetter(NPC npc)
     {
-        return TokenManager.HasEnoughTokensForDirectOffer(npc.ID);
-    }
-    
-    private bool HasLettersInQueue(NPC npc)
-    {
-        var queue = LetterQueueManager.GetPlayerQueue();
-        return queue.Any(l => l != null && (l.SenderName == npc.Name || l.RecipientName == npc.Name));
+        return SpecialLetterService.GetAvailableSpecialLetters(npc.ID).Any();
     }
     
     private int GetNPCTokenCount(NPC npc, ConnectionType tokenType)
@@ -124,21 +170,61 @@
         return npcTokens.GetValueOrDefault(tokenType, 0);
     }
     
-    private int GetDebtRelationshipCount()
+    private int GetTotalDebts()
     {
-        return npcsWithRelationships.Count(npc => IsNPCInDebt(npc));
+        return allNPCsWithRelationships
+            .SelectMany(npc => TokenManager.GetTokensWithNPC(npc.ID))
+            .Where(kvp => kvp.Value < 0)
+            .Count();
     }
     
-    private int GetLetterReadyCount()
+    private int GetDebtsForContext(ConnectionType tokenType)
     {
-        return npcsWithRelationships.Count(npc => CanOfferLetters(npc));
+        return allNPCsWithRelationships
+            .Count(npc => GetNPCTokenCount(npc, tokenType) < 0);
     }
     
-    private string GetRelationshipStatusClass(NPC npc)
+    private int GetSpecialLetterCount()
     {
-        if (IsNPCInDebt(npc)) return "relationship-debt";
-        if (CanOfferLetters(npc)) return "relationship-ready";
-        return "relationship-neutral";
+        return allNPCsWithRelationships
+            .Sum(npc => SpecialLetterService.GetAvailableSpecialLetters(npc.ID).Count());
+    }
+    
+    private int GetSpecialLetterReadyCount(ConnectionType tokenType)
+    {
+        return allNPCsWithRelationships
+            .Count(npc => SpecialLetterService.GetAvailableSpecialLetters(npc.ID)
+                .Any(option => option.TokenType == tokenType));
+    }
+    
+    private class DebtInfo
+    {
+        public string NPCName { get; set; }
+        public ConnectionType TokenType { get; set; }
+        public int Amount { get; set; }
+        public int LeveragePosition { get; set; }
+    }
+    
+    private List<DebtInfo> GetAllDebts()
+    {
+        var debts = new List<DebtInfo>();
+        
+        foreach (var npc in allNPCsWithRelationships)
+        {
+            var tokens = TokenManager.GetTokensWithNPC(npc.ID);
+            foreach (var kvp in tokens.Where(t => t.Value < 0))
+            {
+                debts.Add(new DebtInfo
+                {
+                    NPCName = npc.Name,
+                    TokenType = kvp.Key,
+                    Amount = kvp.Value,
+                    LeveragePosition = GetLeveragePosition(kvp.Key, kvp.Value)
+                });
+            }
+        }
+        
+        return debts.OrderBy(d => d.LeveragePosition).ToList();
     }
     
     private string GetTokenIcon(ConnectionType type)
@@ -146,9 +232,8 @@
         return type switch
         {
             ConnectionType.Trust => "❤️",
-            ConnectionType.Trade => "🪙",
-            ConnectionType.Noble => "👑",
-            ConnectionType.Common => "🍺",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
         };
@@ -156,52 +241,31 @@
     
     private string GetHelpTooltip()
     {
-        return @"Token Guide:
-❤️ Trust - Personal favors
-🪙 Trade - Commercial relations
-👑 Noble - Aristocratic service
-🍺 Common - Community bonds
-🌑 Shadow - Underworld contacts
+        return @"Token Contexts:
+❤️ Trust - Personal relationships, friendships
+🪙 Commerce - Business dealings, trade partnerships  
+👑 Status - Social standing, noble connections
+🌑 Shadow - Underworld contacts, illicit dealings
 
-Thresholds:
-1+ tokens: Basic letters (3-5 coins)
-3+ tokens: Quality letters (8-12 coins) 
-5+ tokens: Premium letters (15-20 coins)
-Negative: Debt (leverage)";
-    }
-    
-    private string GetTokenTooltip(ConnectionType type, int count)
-    {
-        var tooltip = $"{type} tokens: {count}\n";
-        
-        if (count < 0)
-        {
-            tooltip += $"IN DEBT: Letters enter at position {GetLeveragePosition(type, count)}";
-        }
-        else if (count >= 5)
-        {
-            tooltip += "Strong relationship - better letter positions";
-        }
-        else if (count >= 3)
-        {
-            tooltip += "Can offer direct letters";
-        }
-        else
-        {
-            tooltip += $"Need {3 - count} more for letters";
-        }
-        
-        return tooltip;
+Token Effects:
+• 5+ tokens: Request special letters
+• 3+ tokens: Better letter positions
+• Negative tokens: Creates leverage (priority queue position)
+
+Special Letters:
+• Trust 5+ → Introduction (unlocks new NPCs)
+• Commerce 5+ → Access Permit (unlocks locations)
+• Status 5+ → Endorsement (temporary bonuses)
+• Shadow 5+ → Information (reveals secrets)";
     }
     
     private int GetLeveragePosition(ConnectionType tokenType, int tokenBalance)
     {
         int basePosition = tokenType switch
         {
-            ConnectionType.Noble => 3,
-            ConnectionType.Trade => 5,
+            ConnectionType.Status => 3,
+            ConnectionType.Commerce => 5,
             ConnectionType.Shadow => 5,
-            ConnectionType.Common => 7,
             ConnectionType.Trust => 7,
             _ => 8
         };
@@ -210,7 +274,7 @@ Negative: Debt (leverage)";
         
         if (tokenBalance < 0)
         {
-            leveragePosition += tokenBalance;
+            leveragePosition += tokenBalance; // Subtracts since negative
         }
         else if (tokenBalance >= 4)
         {

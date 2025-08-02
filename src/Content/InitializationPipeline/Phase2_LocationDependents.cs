@@ -178,7 +178,8 @@ public class Phase2_LocationDependents : IInitializationPhase
                 dto.Role ?? profession.ToString(),
                 dto.Description ?? $"A {profession} in {location.Name}",
                 new List<ServiceTypes>(), // Services can be added later
-                tokenTypes
+                tokenTypes,
+                dto.Tier
             );
 
             // Token types already set during creation

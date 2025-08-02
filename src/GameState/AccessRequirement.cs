@@ -27,15 +27,31 @@ public class AccessRequirement
     public List<string> RequiredItemIds { get; set; } = new List<string>();
 
     /// <summary>
-    /// Token requirements - must have at least this many tokens with a specific NPC.
-    /// Key: NPC ID, Value: minimum token count required
+    /// Token requirements - must have at least this many tokens with specific NPCs.
     /// </summary>
-    public Dictionary<string, int> RequiredTokensPerNPC { get; set; } = new Dictionary<string, int>();
+    public List<TokenRequirement> RequiredTokensPerNPC { get; set; } = new List<TokenRequirement>();
 
     /// <summary>
     /// Token type requirements - must have at least this many tokens of a specific type (from any NPC).
     /// </summary>
-    public Dictionary<ConnectionType, int> RequiredTokensPerType { get; set; } = new Dictionary<ConnectionType, int>();
+    public List<TokenTypeRequirement> RequiredTokensPerType { get; set; } = new List<TokenTypeRequirement>();
+    
+    /// <summary>
+    /// Seal requirements - must have a seal of specific type and minimum tier.
+    /// </summary>
+    public List<SealRequirement> RequiredSeals { get; set; } = new List<SealRequirement>();
+    
+    /// <summary>
+    /// Minimum tier required to access this content (1-5).
+    /// Tier 1 is always accessible, higher tiers require progression.
+    /// </summary>
+    public int MinimumTier { get; set; } = 1;
+    
+    /// <summary>
+    /// Information ID that must be discovered before this can be accessed.
+    /// Implements the "Knowledge Gate" of the triple-gate system.
+    /// </summary>
+    public string RequiredInformationId { get; set; } = string.Empty;
 
     /// <summary>
     /// Whether all requirements must be met (AND) or just one (OR).

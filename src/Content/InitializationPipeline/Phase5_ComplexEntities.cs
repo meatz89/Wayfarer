@@ -5,7 +5,7 @@ using System.Linq;
 
 /// <summary>
 /// Phase 5: Load complex entities that may have multiple dependencies.
-/// This includes: Standing Obligations, Token Favors, Network Unlocks, Route Discovery
+/// This includes: Standing Obligations, Network Unlocks, Route Discovery
 /// </summary>
 public class Phase5_ComplexEntities : IInitializationPhase
 {
@@ -18,13 +18,10 @@ public class Phase5_ComplexEntities : IInitializationPhase
         // 1. Load Standing Obligations (depends on NPCs)
         LoadStandingObligations(context);
         
-        // 2. Load Token Favors (depends on NPCs, Routes, Items)
-        LoadTokenFavors(context);
-        
-        // 3. Load Network Unlocks (depends on NPCs)
+        // 2. Load Network Unlocks (depends on NPCs)
         LoadNetworkUnlocks(context);
         
-        // 4. Load Route Discovery (depends on Routes and NPCs)
+        // 3. Load Route Discovery (depends on Routes and NPCs)
         LoadRouteDiscovery(context);
     }
     
@@ -90,47 +87,6 @@ public class Phase5_ComplexEntities : IInitializationPhase
         Console.WriteLine($"Loaded {context.GameWorld.WorldState.StandingObligationTemplates.Count} standing obligations total");
     }
     
-    private void LoadTokenFavors(InitializationContext context)
-    {
-        var favorsPath = Path.Combine(context.ContentPath, "token_favors.json");
-        
-        if (!File.Exists(favorsPath))
-        {
-            Console.WriteLine("INFO: token_favors.json not found, no favors loaded");
-            return;
-        }
-        
-        try
-        {
-            var favors = context.ContentLoader.LoadValidatedContentWithParser(favorsPath,
-                json => TokenFavorParser.ParseTokenFavorArray(json));
-            
-            if (favors == null || !favors.Any())
-            {
-                Console.WriteLine("INFO: No token favors found");
-                return;
-            }
-            
-            var validFavors = new List<TokenFavor>();
-            
-            foreach (var favor in favors)
-            {
-                // Store references for Phase 6 validation
-                context.SharedData[$"favor_{favor.Id}_npc"] = favor.NPCId;
-                
-                // Add favor without validation - Phase 6 will create missing NPCs
-                validFavors.Add(favor);
-                Console.WriteLine($"  Loaded favor: {favor.Id} from {favor.NPCId}");
-            }
-            
-            context.GameWorld.WorldState.TokenFavors.AddRange(validFavors);
-            Console.WriteLine($"Loaded {validFavors.Count} token favors");
-        }
-        catch (Exception ex)
-        {
-            context.Warnings.Add($"Failed to load token favors: {ex.Message}");
-        }
-    }
     
     private void LoadNetworkUnlocks(InitializationContext context)
     {

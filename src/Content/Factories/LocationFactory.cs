@@ -57,7 +57,8 @@ public class LocationFactory
         List<string> locationSpotIds,
         List<string> domainTags,
         Dictionary<TimeBlocks, List<string>> environmentalProperties = null,
-        Dictionary<TimeBlocks, List<Professions>> availableProfessionsByTime = null)
+        Dictionary<TimeBlocks, List<Professions>> availableProfessionsByTime = null,
+        int tier = 1)
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Location ID cannot be empty", nameof(id));
@@ -69,7 +70,8 @@ public class LocationFactory
             Description = description ?? "",
             ConnectedLocationIds = connectedLocationIds ?? new List<string>(),
             LocationSpotIds = locationSpotIds ?? new List<string>(),
-            DomainTags = domainTags ?? new List<string>()
+            DomainTags = domainTags ?? new List<string>(),
+            Tier = tier
         };
 
         // Set environmental properties

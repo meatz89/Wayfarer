@@ -2,7 +2,28 @@
 
 ## Critical Architecture Principles
 
-### 1. GameWorld Initialization (NEVER CHANGE THIS)
+### 1. NO SILENT BACKEND ACTIONS
+
+**CRITICAL**: Nothing should happen silently in the backend. This is fundamental to the game's design philosophy.
+
+#### The Rule
+- If automatic, the player MUST be notified via MessageSystem
+- If manual, the player MUST click a button to initiate
+- All game state changes must be visible and intentional
+
+#### Why This Matters
+1. **Player Agency**: Players should understand every action and consequence
+2. **Debugging**: Visible actions make it easier to track game flow
+3. **Trust**: Players trust systems they can see and understand
+4. **Game Design**: The pressure of visible obligations is core to the experience
+
+#### Examples
+- ✅ CORRECT: Letter expiration shows message: "💀 Elena's letter expired! Lost 2 Trust tokens"
+- ❌ WRONG: Tokens silently generate special letters in background
+- ✅ CORRECT: Player clicks "Accept Introduction" to unlock new NPC
+- ❌ WRONG: Reaching token threshold automatically unlocks content
+
+### 2. GameWorld Initialization (NEVER CHANGE THIS)
 
 **CRITICAL**: GameWorld MUST be initialized through a static GameWorldInitializer class. This is the foundation of the entire game startup process.
 

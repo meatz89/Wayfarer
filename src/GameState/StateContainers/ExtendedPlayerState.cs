@@ -302,19 +302,6 @@ public sealed class ExtendedPlayerState
         return Inventory.GetItemCount(item);
     }
 
-    public ReputationLevel GetReputationLevel()
-    {
-        // Calculate reputation from connection tokens and relationships
-        int reputation = ConnectionTokens.Values.Sum() + NPCTokens.Values.SelectMany(d => d.Values).Sum();
-
-        if (reputation >= 75) return ReputationLevel.Revered;
-        if (reputation >= 50) return ReputationLevel.Respected;
-        if (reputation >= 25) return ReputationLevel.Trusted;
-        if (reputation >= 0) return ReputationLevel.Neutral;
-        if (reputation >= -25) return ReputationLevel.Suspicious;
-        if (reputation >= -50) return ReputationLevel.Distrusted;
-        return ReputationLevel.Hated;
-    }
 
     // Builder pattern for complex state creation
     public class Builder

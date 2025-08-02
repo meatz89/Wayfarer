@@ -1,8 +1,14 @@
 @using Wayfarer.Pages.Components
+@using Wayfarer.Services
 @inject IGameFacade GameFacade
 @inject NarrativeManager NarrativeManager
 @inject ITimeManager TimeManager
 @inject NPCRepository NPCRepository
+@inject SpecialLetterGenerationService SpecialLetterService
+@inject ConnectionTokenManager TokenManager
+@inject GameWorld GameWorld
+@inject TimeImpactCalculator TimeCalculator
+@inject ActionExecutionService ActionExecutor
 
 <div class="npc-actions-view">
     @{
@@ -50,6 +56,18 @@
                                     <span class="cost @(action.HasEnoughCoins ? "" : "insufficient")">🪙 @action.CoinCost</span>
                                 }
                             </div>
+                            @* Show time impact for action *@
+                            @if (action.TimeCost > 0)
+                            {
+                                var timeImpact = TimeCalculator.CalculateTimeImpact(action.TimeCost);
+                                <ActionTimePreview Hours="@timeImpact.Hours"
+                                                   CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
+                                                   ResultTimeBlock="@timeImpact.ResultTimeBlock"
+                                                   WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
+                                                   LettersExpiring="@timeImpact.LettersExpiring"
+                                                   ShowDeadlineWarning="true"
+                                                   ShowTimeProgression="true" />
+                            }
                             <button class="action-button" 
                                     disabled="@(!CanAffordAction(action))"
                                     @onclick="@(() => ExecuteAction(action.Id))">
@@ -90,28 +108,86 @@
                             <div class="npc-actions">
                                 @foreach (var action in npcActionList)
                                 {
-                                    <button class="npc-action-button @(CanAffordAction(action) ? "" : "disabled")" 
-                                            disabled="@(!CanAffordAction(action))"
-                                            @onclick="@(() => ExecuteAction(action.Id))">
-                                        <span class="action-text">@GetActionVerb(action)</span>
-                                        @if (action.TimeCost > 0 || action.StaminaCost > 0 || action.CoinCost > 0)
-                                        {
-                                            <span class="action-costs-inline">
-                                                @if (action.TimeCost > 0)
-                                                {
-                                                    <span class="cost-inline @(action.HasEnoughTime ? "" : "insufficient")">@action.TimeCost⏰</span>
-                                                }
-                                                @if (action.StaminaCost > 0)
-                                                {
-                                                    <span class="cost-inline @(action.HasEnoughStamina ? "" : "insufficient")">@action.StaminaCost💪</span>
-                                                }
-                                                @if (action.CoinCost > 0)
-                                                {
-                                                    <span class="cost-inline @(action.HasEnoughCoins ? "" : "insufficient")">@action.CoinCost🪙</span>
-                                                }
-                                            </span>
+                                    <div class="action-with-preview">
+                                        <button class="npc-action-button @(CanAffordAction(action) ? "" : "disabled")" 
+                                                disabled="@(!CanAffordAction(action))"
+                                                @onclick="@(() => ExecuteAction(action.Id))">
+                                            <span class="action-text">@GetActionVerb(action)</span>
+                                            @if (action.TimeCost > 0 || action.StaminaCost > 0 || action.CoinCost > 0)
+                                            {
+                                                <span class="action-costs-inline">
+                                                    @if (action.TimeCost > 0)
+                                                    {
+                                                        <span class="cost-inline @(action.HasEnoughTime ? "" : "insufficient")">@action.TimeCost⏰</span>
+                                                    }
+                                                    @if (action.StaminaCost > 0)
+                                                    {
+                                                        <span class="cost-inline @(action.HasEnoughStamina ? "" : "insufficient")">@action.StaminaCost💪</span>
+                                                    }
+                                                    @if (action.CoinCost > 0)
+                                                    {
+                                                        <span class="cost-inline @(action.HasEnoughCoins ? "" : "insufficient")">@action.CoinCost🪙</span>
+                                                    }
+                                                </span>
+                                            }
+                                        </button>
+                                        @{
+                                            var tokenChanges = GetTokenChangesForAction(action, npc.ID);
+                                            if (tokenChanges != null && tokenChanges.Any())
+                                            {
+                                                <TokenTransactionPreview TokenChanges="@tokenChanges" ShowEffects="false" ShowNetEffect="false" />
+                                            }
+                                            
+                                            if (action.TimeCost > 0)
+                                            {
+                                                var timeImpact = TimeCalculator.CalculateTimeImpact(action.TimeCost);
+                                                <ActionTimePreview Hours="@timeImpact.Hours"
+                                                                   CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
+                                                                   ResultTimeBlock="@timeImpact.ResultTimeBlock"
+                                                                   WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
+                                                                   LettersExpiring="@timeImpact.LettersExpiring"
+                                                                   ShowDeadlineWarning="true"
+                                                                   ShowTimeProgression="true" />
+                                            }
                                         }
-                                    </button>
+                                    </div>
+                                }
+                                
+                                @* Special Letter Options *@
+                                @{
+                                    var specialOptions = SpecialLetterService.GetAvailableSpecialLetters(npc.ID);
+                                    if (specialOptions.Any() && npc.IsAvailable(CurrentTime))
+                                    {
+                                        foreach (var option in specialOptions)
+                                        {
+                                            <div class="action-with-preview">
+                                                <button class="npc-action-button @(option.CanAfford ? "" : "disabled")"
+                                                        disabled="@(!option.CanAfford)"
+                                                        @onclick="@(() => RequestSpecialLetter(npc.ID, option.TokenType))">
+                                                    <span class="action-text">
+                                                        @GetSpecialLetterIcon(option.SpecialType) Request @option.SpecialType
+                                                    </span>
+                                                    <span class="action-costs-inline">
+                                                        <span class="cost-inline">1⏰</span>
+                                                        <span class="cost-inline @(option.CanAfford ? "" : "insufficient")">
+                                                            @option.Cost @GetTokenIcon(option.TokenType)
+                                                        </span>
+                                                    </span>
+                                                </button>
+                                                <TokenTransactionPreview TokenChanges="@GetSpecialLetterTokenCost(npc.ID, option)" ShowEffects="true" ShowNetEffect="false" />
+                                                @{
+                                                    var timeImpact = TimeCalculator.CalculateTimeImpact(1);
+                                                    <ActionTimePreview Hours="1"
+                                                                       CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
+                                                                       ResultTimeBlock="@timeImpact.ResultTimeBlock"
+                                                                       WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
+                                                                       LettersExpiring="@timeImpact.LettersExpiring"
+                                                                       ShowDeadlineWarning="true"
+                                                                       ShowTimeProgression="false" />
+                                                }
+                                            </div>
+                                        }
+                                    }
                                 }
                             </div>
                         }
@@ -134,10 +210,106 @@
     }
 </div>
 
+@* Deadline Warning Modal *@
+<DeadlineWarningModal IsVisible="@ShowDeadlineWarning"
+                      TimeImpact="@PendingTimeImpact"
+                      OnConfirm="ConfirmActionWithDeadline"
+                      OnCancel="CancelActionWithDeadline" />
+
 @code {
     [Parameter] public EventCallback OnActionExecuted { get; set; }
     
     private TimeBlocks CurrentTime => TimeManager.GetCurrentTimeBlock();
+    
+    // Deadline warning state
+    private bool ShowDeadlineWarning = false;
+    private TimeImpactInfo PendingTimeImpact = null;
+    private string PendingActionId = null;
+    
+    private List<TokenTransactionPreview.TokenChange> GetTokenChangesForAction(ActionOptionViewModel action, string npcId)
+    {
+        var changes = new List<TokenTransactionPreview.TokenChange>();
+        
+        // Work actions give tokens
+        if (action.Description.StartsWith("Work for"))
+        {
+            var npc = NPCRepository.GetById(npcId);
+            if (npc != null)
+            {
+                // Work gives Commerce tokens
+                changes.Add(new TokenTransactionPreview.TokenChange
+                {
+                    TokenType = ConnectionType.Commerce,
+                    Amount = 1,
+                    NpcName = npc.Name,
+                    Effect = "Builds business relationship"
+                });
+            }
+        }
+        // Socialize actions give Trust tokens
+        else if (action.Description.StartsWith("Socialize with"))
+        {
+            var npc = NPCRepository.GetById(npcId);
+            if (npc != null)
+            {
+                changes.Add(new TokenTransactionPreview.TokenChange
+                {
+                    TokenType = ConnectionType.Trust,
+                    Amount = 1,
+                    NpcName = npc.Name,
+                    Effect = "Strengthens friendship"
+                });
+            }
+        }
+        // Borrow money creates debt
+        else if (action.Description.StartsWith("Borrow money from"))
+        {
+            var npc = NPCRepository.GetById(npcId);
+            if (npc != null)
+            {
+                changes.Add(new TokenTransactionPreview.TokenChange
+                {
+                    TokenType = ConnectionType.Commerce,
+                    Amount = -5, // Debt from borrowing
+                    NpcName = npc.Name,
+                    Effect = "Creates debt leverage"
+                });
+            }
+        }
+        
+        return changes.Any() ? changes : null;
+    }
+    
+    private List<TokenTransactionPreview.TokenChange> GetSpecialLetterTokenCost(string npcId, SpecialLetterOption option)
+    {
+        var npc = NPCRepository.GetById(npcId);
+        if (npc == null) return null;
+        
+        var changes = new List<TokenTransactionPreview.TokenChange>
+        {
+            new TokenTransactionPreview.TokenChange
+            {
+                TokenType = option.TokenType,
+                Amount = -option.Cost, // Negative for cost
+                NpcName = npc.Name,
+                Effect = GetSpecialLetterEffect(option.SpecialType)
+            }
+        };
+        
+        return changes;
+    }
+    
+    private string GetSpecialLetterEffect(LetterSpecialType type)
+    {
+        return type switch
+        {
+            LetterSpecialType.Introduction => "Opens new connections",
+            LetterSpecialType.AccessPermit => "Unlocks restricted areas",
+            LetterSpecialType.Endorsement => "Builds status reputation",
+            LetterSpecialType.Information => "Reveals hidden content",
+            _ => ""
+        };
+    }
     
     private List<NPC> GetVisibleNPCs()
     {
@@ -223,18 +395,32 @@
     
     private async Task ExecuteAction(string actionId)
     {
-        Console.WriteLine($"[NPCActionsView] Executing action: {actionId}");
-        var success = await GameFacade.ExecuteLocationActionAsync(actionId);
+        Console.WriteLine($"[NPCActionsView] Checking deadline impact for action: {actionId}");
         
-        Console.WriteLine($"[NPCActionsView] Action {actionId} completed with result: {success}");
+        // Check if action would cause deadline impacts
+        var (needsWarning, timeImpact) = await ActionExecutor.BeginActionExecutionAsync(actionId);
         
-        // Always refresh UI
-        StateHasChanged();
-        
-        // Notify parent
-        if (OnActionExecuted.HasDelegate)
+        if (needsWarning)
         {
-            await OnActionExecuted.InvokeAsync();
+            // Show warning modal
+            PendingActionId = actionId;
+            PendingTimeImpact = timeImpact;
+            ShowDeadlineWarning = true;
+            StateHasChanged();
+        }
+        else
+        {
+            // No warning needed, action was already executed
+            Console.WriteLine($"[NPCActionsView] Action {actionId} completed without deadline impacts");
+            
+            // Always refresh UI
+            StateHasChanged();
+            
+            // Notify parent
+            if (OnActionExecuted.HasDelegate)
+            {
+                await OnActionExecuted.InvokeAsync();
+            }
         }
     }
     
@@ -264,200 +450,130 @@
         
         return desc;
     }
+    
+    private string GetSpecialLetterIcon(LetterSpecialType type)
+    {
+        return type switch
+        {
+            LetterSpecialType.Introduction => "🤝",
+            LetterSpecialType.AccessPermit => "🔓",
+            LetterSpecialType.Endorsement => "⭐",
+            LetterSpecialType.Information => "🔍",
+            _ => "📜"
+        };
+    }
+    
+    private string GetTokenIcon(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+    
+    private async Task RequestSpecialLetter(string npcId, ConnectionType tokenType)
+    {
+        // Check for deadline impacts (special letters take 1 hour)
+        var timeImpact = TimeCalculator.CalculateTimeImpact(1);
+        
+        if (timeImpact?.LettersExpiring > 0)
+        {
+            // Show warning modal for special letter request
+            PendingActionId = $"special_letter_{npcId}_{tokenType}";
+            PendingTimeImpact = timeImpact;
+            ShowDeadlineWarning = true;
+            StateHasChanged();
+            return;
+        }
+        
+        // No warning needed, execute immediately
+        bool success = SpecialLetterService.RequestSpecialLetter(npcId, tokenType);
+        
+        if (success)
+        {
+            // Deduct 1 hour of time for the negotiation
+            TimeManager.AdvanceTime(1);
+        }
+        
+        // Refresh the UI
+        StateHasChanged();
+        
+        // Notify parent of action
+        if (OnActionExecuted.HasDelegate)
+        {
+            await OnActionExecuted.InvokeAsync();
+        }
+    }
+    
+    private async Task ConfirmActionWithDeadline()
+    {
+        Console.WriteLine($"[NPCActionsView] User confirmed action with deadline warning");
+        
+        // Hide modal
+        ShowDeadlineWarning = false;
+        StateHasChanged();
+        
+        if (PendingActionId != null)
+        {
+            var success = false;
+            
+            // Check if this is a special letter request
+            if (PendingActionId.StartsWith("special_letter_"))
+            {
+                // Extract npcId and tokenType from the pending action ID
+                var parts = PendingActionId.Split('_');
+                if (parts.Length >= 4)
+                {
+                    var npcId = parts[2];
+                    if (Enum.TryParse<ConnectionType>(parts[3], out var tokenType))
+                    {
+                        success = SpecialLetterService.RequestSpecialLetter(npcId, tokenType);
+                        if (success)
+                        {
+                            TimeManager.AdvanceTime(1);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Regular action
+                success = await ActionExecutor.ConfirmPendingActionAsync();
+            }
+            
+            Console.WriteLine($"[NPCActionsView] Action {PendingActionId} completed with result: {success}");
+            
+            // Clear pending state
+            PendingActionId = null;
+            PendingTimeImpact = null;
+            
+            // Always refresh UI
+            StateHasChanged();
+            
+            // Notify parent
+            if (OnActionExecuted.HasDelegate)
+            {
+                await OnActionExecuted.InvokeAsync();
+            }
+        }
+    }
+    
+    private void CancelActionWithDeadline()
+    {
+        Console.WriteLine($"[NPCActionsView] User cancelled action with deadline warning");
+        
+        // Cancel the pending action
+        ActionExecutor.CancelPendingAction();
+        
+        // Hide modal and clear state
+        ShowDeadlineWarning = false;
+        PendingActionId = null;
+        PendingTimeImpact = null;
+        StateHasChanged();
+    }
 }
 
-<style>
-    .npc-actions-view {
-        padding: 1rem;
-    }
-    
-    .no-content {
-        text-align: center;
-        padding: 2rem;
-        color: var(--text-secondary);
-    }
-    
-    .location-actions-section {
-        margin-bottom: 2rem;
-    }
-    
-    .location-actions-section h3 {
-        margin-bottom: 1rem;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    
-    .actions-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .action-card {
-        background: var(--background-color);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 1rem;
-        transition: all 0.2s ease;
-    }
-    
-    .action-card:hover:not(.disabled) {
-        border-color: var(--primary-color);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    .action-card.disabled {
-        opacity: 0.6;
-    }
-    
-    .npcs-section h3 {
-        margin-bottom: 1rem;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    
-    .npc-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .npc-card.has-actions {
-        border-color: var(--primary-color);
-    }
-    
-    .npc-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.75rem;
-    }
-    
-    .npc-info {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .npc-name {
-        font-weight: 600;
-        font-size: 1.1rem;
-        color: var(--text-primary);
-    }
-    
-    .npc-role {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-    }
-    
-    .availability-indicator {
-        font-size: 1.2rem;
-    }
-    
-    .availability-indicator.available {
-        color: var(--success-color);
-    }
-    
-    .availability-indicator.unavailable {
-        color: var(--danger-color);
-    }
-    
-    .npc-actions {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-    
-    .npc-action-button {
-        padding: 0.5rem 1rem;
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .npc-action-button:hover:not(:disabled) {
-        background: var(--primary-hover);
-        transform: translateY(-1px);
-    }
-    
-    .npc-action-button:disabled {
-        background: var(--disabled-color);
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-    
-    .action-costs-inline {
-        display: flex;
-        gap: 0.3rem;
-        font-size: 0.8rem;
-    }
-    
-    .cost-inline.insufficient {
-        color: var(--danger-color);
-        font-weight: bold;
-    }
-    
-    .no-actions-message, .unavailable-message {
-        font-style: italic;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-    }
-    
-    .action-costs {
-        display: flex;
-        gap: 0.5rem;
-        margin: 0.5rem 0;
-        font-size: 0.85rem;
-    }
-    
-    .cost {
-        color: var(--success-color);
-    }
-    
-    .cost.insufficient {
-        color: var(--danger-color);
-        font-weight: 600;
-    }
-    
-    .action-rewards {
-        font-size: 0.85rem;
-        color: var(--info-color);
-        margin-top: 0.3rem;
-    }
-    
-    .action-button {
-        width: 100%;
-        padding: 0.5rem;
-        margin-top: 0.5rem;
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background 0.2s ease;
-    }
-    
-    .action-button:hover:not(:disabled) {
-        background: var(--primary-hover);
-    }
-    
-    .action-button:disabled {
-        background: var(--disabled-color);
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-</style>

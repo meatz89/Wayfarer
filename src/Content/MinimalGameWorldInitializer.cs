@@ -250,8 +250,8 @@ Size = SizeCategory.Small
                 TokenType = ConnectionType.Trust,
                 MinPayment = 2,
                 MaxPayment = 5,
-                MinDeadline = 24,
-                MaxDeadline = 48,
+                MinDeadlineInDays = 24,
+                MaxDeadlineInDays = 48,
                 Size = SizeCategory.Small
             };
             

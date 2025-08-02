@@ -5,17 +5,17 @@ using System.Linq;
 public enum ObligationEffect
 {
     // Entry Position Effects
-    NoblesPriority,        // Noble letters enter at slot 5
-    CommonFolksPriority,   // Common letters enter at slot 6
-    PatronJumpToTop,       // Patron letters jump to slots 1-3
+    StatusPriority,         // Status letters enter at slot 3
+    CommercePriority,       // Commerce letters enter at slot 5
+    TrustPriority,          // Trust letters enter at slot 7
+    PatronJumpToTop,        // Patron letters jump to slots 1-3
     PatronLettersPosition3, // Patron letters enter at position 3
     PatronLettersPosition1, // Patron letters enter at position 1
-    TrustLettersPosition7,  // Trust letters enter at position 7
 
     // Payment Bonuses
-    TradeBonus,            // Trade letters +10 coins
+    CommerceBonus,         // Commerce letters +10 coins
     ShadowTriplePay,       // Shadow letters pay triple
-    TradeBonusPlus3,       // Trade letters +3 coins bonus
+    CommerceBonusPlus3,    // Commerce letters +3 coins bonus
 
     // Deadline Extensions
     TrustFreeExtend,       // Trust letters can extend deadline free
@@ -26,16 +26,14 @@ public enum ObligationEffect
     PatronMonthly,         // Monthly patron resource package
 
     // Queue Action Restrictions
-    NoNobleRefusal,        // Cannot refuse noble letters
-    NoTradePurge,          // Cannot purge trade letters
+    NoStatusRefusal,       // Cannot refuse status letters
+    NoCommercePurge,       // Cannot purge commerce letters
     TrustSkipDoubleCost,   // Skipping trust letters costs double
-    NoCommonRefusal,       // Refusing common letters loses 2 tokens
     CannotRefuseLetters,   // Cannot refuse any letters
 
     // Leverage Modifiers
-    ShadowEqualsNoble,     // Shadow letters use Noble base position (3)
-    MerchantRespect,       // Trade letters with 5+ tokens get additional +1 position
-    CommonRevenge,         // Common letters from debt relationships use position 3
+    ShadowEqualsStatus,    // Shadow letters use Status base position (3)
+    MerchantRespect,       // Commerce letters with 5+ tokens get additional +1 position
     PatronAbsolute,        // Patron letters push everything down (no displacement limit)
     DebtSpiral,            // All negative token positions get additional -1
 
@@ -60,6 +58,9 @@ public class StandingObligation
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
     public string Source { get; set; } = ""; // NPC or entity that granted this obligation
+    
+    // Tier system (1-5) for difficulty/content progression
+    public int Tier { get; set; } = 1;
 
     // Mechanics
     public List<ObligationEffect> BenefitEffects { get; set; } = new List<ObligationEffect>();
@@ -114,12 +115,12 @@ public class StandingObligation
     {
         if (!AppliesTo(letter.TokenType)) return 0;
 
-        if (HasEffect(ObligationEffect.TradeBonus) && letter.TokenType == ConnectionType.Commerce)
+        if (HasEffect(ObligationEffect.CommerceBonus) && letter.TokenType == ConnectionType.Commerce)
         {
             return 10; // Flat +10 bonus
         }
 
-        if (HasEffect(ObligationEffect.TradeBonusPlus3) && letter.TokenType == ConnectionType.Commerce)
+        if (HasEffect(ObligationEffect.CommerceBonusPlus3) && letter.TokenType == ConnectionType.Commerce)
         {
             return 3; // Flat +3 bonus
         }
@@ -137,14 +138,19 @@ public class StandingObligation
     {
         if (!AppliesTo(letter.TokenType)) return defaultPosition;
 
-        if (HasEffect(ObligationEffect.NoblesPriority) && letter.TokenType == ConnectionType.Status)
+        if (HasEffect(ObligationEffect.StatusPriority) && letter.TokenType == ConnectionType.Status)
+        {
+            return Math.Min(3, defaultPosition); // Enter at slot 3 or higher
+        }
+
+        if (HasEffect(ObligationEffect.CommercePriority) && letter.TokenType == ConnectionType.Commerce)
         {
             return Math.Min(5, defaultPosition); // Enter at slot 5 or higher
         }
 
-        if (HasEffect(ObligationEffect.CommonFolksPriority) && letter.TokenType == ConnectionType.Trust)
+        if (HasEffect(ObligationEffect.TrustPriority) && letter.TokenType == ConnectionType.Trust)
         {
-            return Math.Min(6, defaultPosition); // Enter at slot 6 or higher
+            return Math.Min(7, defaultPosition); // Enter at slot 7 or higher
         }
 
         if (HasEffect(ObligationEffect.PatronLettersPosition1))
@@ -157,10 +163,6 @@ public class StandingObligation
             return 3; // Force to position 3
         }
 
-        if (HasEffect(ObligationEffect.TrustLettersPosition7) && letter.TokenType == ConnectionType.Trust)
-        {
-            return 7; // Force to position 7
-        }
 
         return defaultPosition;
     }
@@ -187,14 +189,8 @@ public class StandingObligation
     // Check if action is forbidden by constraints
     public bool IsForbiddenAction(string actionType, Letter letter)
     {
-        if (actionType == "refuse" && HasEffect(ObligationEffect.NoNobleRefusal) &&
+        if (actionType == "refuse" && HasEffect(ObligationEffect.NoStatusRefusal) &&
             letter.TokenType == ConnectionType.Status)
-        {
-            return true;
-        }
-
-        if (actionType == "refuse" && HasEffect(ObligationEffect.NoCommonRefusal) &&
-            letter.TokenType == ConnectionType.Trust)
         {
             return true;
         }
@@ -204,7 +200,7 @@ public class StandingObligation
             return true; // Cannot refuse any letters
         }
 
-        if (actionType == "purge" && HasEffect(ObligationEffect.NoTradePurge) &&
+        if (actionType == "purge" && HasEffect(ObligationEffect.NoCommercePurge) &&
             letter.TokenType == ConnectionType.Commerce)
         {
             return true;
@@ -320,23 +316,22 @@ public class StandingObligation
     {
         return effect switch
         {
-            ObligationEffect.NoblesPriority => "Noble letters enter at slot 5",
-            ObligationEffect.CommonFolksPriority => "Common letters enter at slot 6",
+            ObligationEffect.StatusPriority => "Status letters enter at slot 3",
+            ObligationEffect.CommercePriority => "Commerce letters enter at slot 5",
+            ObligationEffect.TrustPriority => "Trust letters enter at slot 7",
             ObligationEffect.PatronJumpToTop => "Patron letters jump to top slots",
             ObligationEffect.PatronLettersPosition3 => "Patron letters enter at position 3",
             ObligationEffect.PatronLettersPosition1 => "Patron letters enter at position 1",
-            ObligationEffect.TrustLettersPosition7 => "Trust letters enter at position 7",
-            ObligationEffect.TradeBonus => "Trade letters +10 coins",
-            ObligationEffect.TradeBonusPlus3 => "Trade letters pay +3 coins bonus",
+            ObligationEffect.CommerceBonus => "Commerce letters +10 coins",
+            ObligationEffect.CommerceBonusPlus3 => "Commerce letters pay +3 coins bonus",
             ObligationEffect.ShadowTriplePay => "Shadow letters pay triple",
             ObligationEffect.TrustFreeExtend => "Trust letters extend deadline free",
             ObligationEffect.DeadlinePlus2Days => "Letters get +2 days to deadline",
             ObligationEffect.ShadowForced => "Forced shadow letter every 3 days",
             ObligationEffect.PatronMonthly => "Monthly patron resource package",
-            ObligationEffect.NoNobleRefusal => "Cannot refuse noble letters",
-            ObligationEffect.NoTradePurge => "Cannot purge trade letters",
+            ObligationEffect.NoStatusRefusal => "Cannot refuse status letters",
+            ObligationEffect.NoCommercePurge => "Cannot purge commerce letters",
             ObligationEffect.TrustSkipDoubleCost => "Skipping trust letters costs double",
-            ObligationEffect.NoCommonRefusal => "Refusing common letters loses 2 tokens",
             ObligationEffect.CannotRefuseLetters => "Cannot refuse any letters",
             ObligationEffect.DynamicLeverageModifier => "Leverage scales with relationship",
             ObligationEffect.DynamicPaymentBonus => "Payment bonus scales with relationship",

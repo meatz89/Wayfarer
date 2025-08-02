@@ -32,16 +32,9 @@ public class SchemaValidator : IContentValidator
             ["letter_templates.json"] = new FileSchema
             {
                 IsArray = true,
-                RequiredFields = new[] { "id", "name", "tokenType", "basePay", "reputation" },
+                RequiredFields = new[] { "id", "name", "tokenType", "basePay" },
                 OptionalFields = new[] { "category", "size", "physicalProperties",
                                            "requiredEquipment", "narrative" }
-            },
-            ["token_favors.json"] = new FileSchema
-            {
-                IsArray = true,
-                RequiredFields = new[] { "id", "name", "description", "requiredTokenType",
-                                           "requiredTokenCount", "favorType" },
-                OptionalFields = new[] { "duration", "narrative" }
             },
             ["standing_obligations.json"] = new FileSchema
             {

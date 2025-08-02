@@ -15,6 +15,57 @@
             <LetterQueueDisplay />
         </div>
         
+        @* Carried Information Display *@
+        <div class="carried-information-section">
+            <h3>📜 Carried Information Letters</h3>
+            @{
+                var carriedLetters = GameFacade.GetPlayer().CarriedLetters
+                    .Where(l => l.SpecialType == LetterSpecialType.Information)
+                    .ToList();
+                    
+                if (carriedLetters.Any())
+                {
+                    <div class="information-grid">
+                        @foreach (var letter in carriedLetters)
+                        {
+                            <div class="information-item">
+                                <div class="information-header">
+                                    <span class="information-icon">🔍</span>
+                                    <span class="information-sender">From @letter.SenderName</span>
+                                    <span class="information-recipient">To @letter.RecipientName</span>
+                                </div>
+                                <div class="information-description">
+                                    @if (!string.IsNullOrEmpty(letter.Description))
+                                    {
+                                        @letter.Description
+                                    }
+                                    else
+                                    {
+                                        <text>Confidential information that reveals hidden opportunities</text>
+                                    }
+                                </div>
+                                <div class="information-meta">
+                                    <span class="information-payment">💰 @letter.Payment coins</span>
+                                    <span class="information-deadline">⏰ @letter.DeadlineInDays days</span>
+                                    <span class="information-effect">@GetInformationEffect(letter)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <p class="information-note">
+                        <em>Information letters take inventory space but not queue slots. They reveal hidden content while carried.</em>
+                    </p>
+                }
+                else
+                {
+                    <div class="no-information">
+                        <p>No information letters in your satchel.</p>
+                        <small>Request Information letters from Shadow network contacts with 5+ tokens.</small>
+                    </div>
+                }
+            }
+        </div>
+        
         @* Active Obligations Summary *@
         <div class="obligations-summary">
             <h3>⚖️ Active Obligations</h3>
@@ -138,9 +189,8 @@
         return type switch
         {
             ConnectionType.Trust => "❤️",
-            ConnectionType.Trade => "🪙",
-            ConnectionType.Noble => "👑",
-            ConnectionType.Common => "🍺",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
         };
@@ -198,5 +248,15 @@
     private void NavigateToRelationships()
     {
         OnNavigate?.Invoke(CurrentViews.RelationshipScreen);
+    }
+    
+    private string GetInformationEffect(Letter letter)
+    {
+        // Information letters reveal hidden content based on their InformationId
+        if (!string.IsNullOrEmpty(letter.InformationId))
+        {
+            return "🔓 Reveals: " + letter.InformationId;
+        }
+        return "🔓 Reveals hidden opportunities";
     }
 }

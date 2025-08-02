@@ -503,8 +503,6 @@ public class LocationActionsUIService
             LetterQueueActionCommand => "QueueAction",
             SocializeCommand => "Socialize",
             BorrowMoneyCommand => "BorrowMoney",
-            GatherResourcesCommand => "Gather",
-            BrowseCommand => "Browse",
             ObserveCommand => "Observe",
             PatronFundsCommand => "PatronFunds",
             _ => command.GetType().Name.Replace("Command", "")

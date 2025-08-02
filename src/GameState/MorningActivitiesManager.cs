@@ -138,7 +138,7 @@ public class MorningActivitiesManager
     private Letter[] GetLettersAboutToExpire()
     {
         return _gameWorld.GetPlayer().LetterQueue
-            .Where(l => l != null && l.Deadline == 0)
+            .Where(l => l != null && l.DeadlineInDays == 0)
             .ToArray();
     }
 
@@ -239,7 +239,7 @@ public class MorningActivitiesManager
                 $"The letter board is heavy with {count} new commissions this morning. Word of your services spreads.",
                 $"{count} sealed letters await your attention, each a promise waiting to be kept or broken.",
                 $"Dawn reveals {count} fresh opportunities pinned to the board. Choose wisely - you cannot carry them all.",
-                $"The night brought {count} new requests. Your reputation as a letter carrier grows, for better or worse."
+                $"The night brought {count} new requests. Your skills as a letter carrier are becoming known."
             };
             Random random = new Random();
             return narratives[random.Next(narratives.Length)];
@@ -248,7 +248,7 @@ public class MorningActivitiesManager
 
     private string GetUrgentLetterNarrative(Letter letter)
     {
-        if (letter.Deadline == 1)
+        if (letter.DeadlineInDays == 1)
         {
             string[] narratives = new string[]
             {
@@ -263,9 +263,9 @@ public class MorningActivitiesManager
         {
             string[] narratives = new string[]
             {
-                $"The seal on {letter.RecipientName}'s letter grows warm - only {letter.Deadline} days remain.",
-                $"{letter.RecipientName} waits for word that grows more urgent by the hour. {letter.Deadline} days left.",
-                $"The letter to {letter.RecipientName} weighs heavier each day. {letter.Deadline} sunrises remain."
+                $"The seal on {letter.RecipientName}'s letter grows warm - only {letter.DeadlineInDays} days remain.",
+                $"{letter.RecipientName} waits for word that grows more urgent by the hour. {letter.DeadlineInDays} days left.",
+                $"The letter to {letter.RecipientName} weighs heavier each day. {letter.DeadlineInDays} sunrises remain."
             };
             Random random = new Random();
             return narratives[random.Next(narratives.Length)];

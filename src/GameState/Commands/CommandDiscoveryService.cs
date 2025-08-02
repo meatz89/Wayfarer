@@ -25,6 +25,10 @@ public class CommandDiscoveryService
     private readonly NarrativeRequirement _narrativeRequirement;
     private readonly LocationSpotRepository _spotRepository;
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
+    private readonly RouteRepository _routeRepository;
+    private readonly InformationDiscoveryManager _informationDiscoveryManager;
+    private readonly ITimeManager _timeManager;
+    private readonly EndorsementManager _endorsementManager;
 
     public CommandDiscoveryService(
         NPCRepository npcRepository,
@@ -43,7 +47,11 @@ public class CommandDiscoveryService
         LocationSpotRepository spotRepository,
         RouteDiscoveryManager routeDiscoveryManager = null,
         NarrativeManager narrativeManager = null,
-        NarrativeRequirement narrativeRequirement = null)
+        NarrativeRequirement narrativeRequirement = null,
+        RouteRepository routeRepository = null,
+        InformationDiscoveryManager informationDiscoveryManager = null,
+        ITimeManager timeManager = null,
+        EndorsementManager endorsementManager = null)
     {
         _npcRepository = npcRepository;
         _letterQueueManager = letterQueueManager;
@@ -62,6 +70,10 @@ public class CommandDiscoveryService
         _narrativeRequirement = narrativeRequirement;
         _spotRepository = spotRepository;
         _routeDiscoveryManager = routeDiscoveryManager;
+        _routeRepository = routeRepository;
+        _informationDiscoveryManager = informationDiscoveryManager;
+        _timeManager = timeManager;
+        _endorsementManager = endorsementManager;
     }
 
     /// <summary>
@@ -203,90 +215,11 @@ public class CommandDiscoveryService
                 if (_tokenManager.CanGenerateTokenType(equipmentTokenType, npc.ID) && 
                     !npc.LetterTokenTypes.Contains(equipmentTokenType))
                 {
-                    // Create a specialized socialize command for this token type
-                    EquipmentSocializeCommand specializedCommand = new EquipmentSocializeCommand(
-                        npc.ID, equipmentTokenType, _npcRepository, _tokenManager, _messageSystem);
-                    
-                    string actionName = equipmentTokenType switch
-                    {
-                        ConnectionType.Status => "Discuss refined topics",
-                        ConnectionType.Commerce => "Talk business",
-                        _ => "Socialize"
-                    };
-                    
-                    string actionDesc = equipmentTokenType switch
-                    {
-                        ConnectionType.Status => "Use your fine clothes to engage in noble discourse",
-                        ConnectionType.Commerce => "Use your merchant ledger to discuss trade opportunities",
-                        _ => "Spend time together"
-                    };
-                    
-                    CommandValidationResult equipmentValidation = specializedCommand.CanExecute(gameWorld);
-                    
-                    result.AddCommand(new DiscoveredCommand
-                    {
-                        Command = specializedCommand,
-                        Category = CommandCategory.Social,
-                        DisplayName = $"{actionName} with {npc.Name}",
-                        Description = actionDesc,
-                        TimeCost = 1,
-                        StaminaCost = 1,
-                        CoinCost = 0,
-                        PotentialReward = $"50% chance of +1 {equipmentTokenType} token (equipment enabled)",
-                        IsAvailable = equipmentValidation.IsValid,
-                        UnavailableReason = equipmentValidation.FailureReason,
-                        CanRemediate = equipmentValidation.CanBeRemedied,
-                        RemediationHint = equipmentValidation.RemediationHint
-                    });
                 }
             }
         }
 
-        // Share lunch command - if afternoon and have relationship
-        if (gameWorld.CurrentTimeBlock == TimeBlocks.Afternoon && currentTokens > 0)
-        {
-            ShareLunchCommand lunchCommand = new ShareLunchCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem, _itemRepository);
-            CommandValidationResult lunchValidation = lunchCommand.CanExecute(gameWorld);
 
-            result.AddCommand(new DiscoveredCommand
-            {
-                Command = lunchCommand,
-                Category = CommandCategory.Social,
-                DisplayName = $"Share lunch with {npc.Name}",
-                Description = "Bond over a meal together",
-                TimeCost = 1,
-                StaminaCost = 1,
-                CoinCost = 0,
-                PotentialReward = "75% chance of +1 Common token (requires food)",
-                IsAvailable = lunchValidation.IsValid,
-                UnavailableReason = lunchValidation.FailureReason,
-                CanRemediate = lunchValidation.CanBeRemedied,
-                RemediationHint = lunchValidation.RemediationHint
-            });
-        }
-
-        // Keep secret command - if have enough trust (3+ tokens)
-        if (currentTokens >= 3)
-        {
-            KeepSecretCommand secretCommand = new KeepSecretCommand(npc.ID, _npcRepository, _tokenManager, _messageSystem);
-            CommandValidationResult secretValidation = secretCommand.CanExecute(gameWorld);
-
-            result.AddCommand(new DiscoveredCommand
-            {
-                Command = secretCommand,
-                Category = CommandCategory.Social,
-                DisplayName = $"Keep {npc.Name}'s secret",
-                Description = "Be trusted with confidential information",
-                TimeCost = 1,
-                StaminaCost = 0,
-                CoinCost = 0,
-                PotentialReward = "+1 Trust token (guaranteed)",
-                IsAvailable = secretValidation.IsValid,
-                UnavailableReason = secretValidation.FailureReason,
-                CanRemediate = secretValidation.CanBeRemedied,
-                RemediationHint = secretValidation.RemediationHint
-            });
-        }
 
         // Personal errand command - if have some relationship (2+ tokens)
         if (currentTokens >= 2)
@@ -458,47 +391,7 @@ public class CommandDiscoveryService
 
         // Location-specific action commands
 
-        // Gather resources (only at FEATURE locations)
-        if (spot.Type == LocationSpotTypes.FEATURE)
-        {
-            GatherResourcesCommand gatherCommand = new GatherResourcesCommand(spot.SpotID,
-                _itemRepository,
-                _messageSystem);
-            CommandValidationResult gatherValidation = gatherCommand.CanExecute(gameWorld);
 
-            result.AddCommand(new DiscoveredCommand
-            {
-                Command = gatherCommand,
-                Category = CommandCategory.Economic,
-                DisplayName = "Gather resources",
-                Description = "Search for materials, food, or medicine",
-                TimeCost = 1,
-                StaminaCost = 2,
-                CoinCost = 0,
-                PotentialReward = "1-3 resources",
-            });
-        }
-
-        // Browse market (if available)
-        BrowseCommand browseCommand = new BrowseCommand(spot.LocationId,
-            _marketManager,
-            _messageSystem);
-        CommandValidationResult browseValidation = browseCommand.CanExecute(gameWorld);
-
-        if (browseValidation.IsValid)
-        {
-            result.AddCommand(new DiscoveredCommand
-            {
-                Command = browseCommand,
-                Category = CommandCategory.Economic,
-                DisplayName = "Browse market",
-                Description = "View available items and prices",
-                TimeCost = 0,
-                StaminaCost = 0,
-                CoinCost = 0,
-                IsAvailable = true
-            });
-        }
 
         // Observe location (always available)
         ObserveCommand observeCommand = new ObserveCommand(spot.SpotID, _npcRepository,
@@ -516,6 +409,36 @@ public class CommandDiscoveryService
             StaminaCost = 0,
             CoinCost = 0,
         });
+
+        // Explore area (discover hidden routes)
+        Location exploreLocation = _locationRepository.GetCurrentLocation();
+        if (exploreLocation != null)
+        {
+            ExploreCommand exploreCommand = new ExploreCommand(
+                exploreLocation.Id,
+                exploreLocation.Tier,
+                _routeRepository,
+                _informationDiscoveryManager,
+                _messageSystem,
+                _timeManager);
+            CommandValidationResult exploreValidation = exploreCommand.CanExecute(gameWorld);
+
+            result.AddCommand(new DiscoveredCommand
+            {
+                Command = exploreCommand,
+                Category = CommandCategory.Special,
+                DisplayName = "Explore area",
+                Description = exploreCommand.Description,
+                TimeCost = exploreCommand.TimeCost,
+                StaminaCost = 2,
+                CoinCost = 0,
+                PotentialReward = "May discover hidden routes",
+                IsAvailable = exploreValidation.IsValid,
+                UnavailableReason = exploreValidation.FailureReason,
+                CanRemediate = exploreValidation.CanBeRemedied,
+                RemediationHint = exploreValidation.RemediationHint
+            });
+        }
 
         // Patron funds (if player has patron)
         if (player.HasPatron)
@@ -536,6 +459,44 @@ public class CommandDiscoveryService
                 PotentialReward = "30 coins",
             });
         }
+        
+        // Guild interactions (if at a guild location)
+        if (_endorsementManager != null && IsGuildLocation(spot.LocationId))
+        {
+            var conversionOptions = _endorsementManager.GetAvailableSealConversions(spot.LocationId);
+            foreach (var option in conversionOptions.Where(o => o.CanConvert))
+            {
+                ConvertEndorsementsCommand convertCommand = new ConvertEndorsementsCommand(
+                    spot.LocationId,
+                    option.TargetTier,
+                    _endorsementManager,
+                    _messageSystem,
+                    _locationRepository);
+                
+                CommandValidationResult convertValidation = convertCommand.CanExecute(gameWorld);
+                
+                result.AddCommand(new DiscoveredCommand
+                {
+                    Command = convertCommand,
+                    Category = CommandCategory.Special,
+                    DisplayName = $"Convert to {option.TargetTier} Seal",
+                    Description = $"Exchange {option.RequiredEndorsements} endorsements for guild seal",
+                    TimeCost = 0,
+                    StaminaCost = 0,
+                    CoinCost = 0,
+                    PotentialReward = $"{option.TargetTier} {option.SealType} Seal",
+                    IsAvailable = convertValidation.IsValid,
+                    UnavailableReason = convertValidation.FailureReason
+                });
+            }
+        }
+    }
+    
+    private bool IsGuildLocation(string locationId)
+    {
+        return locationId == "merchant_guild" || 
+               locationId == "messenger_guild" || 
+               locationId == "scholar_guild";
     }
 
     private void DiscoverLetterCommands(Player player, GameWorld gameWorld, CommandDiscoveryResult result)

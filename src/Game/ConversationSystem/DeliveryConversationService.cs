@@ -47,7 +47,7 @@ public class DeliveryConversationService
         bool playerIsDesperate = player.Coins < 5;
         bool playerIsExhausted = player.Stamina < 2;
         bool hasPatronObligation = _obligationManager.GetActiveObligations().Any(o => o.Name == "Patron's Expectation");
-        bool recipientIsPatron = recipient.Profession == Professions.Status;
+        bool recipientIsPatron = recipient.Profession == Professions.Noble;
 
         return new DeliveryConversationContext
         {
@@ -319,7 +319,7 @@ public class DeliveryConversationService
             NarrativeText = $"Hint at juicy contents ({letter.Payment + 5} coins, lose 1 token)",
             FocusCost = 0,
             IsAffordable = context.RecipientTokens >= 1,
-            TemplatePurpose = "Trade reputation for immediate profit",
+            TemplatePurpose = "Trade relationship for immediate profit",
             Priority = 3,
             DeliveryOutcome = new DeliveryOutcome
             {

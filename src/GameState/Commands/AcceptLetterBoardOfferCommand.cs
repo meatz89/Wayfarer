@@ -68,7 +68,7 @@ public class AcceptLetterBoardOfferCommand : BaseGameCommand
                     SenderName = _letter.SenderName,
                     RecipientName = _letter.RecipientName,
                     Payment = _letter.Payment,
-                    Deadline = _letter.Deadline
+                    DeadlineInDays = _letter.DeadlineInDays
                 }
             );
         }

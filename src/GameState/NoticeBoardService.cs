@@ -263,7 +263,7 @@ public class NoticeBoardService
         if (letter != null)
         {
             // Make it urgent and high-paying
-            letter.Deadline = _random.Next(2, 4); // 2-3 days only
+            letter.DeadlineInDays = _random.Next(2, 4); // 2-3 days only
             letter.Payment = (int)(letter.Payment * 1.5); // 50% higher payment
             letter.Description = "URGENT: " + letter.Description;
         }
@@ -327,7 +327,7 @@ public class NoticeBoardService
         }
 
         _messageSystem.AddSystemMessage(
-            $"✉️ {letter.SenderName} → {letter.RecipientName} ({letter.Payment} coins, {letter.Deadline} days)",
+            $"✉️ {letter.SenderName} → {letter.RecipientName} ({letter.Payment} coins, {letter.DeadlineInDays} days)",
             SystemMessageTypes.Info
         );
     }

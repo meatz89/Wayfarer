@@ -9,14 +9,18 @@ public class LetterTemplateDTO
     public string Id { get; set; }
     public string Description { get; set; }
     public string TokenType { get; set; }
-    public int MinDeadline { get; set; }
-    public int MaxDeadline { get; set; }
+    public int MinDeadlineInDays { get; set; }
+    public int MaxDeadlineInDays { get; set; }
     public int MinPayment { get; set; }
     public int MaxPayment { get; set; }
 
     // Letter category and requirements
     public string Category { get; set; } = "Basic";
     public int? MinTokensRequired { get; set; } = 3;
+    
+    // Special letter properties
+    public string SpecialType { get; set; } = "None";
+    public string SpecialTargetId { get; set; }
 
     // Optional fields
     public List<string> PossibleSenders { get; set; }

@@ -22,7 +22,6 @@ public class ValidatedContentLoader
             .AddValidator(new LocationSpotValidator())
             .AddValidator(new LetterTemplateValidator())
             .AddValidator(new StandingObligationValidator())
-            .AddValidator(new TokenFavorValidator())
             .AddValidator(new NarrativeValidator())
             .AddValidator(new RouteDiscoveryValidator())
             .AddValidator(new ProgressionUnlockValidator())

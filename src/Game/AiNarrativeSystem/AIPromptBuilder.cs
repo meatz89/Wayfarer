@@ -412,7 +412,6 @@ public class AIPromptBuilder
 
         prompt.AppendLine($"- Stamina: {player.Stamina}/{player.MaxStamina}");
         prompt.AppendLine($"- Money: {player.Coins} coins");
-        prompt.AppendLine($"- Reputation: {player.Reputation} ({player.GetReputationLevel()})");
 
         prompt.AppendLine();
     }

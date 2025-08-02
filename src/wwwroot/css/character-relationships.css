@@ -10,6 +10,92 @@
     margin-right: auto;
 }
 
+/* Token Context Tabs */
+.token-context-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.context-tab {
+    background-color: var(--bg-dark);
+    border: 2px solid var(--oak-mid);
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+    color: var(--text-primary);
+}
+
+.context-tab:hover {
+    background-color: var(--bg-active);
+    border-color: var(--oak-dark);
+    transform: translateY(-1px);
+}
+
+.context-tab.active {
+    background-color: var(--oak-dark);
+    color: var(--parchment);
+    border-color: var(--oak-dark);
+    font-weight: bold;
+}
+
+.tab-count {
+    opacity: 0.7;
+    font-size: 0.85rem;
+    margin-left: 0.25rem;
+}
+
+/* Debt Overview Section */
+.debt-overview {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: rgba(158, 42, 43, 0.1);
+    border: 2px solid var(--negative);
+    border-radius: 8px;
+}
+
+.debt-overview h3 {
+    color: var(--negative);
+    margin-bottom: 1rem;
+    font-family: var(--font-secondary);
+}
+
+.debt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.debt-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
+    padding: 0.5rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+.debt-npc {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.debt-amount {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+.debt-effect {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
 .character-relationship-container h2 {
     color: var(--text-primary);
     font-family: var(--font-secondary);
@@ -108,6 +194,68 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 0.75rem;
+}
+
+/* Multi-Context Token Display */
+.token-context-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.token-context-item {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.token-context-item:hover {
+    background-color: var(--bg-active);
+    transform: translateY(-1px);
+}
+
+.token-context-item.debt {
+    background-color: rgba(158, 42, 43, 0.1);
+    border-color: var(--negative);
+}
+
+.token-context-item.positive {
+    background-color: rgba(107, 191, 89, 0.05);
+    border-color: var(--positive);
+}
+
+.context-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.context-description {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 0.25rem;
+}
+
+.context-effects {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.debt-label,
+.leverage-warning {
+    color: var(--negative);
+}
+
+.special-available {
+    color: var(--special);
+    font-weight: 500;
 }
 
 .token-item {

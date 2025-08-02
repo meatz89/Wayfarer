@@ -1,0 +1,297 @@
+/* ==================== NPC Actions View Styles ==================== */
+
+.npc-actions-view {
+    padding: 1rem;
+}
+
+.no-content {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.location-actions-section {
+    margin-bottom: 2rem;
+}
+
+.location-actions-section h3 {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-card {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.action-card:hover:not(.disabled) {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-card.disabled {
+    opacity: 0.6;
+}
+
+.npcs-section h3 {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.npc-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.npc-card.has-actions {
+    border-color: var(--primary-color);
+}
+
+.npc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.npc-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.npc-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.npc-role {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.availability-indicator {
+    font-size: 1.2rem;
+}
+
+.availability-indicator.available {
+    color: var(--success-color);
+}
+
+.availability-indicator.unavailable {
+    color: var(--danger-color);
+}
+
+.npc-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.action-with-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.npc-action-button {
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.npc-action-button:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.npc-action-button:disabled {
+    background: var(--disabled-color);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.action-costs-inline {
+    display: flex;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+}
+
+.cost-inline.insufficient {
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+.no-actions-message, .unavailable-message {
+    font-style: italic;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.action-costs {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+}
+
+.cost {
+    color: var(--success-color);
+}
+
+.cost.insufficient {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.action-rewards {
+    font-size: 0.85rem;
+    color: var(--info-color);
+    margin-top: 0.3rem;
+}
+
+.action-button {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.action-button:hover:not(:disabled) {
+    background: var(--primary-hover);
+}
+
+.action-button:disabled {
+    background: var(--disabled-color);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* NPC Schedule Display (for LocationSpotMap) */
+.npc-schedule-section {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: var(--bg-panel);
+    border-radius: 4px;
+    border: 1px solid var(--oak-light);
+}
+
+.npc-schedule-header {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.npc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.npc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--oak-light);
+}
+
+.npc-item:last-child {
+    border-bottom: none;
+}
+
+.npc-basic-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.npc-name-small {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.npc-services {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.25rem;
+}
+
+.service-icon {
+    font-size: 0.7rem;
+}
+
+.npc-availability-info {
+    text-align: right;
+    font-size: 0.75rem;
+}
+
+.npc-status {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.availability-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.availability-dot.available {
+    background-color: var(--positive);
+}
+
+.availability-dot.unavailable {
+    background-color: var(--negative);
+}
+
+.npc-schedule-times {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.no-npcs-message {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 0.5rem;
+}

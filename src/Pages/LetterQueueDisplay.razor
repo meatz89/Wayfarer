@@ -22,6 +22,10 @@
                             }
                             <span class="token-icon">@letter.TokenIcon</span>
                             <span class="letter-type">@letter.TokenType</span>
+                            @if (letter.IsSpecial)
+                            {
+                                <span class="special-letter-icon" title="@letter.SpecialDescription">@letter.SpecialIcon</span>
+                            }
                             @if (!string.IsNullOrEmpty(letter.LeverageIndicator))
                             {
                                 <span class="leverage-indicator" title="@letter.LeverageTooltip">@letter.LeverageIndicator</span>
@@ -56,6 +60,14 @@
                             <button class="btn btn-primary btn-sm deliver-btn" @onclick="() => DeliverLetter(slot.Position)">
                                 Deliver
                             </button>
+                            @if (letter != null)
+                            {
+                                var deliveryRewards = GetDeliveryRewards(letter);
+                                if (deliveryRewards != null && deliveryRewards.Any())
+                                {
+                                    <TokenTransactionPreview TokenChanges="@deliveryRewards" ShowEffects="true" ShowNetEffect="false" />
+                                }
+                            }
                         }
                         else if (slot.CanSkip && slot.SkipAction != null)
                         {
@@ -324,5 +336,49 @@
             "Large" => 3,
             _ => 1
         };
+    }
+    
+    private List<TokenTransactionPreview.TokenChange> GetDeliveryRewards(LetterViewModel letter)
+    {
+        var rewards = new List<TokenTransactionPreview.TokenChange>();
+        
+        // 50% chance to earn a token (show as possible reward)
+        rewards.Add(new TokenTransactionPreview.TokenChange
+        {
+            TokenType = Enum.Parse<ConnectionType>(letter.TokenType),
+            Amount = 1,
+            NpcName = letter.SenderName,
+            Effect = "50% chance on delivery"
+        });
+        
+        // Special letter effects
+        if (letter.IsSpecial)
+        {
+            var specialEffect = GetSpecialDeliveryEffect(letter);
+            if (!string.IsNullOrEmpty(specialEffect))
+            {
+                rewards.Add(new TokenTransactionPreview.TokenChange
+                {
+                    TokenType = ConnectionType.Trust, // Default, actual type doesn't matter for special effects
+                    Amount = 0, // No token change, just effect
+                    Effect = specialEffect
+                });
+            }
+        }
+        
+        return rewards;
+    }
+    
+    private string GetSpecialDeliveryEffect(LetterViewModel letter)
+    {
+        if (letter.SpecialDescription.Contains("Introduction"))
+            return "🤝 Unlocks new contact";
+        if (letter.SpecialDescription.Contains("Access"))
+            return "🔓 Unlocks location access";
+        if (letter.SpecialDescription.Contains("Endorsement"))
+            return "⭐ Temporary status bonus";
+        if (letter.SpecialDescription.Contains("Information"))
+            return "🔍 Reveals hidden content";
+        return null;
     }
 }

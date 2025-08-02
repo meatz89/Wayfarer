@@ -29,8 +29,8 @@ public class LetterTemplateFactory
             Id = id,
             Description = $"A letter template called {name}",
             TokenType = ConnectionType.Trust, // Most basic type
-            MinDeadline = 24, // One day minimum
-            MaxDeadline = 48, // Two days maximum
+            MinDeadlineInDays = 24, // One day minimum
+            MaxDeadlineInDays = 48, // Two days maximum
             MinPayment = 2, // Low but reasonable
             MaxPayment = 5,
             Category = LetterCategory.Basic,
@@ -41,7 +41,9 @@ public class LetterTemplateFactory
             IsChainLetter = false,
             Size = SizeCategory.Small, // Easy to carry
             PhysicalProperties = LetterPhysicalProperties.None,
-            RequiredEquipment = null
+            RequiredEquipment = null,
+            SpecialType = LetterSpecialType.None,
+            SpecialTargetId = ""
         };
     }
     
@@ -62,8 +64,8 @@ public class LetterTemplateFactory
         string id,
         string description,
         ConnectionType tokenType,
-        int minDeadline,
-        int maxDeadline,
+        int minDeadlineInDays,
+        int maxDeadlineInDays,
         int minPayment,
         int maxPayment,
         LetterCategory category = LetterCategory.Basic,
@@ -74,16 +76,18 @@ public class LetterTemplateFactory
         bool isChainLetter = false,
         SizeCategory size = SizeCategory.Medium,
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
-        ItemCategory? requiredEquipment = null)
+        ItemCategory? requiredEquipment = null,
+        LetterSpecialType specialType = LetterSpecialType.None,
+        string specialTargetId = null)
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
         if (string.IsNullOrEmpty(description))
             throw new ArgumentException("Letter template description cannot be empty", nameof(description));
-        if (minDeadline < 1)
-            throw new ArgumentException("Minimum deadline must be at least 1 day", nameof(minDeadline));
-        if (maxDeadline < minDeadline)
-            throw new ArgumentException("Maximum deadline must be greater than or equal to minimum deadline", nameof(maxDeadline));
+        if (minDeadlineInDays < 1)
+            throw new ArgumentException("Minimum deadline must be at least 1 day", nameof(minDeadlineInDays));
+        if (maxDeadlineInDays < minDeadlineInDays)
+            throw new ArgumentException("Maximum deadline must be greater than or equal to minimum deadline", nameof(maxDeadlineInDays));
         if (minPayment < 0)
             throw new ArgumentException("Minimum payment cannot be negative", nameof(minPayment));
         if (maxPayment < minPayment)
@@ -94,8 +98,8 @@ public class LetterTemplateFactory
             Id = id,
             Description = description,
             TokenType = tokenType,
-            MinDeadline = minDeadline,
-            MaxDeadline = maxDeadline,
+            MinDeadlineInDays = minDeadlineInDays,
+            MaxDeadlineInDays = maxDeadlineInDays,
             MinPayment = minPayment,
             MaxPayment = maxPayment,
             Category = category,
@@ -106,7 +110,9 @@ public class LetterTemplateFactory
             IsChainLetter = isChainLetter,
             Size = size,
             PhysicalProperties = physicalProperties,
-            RequiredEquipment = requiredEquipment
+            RequiredEquipment = requiredEquipment,
+            SpecialType = specialType,
+            SpecialTargetId = specialTargetId ?? ""
         };
 
         return template;
@@ -119,8 +125,8 @@ public class LetterTemplateFactory
         string id,
         string description,
         ConnectionType tokenType,
-        int minDeadline,
-        int maxDeadline,
+        int minDeadlineInDays,
+        int maxDeadlineInDays,
         int minPayment,
         int maxPayment,
         LetterCategory category,
@@ -132,7 +138,9 @@ public class LetterTemplateFactory
         bool isChainLetter = false,
         SizeCategory size = SizeCategory.Medium,
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
-        ItemCategory? requiredEquipment = null)
+        ItemCategory? requiredEquipment = null,
+        LetterSpecialType specialType = LetterSpecialType.None,
+        string specialTargetId = null)
     {
         // Special narrative letter templates that use placeholder names, not NPC IDs
         HashSet<string> narrativeTemplates = new HashSet<string>
@@ -180,9 +188,10 @@ public class LetterTemplateFactory
             }
         }
 
-        return CreateLetterTemplate(id, description, tokenType, minDeadline, maxDeadline,
+        return CreateLetterTemplate(id, description, tokenType, minDeadlineInDays, maxDeadlineInDays,
                                    minPayment, maxPayment, category, minTokensRequired,
                                    senders, recipients, unlocksLetterIds, isChainLetter,
-                                   size, physicalProperties, requiredEquipment);
+                                   size, physicalProperties, requiredEquipment,
+                                   specialType, specialTargetId);
     }
 }

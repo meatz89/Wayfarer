@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.GameState.Constants;
+using Wayfarer.ViewModels;
 
 /// <summary>
 /// Implementation of IGameFacade - THE single entry point for all UI-Backend communication.
@@ -39,6 +40,7 @@ public class GameFacade : IGameFacade
     private readonly ConversationStateManager _conversationStateManager;
     private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly NPCLetterOfferService _npcLetterOfferService;
+    private readonly GameConfiguration _gameConfiguration;
     
     public GameFacade(
         GameWorld gameWorld,
@@ -62,7 +64,8 @@ public class GameFacade : IGameFacade
         ItemRepository itemRepository,
         ConversationStateManager conversationStateManager,
         ConnectionTokenManager connectionTokenManager,
-        NPCLetterOfferService npcLetterOfferService)
+        NPCLetterOfferService npcLetterOfferService,
+        GameConfiguration gameConfiguration)
     {
         _gameWorld = gameWorld;
         _gameWorldManager = gameWorldManager;
@@ -86,6 +89,7 @@ public class GameFacade : IGameFacade
         _conversationStateManager = conversationStateManager;
         _connectionTokenManager = connectionTokenManager;
         _npcLetterOfferService = npcLetterOfferService;
+        _gameConfiguration = gameConfiguration;
     }
     
     // ========== GAME STATE QUERIES ==========
@@ -354,36 +358,36 @@ public class GameFacade : IGameFacade
         if (route.AccessRequirement != null)
         {
             // Type-based requirements
-            foreach (var (tokenType, requiredCount) in route.AccessRequirement.RequiredTokensPerType)
+            foreach (var typeReq in route.AccessRequirement.RequiredTokensPerType)
             {
-                var currentCount = _connectionTokenManager.GetTotalTokensOfType(tokenType);
-                var key = $"type_{tokenType}";
+                var currentCount = _connectionTokenManager.GetTotalTokensOfType(typeReq.TokenType);
+                var key = $"type_{typeReq.TokenType}";
                 tokenRequirements[key] = new RouteTokenRequirementViewModel
                 {
                     RequirementKey = key,
-                    RequiredAmount = requiredCount,
+                    RequiredAmount = typeReq.MinimumCount,
                     CurrentAmount = currentCount,
-                    DisplayName = $"{tokenType} tokens (any NPC)",
-                    Icon = GetTokenIcon(tokenType),
-                    IsMet = currentCount >= requiredCount
+                    DisplayName = $"{typeReq.TokenType} tokens (any NPC)",
+                    Icon = GetTokenIcon(typeReq.TokenType),
+                    IsMet = currentCount >= typeReq.MinimumCount
                 };
             }
             
             // NPC-specific requirements
-            foreach (var (npcId, requiredCount) in route.AccessRequirement.RequiredTokensPerNPC)
+            foreach (var tokenReq in route.AccessRequirement.RequiredTokensPerNPC)
             {
-                var npcTokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+                var npcTokens = _connectionTokenManager.GetTokensWithNPC(tokenReq.NPCId);
                 var currentCount = npcTokens.Values.Sum();
-                var npc = _npcRepository.GetById(npcId);
-                var key = $"npc_{npcId}";
+                var npc = _npcRepository.GetById(tokenReq.NPCId);
+                var key = $"npc_{tokenReq.NPCId}";
                 tokenRequirements[key] = new RouteTokenRequirementViewModel
                 {
                     RequirementKey = key,
-                    RequiredAmount = requiredCount,
+                    RequiredAmount = tokenReq.MinimumCount,
                     CurrentAmount = currentCount,
-                    DisplayName = $"tokens with {npc?.Name ?? npcId}",
+                    DisplayName = $"tokens with {npc?.Name ?? tokenReq.NPCId}",
                     Icon = "🎭",
-                    IsMet = currentCount >= requiredCount
+                    IsMet = currentCount >= tokenReq.MinimumCount
                 };
             }
         }
@@ -469,7 +473,6 @@ public class GameFacade : IGameFacade
             ConnectionType.Trust => "💝",
             ConnectionType.Commerce => "🤝",
             ConnectionType.Status => "👑",
-            ConnectionType.Trust => "🏘️",
             ConnectionType.Shadow => "🌑",
             _ => "🎭"
         };
@@ -682,7 +685,7 @@ public class GameFacade : IGameFacade
             RecipientName = "Unknown", // TODO: Get recipient from template
             Description = offer.Message,
             Payment = offer.Payment,
-            DeadlineDays = offer.Deadline,
+            DeadlineDays = offer.DeadlineInDays,
             CanAccept = true, // TODO: Check queue capacity
             CannotAcceptReason = null,
             TokenTypes = new List<string> { offer.LetterType.ToString() }
@@ -725,6 +728,235 @@ public class GameFacade : IGameFacade
         // traderId is actually locationId in our current implementation
         // since items are sold by location, not specific traders
         return await _marketService.ExecuteTradeAsync(itemId, "sell", traderId);
+    }
+    
+    // ========== DEBT MANAGEMENT ==========
+    
+    public DebtViewModel GetDebtInformation()
+    {
+        var player = _gameWorld.GetPlayer();
+        var currentDay = _gameWorld.CurrentDay;
+        var viewModel = new DebtViewModel
+        {
+            PlayerCoins = player.Coins
+        };
+        
+        // Get active debts
+        foreach (var debt in player.ActiveDebts.Where(d => !d.IsPaid))
+        {
+            var creditor = _npcRepository.GetById(debt.CreditorId);
+            if (creditor != null)
+            {
+                var totalOwed = debt.GetTotalOwed(currentDay);
+                var accruedInterest = totalOwed - debt.Principal;
+                
+                viewModel.ActiveDebts.Add(new DebtInfo
+                {
+                    CreditorId = debt.CreditorId,
+                    CreditorName = creditor.Name,
+                    Principal = debt.Principal,
+                    InterestRate = debt.InterestRate,
+                    DaysActive = currentDay - debt.StartDay,
+                    AccruedInterest = accruedInterest,
+                    TotalOwed = totalOwed,
+                    TokenDebt = GetTokenDebt(debt.CreditorId)
+                });
+            }
+        }
+        
+        viewModel.TotalDebt = viewModel.ActiveDebts.Sum(d => d.TotalOwed);
+        viewModel.TotalDailyInterest = viewModel.ActiveDebts.Sum(d => (int)(d.Principal * d.InterestRate / 100.0));
+        
+        // Get available lenders (merchants at current location)
+        var currentLocation = player.CurrentLocationSpot;
+        if (currentLocation != null)
+        {
+            var npcsAtLocation = _npcRepository.GetNPCsForLocationSpotAndTime(
+                currentLocation.SpotID, 
+                _timeManager.GetCurrentTimeBlock());
+                
+            foreach (var npc in npcsAtLocation)
+            {
+                // Check if NPC can lend (has Commerce or Shadow tokens)
+                if ((npc.LetterTokenTypes.Contains(ConnectionType.Commerce) || 
+                     npc.LetterTokenTypes.Contains(ConnectionType.Shadow)) &&
+                    !viewModel.ActiveDebts.Any(d => d.CreditorId == npc.ID))
+                {
+                    viewModel.AvailableLenders.Add(new LenderInfo
+                    {
+                        NPCId = npc.ID,
+                        Name = npc.Name,
+                        LocationId = currentLocation.LocationId,
+                        LocationName = _locationRepository.GetLocation(currentLocation.LocationId)?.Name ?? "Unknown",
+                        MaxLoanAmount = 100,
+                        InterestRate = 5,
+                        IsAvailable = true
+                    });
+                }
+            }
+        }
+        
+        return viewModel;
+    }
+    
+    public async Task<bool> BorrowMoneyAsync(string npcId)
+    {
+        var command = new BorrowMoneyCommand(
+            npcId,
+            _npcRepository,
+            _connectionTokenManager,
+            _messageSystem,
+            _gameConfiguration);
+            
+        var validation = command.CanExecute(_gameWorld);
+        if (!validation.IsValid)
+        {
+            _messageSystem.AddSystemMessage(validation.FailureReason, SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        var result = await _commandExecutor.ExecuteAsync(command);
+        return result.IsSuccess;
+    }
+    
+    public async Task<bool> RepayDebtAsync(string npcId, int amount)
+    {
+        var command = new RepayDebtCommand(
+            npcId,
+            amount,
+            _npcRepository,
+            _messageSystem);
+            
+        var validation = command.CanExecute(_gameWorld);
+        if (!validation.IsValid)
+        {
+            _messageSystem.AddSystemMessage(validation.FailureReason, SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        var result = await _commandExecutor.ExecuteAsync(command);
+        return result.IsSuccess;
+    }
+    
+    private int GetTokenDebt(string creditorId)
+    {
+        var tokens = _connectionTokenManager.GetTokensWithNPC(creditorId);
+        var commerceTokens = tokens[ConnectionType.Commerce];
+        return commerceTokens < 0 ? Math.Abs(commerceTokens) : 0;
+    }
+    
+    // ========== PERSONAL ERRANDS ==========
+    
+    public PersonalErrandViewModel GetPersonalErrands()
+    {
+        var viewModel = new PersonalErrandViewModel();
+        var player = _gameWorld.GetPlayer();
+        
+        // Get player status
+        viewModel.PlayerStatus.CurrentStamina = player.Stamina;
+        
+        // Count medicine items
+        foreach (var itemId in player.Inventory.ItemSlots.Where(id => !string.IsNullOrEmpty(id)))
+        {
+            var item = _itemRepository.GetItemById(itemId);
+            if (item != null && item.Categories.Contains(ItemCategory.Medicine))
+            {
+                viewModel.PlayerStatus.MedicineCount++;
+                viewModel.PlayerStatus.MedicineItems.Add(item.Name);
+            }
+        }
+        
+        // Get all NPCs with 2+ tokens
+        var allNPCs = _npcRepository.GetAllNPCs();
+        foreach (var npc in allNPCs)
+        {
+            var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+            var totalTokens = tokens.Values.Sum();
+            
+            if (totalTokens >= 2)
+            {
+                // Create personal errand command to check if valid
+                var command = new PersonalErrandCommand(
+                    npc.ID,
+                    _npcRepository,
+                    _connectionTokenManager,
+                    _messageSystem,
+                    _itemRepository);
+                    
+                var validation = command.CanExecute(_gameWorld);
+                
+                var errand = new AvailableErrand
+                {
+                    NPCId = npc.ID,
+                    NPCName = npc.Name,
+                    NPCProfession = npc.Profession.ToString().Replace('_', ' '),
+                    LocationId = npc.Location,
+                    LocationName = _locationRepository.GetLocation(npc.Location)?.Name ?? "Unknown",
+                    Description = GetErrandDescription(npc),
+                    CanPerform = validation.IsValid,
+                    BlockingReason = validation.FailureReason,
+                    PlayerTokens = totalTokens,
+                    HasMedicine = viewModel.PlayerStatus.MedicineCount > 0,
+                    ContextualDescription = GetErrandContext(npc)
+                };
+                
+                viewModel.AvailableErrands.Add(errand);
+            }
+        }
+        
+        return viewModel;
+    }
+    
+    public async Task<bool> ExecutePersonalErrandAsync(string npcId)
+    {
+        var command = new PersonalErrandCommand(
+            npcId,
+            _npcRepository,
+            _connectionTokenManager,
+            _messageSystem,
+            _itemRepository);
+            
+        var validation = command.CanExecute(_gameWorld);
+        if (!validation.IsValid)
+        {
+            _messageSystem.AddSystemMessage(validation.FailureReason, SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        var result = await _commandExecutor.ExecuteAsync(command);
+        return result.IsSuccess;
+    }
+    
+    private string GetErrandDescription(NPC npc)
+    {
+        return npc.Profession switch
+        {
+            Professions.Dock_Boss => "Their daughter needs medicine urgently",
+            Professions.Merchant => "They need help finding important documents",
+            Professions.Noble => "They require a discreet remedy delivery",
+            Professions.Innkeeper => "A regular patron has fallen ill",
+            Professions.TavernKeeper => "Emergency supplies needed at the tavern",
+            Professions.Scholar => "Rare ink ingredients are desperately needed",
+            Professions.Craftsman => "Workshop accident requires healing salve",
+            Professions.Soldier => "Wounds that can't be officially reported",
+            _ => "They need help with an urgent personal matter"
+        };
+    }
+    
+    private string GetErrandContext(NPC npc)
+    {
+        return npc.Profession switch
+        {
+            Professions.Dock_Boss => "Delivered medicine to their sick daughter",
+            Professions.Merchant => "Found their missing ledger before the audit",
+            Professions.Noble => "Discreetly delivered a remedy for their ailment",
+            Professions.Innkeeper => "Helped treat a regular patron who fell ill",
+            Professions.TavernKeeper => "Brought supplies for an emergency at the tavern",
+            Professions.Scholar => "Retrieved rare ink ingredients they desperately needed",
+            Professions.Craftsman => "Delivered healing salve for a workshop accident",
+            Professions.Soldier => "Brought medicine for wounds they couldn't report",
+            _ => "Helped with an urgent personal matter"
+        };
     }
     
     // ========== INVENTORY ==========
@@ -999,5 +1231,221 @@ public class GameFacade : IGameFacade
         }
         
         return obligations.OrderBy(o => o.Priority).ToList();
+    }
+    
+    // ========== SEAL MANAGEMENT ==========
+    
+    public SealProgressionViewModel GetSealProgression()
+    {
+        var viewModel = new SealProgressionViewModel();
+        var player = _gameWorld.GetPlayer();
+        
+        // Get all owned seals
+        foreach (var seal in player.OwnedSeals)
+        {
+            var ownedSeal = new OwnedSeal
+            {
+                Id = seal.Id,
+                Name = seal.GetFullName(),
+                Type = seal.Type,
+                Tier = seal.Tier,
+                Description = seal.Description,
+                Material = seal.Material,
+                Insignia = seal.Insignia,
+                DayIssued = seal.DayIssued,
+                IssuingGuild = GetGuildNameFromId(seal.IssuingGuildId),
+                IsWorn = player.WornSeals.Contains(seal),
+                Benefits = GetSealBenefits(seal)
+            };
+            viewModel.OwnedSeals.Add(ownedSeal);
+        }
+        
+        // Get worn seals with slot numbers
+        int slotNumber = 1;
+        foreach (var seal in player.WornSeals)
+        {
+            viewModel.WornSeals.Add(new WornSeal
+            {
+                Id = seal.Id,
+                Name = seal.GetFullName(),
+                Type = seal.Type,
+                Tier = seal.Tier,
+                SlotNumber = slotNumber++
+            });
+        }
+        
+        // Get endorsement progress for each seal type
+        foreach (SealType sealType in Enum.GetValues<SealType>())
+        {
+            var progress = new EndorsementProgress
+            {
+                Type = sealType,
+                TypeName = sealType.ToString()
+            };
+            
+            // Get current endorsement count
+            string endorsementKey = $"endorsements_delivered_{sealType}";
+            var memory = player.GetMemory(endorsementKey);
+            progress.CurrentEndorsements = memory?.Importance ?? 0;
+            
+            // Get current seal tier
+            var currentSeal = player.OwnedSeals.FirstOrDefault(s => s.Type == sealType);
+            progress.CurrentTier = currentSeal?.Tier ?? (SealTier)0; // 0 means no seal
+            
+            // Determine next tier and requirements
+            if (progress.CurrentTier < SealTier.Master)
+            {
+                progress.NextTier = progress.CurrentTier == 0 ? SealTier.Apprentice : progress.CurrentTier + 1;
+                progress.EndorsementsToNext = GetEndorsementsRequired(progress.NextTier.Value) - progress.CurrentEndorsements;
+                progress.NextTierBenefits = GetTierBenefits(sealType, progress.NextTier.Value);
+            }
+            
+            // Get guild locations for this seal type
+            progress.GuildLocations = GetGuildLocationsForSealType(sealType);
+            
+            viewModel.EndorsementTracking.Add(progress);
+        }
+        
+        return viewModel;
+    }
+    
+    public async Task<bool> EquipSealAsync(string sealId)
+    {
+        var player = _gameWorld.GetPlayer();
+        var seal = player.OwnedSeals.FirstOrDefault(s => s.Id == sealId);
+        
+        if (seal == null)
+        {
+            _messageSystem.AddSystemMessage("You don't own this seal.", SystemMessageTypes.Danger);
+            return false;
+        }
+        
+        if (player.WornSeals.Contains(seal))
+        {
+            _messageSystem.AddSystemMessage("This seal is already equipped.", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        if (player.WornSeals.Count >= 3)
+        {
+            _messageSystem.AddSystemMessage("You can only wear 3 seals at once. Unequip one first.", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        bool success = player.EquipSeal(seal);
+        if (success)
+        {
+            _messageSystem.AddSystemMessage($"Equipped {seal.GetFullName()}.", SystemMessageTypes.Success);
+        }
+        
+        return success;
+    }
+    
+    public async Task<bool> UnequipSealAsync(string sealId)
+    {
+        var player = _gameWorld.GetPlayer();
+        var seal = player.WornSeals.FirstOrDefault(s => s.Id == sealId);
+        
+        if (seal == null)
+        {
+            _messageSystem.AddSystemMessage("This seal is not equipped.", SystemMessageTypes.Warning);
+            return false;
+        }
+        
+        bool success = player.UnequipSeal(seal);
+        if (success)
+        {
+            _messageSystem.AddSystemMessage($"Unequipped {seal.GetFullName()}.", SystemMessageTypes.Success);
+        }
+        
+        return success;
+    }
+    
+    private List<string> GetSealBenefits(Seal seal)
+    {
+        var benefits = new List<string>();
+        
+        // Base benefits by type
+        switch (seal.Type)
+        {
+            case SealType.Commerce:
+                benefits.Add("Better prices at markets");
+                benefits.Add("Access to merchant guild services");
+                if (seal.Tier >= SealTier.Journeyman)
+                    benefits.Add("Priority trading with guild members");
+                if (seal.Tier >= SealTier.Master)
+                    benefits.Add("Exclusive trade route information");
+                break;
+                
+            case SealType.Status:
+                benefits.Add("Recognition by nobles and scholars");
+                benefits.Add("Access to restricted libraries");
+                if (seal.Tier >= SealTier.Journeyman)
+                    benefits.Add("Invitation to exclusive events");
+                if (seal.Tier >= SealTier.Master)
+                    benefits.Add("Authority to issue recommendations");
+                break;
+                
+            case SealType.Shadow:
+                benefits.Add("Safe passage through dangerous areas");
+                benefits.Add("Access to black market contacts");
+                if (seal.Tier >= SealTier.Journeyman)
+                    benefits.Add("Protection from rival gangs");
+                if (seal.Tier >= SealTier.Master)
+                    benefits.Add("Control over underground networks");
+                break;
+        }
+        
+        return benefits;
+    }
+    
+    private string GetTierBenefits(SealType type, SealTier tier)
+    {
+        return (type, tier) switch
+        {
+            (SealType.Commerce, SealTier.Apprentice) => "Basic trading privileges and guild recognition",
+            (SealType.Commerce, SealTier.Journeyman) => "Full merchant rights and priority trading",
+            (SealType.Commerce, SealTier.Master) => "Elite status with exclusive trade routes",
+            (SealType.Status, SealTier.Apprentice) => "Recognition among educated classes",
+            (SealType.Status, SealTier.Journeyman) => "Library access and event invitations",
+            (SealType.Status, SealTier.Master) => "Academic authority and teaching rights",
+            (SealType.Shadow, SealTier.Apprentice) => "Safe passage and underground contacts",
+            (SealType.Shadow, SealTier.Journeyman) => "Gang protection and safe house access",
+            (SealType.Shadow, SealTier.Master) => "Network control and criminal authority",
+            _ => "Guild recognition and privileges"
+        };
+    }
+    
+    private int GetEndorsementsRequired(SealTier tier)
+    {
+        return tier switch
+        {
+            SealTier.Apprentice => 3,
+            SealTier.Journeyman => 5,
+            SealTier.Master => 7,
+            _ => 3
+        };
+    }
+    
+    private List<string> GetGuildLocationsForSealType(SealType type)
+    {
+        return type switch
+        {
+            SealType.Commerce => new List<string> { "Merchant Guild", "Courier's Guild" },
+            SealType.Status => new List<string> { "Scholar's Atheneum" },
+            SealType.Shadow => new List<string> { "Underground Guild Halls" },
+            _ => new List<string>()
+        };
+    }
+    
+    private string GetGuildNameFromId(string guildId)
+    {
+        return guildId switch
+        {
+            "merchant_guild" => "Merchant Guild",
+            "messenger_guild" => "Courier's Guild",
+            "scholar_guild" => "Scholar's Atheneum",
+            _ => "Unknown Guild"
+        };
     }
 }

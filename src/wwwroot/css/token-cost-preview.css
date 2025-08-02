@@ -92,3 +92,85 @@
 .token-cost-preview.inline .additional-info {
     display: none;
 }
+
+/* Token Transaction Preview Component */
+.token-transaction-preview {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.transaction-header {
+    margin-bottom: 0.25rem;
+}
+
+.transaction-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.token-changes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.token-change {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.token-change.gain {
+    color: var(--positive);
+}
+
+.token-change.cost {
+    color: var(--negative);
+}
+
+.change-amount {
+    font-weight: bold;
+    min-width: 2rem;
+}
+
+.with-npc {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.change-effect {
+    margin-left: 2rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.net-effect {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.net-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.net-change {
+    font-weight: bold;
+}
+
+.net-change.positive {
+    color: var(--positive);
+}
+
+.net-change.negative {
+    color: var(--negative);
+}

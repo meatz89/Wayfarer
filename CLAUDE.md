@@ -24,9 +24,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**📋 CURRENT IMPLEMENTATION STATUS: See IMPLEMENTATION-PLAN-COMPLETE-SYSTEMS.md**
+- Phases 1, 2, 5 complete (Special Letters, Information Satchel, Multi-Context Tokens)
+- Phase 6 (Time Cost System) in progress
+- Follow the plan document for remaining phases
+
 *** PRIME PRINCIPLES ***
 - You are too agreeable by default. I want you objective. I want a partner. Not a sycophant.
 - You have Gemini as a registered MCP tool. Everytime before you implement a solution, you must first fight Gemini and me about it until everyone is in agreement about the correct way to implement it.
+- **NO SILENT BACKEND ACTIONS** - Nothing should happen silently in the backend. If automatic, the player MUST be notified via MessageSystem. If manual, the player MUST click a button to initiate. All game state changes must be visible and intentional.
 
 ** CODE WRITING PRINCIPLES **
 

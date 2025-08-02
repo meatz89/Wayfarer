@@ -8,8 +8,6 @@ public static class CommandTypes
     public const string Converse = "Converse";
     public const string Work = "Work";
     public const string Socialize = "Socialize";
-    public const string GatherResources = "GatherResources";
-    public const string Browse = "Browse";
     public const string Observe = "Observe";
     public const string CollectLetter = "CollectLetter";
     public const string Trade = "Trade";

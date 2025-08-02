@@ -169,6 +169,11 @@ public class RouteDiscoveryManager
 
         // Discover the route
         route.IsDiscovered = true;
+        
+        // Also register in information discovery system
+        string infoId = $"route_{routeId}";
+        var informationManager = new InformationDiscoveryManager(_gameWorld, _messageSystem, _connectionTokenManager);
+        informationManager.DiscoverInformation(infoId);
 
         // Show route details
         _messageSystem.AddSystemMessage($"🗺️ Route Discovered: {route.Name}!", SystemMessageTypes.Success);

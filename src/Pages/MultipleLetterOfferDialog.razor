@@ -59,7 +59,7 @@
                             </div>
                             <div class="deadline">
                                 <span class="label">Deadline:</span>
-                                <span class="value @GetDeadlineClass(offer.Deadline)">@offer.Deadline days</span>
+                                <span class="value @GetDeadlineClass(offer.DeadlineInDays)">@offer.DeadlineInDays days</span>
                             </div>
                             @{
                                 var template = LetterTemplateRepository.GetTemplateById(offer.TemplateId);
@@ -207,9 +207,8 @@
         return tokenType switch
         {
             ConnectionType.Trust => "token-trust",
-            ConnectionType.Trade => "token-trade",
-            ConnectionType.Noble => "token-noble",
-            ConnectionType.Common => "token-common",
+            ConnectionType.Commerce => "token-trade",
+            ConnectionType.Status => "token-noble",
             ConnectionType.Shadow => "token-shadow",
             _ => ""
         };
@@ -220,9 +219,8 @@
         return tokenType switch
         {
             ConnectionType.Trust => "💚",
-            ConnectionType.Trade => "💙",
-            ConnectionType.Noble => "💜",
-            ConnectionType.Common => "🤎",
+            ConnectionType.Commerce => "💙",
+            ConnectionType.Status => "💜",
             ConnectionType.Shadow => "🖤",
             _ => "❓"
         };

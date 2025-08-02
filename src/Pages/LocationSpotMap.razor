@@ -22,7 +22,49 @@
                 </div>
                 <div class="location-type">@spot.Description</div>
 
-                @* NPCs are now shown in NPCActionsView component *@
+                @* NPC Schedule Display *@
+                @{
+                    var npcsAtSpot = GetAllNPCsForSpot(spot);
+                    if (npcsAtSpot.Any())
+                    {
+                        <div class="npc-schedule-section">
+                            <div class="npc-schedule-header">People at this location</div>
+                            <div class="npc-list">
+                                @foreach (var npc in npcsAtSpot)
+                                {
+                                    var isAvailable = IsNPCCurrentlyAvailable(npc);
+                                    var nextAvailable = GetNextAvailableTime(npc);
+                                    
+                                    <div class="npc-item">
+                                        <div class="npc-basic-info">
+                                            <div class="npc-name-small">@npc.Name</div>
+                                            <div class="npc-services">
+                                                @foreach (var service in npc.ProvidedServices.Take(3))
+                                                {
+                                                    <span class="service-icon" title="@service.ToString().Replace('_', ' ')">@GetServiceIcon(service)</span>
+                                                }
+                                                @if (npc.ProvidedServices.Count > 3)
+                                                {
+                                                    <span class="service-more">+@(npc.ProvidedServices.Count - 3) more</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="npc-availability-info">
+                                            <div class="npc-status">
+                                                <span class="availability-dot @(isAvailable ? "available" : "unavailable")"></span>
+                                                <span>@(isAvailable ? "Available" : "Unavailable")</span>
+                                            </div>
+                                            @if (!isAvailable)
+                                            {
+                                                <div class="npc-schedule-times">@nextAvailable</div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
 
         @if (spot.SpotID == CurrentSpot.SpotID)
         {

@@ -1,0 +1,176 @@
+@page "/errands"
+@using Wayfarer.ViewModels
+@using Wayfarer.Services
+@inject IGameFacade GameFacade
+@inject ITimeManager TimeManager
+
+<div class="errands-container">
+    <div class="errands-header">
+        <h2>Personal Errands</h2>
+        <p class="header-subtitle">Help NPCs with urgent personal matters to build trust</p>
+    </div>
+    
+    @{
+        var viewModel = GameFacade.GetPersonalErrands();
+    }
+    
+    @* Player Status *@
+    <div class="player-status-bar">
+        <div class="status-item">
+            <span class="status-icon">⚡</span>
+            <span class="status-text">@viewModel.PlayerStatus.CurrentStamina stamina</span>
+        </div>
+        <div class="status-item">
+            <span class="status-icon">💊</span>
+            <span class="status-text">@viewModel.PlayerStatus.MedicineCount medicine</span>
+            @if (viewModel.PlayerStatus.MedicineItems.Any())
+            {
+                <div class="medicine-tooltip">
+                    @foreach (var medicine in viewModel.PlayerStatus.MedicineItems)
+                    {
+                        <div>@medicine</div>
+                    }
+                </div>
+            }
+        </div>
+        @if (!viewModel.PlayerStatus.CanDoErrands)
+        {
+            <div class="status-warning">
+                @if (viewModel.PlayerStatus.CurrentStamina < 2)
+                {
+                    <span>Need at least 2 stamina for errands</span>
+                }
+                @if (viewModel.PlayerStatus.MedicineCount == 0)
+                {
+                    <span>Need medicine items for most errands</span>
+                }
+            </div>
+        }
+    </div>
+    
+    @* Available Errands *@
+    <div class="errands-section">
+        <h3>Available Errands</h3>
+        
+        @if (!viewModel.AvailableErrands.Any())
+        {
+            <div class="no-errands">
+                <p>No errands available right now.</p>
+                <p class="hint">Build relationships with NPCs (2+ tokens) to unlock personal errands.</p>
+            </div>
+        }
+        else
+        {
+            <div class="errands-grid">
+                @foreach (var errand in viewModel.AvailableErrands.OrderBy(e => e.LocationName).ThenBy(e => e.NPCName))
+                {
+                    <div class="errand-card @(errand.CanPerform ? "available" : "unavailable")">
+                        <div class="errand-header">
+                            <div class="npc-info">
+                                <div class="npc-name">@errand.NPCName</div>
+                                <div class="npc-profession">@errand.NPCProfession</div>
+                            </div>
+                            <div class="location-info">
+                                <span class="location-icon">📍</span>
+                                <span class="location-name">@errand.LocationName</span>
+                            </div>
+                        </div>
+                        
+                        <div class="errand-description">
+                            @errand.Description
+                        </div>
+                        
+                        <div class="errand-requirements">
+                            <div class="requirement @(errand.PlayerTokens >= errand.RequiredTokens ? "met" : "unmet")">
+                                <span class="requirement-icon">🤝</span>
+                                <span>@errand.PlayerTokens/@errand.RequiredTokens tokens</span>
+                            </div>
+                            <div class="requirement @(errand.HasMedicine ? "met" : "unmet")">
+                                <span class="requirement-icon">💊</span>
+                                <span>Medicine required</span>
+                            </div>
+                            <div class="requirement @(viewModel.PlayerStatus.CurrentStamina >= errand.StaminaCost ? "met" : "unmet")">
+                                <span class="requirement-icon">⚡</span>
+                                <span>@errand.StaminaCost stamina</span>
+                            </div>
+                            <div class="requirement">
+                                <span class="requirement-icon">⏰</span>
+                                <span>@errand.TimeCost hours</span>
+                            </div>
+                        </div>
+                        
+                        <div class="errand-reward">
+                            <span class="reward-icon">@GetTokenIcon(errand.TokenReward)</span>
+                            <span>+1 @errand.TokenReward token</span>
+                        </div>
+                        
+                        @if (errand.CanPerform)
+                        {
+                            <button class="errand-button" @onclick="() => PerformErrand(errand.NPCId)">
+                                Help @errand.NPCName
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="blocking-reason">
+                                @errand.BlockingReason
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    
+    @* Help Section *@
+    <div class="help-section">
+        <h3>About Personal Errands</h3>
+        <div class="help-content">
+            <p>Personal errands are urgent requests from NPCs you've built relationships with. These tasks require:</p>
+            <ul>
+                <li><strong>Relationship:</strong> At least 2 tokens with the NPC</li>
+                <li><strong>Medicine:</strong> Most errands require medicine or healing supplies</li>
+                <li><strong>Time & Energy:</strong> 2 hours and 2 stamina to complete</li>
+            </ul>
+            <p>Completing errands always grants a Trust token, strengthening your bond with that NPC.</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnActionExecuted { get; set; }
+    
+    private async Task PerformErrand(string npcId)
+    {
+        var success = await GameFacade.ExecutePersonalErrandAsync(npcId);
+        
+        if (success)
+        {
+            // Advance time by 2 hours for the errand
+            TimeManager.AdvanceTime(2);
+            
+            // Refresh the UI
+            StateHasChanged();
+            
+            // Notify parent if needed
+            if (OnActionExecuted.HasDelegate)
+            {
+                await OnActionExecuted.InvokeAsync();
+            }
+        }
+    }
+    
+    private string GetTokenIcon(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+}
+
+@namespace Wayfarer.Pages

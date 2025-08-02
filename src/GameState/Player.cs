@@ -19,7 +19,6 @@ public class Player
     public int Coins { get; set; } = 10; // Starting coins - intentionally kept as literal as it's game balance
     public int Stamina { get; set; } = 6; // Starting stamina - from GameConfiguration.StartingStamina
     public int Concentration { get; set; } = 10; // Starting concentration - intentionally kept as literal
-    public int Reputation { get; set; } = 0;
     public int Health { get; set; }
     public int Food { get; set; }
     public int PatronLeverage { get; set; } = 0;
@@ -96,11 +95,21 @@ public class Player
 
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
+    
+    // Seal System
+    public List<Seal> Seals { get; private set; } = new List<Seal>();
+    
+    // Debt System
+    public List<Debt> ActiveDebts { get; private set; } = new List<Debt>();
 
     // Token Favor System
     public List<string> PurchasedFavors { get; set; } = new List<string>();
     public List<string> UnlockedLocationIds { get; set; } = new List<string>();
     public List<string> UnlockedServices { get; set; } = new List<string>();
+    
+    // Seal System - Players can wear up to 3 seals
+    public List<Seal> WornSeals { get; set; } = new List<Seal>(3);
+    public List<Seal> OwnedSeals { get; set; } = new List<Seal>();  // All seals earned
 
     // Collapse callback - set by GameWorldManager
     public Action OnStaminaExhausted { get; set; }
@@ -185,6 +194,11 @@ public class Player
     public bool HasMemory(string key, int currentDay)
     {
         return Memories.Any(m => m.Key == key && m.IsActive(currentDay));
+    }
+    
+    public MemoryFlag GetMemory(string key)
+    {
+        return Memories.FirstOrDefault(m => m.Key == key);
     }
 
     public List<MemoryFlag> GetRecentMemories(int currentDay, int count = 5)
@@ -388,10 +402,6 @@ public class Player
         throw new NotImplementedException();
     }
 
-    public void AddReputation(int reputationReward)
-    {
-        throw new NotImplementedException();
-    }
 
     public void AddInsightPoints(int insightPointReward)
     {
@@ -489,16 +499,6 @@ public class Player
     }
 
 
-    public ReputationLevel GetReputationLevel()
-    {
-        if (Reputation >= 75) return ReputationLevel.Revered;
-        if (Reputation >= 50) return ReputationLevel.Respected;
-        if (Reputation >= 25) return ReputationLevel.Trusted;
-        if (Reputation >= 0) return ReputationLevel.Neutral;
-        if (Reputation >= -25) return ReputationLevel.Suspicious;
-        if (Reputation >= -50) return ReputationLevel.Distrusted;
-        return ReputationLevel.Hated;
-    }
 
     public bool HasItem(string equipment)
     {
@@ -522,9 +522,6 @@ public class Player
 
     public bool SpendMoney(int amount)
     {
-        // Reputation no longer affects prices - emergent gameplay instead
-        // High reputation affects: contract availability, credit access, information sharing
-
         if (Coins < amount) return false;
 
         Coins -= amount;
@@ -609,5 +606,40 @@ public class Player
     internal void SetStamina(int value)
     {
         throw new NotImplementedException();
+    }
+    
+    /// <summary>
+    /// Check if player has a seal that meets the requirements
+    /// </summary>
+    public bool HasSeal(SealType type, SealTier minimumTier = SealTier.Apprentice)
+    {
+        return WornSeals.Any(seal => seal.MeetsRequirement(type, minimumTier));
+    }
+    
+    /// <summary>
+    /// Equip a seal (max 3 worn at once)
+    /// </summary>
+    public bool EquipSeal(Seal seal)
+    {
+        if (!OwnedSeals.Contains(seal))
+            return false;
+            
+        if (WornSeals.Count >= 3)
+            return false;
+            
+        if (!WornSeals.Contains(seal))
+        {
+            WornSeals.Add(seal);
+        }
+        
+        return true;
+    }
+    
+    /// <summary>
+    /// Remove a worn seal
+    /// </summary>
+    public bool UnequipSeal(Seal seal)
+    {
+        return WornSeals.Remove(seal);
     }
 }

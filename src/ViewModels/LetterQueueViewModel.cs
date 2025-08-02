@@ -38,7 +38,7 @@ public class LetterViewModel
     public string Id { get; init; }
     public string SenderName { get; init; }
     public string RecipientName { get; init; }
-    public int Deadline { get; init; }
+    public int DeadlineInDays { get; init; }
     public int Payment { get; init; }
     public string TokenType { get; init; }
     public string TokenIcon { get; init; }
@@ -48,6 +48,11 @@ public class LetterViewModel
     public bool IsCollected { get; init; }
     public string PhysicalConstraints { get; init; }
     public string PhysicalIcon { get; init; }
+    
+    // Special letter properties
+    public bool IsSpecial { get; init; }
+    public string SpecialIcon { get; init; }
+    public string SpecialDescription { get; init; }
 
     // Visual indicators
     public string DeadlineClass { get; init; }
