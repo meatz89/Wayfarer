@@ -1,594 +1,135 @@
-@using Wayfarer.Pages.Components
-@using Wayfarer.Services
-@inject GameFacade GameFacade
-@inject ConversationRepository ConversationRepository
-@inject ITimeManager TimeManager
-@inject NPCRepository NPCRepository
-@inject SpecialLetterGenerationService SpecialLetterService
-@inject ConnectionTokenManager TokenManager
-@inject GameWorld GameWorld
-@inject TimeImpactCalculator TimeCalculator
-@* ActionExecutionService removed - using GameFacade for all actions *@
+@inherits ComponentBase
 
 <div class="npc-actions-view">
-    @{
-        var viewModel = GameFacade.GetLocationActions();
-        var allNPCs = GetVisibleNPCs();
-        var locationActions = GetLocationActions(viewModel);
-        var npcActions = GroupActionsByNPC(viewModel);
-    }
-    
-    @if (!allNPCs.Any() && !locationActions.Any())
+    @if (SelectedNPC == null)
     {
         <div class="no-content">
-            <p>This location appears empty.</p>
+            <p>Select an NPC to see available actions.</p>
         </div>
     }
     else
     {
-        @* Location Actions (Travel, Rest, etc.) *@
-        @if (locationActions.Any())
-        {
-            <div class="location-actions-section">
-                <h3>Location Actions</h3>
-                <div class="actions-list">
-                    @foreach (var action in locationActions)
-                    {
-                        <div class="action-card @(CanAffordAction(action) ? "" : "disabled")">
-                            <div class="action-info">
-                                <div class="action-name">@action.Description</div>
-                                @if (!string.IsNullOrEmpty(action.RewardsDescription))
-                                {
-                                    <div class="action-rewards">@action.RewardsDescription</div>
-                                }
-                            </div>
-                            <div class="action-costs">
-                                @if (action.TimeCost > 0)
-                                {
-                                    <span class="cost @(action.HasEnoughTime ? "" : "insufficient")">⏰ @action.TimeCost hr</span>
-                                }
-                                @if (action.StaminaCost > 0)
-                                {
-                                    <span class="cost @(action.HasEnoughStamina ? "" : "insufficient")">💪 @action.StaminaCost</span>
-                                }
-                                @if (action.CoinCost > 0)
-                                {
-                                    <span class="cost @(action.HasEnoughCoins ? "" : "insufficient")">🪙 @action.CoinCost</span>
-                                }
-                            </div>
-                            @* Show time impact for action *@
-                            @if (action.TimeCost > 0)
-                            {
-                                var timeImpact = TimeCalculator.CalculateTimeImpact(action.TimeCost);
-                                <ActionTimePreview Hours="@timeImpact.Hours"
-                                                   CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
-                                                   ResultTimeBlock="@timeImpact.ResultTimeBlock"
-                                                   WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
-                                                   LettersExpiring="@timeImpact.LettersExpiring"
-                                                   ShowDeadlineWarning="true"
-                                                   ShowTimeProgression="true" />
-                            }
-                            <button class="action-button" 
-                                    disabled="@(!CanAffordAction(action))"
-                                    @onclick="@(() => ExecuteAction(action.Id))">
-                                Do This
-                            </button>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
+        var actions = GetActionsForNPC();
         
-        @* NPCs and their actions *@
-        @if (allNPCs.Any())
+        <div class="npc-header">
+            <div class="npc-info">
+                <span class="npc-name">@SelectedNPC.Name</span>
+                <span class="npc-role">@SelectedNPC.Profession.ToString().Replace("_", " ")</span>
+            </div>
+            @if (SelectedNPC.IsAvailable(CurrentTime))
+            {
+                <span class="availability-indicator available">●</span>
+            }
+            else
+            {
+                <span class="availability-indicator unavailable">●</span>
+            }
+        </div>
+        
+        @if (actions.Any())
         {
-            <div class="npcs-section">
-                <h3>People</h3>
-                @foreach (var npc in allNPCs)
+            <div class="npc-actions">
+                @foreach (var action in actions)
                 {
-                    var npcActionList = npcActions.ContainsKey(npc.ID) ? npcActions[npc.ID] : new List<ActionOptionViewModel>();
-                    <div class="npc-card @(npcActionList.Any() ? "has-actions" : "no-actions")">
-                        <div class="npc-header">
-                            <div class="npc-info">
-                                <span class="npc-name">@npc.Name</span>
-                                <span class="npc-role">@npc.Profession.ToString().Replace("_", " ")</span>
-                            </div>
-                            @if (npc.IsAvailable(CurrentTime))
+                    <div class="action-with-preview">
+                        <button class="npc-action-button @(CanAffordAction(action) ? "" : "disabled")" 
+                                disabled="@(!CanAffordAction(action))"
+                                @onclick="@(() => ExecuteAction(action.Id))">
+                            <span class="action-text">@GetActionVerb(action)</span>
+                            @if (action.TimeCost > 0 || action.StaminaCost > 0 || action.CoinCost > 0)
                             {
-                                <span class="availability-indicator available">●</span>
-                            }
-                            else
-                            {
-                                <span class="availability-indicator unavailable">●</span>
-                            }
-                        </div>
-                        
-                        @if (npcActionList.Any())
-                        {
-                            <div class="npc-actions">
-                                @foreach (var action in npcActionList)
-                                {
-                                    <div class="action-with-preview">
-                                        <button class="npc-action-button @(CanAffordAction(action) ? "" : "disabled")" 
-                                                disabled="@(!CanAffordAction(action))"
-                                                @onclick="@(() => ExecuteAction(action.Id))">
-                                            <span class="action-text">@GetActionVerb(action)</span>
-                                            @if (action.TimeCost > 0 || action.StaminaCost > 0 || action.CoinCost > 0)
-                                            {
-                                                <span class="action-costs-inline">
-                                                    @if (action.TimeCost > 0)
-                                                    {
-                                                        <span class="cost-inline @(action.HasEnoughTime ? "" : "insufficient")">@action.TimeCost⏰</span>
-                                                    }
-                                                    @if (action.StaminaCost > 0)
-                                                    {
-                                                        <span class="cost-inline @(action.HasEnoughStamina ? "" : "insufficient")">@action.StaminaCost💪</span>
-                                                    }
-                                                    @if (action.CoinCost > 0)
-                                                    {
-                                                        <span class="cost-inline @(action.HasEnoughCoins ? "" : "insufficient")">@action.CoinCost🪙</span>
-                                                    }
-                                                </span>
-                                            }
-                                        </button>
-                                        @{
-                                            var tokenChanges = GetTokenChangesForAction(action, npc.ID);
-                                            if (tokenChanges != null && tokenChanges.Any())
-                                            {
-                                                <TokenTransactionPreview TokenChanges="@tokenChanges" ShowEffects="false" ShowNetEffect="false" />
-                                            }
-                                            
-                                            if (action.TimeCost > 0)
-                                            {
-                                                var timeImpact = TimeCalculator.CalculateTimeImpact(action.TimeCost);
-                                                <ActionTimePreview Hours="@timeImpact.Hours"
-                                                                   CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
-                                                                   ResultTimeBlock="@timeImpact.ResultTimeBlock"
-                                                                   WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
-                                                                   LettersExpiring="@timeImpact.LettersExpiring"
-                                                                   ShowDeadlineWarning="true"
-                                                                   ShowTimeProgression="true" />
-                                            }
-                                        }
-                                    </div>
-                                }
-                                
-                                @* Special Letter Options *@
-                                @{
-                                    var specialOptions = SpecialLetterService.GetAvailableSpecialLetters(npc.ID);
-                                    if (specialOptions.Any() && npc.IsAvailable(CurrentTime))
+                                <span class="action-costs-inline">
+                                    @if (action.TimeCost > 0)
                                     {
-                                        foreach (var option in specialOptions)
-                                        {
-                                            <div class="action-with-preview">
-                                                <button class="npc-action-button @(option.CanAfford ? "" : "disabled")"
-                                                        disabled="@(!option.CanAfford)"
-                                                        @onclick="@(() => RequestSpecialLetter(npc.ID, option.TokenType))">
-                                                    <span class="action-text">
-                                                        @GetSpecialLetterIcon(option.SpecialType) Request @option.SpecialType
-                                                    </span>
-                                                    <span class="action-costs-inline">
-                                                        <span class="cost-inline">1⏰</span>
-                                                        <span class="cost-inline @(option.CanAfford ? "" : "insufficient")">
-                                                            @option.Cost @GetTokenIcon(option.TokenType)
-                                                        </span>
-                                                    </span>
-                                                </button>
-                                                <TokenTransactionPreview TokenChanges="@GetSpecialLetterTokenCost(npc.ID, option)" ShowEffects="true" ShowNetEffect="false" />
-                                                @{
-                                                    var timeImpact = TimeCalculator.CalculateTimeImpact(1);
-                                                    <ActionTimePreview Hours="1"
-                                                                       CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
-                                                                       ResultTimeBlock="@timeImpact.ResultTimeBlock"
-                                                                       WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
-                                                                       LettersExpiring="@timeImpact.LettersExpiring"
-                                                                       ShowDeadlineWarning="true"
-                                                                       ShowTimeProgression="false" />
-                                                }
-                                            </div>
-                                        }
+                                        <span class="cost-inline @(action.HasEnoughTime ? "" : "insufficient")">@action.TimeCost⏰</span>
                                     }
-                                }
-                            </div>
+                                    @if (action.StaminaCost > 0)
+                                    {
+                                        <span class="cost-inline @(action.HasEnoughStamina ? "" : "insufficient")">@action.StaminaCost💪</span>
+                                    }
+                                    @if (action.CoinCost > 0)
+                                    {
+                                        <span class="cost-inline @(action.HasEnoughCoins ? "" : "insufficient")">@action.CoinCost🪙</span>
+                                    }
+                                </span>
+                            }
+                        </button>
+                        
+                        
+                        @{
+                            var tokenChanges = GetTokenChangesForAction(action, SelectedNPC.ID);
                         }
-                        else if (npc.IsAvailable(CurrentTime))
+                        @if (tokenChanges != null && tokenChanges.Any())
                         {
-                            <div class="no-actions-message">
-                                <p>No actions available with @npc.Name</p>
-                            </div>
+                            <TokenTransactionPreview TokenChanges="@tokenChanges" ShowEffects="false" ShowNetEffect="false" />
                         }
-                        else
+                        
+                        @if (action.TimeCost > 0)
                         {
-                            <div class="unavailable-message">
-                                <p>@npc.Name is not available right now</p>
-                            </div>
+                            var timeImpact = TimeCalculator.CalculateTimeImpact(action.TimeCost);
+                            <ActionTimePreview Hours="@timeImpact.Hours"
+                                               CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
+                                               ResultTimeBlock="@timeImpact.ResultTimeBlock"
+                                               WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
+                                               LettersExpiring="@timeImpact.LettersExpiring"
+                                               ShowDeadlineWarning="true"
+                                               ShowTimeProgression="true" />
                         }
                     </div>
                 }
+                
+                @* Special Letter Options *@
+                @{
+                    var specialOptions = SpecialLetterService.GetAvailableSpecialLetters(SelectedNPC.ID);
+                }
+                @if (specialOptions.Any() && SelectedNPC.IsAvailable(CurrentTime))
+                {
+                    <div class="location-actions-section">
+                            <h3>Special Letters</h3>
+                            @foreach (var option in specialOptions)
+                            {
+                                <div class="action-with-preview">
+                                    <button class="npc-action-button @(option.CanAfford ? "" : "disabled")"
+                                            disabled="@(!option.CanAfford)"
+                                            @onclick="@(() => RequestSpecialLetter(SelectedNPC.ID, option.TokenType))">
+                                        <span class="action-text">
+                                            @GetSpecialLetterIcon(option.SpecialType.ToString()) Request @option.SpecialType
+                                        </span>
+                                        <span class="action-costs-inline">
+                                            <span class="cost-inline">1⏰</span>
+                                            <span class="cost-inline @(option.CanAfford ? "" : "insufficient")">
+                                                @option.Cost @GetTokenIcon(option.TokenType)
+                                            </span>
+                                        </span>
+                                    </button>
+                                    <TokenTransactionPreview TokenChanges="@GetSpecialLetterTokenCost(SelectedNPC.ID, option)" ShowEffects="true" ShowNetEffect="false" />
+                                    @{
+                                        var timeImpact = TimeCalculator.CalculateTimeImpact(1);
+                                    }
+                                    <ActionTimePreview Hours="1"
+                                                       CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
+                                                       ResultTimeBlock="@timeImpact.ResultTimeBlock"
+                                                       WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
+                                                       LettersExpiring="@timeImpact.LettersExpiring"
+                                                       ShowDeadlineWarning="true"
+                                                       ShowTimeProgression="false" />
+                                </div>
+                            }
+                        </div>
+                }
+            </div>
+        }
+        else if (SelectedNPC.IsAvailable(CurrentTime))
+        {
+            <div class="no-actions-message">
+                <p>No actions available with @SelectedNPC.Name right now.</p>
+            </div>
+        }
+        else
+        {
+            <div class="unavailable-message">
+                <p>@SelectedNPC.Name is not available at this time.</p>
             </div>
         }
     }
 </div>
-
-@* Deadline Warning Modal *@
-<DeadlineWarningModal IsVisible="@ShowDeadlineWarning"
-                      TimeImpact="@PendingTimeImpact"
-                      OnConfirm="ConfirmActionWithDeadline"
-                      OnCancel="CancelActionWithDeadline" />
-
-@code {
-    [Parameter] public EventCallback OnActionExecuted { get; set; }
-    
-    private TimeBlocks CurrentTime => TimeManager.GetCurrentTimeBlock();
-    
-    // Deadline warning state
-    private bool ShowDeadlineWarning = false;
-    private TimeImpactInfo PendingTimeImpact = null;
-    private string PendingActionId = null;
-    
-    private List<TokenTransactionPreview.TokenChange> GetTokenChangesForAction(ActionOptionViewModel action, string npcId)
-    {
-        var changes = new List<TokenTransactionPreview.TokenChange>();
-        
-        // Work actions give tokens
-        if (action.Description.StartsWith("Work for"))
-        {
-            var npc = NPCRepository.GetById(npcId);
-            if (npc != null)
-            {
-                // Work gives Commerce tokens
-                changes.Add(new TokenTransactionPreview.TokenChange
-                {
-                    TokenType = ConnectionType.Commerce,
-                    Amount = 1,
-                    NpcName = npc.Name,
-                    Effect = "Builds business relationship"
-                });
-            }
-        }
-        // Socialize actions give Trust tokens
-        else if (action.Description.StartsWith("Socialize with"))
-        {
-            var npc = NPCRepository.GetById(npcId);
-            if (npc != null)
-            {
-                changes.Add(new TokenTransactionPreview.TokenChange
-                {
-                    TokenType = ConnectionType.Trust,
-                    Amount = 1,
-                    NpcName = npc.Name,
-                    Effect = "Strengthens friendship"
-                });
-            }
-        }
-        // Borrow money creates debt
-        else if (action.Description.StartsWith("Borrow money from"))
-        {
-            var npc = NPCRepository.GetById(npcId);
-            if (npc != null)
-            {
-                changes.Add(new TokenTransactionPreview.TokenChange
-                {
-                    TokenType = ConnectionType.Commerce,
-                    Amount = -5, // Debt from borrowing
-                    NpcName = npc.Name,
-                    Effect = "Creates debt leverage"
-                });
-            }
-        }
-        
-        return changes.Any() ? changes : null;
-    }
-    
-    private List<TokenTransactionPreview.TokenChange> GetSpecialLetterTokenCost(string npcId, SpecialLetterOption option)
-    {
-        var npc = NPCRepository.GetById(npcId);
-        if (npc == null) return null;
-        
-        var changes = new List<TokenTransactionPreview.TokenChange>
-        {
-            new TokenTransactionPreview.TokenChange
-            {
-                TokenType = option.TokenType,
-                Amount = -option.Cost, // Negative for cost
-                NpcName = npc.Name,
-                Effect = GetSpecialLetterEffect(option.SpecialType)
-            }
-        };
-        
-        return changes;
-    }
-    
-    private string GetSpecialLetterEffect(LetterSpecialType type)
-    {
-        return type switch
-        {
-            LetterSpecialType.Introduction => "Opens new connections",
-            LetterSpecialType.AccessPermit => "Unlocks restricted areas",
-            LetterSpecialType.Endorsement => "Builds status reputation",
-            LetterSpecialType.Information => "Reveals hidden content",
-            _ => ""
-        };
-    }
-    
-    private List<NPC> GetVisibleNPCs()
-    {
-        var player = GameFacade.GetPlayer();
-        if (player?.CurrentLocationSpot == null) return new List<NPC>();
-        
-        var npcs = NPCRepository.GetAllNPCs()
-            .Where(npc => npc.SpotId == player.CurrentLocationSpot.SpotID)
-            .ToList();
-        
-        // No narrative filter needed - all NPCs at location are visible
-        
-        return npcs;
-    }
-    
-    private List<ActionOptionViewModel> GetLocationActions(LocationActionsViewModel viewModel)
-    {
-        var locationActions = new List<ActionOptionViewModel>();
-        
-        // Extract non-NPC actions (Travel, Rest, etc.)
-        foreach (var group in viewModel.ActionGroups)
-        {
-            foreach (var action in group.Actions)
-            {
-                // Skip actions that have an NPC associated
-                if (string.IsNullOrEmpty(action.NPCName))
-                {
-                    locationActions.Add(action);
-                }
-            }
-        }
-        
-        return locationActions;
-    }
-    
-    private Dictionary<string, List<ActionOptionViewModel>> GroupActionsByNPC(LocationActionsViewModel viewModel)
-    {
-        var npcActions = new Dictionary<string, List<ActionOptionViewModel>>();
-        
-        foreach (var group in viewModel.ActionGroups)
-        {
-            foreach (var action in group.Actions)
-            {
-                if (!string.IsNullOrEmpty(action.NPCName))
-                {
-                    // Extract NPC ID from action ID (e.g., "converse_tam_beggar" -> "tam_beggar")
-                    var npcId = ExtractNPCIdFromAction(action);
-                    if (!string.IsNullOrEmpty(npcId))
-                    {
-                        if (!npcActions.ContainsKey(npcId))
-                        {
-                            npcActions[npcId] = new List<ActionOptionViewModel>();
-                        }
-                        npcActions[npcId].Add(action);
-                    }
-                }
-            }
-        }
-        
-        return npcActions;
-    }
-    
-    private string ExtractNPCIdFromAction(ActionOptionViewModel action)
-    {
-        // Try to extract NPC ID from action ID
-        // Common patterns: "converse_npc_id", "work_npc_id", etc.
-        if (!string.IsNullOrEmpty(action.Id))
-        {
-            var parts = action.Id.Split('_');
-            if (parts.Length >= 2)
-            {
-                // Skip the first part (action type) and join the rest
-                return string.Join("_", parts.Skip(1));
-            }
-        }
-        
-        return null;
-    }
-    
-    private async Task ExecuteAction(string actionId)
-    {
-        Console.WriteLine($"[NPCActionsView] Executing action: {actionId}");
-        
-        // Get action details to check time cost
-        var viewModel = GameFacade.GetLocationActions();
-        var action = viewModel.ActionGroups
-            .SelectMany(g => g.Actions)
-            .FirstOrDefault(a => a.Id == actionId);
-            
-        if (action == null)
-        {
-            Console.WriteLine($"[NPCActionsView] Action {actionId} not found");
-            return;
-        }
-        
-        // Check if action would cause deadline impacts
-        var needsWarning = false;
-        TimeImpactInfo timeImpact = null;
-        
-        if (action.TimeCost > 0)
-        {
-            timeImpact = TimeCalculator.CalculateTimeImpact(action.TimeCost);
-            needsWarning = timeImpact?.LettersExpiring > 0;
-        }
-        
-        if (needsWarning)
-        {
-            // Show warning modal
-            PendingActionId = actionId;
-            PendingTimeImpact = timeImpact;
-            ShowDeadlineWarning = true;
-            StateHasChanged();
-        }
-        else
-        {
-            // Execute action immediately
-            var success = await GameFacade.ExecuteLocationActionAsync(actionId);
-            Console.WriteLine($"[NPCActionsView] Action {actionId} completed with result: {success}");
-            
-            // Always refresh UI
-            StateHasChanged();
-            
-            // Notify parent
-            if (OnActionExecuted.HasDelegate)
-            {
-                await OnActionExecuted.InvokeAsync();
-            }
-        }
-    }
-    
-    private bool CanAffordAction(ActionOptionViewModel action)
-    {
-        return action.HasEnoughTime && action.HasEnoughStamina && action.HasEnoughCoins;
-    }
-    
-    private string GetActionVerb(ActionOptionViewModel action)
-    {
-        // Extract clean action verb from description
-        var desc = action.Description;
-        if (desc.StartsWith("Talk to")) return "Talk";
-        if (desc.StartsWith("Work for")) return "Work";
-        if (desc.StartsWith("Socialize with")) return "Socialize";
-        if (desc.StartsWith("Borrow money from")) return "Borrow Money";
-        if (desc.StartsWith("Learn route:")) return "Learn Route";
-        if (desc.StartsWith("Learn about")) return "Learn Route";
-        
-        // Handle location actions that appear in the location section
-        if (desc == "Gather resources") return "Gather Resources";
-        if (desc == "Browse market") return "Browse Market";
-        if (desc == "Observe location") return "Observe";
-        if (desc.StartsWith("Travel to")) return desc; // Keep full "Travel to X"
-        if (desc.StartsWith("Rest for")) return desc; // Keep full "Rest for X hours"
-        if (desc == "Request patron funds") return "Request Funds";
-        
-        return desc;
-    }
-    
-    private string GetSpecialLetterIcon(LetterSpecialType type)
-    {
-        return type switch
-        {
-            LetterSpecialType.Introduction => "🤝",
-            LetterSpecialType.AccessPermit => "🔓",
-            LetterSpecialType.Endorsement => "⭐",
-            LetterSpecialType.Information => "🔍",
-            _ => "📜"
-        };
-    }
-    
-    private string GetTokenIcon(ConnectionType type)
-    {
-        return type switch
-        {
-            ConnectionType.Trust => "❤️",
-            ConnectionType.Commerce => "🪙",
-            ConnectionType.Status => "👑",
-            ConnectionType.Shadow => "🌑",
-            _ => "❓"
-        };
-    }
-    
-    private async Task RequestSpecialLetter(string npcId, ConnectionType tokenType)
-    {
-        // Check for deadline impacts (special letters take 1 hour)
-        var timeImpact = TimeCalculator.CalculateTimeImpact(1);
-        
-        if (timeImpact?.LettersExpiring > 0)
-        {
-            // Show warning modal for special letter request
-            PendingActionId = $"special_letter_{npcId}_{tokenType}";
-            PendingTimeImpact = timeImpact;
-            ShowDeadlineWarning = true;
-            StateHasChanged();
-            return;
-        }
-        
-        // No warning needed, execute immediately
-        bool success = SpecialLetterService.RequestSpecialLetter(npcId, tokenType);
-        
-        if (success)
-        {
-            // Deduct 1 hour of time for the negotiation
-            TimeManager.AdvanceTime(1);
-        }
-        
-        // Refresh the UI
-        StateHasChanged();
-        
-        // Notify parent of action
-        if (OnActionExecuted.HasDelegate)
-        {
-            await OnActionExecuted.InvokeAsync();
-        }
-    }
-    
-    private async Task ConfirmActionWithDeadline()
-    {
-        Console.WriteLine($"[NPCActionsView] User confirmed action with deadline warning");
-        
-        // Hide modal
-        ShowDeadlineWarning = false;
-        StateHasChanged();
-        
-        if (PendingActionId != null)
-        {
-            var success = false;
-            
-            // Check if this is a special letter request
-            if (PendingActionId.StartsWith("special_letter_"))
-            {
-                // Extract npcId and tokenType from the pending action ID
-                var parts = PendingActionId.Split('_');
-                if (parts.Length >= 4)
-                {
-                    var npcId = parts[2];
-                    if (Enum.TryParse<ConnectionType>(parts[3], out var tokenType))
-                    {
-                        success = SpecialLetterService.RequestSpecialLetter(npcId, tokenType);
-                        if (success)
-                        {
-                            TimeManager.AdvanceTime(1);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // Regular action - execute via GameFacade
-                success = await GameFacade.ExecuteLocationActionAsync(PendingActionId);
-            }
-            
-            Console.WriteLine($"[NPCActionsView] Action {PendingActionId} completed with result: {success}");
-            
-            // Clear pending state
-            PendingActionId = null;
-            PendingTimeImpact = null;
-            
-            // Always refresh UI
-            StateHasChanged();
-            
-            // Notify parent
-            if (OnActionExecuted.HasDelegate)
-            {
-                await OnActionExecuted.InvokeAsync();
-            }
-        }
-    }
-    
-    private void CancelActionWithDeadline()
-    {
-        Console.WriteLine($"[NPCActionsView] User cancelled action with deadline warning");
-        
-        // Cancel the pending action - nothing to do since we're not using ActionExecutor
-        
-        // Hide modal and clear state
-        ShowDeadlineWarning = false;
-        PendingActionId = null;
-        PendingTimeImpact = null;
-        StateHasChanged();
-    }
-}
-

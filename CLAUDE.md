@@ -10,6 +10,8 @@
 - NEVER make changes based on assumptions - ALWAYS verify first
 - NEVER make partial changes without understanding the full impact
 - If you haven't analyzed the codebase thoroughly, DO NOT MAKE THE CHANGE
+- ALWAYS check if a file exist before creating it
+- **ALWAYS understand the full context before writing ANY code**
 
 **🚨 CRITICAL RULE: NEVER MARK ANYTHING AS COMPLETE WITHOUT TESTING 🚨**
 - You MUST build and run tests before claiming completion
@@ -182,3 +184,6 @@ if (isDoingDelivery && hasTradeGoods)
 - Focus on daily survival and social navigation
 - Finding human connection amid complex obligations
 - Inspired by slice-of-life narratives in challenging environments
+
+**Principles and Memories:**
+- ALWAYS read the full file before editing

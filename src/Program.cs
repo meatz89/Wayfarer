@@ -7,14 +7,6 @@ Console.WriteLine("[STARTUP] Creating WebApplicationBuilder...");
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 Console.WriteLine("[STARTUP] WebApplicationBuilder created");
 
-// Configure Kestrel to only use HTTP
-Console.WriteLine("[STARTUP] Configuring Kestrel...");
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.ListenLocalhost(5200); // HTTP only on different port
-});
-Console.WriteLine("[STARTUP] Kestrel configured");
-
 // Add services to the container.
 Console.WriteLine("[STARTUP] Adding Razor Pages and Blazor services...");
 builder.Services.AddRazorPages();

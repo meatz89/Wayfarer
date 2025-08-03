@@ -1,0 +1,103 @@
+@using Wayfarer.Pages.Components
+@inherits ComponentBase
+
+<div class="location-container">
+    <div class="location-header">
+        <h2 class="location-title">@CurrentLocation?.Name</h2>
+    </div>
+
+    @if (CurrentLocation != null)
+    {
+        @* Location Spots Section *@
+        <div class="location-info-panel">
+            <h3>Areas in @CurrentLocation.Name</h3>
+            <div class="location-grid">
+                @foreach (var spot in CurrentLocation.AvailableSpots)
+                {
+                    <div class="location-card @(IsCurrentSpot(spot) ? "current" : "") @(spot.IsClosed ? "closed" : "")"
+                         @onclick="() => MoveToSpot(spot)">
+                        <div class="location-name">@spot.Name</div>
+                        <small>@spot.Type</small>
+                        @if (IsCurrentSpot(spot))
+                        {
+                            <div class="current-indicator">You are here</div>
+                        }
+                        @if (!spot.IsClosed && !IsCurrentSpot(spot))
+                        {
+                            <small>Click to move here</small>
+                        }
+                        @if (spot.IsClosed)
+                        {
+                            <div class="closed-notice">Closed</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* NPCs at Current Spot *@
+        @if (CurrentSpot != null)
+        {
+            <div class="npcs-section">
+                <h3 class="npcs-header">People at @CurrentSpot.Name</h3>
+                @if (NPCsAtCurrentSpot.Any())
+                {
+                    <div class="npc-list">
+                        @foreach (var npc in NPCsAtCurrentSpot)
+                        {
+                            <div class="npc-card @(SelectedNPC?.ID == npc.ID ? "npc-selected" : "")"
+                                 @onclick="() => SelectNPC(npc)">
+                                <div class="npc-status-line">
+                                    <span class="npc-name">@npc.Name</span>
+                                    <span class="npc-profession">@npc.Profession</span>
+                                </div>
+                                <div class="npc-basic-info">
+                                    @if (GetTokensWithNPC(npc.ID).Any())
+                                    {
+                                        <div class="npc-tokens">
+                                            @foreach (var token in GetTokensWithNPC(npc.ID))
+                                            {
+                                                <span class="token-badge @token.Key.ToString().ToLower()">
+                                                    @token.Key: @token.Value
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="no-content">No one is here right now.</div>
+                }
+            </div>
+        }
+
+        @* Actions for Selected NPC *@
+        @if (SelectedNPC != null)
+        {
+            <div class="location-actions-section">
+                <h3>Actions with @SelectedNPC.Name</h3>
+                <NPCActionsView SelectedNPC="@SelectedNPC" OnActionExecuted="HandleActionExecuted" />
+            </div>
+        }
+
+        @* Location-wide Actions (not NPC specific) *@
+        <div class="location-actions-section">
+            <h3>Location Actions</h3>
+            <div class="location-actions">
+                @if (CanRest())
+                {
+                    <button class="location-button" @onclick="NavigateToRest">🛏️ Rest</button>
+                }
+                @if (HasMarket())
+                {
+                    <button class="location-button" @onclick="NavigateToMarket">🏪 Market</button>
+                }
+                <button class="location-button" @onclick="NavigateToTravel">🗺️ Travel</button>
+            </div>
+        </div>
+    }
+</div>
