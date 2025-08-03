@@ -42,7 +42,7 @@
 	.resource-use-btn:hover:not(:disabled) {
 		background-color: var(--clay);
 		transform: translateY(-2px);
-		box-Thief: 0 4px 8px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 	}
 
 	.action-button:disabled,
@@ -92,7 +92,7 @@
 	.location-card.current {
 		background-color: var(--bg-active);
 		border: 2px solid var(--leather);
-		box-Thief: 0 0 15px rgba(168, 125, 95, 0.3);
+		box-shadow: 0 0 15px rgba(168, 125, 95, 0.3);
 	}
 
 .location-name {
@@ -1293,6 +1293,14 @@
 	color: var(--text-primary);
 }
 
+/* Fix for location card small tags */
+.location-card small {
+	display: inline-block;
+	margin-right: 0.5rem;
+	color: var(--text-secondary);
+	font-size: 0.85rem;
+}
+
 .current-indicator {
 	font-family: var(--font-tertiary);
 	color: var(--leather);
@@ -2316,4 +2324,43 @@
     color: var(--text-secondary);
     font-size: 0.9rem;
     margin: 0.5rem 0 0 0;
+}
+
+/* Token Badge Styles */
+.npc-tokens {
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	margin-top: 0.25rem;
+}
+
+.token-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.2rem 0.4rem;
+	background: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	font-size: 0.75rem;
+	gap: 0.25rem;
+}
+
+.token-badge.trust {
+	border-color: var(--moss);
+	background: rgba(96, 108, 56, 0.1);
+}
+
+.token-badge.commerce {
+	border-color: var(--clay);
+	background: rgba(188, 108, 37, 0.1);
+}
+
+.token-badge.status {
+	border-color: var(--leather);
+	background: rgba(168, 125, 95, 0.1);
+}
+
+.token-badge.shadow {
+	border-color: var(--charcoal);
+	background: rgba(62, 62, 62, 0.1);
 }
