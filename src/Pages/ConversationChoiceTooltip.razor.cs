@@ -2,7 +2,7 @@
 
 public class ConversationChoiceTooltipBase : ComponentBase
 {
-    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] public GameFacade GameFacade { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
     [Parameter] public ConversationChoice hoveredChoice { get; set; }
     [Parameter] public double tooltipX { get; set; }
@@ -69,6 +69,6 @@ public class ConversationChoiceTooltipBase : ComponentBase
     public string tooltipYpx => $"{tooltipY}px";
 
     public ChoiceProjection Preview =>
-            // TODO: Implement choice preview
-            null; // GameWorldManager.GetChoicePreview(hoveredChoice);
+            // TODO: Implement choice preview with GameFacade
+            null; // GameFacade.GetChoicePreview(hoveredChoice);
 }

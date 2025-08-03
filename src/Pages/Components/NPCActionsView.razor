@@ -1,14 +1,14 @@
 @using Wayfarer.Pages.Components
 @using Wayfarer.Services
 @inject GameFacade GameFacade
-@inject NarrativeManager NarrativeManager
+@inject ConversationRepository ConversationRepository
 @inject ITimeManager TimeManager
 @inject NPCRepository NPCRepository
 @inject SpecialLetterGenerationService SpecialLetterService
 @inject ConnectionTokenManager TokenManager
 @inject GameWorld GameWorld
 @inject TimeImpactCalculator TimeCalculator
-@inject ActionExecutionService ActionExecutor
+@* ActionExecutionService removed - using GameFacade for all actions *@
 
 <div class="npc-actions-view">
     @{
@@ -320,11 +320,7 @@
             .Where(npc => npc.SpotId == player.CurrentLocationSpot.SpotID)
             .ToList();
         
-        // Apply narrative visibility filter
-        if (NarrativeManager != null && NarrativeManager.HasActiveNarrative())
-        {
-            npcs = npcs.Where(npc => NarrativeManager.IsNPCVisible(npc.ID)).ToList();
-        }
+        // No narrative filter needed - all NPCs at location are visible
         
         return npcs;
     }
@@ -395,10 +391,29 @@
     
     private async Task ExecuteAction(string actionId)
     {
-        Console.WriteLine($"[NPCActionsView] Checking deadline impact for action: {actionId}");
+        Console.WriteLine($"[NPCActionsView] Executing action: {actionId}");
+        
+        // Get action details to check time cost
+        var viewModel = GameFacade.GetLocationActions();
+        var action = viewModel.ActionGroups
+            .SelectMany(g => g.Actions)
+            .FirstOrDefault(a => a.Id == actionId);
+            
+        if (action == null)
+        {
+            Console.WriteLine($"[NPCActionsView] Action {actionId} not found");
+            return;
+        }
         
         // Check if action would cause deadline impacts
-        var (needsWarning, timeImpact) = await ActionExecutor.BeginActionExecutionAsync(actionId);
+        var needsWarning = false;
+        TimeImpactInfo timeImpact = null;
+        
+        if (action.TimeCost > 0)
+        {
+            timeImpact = TimeCalculator.CalculateTimeImpact(action.TimeCost);
+            needsWarning = timeImpact?.LettersExpiring > 0;
+        }
         
         if (needsWarning)
         {
@@ -410,8 +425,9 @@
         }
         else
         {
-            // No warning needed, action was already executed
-            Console.WriteLine($"[NPCActionsView] Action {actionId} completed without deadline impacts");
+            // Execute action immediately
+            var success = await GameFacade.ExecuteLocationActionAsync(actionId);
+            Console.WriteLine($"[NPCActionsView] Action {actionId} completed with result: {success}");
             
             // Always refresh UI
             StateHasChanged();
@@ -541,8 +557,8 @@
             }
             else
             {
-                // Regular action
-                success = await ActionExecutor.ConfirmPendingActionAsync();
+                // Regular action - execute via GameFacade
+                success = await GameFacade.ExecuteLocationActionAsync(PendingActionId);
             }
             
             Console.WriteLine($"[NPCActionsView] Action {PendingActionId} completed with result: {success}");
@@ -566,8 +582,7 @@
     {
         Console.WriteLine($"[NPCActionsView] User cancelled action with deadline warning");
         
-        // Cancel the pending action
-        ActionExecutor.CancelPendingAction();
+        // Cancel the pending action - nothing to do since we're not using ActionExecutor
         
         // Hide modal and clear state
         ShowDeadlineWarning = false;

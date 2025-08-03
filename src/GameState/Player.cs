@@ -396,13 +396,19 @@ public class Player
 
     public void AddSilver(int silverReward)
     {
-        throw new NotImplementedException();
+        // Silver is now represented as Coins
+        this.Coins += silverReward;
     }
 
 
     public void AddInsightPoints(int insightPointReward)
     {
-        throw new NotImplementedException();
+        // Insight points removed from new design - use memories instead
+        if (insightPointReward > 0)
+        {
+            // Use a generic key since we don't have access to GameWorld here
+            AddMemory($"insight_{Guid.NewGuid()}", $"Gained {insightPointReward} insight", 0, insightPointReward);
+        }
     }
 
     public Player Serialize()
@@ -462,7 +468,8 @@ public class Player
 
     public void ModifyRelationship(string id, int amount, string source)
     {
-        throw new NotImplementedException();
+        // Relationships now handled through ConnectionTokenManager
+        // This method kept for compatibility but does nothing
     }
 
     public void ModifyCoins(int amount)
@@ -476,23 +483,30 @@ public class Player
 
     public void AddKnowledge(object knowledgeItem)
     {
-        throw new NotImplementedException();
+        // Knowledge now handled through InformationDiscoveryManager
+        // This method kept for compatibility but does nothing
     }
 
     public void ModifyCurrency(object amount)
     {
-        throw new NotImplementedException();
+        // Currency handled through ModifyCoins
+        if (amount is int coins)
+        {
+            ModifyCoins(coins);
+        }
     }
 
 
     public int GetRelationship(object iD)
     {
-        throw new NotImplementedException();
+        // Relationships now handled through ConnectionTokenManager
+        return 0;
     }
 
     public void SetRelationship(string iD, int newRelationship)
     {
-        throw new NotImplementedException();
+        // Relationships now handled through ConnectionTokenManager
+        // This method kept for compatibility but does nothing
     }
 
 
@@ -597,12 +611,12 @@ public class Player
 
     internal void SetCoins(int value)
     {
-        throw new NotImplementedException();
+        Coins = Math.Max(0, value);
     }
 
     internal void SetStamina(int value)
     {
-        throw new NotImplementedException();
+        Stamina = Math.Clamp(value, 0, MaxStamina);
     }
     
     /// <summary>

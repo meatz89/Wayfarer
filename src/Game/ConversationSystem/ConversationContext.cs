@@ -23,6 +23,49 @@ public class ConversationContext
     // Conversation flow
     public List<string> ConversationHistory { get; set; } = new List<string>();
 
+    // Factory method for standard conversation context
+    public static ConversationContext Standard(GameWorld gameWorld, Player player, NPC targetNPC, Location location, LocationSpot spot)
+    {
+        return new ConversationContext
+        {
+            GameWorld = gameWorld,
+            Player = player,
+            TargetNPC = targetNPC,
+            LocationName = location?.Name ?? "",
+            LocationSpotName = spot?.Name ?? "",
+            LocationProperties = GetCurrentLocationProperties(location, gameWorld) ?? new List<string>(),
+            StartingFocusPoints = player?.Concentration ?? 0,
+            CurrentTokens = new Dictionary<ConnectionType, int>(),
+            RelationshipLevel = 0
+        };
+    }
+    
+    private static List<string> GetCurrentLocationProperties(Location location, GameWorld gameWorld)
+    {
+        if (location == null) return new List<string>();
+        
+        // Get current time - defaulting to morning if not available
+        var timeBlock = TimeBlocks.Morning;
+        if (gameWorld != null)
+        {
+            var player = gameWorld.GetPlayer();
+            if (player != null)
+            {
+                // We could get time from game state if needed
+                // For now default to morning
+            }
+        }
+        
+        return timeBlock switch
+        {
+            TimeBlocks.Dawn => location.MorningProperties,
+            TimeBlocks.Morning => location.MorningProperties,
+            TimeBlocks.Afternoon => location.AfternoonProperties,
+            TimeBlocks.Evening => location.EveningProperties,
+            TimeBlocks.Night => location.NightProperties,
+            _ => location.MorningProperties
+        };
+    }
 }
 
 /// <summary>

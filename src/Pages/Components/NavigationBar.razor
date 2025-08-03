@@ -2,7 +2,7 @@
 @inject GameWorld GameWorld
 @inject StandingObligationManager ObligationManager
 @inject FlagService FlagService
-@inject NarrativeManager NarrativeManager
+@inject ConversationRepository ConversationRepository
 
 @namespace Wayfarer.Pages.Components
 
@@ -130,7 +130,7 @@
     {
         // Show letter management section once player has learned about letters
         // Always show if tutorial is not active
-        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        if (GameWorld.GameMode != GameMode.Tutorial)
             return true;
             
         // During tutorial, show after first letter is offered
@@ -141,7 +141,7 @@
     {
         // Show queue after player accepts their first letter
         // Always show if tutorial is not active
-        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        if (GameWorld.GameMode != GameMode.Tutorial)
             return true;
             
         // During tutorial, show after first letter is accepted
@@ -152,7 +152,7 @@
     {
         // Show letter board after player delivers their first letter
         // Always show if tutorial is not active
-        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        if (GameWorld.GameMode != GameMode.Tutorial)
             return true;
             
         // During tutorial, show after first letter is delivered
@@ -163,7 +163,7 @@
     {
         // Show relations after player earns their first token
         // Always show if tutorial is not active
-        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        if (GameWorld.GameMode != GameMode.Tutorial)
             return true;
             
         // During tutorial, show after first token is earned
@@ -174,7 +174,7 @@
     {
         // Show obligations after player meets patron or has any obligation
         // Always show if tutorial is not active
-        if (!NarrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        if (GameWorld.GameMode != GameMode.Tutorial)
             return true;
             
         // During tutorial, show after meeting patron

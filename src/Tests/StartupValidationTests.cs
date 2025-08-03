@@ -94,21 +94,6 @@ namespace Wayfarer.Tests
             Assert.NotNull(result);
         }
 
-        [Fact]
-        public void GameWorldManager_CanBeCreatedWithAllDependencies()
-        {
-            // Arrange
-            var services = new ServiceCollection();
-            ServiceConfiguration.AddGameServices(services, null, null);
-            ServiceConfiguration.AddTimeSystem(services);
-            var provider = services.BuildServiceProvider();
-            
-            // Act
-            var gameWorldManager = provider.GetService<GameWorldManager>();
-            
-            // Assert
-            Assert.NotNull(gameWorldManager);
-        }
 
         [Fact]
         public void NoCircularDependencies_InServiceRegistration()

@@ -9,7 +9,7 @@ namespace Wayfarer.Pages
     {
         [Inject] public GameFacade GameFacade { get; set; }
         [Inject] public TimeImpactCalculator TimeCalculator { get; set; }
-        [Inject] public ActionExecutionService ActionExecutor { get; set; }
+        // ActionExecutionService removed - using GameFacade for all actions
         [Parameter] public Location CurrentLocation { get; set; }
         [Parameter] public List<Location> Locations { get; set; }
         [Parameter] public EventCallback<string> OnTravel { get; set; }

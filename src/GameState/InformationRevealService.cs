@@ -11,17 +11,20 @@ public class InformationRevealService
     private readonly GameWorld _gameWorld;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
+    private readonly RouteRepository _routeRepository;
     private readonly MessageSystem _messageSystem;
 
     public InformationRevealService(
         GameWorld gameWorld,
         NPCRepository npcRepository,
         LocationRepository locationRepository,
+        RouteRepository routeRepository,
         MessageSystem messageSystem)
     {
         _gameWorld = gameWorld;
         _npcRepository = npcRepository;
         _locationRepository = locationRepository;
+        _routeRepository = routeRepository;
         _messageSystem = messageSystem;
     }
 
@@ -92,19 +95,28 @@ public class InformationRevealService
 
             case "route":
                 // Routes are more complex - they need both endpoints
-                // Format: "route:location1-location2"
-                var routeParts = targetId.Split('-');
-                if (routeParts.Length == 2)
+                // Format: "route:location1-location2" or "route:routeId"
+                if (targetId.Contains('-'))
                 {
-                    string routeKey = $"{routeParts[0]}-{routeParts[1]}";
-                    if (!player.KnownRoutes.ContainsKey(routeKey))
+                    // Format: location1-location2
+                    var routeParts = targetId.Split('-');
+                    if (routeParts.Length == 2)
                     {
-                        // This would need integration with route discovery system
-                        _messageSystem.AddSystemMessage(
-                            $"🔓 Information revealed: Hidden route between {routeParts[0]} and {routeParts[1]}!",
-                            SystemMessageTypes.Success
-                        );
-                        // TODO: Actually add the route when route discovery is implemented
+                        var route = _routeRepository.GetAll()
+                            .FirstOrDefault(r => r.Origin == routeParts[0] && r.Destination == routeParts[1]);
+                        if (route != null)
+                        {
+                            DiscoverRoute(player, route);
+                        }
+                    }
+                }
+                else
+                {
+                    // Format: routeId
+                    var route = _routeRepository.GetRouteById(targetId);
+                    if (route != null)
+                    {
+                        DiscoverRoute(player, route);
                     }
                 }
                 break;
@@ -196,5 +208,32 @@ public class InformationRevealService
         }
 
         return revealed.ToList();
+    }
+    
+    /// <summary>
+    /// Helper method to discover a route and add it to player's known routes
+    /// </summary>
+    private void DiscoverRoute(Player player, RouteOption route)
+    {
+        string originKey = route.Origin;
+        
+        // Check if already known
+        if (player.KnownRoutes.ContainsKey(originKey) && 
+            player.KnownRoutes[originKey].Any(r => r.Id == route.Id))
+        {
+            return; // Already discovered
+        }
+        
+        // Mark route as discovered
+        route.IsDiscovered = true;
+        
+        // Add to player's known routes
+        player.AddKnownRoute(route);
+        
+        // Show discovery message
+        _messageSystem.AddSystemMessage(
+            $"🔓 Information revealed: {route.Name} - Route from {route.Origin} to {route.Destination}!",
+            SystemMessageTypes.Success
+        );
     }
 }

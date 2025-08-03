@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-public class MorningActivitiesManager
+public partial class MorningActivitiesManager
 {
     private readonly GameWorld _gameWorld;
     private readonly LetterQueueManager _letterQueueManager;
@@ -12,6 +12,9 @@ public class MorningActivitiesManager
 
     // Track morning events for display
     public List<MorningEvent> MorningEvents { get; private set; } = new List<MorningEvent>();
+    
+    // Store last activity result
+    private MorningActivityResult _lastActivityResult;
 
     public MorningActivitiesManager(
         GameWorld gameWorld,
@@ -130,6 +133,9 @@ public class MorningActivitiesManager
 
         // Display morning summary
         DisplayMorningSummary(result);
+        
+        // Store result for later retrieval
+        _lastActivityResult = result;
 
         return result;
     }
@@ -319,4 +325,14 @@ public class MorningActivityResult
 
     public bool HasEvents => ExpiredLetterCount > 0 || ForcedLetterCount > 0 ||
                             NewLetterCount > 0 || UrgentLetterCount > 0 || PatronLetterCount > 0;
+}
+
+// Extension to MorningActivitiesManager
+public partial class MorningActivitiesManager
+{
+    // Get the result of the last morning activities processing
+    public MorningActivityResult GetLastActivityResult()
+    {
+        return _lastActivityResult ?? new MorningActivityResult();
+    }
 }

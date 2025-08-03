@@ -54,6 +54,7 @@ public class NPC
 
     internal bool IsAvailableAtLocation(string? spotID)
     {
-        throw new NotImplementedException();
+        // NPCs are available at their assigned location
+        return !string.IsNullOrEmpty(spotID) && Location == spotID;
     }
 }

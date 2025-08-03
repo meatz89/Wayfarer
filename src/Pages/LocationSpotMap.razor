@@ -73,7 +73,7 @@
                 else
                 {
                     @* Add travel option if not current spot *@
-                    <button class="action-button" disabled="@(!GameWorldManager.CanMoveToSpot(spot.SpotID))"
+                    <button class="action-button" disabled="@(spot.IsClosed)"
                             @onclick="() => OnSpotSelected.InvokeAsync(spot)">
                         MOVE HERE
                     </button>

@@ -44,4 +44,12 @@ public class ConversationStateManager
         _conversationPending = true;
         Console.WriteLine($"[ConversationStateManager] ConversationPending = {_conversationPending}");
     }
+    
+    /// <summary>
+    /// Sets the current conversation (alias for SetPendingConversation).
+    /// </summary>
+    public void SetCurrentConversation(ConversationManager conversationManager)
+    {
+        SetPendingConversation(conversationManager);
+    }
 }

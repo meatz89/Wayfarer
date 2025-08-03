@@ -7,12 +7,12 @@ namespace Wayfarer.Pages
     public class PlayerStatusViewBase : ComponentBase
     {
         [Inject] public GameWorld GameWorld { get; set; }
-        [Inject] public GameWorldManager GameManager { get; set; }
+        [Inject] public GameFacade GameManager { get; set; }
         [Inject] public ItemRepository ItemRepository { get; set; }
         [Inject] public LocationRepository LocationRepository { get; set; }
         [Inject] public RouteRepository RouteRepository { get; set; }
         [Inject] public NavigationManager NavigationManager { get; set; }
-        [Inject] public ReadableLetterUIService LetterUIService { get; set; }
+        [Inject] public GameFacade GameFacade { get; set; }
 
         [Parameter] public EventCallback OnClose { get; set; }
 
@@ -226,7 +226,7 @@ namespace Wayfarer.Pages
 
         public async Task ReadItem(string itemId)
         {
-            if (LetterUIService.CanReadItem(itemId))
+            if (GameFacade.CanReadItem(itemId))
             {
                 selectedLetterItemId = itemId;
                 StateHasChanged();

@@ -1,5 +1,5 @@
 ﻿@* AreaMap.razor *@
-@inject GameWorldManager ActionManager
+@inject GameFacade ActionManager
 @inject GameWorld GameWorld
 @inject RouteRepository RouteRepository
 
@@ -38,7 +38,7 @@
                 var startPos = GetLocationPosition(route.Origin);
                 var endPos = GetLocationPosition(route.Destination);
                 var routeClass = route.IsDiscovered ? "discovered" : "undiscovered";
-                var canTravel = GameWorldManager.CanTravelRoute(route);
+                var canTravel = route.IsDiscovered;
                 
                 <line class="route-line @routeClass @(canTravel ? "can-travel" : "blocked")"
                       x1="@startPos.X" y1="@startPos.Y"
@@ -50,7 +50,7 @@
             @foreach (var location in Locations)
             {
                 var pos = GetLocationPosition(location.Id);
-                var isReachable = GameWorldManager.CanTravelTo(location.Id);
+                var isReachable = GetAllRoutes().Any(r => r.IsDiscovered && (r.Origin == CurrentLocation.Id && r.Destination == location.Id || r.Destination == CurrentLocation.Id && r.Origin == location.Id));
                 var isCurrent = location.Id == CurrentLocation.Id;
                 
                 <g class="location-node @(isCurrent ? "current" : isReachable ? "reachable" : "unreachable")"
@@ -87,7 +87,7 @@
                         </div>
                     }
                 </div>
-                @if (selectedLocation.Id != CurrentLocation.Id && GameWorldManager.CanTravelTo(selectedLocation.Id))
+                @if (selectedLocation.Id != CurrentLocation.Id && GameFacade.CanTravelTo(selectedLocation.Id))
                 {
                     <button class="action-button"
                             @onclick="() => OnShowTravelScreen.InvokeAsync()">
@@ -124,7 +124,7 @@
 
 @code {
 @namespace Wayfarer.Pages
-    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] public GameFacade GameFacade { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
     [Parameter] public EventCallback OnShowTravelScreen { get; set; }

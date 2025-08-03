@@ -6,7 +6,7 @@ public class LetterTemplateRepository
     private readonly GameWorld _gameWorld;
     private readonly Random _random = new Random();
     private LetterCategoryService _categoryService;
-    private NarrativeManager _narrativeManager;
+    private ConversationRepository _conversationRepository;
 
     public LetterTemplateRepository(GameWorld gameWorld)
     {
@@ -18,29 +18,24 @@ public class LetterTemplateRepository
         _categoryService = categoryService;
     }
 
-    public void SetNarrativeManager(NarrativeManager narrativeManager)
+    public void SetConversationRepository(ConversationRepository conversationRepository)
     {
-        _narrativeManager = narrativeManager;
+        _conversationRepository = conversationRepository;
     }
 
     public List<LetterTemplate> GetAllTemplates()
     {
         var templates = _gameWorld.WorldState.LetterTemplates;
         
-        // Filter based on tutorial state if narrative manager is available
-        if (_narrativeManager != null && _narrativeManager.IsNarrativeActive("wayfarer_tutorial"))
+        // Filter based on game mode and tutorial state
+        if (_gameWorld.GameMode == GameMode.Tutorial)
         {
             // During tutorial, only show tutorial letters
             return templates.Where(t => t.Id.StartsWith("tutorial_")).ToList();
         }
-        else if (_narrativeManager != null && _narrativeManager.GetActiveNarratives().Any())
-        {
-            // If any narrative is active but not tutorial, exclude tutorial letters
-            return templates.Where(t => !t.Id.StartsWith("tutorial_")).ToList();
-        }
         else
         {
-            // No active narratives, exclude tutorial letters (they're only for tutorial)
+            // Not in tutorial mode, exclude tutorial letters
             return templates.Where(t => !t.Id.StartsWith("tutorial_")).ToList();
         }
     }
@@ -54,17 +49,14 @@ public class LetterTemplateRepository
         if (template == null) return null;
         
         // Check if this template should be accessible
-        if (_narrativeManager != null)
-        {
-            bool isTutorialTemplate = templateId.StartsWith("tutorial_");
-            bool isTutorialActive = _narrativeManager.IsNarrativeActive("wayfarer_tutorial");
+        bool isTutorialTemplate = templateId.StartsWith("tutorial_");
+        bool isTutorialActive = _gameWorld.GameMode == GameMode.Tutorial;
+        
+        // Only allow tutorial templates during tutorial
+        if (isTutorialTemplate && !isTutorialActive) return null;
             
-            // Only allow tutorial templates during tutorial
-            if (isTutorialTemplate && !isTutorialActive) return null;
-            
-            // Don't allow non-tutorial templates during tutorial
-            if (!isTutorialTemplate && isTutorialActive) return null;
-        }
+        // Don't allow non-tutorial templates during tutorial
+        if (!isTutorialTemplate && isTutorialActive) return null;
         
         return template;
     }

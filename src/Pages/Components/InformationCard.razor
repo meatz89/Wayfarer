@@ -73,21 +73,9 @@
             </button>
         </div>
     }
-    else if (Info.CanBeUsedAsLeverage)
-    {
-        <div class="leverage-section">
-            <h5>Leverage Opportunity</h5>
-            <p>Can be used against: @Info.LeverageTargetName</p>
-            <p>Value: @Info.LeverageValue points</p>
-            <button class="btn-leverage" @onclick="OnUseLeverage">
-                Use as Leverage
-            </button>
-        </div>
-    }
 </div>
 
 @code {
     [Parameter] public DiscoveredInfoViewModel Info { get; set; }
     [Parameter] public EventCallback OnUnlock { get; set; }
-    [Parameter] public EventCallback OnUseLeverage { get; set; }
 }

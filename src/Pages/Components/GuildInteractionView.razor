@@ -101,7 +101,7 @@
 @code {
     [Inject] private GameWorld GameWorld { get; set; }
     [Inject] private EndorsementManager EndorsementManager { get; set; }
-    [Inject] private CommandExecutor CommandExecutor { get; set; }
+    [Inject] private GameFacade GameFacade { get; set; }
     [Inject] private LocationRepository LocationRepository { get; set; }
     [Inject] private MessageSystem MessageSystem { get; set; }
     
@@ -143,20 +143,27 @@
     
     private async Task ConvertToSeal(SealTier targetTier)
     {
-        var command = new ConvertEndorsementsCommand(
+        // Convert endorsements directly using EndorsementManager
+        var result = EndorsementManager.ConvertEndorsementsToSeal(
             CurrentLocation.Id,
-            targetTier,
-            EndorsementManager,
-            MessageSystem,
-            LocationRepository
+            targetTier
         );
         
-        var result = await CommandExecutor.ExecuteAsync(command);
-        
-        if (result.IsSuccess)
+        if (result)
         {
+            MessageSystem.AddSystemMessage(
+                $"Successfully converted endorsements to {targetTier} seal!",
+                SystemMessageTypes.Success
+            );
             RefreshGuildStatus();
             StateHasChanged();
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage(
+                "Failed to convert endorsements. Check requirements.",
+                SystemMessageTypes.Warning
+            );
         }
     }
     

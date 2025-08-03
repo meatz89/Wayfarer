@@ -41,8 +41,7 @@ public class GameWorld
     // Event Log - Permanent record of all messages
     public List<SystemMessage> EventLog { get; set; } = new List<SystemMessage>();
 
-    // Pending command for any command that doesn't complete instantly
-    public PendingCommand PendingCommand { get; set; }
+    // Note: Pending command system has been removed in favor of intent-based architecture
 
     // Temporary metadata for conversation context
     private Dictionary<string, string> _metadata = new Dictionary<string, string>();
@@ -88,6 +87,13 @@ public class GameWorld
     public void ClearMetadata(string key)
     {
         _metadata.Remove(key);
+    }
+    
+    // Time management methods
+    public void AdvanceToNextDay()
+    {
+        CurrentDay++;
+        CurrentTimeBlock = TimeBlocks.Dawn;
     }
 
 }
