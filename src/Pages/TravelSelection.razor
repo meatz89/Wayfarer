@@ -108,7 +108,7 @@
                         <div class="route-option @(!canAfford ? "disabled" : "") @(isBlocked ? "blocked" : "")">
                             <div class="route-header">
                                 <div class="route-name">
-                                    @route.RouteName
+                                    @route.RouteName <span class="transport-method">(@GetTransportIcon(route.TransportMethod) @route.TransportMethod)</span>
                                     @if (isBlocked)
                                     {
                                         <span class="blocked-indicator">🔒</span>
@@ -217,8 +217,8 @@
                             @if (canAfford && !isBlocked)
                             {
                                 <button class="travel-button"
-                                        @onclick="() => ShowTransportOptions(route)">
-                                    Select Transport
+                                        @onclick="() => HandleTravelRoute(route)">
+                                    Travel by @GetTransportIcon(route.TransportMethod) @route.TransportMethod
                                 </button>
                             }
                             else
@@ -243,7 +243,7 @@
                                 <div class="route-option disabled">
                                     <div class="route-header">
                                         <div class="route-name">
-                                            🔒 @route.RouteName
+                                            🔒 @route.RouteName <span class="transport-method">(@GetTransportIcon(route.TransportMethod) @route.TransportMethod)</span>
                                         </div>
                                         <div class="route-costs">
                                             <span class="cost-item">⚡ @route.BaseStaminaCost</span>
@@ -293,25 +293,4 @@
                       OnConfirm="ConfirmTravelWithDeadline"
                       OnCancel="CancelTravelWithDeadline" />
 
-@* Transport Selection Modal *@
-@if (ShowTransportSelector)
-{
-    <div class="modal-overlay" @onclick="CloseTransportSelector">
-        <div class="modal-content transport-modal" @onclick:stopPropagation="true">
-            <h3>Choose Transport for @SelectedRoute?.RouteName</h3>
-            
-            <TransportSelector Route="@GetRouteOption(SelectedRoute)"
-                             Player="@GetPlayer()"
-                             SelectedTransport="@SelectedTransport"
-                             OnTransportSelected="@OnTransportSelected" />
-            
-            <div class="modal-actions">
-                <button class="btn-cancel" @onclick="CloseTransportSelector">Cancel</button>
-                <button class="btn-confirm" @onclick="ConfirmTransportSelection">
-                    Travel by @SelectedTransport
-                </button>
-            </div>
-        </div>
-    </div>
-}
 

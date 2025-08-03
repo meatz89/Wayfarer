@@ -1,5 +1,13 @@
 /* ==================== Travel & Transport Styles ==================== */
 
+/* Transport Method Display */
+.transport-method {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    font-weight: normal;
+    margin-left: 0.5rem;
+}
+
 /* Modal Overlay and Content */
 .modal-overlay {
     position: fixed;

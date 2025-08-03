@@ -14,40 +14,6 @@ namespace Wayfarer.Pages
         [Parameter] public List<Location> Locations { get; set; }
         [Parameter] public EventCallback<string> OnTravel { get; set; }
         [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
-        [Parameter] public EventCallback<(RouteOption route, TravelMethods transport)> OnTravelWithTransport { get; set; }
-        
-        // Transport selection state
-        protected bool ShowTransportSelector { get; set; }
-        protected TravelRouteViewModel SelectedRoute { get; set; }
-        protected TravelMethods SelectedTransport { get; set; } = TravelMethods.Walking;
-        
-        protected void ShowTransportOptions(TravelRouteViewModel route)
-        {
-            SelectedRoute = route;
-            ShowTransportSelector = true;
-            StateHasChanged();
-        }
-        
-        protected void CloseTransportSelector()
-        {
-            ShowTransportSelector = false;
-            StateHasChanged();
-        }
-        
-        protected void OnTransportSelected(TravelMethods transport)
-        {
-            SelectedTransport = transport;
-            StateHasChanged();
-        }
-        
-        protected async Task ConfirmTransportSelection()
-        {
-            if (SelectedRoute != null)
-            {
-                ShowTransportSelector = false;
-                await HandleTravelRouteWithTransport(SelectedRoute, SelectedTransport);
-            }
-        }
         
         protected RouteOption GetRouteOption(TravelRouteViewModel viewModel)
         {
@@ -71,46 +37,10 @@ namespace Wayfarer.Pages
             return GameFacade.GetPlayer();
         }
         
-        protected async Task HandleTravelRouteWithTransport(TravelRouteViewModel routeViewModel, TravelMethods transport)
-        {
-            // Check for deadline impacts
-            var adjustedTimeCost = CalculateAdjustedTimeCost(routeViewModel.TimeCost, transport);
-            if (adjustedTimeCost > 0)
-            {
-                var timeImpact = TimeCalculator.CalculateTimeImpact(adjustedTimeCost);
-                if (timeImpact?.LettersExpiring > 0)
-                {
-                    // Show warning modal
-                    PendingRoute = routeViewModel;
-                    PendingTimeImpact = timeImpact;
-                    ShowDeadlineWarning = true;
-                    StateHasChanged();
-                    return;
-                }
-            }
-            
-            // No warning needed, proceed with travel
-            await ExecuteTravelWithTransport(routeViewModel, transport);
-        }
-        
-        private int CalculateAdjustedTimeCost(int baseTime, TravelMethods transport)
-        {
-            var multiplier = transport switch
-            {
-                TravelMethods.Walking => 1.0,
-                TravelMethods.Horseback => 0.5,
-                TravelMethods.Cart => 0.8,
-                TravelMethods.Carriage => 0.4,
-                TravelMethods.Boat => 0.6,
-                _ => 1.0
-            };
-            
-            return (int)Math.Ceiling(baseTime * multiplier);
-        }
         
         protected async Task HandleTravelRoute(TravelRouteViewModel routeViewModel)
         {
-            // Check for deadline impacts
+            // Check for deadline impacts using the route's actual time cost
             if (routeViewModel.TimeCost > 0)
             {
                 var timeImpact = TimeCalculator.CalculateTimeImpact(routeViewModel.TimeCost);
@@ -125,31 +55,14 @@ namespace Wayfarer.Pages
                 }
             }
             
-            // No warning needed, proceed with travel
-            await ExecuteTravel(routeViewModel);
-        }
-        
-        private async Task ExecuteTravelWithTransport(TravelRouteViewModel routeViewModel, TravelMethods transport)
-        {
+            // No warning needed, proceed with travel using the route's defined transport method
             var routeOption = GetRouteOption(routeViewModel);
-            
-            // Fire the event with transport selection
-            if (OnTravelWithTransport.HasDelegate)
+            if (OnTravelRoute.HasDelegate)
             {
-                await OnTravelWithTransport.InvokeAsync((routeOption, transport));
-            }
-            else if (OnTravelRoute.HasDelegate)
-            {
-                // Fallback to regular route travel
                 await OnTravelRoute.InvokeAsync(routeOption);
             }
         }
         
-        private async Task ExecuteTravel(TravelRouteViewModel routeViewModel)
-        {
-            // Default to walking if no transport selected
-            await ExecuteTravelWithTransport(routeViewModel, TravelMethods.Walking);
-        }
 
         protected TravelContextViewModel TravelContext { get; set; }
         protected List<TravelDestinationViewModel> Destinations { get; set; }
@@ -359,6 +272,22 @@ namespace Wayfarer.Pages
                 _ => "🎭"
             };
         }
+        
+        /// <summary>
+        /// Get icon for transport method
+        /// </summary>
+        public string GetTransportIcon(TravelMethods method)
+        {
+            return method switch
+            {
+                TravelMethods.Walking => "🚶",
+                TravelMethods.Horseback => "🐎",
+                TravelMethods.Cart => "🛒",
+                TravelMethods.Carriage => "🚌",
+                TravelMethods.Boat => "⛵",
+                _ => "❓"
+            };
+        }
 
         /// <summary>
         /// Check if player has required tokens for a route
@@ -392,7 +321,11 @@ namespace Wayfarer.Pages
             
             if (PendingRoute != null)
             {
-                await ExecuteTravel(PendingRoute);
+                var routeOption = GetRouteOption(PendingRoute);
+                if (OnTravelRoute.HasDelegate)
+                {
+                    await OnTravelRoute.InvokeAsync(routeOption);
+                }
                 PendingRoute = null;
                 PendingTimeImpact = null;
             }

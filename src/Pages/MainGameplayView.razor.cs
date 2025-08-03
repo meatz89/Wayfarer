@@ -280,13 +280,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         UpdateState();
     }
 
-    public async Task HandleTravelWithTransport((RouteOption route, TravelMethods transport) travelData)
-    {
-        string routeId = travelData.route.Id;
-        await GameFacade.TravelToDestinationAsync(travelData.route.Destination, routeId);
-        OnNavigate?.Invoke(CurrentViews.LocationScreen);
-        UpdateState();
-    }
 
     public async Task HandleRestComplete()
     {
