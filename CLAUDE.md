@@ -145,3 +145,40 @@ if (isDoingDelivery && hasTradeGoods)
 - **Inherit from BaseValidator** - Provides TryGetPropertyCaseInsensitive helper method for robust validation
 - **Test validators with actual JSON** - Don't assume field names match between JSON and DTOs
 - See CONTENT-VALIDATION-STRATEGY.md for implementation details
+
+**📘 Game Design Memory: Wayfarer Concept Clarification**
+
+## Key Design Insights from Initial Game Design Conversation
+
+**Core Game Concept:**
+- Medieval letter carrier simulation exploring social obligations
+- Focuses on managing impossible delivery deadlines
+- Emphasizes relationships over traditional RPG progression
+- No magic, no world-saving narrative
+- Survival through navigating social networks
+
+**Design Philosophy Highlights:**
+- Elegance over complexity
+- Strong verisimilitude throughout
+- Systems that reinforce social obligation fantasy
+- No arbitrary mechanics
+- Information and relationships as primary gameplay mechanics
+
+**Core Mechanical Innovations:**
+- Multi-context token system (Trust, Commerce, Status, Shadow)
+- Isolated relationship tracking per context
+- Time as universal pressure
+- Tiered access system (routes, actions, information)
+- Information discovery as core progression mechanic
+
+**Design Principles:**
+- No special rules or exceptions
+- Emergent gameplay through system interactions
+- Every system touches every other system
+- Player choices create narrative through systemic pressures
+
+**Tone and Scope:**
+- Ordinary medieval life simulation
+- Focus on daily survival and social navigation
+- Finding human connection amid complex obligations
+- Inspired by slice-of-life narratives in challenging environments
