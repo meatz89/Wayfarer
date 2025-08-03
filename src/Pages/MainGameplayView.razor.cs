@@ -39,7 +39,6 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public bool ShowActionMessage = false;
     public string ActionMessageType = "success";
     public List<string> ActionMessages = new List<string>();
-    public ElementReference SidebarRef;
 
     // System Messages
     public List<SystemMessage> SystemMessages = new List<SystemMessage>();
@@ -273,8 +272,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     {
         Console.WriteLine($"HandleTravelRoute: {route.Name}, Current screen: {CurrentScreen}");
         
-        // Convert RouteOption to route ID (assuming route has an ID property)
-        string routeId = route.Name; // Or route.Id if available
+        // Use the route's ID property
+        string routeId = route.Id;
         await GameFacade.TravelToDestinationAsync(route.Destination, routeId);
         
         Console.WriteLine("HandleTravelRoute completed - waiting for polling to detect conversation");
@@ -283,7 +282,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task HandleTravelWithTransport((RouteOption route, TravelMethods transport) travelData)
     {
-        string routeId = travelData.route.Name; // Or route.Id if available
+        string routeId = travelData.route.Id;
         await GameFacade.TravelToDestinationAsync(travelData.route.Destination, routeId);
         OnNavigate?.Invoke(CurrentViews.LocationScreen);
         UpdateState();

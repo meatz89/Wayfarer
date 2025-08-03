@@ -1,0 +1,302 @@
+@inherits ComponentBase
+
+<div class="game-sidebar" @ref="SidebarRef">
+    <div class="sidebar-section expanded">
+        <div class="section-header" id="section-character">
+            <span>Character</span>
+        </div>
+
+        <div class="section-content">
+            <div class="archetype-portrait">
+                <img src=@GetArchetypePortrait() />
+            </div>
+
+            <div class="player-character">
+                <div class="character-detail">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">@PlayerState.Name</span>
+                </div>
+                <div class="character-detail">
+                    <span class="detail-label">Level:</span>
+                    <span class="detail-value">@PlayerState.Level</span>
+                </div>
+                <div class="character-detail">
+                    <span class="detail-label">Experience:</span>
+                    <span class="detail-value">@PlayerState.CurrentXP / @PlayerState.XPToNextLevel</span>
+                </div>
+                <div class="player-archetype">
+                    <span class="archetype-icon">@StyleHelper.GetArchetypeIcon(PlayerState.Archetype)</span>
+                    <span class="archetype-name">@PlayerState.Archetype</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-section @(ExpandedSections[SidebarSections.skills] ? "expanded" : "collapsed")">
+        <div class="section-header hover" id="section-skills" @onclick="() => ToggleSection(SidebarSections.skills)">
+            <span>Skills</span>
+            <span class="expand-icon">@(ExpandedSections[SidebarSections.skills] ? "▼" : "►")</span>
+        </div>
+
+        @if (ExpandedSections[SidebarSections.skills])
+        {
+            <div class="section-content">
+                <div class="skills-grid">
+                    @foreach (var skill in GetPlayerSkills())
+                    {
+                        var type = skill.Item1;
+                        var icon = skill.Item2;
+                        var label = skill.Item3;
+                        var lvl = PlayerState.Skills.GetLevelForSkill(type);
+                        var xp = PlayerState.Skills.GetXPForSkill(type);
+                        var next = PlayerState.Skills.GetXPToNextForSkill(type);
+                        var pct = next > 0 ? (double)xp / next * 100 : 0;
+                        <div class="player-skill">
+                            <span class="skill-icon">@icon</span>
+                            <span class="skill-label">@label</span>
+                            <div class="skill-bar">
+                                <span class="skill-level-left">Lv @lvl</span>
+                                <div class="skill-progress">
+                                    <div class="skill-progress-inner" style="width:@pct%"> </div>
+                                </div>
+                                <span class="skill-xp-right">@xp/@next</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="sidebar-section @(ExpandedSections[SidebarSections.resources] ? "expanded" : "collapsed")">
+        <div class="section-header hover" id="section-resources" @onclick="() => ToggleSection(SidebarSections.resources)">
+            <span>Resources</span>
+            <span class="expand-icon">@(ExpandedSections[SidebarSections.resources] ? "▼" : "►")</span>
+        </div>
+
+        @if (ExpandedSections[SidebarSections.resources])
+        {
+            <div class="section-content">
+                <div class="resource-grid">
+                    <div class="player-resource">
+                        <span class="resource-icon" style="color: var(--resource-coins)">💰</span>
+                        <span class="resource-label">Coins</span>
+                        <span class="resource-value">@PlayerState.Coins</span>
+                    </div>
+
+                    <div class="player-resource">
+                        <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
+                        <span class="resource-label">Food</span>
+                        <span class="resource-value">@PlayerState.Food</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="sidebar-section @(ExpandedSections[SidebarSections.inventory] ? "expanded" : "collapsed")">
+        <div class="section-header hover" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
+            <span>Inventory</span>
+            <span class="expand-icon">@(ExpandedSections[SidebarSections.inventory] ? "▼" : "►")</span>
+        </div>
+
+        @if (ExpandedSections[SidebarSections.inventory])
+        {
+            <div class="section-content">
+                <Inventory />
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .game-sidebar {
+        background: var(--surface-color);
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        height: fit-content;
+    }
+
+    .sidebar-section {
+        background: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .section-header {
+        padding: 0.75rem 1rem;
+        background: var(--surface-color);
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+    }
+
+    .section-header.hover {
+        cursor: pointer;
+    }
+
+    .section-header:hover {
+        background: var(--hover-color);
+    }
+
+    .expand-icon {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .section-content {
+        padding: 1rem;
+    }
+
+    .sidebar-section.collapsed .section-content {
+        display: none;
+    }
+
+    /* Character Section */
+    .archetype-portrait {
+        width: 100%;
+        height: 120px;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+        overflow: hidden;
+        background: var(--surface-color);
+    }
+
+    .archetype-portrait img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .player-character {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .character-detail {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .detail-label {
+        color: var(--text-secondary);
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .player-archetype {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: var(--surface-color);
+        border-radius: 4px;
+        justify-content: center;
+    }
+
+    .archetype-icon {
+        font-size: 1.2rem;
+    }
+
+    .archetype-name {
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    /* Skills Section */
+    .skills-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .player-skill {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .skill-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .skill-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .skill-level-left {
+        min-width: 35px;
+        color: var(--text-secondary);
+    }
+
+    .skill-progress {
+        flex: 1;
+        height: 16px;
+        background: var(--surface-color);
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .skill-progress-inner {
+        height: 100%;
+        background: var(--primary-gradient);
+        transition: width 0.3s ease;
+    }
+
+    .skill-xp-right {
+        min-width: 60px;
+        text-align: right;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+
+    /* Resources Section */
+    .resource-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .player-resource {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.75rem;
+        background: var(--surface-color);
+        border-radius: 4px;
+    }
+
+    .resource-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .resource-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+    }
+
+    .resource-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+</style>

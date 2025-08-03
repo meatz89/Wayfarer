@@ -1066,19 +1066,26 @@ public class GameFacade
         
         // Move to destination
         var destination = _locationRepository.GetLocation(route.Destination);
-        if (destination != null)
+        if (destination == null)
         {
-            var destinationSpots = _locationRepository.GetSpotsForLocation(destination.Id);
-            if (destinationSpots.Any())
-            {
-                _locationRepository.SetCurrentLocation(destination, destinationSpots.First());
-                _messageSystem.AddSystemMessage($"Traveled to {destination.Name}", SystemMessageTypes.Success);
-                return true;
-            }
+            _messageSystem.AddSystemMessage($"Destination '{route.Destination}' not found", SystemMessageTypes.Danger);
+            return false;
         }
         
-        _messageSystem.AddSystemMessage("Failed to complete travel", SystemMessageTypes.Danger);
-        return false;
+        var destinationSpots = _locationRepository.GetSpotsForLocation(destination.Id);
+        if (!destinationSpots.Any())
+        {
+            _messageSystem.AddSystemMessage($"No spots found at destination '{destination.Name}'", SystemMessageTypes.Danger);
+            return false;
+        }
+        
+        _locationRepository.SetCurrentLocation(destination, destinationSpots.First());
+        _messageSystem.AddSystemMessage($"Traveled to {destination.Name}", SystemMessageTypes.Success);
+        
+        // Record the visit
+        _locationRepository.RecordLocationVisit(destination.Id);
+        
+        return true;
     }
     
     private async Task<bool> ExecuteDiscoverRoute(DiscoverRouteIntent intent)
