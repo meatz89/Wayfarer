@@ -1,90 +1,71 @@
 using System;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
+using Wayfarer.E2ETests.Tests;
 
+/// <summary>
+/// Simple test runner for E2E tests.
+/// </summary>
 public class TestRunner
 {
     public static async Task Main(string[] args)
     {
-        Console.WriteLine("=== Wayfarer E2E Test Runner ===");
-        Console.WriteLine($"Starting at: {DateTime.Now}");
+        Console.WriteLine("Wayfarer E2E Test Suite");
+        Console.WriteLine("=======================");
         Console.WriteLine();
-
-        var testOutputHelper = new ConsoleTestOutputHelper();
-        var tutorialTests = new Wayfarer.E2ETests.TutorialE2ETests(testOutputHelper);
         
-        int passedTests = 0;
-        int failedTests = 0;
-
-        // Get all test methods
-        var testMethods = typeof(Wayfarer.E2ETests.TutorialE2ETests)
-            .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .Where(m => m.GetCustomAttribute<FactAttribute>() != null)
-            .ToList();
-
-        Console.WriteLine($"Found {testMethods.Count} tests to run\n");
-
-        foreach (var method in testMethods)
-        {
-            Console.WriteLine($"Running: {method.Name}");
-            try
+        var results = new TestResults();
+        
+        // Run Tutorial Tests
+        await RunTest("Tutorial_CompleteFlow_SuccessfullyCompletesTourial", 
+            async () => 
             {
-                var result = method.Invoke(tutorialTests, null);
-                if (result is Task task)
-                {
-                    await task;
-                }
-                Console.WriteLine($"✓ PASSED: {method.Name}");
-                passedTests++;
-            }
-            catch (Exception ex)
+                using var test = new TutorialE2ETests();
+                await test.Tutorial_CompleteFlow_SuccessfullyCompletesTourial();
+            },
+            results);
+            
+        await RunTest("Tutorial_CanDeclineTamLetter_StillInTutorial", 
+            async () => 
             {
-                Console.WriteLine($"✗ FAILED: {method.Name}");
-                Console.WriteLine($"  Error: {ex.InnerException?.Message ?? ex.Message}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"  Stack: {ex.InnerException.StackTrace}");
-                }
-                failedTests++;
-            }
-            Console.WriteLine();
-        }
-
-        // Dispose the test class
-        tutorialTests.Dispose();
-
+                using var test = new TutorialE2ETests();
+                await test.Tutorial_CanDeclineTamLetter_StillInTutorial();
+            },
+            results);
+        
         // Summary
-        Console.WriteLine("=== Test Summary ===");
-        Console.WriteLine($"Total tests: {passedTests + failedTests}");
-        Console.WriteLine($"Passed: {passedTests}");
-        Console.WriteLine($"Failed: {failedTests}");
-        Console.WriteLine($"Completed at: {DateTime.Now}");
-
-        if (failedTests > 0)
+        Console.WriteLine("\n================================");
+        Console.WriteLine($"Test Results: {results.Passed} passed, {results.Failed} failed");
+        Console.WriteLine("================================");
+        
+        Environment.Exit(results.Failed > 0 ? 1 : 0);
+    }
+    
+    private static async Task RunTest(string testName, Func<Task> testAction, TestResults results)
+    {
+        Console.WriteLine($"\nRunning: {testName}");
+        Console.WriteLine(new string('-', testName.Length + 9));
+        
+        try
         {
-            Console.WriteLine("\n❌ TESTS FAILED");
-            Environment.Exit(1);
+            await testAction();
+            results.Passed++;
+            Console.WriteLine($"\n✅ PASSED: {testName}");
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("\n✅ ALL TESTS PASSED");
+            results.Failed++;
+            Console.WriteLine($"\n❌ FAILED: {testName}");
+            Console.WriteLine($"   Error: {ex.Message}");
+            if (ex.StackTrace != null)
+            {
+                Console.WriteLine($"   Stack: {ex.StackTrace.Split('\n')[0]}");
+            }
         }
     }
-}
-
-// Simple console output helper for xUnit
-public class ConsoleTestOutputHelper : ITestOutputHelper
-{
-    public void WriteLine(string message)
+    
+    private class TestResults
     {
-        Console.WriteLine($"  {message}");
-    }
-
-    public void WriteLine(string format, params object[] args)
-    {
-        Console.WriteLine($"  {string.Format(format, args)}");
+        public int Passed { get; set; }
+        public int Failed { get; set; }
     }
 }

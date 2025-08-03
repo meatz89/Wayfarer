@@ -1,0 +1,144 @@
+{
+  "conversationId": "brother_marcus_1",
+  "npcId": "brother_marcus",
+  "initialNode": "greeting",
+  "nodes": {
+    "greeting": {
+      "text": "Welcome, traveler. Come, sit. The road weighs heavy on all who walk it. What brings you to my humble establishment? A warm meal, a moment's rest, or perhaps... something more?",
+      "choices": [
+        {
+          "id": "ask_about_wisdom",
+          "text": "You seem like someone with wisdom to share.",
+          "nextNode": "share_wisdom",
+          "focusCost": 0
+        },
+        {
+          "id": "need_information",
+          "text": "I'm looking for information about the city.",
+          "nextNode": "city_knowledge",
+          "focusCost": 0
+        },
+        {
+          "id": "just_rest",
+          "text": "Just a drink and some quiet, thanks.",
+          "nextNode": "provide_rest",
+          "focusCost": 0
+        }
+      ]
+    },
+    "share_wisdom": {
+      "text": "Ah, wisdom... I've learned that true wisdom comes not from books or sermons, but from understanding people. Every soul who enters here carries a story. Some seek redemption, others merely survival. Which do you seek, friend?",
+      "choices": [
+        {
+          "id": "seek_purpose",
+          "text": "I'm trying to find my purpose as a courier.",
+          "nextNode": "courier_purpose",
+          "focusCost": 0
+        },
+        {
+          "id": "philosophical",
+          "text": "Perhaps both. Or neither. Hard to say.",
+          "nextNode": "appreciate_depth",
+          "focusCost": 1
+        }
+      ]
+    },
+    "city_knowledge": {
+      "text": "Information flows through taverns like wine, my friend. I hear much but speak carefully. The Lower Ward has its own rules - respect them and you'll find your way. What specifically troubles you?",
+      "choices": [
+        {
+          "id": "safe_routes",
+          "text": "Which routes are safest for a courier?",
+          "nextNode": "route_advice",
+          "focusCost": 0
+        },
+        {
+          "id": "trustworthy_people",
+          "text": "Who can be trusted in this city?",
+          "nextNode": "trust_advice",
+          "focusCost": 1
+        }
+      ]
+    },
+    "provide_rest": {
+      "text": "Of course. Sometimes the greatest wisdom is knowing when to be silent. Your drink awaits. May you find the peace you seek.",
+      "isEnd": true
+    },
+    "courier_purpose": {
+      "text": "A courier carries more than letters, friend. You carry hopes, fears, connections between souls. Each delivery is a thread in the tapestry of human connection. Never forget - your work matters more than you know.",
+      "choices": [
+        {
+          "id": "inspired",
+          "text": "I never thought of it that way. Thank you.",
+          "nextNode": "glad_to_help",
+          "focusCost": 0
+        }
+      ]
+    },
+    "appreciate_depth": {
+      "text": "Hah! A philosopher walks into my tavern. I like you. The world needs those who question. Here's a truth for free: the shadows and the light both serve their purpose. Understanding when to walk in each - that's the real trick.",
+      "isEnd": true,
+      "effects": {
+        "addToken": {
+          "npcId": "brother_marcus",
+          "tokenType": "Trust",
+          "amount": 1
+        },
+        "addToken": {
+          "npcId": "brother_marcus",
+          "tokenType": "Shadow",
+          "amount": 1
+        }
+      }
+    },
+    "route_advice": {
+      "text": "By day, stick to the main thoroughfares. By night... well, sometimes the alleys are safer if you know which ones. The old warehouse district - avoid it unless you have business there. The docks are rough but honest. The Rest is safest, but most expensive.",
+      "choices": [
+        {
+          "id": "thank_advice",
+          "text": "Valuable advice. I appreciate it.",
+          "nextNode": "welcome_anytime",
+          "focusCost": 0
+        }
+      ]
+    },
+    "trust_advice": {
+      "text": "Trust... now that's the real currency of the Lower Ward. Elena the Scribe - honest to a fault. Martha at the docks runs a tight ship. Tam knows everyone's business but keeps his mouth shut for friends. As for the shadows... well, sometimes you need them too.",
+      "isEnd": true,
+      "effects": {
+        "addToken": {
+          "npcId": "brother_marcus",
+          "tokenType": "Trust",
+          "amount": 2
+        }
+      }
+    },
+    "glad_to_help": {
+      "text": "Go with grace, courier. And remember - my door is always open to those who seek truth, rest, or merely a friendly ear.",
+      "isEnd": true,
+      "effects": {
+        "addToken": {
+          "npcId": "brother_marcus",
+          "tokenType": "Trust",
+          "amount": 1
+        },
+        "addToken": {
+          "npcId": "brother_marcus",
+          "tokenType": "Common",
+          "amount": 1
+        }
+      }
+    },
+    "welcome_anytime": {
+      "text": "You're always welcome here. Safe travels, and may your burdens be light.",
+      "isEnd": true,
+      "effects": {
+        "addToken": {
+          "npcId": "brother_marcus",
+          "tokenType": "Common",
+          "amount": 1
+        }
+      }
+    }
+  }
+}

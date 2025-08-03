@@ -44,9 +44,11 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             }
         }
 
-        // Default introduction
+        // Generate contextual default introduction based on NPC
         Console.WriteLine("[DeterministicNarrativeProvider] Using default introduction");
-        return Task.FromResult("You begin a conversation.");
+        var npcName = context.TargetNPC?.Name ?? "the person";
+        var greeting = GenerateContextualGreeting(context, state);
+        return Task.FromResult(greeting);
     }
 
     public Task<List<ConversationChoice>> GenerateChoices(ConversationContext context, ConversationState state, List<ChoiceTemplate> availableTemplates)
@@ -142,6 +144,27 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     {
         // STUB: Always available
         return Task.FromResult(true);
+    }
+    
+    private string GenerateContextualGreeting(ConversationContext context, ConversationState state)
+    {
+        var npc = context.TargetNPC;
+        if (npc == null) return "You approach someone.";
+        
+        // Generate appropriate greeting based on NPC
+        var greetings = new List<string>();
+        
+        // Add generic greetings - we'll keep it simple for now
+        greetings.Add($"{npc.Name} looks up as you approach.");
+        greetings.Add($"{npc.Name} acknowledges your presence.");
+        greetings.Add($"You catch {npc.Name}'s attention.");
+        greetings.Add($"{npc.Name} turns to face you. \"Yes?\"");
+        greetings.Add($"\"Can I help you?\" {npc.Name} asks.");
+        greetings.Add($"{npc.Name} pauses their work to speak with you.");
+        
+        // Pick a random greeting for variety
+        var random = new Random();
+        return greetings[random.Next(greetings.Count)];
     }
 }
 

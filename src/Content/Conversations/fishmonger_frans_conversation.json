@@ -1,0 +1,144 @@
+{
+  "conversationId": "fishmonger_frans_1",
+  "npcId": "fishmonger_frans",
+  "initialNode": "greeting",
+  "nodes": {
+    "greeting": {
+      "text": "Fresh fish! Best prices at the... Oh, a courier! Perfect timing. I've got deliveries that need to go out and messages for my suppliers. Business never stops in the fish trade!",
+      "choices": [
+        {
+          "id": "interested_in_work",
+          "text": "What kind of deliveries do you need?",
+          "nextNode": "explain_deliveries",
+          "focusCost": 0
+        },
+        {
+          "id": "ask_about_fish",
+          "text": "What's the catch of the day?",
+          "nextNode": "talk_fish",
+          "focusCost": 0
+        },
+        {
+          "id": "just_looking",
+          "text": "Just browsing the market.",
+          "nextNode": "browse_away",
+          "focusCost": 0
+        }
+      ]
+    },
+    "explain_deliveries": {
+      "text": "I need someone to take orders to the Merchant's Rest - they want fresh salmon for tonight's dinner. Also got a message for my supplier upriver about next week's shipment. Standard courier rates, quick coin for quick feet!",
+      "choices": [
+        {
+          "id": "take_both",
+          "text": "I'll handle both deliveries.",
+          "nextNode": "appreciate_efficiency",
+          "focusCost": 0
+        },
+        {
+          "id": "take_one",
+          "text": "I can take one of those messages.",
+          "nextNode": "which_one",
+          "focusCost": 0
+        }
+      ]
+    },
+    "talk_fish": {
+      "text": "Hah! A courier who appreciates good fish! Got some beautiful mackerel this morning, and the salmon's so fresh it practically swam here itself. Tell you what - deliver a message for me, and I'll throw in a nice piece for your dinner.",
+      "choices": [
+        {
+          "id": "deal",
+          "text": "Now that's an offer I can't refuse!",
+          "nextNode": "fish_deal",
+          "focusCost": 0
+        },
+        {
+          "id": "just_deliver",
+          "text": "I'll stick to courier work, thanks.",
+          "nextNode": "explain_deliveries",
+          "focusCost": 0
+        }
+      ]
+    },
+    "browse_away": {
+      "text": "Well, if you need fish or delivery work, Frans is your man! Best fish at the docks, and always got messages that need sending!",
+      "isEnd": true
+    },
+    "appreciate_efficiency": {
+      "text": "Now that's what I like - efficiency! Here's the order list for the Rest and the supplier message. Get them both delivered before evening and there's a bonus in it for you!",
+      "isEnd": true,
+      "effects": {
+        "addLetter": {
+          "letterId": "frans_merchant_order",
+          "payment": 6,
+          "deadline": 3
+        },
+        "addLetter": {
+          "letterId": "frans_supplier_message",
+          "payment": 7,
+          "deadline": 5
+        },
+        "addToken": {
+          "npcId": "fishmonger_frans",
+          "tokenType": "Trade",
+          "amount": 1
+        }
+      }
+    },
+    "which_one": {
+      "text": "The Merchant's Rest order is more urgent - they need it by dinner time. The supplier message can wait another day or two. Your choice!",
+      "choices": [
+        {
+          "id": "take_urgent",
+          "text": "I'll take the urgent one to the Merchant's Rest.",
+          "nextNode": "give_urgent",
+          "focusCost": 0
+        },
+        {
+          "id": "take_supplier",
+          "text": "I'll deliver the supplier message.",
+          "nextNode": "give_supplier",
+          "focusCost": 0
+        }
+      ]
+    },
+    "fish_deal": {
+      "text": "Smart courier! Here's a message for the Harbor Master about tomorrow's fishing permits. Deliver it by end of day, and I'll have a nice salmon steak wrapped and waiting for you!",
+      "isEnd": true,
+      "effects": {
+        "addLetter": {
+          "letterId": "frans_permit_request",
+          "payment": 5,
+          "deadline": 2
+        },
+        "addToken": {
+          "npcId": "fishmonger_frans",
+          "tokenType": "Common",
+          "amount": 1
+        }
+      }
+    },
+    "give_urgent": {
+      "text": "Good choice! Time is money in the restaurant business. Here's the order - make sure they know it's the premium cuts!",
+      "isEnd": true,
+      "effects": {
+        "addLetter": {
+          "letterId": "frans_merchant_order",
+          "payment": 6,
+          "deadline": 3
+        }
+      }
+    },
+    "give_supplier": {
+      "text": "Reliable choice! My supplier appreciates punctual messages. Here's the letter - standard payment when you return with confirmation.",
+      "isEnd": true,
+      "effects": {
+        "addLetter": {
+          "letterId": "frans_supplier_message",
+          "payment": 7,
+          "deadline": 5
+        }
+      }
+    }
+  }
+}
