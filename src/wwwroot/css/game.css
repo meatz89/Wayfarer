@@ -70,6 +70,19 @@
     --leather-dark: #8A6546;
     --oak-dark: #4A332A;
     --approach-tag-dark: #4A5330;
+    
+    /* Additional UI Variables for Components */
+    --surface-color: var(--bg-panel);
+    --background-color: var(--bg-dark);
+    --border-color: var(--oak-mid);
+    --hover-color: var(--bg-hover);
+    --primary-gradient: linear-gradient(90deg, var(--moss) 0%, var(--leather) 100%);
+    --text-on-dark: var(--text-primary);
+    --disabled-color: var(--text-muted);
+    --shadow: var(--charcoal);
+    --primary-color: var(--moss);
+    --primary-hover: var(--moss-dark);
+    --forest: var(--moss);
 }
 
 html body * {
@@ -284,7 +297,7 @@ body {
     background-color: var(--leather);
     border: 2px solid var(--oak-dark);
     border-radius: 3px;
-    box-Thief: inset 0 0 4px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
     background-image: url("/images/subtle-parchment.png");
     background-repeat: repeat;
     background-blend-mode: multiply;

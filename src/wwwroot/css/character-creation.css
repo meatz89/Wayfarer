@@ -154,7 +154,7 @@
 	padding: 15px;
 	width: 300px;
 	z-index: 1000;
-	box-Thief: 0 4px 8px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 	animation: slide-in 0.3s ease-out;
 }
 
@@ -218,7 +218,7 @@
 	.archetype-card.selected {
 		border-color: var(--leather);
 		background-color: var(--bg-active);
-		box-Thief: 0 0 15px rgba(168, 125, 95, 0.3);
+		box-shadow: 0 0 15px rgba(168, 125, 95, 0.3);
 		min-height: 420px;
 		transform: scale(1.08);
 		z-index: 1;
@@ -432,7 +432,7 @@
 	.archetype-card.selected {
 		border-color: var(--resource-coins);
 		background-color: var(--bg-active);
-		box-Thief: 0 0 15px rgba(168, 125, 95, 0.3);
+		box-shadow: 0 0 15px rgba(168, 125, 95, 0.3);
 	}
 
 .archetype-icon {
@@ -500,7 +500,7 @@
 		background-color: var(--leather);
 		border-color: var(--clay);
 		color: var(--parchment);
-		box-Thief: 0 3px 8px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 	}
 
 	.gender-option i {

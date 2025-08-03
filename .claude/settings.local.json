@@ -93,7 +93,8 @@
       "Bash(# Fix GameFacade.cs\nsed -i ''472d'' /mnt/c/git/wayfarer/src/Services/GameFacade.cs\n\n# Fix TokenSpendingPreview.razor  \nsed -i ''97d'' /mnt/c/git/wayfarer/src/Pages/Components/TokenSpendingPreview.razor\n\n# Fix CharacterRelationshipScreen.razor\nsed -i ''204d'' /mnt/c/git/wayfarer/src/Pages/CharacterRelationshipScreen.razor\n\n# Fix LetterBoardScreen.razor\nsed -i ''467d'' /mnt/c/git/wayfarer/src/Pages/LetterBoardScreen.razor\n\n# Fix MultipleLetterOfferDialog.razor\nsed -i ''212d;225d'' /mnt/c/git/wayfarer/src/Pages/MultipleLetterOfferDialog.razor\n\n# Fix NPCRelationshipCard.razor\nsed -i ''414d'' /mnt/c/git/wayfarer/src/Pages/Components/NPCRelationshipCard.razor\n\necho \"\"Fixed duplicate Trust cases\"\")",
       "Bash(git rm:*)",
       "Bash(/mnt/c/git/wayfarer/update_deadline.sh:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(do sed -i 's/box-Thief/box-shadow/g' \"$file\")"
     ],
     "deny": []
   }
