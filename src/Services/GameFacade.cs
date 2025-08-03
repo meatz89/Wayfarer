@@ -526,25 +526,41 @@ public class GameFacade
             return false;
         }
         
-        // Create conversation context
-        var location = _locationRepository.GetCurrentLocation();
-        var spot = player.CurrentLocationSpot;
-        var context = ConversationContext.Standard(_gameWorld, player, npc, location, spot);
-        
-        // Create conversation
-        var conversationTask = _conversationFactory.CreateConversation(context, player);
-        var conversation = conversationTask.Result;
-        if (conversation == null)
+        try
         {
-            _messageSystem.AddSystemMessage($"Cannot start conversation with {npc.Name}", SystemMessageTypes.Warning);
+            // Create conversation context
+            var location = _locationRepository.GetCurrentLocation();
+            var spot = player.CurrentLocationSpot;
+            var context = ConversationContext.Standard(_gameWorld, player, npc, location, spot);
+            
+            // Create conversation - this should always succeed with fallback content
+            var conversation = await _conversationFactory.CreateConversation(context, player);
+            if (conversation == null)
+            {
+                // This should never happen with proper fallback, but handle it anyway
+                _messageSystem.AddSystemMessage($"Failed to create conversation with {npc.Name}", SystemMessageTypes.Warning);
+                return false;
+            }
+            
+            // Set conversation state
+            _conversationStateManager.SetCurrentConversation(conversation);
+            
+            // Verify the conversation was set
+            if (!_conversationStateManager.ConversationPending || _conversationStateManager.PendingConversationManager == null)
+            {
+                _messageSystem.AddSystemMessage($"Failed to start conversation with {npc.Name} - state not set", SystemMessageTypes.Danger);
+                return false;
+            }
+            
+            _messageSystem.AddSystemMessage($"Started conversation with {npc.Name}", SystemMessageTypes.Success);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ExecuteTalk] Exception: {ex}");
+            _messageSystem.AddSystemMessage($"Error starting conversation: {ex.Message}", SystemMessageTypes.Danger);
             return false;
         }
-        
-        // Set conversation state
-        _conversationStateManager.SetCurrentConversation(conversation);
-        
-        _messageSystem.AddSystemMessage($"Started conversation with {npc.Name}", SystemMessageTypes.Success);
-        return true;
     }
     
     private async Task<bool> ExecuteRest(RestIntent intent)

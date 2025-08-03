@@ -3,13 +3,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
-    <StartupObject>SimpleProgram</StartupObject>
+    <StartupObject>SimpleE2ETest</StartupObject>
   </PropertyGroup>
   
-  <ItemGroup>
-    <Compile Remove="TutorialE2ETests.cs" />
-    <Compile Remove="TestRunner.cs" />
-  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="../src/Wayfarer.csproj" />
