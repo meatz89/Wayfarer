@@ -214,7 +214,7 @@ public class EndorsementManager
         return "Commerce"; // Default
     }
     
-    private SealType GetSealTypeForGuild(string guildLocationId)
+    public SealType GetSealTypeForGuild(string guildLocationId)
     {
         return guildLocationId switch
         {

@@ -31,7 +31,7 @@
                 <div class="info-list">
                     @foreach (var info in ViewModel.RouteInformation)
                     {
-                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" OnUseLeverage="@(() => UseLeverage(info))" />
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
                     }
                 </div>
             </div>
@@ -47,7 +47,7 @@
                 <div class="info-list">
                     @foreach (var info in ViewModel.LocationInformation)
                     {
-                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" OnUseLeverage="@(() => UseLeverage(info))" />
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
                     }
                 </div>
             </div>
@@ -63,7 +63,7 @@
                 <div class="info-list">
                     @foreach (var info in ViewModel.NPCInformation)
                     {
-                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" OnUseLeverage="@(() => UseLeverage(info))" />
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
                     }
                 </div>
             </div>
@@ -79,7 +79,7 @@
                 <div class="info-list">
                     @foreach (var info in ViewModel.ServiceInformation)
                     {
-                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" OnUseLeverage="@(() => UseLeverage(info))" />
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
                     }
                 </div>
             </div>
@@ -95,7 +95,7 @@
                 <div class="info-list">
                     @foreach (var info in ViewModel.SecretInformation)
                     {
-                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" OnUseLeverage="@(() => UseLeverage(info))" />
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
                     }
                 </div>
             </div>
@@ -145,18 +145,7 @@
         StateHasChanged();
     }
     
-    private async Task UseLeverage(DiscoveredInfoViewModel info)
-    {
-        if (_isProcessing || !info.CanBeUsedAsLeverage || !info.IsAccessUnlocked)
-            return;
-            
-        // TODO: Show NPC selection dialog for leverage target
-        // For now, just show a message
-        MessageSystem.AddSystemMessage(
-            "Leverage system not yet fully implemented",
-            SystemMessageTypes.Info
-        );
-    }
+    // Leverage system removed - Information letters are for unlocking NPCs/routes only
     
     private void CloseScreen()
     {

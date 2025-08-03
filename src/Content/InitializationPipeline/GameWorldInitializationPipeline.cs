@@ -39,8 +39,8 @@ public class GameWorldInitializationPipeline
             // Phase 3: Entities that depend on NPCs and locations
             new Phase3_NPCDependents(),
             
-            // Phase 4: Narrative definitions from JSON
-            new Phase4_Narratives(),
+            // Phase 4: Conversation definitions from JSON
+            new Phase4_Conversations(),
             
             // Phase 5: Complex entities with multiple dependencies
             new Phase5_ComplexEntities(),

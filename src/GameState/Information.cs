@@ -31,11 +31,6 @@ public class Information
     // Sources of this information
     public List<InformationSource> Sources { get; set; } = new List<InformationSource>();
     
-    // Leverage mechanics
-    public bool CanBeUsedAsLeverage { get; set; } = false;
-    public string LeverageAgainstNpcId { get; set; }
-    public int LeverageValue { get; set; } = 0; // How much this info is worth as leverage
-    
     // Tracking
     public bool IsDiscovered { get; set; } = false;
     public bool IsAccessUnlocked { get; set; } = false;
@@ -277,31 +272,7 @@ public class InformationDiscoveryManager
         return true;
     }
     
-    /// <summary>
-    /// Use information as leverage against an NPC
-    /// </summary>
-    public bool UseAsLeverage(string informationId, string targetNpcId)
-    {
-        if (!_allInformation.TryGetValue(informationId, out Information info))
-            return false;
-            
-        if (!info.IsDiscovered || !info.CanBeUsedAsLeverage)
-            return false;
-            
-        if (info.LeverageAgainstNpcId != targetNpcId)
-            return false;
-            
-        // Apply leverage effects (this would integrate with obligation system)
-        _messageSystem.AddSystemMessage(
-            $"You use your knowledge to gain leverage over the NPC",
-            SystemMessageTypes.Success
-        );
-        
-        // Mark information as used (can only leverage once)
-        info.CanBeUsedAsLeverage = false;
-        
-        return true;
-    }
+    // Leverage system removed - Information letters are for unlocking NPCs/routes only
     
     /// <summary>
     /// Get all discovered information of a specific type

@@ -372,11 +372,6 @@ public class DiscoveredInfoViewModel
     public List<string> EquipmentRequirements { get; set; } = new();
     public int CoinCost { get; set; }
     public bool CanAfford { get; set; }
-    
-    // Leverage info
-    public bool CanBeUsedAsLeverage { get; set; }
-    public string LeverageTargetName { get; set; }
-    public int LeverageValue { get; set; }
 }
 
 // ========== OBLIGATION EFFECT VIEW MODELS ==========

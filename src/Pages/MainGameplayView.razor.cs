@@ -339,9 +339,14 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task HandleSpotSelection(LocationSpot locationSpot)
     {
-        // Execute a move action through facade
-        await GameFacade.ExecuteLocationActionAsync($"move_{locationSpot.SpotID}");
-        UpdateState();
+        // Use the new intent-based system for movement
+        var moveIntent = new MoveIntent(locationSpot.SpotID);
+        var success = await GameFacade.ExecuteIntent(moveIntent);
+        
+        if (success)
+        {
+            UpdateState();
+        }
     }
 
     public async Task OnConversationCompleted()
@@ -678,7 +683,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public DebugLogger DebugLogger => null; // Stub for compatibility - use Console.WriteLine instead
     public ITimeManager TimeManager => null; // Should use GameFacade.GetTimeInfo() instead
     public ConversationStateManager ConversationStateManager => null; // Should use GameFacade.GetCurrentConversation() instead
-    public NarrativeManager NarrativeManager => null; // Should use GameFacade.GetNarrativeState() instead
+    // Narrative system replaced with conversation system
     public FlagService FlagService => null; // Should use GameFacade.IsTutorialActive() instead
     public StandingObligationManager StandingObligationManager => null; // Should use GameFacade methods instead
     public StandingObligationRepository StandingObligationRepository => null; // Should use GameFacade methods instead
@@ -691,7 +696,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public LocationRepository LocationRepository => null; // Should use GameFacade.GetCurrentLocation() instead
     public ItemRepository ItemRepository => null; // Should use GameFacade.GetInventory() instead
     public LoadingStateService LoadingStateService => null; // No longer needed with facade
-    public GameWorldManager GameManager => null; // All operations go through GameFacade
+    // All operations go through GameFacade
     public GameWorld GameWorld => null; // Never access GameWorld directly - use GameFacade
 
     // Helper method to calculate total weight

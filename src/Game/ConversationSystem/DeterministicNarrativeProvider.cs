@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Provides deterministic narrative content for conversations with narrative override support.
+/// Provides deterministic narrative content for conversations with conversation override support.
 /// </summary>
 public class DeterministicNarrativeProvider : INarrativeProvider
 {
-    private readonly NarrativeManager _narrativeManager;
+    private readonly ConversationRepository _conversationRepository;
 
-    public DeterministicNarrativeProvider(NarrativeManager narrativeManager)
+    public DeterministicNarrativeProvider(ConversationRepository conversationRepository)
     {
-        _narrativeManager = narrativeManager;
+        _conversationRepository = conversationRepository;
     }
 
     public Task<string> GenerateIntroduction(ConversationContext context)
     {
-        // Check for narrative dialogue override
+        // Check for conversation override
         if (context.TargetNPC != null)
         {
-            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
-            if (!string.IsNullOrEmpty(narrativeDialogue))
+            var introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
+            if (!string.IsNullOrEmpty(introduction))
             {
-                return Task.FromResult(narrativeDialogue);
+                return Task.FromResult(introduction);
             }
         }
 
@@ -32,15 +32,15 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 
     public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
     {
-        // Check for narrative dialogue override
+        // Check for conversation override
         if (context.TargetNPC != null)
         {
             Console.WriteLine($"[DeterministicNarrativeProvider] Checking dialogue for NPC: {context.TargetNPC.ID}");
-            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
-            Console.WriteLine($"[DeterministicNarrativeProvider] Got dialogue: {narrativeDialogue ?? "null"}");
-            if (!string.IsNullOrEmpty(narrativeDialogue))
+            var introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
+            Console.WriteLine($"[DeterministicNarrativeProvider] Got dialogue: {introduction ?? "null"}");
+            if (!string.IsNullOrEmpty(introduction))
             {
-                return Task.FromResult(narrativeDialogue);
+                return Task.FromResult(introduction);
             }
         }
 
@@ -53,22 +53,19 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     {
         var choices = new List<ConversationChoice>();
         
-        // Check if we have a narrative dialogue override - if so, provide a simple continue option
-        if (context.TargetNPC != null)
+        // Check if we have a conversation override - if so, provide choices from the conversation
+        if (context.TargetNPC != null && _conversationRepository.HasConversation(context.TargetNPC.ID))
         {
-            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
-            if (!string.IsNullOrEmpty(narrativeDialogue))
+            // For special conversations, provide a simple continue option for now
+            // TODO: Load actual choices from conversation JSON
+            choices.Add(new ConversationChoice
             {
-                // For tutorial/narrative dialogues, provide a simple continue option
-                choices.Add(new ConversationChoice
-                {
-                    ChoiceID = "continue",
-                    NarrativeText = "Continue",
-                    FocusCost = 0,
-                    IsAffordable = true
-                });
-                return Task.FromResult(choices);
-            }
+                ChoiceID = "continue",
+                NarrativeText = "Continue",
+                FocusCost = 0,
+                IsAffordable = true
+            });
+            return Task.FromResult(choices);
         }
         
         // If we have available templates, use them
@@ -111,13 +108,13 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             return Task.FromResult(""); // Empty response since conversation is ending
         }
         
-        // Check for narrative dialogue override
+        // Check for conversation override
         if (context.TargetNPC != null)
         {
-            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
-            if (!string.IsNullOrEmpty(narrativeDialogue))
+            var introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
+            if (!string.IsNullOrEmpty(introduction))
             {
-                return Task.FromResult(narrativeDialogue);
+                return Task.FromResult(introduction);
             }
         }
 
@@ -127,13 +124,13 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 
     public Task<string> GenerateConclusion(ConversationContext context, ConversationState state, ConversationChoice lastChoice)
     {
-        // Check for narrative dialogue override
+        // Check for conversation override
         if (context.TargetNPC != null)
         {
-            var narrativeDialogue = _narrativeManager.GetNarrativeDialogue(context.TargetNPC.ID);
-            if (!string.IsNullOrEmpty(narrativeDialogue))
+            var introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
+            if (!string.IsNullOrEmpty(introduction))
             {
-                return Task.FromResult(narrativeDialogue);
+                return Task.FromResult(introduction);
             }
         }
 
@@ -148,11 +145,3 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     }
 }
 
-/// <summary>
-/// STUB: Conversation context for command-based interactions
-/// </summary>
-public class CommandConversationContext : ConversationContext
-{
-    public string CommandType { get; set; }
-    public IGameCommand Command { get; set; }
-}

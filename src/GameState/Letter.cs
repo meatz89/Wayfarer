@@ -91,6 +91,7 @@ public class Letter
     // Helper properties
     public bool IsExpired => DeadlineInDays <= 0;
     public bool IsSpecial => SpecialType != LetterSpecialType.None;
+    public int CarryWeight => PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy) ? 3 : 1;
 
     /// <summary>
     /// Get the number of inventory slots this letter requires

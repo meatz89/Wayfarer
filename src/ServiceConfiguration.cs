@@ -62,7 +62,6 @@ public static class ServiceConfiguration
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 
-        services.AddSingleton<GameWorldManager>();
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<LocationPropertyManager>();
         services.AddTimeSystem();
@@ -105,30 +104,17 @@ public static class ServiceConfiguration
         services.AddSingleton<MorningActivitiesManager>();
         services.AddSingleton<NoticeBoardService>();
 
-        // Command Discovery Service replaces LocationActionManager
-        services.AddSingleton<CommandDiscoveryService>();
         services.AddSingleton<ConversationFactory>();
 
-        // Narrative system components (after NPCRepository and NPCVisibilityService)
+        // Core services
         services.AddSingleton<FlagService>();
-        services.AddSingleton<NarrativeManager>();
-        services.AddSingleton<NarrativeRequirement>();
-        services.AddSingleton<NarrativeJournal>();
-        services.AddSingleton<NarrativeEffectRegistry>();
-        services.AddSingleton<NarrativeItemService>();
+        services.AddSingleton<ConversationRepository>();
 
         services.AddScoped<MusicService>();
         services.AddScoped<TimeImpactCalculator>();
-        services.AddScoped<ActionExecutionService>();
+        // ActionExecutionService removed - using intent-based architecture
 
-        // Command System
-        services.AddSingleton<CommandExecutor>();
 
-        // UI Services - Clean separation between UI and game logic
-        services.AddSingleton<LetterQueueUIService>();
-        services.AddSingleton<TravelUIService>();
-        services.AddSingleton<ReadableLetterUIService>();
-        
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
         services.AddSingleton<NPCService>();
@@ -138,8 +124,7 @@ public static class ServiceConfiguration
 
         // Navigation Service - remove duplicate registration
 
-        // State Management Services
-        services.AddSingleton<GameStateManager>();
+        // State Management Services - removed GameStateManager (legacy)
 
         services.AddAIServices();
 

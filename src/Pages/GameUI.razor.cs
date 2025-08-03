@@ -5,7 +5,7 @@ public class GameUIBase : ComponentBase
 {
     [Inject] public ContentValidator ContentValidator { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
-    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] public GameFacade GameFacade { get; set; }
     [Inject] public ITimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
     [Inject] public FlagService FlagService { get; set; }
@@ -115,9 +115,9 @@ public class GameUIBase : ComponentBase
     public async Task HandleCharacterCreated(Player player)
     {
         Console.WriteLine($"[GameUIBase.HandleCharacterCreated] Character created: {player?.Name ?? "null"}");
-        Console.WriteLine("[GameUIBase.HandleCharacterCreated] Calling GameWorldManager.StartGame()...");
-        await GameWorldManager.StartGame();
-        Console.WriteLine("[GameUIBase.HandleCharacterCreated] GameWorldManager.StartGame() completed.");
+        Console.WriteLine("[GameUIBase.HandleCharacterCreated] Calling GameFacade.StartGame()...");
+        await GameFacade.StartGame();
+        Console.WriteLine("[GameUIBase.HandleCharacterCreated] GameFacade.StartGame() completed.");
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigating to LocationScreen...");
         CurrentView = CurrentViews.LocationScreen;
         StateHasChanged();

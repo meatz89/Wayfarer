@@ -273,10 +273,7 @@
                 <h4>Conversation State</h4>
                 <p>Pending: @ConversationStateManager.ConversationPending</p>
                 <p>Manager Exists: @(ConversationStateManager.PendingConversationManager != null)</p>
-                @if (GameWorld.PendingCommand != null)
-                {
-                    <p>Pending Command: @GameWorld.PendingCommand.Description</p>
-                }
+                @* PendingCommand removed - using intent-based system *@
             </div>
             
             <div class="debug-section">

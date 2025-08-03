@@ -6,7 +6,7 @@
     public int CurrentTimeHours { get; set; }
     public SerializablePlayerState Player { get; set; }
     
-    // Narrative state
+    // Game state
     public FlagServiceState FlagServiceState { get; set; }
-    public Dictionary<string, NarrativeState> ActiveNarratives { get; set; }
+    public Dictionary<string, ConversationState> ActiveConversations { get; set; }
 }

@@ -3,7 +3,7 @@ namespace Wayfarer.Pages;
 
 public class LocationSpotMapBase : ComponentBase
 {
-    [Inject] public GameWorldManager GameWorldManager { get; set; }
+    [Inject] public GameFacade GameFacade { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public LocationSystem LocationSystem { get; set; }
     [Inject] public NPCRepository NPCRepository { get; set; }
@@ -12,7 +12,7 @@ public class LocationSpotMapBase : ComponentBase
     [Inject] public ConnectionTokenManager TokenManager { get; set; }
     [Inject] public MessageSystem MessageSystem { get; set; }
     [Inject] public ITimeManager TimeManager { get; set; }
-    [Inject] public NarrativeManager NarrativeManager { get; set; }
+    [Inject] public ConversationRepository ConversationRepository { get; set; }
 
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public LocationSpot CurrentSpot { get; set; }
@@ -96,11 +96,8 @@ public class LocationSpotMapBase : ComponentBase
             .Where(npc => npc.SpotId == CurrentSpot.SpotID)
             .ToList();
         
-        // Filter NPCs based on narrative visibility
-        if (NarrativeManager != null && NarrativeManager.HasActiveNarrative())
-        {
-            npcs = npcs.Where(npc => NarrativeManager.IsNPCVisible(npc.ID)).ToList();
-        }
+        // All NPCs are visible in the new conversation system
+        // No narrative-based filtering needed
         
         return npcs;
     }

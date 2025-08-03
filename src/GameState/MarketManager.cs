@@ -729,4 +729,43 @@ public class MarketManager
             .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
             .ToList();
     }
+    
+    /// <summary>
+    /// Get trader NPCs at a location (alias for GetCurrentTraders)
+    /// </summary>
+    private List<NPC> GetTraderNPCs(string locationId)
+    {
+        return GetCurrentTraders(locationId);
+    }
+    
+    public List<MarketItem> GetMarketItems(string locationId)
+    {
+        var traders = GetTraderNPCs(locationId);
+        var items = new List<MarketItem>();
+        
+        foreach (var trader in traders)
+        {
+            var traderItems = _itemRepository.GetAllItems()
+                .Select(item => new MarketItem
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Price = GetItemPrice(locationId, item.Id, true),
+                    Stock = 10, // Default stock
+                    TraderId = trader.ID,
+                    ItemId = item.Id
+                })
+                .ToList();
+            
+            items.AddRange(traderItems);
+        }
+        
+        return items;
+    }
+    
+    public MarketItem GetMarketItem(string locationId, string itemId)
+    {
+        var items = GetMarketItems(locationId);
+        return items.FirstOrDefault(i => i.Id == itemId || i.ItemId == itemId);
+    }
 }
