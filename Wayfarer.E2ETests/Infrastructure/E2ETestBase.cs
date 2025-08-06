@@ -27,7 +27,7 @@ namespace Wayfarer.E2ETests.Infrastructure
             ServiceProvider = TestServiceProvider.CreateServiceProvider(GameWorld);
             
             // Get GameFacade
-            GameFacade = ServiceProvider.GetRequiredService<GameFacade>();
+           GameFacade = ServiceProvider.GetRequiredService<GameFacade>();
             
             Console.WriteLine($"[TEST] Setup complete. Player at {Player.CurrentLocationId}/{Player.CurrentSpotId}");
         }
@@ -106,7 +106,7 @@ namespace Wayfarer.E2ETests.Infrastructure
             
             // Clear any other static state if needed
             GameWorld = null;
-            GameFacade = null;
+           GameFacade = null;
             ServiceProvider = null;
             
             Console.WriteLine("[TEST] Cleanup complete");

@@ -32,8 +32,7 @@ public class LiteraryConversationScreenBase : ComponentBase
     {
         try
         {
-            GameFacade.ProcessConversationChoice(choiceId);
-            await LoadConversation();
+            Conversation = await GameFacade.ContinueConversationAsync(choiceId);
             
             // Check if conversation is complete
             if (Conversation?.IsComplete == true)

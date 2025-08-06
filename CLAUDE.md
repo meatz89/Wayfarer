@@ -2,7 +2,19 @@
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 
+**CRITICAL DIRECTIVE: Before implementing ANY change to Wayfarer, you MUST debate all agents with the proposed change.**
+This includes:
+- New mechanics
+- Modified systems  
+- UI changes
+- Content structures
+- Rule adjustments
+- Feature additions
+- Feature removals
+No exceptions. Even "small" changes must be reviewed by all specialized personas.
+
 **🚨 MANDATORY: ANALYZE BEFORE ANY CHANGE 🚨**
+- You MUST ALWAYS proactively DEBATE WITH EVERY ONE of my specialized agents for EVERY CHANGE
 - You MUST ALWAYS proactively think ahead and plan your steps BEFORE making ANY change
 - You MUST analyze ALL related files and understand the complete system BEFORE modifying anything
 - You MUST understand how components interact and depend on each other
@@ -34,8 +46,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 *** PRIME PRINCIPLES ***
 - You are too agreeable by default. I want you objective. I want a partner. Not a sycophant.
+- NEVER ASSUME. Check the documentation and codebase and ask the user for clarification
 - You have Gemini as a registered MCP tool. Everytime before you implement a solution, you must first fight Gemini and me about it until everyone is in agreement about the correct way to implement it.
 - **NO SILENT BACKEND ACTIONS** - Nothing should happen silently in the backend. If automatic, the player MUST be notified via MessageSystem. If manual, the player MUST click a button to initiate. All game state changes must be visible and intentional.
+- **NEVER CREATE DUPLICATE MARKDOWN FILES** - ALWAYS check for existing .md files in root directory first. Update existing documentation files instead of creating new ones. If LITERARY-UI-IMPLEMENTATION.md exists, UPDATE IT. If SESSION-HANDOFF.md exists, UPDATE IT. Creating duplicate files is unacceptable.
+- **ALWAYS UPDATE GITHUB AFTER CHANGES** - After making significant changes or completing tasks, ALWAYS update the GitHub issues and kanban board to reflect current progress. Use `gh issue comment` to add progress updates and `gh project` commands to update the kanban board status.
 
 ** CODE WRITING PRINCIPLES **
 

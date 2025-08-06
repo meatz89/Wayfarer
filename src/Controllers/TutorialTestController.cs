@@ -17,7 +17,7 @@ public class TutorialTestController : ControllerBase
     private readonly ILogger<TutorialTestController> _logger;
 
     public TutorialTestController(
-        GameFacade gameFacade,
+       GameFacade gameFacade,
         ILogger<TutorialTestController> logger)
     {
         _gameFacade = gameFacade;

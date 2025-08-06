@@ -54,7 +54,7 @@ public class ContextTagCalculator
 
         // Set specific values
         context.MinutesUntilDeadline = CalculateMinutesUntilDeadline();
-        context.LetterQueueSize = _letterQueueManager?.GetActiveLetters()?.Count ?? 0;
+        context.LetterQueueSize = _letterQueueManager?.GetPlayerQueue()?.Count(l => l != null) ?? 0;
 
         // Initialize attention manager if not present
         if (context.AttentionManager == null)
@@ -74,7 +74,7 @@ public class ContextTagCalculator
             tags.Add(PressureTag.DEADLINE_IMMINENT);
 
         // Check queue pressure
-        var queueSize = _letterQueueManager?.GetActiveLetters()?.Count ?? 0;
+        var queueSize = _letterQueueManager?.GetPlayerQueue()?.Count(l => l != null) ?? 0;
         if (queueSize >= 6)
             tags.Add(PressureTag.QUEUE_OVERFLOW);
 
@@ -86,7 +86,7 @@ public class ContextTagCalculator
 
             foreach (ConnectionType tokenType in Enum.GetValues(typeof(ConnectionType)))
             {
-                var totalTokens = _tokenManager.GetTotalTokens(tokenType);
+                var totalTokens = _tokenManager.GetTokenCount(tokenType);
                 if (totalTokens < 0)
                 {
                     hasDebt = true;
@@ -116,10 +116,11 @@ public class ContextTagCalculator
             return tags;
 
         // Check each token type
-        int trustTokens = _tokenManager.GetTokenCount(npcId, ConnectionType.Trust);
-        int commerceTokens = _tokenManager.GetTokenCount(npcId, ConnectionType.Commerce);
-        int statusTokens = _tokenManager.GetTokenCount(npcId, ConnectionType.Status);
-        int shadowTokens = _tokenManager.GetTokenCount(npcId, ConnectionType.Shadow);
+        var npcTokens = _tokenManager.GetTokensWithNPC(npcId);
+        int trustTokens = npcTokens.GetValueOrDefault(ConnectionType.Trust);
+        int commerceTokens = npcTokens.GetValueOrDefault(ConnectionType.Commerce);
+        int statusTokens = npcTokens.GetValueOrDefault(ConnectionType.Status);
+        int shadowTokens = npcTokens.GetValueOrDefault(ConnectionType.Shadow);
 
         // Trust tags
         if (trustTokens >= 4)
@@ -203,9 +204,10 @@ public class ContextTagCalculator
             tags.Add(ResourceTag.STAMINA_EXHAUSTED);
 
         // Inventory tags
-        if (_gameWorld.PlayerInventory?.Items?.Any() != true)
+        var inventoryItems = _gameWorld.PlayerInventory?.GetAllItems();
+        if (inventoryItems == null || !inventoryItems.Any(i => !string.IsNullOrEmpty(i)))
             tags.Add(ResourceTag.INVENTORY_EMPTY);
-        else if (_gameWorld.PlayerInventory.Items.Count >= 10) // Assuming 10 is max
+        else if (inventoryItems.Count(i => !string.IsNullOrEmpty(i)) >= 10) // Assuming 10 is max
             tags.Add(ResourceTag.INVENTORY_FULL);
 
         return tags;
@@ -214,23 +216,19 @@ public class ContextTagCalculator
     private int CalculateMinutesUntilDeadline()
     {
         // Get the most urgent letter deadline
-        var urgentLetter = _letterQueueManager?.GetActiveLetters()?
-            .Where(l => l.DeadlineDay > 0)
-            .OrderBy(l => l.DeadlineDay)
-            .ThenBy(l => l.DeadlineHour)
+        var urgentLetter = _letterQueueManager?.GetPlayerQueue()?
+            .Where(l => l != null)?
+            .Where(l => l.DeadlineInDays > 0)
+            .OrderBy(l => l.DeadlineInDays)
             .FirstOrDefault();
 
         if (urgentLetter == null)
             return 9999; // No deadline
 
         // Calculate minutes until deadline
-        int currentDay = _gameWorld.CurrentDay;
-        int currentHour = (int)_gameWorld.CurrentTimeBlock * 4; // Rough conversion
-
-        var daysUntil = urgentLetter.DeadlineDay - currentDay;
-        var hoursUntil = urgentLetter.DeadlineHour - currentHour;
-        var totalHours = (daysUntil * 24) + hoursUntil;
-
+        // DeadlineInDays is the number of days remaining
+        var totalHours = urgentLetter.DeadlineInDays * 24;
+        
         return Math.Max(0, totalHours * 60);
     }
 
@@ -242,13 +240,13 @@ public class ContextTagCalculator
         WeatherCondition weather = _gameWorld.CurrentWeather;
         switch (weather)
         {
-            case WeatherCondition.Sunny:
+            case WeatherCondition.Clear:
                 tags.Add(FeelingTag.SUN_DRENCHED);
                 break;
-            case WeatherCondition.Rainy:
+            case WeatherCondition.Rain:
                 tags.Add(FeelingTag.RAIN_SOAKED);
                 break;
-            case WeatherCondition.Snowy:
+            case WeatherCondition.Snow:
                 tags.Add(FeelingTag.FROST_TOUCHED);
                 break;
         }

@@ -323,7 +323,7 @@
             // Remove from available letters
             availableLetters.Remove(selectedLetter);
             // Also remove from player's stored daily letters
-            GameFacade.GetPlayer().DailyBoardLetters?.Remove(selectedLetter);
+           GameFacade.GetPlayer().DailyBoardLetters?.Remove(selectedLetter);
             selectedLetter = null;
             
             StateHasChanged();

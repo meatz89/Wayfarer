@@ -47,6 +47,8 @@ public class GameFacade
     private readonly NoticeBoardService _noticeBoardService;
     private readonly LetterTemplateRepository _letterTemplateRepository;
     private readonly InformationRevealService _informationRevealService;
+    private readonly ContextTagCalculator _contextTagCalculator;
+    private readonly RumorManager _rumorManager;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -78,7 +80,9 @@ public class GameFacade
         EndorsementManager endorsementManager = null,
         NoticeBoardService noticeBoardService = null,
         LetterTemplateRepository letterTemplateRepository = null,
-        InformationRevealService informationRevealService = null)
+        InformationRevealService informationRevealService = null,
+        ContextTagCalculator contextTagCalculator = null,
+        RumorManager rumorManager = null)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
@@ -110,6 +114,8 @@ public class GameFacade
         _noticeBoardService = noticeBoardService;
         _letterTemplateRepository = letterTemplateRepository;
         _informationRevealService = informationRevealService;
+        _contextTagCalculator = contextTagCalculator;
+        _rumorManager = rumorManager;
     }
 
     // ========== HELPER METHODS ==========
@@ -2072,6 +2078,77 @@ public class GameFacade
 
     private ConversationViewModel CreateConversationViewModel(ConversationManager conversation)
     {
+        var context = conversation.Context;
+        
+        // Use ContextTagCalculator to populate tags if available
+        if (_contextTagCalculator != null && context != null)
+        {
+            _contextTagCalculator.PopulateContextTags(context);
+        }
+        
+        // Get attention information
+        var currentAttention = context?.AttentionManager?.Current ?? 3;
+        var maxAttention = context?.AttentionManager?.Max ?? 3;
+        
+        // Generate attention narrative based on remaining points
+        string attentionNarrative = currentAttention switch
+        {
+            3 => "Your mind is clear and focused, ready to absorb every detail.",
+            2 => "You remain attentive, though some of your focus has been spent.",
+            1 => "Your concentration wavers. You must choose your focus carefully.",
+            0 => "Mental fatigue clouds your thoughts. You can only respond simply.",
+            _ => ""
+        };
+        
+        // Generate body language description based on relationship tags
+        string bodyLanguage = GenerateBodyLanguageFromTags(context);
+        
+        // Generate peripheral observations
+        var peripheralObservations = GeneratePeripheralObservations(context);
+        
+        // Get available rumors from RumorManager
+        var availableRumors = new List<RumorViewModel>();
+        var knownRumors = new List<RumorViewModel>();
+        if (_rumorManager != null)
+        {
+            // Get all known rumors
+            var allKnownRumors = _rumorManager.GetKnownRumors();
+            foreach (var rumor in allKnownRumors)
+            {
+                var rumorVm = new RumorViewModel
+                {
+                    Id = rumor.Id,
+                    Text = rumor.Text,
+                    Source = rumor.Source,
+                    ConfidenceSymbol = GetConfidenceSymbol(rumor.Confidence),
+                    ConfidenceNarrative = GetConfidenceNarrative(rumor.Confidence),
+                    TradeValue = rumor.TradeValue,
+                    CanTrade = !rumor.HasBeenTraded && rumor.TradeValue > 0
+                };
+                knownRumors.Add(rumorVm);
+            }
+            
+            // Get tradeable rumors for this conversation
+            var tradeableRumors = _rumorManager.GetTradeableRumors();
+            foreach (var rumor in tradeableRumors)
+            {
+                if (!knownRumors.Any(r => r.Id == rumor.Id))
+                {
+                    var rumorVm = new RumorViewModel
+                    {
+                        Id = rumor.Id,
+                        Text = rumor.Text,
+                        Source = rumor.Source,
+                        ConfidenceSymbol = GetConfidenceSymbol(rumor.Confidence),
+                        ConfidenceNarrative = GetConfidenceNarrative(rumor.Confidence),
+                        TradeValue = rumor.TradeValue,
+                        CanTrade = true
+                    };
+                    availableRumors.Add(rumorVm);
+                }
+            }
+        }
+        
         return new ConversationViewModel
         {
             NpcName = conversation.Context.TargetNPC.Name,
@@ -2082,11 +2159,146 @@ public class GameFacade
                 Id = c.ChoiceID,
                 Text = c.NarrativeText,
                 IsAvailable = c.IsAffordable,
-                UnavailableReason = !c.IsAffordable ? $"Requires {c.AttentionCost} focus" : null
+                UnavailableReason = !c.IsAffordable ? $"Requires {c.AttentionCost} attention" : null,
+                AttentionCost = c.AttentionCost,
+                AttentionDescription = GetAttentionDescription(c.AttentionCost),
+                IsInternalThought = c.NarrativeText.StartsWith("*") || c.TemplatePurpose?.Contains("INTERNAL") == true,
+                EmotionalTone = DetermineEmotionalTone(c)
             }).ToList() ?? new List<ConversationChoiceViewModel>(),
             IsComplete = conversation.State?.IsConversationComplete ?? false,
-            ConversationTopic = conversation.Context.ConversationTopic
+            ConversationTopic = conversation.Context.ConversationTopic,
+            
+            // Literary UI properties
+            CurrentAttention = currentAttention,
+            MaxAttention = maxAttention,
+            AttentionNarrative = attentionNarrative,
+            
+            // Context tags
+            PressureTags = context?.PressureTags?.Select(t => t.ToString()).ToList() ?? new(),
+            RelationshipTags = context?.RelationshipTags?.Select(t => t.ToString()).ToList() ?? new(),
+            FeelingTags = context?.FeelingTags?.Select(t => t.ToString()).ToList() ?? new(),
+            DiscoveryTags = context?.DiscoveryTags?.Select(t => t.ToString()).ToList() ?? new(),
+            ResourceTags = context?.ResourceTags?.Select(t => t.ToString()).ToList() ?? new(),
+            
+            // Scene pressure metrics
+            MinutesUntilDeadline = context?.MinutesUntilDeadline ?? 0,
+            LetterQueueSize = context?.LetterQueueSize ?? 0,
+            
+            // Rumor information
+            AvailableRumors = availableRumors,
+            KnownRumors = knownRumors,
+            
+            // Body language and peripheral awareness
+            BodyLanguageDescription = bodyLanguage,
+            PeripheralObservations = peripheralObservations,
+            
+            // Internal monologue (generated based on pressure)
+            InternalMonologue = GenerateInternalMonologue(context)
         };
+    }
+    
+    private string GenerateBodyLanguageFromTags(SceneContext context)
+    {
+        if (context?.RelationshipTags == null || !context.RelationshipTags.Any())
+            return "Their posture is neutral, giving little away.";
+            
+        var bodyLanguage = new List<string>();
+        
+        if (context.RelationshipTags.Contains(RelationshipTag.TRUST_HIGH))
+            bodyLanguage.Add("leaning forward with open gestures");
+        if (context.RelationshipTags.Contains(RelationshipTag.TRUST_NEGATIVE))
+            bodyLanguage.Add("arms crossed defensively");
+        if (context.RelationshipTags.Contains(RelationshipTag.STATUS_RECOGNIZED))
+            bodyLanguage.Add("maintaining formal bearing");
+        if (context.RelationshipTags.Contains(RelationshipTag.SHADOW_COMPLICIT))
+            bodyLanguage.Add("glancing around nervously");
+        if (context.RelationshipTags.Contains(RelationshipTag.STRANGER))
+            bodyLanguage.Add("maintaining polite distance");
+            
+        return bodyLanguage.Any() ? string.Join(", ", bodyLanguage) : "Their expression is unreadable.";
+    }
+    
+    private List<string> GeneratePeripheralObservations(SceneContext context)
+    {
+        var observations = new List<string>();
+        
+        if (context?.PressureTags?.Contains(PressureTag.DEADLINE_IMMINENT) == true)
+            observations.Add("Time pressure weighs heavily...");
+        if (context?.FeelingTags?.Contains(FeelingTag.DANGER_LURKS) == true)
+            observations.Add("Something feels off about this place...");
+        if (context?.DiscoveryTags?.Contains(DiscoveryTag.SECRET_PRESENT) == true)
+            observations.Add("They seem to be holding something back...");
+            
+        return observations;
+    }
+    
+    private string GenerateInternalMonologue(SceneContext context)
+    {
+        if (context?.PressureTags?.Contains(PressureTag.DEADLINE_IMMINENT) == true)
+            return "Every minute here costs me dearly...";
+        if (context?.PressureTags?.Contains(PressureTag.DEBT_CRITICAL) == true)
+            return "I can't afford to make enemies now...";
+        if (context?.ResourceTags?.Contains(ResourceTag.STAMINA_EXHAUSTED) == true)
+            return "I can barely focus through the exhaustion...";
+            
+        return null;
+    }
+    
+    private string GetConfidenceSymbol(RumorConfidence confidence)
+    {
+        return confidence switch
+        {
+            RumorConfidence.Unknown => "???",
+            RumorConfidence.Doubtful => "?",
+            RumorConfidence.Possible => "◐",
+            RumorConfidence.Likely => "◕",
+            RumorConfidence.Verified => "✓",
+            RumorConfidence.False => "✗",
+            _ => "???"
+        };
+    }
+    
+    private string GetConfidenceNarrative(RumorConfidence confidence)
+    {
+        return confidence switch
+        {
+            RumorConfidence.Unknown => "You have no idea if this is true",
+            RumorConfidence.Doubtful => "This seems unlikely to be true",
+            RumorConfidence.Possible => "This might be true",
+            RumorConfidence.Likely => "This is probably true",
+            RumorConfidence.Verified => "You've confirmed this is true",
+            RumorConfidence.False => "You know this is false",
+            _ => "Unknown veracity"
+        };
+    }
+    
+    private string GetAttentionDescription(int cost)
+    {
+        return cost switch
+        {
+            0 => "A simple response",
+            1 => "Requires focus to pursue",
+            2 => "Demands significant mental effort",
+            3 => "Exhaustive investigation",
+            _ => ""
+        };
+    }
+    
+    private string DetermineEmotionalTone(ConversationChoice choice)
+    {
+        // Determine emotional tone based on choice properties
+        if (choice.OfferTokenType == ConnectionType.Trust)
+            return "warm";
+        if (choice.OfferTokenType == ConnectionType.Status)
+            return "formal";
+        if (choice.OfferTokenType == ConnectionType.Shadow)
+            return "mysterious";
+        if (choice.OfferTokenType == ConnectionType.Commerce)
+            return "confident";
+        if (choice.AttentionCost >= 2)
+            return "anxious";
+            
+        return "neutral";
     }
 
     // ========== LETTER QUEUE ==========
