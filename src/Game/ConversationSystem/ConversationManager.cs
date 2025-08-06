@@ -145,6 +145,12 @@ public class ConversationChoice
     // Literary UI properties - hidden verb system
     public BaseVerb BaseVerb { get; set; }
     public bool IsAvailable { get; set; }
+    
+    // Mechanical effect to apply when choice is selected
+    public IMechanicalEffect MechanicalEffect { get; set; }
+    
+    // Multiple system effects - choices should touch 2-3 systems minimum
+    public string BodyLanguageHint { get; set; } // "Relief floods their features"
 }
 
 /// <summary>

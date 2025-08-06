@@ -106,12 +106,13 @@ class TimeSystem {
 
 ### 3. Token System
 
-#### Token Types (Simplified to 3)
+#### Token Types
 ```csharp
 enum TokenType {
     Trust,    // Personal bonds
     Commerce, // Professional reliability  
-    Status    // Social standing
+    Status,   // Social standing
+    Shadow    // Kept secrets 
 }
 ```
 
@@ -129,7 +130,7 @@ enum TokenType {
 
 ### 4. Conversation System
 
-#### Core Verbs (Exactly 3)
+#### Core Verbs
 ```csharp
 enum ConversationVerb {
     HELP,      // Accept letters, offer assistance

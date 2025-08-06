@@ -1,5 +1,5 @@
-# Wayfarer Session Handoff - Parallel Degradation Design
-## Session Date: 2025-01-06 (Major Design Pivot)
+# Wayfarer Session Handoff - Literary UI Implementation
+## Session Date: 2025-01-06 (Last Updated: 2025-01-27)
 
 
 # Wayfarer: Complete Game Design Document
@@ -663,13 +663,168 @@ gh issue comment [number] --repo meatz89/Wayfarer --body "Progress update"
 4. Fixed Player.CurrentLocationSpot reference (not CurrentLocationId)
 5. PeripheralAwareness now uses GameFacade.GetPlayer() correctly
 
+## 🚨 CRITICAL FINDING: UI Mockups NOT Fully Implemented
+
+After reviewing the implementation against the UI mockups, we have **NOT** successfully recreated them using systemic mechanics. Here's what's missing:
+
+### ✅ What's Working
+1. **UI Structure** - ConversationScreen.razor matches the mockup HTML structure exactly
+2. **Attention Display** - Shows attention points correctly
+3. **Peripheral Awareness** - Deadline pressure and environmental hints display
+4. **Body Language** - NPCEmotionalStateCalculator generates body language from queue state
+5. **Location Context** - Atmosphere and location info display correctly
+
+### ❌ What's NOT Working - CRITICAL GAPS
+
+#### 1. **Choices Are NOT Generated Systemically**
+- **Problem**: Two separate GetConversation methods exist:
+  - `GetCurrentConversation()` - Uses ConversationManager with AI-generated choices
+  - `GetConversation(string npcId)` - Returns STATIC data with NO choices
+- **VerbContextualizer is NOT USED** - The hidden verb system exists but isn't connected
+- **Choices come from AI templates**, not from queue pressure and NPC states
+
+#### 2. **Mechanical Effects Not Shown**
+- Mockup shows clear mechanical effects for each choice:
+  - "✓ Opens negotiation"
+  - "⚠ Must burn 1 Status with Lord B"
+  - "⛓ Creates Binding Obligation"
+- Our implementation has NO mechanical preview system
+
+#### 3. **Queue Integration Missing**
+- Choices should emerge from queue state (letter positions, deadlines, stakes)
+- Current system doesn't use letter queue to generate contextual choices
+- No queue manipulation choices (reorder, prioritize, negotiate)
+
+#### 4. **Static Content Instead of Systemic**
+The mockup shows Elena saying:
+> "The letter contains Lord Aldwin's marriage proposal. My refusal."
+
+This should be generated from:
+- Letter type (Trust)
+- Stakes (REPUTATION)
+- Deadline (urgent)
+- NPC state (DESPERATE)
+
+Instead, we're relying on AI to generate narrative content.
+
+### 📋 Implementation Status This Session (2025-01-27)
+
+#### Completed
+1. **Added NPCEmotionalStateCalculator and VerbContextualizer to GameFacade**
+   - Services properly injected
+   - Body language now generated from NPC emotional states
+   - Uses letter queue to determine NPC state
+
+2. **Updated CreateConversationViewModel**
+   - Uses NPCEmotionalStateCalculator for body language
+   - Properly calculates NPC state from queue
+   - Integrates with attention system
+
+3. **Removed Legacy Code**
+   - Entire rumor system deleted
+   - No backward compatibility code remains
+   - Clean ViewModels separation
+
+#### NOT Completed - Critical Missing Pieces
+
+1. **VerbContextualizer Integration**
+   - Created but NOT USED anywhere
+   - Should generate choices from verbs + context
+   - Need to replace AI choice generation
+
+2. **Mechanical Preview System**
+   - Need MechanicEffectViewModel population
+   - Queue changes, token costs, obligation creation
+   - Time costs and consequences
+
+3. **Queue-Driven Choice Generation**
+   - Choices should emerge from queue state
+   - Letter positions, deadlines, stakes should drive options
+   - No hardcoded narrative content
+
+### 🎯 Next Session - MANDATORY TASKS
+
+#### Phase 1: Connect VerbContextualizer
+```csharp
+// In ConversationManager.ProcessNextBeat()
+// REPLACE AI generation with:
+var verbs = _verbContextualizer.GetAvailableVerbs(npc, npcState, player);
+foreach (var verb in verbs)
+{
+    var choice = _verbContextualizer.GenerateChoice(verb, npc, npcState, relevantLetter);
+    Choices.Add(choice);
+}
+```
+
+#### Phase 2: Generate Mechanical Effects
+```csharp
+// For each choice, generate mechanical preview:
+choice.Mechanics = new List<MechanicEffectViewModel>
+{
+    new() { Icon = "⚠", Description = "Burns 1 Status token", Type = Negative },
+    new() { Icon = "→", Description = "Moves letter to position 1", Type = Neutral },
+    new() { Icon = "⛓", Description = "Creates binding obligation", Type = Negative }
+};
+```
+
+#### Phase 3: Generate Narrative from Mechanics
+- NPC dialogue should emerge from letter properties
+- Use Letter.GetStakesHint() for context
+- Generate urgency from deadline
+- Create pressure from queue state
+
+### 🔧 Technical Tasks Remaining
+
+1. **Fix ConversationScreen.razor.cs**
+   - Should use GetCurrentConversation() not GetConversation()
+   - Need to trigger actual conversation through ConversationManager
+
+2. **Implement Choice Selection**
+   - SelectChoice() method needs to call ContinueConversationAsync()
+   - Process mechanical effects
+   - Update queue state
+
+3. **Remove AI Dependency for Basic Choices**
+   - Free/0-attention choices should be purely systemic
+   - Only deep investigation needs AI
+   - Queue operations should be deterministic
+
+### 📊 Assessment: Are We Using Systemic Mechanics?
+
+**NO** - We are NOT successfully using systemic mechanics. Current state:
+- ✅ NPC states emerge from queue (GOOD)
+- ✅ Body language generated from states (GOOD)
+- ❌ Choices still come from AI templates (BAD)
+- ❌ No mechanical preview system (BAD)
+- ❌ Queue operations not integrated (BAD)
+- ❌ VerbContextualizer unused (BAD)
+
+**The mockup's promise of "systemic mechanics, not authored content" is NOT fulfilled.**
+
+### 🚀 Quick Commands to Test
+
+```bash
+# Build and run
+cd /mnt/c/git/wayfarer/src
+dotnet build
+dotnet run
+
+# Test conversation system
+# Navigate to: http://localhost:5011/conversation/elena
+# Should see choices generated from queue state, not AI
+```
+
+### 📝 Key Learning
+
+The UI mockup is beautiful and matches our Razor components, but the **content generation is still using AI templates instead of emerging from game mechanics**. The VerbContextualizer and queue-driven narrative system exist but aren't connected. This is the critical gap that must be fixed next session.
+
 ## Next Session Focus
 
-1. **Fix remaining build errors** - InformationHierarchy and other UI issues
-2. **Complete E2E testing** - Verify the literary UI system works end-to-end
-3. **Implement AI narrative generation** - Connect VerbContextualizer to AI system
-4. **Build LiteraryConversationScreen** - The main UI component for literary conversations
-5. **Test with actual gameplay** - Ensure the queue-driven narrative feels right
+1. **MANDATORY: Connect VerbContextualizer to ConversationManager**
+2. **MANDATORY: Generate choices from queue state, not AI**
+3. **MANDATORY: Show mechanical effects for all choices**
+4. **Test that choices change based on queue pressure**
+5. **Verify no static content - everything emerges from mechanics**
 
-The backend for literary UI is now complete. Focus next on fixing compilation errors and building the frontend components.
+The literary UI backend exists but isn't connected. The frontend displays correctly but shows static content. **We have NOT achieved systemic narrative generation yet.**
 

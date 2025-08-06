@@ -48,6 +48,8 @@ public class GameFacade
     private readonly LetterTemplateRepository _letterTemplateRepository;
     private readonly InformationRevealService _informationRevealService;
     private readonly ContextTagCalculator _contextTagCalculator;
+    private readonly NPCEmotionalStateCalculator _npcEmotionalStateCalculator;
+    private readonly VerbContextualizer _verbContextualizer;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -81,6 +83,8 @@ public class GameFacade
         LetterTemplateRepository letterTemplateRepository = null,
         InformationRevealService informationRevealService = null,
         ContextTagCalculator contextTagCalculator = null,
+        NPCEmotionalStateCalculator npcEmotionalStateCalculator = null,
+        VerbContextualizer verbContextualizer = null
 )
     {
         _gameWorld = gameWorld;
@@ -114,6 +118,8 @@ public class GameFacade
         _letterTemplateRepository = letterTemplateRepository;
         _informationRevealService = informationRevealService;
         _contextTagCalculator = contextTagCalculator;
+        _npcEmotionalStateCalculator = npcEmotionalStateCalculator;
+        _verbContextualizer = verbContextualizer;
     }
 
     // ========== HELPER METHODS ==========
@@ -2077,11 +2083,19 @@ public class GameFacade
     private ConversationViewModel CreateConversationViewModel(ConversationManager conversation)
     {
         var context = conversation.Context;
+        var npc = conversation.Context?.TargetNPC;
         
         // Use ContextTagCalculator to populate tags if available
         if (_contextTagCalculator != null && context != null)
         {
             _contextTagCalculator.PopulateContextTags(context);
+        }
+        
+        // Calculate NPC emotional state from letter queue
+        NPCEmotionalState npcState = NPCEmotionalState.WITHDRAWN;
+        if (_npcEmotionalStateCalculator != null && npc != null)
+        {
+            npcState = _npcEmotionalStateCalculator.CalculateState(npc);
         }
         
         // Get attention information
@@ -2098,8 +2112,23 @@ public class GameFacade
             _ => ""
         };
         
-        // Generate body language description based on relationship tags
-        string bodyLanguage = GenerateBodyLanguageFromTags(context);
+        // Generate body language description based on NPC emotional state
+        string bodyLanguage = "";
+        if (_npcEmotionalStateCalculator != null && npc != null)
+        {
+            // Get the most urgent letter stakes for context
+            var urgentLetter = _letterQueueManager.GetActiveLetters()
+                .Where(l => l.SenderId == npc.ID || l.SenderName == npc.Name)
+                .OrderBy(l => l.DeadlineInDays)
+                .FirstOrDefault();
+            
+            var stakes = urgentLetter?.Stakes ?? StakeType.REPUTATION;
+            bodyLanguage = _npcEmotionalStateCalculator.GenerateBodyLanguage(npcState, stakes);
+        }
+        else
+        {
+            bodyLanguage = GenerateBodyLanguageFromTags(context);
+        }
         
         // Generate peripheral observations
         var peripheralObservations = GeneratePeripheralObservations(context);
@@ -2193,34 +2222,6 @@ public class GameFacade
             return "I can barely focus through the exhaustion...";
             
         return null;
-    }
-    
-    private string GetConfidenceSymbol(RumorConfidence confidence)
-    {
-        return confidence switch
-        {
-            RumorConfidence.Unknown => "???",
-            RumorConfidence.Doubtful => "?",
-            RumorConfidence.Possible => "◐",
-            RumorConfidence.Likely => "◕",
-            RumorConfidence.Verified => "✓",
-            RumorConfidence.False => "✗",
-            _ => "???"
-        };
-    }
-    
-    private string GetConfidenceNarrative(RumorConfidence confidence)
-    {
-        return confidence switch
-        {
-            RumorConfidence.Unknown => "You have no idea if this is true",
-            RumorConfidence.Doubtful => "This seems unlikely to be true",
-            RumorConfidence.Possible => "This might be true",
-            RumorConfidence.Likely => "This is probably true",
-            RumorConfidence.Verified => "You've confirmed this is true",
-            RumorConfidence.False => "You know this is false",
-            _ => "Unknown veracity"
-        };
     }
     
     private string GetAttentionDescription(int cost)

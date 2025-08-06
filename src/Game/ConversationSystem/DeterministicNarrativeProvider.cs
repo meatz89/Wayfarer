@@ -4,14 +4,19 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Provides deterministic narrative content for conversations with conversation override support.
+/// NOW USES SYSTEMIC MECHANICS - choices emerge from queue state, not templates!
 /// </summary>
 public class DeterministicNarrativeProvider : INarrativeProvider
 {
     private readonly ConversationRepository _conversationRepository;
+    private readonly VerbContextualizer _verbContextualizer;
 
-    public DeterministicNarrativeProvider(ConversationRepository conversationRepository)
+    public DeterministicNarrativeProvider(
+        ConversationRepository conversationRepository,
+        VerbContextualizer verbContextualizer)
     {
         _conversationRepository = conversationRepository;
+        _verbContextualizer = verbContextualizer;
     }
 
     public Task<string> GenerateIntroduction(SceneContext context)
@@ -58,8 +63,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         // Check if we have a conversation override - if so, provide choices from the conversation
         if (context.TargetNPC != null && _conversationRepository.HasConversation(context.TargetNPC.ID))
         {
-            // For special conversations, provide a simple continue option for now
-            // TODO: Load actual choices from conversation JSON
+            // For special conversations (like tutorial), provide a simple continue option
             choices.Add(new ConversationChoice
             {
                 ChoiceID = "continue",
@@ -70,36 +74,27 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             return Task.FromResult(choices);
         }
 
-        // If we have available templates, use them
-        if (availableTemplates != null && availableTemplates.Count > 0)
+        // NEW: Generate choices from queue state using VerbContextualizer
+        if (context.TargetNPC != null && _verbContextualizer != null && context.AttentionManager != null)
         {
-            foreach (ChoiceTemplate template in availableTemplates)
+            choices = _verbContextualizer.GenerateChoicesFromQueueState(
+                context.TargetNPC, 
+                context.AttentionManager);
+            
+            if (choices.Count > 0)
             {
-                // Determine attention cost based on template type
-                int attentionCost = DetermineAttentionCost(template);
-                bool isAffordable = context.AttentionManager?.CanAfford(attentionCost) ?? true;
-
-                choices.Add(new ConversationChoice
-                {
-                    ChoiceID = template.TemplateName,
-                    NarrativeText = template.Description ?? template.TemplateName,
-                    AttentionCost = attentionCost,
-                    IsAffordable = isAffordable
-                });
+                return Task.FromResult(choices);
             }
         }
 
-        // If no choices available, provide a default end conversation option
-        if (choices.Count == 0)
+        // FALLBACK: If no systemic choices generated, provide default exit
+        choices.Add(new ConversationChoice
         {
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = "end",
-                NarrativeText = "End conversation",
-                AttentionCost = 0,
-                IsAffordable = true
-            });
-        }
+            ChoiceID = "end",
+            NarrativeText = "End conversation",
+            AttentionCost = 0,
+            IsAffordable = true
+        });
 
         return Task.FromResult(choices);
     }
