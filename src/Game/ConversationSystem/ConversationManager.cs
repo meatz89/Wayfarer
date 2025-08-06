@@ -146,8 +146,8 @@ public class ConversationChoice
     public BaseVerb BaseVerb { get; set; }
     public bool IsAvailable { get; set; }
     
-    // Mechanical effect to apply when choice is selected
-    public IMechanicalEffect MechanicalEffect { get; set; }
+    // Mechanical effects to apply when choice is selected
+    public List<IMechanicalEffect> MechanicalEffects { get; set; }
     
     // Multiple system effects - choices should touch 2-3 systems minimum
     public string BodyLanguageHint { get; set; } // "Relief floods their features"
@@ -172,7 +172,6 @@ public enum TravelChoiceEffect
 public enum EquipmentType
 {
     None,
-    ClimbingGear,
     LightSource,
     WeatherProtection,
     LoadDistribution

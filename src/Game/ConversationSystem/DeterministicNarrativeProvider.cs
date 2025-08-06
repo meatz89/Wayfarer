@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -10,13 +11,19 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 {
     private readonly ConversationRepository _conversationRepository;
     private readonly VerbContextualizer _verbContextualizer;
+    private readonly NPCEmotionalStateCalculator _stateCalculator;
+    private readonly LetterQueueManager _queueManager;
 
     public DeterministicNarrativeProvider(
         ConversationRepository conversationRepository,
-        VerbContextualizer verbContextualizer)
+        VerbContextualizer verbContextualizer,
+        NPCEmotionalStateCalculator stateCalculator,
+        LetterQueueManager queueManager)
     {
         _conversationRepository = conversationRepository;
         _verbContextualizer = verbContextualizer;
+        _stateCalculator = stateCalculator;
+        _queueManager = queueManager;
     }
 
     public Task<string> GenerateIntroduction(SceneContext context)
@@ -37,7 +44,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 
     public Task<string> GenerateIntroduction(SceneContext context, ConversationState state)
     {
-        // Check for conversation override
+        // Check for conversation override (tutorial, special conversations)
         if (context.TargetNPC != null)
         {
             Console.WriteLine($"[DeterministicNarrativeProvider] Checking dialogue for NPC: {context.TargetNPC.ID}");
@@ -49,7 +56,35 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             }
         }
 
-        // Generate contextual default introduction based on NPC
+        // Generate systemic dialogue from queue state
+        if (context.TargetNPC != null)
+        {
+            var npcState = _stateCalculator.CalculateState(context.TargetNPC);
+            
+            // Find their most urgent letter
+            var npcLetters = _queueManager.GetActiveLetters()
+                .Where(l => l.SenderId == context.TargetNPC.ID || l.SenderName == context.TargetNPC.Name)
+                .OrderBy(l => l.DeadlineInDays)
+                .FirstOrDefault();
+            
+            // Generate dialogue from letter properties and emotional state
+            string dialogue = _stateCalculator.GenerateNPCDialogue(
+                context.TargetNPC, 
+                npcState, 
+                npcLetters, 
+                context);
+                
+            // Add body language for literary presentation
+            string bodyLanguage = npcLetters != null 
+                ? _stateCalculator.GenerateBodyLanguage(npcState, npcLetters.Stakes)
+                : _stateCalculator.GenerateBodyLanguage(npcState, StakeType.REPUTATION);
+                
+            string fullIntroduction = $"{context.TargetNPC.Name} {bodyLanguage}. {dialogue}";
+            
+            return Task.FromResult(fullIntroduction);
+        }
+
+        // Fallback
         Console.WriteLine("[DeterministicNarrativeProvider] Using default introduction");
         string npcName = context.TargetNPC?.Name ?? "the person";
         string greeting = GenerateContextualGreeting(context, state);

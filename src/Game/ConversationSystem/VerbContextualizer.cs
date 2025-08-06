@@ -7,9 +7,10 @@ using System.Linq;
 /// </summary>
 public enum BaseVerb
 {
-    HELP,        // Accept letters, offer assistance
-    NEGOTIATE,   // Trade positions, time, resources
-    INVESTIGATE  // Learn information, discover options
+    PLACATE,
+    EXTRACT,
+    DEFLECT,
+    COMMIT
 }
 
 /// <summary>
@@ -40,19 +41,15 @@ public class VerbContextualizer
     }
 
     /// <summary>
-    /// Generate choices from queue state following IMPLEMENTATION-PLAN.md rules:
-    /// 1. Always include 1 free "exit" option
-    /// 2. Show 1-2 contextual HELP options  
-    /// 3. Show 1-2 NEGOTIATE options if applicable
-    /// 4. Show 1 INVESTIGATE option if attention available
-    /// 5. Never exceed 5 total choices
+    /// Generate choices from queue state - CONVERSATIONS ARE THE INTERFACE TO ALL MECHANICS
+    /// Every choice touches multiple systems: queue, tokens, routes, NPCs, obligations
     /// </summary>
     public List<ConversationChoice> GenerateChoicesFromQueueState(NPC npc, AttentionManager attention)
     {
-        var choices = new List<ConversationChoice>();
+        var allChoices = new List<ConversationChoice>();
         var player = _gameWorld.GetPlayer();
         
-        // ANALYZE QUEUE STATE
+        // ANALYZE COMPLETE GAME STATE
         var npcLetters = _queueManager.GetActiveLetters()
             .Where(l => l.SenderId == npc.ID || l.SenderName == npc.Name)
             .OrderBy(l => l.DeadlineInDays)
@@ -61,104 +58,255 @@ public class VerbContextualizer
         var mostUrgent = npcLetters.FirstOrDefault();
         var npcState = _stateCalculator.CalculateState(npc);
         var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        var trustTokens = tokens.ContainsKey(ConnectionType.Trust) ? tokens[ConnectionType.Trust] : 0;
+        var queueFull = _queueManager.GetActiveLetters().Count() >= 8;
         
-        // RULE 1: Always include 1 free "exit" option
-        choices.Add(CreateExitChoice(npcState));
+        // Always include exit option (FREE)
+        allChoices.Add(CreateExitChoice(npcState));
         
-        // RULE 2: Show 1-2 contextual HELP options
-        if (mostUrgent != null)
+        // ========== BASE OPTIONS (0 ATTENTION) ==========
+        
+        // TOKEN EXCHANGE MECHANICS
+        if (!queueFull)
         {
-            // HELP: Accept to deliver their letter
-            choices.Add(new ConversationChoice
+            // Build tokens through time investment
+            allChoices.Add(new ConversationChoice
             {
                 ChoiceID = Guid.NewGuid().ToString(),
-                NarrativeText = $"I understand. Your letter is {GetQueuePositionText(mostUrgent.QueuePosition)} in my queue.",
+                NarrativeText = "Let me help you with something quick.",
                 AttentionCost = 0,
-                BaseVerb = BaseVerb.HELP,
+                BaseVerb = BaseVerb.PLACATE,
                 IsAvailable = true,
                 IsAffordable = true,
-                BodyLanguageHint = "→ Maintains current state"
+                BodyLanguageHint = "♥ +1 Trust | ⏱ +20 minutes",
+                MechanicalEffects = new List<IMechanicalEffect> 
+                { 
+                    new GainTokensEffect(ConnectionType.Trust, 1, npc.ID, _tokenManager),
+                    new ConversationTimeEffect(20, null)
+                }
             });
-            
-            // HELP: Offer concrete assistance with their letter
-            if (attention.CanAfford(1) && npcState == NPCEmotionalState.DESPERATE)
+        }
+        
+        // Burn tokens for immediate favor
+        if (trustTokens >= 2 && mostUrgent != null)
+        {
+            allChoices.Add(new ConversationChoice
             {
-                choices.Add(new ConversationChoice
+                ChoiceID = Guid.NewGuid().ToString(),
+                NarrativeText = "You've helped me before. Can you hold this letter for a day?",
+                AttentionCost = 0,
+                BaseVerb = BaseVerb.DEFLECT,
+                IsAvailable = true,
+                IsAffordable = true,
+                BodyLanguageHint = "⚠ -2 Trust | 📜 Letter removed temporarily",
+                MechanicalEffects = new List<IMechanicalEffect>
+                {
+                    new BurnTokensEffect(ConnectionType.Trust, 2, npc.ID, _tokenManager),
+                    new RemoveLetterTemporarilyEffect(mostUrgent.Id, _queueManager)
+                }
+            });
+        }
+        
+        // QUEUE MANIPULATION MECHANICS
+        if (!queueFull && mostUrgent == null && npc.HasLetterToSend())
+        {
+            // Offer to take their new letter
+            allChoices.Add(new ConversationChoice
+            {
+                ChoiceID = Guid.NewGuid().ToString(),
+                NarrativeText = "I can deliver something for you.",
+                AttentionCost = 0,
+                BaseVerb = BaseVerb.PLACATE,
+                IsAvailable = true,
+                IsAffordable = true,
+                BodyLanguageHint = "📜 Accept letter | ♥ +1 Trust",
+                MechanicalEffects = new List<IMechanicalEffect>
+                {
+                    new AcceptLetterEffect(npc.GenerateLetter(), _queueManager),
+                    new GainTokensEffect(ConnectionType.Trust, 1, npc.ID, _tokenManager)
+                }
+            });
+        }
+        
+        // Request deadline extension
+        if (mostUrgent != null && mostUrgent.DeadlineInDays <= 2)
+        {
+            allChoices.Add(new ConversationChoice
+            {
+                ChoiceID = Guid.NewGuid().ToString(),
+                NarrativeText = "I need one more day for your letter. The roads are difficult.",
+                AttentionCost = 0,
+                BaseVerb = BaseVerb.COMMIT,
+                IsAvailable = true,
+                IsAffordable = true,
+                BodyLanguageHint = "⏱ +1 day deadline | ⚠ -1 Trust if desperate",
+                MechanicalEffects = new List<IMechanicalEffect>
+                {
+                    new ExtendDeadlineEffect(mostUrgent.Id, 1, _queueManager),
+                    npcState == NPCEmotionalState.DESPERATE 
+                        ? new BurnTokensEffect(ConnectionType.Trust, 1, npc.ID, _tokenManager)
+                        : new NoEffect()
+                }
+            });
+        }
+        
+        // INFORMATION TRADE MECHANICS
+        if (player.KnownRoutes?.Any() == true && player.KnownRoutes.TryGetValue("default", out var routes) && routes.Any())
+        {
+            var firstRoute = routes.First();
+            allChoices.Add(new ConversationChoice
+            {
+                ChoiceID = Guid.NewGuid().ToString(),
+                NarrativeText = $"I know a shortcut through the area.",
+                AttentionCost = 0,
+                BaseVerb = BaseVerb.EXTRACT,
+                IsAvailable = true,
+                IsAffordable = true,
+                BodyLanguageHint = "ℹ Share route | ♥ +1 Commerce",
+                MechanicalEffects = new List<IMechanicalEffect>
+                {
+                    new ShareInformationEffect(firstRoute, npc),
+                    new GainTokensEffect(ConnectionType.Commerce, 1, npc.ID, _tokenManager)
+                }
+            });
+        }
+        
+        // ========== DEEP OPTIONS (1 ATTENTION) ==========
+        
+        if (attention.CanAfford(1))
+        {
+            // OBLIGATION CREATION
+            if (npcState == NPCEmotionalState.DESPERATE && !player.HasObligationTo(npc))
+            {
+                allChoices.Add(new ConversationChoice
                 {
                     ChoiceID = Guid.NewGuid().ToString(),
-                    NarrativeText = "I'll make sure your letter is delivered today, I promise.",
+                    NarrativeText = "I'll always prioritize your letters from now on.",
                     AttentionCost = 1,
-                    BaseVerb = BaseVerb.HELP,
+                    BaseVerb = BaseVerb.COMMIT,
                     IsAvailable = true,
                     IsAffordable = true,
-                    BodyLanguageHint = "♥ +1 Trust token | ⏱ Commits to delivery",
-                    MechanicalEffect = new GainTokensEffect(ConnectionType.Trust, 1, npc.ID, _tokenManager)
+                    BodyLanguageHint = "⛓ Creates permanent obligation | ♥ +3 Trust | 🗺️ Unlocks routes",
+                    MechanicalEffects = new List<IMechanicalEffect>
+                    {
+                        new CreateObligationEffect($"{npc.Name}_Priority", npc.ID, player),
+                        new GainTokensEffect(ConnectionType.Trust, 3, npc.ID, _tokenManager),
+                        new UnlockRoutesEffect(npc.KnownRoutes(), player)
+                    }
+                });
+            }
+            
+            // COMPLEX EXCHANGES - Package deal
+            if (mostUrgent != null && trustTokens >= 2)
+            {
+                allChoices.Add(new ConversationChoice
+                {
+                    ChoiceID = Guid.NewGuid().ToString(),
+                    NarrativeText = "Let's make a trade - I'll prioritize your letter if you introduce me to your contacts.",
+                    AttentionCost = 1,
+                    BaseVerb = BaseVerb.COMMIT,
+                    IsAvailable = true,
+                    IsAffordable = true,
+                    BodyLanguageHint = "→ Move to position 1 | 👥 Unlock new NPC | ⚠ -2 Trust",
+                    MechanicalEffects = new List<IMechanicalEffect>
+                    {
+                        new LetterReorderEffect(mostUrgent.Id, 1, 0, ConnectionType.Trust, _queueManager, _tokenManager, npc.ID),
+                        new UnlockNPCEffect(npc.GetContact(), _gameWorld),
+                        new BurnTokensEffect(ConnectionType.Trust, 2, npc.ID, _tokenManager)
+                    }
+                });
+            }
+            
+            // DISCOVERY ACTIONS - Reveal hidden route
+            if (npcState == NPCEmotionalState.DESPERATE || trustTokens >= 5)
+            {
+                allChoices.Add(new ConversationChoice
+                {
+                    ChoiceID = Guid.NewGuid().ToString(),
+                    NarrativeText = "Tell me what you're not saying. I can see you're holding back.",
+                    AttentionCost = 1,
+                    BaseVerb = BaseVerb.EXTRACT,
+                    IsAvailable = true,
+                    IsAffordable = true,
+                    BodyLanguageHint = "🗺️ Discover hidden route | ℹ Learn secret | ⏱ +30 minutes",
+                    MechanicalEffects = new List<IMechanicalEffect>
+                    {
+                        new DiscoverRouteEffect(npc.GetSecretRoute(), player),
+                        new ConversationTimeEffect(30, null)
+                    }
+                });
+            }
+            
+            // Token type conversion
+            if (tokens.ContainsKey(ConnectionType.Trust) && tokens[ConnectionType.Trust] >= 3)
+            {
+                allChoices.Add(new ConversationChoice
+                {
+                    ChoiceID = Guid.NewGuid().ToString(),
+                    NarrativeText = "Could you introduce me to the merchant guild?",
+                    AttentionCost = 1,
+                    BaseVerb = BaseVerb.EXTRACT,
+                    IsAvailable = true,
+                    IsAffordable = true,
+                    BodyLanguageHint = "⚠ -3 Trust | ♥ +2 Commerce | 🏪 Unlock guild",
+                    MechanicalEffects = new List<IMechanicalEffect>
+                    {
+                        new BurnTokensEffect(ConnectionType.Trust, 3, npc.ID, _tokenManager),
+                        new GainTokensEffect(ConnectionType.Commerce, 2, npc.ID, _tokenManager),
+                        new UnlockLocationEffect("MerchantGuildHall", _gameWorld)
+                    }
                 });
             }
         }
         
-        // RULE 3: Show 1-2 NEGOTIATE options if applicable
-        if (mostUrgent != null && mostUrgent.QueuePosition > 1 && attention.CanAfford(1))
+        // ========== CONTEXTUAL FILTERING ==========
+        
+        // Filter by emotional state
+        if (npcState == NPCEmotionalState.HOSTILE)
         {
-            var statusBurn = CalculateStatusBurn(mostUrgent);
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = Guid.NewGuid().ToString(),
-                NarrativeText = "I'll prioritize your letter. Let me check what that means...",
-                AttentionCost = 1,
-                BaseVerb = BaseVerb.NEGOTIATE,
-                IsAvailable = true,
-                IsAffordable = true,
-                BodyLanguageHint = statusBurn > 0 
-                    ? $"✓ Opens negotiation | ⚠ Must burn {statusBurn} Status with others"
-                    : "✓ Can move to top without cost",
-                MechanicalEffect = new LetterReorderEffect(
-                    mostUrgent.Id, 1, statusBurn, ConnectionType.Status,
-                    _queueManager, _tokenManager, npc.ID)
-            });
+            // Remove friendly options when hostile
+            allChoices.RemoveAll(c => c.NarrativeText.Contains("help") || c.NarrativeText.Contains("friend"));
         }
         
-        // Complex negotiation (2 attention points)
-        if (attention.CanAfford(2) && mostUrgent != null)
+        if (npcState == NPCEmotionalState.WITHDRAWN)
         {
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = Guid.NewGuid().ToString(),
-                NarrativeText = "I swear I'll deliver your letter before any others today.",
-                AttentionCost = 2,
-                BaseVerb = BaseVerb.NEGOTIATE,
-                IsAvailable = true,
-                IsAffordable = true,
-                BodyLanguageHint = "♥ +2 Trust tokens immediately | ⛓ Creates Binding Obligation",
-                MechanicalEffect = new CompoundEffect(new List<IMechanicalEffect> 
-                {
-                    new GainTokensEffect(ConnectionType.Trust, 2, npc.ID, _tokenManager),
-                    new LetterReorderEffect(mostUrgent.Id, 1, 0, ConnectionType.Trust,
-                        _queueManager, _tokenManager, npc.ID)
-                })
-            });
+            // Only keep engagement options when withdrawn
+            allChoices = allChoices.Where(c => 
+                c.BaseVerb == BaseVerb.PLACATE || 
+                c.ChoiceID == "exit").ToList();
         }
         
-        // RULE 4: Show 1 INVESTIGATE option if attention available
-        if (attention.CanAfford(1))
-        {
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = Guid.NewGuid().ToString(),
-                NarrativeText = mostUrgent != null 
-                    ? $"Tell me more about the situation with {mostUrgent.RecipientName}..."
-                    : "What's been happening in the district lately?",
-                AttentionCost = 1,
-                BaseVerb = BaseVerb.INVESTIGATE,
-                IsAvailable = true,
-                IsAffordable = true,
-                BodyLanguageHint = "ℹ Gain information | ⏱ +15 minutes conversation",
-                MechanicalEffect = new ConversationTimeEffect(15, null)
-            });
-        }
+        // Filter by urgency
+        var urgentChoices = allChoices.Where(c => 
+            c.MechanicalEffects?.Any(e => e is LetterReorderEffect) == true &&
+            mostUrgent?.DeadlineInDays <= 1).ToList();
+            
+        var highLeverageChoices = allChoices.Where(c =>
+            c.MechanicalEffects?.Any(e => e is GainTokensEffect gte && gte.Amount >= 3) == true).ToList();
+            
+        var discoveryChoices = allChoices.Where(c =>
+            c.MechanicalEffects?.Any(e => e is UnlockNPCEffect) == true).ToList();
+            
+        // Prioritize and limit to 5 choices
+        var finalChoices = new List<ConversationChoice>();
         
-        // RULE 5: Never exceed 5 total choices
-        return choices.Take(5).ToList();
+        // Always include exit
+        finalChoices.Add(allChoices.First(c => c.ChoiceID == "exit"));
+        
+        // Add urgent choices first
+        finalChoices.AddRange(urgentChoices.Take(1));
+        
+        // Add high-leverage choices
+        finalChoices.AddRange(highLeverageChoices.Take(1));
+        
+        // Add discovery choices
+        finalChoices.AddRange(discoveryChoices.Take(1));
+        
+        // Fill remaining slots with other choices
+        var remaining = allChoices.Except(finalChoices).Take(5 - finalChoices.Count);
+        finalChoices.AddRange(remaining);
+        
+        return finalChoices.Take(5).ToList();
     }
     
     private ConversationChoice CreateExitChoice(NPCEmotionalState state)
@@ -177,7 +325,7 @@ public class VerbContextualizer
             ChoiceID = "exit",
             NarrativeText = text,
             AttentionCost = 0,
-            BaseVerb = BaseVerb.HELP, // Exit is a form of help (ending conversation)
+            BaseVerb = BaseVerb.PLACATE, // Exit is a form of placation (ending conversation)
             IsAvailable = true,
             IsAffordable = true,
             BodyLanguageHint = "Exit conversation"
@@ -294,24 +442,23 @@ public class VerbContextualizer
         switch (state)
         {
             case NPCEmotionalState.DESPERATE:
-                verbs.Add(BaseVerb.HELP);        // They need assistance
-                verbs.Add(BaseVerb.NEGOTIATE);   // Can negotiate from weakness
-                verbs.Add(BaseVerb.INVESTIGATE); // They'll share information freely
+                verbs.Add(BaseVerb.PLACATE);     // They need assistance
+                verbs.Add(BaseVerb.COMMIT);      // Can negotiate from weakness
+                verbs.Add(BaseVerb.EXTRACT);     // They'll share information freely
                 break;
                 
             case NPCEmotionalState.HOSTILE:
-                verbs.Add(BaseVerb.HELP);        // Try to help/appease
-                // NEGOTIATE and INVESTIGATE locked when hostile
+                verbs.Add(BaseVerb.PLACATE);     // Try to appease
+                verbs.Add(BaseVerb.DEFLECT);     // Redirect their anger
                 break;
                 
             case NPCEmotionalState.CALCULATING:
-                verbs.Add(BaseVerb.NEGOTIATE);   // Trade resources
-                verbs.Add(BaseVerb.INVESTIGATE); // Carefully probe for info
-                // HELP less useful when calculating
+                verbs.Add(BaseVerb.COMMIT);      // Trade resources
+                verbs.Add(BaseVerb.EXTRACT);     // Carefully probe for info
                 break;
                 
             case NPCEmotionalState.WITHDRAWN:
-                verbs.Add(BaseVerb.HELP);        // Offer assistance to engage
+                verbs.Add(BaseVerb.PLACATE);     // Offer assistance to engage
                 // Most verbs locked when withdrawn
                 break;
         }
@@ -321,7 +468,7 @@ public class VerbContextualizer
         var tokens = npcTokens.ContainsKey(ConnectionType.Trust) ? npcTokens[ConnectionType.Trust] : 0;
         if (tokens >= 5)
         {
-            verbs.Add(BaseVerb.INVESTIGATE);  // Trust allows deeper probing
+            verbs.Add(BaseVerb.EXTRACT);  // Trust allows deeper probing
         }
 
         return verbs.Distinct().ToList();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Effect for reordering a letter in the queue during conversations.
@@ -80,6 +81,8 @@ public class GainTokensEffect : IMechanicalEffect
     private readonly string _npcId;
     private readonly ConnectionTokenManager _tokenManager;
 
+    public int Amount => _amount; // Expose for filtering
+
     public GainTokensEffect(
         ConnectionType tokenType, 
         int amount, 
@@ -141,31 +144,6 @@ public class BurnTokensEffect : IMechanicalEffect
 }
 
 /// <summary>
-/// Effect for discovering new information during conversations.
-/// </summary>
-public class DiscoverInformationEffect : IMechanicalEffect
-{
-    private readonly Information _info;
-    private readonly Player _player;
-
-    public DiscoverInformationEffect(Information info, Player player)
-    {
-        _info = info;
-        _player = player;
-    }
-
-    public void Apply(ConversationState state)
-    {
-        _player.AddKnownInformation(_info);
-    }
-
-    public string GetDescriptionForPlayer()
-    {
-        return "Learned something valuable";
-    }
-}
-
-/// <summary>
 /// Effect for advancing time during conversations.
 /// </summary>
 public class ConversationTimeEffect : IMechanicalEffect
@@ -181,11 +159,266 @@ public class ConversationTimeEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        _timeManager.AdvanceTime(_minutes);
+        if (_timeManager != null)
+            _timeManager.AdvanceTime(_minutes);
     }
 
     public string GetDescriptionForPlayer()
     {
         return _minutes > 30 ? "The conversation takes time" : "";
+    }
+}
+
+/// <summary>
+/// Effect for temporarily removing a letter from the queue.
+/// </summary>
+public class RemoveLetterTemporarilyEffect : IMechanicalEffect
+{
+    private readonly string _letterId;
+    private readonly LetterQueueManager _queueManager;
+
+    public RemoveLetterTemporarilyEffect(string letterId, LetterQueueManager queueManager)
+    {
+        _letterId = letterId;
+        _queueManager = queueManager;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        var position = _queueManager.GetLetterPosition(_letterId);
+        if (position.HasValue)
+        {
+            _queueManager.RemoveLetterFromQueue(position.Value);
+            // TODO: Add to temporary storage for later retrieval
+        }
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return "Letter held by NPC temporarily";
+    }
+}
+
+/// <summary>
+/// Effect for accepting a new letter into the queue.
+/// </summary>
+public class AcceptLetterEffect : IMechanicalEffect
+{
+    private readonly Letter _letter;
+    private readonly LetterQueueManager _queueManager;
+
+    public AcceptLetterEffect(Letter letter, LetterQueueManager queueManager)
+    {
+        _letter = letter;
+        _queueManager = queueManager;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        // Add to next available position
+        var currentCount = _queueManager.GetActiveLetters().Count();
+        _queueManager.AddLetterToQueue(_letter, currentCount + 1);
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return $"Accepted letter from {_letter.SenderName}";
+    }
+}
+
+/// <summary>
+/// Effect for extending a letter's deadline.
+/// </summary>
+public class ExtendDeadlineEffect : IMechanicalEffect
+{
+    private readonly string _letterId;
+    private readonly int _daysToAdd;
+    private readonly LetterQueueManager _queueManager;
+
+    public ExtendDeadlineEffect(string letterId, int daysToAdd, LetterQueueManager queueManager)
+    {
+        _letterId = letterId;
+        _daysToAdd = daysToAdd;
+        _queueManager = queueManager;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        var position = _queueManager.GetLetterPosition(_letterId);
+        if (position.HasValue)
+        {
+            var letter = _queueManager.GetLetterAt(position.Value);
+            letter.DeadlineInDays += _daysToAdd;
+        }
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return $"Deadline extended by {_daysToAdd} day(s)";
+    }
+}
+
+/// <summary>
+/// Effect for sharing information with an NPC.
+/// </summary>
+public class ShareInformationEffect : IMechanicalEffect
+{
+    private readonly RouteOption _route;
+    private readonly NPC _npc;
+
+    public ShareInformationEffect(RouteOption route, NPC npc)
+    {
+        _route = route;
+        _npc = npc;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        _npc.AddKnownRoute(_route);
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return $"Shared knowledge of {_route.Name}";
+    }
+}
+
+/// <summary>
+/// Effect for creating a standing obligation.
+/// </summary>
+public class CreateObligationEffect : IMechanicalEffect
+{
+    private readonly string _obligationId;
+    private readonly string _npcId;
+    private readonly Player _player;
+
+    public CreateObligationEffect(string obligationId, string npcId, Player player)
+    {
+        _obligationId = obligationId;
+        _npcId = npcId;
+        _player = player;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        // TODO: Implement obligation system properly
+        // For now, just track internally
+        // _player.AddObligation(new StandingObligation 
+        // { 
+        //     ObligationId = _obligationId,
+        //     Description = $"Permanent priority for {_npcId}'s letters"
+        // });
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return "Created binding obligation";
+    }
+}
+
+/// <summary>
+/// Effect for unlocking routes through conversation.
+/// </summary>
+public class UnlockRoutesEffect : IMechanicalEffect
+{
+    private readonly List<RouteOption> _routes;
+    private readonly Player _player;
+
+    public UnlockRoutesEffect(List<RouteOption> routes, Player player)
+    {
+        _routes = routes;
+        _player = player;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        foreach (var route in _routes)
+        {
+            _player.AddKnownRoute(route);
+        }
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return $"Learned {_routes.Count} new route(s)";
+    }
+}
+
+/// <summary>
+/// Effect for unlocking new NPCs.
+/// </summary>
+public class UnlockNPCEffect : IMechanicalEffect
+{
+    private readonly NPC _npcToUnlock;
+    private readonly GameWorld _gameWorld;
+
+    public UnlockNPCEffect(NPC npcToUnlock, GameWorld gameWorld)
+    {
+        _npcToUnlock = npcToUnlock;
+        _gameWorld = gameWorld;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        if (_npcToUnlock != null)
+        {
+            _gameWorld.AddNPC(_npcToUnlock);
+            state.Player.AddKnownNPC(_npcToUnlock.ID);
+        }
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return $"Met {_npcToUnlock?.Name ?? "someone new"}";
+    }
+}
+
+/// <summary>
+/// Effect for unlocking new locations.
+/// </summary>
+public class UnlockLocationEffect : IMechanicalEffect
+{
+    private readonly string _locationId;
+    private readonly GameWorld _gameWorld;
+
+    public UnlockLocationEffect(string locationId, GameWorld gameWorld)
+    {
+        _locationId = locationId;
+        _gameWorld = gameWorld;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        state.Player.AddKnownLocation(_locationId);
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return $"Discovered new location";
+    }
+}
+
+/// <summary>
+/// Effect for discovering new routes during conversations.
+/// </summary>
+public class DiscoverRouteEffect : IMechanicalEffect
+{
+    private readonly RouteOption _route;
+    private readonly Player _player;
+
+    public DiscoverRouteEffect(RouteOption route, Player player)
+    {
+        _route = route;
+        _player = player;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        _player.AddKnownRoute(_route);
+    }
+
+    public string GetDescriptionForPlayer()
+    {
+        return $"Discovered route: {_route?.Name ?? "new path"}";
     }
 }
