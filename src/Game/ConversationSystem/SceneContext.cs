@@ -1,7 +1,8 @@
 /// <summary>
-/// Context for AI-driven conversations with NPCs
+/// Context for scenes including conversations, locations, and narrative state.
+/// Combines game mechanics with literary UI presentation.
 /// </summary>
-public class ConversationContext
+public class SceneContext
 {
     public GameWorld GameWorld { get; set; }
     public Player Player { get; set; }
@@ -23,10 +24,24 @@ public class ConversationContext
     // Conversation flow
     public List<string> ConversationHistory { get; set; } = new List<string>();
 
-    // Factory method for standard conversation context
-    public static ConversationContext Standard(GameWorld gameWorld, Player player, NPC targetNPC, Location location, LocationSpot spot)
+    // Literary UI context tags
+    public List<PressureTag> PressureTags { get; set; } = new List<PressureTag>();
+    public List<RelationshipTag> RelationshipTags { get; set; } = new List<RelationshipTag>();
+    public List<DiscoveryTag> DiscoveryTags { get; set; } = new List<DiscoveryTag>();
+    public List<ResourceTag> ResourceTags { get; set; } = new List<ResourceTag>();
+    public List<FeelingTag> FeelingTags { get; set; } = new List<FeelingTag>();
+
+    // Attention system
+    public AttentionManager AttentionManager { get; set; }
+
+    // Scene pressure metrics
+    public int MinutesUntilDeadline { get; set; }
+    public int LetterQueueSize { get; set; }
+
+    // Factory method for standard scene context
+    public static SceneContext Standard(GameWorld gameWorld, Player player, NPC targetNPC, Location location, LocationSpot spot)
     {
-        return new ConversationContext
+        return new SceneContext
         {
             GameWorld = gameWorld,
             Player = player,
@@ -39,23 +54,23 @@ public class ConversationContext
             RelationshipLevel = 0
         };
     }
-    
+
     private static List<string> GetCurrentLocationProperties(Location location, GameWorld gameWorld)
     {
         if (location == null) return new List<string>();
-        
+
         // Get current time - defaulting to morning if not available
-        var timeBlock = TimeBlocks.Morning;
+        TimeBlocks timeBlock = TimeBlocks.Morning;
         if (gameWorld != null)
         {
-            var player = gameWorld.GetPlayer();
+            Player player = gameWorld.GetPlayer();
             if (player != null)
             {
                 // We could get time from game state if needed
                 // For now default to morning
             }
         }
-        
+
         return timeBlock switch
         {
             TimeBlocks.Dawn => location.MorningProperties,
@@ -71,7 +86,7 @@ public class ConversationContext
 /// <summary>
 /// Extended context for queue management conversations
 /// </summary>
-public class QueueManagementContext : ConversationContext
+public class QueueManagementContext : SceneContext
 {
     public Letter TargetLetter { get; set; }
     public string ManagementAction { get; set; } // "SkipDeliver", "Purge", etc.
@@ -82,7 +97,7 @@ public class QueueManagementContext : ConversationContext
 /// <summary>
 /// Extended context for action-based conversations
 /// </summary>
-public class ActionConversationContext : ConversationContext
+public class ActionConversationContext : SceneContext
 {
     public string InitialNarrative { get; set; }
     public List<ChoiceTemplate> AvailableTemplates { get; set; }
@@ -91,7 +106,7 @@ public class ActionConversationContext : ConversationContext
 /// <summary>
 /// Extended context for travel conversations
 /// </summary>
-public class TravelConversationContext : ConversationContext
+public class TravelConversationContext : SceneContext
 {
     public RouteOption Route { get; set; }
     public Location Origin { get; set; }

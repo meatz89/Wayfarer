@@ -17,7 +17,7 @@ namespace Wayfarer.Pages
         [Parameter] public EventCallback OnClose { get; set; }
 
         public Player PlayerState => GameWorld.GetPlayer();
-        
+
         // For readable letter display
         protected string selectedLetterItemId;
 

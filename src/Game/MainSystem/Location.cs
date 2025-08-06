@@ -3,10 +3,10 @@
     public string Id { get; set; }
     public string Name { get; private set; }
     public string Description { get; set; }
-    
+
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;
-    
+
     public List<LocationConnection> Connections { get; set; } = new List<LocationConnection>();
     public List<string> LocationSpotIds { get; set; } = new List<string>();
 

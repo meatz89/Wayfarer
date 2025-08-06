@@ -58,7 +58,7 @@ public class StandingObligation
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
     public string Source { get; set; } = ""; // NPC or entity that granted this obligation
-    
+
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;
 
@@ -89,7 +89,7 @@ public class StandingObligation
     public float BaseValue { get; set; } = 0f; // Base value before scaling
     public float MinValue { get; set; } = 0f; // Minimum scaled value
     public float MaxValue { get; set; } = 100f; // Maximum scaled value
-    
+
     // Stepped scaling thresholds (token count -> effect value)
     public Dictionary<int, float> SteppedThresholds { get; set; } = new Dictionary<int, float>();
 
@@ -347,16 +347,16 @@ public class StandingObligation
         {
             case ScalingType.None:
                 return BaseValue;
-                
+
             case ScalingType.Linear:
                 // Linear scaling: base + (tokens * factor)
                 float linearValue = BaseValue + (tokenCount * ScalingFactor);
                 return Math.Max(MinValue, Math.Min(MaxValue, linearValue));
-                
+
             case ScalingType.Stepped:
                 // Find the highest threshold that we meet
                 float steppedValue = BaseValue;
-                foreach (var threshold in SteppedThresholds.OrderBy(t => t.Key))
+                foreach (KeyValuePair<int, float> threshold in SteppedThresholds.OrderBy(t => t.Key))
                 {
                     if (tokenCount >= threshold.Key)
                     {
@@ -364,18 +364,18 @@ public class StandingObligation
                     }
                 }
                 return steppedValue;
-                
+
             case ScalingType.Threshold:
                 // Only apply effect if we meet the threshold
                 if (ActivationThreshold.HasValue)
                 {
-                    bool meetsThreshold = ActivatesAboveThreshold ? 
-                        tokenCount >= ActivationThreshold.Value : 
+                    bool meetsThreshold = ActivatesAboveThreshold ?
+                        tokenCount >= ActivationThreshold.Value :
                         tokenCount <= ActivationThreshold.Value;
                     return meetsThreshold ? BaseValue : 0f;
                 }
                 return BaseValue;
-                
+
             default:
                 return BaseValue;
         }
@@ -386,10 +386,10 @@ public class StandingObligation
     {
         if (!HasEffect(ObligationEffect.DynamicLeverageModifier)) return currentPosition;
         if (!AppliesTo(letter.TokenType)) return currentPosition;
-        
+
         float modifier = CalculateDynamicValue(tokenCount);
         int newPosition = currentPosition - (int)modifier; // Negative modifier improves position
-        
+
         return Math.Max(1, Math.Min(8, newPosition)); // Clamp to valid queue range
     }
 
@@ -398,7 +398,7 @@ public class StandingObligation
     {
         if (!HasEffect(ObligationEffect.DynamicPaymentBonus)) return 0;
         if (!AppliesTo(letter.TokenType)) return 0;
-        
+
         float bonus = CalculateDynamicValue(tokenCount);
         return (int)bonus;
     }
@@ -408,7 +408,7 @@ public class StandingObligation
     {
         if (!HasEffect(ObligationEffect.DynamicDeadlineBonus)) return 0;
         if (!AppliesTo(letter.TokenType)) return 0;
-        
+
         float bonus = CalculateDynamicValue(tokenCount);
         return (int)bonus;
     }

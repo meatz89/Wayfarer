@@ -32,7 +32,7 @@
 
         // Conversation state from ConversationStateManager
         ConversationPending = conversationStateManager.ConversationPending;
-        
+
         if (conversationStateManager.PendingConversationManager != null)
         {
             IsAwaitingAIResponse = conversationStateManager.PendingConversationManager.IsAwaitingResponse;

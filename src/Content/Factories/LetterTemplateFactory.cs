@@ -12,7 +12,7 @@ public class LetterTemplateFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create a minimal letter template with just an ID.
     /// Used for dummy/placeholder creation when references are missing.
@@ -21,9 +21,9 @@ public class LetterTemplateFactory
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
-            
-        var name = FormatIdAsName(id);
-        
+
+        string name = FormatIdAsName(id);
+
         return new LetterTemplate
         {
             Id = id,
@@ -46,14 +46,14 @@ public class LetterTemplateFactory
             SpecialTargetId = ""
         };
     }
-    
+
     private string FormatIdAsName(string id)
     {
         // Convert snake_case or kebab-case to Title Case
-        return string.Join(" ", 
+        return string.Join(" ",
             id.Replace('_', ' ').Replace('-', ' ')
               .Split(' ')
-              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+              .Select(word => string.IsNullOrEmpty(word) ? "" :
                   char.ToUpper(word[0]) + word.Substring(1).ToLower()));
     }
 

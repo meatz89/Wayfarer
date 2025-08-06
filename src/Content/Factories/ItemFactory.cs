@@ -11,7 +11,7 @@ public class ItemFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create a minimal item with just an ID.
     /// Used for dummy/placeholder creation when references are missing.
@@ -20,9 +20,9 @@ public class ItemFactory
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Item ID cannot be empty", nameof(id));
-            
-        var name = FormatIdAsName(id);
-        
+
+        string name = FormatIdAsName(id);
+
         return new Item
         {
             Id = id,
@@ -36,14 +36,14 @@ public class ItemFactory
             Description = $"An item called {name}"
         };
     }
-    
+
     private string FormatIdAsName(string id)
     {
         // Convert snake_case or kebab-case to Title Case
-        return string.Join(" ", 
+        return string.Join(" ",
             id.Replace('_', ' ').Replace('-', ' ')
               .Split(' ')
-              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+              .Select(word => string.IsNullOrEmpty(word) ? "" :
                   char.ToUpper(word[0]) + word.Substring(1).ToLower()));
     }
 

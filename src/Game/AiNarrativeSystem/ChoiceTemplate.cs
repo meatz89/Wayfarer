@@ -15,7 +15,6 @@
     // Letter offer specific properties
     public string Purpose { get; set; }
     public string Description { get; set; }
-    public int FocusCost { get; set; }
     public ConnectionType? TokenType { get; set; }
     public LetterCategory? Category { get; set; }
 

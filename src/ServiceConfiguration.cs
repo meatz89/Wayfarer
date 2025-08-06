@@ -40,7 +40,7 @@ public static class ServiceConfiguration
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();
-        
+
         // Core services that have no dependencies
         services.AddSingleton<NPCVisibilityService>();
 

@@ -59,7 +59,7 @@ public class Player
 
     public LocationSpot CurrentLocationSpot { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
-    
+
     /// <summary>
     /// Gets the current location derived from the current location spot.
     /// </summary>
@@ -95,7 +95,7 @@ public class Player
 
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
-    
+
     // Seal System
     public List<Seal> Seals { get; private set; } = new List<Seal>();
 
@@ -103,7 +103,7 @@ public class Player
     public List<string> PurchasedFavors { get; set; } = new List<string>();
     public List<string> UnlockedLocationIds { get; set; } = new List<string>();
     public List<string> UnlockedServices { get; set; } = new List<string>();
-    
+
     // Seal System - Players can wear up to 3 seals
     public List<Seal> WornSeals { get; set; } = new List<Seal>(3);
     public List<Seal> OwnedSeals { get; set; } = new List<Seal>();  // All seals earned
@@ -192,7 +192,7 @@ public class Player
     {
         return Memories.Any(m => m.Key == key && m.IsActive(currentDay));
     }
-    
+
     public MemoryFlag GetMemory(string key)
     {
         return Memories.FirstOrDefault(m => m.Key == key);
@@ -376,7 +376,7 @@ public class Player
     public void SetNewStamina(int newStamina)
     {
         this.Stamina = Math.Clamp(newStamina, 0, MaxStamina);
-        
+
         // Trigger collapse check if stamina reaches 0
         if (Stamina == 0 && OnStaminaExhausted != null)
         {
@@ -561,13 +561,13 @@ public class Player
         if (newStamina != Stamina)
         {
             Stamina = newStamina;
-            
+
             // Trigger collapse check if stamina reaches 0
             if (Stamina == 0 && OnStaminaExhausted != null)
             {
                 OnStaminaExhausted();
             }
-            
+
             return true;
         }
         return false;
@@ -618,7 +618,7 @@ public class Player
     {
         Stamina = Math.Clamp(value, 0, MaxStamina);
     }
-    
+
     /// <summary>
     /// Check if player has a seal that meets the requirements
     /// </summary>
@@ -626,7 +626,7 @@ public class Player
     {
         return WornSeals.Any(seal => seal.MeetsRequirement(type, minimumTier));
     }
-    
+
     /// <summary>
     /// Equip a seal (max 3 worn at once)
     /// </summary>
@@ -634,18 +634,18 @@ public class Player
     {
         if (!OwnedSeals.Contains(seal))
             return false;
-            
+
         if (WornSeals.Count >= 3)
             return false;
-            
+
         if (!WornSeals.Contains(seal))
         {
             WornSeals.Add(seal);
         }
-        
+
         return true;
     }
-    
+
     /// <summary>
     /// Remove a worn seal
     /// </summary>

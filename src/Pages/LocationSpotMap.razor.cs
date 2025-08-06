@@ -92,13 +92,13 @@ public class LocationSpotMapBase : ComponentBase
 
     public List<NPC> GetAllNPCsAtCurrentSpot()
     {
-        var npcs = NPCRepository.GetAllNPCs()
+        List<NPC> npcs = NPCRepository.GetAllNPCs()
             .Where(npc => npc.SpotId == CurrentSpot.SpotID)
             .ToList();
-        
+
         // All NPCs are visible in the new conversation system
         // No narrative-based filtering needed
-        
+
         return npcs;
     }
 

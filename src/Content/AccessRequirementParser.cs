@@ -49,7 +49,7 @@ public static class AccessRequirementParser
         // Parse NPC token requirements
         if (dto.RequiredTokensPerNPC != null)
         {
-            foreach (var kvp in dto.RequiredTokensPerNPC)
+            foreach (KeyValuePair<string, int> kvp in dto.RequiredTokensPerNPC)
             {
                 requirement.RequiredTokensPerNPC.Add(new TokenRequirement
                 {
@@ -62,7 +62,7 @@ public static class AccessRequirementParser
         // Parse token type requirements
         if (dto.RequiredTokensPerType != null)
         {
-            foreach (var kvp in dto.RequiredTokensPerType)
+            foreach (KeyValuePair<string, int> kvp in dto.RequiredTokensPerType)
             {
                 if (EnumParser.TryParse<ConnectionType>(kvp.Key, out ConnectionType tokenType))
                 {

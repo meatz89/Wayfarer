@@ -19,7 +19,7 @@ public class LetterTemplate
     // Letter category and requirements
     public LetterCategory Category { get; set; } = LetterCategory.Basic;
     public int MinTokensRequired { get; set; } = 1; // Minimum tokens with NPC to unlock this template
-    
+
     // Special letter properties
     public LetterSpecialType SpecialType { get; set; } = LetterSpecialType.None;
     public string SpecialTargetId { get; set; } = ""; // NPC/Location/Information ID for special letters

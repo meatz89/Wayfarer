@@ -19,7 +19,7 @@
 
     public List<RestOption> GetAvailableRestOptions()
     {
-        var player = gameWorld.GetPlayer();
+        Player player = gameWorld.GetPlayer();
         if (player.CurrentLocationSpot == null) return new List<RestOption>();
         Location currentLocation = locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
         if (currentLocation == null) return new List<RestOption>();
@@ -127,8 +127,8 @@
     public void Rest(RestOption option)
     {
         Player player = gameWorld.GetPlayer();
-        Location currentLocation = player.CurrentLocationSpot != null 
-            ? locationRepository.GetLocation(player.CurrentLocationSpot.LocationId) 
+        Location currentLocation = player.CurrentLocationSpot != null
+            ? locationRepository.GetLocation(player.CurrentLocationSpot.LocationId)
             : null;
 
         // Validate time block availability

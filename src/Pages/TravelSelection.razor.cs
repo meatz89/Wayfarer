@@ -14,11 +14,11 @@ namespace Wayfarer.Pages
         [Parameter] public List<Location> Locations { get; set; }
         [Parameter] public EventCallback<string> OnTravel { get; set; }
         [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
-        
+
         protected RouteOption GetRouteOption(TravelRouteViewModel viewModel)
         {
             if (viewModel == null) return null;
-            
+
             return new RouteOption
             {
                 Id = viewModel.RouteId,
@@ -31,19 +31,19 @@ namespace Wayfarer.Pages
                 Description = viewModel.Description
             };
         }
-        
+
         protected Player GetPlayer()
         {
             return GameFacade.GetPlayer();
         }
-        
-        
+
+
         protected async Task HandleTravelRoute(TravelRouteViewModel routeViewModel)
         {
             // Check for deadline impacts using the route's actual time cost
             if (routeViewModel.TimeCost > 0)
             {
-                var timeImpact = TimeCalculator.CalculateTimeImpact(routeViewModel.TimeCost);
+                TimeImpactInfo timeImpact = TimeCalculator.CalculateTimeImpact(routeViewModel.TimeCost);
                 if (timeImpact?.LettersExpiring > 0)
                 {
                     // Show warning modal
@@ -54,19 +54,19 @@ namespace Wayfarer.Pages
                     return;
                 }
             }
-            
+
             // No warning needed, proceed with travel using the route's defined transport method
-            var routeOption = GetRouteOption(routeViewModel);
+            RouteOption routeOption = GetRouteOption(routeViewModel);
             if (OnTravelRoute.HasDelegate)
             {
                 await OnTravelRoute.InvokeAsync(routeOption);
             }
         }
-        
+
 
         protected TravelContextViewModel TravelContext { get; set; }
         protected List<TravelDestinationViewModel> Destinations { get; set; }
-        
+
         // Deadline warning state
         protected bool ShowDeadlineWarning = false;
         protected TimeImpactInfo PendingTimeImpact = null;
@@ -81,13 +81,13 @@ namespace Wayfarer.Pages
             base.OnInitialized();
             RefreshTravelData();
         }
-        
+
         protected override void OnParametersSet()
         {
             base.OnParametersSet();
             RefreshTravelData();
         }
-        
+
         private void RefreshTravelData()
         {
             TravelContext = GameFacade.GetTravelContext();
@@ -96,7 +96,7 @@ namespace Wayfarer.Pages
 
         public List<TravelDestinationViewModel> GetTravelableLocations()
         {
-            return Destinations?.Where(d => d.LocationId != CurrentLocation?.Id && d.CanTravel).ToList() 
+            return Destinations?.Where(d => d.LocationId != CurrentLocation?.Id && d.CanTravel).ToList()
                 ?? new List<TravelDestinationViewModel>();
         }
 
@@ -236,7 +236,7 @@ namespace Wayfarer.Pages
         /// </summary>
         public List<TravelRouteViewModel> GetAllRoutesToLocation(string locationId)
         {
-            var destination = Destinations?.FirstOrDefault(d => d.LocationId == locationId);
+            TravelDestinationViewModel? destination = Destinations?.FirstOrDefault(d => d.LocationId == locationId);
             return destination?.Routes ?? new List<TravelRouteViewModel>();
         }
 
@@ -245,12 +245,12 @@ namespace Wayfarer.Pages
         /// </summary>
         public Dictionary<string, (int required, int current, string displayName)> GetRouteTokenRequirements(TravelRouteViewModel route)
         {
-            var requirements = new Dictionary<string, (int, int, string)>();
-            
+            Dictionary<string, (int, int, string)> requirements = new Dictionary<string, (int, int, string)>();
+
             if (route.TokenRequirements == null || !route.TokenRequirements.Any())
                 return requirements;
 
-            foreach (var (key, req) in route.TokenRequirements)
+            foreach ((string key, RouteTokenRequirementViewModel req) in route.TokenRequirements)
             {
                 requirements[key] = (req.RequiredAmount, req.CurrentAmount, req.DisplayName);
             }
@@ -272,7 +272,7 @@ namespace Wayfarer.Pages
                 _ => "🎭"
             };
         }
-        
+
         /// <summary>
         /// Get icon for transport method
         /// </summary>
@@ -310,7 +310,7 @@ namespace Wayfarer.Pages
             else
                 return $"{required} (have {current})";
         }
-        
+
         /// <summary>
         /// Called when user confirms travel despite deadline warning
         /// </summary>
@@ -318,10 +318,10 @@ namespace Wayfarer.Pages
         {
             ShowDeadlineWarning = false;
             StateHasChanged();
-            
+
             if (PendingRoute != null)
             {
-                var routeOption = GetRouteOption(PendingRoute);
+                RouteOption routeOption = GetRouteOption(PendingRoute);
                 if (OnTravelRoute.HasDelegate)
                 {
                     await OnTravelRoute.InvokeAsync(routeOption);
@@ -330,7 +330,7 @@ namespace Wayfarer.Pages
                 PendingTimeImpact = null;
             }
         }
-        
+
         /// <summary>
         /// Called when user cancels travel due to deadline warning
         /// </summary>

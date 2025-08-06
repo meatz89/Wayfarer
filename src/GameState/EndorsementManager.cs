@@ -9,7 +9,7 @@ public class EndorsementManager
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    
+
     // Conversion rates for endorsements to seals
     private readonly Dictionary<SealTier, int> _endorsementsRequiredForSeal = new()
     {
@@ -17,13 +17,13 @@ public class EndorsementManager
         { SealTier.Journeyman, 5 },
         { SealTier.Master, 7 }
     };
-    
+
     public EndorsementManager(GameWorld gameWorld, MessageSystem messageSystem)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
     }
-    
+
     /// <summary>
     /// Track a delivered endorsement letter
     /// </summary>
@@ -33,17 +33,17 @@ public class EndorsementManager
         {
             throw new ArgumentException("Letter must be an endorsement type");
         }
-        
-        var player = _gameWorld.GetPlayer();
-        
+
+        Player player = _gameWorld.GetPlayer();
+
         // Track endorsements delivered to specific guild types
         string guildType = DetermineGuildType(endorsementLetter.RecipientId);
         string endorsementKey = $"endorsements_delivered_{guildType}";
-        
+
         // Get current count
-        var memory = player.GetMemory(endorsementKey);
+        MemoryFlag memory = player.GetMemory(endorsementKey);
         int currentCount = memory?.Importance ?? 0;
-        
+
         // Increment count
         player.AddMemory(
             endorsementKey,
@@ -51,40 +51,40 @@ public class EndorsementManager
             _gameWorld.CurrentDay,
             currentCount + 1
         );
-        
+
         _messageSystem.AddSystemMessage(
             $"📜 Endorsement delivered! Total {guildType} endorsements: {currentCount + 1}",
             SystemMessageTypes.Success
         );
-        
+
         // Check if player can now upgrade their seal
         CheckSealUpgradeEligibility(guildType, currentCount + 1);
     }
-    
+
     /// <summary>
     /// Get available seal conversions at a guild
     /// </summary>
     public List<SealConversionOption> GetAvailableSealConversions(string guildLocationId)
     {
-        var options = new List<SealConversionOption>();
-        var player = _gameWorld.GetPlayer();
+        List<SealConversionOption> options = new List<SealConversionOption>();
+        Player player = _gameWorld.GetPlayer();
         SealType guildSealType = GetSealTypeForGuild(guildLocationId);
-        
+
         // Get current seal tier for this type
-        var currentSeal = player.Seals.FirstOrDefault(s => s.Type == guildSealType);
+        Seal? currentSeal = player.Seals.FirstOrDefault(s => s.Type == guildSealType);
         SealTier currentTier = currentSeal?.Tier ?? SealTier.Apprentice - 1; // -1 means no seal
-        
+
         // Get endorsement count
         string endorsementKey = $"endorsements_delivered_{guildSealType}";
-        var memory = player.GetMemory(endorsementKey);
+        MemoryFlag memory = player.GetMemory(endorsementKey);
         int endorsementCount = memory?.Importance ?? 0;
-        
+
         // Check each possible upgrade
-        foreach (var (tier, required) in _endorsementsRequiredForSeal)
+        foreach ((SealTier tier, int required) in _endorsementsRequiredForSeal)
         {
             if ((int)tier > (int)currentTier + 1) continue; // Can't skip tiers
             if ((int)tier <= (int)currentTier) continue; // Already have this tier
-            
+
             options.Add(new SealConversionOption
             {
                 TargetTier = tier,
@@ -95,22 +95,22 @@ public class EndorsementManager
                 GuildName = GetGuildName(guildLocationId)
             });
         }
-        
+
         return options;
     }
-    
+
     /// <summary>
     /// Convert endorsements to a seal
     /// </summary>
     public bool ConvertEndorsementsToSeal(string guildLocationId, SealTier targetTier)
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         SealType sealType = GetSealTypeForGuild(guildLocationId);
-        
+
         // Validate conversion
-        var options = GetAvailableSealConversions(guildLocationId);
-        var option = options.FirstOrDefault(o => o.TargetTier == targetTier);
-        
+        List<SealConversionOption> options = GetAvailableSealConversions(guildLocationId);
+        SealConversionOption? option = options.FirstOrDefault(o => o.TargetTier == targetTier);
+
         if (option == null || !option.CanConvert)
         {
             _messageSystem.AddSystemMessage(
@@ -119,25 +119,25 @@ public class EndorsementManager
             );
             return false;
         }
-        
+
         // Spend endorsements
         string endorsementKey = $"endorsements_delivered_{sealType}";
         int newCount = option.CurrentEndorsements - option.RequiredEndorsements;
-        
+
         player.AddMemory(
             endorsementKey,
             $"{newCount} endorsements delivered to {sealType} guilds",
             _gameWorld.CurrentDay,
             newCount
         );
-        
+
         // Grant or upgrade seal
-        var existingSeal = player.Seals.FirstOrDefault(s => s.Type == sealType);
+        Seal? existingSeal = player.Seals.FirstOrDefault(s => s.Type == sealType);
         if (existingSeal != null)
         {
             existingSeal.Tier = targetTier;
             existingSeal.DayIssued = _gameWorld.CurrentDay;
-            
+
             _messageSystem.AddSystemMessage(
                 $"🏅 Your {sealType} Seal has been upgraded to {targetTier}!",
                 SystemMessageTypes.Success
@@ -145,7 +145,7 @@ public class EndorsementManager
         }
         else
         {
-            var newSeal = new Seal
+            Seal newSeal = new Seal
             {
                 Id = $"{sealType.ToString().ToLower()}_seal_{targetTier}",
                 Name = $"{targetTier} {sealType} Seal",
@@ -157,15 +157,15 @@ public class EndorsementManager
                 Material = GetSealMaterial(targetTier),
                 Insignia = GetSealInsignia(sealType)
             };
-            
+
             player.Seals.Add(newSeal);
-            
+
             _messageSystem.AddSystemMessage(
                 $"🏅 Congratulations! You have earned the {newSeal.GetFullName()}!",
                 SystemMessageTypes.Success
             );
         }
-        
+
         // Add memory of achievement
         player.AddMemory(
             $"seal_earned_{sealType}_{targetTier}",
@@ -173,20 +173,20 @@ public class EndorsementManager
             _gameWorld.CurrentDay,
             5
         );
-        
+
         return true;
     }
-    
+
     private void CheckSealUpgradeEligibility(string guildType, int endorsementCount)
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         SealType sealType = Enum.Parse<SealType>(guildType, true);
-        
+
         // Get current seal
-        var currentSeal = player.Seals.FirstOrDefault(s => s.Type == sealType);
+        Seal? currentSeal = player.Seals.FirstOrDefault(s => s.Type == sealType);
         SealTier nextTier = currentSeal != null ? currentSeal.Tier + 1 : SealTier.Apprentice;
-        
-        if (_endorsementsRequiredForSeal.TryGetValue(nextTier, out int required) && 
+
+        if (_endorsementsRequiredForSeal.TryGetValue(nextTier, out int required) &&
             endorsementCount >= required)
         {
             _messageSystem.AddSystemMessage(
@@ -195,14 +195,14 @@ public class EndorsementManager
             );
         }
     }
-    
+
     private string DetermineGuildType(string recipientId)
     {
         // Based on recipient location or profession, determine guild type
-        var worldState = _gameWorld.WorldState;
-        var npc = worldState.NPCs.FirstOrDefault(n => n.ID == recipientId);
+        WorldState worldState = _gameWorld.WorldState;
+        NPC? npc = worldState.NPCs.FirstOrDefault(n => n.ID == recipientId);
         if (npc == null) return "Commerce"; // Default
-        
+
         // Check NPC's primary token type
         if (npc.LetterTokenTypes.Contains(ConnectionType.Commerce))
             return "Commerce";
@@ -210,10 +210,10 @@ public class EndorsementManager
             return "Status";
         if (npc.LetterTokenTypes.Contains(ConnectionType.Shadow))
             return "Shadow";
-            
+
         return "Commerce"; // Default
     }
-    
+
     public SealType GetSealTypeForGuild(string guildLocationId)
     {
         return guildLocationId switch
@@ -224,7 +224,7 @@ public class EndorsementManager
             _ => SealType.Commerce
         };
     }
-    
+
     private string GetGuildName(string guildLocationId)
     {
         return guildLocationId switch
@@ -235,7 +235,7 @@ public class EndorsementManager
             _ => "Guild"
         };
     }
-    
+
     private string GetSealDescription(SealType type, SealTier tier)
     {
         return (type, tier) switch
@@ -252,7 +252,7 @@ public class EndorsementManager
             _ => "Official guild recognition"
         };
     }
-    
+
     private string GetSealMaterial(SealTier tier)
     {
         return tier switch
@@ -263,7 +263,7 @@ public class EndorsementManager
             _ => "Bronze"
         };
     }
-    
+
     private string GetSealInsignia(SealType type)
     {
         return type switch

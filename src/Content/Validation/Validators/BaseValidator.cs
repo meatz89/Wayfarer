@@ -17,7 +17,7 @@ public abstract class BaseValidator : IContentValidator
         // First try exact match for performance
         if (element.TryGetProperty(propertyName, out value))
             return true;
-            
+
         // Try case-insensitive search
         foreach (JsonProperty prop in element.EnumerateObject())
         {
@@ -27,7 +27,7 @@ public abstract class BaseValidator : IContentValidator
                 return true;
             }
         }
-        
+
         value = default;
         return false;
     }

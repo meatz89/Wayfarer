@@ -103,23 +103,23 @@ public class LetterQueueManager
     // Apply deadline bonuses from active obligations
     private void ApplyDeadlineBonuses(Letter letter)
     {
-        var activeObligations = _obligationManager.GetActiveObligations();
-        
-        foreach (var obligation in activeObligations)
+        List<StandingObligation> activeObligations = _obligationManager.GetActiveObligations();
+
+        foreach (StandingObligation obligation in activeObligations)
         {
             // Check if obligation applies to this letter type
             if (!obligation.AppliesTo(letter.TokenType)) continue;
-            
+
             // Check for DeadlinePlus2Days effect
             if (obligation.HasEffect(ObligationEffect.DeadlinePlus2Days))
             {
                 // Check if the letter is from the specific NPC if obligation is NPC-specific
                 if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
                 {
-                    var npc = _npcRepository.GetByName(letter.SenderName);
+                    NPC npc = _npcRepository.GetByName(letter.SenderName);
                     if (npc == null || npc.ID != obligation.RelatedNPCId) continue;
                 }
-                
+
                 letter.DeadlineInDays += 2;
                 _messageSystem.AddSystemMessage(
                     $"📅 {obligation.Name} grants +2 days to deadline for letter from {letter.SenderName}",
@@ -127,7 +127,7 @@ public class LetterQueueManager
                 );
             }
         }
-        
+
         // Apply dynamic deadline bonuses that scale with tokens
         _obligationManager.ApplyDynamicDeadlineBonuses(letter);
     }
@@ -155,7 +155,7 @@ public class LetterQueueManager
         {
             // Debt creates leverage - each negative token moves position up
             leveragePosition += tokenBalance; // Subtracts since negative
-            
+
             // Extreme debt (patron-level) can push to position 1
             // This replaces the special patron letter handling
             if (tokenBalance <= -10)
@@ -292,20 +292,20 @@ public class LetterQueueManager
 
         return position;
     }
-    
+
     // Show narrative explaining why letter entered at this position
     private void ShowLeverageNarrative(Letter letter, int actualPosition)
     {
         int basePosition = GetBasePositionForTokenType(letter.TokenType);
-        
+
         if (actualPosition < basePosition)
         {
             string senderId = GetNPCIdByName(letter.SenderName);
             if (!string.IsNullOrEmpty(senderId))
             {
-                var tokens = _connectionTokenManager.GetTokensWithNPC(senderId);
+                Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(senderId);
                 int balance = tokens[letter.TokenType];
-                
+
                 if (balance < 0)
                 {
                     _messageSystem.AddSystemMessage(
@@ -360,7 +360,7 @@ public class LetterQueueManager
         // Insert new letter at its leverage position
         queue[targetPosition - 1] = letter;
         letter.QueuePosition = targetPosition;
-        
+
         // Track leverage effect
         int basePosition = GetBasePositionForTokenType(letter.TokenType);
         if (targetPosition < basePosition)
@@ -777,7 +777,7 @@ public class LetterQueueManager
     {
         Player player = _gameWorld.GetPlayer();
         LetterHistory history = player.NPCLetterHistory[senderId];
-        
+
         if (history.ExpiredCount > 1)
         {
             _messageSystem.AddSystemMessage(
@@ -1830,7 +1830,7 @@ public class LetterQueueManager
     private List<Letter> GenerateChainLettersFromIds(string[] templateIds, Letter parentLetter)
     {
         List<Letter> chainLetters = new System.Collections.Generic.List<Letter>();
-        
+
         foreach (string templateId in templateIds)
         {
             Letter chainLetter = GenerateChainLetter(templateId, parentLetter);
@@ -1839,7 +1839,7 @@ public class LetterQueueManager
                 chainLetters.Add(chainLetter);
             }
         }
-        
+
         return chainLetters;
     }
 

@@ -131,7 +131,7 @@ public class StandingObligationValidator : BaseValidator
             ValidatePositiveNumber(templateConfig, obligationId, fileName, errors, "daysBetweenLetters");
             ValidatePositiveNumber(templateConfig, obligationId, fileName, errors, "minimumTokensRequired");
         }
-        
+
         // Validate scaling configuration
         ValidateScalingConfiguration(obligation, obligationId, fileName, errors);
     }
@@ -174,7 +174,7 @@ public class StandingObligationValidator : BaseValidator
             }
         }
     }
-    
+
     private void ValidateScalingConfiguration(JsonElement obligation, string id, string fileName, List<ValidationError> errors)
     {
         // Validate ScalingType
@@ -191,7 +191,7 @@ public class StandingObligationValidator : BaseValidator
                     ValidationSeverity.Warning));
             }
         }
-        
+
         // Validate MinValue < MaxValue if both present
         if (TryGetPropertyCaseInsensitive(obligation, "minValue", out JsonElement minValue) &&
             TryGetPropertyCaseInsensitive(obligation, "maxValue", out JsonElement maxValue) &&
@@ -200,7 +200,7 @@ public class StandingObligationValidator : BaseValidator
         {
             float min = minValue.GetSingle();
             float max = maxValue.GetSingle();
-            
+
             if (min > max)
             {
                 errors.Add(new ValidationError(
@@ -209,7 +209,7 @@ public class StandingObligationValidator : BaseValidator
                     ValidationSeverity.Warning));
             }
         }
-        
+
         // Validate SteppedThresholds if present
         if (TryGetPropertyCaseInsensitive(obligation, "steppedThresholds", out JsonElement thresholds) &&
             thresholds.ValueKind == JsonValueKind.Object)
@@ -224,7 +224,7 @@ public class StandingObligationValidator : BaseValidator
                         $"SteppedThresholds key must be an integer: '{threshold.Name}'",
                         ValidationSeverity.Warning));
                 }
-                
+
                 // Validate value is a number
                 if (threshold.Value.ValueKind != JsonValueKind.Number)
                 {

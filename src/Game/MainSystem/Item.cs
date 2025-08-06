@@ -55,7 +55,7 @@ public class Item
 
     // Token generation modifiers for equipment
     public Dictionary<ConnectionType, float> TokenGenerationModifiers { get; set; } = new Dictionary<ConnectionType, float>();
-    
+
     // Token types this equipment enables (e.g., Fine Clothes enables Noble token generation)
     public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();
 
@@ -156,11 +156,11 @@ public class Item
     /// </summary>
     public string GetTokenEffectsDescription()
     {
-        var effects = new List<string>();
+        List<string> effects = new List<string>();
 
         if (EnablesTokenGeneration != null && EnablesTokenGeneration.Any())
         {
-            foreach (var tokenType in EnablesTokenGeneration)
+            foreach (ConnectionType tokenType in EnablesTokenGeneration)
             {
                 effects.Add($"Enables {tokenType} token generation");
             }
@@ -168,7 +168,7 @@ public class Item
 
         if (TokenGenerationModifiers != null && TokenGenerationModifiers.Any())
         {
-            foreach (var modifier in TokenGenerationModifiers)
+            foreach (KeyValuePair<ConnectionType, float> modifier in TokenGenerationModifiers)
             {
                 if (modifier.Value > 1.0f)
                 {

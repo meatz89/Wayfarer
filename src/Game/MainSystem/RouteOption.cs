@@ -75,7 +75,7 @@ public class RouteOption
     public string Name { get; set; }
     public string Origin { get; set; }
     public string Destination { get; set; }
-    
+
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;
     public TravelMethods Method { get; set; }
@@ -91,7 +91,7 @@ public class RouteOption
     // Route condition variations
     public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
     public RouteUnlockCondition? UnlockCondition { get; set; }
-    
+
     // Alias for BaseCoinCost for backward compatibility
     public int CoinCost => BaseCoinCost;
 

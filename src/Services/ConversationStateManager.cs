@@ -12,8 +12,15 @@ public class ConversationStateManager
     /// </summary>
     public ConversationManager PendingConversationManager
     {
-        get => _pendingConversationManager;
-        set => _pendingConversationManager = value;
+        get
+        {
+            return _pendingConversationManager;
+        }
+
+        set
+        {
+            _pendingConversationManager = value;
+        }
     }
 
     /// <summary>
@@ -21,8 +28,15 @@ public class ConversationStateManager
     /// </summary>
     public bool ConversationPending
     {
-        get => _conversationPending;
-        set => _conversationPending = value;
+        get
+        {
+            return _conversationPending;
+        }
+
+        set
+        {
+            _conversationPending = value;
+        }
     }
 
     /// <summary>
@@ -44,7 +58,7 @@ public class ConversationStateManager
         _conversationPending = true;
         Console.WriteLine($"[ConversationStateManager] ConversationPending = {_conversationPending}");
     }
-    
+
     /// <summary>
     /// Sets the current conversation (alias for SetPendingConversation).
     /// </summary>

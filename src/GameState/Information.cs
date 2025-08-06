@@ -13,30 +13,30 @@ public class Information
     public string Description { get; set; }
     public InformationType Type { get; set; }
     public int Tier { get; set; } = 1; // 1-5, affects discovery and access requirements
-    
+
     // What this information reveals when discovered
     public string TargetId { get; set; } // ID of route/NPC/location/service being revealed
     public string RevealText { get; set; } // Text shown when information is discovered
-    
+
     // Discovery requirements (Phase 1)
     public List<string> DiscoveryRequirements { get; set; } = new List<string>();
     public int MinimumRelationshipForDiscovery { get; set; } = 0;
-    
+
     // Access requirements (Phase 2)
     public Dictionary<ConnectionType, int> TokenRequirements { get; set; } = new Dictionary<ConnectionType, int>();
     public List<string> SealRequirements { get; set; } = new List<string>();
     public List<string> EquipmentRequirements { get; set; } = new List<string>();
     public int CoinCost { get; set; } = 0;
-    
+
     // Sources of this information
     public List<InformationSource> Sources { get; set; } = new List<InformationSource>();
-    
+
     // Tracking
     public bool IsDiscovered { get; set; } = false;
     public bool IsAccessUnlocked { get; set; } = false;
     public int DayDiscovered { get; set; } = -1;
     public int DayAccessUnlocked { get; set; } = -1;
-    
+
     public Information()
     {
         Id = Guid.NewGuid().ToString();
@@ -70,25 +70,25 @@ public class InformationDiscoveryManager
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly ConnectionTokenManager _tokenManager;
-    
+
     // Information registry
     private readonly Dictionary<string, Information> _allInformation = new Dictionary<string, Information>();
     private readonly Dictionary<string, List<string>> _informationByTarget = new Dictionary<string, List<string>>();
-    
+
     public InformationDiscoveryManager(GameWorld gameWorld, MessageSystem messageSystem, ConnectionTokenManager tokenManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
         _tokenManager = tokenManager;
     }
-    
+
     /// <summary>
     /// Register information that can be discovered
     /// </summary>
     public void RegisterInformation(Information info)
     {
         _allInformation[info.Id] = info;
-        
+
         // Index by target for quick lookup
         if (!string.IsNullOrEmpty(info.TargetId))
         {
@@ -99,7 +99,7 @@ public class InformationDiscoveryManager
             _informationByTarget[info.TargetId].Add(info.Id);
         }
     }
-    
+
     /// <summary>
     /// Check if player has discovered specific information
     /// </summary>
@@ -111,7 +111,7 @@ public class InformationDiscoveryManager
         }
         return false;
     }
-    
+
     /// <summary>
     /// Check if player has unlocked access to information's target
     /// </summary>
@@ -123,7 +123,7 @@ public class InformationDiscoveryManager
         }
         return false;
     }
-    
+
     /// <summary>
     /// Discover information through NPC conversation
     /// </summary>
@@ -132,27 +132,27 @@ public class InformationDiscoveryManager
         bool discoveredAny = false;
         Player player = _gameWorld.GetPlayer();
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npcId);
-        
+
         foreach (Information info in _allInformation.Values)
         {
             if (info.IsDiscovered) continue;
-            
+
             // Check if this NPC is a source
             InformationSource source = info.Sources.Find(s => s.SourceType == "NPC" && s.SourceId == npcId);
             if (source == null) continue;
-            
+
             // Check token threshold
-            if (source.TokenThreshold.TryGetValue(tokenType, out int required) && 
+            if (source.TokenThreshold.TryGetValue(tokenType, out int required) &&
                 npcTokens.GetValueOrDefault(tokenType) >= required)
             {
                 DiscoverInformation(info, source.DiscoveryText);
                 discoveredAny = true;
             }
         }
-        
+
         return discoveredAny;
     }
-    
+
     /// <summary>
     /// Discover information from letter delivery
     /// </summary>
@@ -161,18 +161,18 @@ public class InformationDiscoveryManager
         foreach (Information info in _allInformation.Values)
         {
             if (info.IsDiscovered) continue;
-            
-            InformationSource source = info.Sources.Find(s => 
-                s.SourceType == "Letter" && 
+
+            InformationSource source = info.Sources.Find(s =>
+                s.SourceType == "Letter" &&
                 (s.SourceId == letterId || s.SourceId == senderId || s.SourceId == recipientId));
-                
+
             if (source != null)
             {
                 DiscoverInformation(info, source.DiscoveryText);
             }
         }
     }
-    
+
     /// <summary>
     /// Discover information from location visit
     /// </summary>
@@ -181,17 +181,17 @@ public class InformationDiscoveryManager
         foreach (Information info in _allInformation.Values)
         {
             if (info.IsDiscovered) continue;
-            
-            InformationSource source = info.Sources.Find(s => 
+
+            InformationSource source = info.Sources.Find(s =>
                 s.SourceType == "Location" && s.SourceId == locationId);
-                
+
             if (source != null)
             {
                 DiscoverInformation(info, source.DiscoveryText);
             }
         }
     }
-    
+
     /// <summary>
     /// Try to unlock access to discovered information
     /// </summary>
@@ -199,14 +199,14 @@ public class InformationDiscoveryManager
     {
         if (!_allInformation.TryGetValue(informationId, out Information info))
             return false;
-            
+
         if (!info.IsDiscovered || info.IsAccessUnlocked)
             return false;
-            
+
         Player player = _gameWorld.GetPlayer();
-        
+
         // Check token requirements
-        foreach (var tokenReq in info.TokenRequirements)
+        foreach (KeyValuePair<ConnectionType, int> tokenReq in info.TokenRequirements)
         {
             if (!_tokenManager.HasTokens(tokenReq.Key, tokenReq.Value))
             {
@@ -217,7 +217,7 @@ public class InformationDiscoveryManager
                 return false;
             }
         }
-        
+
         // Check seal requirements
         foreach (string sealId in info.SealRequirements)
         {
@@ -230,7 +230,7 @@ public class InformationDiscoveryManager
                 return false;
             }
         }
-        
+
         // Check equipment requirements
         foreach (string equipmentId in info.EquipmentRequirements)
         {
@@ -243,7 +243,7 @@ public class InformationDiscoveryManager
                 return false;
             }
         }
-        
+
         // Check coin cost
         if (player.Coins < info.CoinCost)
         {
@@ -253,34 +253,34 @@ public class InformationDiscoveryManager
             );
             return false;
         }
-        
+
         // All requirements met - unlock access
         info.IsAccessUnlocked = true;
         info.DayAccessUnlocked = _gameWorld.CurrentDay;
-        
+
         // Pay costs
         if (info.CoinCost > 0)
         {
             player.SpendMoney(info.CoinCost);
         }
-        
+
         _messageSystem.AddSystemMessage(
             $"Access unlocked: {info.Name}",
             SystemMessageTypes.Success
         );
-        
+
         return true;
     }
-    
+
     // Leverage system removed - Information letters are for unlocking NPCs/routes only
-    
+
     /// <summary>
     /// Get all discovered information of a specific type
     /// </summary>
     public List<Information> GetDiscoveredInformation(InformationType? type = null)
     {
         List<Information> result = new List<Information>();
-        
+
         foreach (Information info in _allInformation.Values)
         {
             if (info.IsDiscovered && (type == null || info.Type == type))
@@ -288,10 +288,10 @@ public class InformationDiscoveryManager
                 result.Add(info);
             }
         }
-        
+
         return result;
     }
-    
+
     /// <summary>
     /// Check if a specific target (route/NPC/location) has been discovered
     /// </summary>
@@ -307,7 +307,7 @@ public class InformationDiscoveryManager
         }
         return false;
     }
-    
+
     /// <summary>
     /// Discover information by ID
     /// </summary>
@@ -315,21 +315,21 @@ public class InformationDiscoveryManager
     {
         if (!_allInformation.TryGetValue(informationId, out Information info))
             return false;
-            
+
         if (info.IsDiscovered) return false;
-        
+
         DiscoverInformation(info);
         return true;
     }
-    
+
     private void DiscoverInformation(Information info, string customText = null)
     {
         info.IsDiscovered = true;
         info.DayDiscovered = _gameWorld.CurrentDay;
-        
+
         string message = customText ?? info.RevealText ?? $"Discovered: {info.Name}";
         _messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
-        
+
         // Add to player's knowledge
         _gameWorld.GetPlayer().AddMemory(
             $"info_{info.Id}",

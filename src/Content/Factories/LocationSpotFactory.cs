@@ -12,7 +12,7 @@ public class LocationSpotFactory
     {
         // No dependencies in constructor
     }
-    
+
     /// <summary>
     /// Create a minimal location spot with just an ID.
     /// Used for dummy/placeholder creation when references are missing.
@@ -23,32 +23,32 @@ public class LocationSpotFactory
             throw new ArgumentException("Spot ID cannot be empty", nameof(spotId));
         if (string.IsNullOrEmpty(locationId))
             throw new ArgumentException("Location ID cannot be empty", nameof(locationId));
-            
-        var name = FormatIdAsName(spotId);
-        
+
+        string name = FormatIdAsName(spotId);
+
         return new LocationSpot(spotId, name)
         {
             Type = LocationSpotTypes.FEATURE,
             LocationId = locationId,
             Description = $"A spot called {name}",
             InitialState = "A quiet spot.",
-            CurrentTimeBlocks = new List<TimeBlocks> 
-            { 
-                TimeBlocks.Morning, 
-                TimeBlocks.Afternoon, 
-                TimeBlocks.Evening 
+            CurrentTimeBlocks = new List<TimeBlocks>
+            {
+                TimeBlocks.Morning,
+                TimeBlocks.Afternoon,
+                TimeBlocks.Evening
             },
             DomainTags = new List<string> { "GENERIC" }
         };
     }
-    
+
     private string FormatIdAsName(string id)
     {
         // Convert snake_case or kebab-case to Title Case
-        return string.Join(" ", 
+        return string.Join(" ",
             id.Replace('_', ' ').Replace('-', ' ')
               .Split(' ')
-              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+              .Select(word => string.IsNullOrEmpty(word) ? "" :
                   char.ToUpper(word[0]) + word.Substring(1).ToLower()));
     }
 

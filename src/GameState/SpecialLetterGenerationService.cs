@@ -45,11 +45,11 @@ public class SpecialLetterGenerationService
     {
         Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
         int tokenCount = tokens.GetValueOrDefault(tokenType, 0);
-        
+
         // Must have threshold tokens and correct type match
         bool hasEnoughTokens = tokenCount >= SPECIAL_LETTER_THRESHOLD;
         bool typeMatches = GetSpecialTypeForTokenType(tokenType) != LetterSpecialType.None;
-        
+
         return hasEnoughTokens && typeMatches;
     }
 
@@ -61,7 +61,7 @@ public class SpecialLetterGenerationService
         List<SpecialLetterOption> options = new List<SpecialLetterOption>();
         Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
         NPC npc = _npcRepository.GetById(npcId);
-        
+
         if (npc == null) return options;
 
         // Check each token type
@@ -70,7 +70,7 @@ public class SpecialLetterGenerationService
             if (CanRequestSpecialLetter(npcId, tokenType))
             {
                 LetterSpecialType specialType = GetSpecialTypeForTokenType(tokenType);
-                
+
                 SpecialLetterOption option = new SpecialLetterOption
                 {
                     TokenType = tokenType,
@@ -81,11 +81,11 @@ public class SpecialLetterGenerationService
                     Description = GetSpecialLetterDescription(specialType, npc),
                     TargetInfo = GetTargetInfo(specialType, npc)
                 };
-                
+
                 options.Add(option);
             }
         }
-        
+
         return options;
     }
 
@@ -97,7 +97,7 @@ public class SpecialLetterGenerationService
         if (!CanRequestSpecialLetter(npcId, tokenType))
         {
             _messageSystem.AddSystemMessage(
-                "You don't meet the requirements for this special letter.", 
+                "You don't meet the requirements for this special letter.",
                 SystemMessageTypes.Warning
             );
             return false;
@@ -119,7 +119,7 @@ public class SpecialLetterGenerationService
             // Add Information letter to carried letters (satchel) instead of queue
             _gameWorld.GetPlayer().CarriedLetters.Add(specialLetter);
             specialLetter.State = LetterState.Collected; // Mark as physical item
-            
+
             // Announce the special letter (position 0 means satchel)
             ShowSpecialLetterNarrative(specialLetter, npc, tokenType, 0);
         }
@@ -127,11 +127,11 @@ public class SpecialLetterGenerationService
         {
             // Regular special letters go to queue
             int position = _letterQueueManager.AddLetterWithObligationEffects(specialLetter);
-            
+
             // Announce the special letter
             ShowSpecialLetterNarrative(specialLetter, npc, tokenType, position);
         }
-        
+
         return true;
     }
 
@@ -140,7 +140,7 @@ public class SpecialLetterGenerationService
         // Generate appropriate recipient based on special type
         string recipientName = GenerateRecipient(specialType, npc);
         string targetId = GenerateTargetId(specialType, npc);
-        
+
         Letter letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
@@ -179,7 +179,7 @@ public class SpecialLetterGenerationService
     private void ShowSpecialLetterNarrative(Letter letter, NPC npc, ConnectionType tokenType, int position)
     {
         string icon = letter.GetSpecialIcon();
-        
+
         _messageSystem.AddSystemMessage(
             $"{icon} {npc.Name} trusts you with a SPECIAL LETTER!",
             SystemMessageTypes.Success
@@ -197,7 +197,7 @@ public class SpecialLetterGenerationService
                     SystemMessageTypes.Info
                 );
                 break;
-                
+
             case LetterSpecialType.AccessPermit:
                 _messageSystem.AddSystemMessage(
                     $"🔓 Access Permit for restricted areas",
@@ -208,7 +208,7 @@ public class SpecialLetterGenerationService
                     SystemMessageTypes.Info
                 );
                 break;
-                
+
             case LetterSpecialType.Endorsement:
                 _messageSystem.AddSystemMessage(
                     $"⭐ Letter of Endorsement to {letter.RecipientName}",
@@ -219,7 +219,7 @@ public class SpecialLetterGenerationService
                     SystemMessageTypes.Info
                 );
                 break;
-                
+
             case LetterSpecialType.Information:
                 _messageSystem.AddSystemMessage(
                     $"🔍 Confidential Information about hidden secrets",
@@ -265,13 +265,13 @@ public class SpecialLetterGenerationService
     {
         return type switch
         {
-            LetterSpecialType.Introduction => 
+            LetterSpecialType.Introduction =>
                 $"{npc.Name} can introduce you to someone in their network",
-            LetterSpecialType.AccessPermit => 
+            LetterSpecialType.AccessPermit =>
                 $"{npc.Name} can arrange access to restricted areas",
-            LetterSpecialType.Endorsement => 
+            LetterSpecialType.Endorsement =>
                 $"{npc.Name} will vouch for your reputation",
-            LetterSpecialType.Information => 
+            LetterSpecialType.Information =>
                 $"{npc.Name} has valuable information to share",
             _ => ""
         };
@@ -314,26 +314,26 @@ public class SpecialLetterGenerationService
             _ => ""
         };
     }
-    
+
     private string GenerateInformationId(NPC sender)
     {
         // Generate InformationId based on sender's connections
         // Format: "type:targetId"
-        var random = new Random();
-        var options = new List<string>();
-        
+        Random random = new Random();
+        List<string> options = new List<string>();
+
         // Add potential NPC reveals
         options.Add("npc:shadow_informant");
         options.Add("npc:underground_merchant");
-        
+
         // Add potential location reveals
         options.Add("location:hidden_market");
         options.Add("location:shadow_safehouse");
-        
+
         // Add potential service reveals
         options.Add("service:black_market_access");
         options.Add("service:information_network");
-        
+
         return options[random.Next(options.Count)];
     }
 
@@ -374,6 +374,6 @@ public class SpecialLetterOption
     public int CurrentTokens { get; set; }
     public string Description { get; set; }
     public string TargetInfo { get; set; }
-    
+
     public bool CanAfford => CurrentTokens >= Cost;
 }

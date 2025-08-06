@@ -9,7 +9,7 @@ using System.Linq;
 public class NPCVisibilityService
 {
     private readonly List<INPCVisibilityRule> _visibilityRules = new List<INPCVisibilityRule>();
-    
+
     /// <summary>
     /// Register a visibility rule provider
     /// </summary>
@@ -17,7 +17,7 @@ public class NPCVisibilityService
     {
         _visibilityRules.Add(rule);
     }
-    
+
     /// <summary>
     /// Unregister a visibility rule provider
     /// </summary>
@@ -25,7 +25,7 @@ public class NPCVisibilityService
     {
         _visibilityRules.Remove(rule);
     }
-    
+
     /// <summary>
     /// Check if an NPC should be visible based on all registered rules
     /// </summary>
@@ -34,11 +34,11 @@ public class NPCVisibilityService
         // If no rules are registered, all NPCs are visible
         if (!_visibilityRules.Any())
             return true;
-            
+
         // All rules must allow visibility
         return _visibilityRules.All(rule => rule.IsNPCVisible(npcId));
     }
-    
+
     /// <summary>
     /// Filter a list of NPCs based on visibility rules
     /// </summary>
@@ -46,7 +46,7 @@ public class NPCVisibilityService
     {
         if (!_visibilityRules.Any())
             return npcs;
-            
+
         return npcs.Where(npc => IsNPCVisible(npc.ID)).ToList();
     }
 }

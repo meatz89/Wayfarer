@@ -25,8 +25,8 @@ public class LetterTemplateRepository
 
     public List<LetterTemplate> GetAllTemplates()
     {
-        var templates = _gameWorld.WorldState.LetterTemplates;
-        
+        List<LetterTemplate> templates = _gameWorld.WorldState.LetterTemplates;
+
         // Filter based on game mode and tutorial state
         if (_gameWorld.GameMode == GameMode.Tutorial)
         {
@@ -43,29 +43,29 @@ public class LetterTemplateRepository
     public LetterTemplate GetTemplateById(string templateId)
     {
         // For specific template requests, check if it's allowed
-        var template = _gameWorld.WorldState.LetterTemplates
+        LetterTemplate? template = _gameWorld.WorldState.LetterTemplates
             .FirstOrDefault(t => t.Id == templateId);
-            
+
         if (template == null) return null;
-        
+
         // Check if this template should be accessible
         bool isTutorialTemplate = templateId.StartsWith("tutorial_");
         bool isTutorialActive = _gameWorld.GameMode == GameMode.Tutorial;
-        
+
         // Only allow tutorial templates during tutorial
         if (isTutorialTemplate && !isTutorialActive) return null;
-            
+
         // Don't allow non-tutorial templates during tutorial
         if (!isTutorialTemplate && isTutorialActive) return null;
-        
+
         return template;
     }
 
     public List<LetterTemplate> GetTemplatesByTokenType(ConnectionType tokenType)
     {
         // First get all templates (which applies tutorial filtering)
-        var templates = GetAllTemplates();
-        
+        List<LetterTemplate> templates = GetAllTemplates();
+
         // Then filter by token type
         return templates
             .Where(t => t.TokenType == tokenType)
@@ -91,7 +91,7 @@ public class LetterTemplateRepository
     public List<LetterTemplate> GetForcedShadowTemplates()
     {
         // Apply tutorial filtering
-        var templates = GetAllTemplates();
+        List<LetterTemplate> templates = GetAllTemplates();
         return templates
             .Where(t => t.Id.StartsWith("forced_shadow_") && t.TokenType == ConnectionType.Shadow)
             .ToList();
@@ -100,7 +100,7 @@ public class LetterTemplateRepository
     public List<LetterTemplate> GetForcedPatronTemplates()
     {
         // Apply tutorial filtering
-        var templates = GetAllTemplates();
+        List<LetterTemplate> templates = GetAllTemplates();
         return templates
             .Where(t => t.Id.StartsWith("forced_patron_") && t.TokenType == ConnectionType.Status)
             .ToList();
@@ -131,14 +131,14 @@ public class LetterTemplateRepository
         if (template.PossibleSenders != null && template.PossibleSenders.Length > 0)
         {
             string senderId = template.PossibleSenders[_random.Next(template.PossibleSenders.Length)];
-            var senderNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == senderId);
+            NPC? senderNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == senderId);
             if (senderNpc != null) senderName = senderNpc.Name;
         }
-        
+
         if (template.PossibleRecipients != null && template.PossibleRecipients.Length > 0)
         {
             string recipientId = template.PossibleRecipients[_random.Next(template.PossibleRecipients.Length)];
-            var recipientNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == recipientId);
+            NPC? recipientNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == recipientId);
             if (recipientNpc != null) recipientName = recipientNpc.Name;
         }
 
@@ -155,7 +155,7 @@ public class LetterTemplateRepository
             Description = template.Description,
             SpecialType = template.SpecialType
         };
-        
+
         // Set special letter properties based on type
         if (template.SpecialType != LetterSpecialType.None && !string.IsNullOrEmpty(template.SpecialTargetId))
         {
@@ -227,7 +227,7 @@ public class LetterTemplateRepository
             Description = template.Description,
             SpecialType = template.SpecialType
         };
-        
+
         // Set special letter properties for forced letters
         if (template.SpecialType != LetterSpecialType.None && !string.IsNullOrEmpty(template.SpecialTargetId))
         {
@@ -286,12 +286,12 @@ public class LetterTemplateRepository
 
         // Determine recipient based on template constraints
         string recipientName = null;
-        
+
         if (template.PossibleRecipients != null && template.PossibleRecipients.Length > 0)
         {
             // Use specific recipients from template (for tutorial letters)
             string recipientId = template.PossibleRecipients[_random.Next(template.PossibleRecipients.Length)];
-            var recipientNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == recipientId);
+            NPC? recipientNpc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == recipientId);
             if (recipientNpc != null) recipientName = recipientNpc.Name;
         }
         else

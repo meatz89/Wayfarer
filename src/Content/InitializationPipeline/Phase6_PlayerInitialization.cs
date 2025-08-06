@@ -13,22 +13,22 @@ public class Phase6_PlayerInitialization : IInitializationPhase
 
     public void Execute(InitializationContext context)
     {
-        var player = context.GameWorld.GetPlayer();
-        var worldState = context.GameWorld.WorldState;
-        
+        Player player = context.GameWorld.GetPlayer();
+        WorldState worldState = context.GameWorld.WorldState;
+
         Console.WriteLine("Initializing player location...");
-        
+
         // Player is the single source of truth for location - no sync needed
-        
+
         // Player must always be at a spot, not just a location
         // First, check if we have a configured starting spot
         LocationSpot startingSpot = null;
-        
+
         if (context.SharedData.ContainsKey("StartingLocationSpotId"))
         {
-            var startingSpotId = (string)context.SharedData["StartingLocationSpotId"];
+            string startingSpotId = (string)context.SharedData["StartingLocationSpotId"];
             startingSpot = worldState.locationSpots.FirstOrDefault(s => s.SpotID == startingSpotId);
-            
+
             if (startingSpot != null)
             {
                 player.CurrentLocationSpot = startingSpot;
@@ -39,12 +39,12 @@ public class Phase6_PlayerInitialization : IInitializationPhase
                 context.Warnings.Add($"Configured starting spot '{startingSpotId}' not found");
             }
         }
-        
+
         // If no configured spot, find one based on location preference
         if (player.CurrentLocationSpot == null)
         {
             string preferredLocationId = null;
-            
+
             // Check for configured starting location
             if (context.SharedData.ContainsKey("StartingLocationId"))
             {
@@ -53,33 +53,33 @@ public class Phase6_PlayerInitialization : IInitializationPhase
             else
             {
                 // Default to lower_ward or first available location
-                var lowerWard = worldState.locations.FirstOrDefault(l => l.Id == "lower_ward");
+                Location? lowerWard = worldState.locations.FirstOrDefault(l => l.Id == "lower_ward");
                 preferredLocationId = lowerWard?.Id ?? worldState.locations.FirstOrDefault()?.Id;
             }
-            
+
             if (preferredLocationId != null)
             {
                 // Find spots in the preferred location
-                var spotsInLocation = worldState.locationSpots
+                List<LocationSpot> spotsInLocation = worldState.locationSpots
                     .Where(s => s.LocationId == preferredLocationId)
                     .ToList();
-                    
+
                 if (spotsInLocation.Any())
                 {
                     // Prefer specific spot types for starting
-                    startingSpot = spotsInLocation.FirstOrDefault(s => 
+                    startingSpot = spotsInLocation.FirstOrDefault(s =>
                         s.SpotID == "abandoned_warehouse" || // Tutorial start
                         s.Name.Contains("Square", StringComparison.OrdinalIgnoreCase) ||
                         s.Name.Contains("Market", StringComparison.OrdinalIgnoreCase) ||
                         s.Name.Contains("Tavern", StringComparison.OrdinalIgnoreCase))
                         ?? spotsInLocation.First();
-                        
+
                     player.CurrentLocationSpot = startingSpot;
                     Console.WriteLine($"  Set player to starting spot: {startingSpot.SpotID}");
                 }
             }
         }
-        
+
         // Final fallback - any spot
         if (player.CurrentLocationSpot == null)
         {
@@ -94,61 +94,61 @@ public class Phase6_PlayerInitialization : IInitializationPhase
                 return;
             }
         }
-        
+
         // Player is now always at a spot, location is derived from the spot
-        
+
         // No need to sync - Player is the single source of truth for current location
-        
+
         // Initialize other player properties if needed
         if (string.IsNullOrEmpty(player.Name))
         {
             player.Name = "Courier";
             Console.WriteLine("  Set default player name: Courier");
         }
-        
+
         if (player.Archetype == 0)
         {
             player.Archetype = Professions.Merchant;
             Console.WriteLine("  Set default player archetype: Merchant");
         }
-        
+
         // Load player config from gameWorld.json if available
         if (context.SharedData.ContainsKey("PlayerConfig"))
         {
             dynamic playerConfig = context.SharedData["PlayerConfig"];
-            
+
             if (playerConfig.Coins != null)
             {
                 player.Coins = (int)playerConfig.Coins;
                 Console.WriteLine($"  Set starting coins: {player.Coins}");
             }
-            
+
             if (playerConfig.StaminaPoints != null)
             {
                 player.Stamina = (int)playerConfig.StaminaPoints;
             }
-            
+
             if (playerConfig.MaxStamina != null)
             {
                 player.MaxStamina = (int)playerConfig.MaxStamina;
                 Console.WriteLine($"  Set stamina: {player.Stamina}/{player.MaxStamina}");
             }
         }
-        
+
         // Ensure player has basic resources (fallback if not set)
         if (player.Coins == 0)
         {
             player.Coins = 10;
             Console.WriteLine("  Set starting coins: 10");
         }
-        
+
         if (player.MaxStamina == 0)
         {
             player.MaxStamina = 10;
             player.Stamina = 6;
             Console.WriteLine("  Set stamina: 6/10");
         }
-        
+
         // Location is now derived from CurrentLocationSpot, no need for separate validation
     }
 }

@@ -1,11 +1,11 @@
 ﻿public class InputMechanics
 {
-    public FocusCost FocusCost { get; private set; }
+    public AttentionCost AttentionCost { get; private set; }
     public SkillCheckRequirement SkillCheckRequirement { get; private set; }
 
-    public InputMechanics(FocusCost focusCost, SkillCheckRequirement skillCheckRequirement)
+    public InputMechanics(AttentionCost attentionCost, SkillCheckRequirement skillCheckRequirement)
     {
-        FocusCost = focusCost;
+        AttentionCost = attentionCost;
         SkillCheckRequirement = skillCheckRequirement;
     }
 
@@ -13,7 +13,7 @@
     {
         return new
         {
-            FocusCost = FocusCost.ToJsonObject(),
+            AttentionCost = AttentionCost.ToJsonObject(),
             SkillCheckRequirement = SkillCheckRequirement?.ToJsonObject()
         };
     }

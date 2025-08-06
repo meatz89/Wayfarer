@@ -12,7 +12,7 @@ public class LocationFactory
     {
         // No dependencies needed - locations are base entities
     }
-    
+
     /// <summary>
     /// Create a minimal location with just an ID.
     /// Used for dummy/placeholder creation when references are missing.
@@ -21,10 +21,10 @@ public class LocationFactory
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Location ID cannot be empty", nameof(id));
-            
+
         // Generate a readable name from ID
-        var name = FormatIdAsName(id);
-        
+        string name = FormatIdAsName(id);
+
         return new Location(id, name)
         {
             Description = $"A location called {name}",
@@ -33,14 +33,14 @@ public class LocationFactory
             LocationSpotIds = new List<string>()
         };
     }
-    
+
     private string FormatIdAsName(string id)
     {
         // Convert snake_case or kebab-case to Title Case
-        return string.Join(" ", 
+        return string.Join(" ",
             id.Replace('_', ' ').Replace('-', ' ')
               .Split(' ')
-              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+              .Select(word => string.IsNullOrEmpty(word) ? "" :
                   char.ToUpper(word[0]) + word.Substring(1).ToLower()));
     }
 

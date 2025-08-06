@@ -1,8 +1,8 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 
 /// <summary>
 /// Phase 4: Load conversation definitions from JSON files
@@ -13,37 +13,37 @@ public class Phase4_Conversations : IInitializationPhase
     public int PhaseNumber => 4;
     public string Name => "Conversation Loading";
     public bool IsCritical => false; // Conversations are optional content
-    
+
     public void Execute(InitializationContext context)
     {
         Console.WriteLine("Loading conversation definitions...");
-        
+
         // Store conversations in shared data for other systems to access
-        var conversations = new Dictionary<string, ConversationDefinition>();
-        
+        Dictionary<string, ConversationDefinition> conversations = new Dictionary<string, ConversationDefinition>();
+
         // Load conversations from JSON files
-        var conversationsPath = Path.Combine(context.ContentPath, "..", "Conversations");
+        string conversationsPath = Path.Combine(context.ContentPath, "..", "Conversations");
         if (Directory.Exists(conversationsPath))
         {
-            var conversationFiles = Directory.GetFiles(conversationsPath, "*.json");
+            string[] conversationFiles = Directory.GetFiles(conversationsPath, "*.json");
             Console.WriteLine($"Found {conversationFiles.Length} conversation files");
-            
-            foreach (var file in conversationFiles)
+
+            foreach (string file in conversationFiles)
             {
                 try
                 {
-                    var json = File.ReadAllText(file);
-                    var conversation = JsonConvert.DeserializeObject<ConversationDefinition>(json);
-                    
+                    string json = File.ReadAllText(file);
+                    ConversationDefinition? conversation = JsonConvert.DeserializeObject<ConversationDefinition>(json);
+
                     if (conversation != null && !string.IsNullOrEmpty(conversation.ConversationId))
                     {
                         conversations[conversation.ConversationId] = conversation;
                         Console.WriteLine($"  - Loaded conversation: {conversation.ConversationId} for NPC: {conversation.NpcId}");
-                        
+
                         // Store NPC-specific dialogue mapping
                         if (!string.IsNullOrEmpty(conversation.NpcId))
                         {
-                            var npcDialogues = context.SharedData.GetOrCreate<Dictionary<string, string>>("NpcDialogues");
+                            Dictionary<string, string> npcDialogues = context.SharedData.GetOrCreate<Dictionary<string, string>>("NpcDialogues");
                             npcDialogues[conversation.NpcId] = conversation.ConversationId;
                         }
                     }
@@ -58,7 +58,7 @@ public class Phase4_Conversations : IInitializationPhase
         {
             context.Warnings.Add($"Conversations directory not found at: {conversationsPath}");
         }
-        
+
         // Store loaded conversations for other phases/services
         context.SharedData["Conversations"] = conversations;
         Console.WriteLine($"Loaded {conversations.Count} conversations total");

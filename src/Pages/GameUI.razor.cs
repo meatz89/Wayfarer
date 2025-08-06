@@ -18,9 +18,9 @@ public class GameUIBase : ComponentBase
     {
         Console.WriteLine($"[GameUIBase.NavigateTo] Called with view: {view}");
         Console.WriteLine($"[GameUIBase.NavigateTo] Current view before: {CurrentView}");
-        
+
         // Simple time-based validation for Letter Board
-        if (view == CurrentViews.LetterBoardScreen && 
+        if (view == CurrentViews.LetterBoardScreen &&
             TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
         {
             Console.WriteLine($"[GameUIBase.NavigateTo] Blocking navigation to LetterBoardScreen - not Dawn");
@@ -39,7 +39,7 @@ public class GameUIBase : ComponentBase
         // IMPORTANT: For testing purposes, this ALWAYS starts a fresh game
         // No save/load functionality is implemented or desired
         // The game state is never persisted between sessions
-        
+
         try
         {
             Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
@@ -87,7 +87,7 @@ public class GameUIBase : ComponentBase
         {
             return CurrentViews.LocationScreen;
         }
-        
+
         // Dawn = letter board available
         if (TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
         {

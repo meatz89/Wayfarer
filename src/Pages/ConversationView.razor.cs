@@ -11,7 +11,7 @@ public class ConversationViewBase : ComponentBase
 
     // State
     public ConversationViewModel CurrentConversation { get; set; }
-    
+
     // Streaming state - for now, disable streaming until we refactor it
     public bool IsStreaming => false;
     public string StreamingText => "";
@@ -26,13 +26,13 @@ public class ConversationViewBase : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         Console.WriteLine($"[ConversationView.OnInitializedAsync] Called with NPCId: '{NPCId}'");
-        
+
         // Always get the current conversation from facade first
         // The conversation should already be started by ConverseCommand
         Console.WriteLine($"[ConversationView.OnInitializedAsync] Getting current conversation from facade");
         CurrentConversation = GameFacade.GetCurrentConversation();
         Console.WriteLine($"[ConversationView.OnInitializedAsync] GetCurrentConversation returned: {CurrentConversation?.CurrentText ?? "null"}");
-        
+
         // Only start a new conversation if there's no current one and we have an NPCId
         if (CurrentConversation == null && !string.IsNullOrEmpty(NPCId))
         {
@@ -40,7 +40,7 @@ public class ConversationViewBase : ComponentBase
             CurrentConversation = await GameFacade.StartConversationAsync(NPCId);
             Console.WriteLine($"[ConversationView.OnInitializedAsync] StartConversationAsync returned: {CurrentConversation?.CurrentText ?? "null"}");
         }
-        
+
         Console.WriteLine($"[ConversationView.OnInitializedAsync] CurrentConversation null? {CurrentConversation == null}");
         if (CurrentConversation != null)
         {
@@ -52,13 +52,13 @@ public class ConversationViewBase : ComponentBase
     protected override async Task OnParametersSetAsync()
     {
         Console.WriteLine($"[ConversationView.OnParametersSetAsync] Called with NPCId: '{NPCId}'");
-        
+
         // Always get the current conversation from facade first
         // The conversation should already be started by ConverseCommand
         Console.WriteLine($"[ConversationView.OnParametersSetAsync] Getting current conversation from facade");
         CurrentConversation = GameFacade.GetCurrentConversation();
         Console.WriteLine($"[ConversationView.OnParametersSetAsync] GetCurrentConversation returned: {CurrentConversation?.CurrentText ?? "null"}");
-        
+
         // Only start a new conversation if there's no current one and we have an NPCId
         if (CurrentConversation == null && !string.IsNullOrEmpty(NPCId))
         {
@@ -74,7 +74,7 @@ public class ConversationViewBase : ComponentBase
 
         if (CurrentConversation?.Choices?.Any() == true)
         {
-            var selectedChoice = CurrentConversation.Choices
+            ConversationChoiceViewModel? selectedChoice = CurrentConversation.Choices
                 .FirstOrDefault(c => c.Id == choiceId);
 
             if (selectedChoice != null && selectedChoice.IsAvailable)

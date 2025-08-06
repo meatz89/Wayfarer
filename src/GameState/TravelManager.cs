@@ -252,7 +252,7 @@ public class TravelManager
     {
         if (route.AccessRequirement == null)
             return AccessCheckResult.Allowed();
-        
+
         return _accessChecker.CheckRouteAccess(route);
     }
 

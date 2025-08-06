@@ -137,7 +137,7 @@ public class Inventory
         }
         return false;
     }
-    
+
     public bool TryAddItem(string item)
     {
         return AddItem(item);

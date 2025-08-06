@@ -252,7 +252,7 @@ public class NPCLetterOfferService
             // Add Information letter to carried letters (satchel) instead of queue
             _gameWorld.GetPlayer().CarriedLetters.Add(letter);
             letter.State = LetterState.Collected; // Mark as physical item
-            
+
             // Enhanced feedback for Information letters
             _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);
             _messageSystem.AddSystemMessage($"📜 Information letter added to your satchel", SystemMessageTypes.Info);
@@ -265,7 +265,7 @@ public class NPCLetterOfferService
         {
             // Regular letters go to queue
             _letterQueueManager.AddLetterWithObligationEffects(letter);
-            
+
             // Enhanced success feedback
             _messageSystem.AddSystemMessage($"💬 {npc.Name} appreciates your acceptance!", SystemMessageTypes.Success);
             _messageSystem.AddSystemMessage($"✉️ {offer.LetterType} letter added to queue", SystemMessageTypes.Info);

@@ -43,8 +43,8 @@ public class CollapseManager
     /// </summary>
     public bool CheckAndHandleCollapse()
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         if (player.Stamina > 0)
         {
             return false; // No collapse
@@ -60,18 +60,18 @@ public class CollapseManager
     /// </summary>
     private void HandleCollapse()
     {
-        var player = _gameWorld.GetPlayer();
-        var locationSpot = player.CurrentLocationSpot;
-        var location = locationSpot != null ? _locationRepository.GetLocation(locationSpot.LocationId) : null;
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot? locationSpot = player.CurrentLocationSpot;
+        Location? location = locationSpot != null ? _locationRepository.GetLocation(locationSpot.LocationId) : null;
 
         // Show collapse narrative
         _messageSystem.AddSystemMessage(
-            "💫 Your vision blurs and darkness takes you...", 
+            "💫 Your vision blurs and darkness takes you...",
             SystemMessageTypes.Danger
         );
 
         _messageSystem.AddSystemMessage(
-            $"You collapse from exhaustion in {locationSpot?.Name ?? location?.Name ?? "an unknown place"}!", 
+            $"You collapse from exhaustion in {locationSpot?.Name ?? location?.Name ?? "an unknown place"}!",
             SystemMessageTypes.Danger
         );
 
@@ -92,27 +92,27 @@ public class CollapseManager
 
         // Generate location-specific wake up narrative
         string wakeUpNarrative = GenerateWakeUpNarrative(location, locationSpot, coinsLost);
-        
+
         _messageSystem.AddSystemMessage(
-            $"⏰ {COLLAPSE_TIME_HOURS} hours later...", 
+            $"⏰ {COLLAPSE_TIME_HOURS} hours later...",
             SystemMessageTypes.Warning
         );
 
         _messageSystem.AddSystemMessage(
-            wakeUpNarrative, 
+            wakeUpNarrative,
             SystemMessageTypes.Warning
         );
 
         if (coinsLost > 0)
         {
             _messageSystem.AddSystemMessage(
-                $"💰 You discover {coinsLost} coins are missing from your purse!", 
+                $"💰 You discover {coinsLost} coins are missing from your purse!",
                 SystemMessageTypes.Danger
             );
         }
 
         _messageSystem.AddSystemMessage(
-            $"💪 You've recovered slightly (Stamina: {player.Stamina}/{player.MaxStamina})", 
+            $"💪 You've recovered slightly (Stamina: {player.Stamina}/{player.MaxStamina})",
             SystemMessageTypes.Info
         );
 
@@ -141,8 +141,8 @@ public class CollapseManager
         {
             // Check location spot type for specific narratives
             string spotName = locationSpot.Name.ToLower();
-            var spotProperties = locationSpot.GetCurrentProperties();
-            
+            List<string> spotProperties = locationSpot.GetCurrentProperties();
+
             if (spotName.Contains("tavern") || spotName.Contains("inn"))
             {
                 narrative += ", slumped over a tavern table. The barkeep eyes you suspiciously";
@@ -212,7 +212,7 @@ public class CollapseManager
     /// </summary>
     public bool IsAtRiskOfCollapse()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         return player.Stamina <= 2 && player.Stamina > 0;
     }
 
@@ -221,8 +221,8 @@ public class CollapseManager
     /// </summary>
     public string GetLowStaminaWarning()
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         if (player.Stamina == 1)
         {
             return "⚠️ You're on the verge of collapse! Rest immediately!";
@@ -231,7 +231,7 @@ public class CollapseManager
         {
             return "⚠️ You're exhausted and struggling to continue.";
         }
-        
+
         return null;
     }
 }

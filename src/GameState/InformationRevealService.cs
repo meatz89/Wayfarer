@@ -34,12 +34,12 @@ public class InformationRevealService
     /// </summary>
     public void ProcessCarriedInformation()
     {
-        var player = _gameWorld.GetPlayer();
-        var carriedInfoLetters = player.CarriedLetters
+        Player player = _gameWorld.GetPlayer();
+        List<Letter> carriedInfoLetters = player.CarriedLetters
             .Where(l => l.SpecialType == LetterSpecialType.Information && !string.IsNullOrEmpty(l.InformationId))
             .ToList();
 
-        foreach (var letter in carriedInfoLetters)
+        foreach (Letter? letter in carriedInfoLetters)
         {
             ProcessInformationLetter(letter);
         }
@@ -50,12 +50,12 @@ public class InformationRevealService
     /// </summary>
     private void ProcessInformationLetter(Letter letter)
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         string infoId = letter.InformationId;
 
         // Parse the information ID to determine what to reveal
         // Format: "npc:merchant_guild" or "location:secret_market" or "route:hidden_pass"
-        var parts = infoId.Split(':');
+        string[] parts = infoId.Split(':');
         if (parts.Length != 2) return;
 
         string infoType = parts[0].ToLower();
@@ -67,7 +67,7 @@ public class InformationRevealService
                 if (!player.UnlockedNPCIds.Contains(targetId))
                 {
                     player.UnlockedNPCIds.Add(targetId);
-                    var npc = _npcRepository.GetById(targetId);
+                    NPC npc = _npcRepository.GetById(targetId);
                     if (npc != null)
                     {
                         _messageSystem.AddSystemMessage(
@@ -82,7 +82,7 @@ public class InformationRevealService
                 if (!player.UnlockedLocationIds.Contains(targetId))
                 {
                     player.UnlockedLocationIds.Add(targetId);
-                    var location = _locationRepository.GetLocation(targetId);
+                    Location location = _locationRepository.GetLocation(targetId);
                     if (location != null)
                     {
                         _messageSystem.AddSystemMessage(
@@ -99,10 +99,10 @@ public class InformationRevealService
                 if (targetId.Contains('-'))
                 {
                     // Format: location1-location2
-                    var routeParts = targetId.Split('-');
+                    string[] routeParts = targetId.Split('-');
                     if (routeParts.Length == 2)
                     {
-                        var route = _routeRepository.GetAll()
+                        RouteOption? route = _routeRepository.GetAll()
                             .FirstOrDefault(r => r.Origin == routeParts[0] && r.Destination == routeParts[1]);
                         if (route != null)
                         {
@@ -113,7 +113,7 @@ public class InformationRevealService
                 else
                 {
                     // Format: routeId
-                    var route = _routeRepository.GetRouteById(targetId);
+                    RouteOption route = _routeRepository.GetRouteById(targetId);
                     if (route != null)
                     {
                         DiscoverRoute(player, route);
@@ -139,16 +139,16 @@ public class InformationRevealService
     /// </summary>
     public bool IsNPCRevealed(string npcId)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // NPCs are revealed if:
         // 1. Already unlocked through other means
         if (player.UnlockedNPCIds.Contains(npcId))
             return true;
 
         // 2. Revealed by a carried Information letter
-        return player.CarriedLetters.Any(l => 
-            l.SpecialType == LetterSpecialType.Information && 
+        return player.CarriedLetters.Any(l =>
+            l.SpecialType == LetterSpecialType.Information &&
             l.InformationId == $"npc:{npcId}");
     }
 
@@ -157,16 +157,16 @@ public class InformationRevealService
     /// </summary>
     public bool IsLocationRevealed(string locationId)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // Locations are revealed if:
         // 1. Already unlocked through other means
         if (player.UnlockedLocationIds.Contains(locationId))
             return true;
 
         // 2. Revealed by a carried Information letter
-        return player.CarriedLetters.Any(l => 
-            l.SpecialType == LetterSpecialType.Information && 
+        return player.CarriedLetters.Any(l =>
+            l.SpecialType == LetterSpecialType.Information &&
             l.InformationId == $"location:{locationId}");
     }
 
@@ -175,11 +175,11 @@ public class InformationRevealService
     /// </summary>
     public List<string> GetAllRevealedNPCIds()
     {
-        var player = _gameWorld.GetPlayer();
-        var revealed = new HashSet<string>(player.UnlockedNPCIds);
+        Player player = _gameWorld.GetPlayer();
+        HashSet<string> revealed = new HashSet<string>(player.UnlockedNPCIds);
 
         // Add NPCs revealed by carried information
-        foreach (var letter in player.CarriedLetters.Where(l => l.SpecialType == LetterSpecialType.Information))
+        foreach (Letter? letter in player.CarriedLetters.Where(l => l.SpecialType == LetterSpecialType.Information))
         {
             if (letter.InformationId?.StartsWith("npc:") == true)
             {
@@ -195,11 +195,11 @@ public class InformationRevealService
     /// </summary>
     public List<string> GetAllRevealedLocationIds()
     {
-        var player = _gameWorld.GetPlayer();
-        var revealed = new HashSet<string>(player.UnlockedLocationIds);
+        Player player = _gameWorld.GetPlayer();
+        HashSet<string> revealed = new HashSet<string>(player.UnlockedLocationIds);
 
         // Add locations revealed by carried information
-        foreach (var letter in player.CarriedLetters.Where(l => l.SpecialType == LetterSpecialType.Information))
+        foreach (Letter? letter in player.CarriedLetters.Where(l => l.SpecialType == LetterSpecialType.Information))
         {
             if (letter.InformationId?.StartsWith("location:") == true)
             {
@@ -209,27 +209,27 @@ public class InformationRevealService
 
         return revealed.ToList();
     }
-    
+
     /// <summary>
     /// Helper method to discover a route and add it to player's known routes
     /// </summary>
     private void DiscoverRoute(Player player, RouteOption route)
     {
         string originKey = route.Origin;
-        
+
         // Check if already known
-        if (player.KnownRoutes.ContainsKey(originKey) && 
+        if (player.KnownRoutes.ContainsKey(originKey) &&
             player.KnownRoutes[originKey].Any(r => r.Id == route.Id))
         {
             return; // Already discovered
         }
-        
+
         // Mark route as discovered
         route.IsDiscovered = true;
-        
+
         // Add to player's known routes
         player.AddKnownRoute(route);
-        
+
         // Show discovery message
         _messageSystem.AddSystemMessage(
             $"🔓 Information revealed: {route.Name} - Route from {route.Origin} to {route.Destination}!",

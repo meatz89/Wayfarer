@@ -12,7 +12,7 @@ public partial class MorningActivitiesManager
 
     // Track morning events for display
     public List<MorningEvent> MorningEvents { get; private set; } = new List<MorningEvent>();
-    
+
     // Store last activity result
     private MorningActivityResult _lastActivityResult;
 
@@ -133,7 +133,7 @@ public partial class MorningActivitiesManager
 
         // Display morning summary
         DisplayMorningSummary(result);
-        
+
         // Store result for later retrieval
         _lastActivityResult = result;
 

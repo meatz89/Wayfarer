@@ -44,7 +44,7 @@ public class TravelContextViewModel
     public string WeightStatus { get; set; } // "Light load", "Medium load (+1 stamina)", etc.
     public string WeightClass { get; set; } // CSS class: "", "warning", "danger"
     public int BaseStaminaPenalty { get; set; } // 0, 1, or 2
-    
+
     // Letter effects
     public int CarriedLetterCount { get; set; }
     public bool HasHeavyLetters { get; set; }
@@ -52,10 +52,10 @@ public class TravelContextViewModel
     public bool HasBulkyLetters { get; set; }
     public bool HasPerishableLetters { get; set; }
     public string LetterWarning { get; set; }
-    
+
     // Equipment
     public List<ItemCategory> CurrentEquipmentCategories { get; set; } = new();
-    
+
     // Weather
     public WeatherCondition CurrentWeather { get; set; }
     public string WeatherIcon { get; set; }
@@ -73,7 +73,7 @@ public class TravelRouteViewModel
     public int CoinCost { get; set; }
     public bool CanTravel { get; set; }
     public string CannotTravelReason { get; set; }
-    
+
     // New properties for enhanced UI
     public bool IsDiscovered { get; set; }
     public bool IsBlocked { get; set; }
@@ -82,10 +82,10 @@ public class TravelRouteViewModel
     public List<string> Warnings { get; set; } = new();
     public List<TerrainCategory> TerrainCategories { get; set; } = new();
     public TimeBlocks? DepartureTime { get; set; }
-    
+
     // Token requirements
     public Dictionary<string, RouteTokenRequirementViewModel> TokenRequirements { get; set; } = new();
-    
+
     // Discovery information for locked routes
     public List<RouteDiscoveryOptionViewModel> DiscoveryOptions { get; set; } = new();
 }
@@ -365,7 +365,7 @@ public class DiscoveredInfoViewModel
     public int Tier { get; set; }
     public bool IsAccessUnlocked { get; set; }
     public int DayDiscovered { get; set; }
-    
+
     // Access requirements
     public Dictionary<ConnectionType, int> TokenRequirements { get; set; } = new();
     public List<string> SealRequirements { get; set; } = new();
@@ -442,12 +442,12 @@ public class ActionOptionViewModel
     // Overall availability
     public bool IsAvailable { get; set; }
     public List<string> UnavailableReasons { get; set; } = new();
-    
+
     // Service availability info
     public bool IsServiceClosed { get; set; }
     public string NextAvailableTime { get; set; }
     public string ServiceSchedule { get; set; }
-    
+
     // Tutorial restriction
     public bool IsAllowedInTutorial { get; set; } = true;
 }

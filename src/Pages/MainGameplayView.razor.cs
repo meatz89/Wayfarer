@@ -8,7 +8,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     // Single facade injection - THE ONLY SERVICE INJECTION
     [Inject] public GameFacade GameFacade { get; set; }
     [Inject] public IJSRuntime JSRuntime { get; set; }
-    
+
     // Navigation parameters from parent component
     [Parameter] public CurrentViews CurrentView { get; set; }
     [Parameter] public Action<CurrentViews> OnNavigate { get; set; }
@@ -97,7 +97,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         PollGameState();
         StateHasChanged();
     }
-    
+
     public void HandleNavigationChange(CurrentViews previousScreen, CurrentViews newScreen)
     {
         InvokeAsync(() =>
@@ -130,12 +130,12 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     {
         // Get game snapshot
         GameWorldSnapshot snapshot = GameFacade.GetGameSnapshot();
-        
+
         // Update time info
-        var (timeBlock, hoursRemaining, currentDay) = GameFacade.GetTimeInfo();
+        (TimeBlocks timeBlock, int hoursRemaining, int currentDay) = GameFacade.GetTimeInfo();
         CurrentTimeBlock = timeBlock;
         CurrentHour = hoursRemaining;
-        
+
         // Update player state
         PlayerState = GameFacade.GetPlayer();
         Stamina = PlayerState.Stamina;
@@ -143,7 +143,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         CurrentWeather = WeatherCondition.Clear; // Weather should come from facade in future
 
         // Update location
-        var (location, spot) = GameFacade.GetCurrentLocation();
+        (Location location, LocationSpot spot) = GameFacade.GetCurrentLocation();
         CurrentLocation = location;
         CurrentSpot = spot;
 
@@ -151,7 +151,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         SystemMessages = GameFacade.GetSystemMessages().Where(m => !m.IsExpired).ToList();
 
         // Check for morning activities
-        var morningActivities = GameFacade.GetMorningActivities();
+        MorningActivityResult morningActivities = GameFacade.GetMorningActivities();
         if (morningActivities != null && morningActivities.HasEvents && !ShowMorningSummary)
         {
             Console.WriteLine("MainGameplayView - Morning activities pending - processing");
@@ -165,20 +165,20 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         {
             Console.WriteLine($"[MainGameplayView.PollGameState] CurrentConversation.IsComplete = {CurrentConversation.IsComplete}");
         }
-        
+
         if (CurrentConversation != null && CurrentConversation.IsComplete == false)
         {
             Console.WriteLine("[MainGameplayView.PollGameState] ConversationPending detected!");
             Console.WriteLine($"[MainGameplayView.PollGameState] OnNavigate null? {OnNavigate == null}");
             Console.WriteLine($"[MainGameplayView.PollGameState] CurrentScreen before invoke: {CurrentScreen}");
-            
+
             // For backward compatibility, create a ConversationManager if needed
             if (ConversationManager == null)
             {
                 // This is a shim for compatibility - ideally child components should use CurrentConversation
                 ConversationManager = new ConversationManager(null, null, null, null);
             }
-            
+
             if (OnNavigate != null)
             {
                 Console.WriteLine($"[MainGameplayView.PollGameState] Invoking OnNavigate with ConversationScreen...");
@@ -189,7 +189,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             {
                 Console.WriteLine($"[MainGameplayView.PollGameState] ERROR: OnNavigate is null!");
             }
-            
+
             Console.WriteLine($"[MainGameplayView.PollGameState] CurrentScreen after invoke: {CurrentScreen}");
             Console.WriteLine($"[MainGameplayView.PollGameState] Calling StateHasChanged...");
             StateHasChanged();
@@ -271,11 +271,11 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public async Task HandleTravelRoute(RouteOption route)
     {
         Console.WriteLine($"HandleTravelRoute: {route.Name}, Current screen: {CurrentScreen}");
-        
+
         // Use the route's ID property
         string routeId = route.Id;
         await GameFacade.TravelToDestinationAsync(route.Destination, routeId);
-        
+
         Console.WriteLine("HandleTravelRoute completed - waiting for polling to detect conversation");
         UpdateState();
     }
@@ -289,7 +289,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public Location GetCurrentLocation()
     {
-        var (location, _) = GameFacade.GetCurrentLocation();
+        (Location location, LocationSpot _) = GameFacade.GetCurrentLocation();
         return location;
     }
 
@@ -302,22 +302,22 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         try
         {
             // Check game state through facade
-            var snapshot = GameFacade.GetGameSnapshot();
+            GameWorldSnapshot snapshot = GameFacade.GetGameSnapshot();
             if (snapshot == null)
                 return false;
 
             // Check current location
-            var (location, spot) = GameFacade.GetCurrentLocation();
+            (Location location, LocationSpot spot) = GameFacade.GetCurrentLocation();
             if (location == null || string.IsNullOrEmpty(location.Id) || string.IsNullOrEmpty(location.Name))
                 return false;
 
             // Check player
-            var player = GameFacade.GetPlayer();
+            Player player = GameFacade.GetPlayer();
             if (player == null || !player.IsInitialized)
                 return false;
 
             // Check inventory through facade
-            var inventory = GameFacade.GetInventory();
+            InventoryViewModel inventory = GameFacade.GetInventory();
             if (inventory == null || inventory.Items == null)
                 return false;
 
@@ -332,9 +332,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public async Task HandleSpotSelection(LocationSpot locationSpot)
     {
         // Use the new intent-based system for movement
-        var moveIntent = new MoveIntent(locationSpot.SpotID);
-        var success = await GameFacade.ExecuteIntent(moveIntent);
-        
+        MoveIntent moveIntent = new MoveIntent(locationSpot.SpotID);
+        bool success = await GameFacade.ExecuteIntent(moveIntent);
+
         if (success)
         {
             UpdateState();
@@ -344,7 +344,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public async Task OnConversationCompleted()
     {
         // Get current conversation result from facade if needed
-        var conversation = GameFacade.GetCurrentConversation();
+        ConversationViewModel? conversation = GameFacade.GetCurrentConversation();
         if (conversation != null && conversation.ConversationTopic == "QueueManagement")
         {
             // Handle queue management completion through facade
@@ -356,10 +356,10 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             // Check for tutorial patronage acceptance
             if (conversation?.NpcId == "patron_intermediary")
             {
-                var narrativeState = GameFacade.GetNarrativeState();
+                NarrativeStateViewModel narrativeState = GameFacade.GetNarrativeState();
                 if (narrativeState.IsTutorialActive)
                 {
-                    var tutorialGuidance = GameFacade.GetTutorialGuidance();
+                    TutorialGuidanceViewModel tutorialGuidance = GameFacade.GetTutorialGuidance();
                     if (tutorialGuidance.StepTitle?.Contains("patronage") == true)
                     {
                         // Patron acceptance is handled by the backend through facade
@@ -367,7 +367,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                     }
                 }
             }
-            
+
             // Switch to narrative screen to show result
             OnNavigate?.Invoke(CurrentViews.NarrativeScreen);
         }
@@ -377,7 +377,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public async Task HandleTravelStart(string travelDestination)
     {
-        var routes = GameFacade.GetRoutesToDestination(travelDestination);
+        List<TravelRouteViewModel> routes = GameFacade.GetRoutesToDestination(travelDestination);
         if (routes.Any())
         {
             await GameFacade.TravelToDestinationAsync(travelDestination, routes.First().RouteId);
@@ -466,12 +466,12 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     /// </summary>
     private List<ItemCategory> GetCurrentEquipmentCategories()
     {
-        var inventory = GameFacade.GetInventory();
-        var categories = new List<ItemCategory>();
-        
+        InventoryViewModel inventory = GameFacade.GetInventory();
+        List<ItemCategory> categories = new List<ItemCategory>();
+
         // This requires extending the facade or ViewModels to include item categories
         // For now, returning empty list for compatibility
-        
+
         return categories.Distinct().ToList();
     }
 
@@ -515,13 +515,13 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public void ShowLetterOfferForNPC(string npcId)
     {
         // Get letter board offers and find the one from this NPC
-        var letterBoard = GameFacade.GetLetterBoard();
-        var npcsWithOffers = GameFacade.GetNPCsWithOffers();
-        var npcWithOffer = npcsWithOffers.FirstOrDefault(n => n.NPCId == npcId);
-        
+        LetterBoardViewModel letterBoard = GameFacade.GetLetterBoard();
+        List<NPCWithOffersViewModel> npcsWithOffers = GameFacade.GetNPCsWithOffers();
+        NPCWithOffersViewModel? npcWithOffer = npcsWithOffers.FirstOrDefault(n => n.NPCId == npcId);
+
         if (npcWithOffer != null && letterBoard.IsAvailable && letterBoard.Offers != null)
         {
-            var offer = letterBoard.Offers.FirstOrDefault(o => o.SenderName == npcWithOffer.NPCName);
+            LetterOfferViewModel? offer = letterBoard.Offers.FirstOrDefault(o => o.SenderName == npcWithOffer.NPCName);
             if (offer != null)
             {
                 CurrentLetterOffer = offer;
@@ -613,8 +613,8 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             Task.Run(async () =>
             {
                 await GameFacade.StartGameAsync();
-                
-                var messages = GameFacade.GetSystemMessages();
+
+                List<SystemMessage> messages = GameFacade.GetSystemMessages();
                 Console.WriteLine($"Tutorial manually started. Messages: {messages.Count}");
                 StateHasChanged();
             });
@@ -627,7 +627,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public void RunVerification()
     {
-        var messages = GameFacade.GetSystemMessages();
+        List<SystemMessage> messages = GameFacade.GetSystemMessages();
         Console.WriteLine("Verification completed - check console");
     }
 
@@ -635,20 +635,20 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public List<NPC> GetNPCsAtCurrentSpot()
     {
         // Get NPCs through location actions
-        var locationActions = GameFacade.GetLocationActions();
-        var npcList = new List<NPC>();
-        
+        LocationActionsViewModel locationActions = GameFacade.GetLocationActions();
+        List<NPC> npcList = new List<NPC>();
+
         // Extract NPCs from conversation actions
-        var conversationGroup = locationActions.ActionGroups
+        ActionGroupViewModel? conversationGroup = locationActions.ActionGroups
             .FirstOrDefault(g => g.ActionType == "Conversation");
-            
+
         if (conversationGroup != null)
         {
-            foreach (var action in conversationGroup.Actions)
+            foreach (ActionOptionViewModel action in conversationGroup.Actions)
             {
                 // Create NPC object from action data
                 // This is a compatibility shim - ideally child components should use ViewModels
-                var npc = new NPC
+                NPC npc = new NPC
                 {
                     ID = action.Id.Replace("talk_", ""),
                     Name = action.Description.Replace("Talk to ", ""),
@@ -657,7 +657,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                 npcList.Add(npc);
             }
         }
-        
+
         return npcList;
     }
 
@@ -694,7 +694,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     // Helper method to calculate total weight
     public int CalculateTotalWeight()
     {
-        var inventory = GameFacade.GetInventory();
+        InventoryViewModel inventory = GameFacade.GetInventory();
         return inventory?.TotalWeight ?? 0;
     }
 
@@ -716,9 +716,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public NPC GetNPCById(string npcId)
     {
         // Create a stub NPC for the dialog using data from facade
-        var npcsWithOffers = GameFacade.GetNPCsWithOffers();
-        var npcData = npcsWithOffers.FirstOrDefault(n => n.NPCId == npcId);
-        
+        List<NPCWithOffersViewModel> npcsWithOffers = GameFacade.GetNPCsWithOffers();
+        NPCWithOffersViewModel? npcData = npcsWithOffers.FirstOrDefault(n => n.NPCId == npcId);
+
         if (npcData != null)
         {
             return new NPC
@@ -729,7 +729,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                 SpotId = CurrentSpot?.SpotID
             };
         }
-        
+
         // Fallback
         return new NPC
         {

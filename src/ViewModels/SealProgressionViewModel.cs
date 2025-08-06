@@ -9,7 +9,7 @@ namespace Wayfarer.ViewModels
         public List<EndorsementProgress> EndorsementTracking { get; set; } = new();
         public int MaxWornSeals { get; set; } = 3;
     }
-    
+
     public class OwnedSeal
     {
         public string Id { get; set; }
@@ -24,7 +24,7 @@ namespace Wayfarer.ViewModels
         public bool IsWorn { get; set; }
         public List<string> Benefits { get; set; } = new();
     }
-    
+
     public class WornSeal
     {
         public string Id { get; set; }
@@ -33,7 +33,7 @@ namespace Wayfarer.ViewModels
         public SealTier Tier { get; set; }
         public int SlotNumber { get; set; } // 1-3
     }
-    
+
     public class EndorsementProgress
     {
         public SealType Type { get; set; }

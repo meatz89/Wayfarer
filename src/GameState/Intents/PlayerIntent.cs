@@ -10,7 +10,7 @@ public abstract class PlayerIntent
     /// Unique identifier for this intent instance
     /// </summary>
     public string IntentId { get; } = Guid.NewGuid().ToString();
-    
+
     /// <summary>
     /// When this intent was created
     /// </summary>
@@ -23,7 +23,7 @@ public abstract class PlayerIntent
 public class MoveIntent : PlayerIntent
 {
     public string TargetSpotId { get; }
-    
+
     public MoveIntent(string targetSpotId)
     {
         TargetSpotId = targetSpotId ?? throw new ArgumentNullException(nameof(targetSpotId));
@@ -36,7 +36,7 @@ public class MoveIntent : PlayerIntent
 public class TalkIntent : PlayerIntent
 {
     public string NpcId { get; }
-    
+
     public TalkIntent(string npcId)
     {
         NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
@@ -49,7 +49,7 @@ public class TalkIntent : PlayerIntent
 public class RestIntent : PlayerIntent
 {
     public int Hours { get; }
-    
+
     public RestIntent(int hours)
     {
         if (hours <= 0) throw new ArgumentException("Rest hours must be positive", nameof(hours));
@@ -63,7 +63,7 @@ public class RestIntent : PlayerIntent
 public class DeliverLetterIntent : PlayerIntent
 {
     public string LetterId { get; }
-    
+
     public DeliverLetterIntent(string letterId)
     {
         LetterId = letterId ?? throw new ArgumentNullException(nameof(letterId));
@@ -76,7 +76,7 @@ public class DeliverLetterIntent : PlayerIntent
 public class CollectLetterIntent : PlayerIntent
 {
     public string LetterId { get; }
-    
+
     public CollectLetterIntent(string letterId)
     {
         LetterId = letterId ?? throw new ArgumentNullException(nameof(letterId));
@@ -110,7 +110,7 @@ public class RequestPatronFundsIntent : PlayerIntent
 public class AcceptLetterOfferIntent : PlayerIntent
 {
     public string OfferId { get; }
-    
+
     public AcceptLetterOfferIntent(string offerId)
     {
         OfferId = offerId ?? throw new ArgumentNullException(nameof(offerId));
@@ -123,7 +123,7 @@ public class AcceptLetterOfferIntent : PlayerIntent
 public class TravelIntent : PlayerIntent
 {
     public string RouteId { get; }
-    
+
     public TravelIntent(string routeId)
     {
         RouteId = routeId ?? throw new ArgumentNullException(nameof(routeId));
@@ -137,7 +137,7 @@ public class DiscoverRouteIntent : PlayerIntent
 {
     public string NpcId { get; }
     public string RouteId { get; }
-    
+
     public DiscoverRouteIntent(string npcId, string routeId)
     {
         NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
@@ -152,7 +152,7 @@ public class ConvertEndorsementsIntent : PlayerIntent
 {
     public string LocationId { get; }
     public string TargetTier { get; }
-    
+
     public ConvertEndorsementsIntent(string locationId, string targetTier)
     {
         LocationId = locationId ?? throw new ArgumentNullException(nameof(locationId));

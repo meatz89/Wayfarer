@@ -13,14 +13,14 @@ public class StandingObligationDTO
     public string RelatedTokenType { get; set; }
     public List<string> BenefitEffects { get; set; } = new List<string>();
     public List<string> ConstraintEffects { get; set; } = new List<string>();
-    
+
     // Threshold-based activation fields
     public string RelatedNPCId { get; set; }
     public int? ActivationThreshold { get; set; }
     public int? DeactivationThreshold { get; set; }
     public bool IsThresholdBased { get; set; } = false;
     public bool ActivatesAboveThreshold { get; set; } = true;
-    
+
     // Dynamic scaling fields
     public string ScalingType { get; set; } = "None";
     public float ScalingFactor { get; set; } = 1.0f;

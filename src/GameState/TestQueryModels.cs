@@ -56,7 +56,7 @@ public class TradeActionResult
     public bool HasItemAfter { get; set; }
     public string? ErrorMessage { get; set; }
     public int TransactionPrice { get; set; }
-    
+
     // Alias for backward compatibility
     public bool IsSuccess => Success;
 }

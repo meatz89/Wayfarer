@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Components;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static Wayfarer.Pages.Components.TokenTransactionPreview;
 using Wayfarer.Services;
+using static Wayfarer.Pages.Components.TokenTransactionPreview;
 
 namespace Wayfarer.Pages.Components;
 
@@ -17,36 +17,36 @@ public partial class NPCActionsView : ComponentBase
     [Inject] private ConnectionTokenManager TokenManager { get; set; }
     [Inject] private GameWorld GameWorld { get; set; }
     [Inject] private TimeImpactCalculator TimeCalculator { get; set; }
-    
+
     [Parameter] public NPC SelectedNPC { get; set; }
     [Parameter] public EventCallback OnActionExecuted { get; set; }
-    
+
     private TimeBlocks CurrentTime => TimeManager.GetCurrentTimeBlock();
-    
+
     private List<ActionOptionViewModel> GetActionsForNPC()
     {
         if (SelectedNPC == null) return new List<ActionOptionViewModel>();
-        
-        var allActions = GameFacade.GetLocationActions();
-        var npcActions = GroupActionsByNPC(allActions);
-        
-        return npcActions.ContainsKey(SelectedNPC.ID) 
-            ? npcActions[SelectedNPC.ID] 
+
+        LocationActionsViewModel allActions = GameFacade.GetLocationActions();
+        Dictionary<string, List<ActionOptionViewModel>> npcActions = GroupActionsByNPC(allActions);
+
+        return npcActions.ContainsKey(SelectedNPC.ID)
+            ? npcActions[SelectedNPC.ID]
             : new List<ActionOptionViewModel>();
     }
-    
+
     private Dictionary<string, List<ActionOptionViewModel>> GroupActionsByNPC(LocationActionsViewModel viewModel)
     {
-        var npcGroups = new Dictionary<string, List<ActionOptionViewModel>>();
-        
-        foreach (var group in viewModel.ActionGroups)
+        Dictionary<string, List<ActionOptionViewModel>> npcGroups = new Dictionary<string, List<ActionOptionViewModel>>();
+
+        foreach (ActionGroupViewModel group in viewModel.ActionGroups)
         {
-            foreach (var action in group.Actions)
+            foreach (ActionOptionViewModel action in group.Actions)
             {
                 // Match actions to the selected NPC by name
                 if (!string.IsNullOrEmpty(action.NPCName) && action.NPCName == SelectedNPC?.Name)
                 {
-                    var npcId = SelectedNPC.ID;
+                    string npcId = SelectedNPC.ID;
                     if (!npcGroups.ContainsKey(npcId))
                     {
                         npcGroups[npcId] = new List<ActionOptionViewModel>();
@@ -55,30 +55,30 @@ public partial class NPCActionsView : ComponentBase
                 }
             }
         }
-        
+
         return npcGroups;
     }
-    
+
     private bool CanAffordAction(ActionOptionViewModel action)
     {
         return action.HasEnoughTime && action.HasEnoughStamina && action.HasEnoughCoins && !action.IsServiceClosed;
     }
-    
+
     private async Task ExecuteAction(string actionId)
     {
-        var result = await GameFacade.ExecuteLocationActionAsync(actionId);
-        
+        bool result = await GameFacade.ExecuteLocationActionAsync(actionId);
+
         if (result)
         {
             StateHasChanged();
-            
+
             if (OnActionExecuted.HasDelegate)
             {
                 await OnActionExecuted.InvokeAsync();
             }
         }
     }
-    
+
     private string GetActionVerb(ActionOptionViewModel action)
     {
         // Extract the verb from the action description
@@ -96,14 +96,14 @@ public partial class NPCActionsView : ComponentBase
             return "Get Letter";
         if (action.Description.Contains("special"))
             return "Request Special";
-            
+
         return action.Description;
     }
-    
+
     private List<TokenChange> GetTokenChangesForAction(ActionOptionViewModel action, string npcId)
     {
-        var changes = new List<TokenChange>();
-        
+        List<TokenChange> changes = new List<TokenChange>();
+
         // For talk actions, show potential token gain
         if (action.Id.StartsWith("talk_"))
         {
@@ -118,28 +118,28 @@ public partial class NPCActionsView : ComponentBase
                 });
             }
         }
-        
+
         // For special letter requests, token costs are shown separately in the UI
-        
+
         return changes.Any() ? changes : null;
     }
-    
+
     private async Task RequestSpecialLetter(string npcId, ConnectionType tokenType)
     {
         // Request special letter directly through GameFacade
-        var result = GameFacade.RequestSpecialLetter(npcId, tokenType);
-        
+        bool result = GameFacade.RequestSpecialLetter(npcId, tokenType);
+
         if (result)
         {
             StateHasChanged();
-            
+
             if (OnActionExecuted.HasDelegate)
             {
                 await OnActionExecuted.InvokeAsync();
             }
         }
     }
-    
+
     private string GetSpecialLetterIcon(string specialType)
     {
         return specialType switch
@@ -151,7 +151,7 @@ public partial class NPCActionsView : ComponentBase
             _ => "📮"
         };
     }
-    
+
     private string GetTokenIcon(ConnectionType tokenType)
     {
         return tokenType switch
@@ -163,7 +163,7 @@ public partial class NPCActionsView : ComponentBase
             _ => "●"
         };
     }
-    
+
     private List<TokenChange> GetSpecialLetterTokenCost(string npcId, SpecialLetterOption option)
     {
         return new List<TokenChange>

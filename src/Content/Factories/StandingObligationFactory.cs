@@ -12,7 +12,7 @@ public class StandingObligationFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create a minimal standing obligation with just an ID.
     /// Used for dummy/placeholder creation when references are missing.
@@ -21,9 +21,9 @@ public class StandingObligationFactory
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Obligation ID cannot be empty", nameof(id));
-            
-        var name = FormatIdAsName(id);
-        
+
+        string name = FormatIdAsName(id);
+
         return new StandingObligation
         {
             ID = id,
@@ -35,14 +35,14 @@ public class StandingObligationFactory
             ConstraintEffects = new List<ObligationEffect>()
         };
     }
-    
+
     private string FormatIdAsName(string id)
     {
         // Convert snake_case or kebab-case to Title Case
-        return string.Join(" ", 
+        return string.Join(" ",
             id.Replace('_', ' ').Replace('-', ' ')
               .Split(' ')
-              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+              .Select(word => string.IsNullOrEmpty(word) ? "" :
                   char.ToUpper(word[0]) + word.Substring(1).ToLower()));
     }
 
@@ -168,7 +168,7 @@ public class StandingObligationFactory
             }
         }
 
-        var obligation = CreateStandingObligationFromIds(
+        StandingObligation obligation = CreateStandingObligationFromIds(
             dto.ID,
             dto.Name,
             dto.Description,
@@ -177,31 +177,31 @@ public class StandingObligationFactory
             tokenType,
             benefitEffects,
             constraintEffects);
-            
+
         // Apply threshold-based activation settings
         obligation.RelatedNPCId = dto.RelatedNPCId;
         obligation.ActivationThreshold = dto.ActivationThreshold;
         obligation.DeactivationThreshold = dto.DeactivationThreshold;
         obligation.IsThresholdBased = dto.IsThresholdBased;
         obligation.ActivatesAboveThreshold = dto.ActivatesAboveThreshold;
-        
+
         // Apply dynamic scaling settings
-        if (!string.IsNullOrEmpty(dto.ScalingType) && 
+        if (!string.IsNullOrEmpty(dto.ScalingType) &&
             EnumParser.TryParse<ScalingType>(dto.ScalingType, out ScalingType scalingType))
         {
             obligation.ScalingType = scalingType;
         }
-        
+
         obligation.ScalingFactor = dto.ScalingFactor;
         obligation.BaseValue = dto.BaseValue;
         obligation.MinValue = dto.MinValue;
         obligation.MaxValue = dto.MaxValue;
-        
+
         if (dto.SteppedThresholds != null && dto.SteppedThresholds.Any())
         {
             obligation.SteppedThresholds = new Dictionary<int, float>(dto.SteppedThresholds);
         }
-        
+
         return obligation;
     }
 }

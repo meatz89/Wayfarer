@@ -6,10 +6,10 @@ namespace Wayfarer.Pages.Components;
 public partial class SidebarPanel : ComponentBase
 {
     [Inject] private GameFacade GameFacade { get; set; }
-    
+
     private ElementReference SidebarRef;
     private Player PlayerState => GameFacade.GetPlayer();
-    
+
     // Section expansion state
     private Dictionary<SidebarSections, bool> ExpandedSections = new Dictionary<SidebarSections, bool>
     {
@@ -17,19 +17,19 @@ public partial class SidebarPanel : ComponentBase
         { SidebarSections.resources, false },
         { SidebarSections.inventory, false }
     };
-    
+
     private enum SidebarSections
     {
         skills,
         resources,
         inventory
     }
-    
+
     private void ToggleSection(SidebarSections section)
     {
         ExpandedSections[section] = !ExpandedSections[section];
     }
-    
+
     private string GetArchetypePortrait()
     {
         // Return appropriate portrait based on archetype
@@ -41,7 +41,7 @@ public partial class SidebarPanel : ComponentBase
             _ => "images/portraits/default.jpg"
         };
     }
-    
+
     private List<(SkillTypes, string, string)> GetPlayerSkills()
     {
         return new List<(SkillTypes, string, string)>

@@ -109,9 +109,9 @@ public class LetterCategoryService
 
         // Get all templates of the appropriate type and category or lower
         // Use repository to ensure tutorial filtering is applied
-        var templates = _letterTemplateRepository?.GetTemplatesByTokenType(tokenType) 
+        List<LetterTemplate> templates = _letterTemplateRepository?.GetTemplatesByTokenType(tokenType)
             ?? _gameWorld.WorldState.LetterTemplates.Where(t => t.TokenType == tokenType).ToList();
-            
+
         return templates
             .Where(t => t.Category <= category &&
                        t.MinTokensRequired <= tokenCount)

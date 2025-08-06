@@ -28,7 +28,7 @@ public static class LetterTemplateParser
         // Parse optional arrays
         template.PossibleSenders = GetStringArray(root, "possibleSenders").ToArray();
         template.PossibleRecipients = GetStringArray(root, "possibleRecipients").ToArray();
-        
+
         // Parse special letter properties
         string specialTypeStr = GetStringProperty(root, "specialType", "None");
         template.SpecialType = ParseSpecialType(specialTypeStr);

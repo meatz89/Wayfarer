@@ -242,7 +242,7 @@ public class StandingObligationManager
         {
             // Static bonuses
             totalBonus += obligation.CalculateCoinBonus(letter, letter.Payment);
-            
+
             // Dynamic payment bonuses that scale with tokens
             if (obligation.HasEffect(ObligationEffect.DynamicPaymentBonus))
             {
@@ -451,7 +451,7 @@ public class StandingObligationManager
     {
         Player player = _gameWorld.GetPlayer();
         List<StandingObligation> allTemplates = _obligationRepository.GetAllObligationTemplates();
-        
+
         // Check each threshold-based obligation template
         foreach (StandingObligation template in allTemplates.Where(o => o.IsThresholdBased))
         {
@@ -461,7 +461,7 @@ public class StandingObligationManager
 
             // Get relevant token count
             int tokenCount = GetRelevantTokenCount(template);
-            
+
             // Check if player already has this obligation
             StandingObligation? existingObligation = player.StandingObligations
                 .FirstOrDefault(o => o.ID == template.ID);
@@ -515,7 +515,7 @@ public class StandingObligationManager
 
         // Get tokens with the letter sender
         Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(senderId);
-        
+
         // Use obligation's token type if specified, otherwise use letter's token type
         ConnectionType relevantType = obligation.RelatedTokenType ?? letter.TokenType;
         return npcTokens.GetValueOrDefault(relevantType, 0);
@@ -552,17 +552,17 @@ public class StandingObligationManager
         // Announce activation
         string thresholdDirection = template.ActivatesAboveThreshold ? "reached" : "dropped to";
         string npcInfo = !string.IsNullOrEmpty(template.RelatedNPCId) ? $" with {template.RelatedNPCId}" : "";
-        
+
         _messageSystem.AddSystemMessage(
             $"Standing Obligation Activated: {newObligation.Name}",
             SystemMessageTypes.Warning
         );
-        
+
         _messageSystem.AddSystemMessage(
             $"Your {template.RelatedTokenType} tokens{npcInfo} have {thresholdDirection} {currentTokenCount}.",
             SystemMessageTypes.Info
         );
-        
+
         _messageSystem.AddSystemMessage(
             newObligation.GetEffectsSummary(),
             SystemMessageTypes.Info
@@ -577,12 +577,12 @@ public class StandingObligationManager
         // Announce deactivation
         string thresholdDirection = obligation.ActivatesAboveThreshold ? "dropped below" : "risen above";
         string npcInfo = !string.IsNullOrEmpty(obligation.RelatedNPCId) ? $" with {obligation.RelatedNPCId}" : "";
-        
+
         _messageSystem.AddSystemMessage(
             $"Standing Obligation Deactivated: {obligation.Name}",
             SystemMessageTypes.Success
         );
-        
+
         _messageSystem.AddSystemMessage(
             $"Your {obligation.RelatedTokenType} tokens{npcInfo} have {thresholdDirection} the required threshold.",
             SystemMessageTypes.Info
@@ -596,12 +596,12 @@ public class StandingObligationManager
         if (oldCount != newCount)
         {
             CheckThresholdActivations();
-            
+
             // Check for debt obligations
             CheckDebtObligations(npcId, tokenType, oldCount, newCount);
         }
     }
-    
+
     // Check and create debt obligations when tokens go negative
     private void CheckDebtObligations(string npcId, ConnectionType tokenType, int oldCount, int newCount)
     {
@@ -616,54 +616,54 @@ public class StandingObligationManager
             RemoveDebtObligation(npcId, tokenType);
         }
     }
-    
+
     // Create a debt obligation for a specific NPC and token type
     private void CreateDebtObligation(string npcId, ConnectionType tokenType, int debtAmount)
     {
-        var npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC? npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null) return;
-        
+
         // Check if debt obligation already exists
-        var existingDebt = GetActiveObligations().FirstOrDefault(o => 
+        StandingObligation? existingDebt = GetActiveObligations().FirstOrDefault(o =>
             o.ID == $"debt_{npcId}_{tokenType}" && o.IsActive);
         if (existingDebt != null) return;
-        
+
         // Create new debt obligation based on token type
-        var debtObligation = CreateTokenTypeDebtObligation(npcId, npc.Name, tokenType, debtAmount);
+        StandingObligation debtObligation = CreateTokenTypeDebtObligation(npcId, npc.Name, tokenType, debtAmount);
         if (debtObligation != null)
         {
             debtObligation.DayAccepted = _gameWorld.CurrentDay;
             AddObligation(debtObligation);
-            
+
             _messageSystem.AddSystemMessage(
                 $"⚠️ You are now in debt to {npc.Name}! {GetDebtConsequenceMessage(tokenType)}",
                 SystemMessageTypes.Warning
             );
         }
     }
-    
+
     // Remove debt obligation when debt is paid
     private void RemoveDebtObligation(string npcId, ConnectionType tokenType)
     {
-        var debtObligation = GetActiveObligations().FirstOrDefault(o => 
+        StandingObligation? debtObligation = GetActiveObligations().FirstOrDefault(o =>
             o.ID == $"debt_{npcId}_{tokenType}" && o.IsActive);
-            
+
         if (debtObligation != null)
         {
             RemoveObligation(debtObligation.ID, false);
-            
-            var npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
+
+            NPC? npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
             _messageSystem.AddSystemMessage(
                 $"✅ Debt to {npc?.Name ?? "unknown"} has been repaid!",
                 SystemMessageTypes.Success
             );
         }
     }
-    
+
     // Create specific debt obligation based on token type
     private StandingObligation CreateTokenTypeDebtObligation(string npcId, string npcName, ConnectionType tokenType, int debtAmount)
     {
-        var obligation = new StandingObligation
+        StandingObligation obligation = new StandingObligation
         {
             ID = $"debt_{npcId}_{tokenType}",
             Source = npcId,
@@ -675,7 +675,7 @@ public class StandingObligationManager
             ActivatesAboveThreshold = false,
             WasAutoActivated = true
         };
-        
+
         switch (tokenType)
         {
             case ConnectionType.Trust:
@@ -683,7 +683,7 @@ public class StandingObligationManager
                 obligation.Description = $"You've betrayed {npcName}'s trust. Their letters demand immediate attention.";
                 obligation.ConstraintEffects.Add(ObligationEffect.TrustPriority);
                 break;
-                
+
             case ConnectionType.Commerce:
                 obligation.Name = $"Outstanding Payment - {npcName}";
                 obligation.Description = $"You owe {npcName} for business dealings. Work is scarce until debts are settled.";
@@ -693,14 +693,14 @@ public class StandingObligationManager
                 obligation.ScalingFactor = -1f; // Each debt point improves position by 1
                 obligation.BaseValue = 0f;
                 break;
-                
+
             case ConnectionType.Status:
                 obligation.Name = $"Social Disgrace - {npcName}";
                 obligation.Description = $"Your standing with {npcName} has fallen. Noble venues may refuse you.";
                 obligation.ConstraintEffects.Add(ObligationEffect.NoStatusRefusal);
                 obligation.BenefitEffects.Add(ObligationEffect.StatusPriority);
                 break;
-                
+
             case ConnectionType.Shadow:
                 obligation.Name = $"Dangerous Enemy - {npcName}";
                 obligation.Description = $"{npcName} considers you a liability. Expect unwelcome attention.";
@@ -708,10 +708,10 @@ public class StandingObligationManager
                 obligation.BenefitEffects.Add(ObligationEffect.ShadowTriplePay);
                 break;
         }
-        
+
         return obligation;
     }
-    
+
     // Get consequence message for debt type
     private string GetDebtConsequenceMessage(ConnectionType tokenType)
     {
@@ -769,7 +769,7 @@ public class StandingObligationManager
     public void ApplyDynamicDeadlineBonuses(Letter letter)
     {
         List<StandingObligation> activeObligations = GetActiveObligations();
-        
+
         foreach (StandingObligation obligation in activeObligations)
         {
             if (obligation.HasEffect(ObligationEffect.DynamicDeadlineBonus))
@@ -779,7 +779,7 @@ public class StandingObligationManager
                 {
                     int tokenCount = GetRelevantTokenCountForLetter(obligation, letter, senderId);
                     int deadlineBonus = obligation.CalculateDynamicDeadlineBonus(letter, tokenCount);
-                    
+
                     if (deadlineBonus > 0)
                     {
                         letter.DeadlineInDays += deadlineBonus;

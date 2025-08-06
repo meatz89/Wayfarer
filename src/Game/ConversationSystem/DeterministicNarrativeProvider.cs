@@ -14,12 +14,12 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         _conversationRepository = conversationRepository;
     }
 
-    public Task<string> GenerateIntroduction(ConversationContext context)
+    public Task<string> GenerateIntroduction(SceneContext context)
     {
         // Check for conversation override
         if (context.TargetNPC != null)
         {
-            var introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
+            string introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             if (!string.IsNullOrEmpty(introduction))
             {
                 return Task.FromResult(introduction);
@@ -30,13 +30,13 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         return Task.FromResult("You begin a conversation.");
     }
 
-    public Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
+    public Task<string> GenerateIntroduction(SceneContext context, ConversationState state)
     {
         // Check for conversation override
         if (context.TargetNPC != null)
         {
             Console.WriteLine($"[DeterministicNarrativeProvider] Checking dialogue for NPC: {context.TargetNPC.ID}");
-            var introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
+            string? introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             Console.WriteLine($"[DeterministicNarrativeProvider] Got dialogue: {introduction ?? "null"}");
             if (!string.IsNullOrEmpty(introduction))
             {
@@ -46,15 +46,15 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 
         // Generate contextual default introduction based on NPC
         Console.WriteLine("[DeterministicNarrativeProvider] Using default introduction");
-        var npcName = context.TargetNPC?.Name ?? "the person";
-        var greeting = GenerateContextualGreeting(context, state);
+        string npcName = context.TargetNPC?.Name ?? "the person";
+        string greeting = GenerateContextualGreeting(context, state);
         return Task.FromResult(greeting);
     }
 
-    public Task<List<ConversationChoice>> GenerateChoices(ConversationContext context, ConversationState state, List<ChoiceTemplate> availableTemplates)
+    public Task<List<ConversationChoice>> GenerateChoices(SceneContext context, ConversationState state, List<ChoiceTemplate> availableTemplates)
     {
-        var choices = new List<ConversationChoice>();
-        
+        List<ConversationChoice> choices = new List<ConversationChoice>();
+
         // Check if we have a conversation override - if so, provide choices from the conversation
         if (context.TargetNPC != null && _conversationRepository.HasConversation(context.TargetNPC.ID))
         {
@@ -64,27 +64,31 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             {
                 ChoiceID = "continue",
                 NarrativeText = "Continue",
-                FocusCost = 0,
+                AttentionCost = 0,  // Free response
                 IsAffordable = true
             });
             return Task.FromResult(choices);
         }
-        
+
         // If we have available templates, use them
         if (availableTemplates != null && availableTemplates.Count > 0)
         {
-            foreach (var template in availableTemplates)
+            foreach (ChoiceTemplate template in availableTemplates)
             {
+                // Determine attention cost based on template type
+                int attentionCost = DetermineAttentionCost(template);
+                bool isAffordable = context.AttentionManager?.CanAfford(attentionCost) ?? true;
+
                 choices.Add(new ConversationChoice
                 {
                     ChoiceID = template.TemplateName,
                     NarrativeText = template.Description ?? template.TemplateName,
-                    FocusCost = template.FocusCost,
-                    IsAffordable = true // In tutorial, choices are always affordable
+                    AttentionCost = attentionCost,
+                    IsAffordable = isAffordable
                 });
             }
         }
-        
+
         // If no choices available, provide a default end conversation option
         if (choices.Count == 0)
         {
@@ -92,15 +96,15 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             {
                 ChoiceID = "end",
                 NarrativeText = "End conversation",
-                FocusCost = 0,
+                AttentionCost = 0,
                 IsAffordable = true
             });
         }
-        
+
         return Task.FromResult(choices);
     }
 
-    public Task<string> GenerateReaction(ConversationContext context, ConversationState state, ConversationChoice selectedChoice, bool success)
+    public Task<string> GenerateReaction(SceneContext context, ConversationState state, ConversationChoice selectedChoice, bool success)
     {
         // Special handling for "continue" choice in tutorial dialogues
         if (selectedChoice.ChoiceID == "continue")
@@ -109,11 +113,11 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             state.IsConversationComplete = true;
             return Task.FromResult(""); // Empty response since conversation is ending
         }
-        
+
         // Check for conversation override
         if (context.TargetNPC != null)
         {
-            var introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
+            string introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             if (!string.IsNullOrEmpty(introduction))
             {
                 return Task.FromResult(introduction);
@@ -124,12 +128,12 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         return Task.FromResult("They respond to your choice.");
     }
 
-    public Task<string> GenerateConclusion(ConversationContext context, ConversationState state, ConversationChoice lastChoice)
+    public Task<string> GenerateConclusion(SceneContext context, ConversationState state, ConversationChoice lastChoice)
     {
         // Check for conversation override
         if (context.TargetNPC != null)
         {
-            var introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
+            string introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             if (!string.IsNullOrEmpty(introduction))
             {
                 return Task.FromResult(introduction);
@@ -145,15 +149,39 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         // STUB: Always available
         return Task.FromResult(true);
     }
-    
-    private string GenerateContextualGreeting(ConversationContext context, ConversationState state)
+
+    private int DetermineAttentionCost(ChoiceTemplate template)
     {
-        var npc = context.TargetNPC;
+        // Basic responses are free
+        if (template.TemplateName.ToLower().Contains("goodbye") ||
+            template.TemplateName.ToLower().Contains("leave") ||
+            template.TemplateName.ToLower().Contains("nevermind"))
+            return 0;
+
+        // Information gathering costs 1
+        if (template.TemplateName.ToLower().Contains("ask") ||
+            template.TemplateName.ToLower().Contains("tell") ||
+            template.TemplateName.ToLower().Contains("rumor"))
+            return 1;
+
+        // Major actions cost 2
+        if (template.TemplateName.ToLower().Contains("promise") ||
+            template.TemplateName.ToLower().Contains("swear") ||
+            template.TemplateName.ToLower().Contains("negotiate"))
+            return 2;
+
+        // Default cost is 1 for any meaningful interaction
+        return 1;
+    }
+
+    private string GenerateContextualGreeting(SceneContext context, ConversationState state)
+    {
+        NPC npc = context.TargetNPC;
         if (npc == null) return "You approach someone.";
-        
+
         // Generate appropriate greeting based on NPC
-        var greetings = new List<string>();
-        
+        List<string> greetings = new List<string>();
+
         // Add generic greetings - we'll keep it simple for now
         greetings.Add($"{npc.Name} looks up as you approach.");
         greetings.Add($"{npc.Name} acknowledges your presence.");
@@ -161,9 +189,9 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         greetings.Add($"{npc.Name} turns to face you. \"Yes?\"");
         greetings.Add($"\"Can I help you?\" {npc.Name} asks.");
         greetings.Add($"{npc.Name} pauses their work to speak with you.");
-        
+
         // Pick a random greeting for variety
-        var random = new Random();
+        Random random = new Random();
         return greetings[random.Next(greetings.Count)];
     }
 }

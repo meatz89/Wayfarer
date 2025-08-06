@@ -17,7 +17,7 @@ public class LetterTemplateDTO
     // Letter category and requirements
     public string Category { get; set; } = "Basic";
     public int? MinTokensRequired { get; set; } = 3;
-    
+
     // Special letter properties
     public string SpecialType { get; set; } = "None";
     public string SpecialTargetId { get; set; }

@@ -9,7 +9,7 @@
 
     public Location GetCurrentLocation()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player.CurrentLocationSpot == null) return null;
         return GetLocation(player.CurrentLocationSpot.LocationId);
     }
@@ -135,7 +135,7 @@
         }
         _gameWorld.GetPlayer().CurrentLocationSpot = spot;
     }
-    
+
     // New method: Set spot directly
     public void SetCurrentSpot(LocationSpot spot)
     {

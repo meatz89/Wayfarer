@@ -12,7 +12,7 @@ public class NPCFactory
     {
         // No dependencies - factory is stateless
     }
-    
+
     /// <summary>
     /// Create a minimal NPC with just an ID.
     /// Used for dummy/placeholder creation when references are missing.
@@ -21,9 +21,9 @@ public class NPCFactory
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("NPC ID cannot be empty", nameof(id));
-            
-        var name = FormatIdAsName(id);
-        
+
+        string name = FormatIdAsName(id);
+
         return new NPC
         {
             ID = id,
@@ -34,14 +34,14 @@ public class NPCFactory
             LetterTokenTypes = new List<ConnectionType> { ConnectionType.Trust }
         };
     }
-    
+
     private string FormatIdAsName(string id)
     {
         // Convert snake_case or kebab-case to Title Case
-        return string.Join(" ", 
+        return string.Join(" ",
             id.Replace('_', ' ').Replace('-', ' ')
               .Split(' ')
-              .Select(word => string.IsNullOrEmpty(word) ? "" : 
+              .Select(word => string.IsNullOrEmpty(word) ? "" :
                   char.ToUpper(word[0]) + word.Substring(1).ToLower()));
     }
 

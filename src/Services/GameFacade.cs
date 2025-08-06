@@ -16,14 +16,14 @@ public class GameFacade
     private readonly ITimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
     private readonly IGameRuleEngine _ruleEngine;
-    
-    
+
+
     // Managers
     private readonly TravelManager _travelManager;
     private readonly RestManager _restManager;
     private readonly LetterQueueManager _letterQueueManager;
     private readonly RouteDiscoveryManager _routeDiscoveryManager;
-    
+
     // Domain services
     private readonly ConversationFactory _conversationFactory;
     private readonly NPCRepository _npcRepository;
@@ -47,7 +47,7 @@ public class GameFacade
     private readonly NoticeBoardService _noticeBoardService;
     private readonly LetterTemplateRepository _letterTemplateRepository;
     private readonly InformationRevealService _informationRevealService;
-    
+
     public GameFacade(
         GameWorld gameWorld,
         ITimeManager timeManager,
@@ -111,60 +111,60 @@ public class GameFacade
         _letterTemplateRepository = letterTemplateRepository;
         _informationRevealService = informationRevealService;
     }
-    
+
     // ========== HELPER METHODS ==========
-    
+
     private void ProcessTimeAdvancement(int hours)
     {
         _timeManager.AdvanceTime(hours);
-        
+
         // Process carried information letters after time change
         _informationRevealService?.ProcessCarriedInformation();
     }
-    
+
     private string GetMarketAvailabilityStatus(string locationId)
     {
-        var traders = GetTradingNPCs(locationId);
-        var availableTraders = traders.Where(npc => npc.IsAvailable(_timeManager.GetCurrentTimeBlock())).ToList();
-        
+        List<NPC> traders = GetTradingNPCs(locationId);
+        List<NPC> availableTraders = traders.Where(npc => npc.IsAvailable(_timeManager.GetCurrentTimeBlock())).ToList();
+
         if (!availableTraders.Any())
         {
             return "Market closed - no traders available";
         }
-        
+
         return $"Market open - {availableTraders.Count} trader(s) available";
     }
-    
+
     private List<NPC> GetTradingNPCs(string locationId)
     {
         return _npcRepository.GetNPCsForLocation(locationId)
             .Where(npc => npc.ProvidedServices.Contains(ServiceTypes.Trade))
             .ToList();
     }
-    
+
     private List<MarketItem> GetAvailableMarketItems(string locationId)
     {
         if (_marketManager == null) return new List<MarketItem>();
-        
+
         return _marketManager.GetMarketItems(locationId)
             .Where(item => item.Stock > 0)
             .ToList();
     }
-    
+
     private bool CanBuyMarketItem(string itemId, string locationId)
     {
         if (_marketManager == null) return false;
-        
-        var item = _marketManager.GetMarketItem(locationId, itemId);
+
+        MarketItem item = _marketManager.GetMarketItem(locationId, itemId);
         if (item == null || item.Stock <= 0) return false;
-        
-        var player = _gameWorld.GetPlayer();
+
+        Player player = _gameWorld.GetPlayer();
         return player.Coins >= item.Price;
     }
-    
+
     public int CalculateTotalWeight()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         int totalWeight = 0;
 
         // Add item weights
@@ -172,7 +172,7 @@ public class GameFacade
         {
             if (!string.IsNullOrEmpty(itemName))
             {
-                var item = _itemRepository.GetItemById(itemName);
+                Item item = _itemRepository.GetItemById(itemName);
                 if (item != null)
                 {
                     totalWeight += item.Weight;
@@ -181,7 +181,7 @@ public class GameFacade
         }
 
         // Add letter weights
-        foreach (var letter in player.LetterQueue)
+        foreach (Letter letter in player.LetterQueue)
         {
             if (letter != null && letter.State == LetterState.Collected)
             {
@@ -191,46 +191,46 @@ public class GameFacade
 
         return totalWeight;
     }
-    
+
     // ========== GAME STATE QUERIES ==========
-    
+
     public GameWorldSnapshot GetGameSnapshot()
     {
         return new GameWorldSnapshot(_gameWorld, _conversationStateManager);
     }
-    
+
     public Player GetPlayer()
     {
         return _gameWorld.GetPlayer();
     }
-    
+
     public (Location location, LocationSpot spot) GetCurrentLocation()
     {
-        var player = _gameWorld.GetPlayer();
-        var location = player.CurrentLocationSpot != null 
+        Player player = _gameWorld.GetPlayer();
+        Location? location = player.CurrentLocationSpot != null
             ? _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId)
             : null;
         return (location, player.CurrentLocationSpot);
     }
-    
+
     public (TimeBlocks timeBlock, int hoursRemaining, int currentDay) GetTimeInfo()
     {
-        return (_timeManager.GetCurrentTimeBlock(), 
-                _timeManager.HoursRemaining, 
+        return (_timeManager.GetCurrentTimeBlock(),
+                _timeManager.HoursRemaining,
                 _gameWorld.CurrentDay);
     }
-    
+
     public int GetCurrentDay()
     {
         return _gameWorld.CurrentDay;
     }
-    
+
     // ========== LOCATION ACTIONS ==========
-    
+
     public LocationActionsViewModel GetLocationActions()
     {
-        var player = _gameWorld.GetPlayer();
-        var currentSpot = player.CurrentLocationSpot;
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot currentSpot = player.CurrentLocationSpot;
 
         if (currentSpot == null)
         {
@@ -245,7 +245,7 @@ public class GameFacade
             };
         }
 
-        var viewModel = new LocationActionsViewModel
+        LocationActionsViewModel viewModel = new LocationActionsViewModel
         {
             LocationName = currentSpot.Name,
             CurrentTimeBlock = _timeManager.GetCurrentTimeBlock().ToString(),
@@ -256,11 +256,11 @@ public class GameFacade
         };
 
         // Generate actions based on current context
-        var actions = new List<ActionOptionViewModel>();
-        
+        List<ActionOptionViewModel> actions = new List<ActionOptionViewModel>();
+
         // Add NPC actions
-        var npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeManager.GetCurrentTimeBlock());
-        foreach (var npc in npcsHere)
+        List<NPC> npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeManager.GetCurrentTimeBlock());
+        foreach (NPC npc in npcsHere)
         {
             // All NPCs are visible in the new architecture
             {
@@ -279,7 +279,7 @@ public class GameFacade
                 });
             }
         }
-        
+
         // Add rest actions
         if (!_flagService.HasFlag("tutorial_active") || actions.Count < 3)
         {
@@ -295,7 +295,7 @@ public class GameFacade
                 HasEnoughCoins = true,
                 RewardsDescription = "+2 stamina"
             });
-            
+
             if (!_flagService.HasFlag("tutorial_active"))
             {
                 actions.Add(new ActionOptionViewModel
@@ -310,7 +310,7 @@ public class GameFacade
                     HasEnoughCoins = true,
                     RewardsDescription = "+4 stamina"
                 });
-                
+
                 actions.Add(new ActionOptionViewModel
                 {
                     Id = "rest_4",
@@ -325,7 +325,7 @@ public class GameFacade
                 });
             }
         }
-        
+
         // Add observe action
         actions.Add(new ActionOptionViewModel
         {
@@ -339,12 +339,12 @@ public class GameFacade
             HasEnoughCoins = true,
             RewardsDescription = "Study your surroundings for opportunities"
         });
-        
+
         // Group actions by category
-        var socialActions = actions.Where(a => a.Id.StartsWith("talk_")).ToList();
-        var restActions = actions.Where(a => a.Id.StartsWith("rest_")).ToList();
-        var specialActions = actions.Where(a => !a.Id.StartsWith("talk_") && !a.Id.StartsWith("rest_")).ToList();
-        
+        List<ActionOptionViewModel> socialActions = actions.Where(a => a.Id.StartsWith("talk_")).ToList();
+        List<ActionOptionViewModel> restActions = actions.Where(a => a.Id.StartsWith("rest_")).ToList();
+        List<ActionOptionViewModel> specialActions = actions.Where(a => !a.Id.StartsWith("talk_") && !a.Id.StartsWith("rest_")).ToList();
+
         if (socialActions.Any())
         {
             viewModel.ActionGroups.Add(new ActionGroupViewModel
@@ -353,7 +353,7 @@ public class GameFacade
                 Actions = socialActions
             });
         }
-        
+
         if (restActions.Any())
         {
             viewModel.ActionGroups.Add(new ActionGroupViewModel
@@ -362,7 +362,7 @@ public class GameFacade
                 Actions = restActions
             });
         }
-        
+
         if (specialActions.Any())
         {
             viewModel.ActionGroups.Add(new ActionGroupViewModel
@@ -371,28 +371,28 @@ public class GameFacade
                 Actions = specialActions
             });
         }
-        
+
         // Add closed services information
         AddClosedServicesInfo(viewModel, currentSpot);
 
         return viewModel;
     }
-    
+
     public async Task<bool> ExecuteLocationActionAsync(string actionId)
     {
         Console.WriteLine($"[GameFacade.ExecuteLocationActionAsync] Starting execution for action: {actionId}");
-        
+
         // Convert action ID to intent
         PlayerIntent intent = null;
-        
+
         if (actionId.StartsWith("talk_"))
         {
-            var npcId = actionId.Substring(5);
+            string npcId = actionId.Substring(5);
             intent = new TalkIntent(npcId);
         }
         else if (actionId.StartsWith("rest_"))
         {
-            var hours = int.Parse(actionId.Substring(5));
+            int hours = int.Parse(actionId.Substring(5));
             intent = new RestIntent(hours);
         }
         else if (actionId == "observe")
@@ -401,7 +401,7 @@ public class GameFacade
         }
         else if (actionId.StartsWith("move_"))
         {
-            var spotId = actionId.Substring(5);
+            string spotId = actionId.Substring(5);
             intent = new MoveIntent(spotId);
         }
         else
@@ -410,20 +410,20 @@ public class GameFacade
             _messageSystem.AddSystemMessage($"Unknown action: {actionId}", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         // Execute the intent
         return await ExecuteIntent(intent);
     }
-    
+
     // ========== INTENT-BASED EXECUTION ==========
-    
+
     /// <summary>
     /// Execute a player intent using GameWorld as the single source of truth
     /// </summary>
     public async Task<bool> ExecuteIntent(PlayerIntent intent)
     {
         Console.WriteLine($"[GameFacade.ExecuteIntent] Executing {intent.GetType().Name}");
-        
+
         try
         {
             return intent switch
@@ -450,89 +450,89 @@ public class GameFacade
             return false;
         }
     }
-    
+
     private async Task<bool> ExecuteMove(MoveIntent intent)
     {
         // Get context from GameWorld
-        var player = _gameWorld.GetPlayer();
-        var currentSpot = player.CurrentLocationSpot;
-        
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot currentSpot = player.CurrentLocationSpot;
+
         if (currentSpot == null)
         {
             _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         // Get target spot from repositories (should ideally come from GameWorld)
-        var currentLocation = _locationRepository.GetLocation(currentSpot.LocationId);
+        Location currentLocation = _locationRepository.GetLocation(currentSpot.LocationId);
         if (currentLocation == null)
         {
             _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
             return false;
         }
-        
-        var spotsInLocation = _locationRepository.GetSpotsForLocation(currentLocation.Id);
-        var targetSpot = spotsInLocation.FirstOrDefault(s => s.SpotID == intent.TargetSpotId);
-        
+
+        List<LocationSpot> spotsInLocation = _locationRepository.GetSpotsForLocation(currentLocation.Id);
+        LocationSpot? targetSpot = spotsInLocation.FirstOrDefault(s => s.SpotID == intent.TargetSpotId);
+
         if (targetSpot == null)
         {
             _messageSystem.AddSystemMessage("Target location does not exist", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         if (targetSpot.IsClosed)
         {
             _messageSystem.AddSystemMessage($"{targetSpot.Name} is closed", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Check if in same location
         if (targetSpot.LocationId != currentSpot.LocationId)
         {
             _messageSystem.AddSystemMessage("Target is in a different location. Use travel instead.", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Check stamina
         if (player.Stamina < 1)
         {
             _messageSystem.AddSystemMessage("Not enough stamina to move", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Execute movement
         player.SpendStamina(1);
         _locationRepository.SetCurrentLocation(currentLocation, targetSpot);
-        
+
         _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Success);
         return true;
     }
-    
+
     private async Task<bool> ExecuteTalk(TalkIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        var npc = _npcRepository.GetById(intent.NpcId);
-        
+        Player player = _gameWorld.GetPlayer();
+        NPC npc = _npcRepository.GetById(intent.NpcId);
+
         if (npc == null)
         {
             _messageSystem.AddSystemMessage("NPC not found", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         // Check if NPC is at current location
         if (!npc.IsAvailableAtLocation(player.CurrentLocationSpot?.SpotID))
         {
             _messageSystem.AddSystemMessage($"{npc.Name} is not here", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         try
         {
             // Create conversation context
-            var location = _locationRepository.GetCurrentLocation();
-            var spot = player.CurrentLocationSpot;
+            Location location = _locationRepository.GetCurrentLocation();
+            LocationSpot? spot = player.CurrentLocationSpot;
             var context = ConversationContext.Standard(_gameWorld, player, npc, location, spot);
-            
+
             // Create conversation - this should always succeed with fallback content
             var conversation = await _conversationFactory.CreateConversation(context, player);
             if (conversation == null)
@@ -541,17 +541,17 @@ public class GameFacade
                 _messageSystem.AddSystemMessage($"Failed to create conversation with {npc.Name}", SystemMessageTypes.Warning);
                 return false;
             }
-            
+
             // Set conversation state
             _conversationStateManager.SetCurrentConversation(conversation);
-            
+
             // Verify the conversation was set
             if (!_conversationStateManager.ConversationPending || _conversationStateManager.PendingConversationManager == null)
             {
                 _messageSystem.AddSystemMessage($"Failed to start conversation with {npc.Name} - state not set", SystemMessageTypes.Danger);
                 return false;
             }
-            
+
             _messageSystem.AddSystemMessage($"Started conversation with {npc.Name}", SystemMessageTypes.Success);
             return true;
         }
@@ -562,25 +562,25 @@ public class GameFacade
             return false;
         }
     }
-    
+
     private async Task<bool> ExecuteRest(RestIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // Check if player needs rest
         if (player.Stamina >= player.MaxStamina)
         {
             _messageSystem.AddSystemMessage("Already at maximum stamina", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Check if enough time remaining
         if (_timeManager.HoursRemaining < intent.Hours)
         {
             _messageSystem.AddSystemMessage($"Not enough time remaining (need {intent.Hours} hours)", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Calculate stamina recovery based on hours
         int staminaRecovery = intent.Hours switch
         {
@@ -589,28 +589,28 @@ public class GameFacade
             4 => 10,
             _ => intent.Hours * 2 // Default formula
         };
-        
+
         // Rest and recover stamina
         ProcessTimeAdvancement(intent.Hours);
         int actualRecovery = Math.Min(staminaRecovery, player.MaxStamina - player.Stamina);
         player.ModifyStamina(actualRecovery);
-        
+
         _messageSystem.AddSystemMessage(
             $"Rested for {intent.Hours} hour(s) and recovered {actualRecovery} stamina",
             SystemMessageTypes.Success
         );
-        
+
         return true;
     }
-    
+
     private async Task<bool> ExecuteDeliverLetter(DeliverLetterIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // Find the letter in the player's queue
         Letter letterToDeliver = null;
         int letterPosition = -1;
-        
+
         for (int i = 0; i < player.LetterQueue.Length; i++)
         {
             if (player.LetterQueue[i]?.Id == intent.LetterId)
@@ -620,47 +620,47 @@ public class GameFacade
                 break;
             }
         }
-        
+
         if (letterToDeliver == null)
         {
             _messageSystem.AddSystemMessage("Letter not found in your queue", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Find the recipient NPC by name
-        var recipient = _npcRepository.GetAllNPCs()
+        NPC? recipient = _npcRepository.GetAllNPCs()
             .FirstOrDefault(npc => npc.Name.Equals(letterToDeliver.RecipientName, StringComparison.OrdinalIgnoreCase));
         if (recipient == null)
         {
             _messageSystem.AddSystemMessage($"Cannot find {letterToDeliver.RecipientName} here", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Check if recipient is available
         if (!recipient.IsAvailable(_timeManager.GetCurrentTimeBlock()))
         {
             _messageSystem.AddSystemMessage($"{recipient.Name} is not available right now", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Generate delivery conversation context
-        var conversationContext = _deliveryConversationService.AnalyzeDeliveryContext(letterToDeliver, recipient);
-        var choices = _deliveryConversationService.GenerateDeliveryChoices(conversationContext);
-        
+        DeliveryConversationContext conversationContext = _deliveryConversationService.AnalyzeDeliveryContext(letterToDeliver, recipient);
+        List<ConversationChoice> choices = _deliveryConversationService.GenerateDeliveryChoices(conversationContext);
+
         // For now, execute standard delivery (first choice)
-        var standardChoice = choices.FirstOrDefault();
+        ConversationChoice? standardChoice = choices.FirstOrDefault();
         if (standardChoice == null)
         {
             _messageSystem.AddSystemMessage("No delivery options available", SystemMessageTypes.Warning);
             return false;
         }
-        
-        var outcome = standardChoice.DeliveryOutcome;
-        
+
+        DeliveryOutcome outcome = standardChoice.DeliveryOutcome;
+
         // Process payment
         player.ModifyCoins(outcome.BasePayment + outcome.BonusPayment);
         _messageSystem.AddSystemMessage($"Received {outcome.BasePayment + outcome.BonusPayment} coins for delivery", SystemMessageTypes.Success);
-        
+
         // Process token rewards/penalties
         if (outcome.TokenReward && outcome.TokenType != default(ConnectionType))
         {
@@ -672,61 +672,61 @@ public class GameFacade
             _connectionTokenManager.SpendTokens(outcome.TokenType, Math.Abs(outcome.TokenAmount), recipient.ID);
             _messageSystem.AddSystemMessage($"Lost {Math.Abs(outcome.TokenAmount)} {outcome.TokenType} token with {recipient.Name}", SystemMessageTypes.Warning);
         }
-        
+
         // Handle special letter types
         if (letterToDeliver.SpecialType == LetterSpecialType.Endorsement && _endorsementManager != null)
         {
             // For now, just log endorsement delivery
             _messageSystem.AddSystemMessage("Endorsement successfully delivered!", SystemMessageTypes.Success);
         }
-        
+
         // Process patron leverage
         if (outcome.ReducesLeverage > 0)
         {
             player.PatronLeverage = Math.Max(0, player.PatronLeverage - outcome.ReducesLeverage);
             _messageSystem.AddSystemMessage($"Patron leverage reduced by {outcome.ReducesLeverage}", SystemMessageTypes.Success);
         }
-        
+
         // Track delivery
         player.DeliveredLetters.Add(letterToDeliver);
         player.TotalLettersDelivered++;
-        
+
         // Remove letter from queue
         _letterQueueManager.RemoveLetterFromQueue(letterPosition);
-        
+
         // Final message
         _messageSystem.AddSystemMessage($"Successfully delivered letter to {recipient.Name}!", SystemMessageTypes.Success);
-        
+
         // Additional effects
         if (!string.IsNullOrEmpty(outcome.AdditionalEffect))
         {
             _messageSystem.AddSystemMessage(outcome.AdditionalEffect, SystemMessageTypes.Info);
         }
-        
+
         return true;
     }
-    
+
     private async Task<bool> ExecuteCollectLetter(CollectLetterIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // Check if queue has space
         if (_letterQueueManager.GetLetterCount() >= _gameConfiguration.LetterQueue.MaxQueueSize)
         {
             _messageSystem.AddSystemMessage("Your letter queue is full!", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // For now, use the notice board service to generate a letter
         // In the future, this could work with pre-generated offers
-        var letter = _noticeBoardService?.UseNoticeBoard(NoticeBoardService.NoticeBoardOption.AnythingHeading);
-        
+        Letter? letter = _noticeBoardService?.UseNoticeBoard(NoticeBoardService.NoticeBoardOption.AnythingHeading);
+
         if (letter == null)
         {
             _messageSystem.AddSystemMessage("No letters available on the board", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Add letter to queue
         int position = _letterQueueManager.AddLetter(letter);
         if (position > 0)
@@ -741,70 +741,70 @@ public class GameFacade
             return false;
         }
     }
-    
+
     private async Task<bool> ExecuteObserve(ObserveLocationIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        var currentSpot = player.CurrentLocationSpot;
-        
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot currentSpot = player.CurrentLocationSpot;
+
         if (currentSpot == null)
         {
             _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         // Check time
         if (_timeManager.HoursRemaining < 1)
         {
             _messageSystem.AddSystemMessage("Not enough time to observe", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Spend time
         ProcessTimeAdvancement(1);
-        
+
         // Build observation message
-        var messages = new List<string>();
+        List<string> messages = new List<string>();
         messages.Add($"You carefully observe {currentSpot.Name}.");
-        
+
         // List NPCs
-        var npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeManager.GetCurrentTimeBlock());
+        List<NPC> npcsHere = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeManager.GetCurrentTimeBlock());
         if (npcsHere.Any())
         {
-            var npcNames = string.Join(", ", npcsHere.Select(n => n.Name));
+            string npcNames = string.Join(", ", npcsHere.Select(n => n.Name));
             messages.Add($"People here: {npcNames}");
         }
         else
         {
             messages.Add("No one else is here right now.");
         }
-        
+
         // Location properties
         if (!string.IsNullOrEmpty(currentSpot.Description))
         {
             messages.Add(currentSpot.Description);
         }
-        
+
         // Display all messages
-        foreach (var msg in messages)
+        foreach (string msg in messages)
         {
             _messageSystem.AddSystemMessage(msg, SystemMessageTypes.Info);
         }
-        
+
         return true;
     }
-    
+
     private async Task<bool> ExecuteExplore(ExploreAreaIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        var currentLocation = player.CurrentLocationSpot;
-        
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot currentLocation = player.CurrentLocationSpot;
+
         if (currentLocation == null)
         {
             _messageSystem.AddSystemMessage("You need to be at a location to explore", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Check stamina requirement (exploration is tiring)
         const int STAMINA_COST = 2;
         if (player.Stamina < STAMINA_COST)
@@ -812,9 +812,9 @@ public class GameFacade
             _messageSystem.AddSystemMessage($"Not enough stamina to explore. Need {STAMINA_COST} stamina.", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Determine time cost based on location tier (2-4 hours)
-        var location = _locationRepository.GetLocation(currentLocation.LocationId);
+        Location? location = _locationRepository.GetLocation(currentLocation.LocationId);
         int timeCost = location?.Tier switch
         {
             1 => 2,  // Small locations
@@ -824,30 +824,30 @@ public class GameFacade
             5 => 4,  // Large locations
             _ => 3
         };
-        
+
         // Spend resources
         player.Stamina -= STAMINA_COST;
         ProcessTimeAdvancement(timeCost);
-        
+
         // Show exploration message
         _messageSystem.AddSystemMessage($"🔍 You spend {timeCost} hours exploring {location?.Name ?? "the area"}...", SystemMessageTypes.Info);
-        
+
         // Check for route discoveries
-        var discoveries = _routeDiscoveryManager.GetAvailableDiscoveries(currentLocation.LocationId);
-        var undiscoveredRoutes = discoveries.Where(d => !d.Route.IsDiscovered).ToList();
-        
+        List<RouteDiscoveryOption> discoveries = _routeDiscoveryManager.GetAvailableDiscoveries(currentLocation.LocationId);
+        List<RouteDiscoveryOption> undiscoveredRoutes = discoveries.Where(d => !d.Route.IsDiscovered).ToList();
+
         if (undiscoveredRoutes.Any())
         {
             // Randomly discover 1-2 routes
-            var toDiscover = undiscoveredRoutes.OrderBy(x => Guid.NewGuid()).Take(Math.Min(2, undiscoveredRoutes.Count)).ToList();
-            
-            foreach (var discovery in toDiscover)
+            List<RouteDiscoveryOption> toDiscover = undiscoveredRoutes.OrderBy(x => Guid.NewGuid()).Take(Math.Min(2, undiscoveredRoutes.Count)).ToList();
+
+            foreach (RouteDiscoveryOption? discovery in toDiscover)
             {
                 // Mark route as discovered but not necessarily accessible
                 discovery.Route.IsDiscovered = true;
-                
+
                 _messageSystem.AddSystemMessage($"✨ Discovered route: {discovery.Route.Name}", SystemMessageTypes.Success);
-                
+
                 // Show requirements if any
                 if (!discovery.MeetsRequirements.MeetsAllRequirements)
                 {
@@ -861,128 +861,128 @@ public class GameFacade
                     }
                 }
             }
-            
+
             _messageSystem.AddSystemMessage($"Your exploration revealed {toDiscover.Count} new route{(toDiscover.Count > 1 ? "s" : "")}!", SystemMessageTypes.Success);
         }
         else
         {
             _messageSystem.AddSystemMessage("You thoroughly explore the area but find no new routes.", SystemMessageTypes.Info);
         }
-        
+
         // Small chance to find items or information
-        var random = new Random();
+        Random random = new Random();
         if (random.Next(100) < 20) // 20% chance
         {
             _messageSystem.AddSystemMessage("💡 You notice something interesting and make a mental note.", SystemMessageTypes.Info);
-            player.AddMemory($"exploration_{currentLocation.LocationId}_{_gameWorld.CurrentDay}", 
-                           $"Found something interesting while exploring {location?.Name}", 
+            player.AddMemory($"exploration_{currentLocation.LocationId}_{_gameWorld.CurrentDay}",
+                           $"Found something interesting while exploring {location?.Name}",
                            _gameWorld.CurrentDay, 2);
         }
-        
+
         return true;
     }
-    
+
     private async Task<bool> ExecutePatronFunds(RequestPatronFundsIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // Check if player has a patron
         if (!player.HasPatron)
         {
             _messageSystem.AddSystemMessage("You don't have a patron to request funds from", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Check cooldown (7 days between requests)
-        var daysSinceLastRequest = _gameWorld.CurrentDay - player.LastPatronFundDay;
+        int daysSinceLastRequest = _gameWorld.CurrentDay - player.LastPatronFundDay;
         const int PATRON_FUND_COOLDOWN = 7;
-        
+
         if (daysSinceLastRequest < PATRON_FUND_COOLDOWN)
         {
-            var daysRemaining = PATRON_FUND_COOLDOWN - daysSinceLastRequest;
+            int daysRemaining = PATRON_FUND_COOLDOWN - daysSinceLastRequest;
             _messageSystem.AddSystemMessage($"Your patron won't provide funds again for {daysRemaining} more days", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Grant funds (10 coins as emergency support)
         const int PATRON_FUND_AMOUNT = 10;
         player.ModifyCoins(PATRON_FUND_AMOUNT);
         player.LastPatronFundDay = _gameWorld.CurrentDay;
-        
+
         // Increase patron leverage (they're helping you, so you owe them more)
         const int LEVERAGE_INCREASE = 3;
         player.PatronLeverage += LEVERAGE_INCREASE;
-        
+
         _messageSystem.AddSystemMessage($"Your patron provides {PATRON_FUND_AMOUNT} coins of emergency funding", SystemMessageTypes.Success);
         _messageSystem.AddSystemMessage($"Their leverage over you increases by {LEVERAGE_INCREASE}", SystemMessageTypes.Warning);
         _messageSystem.AddSystemMessage($"Patron leverage is now {player.PatronLeverage}", SystemMessageTypes.Info);
-        
+
         // If patron leverage is high, warn the player
         if (player.PatronLeverage >= 10)
         {
             _messageSystem.AddSystemMessage("Your patron's grip tightens. Their letters will demand even higher priority", SystemMessageTypes.Danger);
         }
-        
+
         return true;
     }
-    
+
     private async Task<bool> ExecuteAcceptOffer(AcceptLetterOfferIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // Check if queue has space
         if (_letterQueueManager.GetLetterCount() >= _gameConfiguration.LetterQueue.MaxQueueSize)
         {
             _messageSystem.AddSystemMessage("Your letter queue is full!", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Parse offer ID to get NPC ID and offer details
         // Offer ID format: "npc_id|offer_guid"
-        var parts = intent.OfferId.Split('|');
+        string[] parts = intent.OfferId.Split('|');
         if (parts.Length != 2)
         {
             _messageSystem.AddSystemMessage("Invalid offer ID", SystemMessageTypes.Warning);
             return false;
         }
-        
-        var npcId = parts[0];
-        var offerId = parts[1];
-        
+
+        string npcId = parts[0];
+        string offerId = parts[1];
+
         // Get the NPC
-        var npc = _npcRepository.GetById(npcId);
+        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null)
         {
             _messageSystem.AddSystemMessage("NPC not found", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Get pending offers for this NPC
-        var offers = _letterOfferService.GetPendingOffersForNPC(npcId);
-        var offer = offers.FirstOrDefault(o => o.Id == offerId);
-        
+        List<LetterOffer> offers = _letterOfferService.GetPendingOffersForNPC(npcId);
+        LetterOffer? offer = offers.FirstOrDefault(o => o.Id == offerId);
+
         if (offer == null)
         {
             _messageSystem.AddSystemMessage("Letter offer no longer available", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Find a suitable recipient
-        var possibleRecipients = _npcRepository.GetAllNPCs()
+        List<NPC> possibleRecipients = _npcRepository.GetAllNPCs()
             .Where(n => n.ID != npcId && n.SpotId != player.CurrentLocationSpot?.SpotID)
             .ToList();
-            
+
         if (!possibleRecipients.Any())
         {
             _messageSystem.AddSystemMessage("No suitable recipients available for this letter", SystemMessageTypes.Warning);
             return false;
         }
-        
-        var random = new Random();
-        var recipient = possibleRecipients[random.Next(possibleRecipients.Count)];
-        
+
+        Random random = new Random();
+        NPC recipient = possibleRecipients[random.Next(possibleRecipients.Count)];
+
         // Create letter from offer
-        var letter = new Letter
+        Letter letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderName = offer.NPCName,
@@ -996,7 +996,7 @@ public class GameFacade
             TokenType = offer.LetterType,
             Description = $"Letter from {offer.NPCName} to {recipient.Name}"
         };
-        
+
         // Add letter to queue
         int position = _letterQueueManager.AddLetter(letter);
         if (position > 0)
@@ -1004,11 +1004,11 @@ public class GameFacade
             _messageSystem.AddSystemMessage($"Accepted letter from {offer.NPCName}", SystemMessageTypes.Success);
             _messageSystem.AddSystemMessage($"Deliver to {letter.RecipientName}", SystemMessageTypes.Info);
             _messageSystem.AddSystemMessage($"Payment: {letter.Payment} coins", SystemMessageTypes.Info);
-            
+
             // Remove the accepted offer
             // Note: NPCLetterOfferService would need a method to remove offers
             // For now, the offer will expire naturally
-            
+
             return true;
         }
         else
@@ -1017,113 +1017,113 @@ public class GameFacade
             return false;
         }
     }
-    
+
     private async Task<bool> ExecuteTravel(TravelIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        var route = _routeRepository.GetRouteById(intent.RouteId);
-        
+        Player player = _gameWorld.GetPlayer();
+        RouteOption route = _routeRepository.GetRouteById(intent.RouteId);
+
         if (route == null)
         {
             _messageSystem.AddSystemMessage("Route not found", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         // Check if route is discovered
         if (!route.IsDiscovered)
         {
             _messageSystem.AddSystemMessage("You haven't discovered this route yet", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Calculate costs
-        var staminaCost = _travelManager.CalculateStaminaCost(route);
-        var timeCost = route.GetActualTimeCost();
-        
+        int staminaCost = _travelManager.CalculateStaminaCost(route);
+        int timeCost = route.GetActualTimeCost();
+
         // Check resources
         if (player.Stamina < staminaCost)
         {
             _messageSystem.AddSystemMessage($"Not enough stamina (need {staminaCost})", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         if (_timeManager.HoursRemaining < timeCost)
         {
             _messageSystem.AddSystemMessage($"Not enough time (need {timeCost} hours)", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         if (player.Coins < route.CoinCost)
         {
             _messageSystem.AddSystemMessage($"Not enough coins (need {route.CoinCost})", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Execute travel
         player.SpendStamina(staminaCost);
         player.SpendMoney(route.CoinCost);
         ProcessTimeAdvancement(timeCost);
-        
+
         // Move to destination
-        var destination = _locationRepository.GetLocation(route.Destination);
+        Location destination = _locationRepository.GetLocation(route.Destination);
         if (destination == null)
         {
             _messageSystem.AddSystemMessage($"Destination '{route.Destination}' not found", SystemMessageTypes.Danger);
             return false;
         }
-        
-        var destinationSpots = _locationRepository.GetSpotsForLocation(destination.Id);
+
+        List<LocationSpot> destinationSpots = _locationRepository.GetSpotsForLocation(destination.Id);
         if (!destinationSpots.Any())
         {
             _messageSystem.AddSystemMessage($"No spots found at destination '{destination.Name}'", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         _locationRepository.SetCurrentLocation(destination, destinationSpots.First());
         _messageSystem.AddSystemMessage($"Traveled to {destination.Name}", SystemMessageTypes.Success);
-        
+
         // Record the visit
         _locationRepository.RecordLocationVisit(destination.Id);
-        
+
         return true;
     }
-    
+
     private async Task<bool> ExecuteDiscoverRoute(DiscoverRouteIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        var currentLocation = player.CurrentLocationSpot;
-        
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot currentLocation = player.CurrentLocationSpot;
+
         if (currentLocation == null)
         {
             _messageSystem.AddSystemMessage("You need to be at a location to discover routes", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Get the NPC
-        var npc = _npcRepository.GetById(intent.NpcId);
+        NPC npc = _npcRepository.GetById(intent.NpcId);
         if (npc == null || npc.Location != currentLocation.LocationId)
         {
             _messageSystem.AddSystemMessage("That person isn't here", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Get the route discovery option
-        var discoveries = _routeDiscoveryManager.GetDiscoveriesFromNPC(npc);
-        var discovery = discoveries.FirstOrDefault(d => d.Discovery.RouteId == intent.RouteId);
-        
+        List<RouteDiscoveryOption> discoveries = _routeDiscoveryManager.GetDiscoveriesFromNPC(npc);
+        RouteDiscoveryOption? discovery = discoveries.FirstOrDefault(d => d.Discovery.RouteId == intent.RouteId);
+
         if (discovery == null)
         {
             _messageSystem.AddSystemMessage($"{npc.Name} doesn't know about that route", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Check if already discovered
         if (discovery.Route.IsDiscovered)
         {
             _messageSystem.AddSystemMessage("You already know that route", SystemMessageTypes.Info);
             return false;
         }
-        
+
         // Check requirements
         if (!discovery.MeetsRequirements.MeetsAllRequirements)
         {
@@ -1137,22 +1137,22 @@ public class GameFacade
             }
             return false;
         }
-        
+
         // Check if player can afford the token cost
         if (!discovery.CanAfford)
         {
             _messageSystem.AddSystemMessage($"You need {discovery.Discovery.RequiredTokensWithNPC} tokens with {npc.Name} to learn this route", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Determine token type and spend tokens
-        var tokenType = _routeDiscoveryManager.DetermineTokenTypeForRoute(discovery.Route, discovery.Discovery, npc);
-        var tokensWithNpc = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-        
+        ConnectionType tokenType = _routeDiscoveryManager.DetermineTokenTypeForRoute(discovery.Route, discovery.Discovery, npc);
+        Dictionary<ConnectionType, int> tokensWithNpc = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+
         // Spend tokens from the appropriate type (prefer the determined type)
         int tokensToSpend = discovery.Discovery.RequiredTokensWithNPC;
         bool spent = false;
-        
+
         if (tokensWithNpc.ContainsKey(tokenType) && tokensWithNpc[tokenType] >= tokensToSpend)
         {
             spent = _connectionTokenManager.SpendTokens(tokenType, tokensToSpend, npc.ID);
@@ -1160,29 +1160,29 @@ public class GameFacade
         else
         {
             // Try to spend from any available token type
-            foreach (var kvp in tokensWithNpc.Where(t => t.Value >= tokensToSpend))
+            foreach (KeyValuePair<ConnectionType, int> kvp in tokensWithNpc.Where(t => t.Value >= tokensToSpend))
             {
                 spent = _connectionTokenManager.SpendTokens(kvp.Key, tokensToSpend, npc.ID);
                 if (spent) break;
             }
         }
-        
+
         if (!spent)
         {
             _messageSystem.AddSystemMessage("Failed to spend tokens for route discovery", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         // Discover the route
         bool success = _routeDiscoveryManager.TryDiscoverRoute(intent.RouteId);
-        
+
         if (success)
         {
             // Add narrative flavor
             _messageSystem.AddSystemMessage($"💬 {npc.Name} shares their knowledge with you...", SystemMessageTypes.Info);
-            
+
             // NPC-specific dialogue
-            var routeContext = discovery.Discovery.DiscoveryContexts.GetValueOrDefault(npc.ID);
+            RouteDiscoveryContext? routeContext = discovery.Discovery.DiscoveryContexts.GetValueOrDefault(npc.ID);
             if (routeContext != null && !string.IsNullOrEmpty(routeContext.Narrative))
             {
                 _messageSystem.AddSystemMessage($"\"{routeContext.Narrative}\"", SystemMessageTypes.Info);
@@ -1192,79 +1192,79 @@ public class GameFacade
                 // Generic discovery text
                 _messageSystem.AddSystemMessage($"\"{discovery.Route.Name}? Yes, I know that route well. Let me tell you how to navigate it safely...\"", SystemMessageTypes.Info);
             }
-            
+
             // Time passes during conversation
             ProcessTimeAdvancement(1);
         }
-        
+
         return success;
     }
-    
+
     private async Task<bool> ExecuteConvertEndorsements(ConvertEndorsementsIntent intent)
     {
-        var player = _gameWorld.GetPlayer();
-        var currentLocation = player.CurrentLocationSpot;
-        
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot currentLocation = player.CurrentLocationSpot;
+
         if (currentLocation == null || currentLocation.LocationId != intent.LocationId)
         {
             _messageSystem.AddSystemMessage("You must be at the guild to convert endorsements", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Check if this is actually a guild location by ID
-        var validGuildLocations = new[] { "merchant_guild", "messenger_guild", "scholar_guild" };
+        string[] validGuildLocations = new[] { "merchant_guild", "messenger_guild", "scholar_guild" };
         if (!validGuildLocations.Contains(intent.LocationId))
         {
             _messageSystem.AddSystemMessage("This isn't a guild location", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Parse target tier
-        if (!Enum.TryParse<SealTier>(intent.TargetTier, out var targetTier))
+        if (!Enum.TryParse<SealTier>(intent.TargetTier, out SealTier targetTier))
         {
             _messageSystem.AddSystemMessage("Invalid seal tier specified", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Get available conversions at this guild
-        var conversions = _endorsementManager.GetAvailableSealConversions(intent.LocationId);
-        var targetConversion = conversions.FirstOrDefault(c => c.TargetTier == targetTier);
-        
+        List<SealConversionOption> conversions = _endorsementManager.GetAvailableSealConversions(intent.LocationId);
+        SealConversionOption? targetConversion = conversions.FirstOrDefault(c => c.TargetTier == targetTier);
+
         if (targetConversion == null)
         {
             _messageSystem.AddSystemMessage("That seal tier is not available for conversion", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         if (!targetConversion.CanConvert)
         {
             _messageSystem.AddSystemMessage($"You need {targetConversion.RequiredEndorsements} endorsements. You have {targetConversion.CurrentEndorsements}.", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         // Show conversion dialog
         _messageSystem.AddSystemMessage($"🏛️ Presenting your endorsements to the {targetConversion.GuildName}...", SystemMessageTypes.Info);
-        
+
         // Perform the conversion
         bool success = _endorsementManager.ConvertEndorsementsToSeal(intent.LocationId, targetTier);
-        
+
         if (success)
         {
             // Add narrative flavor based on seal type and tier
-            var sealType = _endorsementManager.GetSealTypeForGuild(intent.LocationId);
+            SealType sealType = _endorsementManager.GetSealTypeForGuild(intent.LocationId);
             string narrative = GetSealConversionNarrative(sealType, targetTier);
             _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Info);
-            
+
             // Time passes during ceremony
             ProcessTimeAdvancement(1);
-            
+
             // Check for new opportunities
             CheckNewSealOpportunities(sealType, targetTier);
         }
-        
+
         return success;
     }
-    
+
     private string GetSealConversionNarrative(SealType type, SealTier tier)
     {
         return (type, tier) switch
@@ -1281,7 +1281,7 @@ public class GameFacade
             _ => "The guild acknowledges your achievements with a new seal."
         };
     }
-    
+
     private void CheckNewSealOpportunities(SealType type, SealTier tier)
     {
         // Check for newly available routes/locations/NPCs based on seal
@@ -1289,15 +1289,15 @@ public class GameFacade
         {
             _messageSystem.AddSystemMessage("🔓 Your new seal may grant access to restricted areas and exclusive opportunities.", SystemMessageTypes.Info);
         }
-        
+
         if (tier == SealTier.Master)
         {
             _messageSystem.AddSystemMessage("👑 As a Master, you now have significant influence in guild matters.", SystemMessageTypes.Info);
         }
     }
-    
+
     // ========== TRAVEL ==========
-    
+
     private TravelViewModel GetTravelViewModel()
     {
         Player player = _gameWorld.GetPlayer();
@@ -1320,7 +1320,7 @@ public class GameFacade
         string weightClass = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? "" : (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? "warning" : "danger");
         string weightStatus = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? "Normal load" :
                           (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? "Medium load (+1 stamina)" : "Heavy load (+2 stamina)");
-        int baseStaminaCost = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? GameConstants.LoadWeight.LIGHT_LOAD_STAMINA_PENALTY : 
+        int baseStaminaCost = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? GameConstants.LoadWeight.LIGHT_LOAD_STAMINA_PENALTY :
                              (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY : GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY);
 
         List<Letter> carriedLetters = player.CarriedLetters ?? new List<Letter>();
@@ -1492,17 +1492,17 @@ public class GameFacade
 
         return categories.Distinct().ToList();
     }
-    
+
     public List<TravelDestinationViewModel> GetTravelDestinations()
     {
-        var travelViewModel = GetTravelViewModel();
-        var destinations = new List<TravelDestinationViewModel>();
-        
-        foreach (var dest in travelViewModel.Destinations)
+        TravelViewModel travelViewModel = GetTravelViewModel();
+        List<TravelDestinationViewModel> destinations = new List<TravelDestinationViewModel>();
+
+        foreach (DestinationViewModel dest in travelViewModel.Destinations)
         {
-            var location = _locationRepository.GetLocation(dest.LocationId);
+            Location location = _locationRepository.GetLocation(dest.LocationId);
             bool canTravel = dest.AvailableRoutes.Any(r => !r.IsBlocked);
-            
+
             destinations.Add(new TravelDestinationViewModel
             {
                 LocationId = dest.LocationId,
@@ -1514,21 +1514,21 @@ public class GameFacade
                 MinimumTime = dest.AvailableRoutes.Where(r => !r.IsBlocked).Select(r => r.TravelTimeHours).DefaultIfEmpty(0).Min()
             });
         }
-        
+
         return destinations;
     }
-    
+
     public List<TravelRouteViewModel> GetRoutesToDestination(string destinationId)
     {
-        var travelViewModel = GetTravelViewModel();
-        var destination = travelViewModel.Destinations.FirstOrDefault(d => d.LocationId == destinationId);
-        
+        TravelViewModel travelViewModel = GetTravelViewModel();
+        DestinationViewModel? destination = travelViewModel.Destinations.FirstOrDefault(d => d.LocationId == destinationId);
+
         if (destination == null)
             return new List<TravelRouteViewModel>();
-        
-        var routes = new List<TravelRouteViewModel>();
-        
-        foreach (var route in destination.AvailableRoutes)
+
+        List<TravelRouteViewModel> routes = new List<TravelRouteViewModel>();
+
+        foreach (RouteViewModel route in destination.AvailableRoutes)
         {
             routes.Add(new TravelRouteViewModel
             {
@@ -1543,23 +1543,23 @@ public class GameFacade
                 CannotTravelReason = route.BlockedReason
             });
         }
-        
+
         return routes;
     }
-    
+
     public async Task<bool> TravelToDestinationAsync(string destinationId, string routeId)
     {
         // Find the route
-        var route = _routeRepository.GetRouteById(routeId);
+        RouteOption route = _routeRepository.GetRouteById(routeId);
         if (route == null) return false;
-        
-        var routeOption = new RouteOption
+
+        RouteOption routeOption = new RouteOption
         {
             Id = routeId,
             Method = route.Method
         };
-        
-        var intent = new TravelIntent(routeId);
+
+        TravelIntent intent = new TravelIntent(routeId);
         return await ExecuteIntent(intent);
     }
 
@@ -1588,18 +1588,18 @@ public class GameFacade
         }
         return success;
     }
-    
+
     public TravelContextViewModel GetTravelContext()
     {
-        var player = _gameWorld.GetPlayer();
-        var totalWeight = CalculateTotalWeight();
-        var carriedLetters = player.CarriedLetters;
-        
+        Player player = _gameWorld.GetPlayer();
+        int totalWeight = CalculateTotalWeight();
+        List<Letter>? carriedLetters = player.CarriedLetters;
+
         // Calculate weight status
         string weightStatus;
         string weightClass;
         int baseStaminaPenalty;
-        
+
         if (totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX)
         {
             weightStatus = "Light load";
@@ -1618,13 +1618,13 @@ public class GameFacade
             weightClass = "danger";
             baseStaminaPenalty = GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY;
         }
-        
+
         // Check letter properties
         bool hasHeavyLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy)) ?? false;
         bool hasFragileLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Fragile)) ?? false;
         bool hasBulkyLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Bulky)) ?? false;
         bool hasPerishableLetters = carriedLetters?.Any(l => l.PhysicalProperties.HasFlag(LetterPhysicalProperties.Perishable)) ?? false;
-        
+
         // Determine letter warning
         string letterWarning = "";
         if (hasHeavyLetters)
@@ -1635,21 +1635,21 @@ public class GameFacade
             letterWarning = "Perishable letters - time sensitive";
         else if (hasFragileLetters)
             letterWarning = "Fragile letters need careful handling";
-        
+
         // Get equipment categories
-        var equipmentCategories = new List<ItemCategory>();
-        foreach (var itemName in player.Inventory.ItemSlots)
+        List<ItemCategory> equipmentCategories = new List<ItemCategory>();
+        foreach (string itemName in player.Inventory.ItemSlots)
         {
             if (!string.IsNullOrEmpty(itemName))
             {
-                var item = _itemRepository.GetItemByName(itemName);
+                Item item = _itemRepository.GetItemByName(itemName);
                 if (item != null)
                 {
                     equipmentCategories.AddRange(item.Categories);
                 }
             }
         }
-        
+
         return new TravelContextViewModel
         {
             CurrentStamina = player.Stamina,
@@ -1668,36 +1668,36 @@ public class GameFacade
             WeatherIcon = GetWeatherIcon(_gameWorld.CurrentWeather)
         };
     }
-    
+
     public List<TravelDestinationViewModel> GetTravelDestinationsWithRoutes()
     {
-        var currentLocation = _locationRepository.GetCurrentLocation();
-        var destinations = new List<TravelDestinationViewModel>();
-        var travelContext = GetTravelContext();
-        
+        Location currentLocation = _locationRepository.GetCurrentLocation();
+        List<TravelDestinationViewModel> destinations = new List<TravelDestinationViewModel>();
+        TravelContextViewModel travelContext = GetTravelContext();
+
         // Get all locations that can be traveled to
-        var allLocations = _locationRepository.GetAllLocations();
-        
-        foreach (var location in allLocations)
+        List<Location> allLocations = _locationRepository.GetAllLocations();
+
+        foreach (Location location in allLocations)
         {
             if (location.Id == currentLocation.Id) continue;
-            
+
             // Get all routes to this destination
-            var allRoutes = _routeRepository.GetRoutesFromLocation(currentLocation.Id)
+            List<RouteOption> allRoutes = _routeRepository.GetRoutesFromLocation(currentLocation.Id)
                 .Where(r => r.Destination == location.Id)
                 .ToList();
-            
+
             if (!allRoutes.Any()) continue;
-            
-            var routeViewModels = new List<TravelRouteViewModel>();
-            
-            foreach (var route in allRoutes)
+
+            List<TravelRouteViewModel> routeViewModels = new List<TravelRouteViewModel>();
+
+            foreach (RouteOption? route in allRoutes)
             {
                 routeViewModels.Add(CreateTravelRouteViewModel(route, travelContext));
             }
-            
+
             bool canTravel = routeViewModels.Any(r => r.CanTravel);
-            
+
             destinations.Add(new TravelDestinationViewModel
             {
                 LocationId = location.Id,
@@ -1711,38 +1711,38 @@ public class GameFacade
                 Routes = routeViewModels
             });
         }
-        
+
         return destinations;
     }
-    
+
     private TravelRouteViewModel CreateTravelRouteViewModel(RouteOption route, TravelContextViewModel travelContext)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // Calculate costs
-        var coinCost = _travelManager.CalculateCoinCost(route);
-        var baseStaminaCost = _travelManager.CalculateStaminaCost(route);
-        var letterStaminaPenalty = travelContext.HasHeavyLetters ? 1 : 0;
-        var totalStaminaCost = baseStaminaCost + letterStaminaPenalty;
-        
+        int coinCost = _travelManager.CalculateCoinCost(route);
+        int baseStaminaCost = _travelManager.CalculateStaminaCost(route);
+        int letterStaminaPenalty = travelContext.HasHeavyLetters ? 1 : 0;
+        int totalStaminaCost = baseStaminaCost + letterStaminaPenalty;
+
         // Check if can travel
-        var canAffordStamina = player.Stamina >= totalStaminaCost;
-        var canAffordCoins = player.Coins >= coinCost;
-        var accessInfo = _travelManager.GetRouteAccessInfo(route);
-        var tokenAccessInfo = _travelManager.GetTokenAccessInfo(route);
-        
-        var canTravel = canAffordStamina && canAffordCoins && accessInfo.IsAllowed && tokenAccessInfo.IsAllowed;
-        
+        bool canAffordStamina = player.Stamina >= totalStaminaCost;
+        bool canAffordCoins = player.Coins >= coinCost;
+        RouteAccessResult accessInfo = _travelManager.GetRouteAccessInfo(route);
+        AccessCheckResult tokenAccessInfo = _travelManager.GetTokenAccessInfo(route);
+
+        bool canTravel = canAffordStamina && canAffordCoins && accessInfo.IsAllowed && tokenAccessInfo.IsAllowed;
+
         // Build token requirements
-        var tokenRequirements = new Dictionary<string, RouteTokenRequirementViewModel>();
-        
+        Dictionary<string, RouteTokenRequirementViewModel> tokenRequirements = new Dictionary<string, RouteTokenRequirementViewModel>();
+
         if (route.AccessRequirement != null)
         {
             // Type-based requirements
-            foreach (var typeReq in route.AccessRequirement.RequiredTokensPerType)
+            foreach (TokenTypeRequirement typeReq in route.AccessRequirement.RequiredTokensPerType)
             {
-                var currentCount = _connectionTokenManager.GetTotalTokensOfType(typeReq.TokenType);
-                var key = $"type_{typeReq.TokenType}";
+                int currentCount = _connectionTokenManager.GetTotalTokensOfType(typeReq.TokenType);
+                string key = $"type_{typeReq.TokenType}";
                 tokenRequirements[key] = new RouteTokenRequirementViewModel
                 {
                     RequirementKey = key,
@@ -1753,14 +1753,14 @@ public class GameFacade
                     IsMet = currentCount >= typeReq.MinimumCount
                 };
             }
-            
+
             // NPC-specific requirements
-            foreach (var tokenReq in route.AccessRequirement.RequiredTokensPerNPC)
+            foreach (TokenRequirement tokenReq in route.AccessRequirement.RequiredTokensPerNPC)
             {
-                var npcTokens = _connectionTokenManager.GetTokensWithNPC(tokenReq.NPCId);
-                var currentCount = npcTokens.Values.Sum();
-                var npc = _npcRepository.GetById(tokenReq.NPCId);
-                var key = $"npc_{tokenReq.NPCId}";
+                Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(tokenReq.NPCId);
+                int currentCount = npcTokens.Values.Sum();
+                NPC npc = _npcRepository.GetById(tokenReq.NPCId);
+                string key = $"npc_{tokenReq.NPCId}";
                 tokenRequirements[key] = new RouteTokenRequirementViewModel
                 {
                     RequirementKey = key,
@@ -1772,26 +1772,26 @@ public class GameFacade
                 };
             }
         }
-        
+
         // Build warnings
-        var warnings = new List<string>(accessInfo.Warnings);
-        
+        List<string> warnings = new List<string>(accessInfo.Warnings);
+
         // Add fragile letter warnings
-        if (travelContext.HasFragileLetters && 
-            (route.TerrainCategories.Contains(TerrainCategory.Requires_Climbing) || 
+        if (travelContext.HasFragileLetters &&
+            (route.TerrainCategories.Contains(TerrainCategory.Requires_Climbing) ||
              route.TerrainCategories.Contains(TerrainCategory.Wilderness_Terrain)))
         {
             warnings.Insert(0, "Fragile letters at risk on this route!");
         }
-        
+
         // Get discovery options if route is locked
-        var discoveryOptions = new List<RouteDiscoveryOptionViewModel>();
+        List<RouteDiscoveryOptionViewModel> discoveryOptions = new List<RouteDiscoveryOptionViewModel>();
         if (!route.IsDiscovered)
         {
             // Note: RouteDiscoveryManager would need to be injected for this to work fully
             // For now, leaving empty as it would require more refactoring
         }
-        
+
         // Determine cannot travel reason
         string cannotTravelReason = null;
         if (!canTravel)
@@ -1805,7 +1805,7 @@ public class GameFacade
             else if (!canAffordStamina)
                 cannotTravelReason = "Not enough stamina";
         }
-        
+
         return new TravelRouteViewModel
         {
             RouteId = route.Id,
@@ -1829,8 +1829,8 @@ public class GameFacade
             DiscoveryOptions = discoveryOptions
         };
     }
-    
-    
+
+
     private string GetWeatherIcon(WeatherCondition weather)
     {
         return weather switch
@@ -1842,7 +1842,7 @@ public class GameFacade
             _ => "❓"
         };
     }
-    
+
     private string GetTokenIcon(ConnectionType tokenType)
     {
         return tokenType switch
@@ -1854,9 +1854,9 @@ public class GameFacade
             _ => "🎭"
         };
     }
-    
+
     // ========== REST ==========
-    
+
     public RestOptionsViewModel GetRestOptions()
     {
         return new RestOptionsViewModel
@@ -1866,7 +1866,7 @@ public class GameFacade
             WaitOptions = GetWaitOptionsList()
         };
     }
-    
+
     public async Task<bool> ExecuteRestAsync(string restOptionId)
     {
         if (_restManager == null)
@@ -1874,8 +1874,8 @@ public class GameFacade
             _messageSystem.AddSystemMessage("Rest manager not available", SystemMessageTypes.Danger);
             return false;
         }
-        
-        var option = _restManager.GetAvailableRestOptions().FirstOrDefault(o => o.Id == restOptionId);
+
+        RestOption? option = _restManager.GetAvailableRestOptions().FirstOrDefault(o => o.Id == restOptionId);
         if (option == null)
         {
             _messageSystem.AddSystemMessage("Rest option not found", SystemMessageTypes.Danger);
@@ -1885,7 +1885,7 @@ public class GameFacade
         // Apply costs if any
         if (option.CoinCost > 0)
         {
-            var player = _gameWorld.GetPlayer();
+            Player player = _gameWorld.GetPlayer();
             if (player.Coins < option.CoinCost)
             {
                 return false;
@@ -1898,14 +1898,14 @@ public class GameFacade
         _restManager.Rest(option);
         return true;
     }
-    
+
     private List<RestOptionViewModel> GetRestOptionsList()
     {
         if (_restManager == null)
             return new List<RestOptionViewModel>();
-            
-        var player = _gameWorld.GetPlayer();
-        var restOptions = _restManager.GetAvailableRestOptions()
+
+        Player player = _gameWorld.GetPlayer();
+        List<RestOption> restOptions = _restManager.GetAvailableRestOptions()
             .Where(o => o.StaminaRecovery > 0 && o.RestTimeHours >= 1)
             .ToList();
 
@@ -1938,16 +1938,16 @@ public class GameFacade
             };
         }).ToList();
     }
-    
+
     private List<LocationActionViewModel> GetRestLocationActions()
     {
-        var player = _gameWorld.GetPlayer();
-        var actions = new List<LocationActionViewModel>();
-        
+        Player player = _gameWorld.GetPlayer();
+        List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
+
         // Add rest options
-        var restOptions = new[] { (1, 2), (2, 4), (4, 10) };
-        
-        foreach (var (hours, stamina) in restOptions)
+        (int, int)[] restOptions = new[] { (1, 2), (2, 4), (4, 10) };
+
+        foreach ((int hours, int stamina) in restOptions)
         {
             actions.Add(new LocationActionViewModel
             {
@@ -1960,16 +1960,16 @@ public class GameFacade
                 CoinCost = 0,
                 StaminaReward = stamina,
                 IsAvailable = _timeManager.HoursRemaining >= hours && player.Stamina < player.MaxStamina,
-                UnavailableReason = _timeManager.HoursRemaining < hours ? "Not enough time" : 
+                UnavailableReason = _timeManager.HoursRemaining < hours ? "Not enough time" :
                                    player.Stamina >= player.MaxStamina ? "Already at max stamina" : null,
                 CanBeRemedied = false,
                 RemediationHint = null
             });
         }
-        
+
         return actions;
     }
-    
+
     private List<WaitOptionViewModel> GetWaitOptionsList()
     {
         // Simple wait options - could be expanded
@@ -1980,7 +1980,7 @@ public class GameFacade
             new WaitOptionViewModel { Hours = GameConstants.UI.WAIT_OPTION_LONG_HOURS, Description = $"Wait {GameConstants.UI.WAIT_OPTION_LONG_HOURS} hours" }
         };
     }
-    
+
     private int ExtractStaminaReward(string rewardDescription)
     {
         if (string.IsNullOrEmpty(rewardDescription))
@@ -2003,41 +2003,41 @@ public class GameFacade
         }
         return 0;
     }
-    
+
     // ========== CONVERSATIONS ==========
-    
+
     public async Task<ConversationViewModel> StartConversationAsync(string npcId)
     {
         // Get NPC and create context
-        var npc = _npcRepository.GetById(npcId);
-        var player = _gameWorld.GetPlayer();
-        var location = _locationRepository.GetCurrentLocation();
-        var spot = player.CurrentLocationSpot;
+        NPC npc = _npcRepository.GetById(npcId);
+        Player player = _gameWorld.GetPlayer();
+        Location location = _locationRepository.GetCurrentLocation();
+        LocationSpot spot = player.CurrentLocationSpot;
         var context = ConversationContext.Standard(_gameWorld, player, npc, location, spot);
-        
+
         // Start conversation directly
         var conversation = await _conversationFactory.CreateConversation(context, player);
         if (conversation != null)
         {
             _conversationStateManager.SetCurrentConversation(conversation);
         }
-        var conversationManager = _conversationStateManager.PendingConversationManager;
+        ConversationManager conversationManager = _conversationStateManager.PendingConversationManager;
         if (conversationManager == null) return null;
-        
+
         return CreateConversationViewModel(conversationManager);
     }
-    
+
     public async Task<ConversationViewModel> ContinueConversationAsync(string choiceId)
     {
-        var currentConversation = _conversationStateManager.PendingConversationManager;
+        ConversationManager currentConversation = _conversationStateManager.PendingConversationManager;
         if (currentConversation == null || !_conversationStateManager.ConversationPending) return null;
-        
-        var choice = currentConversation.Choices?.FirstOrDefault(c => c.ChoiceID == choiceId);
+
+        ConversationChoice? choice = currentConversation.Choices?.FirstOrDefault(c => c.ChoiceID == choiceId);
         if (choice == null) return null;
-        
+
         // Process the choice
-        var outcome = await currentConversation.ProcessPlayerChoice(choice);
-        
+        ConversationBeatOutcome outcome = await currentConversation.ProcessPlayerChoice(choice);
+
         // If conversation is complete, clear it from state manager
         if (outcome.IsConversationComplete)
         {
@@ -2048,28 +2048,28 @@ public class GameFacade
             // Generate new choices for the next beat
             await currentConversation.ProcessNextBeat();
         }
-        
+
         return CreateConversationViewModel(currentConversation);
     }
-    
+
     public ConversationViewModel GetCurrentConversation()
     {
         Console.WriteLine($"[GameFacade.GetCurrentConversation] Called");
         Console.WriteLine($"[GameFacade.GetCurrentConversation] ConversationPending: {_conversationStateManager.ConversationPending}");
         Console.WriteLine($"[GameFacade.GetCurrentConversation] PendingConversationManager null? {_conversationStateManager.PendingConversationManager == null}");
-        
-        var currentConversation = _conversationStateManager.PendingConversationManager;
+
+        ConversationManager? currentConversation = _conversationStateManager.PendingConversationManager;
         if (currentConversation == null || !_conversationStateManager.ConversationPending)
         {
             Console.WriteLine($"[GameFacade.GetCurrentConversation] Returning null - no pending conversation");
             return null;
         }
-        
-        var viewModel = CreateConversationViewModel(currentConversation);
+
+        ConversationViewModel? viewModel = CreateConversationViewModel(currentConversation);
         Console.WriteLine($"[GameFacade.GetCurrentConversation] Created ViewModel with NpcId: {viewModel?.NpcId}, Text: {viewModel?.CurrentText?.Substring(0, Math.Min(50, viewModel?.CurrentText?.Length ?? 0))}");
         return viewModel;
     }
-    
+
     private ConversationViewModel CreateConversationViewModel(ConversationManager conversation)
     {
         return new ConversationViewModel
@@ -2088,9 +2088,9 @@ public class GameFacade
             ConversationTopic = conversation.Context.ConversationTopic
         };
     }
-    
+
     // ========== LETTER QUEUE ==========
-    
+
     public LetterQueueViewModel GetLetterQueue()
     {
         Player player = _gameWorld.GetPlayer();
@@ -2124,13 +2124,13 @@ public class GameFacade
                 string multiplierReason = null;
                 if (multiplier > 1)
                 {
-                    var activeObligations = _standingObligationManager.GetActiveObligations()
+                    List<StandingObligation> activeObligations = _standingObligationManager.GetActiveObligations()
                         .Where(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost) && o.AppliesTo(letter.TokenType))
                         .ToList();
-                    
+
                     if (activeObligations.Any())
                     {
-                        var obligationNames = activeObligations.Select(o => o.Name);
+                        IEnumerable<string> obligationNames = activeObligations.Select(o => o.Name);
                         multiplierReason = $"×{multiplier} from: {string.Join(", ", obligationNames)}";
                     }
                     else
@@ -2166,13 +2166,13 @@ public class GameFacade
 
         return viewModel;
     }
-    
+
     public async Task<bool> ExecuteLetterActionAsync(string actionType, string letterId)
     {
         // Parse action type and letter position
         if (!int.TryParse(letterId, out int position))
             return false;
-            
+
         switch (actionType.ToLower())
         {
             case "deliver":
@@ -2205,7 +2205,7 @@ public class GameFacade
                 return false;
         }
     }
-    
+
     public async Task<bool> DeliverLetterAsync(string letterId)
     {
         // For now, we only support delivering from position 1
@@ -2220,26 +2220,26 @@ public class GameFacade
         }
         return success;
     }
-    
+
     public async Task<bool> SkipLetterAsync(int position)
     {
         // Validate position is valid for skipping (positions 2-8 when position 1 is empty)
         if (position < 2 || position > 8)
             return false;
-            
+
         await _letterQueueManager.TriggerSkipConversation(position);
         return true;
     }
-    
+
     public async Task<bool> LetterQueueMorningSwapAsync(int position1, int position2)
     {
         // Validate positions are within range
         if (position1 < 1 || position1 > 8 || position2 < 1 || position2 > 8)
             return false;
-            
+
         if (position1 == position2)
             return false;
-            
+
         bool success = _letterQueueManager.TryMorningSwap(position1, position2);
         if (success)
         {
@@ -2247,13 +2247,13 @@ public class GameFacade
         }
         return success;
     }
-    
+
     public async Task<bool> LetterQueuePriorityMoveAsync(int fromPosition)
     {
         // Validate position is within range and not already at position 1
         if (fromPosition < 2 || fromPosition > 8)
             return false;
-            
+
         bool success = _letterQueueManager.TryPriorityMove(fromPosition);
         if (success)
         {
@@ -2261,13 +2261,13 @@ public class GameFacade
         }
         return success;
     }
-    
+
     public async Task<bool> LetterQueueExtendDeadlineAsync(int position)
     {
         // Validate position is within range
         if (position < 1 || position > 8)
             return false;
-            
+
         bool success = _letterQueueManager.TryExtendDeadline(position);
         if (success)
         {
@@ -2275,16 +2275,16 @@ public class GameFacade
         }
         return success;
     }
-    
+
     public async Task<bool> LetterQueuePurgeAsync(List<TokenSelection> tokenSelections)
     {
         // Validate token selection
         if (tokenSelections == null || tokenSelections.Count == 0)
             return false;
-            
+
         // Convert to dictionary for serialization (legacy interface)
-        var enumSelection = new Dictionary<ConnectionType, int>();
-        foreach (var selection in tokenSelections)
+        Dictionary<ConnectionType, int> enumSelection = new Dictionary<ConnectionType, int>();
+        foreach (TokenSelection selection in tokenSelections)
         {
             enumSelection[selection.TokenType] = selection.Count;
         }
@@ -2297,11 +2297,11 @@ public class GameFacade
         await _letterQueueManager.TriggerPurgeConversation();
         return true;
     }
-    
+
     public LetterBoardViewModel GetLetterBoard()
     {
         // Check if it's dawn
-        var currentTime = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         if (currentTime != TimeBlocks.Dawn)
         {
             return new LetterBoardViewModel
@@ -2312,15 +2312,15 @@ public class GameFacade
                 CurrentTime = currentTime
             };
         }
-        
+
         // Get offers from the letter queue manager
-        var player = _gameWorld.GetPlayer();
-        var queueViewModel = GetLetterQueue();
-        var offers = new List<LetterOffer>();
-        
+        Player player = _gameWorld.GetPlayer();
+        LetterQueueViewModel queueViewModel = GetLetterQueue();
+        List<LetterOffer> offers = new List<LetterOffer>();
+
         // For now, return empty offers until letter board functionality is implemented
         // TODO: Implement letter board offers in LetterQueueManager
-        var offerViewModels = offers.Select(offer => new LetterOfferViewModel
+        List<LetterOfferViewModel> offerViewModels = offers.Select(offer => new LetterOfferViewModel
         {
             Id = offer.Id,
             SenderName = offer.NPCName,
@@ -2332,7 +2332,7 @@ public class GameFacade
             CannotAcceptReason = null,
             TokenTypes = new List<string> { offer.LetterType.ToString() }
         }).ToList();
-        
+
         return new LetterBoardViewModel
         {
             IsAvailable = true,
@@ -2340,39 +2340,39 @@ public class GameFacade
             CurrentTime = currentTime
         };
     }
-    
+
     public async Task<bool> AcceptLetterOfferAsync(string offerId)
     {
         // TODO: Implement letter offer acceptance in LetterQueueManager
         return false;
     }
-    
+
     // ========== MARKET ==========
-    
+
     public MarketViewModel GetMarket()
     {
-        var player = _gameWorld.GetPlayer();
-        var locationSpot = player.CurrentLocationSpot;
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot locationSpot = player.CurrentLocationSpot;
         if (locationSpot == null)
             return null;
-            
-        var location = _locationRepository.GetLocation(locationSpot.LocationId);
+
+        Location location = _locationRepository.GetLocation(locationSpot.LocationId);
         if (location == null)
             return null;
-            
+
         string marketStatus = GetMarketAvailabilityStatus(location.Id);
-        var traders = GetTradingNPCs(location.Id)
+        List<NPC> traders = GetTradingNPCs(location.Id)
             .Where(npc => npc.IsAvailable(_timeManager.GetCurrentTimeBlock()))
             .ToList();
 
         // Get all available items
-        var marketItems = GetAvailableMarketItems(location.Id);
+        List<MarketItem> marketItems = GetAvailableMarketItems(location.Id);
 
         // Convert items to view models
-        var allCategories = new HashSet<string> { "All" };
-        var itemViewModels = new List<MarketItemViewModel>();
+        HashSet<string> allCategories = new HashSet<string> { "All" };
+        List<MarketItemViewModel> itemViewModels = new List<MarketItemViewModel>();
 
-        foreach (var item in marketItems)
+        foreach (MarketItem item in marketItems)
         {
             if (item == null) continue;
 
@@ -2393,7 +2393,7 @@ public class GameFacade
             });
 
             // Collect categories
-            foreach (var category in item.Categories)
+            foreach (ItemCategory category in item.Categories)
             {
                 allCategories.Add(category.ToString());
             }
@@ -2413,17 +2413,17 @@ public class GameFacade
             AvailableCategories = allCategories.OrderBy(c => c).ToList()
         };
     }
-    
+
     public async Task<bool> BuyItemAsync(string itemId, string traderId)
     {
         return await ExecuteMarketTradeAsync(itemId, "buy", traderId);
     }
-    
+
     public async Task<bool> SellItemAsync(string itemId, string traderId)
     {
         return await ExecuteMarketTradeAsync(itemId, "sell", traderId);
     }
-    
+
     private async Task<bool> ExecuteMarketTradeAsync(string itemId, string action, string locationId)
     {
         if (_ruleEngine == null || _itemRepository == null)
@@ -2431,7 +2431,7 @@ public class GameFacade
             _messageSystem.AddSystemMessage("Market trading not available", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         TradeActionResult result;
         if (action.ToLower() == "buy")
         {
@@ -2460,17 +2460,17 @@ public class GameFacade
 
         return result.IsSuccess;
     }
-    
+
     // ========== INVENTORY ==========
-    
+
     public InventoryViewModel GetInventory()
     {
-        var player = _gameWorld.GetPlayer();
-        var items = new List<InventoryItemViewModel>();
-        
-        foreach (var itemId in player.Inventory.ItemSlots.Where(s => !string.IsNullOrEmpty(s)))
+        Player player = _gameWorld.GetPlayer();
+        List<InventoryItemViewModel> items = new List<InventoryItemViewModel>();
+
+        foreach (string? itemId in player.Inventory.ItemSlots.Where(s => !string.IsNullOrEmpty(s)))
         {
-            var item = _itemRepository.GetItemById(itemId);
+            Item item = _itemRepository.GetItemById(itemId);
             if (item != null)
             {
                 items.Add(new InventoryItemViewModel
@@ -2485,7 +2485,7 @@ public class GameFacade
                 });
             }
         }
-        
+
         return new InventoryViewModel
         {
             Items = items,
@@ -2495,23 +2495,23 @@ public class GameFacade
             Coins = player.Coins
         };
     }
-    
+
     public async Task<bool> UseItemAsync(string itemId)
     {
-        var item = _itemRepository.GetItemById(itemId);
+        Item item = _itemRepository.GetItemById(itemId);
         if (item == null) return false;
-        
+
         if (item.IsReadable())
         {
             return await ReadLetterAsync(itemId);
         }
-        
+
         // Other item uses can be implemented here
         return false;
     }
-    
+
     // ========== NARRATIVE/TUTORIAL ==========
-    
+
     public NarrativeStateViewModel GetNarrativeState()
     {
         return new NarrativeStateViewModel
@@ -2521,19 +2521,19 @@ public class GameFacade
             TutorialComplete = _flagService.HasFlag(FlagService.TUTORIAL_COMPLETE)
         };
     }
-    
+
     public bool IsTutorialActive()
     {
         return _flagService.HasFlag("tutorial_active");
     }
-    
+
     public TutorialGuidanceViewModel GetTutorialGuidance()
     {
         if (!_flagService.HasFlag("tutorial_active"))
         {
             return new TutorialGuidanceViewModel { IsActive = false };
         }
-        
+
         return new TutorialGuidanceViewModel
         {
             IsActive = true,
@@ -2544,64 +2544,64 @@ public class GameFacade
             AllowedActions = new List<string>()
         };
     }
-    
+
     // ========== GAME FLOW ==========
-    
+
     public async Task StartGameAsync()
     {
         // Game already started during initialization
     }
-    
+
     public async Task<MorningActivityResult> AdvanceToNextDayAsync()
     {
         // Advance time to next day
         _gameWorld.AdvanceToNextDay();
-        
+
         // Run morning activities
         if (_morningActivitiesManager != null)
         {
             return _morningActivitiesManager.ProcessMorningActivities();
         }
-        
+
         return new MorningActivityResult();
     }
-    
+
     public MorningActivityResult GetMorningActivities()
     {
         if (_morningActivitiesManager != null)
         {
             return _morningActivitiesManager.GetLastActivityResult();
         }
-        
+
         return new MorningActivityResult();
     }
-    
+
     // ========== SYSTEM MESSAGES ==========
-    
+
     public List<SystemMessage> GetSystemMessages()
     {
         // MessageSystem doesn't store messages, they're in GameWorld
         return _gameWorld.SystemMessages ?? new List<SystemMessage>();
     }
-    
+
     public void ClearSystemMessages()
     {
         // Clear messages from GameWorld
         if (_gameWorld.SystemMessages != null)
             _gameWorld.SystemMessages.Clear();
     }
-    
+
     // ========== NPC & RELATIONSHIPS ==========
-    
+
     public List<TimeBlockServiceViewModel> GetTimeBlockServicePlan()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player.CurrentLocationSpot == null) return new List<TimeBlockServiceViewModel>();
-        
-        var location = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
-        var timeBlockServicePlan = _npcRepository.GetTimeBlockServicePlan(location.Id);
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        
+
+        Location location = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
+        List<TimeBlockServiceInfo> timeBlockServicePlan = _npcRepository.GetTimeBlockServicePlan(location.Id);
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+
         return timeBlockServicePlan.Select(plan => new TimeBlockServiceViewModel
         {
             TimeBlock = plan.TimeBlock,
@@ -2610,16 +2610,16 @@ public class GameFacade
             AvailableNPCs = plan.AvailableNPCs?.Select(npc => npc.Name).ToList() ?? new List<string>()
         }).ToList();
     }
-    
+
     public List<NPCWithOffersViewModel> GetNPCsWithOffers()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player.CurrentLocationSpot == null) return new List<NPCWithOffersViewModel>();
-        
-        var currentTime = _timeManager.GetCurrentTimeBlock();
-        var location = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
-        var currentNPCs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
-        
+
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        Location location = _locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
+        List<NPC> currentNPCs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
+
         return currentNPCs.Select(npc => new NPCWithOffersViewModel
         {
             NPCId = npc.ID,
@@ -2632,24 +2632,24 @@ public class GameFacade
         .Where(npc => npc.HasDirectOfferAvailable || npc.PendingOfferCount > 0)
         .ToList();
     }
-    
+
     public List<NPCRelationshipViewModel> GetNPCRelationships()
     {
-        var player = _gameWorld.GetPlayer();
-        var relationships = new List<NPCRelationshipViewModel>();
-        
+        Player player = _gameWorld.GetPlayer();
+        List<NPCRelationshipViewModel> relationships = new List<NPCRelationshipViewModel>();
+
         // Get all NPCs from all locations
-        var allLocations = _locationRepository.GetAllLocations();
-        
-        foreach (var location in allLocations)
+        List<Location> allLocations = _locationRepository.GetAllLocations();
+
+        foreach (Location location in allLocations)
         {
-            var npcs = _npcRepository.GetNPCsForLocation(location.Id);
-            foreach (var npc in npcs)
+            List<NPC> npcs = _npcRepository.GetNPCsForLocation(location.Id);
+            foreach (NPC npc in npcs)
             {
                 // Get tokens with this NPC
-                var npcTokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-                var totalTokens = npcTokens.Values.Sum();
-                
+                Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+                int totalTokens = npcTokens.Values.Sum();
+
                 if (totalTokens > 0)
                 {
                     relationships.Add(new NPCRelationshipViewModel
@@ -2666,17 +2666,17 @@ public class GameFacade
                 }
             }
         }
-        
+
         return relationships.OrderByDescending(r => r.ConnectionTokens).ToList();
     }
-    
+
     public List<ObligationViewModel> GetStandingObligations()
     {
-        var obligations = new List<ObligationViewModel>();
-        
+        List<ObligationViewModel> obligations = new List<ObligationViewModel>();
+
         // Get active standing obligations from player
-        var player = _gameWorld.GetPlayer();
-        foreach (var obligation in player.StandingObligations.Where(o => o.IsActive))
+        Player player = _gameWorld.GetPlayer();
+        foreach (StandingObligation? obligation in player.StandingObligations.Where(o => o.IsActive))
         {
             obligations.Add(new ObligationViewModel
             {
@@ -2686,7 +2686,7 @@ public class GameFacade
                 Priority = 1
             });
         }
-        
+
         // Check for patron obligations based on leverage
         if (player.HasPatron && player.PatronLeverage > 0)
         {
@@ -2698,13 +2698,13 @@ public class GameFacade
                 Priority = 2
             });
         }
-        
+
         // Check for token debts (negative tokens)
-        var allNpcs = _npcRepository.GetAllNPCs();
-        foreach (var npc in allNpcs)
+        List<NPC> allNpcs = _npcRepository.GetAllNPCs();
+        foreach (NPC npc in allNpcs)
         {
-            var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-            foreach (var tokenType in tokens.Where(t => t.Value < 0))
+            Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+            foreach (KeyValuePair<ConnectionType, int> tokenType in tokens.Where(t => t.Value < 0))
             {
                 obligations.Add(new ObligationViewModel
                 {
@@ -2715,24 +2715,24 @@ public class GameFacade
                 });
             }
         }
-        
+
         return obligations.OrderBy(o => o.Priority).ToList();
     }
-    
+
     public DetailedObligationsViewModel GetDetailedObligations()
     {
-        var vm = new DetailedObligationsViewModel();
-        var player = _gameWorld.GetPlayer();
-        
+        DetailedObligationsViewModel vm = new DetailedObligationsViewModel();
+        Player player = _gameWorld.GetPlayer();
+
         if (_standingObligationManager == null || _standingObligationRepository == null)
         {
             return vm; // Return empty view model if managers not available
         }
-        
+
         // Get active obligations
-        foreach (var obligation in _standingObligationManager.GetActiveObligations())
+        foreach (StandingObligation obligation in _standingObligationManager.GetActiveObligations())
         {
-            var activeVm = new ActiveObligationViewModel
+            ActiveObligationViewModel activeVm = new ActiveObligationViewModel
             {
                 ID = obligation.ID,
                 Name = obligation.Name,
@@ -2744,25 +2744,25 @@ public class GameFacade
                 HasForcedLetterWarning = false,
                 DaysUntilForcedLetter = 0
             };
-            
+
             // Add benefit descriptions
-            foreach (var effect in obligation.BenefitEffects)
+            foreach (ObligationEffect effect in obligation.BenefitEffects)
             {
                 activeVm.BenefitDescriptions.Add(GetEffectDescription(effect));
             }
-            
+
             // Add constraint descriptions
-            foreach (var effect in obligation.ConstraintEffects)
+            foreach (ObligationEffect effect in obligation.ConstraintEffects)
             {
                 activeVm.ConstraintDescriptions.Add(GetEffectDescription(effect));
             }
-            
+
             // Get token count if applicable
             if (obligation.RelatedTokenType.HasValue)
             {
                 activeVm.TokenCount = _connectionTokenManager.GetTokenCount(obligation.RelatedTokenType.Value);
             }
-            
+
             // Check for forced letter warnings
             if (obligation.HasEffect(ObligationEffect.ShadowForced))
             {
@@ -2774,27 +2774,27 @@ public class GameFacade
                 activeVm.HasForcedLetterWarning = obligation.DaysSinceLastForcedLetter >= 28;
                 activeVm.DaysUntilForcedLetter = Math.Max(0, 30 - obligation.DaysSinceLastForcedLetter);
             }
-            
+
             // Check for conflicts
             activeVm.HasConflicts = CheckForConflicts(obligation, _standingObligationManager.GetActiveObligations());
-            
+
             vm.ActiveObligations.Add(activeVm);
         }
-        
+
         // Get debt obligations
-        foreach (var obligation in vm.ActiveObligations.Where(o => o.ID.StartsWith("debt_")))
+        foreach (ActiveObligationViewModel? obligation in vm.ActiveObligations.Where(o => o.ID.StartsWith("debt_")))
         {
-            var parts = obligation.ID.Split('_');
+            string[] parts = obligation.ID.Split('_');
             if (parts.Length >= 3)
             {
-                var npcId = parts[1];
-                var npc = _npcRepository.GetById(npcId);
+                string npcId = parts[1];
+                NPC npc = _npcRepository.GetById(npcId);
                 if (npc != null && obligation.RelatedTokenType.HasValue)
                 {
-                    var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-                    var debtAmount = tokens[obligation.RelatedTokenType.Value];
-                    
-                    var debtVm = new DebtObligationViewModel
+                    Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+                    int debtAmount = tokens[obligation.RelatedTokenType.Value];
+
+                    DebtObligationViewModel debtVm = new DebtObligationViewModel
                     {
                         ID = obligation.ID,
                         Name = obligation.Name,
@@ -2802,26 +2802,26 @@ public class GameFacade
                         LeverageHolderName = npc.Name,
                         LeverageAmount = Math.Abs(debtAmount)
                     };
-                    
+
                     // Add effect descriptions
                     debtVm.EffectDescriptions.Add($"Letters get {Math.Abs(debtAmount)} position priority");
                     if (obligation.ConstraintDescriptions.Any(c => c.Contains("Skip costs doubled")))
                         debtVm.EffectDescriptions.Add("Skip costs doubled");
                     if (obligation.ConstraintDescriptions.Any(c => c.Contains("Cannot refuse")))
                         debtVm.EffectDescriptions.Add("Cannot refuse letters");
-                    
+
                     vm.DebtObligations.Add(debtVm);
                 }
             }
         }
-        
+
         // Check threshold warnings
-        var allNpcs = _npcRepository.GetAllNPCs();
-        foreach (var npc in allNpcs)
+        List<NPC> allNpcs = _npcRepository.GetAllNPCs();
+        foreach (NPC npc in allNpcs)
         {
-            var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-            
-            foreach (var (tokenType, balance) in tokens)
+            Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+
+            foreach ((ConnectionType tokenType, int balance) in tokens)
             {
                 // Warning for approaching debt
                 if (balance == -1 || balance == -2)
@@ -2836,7 +2836,7 @@ public class GameFacade
                         TokenType = tokenType
                     });
                 }
-                
+
                 // Warning for extreme debt
                 if (balance == -4)
                 {
@@ -2850,7 +2850,7 @@ public class GameFacade
                         TokenType = tokenType
                     });
                 }
-                
+
                 // Warning for high positive tokens
                 if (balance == 4)
                 {
@@ -2864,7 +2864,7 @@ public class GameFacade
                         TokenType = tokenType
                     });
                 }
-                
+
                 if (balance == 9)
                 {
                     vm.ThresholdWarnings.Add(new ThresholdWarningViewModel
@@ -2879,18 +2879,18 @@ public class GameFacade
                 }
             }
         }
-        
+
         // Sort warnings by proximity to threshold
         vm.ThresholdWarnings = vm.ThresholdWarnings
             .OrderBy(w => Math.Abs(w.CurrentValue - w.ThresholdValue))
             .Take(5) // Show top 5 most relevant
             .ToList();
-        
+
         // Get available templates
-        var allTemplates = _standingObligationRepository.GetAllObligationTemplates();
-        foreach (var template in allTemplates.Where(t => !HasObligation(t.ID, vm.ActiveObligations)))
+        List<StandingObligation> allTemplates = _standingObligationRepository.GetAllObligationTemplates();
+        foreach (StandingObligation? template in allTemplates.Where(t => !HasObligation(t.ID, vm.ActiveObligations)))
         {
-            var templateVm = new ObligationTemplateViewModel
+            ObligationTemplateViewModel templateVm = new ObligationTemplateViewModel
             {
                 ID = template.ID,
                 Name = template.Name,
@@ -2899,36 +2899,36 @@ public class GameFacade
                 RequirementDescription = "Available through special letters",
                 CanAccept = true
             };
-            
+
             // Check for conflicts
-            var conflicts = _standingObligationManager.CheckObligationConflicts(template);
+            List<StandingObligation> conflicts = _standingObligationManager.CheckObligationConflicts(template);
             if (conflicts.Any())
             {
                 templateVm.CanAccept = false;
                 templateVm.CannotAcceptReason = "Conflicts with existing obligations";
                 templateVm.ConflictingObligations = conflicts.Select(c => c.Name).ToList();
             }
-            
+
             vm.AvailableTemplates.Add(templateVm);
         }
-        
+
         return vm;
     }
-    
+
     private bool CheckForConflicts(StandingObligation obligation, List<StandingObligation> allObligations)
     {
         return allObligations
             .Where(other => other.ID != obligation.ID && other.RelatedTokenType == obligation.RelatedTokenType)
-            .Any(other => 
+            .Any(other =>
                 (obligation.BenefitEffects.Any(b => other.ConstraintEffects.Contains(b)) ||
                  obligation.ConstraintEffects.Any(c => other.BenefitEffects.Contains(c))));
     }
-    
+
     private bool HasObligation(string obligationId, List<ActiveObligationViewModel> activeObligations)
     {
         return activeObligations.Any(o => o.ID.Equals(obligationId, StringComparison.OrdinalIgnoreCase));
     }
-    
+
     private string GetEffectDescription(ObligationEffect effect)
     {
         return effect switch
@@ -2960,7 +2960,7 @@ public class GameFacade
             _ => effect.ToString()
         };
     }
-    
+
     private string GetDebtObligationName(ConnectionType tokenType)
     {
         return tokenType switch
@@ -2972,18 +2972,18 @@ public class GameFacade
             _ => "Debt Obligation"
         };
     }
-    
+
     // ========== SEAL MANAGEMENT ==========
-    
+
     public SealProgressionViewModel GetSealProgression()
     {
-        var viewModel = new SealProgressionViewModel();
-        var player = _gameWorld.GetPlayer();
-        
+        SealProgressionViewModel viewModel = new SealProgressionViewModel();
+        Player player = _gameWorld.GetPlayer();
+
         // Get all owned seals
-        foreach (var seal in player.OwnedSeals)
+        foreach (Seal seal in player.OwnedSeals)
         {
-            var ownedSeal = new OwnedSeal
+            OwnedSeal ownedSeal = new OwnedSeal
             {
                 Id = seal.Id,
                 Name = seal.GetFullName(),
@@ -2999,10 +2999,10 @@ public class GameFacade
             };
             viewModel.OwnedSeals.Add(ownedSeal);
         }
-        
+
         // Get worn seals with slot numbers
         int slotNumber = 1;
-        foreach (var seal in player.WornSeals)
+        foreach (Seal seal in player.WornSeals)
         {
             viewModel.WornSeals.Add(new WornSeal
             {
@@ -3013,25 +3013,25 @@ public class GameFacade
                 SlotNumber = slotNumber++
             });
         }
-        
+
         // Get endorsement progress for each seal type
         foreach (SealType sealType in Enum.GetValues<SealType>())
         {
-            var progress = new EndorsementProgress
+            EndorsementProgress progress = new EndorsementProgress
             {
                 Type = sealType,
                 TypeName = sealType.ToString()
             };
-            
+
             // Get current endorsement count
             string endorsementKey = $"endorsements_delivered_{sealType}";
-            var memory = player.GetMemory(endorsementKey);
+            MemoryFlag memory = player.GetMemory(endorsementKey);
             progress.CurrentEndorsements = memory?.Importance ?? 0;
-            
+
             // Get current seal tier
-            var currentSeal = player.OwnedSeals.FirstOrDefault(s => s.Type == sealType);
+            Seal? currentSeal = player.OwnedSeals.FirstOrDefault(s => s.Type == sealType);
             progress.CurrentTier = currentSeal?.Tier ?? (SealTier)0; // 0 means no seal
-            
+
             // Determine next tier and requirements
             if (progress.CurrentTier < SealTier.Master)
             {
@@ -3039,72 +3039,72 @@ public class GameFacade
                 progress.EndorsementsToNext = GetEndorsementsRequired(progress.NextTier.Value) - progress.CurrentEndorsements;
                 progress.NextTierBenefits = GetTierBenefits(sealType, progress.NextTier.Value);
             }
-            
+
             // Get guild locations for this seal type
             progress.GuildLocations = GetGuildLocationsForSealType(sealType);
-            
+
             viewModel.EndorsementTracking.Add(progress);
         }
-        
+
         return viewModel;
     }
-    
+
     public async Task<bool> EquipSealAsync(string sealId)
     {
-        var player = _gameWorld.GetPlayer();
-        var seal = player.OwnedSeals.FirstOrDefault(s => s.Id == sealId);
-        
+        Player player = _gameWorld.GetPlayer();
+        Seal? seal = player.OwnedSeals.FirstOrDefault(s => s.Id == sealId);
+
         if (seal == null)
         {
             _messageSystem.AddSystemMessage("You don't own this seal.", SystemMessageTypes.Danger);
             return false;
         }
-        
+
         if (player.WornSeals.Contains(seal))
         {
             _messageSystem.AddSystemMessage("This seal is already equipped.", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         if (player.WornSeals.Count >= 3)
         {
             _messageSystem.AddSystemMessage("You can only wear 3 seals at once. Unequip one first.", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         bool success = player.EquipSeal(seal);
         if (success)
         {
             _messageSystem.AddSystemMessage($"Equipped {seal.GetFullName()}.", SystemMessageTypes.Success);
         }
-        
+
         return success;
     }
-    
+
     public async Task<bool> UnequipSealAsync(string sealId)
     {
-        var player = _gameWorld.GetPlayer();
-        var seal = player.WornSeals.FirstOrDefault(s => s.Id == sealId);
-        
+        Player player = _gameWorld.GetPlayer();
+        Seal? seal = player.WornSeals.FirstOrDefault(s => s.Id == sealId);
+
         if (seal == null)
         {
             _messageSystem.AddSystemMessage("This seal is not equipped.", SystemMessageTypes.Warning);
             return false;
         }
-        
+
         bool success = player.UnequipSeal(seal);
         if (success)
         {
             _messageSystem.AddSystemMessage($"Unequipped {seal.GetFullName()}.", SystemMessageTypes.Success);
         }
-        
+
         return success;
     }
-    
+
     private List<string> GetSealBenefits(Seal seal)
     {
-        var benefits = new List<string>();
-        
+        List<string> benefits = new List<string>();
+
         // Base benefits by type
         switch (seal.Type)
         {
@@ -3116,7 +3116,7 @@ public class GameFacade
                 if (seal.Tier >= SealTier.Master)
                     benefits.Add("Exclusive trade route information");
                 break;
-                
+
             case SealType.Status:
                 benefits.Add("Recognition by nobles and scholars");
                 benefits.Add("Access to restricted libraries");
@@ -3125,7 +3125,7 @@ public class GameFacade
                 if (seal.Tier >= SealTier.Master)
                     benefits.Add("Authority to issue recommendations");
                 break;
-                
+
             case SealType.Shadow:
                 benefits.Add("Safe passage through dangerous areas");
                 benefits.Add("Access to black market contacts");
@@ -3135,10 +3135,10 @@ public class GameFacade
                     benefits.Add("Control over underground networks");
                 break;
         }
-        
+
         return benefits;
     }
-    
+
     private string GetTierBenefits(SealType type, SealTier tier)
     {
         return (type, tier) switch
@@ -3155,7 +3155,7 @@ public class GameFacade
             _ => "Guild recognition and privileges"
         };
     }
-    
+
     private int GetEndorsementsRequired(SealTier tier)
     {
         return tier switch
@@ -3166,7 +3166,7 @@ public class GameFacade
             _ => 3
         };
     }
-    
+
     private List<string> GetGuildLocationsForSealType(SealType type)
     {
         return type switch
@@ -3177,7 +3177,7 @@ public class GameFacade
             _ => new List<string>()
         };
     }
-    
+
     private string GetGuildNameFromId(string guildId)
     {
         return guildId switch
@@ -3188,25 +3188,25 @@ public class GameFacade
             _ => "Unknown Guild"
         };
     }
-    
+
     // ========== INFORMATION DISCOVERY ==========
-    
+
     public InformationDiscoveryViewModel GetDiscoveredInformation()
     {
-        var vm = new InformationDiscoveryViewModel();
-        
+        InformationDiscoveryViewModel vm = new InformationDiscoveryViewModel();
+
         if (_informationDiscoveryManager == null)
         {
             // Information discovery not yet implemented
             return vm;
         }
-        
-        var allInfo = _informationDiscoveryManager.GetDiscoveredInformation();
-        var player = _gameWorld.GetPlayer();
-        
-        foreach (var info in allInfo)
+
+        List<Information> allInfo = _informationDiscoveryManager.GetDiscoveredInformation();
+        Player player = _gameWorld.GetPlayer();
+
+        foreach (Information info in allInfo)
         {
-            var infoVm = new DiscoveredInfoViewModel
+            DiscoveredInfoViewModel infoVm = new DiscoveredInfoViewModel
             {
                 Id = info.Id,
                 Name = info.Name,
@@ -3220,10 +3220,10 @@ public class GameFacade
                 EquipmentRequirements = info.EquipmentRequirements,
                 CoinCost = info.CoinCost
             };
-            
+
             // Check if player can afford to unlock
             infoVm.CanAfford = CanAffordInformationAccess(info);
-            
+
             // Categorize by type
             switch (info.Type)
             {
@@ -3244,63 +3244,63 @@ public class GameFacade
                     break;
             }
         }
-        
+
         vm.TotalDiscovered = allInfo.Count;
         vm.TotalUnlocked = allInfo.Count(i => i.IsAccessUnlocked);
-        
+
         return vm;
     }
-    
+
     public async Task<bool> UnlockInformationAccessAsync(string informationId)
     {
         if (_informationDiscoveryManager == null)
             return false;
-            
-        var result = _informationDiscoveryManager.TryUnlockAccess(informationId);
-        
+
+        bool result = _informationDiscoveryManager.TryUnlockAccess(informationId);
+
         // Save will be handled by the command system
-        
+
         return result;
     }
-    
+
     // Leverage system removed - Information letters are for unlocking NPCs/routes only
-    
+
     private bool CanAffordInformationAccess(Information info)
     {
-        var player = _gameWorld.GetPlayer();
-        
+        Player player = _gameWorld.GetPlayer();
+
         // Check tokens
-        foreach (var tokenReq in info.TokenRequirements)
+        foreach (KeyValuePair<ConnectionType, int> tokenReq in info.TokenRequirements)
         {
             if (!_connectionTokenManager.HasTokens(tokenReq.Key, tokenReq.Value))
                 return false;
         }
-        
+
         // Check seals
-        foreach (var sealId in info.SealRequirements)
+        foreach (string sealId in info.SealRequirements)
         {
             if (!player.Seals.Any(s => s.Id == sealId))
                 return false;
         }
-        
+
         // Check equipment
-        foreach (var equipmentId in info.EquipmentRequirements)
+        foreach (string equipmentId in info.EquipmentRequirements)
         {
             if (!player.Inventory.HasItem(equipmentId))
                 return false;
         }
-        
+
         // Check coins
         if (player.Coins < info.CoinCost)
             return false;
-            
+
         return true;
     }
-    
+
     // ========== LOCATION ACTIONS HELPER METHODS ==========
-    
+
     // Legacy command conversion methods removed - using intent-based architecture
-    
+
     private void AddClosedServicesInfo(LocationActionsViewModel viewModel, LocationSpot currentSpot)
     {
         // Skip adding closed service info during tutorial
@@ -3309,7 +3309,7 @@ public class GameFacade
         {
             return;
         }
-        
+
         // Check for Letter Board availability
         if (_timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
         {
@@ -3323,7 +3323,7 @@ public class GameFacade
                 ServiceSchedule = "Available only at Dawn",
                 UnavailableReasons = new List<string> { "Letter Board is closed. Only available during Dawn hours." }
             };
-            
+
             // Add to Special category
             ActionGroupViewModel specialGroup = viewModel.ActionGroups.FirstOrDefault(g => g.ActionType == "Special");
             if (specialGroup == null)
@@ -3337,7 +3337,7 @@ public class GameFacade
             }
             specialGroup.Actions.Add(letterBoardInfo);
         }
-        
+
         // Check for Market availability
         if (_marketManager != null)
         {
@@ -3349,7 +3349,7 @@ public class GameFacade
                 {
                     string schedule = GetTradersSchedule(allTraders);
                     string nextAvailable = GetNextMarketAvailable(currentSpot.LocationId, allTraders);
-                    
+
                     ActionOptionViewModel marketInfo = new ActionOptionViewModel
                     {
                         Id = "market_closed",
@@ -3360,7 +3360,7 @@ public class GameFacade
                         ServiceSchedule = schedule,
                         UnavailableReasons = new List<string> { marketStatus }
                     };
-                    
+
                     // Add to Economic category
                     ActionGroupViewModel economicGroup = viewModel.ActionGroups.FirstOrDefault(g => g.ActionType == "Economic");
                     if (economicGroup == null)
@@ -3376,17 +3376,17 @@ public class GameFacade
                 }
             }
         }
-        
+
         // Check for missing NPCs and their schedules
         List<NPC> allNPCs = _npcRepository.GetNPCsForLocation(currentSpot.LocationId);
         List<NPC> currentNPCs = _npcRepository.GetNPCsForLocationSpotAndTime(currentSpot.SpotID, _timeManager.GetCurrentTimeBlock());
         List<NPC> missingNPCs = allNPCs.Where(npc => !currentNPCs.Any(c => c.ID == npc.ID)).ToList();
-        
+
         foreach (NPC missingNPC in missingNPCs)
         {
             string schedule = GetNPCSchedule(missingNPC);
             string nextAvailable = GetNextNPCAvailable(missingNPC);
-            
+
             // Add info about when this NPC will be available
             ActionOptionViewModel npcInfo = new ActionOptionViewModel
             {
@@ -3400,7 +3400,7 @@ public class GameFacade
                 ServiceSchedule = schedule,
                 UnavailableReasons = new List<string> { $"{missingNPC.Name} is not here right now." }
             };
-            
+
             // Add to Social category
             ActionGroupViewModel socialGroup = viewModel.ActionGroups.FirstOrDefault(g => g.ActionType == "Social");
             if (socialGroup == null)
@@ -3415,15 +3415,15 @@ public class GameFacade
             socialGroup.Actions.Add(npcInfo);
         }
     }
-    
+
     private string GetNextAvailableTime(TimeBlocks targetTime)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         int currentHour = _timeManager.GetCurrentTimeHours();
-        
+
         // Calculate hours until target time
         int hoursUntilTarget = CalculateHoursUntilTimeBlock(currentTime, targetTime, currentHour);
-        
+
         if (hoursUntilTarget <= 0)
         {
             // It's available next day
@@ -3442,7 +3442,7 @@ public class GameFacade
             return "Available tomorrow at " + GetTimeBlockDisplayName(targetTime);
         }
     }
-    
+
     private string GetTradersSchedule(List<NPC> traders)
     {
         List<string> schedules = new List<string>();
@@ -3457,7 +3457,7 @@ public class GameFacade
         }
         return string.Join("; ", schedules);
     }
-    
+
     private string GetNPCSchedule(NPC npc)
     {
         List<TimeBlocks> availableTimes = GetNPCAvailableTimes(npc);
@@ -3465,16 +3465,16 @@ public class GameFacade
         {
             return "Schedule unknown";
         }
-        
+
         string timeList = string.Join(", ", availableTimes.Select(t => GetTimeBlockDisplayName(t)));
         return $"Available: {timeList}";
     }
-    
+
     private List<TimeBlocks> GetNPCAvailableTimes(NPC npc)
     {
         List<TimeBlocks> availableTimes = new List<TimeBlocks>();
         TimeBlocks[] allTimes = new[] { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
-        
+
         foreach (TimeBlocks time in allTimes)
         {
             if (npc.IsAvailable(time))
@@ -3482,34 +3482,34 @@ public class GameFacade
                 availableTimes.Add(time);
             }
         }
-        
+
         return availableTimes;
     }
-    
+
     private string GetNextNPCAvailable(NPC npc)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         List<TimeBlocks> availableTimes = GetNPCAvailableTimes(npc);
-        
+
         if (!availableTimes.Any())
         {
             return "Availability unknown";
         }
-        
+
         // Find next available time
         TimeBlocks? nextTime = GetNextAvailableTimeBlock(currentTime, availableTimes);
         if (nextTime.HasValue)
         {
             return GetNextAvailableTime(nextTime.Value);
         }
-        
+
         return "Available tomorrow";
     }
-    
+
     private string GetNextMarketAvailable(string locationId, List<NPC> traders)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        
+
         // Find all times when at least one trader is available
         HashSet<TimeBlocks> marketTimes = new HashSet<TimeBlocks>();
         foreach (NPC trader in traders)
@@ -3520,26 +3520,26 @@ public class GameFacade
                 marketTimes.Add(time);
             }
         }
-        
+
         if (!marketTimes.Any())
         {
             return "Market schedule unknown";
         }
-        
+
         TimeBlocks? nextTime = GetNextAvailableTimeBlock(currentTime, marketTimes.ToList());
         if (nextTime.HasValue)
         {
             return GetNextAvailableTime(nextTime.Value);
         }
-        
+
         return "Available tomorrow";
     }
-    
+
     private TimeBlocks? GetNextAvailableTimeBlock(TimeBlocks current, List<TimeBlocks> availableTimes)
     {
         TimeBlocks[] timeOrder = new[] { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
         int currentIndex = Array.IndexOf(timeOrder, current);
-        
+
         // Check remaining times today
         for (int i = currentIndex + 1; i < timeOrder.Length; i++)
         {
@@ -3548,7 +3548,7 @@ public class GameFacade
                 return timeOrder[i];
             }
         }
-        
+
         // Check times tomorrow (starting from Dawn)
         for (int i = 0; i <= currentIndex; i++)
         {
@@ -3557,10 +3557,10 @@ public class GameFacade
                 return timeOrder[i];
             }
         }
-        
+
         return null;
     }
-    
+
     private int CalculateHoursUntilTimeBlock(TimeBlocks current, TimeBlocks target, int currentHour)
     {
         // Map time blocks to hour ranges
@@ -3573,7 +3573,7 @@ public class GameFacade
             TimeBlocks.Night => 20,
             _ => 0
         };
-        
+
         if (targetStartHour > currentHour)
         {
             return targetStartHour - currentHour;
@@ -3584,7 +3584,7 @@ public class GameFacade
             return (24 - currentHour) + targetStartHour;
         }
     }
-    
+
     private string GetTimeBlockDisplayName(TimeBlocks timeBlock)
     {
         return timeBlock switch
@@ -3597,16 +3597,16 @@ public class GameFacade
             _ => timeBlock.ToString()
         };
     }
-    
+
     // ========== TOKEN MANAGEMENT ==========
-    
+
     public NPCTokenBalance GetTokensWithNPC(string npcId)
     {
-        var tokenDict = _connectionTokenManager?.GetTokensWithNPC(npcId) ?? new Dictionary<ConnectionType, int>();
-        
-        var balance = new NPCTokenBalance();
-        
-        foreach (var kvp in tokenDict)
+        Dictionary<ConnectionType, int> tokenDict = _connectionTokenManager?.GetTokensWithNPC(npcId) ?? new Dictionary<ConnectionType, int>();
+
+        NPCTokenBalance balance = new NPCTokenBalance();
+
+        foreach (KeyValuePair<ConnectionType, int> kvp in tokenDict)
         {
             balance.Balances.Add(new TokenBalance
             {
@@ -3614,85 +3614,85 @@ public class GameFacade
                 Amount = kvp.Value
             });
         }
-        
+
         return balance;
     }
-    
+
     public int GetTokenCount(ConnectionType tokenType)
     {
         return _connectionTokenManager?.GetTokenCount(tokenType) ?? 0;
     }
-    
+
     // ========== NPC & LOCATION QUERIES ==========
-    
+
     public List<NPC> GetAllNPCs()
     {
         return _npcRepository?.GetAllNPCs() ?? new List<NPC>();
     }
-    
+
     public NPC GetNPCById(string npcId)
     {
         return _npcRepository?.GetById(npcId);
     }
-    
+
     public NPC GetNPCByName(string name)
     {
         return _npcRepository?.GetByName(name);
     }
-    
+
     public Location GetLocation(string locationId)
     {
         return _locationRepository?.GetLocation(locationId);
     }
-    
+
     // ========== LETTER SERVICES ==========
-    
+
     public bool CanNPCOfferLetters(string npcId)
     {
         // Check if NPC has tokens to offer letters
-        var npc = _npcRepository?.GetById(npcId);
+        NPC? npc = _npcRepository?.GetById(npcId);
         if (npc == null) return false;
-        
+
         // Check if NPC can offer letters based on tokens
-        var tokens = _connectionTokenManager?.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int>? tokens = _connectionTokenManager?.GetTokensWithNPC(npcId);
         return tokens != null && tokens.Any(t => t.Value > 0);
     }
-    
+
     public List<SpecialLetterOption> GetAvailableSpecialLetters(string npcId)
     {
         return _specialLetterService?.GetAvailableSpecialLetters(npcId) ?? new List<SpecialLetterOption>();
     }
-    
+
     public bool RequestSpecialLetter(string npcId, ConnectionType tokenType)
     {
         return _specialLetterService?.RequestSpecialLetter(npcId, tokenType) ?? false;
     }
-    
+
     public LetterCategory GetAvailableCategory(string npcId, ConnectionType tokenType)
     {
         return _letterCategoryService?.GetAvailableCategory(npcId, tokenType) ?? LetterCategory.Basic;
     }
-    
+
     public int GetTokensToNextCategory(string npcId, ConnectionType tokenType)
     {
         return _letterCategoryService?.GetTokensToNextCategory(npcId, tokenType) ?? 0;
     }
-    
+
     public (int min, int max) GetCategoryPaymentRange(LetterCategory category)
     {
         return _letterCategoryService?.GetCategoryPaymentRange(category) ?? (0, 0);
     }
-    
+
     // ========== ITEM MANAGEMENT ==========
-    
+
     public Item GetItemById(string itemId)
     {
         return _itemRepository?.GetItemById(itemId);
     }
-    
+
     public async Task<bool> ReadLetterAsync(string itemId)
     {
-        var item = _itemRepository.GetItemById(itemId);
+        Item item = _itemRepository.GetItemById(itemId);
         if (item == null || !item.IsReadable())
         {
             return false;
@@ -3703,7 +3703,7 @@ public class GameFacade
         {
             _flagService.SetFlag(item.ReadFlagToSet);
         }
-        
+
         // Show message about reading the letter
         _messageSystem.AddSystemMessage($"You carefully read the {item.Name}...", SystemMessageTypes.Info);
 
@@ -3720,13 +3720,13 @@ public class GameFacade
 
     public bool CanReadItem(string itemId)
     {
-        var item = _itemRepository.GetItemById(itemId);
+        Item item = _itemRepository.GetItemById(itemId);
         return item != null && item.IsReadable();
     }
 
     public ReadableLetterInfo GetLetterInfo(string itemId)
     {
-        var item = _itemRepository.GetItemById(itemId);
+        Item item = _itemRepository.GetItemById(itemId);
         if (item == null || !item.IsReadable())
         {
             return null;
@@ -3741,29 +3741,29 @@ public class GameFacade
             HasSpecialEffect = !string.IsNullOrEmpty(item.ReadFlagToSet)
         };
     }
-    
+
     // ========== LETTER QUEUE MANAGEMENT ==========
-    
+
     public int GetLetterQueueCount()
     {
         return _gameWorld.GetPlayer()?.CarriedLetters?.Count ?? 0;
     }
-    
+
     public bool IsLetterQueueFull()
     {
-        var count = GetLetterQueueCount();
+        int count = GetLetterQueueCount();
         return count >= 8; // MAX_LETTER_QUEUE_SIZE
     }
-    
+
     public int AddLetterWithObligationEffects(Letter letter)
     {
         if (letter == null || IsLetterQueueFull())
             return -1;
-            
+
         // Add letter to player's queue
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         player.CarriedLetters.Add(letter);
-        
+
         // Calculate position with obligation effects
         if (_standingObligationManager != null)
         {
@@ -3771,44 +3771,44 @@ public class GameFacade
             int positionModifier = 0;
             if (letter.TokenType == ConnectionType.Status)
             {
-                var obligations = _standingObligationManager.GetActiveObligations();
-                foreach (var obligation in obligations)
+                List<StandingObligation> obligations = _standingObligationManager.GetActiveObligations();
+                foreach (StandingObligation obligation in obligations)
                 {
                     if (obligation.HasEffect(ObligationEffect.StatusPriority))
                         positionModifier = -2; // Move up to position 3
                 }
             }
             int finalPosition = Math.Max(1, Math.Min(basePosition + positionModifier, 8));
-            
+
             // Reorder queue if needed
             if (finalPosition != basePosition)
             {
                 player.CarriedLetters.Remove(letter);
                 player.CarriedLetters.Insert(finalPosition - 1, letter);
             }
-            
+
             return finalPosition;
         }
-        
+
         return player.CarriedLetters.Count;
     }
-    
+
     public bool IsActionForbidden(string actionType, Letter letter, out string reason)
     {
         reason = null;
-        
+
         if (_standingObligationManager == null)
             return false;
-            
+
         return _standingObligationManager.IsActionForbidden(actionType, letter, out reason);
     }
-    
+
     // ========== NOTICE BOARD ==========
-    
+
     public List<NoticeBoardOption> GetNoticeBoardOptions()
     {
-        var options = new List<NoticeBoardOption>();
-        
+        List<NoticeBoardOption> options = new List<NoticeBoardOption>();
+
         // Define the three standard notice board options
         options.Add(new NoticeBoardOption
         {
@@ -3819,7 +3819,7 @@ public class GameFacade
             OptionType = NoticeBoardOptionType.AnythingHeading,
             RequiresDirection = true
         });
-        
+
         options.Add(new NoticeBoardOption
         {
             Id = "looking_for_work",
@@ -3829,7 +3829,7 @@ public class GameFacade
             OptionType = NoticeBoardOptionType.LookingForWork,
             RequiresTokenType = true
         });
-        
+
         options.Add(new NoticeBoardOption
         {
             Id = "urgent_deliveries",
@@ -3838,64 +3838,64 @@ public class GameFacade
             TokenCost = 5,
             OptionType = NoticeBoardOptionType.UrgentDeliveries
         });
-        
+
         return options;
     }
-    
+
     public bool CanAffordNoticeBoardOption(NoticeBoardOption option)
     {
         if (option == null)
             return false;
-            
-        var player = _gameWorld.GetPlayer();
-        var totalTokens = 0;
-        
+
+        Player player = _gameWorld.GetPlayer();
+        int totalTokens = 0;
+
         // Count all tokens
         foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
         {
             totalTokens += _connectionTokenManager?.GetTokenCount(tokenType) ?? 0;
         }
-        
+
         return totalTokens >= option.TokenCost;
     }
-    
+
     public async Task<bool> ExecuteNoticeBoardOption(NoticeBoardOption option, string direction = null)
     {
         if (option == null || !CanAffordNoticeBoardOption(option))
             return false;
-            
-        var player = _gameWorld.GetPlayer();
-        
+
+        Player player = _gameWorld.GetPlayer();
+
         // Deduct tokens (randomly from available types)
-        var availableTokens = new List<(ConnectionType type, int count)>();
+        List<(ConnectionType type, int count)> availableTokens = new List<(ConnectionType type, int count)>();
         foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
         {
             int count = _connectionTokenManager?.GetTokenCount(tokenType) ?? 0;
             if (count > 0)
                 availableTokens.Add((tokenType, count));
         }
-        
+
         if (!availableTokens.Any())
             return false;
-            
+
         // Deduct tokens randomly
-        var random = new Random();
+        Random random = new Random();
         int tokensToDeduct = option.TokenCost;
-        
+
         while (tokensToDeduct > 0 && availableTokens.Any())
         {
             int index = random.Next(availableTokens.Count);
-            var (tokenType, count) = availableTokens[index];
-            
+            (ConnectionType tokenType, int count) = availableTokens[index];
+
             // Find an NPC to deduct from
-            var allNpcs = _npcRepository?.GetAllNPCs() ?? new List<NPC>();
-            foreach (var npc in allNpcs)
+            List<NPC> allNpcs = _npcRepository?.GetAllNPCs() ?? new List<NPC>();
+            foreach (NPC npc in allNpcs)
             {
-                var npcTokens = _connectionTokenManager?.GetTokensWithNPC(npc.ID);
+                Dictionary<ConnectionType, int>? npcTokens = _connectionTokenManager?.GetTokensWithNPC(npc.ID);
                 if (npcTokens != null && npcTokens.ContainsKey(tokenType) && npcTokens[tokenType] > 0)
                 {
                     // Deduct token directly from player's balance with NPC
-                    var playerTokens = _gameWorld.GetPlayer().NPCTokens;
+                    Dictionary<string, Dictionary<ConnectionType, int>> playerTokens = _gameWorld.GetPlayer().NPCTokens;
                     if (playerTokens.ContainsKey(npc.ID) && playerTokens[npc.ID].ContainsKey(tokenType))
                     {
                         playerTokens[npc.ID][tokenType]--;
@@ -3907,37 +3907,37 @@ public class GameFacade
                         }
                     }
                     tokensToDeduct--;
-                    
+
                     availableTokens[index] = (tokenType, count - 1);
                     if (availableTokens[index].count == 0)
                         availableTokens.RemoveAt(index);
-                    
+
                     break;
                 }
             }
         }
-        
+
         // Generate a letter based on the option type
         Letter generatedLetter = null;
-        
+
         switch (option.OptionType)
         {
             case NoticeBoardOptionType.AnythingHeading:
                 // Generate letter heading to specified direction
                 generatedLetter = GenerateDirectionalLetter(direction);
                 break;
-                
+
             case NoticeBoardOptionType.LookingForWork:
                 // Generate letter of specific type (would need token type parameter)
                 generatedLetter = GenerateTypedLetter(ConnectionType.Commerce); // Default for now
                 break;
-                
+
             case NoticeBoardOptionType.UrgentDeliveries:
                 // Generate urgent high-paying letter
                 generatedLetter = GenerateUrgentLetter();
                 break;
         }
-        
+
         if (generatedLetter != null)
         {
             int position = AddLetterWithObligationEffects(generatedLetter);
@@ -3950,13 +3950,13 @@ public class GameFacade
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     private Letter GenerateDirectionalLetter(string direction)
     {
-        var letter = new Letter
+        Letter letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderName = "Notice Board Client",
@@ -3965,13 +3965,13 @@ public class GameFacade
             DeadlineInDays = 3 + new Random().Next(2),
             TokenType = (ConnectionType)new Random().Next(4)
         };
-        
+
         return letter;
     }
-    
+
     private Letter GenerateTypedLetter(ConnectionType tokenType)
     {
-        var letter = new Letter
+        Letter letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderName = $"{tokenType} Contact",
@@ -3980,13 +3980,13 @@ public class GameFacade
             DeadlineInDays = 4,
             TokenType = tokenType
         };
-        
+
         return letter;
     }
-    
+
     private Letter GenerateUrgentLetter()
     {
-        var letter = new Letter
+        Letter letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderName = "Urgent Client",
@@ -3996,16 +3996,16 @@ public class GameFacade
             TokenType = (ConnectionType)new Random().Next(4),
             PhysicalProperties = LetterPhysicalProperties.Fragile
         };
-        
+
         return letter;
     }
-    
+
     // ========== LETTER QUEUE HELPER METHODS ==========
-    
+
     private LetterViewModel ConvertToLetterViewModel(Letter letter)
     {
-        var leverage = GetLetterLeverageInfo(letter);
-        var obligationEffects = GetLetterObligationEffects(letter);
+        (bool HasLeverage, string Indicator, string Tooltip, int LeverageStrength, int TokenBalance) leverage = GetLetterLeverageInfo(letter);
+        (int paymentBonus, string paymentBonusSource, int deadlineExtension, string deadlineExtensionSource, int positionModifier, string positionModifierSource, List<string> activeEffects) obligationEffects = GetLetterObligationEffects(letter);
 
         return new LetterViewModel
         {
@@ -4119,7 +4119,7 @@ public class GameFacade
 
     private (bool HasLeverage, string Indicator, string Tooltip, int LeverageStrength, int TokenBalance) GetLetterLeverageInfo(Letter letter)
     {
-        var npcTokens = _connectionTokenManager.GetTokensWithNPC(letter.SenderName);
+        Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(letter.SenderName);
         int tokenBalance = npcTokens.GetValueOrDefault(letter.TokenType, 0);
 
         if (tokenBalance < 0)
@@ -4139,7 +4139,7 @@ public class GameFacade
         return (false, "", "", 0, tokenBalance);
     }
 
-    private (int paymentBonus, string paymentBonusSource, int deadlineExtension, string deadlineExtensionSource, 
+    private (int paymentBonus, string paymentBonusSource, int deadlineExtension, string deadlineExtensionSource,
             int positionModifier, string positionModifierSource, List<string> activeEffects) GetLetterObligationEffects(Letter letter)
     {
         int paymentBonus = 0;
@@ -4149,38 +4149,38 @@ public class GameFacade
         int positionModifier = 0;
         string positionModifierSource = "";
         List<string> activeEffects = new();
-        
-        if (_standingObligationManager == null) 
+
+        if (_standingObligationManager == null)
             return (0, "", 0, "", 0, "", activeEffects);
-            
+
         // Calculate payment bonus
         int calculatedBonus = _standingObligationManager.CalculateTotalCoinBonus(letter);
         if (calculatedBonus > 0)
         {
             paymentBonus = calculatedBonus;
-            var paymentObligations = _standingObligationManager.GetActiveObligations()
-                .Where(o => o.AppliesTo(letter.TokenType) && 
-                       (o.HasEffect(ObligationEffect.CommerceBonus) || 
+            List<StandingObligation> paymentObligations = _standingObligationManager.GetActiveObligations()
+                .Where(o => o.AppliesTo(letter.TokenType) &&
+                       (o.HasEffect(ObligationEffect.CommerceBonus) ||
                         o.HasEffect(ObligationEffect.CommerceBonusPlus3) ||
                         o.HasEffect(ObligationEffect.ShadowTriplePay) ||
                         o.HasEffect(ObligationEffect.DynamicPaymentBonus)))
                 .ToList();
-            
+
             if (paymentObligations.Any())
             {
                 paymentBonusSource = string.Join(", ", paymentObligations.Select(o => o.Name));
                 activeEffects.Add($"+{calculatedBonus} coins from {paymentBonusSource}");
             }
         }
-        
+
         // Calculate deadline extensions
-        var deadlineObligations = _standingObligationManager.GetActiveObligations()
-            .Where(o => o.AppliesTo(letter.TokenType) && 
-                   (o.HasEffect(ObligationEffect.DeadlinePlus2Days) || 
+        List<StandingObligation> deadlineObligations = _standingObligationManager.GetActiveObligations()
+            .Where(o => o.AppliesTo(letter.TokenType) &&
+                   (o.HasEffect(ObligationEffect.DeadlinePlus2Days) ||
                     o.HasEffect(ObligationEffect.DynamicDeadlineBonus)))
             .ToList();
-            
-        foreach (var obligation in deadlineObligations)
+
+        foreach (StandingObligation? obligation in deadlineObligations)
         {
             if (obligation.HasEffect(ObligationEffect.DeadlinePlus2Days))
             {
@@ -4189,10 +4189,10 @@ public class GameFacade
                 activeEffects.Add($"+2 days deadline from {obligation.Name}");
             }
         }
-        
+
         // Calculate position modifiers
-        var positionObligations = _standingObligationManager.GetActiveObligations()
-            .Where(o => o.AppliesTo(letter.TokenType) && 
+        List<StandingObligation> positionObligations = _standingObligationManager.GetActiveObligations()
+            .Where(o => o.AppliesTo(letter.TokenType) &&
                    (o.HasEffect(ObligationEffect.StatusPriority) ||
                     o.HasEffect(ObligationEffect.CommercePriority) ||
                     o.HasEffect(ObligationEffect.TrustPriority) ||
@@ -4200,10 +4200,10 @@ public class GameFacade
                     o.HasEffect(ObligationEffect.PatronLettersPosition3) ||
                     o.HasEffect(ObligationEffect.DynamicLeverageModifier)))
             .ToList();
-            
+
         if (positionObligations.Any())
         {
-            var bestPosition = _standingObligationManager.CalculateBestEntryPosition(letter, 8);
+            int bestPosition = _standingObligationManager.CalculateBestEntryPosition(letter, 8);
             if (bestPosition < 8)
             {
                 positionModifier = bestPosition - 8; // Negative value means better position
@@ -4211,23 +4211,23 @@ public class GameFacade
                 activeEffects.Add($"Position {bestPosition} from {positionModifierSource}");
             }
         }
-        
+
         // Add restriction effects
         if (_standingObligationManager.IsActionForbidden("refuse", letter, out string refuseReason))
         {
             activeEffects.Add($"Cannot refuse: {refuseReason}");
         }
-        
+
         if (_standingObligationManager.IsActionForbidden("purge", letter, out string purgeReason))
         {
             activeEffects.Add($"Cannot purge: {purgeReason}");
         }
-        
+
         // Check for skip cost multipliers
         int skipMultiplier = _standingObligationManager.CalculateSkipCostMultiplier(letter);
         if (skipMultiplier > 1)
         {
-            var skipObligations = _standingObligationManager.GetActiveObligations()
+            List<StandingObligation> skipObligations = _standingObligationManager.GetActiveObligations()
                 .Where(o => o.HasEffect(ObligationEffect.TrustSkipDoubleCost) && o.AppliesTo(letter.TokenType))
                 .ToList();
             if (skipObligations.Any())
@@ -4235,8 +4235,8 @@ public class GameFacade
                 activeEffects.Add($"Skip costs ×{skipMultiplier} from {string.Join(", ", skipObligations.Select(o => o.Name))}");
             }
         }
-        
-        return (paymentBonus, paymentBonusSource, deadlineExtension, deadlineExtensionSource, 
+
+        return (paymentBonus, paymentBonusSource, deadlineExtension, deadlineExtensionSource,
                 positionModifier, positionModifierSource, activeEffects);
     }
 
@@ -4298,7 +4298,7 @@ public class GameFacade
     // Missing methods for compilation
     public List<Location> GetPlayerKnownLocations()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         return _locationRepository.GetAllLocations();
     }
 

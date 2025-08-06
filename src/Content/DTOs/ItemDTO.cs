@@ -19,10 +19,10 @@ public class ItemDTO
     public string Description { get; set; }
     public bool? IsEquipment { get; set; }
     public int? StaminaBonus { get; set; }
-    
+
     // Token generation modifiers (e.g., {"Common": 1.5} for +50% Common tokens)
     public Dictionary<string, float> TokenGenerationModifiers { get; set; } = new Dictionary<string, float>();
-    
+
     // Token types this equipment enables (e.g., ["Noble"] for Fine Clothes)
     public List<string> EnablesTokenGeneration { get; set; } = new List<string>();
 

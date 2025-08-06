@@ -38,16 +38,16 @@ public class Letter
     public int DeadlineInDays { get; set; }
     public int Payment { get; set; }
     public ConnectionType TokenType { get; set; }
-    
+
     // Tier system (1-5) for difficulty progression
     public int Tier { get; set; } = 1;
 
     // Three-state system
     public LetterState State { get; set; } = LetterState.Offered;
-    
+
     // Special letter type
     public LetterSpecialType SpecialType { get; set; } = LetterSpecialType.None;
-    
+
     // Queue position tracking for leverage visualization
     public int? OriginalQueuePosition { get; set; }
     public int LeverageBoost { get; set; } = 0;
@@ -81,7 +81,7 @@ public class Letter
 
     // Content
     public string Message { get; set; } = "";
-    
+
     // Special letter properties
     public string UnlocksNPCId { get; set; } = "";  // For Introduction letters
     public string UnlocksLocationId { get; set; } = "";  // For Access Permit letters

@@ -8,13 +8,13 @@ public class ConversationRepository
 {
     private readonly Dictionary<string, ConversationDefinition> _conversations;
     private readonly Dictionary<string, string> _npcToConversation;
-    
+
     public ConversationRepository()
     {
         _conversations = new Dictionary<string, ConversationDefinition>();
         _npcToConversation = new Dictionary<string, string>();
     }
-    
+
     /// <summary>
     /// Initialize repository with conversations loaded during game initialization
     /// </summary>
@@ -22,44 +22,44 @@ public class ConversationRepository
     {
         _conversations.Clear();
         _npcToConversation.Clear();
-        
+
         if (conversations != null)
         {
-            foreach (var kvp in conversations)
+            foreach (KeyValuePair<string, ConversationDefinition> kvp in conversations)
             {
                 _conversations[kvp.Key] = kvp.Value;
             }
         }
-        
+
         if (npcDialogues != null)
         {
-            foreach (var kvp in npcDialogues)
+            foreach (KeyValuePair<string, string> kvp in npcDialogues)
             {
                 _npcToConversation[kvp.Key] = kvp.Value;
             }
         }
     }
-    
+
     /// <summary>
     /// Get conversation by ID
     /// </summary>
     public ConversationDefinition GetConversation(string conversationId)
     {
-        return _conversations.TryGetValue(conversationId, out var conversation) ? conversation : null;
+        return _conversations.TryGetValue(conversationId, out ConversationDefinition? conversation) ? conversation : null;
     }
-    
+
     /// <summary>
     /// Get conversation for a specific NPC
     /// </summary>
     public ConversationDefinition GetConversationForNpc(string npcId)
     {
-        if (_npcToConversation.TryGetValue(npcId, out var conversationId))
+        if (_npcToConversation.TryGetValue(npcId, out string? conversationId))
         {
             return GetConversation(conversationId);
         }
         return null;
     }
-    
+
     /// <summary>
     /// Check if NPC has a special conversation
     /// </summary>
@@ -67,16 +67,16 @@ public class ConversationRepository
     {
         return _npcToConversation.ContainsKey(npcId);
     }
-    
+
     /// <summary>
     /// Get the introductory text for an NPC's conversation
     /// </summary>
     public string GetNpcIntroduction(string npcId)
     {
-        var conversation = GetConversationForNpc(npcId);
+        ConversationDefinition conversation = GetConversationForNpc(npcId);
         if (conversation?.Nodes != null && !string.IsNullOrEmpty(conversation.InitialNode))
         {
-            if (conversation.Nodes.TryGetValue(conversation.InitialNode, out var node))
+            if (conversation.Nodes.TryGetValue(conversation.InitialNode, out ConversationNode? node))
             {
                 return node.Text;
             }

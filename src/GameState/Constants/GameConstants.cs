@@ -13,7 +13,7 @@ public static class GameConstants
     {
         public const int LIGHT_LOAD_MAX = 3;
         public const int MEDIUM_LOAD_MAX = 6;
-        
+
         // Stamina penalties for load weight
         public const int LIGHT_LOAD_STAMINA_PENALTY = 0;
         public const int MEDIUM_LOAD_STAMINA_PENALTY = 1;
@@ -28,11 +28,11 @@ public static class GameConstants
         // Wait options for rest/wait actions
         public const int WAIT_OPTION_SHORT_HOURS = 2;
         public const int WAIT_OPTION_LONG_HOURS = 4;
-        
+
         // Streaming content estimation
         public const int ESTIMATED_STREAMING_TOKENS = 1000;
         public const int CHARS_PER_TOKEN_ESTIMATE = 4;
-        
+
         // Display limits
         public const int MAX_ERROR_DISPLAY_COUNT = 10;
         public const int COMMAND_DESCRIPTION_MAX_LENGTH = 200;
@@ -65,7 +65,7 @@ public static class GameConstants
     {
         public const int INITIAL_PATRON_DEBT = -20;
         public const int PATRON_DEBT_THRESHOLD = -10;
-        
+
         // Debt leverage thresholds
         public const int EXTREME_DEBT_THRESHOLD = -10;
         public const int MODERATE_DEBT_THRESHOLD = -5;
@@ -81,7 +81,7 @@ public static class GameConstants
         public const int DEADLINE_URGENT_THRESHOLD = 3;
         public const int DEADLINE_CRITICAL_THRESHOLD = 2;
         public const int DEADLINE_EXPIRED = 0;
-        
+
         // Token relationship thresholds
         public const int HIGH_POSITIVE_RELATIONSHIP_THRESHOLD = 4;
         public const int REPEATED_SKIP_THRESHOLD = 2;

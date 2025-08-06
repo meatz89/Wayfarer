@@ -41,7 +41,7 @@
 
     public NPC GetById(string id)
     {
-        var npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
+        NPC? npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
         if (npc != null && !IsNPCVisible(npc))
             return null;
         return npc;
@@ -49,7 +49,7 @@
 
     public NPC GetByName(string name)
     {
-        var npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        NPC? npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         if (npc != null && !IsNPCVisible(npc))
             return null;
         return npc;
@@ -57,35 +57,35 @@
 
     public List<NPC> GetAllNPCs()
     {
-        var npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
+        List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
         return FilterByVisibility(npcs);
     }
 
     public List<NPC> GetNPCsForLocation(string locationId)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        var locationNpcs = npcs.Where(n => n.Location == locationId).ToList();
+        List<NPC> locationNpcs = npcs.Where(n => n.Location == locationId).ToList();
         return FilterByVisibility(locationNpcs);
     }
 
     public List<NPC> GetAvailableNPCs(TimeBlocks currentTime)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        var availableNpcs = npcs.Where(n => n.IsAvailable(currentTime)).ToList();
+        List<NPC> availableNpcs = npcs.Where(n => n.IsAvailable(currentTime)).ToList();
         return FilterByVisibility(availableNpcs);
     }
 
     public List<NPC> GetNPCsByProfession(Professions profession)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        var professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
+        List<NPC> professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
         return FilterByVisibility(professionNpcs);
     }
 
     public List<NPC> GetNPCsProvidingService(ServiceTypes service)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        var serviceNpcs = npcs.Where(n => n.ProvidedServices.Contains(service)).ToList();
+        List<NPC> serviceNpcs = npcs.Where(n => n.ProvidedServices.Contains(service)).ToList();
         return FilterByVisibility(serviceNpcs);
     }
 
@@ -94,7 +94,7 @@
         // Return all NPCs at location, regardless of availability
         // UI will handle whether they're interactable based on availability
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        var locationNpcs = npcs.Where(n => n.Location == locationId).ToList();
+        List<NPC> locationNpcs = npcs.Where(n => n.Location == locationId).ToList();
         return FilterByVisibility(locationNpcs);
     }
 
@@ -111,10 +111,10 @@
             $"Looking for NPCs at spot '{locationSpotId}' during {currentTime}");
 
         List<NPC> npcsAtSpot = npcs.Where(n => n.SpotId == locationSpotId).ToList();
-        
+
         // Apply visibility filtering
         npcsAtSpot = FilterByVisibility(npcsAtSpot);
-        
+
         _debugLogger.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}' (after visibility filtering): " +
             string.Join(", ", npcsAtSpot.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
 
@@ -127,7 +127,7 @@
     public NPC GetPrimaryNPCForSpot(string locationSpotId, TimeBlocks currentTime)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        var npc = npcs.FirstOrDefault(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime));
+        NPC? npc = npcs.FirstOrDefault(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime));
         if (npc != null && !IsNPCVisible(npc))
             return null;
         return npc;

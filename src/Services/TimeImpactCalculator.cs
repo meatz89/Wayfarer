@@ -21,27 +21,27 @@ public class TimeImpactCalculator
 
     public TimeImpactInfo CalculateTimeImpact(int hours)
     {
-        var currentHour = _timeManager.GetCurrentTimeHours();
-        var currentDay = _timeManager.GetCurrentDay();
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        
+        int currentHour = _timeManager.GetCurrentTimeHours();
+        int currentDay = _timeManager.GetCurrentDay();
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+
         // Calculate resulting time
-        var resultHour = currentHour + hours;
-        var daysAdvanced = 0;
-        
+        int resultHour = currentHour + hours;
+        int daysAdvanced = 0;
+
         // Handle day advancement
         while (resultHour >= 24)
         {
             resultHour -= 24;
             daysAdvanced++;
         }
-        
-        var resultTimeBlock = GetTimeBlockForHour(resultHour);
-        var wouldAdvanceDay = daysAdvanced > 0;
-        
+
+        TimeBlocks resultTimeBlock = GetTimeBlockForHour(resultHour);
+        bool wouldAdvanceDay = daysAdvanced > 0;
+
         // Calculate deadline impacts
-        var deadlineImpacts = CalculateDeadlineImpacts(daysAdvanced);
-        
+        List<AffectedLetterInfo> deadlineImpacts = CalculateDeadlineImpacts(daysAdvanced);
+
         return new TimeImpactInfo
         {
             Hours = hours,
@@ -54,15 +54,15 @@ public class TimeImpactCalculator
             AffectedLetters = deadlineImpacts
         };
     }
-    
+
     private List<AffectedLetterInfo> CalculateDeadlineImpacts(int daysAdvanced)
     {
-        var impacts = new List<AffectedLetterInfo>();
-        var queue = _letterQueueManager.GetPlayerQueue();
-        
-        foreach (var letter in queue.Where(l => l != null))
+        List<AffectedLetterInfo> impacts = new List<AffectedLetterInfo>();
+        Letter[] queue = _letterQueueManager.GetPlayerQueue();
+
+        foreach (Letter? letter in queue.Where(l => l != null))
         {
-            var daysRemaining = letter.DeadlineInDays - daysAdvanced;
+            int daysRemaining = letter.DeadlineInDays - daysAdvanced;
             if (daysRemaining <= 0 && letter.DeadlineInDays > 0)
             {
                 // This letter would expire
@@ -75,10 +75,10 @@ public class TimeImpactCalculator
                 });
             }
         }
-        
+
         return impacts;
     }
-    
+
     private TimeBlocks GetTimeBlockForHour(int hour)
     {
         return hour switch

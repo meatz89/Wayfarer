@@ -92,14 +92,14 @@ GameWorld is the single source of truth and has NO dependencies on any services,
 
 ### 3. GameFacade Architecture Pattern
 
-**Rule**: UI components MUST only interact with the backend through IGameFacade.
+**Rule**: UI components MUST only interact with the backend throughIGameFacade.
 
 #### The Pattern
 
 The GameFacade pattern provides THE ONLY way UI components and test controllers should communicate with the game backend. This architectural pattern was implemented to solve multiple critical issues:
 
 1. **Eliminated Circular Dependencies**: Previously, UI components directly injected 30+ services, creating complex dependency graphs that caused startup hangs
-2. **Improved Testability**: UI components can now be tested with simple mock IGameFacade implementations
+2. **Improved Testability**: UI components can now be tested with simple mockIGameFacade implementations
 3. **Enforced Clean Architecture**: Clear separation between presentation and domain layers
 
 #### Implementation Details
@@ -113,7 +113,7 @@ The GameFacade pattern provides THE ONLY way UI components and test controllers 
 // ... 26 more injections
 
 // After: Single facade injection
-@inject IGameFacade GameFacade
+@injectIGameFacade GameFacade
 ```
 
 #### ViewModels for Data Transfer
@@ -180,13 +180,13 @@ public class SomeService
 - Test individual components in isolation
 - Verify GameWorld can be created without dependencies
 - Ensure static initialization pattern
-- Mock IGameFacade for UI component testing
+- MockIGameFacade for UI component testing
 
 ### 2. Architecture Tests
 - Enforce architectural rules through reflection
 - Prevent accidental breaking changes
 - Validate dependency directions
-- Ensure UI components only depend on IGameFacade
+- Ensure UI components only depend onIGameFacade
 
 ### 3. Integration Tests
 - Test the full startup sequence
@@ -198,7 +198,7 @@ public class SomeService
 - Validate the entire game can start
 - Check critical services are available
 - Ensure UI renders properly
-- Test complete UI workflows through IGameFacade
+- Test complete UI workflows throughIGameFacade
 
 ## Common Pitfalls to Avoid
 
@@ -206,7 +206,7 @@ public class SomeService
 2. **Adding Dependencies to GameWorld**: This violates the core architecture
 3. **Using Events in Navigation**: This creates circular dependencies
 4. **Service Locator Anti-Pattern**: Always use constructor injection
-5. **Direct Service Injection in UI**: UI components must ONLY use IGameFacade
+5. **Direct Service Injection in UI**: UI components must ONLY useIGameFacade
 6. **Exposing Domain Objects to UI**: Always use ViewModels for data transfer
 7. **Bypassing GameFacade**: Never access backend services directly from UI
 

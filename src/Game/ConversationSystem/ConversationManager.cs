@@ -3,14 +3,14 @@
 /// </summary>
 public class ConversationManager
 {
-    private ConversationContext _context;
+    private SceneContext _context;
     private ConversationState _state;
     private INarrativeProvider _narrativeProvider;
     private GameWorld _gameWorld;
 
     public ConversationState State => _state;
 
-    public ConversationContext Context => _context;
+    public SceneContext Context => _context;
 
     public bool IsAwaitingResponse => _isAwaitingAIResponse;
 
@@ -19,7 +19,7 @@ public class ConversationManager
     public bool _isAvailable = true;
 
     public ConversationManager(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         INarrativeProvider narrativeProvider,
         GameWorld gameWorld)
@@ -67,6 +67,12 @@ public class ConversationManager
 
     public async Task<ConversationBeatOutcome> ProcessPlayerChoice(ConversationChoice selectedChoice)
     {
+        // Spend attention if required
+        if (_context?.AttentionManager != null && selectedChoice.AttentionCost > 0)
+        {
+            _context.AttentionManager.TrySpend(selectedChoice.AttentionCost);
+        }
+
         // Process the player's dialogue choice
         bool success = true; // TODO: Determine success based on skill check
 
@@ -112,7 +118,7 @@ public class ConversationChoice
 {
     public string ChoiceID { get; set; }
     public string NarrativeText { get; set; }
-    public int FocusCost { get; set; }
+    public int AttentionCost { get; set; }
     public bool IsAffordable { get; set; }
     public string TemplatePurpose { get; set; }
     public ConversationChoiceType ChoiceType { get; set; } = ConversationChoiceType.Default;

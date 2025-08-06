@@ -49,22 +49,22 @@ public class ConnectionTokenManager
         }
         return emptyTokens;
     }
-    
+
     // Get tokens with specific NPC as strongly typed object
     public NPCTokenBalance GetNPCTokenBalance(string npcId)
     {
-        var tokenDict = GetTokensWithNPC(npcId);
-        var balance = new NPCTokenBalance();
-        
-        foreach (var kvp in tokenDict)
+        Dictionary<ConnectionType, int> tokenDict = GetTokensWithNPC(npcId);
+        NPCTokenBalance balance = new NPCTokenBalance();
+
+        foreach (KeyValuePair<ConnectionType, int> kvp in tokenDict)
         {
-            balance.Balances.Add(new TokenBalance 
-            { 
-                TokenType = kvp.Key, 
-                Amount = kvp.Value 
+            balance.Balances.Add(new TokenBalance
+            {
+                TokenType = kvp.Key,
+                Amount = kvp.Value
             });
         }
-        
+
         return balance;
     }
 
@@ -81,7 +81,7 @@ public class ConnectionTokenManager
 
         AddTokensToNPC(tokenType, 1, npcId);
     }
-    
+
     // Add tokens with specific type (used by context-aware commands)
     public void AddTokensFromAction(string npcId, ConnectionType tokenType, int count = 1)
     {
@@ -99,7 +99,7 @@ public class ConnectionTokenManager
         Player player = _gameWorld.GetPlayer();
         Dictionary<ConnectionType, int> playerTokens = player.ConnectionTokens;
         Dictionary<string, Dictionary<ConnectionType, int>> npcTokens = player.NPCTokens;
-        
+
         // Apply equipment modifiers
         float modifier = GetEquipmentTokenModifier(type);
         int modifiedCount = (int)Math.Ceiling(count * modifier);
@@ -512,24 +512,24 @@ public class ConnectionTokenManager
     private float GetEquipmentTokenModifier(ConnectionType tokenType)
     {
         if (_itemRepository == null) return 1.0f;
-        
+
         Player player = _gameWorld.GetPlayer();
         float totalModifier = 1.0f;
-        
+
         // Check all items in inventory for token modifiers
         foreach (string itemId in player.Inventory.GetAllItems())
         {
             if (string.IsNullOrEmpty(itemId)) continue;
-            
+
             Item item = _itemRepository.GetItemById(itemId);
-            if (item != null && item.TokenGenerationModifiers != null && 
+            if (item != null && item.TokenGenerationModifiers != null &&
                 item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
             {
                 // Multiply modifiers (e.g., 1.5 * 1.2 = 1.8 for +50% and +20%)
                 totalModifier *= modifier;
             }
         }
-        
+
         return totalModifier;
     }
 
@@ -544,24 +544,24 @@ public class ConnectionTokenManager
         {
             return true;
         }
-        
+
         // Then check equipment
         if (_itemRepository == null) return false;
-        
+
         Player player = _gameWorld.GetPlayer();
-        
+
         foreach (string itemId in player.Inventory.GetAllItems())
         {
             if (string.IsNullOrEmpty(itemId)) continue;
-            
+
             Item item = _itemRepository.GetItemById(itemId);
-            if (item != null && item.EnablesTokenGeneration != null && 
+            if (item != null && item.EnablesTokenGeneration != null &&
                 item.EnablesTokenGeneration.Contains(tokenType))
             {
                 return true;
             }
         }
-        
+
         return false;
     }
 }

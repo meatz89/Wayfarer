@@ -26,10 +26,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**📋 CURRENT IMPLEMENTATION STATUS: See IMPLEMENTATION-PLAN-COMPLETE-SYSTEMS.md**
-- Phases 1, 2, 5 complete (Special Letters, Information Satchel, Multi-Context Tokens)
-- Phase 6 (Time Cost System) in progress
-- Follow the plan document for remaining phases
+**📋 CURRENT IMPLEMENTATION STATUS**
+- **Literary UI Transformation in Progress** - See LITERARY-UI-IMPLEMENTATION.md for complete details
+- Phase 1 Backend Systems Complete (Attention, SceneContext, Rumors) 
+- Phase 2-5 UI Components Pending
+- GitHub Issues #27-36 track the literary UI user stories
 
 *** PRIME PRINCIPLES ***
 - You are too agreeable by default. I want you objective. I want a partner. Not a sycophant.
@@ -113,34 +114,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Players discover strategies rather than memorizing exceptions
 - Code remains clean and general
 - New content automatically inherits system behaviors
-
-*** COMPOUND ACTIONS AND EMERGENT EFFICIENCY
-
-**Natural action overlap creates efficiency without special bonuses or explicit mechanics.**
-
-**Key Principle**: When player actions naturally overlap (carrying trade goods while delivering letters), the efficiency emerges from systems working as designed, not from special "compound action" bonuses.
-
-**Examples of Natural Overlap:**
-- ✅ Carrying trade goods to letter destinations for profit
-- ✅ Working for NPCs naturally builds relationship tokens
-- ✅ Buying drinks at taverns restores stamina AND builds connections
-- ✅ Gathering resources while traveling between locations
-
-**Implementation Pattern:**
-```csharp
-// ✅ CORRECT: Detect natural benefits
-if (player.HasTradeGoods && location.HasMarket)
-{
-    // Show the natural profit opportunity
-    effect = "Access market + sell items for profit";
-}
-
-// ❌ WRONG: Add special compound bonuses
-if (isDoingDelivery && hasTradeGoods)
-{
-    profitBonus *= 1.5; // NO! No artificial bonuses
-}
-```
 
 **📝 JSON VALIDATION BEST PRACTICES**
 - **Always use case-insensitive property matching** - JSON files use camelCase while C# DTOs use PascalCase

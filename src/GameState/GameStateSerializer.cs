@@ -82,7 +82,7 @@ public static class GameWorldSerializer
                 // Patron tracking
                 PatronLeverage = gameWorld.GetPlayer().PatronLeverage
             },
-            
+
             // Narrative state
             FlagServiceState = flagService?.GetState()
         };
@@ -490,7 +490,7 @@ public static class GameWorldSerializer
         {
             flagService.RestoreState(serialized.FlagServiceState);
         }
-        
+
 
         return gameWorld;
     }

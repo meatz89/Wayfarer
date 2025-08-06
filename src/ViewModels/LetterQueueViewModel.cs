@@ -48,7 +48,7 @@ public class LetterViewModel
     public bool IsCollected { get; init; }
     public string PhysicalConstraints { get; init; }
     public string PhysicalIcon { get; init; }
-    
+
     // Special letter properties
     public bool IsSpecial { get; init; }
     public string SpecialIcon { get; init; }
@@ -60,7 +60,7 @@ public class LetterViewModel
     public string DeadlineDescription { get; init; }
     public string LeverageIndicator { get; init; }
     public string LeverageTooltip { get; init; }
-    
+
     // Enhanced leverage information
     public bool HasLeverage { get; init; }
     public int LeverageStrength { get; init; }
@@ -68,7 +68,7 @@ public class LetterViewModel
     public string LeverageClass { get; init; }
     public int OriginalPosition { get; init; }
     public int CurrentPosition { get; init; }
-    
+
     // Obligation effects
     public bool HasPaymentBonus { get; init; }
     public int PaymentBonusAmount { get; init; }
@@ -160,13 +160,13 @@ public class TokenSelection
 public class NPCTokenBalance
 {
     public List<TokenBalance> Balances { get; set; } = new();
-    
+
     public int GetBalance(ConnectionType tokenType)
     {
-        var balance = Balances.FirstOrDefault(b => b.TokenType == tokenType);
+        TokenBalance? balance = Balances.FirstOrDefault(b => b.TokenType == tokenType);
         return balance?.Amount ?? 0;
     }
-    
+
     public int TotalTokens => Balances.Sum(b => b.Amount);
 }
 

@@ -1,5 +1,5 @@
-using System;
 using Microsoft.Extensions.Logging;
+using System;
 
 /// <summary>
 /// Static factory for creating and initializing GameWorld instances.
@@ -15,16 +15,16 @@ public static class GameWorldInitializer
     public static GameWorld CreateGameWorld()
     {
         Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld called");
-        
+
         // Use default content directory path
-        var contentDirectory = new ContentDirectory { Path = "Content" };
-        
+        ContentDirectory contentDirectory = new ContentDirectory { Path = "Content" };
+
         Console.WriteLine("[FACTORY] LoadGameFromTemplates started - using new pipeline");
-        
+
         // Use new pipeline that handles missing references gracefully
-        var pipeline = new GameWorldInitializationPipeline(contentDirectory);
-        var gameWorld = pipeline.Initialize();
-        
+        GameWorldInitializationPipeline pipeline = new GameWorldInitializationPipeline(contentDirectory);
+        GameWorld gameWorld = pipeline.Initialize();
+
         Console.WriteLine("[FACTORY] GameWorldInitializer.CreateGameWorld completed");
         return gameWorld;
     }

@@ -63,13 +63,13 @@ public class PatronLetterService
     public void InitializePatronDebt()
     {
         // Check if patron debt already exists
-        var patronTokens = _tokenManager.GetTokensWithNPC("patron");
+        Dictionary<ConnectionType, int> patronTokens = _tokenManager.GetTokensWithNPC("patron");
         if (patronTokens[ConnectionType.Status] >= GameConstants.Patron.PATRON_DEBT_THRESHOLD)
         {
             // Set extreme debt to create natural leverage
             // This debt makes patron letters naturally reach positions 1-3
             _tokenManager.AddTokensToNPC(ConnectionType.Status, GameConstants.Patron.INITIAL_PATRON_DEBT, "patron");
-            
+
             _messageSystem.AddSystemMessage(
                 "Your patron has saved you from destitution - but at a steep price.",
                 SystemMessageTypes.Warning
@@ -92,15 +92,15 @@ public class PatronLetterService
     public Letter GeneratePatronLetter()
     {
         // Get available patron letter templates - this will respect tutorial filtering
-        var patronTemplates = _letterTemplateRepository.GetTemplatesByTokenType(ConnectionType.Status)
-            .Where(t => t.Category == LetterCategory.Premium || 
-                       t.Id.StartsWith("patron_") || 
+        List<LetterTemplate> patronTemplates = _letterTemplateRepository.GetTemplatesByTokenType(ConnectionType.Status)
+            .Where(t => t.Category == LetterCategory.Premium ||
+                       t.Id.StartsWith("patron_") ||
                        t.Id.StartsWith("forced_patron_") ||
                        t.Id.StartsWith("tutorial_patron_"))
             .ToList();
 
-        LetterTemplate template = patronTemplates.Any() 
-            ? patronTemplates[_random.Next(patronTemplates.Count)] 
+        LetterTemplate template = patronTemplates.Any()
+            ? patronTemplates[_random.Next(patronTemplates.Count)]
             : null;
 
         if (template == null)
@@ -196,7 +196,7 @@ public class PatronLetterService
     {
         // Ensure patron debt is initialized for leverage
         InitializePatronDebt();
-        
+
         if (ShouldGeneratePatronLetter())
         {
             Letter patronLetter = GeneratePatronLetter();
