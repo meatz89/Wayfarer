@@ -1,0 +1,118 @@
+@page "/conversation/{NpcId}"
+@using Wayfarer.ViewModels
+@inherits ConversationScreenBase
+
+<div class="container">
+    @if (Model != null)
+    {
+        <!-- Attention Display - ALWAYS VISIBLE -->
+        <div class="attention-bar">
+            <span class="attention-label">Attention:</span>
+            @for (int i = 0; i < Model.MaxAttention; i++)
+            {
+                <div class="attention-point @(i < Model.CurrentAttention ? "" : "spent")"></div>
+            }
+        </div>
+
+        <!-- Peripheral Awareness - SUBTLE HINTS -->
+        @if (!string.IsNullOrEmpty(Model.DeadlinePressure) || Model.EnvironmentalHints?.Any() == true)
+        {
+            <div class="peripheral-layer">
+                @if (!string.IsNullOrEmpty(Model.DeadlinePressure))
+                {
+                    <div class="deadline-pressure">
+                        @Model.DeadlinePressure
+                    </div>
+                }
+                
+                @foreach (var hint in Model.EnvironmentalHints ?? new())
+                {
+                    <div class="environmental-hints">
+                        @hint
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Location Header - SETS ATMOSPHERE -->
+        <div class="location-header">
+            <div class="location-name">@Model.LocationName</div>
+            <div class="location-atmosphere">@Model.LocationAtmosphere</div>
+        </div>
+
+        <!-- Main Scene Content -->
+        <div class="scene-content">
+            <!-- Character Focus - BODY LANGUAGE NOT STATS -->
+            <div class="character-focus">
+                <div class="character-name">@Model.CharacterName</div>
+                <div class="character-state">@Model.CharacterState</div>
+                @if (Model.RelationshipStatus?.Any() == true)
+                {
+                    <div class="relationship-status">
+                        @foreach (var rel in Model.RelationshipStatus)
+                        {
+                            <span>@rel.Value</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Current Dialogue - NARRATIVE FOCUS -->
+            @if (Model.SpokenWords?.Any() == true)
+            {
+                <div class="dialogue-container">
+                    @foreach (var words in Model.SpokenWords)
+                    {
+                        <div class="spoken-words">
+                            @words
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.CharacterAction))
+                    {
+                        <div class="character-action">
+                            @Model.CharacterAction
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Choice Options - INTERNAL THOUGHTS WITH COSTS -->
+            <div class="choice-container">
+                @foreach (var choice in Model.Choices ?? new())
+                {
+                    <div class="choice-option @(choice.IsLocked ? "locked" : "")" 
+                         @onclick="() => SelectChoice(choice.Id)">
+                        <div class="attention-cost @(choice.AttentionCost == 0 ? "free" : "")">
+                            @choice.AttentionDisplay
+                        </div>
+                        <div class="choice-text">@choice.Text</div>
+                        @if (choice.Mechanics?.Any() == true)
+                        {
+                            <div class="choice-mechanics">
+                                @foreach (var mechanic in choice.Mechanics)
+                                {
+                                    <div class="mechanic-item mechanic-@mechanic.Type.ToString().ToLower()">
+                                        @mechanic.Icon @mechanic.Description
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Minimal Bottom Status -->
+        <div class="bottom-status">
+            <span>📍 @Model.CurrentLocation</span>
+            <span>📜 Queue: @Model.QueueStatus</span>
+            <span>💰 @Model.CoinStatus</span>
+        </div>
+    }
+    else
+    {
+        <div class="loading">Loading conversation...</div>
+    }
+</div>
+

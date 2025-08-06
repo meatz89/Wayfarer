@@ -68,19 +68,6 @@ public class ConnectionTokenManager
         return balance;
     }
 
-    // Add tokens through Socialize (1 hour → 1 token) or Delivery (1 stamina → 1 token)
-    // This method is kept for backward compatibility but should not be used for new commands
-    public void AddTokensFromSocialize(string npcId)
-    {
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return;
-
-        // Socialize gives 1 token of NPC's primary type
-        ConnectionType tokenType = npc.LetterTokenTypes.FirstOrDefault();
-        if (tokenType == default) return;
-
-        AddTokensToNPC(tokenType, 1, npcId);
-    }
 
     // Add tokens with specific type (used by context-aware commands)
     public void AddTokensFromAction(string npcId, ConnectionType tokenType, int count = 1)

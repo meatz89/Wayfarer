@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using System;
 using System.Threading.Tasks;
+using Wayfarer.ViewModels;
 
 public class InternalThoughtChoiceBase : ComponentBase
 {

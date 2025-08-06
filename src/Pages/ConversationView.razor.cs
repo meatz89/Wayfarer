@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Linq;
+using Wayfarer.ViewModels;
 
 public class ConversationViewBase : ComponentBase
 {

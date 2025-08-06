@@ -1,24 +1,25 @@
 /* Literary UI Stylesheet - Everything is felt, not displayed */
 
 :root {
+    /* Keep existing game colors, add literary-specific ones */
     --attention-gold: #ffd700;
     --attention-spent: #8b7355;
-    --pressure-red: #8b0000;
-    --comfort-warm: #d2691e;
+    --pressure-red: #9E2A2B;
+    --comfort-warm: #BC6C25;
     --mystery-purple: #4b0082;
-    --shadow-dark: #2c2416;
-    --parchment: #fefdfb;
-    --ink-black: #1a1512;
-    --thought-gray: #5a534b;
+    --shadow-dark: #2C2622;
+    --parchment-light: #F2E8D5;
+    --ink-black: #2A2016;
+    --thought-gray: #65513C;
 }
 
 /* Literary Conversation Container */
 .literary-conversation-container {
-    max-width: 800px;
+    max-width: 640px;
     margin: 0 auto;
-    padding: 20px;
-    background: var(--parchment);
-    min-height: 600px;
+    background: var(--parchment-light);
+    min-height: 100vh;
+    position: relative;
 }
 
 /* Scene Atmosphere */
@@ -28,34 +29,39 @@
     padding-bottom: 15px;
 }
 
-/* Attention Display */
-.attention-display {
-    text-align: center;
-    margin-bottom: 15px;
+/* Attention Bar - Fixed at Top Like Mockup */
+.attention-bar {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(44, 36, 22, 0.95);
+    padding: 8px 16px;
+    border-radius: 20px;
+    z-index: 100;
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
-.attention-points {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 8px;
+.attention-label {
+    color: var(--text-primary);
+    font-size: 12px;
+    margin-right: 8px;
 }
 
 .attention-point {
-    font-size: 24px;
-    color: var(--attention-gold);
-    transition: all 0.3s ease;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--attention-gold);
+    border: 2px solid var(--text-primary);
+    transition: all 0.3s;
 }
 
-.attention-point.empty {
-    color: var(--attention-spent);
+.attention-point.spent {
+    background: var(--bg-card);
     opacity: 0.5;
-}
-
-.attention-narrative {
-    font-style: italic;
-    color: var(--thought-gray);
-    font-size: 14px;
 }
 
 /* Context Tags */
@@ -90,40 +96,118 @@
     border: 1px solid var(--comfort-warm);
 }
 
-/* NPC Presence */
-.npc-presence {
-    margin-bottom: 20px;
+/* Location Header - Matching Mockup */
+.location-header {
+    background: #f9f7f3;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e8dfd0;
+    margin-top: 60px; /* Space for attention bar */
 }
 
-.npc-name {
-    font-size: 20px;
+.location-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 4px;
     color: var(--ink-black);
+}
+
+.location-atmosphere {
+    font-size: 12px;
+    color: var(--thought-gray);
+    font-style: italic;
+}
+
+/* Character Focus Section */
+.character-focus {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.character-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: var(--ink-black);
+}
+
+.character-state {
+    font-size: 13px;
+    color: var(--thought-gray);
+    font-style: italic;
     margin-bottom: 8px;
 }
 
-.body-language {
-    font-style: italic;
+.relationship-status {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 12px;
+    margin-bottom: 16px;
     color: var(--thought-gray);
-    margin: 8px 0;
 }
 
-/* Dialogue Text */
-.dialogue-text {
+/* Dialogue Container - Matching Mockup */
+.dialogue-container {
     background: white;
-    padding: 15px;
-    border-left: 3px solid var(--attention-gold);
-    margin: 20px 0;
-    font-size: 16px;
+    border: 1px solid #d4c5a0;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 0 20px 20px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.spoken-words {
+    font-size: 15px;
     line-height: 1.6;
+    margin-bottom: 12px;
     color: var(--ink-black);
 }
 
-/* Peripheral Awareness */
-.peripheral-awareness {
+.character-action {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--oak-mid);
+    text-align: center;
+    margin: 12px 0;
+}
+
+/* Peripheral Elements - Positioned Like Mockup */
+.peripheral-layer {
     position: fixed;
-    right: 20px;
-    top: 100px;
-    max-width: 200px;
+    width: 100%;
+    max-width: 640px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.peripheral-layer > * {
+    pointer-events: auto;
+}
+
+.deadline-pressure {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    background: rgba(158, 42, 43, 0.9);
+    color: white;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.environmental-hints {
+    position: absolute;
+    bottom: 20px;
+    right: 10px;
+    background: rgba(44, 36, 22, 0.8);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    font-style: italic;
+    cursor: pointer;
 }
 
 .peripheral-observations {
@@ -150,28 +234,33 @@
     margin: 15px 0;
 }
 
-/* Conversation Choices */
-.conversation-choices {
-    margin-top: 25px;
-}
-
+/* Choice System - Matching Mockup Layout */
 .choice-container {
-    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
 }
 
-.conversation-choice {
-    width: 100%;
-    text-align: left;
-    padding: 12px 15px;
-    background: white;
-    border: 1px solid #e0d8d0;
-    border-radius: 4px;
+.choice-option {
+    background: #f9f7f3;
+    border: 1px solid #e8dfd0;
+    padding: 12px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
     position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+}
+
+.choice-option:hover {
+    background: white;
+    border-color: var(--leather);
+    transform: translateX(4px);
+}
+
+.choice-option.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .conversation-choice:hover:not(:disabled) {
@@ -190,9 +279,53 @@
 }
 
 .attention-cost {
-    color: var(--attention-gold);
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--attention-gold);
+    color: var(--ink-black);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.attention-cost.free {
+    background: var(--moss);
+    color: white;
+}
+
+.choice-text {
     font-size: 14px;
-    margin-left: 10px;
+    margin-bottom: 6px;
+    font-style: italic;
+    color: var(--ink-black);
+}
+
+.choice-mechanics {
+    font-size: 12px;
+    color: var(--thought-gray);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mechanic-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mechanic-positive {
+    color: var(--moss);
+}
+
+.mechanic-negative {
+    color: var(--rust);
+}
+
+.mechanic-neutral {
+    color: var(--slate);
 }
 
 .unavailable-reason {
@@ -363,17 +496,45 @@
     border-left: 3px solid var(--comfort-warm);
 }
 
+/* Bottom Status Bar - Minimal Info */
+.bottom-status {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.bottom-status span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Scene Content Wrapper */
+.scene-content {
+    padding: 20px;
+    padding-bottom: 100px; /* Space for bottom status */
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .peripheral-awareness {
+    .peripheral-layer {
         position: static;
         max-width: 100%;
         margin: 15px 0;
     }
     
-    .scene-pressure {
+    .attention-bar {
         position: static;
-        flex-direction: row;
-        margin-top: 15px;
+        margin: 10px auto;
+        width: fit-content;
     }
 }

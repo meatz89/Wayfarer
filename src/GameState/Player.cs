@@ -503,11 +503,6 @@ public class Player
         return 0;
     }
 
-    public void SetRelationship(string iD, int newRelationship)
-    {
-        // Relationships now handled through ConnectionTokenManager
-        // This method kept for compatibility but does nothing
-    }
 
 
 

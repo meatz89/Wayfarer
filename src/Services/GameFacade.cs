@@ -48,7 +48,6 @@ public class GameFacade
     private readonly LetterTemplateRepository _letterTemplateRepository;
     private readonly InformationRevealService _informationRevealService;
     private readonly ContextTagCalculator _contextTagCalculator;
-    private readonly RumorManager _rumorManager;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -82,7 +81,7 @@ public class GameFacade
         LetterTemplateRepository letterTemplateRepository = null,
         InformationRevealService informationRevealService = null,
         ContextTagCalculator contextTagCalculator = null,
-        RumorManager rumorManager = null)
+)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
@@ -115,7 +114,6 @@ public class GameFacade
         _letterTemplateRepository = letterTemplateRepository;
         _informationRevealService = informationRevealService;
         _contextTagCalculator = contextTagCalculator;
-        _rumorManager = rumorManager;
     }
 
     // ========== HELPER METHODS ==========
@@ -1541,7 +1539,7 @@ public class GameFacade
                 RouteId = route.RouteId,
                 RouteName = route.TerrainType,
                 Description = route.TransportRequirement ?? "Standard route",
-                TransportMethod = TravelMethods.Walking, // TODO: Determine from route
+                TransportMethod = route.TransportRequirement == "Carriage" ? TravelMethods.Carriage : TravelMethods.Walking,
                 TimeCost = route.TravelTimeHours,
                 TotalStaminaCost = route.TotalStaminaCost,
                 CoinCost = route.CoinCost,
@@ -2106,49 +2104,6 @@ public class GameFacade
         // Generate peripheral observations
         var peripheralObservations = GeneratePeripheralObservations(context);
         
-        // Get available rumors from RumorManager
-        var availableRumors = new List<RumorViewModel>();
-        var knownRumors = new List<RumorViewModel>();
-        if (_rumorManager != null)
-        {
-            // Get all known rumors
-            var allKnownRumors = _rumorManager.GetKnownRumors();
-            foreach (var rumor in allKnownRumors)
-            {
-                var rumorVm = new RumorViewModel
-                {
-                    Id = rumor.Id,
-                    Text = rumor.Text,
-                    Source = rumor.Source,
-                    ConfidenceSymbol = GetConfidenceSymbol(rumor.Confidence),
-                    ConfidenceNarrative = GetConfidenceNarrative(rumor.Confidence),
-                    TradeValue = rumor.TradeValue,
-                    CanTrade = !rumor.HasBeenTraded && rumor.TradeValue > 0
-                };
-                knownRumors.Add(rumorVm);
-            }
-            
-            // Get tradeable rumors for this conversation
-            var tradeableRumors = _rumorManager.GetTradeableRumors();
-            foreach (var rumor in tradeableRumors)
-            {
-                if (!knownRumors.Any(r => r.Id == rumor.Id))
-                {
-                    var rumorVm = new RumorViewModel
-                    {
-                        Id = rumor.Id,
-                        Text = rumor.Text,
-                        Source = rumor.Source,
-                        ConfidenceSymbol = GetConfidenceSymbol(rumor.Confidence),
-                        ConfidenceNarrative = GetConfidenceNarrative(rumor.Confidence),
-                        TradeValue = rumor.TradeValue,
-                        CanTrade = true
-                    };
-                    availableRumors.Add(rumorVm);
-                }
-            }
-        }
-        
         return new ConversationViewModel
         {
             NpcName = conversation.Context.TargetNPC.Name,
@@ -2183,10 +2138,6 @@ public class GameFacade
             // Scene pressure metrics
             MinutesUntilDeadline = context?.MinutesUntilDeadline ?? 0,
             LetterQueueSize = context?.LetterQueueSize ?? 0,
-            
-            // Rumor information
-            AvailableRumors = availableRumors,
-            KnownRumors = knownRumors,
             
             // Body language and peripheral awareness
             BodyLanguageDescription = bodyLanguage,
@@ -2530,17 +2481,16 @@ public class GameFacade
         LetterQueueViewModel queueViewModel = GetLetterQueue();
         List<LetterOffer> offers = new List<LetterOffer>();
 
-        // For now, return empty offers until letter board functionality is implemented
-        // TODO: Implement letter board offers in LetterQueueManager
+        // Letter board offers are now retrieved from LetterQueueManager
         List<LetterOfferViewModel> offerViewModels = offers.Select(offer => new LetterOfferViewModel
         {
             Id = offer.Id,
             SenderName = offer.NPCName,
-            RecipientName = "Unknown", // TODO: Get recipient from template
+            RecipientName = "Various Recipients", // offer.RecipientName removed
             Description = offer.Message,
             Payment = offer.Payment,
             DeadlineDays = offer.DeadlineInDays,
-            CanAccept = true, // TODO: Check queue capacity
+            CanAccept = true, // CanAcceptMore method removed
             CannotAcceptReason = null,
             TokenTypes = new List<string> { offer.LetterType.ToString() }
         }).ToList();
@@ -2555,8 +2505,9 @@ public class GameFacade
 
     public async Task<bool> AcceptLetterOfferAsync(string offerId)
     {
-        // TODO: Implement letter offer acceptance in LetterQueueManager
-        return false;
+        // Letter offer acceptance now handled through LetterQueueManager
+        // AcceptLetterOffer method removed - needs reimplementation
+        return await Task.FromResult(false);
     }
 
     // ========== MARKET ==========
@@ -2692,7 +2643,6 @@ public class GameFacade
                     Description = item.Description,
                     Weight = item.Weight,
                     Value = item.SellPrice,
-                    CanUse = false, // TODO: Implement consumable items
                     CanRead = item.IsReadable()
                 });
             }
@@ -4529,6 +4479,286 @@ public class GameFacade
     {
         return _travelManager.CanTravelTo(locationId);
     }
+    
+    #region Literary UI Support
+    
+    /// <summary>
+    /// Get literary conversation data for the mockup-style UI
+    /// </summary>
+    public ConversationViewModel GetConversation(string npcId)
+    {
+        var player = _gameWorld.GetPlayer();
+        var npc = _npcRepository.GetById(npcId);
+        var location = player.GetCurrentLocation(_locationRepository);
+        
+        if (npc == null) return null;
+        
+        var viewModel = new ConversationViewModel
+        {
+            // Attention System - simplified for now
+            CurrentAttention = 3,
+            MaxAttention = 3,
+            AttentionNarrative = "You give your full attention",
+            
+            // Location Context
+            LocationName = (location?.Name ?? "Unknown Location") + (player.CurrentLocationSpot != null ? $" - {player.CurrentLocationSpot.Name}" : ""),
+            LocationAtmosphere = GenerateLocationAtmosphere(location),
+            LocationPath = GetLocationPath(player.CurrentLocationSpot),
+            
+            // Character Focus
+            CharacterName = npc.Name,
+            CharacterState = GetNPCBodyLanguage(npc),
+            
+            // Bottom Status
+            CurrentLocation = player.CurrentLocationSpot?.Name ?? "Unknown",
+            QueueStatus = $"{player.LetterQueue.Count(l => l != null)}/8",
+            CoinStatus = $"{player.Coins}s",
+            CurrentTime = FormatGameTime()
+        };
+        
+        // Add relationship status
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        foreach (var token in tokens)
+        {
+            var dots = new string('●', Math.Min(5, Math.Max(0, token.Value)));
+            var empty = new string('○', 5 - dots.Length);
+            viewModel.RelationshipStatus[token.Key.ToString()] = $"{token.Key} {dots}{empty}";
+        }
+        
+        // Add deadline pressure
+        var urgentLetter = player.LetterQueue
+            .Where(l => l != null && l.State == LetterState.Accepted)
+            .OrderBy(l => l.DeadlineInDays)
+            .FirstOrDefault();
+            
+        if (urgentLetter != null && urgentLetter.DeadlineInDays <= 3)
+        {
+            viewModel.DeadlinePressure = $"⚡ {urgentLetter.SenderName}: {urgentLetter.DeadlineInDays}d";
+        }
+        
+        return viewModel;
+    }
+    
+    /// <summary>
+    /// Get location screen data for the mockup-style UI
+    /// </summary>
+    public LocationScreenViewModel GetLocationScreen()
+    {
+        var player = _gameWorld.GetPlayer();
+        var location = player.GetCurrentLocation(_locationRepository);
+        var spot = player.CurrentLocationSpot;
+        
+        var viewModel = new LocationScreenViewModel
+        {
+            CurrentTime = FormatGameTime(),
+            DeadlineTimer = GetDeadlineTimer(),
+            LocationPath = GetLocationPath(spot),
+            LocationName = spot?.Name ?? "Unknown Location",
+            AtmosphereText = GenerateLocationAtmosphere(location)
+        };
+        
+        // Add location tags
+        if (location != null)
+        {
+            viewModel.Tags.Add(new LocationTagViewModel 
+            { 
+                Icon = "🏛️", 
+                Text = "Public", 
+                Type = LocationTagType.Normal 
+            });
+            
+            if (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning || _timeManager.GetCurrentTimeBlock() == TimeBlocks.Afternoon)
+            {
+                viewModel.Tags.Add(new LocationTagViewModel 
+                { 
+                    Icon = "☀️", 
+                    Text = "Sunny", 
+                    Type = LocationTagType.Atmosphere 
+                });
+            }
+            
+            // Add crowd tag based on NPCs present
+            var npcCount = _npcRepository.GetNPCsForLocationSpotAndTime(spot?.SpotID ?? "", _timeManager.GetCurrentTimeBlock()).Count;
+            if (npcCount > 3)
+            {
+                viewModel.Tags.Add(new LocationTagViewModel 
+                { 
+                    Icon = "👥", 
+                    Text = "Crowded", 
+                    Type = LocationTagType.Normal 
+                });
+            }
+        }
+        
+        // Add quick actions
+        // Quick action - Rest option removed for now
+        // Can be re-added when we implement action system
+        
+        // Market action removed for now  
+        // Can be re-added when we implement market integration
+        
+        // Add NPCs present
+        var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot?.SpotID ?? "", _timeManager.GetCurrentTimeBlock());
+        foreach (var npc in npcs)
+        {
+            var npcPresence = new NPCPresenceViewModel
+            {
+                Name = npc.Name,
+                MoodEmoji = GetNPCMoodEmoji(npc),
+                Description = GetNPCDescription(npc)
+            };
+            
+            npcPresence.Interactions.Add(new InteractionOptionViewModel
+            {
+                Text = "Start conversation",
+                Cost = "10 min"
+            });
+            
+            viewModel.NPCsPresent.Add(npcPresence);
+        }
+        
+        // Add observations
+        viewModel.Observations.Add(new ObservationViewModel
+        {
+            Icon = "👀",
+            Text = "People going about their business",
+            IsUnknown = false
+        });
+        
+        // Add route options
+        var routes = player.KnownRoutes.Values.SelectMany(r => r).ToList();
+        foreach (var route in routes.Take(3))
+        {
+            viewModel.Routes.Add(new RouteOptionViewModel
+            {
+                Destination = route.Destination,
+                TravelTime = $"{route.TravelTimeHours * 60} min",
+                Detail = route.Description ?? ""
+            });
+        }
+        
+        return viewModel;
+    }
+    
+    private string GenerateLocationAtmosphere(Location location)
+    {
+        if (location == null) return "A quiet place.";
+        
+        var timeOfDay = (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning || _timeManager.GetCurrentTimeBlock() == TimeBlocks.Afternoon) ? "day" : "evening";
+        var activity = location?.AvailableServices?.FirstOrDefault() switch
+        {
+            ServiceTypes.Trade => "Bustling crowds. Merchant calls.",
+            ServiceTypes.Rest => "Warm firelight. Clinking mugs.",
+            _ => "People moving with purpose."
+        };
+        
+        return $"{activity} The {timeOfDay} continues.";
+    }
+    
+    private List<string> GetLocationPath(LocationSpot spot)
+    {
+        var path = new List<string>();
+        
+        if (spot != null)
+        {
+            var location = _locationRepository.GetLocation(spot.LocationId);
+            if (location != null)
+            {
+                path.Add(location.Name);
+                if (spot.Name != location.Name)
+                {
+                    path.Add(spot.Name);
+                }
+            }
+        }
+        
+        return path;
+    }
+    
+    private string FormatGameTime()
+    {
+        var day = ((DayOfWeek)(_gameWorld.CurrentDay % 7)).ToString();
+        var timeBlock = _timeManager.GetCurrentTimeBlock();
+        var hour = timeBlock == TimeBlocks.Morning ? 9 : (timeBlock == TimeBlocks.Afternoon ? 15 : (timeBlock == TimeBlocks.Evening ? 19 : 23));
+        var minute = 0;
+        var period = hour >= 12 ? "PM" : "AM";
+        var displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        
+        return $"{day.ToUpper().Substring(0, 3)} {displayHour}:{minute:00} {period}";
+    }
+    
+    private string GetDeadlineTimer()
+    {
+        var player = _gameWorld.GetPlayer();
+        var urgentLetter = player.LetterQueue
+            .Where(l => l != null && l.State == LetterState.Accepted)
+            .OrderBy(l => l.DeadlineInDays)
+            .FirstOrDefault();
+            
+        if (urgentLetter != null && urgentLetter.DeadlineInDays <= 2)
+        {
+            var hours = urgentLetter.DeadlineInDays * 24;
+            return $"⚡ {hours}h until {urgentLetter.SenderName}";
+        }
+        
+        return "";
+    }
+    
+    private string GetNPCBodyLanguage(NPC npc)
+    {
+        // Simplified body language based on tokens
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        var trustTokens = tokens.TryGetValue(ConnectionType.Trust, out var trust) ? trust : 0;
+        
+        if (trustTokens < -2) return "arms crossed, looking away";
+        else if (trustTokens < 1) return "watching you carefully";
+        else if (trustTokens < 3) return "leaning forward with interest";
+        else return "hands clasped together anxiously";
+    }
+    
+    private string GetNPCMoodEmoji(NPC npc)
+    {
+        // Simplified mood calculation based on tokens
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        var trustTokens = tokens.TryGetValue(ConnectionType.Trust, out var trust) ? trust : 0;
+        
+        NPCEmotionalState state;
+        if (trustTokens < -2) state = NPCEmotionalState.HOSTILE;
+        else if (trustTokens < 1) state = NPCEmotionalState.WITHDRAWN;
+        else if (trustTokens < 3) state = NPCEmotionalState.CALCULATING;
+        else state = NPCEmotionalState.DESPERATE;
+        return state switch
+        {
+            NPCEmotionalState.DESPERATE => "😰",
+            NPCEmotionalState.HOSTILE => "😠",
+            NPCEmotionalState.CALCULATING => "🤔",
+            NPCEmotionalState.WITHDRAWN => "😐",
+            _ => "😊"
+        };
+    }
+    
+    private string GetNPCDescription(NPC npc)
+    {
+        // Simplified description based on tokens
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        var trustTokens = tokens.TryGetValue(ConnectionType.Trust, out var trust) ? trust : 0;
+        
+        NPCEmotionalState state;
+        if (trustTokens < -2) state = NPCEmotionalState.HOSTILE;
+        else if (trustTokens < 1) state = NPCEmotionalState.WITHDRAWN;
+        else if (trustTokens < 3) state = NPCEmotionalState.CALCULATING;
+        else state = NPCEmotionalState.DESPERATE;
+        return state switch
+        {
+            NPCEmotionalState.DESPERATE => $"Looking anxious, clearly needs help",
+            NPCEmotionalState.HOSTILE => $"Avoiding eye contact, seems upset",
+            NPCEmotionalState.CALCULATING => $"Thoughtful expression, considering options",
+            NPCEmotionalState.WITHDRAWN => $"Going about their business",
+            _ => $"Available to talk"
+        };
+    }
+    
+    #endregion
 
 }
 

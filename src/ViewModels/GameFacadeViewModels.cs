@@ -1,69 +1,5 @@
 using System.Collections.Generic;
 
-// ========== CONVERSATION VIEW MODELS ==========
-
-public class RumorViewModel
-{
-    public string Id { get; set; }
-    public string Text { get; set; }
-    public string Source { get; set; }
-    public string ConfidenceSymbol { get; set; }
-    public string ConfidenceNarrative { get; set; }
-    public int TradeValue { get; set; }
-    public bool CanTrade { get; set; }
-}
-
-public class ConversationViewModel
-{
-    public string NpcName { get; set; }
-    public string NpcId { get; set; }
-    public string CurrentText { get; set; }
-    public List<ConversationChoiceViewModel> Choices { get; set; }
-    public bool IsComplete { get; set; }
-    public string ConversationTopic { get; set; }
-    
-    // Literary UI properties
-    public int CurrentAttention { get; set; }
-    public int MaxAttention { get; set; } = 3;
-    public string AttentionNarrative { get; set; }
-    
-    // Context tags for narrative generation
-    public List<string> PressureTags { get; set; } = new();
-    public List<string> RelationshipTags { get; set; } = new();
-    public List<string> FeelingTags { get; set; } = new();
-    public List<string> DiscoveryTags { get; set; } = new();
-    public List<string> ResourceTags { get; set; } = new();
-    
-    // Scene pressure metrics
-    public int MinutesUntilDeadline { get; set; }
-    public int LetterQueueSize { get; set; }
-    
-    // Rumor information
-    public List<RumorViewModel> AvailableRumors { get; set; } = new();
-    public List<RumorViewModel> KnownRumors { get; set; } = new();
-    
-    // Body language and peripheral awareness
-    public string BodyLanguageDescription { get; set; }
-    public List<string> PeripheralObservations { get; set; } = new();
-    
-    // Internal thoughts
-    public string InternalMonologue { get; set; }
-}
-
-public class ConversationChoiceViewModel
-{
-    public string Id { get; set; }
-    public string Text { get; set; }
-    public bool IsAvailable { get; set; }
-    public string UnavailableReason { get; set; }
-    
-    // Literary UI properties
-    public int AttentionCost { get; set; }
-    public string AttentionDescription { get; set; }
-    public bool IsInternalThought { get; set; }
-    public string EmotionalTone { get; set; }
-}
-
 // ========== TRAVEL VIEW MODELS ==========
 
 public class TravelDestinationViewModel
@@ -171,7 +107,6 @@ public class InventoryItemViewModel
     public string Description { get; set; }
     public int Weight { get; set; }
     public int Value { get; set; }
-    public bool CanUse { get; set; }
     public bool CanRead { get; set; }
 }
 

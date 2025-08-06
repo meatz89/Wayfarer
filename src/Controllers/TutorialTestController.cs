@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wayfarer.ViewModels;
 
 namespace Wayfarer.Controllers;
 

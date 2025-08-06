@@ -1,103 +1,191 @@
-@using Wayfarer.Pages.Components
-@inherits ComponentBase
+@using Wayfarer.ViewModels
 
-<div class="location-container">
-    <div class="location-header">
-        <h2 class="location-title">@CurrentLocation?.Name</h2>
-    </div>
-
-    @if (CurrentLocation != null)
+<div class="main-container">
+    @if (Model != null)
     {
-        @* Location Spots Section *@
-        <div class="location-info-panel">
-            <h3>Areas in @CurrentLocation.Name</h3>
-            <div class="location-grid">
-                @foreach (var spot in CurrentLocation.AvailableSpots)
+        <!-- Header -->
+        <div class="location-header-bar">
+            <div class="time-bar">
+                <span>@Model.CurrentTime</span>
+                @if (!string.IsNullOrEmpty(Model.DeadlineTimer))
                 {
-                    <div class="location-card @(IsCurrentSpot(spot) ? "current" : "") @(spot.IsClosed ? "closed" : "")"
-                         @onclick="() => MoveToSpot(spot)">
-                        <div class="location-name">@spot.Name</div>
-                        <small>@spot.Type</small>
-                        @if (IsCurrentSpot(spot))
-                        {
-                            <div class="current-indicator">You are here</div>
-                        }
-                        @if (!spot.IsClosed && !IsCurrentSpot(spot))
-                        {
-                            <small>Click to move here</small>
-                        }
-                        @if (spot.IsClosed)
-                        {
-                            <div class="closed-notice">Closed</div>
-                        }
-                    </div>
+                    <span class="deadline-timer">@Model.DeadlineTimer</span>
                 }
             </div>
         </div>
 
-        @* NPCs at Current Spot *@
-        @if (CurrentSpot != null)
-        {
-            <div class="npcs-section">
-                <h3 class="npcs-header">People at @CurrentSpot.Name</h3>
-                @if (NPCsAtCurrentSpot.Any())
-                {
-                    <div class="npc-list">
-                        @foreach (var npc in NPCsAtCurrentSpot)
+        <!-- Location Header with Feeling Tags -->
+        <div class="location-info-header">
+            @if (Model.LocationPath?.Any() == true)
+            {
+                <div class="location-path">
+                    @for (int i = 0; i < Model.LocationPath.Count; i++)
+                    {
+                        <span>@Model.LocationPath[i]</span>
+                        @if (i < Model.LocationPath.Count - 1)
                         {
-                            <div class="npc-card @(SelectedNPC?.ID == npc.ID ? "npc-selected" : "")"
-                                 @onclick="() => SelectNPC(npc)">
-                                <div class="npc-status-line">
-                                    <span class="npc-name">@npc.Name</span>
-                                    <span class="npc-profession">@npc.Profession</span>
-                                </div>
-                                <div class="npc-basic-info">
-                                    @if (GetTokensWithNPC(npc.ID).Any())
-                                    {
-                                        <div class="npc-tokens">
-                                            @foreach (var token in GetTokensWithNPC(npc.ID))
-                                            {
-                                                <span class="token-badge @token.Key.ToString().ToLower()">
-                                                    @token.Key: @token.Value
-                                                </span>
-                                            }
-                                        </div>
-                                    }
-                                </div>
+                            <span>→</span>
+                        }
+                    }
+                </div>
+            }
+            <div class="location-title">@Model.LocationName</div>
+            @if (Model.Tags?.Any() == true)
+            {
+                <div class="location-tags">
+                    @foreach (var tag in Model.Tags)
+                    {
+                        <span class="location-tag @(tag.Type == LocationTagType.Atmosphere ? "atmosphere" : 
+                                                     tag.Type == LocationTagType.Danger ? "danger" : 
+                                                     tag.Type == LocationTagType.Nature ? "nature" : "")">
+                            @tag.Icon @tag.Text
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="location-content">
+            @if (!string.IsNullOrEmpty(Model.AtmosphereText))
+            {
+                <div class="atmosphere-text">
+                    @Model.AtmosphereText
+                </div>
+            }
+
+            <!-- Quick Actions -->
+            @if (Model.QuickActions?.Any() == true)
+            {
+                <div class="action-grid">
+                    @foreach (var action in Model.QuickActions)
+                    {
+                        <div class="action-card" @onclick="() => ExecuteAction(action)">
+                            <div class="action-cost">@action.Cost</div>
+                            <div class="action-icon">@action.Icon</div>
+                            <div class="action-title">@action.Title</div>
+                            <div class="action-detail">@action.Detail</div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- NPCs Present -->
+            @if (Model.NPCsPresent?.Any() == true)
+            {
+                @foreach (var npc in Model.NPCsPresent)
+                {
+                    <div class="npc-present">
+                        <div class="npc-header">
+                            <div>
+                                <div class="npc-name">@npc.Name</div>
+                            </div>
+                            <div class="npc-mood">@npc.MoodEmoji</div>
+                        </div>
+                        <div class="npc-description">
+                            @npc.Description
+                        </div>
+                        @if (npc.Interactions?.Any() == true)
+                        {
+                            <div class="interaction-options">
+                                @foreach (var interaction in npc.Interactions)
+                                {
+                                    <div class="interaction" @onclick="() => StartInteraction(npc, interaction)">
+                                        <span>@interaction.Text</span>
+                                        <span style="font-size: 11px;">@interaction.Cost</span>
+                                    </div>
+                                }
                             </div>
                         }
                     </div>
                 }
-                else
-                {
-                    <div class="no-content">No one is here right now.</div>
-                }
-            </div>
-        }
+            }
 
-        @* Actions for Selected NPC *@
-        @if (SelectedNPC != null)
-        {
-            <div class="location-actions-section">
-                <h3>Actions with @SelectedNPC.Name</h3>
-                <NPCActionsView SelectedNPC="@SelectedNPC" OnActionExecuted="HandleActionExecuted" />
-            </div>
-        }
+            <!-- Observations -->
+            @if (Model.Observations?.Any() == true)
+            {
+                <div class="observations">
+                    <div class="observation-header">@Model.ObservationHeader</div>
+                    <div class="observable-list">
+                        @foreach (var obs in Model.Observations)
+                        {
+                            <div class="observable @(obs.IsUnknown ? "unknown" : "")">
+                                <span>@obs.Icon</span>
+                                <span>@obs.Text</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
 
-        @* Location-wide Actions (not NPC specific) *@
-        <div class="location-actions-section">
-            <h3>Location Actions</h3>
-            <div class="location-actions">
-                @if (CanRest())
-                {
-                    <button class="location-button" @onclick="NavigateToRest">🛏️ Rest</button>
-                }
-                @if (HasMarket())
-                {
-                    <button class="location-button" @onclick="NavigateToMarket">🏪 Market</button>
-                }
-                <button class="location-button" @onclick="NavigateToTravel">🗺️ Travel</button>
-            </div>
+            <!-- Movement Options -->
+            @if (Model.Routes?.Any() == true)
+            {
+                <div class="movement-grid">
+                    @foreach (var route in Model.Routes)
+                    {
+                        <div class="route-option" @onclick="() => TravelTo(route)">
+                            <span class="route-destination">@route.Destination</span>
+                            <div class="route-details">
+                                <span>🚶 @route.TravelTime</span>
+                                <span>@route.Detail</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Travel Progress (if traveling) -->
+            @if (Model.TravelProgress != null)
+            {
+                <div class="travel-progress">
+                    <div class="travel-progress-title">@Model.TravelProgress.Title</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: @(Model.TravelProgress.ProgressPercent)%;"></div>
+                    </div>
+                    <div class="travel-time-remaining">
+                        @Model.TravelProgress.TimeWalked • @Model.TravelProgress.TimeRemaining
+                    </div>
+                </div>
+            }
         </div>
     }
+    else
+    {
+        <div class="loading">Loading location...</div>
+    }
 </div>
+
+@code {
+    private LocationScreenViewModel Model { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLocation();
+    }
+    
+    private async Task LoadLocation()
+    {
+        Model = GameFacade.GetLocationScreen();
+        StateHasChanged();
+    }
+    
+    private async Task ExecuteAction(LocationActionViewModel action)
+    {
+        // Execute action through GameFacade
+        await HandleActionExecuted();
+        await LoadLocation();
+    }
+    
+    private async Task StartInteraction(NPCPresenceViewModel npc, InteractionOptionViewModel interaction)
+    {
+        // Start conversation through navigation
+        await OnNavigate.InvokeAsync(CurrentViews.ConversationScreen);
+    }
+    
+    private async Task TravelTo(RouteOptionViewModel route)
+    {
+        // Travel to destination through GameFacade
+        await HandleActionExecuted();
+        await LoadLocation();
+    }
+}

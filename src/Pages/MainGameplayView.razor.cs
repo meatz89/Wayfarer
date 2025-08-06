@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Wayfarer.ViewModels;
 
 namespace Wayfarer.Pages;
 
@@ -21,6 +22,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     // Navigation State
     public string SelectedLocation { get; set; }
+    public string SelectedNpcId { get; set; }
     public TimeBlocks CurrentTimeBlock { get; set; }
     public int Stamina { get; set; } = 0;
     public int Concentration { get; set; } = 0;

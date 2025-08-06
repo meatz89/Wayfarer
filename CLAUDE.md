@@ -2,15 +2,21 @@
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 
+**📋 IMPLEMENTATION LOCKED: Follow IMPLEMENTATION-PLAN.md EXACTLY**
+- The game design is FINAL - see IMPLEMENTATION-PLAN.md
+- No feature additions or scope changes allowed
+- Build exactly what's specified, nothing more
+- All debates must reference the implementation plan
+
 **CRITICAL DIRECTIVE: Before implementing ANY change to Wayfarer, you MUST debate all agents with the proposed change.**
 This includes:
-- New mechanics
-- Modified systems  
-- UI changes
-- Content structures
-- Rule adjustments
-- Feature additions
-- Feature removals
+- New mechanics (ONLY if fixing bugs in IMPLEMENTATION-PLAN.md)
+- Modified systems (ONLY if specified in IMPLEMENTATION-PLAN.md)
+- UI changes (MUST match IMPLEMENTATION-PLAN.md specifications)
+- Content structures (MUST follow IMPLEMENTATION-PLAN.md)
+- Rule adjustments (NOT ALLOWED - plan is final)
+- Feature additions (NOT ALLOWED - scope is locked)
+- Feature removals (NOT ALLOWED - build complete plan)
 No exceptions. Even "small" changes must be reviewed by all specialized personas.
 
 **🚨 MANDATORY: ANALYZE BEFORE ANY CHANGE 🚨**
@@ -38,18 +44,13 @@ No exceptions. Even "small" changes must be reviewed by all specialized personas
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**📋 CURRENT IMPLEMENTATION STATUS**
-- **Literary UI Transformation in Progress** - See LITERARY-UI-IMPLEMENTATION.md for complete details
-- Phase 1 Backend Systems Complete (Attention, SceneContext, Rumors) 
-- Phase 2-5 UI Components Pending
-- GitHub Issues #27-36 track the literary UI user stories
-
 *** PRIME PRINCIPLES ***
 - You are too agreeable by default. I want you objective. I want a partner. Not a sycophant.
 - NEVER ASSUME. Check the documentation and codebase and ask the user for clarification
+- **FOLLOW IMPLEMENTATION-PLAN.md** - This is the ONLY source of truth for what to build. No deviations.
 - You have Gemini as a registered MCP tool. Everytime before you implement a solution, you must first fight Gemini and me about it until everyone is in agreement about the correct way to implement it.
 - **NO SILENT BACKEND ACTIONS** - Nothing should happen silently in the backend. If automatic, the player MUST be notified via MessageSystem. If manual, the player MUST click a button to initiate. All game state changes must be visible and intentional.
-- **NEVER CREATE DUPLICATE MARKDOWN FILES** - ALWAYS check for existing .md files in root directory first. Update existing documentation files instead of creating new ones. If LITERARY-UI-IMPLEMENTATION.md exists, UPDATE IT. If SESSION-HANDOFF.md exists, UPDATE IT. Creating duplicate files is unacceptable.
+- **NEVER CREATE DUPLICATE MARKDOWN FILES** - ALWAYS check for existing .md files in root directory first. Update existing documentation files instead of creating new ones. If IMPLEMENTATION-PLAN.md exists, UPDATE IT. If SESSION-HANDOFF.md exists, UPDATE IT. Creating duplicate files is unacceptable.
 - **ALWAYS UPDATE GITHUB AFTER CHANGES** - After making significant changes or completing tasks, ALWAYS update the GitHub issues and kanban board to reflect current progress. Use `gh issue comment` to add progress updates and `gh project` commands to update the kanban board status.
 
 ** CODE WRITING PRINCIPLES **
@@ -78,7 +79,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **RENAME AND RECONTEXTUALIZE** - Don't wrap new functionality in old classes, rename them to reflect new purpose
 - **DELETE LEGACY CODE ENTIRELY** - Remove old contract system, reputation system, favor system completely
 - **NO COMPATIBILITY LAYERS** - Clean break from old mechanics to new queue/token system
-- **FRESH TEST SUITE** - Delete old tests and write new ones for queue/token mechanics
+- **NO FEATURE CREEP** - If it's not in IMPLEMENTATION-PLAN.md, don't build it
+- **DELETE LEGACY CODE ENTIRELY** - Remove anything not in the implementation plan
+- **FRESH TEST SUITE** - Test only what's in IMPLEMENTATION-PLAN.md
 
 **GENERAL PRINCIPLES**:
 - **GAMEWORLD HAS NO DEPENDENCIES (CRITICAL)** - GameWorld is the single source of truth and must have NO dependencies on any services, managers, or external components. All dependencies flow INWARD towards GameWorld, never outward from it. GameWorld does NOT create any managers or services.
@@ -134,9 +137,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Always use case-insensitive property matching** - JSON files use camelCase while C# DTOs use PascalCase
 - **Inherit from BaseValidator** - Provides TryGetPropertyCaseInsensitive helper method for robust validation
 - **Test validators with actual JSON** - Don't assume field names match between JSON and DTOs
-- See CONTENT-VALIDATION-STRATEGY.md for implementation details
+- 
+**📝 CONTENT REQUIREMENTS (from IMPLEMENTATION-PLAN.md)**
+- **5 NPCs** with schedules, tokens, conversation templates
+- **5 Locations** with travel times and available actions
+- **9 Letter Templates** (3 types × 3 stakes)
+- **45 Conversation Combinations** (5 NPCs × 3 verbs × 3 states)
+- **No procedural generation** - All content is deterministic
+- See IMPLEMENTATION-PLAN.md Section 'Content Requirements' for exact specifications
 
-**📘 Game Design Memory: Wayfarer Concept Clarification**
+**📘 FINAL GAME DESIGN: See IMPLEMENTATION-PLAN.md**
+
 
 ## Key Design Insights from Initial Game Design Conversation
 
@@ -172,6 +183,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Focus on daily survival and social navigation
 - Finding human connection amid complex obligations
 - Inspired by slice-of-life narratives in challenging environments
+- 
+## What We're Building (Locked Scope)
+
+**Core Game Loop:**
+- Wake up with more letters than you can deliver
+- Only deliver from queue position 1
+- Travel costs time, NPCs have schedules
+- Missing deadlines has permanent consequences
+- Manage queue through conversations
+- Face mounting pressure each day
+
+**Exact Systems (No Additions):**
+- **3 Verbs**: HELP, NEGOTIATE, INVESTIGATE
+- **3 Tokens**: Trust, Commerce, Status (no Shadow)
+- **8-Slot Queue**: Weight system, position-based delivery
+- **16 Active Hours**: 6 AM to 10 PM gameplay
+- **5 NPCs**: Each with schedules and emotional states
+- **5 Locations**: With specific travel times
+
+**What Creates Tension:**
+- More letters than time (core pressure)
+- Queue position restrictions
+- NPC availability windows
+- Cascading consequences for failures
+- Token debt creating obligations
+
+**UI Requirements (Exact):**
+- Queue always visible with weight/deadline indicators
+- Max 5 conversation choices
+- Attention points (3 per conversation)
+- Clear consequence previews
+- Time and deadline displays
+
+**We Are NOT Building:**
+- AI narrative generation
+- Procedural content
+- Complex branching stories
+- Magic or fantasy elements
+- RPG progression systems
+- Anything not in IMPLEMENTATION-PLAN.md
 
 **Principles and Memories:**
 - ALWAYS read the full file before editing
+- ALWAYS check IMPLEMENTATION-PLAN.md before making any decision
+- NEVER add features not in the implementation plan
+- NEVER change core mechanics from the plan
+- Build EXACTLY what's specified, test it, ship it
