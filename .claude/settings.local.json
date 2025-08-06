@@ -94,7 +94,13 @@
       "Bash(git rm:*)",
       "Bash(/mnt/c/git/wayfarer/update_deadline.sh:*)",
       "Bash(python:*)",
-      "Bash(do sed -i 's/box-Thief/box-shadow/g' \"$file\")"
+      "Bash(do sed -i 's/box-Thief/box-shadow/g' \"$file\")",
+      "mcp__playwright__browser_install",
+      "Bash(gh auth:*)",
+      "Bash(tar:*)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(gh:*)",
+      "Bash(brew install:*)"
     ],
     "deny": []
   }
