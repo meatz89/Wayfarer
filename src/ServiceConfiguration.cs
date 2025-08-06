@@ -65,6 +65,9 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<LocationPropertyManager>();
         services.AddTimeSystem();
+        
+        // Literary UI System - attention, NPC states, verb contextualization
+        services.AddLiteraryUISystem();
 
         // Managers that depend on TimeManager
         services.AddSingleton<TravelManager>();

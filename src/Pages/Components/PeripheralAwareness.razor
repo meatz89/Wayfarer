@@ -1,15 +1,42 @@
 @inherits PeripheralAwarenessBase
 
-<div class="peripheral-awareness">
-    @if (Observations?.Any() == true)
-    {
-        <div class="peripheral-observations">
-            @foreach (var observation in Observations)
-            {
-                <div class="observation-item">
-                    <span class="observation-text">@observation</span>
-                </div>
-            }
-        </div>
-    }
-</div>
+@if (HasContent)
+{
+    <div class="peripheral-awareness">
+        @if (HasDeadlinePressure)
+        {
+            <div class="deadline-whisper fade-in">
+                @DeadlineNarrative
+            </div>
+        }
+        
+        @if (HasQueuePressure)
+        {
+            <div class="queue-pressure fade-in">
+                @QueuePressureNarrative
+            </div>
+        }
+        
+        @if (HasEnvironmentalHints)
+        {
+            <div class="environment-hints">
+                @foreach (var hint in EnvironmentalHints)
+                {
+                    <div class="environment-hint fade-in">@hint</div>
+                }
+            </div>
+        }
+        
+        @if (Observations?.Any() == true)
+        {
+            <div class="peripheral-observations">
+                @foreach (var observation in Observations)
+                {
+                    <div class="observation-item">
+                        <span class="observation-text">@observation</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

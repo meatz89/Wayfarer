@@ -1,6 +1,17 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>
+/// Defines what's at stake for this letter - drives narrative urgency and NPC emotional states
+/// </summary>
+public enum StakeType
+{
+    REPUTATION,  // Social consequences, standing at risk
+    WEALTH,      // Financial impact, economic consequences
+    SAFETY,      // Physical danger, threats to wellbeing  
+    SECRET       // Hidden information, dangerous knowledge
+}
+
 public enum LetterState
 {
     Offered,    // NPC has mentioned it, not in queue yet
@@ -38,6 +49,9 @@ public class Letter
     public int DeadlineInDays { get; set; }
     public int Payment { get; set; }
     public ConnectionType TokenType { get; set; }
+    
+    // Literary UI properties - drives narrative generation
+    public StakeType Stakes { get; set; } = StakeType.REPUTATION;
 
     // Tier system (1-5) for difficulty progression
     public int Tier { get; set; } = 1;
@@ -217,6 +231,37 @@ public class Letter
             LetterSpecialType.Endorsement => "📜",
             LetterSpecialType.Information => "🔍",
             _ => ""
+        };
+    }
+
+    /// <summary>
+    /// Generate narrative hint about what's at stake - for literary UI
+    /// </summary>
+    public string GetStakesHint()
+    {
+        return (TokenType, Stakes) switch
+        {
+            (ConnectionType.Trust, StakeType.REPUTATION) => "a matter of personal honor",
+            (ConnectionType.Trust, StakeType.WEALTH) => "a family's financial crisis",
+            (ConnectionType.Trust, StakeType.SAFETY) => "a warning between friends",
+            (ConnectionType.Trust, StakeType.SECRET) => "a dangerous confession",
+            
+            (ConnectionType.Commerce, StakeType.REPUTATION) => "a merchant's credibility",
+            (ConnectionType.Commerce, StakeType.WEALTH) => "an urgent trade arrangement",
+            (ConnectionType.Commerce, StakeType.SAFETY) => "dangerous cargo manifest",
+            (ConnectionType.Commerce, StakeType.SECRET) => "smuggler's instructions",
+            
+            (ConnectionType.Status, StakeType.REPUTATION) => "a noble's standing",
+            (ConnectionType.Status, StakeType.WEALTH) => "an inheritance dispute",
+            (ConnectionType.Status, StakeType.SAFETY) => "a challenge to duel",
+            (ConnectionType.Status, StakeType.SECRET) => "court intrigue",
+            
+            (ConnectionType.Shadow, StakeType.REPUTATION) => "blackmail material",
+            (ConnectionType.Shadow, StakeType.WEALTH) => "thieves' guild dues",
+            (ConnectionType.Shadow, StakeType.SAFETY) => "an assassin's warning",
+            (ConnectionType.Shadow, StakeType.SECRET) => "information that kills",
+            
+            _ => "correspondence"
         };
     }
 

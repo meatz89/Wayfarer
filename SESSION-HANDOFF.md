@@ -1,17 +1,268 @@
-# Wayfarer Session Handoff - Literary UI Implementation
-## Session Date: 2025-01-27 (Updated)
+# Wayfarer Session Handoff - Parallel Degradation Design
+## Session Date: 2025-01-06 (Major Design Pivot)
 
-## 🎯 CRITICAL DESIGN CLARIFICATION: Mechanics-First Literary UI
 
-We are building a **mechanics-first** game where board game-like systems generate narrative content through their operation, NOT a narrative game with hidden mechanics.
+# Wayfarer: Complete Game Design Document
 
-### 🔥 KEY UNDERSTANDING (User Clarification)
+## Table of Contents
+1. [Core Game Philosophy](#core-game-philosophy)
+2. [Fundamental Mechanics](#fundamental-mechanics)
+3. [The Journey: Design Evolution](#the-journey-design-evolution)
+4. [Final System Architecture](#final-system-architecture)
+5. [UI/UX Philosophy](#uiux-philosophy)
+6. [Conversation System Integration](#conversation-system-integration)
+7. [Implementation Framework](#implementation-framework)
+8. [Production Reality](#production-reality)
 
-The user wants:
-1. **UI exactly as shown in mockups** - Literary presentation with attention points, body language, etc.
-2. **Board game mechanics underneath** - NOT tag matching but actual SYSTEMS (like Wingspan, Spirit Island)
-3. **Content emerges from mechanics** - No hardcoded narrative, just systematic generation
-4. **Like the letter queue** - Physical slots, weight, deadlines, token burning are MECHANICS that generate narrative
+## Core Game Philosophy
+
+Wayfarer is a medieval letter carrier game about being trapped between impossible social obligations. It is NOT about:
+- Becoming a master wayfarer
+- Saving the world
+- Life-changing events
+- Magic or fantasy elements
+
+It IS about:
+- A few ordinary days in the life of a letter carrier
+- Managing impossible delivery deadlines
+- Navigating complex social relationships
+- Finding moments of human connection amid pressure
+- Making agonizing choices about who to disappoint
+
+### Design Principles
+1. **Intentional Design**: Every system element serves exactly one clear purpose
+2. **Ludonarrative Verisimilitude**: Mechanics are thoughtful abstractions of realistic medieval actions
+3. **Emergent Complexity**: Simple systems interact to create deep strategic decisions
+4. **No Arbitrary Mechanics**: Everything emerges from logical relationships, not mathematical modifiers
+5. **Deterministic Systems**: No dice rolls or RNG - player choices determine outcomes
+
+## Fundamental Mechanics
+
+### 1. The Queue System (Core Mechanic)
+
+**The Iron Rule**: You can only deliver from position 1.
+
+```
+Queue Positions: [1] [2] [3] [4] [5] [6] [7] [8]
+Delivery Rule: Only position 1 can be delivered
+Entry Rule: New letters enter at lowest available position
+Reorder Rule: Can burn tokens to skip letters
+```
+
+**Queue Pressure**: Each letter has:
+- Type (Trust/Commerce/Status/Shadow)
+- Sender & Recipient
+- Deadline (creates time pressure)
+- Stakes (REPUTATION/WEALTH/SAFETY/SECRET)
+
+### 2. Token System (Relationship Currency)
+
+Tokens represent HOW you relate to someone, not WHO they are:
+
+**Trust** - Personal bonds, emotional connections
+- Built through: Personal favors, shared experiences
+- Enables: Deep conversations, personal revelations
+- Debt creates: Complete relationship severance
+
+**Commerce** - Professional reliability
+- Built through: Successful deliveries, fair trades
+- Enables: Better rates, exclusive contracts
+- Debt creates: Financial leverage (forces queue priority)
+
+**Status** - Social standing
+- Built through: Proper conduct, noble service
+- Enables: Court access, exclusive areas
+- Debt creates: Social exclusion (area restrictions)
+
+**Shadow** - Shared secrets, complicity
+- Built through: Kept secrets, illegal tasks
+- Enables: Underground access, criminal protection
+- Debt creates: Coercive control (forced letters)
+
+### 3. Time as Universal Resource
+
+- Everything costs time (measured in hours/minutes)
+- No abstract time units
+- NPCs have schedules
+- Routes have travel times
+- Conversations take realistic durations
+
+### 4. Information System
+
+Information exists as discrete, tradeable units:
+- Route knowledge (how to get places)
+- NPC locations (where to find people)
+- Service availability (what's offered where)
+- Requirements (what's needed for access)
+
+### 5. Standing Obligations
+
+Permanent rule modifications activated by relationships:
+- "Heart's Promise" (Trust 5+): Elena's letters always jump queue
+- "Merchant's Favor" (Commerce debt): Marcus's letters enter at position 3
+- "Noble's Courtesy" (Status 5+): Lord's letters pay double
+
+## The Journey: Design Evolution
+
+### Phase 1: Initial Concept
+Started as simple queue management with tokens as progression gates. Problems:
+- Tokens were just keys to unlock content
+- No meaningful choices in conversations
+- Information was binary (known/unknown)
+
+### Phase 2: Attention as Resource
+Introduced 3 attention points per scene to create focus/breadth trade-offs:
+- 0 attention = surface interaction
+- 1 attention = deeper engagement
+- Focus on one thing means missing others
+
+### Phase 3: Parallel Degradation
+Moved from triggered cascades to simultaneous timelines:
+- Everything happens whether you observe it or not
+- Actions consume opportunities, don't trigger responses
+- Time advances all states in parallel
+
+### Phase 4: Mechanical Integration
+Final breakthrough - conversations as the interface to ALL game systems:
+- Every dialogue choice manipulates queue/tokens/obligations
+- No separate "conversation game"
+- Mechanical effects clearly shown but narratively framed
+
+## Final System Architecture
+
+### Core Verb System (9 Sacred Verbs)
+
+1. **DELIVER** - Execute queue position 1
+2. **ACCEPT** - Add letter to queue
+3. **MOVE** - Change location
+4. **REORDER** - Rearrange queue (burns tokens)
+5. **OBSERVE** - Examine environment/person
+6. **ENGAGE** - Interact with NPC
+7. **TRADE** - Exchange resources
+8. **CHALLENGE** - Apply pressure/leverage
+9. **WAIT** - Let time pass
+
+### Context Multiplication
+
+Same verbs produce different outcomes based on:
+- Token levels (relationship depth)
+- Queue pressure (urgency)
+- Resource availability
+- Information held
+
+Example:
+```
+ENGAGE + Trust 0 = Polite deflection
+ENGAGE + Trust 5 = Deep personal revelation
+ENGAGE + Trust 5 + High Pressure = Desperate plea for help
+```
+
+## UI/UX Philosophy
+
+### Three Layers of Awareness
+
+1. **Peripheral Awareness** (Always visible)
+   - Next deadline as pressure
+   - Queue weight as physical sensation
+   - Environmental hints at screen edge
+
+2. **Sharp Focus** (When attending)
+   - Character dominates screen
+   - Relationship indicators visible
+   - Choices emerge from context
+
+3. **Deep Investigation** (Spending attention)
+   - Hidden information revealed
+   - Complex options unlocked
+   - True character state exposed
+
+### Key UI Principles
+
+- **No permanent HUD** - Information appears when relevant
+- **Physical actions** - "Reach for satchel" not "Open inventory"
+- **Narrative framing** - "Letters press against your hip" not "Queue: 3/8"
+- **Consequence preview** - See what choices cost before selecting
+- **Attention as focus** - Spending attention literally changes what you see
+
+### Example Scene: Elena at Tavern
+
+**State Analysis:**
+- Elena has Trust letter with REPUTATION stakes
+- Deadline tomorrow (urgent but not critical)
+- Player has Trust 5 with Elena
+- Lord Blackwood's letter in position 1 (due in 2 hours)
+
+**Generated Choices:**
+
+```
+0 Attention Options:
+1. "I'll deliver it right after Lord Blackwood's"
+   - Keeps queue order
+   - No immediate cost
+   - Elena remains anxious
+
+2. "I can rearrange my deliveries"
+   - Move her letter to position 1
+   - Burns 1 Status with Lord Blackwood
+   - 30 minutes to reorder
+   - Elena gains hope
+
+1 Attention Options:
+3. "Tell me about Lord Aldwin"
+   - Learn: "Controls harbor tariffs"
+   - Learn: "Marriage was mother's arrangement"
+   - Opens new dialogue branch
+
+4. "I know people who could help"
+   - Unlock: Introduction to Cousin Garrett
+   - Creates: Future obligation
+   - Elena shares noble route info
+```
+
+### Letter Stakes Drive NPC States
+
+```
+NPC Emotional State = Letter Type + Stakes + Deadline + Relationship
+
+Examples:
+Trust + REPUTATION + Urgent = Anxious, confiding
+Commerce + WEALTH + Critical = Desperate, offering anything
+Status + SECRET + Soon = Evasive, paranoid
+Shadow + SAFETY + Overdue = Threatening, dangerous
+```
+
+## Production Reality
+
+### Scope Definition
+- 5 core NPCs with full mechanical integration
+- 10-15 locations with distinct actions
+- 16 narrative templates (4 letter types × 4 stakes)
+- 9 verbs with contextual variations
+
+## The Beautiful Truth
+
+Wayfarer succeeds because:
+1. **The queue IS the game** - Everything serves queue pressure
+2. **Conversations ARE mechanical** - No separate dialogue system
+3. **Attention creates focus** - Can't see/do everything
+4. **Transparency builds trust** - Players see consequences
+5. **Simple rules, complex outcomes** - 9 verbs × contexts = endless variety
+
+The game is about ordinary people navigating impossible social obligations through the simple act of delivering letters. Every mechanical system reinforces this core fantasy without abstraction or arbitrary gamification.
+
+
+## 🔥 CRITICAL DESIGN PIVOT: Parallel Degradation with Visible Mechanics
+
+After extensive iteration and production analysis, we've pivoted to a **parallel degradation system** where multiple timelines decay simultaneously with complete transparency. Time is the only resource, and all mechanics are visible.
+
+### 🎯 NEW DESIGN VISION
+
+The refined approach:
+1. **Everything degrades visibly** - Letter deadlines, NPC patience, route conditions, stamina, weather
+2. **Time as the only resource** - Every action costs 15/30/60/90 minutes
+3. **No AI generation needed** - Fixed timelines with deterministic outcomes
+4. **218 hours to build** - Down from 300+ hours with previous designs
+5. **Complete transparency** - Players see all countdowns and consequences upfront
 
 ### Current Implementation Status
 
@@ -28,52 +279,52 @@ The user wants:
 
 ---
 
-## 🎲 PROPOSED BOARD GAME MECHANICS
+## 🕐 PARALLEL DEGRADATION MECHANICS
 
-### 1. CONVERSATION SYSTEM: Pressure Differentials
-**Core Mechanics:**
-- **Pressure Pools** (0-15) for both Player and NPC
-- **3 Attention Points** allocated each turn to:
-  - **Press**: Apply pressure to NPC
-  - **Guard**: Defend against NPC pressure
-  - **Observe**: Reveal hidden information
-- **Momentum** (-5 to +5) carries between conversations
+### The 5 Core Timelines (All Visible)
 
-**How It Generates Content:**
-- Pressure levels → body language descriptions
-- Press vs Guard differential → conversation flow
-- Observe success → reveals tiered information
-- 15 pressure = conversation breakdown
-
-**Formula:**
+#### 1. Letter Deadlines
 ```
-PressureGain = MAX(0, Attacker.Press - Defender.Guard) + FloorBonus + MomentumBonus
+Visual: "Noble's Letter: 2 days remaining"
+Degradation: -1 day per day
+Consequence: "Failed: Status -3 permanent"
 ```
 
-### 2. LOCATION SYSTEM: Activity Tokens
-**Core Mechanics:**
-- **Activity Tokens** (0-12) generated at dawn per location type
-- **3 Observation Dice** to allocate: Passive (d4), Active (d6), Deep (d8)
-- **Flux Cards** reveal location state changes at thresholds
+#### 2. NPC Patience
+```
+Visual: "Elena will wait: 3 more hours"
+Degradation: Real-time countdown
+Consequence: "Elena left: Commerce route closed"
+```
 
-**How It Generates Content:**
-- High activity (9-12) → crowded, chaotic descriptions
-- Low activity (1-4) → intimate, quiet descriptions
-- Captured tokens → information discovery tiers
-- Token types → Trust/Commerce/Status/Shadow opportunities
+#### 3. Route Conditions
+```
+Visual: "Forest path floods at: Dusk"
+Degradation: Time/weather based
+Consequence: "Route impassable for 2 days"
+```
 
-### 3. TRAVEL SYSTEM: Stamina & Segments
-**Core Mechanics:**
-- **Route Segments** with terrain-based costs (2-4 hours)
-- **Stamina Pool** (10 points) depletes per segment
-- **Weather Die** (d6) modifies travel speed
-- **Letter Weight** affects stamina drain
+#### 4. Personal Stamina
+```
+Visual: "Energy for: 4 hours travel"
+Degradation: -1 per hour traveled
+Consequence: "Exhausted: Actions +50% time"
+```
 
-**How It Generates Content:**
-- Terrain + Weather + Time → encounter templates
-- Stamina level → exhaustion descriptions
-- Weight burden → struggle narrative
-- Route knowledge → efficiency decisions
+#### 5. Environmental Windows
+```
+Visual: "Market closes in: 2 hours"
+Degradation: Fixed schedule
+Consequence: "Missed today's trading"
+```
+
+### Time System (The Only Resource)
+```
+1 Day = 12 active hours
+Actions cost: 15, 30, 60, or 90 minutes
+No abstract currencies
+No hidden mechanics
+```
 
 ---
 
@@ -117,61 +368,70 @@ PressureGain = MAX(0, Attacker.Press - Defender.Guard) + FloorBonus + MomentumBo
 
 ---
 
-## 📊 CONTENT REQUIREMENTS
+## 📊 PRODUCTION REQUIREMENTS (218 Hours Total)
 
-### Template-Based System (67 hours total)
-- **6 NPC Archetypes** (not 30 unique personalities)
-- **168 Description Snippets** for combinations
-- **28 Travel Components** for template mixing
-- **NO unique dialogue** per NPC per situation
+### Content Creation (48 hours)
+- **150 timeline events** (5 NPCs × 10 beats × 3 texts = 25 hours)
+- **100 consequences** (mechanical only = 8 hours)
+- **20 countdown templates** (UI strings = 2 hours)
+- **40 location states** (10 locations × 4 times = 10 hours)
+- **20 NPC reactions** (5 NPCs × 4 states = 3 hours)
 
-### Scaling Strategy
-- New NPC = assign archetype (5 minutes)
-- New location = set activity pattern (10 minutes)
-- New route = define segments (5 minutes)
-- Content emerges from mechanical operation
+### System Implementation (170 hours)
+- **Time system & UI** (70 hours)
+- **Timeline tracking** (40 hours)
+- **Consequence engine** (20 hours)
+- **Testing & polish** (40 hours)
+
+### 3-Hour Demo Scope
+- 2 NPCs, 3 locations, 3 days
+- 6 timeline events total
+- 2 hours content creation
+- Immediately playable
 
 ---
 
-## ⚠️ WHAT WE'RE NOT BUILDING
+## ⚠️ ELIMINATED COMPLEXITY
 
-- ❌ Tag matching systems that generate prose
-- ❌ Narrative trees with mechanical effects
-- ❌ Unique content for every situation
-- ❌ Hidden story branches
-- ❌ Special case narrative events
+- ❌ NO hidden token systems
+- ❌ NO attention economy
+- ❌ NO verb selection
+- ❌ NO branching dialogue
+- ❌ NO AI generation
+- ❌ NO complex relationships
+- ❌ NO abstract currencies
 
 ## ✅ WHAT WE ARE BUILDING
 
-- ✅ Board game mechanics that happen to generate text
-- ✅ Resource management with narrative skin
-- ✅ Deterministic systems players can master
-- ✅ Template combinations from mechanical state
-- ✅ Literary UI as visualization of mechanics
+- ✅ Visible countdown timers for everything
+- ✅ Time as the only resource to manage
+- ✅ Fixed NPC timelines with clear consequences
+- ✅ Deterministic outcomes (no surprises)
+- ✅ 218 hours to complete (vs 1000+ for branching)
 
 ---
 
-## 🎯 Next Critical Tasks
+## 🎯 Next Implementation Steps
 
-1. **Implement PressureDifferentialSystem**
-   - Create pressure tracking
-   - Build attention allocation
-   - Generate body language from pressure
+1. **Build Time Management System**
+   - Create time block tracker (12 hours/day)
+   - Implement action cost calculator
+   - Build countdown timer UI
 
-2. **Implement ActivityTokenSystem**
-   - Token generation per location
-   - Observation dice mechanics
-   - Information discovery tiers
+2. **Implement Timeline System**
+   - Create NPC timeline definitions
+   - Build event trigger system
+   - Implement consequence application
 
-3. **Create Template Generators**
-   - Map mechanical states to descriptions
-   - Build combination rules
-   - Test output variety
+3. **Create Parallel Degradation UI**
+   - Visual countdown displays
+   - Timeline visualization
+   - Clear consequence warnings
 
-4. **Update UI Components**
-   - Display mechanical state clearly
-   - Show literary descriptions as output
-   - Maintain transparency of systems
+4. **Write Minimal Content**
+   - 150 timeline events
+   - 20 countdown templates
+   - 40 location states
 
 ---
 
@@ -218,7 +478,22 @@ The conversation system now uses `SceneContext` (not ConversationContext):
 
 ## 📂 Key Files Created/Modified
 
-### New Files
+### New Files (This Session - 2025-01-27)
+- `/src/GameState/Letter.cs` - Added StakeType enum and Stakes property
+- `/src/GameState/NPCEmotionalStateCalculator.cs` - Calculates NPC states from letter queue
+- `/src/Game/ConversationSystem/VerbContextualizer.cs` - Hidden verb system for choices
+- `/src/GameState/LiteraryUIConfiguration.cs` - Service registration for literary UI
+- `/src/GameState/LetterQueue.cs` - Added Letters property and helper methods
+
+### Modified Files (This Session)
+- `/src/ServiceConfiguration.cs` - Added AddLiteraryUISystem()
+- `/src/GameState/AttentionManager.cs` - Already implemented correctly
+- `/src/Pages/Components/PeripheralAwareness.razor(.cs)` - Enhanced for queue pressure
+- `/src/Pages/Components/BodyLanguageDisplay.razor(.cs)` - Added NPCEmotionalState support
+- `/src/Pages/Components/AttentionDisplay.razor(.cs)` - Already exists and works
+- `/src/Game/ConversationSystem/ConversationManager.cs` - Added BaseVerb property
+
+### Previously Created Files
 - `/src/GameState/AttentionManager.cs` - Attention point system
 - `/src/GameState/SceneTags.cs` - All tag enums
 - `/src/GameState/ContextTagCalculator.cs` - Tag generation
@@ -226,12 +501,6 @@ The conversation system now uses `SceneContext` (not ConversationContext):
 - `/src/GameState/RumorManager.cs` - Rumor tracking
 - `/src/Game/AiNarrativeSystem/AttentionCost.cs` - Renamed from FocusCost
 - `/LITERARY-UI-IMPLEMENTATION.md` - Complete documentation
-
-### Modified Files  
-- `/src/Game/ConversationSystem/SceneContext.cs` - Renamed from ConversationContext
-- `/src/Game/ConversationSystem/ConversationManager.cs` - Uses attention
-- `/src/Game/ConversationSystem/DeterministicNarrativeProvider.cs` - Generates attention costs
-- `/src/Game/AiNarrativeSystem/InputMechanics.cs` - Uses AttentionCost
 
 ---
 
@@ -357,13 +626,50 @@ gh issue comment [number] --repo meatz89/Wayfarer --body "Progress update"
 
 ## 📖 Reference Documents
 
-- **LITERARY-UI-IMPLEMENTATION.md** - Complete technical documentation
-- **UI-MOCKUPS/conversation-elena.html** - Target conversation UI
-- **UI-MOCKUPS/location-screens.html** - Location screen examples
+- **PARALLEL-DEGRADATION-DESIGN.md** - NEW complete design specification
+- **LITERARY-MECHANICS-DESIGN.md** - Previous iteration (for reference)
+- **BOARD-GAME-MECHANICS-DESIGN.md** - Board game mechanics approach
 - **CLAUDE.md** - Core architectural principles
 
 ---
 
+## 🎓 Key Learnings from This Session
+
+### Architecture Discoveries
+1. **ConnectionTokenManager** exists (not TokenManager) - manages all token relationships
+2. **Player uses CurrentLocationSpot** not CurrentLocationId - access location via spot
+3. **GameFacade is the single UI entry point** - Never expose GameWorld directly
+4. **LetterQueue** is an array-based system with 8 fixed slots
+5. **AttentionManager** already perfectly implemented with narrative descriptions
+
+### Implementation Patterns
+1. **NO partial classes** - User explicitly forbids them
+2. **NO extension classes** - Add properties directly to existing classes
+3. **Services must be registered** - Use configuration extensions like AddLiteraryUISystem()
+4. **LetterQueueManager.GetActiveLetters()** - Added to get non-null accepted letters
+5. **UI components use GameFacade.GetPlayer()** - Not GetGameWorld()
+
+### Letter-Driven Narrative System
+1. **StakeType enum** defines 4 stakes: REPUTATION, WEALTH, SAFETY, SECRET
+2. **16 narrative contexts** from TokenType × StakeType combinations  
+3. **NPCEmotionalState** emerges from letter properties (DESPERATE, HOSTILE, CALCULATING, WITHDRAWN)
+4. **4 hidden verbs** (PLACATE, EXTRACT, DEFLECT, COMMIT) never shown to players
+5. **VerbContextualizer** transforms verbs into contextual narrative choices
+
+### Compilation Issues Resolved
+1. Fixed duplicate GetAllLetters() methods in LetterQueue
+2. Added BaseVerb property directly to ConversationChoice (no partial)
+3. Updated VerbContextualizer to use ConnectionTokenManager
+4. Fixed Player.CurrentLocationSpot reference (not CurrentLocationId)
+5. PeripheralAwareness now uses GameFacade.GetPlayer() correctly
+
 ## Next Session Focus
 
-Continue Phase 2: Build the literary UI components starting with LiteraryConversationScreen. The backend is ready - now we need the frontend to match our vision of an immersive, literary interface where everything is felt, not displayed.
+1. **Fix remaining build errors** - InformationHierarchy and other UI issues
+2. **Complete E2E testing** - Verify the literary UI system works end-to-end
+3. **Implement AI narrative generation** - Connect VerbContextualizer to AI system
+4. **Build LiteraryConversationScreen** - The main UI component for literary conversations
+5. **Test with actual gameplay** - Ensure the queue-driven narrative feels right
+
+The backend for literary UI is now complete. Focus next on fixing compilation errors and building the frontend components.
+

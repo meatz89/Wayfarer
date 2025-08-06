@@ -37,6 +37,14 @@ public class LetterQueueManager
     {
         return _gameWorld.GetPlayer().LetterQueue;
     }
+    
+    // Get active letters (non-null entries in the queue)
+    public Letter[] GetActiveLetters()
+    {
+        return _gameWorld.GetPlayer().LetterQueue
+            .Where(l => l != null && l.State == LetterState.Accepted)
+            .ToArray();
+    }
 
     // Add letter to queue at specific position
     public bool AddLetterToQueue(Letter letter, int position)

@@ -141,6 +141,10 @@ public class ConversationChoice
     public int? TimeModifierMinutes { get; set; }
     public int? StaminaCost { get; set; }
     public int? CoinReward { get; set; }
+    
+    // Literary UI properties - hidden verb system
+    public BaseVerb BaseVerb { get; set; }
+    public bool IsAvailable { get; set; }
 }
 
 /// <summary>

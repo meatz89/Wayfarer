@@ -58,10 +58,16 @@ public class LetterQueue
         return slots[position - 1] == null;
     }
 
-    // Get all letters in order
-    public Letter[] GetAllLetters()
+    // Get all letters in order (including nulls)
+    public Letter[] GetAllLettersWithNulls()
     {
         return slots.ToArray();
+    }
+    
+    // Get all non-null letters  
+    public Letter[] GetAllLetters()
+    {
+        return slots.Where(l => l != null).ToArray();
     }
 
     // Count non-null letters
@@ -85,4 +91,7 @@ public class LetterQueue
             .OrderBy(letter => letter.DeadlineInDays)
             .ToArray();
     }
+    
+    // Property for easier access
+    public Letter[] Letters => GetAllLetters();
 }

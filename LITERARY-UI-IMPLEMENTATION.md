@@ -2,220 +2,286 @@
 
 ## Overview
 
-This document describes the complete transformation of Wayfarer's UI from a traditional RPG interface with stats and numbers to an immersive literary experience where all mechanics are conveyed through narrative descriptions.
+This document describes the complete implementation plan for Wayfarer's literary UI system, where the letter queue drives all narrative through mechanical properties and AI interpretation.
 
-## Current Implementation Status (2025-01-27)
+## Updated: 2025-01-06
 
-### ✅ Backend Systems COMPLETE
-- AttentionManager - 3-point attention system working
-- SceneContext - Renamed from ConversationContext 
-- SceneTags - All tag enums defined
-- ContextTagCalculator - Created but has compilation errors to fix
-- Rumor/RumorManager - Complete rumor system
-- AttentionCost - Replaced all FocusCost references
+### Core System Changes
+- Letter-driven narrative (queue IS the story)
+- Graduated attention economy (0/1/2 points for depth)
+- 4 social navigation verbs (hidden from UI)
+- NPC states emerge from letter properties
+- All narrative generated from mechanical tags
 
-### 🚧 UI Components PARTIAL
-- LiteraryConversationScreen.razor/.cs - Created, has compilation errors
-- AttentionDisplay.razor/.cs - Created
-- PeripheralAwareness.razor/.cs - Created  
-- InternalThoughtChoice.razor/.cs - Created
-- BodyLanguageDisplay.razor/.cs - Created
-- literary-ui.css - Created and linked
+## Implementation Architecture
 
-### ❌ Current Compilation Errors
-1. **ContextTagCalculator.cs**:
-   - Lines 57, 77: `GetQueueSize()` method doesn't exist
-   - Lines 119-122: `GetTokenCount()` takes 1 param not 2
-   - Lines 206, 208: Inventory missing `Items` property
-   - Line 217: `GetActiveLetters()` doesn't exist
-   - Lines 245, 248, 251: WeatherCondition enum values missing
+### 1. Letter System Implementation
 
-2. **LiteraryConversationScreen.cs**:
-   - Line 35: `ProcessConversationChoice()` doesn't exist on GameFacade
+**Location**: `/src/GameState/Letter.cs`
 
-### ⚠️ Architecture Issues
-- Using GameFacade directly instead of GameFacade interface
-- ConversationViewModel needs literary UI properties added
+```csharp
+public struct Letter {
+    public TokenType Type { get; set; }      // Trust|Commerce|Status|Shadow
+    public StakeType Stakes { get; set; }    // REPUTATION|WEALTH|SAFETY|SECRET  
+    public int Weight { get; set; }          // 1-5 queue slots
+    public int TTL { get; set; }             // Days remaining
+    public Guid SenderId { get; set; }
+    public Guid RecipientId { get; set; }
+}
 
-## Architecture Overview
+public enum StakeType {
+    REPUTATION,  // Social consequences
+    WEALTH,      // Financial impact
+    SAFETY,      // Physical danger
+    SECRET       // Hidden information
+}
+```
 
-### 1. SceneContext System (Formerly ConversationContext)
+### 2. NPC State Calculator
 
-The `SceneContext` class is the central data structure that bridges game mechanics with narrative presentation.
+**Location**: `/src/GameState/NPCStateCalculator.cs`
 
-**Location**: `/src/Game/ConversationSystem/SceneContext.cs`
+```csharp
+public class NPCStateCalculator {
+    public NPCEmotionalState CalculateState(NPC npc, LetterQueue queue) {
+        var theirLetters = queue.GetLettersFrom(npc.Id);
+        if (!theirLetters.Any()) return NPCEmotionalState.WITHDRAWN;
+        
+        var mostUrgent = theirLetters.OrderBy(l => l.TTL).First();
+        
+        if (mostUrgent.TTL < 2 || mostUrgent.Stakes == StakeType.SAFETY) {
+            return NPCEmotionalState.DESPERATE;
+        }
+        
+        if (queue.HasOverdueLettersTo(npc.Id)) {
+            return NPCEmotionalState.HOSTILE;
+        }
+        
+        return NPCEmotionalState.CALCULATING;
+    }
+}
 
-**Key Components**:
-- **AttentionManager**: Manages 3 attention points per scene
-- **Context Tags**: Pressure, Relationship, Discovery, Resource, Feeling
-- **Scene Metrics**: Minutes until deadline, letter queue size
-- **NPC State**: Current target, relationship tokens
+public enum NPCEmotionalState {
+    DESPERATE,    // Urgent need, easier interaction
+    HOSTILE,      // Angry, harder interaction
+    CALCULATING,  // Balanced, normal interaction
+    WITHDRAWN     // No engagement, limited options
+}
+```
 
-### 2. Attention System
+### 3. Attention System (Graduated)
 
 **Location**: `/src/GameState/AttentionManager.cs`
 
-**Mechanics**:
-- Players have 3 attention points per scene
-- Choices cost 0-3 attention based on depth
-- 0 Cost: Basic responses, leaving conversation
-- 1 Cost: Information gathering, observations
-- 2 Cost: Binding promises, major actions
-- 3 Cost: Exhaustive investigations
-
-**Narrative Descriptions**:
 ```csharp
-3 points: "Your mind is clear and focused, ready to absorb every detail."
-2 points: "You remain attentive, though some of your focus has been spent."
-1 point: "Your concentration wavers. You must choose your focus carefully."
-0 points: "Mental fatigue clouds your thoughts. You can only respond simply."
+public class AttentionManager {
+    private int currentPoints = 3;
+    public const int MAX_POINTS = 3;
+    
+    // Graduated focus levels
+    public const int PERIPHERAL = 0;  // Free observation
+    public const int ENGAGED = 1;     // Basic interaction
+    public const int DEEP = 2;        // Complex actions
+    
+    public bool CanAfford(int cost) => currentPoints >= cost;
+    
+    public void Spend(int cost) {
+        currentPoints = Math.Max(0, currentPoints - cost);
+        if (currentPoints == 0) {
+            TriggerSceneEnd();
+        }
+    }
+    
+    public string GetNarrativeDescription() {
+        return currentPoints switch {
+            3 => "Your mind is clear and focused",
+            2 => "You remain attentive, though some focus spent",
+            1 => "Your concentration wavers",
+            0 => "Mental fatigue clouds your thoughts",
+            _ => ""
+        };
+    }
+}
 ```
 
-### 3. Context Tags System
+### 4. Verb System (Hidden Mechanics)
 
-**Location**: `/src/GameState/SceneTags.cs`
+**Location**: `/src/GameState/VerbSystem.cs`
 
-#### Pressure Tags
-- `DEADLINE_IMMINENT`: Less than 3 hours to deadline
-- `QUEUE_OVERFLOW`: 6+ letters in queue
-- `DEBT_PRESENT`: Any negative tokens
-- `DEBT_CRITICAL`: -3 or worse in any token type
-- `OBLIGATION_ACTIVE`: Standing obligation affecting choices
-- `PATRON_WATCHING`: Patron has expectations
+```csharp
+public enum BaseVerb {
+    PLACATE,  // Reduce tension
+    EXTRACT,  // Get information
+    DEFLECT,  // Redirect pressure
+    COMMIT    // Make promises
+}
 
-#### Relationship Tags
-- `TRUST_HIGH`: 4+ trust tokens
-- `COMMERCE_ESTABLISHED`: 2+ commerce tokens
-- `STATUS_RECOGNIZED`: 3+ status tokens
-- `SHADOW_COMPLICIT`: Any shadow tokens
-- Plus negative versions for debt states
+public class VerbContextualizer {
+    public string GetNarrativePresentation(
+        BaseVerb verb, 
+        NPCEmotionalState state, 
+        TokenType context,
+        int tokenCount) 
+    {
+        return (verb, context, state) switch {
+            (BaseVerb.PLACATE, TokenType.Trust, NPCEmotionalState.DESPERATE) 
+                => "Take her trembling hand in comfort",
+            (BaseVerb.PLACATE, TokenType.Commerce, NPCEmotionalState.HOSTILE) 
+                => "Offer a partial payment to ease tensions",
+            (BaseVerb.EXTRACT, TokenType.Trust, _) when tokenCount >= 3
+                => "Ask what's really troubling them",
+            (BaseVerb.COMMIT, _, NPCEmotionalState.DESPERATE)
+                => "Promise to prioritize their letter",
+            _ => GetDefaultPresentation(verb)
+        };
+    }
+    
+    public int GetAttentionCost(BaseVerb verb, NPCEmotionalState state) {
+        var baseCost = 1;
+        
+        return state switch {
+            NPCEmotionalState.DESPERATE => Math.Max(0, baseCost - 1),
+            NPCEmotionalState.HOSTILE => Math.Min(2, baseCost + 1),
+            _ => baseCost
+        };
+    }
+}
+```
 
-#### Discovery Tags
-- `RUMOR_AVAILABLE`: NPC has rumors to share
-- `ROUTE_UNKNOWN`: Undiscovered route nearby
-- `NPC_HIDDEN`: Hidden NPC could be revealed
-- `INFORMATION_HINTED`: Information can be gleaned
-- `SECRET_PRESENT`: Secret knowledge available
+### 5. UI Components
 
-#### Resource Tags
-- Coins: `ABUNDANT` (20+), `SUFFICIENT` (5-19), `LOW` (1-4), `NONE` (0)
-- Stamina: `FULL`, `RESTED` (70%+), `TIRED` (30-69%), `EXHAUSTED` (<30%)
-- Inventory: `FULL`, `EMPTY`
+#### AttentionDisplay.razor
 
-#### Feeling Tags
-- Temperature: `HEARTH_WARMED`, `SUN_DRENCHED`, `RAIN_SOAKED`, `FROST_TOUCHED`
-- Social: `BUSTLING`, `INTIMATE`, `TENSE`, `CELEBRATORY`, `HOSTILE`
-- Sensory: `ALE_SCENTED`, `SMOKE_FILLED`, `MUSIC_DRIFTING`, `SILENCE_HEAVY`
-- Emotional: `URGENCY_GNAWS`, `COMFORT_EMBRACES`, `MYSTERY_WHISPERS`, `DANGER_LURKS`
+```razor
+@inherits ComponentBase
 
-### 4. Context Tag Calculator
+<div class="attention-display">
+    <div class="attention-orbs">
+        @for (int i = 0; i < 3; i++)
+        {
+            <span class="orb @(i < CurrentAttention ? "golden" : "spent")">●</span>
+        }
+    </div>
+    <div class="attention-narrative">
+        <em>@AttentionManager.GetNarrativeDescription()</em>
+    </div>
+</div>
 
-**Location**: `/src/GameState/ContextTagCalculator.cs`
+@code {
+    [Inject] IAttentionManager AttentionManager { get; set; }
+    
+    private int CurrentAttention => AttentionManager.CurrentPoints;
+}
+```
 
-Analyzes GameWorld state and populates SceneContext with appropriate tags:
-- Calculates pressure from deadlines and queue size
-- Determines relationship status from token counts
-- Identifies discovery opportunities
-- Assesses resource availability
-- Generates feeling tags based on location, weather, and time
+#### PeripheralAwareness.razor
 
-### 5. Rumor System
+```razor
+@inherits ComponentBase
 
-**Location**: `/src/GameState/Rumor.cs`, `/src/GameState/RumorManager.cs`
+<div class="peripheral-awareness">
+    @if (HasDeadlinePressure)
+    {
+        <div class="deadline-whisper fade-in">
+            @GetDeadlineNarrative()
+        </div>
+    }
+    
+    @if (HasEnvironmentalHints)
+    {
+        <div class="environment-hint fade-in">
+            @GetEnvironmentNarrative()
+        </div>
+    }
+</div>
 
-**Confidence Levels**:
-- `???` Unknown - No idea if true
-- `?` Doubtful - Probably false
-- `◐` Possible - Might be true
-- `◕` Likely - Probably true
-- `✓` Verified - Confirmed true
-- `✗` False - Confirmed false
+@code {
+    [Inject] IGameFacade GameFacade { get; set; }
+    
+    private bool HasDeadlinePressure => 
+        GameFacade.GetLetterQueue().Any(l => l.TTL <= 3);
+    
+    private string GetDeadlineNarrative() {
+        var urgent = GameFacade.GetLetterQueue()
+            .OrderBy(l => l.TTL)
+            .First();
+        return $"The weight of {urgent.SenderId}'s letter presses against your ribs";
+    }
+}
+```
 
-**Categories**:
-- Trade, Social, Political, Location, Opportunity, Danger, General
+#### InternalThoughtChoice.razor
 
-**Mechanics**:
-- Rumors discovered through conversation and observation
-- Can be traded for value
-- Verification through gameplay reveals truth
-- Expire after certain days if relevant
+```razor
+@inherits ComponentBase
 
-## UI Components Architecture
+<div class="thought-choices">
+    @foreach (var choice in GeneratedChoices)
+    {
+        <div class="thought-choice @(choice.CanAfford ? "" : "unaffordable")"
+             @onclick="() => SelectChoice(choice)">
+            <em>@choice.NarrativeText</em>
+            @if (choice.AttentionCost > 0)
+            {
+                <span class="attention-dots">
+                    @for (int i = 0; i < choice.AttentionCost; i++)
+                    {
+                        <span class="dot">●</span>
+                    }
+                </span>
+            }
+        </div>
+    }
+</div>
 
-### Phase 2: Literary Conversation Screen
+@code {
+    [Parameter] public List<GeneratedChoice> GeneratedChoices { get; set; }
+    [Parameter] public EventCallback<GeneratedChoice> OnChoiceSelected { get; set; }
+    
+    private async Task SelectChoice(GeneratedChoice choice) {
+        if (choice.CanAfford) {
+            await OnChoiceSelected.InvokeAsync(choice);
+        }
+    }
+}
+```
 
-**Components to Create**:
+#### BodyLanguageDisplay.razor
 
-#### LiteraryConversationScreen.razor + .razor.cs
-- Main conversation interface
-- Replaces ConversationView entirely
-- No @code blocks (follows UI standards)
+```razor
+@inherits ComponentBase
 
-#### AttentionDisplay.razor + .razor.cs
-- Shows 3 golden circles for attention points
-- Animates spending/recovery
-- Positioned at top center
+<div class="body-language">
+    <div class="npc-name">@NPCName</div>
+    <div class="emotional-state">
+        <em>@GenerateBodyLanguage()</em>
+    </div>
+</div>
 
-#### PeripheralAwareness.razor + .razor.cs
-- Deadline pressure (top-right): "⚡ Lord B: 2h 15m"
-- Environmental hints (bottom-right): "Guards shifting nervously..."
-- Binding obligations (top-left): Active promises
+@code {
+    [Parameter] public string NPCName { get; set; }
+    [Parameter] public NPCEmotionalState State { get; set; }
+    [Parameter] public StakeType Stakes { get; set; }
+    
+    private string GenerateBodyLanguage() {
+        return (State, Stakes) switch {
+            (NPCEmotionalState.DESPERATE, StakeType.REPUTATION) 
+                => "fingers worrying their shawl, eyes darting to the door",
+            (NPCEmotionalState.HOSTILE, StakeType.WEALTH) 
+                => "arms crossed tight, jaw clenched with suppressed anger",
+            (NPCEmotionalState.CALCULATING, StakeType.SECRET) 
+                => "measured breathing, each word carefully chosen",
+            (NPCEmotionalState.WITHDRAWN, StakeType.SAFETY) 
+                => "shoulders hunched, avoiding direct eye contact",
+            _ => "watching you with guarded interest"
+        };
+    }
+}
+```
 
-#### InternalThoughtChoice.razor + .razor.cs
-- Choices displayed as italicized thoughts
-- Attention cost badges (◆ 1, ◆◆ 2, ◆◆◆ 3)
-- Mechanical effects shown narratively
-- Example: *"I'll prioritize your letter. Let me check what that means..."*
+### 6. CSS Styling
 
-#### BodyLanguageDisplay.razor + .razor.cs
-- Replaces token count displays
-- "Fingers worrying her shawl" instead of "Trust: 5"
-- "Leaning forward eagerly" instead of "Commerce: 3"
-- Dynamic based on RelationshipTags
-
-### Phase 3: Literary Location Screens
-
-#### LiteraryLocationScreen.razor + .razor.cs
-- Atmospheric description focus
-- Feeling tags displayed subtly
-- NPCs described through behavior
-
-#### LocationFeelingTags.razor + .razor.cs
-- Shows atmosphere: "🔥 Hearth-warmed, 🍺 Ale-scented"
-- Changes with time and weather
-- Positioned below location name
-
-#### ObservationsList.razor + .razor.cs
-- "You notice..." section
-- Each observation costs attention to investigate
-- Unknown items marked with ❓
-
-#### LiteraryTravelScreen.razor + .razor.cs
-- Journey progress as narrative
-- Random encounters described literarily
-- Progress bar replaced with description
-
-### Phase 4: Physical Queue System
-
-#### PhysicalSatchelScreen.razor + .razor.cs
-- Letters as physical objects with weight
-- Descriptions of seals, paper quality
-- Urgency through physical cues
-
-#### LetterPhysicalDescription.razor + .razor.cs
-- "Heavy parchment sealed with red wax"
-- "Hastily scrawled note, ink still damp"
-- "Official document bearing noble crest"
-
-#### QueueReorderView.razor + .razor.cs
-- Drag to reorder with narrative feedback
-- "You shuffle Elena's letter to the top of your satchel"
-- Token burning described as betrayal
-
-### Phase 5: CSS & Integration
-
-#### literary-ui.css
-Location: `/src/wwwroot/css/literary-ui.css`
+**Location**: `/src/wwwroot/css/literary-ui.css`
 
 ```css
 :root {
@@ -227,147 +293,224 @@ Location: `/src/wwwroot/css/literary-ui.css`
     --parchment: #fefdfb;
 }
 
-.attention-point {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--attention-gold);
-    transition: all 0.3s;
-}
-
-.attention-point.spent {
-    background: var(--shadow-dark);
-    opacity: 0.5;
-}
-
-.choice-thought {
-    font-style: italic;
-    background: var(--parchment);
-    padding: 12px;
-    border-left: 3px solid var(--attention-gold);
-}
-
-.peripheral-pressure {
+/* Attention Display */
+.attention-display {
     position: fixed;
-    top: 50px;
-    right: 10px;
-    background: var(--pressure-red);
-    color: white;
-    padding: 6px 10px;
-    font-size: 11px;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 1000;
+}
+
+.attention-orbs {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.orb {
+    font-size: 24px;
+    transition: all 0.3s ease;
+}
+
+.orb.golden {
+    color: var(--attention-gold);
+    text-shadow: 0 0 10px var(--attention-gold);
+}
+
+.orb.spent {
+    color: var(--shadow-dark);
+    opacity: 0.3;
+}
+
+/* Peripheral Awareness */
+.peripheral-awareness {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    max-width: 250px;
+}
+
+.deadline-whisper,
+.environment-hint {
+    background: rgba(44, 36, 22, 0.8);
+    color: var(--parchment);
+    padding: 8px 12px;
     border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-style: italic;
     opacity: 0.9;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Thought Choices */
+.thought-choices {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.thought-choice {
+    background: var(--parchment);
+    border-left: 3px solid transparent;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.thought-choice:hover {
+    border-left-color: var(--attention-gold);
+    transform: translateX(4px);
+}
+
+.thought-choice.unaffordable {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.attention-dots {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.attention-dots .dot {
+    color: var(--attention-gold);
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+/* Body Language */
+.body-language {
+    text-align: center;
+    padding: 20px;
+}
+
+.npc-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.emotional-state {
+    color: #6b5d4f;
+    font-style: italic;
+    font-size: 14px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 ```
 
-## Integration with Existing Systems
+## Implementation Plan
 
-### GameFacade Updates
+### Phase 1: Core Systems (Week 1)
+- [ ] Implement Letter struct with all properties
+- [ ] Create NPCStateCalculator
+- [ ] Update AttentionManager for graduated system
+- [ ] Implement VerbContextualizer
 
-The GameFacade needs minimal changes since it already returns ViewModels. The UI components will interpret these ViewModels through a literary lens.
+### Phase 2: State Management (Week 2)
+- [ ] Create LetterQueue management
+- [ ] Implement pressure calculation
+- [ ] Add consequence system for expired letters
+- [ ] Create state persistence
 
-### ConversationManager Integration
+### Phase 3: UI Components (Week 3)
+- [ ] Build AttentionDisplay component
+- [ ] Create PeripheralAwareness system
+- [ ] Implement InternalThoughtChoice
+- [ ] Add BodyLanguageDisplay
 
-- ProcessPlayerChoice now spends attention through SceneContext
-- Choices generated with AttentionCost property
-- Affordability checked against AttentionManager
+### Phase 4: AI Integration (Week 4)
+- [ ] Create tag generation system
+- [ ] Implement narrative generation pipeline
+- [ ] Add contextual variation rules
+- [ ] Create fallback templates
 
-### MainGameplayView Updates
+### Phase 5: Scene Flow (Week 5)
+- [ ] Implement scene state machine
+- [ ] Add consequence cascade system
+- [ ] Create scene transition logic
+- [ ] Add pressure escalation
 
-Replace screen components:
-- `ConversationView` → `LiteraryConversationScreen`
-- `LocationScreen` → `LiteraryLocationScreen`
-- `TravelSelection` → `LiteraryTravelScreen`
-- `LetterQueueScreen` → `PhysicalSatchelScreen`
+### Phase 6: Testing & Polish (Week 6)
+- [ ] Edge case handling
+- [ ] Balance testing
+- [ ] UI polish and animations
+- [ ] Performance optimization
 
-Remove all numeric displays:
-- Health/stamina bars
-- Token counts
-- Coin displays (except in markets)
-- Time as numbers (use descriptive time)
+## Critical Implementation Notes
 
-## Testing Strategy
+### Never Show These
+- Verb names (PLACATE, EXTRACT, etc.)
+- Numerical values (pressure = 11)
+- Mechanical states (DESPERATE, HOSTILE)
+- Token counts as numbers
+- Raw stakes labels
 
-### Manual Testing Checklist
+### Always Show These
+- Narrative descriptions of states
+- Body language and emotional cues
+- Thoughts as italicized choices
+- Golden attention orbs
+- Environmental hints as prose
 
-1. **Attention System**
-   - [ ] 3 points reset on new conversation
-   - [ ] Choices properly cost attention
-   - [ ] Unaffordable choices are disabled
-   - [ ] Narrative descriptions update with spent attention
+### Key Principles
+1. **Letters drive everything** - NPC states emerge from queue
+2. **Attention is precious** - 3 points create hard choices
+3. **Verbs stay hidden** - Show actions not mechanics
+4. **Context creates variety** - Same verb, different meaning
+5. **Consequences cascade** - Every choice has ripples
 
-2. **Context Tags**
-   - [ ] Pressure tags appear with deadlines
-   - [ ] Relationship tags reflect token counts
-   - [ ] Feeling tags match location/time
-   - [ ] Discovery tags highlight opportunities
+## Testing Checklist
 
-3. **Rumor System**
-   - [ ] Rumors discovered through conversation
-   - [ ] Confidence symbols display correctly
-   - [ ] Trading rumors removes from tradeable list
-   - [ ] Expired rumors disappear
+### Core Mechanics
+- [ ] Letters generate appropriate NPC states
+- [ ] Attention costs modify based on state
+- [ ] Verbs present contextually
+- [ ] Consequences apply correctly
 
-4. **UI Components**
-   - [ ] No numeric displays visible
-   - [ ] All mechanics described narratively
-   - [ ] Peripheral awareness doesn't distract
-   - [ ] Body language replaces token displays
+### UI Presentation  
+- [ ] No mechanical text visible
+- [ ] Attention displays as golden orbs
+- [ ] Choices appear as thoughts
+- [ ] Body language replaces state display
 
-## GitHub Issues Mapping
+### Scene Flow
+- [ ] Peripheral awareness always active
+- [ ] Focus costs appropriate attention
+- [ ] Scene ends at 0 attention
+- [ ] Unattended NPCs react
 
-- **#27**: Attention as limited resource → AttentionManager
-- **#28**: Partial information → Rumor system
-- **#29**: Physical queue → PhysicalSatchelScreen
-- **#30**: Rumor discovery → RumorManager
-- **#31**: Binding obligations → High attention cost choices
-- **#32**: Peripheral awareness → PeripheralAwareness component
-- **#33**: Feeling tags → FeelingTag enum and calculator
-- **#34**: Body language → BodyLanguageDisplay component
-- **#35**: Internal thoughts → InternalThoughtChoice component
-- **#36**: Narrative costs → All costs described narratively
+### Narrative Generation
+- [ ] AI receives correct tags
+- [ ] Generated text feels natural
+- [ ] Context influences output
+- [ ] Fallbacks work correctly
 
-## Key Design Decisions
+## Production Estimate
 
-### Why Rename ConversationContext to SceneContext?
-The context now encompasses more than just conversations - it includes location atmosphere, pressure states, and discovery opportunities. SceneContext better reflects its expanded role.
+- **Core Systems**: 40 hours
+- **State Management**: 40 hours  
+- **UI Components**: 40 hours
+- **AI Integration**: 40 hours
+- **Scene Flow**: 40 hours
+- **Testing & Polish**: 40 hours
+- **Content Creation**: 60 hours
 
-### Why 3 Attention Points?
-- Matches common narrative structure (beginning, middle, end)
-- Enough for meaningful choices without overwhelming
-- Forces prioritization without being too restrictive
+**Total: 300 hours**
 
-### Why Context Tags Instead of Direct Values?
-- Tags create narrative categories rather than numeric thresholds
-- Easier to generate appropriate narrative from tags
-- Tags can combine for emergent narrative situations
-
-## Future Enhancements
-
-1. **Dynamic Attention Recovery**
-   - Rest actions restore 1 attention
-   - Certain items or locations refresh focus
-   - Time passage gradually recovers attention
-
-2. **Contextual Attention Costs**
-   - Same choice costs different amounts based on context
-   - Relationship level affects conversation costs
-   - Pressure situations increase costs
-
-3. **Rumor Networks**
-   - Rumors spread between NPCs
-   - Player can influence rumor propagation
-   - False rumors can be planted strategically
-
-4. **Feeling Tag Combinations**
-   - Certain tag combinations create unique atmospheres
-   - Tags influence NPC behavior
-   - Player actions can change location feelings
-
-## Reference UI Mockups
-
-See `/UI-MOCKUPS/` directory:
-- `conversation-elena.html` - Target conversation interface
-- `location-screens.html` - Location screen examples
-
-These mockups demonstrate the literary approach with attention points, feeling tags, and narrative descriptions replacing all numeric displays.
+This achieves the literary UI vision through pure mechanical generation, with the letter queue as the narrative engine.
