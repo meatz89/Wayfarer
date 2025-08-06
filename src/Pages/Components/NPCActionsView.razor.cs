@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.Services;
-using static Wayfarer.Pages.Components.TokenTransactionPreview;
+using Wayfarer.Models;
 
 namespace Wayfarer.Pages.Components;
 

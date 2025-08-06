@@ -114,7 +114,8 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         {
             choices = _verbContextualizer.GenerateChoicesFromQueueState(
                 context.TargetNPC, 
-                context.AttentionManager);
+                context.AttentionManager,
+                _stateCalculator);
             
             if (choices.Count > 0)
             {

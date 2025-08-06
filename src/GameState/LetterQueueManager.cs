@@ -9,14 +9,12 @@ public class LetterQueueManager
     private readonly StandingObligationManager _obligationManager;
     private readonly ConnectionTokenManager _connectionTokenManager;
     private readonly LetterCategoryService _categoryService;
-    private readonly ConversationFactory _conversationFactory;
     private readonly GameConfiguration _config;
     private readonly IGameRuleEngine _ruleEngine;
     private readonly ITimeManager _timeManager;
-    private readonly ConversationStateManager _conversationStateManager;
     private readonly Random _random = new Random();
 
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, ConversationFactory conversationFactory, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager, ConversationStateManager conversationStateManager)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -25,11 +23,9 @@ public class LetterQueueManager
         _obligationManager = obligationManager;
         _connectionTokenManager = connectionTokenManager;
         _categoryService = categoryService;
-        _conversationFactory = conversationFactory;
         _config = config;
         _ruleEngine = ruleEngine;
         _timeManager = timeManager;
-        _conversationStateManager = conversationStateManager;
     }
 
     // Get the player's letter queue
@@ -1097,7 +1093,7 @@ public class LetterQueueManager
     }
 
     // Trigger conversation for skip delivery
-    public async Task<bool> TriggerSkipConversation(int position)
+    public bool PrepareSkipAction(int position)
     {
         QueueManagementContext context = CreateSkipDeliverContext(position);
         if (context == null)
@@ -1108,12 +1104,7 @@ public class LetterQueueManager
 
         // Store the skip position for later processing
         _gameWorld.SetMetadata("PendingSkipPosition", position.ToString());
-
-        // Create conversation
-        ConversationManager conversation = await _conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
-
-        // Set as pending conversation using ConversationStateManager
-        _conversationStateManager.SetPendingConversation(conversation);
+        _gameWorld.SetMetadata("PendingQueueAction", "skip");
 
         return true;
     }
@@ -1141,7 +1132,7 @@ public class LetterQueueManager
     }
 
     // Trigger conversation for purge action
-    public async Task<bool> TriggerPurgeConversation()
+    public bool PreparePurgeAction()
     {
         QueueManagementContext context = CreatePurgeContext();
         if (context == null)
@@ -1152,12 +1143,7 @@ public class LetterQueueManager
 
         // Store purge flag for later processing
         _gameWorld.SetMetadata("PendingPurgePosition", _config.LetterQueue.MaxQueueSize.ToString());
-
-        // Create conversation
-        ConversationManager conversation = await _conversationFactory.CreateConversation(context, _gameWorld.GetPlayer());
-
-        // Set as pending conversation using ConversationStateManager
-        _conversationStateManager.SetPendingConversation(conversation);
+        _gameWorld.SetMetadata("PendingQueueAction", "purge");
 
         return true;
     }

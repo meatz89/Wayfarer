@@ -2349,7 +2349,7 @@ public class GameFacade
                 }
                 return deliverSuccess;
             case "skip":
-                await _letterQueueManager.TriggerSkipConversation(position);
+                _letterQueueManager.PrepareSkipAction(position);
                 return true;
             case "priority":
                 bool prioritySuccess = _letterQueueManager.TryPriorityMove(position);
@@ -2391,7 +2391,7 @@ public class GameFacade
         if (position < 2 || position > 8)
             return false;
 
-        await _letterQueueManager.TriggerSkipConversation(position);
+        _letterQueueManager.PrepareSkipAction(position);
         return true;
     }
 
@@ -2458,7 +2458,7 @@ public class GameFacade
         _gameWorld.SetMetadata("PendingPurgeTokens", json);
 
         // Trigger conversation
-        await _letterQueueManager.TriggerPurgeConversation();
+        _letterQueueManager.PreparePurgeAction();
         return true;
     }
 

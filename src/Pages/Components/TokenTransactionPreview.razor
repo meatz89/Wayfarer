@@ -54,18 +54,11 @@
 
 @code {
     @namespace Wayfarer.Pages.Components
+    @using Wayfarer.Models
     
     [Parameter] public List<TokenChange> TokenChanges { get; set; }
     [Parameter] public bool ShowEffects { get; set; } = true;
     [Parameter] public bool ShowNetEffect { get; set; } = false;
-    
-    public class TokenChange
-    {
-        public ConnectionType TokenType { get; set; }
-        public int Amount { get; set; }  // Positive for gains, negative for costs
-        public string NpcName { get; set; }
-        public string Effect { get; set; }  // e.g., "Reduces leverage", "Unlocks special letters"
-    }
     
     private string GetTokenIcon(ConnectionType type)
     {

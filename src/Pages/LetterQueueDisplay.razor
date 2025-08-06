@@ -576,12 +576,12 @@
         };
     }
     
-    private List<TokenTransactionPreview.TokenChange> GetDeliveryRewards(LetterViewModel letter)
+    private List<Wayfarer.Models.TokenChange> GetDeliveryRewards(LetterViewModel letter)
     {
-        var rewards = new List<TokenTransactionPreview.TokenChange>();
+        var rewards = new List<Wayfarer.Models.TokenChange>();
         
         // 50% chance to earn a token (show as possible reward)
-        rewards.Add(new TokenTransactionPreview.TokenChange
+        rewards.Add(new Wayfarer.Models.TokenChange
         {
             TokenType = Enum.Parse<ConnectionType>(letter.TokenType),
             Amount = 1,
@@ -595,7 +595,7 @@
             var specialEffect = GetSpecialDeliveryEffect(letter);
             if (!string.IsNullOrEmpty(specialEffect))
             {
-                rewards.Add(new TokenTransactionPreview.TokenChange
+                rewards.Add(new Wayfarer.Models.TokenChange
                 {
                     TokenType = ConnectionType.Trust, // Default, actual type doesn't matter for special effects
                     Amount = 0, // No token change, just effect

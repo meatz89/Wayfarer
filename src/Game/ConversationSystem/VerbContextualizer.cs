@@ -20,7 +20,6 @@ public enum BaseVerb
 public class VerbContextualizer
 {
     private readonly ConnectionTokenManager _tokenManager;
-    private readonly NPCEmotionalStateCalculator _stateCalculator;
     private readonly AttentionManager _attentionManager;
     private readonly LetterQueueManager _queueManager;
     private readonly GameWorld _gameWorld;
@@ -28,13 +27,11 @@ public class VerbContextualizer
 
     public VerbContextualizer(
         ConnectionTokenManager tokenManager,
-        NPCEmotionalStateCalculator stateCalculator,
         AttentionManager attentionManager,
         LetterQueueManager queueManager,
         GameWorld gameWorld)
     {
         _tokenManager = tokenManager;
-        _stateCalculator = stateCalculator;
         _attentionManager = attentionManager;
         _queueManager = queueManager;
         _gameWorld = gameWorld;
@@ -44,7 +41,7 @@ public class VerbContextualizer
     /// Generate choices from queue state - CONVERSATIONS ARE THE INTERFACE TO ALL MECHANICS
     /// Every choice touches multiple systems: queue, tokens, routes, NPCs, obligations
     /// </summary>
-    public List<ConversationChoice> GenerateChoicesFromQueueState(NPC npc, AttentionManager attention)
+    public List<ConversationChoice> GenerateChoicesFromQueueState(NPC npc, AttentionManager attention, NPCEmotionalStateCalculator stateCalculator)
     {
         var allChoices = new List<ConversationChoice>();
         var player = _gameWorld.GetPlayer();
@@ -56,7 +53,7 @@ public class VerbContextualizer
             .ToList();
             
         var mostUrgent = npcLetters.FirstOrDefault();
-        var npcState = _stateCalculator.CalculateState(npc);
+        var npcState = stateCalculator.CalculateState(npc);
         var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
         var trustTokens = tokens.ContainsKey(ConnectionType.Trust) ? tokens[ConnectionType.Trust] : 0;
         var queueFull = _queueManager.GetActiveLetters().Count() >= 8;
@@ -556,8 +553,14 @@ public class VerbContextualizer
             _ => 1
         };
 
-        // Apply state modifier
-        int modifier = _stateCalculator.GetAttentionCostModifier(state);
+        // Apply state modifier based on emotional state
+        int modifier = state switch
+        {
+            NPCEmotionalState.DESPERATE => -1,  // Easier when desperate
+            NPCEmotionalState.HOSTILE => 1,     // Harder when hostile
+            NPCEmotionalState.WITHDRAWN => 1,   // Harder when withdrawn
+            _ => 0
+        };
         
         // Costs can be 0, 1, or 2
         return Math.Max(0, Math.Min(2, baseCost + modifier));
