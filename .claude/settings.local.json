@@ -100,7 +100,9 @@
       "Bash(tar:*)",
       "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
       "Bash(gh:*)",
-      "Bash(brew install:*)"
+      "Bash(brew install:*)",
+      "Bash(git pull:*)",
+      "Bash(do gh issue close $i -c \"Closing - this system is already implemented in the codebase\")"
     ],
     "deny": []
   }
