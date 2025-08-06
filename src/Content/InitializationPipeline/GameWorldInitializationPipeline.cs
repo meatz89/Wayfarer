@@ -49,7 +49,10 @@ public class GameWorldInitializationPipeline
             new Phase6_PlayerInitialization(),
             
             // Phase 7: Final validation and cross-references
-            new Phase7_FinalValidation()
+            new Phase7_FinalValidation(),
+            
+            // Phase 8: Initial letters for mockup UI
+            new Phase8_InitialLetters()
         };
     }
 

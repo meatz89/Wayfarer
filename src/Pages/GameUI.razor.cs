@@ -11,7 +11,7 @@ public class GameUIBase : ComponentBase
     [Inject] public FlagService FlagService { get; set; }
 
     // Navigation state managed directly in this component
-    public CurrentViews CurrentView { get; set; } = CurrentViews.LocationScreen;
+    public CurrentViews CurrentView { get; set; } = CurrentViews.LetterQueueScreen;
 
     // Navigation method for child components to use
     public void NavigateTo(CurrentViews view)
@@ -66,8 +66,8 @@ public class GameUIBase : ComponentBase
             }
             else
             {
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Navigating to default view...");
-                CurrentView = GetDefaultView();
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Showing Letter Queue...");
+                CurrentView = CurrentViews.LetterQueueScreen;
             }
 
             Console.WriteLine($"[GameUIBase.OnInitializedAsync] Initialization completed. CurrentView: {CurrentView}");
@@ -82,20 +82,8 @@ public class GameUIBase : ComponentBase
 
     private CurrentViews GetDefaultView()
     {
-        // During tutorial, always show location screen
-        if (FlagService.HasFlag("tutorial_active"))
-        {
-            return CurrentViews.LocationScreen;
-        }
-
-        // Dawn = letter board available
-        if (TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn)
-        {
-            return CurrentViews.LetterBoardScreen;
-        }
-
-        // Default to location screen (primary interface)
-        return CurrentViews.LocationScreen;
+        // Show letter queue to match mockup
+        return CurrentViews.LetterQueueScreen;
     }
 
 

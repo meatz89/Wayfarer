@@ -2453,9 +2453,11 @@ public class GameFacade
             enumSelection[selection.TokenType] = selection.Count;
         }
 
-        // Store for later use in conversation
-        string json = System.Text.Json.JsonSerializer.Serialize(enumSelection);
-        _gameWorld.SetMetadata("PendingPurgeTokens", json);
+        // Store for later use in conversation - strongly typed
+        foreach (var selection in enumSelection)
+        {
+            _gameWorld.PendingQueueState.PendingPurgeTokens.SetTokenCount(selection.Key, selection.Value);
+        }
 
         // Trigger conversation
         _letterQueueManager.PreparePurgeAction();

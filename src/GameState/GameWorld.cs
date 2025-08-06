@@ -43,8 +43,8 @@ public class GameWorld
 
     // Note: Pending command system has been removed in favor of intent-based architecture
 
-    // Temporary metadata for conversation context
-    private Dictionary<string, string> _metadata = new Dictionary<string, string>();
+    // Strongly typed pending queue state (replaces unsafe metadata dictionary)
+    public PendingQueueState PendingQueueState { get; private set; } = new PendingQueueState();
 
     public GameWorld()
     {
@@ -73,21 +73,6 @@ public class GameWorld
         return GameInstanceId;
     }
 
-    // Metadata management for conversation context
-    public void SetMetadata(string key, string value)
-    {
-        _metadata[key] = value;
-    }
-
-    public string GetMetadata(string key)
-    {
-        return _metadata.TryGetValue(key, out string? value) ? value : null;
-    }
-
-    public void ClearMetadata(string key)
-    {
-        _metadata.Remove(key);
-    }
 
     // Time management methods
     public void AdvanceToNextDay()

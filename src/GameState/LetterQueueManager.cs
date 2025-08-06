@@ -1103,8 +1103,8 @@ public class LetterQueueManager
         }
 
         // Store the skip position for later processing
-        _gameWorld.SetMetadata("PendingSkipPosition", position.ToString());
-        _gameWorld.SetMetadata("PendingQueueAction", "skip");
+        _gameWorld.PendingQueueState.PendingSkipPosition = position;
+        _gameWorld.PendingQueueState.PendingAction = QueueActionType.Skip;
 
         return true;
     }
@@ -1142,8 +1142,8 @@ public class LetterQueueManager
         }
 
         // Store purge flag for later processing
-        _gameWorld.SetMetadata("PendingPurgePosition", _config.LetterQueue.MaxQueueSize.ToString());
-        _gameWorld.SetMetadata("PendingQueueAction", "purge");
+        _gameWorld.PendingQueueState.PendingPurgePosition = _config.LetterQueue.MaxQueueSize;
+        _gameWorld.PendingQueueState.PendingAction = QueueActionType.Purge;
 
         return true;
     }

@@ -1,21 +1,23 @@
 {
-	"CurrentLocationId": "lower_ward",
-	"CurrentLocationSpotId": "abandoned_warehouse",
-	"CurrentDay": 1,
-	"CurrentTimeHours": 6,
+	"CurrentLocationId": "market_square",
+	"CurrentLocationSpotId": "copper_kettle",
+	"CurrentDay": 2,
+	"CurrentTimeHours": 15.75,
 	"Player": {
-		"Name": null,
+		"Name": "Courier",
 		"Gender": null,
-		"Archetype": null,
-		"Coins": 3,
+		"Archetype": "Merchant",
+		"Coins": 12,
 		"MaxActionPoints": 10,
 		"ActionPoints": 0,
 		"MaxStamina": 10,
-		"StaminaPoints": 5,
+		"StaminaPoints": 6,
 		"MaxHealth": 10,
 		"Health": 10,
 		"Level": 1,
 		"CurrentXP": 0,
-		"InventoryItems": []
+		"InventoryItems": [],
+		"AttentionPoints": 3,
+		"AttentionUsed": 1
 	}
 }

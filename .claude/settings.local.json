@@ -109,7 +109,8 @@
       "Bash(claude mcp remove:*)",
       "Bash(jq:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5055\" timeout 10 dotnet run)",
-      "Bash(export ASPNETCORE_URLS=\"http://localhost:5055\")"
+      "Bash(export ASPNETCORE_URLS=\"http://localhost:5055\")",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5089\" timeout 10 dotnet run)"
     ],
     "deny": []
   }

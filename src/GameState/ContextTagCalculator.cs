@@ -163,8 +163,8 @@ public class ContextTagCalculator
         // These would be expanded based on actual game state
         tags.Add(DiscoveryTag.RUMOR_AVAILABLE);
 
-        // Check if NPC has undiscovered information
-        if (_gameWorld.GetMetadata($"npc_{npcId}_has_secret") == "true")
+        // Check if NPC has undiscovered information - strongly typed
+        if (_gameWorld.PendingQueueState.NPCsWithSecrets.Contains(npcId))
             tags.Add(DiscoveryTag.SECRET_PRESENT);
 
         return tags;

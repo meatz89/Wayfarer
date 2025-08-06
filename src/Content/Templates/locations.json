@@ -1,138 +1,89 @@
 [
 	{
-		"id": "lower_ward",
-		"name": "Lower Ward",
-		"description": "Millbrook's poorest district, where desperate souls scrape by in the shadow of prosperity. The air smells of old sweat and unfulfilled dreams.",
+		"id": "market_square",
+		"name": "Market Square",
+		"description": "Bustling crowds. Merchant calls. Sun on cobblestones. Fountain spray catches the light.",
 		"environmentalProperties": {
-			"morning": [ "SHADOWY", "POOR", "URBAN" ],
-			"afternoon": [ "WELL-LIT", "POOR", "URBAN" ],
-			"evening": [ "SHADOWY", "DANGEROUS", "URBAN" ],
-			"night": [ "DARK", "DANGEROUS", "URBAN" ]
+			"morning": [ "WELL-LIT", "BUSY", "URBAN" ],
+			"afternoon": [ "WELL-LIT", "CROWDED", "URBAN" ],
+			"evening": [ "SHADOWY", "BUSY", "URBAN" ],
+			"night": [ "DARK", "QUIET", "URBAN" ]
 		},
-		"domainTags": [ "SOCIAL", "LABOR", "POOR" ],
-		"locationSpots": [ "abandoned_warehouse", "lower_ward_square" ],
-		"connectedTo": [ "millbrook_docks" ],
+		"domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
+		"locationSpots": [ "central_fountain", "copper_kettle", "merchant_stall", "north_road" ],
+		"connectedTo": [ "noble_district", "merchant_row", "riverside" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],
 		"availableProfessionsByTime": {
 			"Morning": [],
-			"Afternoon": [],
+			"Afternoon": ["Merchant", "Innkeeper"],
+			"Evening": ["Innkeeper"],
+			"Night": []
+		}
+	},
+	{
+		"id": "noble_district",
+		"name": "Noble District",
+		"description": "Quiet streets lined with grand estates. Guards patrol regularly.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "QUIET", "WEALTHY" ],
+			"afternoon": [ "WELL-LIT", "QUIET", "WEALTHY" ],
+			"evening": [ "SHADOWY", "QUIET", "WEALTHY" ],
+			"night": [ "DARK", "GUARDED", "WEALTHY" ]
+		},
+		"domainTags": [ "NOBLE", "WEALTH", "EXCLUSIVE" ],
+		"locationSpots": [ "aldwin_manor", "blackwood_estate" ],
+		"connectedTo": [ "market_square" ],
+		"socialExpectation": "Noble",
+		"accessLevel": "Restricted",
+		"requiredSocialClasses": ["Noble"],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": ["Noble"],
 			"Evening": [],
 			"Night": []
 		}
 	},
 	{
-		"id": "millbrook_docks",
-		"name": "Millbrook Docks",
-		"description": "The working waterfront where barges load and unload, and strong backs can earn honest coin. The smell of fish and tar permeates everything.",
+		"id": "merchant_row",
+		"name": "Merchant Row",
+		"description": "Shops and stalls line the busy street. The air smells of spices and leather.",
 		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "BUSY", "MARITIME" ],
-			"afternoon": [ "WELL-LIT", "BUSY", "MARITIME" ],
-			"evening": [ "SHADOWY", "QUIET", "MARITIME" ],
-			"night": [ "DARK", "QUIET", "MARITIME" ]
+			"morning": [ "WELL-LIT", "BUSY", "COMMERCIAL" ],
+			"afternoon": [ "WELL-LIT", "CROWDED", "COMMERCIAL" ],
+			"evening": [ "SHADOWY", "QUIET", "COMMERCIAL" ],
+			"night": [ "DARK", "CLOSED", "COMMERCIAL" ]
 		},
-		"domainTags": [ "LABOR", "COMMERCE", "TRANSPORT" ],
-		"locationSpots": [ "wharf", "fishmongers_stall" ],
-		"connectedTo": [ "lower_ward", "merchants_rest" ],
+		"domainTags": [ "COMMERCE", "TRADE", "SHOPPING" ],
+		"locationSpots": [ "shops" ],
+		"connectedTo": [ "market_square" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],
 		"availableProfessionsByTime": {
-			"Morning": ["Dock_Boss"],
-			"Afternoon": [],
+			"Morning": ["Merchant"],
+			"Afternoon": ["Merchant"],
 			"Evening": [],
 			"Night": []
 		}
 	},
 	{
-		"id": "merchants_rest",
-		"name": "Merchant's Rest Inn",
-		"description": "A respectable inn in Millbrook's middle ward, where traders conduct business over wine and those with coin can find comfort.",
+		"id": "riverside",
+		"name": "Riverside",
+		"description": "The sound of flowing water. Willow trees bend over the path.",
 		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "QUIET", "REFINED" ],
-			"afternoon": [ "WELL-LIT", "BUSY", "REFINED" ],
-			"evening": [ "SHADOWY", "BUSY", "REFINED" ],
-			"night": [ "DARK", "QUIET", "REFINED" ]
+			"morning": [ "WELL-LIT", "PEACEFUL", "NATURAL" ],
+			"afternoon": [ "WELL-LIT", "PEACEFUL", "NATURAL" ],
+			"evening": [ "SHADOWY", "ISOLATED", "NATURAL" ],
+			"night": [ "DARK", "DANGEROUS", "NATURAL" ]
 		},
-		"domainTags": [ "SOCIAL", "COMMERCE", "REFINED" ],
-		"locationSpots": [ "private_room" ],
-		"connectedTo": [ "millbrook_docks" ],
-		"socialExpectation": "Proper",
+		"domainTags": [ "TRAVEL", "NATURE", "ISOLATED" ],
+		"locationSpots": [ "willow_bend" ],
+		"connectedTo": [ "market_square" ],
+		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],
-		"availableProfessionsByTime": {
-			"Morning": [],
-			"Afternoon": ["Agent"],
-			"Evening": [],
-			"Night": []
-		}
-	},
-	{
-		"id": "merchant_guild",
-		"name": "Millbrook Merchant Guild",
-		"description": "An imposing stone building where the merchant houses conduct their business. The guild controls trade licenses and endorses worthy traders.",
-		"tier": 2,
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "BUSY", "REFINED" ],
-			"afternoon": [ "WELL-LIT", "BUSY", "REFINED" ],
-			"evening": [ "SHADOWY", "QUIET", "REFINED" ],
-			"night": [ "DARK", "QUIET", "REFINED" ]
-		},
-		"domainTags": [ "COMMERCE", "AUTHORITY", "REFINED" ],
-		"locationSpots": [ "guild_offices", "guild_registry" ],
-		"connectedTo": [ "merchants_rest" ],
-		"socialExpectation": "Proper",
-		"accessLevel": "Restricted",
-		"requiredSocialClasses": [ "Merchant", "Noble" ],
-		"availableProfessionsByTime": {
-			"Morning": [],
-			"Afternoon": [],
-			"Evening": [],
-			"Night": []
-		}
-	},
-	{
-		"id": "messenger_guild",
-		"name": "Courier's Guild Hall",
-		"description": "The official headquarters of licensed messengers and couriers. The guild certifies carriers and validates messenger seals.",
-		"tier": 2,
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "BUSY", "PROFESSIONAL" ],
-			"afternoon": [ "WELL-LIT", "BUSY", "PROFESSIONAL" ],
-			"evening": [ "SHADOWY", "QUIET", "PROFESSIONAL" ],
-			"night": [ "DARK", "QUIET", "PROFESSIONAL" ]
-		},
-		"domainTags": [ "TRANSPORT", "AUTHORITY", "PROFESSIONAL" ],
-		"locationSpots": [ "dispatch_office", "seal_registry" ],
-		"connectedTo": [ "millbrook_docks" ],
-		"socialExpectation": "Professional",
-		"accessLevel": "Public",
-		"requiredSocialClasses": [],
-		"availableProfessionsByTime": {
-			"Morning": [],
-			"Afternoon": [],
-			"Evening": [],
-			"Night": []
-		}
-	},
-	{
-		"id": "scholar_guild",
-		"name": "Scholar's Atheneum",
-		"description": "A grand library and meeting hall where scholars gather to share knowledge. The guild endorses learned individuals and grants academic seals.",
-		"tier": 3,
-		"environmentalProperties": {
-			"morning": [ "WELL-LIT", "QUIET", "SCHOLARLY" ],
-			"afternoon": [ "WELL-LIT", "QUIET", "SCHOLARLY" ],
-			"evening": [ "SHADOWY", "QUIET", "SCHOLARLY" ],
-			"night": [ "DARK", "QUIET", "SCHOLARLY" ]
-		},
-		"domainTags": [ "KNOWLEDGE", "AUTHORITY", "SCHOLARLY" ],
-		"locationSpots": [ "reading_hall", "certification_chamber" ],
-		"connectedTo": [ "merchant_guild" ],
-		"socialExpectation": "Refined",
-		"accessLevel": "Restricted",
-		"requiredSocialClasses": [ "Scholar", "Noble" ],
 		"availableProfessionsByTime": {
 			"Morning": [],
 			"Afternoon": [],
