@@ -27,7 +27,7 @@
 
     public bool HasResponse => hasResponse;
 
-    private static string GetConversationId(ConversationContext context)
+    private static string GetConversationId(SceneContext context)
     {
         return $"{context.LocationName}_encounter";
     }
@@ -44,7 +44,7 @@
     }
 
     // INarrativeProvider implementation
-    public async Task<string> GenerateIntroduction(ConversationContext context, ConversationState state)
+    public async Task<string> GenerateIntroduction(SceneContext context, ConversationState state)
     {
         // Create world state input
         WorldStateInput worldStateInput = _worldStateInputBuilder.CreateWorldStateInput(context.LocationName, context.Player);
@@ -53,7 +53,7 @@
 
     // Original method with full parameters
     public async Task<string> GenerateIntroduction(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         WorldStateInput worldStateInput,
         int priority)
@@ -97,7 +97,7 @@
 
     // INarrativeProvider implementation
     public async Task<List<ConversationChoice>> GenerateChoices(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         List<ChoiceTemplate> availableTemplates)
     {
@@ -106,7 +106,7 @@
     }
 
     public async Task<List<ConversationChoice>> RequestChoices(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         WorldStateInput worldStateInput,
         List<ChoiceTemplate> allTemplates,
@@ -138,7 +138,7 @@
 
     // INarrativeProvider implementation
     public async Task<string> GenerateReaction(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice selectedChoice,
         bool success)
@@ -148,7 +148,7 @@
     }
 
     public async Task<string> GenerateReaction(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice chosenOption,
         bool choiceSuccess,
@@ -183,7 +183,7 @@
 
     // INarrativeProvider implementation
     public async Task<string> GenerateConclusion(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice lastChoice)
     {
@@ -192,7 +192,7 @@
     }
 
     public async Task<string> GenerateConclusion(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice finalChoice,
         WorldStateInput worldStateInput,
@@ -223,7 +223,7 @@
     }
 
     public async Task<LocationDetails> GenerateLocationDetails(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice chosenOption,
         WorldStateInput worldStateInput,
@@ -258,7 +258,7 @@
     }
 
     public async Task<PostConversationEvolutionResult> ProcessPostConversationEvolution(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice chosenOption,
         WorldStateInput worldStateInput,
@@ -292,7 +292,7 @@
     // Action generation removed - using location actions and conversations
 
     public async Task<string> ProcessMemoryConsolidation(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice chosenOption,
         WorldStateInput worldStateInput,

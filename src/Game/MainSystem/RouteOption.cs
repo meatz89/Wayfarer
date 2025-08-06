@@ -331,7 +331,7 @@ public class RouteOption
     }
 
 
-    internal ConversationContext GetConversation(int seed)
+    internal SceneContext GetConversation(int seed)
     {
         return null;
     }

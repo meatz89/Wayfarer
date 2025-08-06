@@ -9,7 +9,7 @@
                 strategicPurpose: "Build relationship with NPC",
                 weight: 10,
                 inputMechanics: new InputMechanics(
-                    new FocusCost(1),
+                    new AttentionCost(1),
                     null // Skill system removed
                 ),
                 successEffect: new NoEffect(),
@@ -21,7 +21,7 @@
                 strategicPurpose: "Acquire knowledge about situation",
                 weight: 8,
                 inputMechanics: new InputMechanics(
-                    new FocusCost(1),
+                    new AttentionCost(1),
                     null // Skill system removed
                 ),
                 successEffect: new NoEffect(),
@@ -33,7 +33,7 @@
                 strategicPurpose: "Regain lost Focus Points",
                 weight: 5,
                 inputMechanics: new InputMechanics(
-                    new FocusCost(0),
+                    new AttentionCost(0),
                     null // Skill system removed
                 ),
                 successEffect: new NoEffect(),

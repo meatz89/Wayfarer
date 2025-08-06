@@ -531,7 +531,7 @@ public class GameFacade
             // Create conversation context
             Location location = _locationRepository.GetCurrentLocation();
             LocationSpot? spot = player.CurrentLocationSpot;
-            var context = ConversationContext.Standard(_gameWorld, player, npc, location, spot);
+            var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
 
             // Create conversation - this should always succeed with fallback content
             var conversation = await _conversationFactory.CreateConversation(context, player);
@@ -2013,7 +2013,7 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
         Location location = _locationRepository.GetCurrentLocation();
         LocationSpot spot = player.CurrentLocationSpot;
-        var context = ConversationContext.Standard(_gameWorld, player, npc, location, spot);
+        var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
 
         // Start conversation directly
         var conversation = await _conversationFactory.CreateConversation(context, player);
@@ -2082,7 +2082,7 @@ public class GameFacade
                 Id = c.ChoiceID,
                 Text = c.NarrativeText,
                 IsAvailable = c.IsAffordable,
-                UnavailableReason = !c.IsAffordable ? $"Requires {c.FocusCost} focus" : null
+                UnavailableReason = !c.IsAffordable ? $"Requires {c.AttentionCost} focus" : null
             }).ToList() ?? new List<ConversationChoiceViewModel>(),
             IsComplete = conversation.State?.IsConversationComplete ?? false,
             ConversationTopic = conversation.Context.ConversationTopic

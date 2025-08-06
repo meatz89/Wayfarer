@@ -28,7 +28,7 @@ public class AIPromptBuilder
     }
 
     public AIPrompt BuildIntroductionPrompt(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         string memoryContent)
     {
@@ -49,7 +49,7 @@ public class AIPromptBuilder
         AddMemoryContext(prompt, gameWorld);
 
         // Add core game state context
-        AddConversationContext(prompt, context, state, player);
+        AddSceneContext(prompt, context, state, player);
 
         // Add time context
         AddTimeContext(prompt, gameWorld);
@@ -72,7 +72,7 @@ public class AIPromptBuilder
     }
 
     public AIPrompt BuildChoicesPrompt(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         List<ChoiceTemplate> choiceTemplates)
     {
@@ -87,7 +87,7 @@ public class AIPromptBuilder
         AddPlayerContext(prompt, context);
 
         // Add core game state context
-        AddConversationContext(prompt, context, state, player);
+        AddSceneContext(prompt, context, state, player);
 
         // Add choices information
         AddChoiceTemplatesContext(prompt, context, choiceTemplates);
@@ -104,7 +104,7 @@ public class AIPromptBuilder
     }
 
     public AIPrompt BuildReactionPrompt(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice chosenOption)
     {
@@ -122,7 +122,7 @@ public class AIPromptBuilder
         AddPlayerContext(prompt, context);
 
         // Add core game state context
-        AddConversationContext(prompt, context, state, player);
+        AddSceneContext(prompt, context, state, player);
 
         // Add selected choice context
         AddSelectedChoiceContext(prompt, state, chosenOption);
@@ -139,7 +139,7 @@ public class AIPromptBuilder
     }
 
     public AIPrompt BuildConversationConclusionPrompt(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationOutcome outcome,
         ConversationChoice finalChoice
@@ -153,7 +153,7 @@ public class AIPromptBuilder
         StringBuilder prompt = new StringBuilder();
 
         // Add core game state context
-        AddConversationContext(prompt, context, state, player);
+        AddSceneContext(prompt, context, state, player);
 
         // Add goal context
         AddConversationGoalContext(prompt, context, state, gameWorld);
@@ -284,7 +284,7 @@ public class AIPromptBuilder
         return dynamicSystemPrompt;
     }
 
-    private void AddConversationContext(StringBuilder prompt, ConversationContext context, ConversationState state, Player player)
+    private void AddSceneContext(StringBuilder prompt, SceneContext context, ConversationState state, Player player)
     {
         prompt.AppendLine();
 
@@ -312,7 +312,7 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private static void AddPlayerContext(StringBuilder prompt, ConversationContext context)
+    private static void AddPlayerContext(StringBuilder prompt, SceneContext context)
     {
         prompt.AppendLine();
         prompt.AppendLine("PLAYER CHARACTER CONTEXT:");
@@ -327,7 +327,7 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private static void AddLocationContext(StringBuilder prompt, ConversationContext context)
+    private static void AddLocationContext(StringBuilder prompt, SceneContext context)
     {
         prompt.AppendLine();
         prompt.AppendLine("LOCATION CONTEXT:");
@@ -370,7 +370,7 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private void AddConversationGoalContext(StringBuilder prompt, ConversationContext context, ConversationState state, GameWorld gameWorld)
+    private void AddConversationGoalContext(StringBuilder prompt, SceneContext context, ConversationState state, GameWorld gameWorld)
     {
         prompt.AppendLine();
 
@@ -437,7 +437,7 @@ public class AIPromptBuilder
         prompt.AppendLine();
     }
 
-    private void AddChoiceTemplatesContext(StringBuilder prompt, ConversationContext context, List<ChoiceTemplate> choiceTemplates)
+    private void AddChoiceTemplatesContext(StringBuilder prompt, SceneContext context, List<ChoiceTemplate> choiceTemplates)
     {
         prompt.AppendLine();
 

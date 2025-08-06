@@ -15,7 +15,7 @@ public class ConversationFactory
     }
 
     public async Task<ConversationManager> CreateConversation(
-        ConversationContext context,
+        SceneContext context,
         Player player)
     {
         // Get current relationship tokens with the NPC

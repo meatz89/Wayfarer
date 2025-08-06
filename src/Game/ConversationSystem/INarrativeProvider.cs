@@ -10,13 +10,13 @@ public interface INarrativeProvider
     /// <summary>
     /// Generate the introduction narrative for a conversation
     /// </summary>
-    Task<string> GenerateIntroduction(ConversationContext context, ConversationState state);
+    Task<string> GenerateIntroduction(SceneContext context, ConversationState state);
 
     /// <summary>
     /// Generate choices available to the player at this conversation beat
     /// </summary>
     Task<List<ConversationChoice>> GenerateChoices(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         List<ChoiceTemplate> availableTemplates);
 
@@ -24,7 +24,7 @@ public interface INarrativeProvider
     /// Generate the reaction narrative based on player's choice
     /// </summary>
     Task<string> GenerateReaction(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice selectedChoice,
         bool success);
@@ -33,7 +33,7 @@ public interface INarrativeProvider
     /// Generate the conclusion narrative for the conversation
     /// </summary>
     Task<string> GenerateConclusion(
-        ConversationContext context,
+        SceneContext context,
         ConversationState state,
         ConversationChoice lastChoice);
 

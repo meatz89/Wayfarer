@@ -95,7 +95,7 @@ public class ConversationChoiceDefinition
     public string Id { get; set; }
     public string Text { get; set; }
     public string NextNode { get; set; }
-    public int FocusCost { get; set; }
+    public int AttentionCost { get; set; }
 }
 
 /// <summary>

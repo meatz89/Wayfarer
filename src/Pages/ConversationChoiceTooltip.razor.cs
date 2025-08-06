@@ -20,7 +20,7 @@ public class ConversationChoiceTooltipBase : ComponentBase
         // Get the choice projection to show accurate progress information
         ChoiceProjection projection = Preview;
 
-        string focusCost = choice.FocusCost > 0 ? $"Focus Cost: {choice.FocusCost}" : "No Focus cost";
+        string focusCost = choice.AttentionCost > 0 ? $"Focus Cost: {choice.AttentionCost}" : "No Focus cost";
 
         string positiveEffects = GetPositiveEffectsDescription(choice, projection);
 

@@ -138,9 +138,9 @@ public class ConversationChoiceResponseParser
 
         // Parse the focus cost
         if (choiceElement.TryGetProperty("focusCost", out JsonElement focusCostElement) ||
-            choiceElement.TryGetProperty("FocusCost", out focusCostElement))
+            choiceElement.TryGetProperty("AttentionCost", out focusCostElement))
         {
-            choice.FocusCost = focusCostElement.GetInt32();
+            choice.AttentionCost = focusCostElement.GetInt32();
         }
 
         // Parse choice type - removed, no longer used

@@ -1,0 +1,24 @@
+@inherits InternalThoughtChoiceBase
+
+<div class="internal-thought-choice @(Choice?.IsAvailable == true ? "available" : "unavailable")">
+    <button class="thought-button" 
+            @onclick="HandleClick" 
+            disabled="@(!Choice?.IsAvailable ?? true)">
+        <em class="thought-text">@Choice?.Text</em>
+        @if (Choice?.AttentionCost > 0)
+        {
+            <span class="attention-cost">
+                @for (int i = 0; i < Choice.AttentionCost; i++)
+                {
+                    <span class="cost-symbol">◆</span>
+                }
+            </span>
+        }
+    </button>
+    @if (Choice?.IsAvailable == false && !string.IsNullOrEmpty(Choice.UnavailableReason))
+    {
+        <div class="unavailable-hint">
+            <em>(@Choice.UnavailableReason)</em>
+        </div>
+    }
+</div>

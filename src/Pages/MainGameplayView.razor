@@ -56,9 +56,7 @@
                 break;
 
             case CurrentViews.ConversationScreen:
-                <ConversationView NPCId="@CurrentConversation?.NpcId"
-                               OnConversationCompleted="@(() => OnConversationCompleted())"
-                               @key="StateVersion" />
+                <LiteraryConversationScreen />
                 break;
 
             case CurrentViews.NarrativeScreen:

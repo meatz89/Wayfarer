@@ -1,0 +1,15 @@
+@inherits PeripheralAwarenessBase
+
+<div class="peripheral-awareness">
+    @if (Observations?.Any() == true)
+    {
+        <div class="peripheral-observations">
+            @foreach (var observation in Observations)
+            {
+                <div class="observation-item">
+                    <span class="observation-text">@observation</span>
+                </div>
+            }
+        </div>
+    }
+</div>
