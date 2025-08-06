@@ -1,0 +1,86 @@
+<div class="relationship-transparency">
+    <!-- Token Type Guide -->
+    <div class="token-guide">
+        <h4>Connection Token Guide</h4>
+        <div class="token-types">
+            <div class="token-type-info">
+                <span class="token-icon">❤️</span>
+                <span class="token-name">Trust</span>
+                <span class="token-description">Earned through personal favors and honest dealings</span>
+            </div>
+            <div class="token-type-info">
+                <span class="token-icon">🪙</span>
+                <span class="token-name">Trade</span>
+                <span class="token-description">Gained from commercial deliveries and merchant relations</span>
+            </div>
+            <div class="token-type-info">
+                <span class="token-icon">👑</span>
+                <span class="token-name">Noble</span>
+                <span class="token-description">Acquired through court connections and aristocratic service</span>
+            </div>
+            <div class="token-type-info">
+                <span class="token-icon">🍺</span>
+                <span class="token-name">Common</span>
+                <span class="token-description">Built with everyday folk through community service</span>
+            </div>
+            <div class="token-type-info">
+                <span class="token-icon">🌑</span>
+                <span class="token-name">Shadow</span>
+                <span class="token-description">Obtained from underworld contacts and discrete deliveries</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Relationship Thresholds -->
+    <div class="relationship-thresholds">
+        <h4>Relationship Benefits</h4>
+        <div class="threshold-list">
+            <div class="threshold-item">
+                <span class="threshold-value">1+ tokens</span>
+                <span class="threshold-benefit">Basic letters (3-5 coins)</span>
+            </div>
+            <div class="threshold-item">
+                <span class="threshold-value">3+ tokens</span>
+                <span class="threshold-benefit">Quality letters (8-12 coins)</span>
+            </div>
+            <div class="threshold-item">
+                <span class="threshold-value">5+ tokens</span>
+                <span class="threshold-benefit">Premium letters (15-20 coins)</span>
+            </div>
+            <div class="threshold-item">
+                <span class="threshold-value">Negative tokens</span>
+                <span class="threshold-effect">Relationship in debt - must rebuild trust</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Interactions -->
+    <div class="recent-interactions">
+        <h4>Interaction Effects Preview</h4>
+        <div class="interaction-preview">
+            <div class="preview-item success">
+                <span class="preview-icon">✓</span>
+                <span class="preview-text">Deliver letter on time: +1 token (50% chance)</span>
+            </div>
+            <div class="preview-item warning">
+                <span class="preview-icon">⚠️</span>
+                <span class="preview-text">Skip letter delivery: -1 token from sender</span>
+            </div>
+            <div class="preview-item danger">
+                <span class="preview-icon">❌</span>
+                <span class="preview-text">Let letter expire: -2 tokens from sender</span>
+            </div>
+            <div class="preview-item info">
+                <span class="preview-icon">🔄</span>
+                <span class="preview-text">Refuse letter offer: No relationship damage</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+@namespace Wayfarer.Pages.Components
+    // This component provides transparency about relationship mechanics
+    // Can be expanded with parameters to show NPC-specific information
+}

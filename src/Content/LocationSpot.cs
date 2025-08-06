@@ -1,4 +1,4 @@
-﻿
+﻿using Wayfarer.GameState.Constants;
 
 public class LocationSpot
 {
@@ -7,9 +7,13 @@ public class LocationSpot
     public string Description { get; set; }
     public string LocationId { get; set; }
     public LocationSpotTypes Type { get; set; }
+    
+    // Tier system (1-5) for difficulty/content progression
+    public int Tier { get; set; } = 1;
+    
     public int CurrentLevel { get; set; } = 1;
     public int CurrentSpotXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = 100;
+    public int XPToNextLevel { get; set; } = GameConstants.Game.XP_TO_NEXT_LEVEL_BASE;
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
     public bool PlayerKnowledge { get; set; }
@@ -25,6 +29,9 @@ public class LocationSpot
     public Dictionary<string, int> RelationshipRequirements { get; set; } = new Dictionary<string, int>();
     public NPC PrimaryNPC { get; set; }
     public bool IsClosed { get; set; }
+
+    // Access Requirements for this spot
+    public AccessRequirement AccessRequirement { get; set; }
 
     public LocationSpot(string id, string name)
     {

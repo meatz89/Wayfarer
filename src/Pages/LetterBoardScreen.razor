@@ -1,0 +1,442 @@
+@page "/letterboard"
+@inherits MainGameplayViewBase
+
+
+<div class="letter-board-container">
+    <h2>Morning Letter Board</h2>
+    
+    @if (GameFacade.GetTimeInfo().timeBlock != TimeBlocks.Dawn)
+    {
+        <div class="time-restriction">
+            <span class="restriction-icon">⏰</span>
+            <p>The Letter Board is only available during Dawn.</p>
+            <small>Rest until morning to see available letters.</small>
+        </div>
+    }
+    else
+    {
+        @* Queue Status *@
+        <div class="queue-status-bar">
+            <span class="queue-info">Queue: @GameFacade.GetLetterQueueCount() / 8 letters</span>
+            @if (GameFacade.IsLetterQueueFull())
+            {
+                <span class="queue-warning">⚠️ Queue Full - Cannot accept new letters!</span>
+            }
+        </div>
+        
+        @* Available Letters *@
+        <div class="available-letters">
+            <h3>Available Letters</h3>
+            @if (!availableLetters.Any())
+            {
+                <div class="no-letters">
+                    <p>No letters available this morning.</p>
+                    <small>Check back tomorrow or visit NPCs directly.</small>
+                </div>
+            }
+            else
+            {
+                <div class="letter-grid">
+                    @foreach (var letter in availableLetters)
+                    {
+                        <div class="letter-offer @(selectedLetter == letter ? "selected" : "")">
+                            <div class="letter-header">
+                                <span class="token-icon">@GetTokenIcon(letter.TokenType)</span>
+                                <span class="letter-type">@letter.TokenType Letter</span>
+                            </div>
+                            
+                            <div class="letter-route">
+                                <div class="route-line">
+                                    <span class="label">From:</span>
+                                    <span class="sender">@letter.SenderName</span>
+                                </div>
+                                <div class="route-line">
+                                    <span class="label">To:</span>
+                                    <span class="recipient">@letter.RecipientName</span>
+                                </div>
+                            </div>
+                            
+                            <div class="letter-details">
+                                <div class="detail-item">
+                                    <span class="icon">💰</span>
+                                    <span class="value">@letter.Payment coins</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="icon">⏳</span>
+                                    <span class="value">@letter.DeadlineInDays days</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="icon">📍</span>
+                                    <span class="value">@GetDestinationHint(letter)</span>
+                                </div>
+                            </div>
+                            
+                            @if (!GameFacade.IsLetterQueueFull())
+                            {
+                                <button class="btn btn-primary accept-btn" @onclick="() => SelectLetter(letter)">
+                                    @(selectedLetter == letter ? "Selected ✓" : "Select")
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+                
+                @* Action Buttons *@
+                @if (selectedLetter != null && !GameFacade.IsLetterQueueFull())
+                {
+                    <div class="action-panel">
+                        <h4>Selected: @selectedLetter.SenderName → @selectedLetter.RecipientName</h4>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" @onclick="AcceptSelectedLetter">
+                                Accept Letter
+                            </button>
+                            <button class="btn btn-secondary" @onclick="() => selectedLetter = null">
+                                Cancel Selection
+                            </button>
+                        </div>
+                        
+                        @* Show obligation warnings *@
+                        @if (WouldViolateRefusalObligation(selectedLetter))
+                        {
+                            <div class="obligation-warning">
+                                <span class="warning-icon">⚠️</span>
+                                <span>You have an obligation that prevents refusing @selectedLetter.TokenType letters!</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+        
+        @* Notice Board Section - Active Letter Seeking *@
+        <div class="notice-board-section">
+            <h3>📋 Spend Tokens to Seek Letters</h3>
+            <div class="notice-board-options">
+                @* Anything Heading Direction Option *@
+                <div class="board-option @(CanAffordOption("anything_heading") ? "" : "disabled")">
+                    <div class="option-header">
+                        <h4>"Anything heading..."</h4>
+                        <span class="token-cost">2 tokens</span>
+                    </div>
+                    <div class="option-description">
+                        Ask about letters going to specific locations
+                    </div>
+                    @if (ShowDirectionSelection)
+                    {
+                        <div class="direction-selection">
+                            @foreach (var direction in GetAvailableDirections())
+                            {
+                                <button class="direction-btn" @onclick="() => SelectDirection(direction)">
+                                    @direction
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="option-button" 
+                                @onclick="() => ShowDirectionSelection = true" 
+                                disabled="@(!CanAffordOption("anything_heading"))">
+                            Ask Board Keeper
+                        </button>
+                    }
+                </div>
+                
+                @* Looking for Specific Work Option *@
+                <div class="board-option @(CanAffordOption("looking_for_work") ? "" : "disabled")">
+                    <div class="option-header">
+                        <h4>"Looking for work..."</h4>
+                        <span class="token-cost">3 tokens</span>
+                    </div>
+                    <div class="option-description">
+                        Request letters of a specific type
+                    </div>
+                    @if (ShowTypeSelection)
+                    {
+                        <div class="type-selection">
+                            @foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+                            {
+                                <button class="type-btn @GetTokenTypeClass(tokenType)" 
+                                        @onclick="() => SelectType(tokenType)">
+                                    @GetTokenIcon(tokenType) @tokenType
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="option-button" 
+                                @onclick="() => ShowTypeSelection = true"
+                                disabled="@(!CanAffordOption("looking_for_work"))">
+                            Specify Work Type
+                        </button>
+                    }
+                </div>
+                
+                @* Urgent Deliveries Option *@
+                <div class="board-option @(CanAffordOption("urgent_deliveries") ? "" : "disabled")">
+                    <div class="option-header">
+                        <h4>"Urgent deliveries?"</h4>
+                        <span class="token-cost">5 tokens</span>
+                    </div>
+                    <div class="option-description">
+                        High-paying letters with tight deadlines
+                    </div>
+                    <button class="option-button urgent" 
+                            @onclick="RequestUrgentDelivery"
+                            disabled="@(!CanAffordOption("urgent_deliveries"))">
+                        Check for Urgent Work
+                    </button>
+                </div>
+            </div>
+            
+            <div class="token-summary">
+                <div class="summary-header">Your Tokens:</div>
+                <div class="token-list">
+                    @foreach (var token in GetPlayerTokens())
+                    {
+                        @if (token.Amount > 0)
+                        {
+                            <span class="token-display @GetTokenTypeClass(token.TokenType)">
+                                @GetTokenIcon(token.TokenType) @token.Amount
+                            </span>
+                        }
+                    }
+                </div>
+                <div class="total-tokens">Total: @GetPlayerTokens().Sum(t => t.Amount) tokens</div>
+            </div>
+        </div>
+        
+        @* Refresh Info *@
+        <div class="refresh-info">
+            <p>New letters appear each morning. Visit NPCs with connections (1+ tokens) for exclusive offers.</p>
+        </div>
+    }
+    
+    @* Back Button *@
+    <div class="navigation-buttons">
+        <button class="btn btn-secondary" @onclick="() => OnNavigate?.Invoke(CurrentViews.LocationScreen)">Back to Location</button>
+    </div>
+</div>
+
+@code {
+
+@namespace Wayfarer.Pages
+    private List<Letter> availableLetters = new List<Letter>();
+    private Letter? selectedLetter = null;
+    private bool ShowDirectionSelection = false;
+    private bool ShowTypeSelection = false;
+    private List<NoticeBoardOption> noticeBoardOptions = new List<NoticeBoardOption>();
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        noticeBoardOptions = GameFacade.GetNoticeBoardOptions();
+        CheckAndGenerateLetters();
+    }
+    
+    private void CheckAndGenerateLetters()
+    {
+        var player = GameFacade.GetPlayer();
+        var currentDay = GameFacade.GetCurrentDay();
+        var currentTime = GameFacade.GetTimeInfo().timeBlock;
+        
+        // Only generate if we haven't generated for today
+        if (player.LastLetterBoardDay < currentDay && currentTime == TimeBlocks.Dawn)
+        {
+            GenerateAvailableLetters(currentDay);
+            player.LastLetterBoardDay = currentDay;
+            // Store the generated letters in the player state
+            player.DailyBoardLetters = availableLetters.ToList();
+        }
+        else if (player.LastLetterBoardDay == currentDay && currentTime == TimeBlocks.Dawn)
+        {
+            // Restore previously generated letters for today (minus any already accepted)
+            availableLetters = player.DailyBoardLetters?.ToList() ?? new List<Letter>();
+        }
+        // Otherwise, letters remain empty (not dawn)
+    }
+    
+    private void GenerateAvailableLetters(int currentDay)
+    {
+        availableLetters.Clear();
+        
+        // Generate 3-5 letters
+        var random = new Random();
+        int letterCount = random.Next(3, 6);
+        
+        for (int i = 0; i < letterCount; i++)
+        {
+            // For now, generate simple letters - template system would need to be exposed through GameFacade
+            
+            // Get random NPCs for sender/recipient
+            var allNpcs = GameFacade.GetAllNPCs();
+            if (allNpcs.Count < 2) continue;
+            
+            var sender = allNpcs[random.Next(allNpcs.Count)];
+            var recipient = allNpcs[random.Next(allNpcs.Count)];
+            
+            // Ensure different sender and recipient
+            if (sender.ID == recipient.ID && allNpcs.Count > 1)
+            {
+                recipient = allNpcs.Where(n => n.ID != sender.ID).First();
+            }
+            
+            // Create a simple letter
+            var letter = new Letter
+            {
+                Id = Guid.NewGuid().ToString(),
+                SenderName = sender.Name,
+                RecipientName = recipient.Name,
+                Payment = 15 + random.Next(20),
+                DeadlineInDays = 3 + random.Next(3),
+                TokenType = (ConnectionType)random.Next(4)
+            };
+            availableLetters.Add(letter);
+        }
+    }
+    
+    private void SelectLetter(Letter letter)
+    {
+        selectedLetter = letter;
+    }
+    
+    private void AcceptSelectedLetter()
+    {
+        if (selectedLetter == null || GameFacade.IsLetterQueueFull())
+        {
+            return;
+        }
+        
+        // Check for refusal obligations
+        if (WouldViolateRefusalObligation(selectedLetter))
+        {
+            // Message is handled by WouldViolateRefusalObligation
+            return;
+        }
+        
+        // Add to queue
+        int position = GameFacade.AddLetterWithObligationEffects(selectedLetter);
+        
+        if (position > 0)
+        {
+            // Remove from available letters
+            availableLetters.Remove(selectedLetter);
+            // Also remove from player's stored daily letters
+            GameFacade.GetPlayer().DailyBoardLetters?.Remove(selectedLetter);
+            selectedLetter = null;
+            
+            StateHasChanged();
+        }
+    }
+    
+    private bool WouldViolateRefusalObligation(Letter letter)
+    {
+        string reason;
+        return GameFacade.IsActionForbidden("refuse", letter, out reason);
+    }
+    
+    private string GetRefusalObligationName(Letter letter)
+    {
+        var obligations = GameFacade.GetStandingObligations();
+        
+        if (letter.TokenType == ConnectionType.Status)
+        {
+            var obligation = obligations.FirstOrDefault(o => o.Description.Contains("Cannot refuse status letters"));
+            return obligation?.Name;
+        }
+        
+        if (letter.TokenType == ConnectionType.Trust)
+        {
+            var obligation = obligations.FirstOrDefault(o => o.Description.Contains("trust letters costs double"));
+            return obligation?.Name;
+        }
+        
+        return null;
+    }
+    
+    private string GetTokenIcon(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+    
+    private string GetDestinationHint(Letter letter)
+    {
+        // In a full implementation, this would show the general region
+        // For now, just show that it's somewhere
+        return "Local area";
+    }
+    
+    // Notice Board Methods
+    private async Task SelectDirection(string direction)
+    {
+        ShowDirectionSelection = false;
+        
+        var option = noticeBoardOptions.First(o => o.Id == "anything_heading");
+        await GameFacade.ExecuteNoticeBoardOption(option, direction);
+        StateHasChanged();
+    }
+    
+    private async Task SelectType(ConnectionType tokenType)
+    {
+        ShowTypeSelection = false;
+        
+        var option = noticeBoardOptions.First(o => o.Id == "looking_for_work");
+        // Note: GameFacade.ExecuteNoticeBoardOption needs to be enhanced to accept token type
+        await GameFacade.ExecuteNoticeBoardOption(option);
+        StateHasChanged();
+    }
+    
+    private async Task RequestUrgentDelivery()
+    {
+        var option = noticeBoardOptions.First(o => o.Id == "urgent_deliveries");
+        await GameFacade.ExecuteNoticeBoardOption(option);
+        StateHasChanged();
+    }
+    
+    private string GetTokenTypeClass(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "trust-token",
+            ConnectionType.Commerce => "trade-token",
+            ConnectionType.Status => "noble-token",
+            ConnectionType.Shadow => "shadow-token",
+            _ => ""
+        };
+    }
+    
+    private List<TokenBalance> GetPlayerTokens()
+    {
+        var tokens = new List<TokenBalance>();
+        foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+        {
+            var count = GameFacade.GetTokenCount(tokenType);
+            tokens.Add(new TokenBalance
+            {
+                TokenType = tokenType,
+                Amount = count
+            });
+        }
+        return tokens;
+    }
+    
+    private bool CanAffordOption(string optionId)
+    {
+        var option = noticeBoardOptions.FirstOrDefault(o => o.Id == optionId);
+        return option != null && GameFacade.CanAffordNoticeBoardOption(option);
+    }
+    
+    private List<string> GetAvailableDirections()
+    {
+        // Simple directions for now - could be expanded based on actual destinations
+        return new List<string> { "North", "South", "East", "West", "The Capital", "The Coast" };
+    }
+}

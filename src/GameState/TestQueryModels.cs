@@ -1,31 +1,3 @@
-namespace Wayfarer.Game.MainSystem;
-
-/// <summary>
-/// Result model for contract completion status queries.
-/// Provides comprehensive information about contract progress for testing.
-/// </summary>
-public class ContractCompletionResult
-{
-    public string ContractId { get; set; } = "";
-    public ContractStatus Status { get; set; }
-    public float ProgressPercentage { get; set; }
-    public List<ContractTransaction> CompletedTransactions { get; set; } = new List<ContractTransaction>();
-    public List<string> CompletedDestinations { get; set; } = new List<string>();
-    public List<string> CompletedNPCConversations { get; set; } = new List<string>();
-    public List<string> CompletedLocationActions { get; set; } = new List<string>();
-}
-
-/// <summary>
-/// Enum representing the various states a contract can be in.
-/// </summary>
-public enum ContractStatus
-{
-    NotFound,       // Contract doesn't exist
-    NotActive,      // Contract exists but not accepted
-    Active,         // Contract is active and in progress
-    Completed,      // Contract has been completed successfully
-    Failed          // Contract has failed (missed deadline, etc.)
-}
 
 /// <summary>
 /// Snapshot of current player state for testing verification.
@@ -36,13 +8,9 @@ public class PlayerStateSnapshot
     public int Coins { get; set; }
     public int Stamina { get; set; }
     public int Concentration { get; set; }
-    public int ActionPoints { get; set; }
     public string CurrentLocationId { get; set; } = "";
     public string CurrentLocationSpotId { get; set; } = "";
     public List<string> InventoryItems { get; set; } = new List<string>();
-    public int Reputation { get; set; }
-    public List<string> KnownContracts { get; set; } = new List<string>();
-    public List<Information> KnownInformation { get; set; } = new List<Information>();
 }
 
 /// <summary>
@@ -88,6 +56,9 @@ public class TradeActionResult
     public bool HasItemAfter { get; set; }
     public string? ErrorMessage { get; set; }
     public int TransactionPrice { get; set; }
+    
+    // Alias for backward compatibility
+    public bool IsSuccess => Success;
 }
 
 /// <summary>
@@ -110,24 +81,6 @@ public class TravelActionResult
     public string? ErrorMessage { get; set; }
 }
 
-/// <summary>
-/// Result of executing a contract action, with detailed before/after state.
-/// Provides comprehensive information for testing contract action outcomes.
-/// </summary>
-public class ContractActionResult
-{
-    public bool Success { get; set; }
-    public string ContractId { get; set; } = "";
-    public string Action { get; set; } = "";
-    public ContractStatus StatusBefore { get; set; }
-    public ContractStatus StatusAfter { get; set; }
-    public float ProgressBefore { get; set; }
-    public float ProgressAfter { get; set; }
-    public int CoinsBefore { get; set; }
-    public int CoinsAfter { get; set; }
-    public int CoinsChanged { get; set; }
-    public string? ErrorMessage { get; set; }
-}
 
 /// <summary>
 /// Market arbitrage analysis for an item across all locations.

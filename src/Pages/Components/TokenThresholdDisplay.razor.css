@@ -1,0 +1,292 @@
+.token-threshold-display {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 0.75rem;
+}
+
+.token-threshold-display h4 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Progress Bar */
+.threshold-progress-bar {
+    position: relative;
+    height: 32px;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--oak-dark);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.threshold-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--positive) 0%, var(--resource-coins) 100%);
+    transition: width 0.5s ease-out;
+    border-radius: 16px;
+}
+
+/* Threshold Markers */
+.threshold-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+}
+
+.threshold-marker {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: var(--oak-light);
+    opacity: 0.8;
+}
+
+.threshold-marker.basic {
+    left: 20%; /* 1 token = 20% */
+}
+
+.threshold-marker.quality {
+    left: 60%; /* 3 tokens = 60% */
+}
+
+.threshold-marker.premium {
+    left: 100%; /* 5 tokens = 100% */
+}
+
+/* Current Token Indicator */
+.current-token-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--bg-active);
+    border: 2px solid var(--text-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    white-space: nowrap;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Threshold Labels */
+.threshold-labels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.threshold-label {
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 6px;
+    padding: 0.75rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.threshold-label.locked {
+    opacity: 0.6;
+    background-color: var(--bg-dark);
+}
+
+.threshold-label.locked::before {
+    content: "🔒";
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.threshold-label.unlocked {
+    background-color: var(--bg-card);
+    border-color: var(--positive);
+}
+
+.threshold-label.current {
+    background-color: var(--bg-active);
+    border-color: var(--resource-coins);
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+.threshold-label.current::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(218, 165, 32, 0.1) 0%, transparent 70%);
+    animation: threshold-pulse 3s ease-in-out infinite;
+}
+
+@keyframes threshold-pulse {
+    0%, 100% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.threshold-icon {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.threshold-name {
+    display: block;
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.threshold-requirement {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.threshold-benefits {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--special);
+    font-weight: 500;
+}
+
+/* Milestone Effects */
+.token-milestone-effects {
+    background-color: var(--bg-dark);
+    border-radius: 6px;
+    padding: 0.75rem;
+}
+
+.token-milestone-effects h5 {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.milestone-effect {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.milestone-effect:last-child {
+    margin-bottom: 0;
+}
+
+.milestone-effect.active {
+    background-color: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+    color: var(--positive);
+}
+
+.milestone-effect.next {
+    background-color: rgba(177, 112, 67, 0.1);
+    border: 1px solid rgba(177, 112, 67, 0.3);
+    color: var(--special);
+    font-style: italic;
+}
+
+/* Special Effects for Shadow Tokens */
+.token-threshold-display:has(.milestone-effect:contains("Information letters")) {
+    border-color: var(--shadow);
+}
+
+/* Special Letter Preview */
+.special-letter-preview {
+    background: linear-gradient(135deg, rgba(218, 165, 32, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+    border: 1px solid rgba(218, 165, 32, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.special-letter-preview::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(218, 165, 32, 0.2) 0%, transparent 70%);
+    animation: special-shimmer 4s ease-in-out infinite;
+}
+
+@keyframes special-shimmer {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+    50% { transform: translate(-20px, 20px) scale(1.2); opacity: 0.8; }
+}
+
+.special-icon {
+    font-size: 1.5rem;
+    align-self: center;
+}
+
+.special-type {
+    font-weight: bold;
+    color: var(--resource-coins);
+    font-size: 0.9rem;
+}
+
+.special-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.special-cost {
+    font-size: 0.75rem;
+    color: var(--special);
+    font-weight: 600;
+    align-self: flex-end;
+    background-color: var(--bg-dark);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    margin-top: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .threshold-labels {
+        grid-template-columns: 1fr;
+    }
+    
+    .threshold-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-align: left;
+    }
+    
+    .threshold-icon {
+        font-size: 1.2rem;
+        margin-bottom: 0;
+    }
+}

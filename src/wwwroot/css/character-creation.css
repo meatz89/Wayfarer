@@ -154,7 +154,7 @@
 	padding: 15px;
 	width: 300px;
 	z-index: 1000;
-	box-Thief: 0 4px 8px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 	animation: slide-in 0.3s ease-out;
 }
 
@@ -218,7 +218,7 @@
 	.archetype-card.selected {
 		border-color: var(--leather);
 		background-color: var(--bg-active);
-		box-Thief: 0 0 15px rgba(168, 125, 95, 0.3);
+		box-shadow: 0 0 15px rgba(168, 125, 95, 0.3);
 		min-height: 420px;
 		transform: scale(1.08);
 		z-index: 1;
@@ -432,7 +432,7 @@
 	.archetype-card.selected {
 		border-color: var(--resource-coins);
 		background-color: var(--bg-active);
-		box-Thief: 0 0 15px rgba(168, 125, 95, 0.3);
+		box-shadow: 0 0 15px rgba(168, 125, 95, 0.3);
 	}
 
 .archetype-icon {
@@ -500,7 +500,7 @@
 		background-color: var(--leather);
 		border-color: var(--clay);
 		color: var(--parchment);
-		box-Thief: 0 3px 8px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
 	}
 
 	.gender-option i {
@@ -583,4 +583,68 @@
 
 .properties-grid {
 	margin-bottom: 1rem;
+}
+
+/* Scenario Selection Styles */
+.scenario-option-section {
+	margin-top: 30px;
+	padding: 20px;
+	background: rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 8px;
+}
+
+.scenario-option-section h4 {
+	color: #f0ad4e;
+	margin-bottom: 15px;
+	text-align: center;
+}
+
+.scenario-toggle {
+	text-align: center;
+}
+
+.scenario-checkbox {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	font-size: 1.1em;
+	color: #ddd;
+}
+
+.scenario-checkbox input[type="checkbox"] {
+	margin-right: 10px;
+	width: 20px;
+	height: 20px;
+	cursor: pointer;
+}
+
+.scenario-info {
+	margin-top: 20px;
+	padding: 15px;
+	background: rgba(0, 0, 0, 0.5);
+	border: 1px solid #5cb85c;
+	border-radius: 5px;
+	text-align: left;
+}
+
+.scenario-info p {
+	margin: 10px 0;
+	color: #eee;
+}
+
+.scenario-info ul {
+	margin: 10px 0;
+	padding-left: 20px;
+}
+
+.scenario-info li {
+	margin: 5px 0;
+	color: #ccc;
+}
+
+.scenario-warning {
+	color: #f0ad4e !important;
+	font-style: italic;
+	text-align: center;
 }

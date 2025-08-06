@@ -23,31 +23,24 @@ public static class ItemParser
             LocationId = GetStringProperty(root, "locationId", ""),
             SpotId = GetStringProperty(root, "spotId", ""),
             Description = GetStringProperty(root, "description", ""),
+            ReadableContent = GetStringProperty(root, "readableContent", ""),
+            ReadFlagToSet = GetStringProperty(root, "readFlagToSet", ""),
         };
 
-        // Parse equipment categories
-        List<string> equipmentCategoryStrings = GetStringArray(root, "categories");
-        foreach (string categoryStr in equipmentCategoryStrings)
+        // Parse item categories
+        List<string> categoryStrings = GetStringArray(root, "categories");
+        foreach (string categoryStr in categoryStrings)
         {
-            if (Enum.TryParse<EquipmentCategory>(categoryStr, out EquipmentCategory category))
+            if (EnumParser.TryParse<ItemCategory>(categoryStr, out ItemCategory category))
             {
                 item.Categories.Add(category);
             }
         }
 
-        // Parse item categories
-        List<string> itemCategoryStrings = GetStringArray(root, "itemCategories");
-        foreach (string categoryStr in itemCategoryStrings)
-        {
-            if (Enum.TryParse<ItemCategory>(categoryStr, out ItemCategory itemCategory))
-            {
-                item.ItemCategories.Add(itemCategory);
-            }
-        }
 
         // Parse enhanced categorical properties
         string sizeStr = GetStringProperty(root, "size", "Medium");
-        if (Enum.TryParse<SizeCategory>(sizeStr, out SizeCategory size))
+        if (EnumParser.TryParse<SizeCategory>(sizeStr, out SizeCategory size))
         {
             item.Size = size;
         }

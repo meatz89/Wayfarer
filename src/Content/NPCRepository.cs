@@ -1,12 +1,14 @@
-﻿using Wayfarer.Game.MainSystem;
-
-public class NPCRepository
+﻿public class NPCRepository
 {
     private readonly GameWorld _gameWorld;
+    private readonly DebugLogger _debugLogger;
+    private readonly NPCVisibilityService _visibilityService;
 
-    public NPCRepository(GameWorld gameWorld)
+    public NPCRepository(GameWorld gameWorld, DebugLogger debugLogger, NPCVisibilityService visibilityService)
     {
         _gameWorld = gameWorld;
+        _debugLogger = debugLogger;
+        _visibilityService = visibilityService;
 
         if (_gameWorld.WorldState.GetCharacters() == null)
         {
@@ -21,44 +23,79 @@ public class NPCRepository
 
     #region Read Methods
 
-    public NPC GetNPCById(string id)
+    /// <summary>
+    /// Checks if an NPC should be visible based on registered visibility rules
+    /// </summary>
+    private bool IsNPCVisible(NPC npc)
     {
-        return _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
+        return _visibilityService.IsNPCVisible(npc.ID);
+    }
+
+    /// <summary>
+    /// Filters a list of NPCs based on visibility rules
+    /// </summary>
+    private List<NPC> FilterByVisibility(List<NPC> npcs)
+    {
+        return _visibilityService.FilterVisibleNPCs(npcs);
+    }
+
+    public NPC GetById(string id)
+    {
+        var npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
+        if (npc != null && !IsNPCVisible(npc))
+            return null;
+        return npc;
+    }
+
+    public NPC GetByName(string name)
+    {
+        var npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (npc != null && !IsNPCVisible(npc))
+            return null;
+        return npc;
     }
 
     public List<NPC> GetAllNPCs()
     {
-        return _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
+        var npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
+        return FilterByVisibility(npcs);
     }
 
     public List<NPC> GetNPCsForLocation(string locationId)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.Location == locationId).ToList();
+        var locationNpcs = npcs.Where(n => n.Location == locationId).ToList();
+        return FilterByVisibility(locationNpcs);
     }
 
     public List<NPC> GetAvailableNPCs(TimeBlocks currentTime)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.IsAvailable(currentTime)).ToList();
+        var availableNpcs = npcs.Where(n => n.IsAvailable(currentTime)).ToList();
+        return FilterByVisibility(availableNpcs);
     }
 
     public List<NPC> GetNPCsByProfession(Professions profession)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.Profession == profession).ToList();
+        var professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
+        return FilterByVisibility(professionNpcs);
     }
 
     public List<NPC> GetNPCsProvidingService(ServiceTypes service)
     {
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.ProvidedServices.Contains(service)).ToList();
+        var serviceNpcs = npcs.Where(n => n.ProvidedServices.Contains(service)).ToList();
+        return FilterByVisibility(serviceNpcs);
     }
 
     public List<NPC> GetNPCsForLocationAndTime(string locationId, TimeBlocks currentTime)
     {
+        // Return all NPCs at location, regardless of availability
+        // UI will handle whether they're interactable based on availability
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
-        return npcs.Where(n => n.Location == locationId && n.IsAvailable(currentTime)).ToList();
+        var locationNpcs = npcs.Where(n => n.Location == locationId).ToList();
+        return FilterByVisibility(locationNpcs);
     }
 
     /// <summary>
@@ -66,15 +103,22 @@ public class NPCRepository
     /// </summary>
     public List<NPC> GetNPCsForLocationSpotAndTime(string locationSpotId, TimeBlocks currentTime)
     {
-        List<LocationSpot> spots = _gameWorld.WorldState.locationSpots ?? new List<LocationSpot>();
-        LocationSpot spot = spots.FirstOrDefault(s => s.SpotID == locationSpotId);
+        // Return all NPCs at this spot, regardless of availability
+        // UI will handle whether they're interactable based on availability
+        List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>(); ;
 
-        if (spot?.PrimaryNPC != null && spot.PrimaryNPC.IsAvailable(currentTime))
-        {
-            return new List<NPC> { spot.PrimaryNPC };
-        }
+        _debugLogger.LogNPCActivity("GetNPCsForLocationSpotAndTime", null,
+            $"Looking for NPCs at spot '{locationSpotId}' during {currentTime}");
 
-        return new List<NPC>();
+        List<NPC> npcsAtSpot = npcs.Where(n => n.SpotId == locationSpotId).ToList();
+        
+        // Apply visibility filtering
+        npcsAtSpot = FilterByVisibility(npcsAtSpot);
+        
+        _debugLogger.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}' (after visibility filtering): " +
+            string.Join(", ", npcsAtSpot.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
+
+        return npcsAtSpot;
     }
 
     /// <summary>
@@ -82,15 +126,73 @@ public class NPCRepository
     /// </summary>
     public NPC GetPrimaryNPCForSpot(string locationSpotId, TimeBlocks currentTime)
     {
-        List<LocationSpot> spots = _gameWorld.WorldState.locationSpots ?? new List<LocationSpot>();
-        LocationSpot spot = spots.FirstOrDefault(s => s.SpotID == locationSpotId);
+        List<NPC> npcs = _gameWorld.WorldState.GetCharacters() ?? new List<NPC>();
+        var npc = npcs.FirstOrDefault(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime));
+        if (npc != null && !IsNPCVisible(npc))
+            return null;
+        return npc;
+    }
 
-        if (spot?.PrimaryNPC != null && spot.PrimaryNPC.IsAvailable(currentTime))
+    /// <summary>
+    /// Get time block service planning data for UI display
+    /// </summary>
+    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string locationId)
+    {
+        List<TimeBlockServiceInfo> timeBlockPlan = new List<TimeBlockServiceInfo>();
+        TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
+        // GetNPCsForLocation already applies visibility filtering
+        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
+
+        foreach (TimeBlocks timeBlock in allTimeBlocks)
         {
-            return spot.PrimaryNPC;
+            List<NPC> availableNPCs = locationNPCs.Where(npc => npc.IsAvailable(timeBlock)).ToList();
+            List<ServiceTypes> availableServices = availableNPCs.SelectMany(npc => npc.ProvidedServices).Distinct().ToList();
+
+            timeBlockPlan.Add(new TimeBlockServiceInfo
+            {
+                TimeBlock = timeBlock,
+                AvailableNPCs = availableNPCs,
+                AvailableServices = availableServices,
+                IsCurrentTimeBlock = timeBlock == _gameWorld.CurrentTimeBlock
+            });
         }
 
-        return null;
+        return timeBlockPlan;
+    }
+
+    /// <summary>
+    /// Get all unique services available at a location across all time blocks
+    /// </summary>
+    public List<ServiceTypes> GetAllLocationServices(string locationId)
+    {
+        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
+        return locationNPCs.SelectMany(npc => npc.ProvidedServices).Distinct().ToList();
+    }
+
+    /// <summary>
+    /// Get service availability summary for a specific service across all time blocks
+    /// </summary>
+    public ServiceAvailabilityPlan GetServiceAvailabilityPlan(string locationId, ServiceTypes service)
+    {
+        TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
+        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
+        List<NPC> serviceProviders = locationNPCs.Where(npc => npc.ProvidedServices.Contains(service)).ToList();
+
+        List<TimeBlocks> availableTimeBlocks = new List<TimeBlocks>();
+        foreach (TimeBlocks timeBlock in allTimeBlocks)
+        {
+            if (serviceProviders.Any(npc => npc.IsAvailable(timeBlock)))
+            {
+                availableTimeBlocks.Add(timeBlock);
+            }
+        }
+
+        return new ServiceAvailabilityPlan
+        {
+            Service = service,
+            AvailableTimeBlocks = availableTimeBlocks,
+            ServiceProviders = serviceProviders
+        };
     }
 
     #endregion

@@ -1,35 +1,189 @@
 ﻿@* AreaMap.razor *@
-@inject GameWorldManager ActionManager
+@inject GameFacade ActionManager
 @inject GameWorld GameWorld
+@inject RouteRepository RouteRepository
 
 <div class="area-map-container">
-    <div class="locations-grid">
-        @foreach (var location in GetTravelableLocations())
+    <div class="map-header">
+        <h2>World Map</h2>
+        <div class="map-legend">
+            <div class="legend-item">
+                <div class="legend-marker current-location"></div>
+                <span>Current Location</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-marker reachable"></div>
+                <span>Directly Reachable</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-marker unreachable"></div>
+                <span>Not Directly Reachable</span>
+            </div>
+            <div class="legend-item">
+                <div class="route-line discovered"></div>
+                <span>Discovered Route</span>
+            </div>
+            <div class="legend-item">
+                <div class="route-line undiscovered"></div>
+                <span>Undiscovered Route</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="map-visualization">
+        <svg class="map-svg" viewBox="0 0 800 600">
+            @* Draw all routes as lines *@
+            @foreach (var route in GetAllRoutes())
+            {
+                var startPos = GetLocationPosition(route.Origin);
+                var endPos = GetLocationPosition(route.Destination);
+                var routeClass = route.IsDiscovered ? "discovered" : "undiscovered";
+                var canTravel = route.IsDiscovered;
+                
+                <line class="route-line @routeClass @(canTravel ? "can-travel" : "blocked")"
+                      x1="@startPos.X" y1="@startPos.Y"
+                      x2="@endPos.X" y2="@endPos.Y"
+                      @onclick="() => ShowRouteInfo(route)" />
+            }
+            
+            @* Draw all locations as nodes *@
+            @foreach (var location in Locations)
+            {
+                var pos = GetLocationPosition(location.Id);
+                var isReachable = GetAllRoutes().Any(r => r.IsDiscovered && (r.Origin == CurrentLocation.Id && r.Destination == location.Id || r.Destination == CurrentLocation.Id && r.Origin == location.Id));
+                var isCurrent = location.Id == CurrentLocation.Id;
+                
+                <g class="location-node @(isCurrent ? "current" : isReachable ? "reachable" : "unreachable")"
+                   transform="translate(@pos.X, @pos.Y)"
+                   @onclick="() => ShowLocationInfo(location)">
+                    <circle r="30" />
+                    <text y="5" text-anchor="middle">@GetLocationAbbreviation(location.Name)</text>
+                </g>
+            }
+        </svg>
+    </div>
+    
+    <div class="map-details">
+        @if (selectedLocation != null)
         {
-            <div class="location-card reachable">
-                <div class="location-name">
-                    @location.Name @(location.Id == CurrentLocation.Id ? "(Current)" : "")
+            <div class="location-details">
+                <h3>@selectedLocation.Name</h3>
+                <p>@selectedLocation.Description</p>
+                <div class="route-list">
+                    <h4>Routes from @selectedLocation.Name:</h4>
+                    @foreach (var route in GetRoutesFromLocation(selectedLocation.Id))
+                    {
+                        <div class="route-item">
+                            <span class="route-name">@route.Name to @GetLocationName(route.Destination)</span>
+                            <span class="route-cost">@route.TravelTimeHours hours, @route.BaseStaminaCost stamina</span>
+                            @if (!route.IsDiscovered)
+                            {
+                                <span class="route-status undiscovered">Undiscovered</span>
+                            }
+                            @if (route.TerrainCategories.Any())
+                            {
+                                <span class="route-requirements">Requires: @string.Join(", ", route.TerrainCategories)</span>
+                            }
+                        </div>
+                    }
                 </div>
-
-                <button class="action-button"
-                        @onclick="() => OnTravel.InvokeAsync(location.Id)">
-                    TRAVEL
-                </button>
+                @if (selectedLocation.Id != CurrentLocation.Id && GameFacade.CanTravelTo(selectedLocation.Id))
+                {
+                    <button class="action-button"
+                            @onclick="() => OnShowTravelScreen.InvokeAsync()">
+                        SELECT ROUTE TO @selectedLocation.Name.ToUpper()
+                    </button>
+                }
+            </div>
+        }
+        
+        @if (selectedRoute != null)
+        {
+            <div class="route-details">
+                <h3>@selectedRoute.Name</h3>
+                <p>From @GetLocationName(selectedRoute.Origin) to @GetLocationName(selectedRoute.Destination)</p>
+                <p>@selectedRoute.Description</p>
+                <div class="route-stats">
+                    <div>Method: @selectedRoute.Method</div>
+                    <div>Time: @selectedRoute.TravelTimeHours hours</div>
+                    <div>Stamina: @selectedRoute.BaseStaminaCost</div>
+                    <div>Capacity: @selectedRoute.MaxItemCapacity items</div>
+                    @if (!selectedRoute.IsDiscovered)
+                    {
+                        <div class="undiscovered">This route has not been discovered yet</div>
+                    }
+                    @if (selectedRoute.TerrainCategories.Any())
+                    {
+                        <div>Requirements: @string.Join(", ", selectedRoute.TerrainCategories)</div>
+                    }
+                </div>
             </div>
         }
     </div>
 </div>
+
 @code {
-    [Inject] public GameWorldManager GameWorldManager { get; set; }
+@namespace Wayfarer.Pages
+    [Inject] public GameFacade GameFacade { get; set; }
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public List<Location> Locations { get; set; }
-    [Parameter] public EventCallback<string> OnTravel { get; set; }
-
-    private List<Location> GetTravelableLocations()
+    [Parameter] public EventCallback OnShowTravelScreen { get; set; }
+    
+    private Location selectedLocation;
+    private RouteOption selectedRoute;
+    
+    protected override void OnInitialized()
     {
-        List<Location> enumerable = Locations.Where(loc =>
-            GameWorldManager.CanTravelTo(loc.Id)).ToList();
-
-        return enumerable;
+        selectedLocation = CurrentLocation;
+    }
+    
+    private List<RouteOption> GetAllRoutes()
+    {
+        return RouteRepository.GetAll();
+    }
+    
+    private List<RouteOption> GetRoutesFromLocation(string locationId)
+    {
+        return RouteRepository.GetRoutesFromLocation(locationId);
+    }
+    
+    private string GetLocationName(string locationId)
+    {
+        var location = Locations.FirstOrDefault(l => l.Id == locationId);
+        return location?.Name ?? locationId;
+    }
+    
+    private string GetLocationAbbreviation(string name)
+    {
+        var words = name.Split(' ');
+        if (words.Length >= 2)
+        {
+            return string.Join("", words.Take(2).Select(w => w[0].ToString().ToUpper()));
+        }
+        return name.Length > 3 ? name.Substring(0, 3).ToUpper() : name.ToUpper();
+    }
+    
+    private (double X, double Y) GetLocationPosition(string locationId)
+    {
+        return locationId switch
+        {
+            "millbrook" => (200, 300),
+            "thornwood" => (400, 200),
+            "crossbridge" => (600, 300),
+            "shadow_market" => (600, 450),
+            _ => (400, 300)
+        };
+    }
+    
+    private void ShowLocationInfo(Location location)
+    {
+        selectedLocation = location;
+        selectedRoute = null;
+    }
+    
+    private void ShowRouteInfo(RouteOption route)
+    {
+        selectedRoute = route;
+        selectedLocation = null;
     }
 }

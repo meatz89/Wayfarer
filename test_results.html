@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wayfarer UI Test - CSS Fixes</title>
+    
+    <!-- Import the actual game CSS files -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    
+    <link href="http://localhost:5200/css/game.css" rel="stylesheet" />
+    <link href="http://localhost:5200/css/ui-components.css" rel="stylesheet" />
+    <link href="http://localhost:5200/css/sidebar.css" rel="stylesheet" />
+    <link href="http://localhost:5200/css/containers.css" rel="stylesheet" />
+    <link href="http://localhost:5200/css/badges.css" rel="stylesheet" />
+    <link href="http://localhost:5200/css/travel.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="game-container">
+        <h1 style="color: var(--text-primary); text-align: center; margin-bottom: 2rem;">Wayfarer UI CSS Fix Testing</h1>
+        
+        <!-- Test 1: Right sidebar panel background -->
+        <section style="margin-bottom: 3rem;">
+            <h2 style="color: var(--leather);">Test 1: Right Sidebar Panel Background</h2>
+            <p style="color: var(--text-secondary);">The right sidebar should have proper dark panel background, not transparent</p>
+            
+            <div class="game-content">
+                <div class="main-content">
+                    <div class="location-container">
+                        <h3>Main Game Area</h3>
+                        <p>This is the main content area. The sidebar should have a proper dark background.</p>
+                    </div>
+                </div>
+                
+                <div class="game-sidebar">
+                    <div class="sidebar-section">
+                        <div class="section-header">
+                            <span>Character Info</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="player-character">
+                                <div class="character-detail">
+                                    <span class="detail-label">Name:</span>
+                                    <span class="detail-value">Test Player</span>
+                                </div>
+                                <div class="character-detail">
+                                    <span class="detail-label">Profession:</span>
+                                    <span class="detail-value">Soldier</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test 2: Location spots text layout -->
+        <section style="margin-bottom: 3rem;">
+            <h2 style="color: var(--leather);">Test 2: Location Spots Display</h2>
+            <p style="color: var(--text-secondary);">Location spots should show type and "Click to move here" on same line, not broken across lines</p>
+            
+            <div class="location-spot-card">
+                <div class="spot-header">
+                    <span class="spot-name">Martha's Wharf</span>
+                    <span class="spot-type">Dock</span>
+                </div>
+                <div class="spot-interaction">
+                    <span class="spot-action-text">Click to move here</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test 3: NPC Token Badges -->
+        <section style="margin-bottom: 3rem;">
+            <h2 style="color: var(--leather);">Test 3: NPC Token Badges</h2>
+            <p style="color: var(--text-secondary);">NPCs should show with token badges properly styled</p>
+            
+            <div class="npc-card">
+                <div class="npc-status-line">
+                    <span class="npc-name">Martha the Docker</span>
+                    <span class="npc-profession">Docker</span>
+                </div>
+                <div class="npc-tokens">
+                    <span class="token-badge trust">
+                        <i class="fas fa-handshake"></i>
+                        Trust: 2
+                    </span>
+                    <span class="token-badge commerce">
+                        <i class="fas fa-coins"></i>
+                        Commerce: 1
+                    </span>
+                    <span class="token-badge status">
+                        <i class="fas fa-crown"></i>
+                        Status: 0
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test 4: Box Shadows -->
+        <section style="margin-bottom: 3rem;">
+            <h2 style="color: var(--leather);">Test 4: Box Shadows</h2>
+            <p style="color: var(--text-secondary);">Box shadows should work correctly (previously had "box-Thief" typo)</p>
+            
+            <div class="location-card" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div class="location-name">Test Location</div>
+                <p>This card should have a proper box shadow effect, not a broken "box-Thief" style.</p>
+            </div>
+        </section>
+
+        <!-- Test 5: Transport Routes -->
+        <section style="margin-bottom: 3rem;">
+            <h2 style="color: var(--leather);">Test 5: Transport Routes</h2>
+            <p style="color: var(--text-secondary);">Transport routes should show transport method inline (e.g. "Market Shortcuts (🚶 Walking)")</p>
+            
+            <div class="travel-route">
+                <div class="route-name">Market Shortcuts (🚶 Walking)</div>
+                <div class="route-details">
+                    <span>Cost: 1h, 1 stamina</span>
+                </div>
+            </div>
+            
+            <div class="travel-route">
+                <div class="route-name">Harbor Ferry (⛵ Boat)</div>
+                <div class="route-details">
+                    <span>Cost: 2h, 5 coins</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test 6: Overall Dark Theme -->
+        <section style="margin-bottom: 3rem;">
+            <h2 style="color: var(--leather);">Test 6: Overall Dark Theme</h2>
+            <p style="color: var(--text-secondary);">The UI should look polished with proper dark theme colors</p>
+            
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span>Dark Theme Test</span>
+                </div>
+                <div class="section-content">
+                    <p style="color: var(--text-primary);">Primary text should be light colored</p>
+                    <p style="color: var(--text-secondary);">Secondary text should be slightly dimmer</p>
+                    <p style="color: var(--text-muted);">Muted text should be even dimmer</p>
+                    
+                    <button class="action-button">Test Action Button</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+[
+  {
+    "ID": "patrons_expectation",
+    "Name": "Patron's Expectation",
+    "Description": "Your debt to your patron gives their letters priority in your queue.",
+    "Source": "patron_intermediary",
+    "BenefitEffects": [],
+    "ConstraintEffects": ["PatronLettersPosition3"],
+    "RelatedTokenType": "Status",
+    "RelatedNPCId": "patron_intermediary",
+    "ActivationThreshold": -1,
+    "DeactivationThreshold": 0,
+    "IsThresholdBased": true,
+    "ActivatesAboveThreshold": false
+  },
+  {
+    "ID": "patrons_heavy_hand",
+    "Name": "Patron's Heavy Hand",
+    "Description": "Your significant debt to your patron forces their letters to the top of your queue, and you cannot refuse them.",
+    "Source": "patron_intermediary",
+    "BenefitEffects": [],
+    "ConstraintEffects": ["PatronLettersPosition1", "CannotRefuseLetters"],
+    "RelatedTokenType": "Status",
+    "RelatedNPCId": "patron_intermediary",
+    "ActivationThreshold": -3,
+    "DeactivationThreshold": -2,
+    "IsThresholdBased": true,
+    "ActivatesAboveThreshold": false
+  },
+  {
+    "ID": "elenas_devotion",
+    "Name": "Elena's Devotion",
+    "Description": "Elena's deep trust in you means her letters arrive with extra time and lower priority, knowing you'll handle them faithfully.",
+    "Source": "elena_scribe",
+    "BenefitEffects": ["TrustPriority", "DeadlinePlus2Days"],
+    "ConstraintEffects": [],
+    "RelatedTokenType": "Trust",
+    "RelatedNPCId": "elena_scribe",
+    "ActivationThreshold": 5,
+    "DeactivationThreshold": 4,
+    "IsThresholdBased": true,
+    "ActivatesAboveThreshold": true
+  },
+  {
+    "ID": "marthas_gratitude",
+    "Name": "Martha's Gratitude",
+    "Description": "Martha appreciates your reliable service and pays a bonus on all her commerce letters.",
+    "Source": "martha_docker",
+    "BenefitEffects": ["CommerceBonusPlus3"],
+    "ConstraintEffects": [],
+    "RelatedTokenType": "Commerce",
+    "RelatedNPCId": "martha_docker",
+    "ActivationThreshold": 4,
+    "DeactivationThreshold": 3,
+    "IsThresholdBased": true,
+    "ActivatesAboveThreshold": true
+  }
+]

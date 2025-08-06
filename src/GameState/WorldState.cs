@@ -1,21 +1,14 @@
-﻿using Wayfarer.Game.MainSystem;
-
-public class WorldState
+﻿public class WorldState
 {
     // Core data collections
     public List<Location> locations { get; set; } = new();
     public List<LocationSpot> locationSpots { get; set; } = new();
-    public List<ActionDefinition> actions { get; set; } = new();
-    public List<Contract> Contracts { get; set; } = new();
-    private List<NPC> characters { get; set; } = new();
+    public List<NPC> NPCs { get; set; } = new();
+    public List<LetterTemplate> LetterTemplates { get; set; } = new();
+    public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
 
     private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
-    public List<string> CompletedEncounters { get; } = new List<string>();
-
-    // Game time
-    public int CurrentDay { get; set; } = 1;
-    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
-    public int CurrentTimeHours { get; set; }
+    public List<string> CompletedConversations { get; } = new List<string>();
 
     // Weather conditions (no seasons - game timeframe is only days/weeks)
     public WeatherCondition CurrentWeather { get; set; } = WeatherCondition.Clear;
@@ -26,19 +19,14 @@ public class WorldState
     // New properties
     public List<Item> Items { get; set; } = new List<Item>();
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
-    public List<Information> Informations { get; set; } = new List<Information>();
 
-    // Current location tracking
-    public Location CurrentLocation { get; set; }
-    public LocationSpot CurrentLocationSpot { get; set; }
+    // Card system removed - using conversation and location action systems
 
-    // Card tracking
-    public List<SkillCard> AllCards { get; set; } = new List<SkillCard>();
+    // Progression tracking
+    public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
+    public List<NetworkUnlock> NetworkUnlocks { get; set; } = new List<NetworkUnlock>();
 
-    // Contract tracking
-    public List<Contract> CompletedContracts { get; set; } = new List<Contract>();
-    public List<Contract> ActiveContracts { get; set; } = new List<Contract>();
-    public List<Contract> FailedContracts { get; set; } = new List<Contract>();
+
 
     public string GetLocationIdForSpot(string locationSpotId)
     {
@@ -66,56 +54,45 @@ public class WorldState
         return GetLocationVisitCount(locationId) == 0;
     }
 
-    public void SetCurrentLocation(Location location, LocationSpot currentLocationSpot)
+
+    public bool IsConversationCompleted(string actionId)
     {
-        CurrentLocation = location;
-        if (location == null) return;
-        CurrentLocationSpot = currentLocationSpot;
+        return CompletedConversations.Contains(actionId);
     }
 
-    public void SetCurrentLocationSpot(LocationSpot locationSpot)
+    public void MarkConversationCompleted(string actionId)
     {
-        CurrentLocationSpot = locationSpot;
-    }
-
-    public bool IsEncounterCompleted(string actionId)
-    {
-        return CompletedEncounters.Contains(actionId);
-    }
-
-    public void MarkEncounterCompleted(string actionId)
-    {
-        CompletedEncounters.Add(actionId);
+        CompletedConversations.Add(actionId);
     }
 
     public void AddCharacter(NPC character)
     {
-        characters.Add(character);
+        NPCs.Add(character);
     }
 
 
     public List<NPC> GetCharacters()
     {
-        return characters;
+        return NPCs;
     }
 
 
     /// <summary>
     /// Add a temporary route block that expires after specified days
     /// </summary>
-    public void AddTemporaryRouteBlock(string routeId, int daysBlocked)
+    public void AddTemporaryRouteBlock(string routeId, int daysBlocked, int currentDay)
     {
-        TemporaryRouteBlocks[routeId] = CurrentDay + daysBlocked;
+        TemporaryRouteBlocks[routeId] = currentDay + daysBlocked;
     }
 
     /// <summary>
     /// Check if a route is temporarily blocked
     /// </summary>
-    public bool IsRouteBlocked(string routeId)
+    public bool IsRouteBlocked(string routeId, int currentDay)
     {
         if (TemporaryRouteBlocks.TryGetValue(routeId, out int unblockDay))
         {
-            if (CurrentDay >= unblockDay)
+            if (currentDay >= unblockDay)
             {
                 TemporaryRouteBlocks.Remove(routeId);
                 return false;

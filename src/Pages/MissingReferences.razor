@@ -1,7 +1,7 @@
 ﻿@page "/missing-references"
 @using Microsoft.AspNetCore.Components
 @inject ContentValidator Validator
-@inject ActionGenerator ActionGenerator
+@* Action system removed - location actions handled by LocationActionManager *@
 @inject LocationCreationSystem LocationCreationSystem
 @inject NavigationManager NavigationManager
 
@@ -12,21 +12,7 @@
         or continue with missing references (which may cause errors).
     </p>
 
-    @if (validationResult.MissingActions.Count > 0)
-    {
-        <div class="missing-section">
-            <h3>Missing Actions</h3>
-            <div class="missing-list">
-                @foreach (var missing in validationResult.MissingActions)
-                {
-                    <div class="missing-item">
-                        <span class="missing-id">@missing.SpotId</span>
-                        <span class="reference-detail">Referenced by: @missing.ReferencingAction.Name / @missing.ReferencingAction.Id</span>
-                    </div>
-                }
-            </div>
-        </div>
-    }
+    @* Actions removed - using letter queue system *@
 
     @if (validationResult.MissingLocationSpots.Count > 0)
     {
@@ -77,6 +63,8 @@
 </div>
 
 @code {
+
+@namespace Wayfarer.Pages
     [Parameter] public EventCallback OnMissingReferencesResolved { get; set; }
 
     private ContentValidationResult validationResult;
@@ -93,14 +81,13 @@
     {
         isGenerating = true;
         generatedCount = 0;
-        totalToGenerate = validationResult.MissingActions.Count +
-                         validationResult.MissingLocationSpots.Count +
+        totalToGenerate = validationResult.MissingLocationSpots.Count +
                          validationResult.MissingConnectedLocations.Count;
 
         // First generate missing locations as actions may depend on them
         foreach (var missingLocation in validationResult.MissingLocationSpots)
         {
-            await LocationCreationSystem.CreateLocationSpot(missingLocation.ReferencingLocation.Id, missingLocation.LocationSpotId);
+            await LocationCreationSystem.CreateLocationSpot(missingLocation.LocationSpotId);
             generatedCount++;
             StateHasChanged();
         }
@@ -113,17 +100,7 @@
             StateHasChanged();
         }
 
-        // Finally generate missing actions
-        foreach (var missingAction in validationResult.MissingActions)
-        {
-            await ActionGenerator.GenerateAction(
-                missingAction.ReferencingAction.Name,
-                missingAction.LocationId,
-                missingAction.SpotId);
-
-            generatedCount++;
-            StateHasChanged();
-        }
+        // Actions removed - using letter queue system
 
         isGenerating = false;
         OnMissingReferencesResolved.InvokeAsync();

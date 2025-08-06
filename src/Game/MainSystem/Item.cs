@@ -1,30 +1,30 @@
-﻿using Wayfarer.Game.ActionSystem;
-
-public enum EquipmentCategory
-{
-    // Required categories (hard requirements)
-    Climbing_Equipment,
-    Water_Transport,
-    Special_Access,
-
-    // Efficiency categories (soft modifiers)
-    Navigation_Tools,
-    Weather_Protection,
-    Load_Distribution,
-    Light_Source
-}
+﻿
 
 public enum ItemCategory
 {
-    // Strategic categories that influence multiple systems
-    Trade_Goods,        // Standard trading merchandise
-    Luxury_Items,       // High-value, low-volume goods
-    Bulk_Goods,         // Low-value, high-volume commodities
-    Perishable,         // Time-sensitive goods
-    Raw_Materials,      // Unprocessed resources
-    Finished_Goods,     // Processed/manufactured items
-    Information,        // Maps, documents, news
-    Services            // Intangible offerings
+    // Equipment types
+    Climbing_Equipment, // Ropes, grappling hooks, pitons
+    Water_Transport,    // Boats, rafts, swimming gear
+    Navigation_Tools,   // Maps, compasses
+    Weather_Protection, // Cloaks, boots, umbrellas
+    Load_Distribution,  // Backpacks, carts, bags
+    Light_Source,       // Lanterns, torches, candles
+    Special_Access,     // Permits, official documents, keys
+
+    // Other item types
+    Food,              // Bread, meat, water
+    Documents,         // Letters, contracts, books
+    Tools,             // Hammers, saws, needles
+    Weapons,           // Swords, bows, shields
+    Clothing,          // Shirts, pants, hats
+    Medicine,          // Herbs, potions, bandages
+    Valuables,         // Jewelry, gems, coins
+    Materials,         // Wood, metal, cloth
+    Bulk_Goods,        // Large trade goods, cargo
+    Luxury_Items,      // Expensive specialty items
+    Trade_Goods,       // Basic trade commodities
+    Equipment,         // General equipment category
+    Special_Document   // Readable letters and important documents
 }
 
 public enum SizeCategory
@@ -44,8 +44,7 @@ public class Item
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
     public int InventorySlots { get; set; } = 1;
-    public List<EquipmentCategory> Categories { get; set; } = new List<EquipmentCategory>();
-    public List<ItemCategory> ItemCategories { get; set; } = new List<ItemCategory>();
+    public List<ItemCategory> Categories { get; set; } = new List<ItemCategory>();
 
     // Enhanced Categorical Properties
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
@@ -54,101 +53,63 @@ public class Item
     public string SpotId { get; set; }
     public string Description { get; set; }
 
-    public string WeightDescription
+    // Token generation modifiers for equipment
+    public Dictionary<ConnectionType, float> TokenGenerationModifiers { get; set; } = new Dictionary<ConnectionType, float>();
+    
+    // Token types this equipment enables (e.g., Fine Clothes enables Noble token generation)
+    public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();
+
+    // For readable items like special letters
+    public string ReadableContent { get; set; }
+    public string ReadFlagToSet { get; set; } // Flag to set when this item is read
+
+    public string WeightDescription => Weight switch
     {
-        get
-        {
-            return Weight switch
-            {
-                0 => "Weightless",
-                1 => "Light",
-                2 => "Medium",
-                3 => "Heavy",
-                _ => $"Very Heavy ({Weight})"
-            };
-        }
-    }
+        0 => "Weightless",
+        1 => "Light",
+        2 => "Medium",
+        3 => "Heavy",
+        _ => $"Very Heavy ({Weight})"
+    };
 
     // Helper properties for UI display
-    public string EquipmentCategoriesDescription
-    {
-        get
-        {
-            return Categories.Any()
-        ? $"Equipment: {string.Join(", ", Categories.Select(c => c.ToString().Replace('_', ' ')))}"
+    public string CategoriesDescription => Categories.Any()
+        ? $"Categories: {string.Join(", ", Categories.Select(c => c.ToString().Replace('_', ' ')))}"
         : "";
-        }
-    }
 
-    public string ItemCategoriesDescription
-    {
-        get
-        {
-            return ItemCategories.Any()
-        ? $"Item: {string.Join(", ", ItemCategories.Select(c => c.ToString().Replace('_', ' ')))}"
-        : "";
-        }
-    }
 
-    public string SizeCategoryDescription
-    {
-        get
-        {
-            return $"Size: {Size.ToString()}";
-        }
-    }
+
+    public string SizeCategoryDescription => $"Size: {Size.ToString()}";
     public string AllCategoriesDescription
     {
         get
         {
             List<string> descriptions = new List<string>();
-            if (!string.IsNullOrEmpty(EquipmentCategoriesDescription))
-                descriptions.Add(EquipmentCategoriesDescription);
-            if (!string.IsNullOrEmpty(ItemCategoriesDescription))
-                descriptions.Add(ItemCategoriesDescription);
+            if (!string.IsNullOrEmpty(CategoriesDescription))
+                descriptions.Add(CategoriesDescription);
             descriptions.Add(SizeCategoryDescription);
             return string.Join(" • ", descriptions);
         }
     }
 
-    // Determine if this is primarily equipment or other item types
-    public bool IsPrimaryEquipment
-    {
-        get
-        {
-            return Categories.Any() && !ItemCategories.Any();
-        }
-    }
 
-    public bool IsPrimaryItem
-    {
-        get
-        {
-            return ItemCategories.Any() && !Categories.Any();
-        }
-    }
 
-    public bool IsHybridItem
-    {
-        get
-        {
-            return Categories.Any() && ItemCategories.Any();
-        }
-    }
+    public bool IsEquipment => Categories.Any(c =>
+                                            c == ItemCategory.Climbing_Equipment ||
+                                            c == ItemCategory.Water_Transport ||
+                                            c == ItemCategory.Special_Access ||
+                                            c == ItemCategory.Navigation_Tools ||
+                                            c == ItemCategory.Weather_Protection ||
+                                            c == ItemCategory.Load_Distribution ||
+                                            c == ItemCategory.Light_Source);
+
 
     // Categorical matching helper methods
-    public bool HasEquipmentCategory(EquipmentCategory equipmentCategory)
+    public bool HasCategory(ItemCategory category)
     {
-        return Categories.Contains(equipmentCategory);
+        return Categories.Contains(category);
     }
 
-    public bool HasToolCategory(ToolCategory toolCategory)
-    {
-        // ToolCategory now represents non-equipment tool needs
-        // This would be used for checking if item can fulfill general tool requirements
-        // For now, return false since items don't directly map to these general categories
-        return false;
-    }
 
     public bool IsSizeCategory(SizeCategory sizeCategory)
     {
@@ -179,5 +140,52 @@ public class Item
     public bool IsHeavyForTransport()
     {
         return Size == SizeCategory.Large || Size == SizeCategory.Massive;
+    }
+
+    /// <summary>
+    /// Check if this item has any token generation effects
+    /// </summary>
+    public bool HasTokenEffects()
+    {
+        return (TokenGenerationModifiers != null && TokenGenerationModifiers.Any()) ||
+               (EnablesTokenGeneration != null && EnablesTokenGeneration.Any());
+    }
+
+    /// <summary>
+    /// Get a description of this item's token effects for UI display
+    /// </summary>
+    public string GetTokenEffectsDescription()
+    {
+        var effects = new List<string>();
+
+        if (EnablesTokenGeneration != null && EnablesTokenGeneration.Any())
+        {
+            foreach (var tokenType in EnablesTokenGeneration)
+            {
+                effects.Add($"Enables {tokenType} token generation");
+            }
+        }
+
+        if (TokenGenerationModifiers != null && TokenGenerationModifiers.Any())
+        {
+            foreach (var modifier in TokenGenerationModifiers)
+            {
+                if (modifier.Value > 1.0f)
+                {
+                    int percentBonus = (int)((modifier.Value - 1.0f) * 100);
+                    effects.Add($"+{percentBonus}% {modifier.Key} tokens");
+                }
+            }
+        }
+
+        return effects.Any() ? string.Join(", ", effects) : "";
+    }
+
+    /// <summary>
+    /// Check if this item can be read (has readable content)
+    /// </summary>
+    public bool IsReadable()
+    {
+        return !string.IsNullOrEmpty(ReadableContent) || HasCategory(ItemCategory.Special_Document);
     }
 }

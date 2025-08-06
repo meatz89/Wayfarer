@@ -71,14 +71,17 @@
 </div>
 
 @code {
+
     [Parameter] public EventCallback<Player> OnCharacterCreated { get; set; }
+    [Parameter] public EventCallback<string> OnScenarioRequested { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
 
     private string playerName;
-    private Professions selectedArchetype = Professions.Warrior;
+    private Professions selectedArchetype = Professions.Soldier;
     private Genders selectedGender = Genders.Male;
     private bool changingImage = false;
     private bool changingContent = false;
+    private bool startWithScenario = false;
     private System.Threading.Timer transitionTimer;
 
     // Name pools
@@ -178,11 +181,17 @@
 
         // Notify parent component that character creation is complete
         await OnCharacterCreated.InvokeAsync(GameWorld.GetPlayer());
+        
+        // If scenario was selected, notify parent to start it
+        if (startWithScenario)
+        {
+            await OnScenarioRequested.InvokeAsync("14_day_challenge");
+        }
     }
 
     private string FormatArchetypeName(Professions archetype)
     {
-        // Convert enum name to a formatted string (e.g., "WarriorType" to "Warrior Type")
+        // Convert enum name to a formatted string (e.g., "SoldierType" to "Soldier Type")
         return System.Text.RegularExpressions.Regex.Replace(
             archetype.ToString(),
             "([A-Z])",
@@ -201,12 +210,9 @@
     {
         return archetype switch
         {
-            Professions.Warrior => "With hands scarred from a thousand labors and eyes that measure the weight of a blade in a single glance, you navigate the world through sheer physical mastery. While scholars debate ancient texts, you've been busy building, breaking, and reshaping the world with calloused hands and unyielding determination. You speak through action and demonstration—a fact that leaves nobles both impressed by your capabilities and puzzled by your blunt manner. Villages whisper your name when trouble looms, though fine society might find your unvarnished honesty somewhat... abrasive.",
+            Professions.Soldier => "With hands scarred from a thousand labors and eyes that measure the weight of a blade in a single glance, you navigate the world through sheer physical mastery. While scholars debate ancient texts, you've been busy building, breaking, and reshaping the world with calloused hands and unyielding determination. You speak through action and demonstration—a fact that leaves nobles both impressed by your capabilities and puzzled by your blunt manner. Villages whisper your name when trouble looms, though fine society might find your unvarnished honesty somewhat... abrasive.",
             Professions.Scholar => "The world reveals its secrets to those who know how to look—and you've spent a lifetime perfecting that art. Where others see coincidence, you discern patterns; where they hear noise, you detect meaning. Your mind dissects problems with surgical precision, though your body might protest at carrying your ever-growing collection of notes and reference materials. You've learned enough social graces to secure patronage and share your insights, though you occasionally catch yourself analyzing conversations rather than participating in them. Ink stains your fingers permanently, a badge of honor in your personal war against ignorance.",
-            Professions.Courtier => "You dance through social waters with the same effortless grace that others struggle to walk a straight line. Your laugh can disarm a hostile room; your whispered suggestion can redirect the course of a kingdom. Court intrigue is your battlefield, reputation your weapon, and influence your treasure. You've maintained just enough physical capability to keep up appearances—whether that's dancing until dawn or deftly handling a decorative dueling blade. What you perceive, you perceive through the lens of human ambition and desire, finding that understanding people renders understanding abstract ideas largely unnecessary. After all, in your world, perception is reality.",
-            Professions.Ranger => "The road speaks to you in a language urban dwellers have forgotten—the crack of a twig that signals danger, the subtle change in wind that promises rain. Your body has been shaped by the wilderness—lean, efficient, purposeful. Though no philosopher, you've picked up enough charm and common sense to trade in villages and share stories by campfires, making you a welcome sight at remote settlements. What you miss in scholarly understanding, you make up for in practical knowledge—how to find water, mend what's broken, and reach destinations others consider unreachable. The rhythm of your footfalls matches the pulse of wild places better than any book-learned theory.",
-            Professions.Thief => "Your gaze has always cut deeper than others', perceiving the threads that connect seemingly random events. You notice patterns in starlight, significance in a falling leaf, meaning in coincidence. People find your insights either mesmerizing or deeply unsettling—there seems to be no middle ground. The physical world receives your grudging participation; you've learned enough to sustain your body, though your mind constantly wanders to more interesting realms. Social niceties often feel like rituals in a language you never quite mastered, leaving you isolated yet strangely content in that solitude. Some call you sage, others call you madman—you find both labels equally amusing.",
-            Professions.Merchant => "Words flow from your lips like fine wine—sometimes sweet, sometimes sharp, but always potent. Where warriors see problems to overcome through force, you see knots to untangle through carefully chosen phrases. Your greatest weapon is the perfectly timed silence, your finest armor the disarming smile. Though you might struggle to lift a blacksmith's hammer, you've learned to wield something far more powerful—the desires and fears that drive all human interaction. Courts and councils value your mediation; merchants seek your negotiation skills. Your greatest victory is when others believe your subtle guidance was their own idea all along.",
+            Professions.Merchant => "Words flow from your lips like fine wine—sometimes sweet, sometimes sharp, but always potent. Where Soldiers see problems to overcome through force, you see knots to untangle through carefully chosen phrases. Your greatest weapon is the perfectly timed silence, your finest armor the disarming smile. Though you might struggle to lift a blacksmith's hammer, you've learned to wield something far more powerful—the desires and fears that drive all human interaction. Courts and councils value your mediation; merchants seek your negotiation skills. Your greatest victory is when others believe your subtle guidance was their own idea all along.",
             _ => "An undefined soul wandering uncertain roads"
         };
     }
@@ -215,9 +221,9 @@
     {
         return archetype switch
         {
-            Professions.Warrior => new List<string>
+            Professions.Soldier => new List<string>
         {
-            "Warrior's Maintenance Kit",
+            "Soldier's Maintenance Kit",
             "Sturdy Gloves",
             "Meditation Stone",
             "Traveler's Guidebook"
@@ -228,27 +234,6 @@
             "Reading Spectacles",
             "Herbal Tea Set",
             "Sturdy Walking Staff"
-        },
-            Professions.Courtier => new List<string>
-        {
-            "Formal Attire",
-            "Perfumed Handkerchief",
-            "Silver Flask",
-            "Traveler's Guide to Local Customs"
-        },
-            Professions.Ranger => new List<string>
-        {
-            "Journeyman's Boots",
-            "Hunting Kit",
-            "Weather-Resistant Cloak",
-            "Tavern Token Collection"
-        },
-            Professions.Thief => new List<string>
-        {
-            "Knive",
-            "Lockpick",
-            "Herbal Bundle",
-            "Sturdy Work Gloves"
         },
             Professions.Merchant => new List<string>
         {

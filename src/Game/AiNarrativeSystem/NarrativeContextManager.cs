@@ -102,7 +102,7 @@
             if (entry.Type == MessageType.MemoryUpdate)
                 continue;
 
-            if (entry.Type == MessageType.PostEncounterEvolution)
+            if (entry.Type == MessageType.PostConversationEvolution)
                 continue;
 
             if (entry.Type == MessageType.PlayerChoice && entry.Role == "user")

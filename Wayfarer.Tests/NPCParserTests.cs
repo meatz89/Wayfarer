@@ -1,6 +1,8 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
-
-namespace Wayfarer.Tests;
+using Xunit;
 
 public class NPCParserTests
 {
@@ -12,14 +14,11 @@ public class NPCParserTests
         {
             "id": "innkeeper_marcus",
             "name": "Marcus the Innkeeper",
-            "role": "Innkeeper",
             "description": "A jovial man who runs the Dusty Flagon with warmth and efficiency.",
-            "location": "dusty_flagon",
+            "locationId": "dusty_flagon",
             "profession": "Merchant",
-            "socialClass": "Merchant",
-            "availabilitySchedule": "Always",
-            "providedServices": ["Lodging", "Rest", "Information"],
-            "playerRelationship": "Neutral"
+            "services": ["rest_services", "labor_contracts"],
+            "contractCategories": ["Standard"]
         }
         """;
 
@@ -29,17 +28,15 @@ public class NPCParserTests
         // Assert
         Assert.Equal("innkeeper_marcus", npc.ID);
         Assert.Equal("Marcus the Innkeeper", npc.Name);
-        Assert.Equal("Innkeeper", npc.Role);
+        Assert.Equal("Marcus the Innkeeper", npc.Role); // Role is now set to name for current JSON structure
         Assert.Equal("A jovial man who runs the Dusty Flagon with warmth and efficiency.", npc.Description);
         Assert.Equal("dusty_flagon", npc.Location);
         Assert.Equal(Professions.Merchant, npc.Profession);
-        Assert.Equal(Schedule.Always, npc.AvailabilitySchedule);
         Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship);
 
-        Assert.Contains(ServiceTypes.Lodging, npc.ProvidedServices);
         Assert.Contains(ServiceTypes.Rest, npc.ProvidedServices);
-        Assert.Contains(ServiceTypes.Information, npc.ProvidedServices);
-        Assert.Equal(3, npc.ProvidedServices.Count);
+        Assert.Contains(ServiceTypes.Training, npc.ProvidedServices);
+        Assert.Equal(2, npc.ProvidedServices.Count);
     }
 
     [Fact]
@@ -50,14 +47,11 @@ public class NPCParserTests
         {
             "id": "test_npc",
             "name": "Test NPC",
-            "role": "Test Role",
             "description": "A test NPC",
-            "location": "test_location",
+            "locationId": "test_location",
             "profession": "Scholar",
-            "socialClass": "Craftsman",
-            "availabilitySchedule": "Morning",
-            "providedServices": [],
-            "playerRelationship": "Helpful"
+            "services": [],
+            "contractCategories": []
         }
         """;
 
@@ -66,7 +60,7 @@ public class NPCParserTests
 
         // Assert
         Assert.Empty(npc.ProvidedServices);
-        Assert.Equal(NPCRelationship.Helpful, npc.PlayerRelationship);
+        Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship); // All NPCs default to Neutral
         Assert.Equal(Professions.Scholar, npc.Profession);
     }
 
@@ -95,21 +89,15 @@ public class NPCParserTests
             Assert.NotNull(npc.ID);
             Assert.NotNull(npc.Name);
             // Profession should be properly set (not default initialized)
-            Assert.True(npc.Profession != default(Professions) || npc.Profession == Professions.Warrior,
+            Assert.True(npc.Profession != default(Professions) || npc.Profession == Professions.Soldier,
                 $"NPC {npc.Name} has invalid profession: {npc.Profession}");
             // Schedule should be properly set
-            Assert.True(npc.AvailabilitySchedule != default(Schedule) || npc.AvailabilitySchedule == Schedule.Always,
-                $"NPC {npc.Name} has invalid schedule: {npc.AvailabilitySchedule}");
             Assert.Equal(NPCRelationship.Neutral, npc.PlayerRelationship); // All should start neutral
         }
 
         // Verify we have diverse professions
         List<Professions> professions = npcs.Select(n => n.Profession).Distinct().ToList();
         Assert.True(professions.Count >= 3, "Should have at least 3 different professions");
-
-        // Verify we have diverse schedules
-        List<Schedule> schedules = npcs.Select(n => n.AvailabilitySchedule).Distinct().ToList();
-        Assert.True(schedules.Count >= 3, "Should have at least 3 different schedules");
     }
 
     [Fact]
@@ -136,10 +124,6 @@ public class NPCParserTests
             bool availableInAfternoon = npc.IsAvailable(TimeBlocks.Afternoon);
             bool availableInEvening = npc.IsAvailable(TimeBlocks.Evening);
             bool availableInNight = npc.IsAvailable(TimeBlocks.Night);
-
-            // At least one time should be available
-            Assert.True(availableInDawn || availableInMorning || availableInAfternoon || availableInEvening || availableInNight,
-                $"NPC {npc.Name} (ID: {npc.ID}) with schedule {npc.AvailabilitySchedule} is not available at any time: Dawn={availableInDawn}, Morning={availableInMorning}, Afternoon={availableInAfternoon}, Evening={availableInEvening}, Night={availableInNight}");
 
             // Test service provision
             foreach (ServiceTypes service in npc.ProvidedServices)

@@ -74,14 +74,24 @@
 
 /* Market Scheduling Status */
 .market-status {
-	background-color: var(--bg-panel);
-	border: 1px solid var(--oak-mid);
-	border-radius: 5px;
-	padding: 10px 15px;
-	margin-bottom: 15px;
+	padding: 5px 0;
+	margin-bottom: 10px;
 	text-align: center;
 	font-family: var(--font-secondary);
-	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.player-status-compact {
+	padding: 5px 0;
+	margin-bottom: 10px;
+	font-family: var(--font-secondary);
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+}
+
+.player-status-compact .warning {
+	color: var(--rust);
+	font-weight: bold;
 }
 
 .market-open {
@@ -98,6 +108,136 @@
 	padding: 8px 12px;
 	border-radius: 4px;
 	border: 1px solid var(--rust);
+}
+
+/* Trader Information */
+.trader-information {
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+
+.trader-information h4 {
+	color: var(--text-primary);
+	font-family: var(--font-secondary);
+	margin-bottom: 10px;
+	font-size: 1.1rem;
+}
+
+.current-traders, .trader-schedules {
+	margin-top: 10px;
+}
+
+.traders-header, .schedules-header {
+	color: var(--text-secondary);
+	font-family: var(--font-secondary);
+	font-size: 0.9rem;
+	margin-bottom: 8px;
+	font-weight: 500;
+}
+
+.trader-card {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 10px;
+	margin-bottom: 8px;
+}
+
+.trader-available {
+	border-left: 4px solid var(--forest);
+	background-color: rgba(76, 111, 68, 0.05);
+}
+
+/* Readable Item Actions */
+.item-actions {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--bg-lighter);
+}
+
+.read-action-button {
+	background-color: var(--oak-mid);
+	color: var(--text-light);
+	border: 1px solid var(--oak-dark);
+	padding: 6px 12px;
+	border-radius: 4px;
+	font-size: 0.9rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.read-action-button:hover {
+	background-color: var(--oak-dark);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.read-action-button:active {
+	transform: translateY(0);
+	box-shadow: none;
+}
+
+.trader-unavailable {
+	border-left: 4px solid var(--rust);
+	background-color: rgba(158, 42, 43, 0.05);
+}
+
+.trader-name {
+	font-family: var(--font-secondary);
+	font-weight: 500;
+	color: var(--text-primary);
+	font-size: 0.9rem;
+	margin-bottom: 4px;
+}
+
+.trader-profession {
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+	margin-bottom: 4px;
+	font-style: italic;
+}
+
+.trader-schedule {
+	color: var(--text-secondary);
+	font-size: 0.8rem;
+	margin-bottom: 4px;
+}
+
+.trader-services {
+	color: var(--text-muted);
+	font-size: 0.75rem;
+	margin-bottom: 4px;
+}
+
+.trader-next-available {
+	color: var(--rust);
+	font-size: 0.8rem;
+	font-weight: 500;
+}
+
+.no-current-traders {
+	margin-top: 10px;
+}
+
+.status-message {
+	color: var(--rust);
+	font-weight: 500;
+	margin-bottom: 10px;
+}
+
+.no-traders {
+	color: var(--text-muted);
+	font-style: italic;
+	text-align: center;
+	padding: 15px;
+}
+
+.no-traders .explanation {
+	margin-top: 5px;
+	font-size: 0.85rem;
 }
 
 /* Transport Scheduling */
@@ -163,7 +303,7 @@
 }
 
 /* UI Container Panels */
-.market-container, .rest-container, .contracts-container {
+.market-container, .rest-container {
 	background-color: var(--bg-panel);
 	border: 1px solid var(--oak-dark);
 	border-radius: 5px;
@@ -182,20 +322,21 @@
 
 .table-header {
 	display: grid;
-	grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
-	padding: 8px 0;
+	grid-template-columns: 2fr 1fr 1fr 1fr;
+	padding: 4px 0;
 	border-bottom: 1px solid var(--oak-mid);
 	font-family: var(--font-primary);
+	font-size: 0.85rem;
 	color: var(--leather);
-	letter-spacing: 0.05em;
 }
 
 .market-item {
 	display: grid;
-	grid-template-columns: 3fr 1fr 1fr 1fr 1fr;
-	padding: 10px 0;
+	grid-template-columns: 2fr 1fr 1fr 1fr;
+	padding: 6px 0;
 	border-bottom: 1px solid var(--oak-dark);
 	align-items: center;
+	font-size: 0.85rem;
 }
 
 	.market-item:last-child {
@@ -261,10 +402,16 @@
 	color: var(--text-primary);
 	border: 1px solid var(--oak-dark);
 	border-radius: 3px;
-	padding: 4px 8px;
+	padding: 2px 6px;
 	font-family: var(--font-secondary);
+	font-size: 0.8rem;
 	transition: all 0.2s ease;
 	cursor: url('/images/cursors/pointer.png'), pointer !important;
+}
+
+.no-action {
+	color: var(--text-muted);
+	font-size: 0.8rem;
 }
 
 	.buy-button:hover, .sell-button:hover, .drop-button:hover {
@@ -535,80 +682,56 @@
 	cursor: url('/images/cursors/cursor.png'), default !important;
 }
 
-/* Contract Screen Styles */
-.contracts-list {
-	display: flex;
-	flex-direction: column;
-	gap: 15px;
+/* Wait section styling */
+.wait-section {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid var(--oak-mid);
 }
 
-.contract-card {
-	background-color: var(--bg-card);
-	border: 1px solid var(--oak-mid);
-	border-radius: 5px;
-	padding: 15px;
-	margin-bottom: 15px;
-	transition: all 0.2s ease;
-}
-
-.contract-item {
-	background-color: var(--bg-card);
-	border: 1px solid var(--oak-mid);
-	border-radius: 5px;
-	padding: 15px;
-	transition: all 0.2s ease;
-}
-
-.contract-item:hover {
-	background-color: var(--bg-active);
-}
-
-.contract-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 10px;
-}
-
-.contract-title {
+.wait-section h4 {
 	font-family: var(--font-primary);
 	color: var(--leather);
-	font-size: 1.1em;
-	letter-spacing: 0.05em;
+	margin-bottom: 10px;
+	font-size: 1rem;
 }
 
-.contract-payment {
+.wait-section p {
 	font-family: var(--font-secondary);
-	color: var(--resource-coins);
-	font-weight: bold;
-}
-
-.contract-description {
 	color: var(--text-secondary);
-	margin-bottom: 12px;
-	line-height: 1.4;
+	font-size: 0.85rem;
+	margin: 5px 0;
 }
 
-.contract-button {
+.wait-options {
+	display: flex;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.wait-button {
 	background-color: var(--bg-active);
 	color: var(--text-primary);
 	border: 1px solid var(--oak-dark);
 	border-radius: 3px;
-	padding: 8px 15px;
+	padding: 6px 12px;
 	font-family: var(--font-secondary);
+	font-size: 0.85rem;
 	transition: all 0.2s ease;
 	cursor: url('/images/cursors/pointer.png'), pointer !important;
 }
 
-.contract-button:hover {
+.wait-button:hover {
 	background-color: var(--oak-mid);
 }
 
-.contract-button:disabled {
+.wait-button:disabled {
 	background-color: var(--bg-panel);
 	color: var(--text-muted);
 	cursor: url('/images/cursors/cursor.png'), default !important;
+	opacity: 0.6;
 }
+
 
 /* ==================== Transport Compatibility Styles ==================== */
 
@@ -900,7 +1023,7 @@
 	margin-bottom: 15px;
 }
 
-.equipment-items, .route-enabling-items, .contract-relevant-items {
+.equipment-items, .route-enabling-items {
 	font-family: var(--font-tertiary);
 	font-weight: 600;
 	color: var(--text-secondary);
@@ -963,7 +1086,7 @@
 	flex-wrap: wrap;
 }
 
-.routes-benefit, .contracts-benefit {
+.routes-benefit {
 	font-family: var(--font-tertiary);
 	color: var(--moss);
 	font-size: 0.8em;
@@ -1093,10 +1216,6 @@
 	color: var(--moss);
 }
 
-/* Contract Strategic Analysis */
-.contract-strategic-analysis {
-	margin: 15px 0;
-}
 
 /* Time Pressure Indicators */
 .time-pressure-indicator {
@@ -1132,79 +1251,7 @@
 	color: var(--moss);
 }
 
-/* Contract Equipment Investment */
-.contract-investment-opportunity {
-	background-color: rgba(188, 108, 37, 0.1);
-	border: 1px solid var(--clay);
-	border-radius: 5px;
-	padding: 10px;
-	margin-bottom: 8px;
-	transition: background-color 0.2s ease;
-}
 
-.contract-investment-opportunity:hover {
-	background-color: rgba(188, 108, 37, 0.15);
-}
-
-.contract-investment-opportunity .equipment-info {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 4px;
-}
-
-.contract-investment-opportunity .equipment-name {
-	font-family: var(--font-secondary);
-	color: var(--clay);
-	font-weight: 600;
-}
-
-.contract-investment-opportunity .investment-benefit {
-	font-family: var(--font-tertiary);
-	color: var(--text-secondary);
-	font-size: 0.85em;
-	font-style: italic;
-}
-
-.contract-investment-opportunity .available-items {
-	font-family: var(--font-tertiary);
-	color: var(--text-muted);
-	font-size: 0.8em;
-	line-height: 1.3;
-}
-
-/* Contract Synergy Analysis */
-.contract-synergy-analysis {
-	margin-bottom: 15px;
-}
-
-.synergy-hints {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-
-.synergy-hint {
-	background-color: rgba(96, 108, 56, 0.1);
-	border-left: 3px solid var(--moss);
-	padding: 8px 10px;
-	border-radius: 0 3px 3px 0;
-}
-
-.synergy-hint .synergy-contract {
-	font-family: var(--font-secondary);
-	color: var(--text-secondary);
-	font-weight: 500;
-	font-size: 0.9em;
-	margin-bottom: 3px;
-}
-
-.synergy-hint .synergy-benefit {
-	font-family: var(--font-tertiary);
-	color: var(--moss);
-	font-size: 0.8em;
-	line-height: 1.3;
-}
 
 /* Route Enablement Analysis */
 .route-enablement-analysis {
@@ -1385,12 +1432,183 @@
 	font-weight: 500;
 }
 
-.urgent-contracts {
-	margin-top: 4px;
-}
 
 .urgent-indicator {
 	color: var(--rust);
 	font-weight: 600;
 	font-size: 0.75em;
+}
+
+/* Contextual Information Architecture */
+.trading-context {
+	background-color: var(--bg-card);
+	border: 1px solid var(--oak-mid);
+	border-radius: 4px;
+	padding: 15px;
+	margin-bottom: 15px;
+}
+
+.trading-resources {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.resource-block {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 15px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-dark);
+	border-radius: 4px;
+	flex: 1;
+	min-width: 150px;
+}
+
+.resource-icon {
+	font-size: 1.5rem;
+}
+
+.resource-info {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.resource-main {
+	font-family: var(--font-secondary);
+	color: var(--text-primary);
+	font-weight: 600;
+	font-size: 0.95rem;
+}
+
+.resource-detail {
+	font-family: var(--font-tertiary);
+	color: var(--text-muted);
+	font-size: 0.8rem;
+}
+
+.context-warning {
+	margin-top: 10px;
+	padding: 8px 12px;
+	background-color: var(--bg-active);
+	border-left: 4px solid var(--special);
+	color: var(--special);
+	font-family: var(--font-secondary);
+	font-size: 0.9rem;
+	border-radius: 4px;
+}
+
+/* Travel Context Styles */
+.travel-context .resource-detail.warning {
+	color: var(--special);
+}
+
+.route-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.route-costs {
+	display: flex;
+	gap: 10px;
+}
+
+.cost-item {
+	font-family: var(--font-secondary);
+	font-size: 0.9rem;
+	color: var(--text-primary);
+}
+
+.cost-item.insufficient {
+	color: var(--negative);
+}
+
+.blocked-indicator {
+	color: var(--negative);
+	margin-left: 5px;
+}
+
+.route-terrain {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+	margin-bottom: 5px;
+}
+
+.terrain-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	padding: 2px 6px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--oak-mid);
+	border-radius: 3px;
+	font-family: var(--font-tertiary);
+	font-size: 0.75rem;
+	color: var(--text-secondary);
+}
+
+.block-reason {
+	color: var(--negative);
+	font-family: var(--font-tertiary);
+	font-size: 0.85rem;
+	font-style: italic;
+	margin-top: 5px;
+}
+
+.departure-info {
+	font-family: var(--font-tertiary);
+	color: var(--text-muted);
+	font-size: 0.8rem;
+	margin-top: 5px;
+}
+
+.penalty-note {
+	font-size: 0.75rem;
+	color: var(--special);
+	font-style: italic;
+	margin-left: 2px;
+}
+
+/* Token requirement styles */
+.route-tokens {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 5px 0;
+}
+
+.token-requirement {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 8px;
+	background-color: var(--bg-panel);
+	border: 1px solid var(--clay);
+	border-radius: 3px;
+	font-family: var(--font-tertiary);
+	font-size: 0.8rem;
+	color: var(--text-primary);
+}
+
+.token-requirement.insufficient {
+	background-color: rgba(158, 42, 43, 0.1);
+	border-color: var(--rust);
+	color: var(--negative);
+}
+
+.route-hint {
+	background-color: rgba(188, 108, 37, 0.1);
+	border: 1px solid var(--clay);
+	border-radius: 3px;
+	padding: 6px 10px;
+	margin: 5px 0;
+	font-family: var(--font-tertiary);
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+	font-style: italic;
 }

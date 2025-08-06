@@ -1,0 +1,1156 @@
+/* Letter Queue Styles */
+.letter-queue-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.letter-queue-container h3 {
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-family: var(--font-primary);
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+}
+
+/* Token Display */
+.token-display {
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.token-display h4 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.token-list {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.token-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: var(--bg-panel);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--oak-mid);
+}
+
+.token-icon {
+    font-size: 1.2rem;
+}
+
+.token-type {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.token-count {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-left: 0.25rem;
+}
+
+/* Letter Queue */
+.letter-queue {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+}
+
+.queue-slot {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--oak-mid);
+    border-radius: 4px;
+    padding: 0.75rem;
+    min-height: auto;
+    position: relative;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+}
+
+.queue-slot.position-one {
+    border-color: var(--resource-coins);
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+.queue-slot.occupied {
+    background-color: var(--bg-panel);
+}
+
+.queue-slot.occupied:has(.deadline-expired) {
+    border-color: var(--negative);
+    box-shadow: 0 0 15px rgba(158, 42, 43, 0.5);
+}
+
+.queue-slot.occupied:has(.deadline-urgent) {
+    border-color: var(--negative);
+    box-shadow: 0 0 10px rgba(158, 42, 43, 0.3);
+}
+
+.queue-slot.occupied:has(.deadline-warning) {
+    border-color: var(--special);
+}
+
+.slot-number {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: bold;
+    min-width: 30px;
+}
+
+/* Letter Card */
+.letter-card {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* Leveraged letter highlight */
+.letter-card.leveraged {
+    background-color: rgba(158, 42, 43, 0.05);
+    border: 1px solid rgba(158, 42, 43, 0.2);
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.letter-card.leveraged::before {
+    content: "";
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, rgba(158, 42, 43, 0.3), transparent);
+    border-radius: 4px;
+    pointer-events: none;
+    animation: leverage-pulse 2s ease-in-out infinite;
+}
+
+@keyframes leverage-pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+}
+
+/* Patron Letter Styles */
+.letter-card.patron-letter {
+    background: linear-gradient(135deg, rgba(218, 165, 32, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+    border: 1px solid rgba(218, 165, 32, 0.3);
+    border-radius: 4px;
+    padding: 0.5rem;
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.2);
+}
+
+.patron-seal {
+    font-size: 1.4rem;
+    filter: drop-shadow(0 0 3px rgba(218, 165, 32, 0.6));
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+.patron-sender {
+    color: var(--resource-coins);
+    font-weight: bold;
+    text-shadow: 0 0 2px rgba(218, 165, 32, 0.4);
+}
+
+/* Patron letter in priority positions */
+.queue-slot.position-one .patron-letter,
+.queue-slot:nth-child(2) .patron-letter,
+.queue-slot:nth-child(3) .patron-letter {
+    border-color: var(--resource-coins);
+    box-shadow: 0 0 15px rgba(218, 165, 32, 0.4);
+}
+
+.letter-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.letter-type {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.letter-route {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+}
+
+/* Queue Position Change Indicator */
+.queue-position-change {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    background-color: rgba(158, 42, 43, 0.1);
+    border: 1px solid rgba(158, 42, 43, 0.3);
+    border-radius: 3px;
+    font-size: 0.75rem;
+    color: var(--negative);
+    font-weight: 600;
+    animation: slide-in 0.5s ease-out;
+}
+
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.queue-position-change .arrow {
+    color: var(--negative);
+    font-size: 1rem;
+}
+
+.sender {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.arrow {
+    color: var(--text-secondary);
+}
+
+.recipient {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.letter-details {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-grow: 1;
+}
+
+.deadline {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.deadline.deadline-expired {
+    color: var(--negative);
+    font-weight: bold;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.deadline.deadline-urgent {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+.deadline.deadline-warning {
+    color: var(--special);
+    font-weight: 600;
+}
+
+.deadline.deadline-normal {
+    color: var(--text-secondary);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+.payment {
+    color: var(--resource-coins);
+    font-weight: 500;
+}
+
+.letter-size {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: var(--bg-dark);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+}
+
+.physical-properties {
+    color: var(--special);
+    font-size: 1rem;
+    cursor: help;
+    padding: 0.2rem 0.4rem;
+    background-color: rgba(177, 112, 67, 0.1);
+    border: 1px solid rgba(177, 112, 67, 0.3);
+    border-radius: 3px;
+}
+
+/* Leverage Indicator Styles */
+.leverage-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: relative;
+    cursor: help;
+}
+
+.leverage-indicator.leverage-weak {
+    background-color: rgba(158, 42, 43, 0.1);
+    border: 1px solid rgba(158, 42, 43, 0.2);
+    color: var(--negative);
+}
+
+.leverage-indicator.leverage-medium {
+    background-color: rgba(158, 42, 43, 0.15);
+    border: 1px solid rgba(158, 42, 43, 0.3);
+    color: var(--negative);
+}
+
+.leverage-indicator.leverage-strong {
+    background-color: rgba(158, 42, 43, 0.2);
+    border: 1px solid rgba(158, 42, 43, 0.4);
+    color: var(--negative);
+    animation: leverage-glow 2s ease-in-out infinite;
+}
+
+@keyframes leverage-glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(158, 42, 43, 0.3); }
+    50% { box-shadow: 0 0 10px rgba(158, 42, 43, 0.5); }
+}
+
+.leverage-strength {
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* Leverage Details Panel */
+.leverage-details {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(158, 42, 43, 0.05);
+    border: 1px solid rgba(158, 42, 43, 0.2);
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.leverage-calculation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    padding: 0.2rem 0;
+}
+
+.leverage-calculation span:first-child {
+    color: var(--text-secondary);
+}
+
+.leverage-effect {
+    color: var(--negative);
+    font-weight: 600;
+}
+
+.empty-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+    padding: 2rem 1rem;
+}
+
+/* Token Cost Preview Integration */
+.queue-slot .token-cost-preview {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Purge Controls Enhancement */
+.purge-instructions {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.purge-controls .token-input small {
+    color: var(--text-muted);
+    margin-left: 0.25rem;
+}
+
+.purge-total {
+    margin: 0.5rem 0;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    padding: 0.25rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+/* Deliver Button */
+.deliver-btn {
+    margin-top: 0.5rem;
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Queue Status */
+.queue-status {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+.queue-status p {
+    margin: 0.25rem 0;
+}
+
+.queue-status .deadline-expired {
+    color: var(--negative);
+    font-weight: bold;
+    font-size: 1rem;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.queue-status .deadline-urgent {
+    color: var(--negative);
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.queue-status .deadline-warning {
+    color: var(--special);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Obligations Panel (integrated into letter queue) */
+.obligations-panel {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+
+.obligations-panel h4 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+}
+
+.no-obligations-message {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+}
+
+.no-obligations-message p {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.no-obligations-message small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.obligations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.obligation-summary {
+    padding: 0.75rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.obligation-summary.forced-pending {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.1);
+}
+
+.obligation-name {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+    font-family: var(--font-secondary);
+}
+
+.obligation-effect {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+}
+
+/* Obligation Effects in Letter Cards */
+.payment-bonus {
+    color: var(--positive);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+    padding: 0.1rem 0.3rem;
+    background-color: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+    border-radius: 3px;
+}
+
+.deadline-extension {
+    color: var(--positive);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+    padding: 0.1rem 0.3rem;
+    background-color: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+    border-radius: 3px;
+}
+
+/* Obligation-affected letter highlight */
+.letter-card.obligation-affected {
+    border: 1px solid var(--special);
+    background-color: rgba(188, 108, 37, 0.05);
+    padding: 0.5rem;
+    border-radius: 4px;
+    position: relative;
+}
+
+.letter-card.obligation-affected::before {
+    content: "⚖️";
+    position: absolute;
+    top: -8px;
+    right: 0.5rem;
+    background-color: var(--bg-panel);
+    padding: 0 0.25rem;
+    font-size: 0.9rem;
+}
+
+/* Forbidden action indicators */
+.letter-card.cannot-refuse .skip-btn:disabled::after,
+.letter-card.cannot-purge .purge-btn:disabled::after {
+    content: "🚫 Forbidden by obligation";
+    position: absolute;
+    bottom: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: var(--negative);
+    white-space: nowrap;
+    background-color: var(--bg-dark);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    border: 1px solid var(--negative);
+}
+
+.obligation-effects-summary {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(188, 108, 37, 0.1);
+    border: 1px solid var(--special);
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.obligation-effects-summary .effects-header {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 600;
+    color: var(--special);
+    margin-bottom: 0.25rem;
+}
+
+.obligation-effects-summary .effects-icon {
+    font-size: 1rem;
+}
+
+.obligation-effects-summary .effects-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.obligation-effects-summary .effect-item {
+    color: var(--text-secondary);
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.obligation-effects-summary .effect-item::before {
+    content: "•";
+    position: absolute;
+    left: 0.5rem;
+    color: var(--special);
+}
+
+.benefit {
+    color: var(--positive);
+}
+
+.constraint {
+    color: var(--negative);
+}
+
+.forced-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--special);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--special);
+}
+
+.warning-icon {
+    font-size: 0.875rem;
+}
+
+.more-obligations {
+    text-align: center;
+    padding: 0.5rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.more-obligations small {
+    font-size: 0.8rem;
+}
+
+/* Queue Management Actions */
+.queue-actions {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+
+.queue-actions h4 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.action-group {
+    background-color: var(--bg-dark);
+    border-radius: 6px;
+    border: 1px solid var(--oak-mid);
+    padding: 0.75rem;
+}
+
+.action-group button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.action-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.action-controls input[type="number"] {
+    width: 60px;
+    padding: 0.25rem;
+    border: 1px solid var(--oak-mid);
+    border-radius: 3px;
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+}
+
+.action-group h5 {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.cost-preview {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--bg-panel);
+    border-radius: 4px;
+}
+
+.confirm-dialog {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--bg-warning);
+    border-radius: 4px;
+    text-align: center;
+}
+
+.confirm-dialog button {
+    margin: 0.25rem;
+}
+
+.purge-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+}
+
+.token-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    padding: 0.25rem;
+    background-color: var(--bg-panel);
+    border-radius: 3px;
+}
+
+.token-input .token-icon {
+    font-size: 1.2rem;
+}
+
+.token-input input[type="number"] {
+    width: 50px;
+}
+
+.token-input .available {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+}
+
+/* Controls for queue actions */
+.swap-controls, .purge-controls, .priority-controls, .extend-controls {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-radius: 4px;
+}
+
+.swap-controls label, .purge-controls label, .priority-controls label, .extend-controls label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.swap-controls input[type="number"], .priority-controls input[type="number"], .extend-controls input[type="number"] {
+    width: 60px;
+    padding: 0.25rem;
+    margin: 0 0.5rem;
+    border: 1px solid var(--oak-mid);
+    border-radius: 3px;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+.token-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.token-selector input[type="number"] {
+    width: 50px;
+    padding: 0.25rem;
+    border: 1px solid var(--oak-mid);
+    border-radius: 3px;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+.cost-info {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.disabled-reason {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+.obligation-cost-note {
+    color: var(--special);
+    font-size: 0.7rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+/* Bootstrap-style buttons */
+.btn {
+    padding: 0.375rem 0.75rem;
+    margin: 0.125rem;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-family: var(--font-secondary);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    user-select: none;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--resource-coins);
+    color: var(--parchment);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #b8860b;
+}
+
+.btn-secondary {
+    background-color: var(--oak-mid);
+    color: var(--parchment);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--oak-dark);
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: var(--parchment);
+}
+
+.btn-info:hover:not(:disabled) {
+    background-color: #138496;
+}
+
+.btn-danger {
+    background-color: var(--negative);
+    color: var(--parchment);
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.btn-warning {
+    background-color: var(--special);
+    color: var(--oak-dark);
+}
+
+.btn-warning:hover:not(:disabled) {
+    background-color: #e0a800;
+}
+
+.btn-success {
+    background-color: var(--positive);
+    color: var(--parchment);
+}
+
+.btn-success:hover:not(:disabled) {
+    background-color: #1e7e34;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.775rem;
+    border-radius: 0.25rem;
+}
+
+.skip-btn {
+    margin-top: 0.5rem;
+    width: 100%;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Collection Status */
+.collection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.collection-status.uncollected {
+    color: var(--special);
+    background-color: rgba(177, 112, 67, 0.1);
+    border: 1px solid rgba(177, 112, 67, 0.3);
+}
+
+.collection-status.collected {
+    color: var(--positive);
+    background-color: rgba(39, 174, 96, 0.1);
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+/* Carried Information Section */
+.carried-information-section {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.carried-information-section h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-family: var(--font-primary);
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+}
+
+.information-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.information-item {
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.information-item:hover {
+    background-color: var(--bg-active);
+    border-color: var(--oak-dark);
+}
+
+.information-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.information-icon {
+    font-size: 1.1rem;
+}
+
+.information-sender,
+.information-recipient {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.information-description {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.information-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.information-payment,
+.information-deadline,
+.information-effect {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.information-effect {
+    color: var(--special);
+    font-weight: 500;
+}
+
+.information-note {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.no-information {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.no-information p {
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.no-information small {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+/* Queue Jump Animation */
+.queue-slot.queue-jumped {
+    animation: queue-jump-highlight 1.5s ease-out;
+}
+
+@keyframes queue-jump-highlight {
+    0% {
+        background-color: rgba(158, 42, 43, 0.3);
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(158, 42, 43, 0.5);
+    }
+    20% {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(158, 42, 43, 0.7);
+    }
+    100% {
+        background-color: var(--bg-panel);
+        transform: scale(1);
+        box-shadow: none;
+    }
+}
+
+/* Leverage Glow Effect */
+.letter-card.leverage-applied {
+    position: relative;
+    overflow: hidden;
+}
+
+.letter-card.leverage-applied::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(158, 42, 43, 0.2) 0%, transparent 70%);
+    animation: leverage-ripple 2s ease-out;
+}
+
+@keyframes leverage-ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* Queue Position Number Animation */
+.queue-position-change.new {
+    animation: position-bounce 0.6s ease-out;
+}
+
+@keyframes position-bounce {
+    0% {
+        transform: scale(0) translateX(-10px);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) translateX(0);
+    }
+    100% {
+        transform: scale(1) translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .letter-queue {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .letter-queue {
+        grid-template-columns: repeat(8, 1fr);
+    }
+    
+    .queue-slot {
+        min-height: 140px;
+    }
+}

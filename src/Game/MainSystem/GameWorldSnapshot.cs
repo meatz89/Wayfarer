@@ -13,42 +13,39 @@
     public int Stamina { get; internal set; }
     public int Concentration { get; internal set; }
     public TimeBlocks CurrentTimeBlock { get; internal set; } = new TimeBlocks();
-    public List<FlagStates> ActiveFlags { get; private set; } = new List<FlagStates>();
-    public List<EncounterChoice> AvailableChoices { get; private set; } = new List<EncounterChoice>();
+    // Flag system removed - using connection tokens instead
+    public List<ConversationChoice> AvailableChoices { get; private set; } = new List<ConversationChoice>();
     public string LastChoiceLabel { get; private set; }
     public bool LastChoiceSuccess { get; private set; }
+    public bool IsConversationComplete { get; private set; }
+    public bool ConversationPending { get; internal set; }
 
-    public GameWorldSnapshot(GameWorld gameWorld)
+    public GameWorldSnapshot(GameWorld gameWorld, ConversationStateManager conversationStateManager)
     {
-        EncounterManager encounterManager = gameWorld.ActionStateTracker.CurrentEncounterManager;
-        HasActiveEncounter = encounterManager != null;
+        // Encounter system removed - using letter queue and conversations
+        HasActiveEncounter = false;
 
         StreamingContentState streamingState = gameWorld.StreamingContentState;
         StreamingText = streamingState.CurrentText;
         IsStreaming = streamingState.IsStreaming;
         StreamProgress = streamingState.StreamProgress;
 
-        if (HasActiveEncounter)
+        // Conversation state from ConversationStateManager
+        ConversationPending = conversationStateManager.ConversationPending;
+        
+        if (conversationStateManager.PendingConversationManager != null)
         {
-            EncounterState state = encounterManager.GetEncounterState();
-
-            LastChoiceLabel = state.LastChoiceNarrative;
-            LastChoiceSuccess = state.LastBeatOutcome == BeatOutcomes.Success;
-
-            CurrentFocusPoints = state.FocusPoints;
-            MaxFocusPoints = state.MaxFocusPoints;
-            ActiveFlags = state.FlagManager?.GetAllActiveFlags() ?? new List<FlagStates>();
-            IsEncounterComplete = state.IsEncounterComplete;
-
-            AvailableChoices = encounterManager.GetCurrentChoices();
-            IsAwaitingAIResponse = encounterManager._isAwaitingAIResponse;
-
-            CanSelectChoice = AvailableChoices != null &&
-                              AvailableChoices.Count > 0 &&
-                              !IsAwaitingAIResponse &&
-                              !IsStreaming;
-
-            SuccessfulOutcome = state.Progress >= state.ProgressThreshold;
+            IsAwaitingAIResponse = conversationStateManager.PendingConversationManager.IsAwaitingResponse;
+            AvailableChoices = conversationStateManager.PendingConversationManager.Choices ?? new List<ConversationChoice>();
+            CanSelectChoice = AvailableChoices.Any() && !IsAwaitingAIResponse;
+            IsConversationComplete = conversationStateManager.PendingConversationManager.State?.IsConversationComplete ?? false;
+        }
+        else
+        {
+            IsAwaitingAIResponse = false;
+            AvailableChoices = new List<ConversationChoice>();
+            CanSelectChoice = false;
+            IsConversationComplete = false;
         }
     }
 
@@ -69,11 +66,7 @@
         if (Stamina != snapshot.Stamina) return false;
         if (Concentration != snapshot.Concentration) return false;
 
-        if (ActiveFlags.Count != snapshot.ActiveFlags.Count) return false;
-        for (int i = 0; i < ActiveFlags.Count; i++)
-        {
-            if (ActiveFlags[i] != snapshot.ActiveFlags[i]) return false;
-        }
+        // Flag comparison removed - using connection tokens instead
 
         if ((AvailableChoices == null) != (snapshot.AvailableChoices == null)) return false;
         if (AvailableChoices != null)

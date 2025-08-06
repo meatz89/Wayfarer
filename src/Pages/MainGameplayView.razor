@@ -1,32 +1,37 @@
-@using Wayfarer.UIHelpers
+@using Wayfarer.Pages.Components
 
 @inherits MainGameplayViewBase
 
-<ObjectiveView StateVersion="@StateVersion" />
+@{
+    Console.WriteLine($"[MainGameplayView.razor] Rendering with CurrentScreen: {CurrentScreen}");
+    Console.WriteLine($"[MainGameplayView.razor] CurrentView parameter: {CurrentView}");
+}
+
+@if (!IsTutorialActive())
+{
+    <SystemMessageDisplay Messages="@SystemMessages" OnMessagesExpired="HandleMessagesExpired" />
+    <ObjectiveView StateVersion="@StateVersion" />
+}
+
+<NarrativeOverlay IsMinimizable="true" />
+
+@if (!IsTutorialActive())
+{
+    <NavigationBar CurrentView="@CurrentView" OnNavigate="@OnNavigate" />
+}
 
 <div class="game-status-bar">
     <div class="player-status">
-
-        <CardHand PlayerCards="@PlayerState.AvailableCards" OnCardRefreshed="HandleCardRefreshed" />
-
         <div class="status-item">
             <span class="status-label">Stamina</span>
-            <span class="status-value">
-                @Stamina
-            </span>
-            <span class="danger">
-                @(TurnActionPoints * -1)
-            </span>
+            <span class="status-value">@Stamina</span>
+            <span class="danger">@(TurnActionPoints * -1)</span>
         </div>
 
         <div class="status-item">
             <span class="status-label">Concentration</span>
-            <span class="status-value">
-                @Concentration
-            </span>
-            <span class="danger">
-                @(TurnActionPoints * -1)
-            </span>
+            <span class="status-value">@Concentration</span>
+            <span class="danger">@(TurnActionPoints * -1)</span>
         </div>
     </div>
 
@@ -42,32 +47,29 @@
     </div>
 </div>
 
-<div class="game-content">
-    <!-- Main content area -->
+<div class="game-content @(IsTutorialActive() ? "tutorial-mode" : "")">
     <div class="main-content">
         @switch (CurrentScreen)
         {
-            case CurrentViews.EncounterScreen:
-                <EncounterView EncounterManager="EncounterManager"
-                               OnEncounterCompleted="OnEncounterCompleted"
+            case CurrentViews.LetterQueueScreen:
+                <LetterQueueScreen />
+                break;
+
+            case CurrentViews.ConversationScreen:
+                <ConversationView NPCId="@CurrentConversation?.NpcId"
+                               OnConversationCompleted="@(() => OnConversationCompleted())"
                                @key="StateVersion" />
                 break;
 
             case CurrentViews.NarrativeScreen:
-                <NarrativeView LocationName="@SelectedLocation"
-                               OnNarrativeCompleted="OnNarrativeCompleted"
-                               EncounterResult="@EncounterResult" />
+                @* NarrativeView - STUB *@
+                <div>Narrative screen placeholder</div>
                 break;
 
             case CurrentViews.MapScreen:
                 <div class="location-container">
                     <div class="location-header">
                         <h2 class="location-title">@GetCurrentLocation().Id</h2>
-                        <div class="location-actions">
-                            <button class="location-button" @onclick="SwitchToTravelScreen">
-                                Travel 🗺️
-                            </button>
-                        </div>
                     </div>
                 </div>
                 <div class="map-container">
@@ -75,7 +77,7 @@
                     {
                         <AreaMap CurrentLocation="@GetCurrentLocation()"
                                  Locations="@Locations"
-                                 OnTravel="@HandleTravelStart" />
+                                 OnShowTravelScreen="@SwitchToTravelScreen" />
                     }
                     else
                     {
@@ -85,415 +87,216 @@
                 break;
 
             case CurrentViews.LocationScreen:
+                <LocationScreen OnActionExecuted="RefreshUI" OnNavigate="HandleNavigation" />
+                break;
+
+            case CurrentViews.TravelScreen:
                 <div class="location-container">
                     <div class="location-header">
-                        <h2 class="location-title">@GetCurrentLocation()?.Name</h2>
-                        <div class="location-actions">
-                            <button class="location-button" @onclick="SwitchToTravelScreen">
-                                Travel 🗺️
-                            </button>
-                            <button class="location-button" @onclick="SwitchToMarketScreen">
-                                Market 💰
-                            </button>
-                            <button class="location-button" @onclick="SwitchToRestScreen">
-                                Rest 🛏️
-                            </button>
-                            <button class="location-button" @onclick="SwitchToContractScreen">
-                                Contracts 📜
-                            </button>
-                        </div>
+                        <h2 class="location-title">Travel from @GetCurrentLocation()?.Name</h2>
                     </div>
-
-                    @{
-                        var currentLocation = GetCurrentLocation();
-                        if (currentLocation != null)
-                        {
-                            <div class="location-info-panel">
-                                @{
-                                    var availableProfessions = currentLocation.GetAvailableProfessions(CurrentTime);
-                                    if (availableProfessions.Any())
-                                    {
-                                        <div class="location-professions-info">
-                                            <span class="info-label">Available Services:</span>
-                                            <span class="info-value">@string.Join(", ", availableProfessions.Select(p => p.ToString().Replace('_', ' ')))</span>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        }
-                    }
-
-                    <LocationSpotMap CurrentLocation="@GetCurrentLocation()"
-                                     CurrentSpot="@CurrentSpot"
-                                     OnSpotSelected="@HandleSpotSelection"
-                                     OnActionSelected="@HandleActionSelection" />
+                </div>
+                <div class="travel-container">
+                    <TravelSelection 
+                        CurrentLocation="@GetCurrentLocation()"
+                        Locations="@Locations"
+                        OnTravelRoute="@HandleTravelRoute" />
                 </div>
                 break;
 
-                case CurrentViews.TravelScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Travel from @GetCurrentLocation()?.Name</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
-                                    Back to Location
-                                </button>
-                            </div>
-                        </div>
+            case CurrentViews.MarketScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">@GetCurrentLocation()?.Name Market</h2>
                     </div>
-                    <div class="travel-container">
-                        <TravelSelection 
-                            CurrentLocation="@GetCurrentLocation()"
-                            Locations="@Locations"
-                            OnTravelRoute="@HandleTravelRoute"
-                            OnTravelWithTransport="@HandleTravelWithTransport" />
-                    </div>
-                    break;
+                </div>
+                <div class="market-container">
+                    @if (IsGameDataReady())
+                    {
+                        <Market />
+                    }
+                    else
+                    {
+                        <div class="loading-message">Loading market data...</div>
+                    }
+                </div>
+                break;
 
-                case CurrentViews.MarketScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">@GetCurrentLocation()?.Name Market</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
-                                    Back to Location
-                                </button>
-                            </div>
-                        </div>
+            case CurrentViews.RestScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Rest in @GetCurrentLocation()?.Name</h2>
                     </div>
-                    <div class="market-container">
-                        @if (IsGameDataReady())
-                        {
-                            <Market Location="@GetCurrentLocation()" />
-                        }
-                        else
-                        {
-                            <div class="loading-message">Loading market data...</div>
-                        }
+                </div>
+                <div class="rest-container">
+                    @if (IsGameDataReady())
+                    {
+                        <RestUI 
+                            Location="@GetCurrentLocation()"
+                            OnRestComplete="HandleRestComplete" />
+                    }
+                    else
+                    {
+                        <div class="loading-message">Loading rest options...</div>
+                    }
+                </div>
+                break;
+                    
+            case CurrentViews.PlayerStatusScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Character Status</h2>
                     </div>
-                    break;
-
-                case CurrentViews.RestScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Rest in @GetCurrentLocation()?.Name</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
-                                    Back to Location
-                                </button>
-                            </div>
-                        </div>
+                    <PlayerStatusView OnClose="() => OnNavigate?.Invoke(CurrentViews.LocationScreen)" />
+                </div>
+                break;
+                    
+            case CurrentViews.InformationDiscoveryScreen:
+                <InformationDiscoveryScreen />
+                break;
+                    
+            case CurrentViews.EventLogScreen:
+                <EventLogScreen />
+                break;
+                    
+            case CurrentViews.RelationshipScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Character Relationships</h2>
                     </div>
-                    <div class="rest-container">
-                        @if (IsGameDataReady())
-                        {
-                            <RestUI 
-                                Location="@GetCurrentLocation()"
-                                OnRestComplete="HandleRestComplete" />
-                        }
-                        else
-                        {
-                            <div class="loading-message">Loading rest options...</div>
-                        }
+                </div>
+                @if (IsGameDataReady())
+                {
+                    <CharacterRelationshipScreen />
+                }
+                else
+                {
+                    <div class="loading-message">Loading relationship data...</div>
+                }
+                break;
+                    
+            case CurrentViews.ObligationsScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Standing Obligations</h2>
                     </div>
-                    break;
-
-                case CurrentViews.ContractScreen:
-                    <div class="location-container">
-                        <div class="location-header">
-                            <h2 class="location-title">Contracts</h2>
-                            <div class="location-actions">
-                                <button class="location-button" @onclick="() => CurrentScreen = CurrentViews.LocationScreen">
-                                    Back to Location
-                                </button>
-                            </div>
-                        </div>
+                </div>
+                @if (IsGameDataReady())
+                {
+                    <StandingObligationsScreen />
+                }
+                else
+                {
+                    <div class="loading-message">Loading obligations data...</div>
+                }
+                break;
+                    
+            case CurrentViews.LetterBoardScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Morning Letter Board</h2>
                     </div>
-                    <div class="contracts-container">
-                        @if (IsGameDataReady())
-                        {
-                            <ContractUI />
-                        }
-                        else
-                        {
-                            <div class="loading-message">Loading contracts...</div>
-                        }
+                </div>
+                @if (IsGameDataReady())
+                {
+                    <LetterBoardScreen />
+                }
+                else
+                {
+                    <div class="loading-message">Loading letter board...</div>
+                }
+                break;
+                
+            case CurrentViews.SealProgressionScreen:
+                <div class="location-container">
+                    <div class="location-header">
+                        <h2 class="location-title">Seal Progression</h2>
                     </div>
-                    break;
+                </div>
+                @if (IsGameDataReady())
+                {
+                    <SealProgressionScreen OnActionExecuted="RefreshUI" />
+                }
+                else
+                {
+                    <div class="loading-message">Loading seal information...</div>
+                }
+                break;
         }
     </div>
 
-    @if (CurrentScreen == CurrentViews.LocationScreen)
+    @if (CurrentScreen == CurrentViews.LocationScreen && !IsTutorialActive())
     {
-        <div class="game-sidebar" @ref="SidebarRef">
-            <div class="sidebar-section expanded">
-                <div class="section-header" id="section-character">
-                    <span>Character</span>
-                </div>
-
-                <div class="section-content">
-                    <div class="archetype-portrait">
-                        <img src=@GetArchetypePortrait() />
-                    </div>
-
-                    <div class="player-character">
-                        <div class="character-detail">
-                            <span class="detail-label">Name:</span>
-                            <span class="detail-value">@PlayerState.Name</span>
-                        </div>
-                        <div class="character-detail">
-                            <span class="detail-label">Level:</span>
-                            <span class="detail-value">@PlayerState.Level</span>
-                        </div>
-                        <div class="character-detail">
-                            <span class="detail-label">Experience:</span>
-                            <span class="detail-value">@PlayerState.CurrentXP / @PlayerState.XPToNextLevel</span>
-                        </div>
-                        <div class="player-archetype">
-                            <span class="archetype-icon">@StyleHelper.GetArchetypeIcon(PlayerState.Archetype)</span>
-                            <span class="archetype-name">@PlayerState.Archetype</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="sidebar-section @(ExpandedSections[SidebarSections.skills] ? "expanded" : "collapsed")">
-                <div class="section-header hover" id="section-skills" @onclick="() => ToggleSection(SidebarSections.skills)">
-                    <span>Skills</span>
-                    <span class="expand-icon">@(ExpandedSections[SidebarSections.skills] ? "▼" : "►")</span>
-                </div>
-
-                @if (ExpandedSections[SidebarSections.skills])
-                {
-                    <div class="section-content">
-                        <div class="skills-grid">
-                            @foreach (var skill in new[]
-                                                {
-                                        (SkillTypes.BruteForce, "", "Brute Force")
-                                        })
-                            {
-                                var type = skill.Item1;
-                                var icon = skill.Item2;
-                                var label = skill.Item3;
-                                var lvl = PlayerState.Skills.GetLevelForSkill(type);
-                                var xp = PlayerState.Skills.GetXPForSkill(type);
-                                var next = PlayerState.Skills.GetXPToNextForSkill(type);
-                                var pct = next > 0 ? (double)xp / next * 100 : 0;
-                                <div class="player-skill">
-                                    <span class="skill-icon">@icon</span>
-                                    <span class="skill-label">@label</span>
-                                    <div class="skill-bar">
-                                        <span class="skill-level-left">Lv @lvl</span>
-                                        <div class="skill-progress">
-                                            <div class="skill-progress-inner" style="width:@pct%"> </div>
-                                        </div>
-                                        <span class="skill-xp-right">@xp/@next</span>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <div class="sidebar-section @(ExpandedSections[SidebarSections.resources] ? "expanded" : "collapsed")">
-                <div class="section-header hover" id="section-resources" @onclick="() => ToggleSection(SidebarSections.resources)">
-                    <span>Resources</span>
-                    <span class="expand-icon">@(ExpandedSections[SidebarSections.resources] ? "▼" : "►")</span>
-                </div>
-
-                @if (ExpandedSections[SidebarSections.resources])
-                {
-                    <div class="section-content">
-                        <div class="resource-grid">
-                            <div class="player-resource">
-                                <span class="resource-icon" style="color: var(--resource-coins)">💰</span>
-                                <span class="resource-label">Coins</span>
-                                <span class="resource-value">@PlayerState.Coins</span>
-                            </div>
-
-                            <div class="player-resource">
-                                <span class="resource-icon" style="color: var(--resource-food)">🍖</span>
-                                <span class="resource-label">Food</span>
-                                <span class="resource-value">@PlayerState.Food</span>
-                                @if (PlayerState.Food > 0)
-                                {
-                                    <button class="resource-use-btn" @onclick="() => UseResource(ActionNames.ConsumeFood)">Use</button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <div class="sidebar-section @(ExpandedSections[SidebarSections.strategic] ? "expanded" : "collapsed")">
-                <div class="section-header hover" id="section-strategic" @onclick="() => ToggleSection(SidebarSections.strategic)">
-                    <span>Strategic Overview</span>
-                    <span class="expand-icon">@(ExpandedSections[SidebarSections.strategic] ? "▼" : "►")</span>
-                </div>
-
-                @if (ExpandedSections[SidebarSections.strategic])
-                {
-                    <div class="section-content">
-                        @{
-                            var strategicOverview = AnalyzePlayerStrategicStatus();
-                            var timeAnalysis = AnalyzeTimeAwareness();
-                        }
-                        
-                        <div class="strategic-status-grid">
-                            <!-- Time Awareness Section -->
-                            <div class="strategic-item time-awareness">
-                                <div class="strategic-header">
-                                    <span class="strategic-icon">⏰</span>
-                                    <span class="strategic-label">Time Awareness</span>
-                                </div>
-                                <div class="strategic-content">
-                                    <div class="time-status">@timeAnalysis.CurrentStatus</div>
-                                    <div class="time-recommendation">@timeAnalysis.Recommendation</div>
-                                </div>
-                            </div>
-
-                            <!-- Equipment Capabilities Section -->
-                            <div class="strategic-item equipment-capabilities">
-                                <div class="strategic-header">
-                                    <span class="strategic-icon">⚔️</span>
-                                    <span class="strategic-label">Equipment Status</span>
-                                </div>
-                                <div class="strategic-content">
-                                    @if (strategicOverview.EquipmentCapabilities.Any())
-                                    {
-                                        <div class="capabilities-summary">
-                                            <span class="capability-count">@strategicOverview.EquipmentCapabilities.Count capabilities</span>
-                                        </div>
-                                        <div class="capability-list">
-                                            @foreach (var capability in strategicOverview.EquipmentCapabilities.Take(3))
-                                            {
-                                                <div class="capability-item">@capability</div>
-                                            }
-                                            @if (strategicOverview.EquipmentCapabilities.Count > 3)
-                                            {
-                                                <div class="capability-more">+@(strategicOverview.EquipmentCapabilities.Count - 3) more...</div>
-                                            }
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="no-capabilities">No specialized equipment</div>
-                                    }
-                                </div>
-                            </div>
-
-                            <!-- Accessibility Status Section -->
-                            <div class="strategic-item route-accessibility">
-                                <div class="strategic-header">
-                                    <span class="strategic-icon">🛤️</span>
-                                    <span class="strategic-label">Route Access</span>
-                                </div>
-                                <div class="strategic-content">
-                                    <div class="access-summary">
-                                        <span class="accessible-count">@strategicOverview.AccessibleRoutes accessible</span>
-                                        <span class="blocked-count">@strategicOverview.BlockedRoutes blocked</span>
-                                    </div>
-                                    @if (strategicOverview.CriticalMissingEquipment.Any())
-                                    {
-                                        <div class="missing-equipment">
-                                            <div class="missing-label">Critical gaps:</div>
-                                            @foreach (var missing in strategicOverview.CriticalMissingEquipment.Take(2))
-                                            {
-                                                <div class="missing-item">@missing</div>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-
-                            <!-- Contract Readiness Section -->
-                            <div class="strategic-item contract-readiness">
-                                <div class="strategic-header">
-                                    <span class="strategic-icon">📜</span>
-                                    <span class="strategic-label">Contract Readiness</span>
-                                </div>
-                                <div class="strategic-content">
-                                    <div class="readiness-summary">
-                                        <span class="ready-count">@strategicOverview.ReadyContracts ready</span>
-                                        <span class="pending-count">@strategicOverview.PendingContracts pending</span>
-                                    </div>
-                                    @if (strategicOverview.UrgentContracts > 0)
-                                    {
-                                        <div class="urgent-contracts">
-                                            <span class="urgent-indicator">⚠️ @strategicOverview.UrgentContracts urgent</span>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <div class="sidebar-section @(ExpandedSections[SidebarSections.inventory] ? "expanded" : "collapsed")">
-                <div class="section-header hover" id="section-inventory" @onclick="() => ToggleSection(SidebarSections.inventory)">
-                    <span>Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Size)</span>
-                    <span class="expand-icon">@(ExpandedSections[SidebarSections.inventory] ? "▼" : "►")</span>
-                </div>
-
-                @if (ExpandedSections[SidebarSections.inventory])
-                {
-                    <div class="section-content">
-                        @{
-                            int totalWeight = GameManager.CalculateTotalWeight();
-                            int coinWeight = PlayerState.Coins / 10;
-                            string weightStatus = totalWeight <= 3 ? "Light load" :
-                            (totalWeight <= 6 ? "Medium load (+1 stamina)" :
-                            "Heavy load (+2 stamina)");
-                        }
-                        <div class="weight-info">
-                            <span>Total Weight: @totalWeight (@weightStatus)</span>
-                            <span>Coin Weight: @coinWeight</span>
-                        </div>
-
-                        <div class="inventory-grid">
-                            @foreach (var itemName in PlayerState.Inventory.ItemSlots)
-                            {
-                                if (itemName != null)
-                                {
-                                    Item item = ItemRepository.GetItemByName(itemName);
-                                    <div class="inventory-item" title="@itemName">
-                                        <span class="item-icon">🧰</span>
-                                        <span class="item-name">@itemName</span>
-                                        <span class="item-weight">Weight: @item.Weight</span>
-                                        @if (item.Categories.Any() || item.ItemCategories.Any())
-                                        {
-                                            <span class="item-categories">@item.AllCategoriesDescription</span>
-                                        }
-                                    </div>
-                                }
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
+        <SidebarPanel />
     }
 </div>
 
-@if (ShowTooltip && HoveredAction != null)
+@* Morning Summary Dialog *@
+@if (ShowMorningSummary && MorningActivityResult != null)
 {
-    <div class="tooltip" style="left: @(MouseX + 10)px; top: @(MouseY + 10)px">
-        <ActionPreview CurrentAction="@HoveredAction"
-                       Player="@PlayerState" />
-    </div>
+    <MorningSummaryDialog 
+        ShowDialog="@ShowMorningSummary"
+        MorningResult="@MorningActivityResult"
+        CurrentDay="@GameWorld.CurrentDay"
+        OnContinue="@HandleMorningSummaryContinue"
+        HasLetterBoard="true" />
 }
 
-@if (ShowActionMessage)
+@* Debug Panel Toggle *@
+@if (!IsTutorialActive())
 {
-    <div class="action-message @(ActionMessageType)">
-        <div class="message-content">
-            @foreach (var message in ActionMessages)
-            {
-                <div class="message-item">@message</div>
-            }
+    <button class="debug-toggle" @onclick="ToggleDebugPanel" title="Toggle Debug Panel">
+        🔧
+    </button>
+}
+
+@* Debug Panel *@
+@if (ShowDebugPanel)
+{
+    <div class="debug-panel">
+        <div class="debug-header">
+            <h3>Debug Information</h3>
+            <button class="debug-close" @onclick="ToggleDebugPanel">×</button>
         </div>
-        <button class="message-close" @onclick="DismissActionMessage">✕</button>
+        <div class="debug-content">
+            <div class="debug-section">
+                <h4>Current State</h4>
+                <p>Screen: @CurrentScreen</p>
+                <p>Location: @(LocationRepository?.GetLocation(PlayerState?.CurrentLocationSpot?.LocationId)?.Name) (@PlayerState?.CurrentLocationSpot?.LocationId)</p>
+                <p>Spot: @PlayerState?.CurrentLocationSpot?.Name (@PlayerState?.CurrentLocationSpot?.SpotID)</p>
+                <p>Time: @CurrentTime (@CurrentHour:00)</p>
+                <p>Day: @GameWorld.CurrentDay</p>
+            </div>
+            
+            <div class="debug-section">
+                <h4>Conversation State</h4>
+                <p>Pending: @ConversationStateManager.ConversationPending</p>
+                <p>Manager Exists: @(ConversationStateManager.PendingConversationManager != null)</p>
+                @* PendingCommand removed - using intent-based system *@
+            </div>
+            
+            <div class="debug-section">
+                <h4>NPCs at Current Spot</h4>
+                @{
+                    var npcsAtSpot = GetNPCsAtCurrentSpot();
+                    var availableNpcs = GetAvailableNPCsAtCurrentSpot();
+                }
+                <p>Total NPCs: @npcsAtSpot.Count</p>
+                <p>Available: @availableNpcs.Count</p>
+                @foreach (var npc in npcsAtSpot)
+                {
+                    <p class="debug-npc">
+                        @npc.Name (@npc.ID) - 
+                        @(npc.IsAvailable(CurrentTime) ? "🟢" : "🔴")
+                    </p>
+                }
+            </div>
+            
+            <div class="debug-actions">
+                <button class="debug-button" @onclick="PrintDebugState">Print Full State</button>
+                <button class="debug-button" @onclick="RunVerification">Run Verification</button>
+                <button class="debug-button" @onclick="StartTutorialManually">Start Tutorial</button>
+            </div>
+        </div>
     </div>
 }

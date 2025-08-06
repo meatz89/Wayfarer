@@ -1,0 +1,104 @@
+@using Wayfarer.Services
+
+@* Component to preview time impact of actions *@
+<div class="action-time-preview @(HasDeadlineImpact ? "has-warning" : "")">
+    <div class="time-header">
+        <span class="time-icon">⏰</span>
+        <span class="time-label">Time Cost:</span>
+        <span class="time-amount">@Hours hour@(Hours != 1 ? "s" : "")</span>
+    </div>
+    
+    @if (ShowTimeProgression)
+    {
+        <div class="time-progression">
+            <span class="current-time">
+                <span class="time-block-icon">@GetTimeBlockIcon(CurrentTimeBlock)</span>
+                @CurrentTimeBlock
+            </span>
+            <span class="arrow">→</span>
+            <span class="result-time @(WouldAdvanceDay ? "next-day" : "")">
+                <span class="time-block-icon">@GetTimeBlockIcon(ResultTimeBlock)</span>
+                @ResultTimeBlock
+                @if (WouldAdvanceDay)
+                {
+                    <span class="day-indicator">(+1 day)</span>
+                }
+            </span>
+        </div>
+    }
+    
+    @if (HasDeadlineImpact && ShowDeadlineWarning)
+    {
+        <div class="deadline-warning">
+            <span class="warning-icon">⚠️</span>
+            @if (LettersExpiring == 1)
+            {
+                <span class="warning-text">This will cause 1 letter to expire!</span>
+            }
+            else if (LettersExpiring > 1)
+            {
+                <span class="warning-text">This will cause @LettersExpiring letters to expire!</span>
+            }
+            
+            @if (ShowAffectedLetters && AffectedLetters != null && AffectedLetters.Any())
+            {
+                <div class="affected-letters">
+                    @foreach (var letter in AffectedLetters)
+                    {
+                        <div class="affected-letter">
+                            <span class="route">@letter.Route</span>
+                            <span class="deadline @(letter.DaysRemaining <= 0 ? "expired" : "expiring")">
+                                @(letter.DaysRemaining <= 0 ? "EXPIRED" : $"{letter.DaysRemaining} day(s) left")
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    
+    @if (ShowRemainingTime)
+    {
+        <div class="remaining-time">
+            <small>@ActiveHoursRemaining active hours remaining today</small>
+        </div>
+    }
+</div>
+
+@code {
+    @namespace Wayfarer.Pages.Components
+    
+    [Parameter] public int Hours { get; set; }
+    [Parameter] public TimeBlocks CurrentTimeBlock { get; set; }
+    [Parameter] public TimeBlocks ResultTimeBlock { get; set; }
+    [Parameter] public bool WouldAdvanceDay { get; set; }
+    [Parameter] public int ActiveHoursRemaining { get; set; }
+    [Parameter] public bool ShowTimeProgression { get; set; } = true;
+    [Parameter] public bool ShowRemainingTime { get; set; } = false;
+    [Parameter] public bool ShowDeadlineWarning { get; set; } = true;
+    [Parameter] public bool ShowAffectedLetters { get; set; } = false;
+    [Parameter] public int LettersExpiring { get; set; }
+    [Parameter] public List<AffectedLetterInfo> AffectedLetters { get; set; }
+    
+    private bool HasDeadlineImpact => LettersExpiring > 0;
+    
+    public class AffectedLetterInfo
+    {
+        public string Route { get; set; }
+        public int DaysRemaining { get; set; }
+    }
+    
+    private string GetTimeBlockIcon(TimeBlocks timeBlock)
+    {
+        return timeBlock switch
+        {
+            TimeBlocks.Dawn => "🌅",
+            TimeBlocks.Morning => "🌤️",
+            TimeBlocks.Afternoon => "☀️",
+            TimeBlocks.Evening => "🌆",
+            TimeBlocks.Night => "🌙",
+            TimeBlocks.LateNight => "🌌",
+            _ => "⏰"
+        };
+    }
+}

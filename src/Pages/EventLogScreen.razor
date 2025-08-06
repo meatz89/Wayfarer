@@ -1,0 +1,119 @@
+@page "/eventlog"
+@inherits MainGameplayViewBase
+
+<div class="event-log-container">
+    <h2>Event Log</h2>
+    
+    <div class="log-controls">
+        <div class="filter-controls">
+            <label>
+                <input type="checkbox" @bind="ShowInfo" /> Info
+            </label>
+            <label>
+                <input type="checkbox" @bind="ShowSuccess" /> Success
+            </label>
+            <label>
+                <input type="checkbox" @bind="ShowWarning" /> Warning
+            </label>
+            <label>
+                <input type="checkbox" @bind="ShowDanger" /> Danger
+            </label>
+        </div>
+        <button class="btn btn-secondary" @onclick="ClearLog">Clear Log</button>
+    </div>
+    
+    <div class="event-log-entries">
+        @foreach (var message in GetFilteredMessages())
+        {
+            <div class="log-entry @GetMessageClass(message.Type)">
+                <div class="log-timestamp">
+                    @message.Timestamp.ToString("HH:mm:ss")
+                </div>
+                <div class="log-type">
+                    @GetTypeIcon(message.Type)
+                </div>
+                <div class="log-message">
+                    @message.Message
+                </div>
+            </div>
+        }
+    </div>
+    
+    @if (!AllEventMessages.Any())
+    {
+        <div class="no-events">
+            <p>No events recorded yet.</p>
+        </div>
+    }
+    
+    @* Back Button *@
+    <div class="navigation-buttons">
+        <button class="btn btn-secondary" @onclick="() => OnNavigate?.Invoke(CurrentViews.LocationScreen)">Back to Game</button>
+    </div>
+</div>
+
+@code {
+
+@namespace Wayfarer.Pages
+    private List<SystemMessage> AllEventMessages = new List<SystemMessage>();
+    private bool ShowInfo = true;
+    private bool ShowSuccess = true;
+    private bool ShowWarning = true;
+    private bool ShowDanger = true;
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        // Initialize with current messages from GameWorld
+        AllEventMessages = GameWorld.EventLog?.ToList() ?? new List<SystemMessage>();
+    }
+    
+    protected override void OnParametersSet()
+    {
+        // Update with latest messages
+        AllEventMessages = GameWorld.EventLog?.ToList() ?? new List<SystemMessage>();
+    }
+    
+    private List<SystemMessage> GetFilteredMessages()
+    {
+        return AllEventMessages
+            .Where(m => 
+                (m.Type == SystemMessageTypes.Info && ShowInfo) ||
+                (m.Type == SystemMessageTypes.Success && ShowSuccess) ||
+                (m.Type == SystemMessageTypes.Warning && ShowWarning) ||
+                (m.Type == SystemMessageTypes.Danger && ShowDanger))
+            .OrderByDescending(m => m.Timestamp)
+            .ToList();
+    }
+    
+    private string GetMessageClass(SystemMessageTypes type)
+    {
+        return type switch
+        {
+            SystemMessageTypes.Success => "log-success",
+            SystemMessageTypes.Warning => "log-warning",
+            SystemMessageTypes.Danger => "log-danger",
+            SystemMessageTypes.Info => "log-info",
+            _ => "log-info"
+        };
+    }
+    
+    private string GetTypeIcon(SystemMessageTypes type)
+    {
+        return type switch
+        {
+            SystemMessageTypes.Success => "✓",
+            SystemMessageTypes.Warning => "⚠",
+            SystemMessageTypes.Danger => "✗",
+            SystemMessageTypes.Info => "ℹ",
+            _ => "•"
+        };
+    }
+    
+    private void ClearLog()
+    {
+        GameWorld.EventLog?.Clear();
+        AllEventMessages.Clear();
+        StateHasChanged();
+    }
+}

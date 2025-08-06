@@ -1,0 +1,184 @@
+@inject ITimeManager TimeManager
+@inject GameWorld GameWorld
+@inject StandingObligationManager ObligationManager
+@inject FlagService FlagService
+@inject ConversationRepository ConversationRepository
+
+@namespace Wayfarer.Pages.Components
+
+<div class="navigation-bar">
+    @if (ShouldShowLetterManagement())
+    {
+        <div class="nav-section nav-primary">
+            <h4>Letter Management</h4>
+            <div class="nav-buttons">
+                @if (ShouldShowQueue())
+                {
+                    <button class="nav-button @(IsActive(CurrentViews.LetterQueueScreen) ? "active" : "")" 
+                            @onclick="() => NavigateTo(CurrentViews.LetterQueueScreen)">
+                        Queue
+                    </button>
+                }
+                @if (ShouldShowLetterBoard())
+                {
+                    <button class="nav-button @(IsActive(CurrentViews.LetterBoardScreen) ? "active" : "")" 
+                            @onclick="() => NavigateTo(CurrentViews.LetterBoardScreen)"
+                            disabled="@(!CanNavigateToLetterBoard())">
+                        Board
+                    </button>
+                }
+                @if (ShouldShowRelations())
+                {
+                    <button class="nav-button @(IsActive(CurrentViews.RelationshipScreen) ? "active" : "")" 
+                            @onclick="() => NavigateTo(CurrentViews.RelationshipScreen)">
+                        Relations
+                    </button>
+                }
+                @if (ShouldShowObligations())
+                {
+                    <button class="nav-button @(IsActive(CurrentViews.ObligationsScreen) ? "active" : "")" 
+                            @onclick="() => NavigateTo(CurrentViews.ObligationsScreen)">
+                        Obligations
+                    </button>
+                }
+            </div>
+        </div>
+    }
+    
+    <div class="nav-section nav-secondary">
+        <h4>World</h4>
+        <div class="nav-buttons">
+            <button class="nav-button @(IsActive(CurrentViews.LocationScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.LocationScreen)">
+                Location
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.MapScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.MapScreen)">
+                Map
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.TravelScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.TravelScreen)">
+                Travel
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.MarketScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.MarketScreen)">
+                Market
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.RestScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.RestScreen)">
+                Rest
+            </button>
+        </div>
+    </div>
+    
+    <div class="nav-section nav-tertiary">
+        <h4>Character</h4>
+        <div class="nav-buttons">
+            <button class="nav-button @(IsActive(CurrentViews.PlayerStatusScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.PlayerStatusScreen)">
+                Status
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.SealProgressionScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.SealProgressionScreen)">
+                Seals
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.InformationDiscoveryScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.InformationDiscoveryScreen)">
+                Discoveries
+            </button>
+            <button class="nav-button @(IsActive(CurrentViews.EventLogScreen) ? "active" : "")" 
+                    @onclick="() => NavigateTo(CurrentViews.EventLogScreen)">
+                Event Log
+            </button>
+        </div>
+    </div>
+    
+</div>
+
+@code {
+    [Parameter] public CurrentViews CurrentView { get; set; }
+    [Parameter] public Action<CurrentViews> OnNavigate { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        // NavigationBar will re-render when parent state changes
+        // No need to subscribe to events - Blazor handles this
+    }
+    
+    private void NavigateTo(CurrentViews view)
+    {
+        OnNavigate?.Invoke(view);
+    }
+    
+    private void NavigateBack()
+    {
+        // Back navigation removed - not needed in simple state-based navigation
+    }
+    
+    private bool IsActive(CurrentViews view)
+    {
+        return CurrentView == view;
+    }
+    
+    private bool CanNavigateToLetterBoard()
+    {
+        return TimeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn;
+    }
+    
+    // Tutorial visibility methods based on player achievements
+    private bool ShouldShowLetterManagement()
+    {
+        // Show letter management section once player has learned about letters
+        // Always show if tutorial is not active
+        if (GameWorld.GameMode != GameMode.Tutorial)
+            return true;
+            
+        // During tutorial, show after first letter is offered
+        return FlagService.HasFlag(FlagService.TUTORIAL_FIRST_LETTER_OFFERED);
+    }
+    
+    private bool ShouldShowQueue()
+    {
+        // Show queue after player accepts their first letter
+        // Always show if tutorial is not active
+        if (GameWorld.GameMode != GameMode.Tutorial)
+            return true;
+            
+        // During tutorial, show after first letter is accepted
+        return FlagService.HasFlag(FlagService.TUTORIAL_FIRST_LETTER_ACCEPTED);
+    }
+    
+    private bool ShouldShowLetterBoard()
+    {
+        // Show letter board after player delivers their first letter
+        // Always show if tutorial is not active
+        if (GameWorld.GameMode != GameMode.Tutorial)
+            return true;
+            
+        // During tutorial, show after first letter is delivered
+        return FlagService.HasFlag(FlagService.TUTORIAL_FIRST_LETTER_DELIVERED);
+    }
+    
+    private bool ShouldShowRelations()
+    {
+        // Show relations after player earns their first token
+        // Always show if tutorial is not active
+        if (GameWorld.GameMode != GameMode.Tutorial)
+            return true;
+            
+        // During tutorial, show after first token is earned
+        return FlagService.HasFlag(FlagService.TUTORIAL_FIRST_TOKEN_EARNED);
+    }
+    
+    private bool ShouldShowObligations()
+    {
+        // Show obligations after player meets patron or has any obligation
+        // Always show if tutorial is not active
+        if (GameWorld.GameMode != GameMode.Tutorial)
+            return true;
+            
+        // During tutorial, show after meeting patron
+        return FlagService.HasFlag(FlagService.TUTORIAL_PATRON_MET);
+    }
+    
+}

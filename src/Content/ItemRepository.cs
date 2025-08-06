@@ -11,10 +11,8 @@
             _gameWorld.WorldState.Items = new List<Item>();
         }
 
-        if (!_gameWorld.WorldState.Items.Any())
-        {
-            Console.WriteLine("WARNING: No items loaded from GameWorld. JSON loading may have failed.");
-        }
+        // Note: Items are loaded later in the initialization pipeline.
+        // The repository is created early for dependency injection.
     }
 
     #region Read Methods

@@ -33,7 +33,7 @@ public static class LocationJsonParser
         details.Name = GetStringProperty(root, "name", "Unknown Location");
         details.Description = GetStringProperty(root, "description", "A newly discovered location");
         details.History = GetStringProperty(root, "history", string.Empty);
-        details.PointsOfInterest = GetStringProperty(root, "pointsOfInterest", string.Empty);
+        details.PointsOfInterest = GetStringArray(root, "pointsOfInterest");
         details.TravelTimeMinutes = GetIntProperty(root, "travelTimeMinutes", 60);
         details.TravelDescription = GetStringProperty(root, "travelDescription", string.Empty);
 
@@ -52,25 +52,11 @@ public static class LocationJsonParser
             }
         }
 
-        // Parse action definitions
-        details.NewActions = new List<NewAction>();
-        if (root.TryGetProperty("actionDefinitions", out JsonElement actionsArray) &&
-            actionsArray.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement actionElement in actionsArray.EnumerateArray())
-            {
-                NewAction action = ParseNewAction(actionElement);
-                details.NewActions.Add(action);
-
-                // Associate action with spot
-                string spotName = GetStringProperty(actionElement, "locationSpot", "");
-                action.SpotName = spotName;
-            }
-        }
+        // Action system removed - using command system instead
 
         // Initialize empty collections for other fields
-        details.StrategicTags = new List<StrategicTag>();
-        details.NarrativeTags = new List<NarrativeTag>();
+        details.StrategicTags = new List<string>();
+        details.NarrativeTags = new List<string>();
 
         return details;
     }
@@ -82,7 +68,7 @@ public static class LocationJsonParser
             Name = GetStringProperty(element, "name", "Unnamed Spot"),
             Description = GetStringProperty(element, "description", "No description available."),
             InteractionDescription = GetStringProperty(element, "interactionDescription", ""),
-            EnvironmentalProperties = new Dictionary<string, string>()
+            EnvironmentalProperties = new List<string>()
         };
 
         // Parse environmental properties if available
@@ -93,40 +79,13 @@ public static class LocationJsonParser
             {
                 string propName = prop.Name;
                 string propValue = prop.Value.GetString() ?? "";
-                spot.EnvironmentalProperties[propName] = propValue;
+                spot.EnvironmentalProperties.Add($"{propName}:{propValue}");
             }
         }
 
         return spot;
     }
 
-    private static NewAction ParseNewAction(JsonElement element)
-    {
-        NewAction action = new NewAction
-        {
-            Name = GetStringProperty(element, "name", "Unnamed Action"),
-            Description = GetStringProperty(element, "description", "No description available."),
-            LocationName = GetStringProperty(element, "locationName", ""),
-            SpotName = "", // This will be populated later when we match with spots
-            ActionType = ConvertActionType(GetStringProperty(element, "type", "Encounter")),
-            IsRepeatable = GetBoolProperty(element, "isRepeatable", true),
-            StaminaCost = 1,  // Default stamina cost
-        };
-
-        // Get cost information
-        if (element.TryGetProperty("cost", out JsonElement costElement))
-        {
-            action.StaminaCost = GetIntProperty(costElement, "stamina", 1);
-        }
-
-        // Get encounterContext definition info
-        if (element.TryGetProperty("encounterDefinition", out JsonElement encounterElement))
-        {
-            action.Description = GetStringProperty(encounterElement, "goal", "");
-        }
-
-        return action;
-    }
 
     private static ILocationProperty CreateEnvironmentalProperty(string type, string value)
     {
@@ -170,18 +129,6 @@ public static class LocationJsonParser
 
             default:
                 return null;
-        }
-    }
-
-    private static string ConvertActionType(string type)
-    {
-        // Map action type to the format expected by the system
-        switch (type.ToLower())
-        {
-            case "encounter": return "Discuss";
-            case "direct": return "Execute";
-            case "travel": return "Travel";
-            default: return "Discuss";
         }
     }
 

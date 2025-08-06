@@ -1,0 +1,254 @@
+@using Wayfarer.ViewModels
+@inject GameFacade GameFacade
+
+<div class="seal-progression-container">
+    @if (Model != null)
+    {
+        @* Worn Seals Section *@
+        <div class="worn-seals-section">
+            <h3 class="section-title">Equipped Seals</h3>
+            <div class="worn-seals-grid">
+                @for (int slot = 1; slot <= Model.MaxWornSeals; slot++)
+                {
+                    var wornSeal = Model.WornSeals.FirstOrDefault(s => s.SlotNumber == slot);
+                    <div class="seal-slot @(wornSeal != null ? "occupied" : "empty")">
+                        @if (wornSeal != null)
+                        {
+                            <div class="worn-seal-card">
+                                <div class="seal-tier-badge @GetSealTierClass(wornSeal.Tier)">
+                                    @wornSeal.Tier
+                                </div>
+                                <div class="seal-type-icon">
+                                    @GetSealTypeIcon(wornSeal.Type)
+                                </div>
+                                <div class="seal-name">@wornSeal.Name</div>
+                                <button class="unequip-button" @onclick="() => UnequipSeal(wornSeal.Id)">
+                                    Remove
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-slot">
+                                <div class="slot-number">Slot @slot</div>
+                                <div class="empty-text">Empty</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Endorsement Progress Section *@
+        <div class="endorsement-progress-section">
+            <h3 class="section-title">Endorsement Progress</h3>
+            <div class="endorsement-tracks">
+                @foreach (var track in Model.EndorsementTracking)
+                {
+                    <div class="endorsement-track">
+                        <div class="track-header">
+                            <div class="track-type">
+                                <span class="type-icon">@GetSealTypeIcon(track.Type)</span>
+                                <span class="type-name">@track.TypeName</span>
+                            </div>
+                            <div class="endorsement-count">
+                                @track.CurrentEndorsements endorsements
+                            </div>
+                        </div>
+                        
+                        @if (track.NextTier.HasValue)
+                        {
+                            <div class="progress-bar-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" 
+                                         style="width: @GetProgressPercentage(track)%">
+                                    </div>
+                                </div>
+                                <div class="progress-text">
+                                    @if (track.EndorsementsToNext > 0)
+                                    {
+                                        <span>@track.EndorsementsToNext more needed for @track.NextTier</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ready-text">✨ Ready to convert to @track.NextTier!</span>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="next-tier-benefits">
+                                <div class="benefits-label">Next tier benefits:</div>
+                                <div class="benefits-text">@track.NextTierBenefits</div>
+                            </div>
+                            
+                            <div class="guild-locations">
+                                <span class="location-label">Convert at:</span>
+                                @foreach (var location in track.GuildLocations)
+                                {
+                                    <span class="guild-location">@location</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="max-tier-reached">
+                                <span class="achievement-icon">👑</span>
+                                Master tier achieved!
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Owned Seals Section *@
+        <div class="owned-seals-section">
+            <h3 class="section-title">Seal Collection</h3>
+            @if (Model.OwnedSeals.Any())
+            {
+                <div class="owned-seals-grid">
+                    @foreach (var seal in Model.OwnedSeals.OrderByDescending(s => s.Tier).ThenBy(s => s.Type))
+                    {
+                        <div class="owned-seal-card @(seal.IsWorn ? "is-worn" : "")">
+                            <div class="seal-header">
+                                <div class="seal-tier-badge @GetSealTierClass(seal.Tier)">
+                                    @seal.Tier
+                                </div>
+                                <div class="seal-material">@seal.Material</div>
+                            </div>
+                            
+                            <div class="seal-body">
+                                <div class="seal-type-icon large">
+                                    @GetSealTypeIcon(seal.Type)
+                                </div>
+                                <div class="seal-name">@seal.Name</div>
+                                <div class="seal-insignia">@seal.Insignia</div>
+                                <div class="seal-description">@seal.Description</div>
+                                
+                                <div class="seal-benefits">
+                                    <div class="benefits-header">Benefits:</div>
+                                    <ul class="benefits-list">
+                                        @foreach (var benefit in seal.Benefits)
+                                        {
+                                            <li>@benefit</li>
+                                        }
+                                    </ul>
+                                </div>
+                                
+                                <div class="seal-footer">
+                                    <div class="issue-info">
+                                        Issued by @seal.IssuingGuild on Day @seal.DayIssued
+                                    </div>
+                                    @if (!seal.IsWorn && Model.WornSeals.Count < Model.MaxWornSeals)
+                                    {
+                                        <button class="equip-button" @onclick="() => EquipSeal(seal.Id)">
+                                            Equip
+                                        </button>
+                                    }
+                                    else if (seal.IsWorn)
+                                    {
+                                        <div class="worn-indicator">Equipped</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-seals-message">
+                    <p>You haven't earned any seals yet.</p>
+                    <p>Deliver endorsement letters to guilds to earn your first seal!</p>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="loading-message">Loading seal information...</div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback OnActionExecuted { get; set; }
+    
+    private SealProgressionViewModel Model { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        RefreshSealData();
+    }
+    
+    private void RefreshSealData()
+    {
+        Model = GameFacade.GetSealProgression();
+    }
+    
+    private async Task EquipSeal(string sealId)
+    {
+        var success = await GameFacade.EquipSealAsync(sealId);
+        if (success)
+        {
+            RefreshSealData();
+            await OnActionExecuted.InvokeAsync();
+            StateHasChanged();
+        }
+    }
+    
+    private async Task UnequipSeal(string sealId)
+    {
+        var success = await GameFacade.UnequipSealAsync(sealId);
+        if (success)
+        {
+            RefreshSealData();
+            await OnActionExecuted.InvokeAsync();
+            StateHasChanged();
+        }
+    }
+    
+    private string GetSealTypeIcon(SealType type)
+    {
+        return type switch
+        {
+            SealType.Commerce => "💰",
+            SealType.Status => "👑",
+            SealType.Shadow => "🌙",
+            _ => "🏅"
+        };
+    }
+    
+    private string GetSealTierClass(SealTier tier)
+    {
+        return tier switch
+        {
+            SealTier.Apprentice => "tier-apprentice",
+            SealTier.Journeyman => "tier-journeyman",
+            SealTier.Master => "tier-master",
+            _ => "tier-none"
+        };
+    }
+    
+    private double GetProgressPercentage(EndorsementProgress track)
+    {
+        if (!track.NextTier.HasValue) return 100;
+        
+        int required = GetEndorsementsRequired(track.NextTier.Value);
+        int previousRequired = track.CurrentTier > 0 ? GetEndorsementsRequired(track.CurrentTier) : 0;
+        int currentProgress = track.CurrentEndorsements - previousRequired;
+        int totalNeeded = required - previousRequired;
+        
+        return Math.Min(100, Math.Max(0, (currentProgress * 100.0) / totalNeeded));
+    }
+    
+    private int GetEndorsementsRequired(SealTier tier)
+    {
+        return tier switch
+        {
+            SealTier.Apprentice => 3,
+            SealTier.Journeyman => 5,
+            SealTier.Master => 7,
+            _ => 3
+        };
+    }
+}

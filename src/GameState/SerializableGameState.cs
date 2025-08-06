@@ -5,4 +5,8 @@
     public int CurrentDay { get; set; }
     public int CurrentTimeHours { get; set; }
     public SerializablePlayerState Player { get; set; }
+    
+    // Game state
+    public FlagServiceState FlagServiceState { get; set; }
+    public Dictionary<string, ConversationState> ActiveConversations { get; set; }
 }

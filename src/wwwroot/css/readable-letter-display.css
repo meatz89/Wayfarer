@@ -1,0 +1,129 @@
+/* Readable Letter Display Styles */
+
+.readable-letter-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+.readable-letter-display.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.readable-letter-display.visible {
+    opacity: 1;
+}
+
+.readable-letter-container {
+    background: var(--parchment);
+    border: 3px solid var(--leather);
+    border-radius: 8px;
+    overflow-y: auto;
+    max-height: 80vh;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    font-family: var(--font-secondary);
+}
+
+.readable-letter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--oak-mid);
+    background: var(--bg-panel);
+}
+
+.readable-letter-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-family: var(--font-primary);
+}
+
+.readable-letter-close {
+    background: var(--leather);
+    color: var(--parchment);
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+}
+
+.readable-letter-close:hover {
+    background: var(--clay);
+    transform: translateY(-2px);
+}
+
+.readable-letter-content {
+    padding: 2rem;
+    min-height: 200px;
+}
+
+.reading-animation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+}
+
+.reading-text {
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.readable-letter-text {
+    color: var(--text-primary);
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.readable-letter-text p {
+    margin-bottom: 1rem;
+}
+
+.readable-letter-text p:last-child {
+    margin-bottom: 0;
+}
+
+.readable-letter-effect {
+    padding: 1.5rem;
+    background: var(--bg-active);
+    border-top: 2px solid var(--oak-mid);
+    text-align: center;
+    font-style: italic;
+    color: var(--special);
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Special styling for the mysterious letter */
+.readable-letter-container[data-letter-id="mysterious_letter"] {
+    background: linear-gradient(135deg, var(--bg-panel) 0%, var(--parchment) 100%);
+    border-color: var(--special);
+}
+
+.readable-letter-container[data-letter-id="mysterious_letter"] .readable-letter-header {
+    background: linear-gradient(to bottom, var(--bg-active), var(--bg-panel));
+    border-bottom-color: var(--special);
+}

@@ -37,36 +37,6 @@ namespace Wayfarer.Tests
         }
 
         [Fact]
-        public void GameWorldInitializer_WithCorrectPath_ShouldLoadSuccessfully()
-        {
-            // Test that GameWorldInitializer works with the correct path
-            string correctContentDirectory = "Content"; // Correct path from test bin directory
-            GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(correctContentDirectory);
-
-            // This should succeed
-            GameWorld gameWorld = gameWorldInitializer.LoadGame();
-
-            Assert.NotNull(gameWorld);
-            Assert.NotNull(gameWorld.WorldState);
-            Assert.NotNull(gameWorld.WorldState.locations);
-            Assert.True(gameWorld.WorldState.locations.Count > 0);
-        }
-
-        [Fact]
-        public void GameWorldInitializer_WithWrongPath_ShouldFail()
-        {
-            // Test that GameWorldInitializer fails with a wrong path
-            string wrongContentDirectory = "wrong_path"; // Path that doesn't exist
-            GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(wrongContentDirectory);
-
-            // This should throw because the path doesn't exist
-            Exception exception = Record.Exception(() => gameWorldInitializer.LoadGame());
-
-            Assert.NotNull(exception);
-            Assert.True(exception is FileNotFoundException || exception is DirectoryNotFoundException);
-        }
-
-        [Fact]
         public void ServiceConfiguration_PathConfiguration_IsCorrect()
         {
             // This test validates that the path configuration works correctly

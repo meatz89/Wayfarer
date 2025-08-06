@@ -1,0 +1,158 @@
+<div class="token-cost-preview">
+    @if (!string.IsNullOrEmpty(AdditionalInfo) && AdditionalInfo.Contains("×"))
+    {
+        @* Detailed breakdown for skip costs with multipliers *@
+        <div class="cost-breakdown-detailed">
+            <div class="breakdown-row">
+                <span class="breakdown-label">Base cost:</span>
+                <span class="breakdown-value">@GetBaseCost() @GetTokenIcon()</span>
+            </div>
+            <div class="breakdown-row multiplier-row">
+                <span class="breakdown-label">Debt multiplier:</span>
+                <span class="breakdown-value multiplier">@AdditionalInfo</span>
+            </div>
+            <div class="breakdown-row total-row">
+                <span class="breakdown-label">Total cost:</span>
+                <span class="breakdown-value total @(HasEnoughTokens ? "affordable" : "unaffordable")">
+                    @TokenCost @GetTokenIcon()
+                </span>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* Simple display for actions without multipliers *@
+        <div class="cost-breakdown">
+            <span class="action-name">@ActionName</span>
+            <span class="cost-separator">:</span>
+            <span class="token-cost">
+                <span class="cost-amount">@TokenCost</span>
+                <span class="token-icon">@GetTokenIcon()</span>
+                <span class="token-type">@(TokenType == null ? "any tokens" : TokenType.ToString())</span>
+            </span>
+        </div>
+    }
+    
+    @if (ShowAvailability)
+    {
+        <div class="availability-info">
+            @if (HasEnoughTokens)
+            {
+                <span class="available">✓ You have @AvailableTokens @(TokenType == null ? "total tokens" : $"{TokenType} tokens")</span>
+            }
+            else
+            {
+                <span class="insufficient">❌ Need @(TokenCost - AvailableTokens) more @(TokenType == null ? "tokens" : $"{TokenType} tokens")</span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+
+@namespace Wayfarer.Pages.Components
+    [Parameter] public string ActionName { get; set; }
+    [Parameter] public int TokenCost { get; set; }
+    [Parameter] public ConnectionType? TokenType { get; set; }
+    [Parameter] public int AvailableTokens { get; set; }
+    [Parameter] public bool ShowAvailability { get; set; } = true;
+    [Parameter] public string AdditionalInfo { get; set; }
+    
+    private bool HasEnoughTokens => AvailableTokens >= TokenCost;
+    
+    private int GetBaseCost()
+    {
+        // Extract base cost by dividing total by multiplier
+        if (!string.IsNullOrEmpty(AdditionalInfo) && AdditionalInfo.Contains("×"))
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(AdditionalInfo, @"×(\d+)");
+            if (match.Success && int.TryParse(match.Groups[1].Value, out int multiplier) && multiplier > 0)
+            {
+                return TokenCost / multiplier;
+            }
+        }
+        return TokenCost;
+    }
+    
+    private string GetTokenIcon()
+    {
+        if (TokenType == null) return "🎲";
+        
+        return TokenType.Value switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+}
+
+<style>
+    .token-cost-preview {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .cost-breakdown-detailed {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.25rem 0;
+    }
+    
+    .breakdown-row.multiplier-row {
+        color: #dc3545;
+        font-style: italic;
+    }
+    
+    .breakdown-row.total-row {
+        border-top: 1px solid rgba(0, 0, 0, 0.2);
+        margin-top: 0.25rem;
+        padding-top: 0.5rem;
+        font-weight: bold;
+    }
+    
+    .breakdown-label {
+        color: #666;
+    }
+    
+    .breakdown-value.multiplier {
+        color: #dc3545;
+    }
+    
+    .breakdown-value.total.affordable {
+        color: #28a745;
+    }
+    
+    .breakdown-value.total.unaffordable {
+        color: #dc3545;
+    }
+    
+    .cost-breakdown {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .availability-info {
+        margin-top: 0.5rem;
+    }
+    
+    .available {
+        color: #28a745;
+    }
+    
+    .insufficient {
+        color: #dc3545;
+        font-weight: bold;
+    }
+</style>

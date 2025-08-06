@@ -1,0 +1,154 @@
+@page "/information"
+@inherits MainGameplayViewBase
+@namespace Wayfarer.Pages
+@using Wayfarer.Pages.Components
+
+<div class="information-discovery-container">
+    <div class="screen-header">
+        <h2>Discovered Information</h2>
+        <button class="btn-close" @onclick="CloseScreen">×</button>
+    </div>
+    
+    <div class="discovery-stats">
+        <div class="stat-item">
+            <span class="stat-label">Total Discovered:</span>
+            <span class="stat-value">@ViewModel.TotalDiscovered</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Unlocked:</span>
+            <span class="stat-value">@ViewModel.TotalUnlocked / @ViewModel.TotalDiscovered</span>
+        </div>
+    </div>
+    
+    <div class="information-categories">
+        @if (ViewModel.RouteInformation.Any())
+        {
+            <div class="info-category">
+                <h3 class="category-title">
+                    <span class="category-icon">🛤️</span>
+                    Routes (@ViewModel.RouteInformation.Count)
+                </h3>
+                <div class="info-list">
+                    @foreach (var info in ViewModel.RouteInformation)
+                    {
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
+                    }
+                </div>
+            </div>
+        }
+        
+        @if (ViewModel.LocationInformation.Any())
+        {
+            <div class="info-category">
+                <h3 class="category-title">
+                    <span class="category-icon">📍</span>
+                    Locations (@ViewModel.LocationInformation.Count)
+                </h3>
+                <div class="info-list">
+                    @foreach (var info in ViewModel.LocationInformation)
+                    {
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
+                    }
+                </div>
+            </div>
+        }
+        
+        @if (ViewModel.NPCInformation.Any())
+        {
+            <div class="info-category">
+                <h3 class="category-title">
+                    <span class="category-icon">👤</span>
+                    People (@ViewModel.NPCInformation.Count)
+                </h3>
+                <div class="info-list">
+                    @foreach (var info in ViewModel.NPCInformation)
+                    {
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
+                    }
+                </div>
+            </div>
+        }
+        
+        @if (ViewModel.ServiceInformation.Any())
+        {
+            <div class="info-category">
+                <h3 class="category-title">
+                    <span class="category-icon">🏪</span>
+                    Services (@ViewModel.ServiceInformation.Count)
+                </h3>
+                <div class="info-list">
+                    @foreach (var info in ViewModel.ServiceInformation)
+                    {
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
+                    }
+                </div>
+            </div>
+        }
+        
+        @if (ViewModel.SecretInformation.Any())
+        {
+            <div class="info-category">
+                <h3 class="category-title">
+                    <span class="category-icon">🤫</span>
+                    Secrets (@ViewModel.SecretInformation.Count)
+                </h3>
+                <div class="info-list">
+                    @foreach (var info in ViewModel.SecretInformation)
+                    {
+                        <InformationCard Info="@info" OnUnlock="@(() => UnlockInformation(info))" />
+                    }
+                </div>
+            </div>
+        }
+        
+        @if (ViewModel.TotalDiscovered == 0)
+        {
+            <div class="no-discoveries">
+                <p>You haven't discovered any special information yet.</p>
+                <p class="hint">Talk to NPCs, deliver letters, and explore locations to learn secrets!</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private InformationDiscoveryViewModel ViewModel { get; set; } = new();
+    private bool _isProcessing = false;
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        RefreshViewModel();
+    }
+    
+    private void RefreshViewModel()
+    {
+        ViewModel = GameFacade.GetDiscoveredInformation();
+    }
+    
+    private async Task UnlockInformation(DiscoveredInfoViewModel info)
+    {
+        if (_isProcessing || info.IsAccessUnlocked || !info.CanAfford)
+            return;
+            
+        _isProcessing = true;
+        StateHasChanged();
+        
+        var success = await GameFacade.UnlockInformationAccessAsync(info.Id);
+        
+        if (success)
+        {
+            RefreshViewModel();
+        }
+        
+        _isProcessing = false;
+        StateHasChanged();
+    }
+    
+    // Leverage system removed - Information letters are for unlocking NPCs/routes only
+    
+    private void CloseScreen()
+    {
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
+    }
+}

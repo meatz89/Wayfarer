@@ -1,0 +1,567 @@
+@using Wayfarer.Pages.Components
+
+@inject GameFacade GameFacade
+
+<div class="npc-relationship-card @GetRelationshipStatusClass()">
+    <div class="npc-header">
+        <h3>@NPC.Name</h3>
+        <span class="npc-profession">@NPC.Profession.ToString().Replace("_", " ")</span>
+    </div>
+    
+    <div class="token-display">
+        <h4>Relationship Status</h4>
+        <div class="token-context-grid">
+            @foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+            {
+                var tokenCount = GetNPCTokenCount(tokenType);
+                var contextDescription = GetContextDescription(tokenType, tokenCount);
+                <div class="token-context-item @(tokenCount < 0 ? "debt" : tokenCount > 0 ? "positive" : "neutral")">
+                    <div class="context-header">
+                        <span class="token-icon">@GetTokenIcon(tokenType)</span>
+                        <span class="token-type">@tokenType</span>
+                        <span class="token-count">@tokenCount</span>
+                    </div>
+                    <div class="context-description">@contextDescription</div>
+                    @if (tokenCount < 0)
+                    {
+                        <div class="context-effects">
+                            <span class="debt-label">💸 In Debt</span>
+                            <span class="leverage-warning" title="Letters will enter at position @GetLeveragePosition(tokenType, tokenCount)">⚠️ Has Leverage</span>
+                        </div>
+                    }
+                    else if (tokenCount >= 5)
+                    {
+                        <div class="context-effects">
+                            <span class="special-available" title="Can request special @tokenType letter">✨ Special Available</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        
+        @* Token progress and letter categories per type *@
+        @if (NPC.LetterTokenTypes?.Any() ?? false)
+        {
+            <div class="letter-categories">
+                <h4>Letter Categories by Type</h4>
+                @foreach (var tokenType in NPC.LetterTokenTypes)
+                {
+                    var tokensOfType = GetNPCTokenCount(tokenType);
+                    var currentCategory = GameFacade.GetAvailableCategory(NPC.ID, tokenType);
+                    <div class="token-type-categories">
+                        <h5>@GetTokenIcon(tokenType) @tokenType Letters</h5>
+                        <div class="category-list">
+                            @* Basic Category *@
+                            @if (tokensOfType >= GameRules.TOKENS_BASIC_THRESHOLD)
+                            {
+                                var (minPay, maxPay) = GameFacade.GetCategoryPaymentRange(LetterCategory.Basic);
+                                <div class="category-item unlocked">
+                                    <span class="category-icon">📄</span>
+                                    <span class="category-name">Basic</span>
+                                    <span class="category-pay">@minPay-@maxPay coins</span>
+                                </div>
+                            }
+                            else if (tokensOfType >= 0)
+                            {
+                                var tokensNeeded = GameFacade.GetTokensToNextCategory(NPC.ID, tokenType);
+                                <div class="category-item locked">
+                                    <span class="category-icon">🔒</span>
+                                    <span class="category-name">Basic</span>
+                                    <span class="category-requirement">Need @tokensNeeded more</span>
+                                </div>
+                            }
+                            
+                            @* Quality Category *@
+                            @if (tokensOfType >= GameRules.TOKENS_QUALITY_THRESHOLD)
+                            {
+                                var (minPay, maxPay) = GameFacade.GetCategoryPaymentRange(LetterCategory.Quality);
+                                <div class="category-item unlocked">
+                                    <span class="category-icon">📜</span>
+                                    <span class="category-name">Quality</span>
+                                    <span class="category-pay">@minPay-@maxPay coins</span>
+                                </div>
+                            }
+                            else
+                            {
+                                var tokensNeeded = Math.Max(0, GameRules.TOKENS_QUALITY_THRESHOLD - tokensOfType);
+                                <div class="category-item locked">
+                                    <span class="category-icon">🔒</span>
+                                    <span class="category-name">Quality</span>
+                                    <span class="category-requirement">Need @tokensNeeded more</span>
+                                </div>
+                            }
+                            
+                            @* Premium Category *@
+                            @if (tokensOfType >= GameRules.TOKENS_PREMIUM_THRESHOLD)
+                            {
+                                var (minPay, maxPay) = GameFacade.GetCategoryPaymentRange(LetterCategory.Premium);
+                                <div class="category-item unlocked">
+                                    <span class="category-icon">📋</span>
+                                    <span class="category-name">Premium</span>
+                                    <span class="category-pay">@minPay-@maxPay coins</span>
+                                </div>
+                            }
+                            else
+                            {
+                                var tokensNeeded = Math.Max(0, GameRules.TOKENS_PREMIUM_THRESHOLD - tokensOfType);
+                                <div class="category-item locked">
+                                    <span class="category-icon">🔒</span>
+                                    <span class="category-name">Premium</span>
+                                    <span class="category-requirement">Need @tokensNeeded more</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        @* Enhanced token threshold visualization *@
+                        @if (tokensOfType != 0 || tokensOfType >= GameRules.TOKENS_BASIC_THRESHOLD)
+                        {
+                            <TokenThresholdDisplay 
+                                NPCId="@NPC.ID"
+                                NPCName="@NPC.Name"
+                                TokenType="@tokenType"
+                                CurrentTokens="@tokensOfType" />
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    
+    <div class="npc-location">
+        <h4>Location</h4>
+        <div class="location-info">
+            @if (GetNPCLocation() != null)
+            {
+                <span class="location-name">@GetNPCLocation().Name</span>
+                @if (IsPlayerAtSameLocation())
+                {
+                    <span class="same-location">✓ You are here</span>
+                }
+            }
+            else
+            {
+                <span class="unknown-location">Location unknown</span>
+            }
+        </div>
+    </div>
+    
+    <div class="npc-availability">
+        <h4>Availability</h4>
+        <div class="availability-info">
+            <span class="schedule">Always available</span>
+            @if (IsNPCCurrentlyAvailable())
+            {
+                <span class="available-now">✓ Available now</span>
+            }
+        </div>
+    </div>
+    
+    <div class="letter-history">
+        <h4>Letter History</h4>
+        <div class="history-stats">
+            <span class="delivered">Delivered: @GetDeliveredLetterCount()</span>
+            <span class="skipped">Skipped: @GetSkippedLetterCount()</span>
+            <span class="expired">Expired: @GetExpiredLetterCount()</span>
+        </div>
+    </div>
+    
+    @* Recent Interactions *@
+    @if (RecentInteractions.Any())
+    {
+        <div class="recent-interactions">
+            <h4>Recent Activity</h4>
+            <div class="interaction-list">
+                @foreach (var interaction in RecentInteractions.Take(3))
+                {
+                    <div class="interaction-item @GetInteractionClass(interaction.Type)">
+                        <span class="interaction-icon">@GetInteractionIcon(interaction.Type)</span>
+                        <span class="interaction-text">@interaction.Description</span>
+                        <span class="interaction-time">@interaction.DaysAgo days ago</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    
+    @* Current Letters in Queue *@
+    @{
+        var currentLetters = GetNPCLettersInQueue();
+        if (currentLetters.Any())
+        {
+            <div class="current-letters">
+                <h4>In Queue</h4>
+                @foreach (var letter in currentLetters)
+                {
+                    <div class="queue-letter">
+                        <span class="position">[Pos @letter.QueuePosition]</span>
+                        <span class="route">@(letter.SenderName == NPC.Name ? $"→ {letter.RecipientName}" : $"← {letter.SenderName}")</span>
+                        <span class="deadline @(letter.DeadlineInDays <= 1 ? "urgent" : "")">@letter.DeadlineInDays days</span>
+                    </div>
+                }
+            </div>
+        }
+    }
+    
+    
+    @* Special Letter Request Section *@
+    @{
+        var specialLetterOptions = GameFacade.GetAvailableSpecialLetters(NPC.ID);
+        if (specialLetterOptions.Any() && IsPlayerAtSameLocation())
+        {
+            <div class="special-letter-section">
+                <h4>Special Letters Available</h4>
+                <div class="special-letter-options">
+                    @foreach (var option in specialLetterOptions)
+                    {
+                        <div class="special-letter-card @(option.CanAfford ? "" : "insufficient-tokens")">
+                            <div class="special-letter-header">
+                                <span class="special-icon">@GetSpecialLetterIcon(option.SpecialType)</span>
+                                <span class="special-type">@option.SpecialType</span>
+                            </div>
+                            <div class="special-description">@option.Description</div>
+                            <div class="special-target">@option.TargetInfo</div>
+                            <div class="special-cost">
+                                <span class="token-requirement">
+                                    @GetTokenIcon(option.TokenType) @option.Cost tokens
+                                    (You have: @option.CurrentTokens)
+                                </span>
+                            </div>
+                            <button class="request-button" 
+                                    disabled="@(!option.CanAfford || !CanRequestSpecialLetterNow())"
+                                    @onclick="@(() => RequestSpecialLetter(option.TokenType))">
+                                @if (!option.CanAfford)
+                                {
+                                    <span>Need @(option.Cost - option.CurrentTokens) more tokens</span>
+                                }
+                                else if (!CanRequestSpecialLetterNow())
+                                {
+                                    <span>Must be available</span>
+                                }
+                                else
+                                {
+                                    <span>Request Letter (1 hour)</span>
+                                }
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    
+    <div class="relationship-status">
+        <div class="status-indicator @GetRelationshipStatusClass()">
+            @GetRelationshipStatusText()
+        </div>
+    </div>
+</div>
+
+@code {
+
+@namespace Wayfarer.Pages.Components
+    [Parameter] public NPC NPC { get; set; }
+    [Parameter] public GameWorld GameWorld { get; set; }
+    
+    private class RecentInteraction
+    {
+        public string Type { get; set; }
+        public string Description { get; set; }
+        public int DaysAgo { get; set; }
+    }
+    
+    private List<RecentInteraction> RecentInteractions = new List<RecentInteraction>();
+    
+    protected override void OnInitialized()
+    {
+        // Simulate recent interactions based on letter history
+        var player = GameWorld.GetPlayer();
+        if (player.NPCLetterHistory.ContainsKey(NPC.ID))
+        {
+            var history = player.NPCLetterHistory[NPC.ID];
+            if (history.DeliveredCount > 0)
+            {
+                RecentInteractions.Add(new RecentInteraction 
+                { 
+                    Type = "success", 
+                    Description = "Letter delivered successfully", 
+                    DaysAgo = 1 
+                });
+            }
+            if (history.SkippedCount > 0)
+            {
+                RecentInteractions.Add(new RecentInteraction 
+                { 
+                    Type = "warning", 
+                    Description = "Letter delivery skipped", 
+                    DaysAgo = 2 
+                });
+            }
+            if (history.ExpiredCount > 0)
+            {
+                RecentInteractions.Add(new RecentInteraction 
+                { 
+                    Type = "danger", 
+                    Description = "Letter expired - relationship damaged", 
+                    DaysAgo = 3 
+                });
+            }
+        }
+    }
+    
+    private int GetNPCTokenCount(ConnectionType tokenType)
+    {
+        var npcTokenBalance = GameFacade.GetTokensWithNPC(NPC.ID);
+        return npcTokenBalance.GetBalance(tokenType);
+    }
+    
+    private bool HasAnyTokens()
+    {
+        var npcTokenBalance = GameFacade.GetTokensWithNPC(NPC.ID);
+        return npcTokenBalance.TotalTokens > 0;
+    }
+    
+    private int GetTotalTokens()
+    {
+        var npcTokenBalance = GameFacade.GetTokensWithNPC(NPC.ID);
+        return npcTokenBalance.TotalTokens;
+    }
+    
+    private string GetTokenIcon(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "❤️",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
+            ConnectionType.Shadow => "🌑",
+            _ => "❓"
+        };
+    }
+    
+    private string GetContextDescription(ConnectionType type, int tokenCount)
+    {
+        switch (type)
+        {
+            case ConnectionType.Trust:
+                if (tokenCount < -3) return "distrusts you";
+                if (tokenCount < 0) return "wary of you";
+                if (tokenCount == 0) return "neutral";
+                if (tokenCount < 3) return "acquaintance";
+                if (tokenCount < 5) return "friend";
+                return "close friend";
+                
+            case ConnectionType.Commerce:
+                if (tokenCount < -3) return "major creditor";
+                if (tokenCount < 0) return "owes you money";
+                if (tokenCount == 0) return "no dealings";
+                if (tokenCount < 3) return "occasional trade";
+                if (tokenCount < 5) return "regular partner";
+                return "trusted merchant";
+                
+            case ConnectionType.Status:
+                if (tokenCount < -3) return "sees you as beneath them";
+                if (tokenCount < 0) return "unimpressed";
+                if (tokenCount == 0) return "no opinion";
+                if (tokenCount < 3) return "acknowledges you";
+                if (tokenCount < 5) return "respects you";
+                return "holds you in high regard";
+                
+            case ConnectionType.Shadow:
+                if (tokenCount < -3) return "blackmailing you";
+                if (tokenCount < 0) return "has leverage";
+                if (tokenCount == 0) return "no secrets";
+                if (tokenCount < 3) return "shares rumors";
+                if (tokenCount < 5) return "trusted informant";
+                return "shadow network ally";
+                
+            default:
+                return "unknown";
+        }
+    }
+    
+    private Location GetNPCLocation()
+    {
+        if (!string.IsNullOrEmpty(NPC.Location))
+        {
+            return GameFacade.GetLocation(NPC.Location);
+        }
+        return null;
+    }
+    
+    private bool IsPlayerAtSameLocation()
+    {
+        var player = GameWorld.GetPlayer();
+        return player.CurrentLocationSpot?.LocationId == NPC.Location;
+    }
+    
+    
+    private bool IsNPCCurrentlyAvailable()
+    {
+        var timeInfo = GameFacade.GetTimeInfo();
+        return NPC.IsAvailable(timeInfo.timeBlock);
+    }
+    
+    private int GetDeliveredLetterCount()
+    {
+        var player = GameWorld.GetPlayer();
+        if (player.NPCLetterHistory.ContainsKey(NPC.ID))
+        {
+            return player.NPCLetterHistory[NPC.ID].DeliveredCount;
+        }
+        return 0;
+    }
+    
+    private int GetSkippedLetterCount()
+    {
+        var player = GameWorld.GetPlayer();
+        if (player.NPCLetterHistory.ContainsKey(NPC.ID))
+        {
+            return player.NPCLetterHistory[NPC.ID].SkippedCount;
+        }
+        return 0;
+    }
+    
+    private int GetExpiredLetterCount()
+    {
+        var player = GameWorld.GetPlayer();
+        if (player.NPCLetterHistory.ContainsKey(NPC.ID))
+        {
+            return player.NPCLetterHistory[NPC.ID].ExpiredCount;
+        }
+        return 0;
+    }
+    
+    private string GetRelationshipStatusClass()
+    {
+        var tokens = GameFacade.GetTokensWithNPC(NPC.ID);
+        var totalTokens = tokens.TotalTokens;
+        
+        if (tokens.Balances.Any(b => b.Amount < 0))
+            return "relationship-debt";
+        else if (totalTokens >= 5)
+            return "relationship-strong";
+        else if (totalTokens > 0)
+            return "relationship-positive";
+        else
+            return "relationship-neutral";
+    }
+    
+    private string GetRelationshipStatusText()
+    {
+        var tokens = GameFacade.GetTokensWithNPC(NPC.ID);
+        var totalTokens = tokens.TotalTokens;
+        
+        if (tokens.Balances.Any(b => b.Amount < 0))
+            return "In Debt";
+        else if (totalTokens >= 5)
+            return "Strong Bond";
+        else if (totalTokens > 0)
+            return "Friendly";
+        else
+            return "Neutral";
+    }
+    
+    private List<Letter> GetNPCLettersInQueue()
+    {
+        var queueViewModel = GameFacade.GetLetterQueue();
+        var letters = new List<Letter>();
+        
+        foreach (var slot in queueViewModel.QueueSlots.Where(s => s.Letter != null))
+        {
+            if (slot.Letter.SenderName == NPC.Name || slot.Letter.RecipientName == NPC.Name)
+            {
+                // We'd need Letter objects but GameFacade only provides ViewModels
+                // This is a limitation - we'll return empty list for now
+            }
+        }
+        return letters;
+    }
+    
+    private string GetInteractionClass(string type)
+    {
+        return type switch
+        {
+            "success" => "interaction-success",
+            "warning" => "interaction-warning",
+            "danger" => "interaction-danger",
+            _ => "interaction-info"
+        };
+    }
+    
+    private string GetInteractionIcon(string type)
+    {
+        return type switch
+        {
+            "success" => "✓",
+            "warning" => "⚠️",
+            "danger" => "❌",
+            _ => "ℹ️"
+        };
+    }
+    
+    private int GetLeveragePosition(ConnectionType tokenType, int tokenBalance)
+    {
+        // Calculate the leverage position based on token debt
+        // This mirrors the logic in LetterQueueManager.CalculateLeveragePosition
+        
+        // Get base position for token type
+        int basePosition = tokenType switch
+        {
+            ConnectionType.Status => 3,     // High social status
+            ConnectionType.Commerce => 5,     // Middle class
+            ConnectionType.Shadow => 5,    // Underworld
+            ConnectionType.Trust => 7,    // Lower class
+            _ => 8
+        };
+        
+        // Apply leverage modifiers based on token balance
+        int leveragePosition = basePosition;
+        
+        if (tokenBalance < 0)
+        {
+            // Negative tokens create leverage - each -1 token = -1 position
+            leveragePosition += tokenBalance; // Subtracts since negative
+        }
+        else if (tokenBalance >= 4)
+        {
+            // High positive tokens reduce leverage slightly
+            leveragePosition += 1;
+        }
+        
+        // Clamp to valid queue positions
+        return Math.Max(1, Math.Min(8, leveragePosition));
+    }
+    
+    private string GetSpecialLetterIcon(LetterSpecialType type)
+    {
+        return type switch
+        {
+            LetterSpecialType.Introduction => "🤝",
+            LetterSpecialType.AccessPermit => "🔓",
+            LetterSpecialType.Endorsement => "⭐",
+            LetterSpecialType.Information => "🔍",
+            _ => "📜"
+        };
+    }
+    
+    private bool CanRequestSpecialLetterNow()
+    {
+        // Check if NPC is available and player has time
+        return IsNPCCurrentlyAvailable() && GameWorld.GetPlayer().Stamina > 0;
+    }
+    
+    private async Task RequestSpecialLetter(ConnectionType tokenType)
+    {
+        // Execute the special letter request
+        bool success = GameFacade.RequestSpecialLetter(NPC.ID, tokenType);
+        
+        if (success)
+        {
+            // GameFacade should handle time advancement internally
+            // TimeManager is not accessible from UI components
+        }
+        
+        // Refresh the UI
+        StateHasChanged();
+    }
+}

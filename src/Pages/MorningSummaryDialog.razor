@@ -1,0 +1,122 @@
+@inject MorningActivitiesManager MorningManager
+
+@if (ShowDialog && MorningResult != null && MorningResult.HasEvents)
+{
+    <div class="morning-summary-overlay">
+        <div class="morning-summary-dialog">
+            <h2>Morning Report</h2>
+            <div class="morning-date">Day @CurrentDay - Dawn</div>
+            
+            <div class="morning-events">
+                @if (MorningResult.ExpiredLetterCount > 0)
+                {
+                    <div class="event-section expired-letters">
+                        <h3>⚠️ Expired Letters</h3>
+                        @foreach (var evt in MorningManager.MorningEvents.Where(e => e.Type == MorningEventType.LetterExpired))
+                        {
+                            <div class="event-item danger">
+                                <p>@evt.Description</p>
+                                @if (evt.TokenLoss.HasValue)
+                                {
+                                    <p class="token-loss">Lost @evt.TokenLoss @evt.TokenType tokens with @evt.SenderName</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                
+                @if (MorningResult.ForcedLetterCount > 0)
+                {
+                    <div class="event-section forced-letters">
+                        <h3>📜 Obligation Letters</h3>
+                        @foreach (var evt in MorningManager.MorningEvents.Where(e => e.Type == MorningEventType.ForcedLetterAdded))
+                        {
+                            <div class="event-item obligation">
+                                <p>@evt.Description</p>
+                            </div>
+                        }
+                    </div>
+                }
+                
+                @if (MorningResult.PatronLetterCount > 0)
+                {
+                    <div class="event-section patron-letters">
+                        <h3>🏵️ Patron Letter</h3>
+                        @foreach (var evt in MorningManager.MorningEvents.Where(e => e.Type == MorningEventType.PatronLetterAdded))
+                        {
+                            <div class="event-item patron">
+                                <p>@evt.Description</p>
+                                <p class="patron-mystery">Your patron's motives remain unclear...</p>
+                            </div>
+                        }
+                    </div>
+                }
+                
+                @if (MorningResult.UrgentLetterCount > 0)
+                {
+                    <div class="event-section urgent-warnings">
+                        <h3>🔥 Urgent Deadlines</h3>
+                        @foreach (var evt in MorningManager.MorningEvents.Where(e => e.Type == MorningEventType.UrgentLetterWarning))
+                        {
+                            <div class="event-item warning">
+                                <p>@evt.Description</p>
+                            </div>
+                        }
+                    </div>
+                }
+                
+                @if (MorningResult.NewLetterCount > 0)
+                {
+                    <div class="event-section new-letters">
+                        <h3>📮 New Arrivals</h3>
+                        @foreach (var evt in MorningManager.MorningEvents.Where(e => e.Type == MorningEventType.NewLettersAvailable))
+                        {
+                            <div class="event-item info">
+                                <p>@evt.Description</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            
+            <div class="summary-footer">
+                <p class="queue-status">Current queue: @GetQueueStatus()</p>
+                <button class="continue-button" @onclick="HandleContinue">
+                    @if (HasLetterBoard)
+                    {
+                        <span>Check Letter Board 📬</span>
+                    }
+                    else
+                    {
+                        <span>Begin Day ☀️</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+@namespace Wayfarer.Pages
+    [Parameter] public bool ShowDialog { get; set; }
+    [Parameter] public MorningActivityResult MorningResult { get; set; }
+    [Parameter] public int CurrentDay { get; set; }
+    [Parameter] public EventCallback OnContinue { get; set; }
+    [Parameter] public bool HasLetterBoard { get; set; } = true;
+    
+    [Inject] public LetterQueueManager LetterQueueManager { get; set; }
+    
+    private void HandleContinue()
+    {
+        MorningManager.ClearMorningEvents();
+        OnContinue.InvokeAsync();
+    }
+    
+    private string GetQueueStatus()
+    {
+        int letterCount = LetterQueueManager.GetLetterCount();
+        int maxLetters = 8;
+        return $"{letterCount}/{maxLetters} letters";
+    }
+}

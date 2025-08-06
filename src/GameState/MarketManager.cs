@@ -1,4 +1,4 @@
-﻿using Wayfarer.Game.MainSystem;
+﻿using Wayfarer.GameState.Constants;
 
 /// <summary>
 /// Manages location-specific item pricing and trading operations.
@@ -10,10 +10,10 @@ public class MarketManager
     private readonly GameWorld _gameWorld;
     private readonly LocationSystem _locationSystem;
     private readonly ItemRepository _itemRepository;
-    private readonly ContractProgressionService _contractProgressionService;
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
-    private readonly TimeManager _timeManager;
+    private readonly ITimeManager _timeManager;
+    private readonly MessageSystem _messageSystem;
 
     /// <summary>
     /// Represents pricing information for an item at a specific location
@@ -27,16 +27,16 @@ public class MarketManager
     }
 
     public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
-                        ContractProgressionService contractProgressionService, NPCRepository npcRepository,
-                        LocationRepository locationRepository)
+                        NPCRepository npcRepository, LocationRepository locationRepository, MessageSystem messageSystem,
+                        ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _locationSystem = locationSystem;
         _itemRepository = itemRepository;
-        _contractProgressionService = contractProgressionService;
         _npcRepository = npcRepository;
         _locationRepository = locationRepository;
-        _timeManager = gameWorld.TimeManager;
+        _timeManager = timeManager;
+        _messageSystem = messageSystem;
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public class MarketManager
         }
 
         // Check if market is available based on NPC schedules
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
 
         if (!marketAvailable)
@@ -122,7 +122,7 @@ public class MarketManager
         List<Item> availableItems = new List<Item>();
 
         // Check market availability once upfront
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         bool marketAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
 
         if (!marketAvailable)
@@ -215,7 +215,7 @@ public class MarketManager
             InventorySlots = baseItem?.InventorySlots ?? 1,
             LocationId = locationId,
             Description = baseItem?.Description ?? GetDefaultDescription(itemId),
-            Categories = baseItem?.Categories ?? new List<EquipmentCategory>()
+            Categories = baseItem?.Categories ?? new List<ItemCategory>()
         };
     }
 
@@ -262,7 +262,7 @@ public class MarketManager
             2 => "medium",
             3 => "heavy",
             4 => "very heavy",
-            _ => weight > 4 ? "extremely heavy" : "light"
+            _ => weight > GameConstants.Inventory.HEAVY_ITEM_WEIGHT_THRESHOLD ? "extremely heavy" : "light"
         };
     }
 
@@ -303,6 +303,12 @@ public class MarketManager
         int buyPrice = GetItemPrice(locationId, itemId, true);
         Item item = _itemRepository.GetItemById(itemId);
 
+        // Show the transaction happening
+        _messageSystem.AddSystemMessage(
+            $"💰 Purchasing {item.Name} for {buyPrice} coins...",
+            SystemMessageTypes.Info
+        );
+
         player.Coins -= buyPrice;
 
         // Use size-aware inventory method
@@ -311,14 +317,27 @@ public class MarketManager
         {
             // Refund if inventory addition failed
             player.Coins += buyPrice;
+            _messageSystem.AddSystemMessage(
+                $"❌ Purchase failed - no room in inventory! Coins refunded.",
+                SystemMessageTypes.Warning
+            );
             return false;
         }
 
-        // Consume 1 time period per Period-Based Activity Planning user story
-        _timeManager.ConsumeTimeBlock(1);
+        // Success narrative
+        _messageSystem.AddSystemMessage(
+            $"✅ Purchased {item.Name} for {buyPrice} coins.",
+            SystemMessageTypes.Success
+        );
 
-        // Check for contract progression based on purchase
-        _contractProgressionService.CheckMarketProgression(itemId, locationId, TransactionType.Buy, 1, buyPrice, player);
+        _messageSystem.AddSystemMessage(
+            $"  • Remaining coins: {player.Coins}",
+            SystemMessageTypes.Info
+        );
+
+        // Trading takes time
+        _timeManager.AdvanceTime(1); // 1 hour for trading
+
 
         return true;
     }
@@ -338,14 +357,32 @@ public class MarketManager
         int sellPrice = GetItemPrice(locationId, itemId, false);
         if (sellPrice <= 0) return false; // Cannot sell here
 
+        // Get item for narrative context
+        Item item = _itemRepository.GetItemById(itemId);
+
+        // Show the transaction
+        _messageSystem.AddSystemMessage(
+            $"💰 Selling {item.Name} for {sellPrice} coins...",
+            SystemMessageTypes.Info
+        );
+
         player.Inventory.RemoveItem(itemId);
         player.Coins += sellPrice;
 
-        // Consume 1 time period per Period-Based Activity Planning user story
-        _timeManager.ConsumeTimeBlock(1);
+        // Success narrative
+        _messageSystem.AddSystemMessage(
+            $"✅ Sold {item.Name} for {sellPrice} coins.",
+            SystemMessageTypes.Success
+        );
 
-        // Check for contract progression based on sale
-        _contractProgressionService.CheckMarketProgression(itemId, locationId, TransactionType.Sell, 1, sellPrice, player);
+        _messageSystem.AddSystemMessage(
+            $"  • Total coins: {player.Coins}",
+            SystemMessageTypes.Info
+        );
+
+        // Trading takes time
+        _timeManager.AdvanceTime(1); // 1 hour for trading
+
 
         return true;
     }
@@ -598,8 +635,12 @@ public class MarketManager
             .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
             .ToList();
 
+        Console.WriteLine($"[DEBUG] IsMarketAvailableAtLocation: location={locationId}, time={currentTime}, tradeNPCs={tradeNPCs.Count}");
+
         // Market is available if at least one trade NPC is present
-        return tradeNPCs.Any();
+        bool available = tradeNPCs.Any();
+        Console.WriteLine($"[DEBUG] Market available at {locationId}: {available}");
+        return available;
     }
 
     /// <summary>
@@ -607,7 +648,7 @@ public class MarketManager
     /// </summary>
     public string GetMarketAvailabilityStatus(string locationId)
     {
-        TimeBlocks currentTime = _gameWorld.TimeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         bool isAvailable = IsMarketAvailableAtLocation(locationId, currentTime);
 
         if (isAvailable)
@@ -638,5 +679,93 @@ public class MarketManager
 
             return "Market closed";
         }
+    }
+
+    /// <summary>
+    /// Get detailed market status with trader information
+    /// </summary>
+    public string GetDetailedMarketStatus(string locationId)
+    {
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        List<NPC> tradeNPCs = _npcRepository.GetNPCsForLocation(locationId)
+            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .ToList();
+
+        if (!tradeNPCs.Any())
+        {
+            return "No traders at this location";
+        }
+
+        List<NPC> currentlyAvailable = tradeNPCs.Where(npc => npc.IsAvailable(currentTime)).ToList();
+
+        if (currentlyAvailable.Any())
+        {
+            string traderNames = string.Join(", ", currentlyAvailable.Select(npc => npc.Name));
+            return $"Market Open - Traders available: {traderNames}";
+        }
+        else
+        {
+            return "Market Closed - No traders available right now";
+        }
+    }
+
+    /// <summary>
+    /// Get all traders at a location regardless of availability
+    /// </summary>
+    public List<NPC> GetAllTraders(string locationId)
+    {
+        return _npcRepository.GetNPCsForLocation(locationId)
+            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get currently available traders at a location
+    /// </summary>
+    public List<NPC> GetCurrentTraders(string locationId)
+    {
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        return _npcRepository.GetNPCsForLocationAndTime(locationId, currentTime)
+            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .ToList();
+    }
+    
+    /// <summary>
+    /// Get trader NPCs at a location (alias for GetCurrentTraders)
+    /// </summary>
+    private List<NPC> GetTraderNPCs(string locationId)
+    {
+        return GetCurrentTraders(locationId);
+    }
+    
+    public List<MarketItem> GetMarketItems(string locationId)
+    {
+        var traders = GetTraderNPCs(locationId);
+        var items = new List<MarketItem>();
+        
+        foreach (var trader in traders)
+        {
+            var traderItems = _itemRepository.GetAllItems()
+                .Select(item => new MarketItem
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Price = GetItemPrice(locationId, item.Id, true),
+                    Stock = 10, // Default stock
+                    TraderId = trader.ID,
+                    ItemId = item.Id
+                })
+                .ToList();
+            
+            items.AddRange(traderItems);
+        }
+        
+        return items;
+    }
+    
+    public MarketItem GetMarketItem(string locationId, string itemId)
+    {
+        var items = GetMarketItems(locationId);
+        return items.FirstOrDefault(i => i.Id == itemId || i.ItemId == itemId);
     }
 }

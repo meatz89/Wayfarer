@@ -1,29 +1,13 @@
-﻿public class GameWorld
+﻿using System;
+
+public class GameWorld
 {
-    public int CurrentDay
-    {
-        get
-        {
-            return WorldState.CurrentDay;
-        }
-
-        set
-        {
-            WorldState.CurrentDay = value;
-        }
-    }
-    public TimeBlocks CurrentTimeBlock
-    {
-        get
-        {
-            return WorldState.CurrentTimeBlock;
-        }
-
-        set
-        {
-            WorldState.CurrentTimeBlock = value;
-        }
-    }
+    // Game mode determines content loading and tutorial state
+    public GameMode GameMode { get; set; } = GameMode.MainGame;
+    
+    // Time is now tracked in WorldState, not through external dependencies
+    public int CurrentDay { get; set; } = 1;
+    public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
     public WeatherCondition CurrentWeather
     {
         get
@@ -41,55 +25,26 @@
     public Inventory PlayerInventory { get; private set; }
     public List<Location> Locations { get; set; } = new List<Location>();
 
-    public Location CurrentLocation
-    {
-        get
-        {
-            return WorldState.CurrentLocation;
-        }
-
-        private set
-        {
-            WorldState.SetCurrentLocation(value, WorldState.CurrentLocationSpot);
-        }
-    }
-    public LocationSpot CurrentLocationSpot
-    {
-        get
-        {
-            return WorldState.CurrentLocationSpot;
-        }
-
-        set
-        {
-            WorldState.SetCurrentLocationSpot(value);
-        }
-    }
-
     private Player Player;
     public WorldState WorldState { get; private set; }
-    public ActionStateTracker ActionStateTracker { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }
-
-    // New journey-related properties
-    public WorldMap Map { get; private set; }
-    public int GlobalTime { get; set; }
-    public List<Location> DiscoveredLocations { get; set; }
-    public List<RouteOption> DiscoveredRoutes { get; set; }
-
-    // New resource properties
-    public int Money { get; set; }
-    public int Condition { get; set; }
 
     public AIResponse CurrentAIResponse { get; set; }
     public bool IsAwaitingAIResponse { get; set; }
-    public List<EncounterChoice> AvailableChoices { get; set; } = new List<EncounterChoice>();
-
     public int DeadlineDay { get; set; }
     public string DeadlineReason { get; set; }
     public Guid GameInstanceId { get; set; }
     public RouteOption CurrentRouteOption { get; internal set; }
-    public TimeManager TimeManager { get; internal set; }
+
+    // System Messages State
+    public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
+    // Event Log - Permanent record of all messages
+    public List<SystemMessage> EventLog { get; set; } = new List<SystemMessage>();
+
+    // Note: Pending command system has been removed in favor of intent-based architecture
+
+    // Temporary metadata for conversation context
+    private Dictionary<string, string> _metadata = new Dictionary<string, string>();
 
     public GameWorld()
     {
@@ -98,10 +53,11 @@
         Player = new Player();
         WorldState = new WorldState();
 
-        TimeManager = new TimeManager(Player, WorldState);
+        // GameWorld has NO dependencies and creates NO managers
 
-        ActionStateTracker = new ActionStateTracker();
         StreamingContentState = new StreamingContentState();
+
+        // FlagService and NarrativeManager are created by DI, not GameWorld
 
         CurrentAIResponse = null;
         IsAwaitingAIResponse = false;
@@ -117,9 +73,27 @@
         return GameInstanceId;
     }
 
-    public bool IsDeadlineReached()
+    // Metadata management for conversation context
+    public void SetMetadata(string key, string value)
     {
-        return CurrentDay >= DeadlineDay;
+        _metadata[key] = value;
+    }
+
+    public string GetMetadata(string key)
+    {
+        return _metadata.TryGetValue(key, out string? value) ? value : null;
+    }
+
+    public void ClearMetadata(string key)
+    {
+        _metadata.Remove(key);
+    }
+    
+    // Time management methods
+    public void AdvanceToNextDay()
+    {
+        CurrentDay++;
+        CurrentTimeBlock = TimeBlocks.Dawn;
     }
 
 }

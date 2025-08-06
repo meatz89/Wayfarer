@@ -1,88 +1,124 @@
 ﻿public class RestManager
 {
     private GameWorld gameWorld;
-    private TimeManager timeManager;
+    private ITimeManager timeManager;
     private LocationRepository locationRepository;
     private MessageSystem messageSystem;
-    private ContractRepository contractRepository;
 
     public RestManager(
         GameWorld gameWorld,
+        ITimeManager timeManager,
         LocationRepository locationRepository,
-        MessageSystem messageSystem,
-        ContractRepository contractRepository)
+        MessageSystem messageSystem)
     {
         this.gameWorld = gameWorld;
-        this.timeManager = gameWorld.TimeManager;
+        this.timeManager = timeManager;
         this.locationRepository = locationRepository;
         this.messageSystem = messageSystem;
-        this.contractRepository = contractRepository;
     }
 
     public List<RestOption> GetAvailableRestOptions()
     {
-        Location currentLocation = gameWorld.WorldState.CurrentLocation;
+        var player = gameWorld.GetPlayer();
+        if (player.CurrentLocationSpot == null) return new List<RestOption>();
+        Location currentLocation = locationRepository.GetLocation(player.CurrentLocationSpot.LocationId);
         if (currentLocation == null) return new List<RestOption>();
 
-        List<RestOption> restOptions = new List<RestOption>
+        List<RestOption> restOptions = new List<RestOption>();
+
+        TimeBlocks currentTime = timeManager.GetCurrentTimeBlock();
+
+        // During day/evening - only short rest/wait options
+        if (currentTime != TimeBlocks.Night)
         {
-            // Standard rest options available everywhere
-            new RestOption
+            restOptions.Add(new RestOption
+            {
+                Id = "wait",
+                Name = "Wait an Hour",
+                CoinCost = 0,
+                StaminaRecovery = 0,
+                RestTimeHours = 1,
+                EnablesDawnDeparture = false
+            });
+
+            restOptions.Add(new RestOption
+            {
+                Id = "short_rest",
+                Name = "Short Rest",
+                CoinCost = 0,
+                StaminaRecovery = 1,
+                RestTimeHours = 1,
+                EnablesDawnDeparture = false
+            });
+        }
+        // At night - sleep options that trigger morning activities
+        else
+        {
+            restOptions.Add(new RestOption
             {
                 Id = "camp",
-                Name = "Camp Outside",
+                Name = "Sleep Outside",
                 CoinCost = 0,
                 StaminaRecovery = 2,
+                RestTimeHours = 1, // Consumes remaining night
                 EnablesDawnDeparture = true
+            });
+        }
+
+        // Location-specific rest options (only available evening/night)
+        if (currentTime == TimeBlocks.Evening || currentTime == TimeBlocks.Night)
+        {
+            bool isNight = currentTime == TimeBlocks.Night;
+
+            if (currentLocation.Id == "Millbrook")
+            {
+                restOptions.Add(new RestOption
+                {
+                    Id = "inn",
+                    Name = isNight ? "Inn Room (Full Night)" : "Inn Room (Evening)",
+                    CoinCost = 2,
+                    StaminaRecovery = isNight ? 4 : 2,
+                    ProvidesMarketRumors = true,
+                    EnablesDawnDeparture = isNight
+                });
             }
-        };
+            else if (currentLocation.Id == "Crossbridge")
+            {
+                restOptions.Add(new RestOption
+                {
+                    Id = "inn",
+                    Name = isNight ? "Inn Room (Full Night)" : "Inn Room (Evening)",
+                    CoinCost = 3,
+                    StaminaRecovery = isNight ? 4 : 2,
+                    ProvidesMarketRumors = true,
+                    EnablesDawnDeparture = isNight
+                });
 
-        // Location-specific rest options
-        if (currentLocation.Id == "Millbrook")
-        {
-            restOptions.Add(new RestOption
+                restOptions.Add(new RestOption
+                {
+                    Id = "church",
+                    Name = isNight ? "Church Lodging (Full Night)" : "Church Lodging (Evening)",
+                    CoinCost = 0,
+                    StaminaRecovery = isNight ? 3 : 1,
+                    CleansesContraband = true,
+                    RequiredItem = "Pilgrim Token",
+                    EnablesDawnDeparture = isNight
+                });
+            }
+            else if (currentLocation.Id == "Thornwood")
             {
-                Id = "inn",
-                Name = "Inn Room",
-                CoinCost = 2,
-                StaminaRecovery = 4,
-                ProvidesMarketRumors = true
-            });
-        }
-        else if (currentLocation.Id == "Crossbridge")
-        {
-            restOptions.Add(new RestOption
-            {
-                Id = "inn",
-                Name = "Inn Room",
-                CoinCost = 3,
-                StaminaRecovery = 4,
-                ProvidesMarketRumors = true
-            });
-
-            restOptions.Add(new RestOption
-            {
-                Id = "church",
-                Name = "Church Lodging",
-                CoinCost = 0,
-                StaminaRecovery = 3,
-                CleansesContraband = true,
-                RequiredItem = "Pilgrim Token"
-            });
-        }
-        else if (currentLocation.Id == "Thornwood")
-        {
-            restOptions.Add(new RestOption
-            {
-                Id = "hunter_cabin",
-                Name = "Hunter's Cabin",
-                CoinCost = 1,
-                StaminaRecovery = 3
-            });
+                restOptions.Add(new RestOption
+                {
+                    Id = "hunter_cabin",
+                    Name = isNight ? "Hunter's Cabin (Full Night)" : "Hunter's Cabin (Evening)",
+                    CoinCost = 1,
+                    StaminaRecovery = isNight ? 3 : 1,
+                    EnablesDawnDeparture = isNight
+                });
+            }
         }
 
         // Filter by player requirements
-        Player player = gameWorld.GetPlayer();
         return restOptions.Where(r =>
             r.RequiredItem == null ||
             Array.IndexOf(player.Inventory.ItemSlots, r.RequiredItem) != -1).ToList();
@@ -91,24 +127,71 @@
     public void Rest(RestOption option)
     {
         Player player = gameWorld.GetPlayer();
+        Location currentLocation = player.CurrentLocationSpot != null 
+            ? locationRepository.GetLocation(player.CurrentLocationSpot.LocationId) 
+            : null;
 
         // Validate time block availability
-        if (!timeManager.ValidateTimeBlockAction(option.TimeBlockCost))
+        // Check if we have enough hours left in the day
+        if (timeManager.GetCurrentTimeHours() + option.RestTimeHours > 24)
         {
-            throw new InvalidOperationException($"Cannot rest: Not enough time blocks remaining. Rest requires {option.TimeBlockCost} blocks, but only {timeManager.RemainingTimeBlocks} available.");
+            throw new InvalidOperationException($"Cannot rest: Not enough time remaining in the day. Rest requires {option.RestTimeHours} hours.");
         }
 
-        // Deduct cost
-        player.ModifyCoins(-option.CoinCost);
+        // Show the rest beginning
+        messageSystem.AddSystemMessage(
+            $"🛌 {option.Name} at {currentLocation.Name}...",
+            SystemMessageTypes.Info
+        );
 
-        // Consume time blocks
-        timeManager.ConsumeTimeBlock(option.TimeBlockCost);
-
-        // Recover stamina
-        player.Stamina += option.StaminaRecovery;
-        if (player.Stamina > player.MaxStamina)
+        // Deduct cost with narrative
+        if (option.CoinCost > 0)
         {
-            player.Stamina = player.MaxStamina;
+            player.ModifyCoins(-option.CoinCost);
+            messageSystem.AddSystemMessage(
+                $"  • Paid {option.CoinCost} coins for accommodations",
+                SystemMessageTypes.Info
+            );
+        }
+
+        // Resting takes time
+        timeManager.AdvanceTime(option.RestTimeHours);
+        messageSystem.AddSystemMessage(
+            $"  • {option.RestTimeHours} hours pass...",
+            SystemMessageTypes.Info
+        );
+
+        // Recover stamina with narrative
+        int oldStamina = player.Stamina;
+        player.ModifyStamina(option.StaminaRecovery);
+
+        int staminaGained = player.Stamina - oldStamina;
+        messageSystem.AddSystemMessage(
+            $"💪 Recovered {staminaGained} stamina (now {player.Stamina}/{player.MaxStamina})",
+            SystemMessageTypes.Success
+        );
+
+        // Describe the rest quality
+        if (option.StaminaRecovery >= 8)
+        {
+            messageSystem.AddSystemMessage(
+                $"  • You feel completely refreshed after a good night's sleep.",
+                SystemMessageTypes.Success
+            );
+        }
+        else if (option.StaminaRecovery >= 4)
+        {
+            messageSystem.AddSystemMessage(
+                $"  • The rest helps, though you could use more sleep.",
+                SystemMessageTypes.Info
+            );
+        }
+        else
+        {
+            messageSystem.AddSystemMessage(
+                $"  • A brief rest, but exhaustion still lingers.",
+                SystemMessageTypes.Warning
+            );
         }
 
         // Cleanse contraband if applicable
@@ -134,22 +217,23 @@
         // Advance time based on rest option using TimeManager
         if (option.EnablesDawnDeparture)
         {
-            gameWorld.TimeManager.StartNewDay();
-            // StartNewDay() sets time to TimeDayStart (6 AM) which is Dawn
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Dawn;
+            // Calculate hours until dawn (6 AM) of next day
+            int currentHour = timeManager.GetCurrentTimeHours();
+            int hoursUntilDawn = (24 - currentHour) + 6; // Hours to midnight + 6 hours to dawn
+            timeManager.AdvanceTime(hoursUntilDawn);
         }
         else
         {
-            gameWorld.TimeManager.StartNewDay();
-            // Override to Morning for regular departure
-            gameWorld.WorldState.CurrentTimeBlock = TimeBlocks.Morning;
+            // Advance to next day at 6 AM
+            int currentHour = timeManager.GetCurrentTimeHours();
+            int hoursUntilDawn = (24 - currentHour) + 6;
+            timeManager.AdvanceTime(hoursUntilDawn);
+            // Time advances to next day at dawn (6 AM)
+            // If we need to start at a different time, we can advance additional hours
+            timeManager.AdvanceTime(3); // Advance to 9 AM (Morning)
         }
 
-        // Refresh player cards
-        foreach (SkillCard card in player.GetAllAvailableCards())
-        {
-            player.RefreshCard(card);
-        }
+        // Skill cards removed - using letter queue system
 
         // Generate exclusive contract if applicable
         if (option.OffersExclusiveContract)
@@ -189,18 +273,26 @@
 
     private void GenerateExclusiveContract()
     {
-        // For POC, create a special high-value contract using new completion action pattern
-        Contract exclusiveContract = new Contract
-        {
-            Id = $"exclusive_{gameWorld.CurrentDay}",
-            Description = "Exclusive Merchant Opportunity",
-            StartDay = gameWorld.CurrentDay,
-            DueDay = gameWorld.CurrentDay + 3,
-            Payment = 25,
-            FailurePenalty = "Reputation loss with Merchant Guild",
-        };
+        // Contract functionality has been removed - using letter system instead
+        messageSystem.AddSystemMessage("Your connections have provided you with valuable information!");
+    }
 
-        contractRepository.AddContract(exclusiveContract);
-        messageSystem.AddSystemMessage("You've received an exclusive contract offer from a merchant connection!");
+    public void Wait(int hours)
+    {
+        if (hours <= 0) return;
+
+        // Validate we don't go past midnight
+        if (timeManager.GetCurrentTimeHours() + hours > 24)
+        {
+            messageSystem.AddSystemMessage($"Cannot wait {hours} hours: would go past midnight", SystemMessageTypes.Danger);
+            return;
+        }
+
+        // Advance time
+        timeManager.AdvanceTime(hours);
+
+        // Show feedback
+        string timeDescription = hours == 1 ? "1 hour" : $"{hours} hours";
+        messageSystem.AddSystemMessage($"Waited {timeDescription}. Time advanced to {timeManager.GetCurrentTimeHours()}:00", SystemMessageTypes.Info);
     }
 }

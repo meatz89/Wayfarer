@@ -1,6 +1,4 @@
 using System.Linq;
-using Wayfarer.Game.MainSystem;
-
 public class RouteRepository
 {
     private readonly GameWorld _gameWorld;
@@ -13,7 +11,7 @@ public class RouteRepository
     // Check if a route is blocked
     public bool IsRouteBlocked(string routeId)
     {
-        return _gameWorld.WorldState.IsRouteBlocked(routeId);
+        return _gameWorld.WorldState.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
     }
 
     // Get current weather (weather affects route availability)
@@ -47,7 +45,7 @@ public class RouteRepository
     }
 
     // Get all routes in the world
-    public List<RouteOption> GetAllRoutes()
+    public List<RouteOption> GetAll()
     {
         List<RouteOption> allRoutes = new List<RouteOption>();
 
@@ -69,5 +67,12 @@ public class RouteRepository
         }
 
         return allRoutes;
+    }
+
+    // Get a specific route by ID
+    public RouteOption GetRouteById(string routeId)
+    {
+        List<RouteOption> allRoutes = GetAll();
+        return allRoutes.FirstOrDefault(r => r.Id == routeId);
     }
 }

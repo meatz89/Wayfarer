@@ -1,17 +1,12 @@
-﻿public class Inventory
+﻿
+public class Inventory
 {
     public string[] ItemSlots;
-    public int Size { get { return ItemSlots.Length; } }
-    public int UsedCapacity
-    {
-        get
-        {
-            return ItemSlots.Count(s =>
-    {
-        return s != string.Empty;
-    });
-        }
-    }
+    public int Size => ItemSlots.Length;
+    public int UsedCapacity => ItemSlots.Count(s =>
+                                {
+                                    return s != string.Empty;
+                                });
 
     public Inventory(int size)
     {
@@ -67,6 +62,11 @@
                 currentCount--;
             }
         }
+    }
+
+    public void Add(Item item)
+    {
+        AddItem(item.Id);
     }
 
     public int AddItems(string resource, int count)
@@ -137,6 +137,11 @@
         }
         return false;
     }
+    
+    public bool TryAddItem(string item)
+    {
+        return AddItem(item);
+    }
 
     public bool HasItem(string item)
     {
@@ -173,11 +178,6 @@
             }
         }
         return count;
-    }
-
-    public void Apply(object invChange)
-    {
-        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -268,4 +268,13 @@
         return AddItem(item.Id);
     }
 
+    public bool IsFull()
+    {
+        return !HasFreeSlot();
+    }
+
+    public void Remove(Item item)
+    {
+        this.RemoveItem(item.Id);
+    }
 }

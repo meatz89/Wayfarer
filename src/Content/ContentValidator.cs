@@ -23,18 +23,7 @@
             }
         }
 
-        foreach (ActionDefinition actionDefinition in _worldState.actions)
-        {
-            if (!_worldState.locationSpots.Any((Func<LocationSpot, bool>)(ls =>
-            {
-                return ls.SpotID == actionDefinition.LocationSpotId;
-            })))
-            {
-                // Need to get the locationId for this spot, not just use the spotId twice
-                string locationIdForSpot = _worldState.GetLocationIdForSpot(actionDefinition.LocationSpotId);
-                result.AddMissingAction(locationIdForSpot, actionDefinition.LocationSpotId, actionDefinition);
-            }
-        }
+        // Actions removed - using letter queue system
 
         foreach (Location location in _worldState.locations)
         {

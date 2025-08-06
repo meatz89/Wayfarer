@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 
+    Content Validation MSBuild Target
+    
+    This file can be imported into the main project file to enable
+    content validation during the build process.
+    
+    To use:
+    1. Add to your .csproj file:
+       <Import Project="Content.targets" />
+    
+    2. Set ValidateContentOnBuild to true in your .csproj:
+       <PropertyGroup>
+         <ValidateContentOnBuild>true</ValidateContentOnBuild>
+       </PropertyGroup>
+    
+    3. Optionally override the content path:
+       <PropertyGroup>
+         <ContentValidationPath>$(MSBuildProjectDirectory)/Content/Templates</ContentValidationPath>
+       </PropertyGroup>
+  -->
+  
+  <PropertyGroup>
+    <!-- Enable/disable content validation -->
+    <ValidateContentOnBuild Condition="'$(ValidateContentOnBuild)' == ''">false</ValidateContentOnBuild>
+    
+    <!-- Default content path -->
+    <ContentValidationPath Condition="'$(ContentValidationPath)' == ''">$(MSBuildProjectDirectory)/Content/Templates</ContentValidationPath>
+  </PropertyGroup>
+  
+  <!-- Content validation target -->
+  <Target Name="ValidateContent" 
+          BeforeTargets="BeforeBuild"
+          Condition="'$(ValidateContentOnBuild)' == 'true'">
+    
+    <Message Text="Running content validation..." Importance="high" />
+    
+    <!-- Create a temporary program to run validation -->
+    <PropertyGroup>
+      <_ValidationRunner>
+using System;
+
+class Program
+{
+    static int Main(string[] args)
+    {
+        var path = args.Length > 0 ? args[0] : null;
+        return ContentValidationRunner.Run(path);
+    }
+}
+      </_ValidationRunner>
+    </PropertyGroup>
+    
+    <!-- Write the runner to a temp file -->
+    <WriteLinesToFile
+      File="$(IntermediateOutputPath)ContentValidator.cs"
+      Lines="$(_ValidationRunner)"
+      Overwrite="true" />
+    
+    <!-- Compile and run the validator -->
+    <Exec Command="dotnet run --project &quot;$(MSBuildProjectFullPath)&quot; -- &quot;$(ContentValidationPath)&quot;"
+          ConsoleToMSBuild="true"
+          ContinueOnError="false">
+      <Output TaskParameter="ExitCode" PropertyName="ValidationExitCode" />
+    </Exec>
+    
+    <!-- Fail the build if validation failed -->
+    <Error Condition="'$(ValidationExitCode)' != '0'" 
+           Text="Content validation failed. See output above for details." />
+  </Target>
+  
+  <!-- Target to validate a single file -->
+  <Target Name="ValidateSingleFile">
+    <Error Condition="'$(FileToValidate)' == ''" 
+           Text="FileToValidate property must be set" />
+    
+    <Exec Command="dotnet run --project &quot;$(MSBuildProjectFullPath)&quot; -- validate-file &quot;$(FileToValidate)&quot;"
+          ConsoleToMSBuild="true" />
+  </Target>
+</Project>

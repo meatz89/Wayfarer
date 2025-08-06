@@ -3,7 +3,7 @@
 /// For example, a calm atmosphere may ease the effort needed to gather information,
 /// while a chaotic state might make social interactions more challenging.
 /// </summary>
-public class NarrativeTag : IEncounterTag
+public class NarrativeTag : IConversationTag
 {
     public string NarrativeName { get; }
     public int RequirementChangeApproach { get; }

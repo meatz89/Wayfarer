@@ -1,0 +1,157 @@
+@inject LetterTemplateRepository LetterTemplateRepository
+@inject LetterQueueManager LetterQueueManager
+@inject StandingObligationManager ObligationManager
+@inject NPCRepository NPCRepository
+
+@if (GeneratedLetter != null)
+{
+    <div class="letter-offer-overlay">
+        <div class="letter-offer-dialog">
+            <h3>Direct Letter Offer from @NPC.Name</h3>
+            
+            <div class="letter-preview">
+                <div class="letter-header">
+                    <div class="sender-info">
+                        <span class="label">From:</span>
+                        <span class="value">@GeneratedLetter.SenderName</span>
+                    </div>
+                    <div class="recipient-info">
+                        <span class="label">To:</span>
+                        <span class="value">@GeneratedLetter.RecipientName</span>
+                    </div>
+                </div>
+                
+                <div class="letter-details">
+                    <div class="deadline">
+                        <span class="label">Deadline:</span>
+                        <span class="value @GetDeadlineClass(GeneratedLetter.DeadlineInDays)">@GeneratedLetter.DeadlineInDays days</span>
+                    </div>
+                    <div class="payment">
+                        <span class="label">Payment:</span>
+                        <span class="value">@GeneratedLetter.Payment coins</span>
+                    </div>
+                    <div class="token-type">
+                        <span class="label">Token Type:</span>
+                        <span class="value @GetTokenTypeClass(GeneratedLetter.TokenType)">@GeneratedLetter.TokenType</span>
+                    </div>
+                    <div class="letter-size">
+                        <span class="label">Size:</span>
+                        <span class="value">@GetSizeCategoryIcon(GeneratedLetter.Size) @GeneratedLetter.Size (@GeneratedLetter.GetRequiredSlots() slot@(GeneratedLetter.GetRequiredSlots() > 1 ? "s" : ""))</span>
+                    </div>
+                    @if (GeneratedLetter.PhysicalProperties != LetterPhysicalProperties.None || GeneratedLetter.RequiredEquipment.HasValue)
+                    {
+                        <div class="physical-constraints">
+                            <span class="label">Special Requirements:</span>
+                            <span class="value">@GeneratedLetter.GetPhysicalConstraintsDescription()</span>
+                        </div>
+                    }
+                </div>
+                
+                <div class="queue-info">
+                    <p>This letter will enter your queue at position <strong>8</strong></p>
+                    @if (ObligationManager.GetActiveObligations().Any())
+                    {
+                        <p class="obligation-warning">
+                            <em>Note: Standing obligations may affect entry position</em>
+                        </p>
+                    }
+                </div>
+            </div>
+            
+            <div class="dialog-actions">
+                <button class="accept-button" @onclick="HandleAccept">
+                    Accept Letter ✅
+                </button>
+                <button class="refuse-button" @onclick="HandleRefuse">
+                    Refuse Letter ❌
+                </button>
+            </div>
+            
+            <div class="relationship-note">
+                <p>@NPC.Name trusts you enough to offer this exclusive letter.</p>
+                <p>Refusing won't damage your relationship.</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+@namespace Wayfarer.Pages
+    [Parameter] public NPC NPC { get; set; }
+    [Parameter] public EventCallback<Letter> OnAccept { get; set; }
+    [Parameter] public EventCallback OnRefuse { get; set; }
+    
+    private Letter GeneratedLetter;
+    
+    protected override void OnInitialized()
+    {
+        GenerateLetter();
+    }
+    
+    private void GenerateLetter()
+    {
+        // Get template matching NPC's primary token type
+        var template = NPC.LetterTokenTypes != null && NPC.LetterTokenTypes.Any()
+            ? LetterTemplateRepository.GetRandomTemplateByTokenType(NPC.LetterTokenTypes.First())
+            : LetterTemplateRepository.GetRandomTemplate();
+            
+        if (template != null)
+        {
+            // For direct offers, the NPC is always the sender
+            var allNpcs = NPCRepository.GetAllNPCs();
+            var recipient = allNpcs.Where(n => n.ID != NPC.ID).OrderBy(x => Guid.NewGuid()).FirstOrDefault();
+            
+            GeneratedLetter = LetterTemplateRepository.GenerateLetterFromTemplate(
+                template, 
+                NPC.Name, 
+                recipient?.Name ?? "Unknown Recipient"
+            );
+            
+            if (GeneratedLetter != null)
+            {
+                GeneratedLetter.GenerationReason = "Direct Offer";
+            }
+        }
+    }
+    
+    private void HandleAccept()
+    {
+        if (GeneratedLetter != null)
+        {
+            OnAccept.InvokeAsync(GeneratedLetter);
+        }
+    }
+    
+    private void HandleRefuse()
+    {
+        OnRefuse.InvokeAsync();
+    }
+    
+    private string GetDeadlineClass(int deadline)
+    {
+        return deadline switch
+        {
+            1 => "deadline-critical",
+            2 => "deadline-urgent",
+            <= 3 => "deadline-warning",
+            _ => "deadline-normal"
+        };
+    }
+    
+    private string GetTokenTypeClass(ConnectionType type)
+    {
+        return $"token-{type.ToString().ToLower()}";
+    }
+    
+    private string GetSizeCategoryIcon(SizeCategory size)
+    {
+        return size switch
+        {
+            SizeCategory.Small => "📄",
+            SizeCategory.Medium => "📦",
+            SizeCategory.Large => "📦",
+            _ => "📦"
+        };
+    }
+}

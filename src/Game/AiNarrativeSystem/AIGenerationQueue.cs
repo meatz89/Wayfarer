@@ -6,14 +6,14 @@
     private IAIProvider _aiProvider;
     private string _gameInstanceId;
     private NarrativeLogManager _logManager;
-    private ILogger<EncounterFactory> _logger;
+    private ILogger<ConversationFactory> _logger;
     private bool _isProcessing = false;
 
     public AIGenerationQueue(
         IAIProvider aiProvider,
         string gameInstanceId,
         NarrativeLogManager logManager,
-        ILogger<EncounterFactory> logger)
+        ILogger<ConversationFactory> logger)
     {
         _aiProvider = aiProvider;
         _gameInstanceId = gameInstanceId;
@@ -69,7 +69,6 @@
             throw new KeyNotFoundException($"No pending command with ID {commandId} found");
         }
     }
-
 
     private async Task ProcessQueue()
     {

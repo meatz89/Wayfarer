@@ -1,67 +1,153 @@
 ﻿@* RestUI.razor *@
-@inject GameWorld GameWorld
-@inject GameWorldManager GameManager
-@inject RestManager RestManager
+@inject GameFacade GameFacade
 
 <div class="rest-options">
-    <div class="rest-option">
-        <div class="option-header">
-            <span class="option-name">Camp Outside</span>
-            <span class="option-cost">Free</span>
-        </div>
-        <div class="option-benefits">
-            <div class="benefit">
-                <span class="benefit-label">Stamina Recovery:</span>
-                <span class="benefit-value">+2</span>
+    @* Show contextual rest options from RestManager *@
+    @{
+        var restViewModel = GameFacade.GetRestOptions();
+        var restOptions = restViewModel.RestOptions
+            .Where(o => o.StaminaRecovery > 0 && o.TimeHours >= 1)
+            .ToList();
+    }
+    
+    @foreach (var option in restOptions)
+    {
+        <div class="rest-option">
+            <div class="option-header">
+                <span class="option-name">@option.Name</span>
+                <span class="option-cost">@(option.CoinCost > 0 ? $"{option.CoinCost} coins" : "Free")</span>
             </div>
-            <div class="benefit special-benefit">
-                <span class="benefit-label">Special:</span>
-                <span class="benefit-value">Enables dawn departure</span>
+            <div class="option-benefits">
+                <div class="benefit">
+                    <span class="benefit-label">Stamina Recovery:</span>
+                    <span class="benefit-value">+@option.StaminaRecovery</span>
+                </div>
+                <div class="benefit">
+                    <span class="benefit-label">Time:</span>
+                    <span class="benefit-value">@option.TimeHours hour@(option.TimeHours > 1 ? "s" : "")</span>
+                </div>
+                @if (!string.IsNullOrEmpty(option.Description))
+                {
+                    <div class="benefit">
+                        <span class="benefit-label">Details:</span>
+                        <span class="benefit-value">@option.Description</span>
+                    </div>
+                }
             </div>
+            <button class="rest-button"
+                    disabled="@(!option.IsAvailable)"
+                    @onclick='() => Rest(option.Id)'>
+                Rest Here
+            </button>
         </div>
-        <button class="rest-button" @onclick='() => Rest("camp")'>
-            Rest Here
-        </button>
-    </div>
-
-    <div class="rest-option">
-        <div class="option-header">
-            <span class="option-name">Inn Room</span>
-            <span class="option-cost">2 coins</span>
+    }
+    
+    @* Show location-specific rest actions from command discovery *@
+    @{
+        var locationActions = GameFacade.GetLocationActions();
+        var restCommands = locationActions.ActionGroups
+            .FirstOrDefault(g => g.ActionType == "Rest")?.
+            Actions ?? new List<ActionOptionViewModel>();
+    }
+    
+    @if (restCommands.Any())
+    {
+        <div class="location-rest-actions">
+            <h4>Location Activities</h4>
+            @foreach (var cmd in restCommands)
+            {
+                <div class="rest-option">
+                    <div class="option-header">
+                        <span class="option-name">@cmd.Description</span>
+                        <span class="option-cost">
+                            @if (cmd.CoinCost > 0)
+                            {
+                                @:@cmd.CoinCost coins
+                            }
+                            else
+                            {
+                                @:Free
+                            }
+                        </span>
+                    </div>
+                    <div class="option-benefits">
+                        <div class="benefit">
+                            <span class="benefit-label">Time:</span>
+                            <span class="benefit-value">@cmd.TimeCost hour@(cmd.TimeCost > 1 ? "s" : "")</span>
+                        </div>
+                        <div class="benefit">
+                            <span class="benefit-label">Effect:</span>
+                            <span class="benefit-value">@cmd.RewardsDescription</span>
+                        </div>
+                    </div>
+                    <button class="rest-button"
+                            disabled="@(!cmd.IsAllowedInTutorial)"
+                            @onclick="() => ExecuteCommand(cmd.Id)">
+                        @cmd.Description
+                    </button>
+                </div>
+            }
         </div>
-        <div class="option-benefits">
-            <div class="benefit">
-                <span class="benefit-label">Stamina Recovery:</span>
-                <span class="benefit-value">+4</span>
-            </div>
-            <div class="benefit special-benefit">
-                <span class="benefit-label">Special:</span>
-                <span class="benefit-value">Provides market rumors</span>
-            </div>
+    }
+    
+    <div class="wait-section">
+        <h4>Wait</h4>
+        @{
+            var timeInfo = GameFacade.GetTimeInfo();
+        }
+        <p>Current Time: @GetCurrentHour(timeInfo):00 (@timeInfo.timeBlock)</p>
+        <p>Remaining Hours Today: @timeInfo.hoursRemaining</p>
+        
+        <div class="wait-options">
+            <button class="wait-button" 
+                    disabled="@(GetCurrentHour(timeInfo) >= 23)"
+                    @onclick="() => WaitHours(1)">
+                Wait 1 Hour
+            </button>
+            <button class="wait-button" 
+                    disabled="@(GetCurrentHour(timeInfo) >= 22)"
+                    @onclick="() => WaitHours(2)">
+                Wait 2 Hours  
+            </button>
+            <button class="wait-button" 
+                    disabled="@(GetCurrentHour(timeInfo) >= 21)"
+                    @onclick="() => WaitHours(3)">
+                Wait 3 Hours
+            </button>
         </div>
-        <button class="rest-button"
-                disabled="@(GameWorld.GetPlayer().Coins < 2)"
-                @onclick='() => Rest("inn")'>
-            Rest Here
-        </button>
     </div>
 </div>
 
 @code {
+
+@namespace Wayfarer.Pages
     [Parameter] public Location Location { get; set; }
     [Parameter] public EventCallback OnRestComplete { get; set; }
 
     private async Task Rest(string option)
     {
-        // Use RestManager for proper architecture
-        var availableOptions = RestManager.GetAvailableRestOptions();
-        var selectedOption = availableOptions.FirstOrDefault(o => o.Id == option);
-        
-        if (selectedOption != null)
-        {
-            RestManager.Rest(selectedOption);
-        }
-
+        await GameFacade.ExecuteRestAsync(option);
         await OnRestComplete.InvokeAsync();
     }
+    
+    private async Task WaitHours(int hours)
+    {
+        // Execute wait through location actions
+        var waitAction = $"wait_{hours}h";
+        await GameFacade.ExecuteLocationActionAsync(waitAction);
+        await OnRestComplete.InvokeAsync();
+    }
+    
+    private int GetCurrentHour((TimeBlocks timeBlock, int hoursRemaining, int currentDay) timeInfo)
+    {
+        // Calculate current hour from time block and remaining hours
+        return 24 - timeInfo.hoursRemaining;
+    }
+    
+    private async Task ExecuteCommand(string commandId)
+    {
+        await GameFacade.ExecuteLocationActionAsync(commandId);
+        await OnRestComplete.InvokeAsync();
+    }
+    
 }

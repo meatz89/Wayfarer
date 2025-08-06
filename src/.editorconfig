@@ -132,9 +132,9 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 #### C# Coding Conventions ####
 
 # var preferences
-csharp_style_var_elsewhere = false:suggestion
-csharp_style_var_for_built_in_types = false:suggestion
-csharp_style_var_when_type_is_apparent = false:suggestion
+csharp_style_var_elsewhere = false:warning
+csharp_style_var_for_built_in_types = false:warning
+csharp_style_var_when_type_is_apparent = false:warning
 
 # Expression-bodied members
 csharp_style_expression_bodied_accessors = false:warning
@@ -144,7 +144,7 @@ csharp_style_expression_bodied_lambdas = false:silent
 csharp_style_expression_bodied_local_functions = false:warning
 csharp_style_expression_bodied_methods = false:warning
 csharp_style_expression_bodied_operators = false:warning
-csharp_style_expression_bodied_properties = false:warning
+csharp_style_expression_bodied_properties = true:warning
 
 # Pattern matching preferences
 csharp_style_pattern_matching_over_as_with_null_check = true
@@ -168,7 +168,7 @@ csharp_style_prefer_readonly_struct_member = true
 csharp_prefer_braces = true:suggestion
 csharp_prefer_simple_using_statement = true:suggestion
 csharp_prefer_system_threading_lock = true:suggestion
-csharp_style_namespace_declarations = block_scoped:silent
+csharp_style_namespace_declarations = file_scoped:silent
 csharp_style_prefer_method_group_conversion = true:silent
 csharp_style_prefer_primary_constructors = true:suggestion
 csharp_style_prefer_top_level_statements = true:silent
@@ -187,7 +187,7 @@ csharp_style_prefer_unbound_generic_type_in_nameof = true
 csharp_style_prefer_utf8_string_literals = true
 csharp_style_throw_expression = true
 csharp_style_unused_value_assignment_preference = discard_variable
-csharp_style_unused_value_expression_statement_preference = discard_variable
+csharp_style_unused_value_expression_statement_preference = unused_local_variable
 
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace:silent
@@ -309,6 +309,96 @@ dotnet_diagnostic.CA1307.severity = none
 # CA1822: Mark members as static
 dotnet_diagnostic.CA1822.severity = none
 
+# CA2007: Consider calling ConfigureAwait on the awaited task
+dotnet_diagnostic.CA2007.severity = none
+
+# VSTHRD200: Use "Async" suffix for async methods
+dotnet_diagnostic.VSTHRD200.severity = none
+
+# RCS1169: Make field read-only
+dotnet_diagnostic.RCS1169.severity = none
+
+# S2933: Fields that are only assigned in the constructor should be "readonly"
+dotnet_diagnostic.S2933.severity = none
+
+# CA1051: Do not declare visible instance fields
+dotnet_diagnostic.CA1051.severity = none
+
+# RCS1129: Remove redundant field initialization
+dotnet_diagnostic.RCS1129.severity = none
+
+# CA1805: Do not initialize unnecessarily
+dotnet_diagnostic.CA1805.severity = none
+
+# CA2211: Non-constant fields should not be visible
+dotnet_diagnostic.CA2211.severity = none
+
+# S2223: Non-constant static fields should not be visible
+dotnet_diagnostic.S2223.severity = none
+
+# CA1050: Declare types in namespaces
+dotnet_diagnostic.CA1050.severity = none
+
+# CA1024: Use properties where appropriate
+dotnet_diagnostic.CA1024.severity = none
+
+# S1104: Fields should not have public accessibility
+dotnet_diagnostic.S1104.severity = none
+
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = none
+
+# CA1848: Use the LoggerMessage delegates
+dotnet_diagnostic.CA1848.severity = none
+
+# CA2227: Collection properties should be read only
+dotnet_diagnostic.CA2227.severity = none
+
+# CA1510: Use ArgumentNullException throw helper
+dotnet_diagnostic.CA1510.severity = none
+
+# S1144: Unused private types or members should be removed
+dotnet_diagnostic.S1144.severity = none
+
+# CA1052: Static holder types should be Static or NotInheritable
+dotnet_diagnostic.CA1052.severity = none
+
+# CA1515: Consider making public types internal
+dotnet_diagnostic.CA1515.severity = none
+
+# S2589: Boolean expressions should not be gratuitous
+dotnet_diagnostic.S2589.severity = none
+
+# CA1869: Cache and reuse 'JsonSerializerOptions' instances
+dotnet_diagnostic.CA1869.severity = none
+
+# S4487: Unread "private" fields should be removed
+dotnet_diagnostic.S4487.severity = none
+
+# CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA1707.severity = none
+
+# RCS1102: Make class static
+dotnet_diagnostic.RCS1102.severity = none
+
+# CA1721: Property names should not match get methods
+dotnet_diagnostic.CA1721.severity = none
+
+# IDE0008: Use explicit type
+dotnet_diagnostic.IDE0008.severity = warning
+
+# IDE0059: Unnecessary assignment of a value
+dotnet_diagnostic.IDE0059.severity = none
+
+# IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0058.severity = none
+
+# IDE0055: Fix formatting
+dotnet_diagnostic.IDE0055.severity = none
+
+# RCS1037: Remove trailing white-space
+dotnet_diagnostic.RCS1037.severity = none
+
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
@@ -327,3 +417,9 @@ dotnet_style_operator_placement_when_wrapping = beginning_of_line
 tab_width = 4
 indent_size = 4
 end_of_line = crlf
+
+# IDE0044: Add readonly modifier
+dotnet_diagnostic.IDE0044.severity = none
+
+# Default severity for analyzer diagnostics with category 'Style'
+dotnet_analyzer_diagnostic.category-Style.severity = warning

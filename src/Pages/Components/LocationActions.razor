@@ -1,0 +1,312 @@
+@using Wayfarer.Pages.Components
+@inject GameFacade GameFacade
+
+<div class="location-actions">
+    @{
+        var viewModel = GameFacade.GetLocationActions();
+    }
+    
+    <div class="actions-header">
+        <h3>Available Actions</h3>
+        <div class="resource-status">
+            <span class="resource-item">⏰ @viewModel.HoursRemaining hours</span>
+            <span class="resource-item">💪 @viewModel.PlayerStamina stamina</span>
+            <span class="resource-item">🪙 @viewModel.PlayerCoins coins</span>
+        </div>
+    </div>
+    
+    @if (!viewModel.ActionGroups.Any())
+    {
+        <div class="no-actions">
+            <p>No actions available at this location.</p>
+            <p>Try visiting different spots or waiting for NPCs to appear.</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var group in viewModel.ActionGroups)
+        {
+            <div class="action-group">
+                <h4 class="group-title">@group.ActionType</h4>
+                <div class="actions-list">
+                    @foreach (var action in group.Actions)
+                    {
+                        <div class="action-item @(action.IsServiceClosed ? "service-closed" : (CanAffordAction(action) ? "" : "disabled")) @(IsTutorialActive && action.IsAllowedInTutorial ? "tutorial-highlight" : "")">
+                            <div class="action-info">
+                                <div class="action-name">@action.Description</div>
+                                @if (!string.IsNullOrEmpty(action.NPCName))
+                                {
+                                    <div class="action-npc">with @action.NPCName</div>
+                                }
+                                
+                                @if (action.IsServiceClosed)
+                                {
+                                    <div class="service-status">
+                                        <span class="closed-icon">🔒</span>
+                                        <span class="closed-text">@action.NextAvailableTime</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(action.ServiceSchedule))
+                                    {
+                                        <div class="service-schedule">@action.ServiceSchedule</div>
+                                    }
+                                }
+                            </div>
+                            
+                            @if (!action.IsServiceClosed)
+                            {
+                                <div class="action-costs">
+                                    @if (action.TimeCost > 0)
+                                    {
+                                        <span class="cost-item @(action.HasEnoughTime ? "" : "insufficient")">
+                                            ⏰ @action.TimeCost hr
+                                        </span>
+                                    }
+                                    @if (action.StaminaCost > 0)
+                                    {
+                                        <span class="cost-item @(action.HasEnoughStamina ? "" : "insufficient")">
+                                            💪 @action.StaminaCost
+                                        </span>
+                                    }
+                                    @if (action.CoinCost > 0)
+                                    {
+                                        <span class="cost-item @(action.HasEnoughCoins ? "" : "insufficient")">
+                                            🪙 @action.CoinCost
+                                        </span>
+                                    }
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(action.RewardsDescription))
+                                {
+                                    <div class="action-rewards">
+                                        <span class="reward-label">Rewards:</span> @action.RewardsDescription
+                                    </div>
+                                }
+                                
+                                <button class="action-button @(IsTutorialActive && action.IsAllowedInTutorial ? "allowed-action" : "")" 
+                                        disabled="@(!CanAffordAction(action))"
+                                        @onclick="async () => await ExecuteAction(action.Id)">
+                                    @(CanAffordAction(action) ? "Do This" : "Cannot Afford")
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="unavailable-reasons">
+                                    @foreach (var reason in action.UnavailableReasons)
+                                    {
+                                        <div class="unavailable-reason">@reason</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback OnActionExecuted { get; set; }
+    
+    private bool IsTutorialActive => GameFacade.IsTutorialActive();
+    
+    private bool CanAffordAction(ActionOptionViewModel action)
+    {
+        return action.HasEnoughTime && action.HasEnoughStamina && action.HasEnoughCoins;
+    }
+    
+    private async Task ExecuteAction(string actionId)
+    {
+        var success = await GameFacade.ExecuteLocationActionAsync(actionId);
+        
+        // Whether success or failure, refresh the UI
+        // The CommandExecutor will have updated game state and shown messages
+        StateHasChanged();
+        
+        // Notify parent to poll for state changes (e.g., pending conversations)
+        if (OnActionExecuted.HasDelegate)
+        {
+            await OnActionExecuted.InvokeAsync();
+        }
+    }
+}
+
+<style>
+    .location-actions {
+        padding: 1rem;
+        background: var(--surface-color);
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    
+    .actions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .resource-status {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .resource-item {
+        color: var(--text-secondary);
+    }
+    
+    .no-actions {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+    }
+    
+    .action-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .group-title {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
+    }
+    
+    .actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .action-item {
+        background: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 1rem;
+        transition: all 0.2s ease;
+        width: 100%;
+    }
+    
+    .action-item:hover:not(.disabled) {
+        border-color: var(--primary-color);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .action-item.disabled {
+        opacity: 0.6;
+    }
+    
+    .action-info {
+        flex-grow: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .action-name {
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        line-height: 1.2;
+    }
+    
+    .action-npc {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-style: italic;
+        margin-top: 0.2rem;
+    }
+    
+    .action-costs {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+        font-size: 0.8rem;
+        flex-wrap: wrap;
+    }
+    
+    .cost-item {
+        color: var(--success-color);
+        white-space: nowrap;
+    }
+    
+    .cost-item.insufficient {
+        color: var(--danger-color);
+        font-weight: 600;
+    }
+    
+    .action-rewards {
+        font-size: 0.8rem;
+        color: var(--info-color);
+        margin: 0.5rem 0;
+        line-height: 1.3;
+    }
+    
+    .reward-label {
+        font-weight: 500;
+    }
+    
+    .action-button {
+        width: 100%;
+        padding: 0.4rem 0.8rem;
+        margin-top: auto;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: background 0.2s ease;
+    }
+    
+    .action-button:hover:not(:disabled) {
+        background: var(--primary-hover);
+    }
+    
+    .action-button:disabled {
+        background: var(--disabled-color);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    /* Service closed styles */
+    .action-item.service-closed {
+        background: var(--surface-color);
+        border-color: var(--warning-color);
+        opacity: 0.9;
+    }
+    
+    .service-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        color: var(--warning-color);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .closed-icon {
+        font-size: 1.1rem;
+    }
+    
+    .service-schedule {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.3rem;
+        font-style: italic;
+    }
+    
+    .unavailable-reasons {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    .unavailable-reason {
+        margin-top: 0.2rem;
+    }
+</style>

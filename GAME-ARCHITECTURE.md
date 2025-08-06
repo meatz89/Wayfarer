@@ -1,818 +1,372 @@
-# GAME ARCHITECTURE FINDINGS
+# Wayfarer Game Architecture
 
-This document captures critical architectural discoveries and patterns that must be maintained for system stability and design consistency.
+## Critical Architecture Principles
 
-## CORE ARCHITECTURAL PATTERNS
+### 1. NO SILENT BACKEND ACTIONS
 
-### **NO FUNC/ACTION/PREDICATE DELEGATES - CONCRETE TYPES ONLY**
+**CRITICAL**: Nothing should happen silently in the backend. This is fundamental to the game's design philosophy.
 
-**FUNDAMENTAL PRINCIPLE**: Main application code must never use `Func<>`, `Action<>`, `Predicate<>` or similar delegate types. Use concrete interfaces and classes for maintainability, testability, and clarity.
+#### The Rule
+- If automatic, the player MUST be notified via MessageSystem
+- If manual, the player MUST click a button to initiate
+- All game state changes must be visible and intentional
 
-**Architectural Rationale**:
-- **Maintainability**: Named interfaces are self-documenting and searchable
-- **Testability**: Concrete interfaces can be easily mocked and stubbed
-- **Clarity**: Intention is explicit rather than hidden in lambda expressions
-- **Refactoring**: IDE tools work better with concrete types than delegates
-- **Debugging**: Stack traces show concrete type names instead of generated delegate code
+#### Why This Matters
+1. **Player Agency**: Players should understand every action and consequence
+2. **Debugging**: Visible actions make it easier to track game flow
+3. **Trust**: Players trust systems they can see and understand
+4. **Game Design**: The pressure of visible obligations is core to the experience
 
-**Implementation Pattern**:
-```csharp
-// ❌ FORBIDDEN: Using delegates in main code
-public List<RouteOption> FilterRoutes(Func<RouteOption, bool> predicate)
-{
-    return routes.Where(predicate).ToList();
-}
+#### Examples
+- ✅ CORRECT: Letter expiration shows message: "💀 Elena's letter expired! Lost 2 Trust tokens"
+- ❌ WRONG: Tokens silently generate special letters in background
+- ✅ CORRECT: Player clicks "Accept Introduction" to unlock new NPC
+- ❌ WRONG: Reaching token threshold automatically unlocks content
 
-// ✅ CORRECT: Use concrete interface
-public interface IRouteValidator
-{
-    bool IsValid(RouteOption route);
-}
+### 2. GameWorld Initialization (NEVER CHANGE THIS)
 
-public List<RouteOption> FilterRoutes(IRouteValidator validator)
-{
-    return routes.Where(route => validator.IsValid(route)).ToList();
-}
-```
+**CRITICAL**: GameWorld MUST be initialized through a static GameWorldInitializer class. This is the foundation of the entire game startup process.
 
-**Allowed Exceptions**:
-- **Test Files**: Builder patterns and test setup may use delegates for convenience
-- **LINQ Methods**: Built-in LINQ operations like `.Where()`, `.Select()` are acceptable
-- **Event Handlers**: UI event handlers may use delegates when required by framework
+#### Why This Pattern Exists
 
-**Enforcement**:
-- Code reviews must catch delegate usage in main application code
-- Refactor existing delegate usage to concrete interfaces during maintenance
-- Create specific, named interfaces for each functional requirement
+1. **Prevents Circular Dependencies**: During ServerPrerendered mode, Blazor components are rendered on the server before the SignalR connection is established. If GameWorld creation requires dependency injection, it creates circular dependencies that cause the application to hang.
 
-### **SYNCHRONOUS EXECUTION MODEL - NO CONCURRENCY**
+2. **Clean Startup**: GameWorld is the root aggregate of the entire game state. It must be created cleanly without dependencies.
 
-**FUNDAMENTAL ARCHITECTURE**: The game uses a purely synchronous execution model with no background operations, timers, or event-driven patterns.
+3. **Singleton Guarantee**: By creating GameWorld through a static method and registering it as a singleton, we ensure only one instance exists throughout the application lifetime.
 
-**Critical Discovery**: Tests were failing due to assumptions about timing and concurrency that don't exist in our architecture. The game executes linearly - when a method is called, it completes fully before returning.
-
-**Architectural Principles**:
-1. **No Background Tasks** - Everything executes in the calling thread
-2. **No Timers or Scheduling** - Game time advances only through explicit method calls
-3. **No Event Bus** - Direct method invocation only, no decoupled messaging
-4. **No Concurrent State Access** - Single-threaded model eliminates race conditions
-5. **Async/Await for I/O Only** - And always immediately awaited
-
-**Testing Implications**:
-```csharp
-// ✅ CORRECT: Tests can assume immediate, complete execution
-var result = manager.ExecuteAction();
-Assert.Equal(expected, result); // No timing issues possible
-
-// ❌ WRONG: Never needed in our architecture
-await Task.Delay(100); // NO - nothing runs in background
-await WaitForEventCompletion(); // NO - no events to wait for
-```
-
-**Debugging Benefits**:
-- **Linear execution flow** - Stack traces show complete call chain
-- **Predictable state changes** - No concurrent modifications
-- **Reproducible behavior** - Same inputs always produce same outputs
-- **Simple test setup** - No need for synchronization or mocking of time
-
-**Exceptions to Synchronous Model**:
-1. **Blazor UI Polling**:
-   - Blazor Server components poll GameWorld state because Blazor doesn't support push notifications
-   - This is purely a UI rendering concern - domain logic remains synchronous
-   
-2. **AI Service Integration** (Future):
-   - Long-running AI prompts will be awaited asynchronously to avoid blocking the UI
-   - This is an infrastructure boundary concern, not core game logic
-   - Game mechanics continue to execute synchronously before and after AI calls
-   - **Current Status**: Not implemented - focusing on non-AI game mechanics first
-
-### **TIME SYSTEM ARCHITECTURE - SINGLE TIME SOURCE**
-
-**FUNDAMENTAL DESIGN**: The game uses a single, linear time progression system where all time tracking derives from one authoritative time value.
-
-**Critical Architecture Principles**:
-
-1. **Single Time Authority**: `TimeManager.CurrentTimeHours` is the ONLY authoritative time value
-   - All other time representations derive from this value
-   - `TimeBlocks` enum (Morning/Afternoon/Evening/Night) calculated from hours, not stored separately
-   - No separate tracking of "time blocks consumed" - this is calculated from time progression
-
-2. **Time Blocks Are Internal Mechanics Only**:
-   - "Time blocks" represent action point consumption, not UI display concepts  
-   - Players see actual time progression: "Morning 6:00" → "Afternoon 14:00"
-   - UI should NEVER show "time blocks remaining (2/5)" - this violates player mental model
-
-3. **Time Progression Pattern**:
-   ```csharp
-   // ✅ CORRECT: Actions advance actual time
-   timeManager.ConsumeTimeBlock(1); // Advances CurrentTimeHours by calculated amount
-   // Result: "Morning 6:00" becomes "Morning 9:00" or "Afternoon 12:00"
-   
-   // ❌ WRONG: Separate time block tracking
-   usedTimeBlocks++; // This disconnects from actual time progression
-   ```
-
-4. **Five Time Blocks System**:
-   The game divides each day into exactly 5 time blocks that correspond to natural time periods:
-   
-   ```csharp
-   // ✅ CORRECT: 5 Time Blocks mapped to 24-hour day
-   public TimeBlocks GetCurrentTimeBlock() {
-       return CurrentTimeHours switch {
-           >= 6 and < 9 => TimeBlocks.Dawn,      // 6:00-8:59 (3 hours)
-           >= 9 and < 12 => TimeBlocks.Morning,   // 9:00-11:59 (3 hours) 
-           >= 12 and < 16 => TimeBlocks.Afternoon, // 12:00-15:59 (4 hours)
-           >= 16 and < 20 => TimeBlocks.Evening,   // 16:00-19:59 (4 hours)
-           >= 20 or < 6 => TimeBlocks.Night,      // 20:00-5:59 (10 hours)
-           _ => TimeBlocks.Night
-       };
-   }
-   ```
-   
-   **Critical Design Notes**:
-   - Exactly 5 time blocks per day (MaxDailyTimeBlocks = 5)
-   - Each action typically consumes 1 time block = ~3.6 hours of game time
-   - Night is longest period (10 hours) for rest and recovery
-   - Dawn/Morning are shorter active periods (3 hours each)
-   - Afternoon/Evening are medium active periods (4 hours each)
-
-**Time System Violations to Prevent**:
-- ❌ Displaying "time blocks remaining" in UI
-- ❌ Separate tracking of time blocks vs actual time
-- ❌ TimeBlocks enum stored as separate state
-- ❌ Actions that consume time blocks without advancing clock
-
-### **TRAVEL SYSTEM ARCHITECTURE - ROUTES ARE TRANSPORT METHODS**
-
-**FUNDAMENTAL DESIGN**: Each route defines exactly one transport method. Routes ARE the transport selection, not a separate layer.
-
-**Critical Architecture Principles**:
-
-1. **Routes Define Transport Methods**:
-   - "Walking Path" = walking transport method
-   - "Standard Cart" = cart transport method  
-   - "Express Coach" = premium carriage transport method
-   - Each route has exactly one `method` field in routes.json
-
-2. **No Separate Transport Selection**:
-   - Player chooses route: "Walking Path" or "Standard Cart" or "Express Coach"
-   - This IS the transport selection - no additional layer needed
-   - UI shows route names with their inherent transport characteristics
-
-3. **Route Selection Pattern**:
-   ```csharp
-   // ✅ CORRECT: Routes contain all transport information
-   var routes = GetAvailableRoutes(fromLocation, toLocation);
-   // Routes: [{"name": "Walking Path", "method": "Walking"}, {"name": "Standard Cart", "method": "Carriage"}]
-   
-   // ❌ WRONG: Separate transport selection on top of routes
-   var transports = GetAvailableTransportOptions(route); // This is redundant
-   ```
-
-4. **Travel UI Pattern**:
-   ```csharp
-   // ✅ CORRECT: Direct route selection
-   "Choose route to Town Square:"
-   - "Walking Path (0 coins, 2 stamina)" 
-   - "Standard Cart (4 coins, 1 stamina)"
-   - "Express Coach (8 coins, 0 stamina)"
-   
-   // ❌ WRONG: Double selection
-   "Choose route: Walking Path" → "Choose transport: Walking/Horseback/Cart"
-   ```
-
-**Travel System Violations to Prevent**:
-- ❌ `TravelMethods` enum separate from route definitions
-- ❌ Transport selection UI on top of route selection
-- ❌ Multiple transport options per route
-- ❌ "Transport compatibility" logic separate from route access logic
-
-### **Repository Pattern Single Source of Truth**
-
-**CRITICAL PRINCIPLE**: All game state access MUST go through entity repositories, never through direct GameWorld property access.
+#### The Pattern
 
 ```csharp
-// ✅ CORRECT: Repository Pattern
-public class ContractSystem 
+// In GameWorldInitializer.cs
+public static class GameWorldInitializer
 {
-    private readonly ContractRepository _contractRepository;
-    
-    public List<Contract> GetAvailableContracts() 
+    public static GameWorld CreateGameWorld()
     {
-        return _contractRepository.GetAllContracts()
-            .Where(c => c.IsAvailable())
-            .ToList();
+        // Create GameWorld with default content directory
+        // No dependency injection needed
     }
 }
 
-// ✅ CORRECT: Stateless repository - ONLY GameWorld dependency
-public class ContractRepository 
+// In ServiceConfiguration.cs
+services.AddSingleton<GameWorld>(_ =>
 {
-    private readonly GameWorld _gameWorld; // ONLY allowed private field
-    
-    public List<Contract> GetAllContracts() 
+    // Call static initializer - no DI dependencies
+    return GameWorldInitializer.CreateGameWorld();
+});
+```
+
+#### What Will Break If You Change This
+
+1. **ServerPrerendered Mode Will Hang**: The application will freeze when trying to load the page
+2. **Circular Dependencies**: Services that depend on GameWorld won't be able to resolve
+3. **Startup Failures**: The entire application startup sequence will fail
+
+#### Tests That Enforce This
+
+- `GameWorldInitializationTests.cs` - Verifies GameWorldInitializer remains static
+- `ArchitectureTests.cs` - Ensures no service locator patterns
+- `StartupValidationTests.cs` - Validates startup doesn't hang
+
+### 2. Dependency Flow Direction
+
+**Rule**: All dependencies flow INWARD towards GameWorld, never outward from it.
+
+```
+UI Components (Blazor)
+    ↓
+IGameFacade (Single Interface)
+    ↓
+GameFacade (Implementation)
+    ↓
+UIServices (Domain Translation)
+    ↓
+Managers/Services
+    ↓
+Repositories
+    ↓
+GameWorld (No Dependencies)
+```
+
+GameWorld is the single source of truth and has NO dependencies on any services, managers, or external components.
+
+### 3. GameFacade Architecture Pattern
+
+**Rule**: UI components MUST only interact with the backend through IGameFacade.
+
+#### The Pattern
+
+The GameFacade pattern provides THE ONLY way UI components and test controllers should communicate with the game backend. This architectural pattern was implemented to solve multiple critical issues:
+
+1. **Eliminated Circular Dependencies**: Previously, UI components directly injected 30+ services, creating complex dependency graphs that caused startup hangs
+2. **Improved Testability**: UI components can now be tested with simple mock IGameFacade implementations
+3. **Enforced Clean Architecture**: Clear separation between presentation and domain layers
+
+#### Implementation Details
+
+```csharp
+// Before: MainGameplayView had 30+ service injections
+@inject GameWorld GameWorld
+@inject TravelManager TravelManager
+@inject CommandExecutor CommandExecutor
+@inject NPCRepository NPCRepository
+// ... 26 more injections
+
+// After: Single facade injection
+@inject IGameFacade GameFacade
+```
+
+#### ViewModels for Data Transfer
+
+All data returned from GameFacade uses ViewModels to prevent domain objects from leaking to the UI layer:
+
+- **ConversationViewModel** - Conversation state and choices
+- **TravelDestinationViewModel** - Available travel destinations
+- **TravelRouteViewModel** - Route details with token requirements
+- **InventoryViewModel** - Player inventory state
+- **LetterQueueViewModel** - Letter queue management
+- **LocationActionsViewModel** - Available actions at current location
+- **NPCRelationshipViewModel** - NPC relationship tracking
+- **ObligationViewModel** - Player obligations and debts
+
+#### Benefits Achieved
+
+1. **Startup Performance**: Eliminated circular dependency resolution that caused hangs
+2. **Test Coverage**: UI components can be unit tested in isolation
+3. **Maintainability**: Backend changes don't break UI components
+4. **Consistency**: All UI components interact with backend the same way
+5. **Documentation**: Single interface documents all available UI operations
+
+### 4. Navigation Architecture
+
+**Rule**: GameUIBase is the ONLY navigation handler in the application.
+
+- GameUIBase (at @page "/") controls all navigation
+- MainGameplayView is a regular component, NOT a navigation handler
+- No NavigationService with events or delegates
+- Simple component-based navigation using CurrentView property
+
+### 5. No Service Locator Pattern
+
+**Rule**: Never use GetRequiredService outside of ServiceConfiguration.
+
+Bad:
+```csharp
+public class SomeService
+{
+    public void DoSomething(IServiceProvider provider)
     {
-        return _gameWorld.WorldState.Contracts ?? new List<Contract>();
-    }
-}
-
-// ❌ WRONG: Direct GameWorld property access
-return _gameWorld.Contracts.Where(c => c.IsAvailable()).ToList();
-```
-
-**ENFORCEMENT RULES**:
-1. **ONLY repositories may access GameWorld.WorldState properties**
-2. **Business logic MUST use repositories, never GameWorld properties**  
-3. **Tests MUST use repositories, never GameWorld properties**
-4. **Repositories are completely stateless - NO caching or state storage**
-
-### **UI → GameWorldManager Gateway Pattern**
-All UI components must route actions through GameWorldManager instead of injecting managers directly.
-- ✅ Correct: UI → GameWorldManager → Specific Manager
-- ❌ Wrong: UI → Direct Manager Injection
-
-### **GameWorld Single Source of Truth**
-GameWorld.WorldState is the authoritative source for all game state.
-- All game state changes must go through WorldState
-- GameWorld contains no business logic, only state management
-
-## DUAL INITIALIZER PATTERN FOR TESTING
-
-**CRITICAL FINDING**: Tests require different initialization strategy than production to eliminate async complexity.
-
-**Architecture Pattern**:
-```
-Production: JSON Files → GameWorldSerializer → GameWorldInitializer (async) → GameWorld → Repositories
-Testing:   TestScenarioBuilder → TestGameWorldInitializer (sync) → GameWorld → Repositories
-```
-
-**Key Implementation**:
-- **TestGameWorldInitializer**: Synchronous, direct object creation for deterministic test state
-- **TestScenarioBuilder**: Declarative fluent API for readable test scenario definition
-- **Same GameWorld Type**: Both patterns produce identical GameWorld objects for consistent behavior
-
-**Benefits**:
-- Zero async complexity in tests
-- Deterministic state (same input = same output)
-- Production-identical game flow execution
-- No mocks required through real object initialization
-
-### **Separate JSON Files for Tests**
-
-**CRITICAL ARCHITECTURAL DECISION**: Tests need isolated JSON data files, not shared production files.
-
-```
-Production: src/Content/Templates/*.json
-Testing:    Wayfarer.Tests/Content/Templates/*.json (copied/customized)
-```
-
-**MANDATORY PROCESS**: When changing JSON data structures in production content, test JSON files MUST be updated to match.
-
-**Files That Must Stay in Sync**:
-- `contracts.json` - Contract structure, properties, requirements
-- `items.json` - Item categories, properties, pricing
-- `locations.json` - Location structure and properties  
-- `routes.json` - Route definitions and terrain categories
-- `actions.json` - Action definitions and requirements
-
-## CRITICAL SYSTEM DEPENDENCIES
-
-### **Time Window System Architecture**
-
-**CRITICAL FINDING**: Location spot availability depends on proper time window initialization.
-
-**Root Cause**: `WorldState.CurrentTimeWindow` defaults to `TimeBlocks.Dawn` (enum value 0), but many location spots don't include "Dawn" in their time windows.
-
-**Solution**: Always initialize `CurrentTimeWindow = TimeBlocks.Morning` in WorldState.
-
-```csharp
-// CORRECT: WorldState.cs
-public TimeBlocks CurrentTimeWindow { get; set; } = TimeBlocks.Morning;
-
-// WRONG: Allowing default enum value (Dawn)
-public TimeBlocks CurrentTimeWindow { get; set; }
-```
-
-**Impact**: Without this fix, `gameWorldManager.CanMoveToSpot()` returns false for all spots, breaking UI navigation and player movement.
-
-### **JSON Content Parsing Validation**
-
-**CRITICAL FINDING**: Enum parsing in JSON deserializers silently fails when enum values don't match, resulting in empty collections.
-
-**Solution**: Ensure JSON content uses exact enum value names.
-
-```csharp
-// CORRECT: TerrainCategory enum values
-Requires_Climbing, Wilderness_Terrain, Exposed_Weather, Dark_Passage
-
-// CORRECT: routes.json
-"terrainCategories": ["Exposed_Weather", "Wilderness_Terrain"]
-
-// WRONG: Invalid enum names
-"terrainCategories": ["Urban_Terrain", "Mountain_Path"]
-```
-
-## ACTION SYSTEM ARCHITECTURE
-
-### **Action Creation and Execution Flow**
-
-The action system uses a multi-stage transformation pipeline that converts static JSON definitions into executable runtime actions when players visit location spots.
-
-**Key Transformation**: `ActionDefinition` → `LocationAction`
-
-**Flow**:
-```
-1. Player visits location spot via MoveToLocationSpot()
-2. actionRepository.GetActionsForSpot() loads templates
-3. ActionFactory.CreateActionFromTemplate() creates runtime actions
-4. ActionProcessor.CanExecute() validates requirements
-5. ActionStateTracker.SetLocationSpotActions() makes available to UI
-```
-
-### **IRequirement/IMechanicalEffect Extension Pattern**
-
-**CRITICAL ARCHITECTURAL DISCOVERY**: The game already has perfect extensible interfaces for categorical systems.
-
-```csharp
-public interface IRequirement
-{
-    bool IsMet(GameWorld gameWorld);
-    string GetDescription();
-}
-
-public interface IMechanicalEffect  
-{
-    void Apply(EncounterState state);
-    string GetDescriptionForPlayer();
-}
-```
-
-**CORRECT APPROACH**: Implement categorical logic as `IRequirement` and `IMechanicalEffect` implementations, not parallel systems.
-
-**Integration Points**:
-- `ActionProcessor.CanExecute()` validates all `IRequirement` implementations
-- `MessageSystem.AddOutcome()` processes `IMechanicalEffect` implementations  
-- `ActionPreview.razor` displays requirement descriptions to players
-- `ActionFactory.CreateRequirements()` builds requirement lists from templates
-
-## CONTRACT-ACTION INTEGRATION
-
-### **CRITICAL DESIGN PHILOSOPHY: Basic Actions Complete Contracts**
-
-**FUNDAMENTAL PRINCIPLE**: Contracts are completed through the same basic actions players use for normal gameplay, NOT through special contract-specific actions.
-
-**CORE DESIGN RULE**: Contracts create **context and objectives** for basic actions, they do NOT create new action types.
-
-### **Contracts Only Check Completion Actions, Not Process**
-
-**FUNDAMENTAL RULE**: Contracts should ONLY check for the specific action that completes them, NOT how the player got to that point.
-
-**Example: "Deliver Trade Goods to Millbrook" Contract**
-- ✅ **ONLY CHECKS**: Sell/deliver [Silk Bolts] at [Millbrook]
-- ❌ **DOES NOT CHECK**: How player acquired Silk Bolts (buy, find, craft, steal)
-- ❌ **DOES NOT CHECK**: How player reached Millbrook (travel, already there)
-
-**Why This Matters**:
-1. **Player Agency**: Players can complete contracts using ANY strategy they devise
-2. **Emergent Gameplay**: Creative solutions are rewarded, not blocked
-3. **No Railroad**: Players aren't forced into specific sequences
-4. **True Sandbox**: Every contract has multiple valid completion paths
-
-## CATEGORICAL SYSTEMS ARCHITECTURE
-
-### **Equipment Categories Enhancement**
-
-**Item Categorical Dimensions**:
-- `EquipmentCategory`: Climbing_Equipment, Navigation_Tools, Weather_Protection, Social_Signaling, etc.
-- `Size`: Tiny → Small → Medium → Large → Massive (affects transport and inventory)
-
-### **Stamina Categorical System**
-
-**PhysicalDemand Integration**: Hard categorical gates instead of sliding scale penalties.
-
-```csharp
-// CORRECT: Hard categorical thresholds
-public bool CanPerformStaminaAction(PhysicalDemand demand) =>
-    demand switch {
-        PhysicalDemand.None => true,
-        PhysicalDemand.Light => Stamina >= 2,
-        PhysicalDemand.Moderate => Stamina >= 4,
-        PhysicalDemand.Heavy => Stamina >= 6,
-        PhysicalDemand.Extreme => Stamina >= 8,
-        _ => false
-    };
-
-// WRONG: Sliding scale penalties
-// efficiency = Stamina / MaxStamina; // FORBIDDEN PATTERN
-```
-
-### **Transport Compatibility System - COMPLETE ✅**
-
-**IMPLEMENTED**: Categorical transport restrictions based on logical physical constraints.
-
-**Transport Restriction Categories**:
-- **Cart Transport**: Blocked on TerrainCategory.Requires_Climbing, TerrainCategory.Wilderness_Terrain
-- **Boat Transport**: Only works on TerrainCategory.Requires_Water_Transport  
-- **Heavy Equipment**: SizeCategory.Large/Massive blocks TravelMethods.Boat/Horseback
-- **Water Routes**: All non-boat transport blocked on water terrain
-
-**Architecture Pattern**:
-```csharp
-// CORRECT: Transport compatibility checking
-public TransportCompatibilityResult CheckFullCompatibility(TravelMethods transport, RouteOption route, Player player)
-{
-    // Check terrain compatibility first
-    TransportCompatibilityResult terrainResult = CheckTerrainCompatibility(transport, route.TerrainCategories);
-    if (!terrainResult.IsCompatible) return terrainResult;
-    
-    // Check equipment compatibility  
-    return CheckEquipmentCompatibility(transport, player);
-}
-```
-
-**UI Integration**: TravelSelection.razor shows transport options with compatibility feedback.
-
-### **Categorical Inventory Constraints System - COMPLETE ✅**
-
-**Size-Aware Inventory Architecture**:
-```csharp
-// Size categories determining slot requirements
-public enum SizeCategory { Tiny, Small, Medium, Large, Massive }
-
-// Item slot calculation based on size
-public int GetRequiredSlots() => Size switch {
-    SizeCategory.Tiny => 1,    SizeCategory.Small => 1,   SizeCategory.Medium => 1,
-    SizeCategory.Large => 2,   SizeCategory.Massive => 3, _ => 1
-};
-
-// Transport bonuses to inventory capacity
-public int GetMaxSlots(TravelMethods? transport) => transport switch {
-    TravelMethods.Cart => 7,      // Base 5 + 2 slots
-    TravelMethods.Carriage => 6,  // Base 5 + 1 slot
-    _ => 5                        // Base capacity
-};
-```
-
-**Integration Architecture**:
-- **TravelManager**: Provides transport-aware inventory status checking
-- **MarketManager**: Uses size-aware inventory methods for purchase validation
-- **UI Components**: Display slot usage, transport bonuses, and item constraints
-- **TransportCompatibilityValidator**: Integrates inventory overflow checking
-
-**Strategic Gameplay Impact**:
-- Cart transport adds slots but blocks terrain access
-- Large/Massive items require transport planning
-- Equipment vs carrying capacity optimization
-- Visual feedback for slot usage and transport bonuses
-
-### **Contract Categorical System**
-
-**Contract Enhancement Structure**:
-- `RequiredEquipmentCategories`: List<EquipmentCategory>
-- `RequiredToolCategories`: List<ToolCategory>
-- `RequiredSocialStanding`: SocialRequirement
-- `PhysicalRequirement`: PhysicalDemand
-- `RequiredInformation`: List<InformationRequirementData>
-- `Category`: ContractCategory (affects NPC relationships)
-- `Priority`: ContractPriority (affects payment and reputation)
-- `RiskLevel`: ContractRisk (affects failure consequences)
-
-## VALIDATION CHECKLIST
-
-Before implementing any system changes:
-
-1. ✅ **Time Window Compatibility**: Ensure CurrentTimeWindow is initialized to a value that exists in location spot time windows
-2. ✅ **Repository Pattern Compliance**: All state access goes through GameWorld.WorldState
-3. ✅ **Enum Value Validation**: JSON content uses exact enum value names from C# enums
-4. ✅ **Single Source of Truth**: No static property usage for game state
-5. ✅ **Test Pattern Compliance**: Tests follow the same architectural patterns as production code
-
-## FAILURE PATTERNS TO AVOID
-
-1. **❌ Time Window Defaults**: Never rely on enum default values for time-sensitive systems
-2. **❌ Static State Management**: Never use static properties for game state that should be instance-based
-3. **❌ Silent Enum Failures**: Always validate that JSON enum values match C# enum definitions
-4. **❌ Dual State Systems**: Never maintain the same data in both static and instance properties
-5. **❌ Test Architecture Violations**: Never allow tests to use different patterns than production code
-6. **❌ Direct GameWorld Access**: Never access GameWorld properties directly - always use repositories
-7. **❌ Parallel Validation Systems**: Never build new validation systems when IRequirement/IMechanicalEffect interfaces exist
-
-These patterns ensure system stability and prevent the cascade failures discovered during debugging sessions.
-
-## TEST ARCHITECTURE PATTERNS
-
-### **Test Isolation Principle**
-
-**MANDATORY REQUIREMENT**: Tests must NEVER use production JSON content. Each test class should have its own isolated test data.
-
-**Architecture Pattern**:
-```
-Production: src/Content/Templates/*.json
-Testing:    Wayfarer.Tests/Content/Templates/*.json
-```
-
-**Implementation**:
-```csharp
-// ✅ CORRECT: Test-specific data loading
-GameWorld gameWorld = TestGameWorldInitializer.CreateTestWorld(scenario);
-
-// ❌ WRONG: Using production content
-var gameWorld = new GameWorldInitializer("Content").LoadGame();
-```
-
-**MSBuild Configuration**:
-```xml
-<ItemGroup>
-  <Content Include="Content\Templates\*.json">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  </Content>
-</ItemGroup>
-```
-
-**Benefits**:
-- Tests validate system logic, not production data integrity
-- Fast, reliable test execution
-- Systematic debugging capability
-- No brittleness from production content changes
-
-### **Repository Pattern Compliance in Tests**
-
-**CRITICAL PRINCIPLE**: Tests must follow the same access patterns as business logic.
-
-```csharp
-// ✅ CORRECT: Repository-mediated access
-LocationRepository locationRepo = new LocationRepository(gameWorld);
-Location workshop = locationRepo.GetLocation("workshop");
-
-// ❌ WRONG: Direct WorldState access
-Location workshop = gameWorld.WorldState.locations.First(l => l.Id == "workshop");
-```
-
-**Enforcement**: Tests should use repositories for all data access, never direct GameWorld.WorldState access.
-
-### **Test Data File Path Resolution**
-
-**CORRECT PATTERN**: Use MSBuild content copying instead of relative path navigation.
-
-```csharp
-// ✅ CORRECT: Simple relative paths after MSBuild copying
-string testFilePath = Path.Combine("Content", "Templates", "locations.json");
-
-// ❌ WRONG: Complex relative path navigation
-string testFilePath = Path.Combine("..", "..", "..", "..", "Wayfarer.Tests", "Content", "Templates", "locations.json");
-```
-
-**Architecture Benefits**:
-- Cross-platform compatible
-- Maintainable and standard .NET practice
-- Files automatically available in test output directory
-- Clean, simple path resolution
-
-### **Systematic Test Debugging Pattern**
-
-**PROVEN APPROACH**: Fix tests incrementally using controlled test data.
-
-1. **Identify** production JSON dependencies in failing tests
-2. **Create** minimal test-specific JSON data in `Wayfarer.Tests/Content/Templates/`
-3. **Configure** MSBuild to copy files to output directory
-4. **Update** TestGameWorldInitializer to load test files
-5. **Fix** test entity IDs to match test data
-6. **Debug** systematically one assertion at a time
-
-**Result**: Enables progression through test failures line by line with complete control over test data.
-
-## CONTRACTSTEP SYSTEM ARCHITECTURE
-
-### **Unified Contract Completion Architecture**
-
-**FUNDAMENTAL DESIGN**: Replace fragmented contract requirement arrays with a unified, extensible ContractStep system.
-
-**Before (FRAGMENTED)**:
-```csharp
-// Multiple separate arrays for different requirement types
-public List<string> RequiredDestinations { get; set; }
-public List<ContractTransaction> RequiredTransactions { get; set; }
-public List<string> RequiredNPCConversations { get; set; }
-public List<string> RequiredLocationActions { get; set; }
-```
-
-**After (UNIFIED)**:
-```csharp
-// Single unified system for all contract requirements
-public List<ContractStep> CompletionSteps { get; set; }
-```
-
-### **Polymorphic Step Type System**
-
-**Architecture Pattern**: Abstract base class with concrete implementations for each step type.
-
-```csharp
-public abstract class ContractStep
-{
-    public string Id { get; set; }
-    public string Description { get; set; }
-    public bool IsCompleted { get; set; }
-    public bool IsRequired { get; set; } = true;
-    public int OrderHint { get; set; } = 0;
-    
-    public abstract bool CheckCompletion(Player player, string currentLocationId, object actionContext = null);
-    public abstract ContractStepRequirement GetRequirement();
-}
-```
-
-**Concrete Step Implementations**:
-- **TravelStep**: Requires traveling to specific location
-- **TransactionStep**: Requires buying/selling items with price constraints
-- **ConversationStep**: Requires talking to specific NPCs
-- **LocationActionStep**: Requires performing actions at locations
-- **EquipmentStep**: Requires obtaining equipment categories
-
-### **JSON Polymorphic Deserialization**
-
-**Type Discriminator Pattern**: JSON uses "type" field to determine concrete step class.
-
-```json
-{
-  "completionSteps": [
-    {
-      "type": "TravelStep",
-      "id": "travel_to_town",
-      "description": "Travel to town square",
-      "isRequired": true,
-      "orderHint": 1,
-      "requiredLocationId": "town_square"
-    },
-    {
-      "type": "TransactionStep",
-      "id": "buy_herbs",
-      "description": "Purchase herbs",
-      "isRequired": true,
-      "orderHint": 2,
-      "itemId": "herbs",
-      "locationId": "town_square",
-      "transactionType": "Buy",
-      "quantity": 1,
-      "maxPrice": 10
-    }
-  ]
-}
-```
-
-**Parser Implementation**:
-```csharp
-private static ContractStep ParseContractStep(JsonElement stepElement)
-{
-    string stepType = GetStringProperty(stepElement, "type", "");
-    
-    ContractStep step = stepType switch
-    {
-        "TravelStep" => new TravelStep { RequiredLocationId = GetStringProperty(stepElement, "requiredLocationId", "") },
-        "TransactionStep" => new TransactionStep { ItemId = GetStringProperty(stepElement, "itemId", "") },
-        "ConversationStep" => new ConversationStep { RequiredNPCId = GetStringProperty(stepElement, "requiredNPCId", "") },
-        "LocationActionStep" => new LocationActionStep { RequiredActionId = GetStringProperty(stepElement, "requiredActionId", "") },
-        "EquipmentStep" => new EquipmentStep { RequiredEquipmentCategories = GetEquipmentCategoryArray(stepElement, "requiredEquipmentCategories") },
-        _ => null
-    };
-}
-```
-
-### **Progress Calculation Enhancement**
-
-**Unified Progress Tracking**: Progress calculation based on required vs optional steps.
-
-```csharp
-public float CalculateProgress()
-{
-    if (CompletionSteps.Any())
-    {
-        var requiredSteps = CompletionSteps.Where(step => step.IsRequired).ToList();
-        if (!requiredSteps.Any()) return 1.0f;
-        
-        int completedRequired = requiredSteps.Count(step => step.IsCompleted);
-        return (float)completedRequired / requiredSteps.Count;
-    }
-    
-    // Fallback to legacy system for backward compatibility
-    // [legacy calculation code...]
-}
-```
-
-### **Action Context Integration**
-
-**Typed Context Objects**: Provide structured data for step completion validation.
-
-```csharp
-// Transaction context for marketplace actions
-public class TransactionContext
-{
-    public string ItemId { get; set; }
-    public string LocationId { get; set; }
-    public TransactionType TransactionType { get; set; }
-    public int Quantity { get; set; }
-    public int Price { get; set; }
-}
-
-// Usage in progression service
-var transactionContext = new TransactionContext
-{
-    ItemId = itemId,
-    LocationId = locationId,
-    TransactionType = transactionType,
-    Quantity = quantity,
-    Price = price
-};
-
-progressMade = contract.CheckStepCompletion(player, locationId, transactionContext);
-```
-
-### **Dual-System Compatibility**
-
-**Backward Compatibility Strategy**: Support both new ContractStep system and legacy arrays.
-
-```csharp
-// NEW: Check ContractStep system first
-if (contract.CompletionSteps.Any())
-{
-    progressMade = contract.CheckStepCompletion(player, destinationLocationId);
-}
-else
-{
-    // LEGACY: Fall back to old system for backward compatibility
-    if (contract.RequiredDestinations.Contains(destinationLocationId))
-    {
-        if (!contract.CompletedDestinations.Contains(destinationLocationId))
-        {
-            contract.CompletedDestinations.Add(destinationLocationId);
-            progressMade = true;
-        }
+        var gameWorld = provider.GetRequiredService<GameWorld>(); // NO!
     }
 }
 ```
 
-**Legacy Property Deprecation**:
+Good:
 ```csharp
-[Obsolete("Use CompletionSteps with TravelStep instead")]
-public List<string> RequiredDestinations { get; set; } = new List<string>();
-
-[Obsolete("Use CompletionSteps with TransactionStep instead")]
-public List<ContractTransaction> RequiredTransactions { get; set; } = new List<ContractTransaction>();
-```
-
-### **UI Integration Architecture**
-
-**Step-Based Contract Display**: Enhanced UI showing individual step progress.
-
-```razor
-@if (contract.CompletionSteps.Any())
+public class SomeService
 {
-    <!-- NEW: ContractStep system display -->
-    <div class="requirement-section">
-        <h4 class="requirement-title">Contract Steps:</h4>
-        @foreach (var step in contract.CompletionSteps.OrderBy(s => s.OrderHint))
-        {
-            <div class="requirement-item step-item @(step.IsCompleted ? "completed" : "pending") @(step.IsRequired ? "required" : "optional")">
-                <div class="step-header">
-                    <span class="requirement-icon">@(step.IsCompleted ? "✅" : step.IsRequired ? "🔲" : "🔳")</span>
-                    <span class="step-description">@step.Description</span>
-                    @if (!step.IsRequired)
-                    {
-                        <span class="optional-badge">Optional</span>
-                    }
-                </div>
-                <!-- Step-specific details based on type -->
-            </div>
-        }
-    </div>
+    private readonly GameWorld _gameWorld;
+    
+    public SomeService(GameWorld gameWorld) // Inject through constructor
+    {
+        _gameWorld = gameWorld;
+    }
 }
 ```
 
-### **ContractStep System Benefits**
+## Testing Strategy
 
-1. **Unified Architecture**: Single system replaces 4+ separate requirement arrays
-2. **Extensible Design**: Easy to add new step types via polymorphic pattern
-3. **Rich Progression**: Support for optional steps, order hints, detailed requirements
-4. **Type Safety**: Strongly typed action contexts and step validation
-5. **Enhanced UI**: Step-by-step progress visualization with meaningful feedback
-6. **Backward Compatibility**: Existing contracts continue working unchanged
-7. **JSON Flexibility**: Content creators can mix different step types in any order
+### 1. Unit Tests
+- Test individual components in isolation
+- Verify GameWorld can be created without dependencies
+- Ensure static initialization pattern
+- Mock IGameFacade for UI component testing
 
-### **ContractStep Validation Checklist**
+### 2. Architecture Tests
+- Enforce architectural rules through reflection
+- Prevent accidental breaking changes
+- Validate dependency directions
+- Ensure UI components only depend on IGameFacade
 
-Before implementing contract step changes:
+### 3. Integration Tests
+- Test the full startup sequence
+- Verify no hangs during prerendering
+- Ensure all services can be resolved
+- Test GameFacade delegates correctly to UIServices
 
-1. ✅ **Type Discriminator**: Ensure JSON "type" field matches C# class names exactly
-2. ✅ **Required vs Optional**: Properly handle progress calculation for mixed step types
-3. ✅ **Order Hints**: Support flexible step ordering without breaking logic
-4. ✅ **Action Contexts**: Provide appropriate context objects for step validation
-5. ✅ **Legacy Support**: Maintain dual-system compatibility during transition
-6. ✅ **UI Integration**: Display step progress with clear visual indicators
-7. ✅ **Repository Pattern**: Use repositories for all contract data access
+### 4. E2E Tests
+- Validate the entire game can start
+- Check critical services are available
+- Ensure UI renders properly
+- Test complete UI workflows through IGameFacade
 
-### **ContractStep Failure Patterns to Avoid**
+## Common Pitfalls to Avoid
 
-1. **❌ Direct Step Modification**: Never modify step completion status outside Contract methods
-2. **❌ Missing Type Discriminators**: Always include "type" field in JSON step definitions
-3. **❌ Hardcoded Step Validation**: Use polymorphic CheckCompletion() instead of switch statements
-4. **❌ Legacy System Bypass**: Always check CompletionSteps.Any() before falling back to legacy
-5. **❌ Context Mismatches**: Ensure action contexts match the step types that need them
-6. **❌ Progress Inconsistency**: Keep step completion status synchronized with progress calculation
+1. **Making GameWorldInitializer Non-Static**: This will break ServerPrerendered mode
+2. **Adding Dependencies to GameWorld**: This violates the core architecture
+3. **Using Events in Navigation**: This creates circular dependencies
+4. **Service Locator Anti-Pattern**: Always use constructor injection
+5. **Direct Service Injection in UI**: UI components must ONLY use IGameFacade
+6. **Exposing Domain Objects to UI**: Always use ViewModels for data transfer
+7. **Bypassing GameFacade**: Never access backend services directly from UI
+
+## Monitoring Architecture Health
+
+Run these commands regularly:
+
+```bash
+# Run architecture tests
+dotnet test --filter "FullyQualifiedName~ArchitectureTests"
+
+# Run initialization tests
+dotnet test --filter "FullyQualifiedName~GameWorldInitializationTests"
+
+# Run startup validation
+dotnet test --filter "FullyQualifiedName~StartupValidationTests"
+
+# Run GameFacade pattern tests
+dotnet test --filter "FullyQualifiedName~GameFacadeTests"
+
+# Check for direct service usage in UI
+grep -r "@inject.*Service" src/Pages/ --include="*.razor"
+grep -r "@inject.*Manager" src/Pages/ --include="*.razor"
+grep -r "@inject.*Repository" src/Pages/ --include="*.razor"
+```
+
+## When to Revisit This Architecture
+
+This architecture should ONLY be changed if:
+
+1. Moving away from Blazor Server to a different framework
+2. Fundamentally changing how game state is managed
+3. Complete rewrite of the game engine
+
+Even then, the principle of static initialization for the root aggregate should be maintained.
+
+## Token System Architecture
+
+### Connection Token Types
+
+The game uses four connection token types that represent HOW you relate to NPCs, not WHO they are:
+
+1. **Trust** - Personal bonds and emotional connections
+2. **Commerce** - Business relationships and trade networks  
+3. **Status** - Social standing and noble connections
+4. **Shadow** - Underground and illicit connections
+
+### Information Discovery System
+
+The game features a two-phase progression system for discovering game content:
+
+1. **Learn Existence** - First discover that something exists (NPC, location, mechanic)
+2. **Gain Access** - Then earn the right to interact with it through tokens, permissions, or capabilities
+
+### Special Letters
+
+Four types of special letters provide unique mechanics:
+
+1. **Introduction Letters** (Trust) - Introduce you to new NPCs in your trust network
+2. **Access Permits** (Commerce) - Grant access to restricted commercial locations
+3. **Endorsements** (Status) - Vouch for your standing in noble circles
+4. **Information Letters** (Shadow) - Reveal hidden knowledge and opportunities
+
+### Tier System
+
+Everything in the game has tiers 1-5 with triple-gated access:
+
+1. **Knowledge Gate** - Must know it exists
+2. **Permission Gate** - Must have access rights (tokens, permits, endorsements)
+3. **Capability Gate** - Must have resources/skills to actually use it
+
+### Standing Obligations
+
+Each token type has unique debt mechanics when going negative:
+
+- **Trust Debt** - Personal betrayals affecting letter deadlines
+- **Commerce Debt** - Business leverage affecting letter positions
+- **Status Debt** - Social obligations restricting refusal options
+- **Shadow Debt** - Dangerous entanglements with severe consequences
+
+## UI Completeness Requirements
+
+### Action Pipeline Audit Results
+
+As of 2025-07-30, an action pipeline audit revealed that approximately **30% of backend game mechanics lack UI exposure**. This violates our core architecture principle that all game features must be player-accessible.
+
+### Architecture Principle: Complete UI Coverage
+
+**Rule**: Every backend command, manager, and game mechanic MUST have corresponding UI exposure.
+
+#### Why This Matters
+
+1. **Player Experience**: Hidden features are effectively non-existent from the player's perspective
+2. **Design Validation**: Features without UI cannot be tested or validated through play
+3. **Code Waste**: Backend code without UI is dead code that adds maintenance burden
+
+#### Required UI Elements for Each Command
+
+```csharp
+// For every CommandType enum value:
+public enum CommandType
+{
+    Work,           // ✅ Exposed in LocationActions
+    Converse,       // ✅ Exposed in ConversationView
+    Travel,         // ✅ Exposed in TravelSelection
+    GatherResources,// ❌ NO UI - Need "Gather" button at FEATURE locations
+    BorrowMoney,    // ❌ NO UI - Need borrowing interface in conversations
+    Browse,         // ❌ NO UI - Need browse action at shops
+    // ... etc
+}
+```
+
+#### UI Coverage Checklist
+
+1. **Command Discovery**: Every command must be discoverable through UI
+2. **Cost Display**: All costs (time, stamina, coins, tokens) must be visible
+3. **Error Feedback**: Failed commands must show clear error messages
+4. **Progress Indication**: Long-running commands need progress feedback
+5. **Result Display**: Command outcomes must be clearly communicated
+
+#### Missing UI Elements (High Priority)
+
+1. **Economic Commands**:
+   - GatherResourcesCommand - Resource gathering at FEATURE locations
+   - BorrowMoneyCommand - Borrowing interface in NPC conversations
+   - BrowseCommand - Discovery interface at shops/markets
+
+2. **Social Commands**:
+   - ShareLunchCommand - Meal sharing with NPCs
+   - KeepSecretCommand - Secret-keeping interactions
+   - PersonalErrandCommand - Personal favor system
+   - EquipmentSocializeCommand - Equipment-based social interactions
+
+3. **System Features**:
+   - Route Discovery - Active exploration interface
+   - Standing Obligations - Interaction and resolution mechanics
+   - Transport Methods - Selection beyond hardcoded "Walking"
+
+### Testing UI Completeness
+
+```csharp
+// Test that verifies all commands have UI
+[Test]
+public void AllCommandTypes_ShouldHaveUI()
+{
+    var allCommands = Enum.GetValues<CommandType>();
+    var uiExposedCommands = GetUIExposedCommands();
+    
+    var missingUI = allCommands.Except(uiExposedCommands);
+    
+    Assert.That(missingUI, Is.Empty, 
+        $"Commands without UI: {string.Join(", ", missingUI)}");
+}
+```
+
+### Enforcement
+
+1. **Code Review**: No new commands without corresponding UI
+2. **Testing**: UI exposure tests must pass before merge
+3. **Documentation**: Update UI documentation when adding commands
+4. **Audit**: Quarterly review of command-UI mapping
+
+This architecture principle ensures that Wayfarer's rich backend mechanics are fully accessible to players, maximizing the value of implemented features.

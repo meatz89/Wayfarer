@@ -1,0 +1,261 @@
+﻿@inherits PlayerStatusViewBase
+
+@namespace Wayfarer.Pages
+
+<div class="player-status-container">
+    <div class="status-header">
+        <h2 class="status-title">Character Status</h2>
+    </div>
+
+    <div class="status-content">
+        @* Character Overview Section *@
+        <div class="status-section character-overview">
+            <h3 class="section-title">Character</h3>
+            <div class="character-info-grid">
+                <div class="character-portrait">
+                    <img src="@GetArchetypePortrait()" alt="@PlayerState.Archetype" />
+                </div>
+                <div class="character-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Name:</span>
+                        <span class="detail-value">@PlayerState.Name</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Archetype:</span>
+                        <span class="detail-value archetype-@PlayerState.Archetype.ToString().ToLower()">
+                            @GetArchetypeIcon(PlayerState.Archetype) @PlayerState.Archetype
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Level:</span>
+                        <span class="detail-value">@PlayerState.Level</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Experience:</span>
+                        <span class="detail-value">@PlayerState.CurrentXP / @PlayerState.XPToNextLevel</span>
+                        <div class="xp-bar">
+                            <div class="xp-progress" style="width: @((double)PlayerState.CurrentXP / PlayerState.XPToNextLevel * 100)%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Resources Section *@
+        <div class="status-section resources">
+            <h3 class="section-title">Resources</h3>
+            <div class="resource-grid">
+                <div class="resource-item">
+                    <span class="resource-icon">💰</span>
+                    <span class="resource-label">Coins</span>
+                    <span class="resource-value">@PlayerState.Coins</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">⚡</span>
+                    <span class="resource-label">Stamina</span>
+                    <span class="resource-value">@CurrentStamina / 10</span>
+                    @if (GetStaminaCost() > 0)
+                    {
+                        <span class="resource-detail danger">-@GetStaminaCost() pending</span>
+                    }
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">🧠</span>
+                    <span class="resource-label">Concentration</span>
+                    <span class="resource-value">@CurrentConcentration</span>
+                </div>
+            </div>
+        </div>
+
+
+        @* Inventory Section *@
+        <div class="status-section inventory-full">
+            <h3 class="section-title">Inventory (@PlayerState.Inventory.UsedCapacity / @PlayerState.Inventory.Size)</h3>
+            @{
+                int totalWeight = GameManager.CalculateTotalWeight();
+                string weightStatus = GetWeightStatus(totalWeight);
+            }
+            <div class="inventory-status">
+                <div class="weight-info">
+                    <span class="weight-label">Total Weight:</span>
+                    <span class="weight-value">@totalWeight</span>
+                    <span class="weight-status @GetWeightStatusClass(totalWeight)">(@weightStatus)</span>
+                </div>
+            </div>
+            <div class="inventory-slots">
+                @for (int i = 0; i < PlayerState.Inventory.ItemSlots.Length; i++)
+                {
+                    string itemName = PlayerState.Inventory.ItemSlots[i];
+                    <div class="inventory-slot @(itemName == null ? "empty" : "filled")">
+                        @if (itemName != null)
+                        {
+                            Item item = ItemRepository.GetItemByName(itemName);
+                            if (item != null)
+                            {
+                                <div class="slot-item">
+                                    <div class="item-name">@itemName</div>
+                                    <div class="item-details">
+                                        <span class="item-weight">Weight: @item.Weight</span>
+                                        @if (item.Size != SizeCategory.Medium)
+                                        {
+                                            <span class="item-size">Size: @item.Size</span>
+                                        }
+                                    </div>
+                                    @if (item.Categories.Any())
+                                    {
+                                        <div class="item-categories">
+                                            @foreach (var cat in item.Categories)
+                                            {
+                                                <span class="category-tag equipment">@cat.ToString().Replace('_', ' ')</span>
+                                            }
+                                            @* ItemCategories removed - using Categories instead *@
+                                        </div>
+                                    }
+                                    @if (item.HasTokenEffects())
+                                    {
+                                        <div class="item-token-effects">
+                                            <span class="token-effects-label">Token Effects:</span>
+                                            <span class="token-effects-value">@item.GetTokenEffectsDescription()</span>
+                                        </div>
+                                    }
+                                    @if (item.IsReadable())
+                                    {
+                                        <div class="item-actions">
+                                            <button class="read-action-button" @onclick="() => ReadItem(item.Id)">
+                                                📜 Read
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="slot-empty">Empty</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Carried Letters Section *@
+        <div class="status-section carried-letters">
+            <h3 class="section-title">Carried Letters</h3>
+            @{
+                var carriedLetters = PlayerState.CarriedLetters;
+                var letterSlots = carriedLetters?.Sum(l => l.GetRequiredSlots()) ?? 0;
+            }
+            @if (carriedLetters != null && carriedLetters.Any())
+            {
+                <div class="carried-letters-list">
+                    @foreach (var letter in carriedLetters)
+                    {
+                        <div class="carried-letter-item">
+                            <div class="letter-info">
+                                <span class="letter-route">@letter.SenderName → @letter.RecipientName</span>
+                                <span class="letter-size">(@letter.Size: @letter.GetRequiredSlots() slot@(letter.GetRequiredSlots() > 1 ? "s" : ""))</span>
+                            </div>
+                            @if (letter.PhysicalProperties != LetterPhysicalProperties.None)
+                            {
+                                <div class="letter-properties">
+                                    @letter.GetPhysicalConstraintsDescription()
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="carrying-status">
+                    <span class="carrying-label">Using @letterSlots inventory slot@(letterSlots != 1 ? "s" : "") for letters</span>
+                </div>
+            }
+            else
+            {
+                <div class="no-carried-letters">No letters currently carried</div>
+            }
+        </div>
+
+        @* Equipment Effects Section *@
+        <div class="status-section equipment-effects">
+            <h3 class="section-title">Equipment Capabilities</h3>
+            @{
+                var equipmentCategories = GetCurrentEquipmentCategories();
+                var accessibleRoutes = GetAccessibleRoutes();
+            }
+            @if (equipmentCategories.Any())
+            {
+                <div class="equipment-grid">
+                    @foreach (var category in equipmentCategories)
+                    {
+                        <div class="equipment-capability">
+                            <span class="capability-icon">@GetEquipmentIcon(category)</span>
+                            <span class="capability-name">@category.ToString().Replace('_', ' ')</span>
+                            <span class="capability-effect">@GetEquipmentEffect(category)</span>
+                        </div>
+                    }
+                </div>
+                <div class="route-access-info">
+                    <span class="access-label">Route Access:</span>
+                    <span class="access-value">@accessibleRoutes.accessible of @accessibleRoutes.total routes accessible</span>
+                    @if (accessibleRoutes.blocked > 0)
+                    {
+                        <span class="access-blocked">(@accessibleRoutes.blocked blocked)</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-equipment">No specialized equipment - basic routes only</div>
+            }
+        </div>
+
+        @* Discovered Locations Section *@
+        <div class="status-section discovered-locations">
+            <h3 class="section-title">Discovered Locations</h3>
+            <div class="location-grid">
+                @foreach (var location in GetDiscoveredLocations())
+                {
+                    <div class="discovered-location @(location.Id == CurrentLocation?.Id ? "current" : "")">
+                        <span class="location-icon">@GetLocationIcon(location.LocationType)</span>
+                        <span class="location-name">@location.Name</span>
+                        @if (location.Id == CurrentLocation?.Id)
+                        {
+                            <span class="current-indicator">(Current)</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Skills Section *@
+        @if (PlayerState.Skills != null && PlayerState.Skills.GetAllSkills().Any())
+        {
+            <div class="status-section skills">
+                <h3 class="section-title">Skills</h3>
+                <div class="skills-grid">
+                    @foreach (var skillType in PlayerState.Skills.GetAllSkills())
+                    {
+                        var level = PlayerState.Skills.GetLevelForSkill(skillType);
+                        var xp = PlayerState.Skills.GetXPForSkill(skillType);
+                        var xpToNext = PlayerState.Skills.GetXPToNextForSkill(skillType);
+                        var progress = xpToNext > 0 ? (double)xp / xpToNext * 100 : 0;
+                        
+                        <div class="skill-item">
+                            <div class="skill-header">
+                                <span class="skill-icon">@GetSkillIcon(skillType)</span>
+                                <span class="skill-name">@skillType.ToString().Replace('_', ' ')</span>
+                                <span class="skill-level">Lv @level</span>
+                            </div>
+                            <div class="skill-progress-bar">
+                                <div class="skill-progress-fill" style="width: @progress%"></div>
+                            </div>
+                            <div class="skill-xp">@xp / @xpToNext XP</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@* Readable Letter Display Modal *@
+<ReadableLetterDisplay ItemId="@selectedLetterItemId" OnClose="OnLetterClosed" />

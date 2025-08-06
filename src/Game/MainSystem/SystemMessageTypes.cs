@@ -3,5 +3,6 @@
     Info,
     Warning,
     Success,
-    Danger
+    Danger,
+    Tutorial
 }

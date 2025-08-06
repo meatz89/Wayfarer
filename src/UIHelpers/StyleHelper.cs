@@ -1,6 +1,4 @@
-﻿namespace Wayfarer.UIHelpers;
-
-public static class StyleHelper
+﻿public static class StyleHelper
 {
     public static List<PropertyDisplay> GetSpotProperties(Location location, LocationSpot spot)
     {
@@ -65,11 +63,9 @@ public static class StyleHelper
     {
         return archetype switch
         {
-            Professions.Warrior => "⚔️",
+            Professions.Soldier => "⚔️",
             Professions.Scholar => "📚",
-            Professions.Thief => "🏹",
             Professions.Merchant => "🎵",
-            Professions.Ranger => "🗝️",
             _ => "❓"
         };
     }

@@ -12,6 +12,13 @@
     public IMechanicalEffect SuccessEffect { get; private set; }
     public IMechanicalEffect FailureEffect { get; private set; }
 
+    // Letter offer specific properties
+    public string Purpose { get; set; }
+    public string Description { get; set; }
+    public int FocusCost { get; set; }
+    public ConnectionType? TokenType { get; set; }
+    public LetterCategory? Category { get; set; }
+
     public ChoiceTemplate(
         string templateName,
         string strategicPurpose,
@@ -27,5 +34,10 @@
         InputMechanics = inputMechanics;
         SuccessEffect = successEffect;
         FailureEffect = failureEffect;
+    }
+
+    // Parameterless constructor for dynamic creation
+    public ChoiceTemplate()
+    {
     }
 }

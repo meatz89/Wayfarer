@@ -1,0 +1,109 @@
+{
+  "conversationId": "patron_intermediary_1",
+  "npcId": "patron_intermediary",
+  "initialNode": "greeting",
+  "nodes": {
+    "greeting": {
+      "text": "Ah, a courier. *adjusts silk gloves* My employer has been observing your work. You show... potential. Are you interested in more exclusive contracts? The pay is substantially better than common street deliveries.",
+      "choices": [
+        {
+          "id": "interested",
+          "text": "I'm interested. Tell me more.",
+          "nextNode": "explain_arrangements",
+          "focusCost": 0
+        },
+        {
+          "id": "suspicious",
+          "text": "Who exactly is your employer?",
+          "nextNode": "deflect_identity",
+          "focusCost": 1
+        },
+        {
+          "id": "not_interested",
+          "text": "I prefer to keep my independence.",
+          "nextNode": "disappointing",
+          "focusCost": 0
+        }
+      ]
+    },
+    "explain_arrangements": {
+      "text": "Excellent. My employer requires absolute discretion and reliability. The letters you would carry are... sensitive. Personal correspondence between persons of quality. You would be compensated accordingly - 25 coins minimum per delivery.",
+      "choices": [
+        {
+          "id": "accept_terms",
+          "text": "I can be discreet. I accept your terms.",
+          "nextNode": "first_assignment",
+          "focusCost": 0
+        },
+        {
+          "id": "negotiate",
+          "text": "For that level of discretion, I'd expect more.",
+          "nextNode": "firm_terms",
+          "focusCost": 2
+        }
+      ]
+    },
+    "deflect_identity": {
+      "text": "*slight smile* My employer values privacy above all else. Suffice to say they are a person of considerable influence who prefers to conduct certain affairs... quietly. That is all you need to know.",
+      "choices": [
+        {
+          "id": "accept_mystery",
+          "text": "Fair enough. What would you need from me?",
+          "nextNode": "explain_arrangements",
+          "focusCost": 0
+        },
+        {
+          "id": "decline_mystery",
+          "text": "I don't work for people I don't know.",
+          "nextNode": "regretful",
+          "focusCost": 0
+        }
+      ]
+    },
+    "disappointing": {
+      "text": "A pity. Independence is admirable, but it doesn't pay the bills. Should you reconsider, you know where to find me. Good day.",
+      "isEnd": true
+    },
+    "first_assignment": {
+      "text": "Very good. Your first task is simple - a letter to be delivered to a certain address in the Noble Quarter. No questions, no delays, no peeking. Return with proof of delivery, and there will be more work.",
+      "isEnd": true,
+      "effects": {
+        "addLetter": {
+          "letterId": "patron_noble_letter",
+          "payment": 25,
+          "deadline": 3
+        },
+        "addToken": {
+          "npcId": "patron_intermediary",
+          "tokenType": "Noble",
+          "amount": 1
+        }
+      }
+    },
+    "firm_terms": {
+      "text": "*raises eyebrow* You're bold. I like that. But the terms are non-negotiable. Twenty-five coins is already triple the standard rate. Take it or leave it.",
+      "choices": [
+        {
+          "id": "accept_original",
+          "text": "You're right. I'll take the original offer.",
+          "nextNode": "first_assignment",
+          "focusCost": 0
+        },
+        {
+          "id": "walk_away",
+          "text": "Then I'll leave it.",
+          "nextNode": "your_loss",
+          "focusCost": 0
+        }
+      ]
+    },
+    "regretful": {
+      "text": "I understand your position, though I believe you're making a mistake. The shadows of anonymity can be more trustworthy than the bright light of reputation. Think on it.",
+      "isEnd": true
+    },
+    "your_loss": {
+      "text": "As you wish. But courier, a word of advice - in this city, sometimes the best opportunities come from the most mysterious sources. Don't let pride cost you prosperity.",
+      "isEnd": true
+    }
+  }
+}

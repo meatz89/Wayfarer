@@ -1,0 +1,1061 @@
+/* Character Relationships Screen Styles */
+.character-relationship-container {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--oak-dark);
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin: 1rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Token Context Tabs */
+.token-context-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.context-tab {
+    background-color: var(--bg-dark);
+    border: 2px solid var(--oak-mid);
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+    color: var(--text-primary);
+}
+
+.context-tab:hover {
+    background-color: var(--bg-active);
+    border-color: var(--oak-dark);
+    transform: translateY(-1px);
+}
+
+.context-tab.active {
+    background-color: var(--oak-dark);
+    color: var(--parchment);
+    border-color: var(--oak-dark);
+    font-weight: bold;
+}
+
+.tab-count {
+    opacity: 0.7;
+    font-size: 0.85rem;
+    margin-left: 0.25rem;
+}
+
+/* Debt Overview Section */
+.debt-overview {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: rgba(158, 42, 43, 0.1);
+    border: 2px solid var(--negative);
+    border-radius: 8px;
+}
+
+.debt-overview h3 {
+    color: var(--negative);
+    margin-bottom: 1rem;
+    font-family: var(--font-secondary);
+}
+
+.debt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.debt-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
+    padding: 0.5rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+.debt-npc {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.debt-amount {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+.debt-effect {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.875rem;
+}
+
+.character-relationship-container h2 {
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Relationship Summary */
+.relationship-summary {
+    background-color: var(--bg-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.relationship-summary p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* NPC Grid */
+.npc-relationship-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* NPC Cards */
+.npc-relationship-card {
+    background-color: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.npc-relationship-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.npc-relationship-card.relationship-debt {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.05);
+}
+
+.npc-relationship-card.relationship-strong {
+    border-color: var(--positive);
+    background-color: rgba(107, 191, 89, 0.05);
+}
+
+.npc-relationship-card.relationship-positive {
+    border-color: var(--resource-stamina);
+}
+
+/* NPC Header */
+.npc-header {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--oak-mid);
+    padding-bottom: 0.5rem;
+}
+
+.npc-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+    font-size: 1.1rem;
+}
+
+.npc-profession {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Section Headers */
+.token-display h4,
+.npc-location h4,
+.npc-availability h4,
+.letter-history h4,
+.current-letters h4 {
+    font-size: 0.875rem;
+    margin: 0.75rem 0 0.5rem;
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+}
+
+/* Token Display */
+.token-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Multi-Context Token Display */
+.token-context-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.token-context-item {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.token-context-item:hover {
+    background-color: var(--bg-active);
+    transform: translateY(-1px);
+}
+
+.token-context-item.debt {
+    background-color: rgba(158, 42, 43, 0.1);
+    border-color: var(--negative);
+}
+
+.token-context-item.positive {
+    background-color: rgba(107, 191, 89, 0.05);
+    border-color: var(--positive);
+}
+
+.context-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.context-description {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 0.25rem;
+}
+
+.context-effects {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.debt-label,
+.leverage-warning {
+    color: var(--negative);
+}
+
+.special-available {
+    color: var(--special);
+    font-weight: 500;
+}
+
+.token-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.token-item.debt {
+    background-color: rgba(158, 42, 43, 0.1);
+    border-color: var(--negative);
+    color: var(--negative);
+}
+
+.token-item.positive {
+    background-color: rgba(107, 191, 89, 0.1);
+    border-color: var(--positive);
+    color: var(--positive);
+}
+
+.token-icon {
+    font-size: 1.125rem;
+}
+
+.token-type {
+    color: var(--text-secondary);
+}
+
+.token-count {
+    font-weight: bold;
+}
+
+.no-tokens {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Location Info */
+.location-info,
+.availability-info {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.location-name {
+    color: var(--text-primary);
+}
+
+.same-location,
+.available-now {
+    color: var(--positive);
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.unknown-location {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Schedule */
+.schedule {
+    color: var(--text-secondary);
+}
+
+/* Letter History */
+.history-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.delivered {
+    color: var(--positive);
+}
+
+.skipped {
+    color: var(--special);
+}
+
+.expired {
+    color: var(--negative);
+}
+
+/* Current Letters in Queue */
+.current-letters {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--oak-mid);
+}
+
+.queue-letter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.queue-letter .position {
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.queue-letter .route {
+    color: var(--text-primary);
+}
+
+.queue-letter .deadline {
+    margin-left: auto;
+    color: var(--text-secondary);
+}
+
+.queue-letter .deadline.urgent {
+    color: var(--negative);
+    font-weight: bold;
+}
+
+/* Token Type Categories */
+.token-type-categories {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+.token-type-categories h5 {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.token-item.neutral {
+    opacity: 0.6;
+}
+
+/* Relationship Status */
+.relationship-status {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--oak-mid);
+}
+
+.status-indicator {
+    font-weight: bold;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-family: var(--font-secondary);
+}
+
+.status-indicator.relationship-debt {
+    background-color: var(--negative);
+    color: var(--text-on-dark);
+}
+
+.status-indicator.relationship-strong {
+    background-color: var(--positive);
+    color: var(--text-on-dark);
+}
+
+.status-indicator.relationship-positive {
+    background-color: var(--resource-stamina);
+    color: var(--text-on-dark);
+}
+
+.status-indicator.relationship-neutral {
+    background-color: var(--oak-mid);
+    color: var(--text-primary);
+}
+
+/* Navigation */
+.navigation-buttons {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Token Progress Indicator */
+.token-progress {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: var(--bg-dark);
+    border-radius: 4px;
+}
+
+/* Enhanced Token Threshold Visualization */
+.token-threshold-display {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--oak-mid);
+    border-radius: 8px;
+}
+
+.threshold-progress-bar {
+    position: relative;
+    height: 24px;
+    background: var(--bg-dark);
+    border-radius: 12px;
+    margin: 0.5rem 0;
+    overflow: visible;
+}
+
+.threshold-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--negative) 0%, var(--special) 50%, var(--positive) 100%);
+    border-radius: 12px;
+    transition: width 0.5s ease;
+    position: relative;
+}
+
+.threshold-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    pointer-events: none;
+}
+
+.threshold-marker {
+    position: absolute;
+    top: -8px;
+    bottom: -8px;
+    width: 3px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
+
+.threshold-marker.basic {
+    left: calc(1 / 5 * 100%);
+}
+
+.threshold-marker.quality {
+    left: calc(3 / 5 * 100%);
+}
+
+.threshold-marker.premium {
+    left: calc(5 / 5 * 100%);
+}
+
+.threshold-labels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.threshold-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.threshold-label.unlocked {
+    background: rgba(96, 108, 56, 0.2);
+    border: 1px solid var(--positive);
+}
+
+.threshold-label.current {
+    background: rgba(188, 108, 37, 0.2);
+    border: 1px solid var(--special);
+    transform: scale(1.05);
+}
+
+.threshold-label.locked {
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--oak-dark);
+    opacity: 0.7;
+}
+
+.threshold-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.threshold-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.threshold-requirement {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.threshold-benefits {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+.current-token-indicator {
+    position: absolute;
+    top: -40px;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 2px solid var(--special);
+    border-radius: 20px;
+    padding: 0.25rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.current-token-indicator::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid var(--special);
+}
+
+.token-milestone-effects {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(0,0,0,0.1);
+    border-radius: 6px;
+}
+
+.milestone-effect {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.milestone-effect:last-child {
+    margin-bottom: 0;
+}
+
+.milestone-effect.active {
+    color: var(--positive);
+}
+
+.milestone-effect.next {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: var(--special);
+    font-style: italic;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.progress-bar {
+    height: 6px;
+    background-color: var(--oak-mid);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--resource-coins);
+    transition: width 0.3s ease;
+}
+
+/* Recent Interactions */
+.recent-interactions {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--oak-mid);
+}
+
+.recent-interactions h4 {
+    font-size: 0.875rem;
+    margin: 0 0 0.5rem;
+    color: var(--text-secondary);
+}
+
+.interaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.interaction-item {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.interaction-icon {
+    text-align: center;
+}
+
+.interaction-success { 
+    background-color: rgba(107, 191, 89, 0.05); 
+}
+
+.interaction-success .interaction-icon { 
+    color: var(--positive); 
+}
+
+.interaction-warning { 
+    background-color: rgba(255, 193, 7, 0.05); 
+}
+
+.interaction-warning .interaction-icon { 
+    color: var(--special); 
+}
+
+.interaction-danger { 
+    background-color: rgba(158, 42, 43, 0.05); 
+}
+
+.interaction-danger .interaction-icon { 
+    color: var(--negative); 
+}
+
+.interaction-text {
+    color: var(--text-primary);
+}
+
+.interaction-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Route Discoveries */
+.route-discoveries {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--oak-mid);
+}
+
+.route-discoveries h4 {
+    font-size: 0.875rem;
+    margin: 0 0 0.5rem;
+    color: var(--text-secondary);
+}
+
+.discoveries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.discovery-item {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--oak-mid);
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.discovery-item.available {
+    border-color: var(--resource-stamina);
+    background-color: rgba(74, 155, 191, 0.05);
+}
+
+.discovery-item.available:hover {
+    box-shadow: 0 2px 6px rgba(74, 155, 191, 0.2);
+}
+
+.discovery-item.locked {
+    opacity: 0.7;
+}
+
+.discovery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.route-name {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.token-cost {
+    font-size: 0.8rem;
+    color: var(--resource-coins);
+    background-color: var(--oak-dark);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+}
+
+.route-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.travel-time {
+    color: var(--text-muted);
+}
+
+.missing-equipment {
+    font-size: 0.8rem;
+    color: var(--negative);
+    font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.discover-button {
+    background-color: var(--resource-stamina);
+    color: var(--text-on-dark);
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.discover-button:hover {
+    background-color: var(--resource-stamina-hover, #5ba5d5);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.requirement-hint {
+    font-size: 0.8rem;
+    color: var(--special);
+    font-style: italic;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+/* Letter Categories */
+.letter-categories {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background-color: var(--bg-dark);
+    border-radius: 6px;
+    border: 1px solid var(--oak-mid);
+}
+
+.letter-categories h4 {
+    font-size: 0.875rem;
+    margin: 0 0 0.75rem;
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
+    letter-spacing: 0.05em;
+}
+
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.category-item {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.category-item.unlocked {
+    background-color: rgba(107, 191, 89, 0.1);
+    border: 1px solid var(--positive);
+}
+
+.category-item.locked {
+    background-color: rgba(158, 158, 158, 0.05);
+    border: 1px solid var(--oak-mid);
+    opacity: 0.7;
+}
+
+.category-icon {
+    font-size: 1.25rem;
+    text-align: center;
+}
+
+.category-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.category-pay {
+    color: var(--resource-coins);
+    font-weight: bold;
+    background-color: var(--oak-dark);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.category-requirement {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+/* Condensed NPC Cards */
+.npc-relationship-card-condensed {
+    background-color: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 4px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.npc-relationship-card-condensed:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.npc-relationship-card-condensed.relationship-debt {
+    border-color: var(--negative);
+    background-color: rgba(158, 42, 43, 0.05);
+}
+
+.npc-relationship-card-condensed.relationship-ready {
+    border-color: var(--positive);
+    background-color: rgba(107, 191, 89, 0.05);
+}
+
+.npc-essential {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 1rem;
+}
+
+.npc-name {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.npc-tokens {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.token-display {
+    padding: 0.15rem 0.4rem;
+    background-color: var(--bg-dark);
+    border-radius: 3px;
+    font-size: 0.85rem;
+    cursor: help;
+}
+
+.token-display.debt {
+    background-color: rgba(158, 42, 43, 0.15);
+    color: var(--negative);
+}
+
+.token-display.positive {
+    color: var(--positive);
+}
+
+.debt-indicator {
+    font-weight: bold;
+    color: var(--negative);
+}
+
+.npc-status {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.status-debt,
+.status-ready,
+.status-queue {
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: help;
+}
+
+.status-debt {
+    background-color: var(--negative);
+    color: white;
+}
+
+.status-ready {
+    background-color: var(--positive);
+    color: white;
+}
+
+.status-queue {
+    background-color: var(--special);
+    color: white;
+}
+
+/* Help Icon */
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: var(--oak-mid);
+    color: var(--text-primary);
+    border-radius: 50%;
+    font-size: 0.875rem;
+    font-weight: bold;
+    cursor: help;
+    margin-left: 1rem;
+}
+
+.help-icon:hover {
+    background-color: var(--oak-dark);
+}
+
+/* Token Overview Section */
+.token-overview {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--oak-mid);
+    border-radius: 8px;
+}
+
+.token-overview h3 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    font-family: var(--font-secondary);
+}
+
+.threshold-summary {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--bg-dark);
+    border-radius: 6px;
+}
+
+.threshold-summary p {
+    margin: 0.25rem 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.threshold-summary p:first-child {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* No Relationships */
+.no-relationships {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .npc-relationship-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .relationship-summary {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .npc-essential {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}

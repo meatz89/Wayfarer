@@ -1,0 +1,191 @@
+@using System.Linq
+
+@if (IsAtGuild)
+{
+    <div class="guild-interaction card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-award"></i> @GuildName
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (CurrentSeals.Any())
+            {
+                <div class="current-seals mb-3">
+                    <h6>Your Current Seals:</h6>
+                    @foreach (var seal in CurrentSeals)
+                    {
+                        <div class="seal-badge mb-2">
+                            <span class="badge bg-primary">
+                                @seal.GetFullName()
+                            </span>
+                            <small class="text-muted ms-2">@seal.Description</small>
+                        </div>
+                    }
+                </div>
+            }
+            
+            @if (ConversionOptions.Any())
+            {
+                <div class="conversion-options">
+                    <h6>Available Seal Upgrades:</h6>
+                    @foreach (var option in ConversionOptions)
+                    {
+                        <div class="conversion-option card mb-2">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@option.TargetTier @option.SealType Seal</strong>
+                                        <div class="progress-info">
+                                            <small class="text-muted">
+                                                Endorsements: @option.CurrentEndorsements / @option.RequiredEndorsements
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm @(option.CanConvert ? "btn-primary" : "btn-secondary")"
+                                            disabled="@(!option.CanConvert)"
+                                            @onclick="() => ConvertToSeal(option.TargetTier)">
+                                        @if (option.CanConvert)
+                                        {
+                                            <text>Convert</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Need @(option.RequiredEndorsements - option.CurrentEndorsements) more</text>
+                                        }
+                                    </button>
+                                </div>
+                                
+                                @if (option.CanConvert)
+                                {
+                                    <div class="mt-2">
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" 
+                                                 style="width: 100%">
+                                                Ready!
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mt-2">
+                                        <div class="progress">
+                                            <div class="progress-bar" 
+                                                 style="width: @((option.CurrentEndorsements * 100.0 / option.RequiredEndorsements))%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (!CurrentSeals.Any())
+            {
+                <p class="text-muted">
+                    Deliver endorsement letters to earn your first guild seal!
+                </p>
+            }
+            else
+            {
+                <p class="text-muted">
+                    You have reached the highest seal tier available.
+                </p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Inject] private GameWorld GameWorld { get; set; }
+    [Inject] private EndorsementManager EndorsementManager { get; set; }
+    [Inject] private GameFacade GameFacade { get; set; }
+    [Inject] private LocationRepository LocationRepository { get; set; }
+    [Inject] private MessageSystem MessageSystem { get; set; }
+    
+    private bool IsAtGuild => GuildLocationIds.Contains(CurrentLocation?.Id);
+    private Location CurrentLocation => LocationRepository.GetCurrentLocation();
+    private string GuildName => GetGuildName(CurrentLocation?.Id);
+    
+    private List<string> GuildLocationIds = new() 
+    { 
+        "merchant_guild", 
+        "messenger_guild", 
+        "scholar_guild" 
+    };
+    
+    private List<Seal> CurrentSeals = new();
+    private List<SealConversionOption> ConversionOptions = new();
+    
+    protected override void OnParametersSet()
+    {
+        if (IsAtGuild)
+        {
+            RefreshGuildStatus();
+        }
+    }
+    
+    private void RefreshGuildStatus()
+    {
+        var player = GameWorld.GetPlayer();
+        var guildSealType = GetSealTypeForGuild(CurrentLocation.Id);
+        
+        CurrentSeals = player.Seals
+            .Where(s => s.Type == guildSealType)
+            .OrderBy(s => s.Tier)
+            .ToList();
+            
+        ConversionOptions = EndorsementManager
+            .GetAvailableSealConversions(CurrentLocation.Id);
+    }
+    
+    private async Task ConvertToSeal(SealTier targetTier)
+    {
+        // Convert endorsements directly using EndorsementManager
+        var result = EndorsementManager.ConvertEndorsementsToSeal(
+            CurrentLocation.Id,
+            targetTier
+        );
+        
+        if (result)
+        {
+            MessageSystem.AddSystemMessage(
+                $"Successfully converted endorsements to {targetTier} seal!",
+                SystemMessageTypes.Success
+            );
+            RefreshGuildStatus();
+            StateHasChanged();
+        }
+        else
+        {
+            MessageSystem.AddSystemMessage(
+                "Failed to convert endorsements. Check requirements.",
+                SystemMessageTypes.Warning
+            );
+        }
+    }
+    
+    private string GetGuildName(string locationId)
+    {
+        return locationId switch
+        {
+            "merchant_guild" => "Merchant Guild",
+            "messenger_guild" => "Courier's Guild",
+            "scholar_guild" => "Scholar's Atheneum",
+            _ => "Guild"
+        };
+    }
+    
+    private SealType GetSealTypeForGuild(string locationId)
+    {
+        return locationId switch
+        {
+            "merchant_guild" => SealType.Commerce,
+            "messenger_guild" => SealType.Commerce,
+            "scholar_guild" => SealType.Status,
+            _ => SealType.Commerce
+        };
+    }
+}

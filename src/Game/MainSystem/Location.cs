@@ -3,6 +3,10 @@
     public string Id { get; set; }
     public string Name { get; private set; }
     public string Description { get; set; }
+    
+    // Tier system (1-5) for difficulty/content progression
+    public int Tier { get; set; } = 1;
+    
     public List<LocationConnection> Connections { get; set; } = new List<LocationConnection>();
     public List<string> LocationSpotIds { get; set; } = new List<string>();
 
@@ -36,7 +40,7 @@
     public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
 
     // Time-based properties
-    public Dictionary<TimeBlocks, List<FlagStates>> TimeStateFlags { get; private set; }
+    // Flag system removed - using connection tokens instead
     public Dictionary<TimeBlocks, List<string>> AvailableActions { get; private set; }
     public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
     public Dictionary<TimeBlocks, List<ILocationProperty>> TimeProperties { get; private set; }
@@ -44,14 +48,11 @@
     public List<Item> MarketItems { get; internal set; }
     public List<RestOption> RestOptions { get; internal set; }
 
+    // Access Requirements for this location
+    public AccessRequirement AccessRequirement { get; set; }
 
-    // Method to get current state based on time
-    public List<FlagStates> GetCurrentFlags(TimeBlocks TimeBlocks)
-    {
-        return TimeStateFlags.ContainsKey(TimeBlocks)
-            ? TimeStateFlags[TimeBlocks]
-            : new List<FlagStates>();
-    }
+
+    // Flag system removed - using connection tokens instead
 
     public Location(string id, string name)
     {

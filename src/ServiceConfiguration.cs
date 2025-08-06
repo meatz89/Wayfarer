@@ -1,63 +1,130 @@
-﻿using Wayfarer.Game.MainSystem;
-using Wayfarer.UIHelpers;
+﻿using Wayfarer.Services;
 
 public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
-        string contentDirectory = "Content";
+        Console.WriteLine("[SERVICE] Starting service configuration...");
 
-        // Create GameWorldInitializer
-        GameWorldInitializer gameWorldInitializer = new GameWorldInitializer(contentDirectory);
-        services.AddSingleton(gameWorldInitializer);
+        // Register configuration
+        Console.WriteLine("[SERVICE] Registering IContentDirectory...");
+        services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
 
-        // Load game state
-        GameWorld gameWorld = gameWorldInitializer.LoadGame();
-        services.AddSingleton(gameWorld);
+        // Register content validation
+        services.AddSingleton<ValidatedContentLoader>();
+
+        // Register game configuration and rule engine
+        services.AddSingleton<GameConfigurationLoader>();
+        services.AddSingleton<GameConfiguration>();
+        services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
+
+        // Register factories for reference-safe content creation
+        services.AddSingleton<LocationFactory>();
+        services.AddSingleton<LocationSpotFactory>();
+        services.AddSingleton<NPCFactory>();
+        services.AddSingleton<ItemFactory>();
+        services.AddSingleton<RouteFactory>();
+        services.AddSingleton<RouteDiscoveryFactory>();
+        services.AddSingleton<NetworkUnlockFactory>();
+        services.AddSingleton<LetterTemplateFactory>();
+        services.AddSingleton<StandingObligationFactory>();
+
+        // Register GameWorld using static GameWorldInitializer
+        Console.WriteLine("[SERVICE] Registering GameWorld...");
+        services.AddSingleton<GameWorld>(_ =>
+        {
+            // Call GameWorldInitializer statically - no DI dependencies needed
+            return GameWorldInitializer.CreateGameWorld();
+        });
+        Console.WriteLine("[SERVICE] GameWorld registered");
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();
+        
+        // Core services that have no dependencies
+        services.AddSingleton<NPCVisibilityService>();
 
         // Register repositories
-        services.AddSingleton<ActionRepository>();
         services.AddSingleton<LocationRepository>();
+        services.AddSingleton<LocationSpotRepository>();
         services.AddSingleton<ItemRepository>();
         services.AddSingleton<NPCRepository>();
-        services.AddSingleton<ContractRepository>();
         services.AddSingleton<RouteRepository>();
-
-        // Register contract services
-        services.AddSingleton<ContractValidationService>();
-        services.AddSingleton<ContractProgressionService>();
+        services.AddSingleton<StandingObligationRepository>();
+        services.AddSingleton<RouteDiscoveryRepository>();
+        services.AddSingleton<NetworkUnlockRepository>();
+        services.AddSingleton<LetterTemplateRepository>();
 
         services.AddSingleton<LocationSystem>();
-        services.AddSingleton<ActionFactory>();
-        services.AddSingleton<ActionGenerator>();
         services.AddSingleton<CharacterSystem>();
-        services.AddSingleton<ContractSystem>();
-        services.AddSingleton<EncounterFactory>();
-        services.AddSingleton<ActionSystem>();
-        services.AddSingleton<ActionProcessor>();
         services.AddSingleton<WorldStateInputBuilder>();
         services.AddSingleton<PlayerProgression>();
         services.AddSingleton<MessageSystem>();
-        services.AddSingleton<GameWorldManager>();
-        services.AddSingleton<LocationCreationSystem>();
-        services.AddSingleton<PersistentChangeProcessor>();
-        services.AddSingleton<LocationPropertyManager>();
+        services.AddSingleton<DebugLogger>();
 
-        // TimeManager is created and managed by GameWorld, not DI container
+        services.AddSingleton<LocationCreationSystem>();
+        services.AddSingleton<LocationPropertyManager>();
+        services.AddTimeSystem();
+
+        // Managers that depend on TimeManager
         services.AddSingleton<TravelManager>();
         services.AddSingleton<MarketManager>();
         services.AddSingleton<TradeManager>();
         services.AddSingleton<RestManager>();
         services.AddSingleton<TransportCompatibilityValidator>();
+        services.AddSingleton<CollapseManager>();
+
+        // Letter Queue System
+        services.AddSingleton<StandingObligationManager>();
+        services.AddSingleton<LetterCategoryService>();
+        services.AddSingleton<DeliveryConversationService>();
+
+        // Conversation System
+        services.AddSingleton<DeterministicStreamingService>();
+        services.AddSingleton<ConversationStateManager>();
+
+        // Wire up circular dependencies after initial creation
+        services.AddSingleton<ConnectionTokenManager>();
+
+        services.AddSingleton<LetterQueueManager>();
+        services.AddSingleton<EndorsementManager>();
+
+        // Transaction and Preview System
+        services.AddSingleton<AccessRequirementChecker>();
+        services.AddSingleton<NarrativeService>();
+        services.AddSingleton<RouteDiscoveryManager>();
+        services.AddSingleton<NetworkUnlockManager>();
+        services.AddSingleton<InformationDiscoveryManager>();
+        services.AddSingleton<SpecialLetterHandler>();
+        services.AddSingleton<SpecialLetterGenerationService>();
+        services.AddSingleton<InformationRevealService>();
+        services.AddSingleton<NPCLetterOfferService>();
+        services.AddSingleton<PatronLetterService>();
+        services.AddSingleton<NetworkReferralService>();
+        services.AddSingleton<MorningActivitiesManager>();
+        services.AddSingleton<NoticeBoardService>();
+
+        services.AddSingleton<ConversationFactory>();
+
+        // Core services
+        services.AddSingleton<FlagService>();
+        services.AddSingleton<ConversationRepository>();
 
         services.AddScoped<MusicService>();
+        services.AddScoped<TimeImpactCalculator>();
+        // ActionExecutionService removed - using intent-based architecture
+
+
+        // Game Facade - THE single entry point for all UI-Backend communication
+        services.AddSingleton<GameFacade>();
+        services.AddSingleton<NPCService>();
+        services.AddSingleton<LetterGenerationService>();
 
         // UI Razor Services
-        services.AddSingleton<CardSelectionService>();
-        services.AddSingleton<CardHighlightService>();
+
+        // Navigation Service - remove duplicate registration
+
+        // State Management Services - removed GameStateManager (legacy)
 
         services.AddAIServices();
 
@@ -69,31 +136,34 @@ public static class ServiceConfiguration
         // Register core services
         services.AddSingleton<ConversationHistoryManager>();
         services.AddSingleton<NarrativeLogManager>();
-        services.AddSingleton<PostEncounterEvolutionParser>();
         services.AddSingleton<LoadingStateService>();
-        services.AddSingleton<AIGameMaster>();
-        services.AddSingleton<AIClient>();
+        // Commented out until IAIProvider is configured
+        // services.AddSingleton<AIGameMaster>();
+        // services.AddSingleton<AIClient>();
 
         // Register updated services
         services.AddSingleton<AIPromptBuilder>();
-        services.AddSingleton<EncounterChoiceResponseParser>();
+        services.AddSingleton<ConversationChoiceResponseParser>();
         services.AddSingleton<ChoiceProjectionService>();
 
-        // Get configuration to determine which provider to use
-        using (ServiceProvider sp = services.BuildServiceProvider())
-        {
-            IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
-            string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "Ollama";
+        // Register narrative provider - choose which implementation to use
+        // For POC: Using DeterministicNarrativeProvider
+        services.AddSingleton<INarrativeProvider, DeterministicNarrativeProvider>();
 
-            // Register the appropriate AI service based on configuration
-            switch (defaultProvider.ToLower())
-            {
-                case "ollama":
-                default:
-                    services.AddSingleton<IAIProvider, OllamaProvider>();
-                    break;
-            }
-        }
+        // For full game with AI: Uncomment this and comment out the line above
+        // services.AddSingleton<INarrativeProvider, AIGameMaster>();
+
+        //// Register AI provider factory
+        //services.AddSingleton<IAIProvider>(serviceProvider =>
+        //{
+        //    string defaultProvider = configuration.GetValue<string>("DefaultAIProvider") ?? "Ollama";
+
+        //    return defaultProvider.ToLower() switch
+        //    {
+        //        "ollama" => new OllamaProvider(configuration, logger),
+        //        _ => new OllamaProvider(configuration, logger)
+        //    };
+        //});
 
         return services;
     }

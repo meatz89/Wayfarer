@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Wayfarer.GameState.Constants;
 
 namespace Wayfarer.Pages
 {
@@ -12,13 +13,13 @@ namespace Wayfarer.Pages
             Console.WriteLine("=== Inventory ===");
 
             int totalWeight = TravelManager.CalculateCurrentWeight(gameWorld);
-            string weightStatus = totalWeight <= 3 ? "Light load" :
-                                 (totalWeight <= 6 ? "Medium load (+1 stamina cost)" : "Heavy load (+2 stamina cost)");
+            string weightStatus = totalWeight <= GameConstants.LoadWeight.LIGHT_LOAD_MAX ? "Light load" :
+                                 (totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX ? "Medium load (+1 stamina cost)" : "Heavy load (+2 stamina cost)");
 
             Console.WriteLine($"Current load: {weightStatus} ({totalWeight} weight units)");
 
             // Show coin weight
-            int coinWeight = gameWorld.PlayerCoins / 10;
+            int coinWeight = gameWorld.PlayerCoins / GameConstants.Inventory.COINS_PER_WEIGHT_UNIT;
             Console.WriteLine($"Coins: {gameWorld.PlayerCoins} ({coinWeight} weight units)");
 
             Console.WriteLine();

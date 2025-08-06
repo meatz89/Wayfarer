@@ -1,14 +1,13 @@
-﻿using Wayfarer.Game.MainSystem;
-
+﻿
 public interface IMechanicalEffect
 {
-    void Apply(EncounterState state);
+    void Apply(ConversationState state);
     string GetDescriptionForPlayer();
 }
 
 public class NoEffect : IMechanicalEffect
 {
-    public void Apply(EncounterState state) { }
+    public void Apply(ConversationState state) { }
     public string GetDescriptionForPlayer() { return "No effect"; }
 }
 
@@ -21,7 +20,7 @@ public class AdvanceDurationEffect : IMechanicalEffect
         this.amount = amount;
     }
 
-    public void Apply(EncounterState state)
+    public void Apply(ConversationState state)
     {
         state.DurationCounter += amount;
     }
@@ -47,7 +46,7 @@ public class CreateMemoryEffect : IMechanicalEffect
         this.expirationDays = expirationDays;
     }
 
-    public void Apply(EncounterState state)
+    public void Apply(ConversationState state)
     {
         state.Player.AddMemory(memoryKey, memoryDescription, importance, expirationDays);
     }
@@ -72,9 +71,9 @@ public class CheckMemoryEffect : IMechanicalEffect
         this.effectIfAbsent = effectIfAbsent;
     }
 
-    public void Apply(EncounterState state)
+    public void Apply(ConversationState state)
     {
-        if (state.Player.HasMemory(memoryKey))
+        if (state.Player.HasMemory(memoryKey, state.GameWorld?.CurrentDay ?? 1))
         {
             effectIfPresent.Apply(state);
         }
@@ -100,7 +99,7 @@ public class CheckMemoryEffect : IMechanicalEffect
             this.requirementName = requirementName;
         }
 
-        public void Apply(EncounterState state)
+        public void Apply(ConversationState state)
         {
             Goal goal = state.Player.ActiveGoals.FirstOrDefault(g => g.Name == goalName);
             if (goal != null)
@@ -124,7 +123,7 @@ public class CheckMemoryEffect : IMechanicalEffect
             this.goalToAdd = goalToAdd;
         }
 
-        public void Apply(EncounterState state)
+        public void Apply(ConversationState state)
         {
             state.Player.AddGoal(goalToAdd);
         }
@@ -144,7 +143,7 @@ public class CheckMemoryEffect : IMechanicalEffect
             this.routeToDiscover = routeToDiscover;
         }
 
-        public void Apply(EncounterState state)
+        public void Apply(ConversationState state)
         {
             state.Player.AddKnownRoute(routeToDiscover);
         }
@@ -155,45 +154,8 @@ public class CheckMemoryEffect : IMechanicalEffect
         }
     }
 
-    public class LearnInformationEffect : IMechanicalEffect
-    {
-        private Information informationToLearn;
 
-        public LearnInformationEffect(Information informationToLearn)
-        {
-            this.informationToLearn = informationToLearn;
-        }
-
-        public void Apply(EncounterState state)
-        {
-            state.Player.LearnInformation(informationToLearn);
-        }
-
-        public string GetDescriptionForPlayer()
-        {
-            return $"Learned information about {informationToLearn.Title}";
-        }
-    }
-
-    public class SetFlagEffect : IMechanicalEffect
-    {
-        private FlagStates flagToSet;
-
-        public SetFlagEffect(FlagStates flagToSet)
-        {
-            this.flagToSet = flagToSet;
-        }
-
-        public void Apply(EncounterState state)
-        {
-            state.FlagManager.SetFlag(flagToSet);
-        }
-
-        public string GetDescriptionForPlayer()
-        {
-            return $"Sets {flagToSet.ToString().SpaceBeforeCapitals()}";
-        }
-    }
+    // Flag system removed - using connection tokens instead
 
     public class ModifyFocusEffect : IMechanicalEffect
     {
@@ -204,7 +166,7 @@ public class CheckMemoryEffect : IMechanicalEffect
             this.amount = amount;
         }
 
-        public void Apply(EncounterState state)
+        public void Apply(ConversationState state)
         {
             state.FocusPoints += amount;
             state.FocusPoints = Math.Max(0, Math.Min(state.FocusPoints, state.MaxFocusPoints));
@@ -219,25 +181,7 @@ public class CheckMemoryEffect : IMechanicalEffect
         }
     }
 
-    public class ClearFlagEffect : IMechanicalEffect
-    {
-        private FlagStates flagToClear;
-
-        public ClearFlagEffect(FlagStates flagToClear)
-        {
-            this.flagToClear = flagToClear;
-        }
-
-        public void Apply(EncounterState state)
-        {
-            state.FlagManager.ClearFlag(flagToClear);
-        }
-
-        public string GetDescriptionForPlayer()
-        {
-            return $"Clears {flagToClear.ToString().SpaceBeforeCapitals()}";
-        }
-    }
+    // Flag system removed - using connection tokens instead
 
     public class FocusChangeEffect : IMechanicalEffect
     {
@@ -248,7 +192,7 @@ public class CheckMemoryEffect : IMechanicalEffect
             this.amount = amount;
         }
 
-        public void Apply(EncounterState state)
+        public void Apply(ConversationState state)
         {
             if (amount > 0)
             {
@@ -284,14 +228,14 @@ public class CheckMemoryEffect : IMechanicalEffect
             this.amount = amount;
         }
 
-        public void Apply(EncounterState state)
+        public void Apply(ConversationState state)
         {
             state.AdvanceDuration(amount);
         }
 
         public string GetDescriptionForPlayer()
         {
-            return $"Advances encounterContext duration by {amount}";
+            return $"Advances conversation duration by {amount}";
         }
     }
 
@@ -304,9 +248,9 @@ public class CheckMemoryEffect : IMechanicalEffect
             this.amount = amount;
         }
 
-        public void Apply(EncounterState state)
+        public void Apply(ConversationState state)
         {
-            state.AddProgress(amount);
+            // Progress tracking removed - conversations use duration
         }
 
         public string GetDescriptionForPlayer()
@@ -331,7 +275,7 @@ public class CheckMemoryEffect : IMechanicalEffect
             this.effects = effects;
         }
 
-        public void Apply(EncounterState state)
+        public void Apply(ConversationState state)
         {
             foreach (IMechanicalEffect effect in effects)
             {

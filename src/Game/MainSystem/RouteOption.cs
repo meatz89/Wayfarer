@@ -1,10 +1,12 @@
-﻿
+﻿using Wayfarer.GameState.Constants;
+
 public enum WeatherCondition
 {
     Clear,
     Rain,
     Snow,
-    Fog
+    Fog,
+    Storm
 }
 
 public class RouteAccessResult
@@ -73,10 +75,13 @@ public class RouteOption
     public string Name { get; set; }
     public string Origin { get; set; }
     public string Destination { get; set; }
+    
+    // Tier system (1-5) for difficulty/content progression
+    public int Tier { get; set; } = 1;
     public TravelMethods Method { get; set; }
     public int BaseCoinCost { get; set; }
     public int BaseStaminaCost { get; set; }
-    public int TimeBlockCost { get; set; }
+    public int TravelTimeHours { get; set; }
     public TimeBlocks? DepartureTime { get; set; }
     public bool IsDiscovered { get; set; } = true;
     public List<TerrainCategory> TerrainCategories { get; set; } = new List<TerrainCategory>();
@@ -86,9 +91,13 @@ public class RouteOption
     // Route condition variations
     public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
     public RouteUnlockCondition? UnlockCondition { get; set; }
+    
+    // Alias for BaseCoinCost for backward compatibility
+    public int CoinCost => BaseCoinCost;
 
-    // Route discovery tracking
-    public int UsageCount { get; set; } = 0;
+    // Enhanced Access Requirements (in addition to terrain categories)
+    public AccessRequirement AccessRequirement { get; set; }
+    public RouteType RouteType { get; set; }
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalWeight)
     {
@@ -119,10 +128,11 @@ public class RouteOption
 
     /// <summary>
     /// Check logical route access based on equipment requirements and terrain
+    /// Note: AccessRequirement checks are done separately in TravelManager for narrative messaging
     /// </summary>
     public RouteAccessResult CheckRouteAccess(ItemRepository itemRepository, Player player, WeatherCondition weather)
     {
-        List<EquipmentCategory> playerEquipment = GetPlayerEquipmentCategories(itemRepository, player);
+        List<ItemCategory> playerEquipment = GetPlayerEquipmentCategories(itemRepository, player);
         List<string> warnings = new List<string>();
 
         // Check hard requirements first
@@ -132,15 +142,15 @@ public class RouteOption
             switch (terrain)
             {
                 case TerrainCategory.Requires_Climbing:
-                    if (!playerEquipment.Contains(EquipmentCategory.Climbing_Equipment))
+                    if (!playerEquipment.Contains(ItemCategory.Climbing_Equipment))
                         return RouteAccessResult.Blocked("Steep terrain requires climbing equipment");
                     break;
                 case TerrainCategory.Requires_Water_Transport:
-                    if (!playerEquipment.Contains(EquipmentCategory.Water_Transport))
+                    if (!playerEquipment.Contains(ItemCategory.Water_Transport))
                         return RouteAccessResult.Blocked("River crossing requires water transport");
                     break;
                 case TerrainCategory.Requires_Permission:
-                    if (!playerEquipment.Contains(EquipmentCategory.Special_Access))
+                    if (!playerEquipment.Contains(ItemCategory.Special_Access))
                         return RouteAccessResult.Blocked("Official route requires proper documentation");
                     break;
             }
@@ -162,15 +172,15 @@ public class RouteOption
             switch (terrain)
             {
                 case TerrainCategory.Wilderness_Terrain:
-                    if (!playerEquipment.Contains(EquipmentCategory.Navigation_Tools))
+                    if (!playerEquipment.Contains(ItemCategory.Navigation_Tools))
                         warnings.Add("Wilderness route without navigation tools - risk of getting lost");
                     break;
                 case TerrainCategory.Dark_Passage:
-                    if (!playerEquipment.Contains(EquipmentCategory.Light_Source))
+                    if (!playerEquipment.Contains(ItemCategory.Light_Source))
                         warnings.Add("Dark passage without light source - dangerous at night");
                     break;
                 case TerrainCategory.Heavy_Cargo_Route:
-                    if (!playerEquipment.Contains(EquipmentCategory.Load_Distribution))
+                    if (!playerEquipment.Contains(ItemCategory.Load_Distribution))
                         warnings.Add("Heavy cargo route without proper equipment - increased fatigue");
                     break;
             }
@@ -182,24 +192,24 @@ public class RouteOption
     /// <summary>
     /// Check weather and terrain interactions for logical blocking
     /// </summary>
-    private RouteAccessResult CheckWeatherTerrainInteraction(TerrainCategory terrain, WeatherCondition weather, List<EquipmentCategory> playerEquipment)
+    private RouteAccessResult CheckWeatherTerrainInteraction(TerrainCategory terrain, WeatherCondition weather, List<ItemCategory> playerEquipment)
     {
         switch (weather)
         {
             case WeatherCondition.Rain:
-                if (terrain == TerrainCategory.Exposed_Weather && !playerEquipment.Contains(EquipmentCategory.Weather_Protection))
+                if (terrain == TerrainCategory.Exposed_Weather && !playerEquipment.Contains(ItemCategory.Weather_Protection))
                     return RouteAccessResult.Blocked("Exposed terrain unsafe in rain without weather protection");
                 break;
 
             case WeatherCondition.Snow:
-                if (terrain == TerrainCategory.Exposed_Weather && !playerEquipment.Contains(EquipmentCategory.Weather_Protection))
+                if (terrain == TerrainCategory.Exposed_Weather && !playerEquipment.Contains(ItemCategory.Weather_Protection))
                     return RouteAccessResult.Blocked("Exposed terrain impassable in snow without weather protection");
-                if (terrain == TerrainCategory.Wilderness_Terrain && !playerEquipment.Contains(EquipmentCategory.Navigation_Tools))
+                if (terrain == TerrainCategory.Wilderness_Terrain && !playerEquipment.Contains(ItemCategory.Navigation_Tools))
                     return RouteAccessResult.Blocked("Wilderness routes too dangerous in snow without navigation tools");
                 break;
 
             case WeatherCondition.Fog:
-                if (terrain == TerrainCategory.Wilderness_Terrain && !playerEquipment.Contains(EquipmentCategory.Navigation_Tools))
+                if (terrain == TerrainCategory.Wilderness_Terrain && !playerEquipment.Contains(ItemCategory.Navigation_Tools))
                     return RouteAccessResult.Blocked("Cannot navigate wilderness in fog without proper tools");
                 break;
         }
@@ -214,7 +224,7 @@ public class RouteOption
 
     public int GetActualTimeCost()
     {
-        return TimeBlockCost;
+        return TravelTimeHours;
     }
 
     public int CalculateWeightAdjustedStaminaCost(int totalWeight)
@@ -222,13 +232,13 @@ public class RouteOption
         int adjustedStaminaCost = BaseStaminaCost;
 
         // Apply weight penalties
-        if (totalWeight >= 4 && totalWeight <= 6)
+        if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            adjustedStaminaCost += 1;
+            adjustedStaminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY;
         }
-        else if (totalWeight >= 7)
+        else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            adjustedStaminaCost += 2;
+            adjustedStaminaCost += GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY;
         }
 
         return adjustedStaminaCost;
@@ -259,20 +269,20 @@ public class RouteOption
         int staminaCost = BaseStaminaCost;
 
         // Physical weight penalties (realistic cargo limitations)
-        if (totalWeight >= 4 && totalWeight <= 6)
+        if (totalWeight > GameConstants.LoadWeight.LIGHT_LOAD_MAX && totalWeight <= GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            staminaCost += 1; // Moderate load
+            staminaCost += GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY; // Moderate load
         }
-        else if (totalWeight >= 7)
+        else if (totalWeight > GameConstants.LoadWeight.MEDIUM_LOAD_MAX)
         {
-            staminaCost += 2; // Heavy load
+            staminaCost += GameConstants.LoadWeight.HEAVY_LOAD_STAMINA_PENALTY; // Heavy load
         }
 
         // Overload penalties (instead of blocking - player choice with consequences)
         if (itemCount > MaxItemCapacity)
         {
             int overload = itemCount - MaxItemCapacity;
-            staminaCost += overload * 1; // +1 stamina per item over capacity
+            staminaCost += overload * GameConstants.LoadWeight.MEDIUM_LOAD_STAMINA_PENALTY; // +1 stamina per item over capacity
         }
 
         return Math.Max(1, staminaCost);
@@ -301,9 +311,9 @@ public class RouteOption
     /// <summary>
     /// Get all equipment categories from player's inventory
     /// </summary>
-    private List<EquipmentCategory> GetPlayerEquipmentCategories(ItemRepository itemRepository, Player player)
+    private List<ItemCategory> GetPlayerEquipmentCategories(ItemRepository itemRepository, Player player)
     {
-        List<EquipmentCategory> categories = new List<EquipmentCategory>();
+        List<ItemCategory> categories = new List<ItemCategory>();
 
         foreach (string itemId in player.Inventory.ItemSlots)
         {
@@ -321,7 +331,7 @@ public class RouteOption
     }
 
 
-    internal EncounterContext GetEncounter(int seed)
+    internal ConversationContext GetConversation(int seed)
     {
         return null;
     }

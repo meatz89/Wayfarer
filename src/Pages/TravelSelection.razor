@@ -1,227 +1,283 @@
 ﻿@inherits TravelSelectionBase
+@using Wayfarer.Services
 
-@inject GameWorld GameWorld
-@inject GameWorldManager GameManager
-@inject TravelManager TravelManager
+@namespace Wayfarer.Pages
 
 <div class="world-map-container">
-    <div class="travel-status">
+    @* Context-aware travel planning status *@
+    <div class="travel-status travel-context">
         @{
-            int totalWeight1 = GameManager.CalculateTotalWeight();
-            string weightClass = totalWeight1 <= 3 ? "" :
-            (totalWeight1 <= 6 ? "warning" : "danger");
-            string weightStatus = totalWeight1 <= 3 ? "Light load" :
-            (totalWeight1 <= 6 ? "Medium load (+1 stamina)" :
-            "Heavy load (+2 stamina)");
-            int coinWeight = GameWorld.GetPlayer().Coins / 10;
+            var weightClass = TravelContext?.WeightClass ?? "";
+            var weightStatus = TravelContext?.WeightStatus ?? "Light load";
+            var baseStaminaCost = TravelContext?.BaseStaminaPenalty ?? 0;
+            var currentStamina = TravelContext?.CurrentStamina ?? 0;
+            var currentEquipment = TravelContext?.CurrentEquipmentCategories ?? new List<ItemCategory>();
         }
-        <div class="weight-status @weightClass">
-            <span>Current load: @weightStatus (@totalWeight1 weight units)</span>
-        </div>
-        <div class="resource-status">
-            <span>Coins: @GameWorld.GetPlayer().Coins <span class="coin-weight">(@coinWeight weight)</span></span>
-            <span>Stamina: @GameWorld.GetPlayer().Stamina</span>
+        <div class="travel-resources">
+            <div class="resource-block stamina-block">
+                <span class="resource-icon">⚡</span>
+                <div class="resource-info">
+                    <span class="resource-main">@currentStamina stamina</span>
+                    <span class="resource-detail">Available for travel</span>
+                </div>
+            </div>
+            <div class="resource-block weight-block">
+                <span class="resource-icon">⚖️</span>
+                <div class="resource-info">
+                    <span class="resource-main @weightClass">@weightStatus</span>
+                    @if (baseStaminaCost > 0)
+                    {
+                        <span class="resource-detail warning">+@baseStaminaCost stamina per segment</span>
+                    }
+                    else
+                    {
+                        <span class="resource-detail">No stamina penalty</span>
+                    }
+                </div>
+            </div>
             @{
-                string inventoryStatus = TravelManager.GetInventoryStatusDescription();
+                var carriedLetterCount = TravelContext?.CarriedLetterCount ?? 0;
+                var hasHeavyLetters = TravelContext?.HasHeavyLetters ?? false;
+                var hasFragileLetters = TravelContext?.HasFragileLetters ?? false;
+                var hasBulkyLetters = TravelContext?.HasBulkyLetters ?? false;
+                var hasPerishableLetters = TravelContext?.HasPerishableLetters ?? false;
             }
-            <span>@inventoryStatus</span>
-        </div>
-    </div>
-
-    @* Strategic Route Analysis Section *@
-    @{
-        var routeAnalysis = AnalyzeRouteAccessibility();
-        var currentEquipment = GetCurrentEquipmentCategories();
-    }
-    
-    <div class="strategic-analysis-container">
-        <div class="strategic-section">
-            <h3>🎯 Strategic Route Analysis</h3>
-            
-            <div class="strategic-overview">
-                <div class="route-summary">
-                    <span class="accessible-routes">✅ @routeAnalysis.AccessibleRoutes.Count accessible routes</span>
-                    <span class="blocked-routes">🚫 @routeAnalysis.BlockedRoutes.Count blocked routes</span>
+            @if (carriedLetterCount > 0)
+            {
+                <div class="resource-block letter-block">
+                    <span class="resource-icon">📬</span>
+                    <div class="resource-info">
+                        <span class="resource-main">@carriedLetterCount letter@(carriedLetterCount != 1 ? "s" : "") carried</span>
+                        @if (hasHeavyLetters)
+                        {
+                            <span class="resource-detail warning">Heavy letters +1 stamina cost</span>
+                        }
+                        else if (hasBulkyLetters)
+                        {
+                            <span class="resource-detail warning">Bulky letters restrict movement</span>
+                        }
+                        else if (hasPerishableLetters)
+                        {
+                            <span class="resource-detail warning">Perishable letters - time sensitive</span>
+                        }
+                        else
+                        {
+                            <span class="resource-detail">No letter penalties</span>
+                        }
+                    </div>
+                </div>
+            }
+            <div class="resource-block equipment-block">
+                <span class="resource-icon">🛠️</span>
+                <div class="resource-info">
+                    <span class="resource-main">@currentEquipment.Count equipment types</span>
+                    <span class="resource-detail">Affects route access</span>
                 </div>
             </div>
-
-            <div class="current-equipment-summary">
-                <h4>🎒 Current Equipment Categories</h4>
-                @if (currentEquipment.Any())
-                {
-                    <div class="equipment-categories">
-                        @foreach (var category in currentEquipment)
-                        {
-                            <span class="equipment-category owned">@category.ToString().Replace('_', ' ')</span>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="no-equipment">No specialized equipment - limited to basic routes</div>
-                }
-            </div>
-
-            @if (routeAnalysis.EquipmentInvestmentOpportunities.Any())
-            {
-                <div class="equipment-investment-analysis">
-                    <h4>💡 Equipment Investment Opportunities</h4>
-                    <div class="investment-opportunities">
-                        @foreach (var opportunity in routeAnalysis.EquipmentInvestmentOpportunities.Take(3))
-                        {
-                            <div class="investment-opportunity">
-                                <div class="equipment-info">
-                                    <span class="equipment-name">@opportunity.Equipment.ToString().Replace('_', ' ')</span>
-                                    <span class="routes-unlocked">Would unlock @opportunity.RoutesUnlocked route@(opportunity.RoutesUnlocked > 1 ? "s" : "")</span>
-                                </div>
-                                <div class="unlocked-routes">
-                                    @string.Join(", ", opportunity.RouteNames)
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-
-            @if (routeAnalysis.BlockedRoutes.Any())
-            {
-                <div class="blocked-routes-summary">
-                    <h4>🔒 Currently Blocked Routes</h4>
-                    <div class="blocked-routes-list">
-                        @foreach (var blockedRoute in routeAnalysis.BlockedRoutes.Take(5))
-                        {
-                            <div class="blocked-route-item">
-                                <span class="route-name">@blockedRoute.Route.Name</span>
-                                @if (blockedRoute.MissingRequiredEquipment.Any())
-                                {
-                                    <span class="missing-equipment">
-                                        Missing: @string.Join(", ", blockedRoute.MissingRequiredEquipment.Select(eq => eq.ToString().Replace('_', ' ')))
-                                    </span>
-                                }
-                                @if (blockedRoute.WeatherBlocked)
-                                {
-                                    <span class="weather-blocked">Weather blocked</span>
-                                }
-                            </div>
-                        }
-                        @if (routeAnalysis.BlockedRoutes.Count > 5)
-                        {
-                            <div class="more-blocked">... and @(routeAnalysis.BlockedRoutes.Count - 5) more blocked routes</div>
-                        }
-                    </div>
-                </div>
-            }
         </div>
+        @if (currentStamina < 3)
+        {
+            <div class="context-warning">
+                ⚠️ Low stamina - consider resting before long journeys
+            </div>
+        }
     </div>
+
 
     <div class="locations-grid">
-        @foreach (var location in GetTravelableLocations())
+        @foreach (var destination in GetTravelableLocations())
         {
             <div class="location-card">
                 <div class="location-name">
-                    @location.Name @(location.Id == CurrentLocation.Id ? "(Current)" : "")
+                    @destination.LocationName @(destination.LocationId == CurrentLocation.Id ? "(Current)" : "")
                 </div>
                 <div class="location-routes">
                     @{
-                        var availableRoutes = TravelManager.GetAvailableRoutes(CurrentLocation.Id, location.Id);
+                        var allRoutes = destination.Routes;
+                        var lockedRoutes = allRoutes.Where(r => !r.IsDiscovered).ToList();
+                        var unlockedRoutes = allRoutes.Where(r => r.IsDiscovered).ToList();
                     }
                     
-                    @foreach (var route in availableRoutes)
+                    @foreach (var route in unlockedRoutes)
                     {
-                        var coinCost = TravelManager.CalculateCoinCost(route);
-                        var staminaCost = TravelManager.CalculateStaminaCost(route);
-                        var canAfford = TravelManager.CanTravel(route);
-                        var accessInfo = TravelManager.GetRouteAccessInfo(route);
-                        <div class="route-option @(!canAfford ? "disabled" : "") @(!accessInfo.IsAllowed ? "blocked" : "")">
+                        var coinCost = route.CoinCost;
+                        var staminaCost = route.TotalStaminaCost;
+                        var canAfford = route.CanTravel;
+                        var isBlocked = route.IsBlocked;
+                        
+                        <div class="route-option @(!canAfford ? "disabled" : "") @(isBlocked ? "blocked" : "")">
                             <div class="route-header">
                                 <div class="route-name">
-                                    @route.Name
-                                </div>
-                            </div>
-                            <div class="route-details">
-                                <div class="cost-breakdown">
-                                    <span>@coinCost coins</span>
-                                    <span>@staminaCost stamina</span>
-                                </div>
-                                @if (route.DepartureTime.HasValue)
-                                {
-                                    <span>Departs: @route.DepartureTime</span>
-                                }
-                                @if (route.TerrainCategories.Any())
-                                {
-                                    <span>Terrain: @string.Join(", ", route.TerrainCategories.Select(c => c.ToString().Replace('_', ' ')))</span>
-                                }
-                                @{
-                                    var weatherEffects = GetWeatherTerrainEffects(route.TerrainCategories, CurrentWeather);
-                                }
-                                @if (weatherEffects.Any())
-                                {
-                                    <div class="weather-effects">
-                                        <strong>Weather Effects (@GetWeatherIcon(CurrentWeather) @CurrentWeather):</strong>
-                                        @foreach (var effect in weatherEffects)
-                                        {
-                                            <div class="weather-effect">@effect</div>
-                                        }
-                                    </div>
-                                }
-                                @{
-                                    var requiredEquipment = GetRequiredEquipment(route.TerrainCategories);
-                                    var recommendedEquipment = GetRecommendedEquipment(route.TerrainCategories);
-                                }
-                                @if (requiredEquipment.Any())
-                                {
-                                    <div class="equipment-required">
-                                        <strong>Required:</strong> @string.Join(", ", requiredEquipment.Select(e => e.ToString().Replace('_', ' ')))
-                                    </div>
-                                }
-                                @if (recommendedEquipment.Any())
-                                {
-                                    <div class="equipment-recommended">
-                                        <strong>Recommended:</strong> @string.Join(", ", recommendedEquipment.Select(e => e.ToString().Replace('_', ' ')))
-                                    </div>
-                                }
-                                <span>Max items: @route.MaxItemCapacity</span>
-                                @if (route.DepartureTime.HasValue)
-                                {
-                                    <div class="departure-time">
-                                        🕐 Departs: @route.DepartureTime.Value.ToString().Replace('_', ' ')
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="departure-time">
-                                        🕐 Available anytime
-                                    </div>
-                                }
-                                @if (!accessInfo.IsAllowed)
-                                {
-                                    <div class="route-blocked">🚫 @accessInfo.BlockingReason</div>
-                                }
-                                @if (accessInfo.Warnings.Any())
-                                {
-                                    @foreach (var warning in accessInfo.Warnings)
+                                    @route.RouteName <span class="transport-method">(@GetTransportIcon(route.TransportMethod) @route.TransportMethod)</span>
+                                    @if (isBlocked)
                                     {
-                                        <div class="route-warning">⚠️ @warning</div>
+                                        <span class="blocked-indicator">🔒</span>
                                     }
-                                }
-                                @if (!string.IsNullOrEmpty(route.Description))
-                                {
-                                    <div class="route-description">@route.Description</div>
-                                }
+                                </div>
+                                <div class="route-costs">
+                                    <span class="cost-item @(!canAfford && route.CannotTravelReason?.Contains("coins") == true ? "insufficient" : "")">💰 @coinCost</span>
+                                    <span class="cost-item @(!canAfford && route.CannotTravelReason?.Contains("stamina") == true ? "insufficient" : "")">
+                                        ⚡ @staminaCost
+                                        @if (route.TotalStaminaCost > route.BaseStaminaCost)
+                                        {
+                                            <span class="penalty-note">(+@(route.TotalStaminaCost - route.BaseStaminaCost) penalty)</span>
+                                        }
+                                    </span>
+                                </div>
                             </div>
-                            @if (accessInfo.IsAllowed && canAfford)
+                            
+                            @* Display token requirements *@
+                            @{
+                                var tokenReqs = GetRouteTokenRequirements(route);
+                            }
+                            @if (tokenReqs.Any())
+                            {
+                                <div class="route-tokens">
+                                    @foreach (var (key, (required, current, displayName)) in tokenReqs)
+                                    {
+                                        var isTypeReq = key.StartsWith("type_");
+                                        var hasEnough = current >= required;
+                                        var tokenType = isTypeReq ? Enum.Parse<ConnectionType>(key.Substring(5)) : ConnectionType.Trust;
+                                        var icon = isTypeReq ? GetTokenIcon(tokenType) : "🎭";
+                                        
+                                        <span class="token-requirement @(!hasEnough ? "insufficient" : "")">
+                                            @icon @GetTokenRequirementDisplay(required, current) @displayName
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            
+                            @if (route.TerrainCategories.Any())
+                            {
+                                <div class="route-terrain">
+                                    @foreach (var terrain in route.TerrainCategories)
+                                    {
+                                        <span class="terrain-tag">@GetTerrainIcon(terrain) @terrain.ToString().Replace('_', ' ')</span>
+                                    }
+                                </div>
+                            }
+                            
+                            @* Display departure time *@
+                            @if (route.DepartureTime.HasValue)
+                            {
+                                <div class="departure-info">
+                                    🕐 @route.DepartureTime.Value.ToString().Replace('_', ' ')
+                                </div>
+                            }
+                            
+                            @* Show blocking reason and hint *@
+                            @if (isBlocked)
+                            {
+                                @if (!string.IsNullOrEmpty(route.BlockingReason))
+                                {
+                                    <div class="route-blocked">🚫 @route.BlockingReason</div>
+                                }
+                                @if (!string.IsNullOrEmpty(route.HintMessage))
+                                {
+                                    <div class="route-hint">💡 @route.HintMessage</div>
+                                }
+                            }
+                            
+                            @* Show only the most critical warning *@
+                            @{
+                                var criticalWarning = "";
+                                if (hasFragileLetters && route.TerrainCategories != null && 
+                                    (route.TerrainCategories.Contains(TerrainCategory.Requires_Climbing) || 
+                                     route.TerrainCategories.Contains(TerrainCategory.Wilderness_Terrain)))
+                                {
+                                    criticalWarning = "Fragile letters at risk on this route!";
+                                }
+                                else if (route.Warnings?.Any() == true)
+                                {
+                                    criticalWarning = route.Warnings.First();
+                                }
+                            }
+                            @if (!string.IsNullOrEmpty(criticalWarning))
+                            {
+                                <div class="route-warning">⚠️ @criticalWarning</div>
+                            }
+                            @if (!string.IsNullOrEmpty(route.Description))
+                            {
+                                <div class="route-description">@route.Description</div>
+                            }
+                            
+                            @* Show time impact for travel *@
+                            @if (route.TimeCost > 0)
+                            {
+                                var timeImpact = TimeCalculator.CalculateTimeImpact(route.TimeCost);
+                                <ActionTimePreview Hours="@timeImpact.Hours"
+                                                   CurrentTimeBlock="@timeImpact.CurrentTimeBlock"
+                                                   ResultTimeBlock="@timeImpact.ResultTimeBlock"
+                                                   WouldAdvanceDay="@timeImpact.WouldAdvanceDay"
+                                                   LettersExpiring="@timeImpact.LettersExpiring"
+                                                   ShowDeadlineWarning="true"
+                                                   ShowTimeProgression="true" />
+                            }
+                            
+                            @if (canAfford && !isBlocked)
                             {
                                 <button class="travel-button"
-                                        @onclick="() => OnTravelRoute.InvokeAsync(route)">
-                                    Travel via @route.Method
+                                        @onclick="() => HandleTravelRoute(route)">
+                                    Travel by @GetTransportIcon(route.TransportMethod) @route.TransportMethod
                                 </button>
                             }
                             else
                             {
                                 <button class="travel-button"
                                         disabled="true">
-                                    @(!accessInfo.IsAllowed ? "Blocked" : "Cannot Afford")
+                                    @(isBlocked ? "Blocked" : "Cannot Afford")
                                 </button>
+                            }
+                        </div>
+                    }
+                    
+                    @* Locked Routes Section *@
+                    @if (lockedRoutes.Any())
+                    {
+                        <div class="route-section">
+                            <h4 class="section-header">🔒 Locked Routes</h4>
+                            @foreach (var route in lockedRoutes)
+                            {
+                                var unlockOptions = route.DiscoveryOptions ?? new List<RouteDiscoveryOptionViewModel>();
+                                
+                                <div class="route-option disabled">
+                                    <div class="route-header">
+                                        <div class="route-name">
+                                            🔒 @route.RouteName <span class="transport-method">(@GetTransportIcon(route.TransportMethod) @route.TransportMethod)</span>
+                                        </div>
+                                        <div class="route-costs">
+                                            <span class="cost-item">⚡ @route.BaseStaminaCost</span>
+                                            <span class="cost-item">⏱️ @route.TimeCost hours</span>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrEmpty(route.Description))
+                                    {
+                                        <div class="route-description">@route.Description</div>
+                                    }
+                                    
+                                    @if (unlockOptions.Any())
+                                    {
+                                        <div class="route-details">
+                                            @foreach (var discovery in unlockOptions)
+                                            {
+                                                <div class="equipment-required">
+                                                    Ask @discovery.TeachingNPCName: @discovery.RequiredTokens tokens
+                                                    @if (!discovery.CanAfford)
+                                                    {
+                                                        <span class="insufficient"> (Need @discovery.RequiredTokens tokens, have @discovery.PlayerTokens)</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="route-blocked">
+                                            🚫 No one here knows this route
+                                        </div>
+                                    }
+                                </div>
                             }
                         </div>
                     }
@@ -230,3 +286,11 @@
         }
     </div>
 </div>
+
+@* Deadline Warning Modal *@
+<DeadlineWarningModal IsVisible="@ShowDeadlineWarning"
+                      TimeImpact="@PendingTimeImpact"
+                      OnConfirm="ConfirmTravelWithDeadline"
+                      OnCancel="CancelTravelWithDeadline" />
+
+

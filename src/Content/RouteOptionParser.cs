@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-
 public static class RouteOptionParser
 {
     public static RouteOption ParseRouteOption(string json)
@@ -20,7 +19,7 @@ public static class RouteOptionParser
             Destination = GetStringProperty(root, "destination", ""),
             BaseCoinCost = GetIntProperty(root, "baseCoinCost", 0),
             BaseStaminaCost = GetIntProperty(root, "baseStaminaCost", 1),
-            TimeBlockCost = GetIntProperty(root, "timeBlockCost", 1),
+            TravelTimeHours = GetIntProperty(root, "travelTimeHours", 3),
             IsDiscovered = GetBoolProperty(root, "isDiscovered", true),
             MaxItemCapacity = GetIntProperty(root, "maxItemCapacity", 3),
             Description = GetStringProperty(root, "description", "")
@@ -28,7 +27,7 @@ public static class RouteOptionParser
 
         // Parse method
         string methodStr = GetStringProperty(root, "method", "Walking");
-        if (Enum.TryParse<TravelMethods>(methodStr, true, out TravelMethods method))
+        if (EnumParser.TryParse<TravelMethods>(methodStr, out TravelMethods method))
         {
             route.Method = method;
         }
@@ -41,7 +40,7 @@ public static class RouteOptionParser
         string departureTimeStr = GetStringProperty(root, "departureTime", null);
         if (!string.IsNullOrEmpty(departureTimeStr))
         {
-            if (Enum.TryParse<TimeBlocks>(departureTimeStr, true, out TimeBlocks depTime))
+            if (EnumParser.TryParse<TimeBlocks>(departureTimeStr, out TimeBlocks depTime))
             {
                 route.DepartureTime = depTime;
             }
@@ -51,10 +50,17 @@ public static class RouteOptionParser
         List<string> categoryStrings = GetStringArray(root, "terrainCategories");
         foreach (string categoryStr in categoryStrings)
         {
-            if (Enum.TryParse<TerrainCategory>(categoryStr, out TerrainCategory category))
+            if (EnumParser.TryParse<TerrainCategory>(categoryStr, out TerrainCategory category))
             {
                 route.TerrainCategories.Add(category);
             }
+        }
+
+        // Parse access requirements
+        if (root.TryGetProperty("accessRequirement", out JsonElement accessReqElement) &&
+            accessReqElement.ValueKind == JsonValueKind.Object)
+        {
+            route.AccessRequirement = AccessRequirementParser.ParseAccessRequirement(accessReqElement);
         }
 
         return route;

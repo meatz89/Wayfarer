@@ -2,13 +2,7 @@
 {
     public int Level { get; set; } = 1;
     public int XP { get; set; } = 0;
-    public int XPToNextLevel
-    {
-        get
-        {
-            return Level * 100;
-        }
-    }
+    public int XPToNextLevel => Level * 100;
 }
 
 public class PlayerSkills
@@ -19,6 +13,11 @@ public class PlayerSkills
     {
         foreach (SkillTypes type in Enum.GetValues(typeof(SkillTypes)))
             Skills[type] = new SkillProgress();
+    }
+
+    public List<SkillTypes> GetAllSkills()
+    {
+        return Skills.Keys.ToList();
     }
 
     public int GetLevelForSkill(SkillTypes skillType)
