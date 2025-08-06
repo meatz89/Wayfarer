@@ -1,47 +1,181 @@
 # Wayfarer Session Handoff - Literary UI Implementation
-## Session Date: 2025-01-27
+## Session Date: 2025-01-27 (Updated)
 
-## 🎯 CRITICAL: Literary UI Transformation In Progress
+## 🎯 CRITICAL DESIGN CLARIFICATION: Mechanics-First Literary UI
 
-We are transforming Wayfarer from a traditional RPG interface to an immersive literary experience where **everything is felt, not displayed**.
+We are building a **mechanics-first** game where board game-like systems generate narrative content through their operation, NOT a narrative game with hidden mechanics.
 
-### Current Status as of 2025-01-27
+### 🔥 KEY UNDERSTANDING (User Clarification)
 
-#### ✅ Phase 1 COMPLETE: Backend Systems
-- **AttentionManager** - 3-point attention system implemented
-- **SceneContext** - Renamed from ConversationContext, expanded with tags
-- **Context Tags** - Pressure, Relationship, Discovery, Resource, Feeling tags
-- **ContextTagCalculator** - Created but has compilation errors (see below)
-- **Rumor System** - Complete with confidence levels and trading
-- **Attention Integration** - Conversation choices now use AttentionCost
-- **NO BACKWARDS COMPATIBILITY** - All FocusCost references removed
+The user wants:
+1. **UI exactly as shown in mockups** - Literary presentation with attention points, body language, etc.
+2. **Board game mechanics underneath** - NOT tag matching but actual SYSTEMS (like Wingspan, Spirit Island)
+3. **Content emerges from mechanics** - No hardcoded narrative, just systematic generation
+4. **Like the letter queue** - Physical slots, weight, deadlines, token burning are MECHANICS that generate narrative
 
-#### 🚧 Phase 2 PARTIAL: UI Components Created
-- **LiteraryConversationScreen** - Created but has compilation errors
-- **AttentionDisplay** - Created and working
-- **PeripheralAwareness** - Created and working
-- **InternalThoughtChoice** - Created and working
-- **BodyLanguageDisplay** - Created and working
-- **literary-ui.css** - Created and linked in _Layout.cshtml
-- **MainGameplayView** - Updated to use LiteraryConversationScreen
+### Current Implementation Status
 
-#### ❌ BLOCKING ISSUES - Must Fix First
+#### ✅ What's Working
+- **GameFacade** updated with CreateConversationViewModel populating literary properties
+- **UI Components** created (AttentionDisplay, PeripheralAwareness, etc.)
+- **ContextTagCalculator** and **RumorManager** integrated
+- Build succeeds with only warnings
 
-**ContextTagCalculator.cs compilation errors:**
-- Lines 57, 77: `GetQueueSize()` doesn't exist - need to use actual LetterQueueManager methods
-- Lines 119-122: `GetTokenCount()` only takes 1 param - need to use `GetTokensWithNPC()`
-- Lines 206, 208: Inventory doesn't have `Items` - need proper inventory access
-- Line 217: `GetActiveLetters()` doesn't exist
-- Lines 245, 248, 251: WeatherCondition enum missing values
+#### ❌ Previous Compilation Errors (NOW FIXED)
+- ContextTagCalculator methods updated to use correct APIs
+- ConversationChoice properties mapped correctly
+- GameFacade dependencies added (ContextTagCalculator, RumorManager)
 
-**LiteraryConversationScreen.cs error:**
-- Line 35: GameFacade doesn't have `ProcessConversationChoice()` - use correct method
+---
 
-**Architecture violations:**
-- Using GameFacade directly instead of GameFacade interface
-- ConversationViewModel missing literary UI properties
+## 🎲 PROPOSED BOARD GAME MECHANICS
 
-#### 📋 GitHub Kanban Board Status
+### 1. CONVERSATION SYSTEM: Pressure Differentials
+**Core Mechanics:**
+- **Pressure Pools** (0-15) for both Player and NPC
+- **3 Attention Points** allocated each turn to:
+  - **Press**: Apply pressure to NPC
+  - **Guard**: Defend against NPC pressure
+  - **Observe**: Reveal hidden information
+- **Momentum** (-5 to +5) carries between conversations
+
+**How It Generates Content:**
+- Pressure levels → body language descriptions
+- Press vs Guard differential → conversation flow
+- Observe success → reveals tiered information
+- 15 pressure = conversation breakdown
+
+**Formula:**
+```
+PressureGain = MAX(0, Attacker.Press - Defender.Guard) + FloorBonus + MomentumBonus
+```
+
+### 2. LOCATION SYSTEM: Activity Tokens
+**Core Mechanics:**
+- **Activity Tokens** (0-12) generated at dawn per location type
+- **3 Observation Dice** to allocate: Passive (d4), Active (d6), Deep (d8)
+- **Flux Cards** reveal location state changes at thresholds
+
+**How It Generates Content:**
+- High activity (9-12) → crowded, chaotic descriptions
+- Low activity (1-4) → intimate, quiet descriptions
+- Captured tokens → information discovery tiers
+- Token types → Trust/Commerce/Status/Shadow opportunities
+
+### 3. TRAVEL SYSTEM: Stamina & Segments
+**Core Mechanics:**
+- **Route Segments** with terrain-based costs (2-4 hours)
+- **Stamina Pool** (10 points) depletes per segment
+- **Weather Die** (d6) modifies travel speed
+- **Letter Weight** affects stamina drain
+
+**How It Generates Content:**
+- Terrain + Weather + Time → encounter templates
+- Stamina level → exhaustion descriptions
+- Weight burden → struggle narrative
+- Route knowledge → efficiency decisions
+
+---
+
+## 📐 CRITICAL DESIGN PRINCIPLES
+
+### Mechanics Generate Narrative (Not Vice Versa)
+- **NO** hardcoded story content
+- **NO** unique NPC dialogue per situation
+- **YES** systematic generation from mechanical state
+- **YES** template combinations based on mechanics
+
+### Everything Is Deterministic
+- Same mechanical state → same narrative output
+- Player can learn and predict systems
+- Randomness only in dice/cards, not content selection
+
+### Board Game Feel
+- Clear resource management (attention, stamina, tokens)
+- Visible state tracking (pressure, momentum, activity)
+- Strategic decisions with trade-offs
+- No hidden narrative branches
+
+---
+
+## 🛠️ IMPLEMENTATION APPROACH
+
+### Phase 1: Core Mechanical Systems
+1. **PressureDifferentialSystem** class for conversations
+2. **ActivityTokenSystem** class for locations
+3. **SegmentedTravelSystem** class for journeys
+
+### Phase 2: Template Generators
+1. **BodyLanguageGenerator** from pressure levels
+2. **AtmosphereGenerator** from activity tokens
+3. **TravelNarrativeGenerator** from segment state
+
+### Phase 3: UI Integration
+1. Map mechanical values to UI displays
+2. Show mechanics transparently (pressure bars, token counts)
+3. Keep literary descriptions as OUTPUT of mechanics
+
+---
+
+## 📊 CONTENT REQUIREMENTS
+
+### Template-Based System (67 hours total)
+- **6 NPC Archetypes** (not 30 unique personalities)
+- **168 Description Snippets** for combinations
+- **28 Travel Components** for template mixing
+- **NO unique dialogue** per NPC per situation
+
+### Scaling Strategy
+- New NPC = assign archetype (5 minutes)
+- New location = set activity pattern (10 minutes)
+- New route = define segments (5 minutes)
+- Content emerges from mechanical operation
+
+---
+
+## ⚠️ WHAT WE'RE NOT BUILDING
+
+- ❌ Tag matching systems that generate prose
+- ❌ Narrative trees with mechanical effects
+- ❌ Unique content for every situation
+- ❌ Hidden story branches
+- ❌ Special case narrative events
+
+## ✅ WHAT WE ARE BUILDING
+
+- ✅ Board game mechanics that happen to generate text
+- ✅ Resource management with narrative skin
+- ✅ Deterministic systems players can master
+- ✅ Template combinations from mechanical state
+- ✅ Literary UI as visualization of mechanics
+
+---
+
+## 🎯 Next Critical Tasks
+
+1. **Implement PressureDifferentialSystem**
+   - Create pressure tracking
+   - Build attention allocation
+   - Generate body language from pressure
+
+2. **Implement ActivityTokenSystem**
+   - Token generation per location
+   - Observation dice mechanics
+   - Information discovery tiers
+
+3. **Create Template Generators**
+   - Map mechanical states to descriptions
+   - Build combination rules
+   - Test output variety
+
+4. **Update UI Components**
+   - Display mechanical state clearly
+   - Show literary descriptions as output
+   - Maintain transparency of systems
+
+---
+
+## 📋 GitHub Kanban Board Status
 Check the project board: https://github.com/users/meatz89/projects/2
 
 **User Stories #27-36 Status:**

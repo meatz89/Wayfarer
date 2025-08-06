@@ -1,0 +1,344 @@
+/* Tag Mechanics Display - Making complexity parseable */
+
+.tag-mechanics-display {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Mechanical Primary Section */
+.mechanical-primary {
+    background: rgba(254, 253, 251, 0.95);
+    border: 2px solid var(--ink-black);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.mechanics-header {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    color: var(--ink-black);
+    border-bottom: 1px solid var(--thought-gray);
+    padding-bottom: 8px;
+}
+
+/* Tag Matrix */
+.tag-matrix {
+    display: grid;
+    gap: 12px;
+}
+
+.tag-combination {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--thought-gray);
+    transition: all 0.3s ease;
+}
+
+.tag-combination.active {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: var(--mech-attention);
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
+}
+
+.tag-combination.potential {
+    opacity: 0.6;
+    border-style: dashed;
+}
+
+.combo-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tag-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tag-badge.pressure {
+    background: rgba(220, 20, 60, 0.15);
+    color: var(--mech-pressure);
+    border: 1px solid var(--mech-pressure);
+}
+
+.tag-badge.resource {
+    background: rgba(34, 139, 34, 0.15);
+    color: var(--mech-commerce);
+    border: 1px solid var(--mech-commerce);
+}
+
+.tag-badge.relationship {
+    background: rgba(65, 105, 225, 0.15);
+    color: var(--mech-trust);
+    border: 1px solid var(--mech-trust);
+}
+
+.tag-badge.discovery {
+    background: rgba(147, 112, 219, 0.15);
+    color: var(--mech-status);
+    border: 1px solid var(--mech-status);
+}
+
+.combo-operator {
+    color: var(--thought-gray);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.combo-arrow {
+    color: var(--mech-attention);
+    font-size: 18px;
+    font-weight: bold;
+    padding: 0 12px;
+}
+
+.combo-output {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.effect-name {
+    font-weight: bold;
+    color: var(--ink-black);
+    font-size: 13px;
+}
+
+.effect-magnitude {
+    font-size: 11px;
+    color: var(--mech-attention);
+    font-style: italic;
+}
+
+/* Tag State Grid */
+.tag-state-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.tag-category-block {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--thought-gray);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.category-name {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    color: var(--thought-gray);
+}
+
+.tag-state-bar {
+    position: relative;
+    height: 40px;
+}
+
+.state-indicator {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 2;
+}
+
+.state-label {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--ink-black);
+    color: var(--parchment);
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.state-spectrum {
+    display: flex;
+    height: 24px;
+    margin-top: 16px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(to right, 
+        rgba(220, 20, 60, 0.2) 0%, 
+        rgba(255, 215, 0, 0.2) 50%, 
+        rgba(34, 139, 34, 0.2) 100%);
+}
+
+.spectrum-segment {
+    flex: 1;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.spectrum-segment:last-child {
+    border-right: none;
+}
+
+.spectrum-segment.active {
+    background: rgba(255, 215, 0, 0.5);
+}
+
+.state-pip {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background: var(--mech-attention);
+    border: 2px solid var(--ink-black);
+    border-radius: 50%;
+}
+
+/* Attention Economy */
+.attention-economy {
+    background: rgba(255, 215, 0, 0.05);
+    border: 1px solid var(--mech-attention);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+}
+
+.economy-header {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    color: var(--ink-black);
+}
+
+.attention-flows {
+    display: grid;
+    gap: 8px;
+}
+
+.attention-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto;
+    align-items: center;
+    padding: 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.attention-flow.spent {
+    opacity: 0.7;
+    background: rgba(139, 115, 85, 0.1);
+}
+
+.attention-flow.potential {
+    border: 1px dashed var(--mech-attention);
+}
+
+.flow-source, .flow-target {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.flow-arrow {
+    padding: 0 8px;
+    display: flex;
+    gap: 2px;
+}
+
+.attention-dot {
+    color: var(--mech-attention);
+    font-size: 14px;
+}
+
+.flow-value {
+    padding-left: 8px;
+    font-size: 11px;
+    color: var(--thought-gray);
+    font-style: italic;
+}
+
+/* Mechanical Feedback */
+.mechanical-feedback {
+    background: rgba(0, 0, 0, 0.03);
+    border-left: 3px solid var(--ink-black);
+    padding: 12px;
+    margin-top: 16px;
+}
+
+.mechanical-feedback h5 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.effect-list {
+    display: grid;
+    gap: 6px;
+}
+
+.effect-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+}
+
+.effect-item.warning {
+    background: rgba(255, 215, 0, 0.1);
+    border-left: 3px solid var(--mech-attention);
+}
+
+.effect-item.danger {
+    background: rgba(220, 20, 60, 0.1);
+    border-left: 3px solid var(--mech-pressure);
+}
+
+.effect-icon {
+    font-size: 16px;
+}
+
+.effect-text {
+    flex: 1;
+}
+
+.effect-source {
+    font-size: 10px;
+    color: var(--thought-gray);
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .tag-combination {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .combo-arrow {
+        transform: rotate(90deg);
+        padding: 8px 0;
+    }
+    
+    .tag-state-grid {
+        grid-template-columns: 1fr;
+    }
+}

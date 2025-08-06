@@ -105,7 +105,8 @@
       "Bash(do gh issue close $i -c \"Closing - this system is already implemented in the codebase\")",
       "mcp__playwright__browser_navigate",
       "Bash(do gh project item-delete 2 --owner meatz89 --id $id)",
-      "Bash(do gh project item-add 2 --owner meatz89 --url https://github.com/meatz89/Wayfarer/issues/$i)"
+      "Bash(do gh project item-add 2 --owner meatz89 --url https://github.com/meatz89/Wayfarer/issues/$i)",
+      "Bash(claude mcp remove:*)"
     ],
     "deny": []
   }

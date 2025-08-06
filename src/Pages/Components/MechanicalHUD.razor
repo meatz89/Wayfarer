@@ -1,0 +1,332 @@
+@using Wayfarer.GameState
+@inject GameWorld GameWorld
+@inject ConnectionTokenManager TokenManager
+@inject LetterQueueManager LetterQueueManager
+@inject ContextTagCalculator TagCalculator
+
+<div class="mechanical-hud @(IsMinimized ? "minimized" : "")">
+    @if (!IsMinimized)
+    {
+        <button class="hud-toggle" @onclick="ToggleMinimized" title="Minimize HUD">−</button>
+    }
+    else
+    {
+        <button class="hud-toggle" @onclick="ToggleMinimized" title="Expand HUD">+</button>
+    }
+    
+    <!-- Attention Resource (Always Visible) -->
+    <div class="attention-resource">
+        <div class="attention-pips">
+            @for (int i = 0; i < MaxAttention; i++)
+            {
+                <div class="attention-pip @(i < CurrentAttention ? "" : "spent") @(IsUnderPressure ? "threatened" : "")" 
+                     title="@GetAttentionTooltip(i)"></div>
+            }
+        </div>
+        @if (!IsMinimized)
+        {
+            <div class="attention-label">
+                Focus: @CurrentAttention/@MaxAttention
+            </div>
+        }
+    </div>
+    
+    @if (!IsMinimized)
+    {
+        <!-- Mechanical States Grid -->
+        <div class="mechanical-states">
+            <div class="mech-state @(DeadlinePressure > 0 ? "active" : "") @(DeadlinePressure > 75 ? "critical" : "")">
+                <div class="mech-state-label">Deadline</div>
+                <div class="mech-state-value">@FormatDeadline()</div>
+            </div>
+            
+            <div class="mech-state @(QueueSize > 0 ? "active" : "") @(QueueSize >= 6 ? "critical" : "")">
+                <div class="mech-state-label">Queue</div>
+                <div class="mech-state-value">@QueueSize/8</div>
+            </div>
+            
+            <div class="mech-state @(HasDebt ? "active critical" : "")">
+                <div class="mech-state-label">Debt</div>
+                <div class="mech-state-value">@(HasDebt ? "ACTIVE" : "Clear")</div>
+            </div>
+            
+            <div class="mech-state @(ObligationCount > 0 ? "active" : "")">
+                <div class="mech-state-label">Obligations</div>
+                <div class="mech-state-value">@ObligationCount</div>
+            </div>
+        </div>
+        
+        <!-- Token Context Display -->
+        @if (CurrentNpcId != null)
+        {
+            <div class="token-contexts">
+                @foreach (var context in GetTokenContexts())
+                {
+                    <div class="token-context @context.Type.ToString().ToLower() @(context.Count != 0 ? "active" : "")">
+                        <span class="token-icon">@GetTokenIcon(context.Type)</span>
+                        <span class="token-count @(context.Count < 0 ? "negative" : "")">@context.Count</span>
+                    </div>
+                }
+            </div>
+        }
+        
+        <!-- Active Tag Combinations -->
+        @if (ActiveCombos.Any())
+        {
+            <div class="tag-combinations">
+                @foreach (var combo in ActiveCombos)
+                {
+                    <div class="combo-active">
+                        <span>@combo.Tag1</span>
+                        <span class="combo-operator">+</span>
+                        <span>@combo.Tag2</span>
+                        <span class="combo-result">→ @combo.Effect</span>
+                    </div>
+                }
+            </div>
+        }
+        
+        <!-- Pressure Bar -->
+        <div class="pressure-bar">
+            <div class="pressure-marker" style="left: @(CombinedPressure)%"></div>
+        </div>
+        
+        <!-- Collapsible Sections -->
+        <div class="hud-section @(ShowDetails ? "" : "collapsed")">
+            <div class="hud-section-header" @onclick="ToggleDetails">
+                <span>Tag Details</span>
+                <span>@(ShowDetails ? "▼" : "▶")</span>
+            </div>
+            <div class="hud-section-content">
+                @if (ActiveTags != null)
+                {
+                    <div class="tag-detail-list">
+                        @foreach (var tagGroup in ActiveTags.GroupBy(t => t.Category))
+                        {
+                            <div class="tag-category">
+                                <div class="tag-category-name">@tagGroup.Key</div>
+                                @foreach (var tag in tagGroup)
+                                {
+                                    <span class="tag-detail @tag.Category.ToLower()">@tag.Name</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int CurrentAttention { get; set; } = 3;
+    [Parameter] public int MaxAttention { get; set; } = 3;
+    [Parameter] public string? CurrentNpcId { get; set; }
+    [Parameter] public SceneContext? CurrentScene { get; set; }
+    
+    private bool IsMinimized = false;
+    private bool ShowDetails = false;
+    private int DeadlinePressure => CalculateDeadlinePressure();
+    private int QueueSize => LetterQueueManager?.GetPlayerQueue()?.Count(l => l != null) ?? 0;
+    private bool HasDebt => CheckForDebt();
+    private int ObligationCount => GetActiveObligationCount();
+    private int CombinedPressure => CalculateCombinedPressure();
+    private bool IsUnderPressure => CombinedPressure > 50;
+    
+    private List<TagCombo> ActiveCombos = new();
+    private List<TagInfo> ActiveTags = new();
+    
+    private class TagCombo
+    {
+        public string Tag1 { get; set; }
+        public string Tag2 { get; set; }
+        public string Effect { get; set; }
+    }
+    
+    private class TagInfo
+    {
+        public string Name { get; set; }
+        public string Category { get; set; }
+    }
+    
+    private class TokenContext
+    {
+        public ConnectionType Type { get; set; }
+        public int Count { get; set; }
+    }
+    
+    protected override void OnParametersSet()
+    {
+        UpdateActiveCombos();
+        UpdateActiveTags();
+    }
+    
+    private void ToggleMinimized()
+    {
+        IsMinimized = !IsMinimized;
+    }
+    
+    private void ToggleDetails()
+    {
+        ShowDetails = !ShowDetails;
+    }
+    
+    private List<TokenContext> GetTokenContexts()
+    {
+        if (CurrentNpcId == null || TokenManager == null) 
+            return new List<TokenContext>();
+            
+        var tokens = TokenManager.GetTokensWithNPC(CurrentNpcId);
+        return Enum.GetValues<ConnectionType>()
+            .Select(type => new TokenContext 
+            { 
+                Type = type, 
+                Count = tokens.GetValueOrDefault(type, 0) 
+            })
+            .ToList();
+    }
+    
+    private string GetTokenIcon(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "🤝",
+            ConnectionType.Commerce => "💰",
+            ConnectionType.Status => "👑",
+            ConnectionType.Shadow => "🗡",
+            _ => "?"
+        };
+    }
+    
+    private string GetAttentionTooltip(int index)
+    {
+        if (index < CurrentAttention)
+            return "Available focus point";
+        else
+            return "Spent focus point";
+    }
+    
+    private int CalculateDeadlinePressure()
+    {
+        var minutesUntilDeadline = TagCalculator?.CalculateMinutesUntilDeadline() ?? 999;
+        if (minutesUntilDeadline > 360) return 0; // > 6 hours
+        if (minutesUntilDeadline > 180) return 25; // 3-6 hours
+        if (minutesUntilDeadline > 60) return 50; // 1-3 hours
+        return 100; // < 1 hour
+    }
+    
+    private bool CheckForDebt()
+    {
+        if (TokenManager == null) return false;
+        
+        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+        {
+            if (TokenManager.GetTokenCount(type) < 0)
+                return true;
+        }
+        return false;
+    }
+    
+    private int GetActiveObligationCount()
+    {
+        // TODO: Get from StandingObligationManager when available
+        return 0;
+    }
+    
+    private int CalculateCombinedPressure()
+    {
+        var pressure = 0;
+        pressure += DeadlinePressure * 0.4f;
+        pressure += Math.Min(QueueSize * 15, 60);
+        if (HasDebt) pressure += 20;
+        pressure += ObligationCount * 10;
+        return Math.Min((int)pressure, 100);
+    }
+    
+    private string FormatDeadline()
+    {
+        var minutes = TagCalculator?.CalculateMinutesUntilDeadline() ?? 999;
+        if (minutes > 999) return "None";
+        var hours = minutes / 60;
+        var mins = minutes % 60;
+        return $"{hours}h {mins}m";
+    }
+    
+    private void UpdateActiveCombos()
+    {
+        ActiveCombos.Clear();
+        
+        if (CurrentScene == null) return;
+        
+        // Detect active tag combinations
+        if (CurrentScene.PressureTags?.Contains(PressureTag.DEADLINE_IMMINENT) == true &&
+            CurrentScene.ResourceTags?.Contains(ResourceTag.STAMINA_EXHAUSTED) == true)
+        {
+            ActiveCombos.Add(new TagCombo 
+            { 
+                Tag1 = "Deadline", 
+                Tag2 = "Exhausted", 
+                Effect = "Panic" 
+            });
+        }
+        
+        if (CurrentScene.RelationshipTags?.Contains(RelationshipTag.TRUST_HIGH) == true &&
+            CurrentScene.DiscoveryTags?.Contains(DiscoveryTag.RUMOR_AVAILABLE) == true)
+        {
+            ActiveCombos.Add(new TagCombo 
+            { 
+                Tag1 = "Trust", 
+                Tag2 = "Rumors", 
+                Effect = "Info Access" 
+            });
+        }
+    }
+    
+    private void UpdateActiveTags()
+    {
+        ActiveTags.Clear();
+        
+        if (CurrentScene == null) return;
+        
+        // Add all active tags
+        if (CurrentScene.PressureTags != null)
+        {
+            foreach (var tag in CurrentScene.PressureTags)
+            {
+                ActiveTags.Add(new TagInfo { Name = tag.ToString(), Category = "Pressure" });
+            }
+        }
+        
+        if (CurrentScene.RelationshipTags != null)
+        {
+            foreach (var tag in CurrentScene.RelationshipTags)
+            {
+                ActiveTags.Add(new TagInfo { Name = tag.ToString(), Category = "Relationship" });
+            }
+        }
+        
+        if (CurrentScene.ResourceTags != null)
+        {
+            foreach (var tag in CurrentScene.ResourceTags)
+            {
+                ActiveTags.Add(new TagInfo { Name = tag.ToString(), Category = "Resource" });
+            }
+        }
+        
+        if (CurrentScene.FeelingTags != null)
+        {
+            foreach (var tag in CurrentScene.FeelingTags)
+            {
+                ActiveTags.Add(new TagInfo { Name = tag.ToString(), Category = "Feeling" });
+            }
+        }
+        
+        if (CurrentScene.DiscoveryTags != null)
+        {
+            foreach (var tag in CurrentScene.DiscoveryTags)
+            {
+                ActiveTags.Add(new TagInfo { Name = tag.ToString(), Category = "Discovery" });
+            }
+        }
+    }
+}
