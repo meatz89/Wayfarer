@@ -18,7 +18,7 @@ public class ConversationFactory
         ConnectionTokenManager tokenManager,
         NPCEmotionalStateCalculator stateCalculator,
         LetterQueueManager queueManager,
-        VerbContextualizer verbContextualizer = null)
+        VerbContextualizer verbContextualizer)
     {
         _narrativeProvider = narrativeProvider;
         _tokenManager = tokenManager;

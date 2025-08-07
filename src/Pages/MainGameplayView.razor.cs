@@ -181,13 +181,13 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
                 ConversationManager = new ConversationManager(null, null, null, null);
             }
 
-            if (OnNavigate != null)
+            if (OnNavigate != null && CurrentScreen != CurrentViews.ConversationScreen)
             {
                 Console.WriteLine($"[MainGameplayView.PollGameState] Invoking OnNavigate with ConversationScreen...");
                 OnNavigate.Invoke(CurrentViews.ConversationScreen);
                 Console.WriteLine($"[MainGameplayView.PollGameState] OnNavigate invoked successfully");
             }
-            else
+            else if (OnNavigate == null)
             {
                 Console.WriteLine($"[MainGameplayView.PollGameState] ERROR: OnNavigate is null!");
             }
@@ -196,6 +196,16 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
             Console.WriteLine($"[MainGameplayView.PollGameState] Calling StateHasChanged...");
             StateHasChanged();
             Console.WriteLine($"[MainGameplayView.PollGameState] StateHasChanged completed");
+        }
+        else if (CurrentScreen == CurrentViews.ConversationScreen && (CurrentConversation == null || CurrentConversation.IsComplete))
+        {
+            // Conversation ended - return to LocationScreen
+            Console.WriteLine("[MainGameplayView.PollGameState] Conversation ended - returning to LocationScreen");
+            if (OnNavigate != null)
+            {
+                OnNavigate.Invoke(CurrentViews.LocationScreen);
+                StateHasChanged();
+            }
         }
 
         // Update travel destinations
@@ -586,6 +596,13 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public void HandleNavigation(CurrentViews view)
     {
         OnNavigate?.Invoke(view);
+        StateHasChanged();
+    }
+
+    public void HandleConversationEnd()
+    {
+        Console.WriteLine("[MainGameplayView] HandleConversationEnd called - navigating to LocationScreen");
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
         StateHasChanged();
     }
 

@@ -14,7 +14,7 @@
         break;
 
     case CurrentViews.ConversationScreen:
-        <ConversationScreen NpcId="@SelectedNpcId" />
+        <ConversationScreen NpcId="@SelectedNpcId" OnConversationEnd="@HandleConversationEnd" />
         break;
 
     case CurrentViews.LocationScreen:

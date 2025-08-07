@@ -11,7 +11,7 @@
 		},
 		"domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
 		"locationSpots": [ "central_fountain", "copper_kettle", "merchant_stall", "north_road" ],
-		"connectedTo": [ "noble_district", "merchant_row", "riverside" ],
+		"connectedTo": [ "noble_district", "merchant_row", "riverside", "city_gates" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],
@@ -69,6 +69,29 @@
 		}
 	},
 	{
+		"id": "city_gates",
+		"name": "City Gates",
+		"description": "Guards check papers. Travelers rest before journeys. The road stretches beyond.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "BUSY", "EDGE" ],
+			"afternoon": [ "WELL-LIT", "BUSY", "EDGE" ],
+			"evening": [ "SHADOWY", "QUIET", "EDGE" ],
+			"night": [ "DARK", "GUARDED", "EDGE" ]
+		},
+		"domainTags": [ "TRAVEL", "EDGE", "TRANSITION" ],
+		"locationSpots": [ "gate_entrance", "traveler_rest" ],
+		"connectedTo": [ "market_square", "merchant_row" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Public",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": ["Guard"],
+			"Afternoon": ["Guard", "Traveler"],
+			"Evening": ["Guard"],
+			"Night": ["Guard"]
+		}
+	},
+	{
 		"id": "riverside",
 		"name": "Riverside",
 		"description": "The sound of flowing water. Willow trees bend over the path.",
@@ -80,7 +103,7 @@
 		},
 		"domainTags": [ "TRAVEL", "NATURE", "ISOLATED" ],
 		"locationSpots": [ "willow_bend" ],
-		"connectedTo": [ "market_square" ],
+		"connectedTo": [ "market_square", "city_gates" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],

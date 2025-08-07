@@ -47,6 +47,7 @@ public class ConversationChoiceGenerator
         // Special handling for Elena conversation (temporary for mockup)
         if (context?.TargetNPC != null && context.TargetNPC.ID == "elena")
         {
+            Console.WriteLine("[WARNING] Using hardcoded Elena choices - should be using VerbContextualizer");
             return GenerateElenaChoices(context, state);
         }
 

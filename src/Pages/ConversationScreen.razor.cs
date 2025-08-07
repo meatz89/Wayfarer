@@ -11,6 +11,7 @@ public class ConversationScreenBase : ComponentBase
     [Inject] protected NavigationManager Navigation { get; set; }
     
     [Parameter] public string NpcId { get; set; }
+    [Parameter] public Action OnConversationEnd { get; set; }
     
     protected ConversationViewModel Model { get; set; }
     
@@ -66,8 +67,8 @@ public class ConversationScreenBase : ComponentBase
             else
             {
                 Console.WriteLine($"[ConversationScreen] Conversation ended after choice");
-                // Navigate back to main screen or letter queue
-                Navigation.NavigateTo("/");
+                // Notify parent that conversation has ended
+                OnConversationEnd?.Invoke();
             }
         }
         catch (Exception ex)

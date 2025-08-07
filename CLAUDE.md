@@ -96,7 +96,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - After each change, run the tests to check for broken functionality. Never commit while tests are failing
 - **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
 - You must run all tests and execute the game and do quick smoke tests before every commit
-- **E2E TEST** - Run E2E test before any changes to catch ALL startup and runtime issues. The test is in `/mnt/c/git/Wayfarer.E2ETests/`. Run with: `cd /mnt/c/git/Wayfarer.E2ETests && dotnet run`. This single test validates GameWorld creation, web server startup, and all critical services. If this test passes, the game will start without errors.
 - **Never keep legacy code for compatibility**
 - **NEVER use suffixes like "New", "Revised", "V2", etc.** - Replace old implementations completely and use the correct final name immediately. Delete old code, don't leave it behind.
 - **NEVER use Compile Remove in .csproj files** - This hides compilation errors and mistakes. Fix the code, rename files, or delete them entirely. Using Remove patterns in project files masks problems instead of solving them.

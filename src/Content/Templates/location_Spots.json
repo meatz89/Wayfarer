@@ -70,5 +70,23 @@
 		"locationId": "riverside",
 		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
 		"domainTags": [ "NATURE", "TRAVEL", "PEACEFUL" ]
+	},
+	{
+		"id": "gate_entrance",
+		"name": "Gate Entrance",
+		"description": "The main entrance to the city. Guards check papers while travelers come and go.",
+		"initialState": "Guards in uniform stand at attention. A steady stream of people pass through the gates.",
+		"locationId": "city_gates",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "TRAVEL", "OFFICIAL", "EDGE" ]
+	},
+	{
+		"id": "traveler_rest",
+		"name": "Traveler's Rest",
+		"description": "A small area near the gates where travelers prepare for journeys or rest after arrival.",
+		"initialState": "Travelers checking supplies. Horses being watered. The bustle of preparation.",
+		"locationId": "city_gates",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening" ],
+		"domainTags": [ "TRAVEL", "REST", "TRANSITION" ]
 	}
 ]
