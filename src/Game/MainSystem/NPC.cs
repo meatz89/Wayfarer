@@ -57,4 +57,32 @@ public class NPC
         // NPCs are available at their assigned location
         return !string.IsNullOrEmpty(spotID) && Location == spotID;
     }
+
+    // Letter generation methods for VerbContextualizer
+    public bool HasLetterToSend()
+    {
+        // Simple logic: NPCs have letters occasionally
+        // In full implementation, would check NPC state, relationships, etc.
+        return new Random().Next(3) == 0; // 33% chance
+    }
+
+    public Letter GenerateLetter()
+    {
+        // Generate a simple letter from this NPC
+        var letter = new Letter
+        {
+            Id = Guid.NewGuid().ToString(),
+            SenderId = this.ID,
+            SenderName = this.Name,
+            RecipientId = "player_contact_" + new Random().Next(1, 5),
+            RecipientName = "Contact " + new Random().Next(1, 5),
+            Description = $"Letter from {Name} about {Profession} matters",
+            TokenType = LetterTokenTypes.FirstOrDefault(),
+            Stakes = StakeType.REPUTATION,
+            DeadlineInDays = new Random().Next(2, 7),
+            QueuePosition = 6, // Add to back of queue
+            State = LetterState.Offered
+        };
+        return letter;
+    }
 }

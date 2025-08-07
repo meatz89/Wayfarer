@@ -57,13 +57,6 @@ public class Phase2_LocationDependents : IInitializationPhase
                         continue;
                     }
 
-                    // Parse spot type
-                    if (!Enum.TryParse<LocationSpotTypes>(dto.Type, true, out LocationSpotTypes spotType))
-                    {
-                        context.Warnings.Add($"Invalid spot type '{dto.Type}' for {dto.Id}, skipping");
-                        continue;
-                    }
-
                     // Parse time blocks
                     List<TimeBlocks> timeBlocks = new List<TimeBlocks>();
                     foreach (string timeStr in dto.CurrentTimeBlocks ?? new List<string>())
@@ -78,12 +71,11 @@ public class Phase2_LocationDependents : IInitializationPhase
                         }
                     }
 
-                    // Create spot using the ID-based method
+                    // Create spot using the factory (type parameter removed)
                     LocationSpot spot = spotFactory.CreateLocationSpotFromIds(
                         dto.Id,
                         dto.Name,
                         dto.LocationId,
-                        spotType,
                         locations, // Pass available locations
                         dto.Description,
                         dto.InitialState,

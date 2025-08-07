@@ -51,15 +51,7 @@ public class LocationSpotRepository
             .ToList();
     }
 
-    /// <summary>
-    /// Get all location spots of a specific type.
-    /// </summary>
-    public List<LocationSpot> GetSpotsByType(LocationSpotTypes type)
-    {
-        return _gameWorld.WorldState.locationSpots
-            .Where(s => s.Type == type)
-            .ToList();
-    }
+    // Type-based queries removed - LocationSpotTypes no longer used
 
     /// <summary>
     /// Get all location spots that are available at the specified time.

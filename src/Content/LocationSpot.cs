@@ -6,7 +6,6 @@ public class LocationSpot
     public string Name { get; set; }
     public string Description { get; set; }
     public string LocationId { get; set; }
-    public LocationSpotTypes Type { get; set; }
 
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;

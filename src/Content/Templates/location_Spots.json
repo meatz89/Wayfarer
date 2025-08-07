@@ -2,7 +2,6 @@
 	{
 		"id": "copper_kettle",
 		"name": "Copper Kettle Tavern",
-		"type": "FEATURE",
 		"description": "Warm firelight. Clinking mugs. Low conversations blend with lute music. Smell of roasted meat.",
 		"initialState": "A cozy tavern with a large copper kettle hanging over the hearth. Tables scattered throughout.",
 		"locationId": "market_square",
@@ -12,7 +11,6 @@
 	{
 		"id": "central_fountain",
 		"name": "Central Fountain",
-		"type": "FEATURE",
 		"description": "The heart of Market Square, where water sparkles in the sunlight and people gather.",
 		"initialState": "An ornate fountain with clear water. Benches around the edges where people rest.",
 		"locationId": "market_square",
@@ -22,7 +20,6 @@
 	{
 		"id": "merchant_stall",
 		"name": "Marcus's Stall",
-		"type": "FEATURE",
 		"description": "A well-organized merchant stall displaying various goods and wares.",
 		"initialState": "Neat rows of merchandise. Marcus arranging his display with practiced efficiency.",
 		"locationId": "market_square",
@@ -32,7 +29,6 @@
 	{
 		"id": "north_road",
 		"name": "North Road Entrance",
-		"type": "FEATURE",
 		"description": "The guarded entrance to the north road, currently blocked by city guards.",
 		"initialState": "Guards in uniform stand watch, checking papers and questioning travelers.",
 		"locationId": "market_square",
@@ -42,7 +38,6 @@
 	{
 		"id": "aldwin_manor",
 		"name": "Lord Aldwin's Manor",
-		"type": "FEATURE",
 		"description": "An imposing manor house with high walls and formal gardens.",
 		"initialState": "Pristine gardens and marble steps leading to an ornate door. Guards patrol the perimeter.",
 		"locationId": "noble_district",
@@ -52,7 +47,6 @@
 	{
 		"id": "blackwood_estate",
 		"name": "Lord Blackwood's Estate",
-		"type": "FEATURE",
 		"description": "A grand estate known for hosting influential gatherings and political dealings.",
 		"initialState": "Impressive architecture with tall windows. The sound of a fountain echoes from within.",
 		"locationId": "noble_district",
@@ -62,7 +56,6 @@
 	{
 		"id": "shops",
 		"name": "Various Shops",
-		"type": "FEATURE",
 		"description": "A row of shops selling everything from spices to leather goods.",
 		"initialState": "Busy shopkeepers calling out their wares. The smell of various goods mingles in the air.",
 		"locationId": "merchant_row",
@@ -72,7 +65,6 @@
 	{
 		"id": "willow_bend",
 		"name": "Willow Bend",
-		"type": "FEATURE",
 		"description": "A peaceful bend in the river road, shaded by ancient willow trees.",
 		"initialState": "Dappled sunlight through willow branches. The river flows quietly nearby.",
 		"locationId": "riverside",

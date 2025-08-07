@@ -553,7 +553,6 @@ public static class GameWorldSerializer
         {
             id = spot.SpotID,
             name = spot.Name,
-            type = spot.Type,
             description = spot.Description,
             locationId = spot.LocationId,
             currentLevel = spot.CurrentLevel,

@@ -1,223 +1,142 @@
-# Wayfarer Session Handoff - Literary UI Implementation
-## Session Date: 2025-01-06 (Last Updated: 2025-01-28)
+# Wayfarer Session Handoff - UI Mockup Implementation
+## Session Date: 2025-01-28
 
-# CURRENT STATE: UI Mockups NOT Showing with Systemic Generation
+# 🎯 OBJECTIVE: Show EXACT UI Mockups with Systemic Generation
 
-## 🚨 CRITICAL ISSUES IDENTIFIED (2025-01-28)
+## ❌ CURRENT STATUS: NOT WORKING
+The game fails to start with `GameWorldInitializationException: 'Critical phase 2 (Location-Dependent Entities) failed'`
 
-### The Problem
-User wants to see the EXACT UI mockups from `/UI-MOCKUPS/` folder when the game starts, with ALL content dynamically generated from game systems. Currently:
-- Game starts with old UI pages (CharacterCreation, MissingReferences)
-- No initial letters in queue
-- Conversations don't show systemic choices
-- NPCs and locations aren't properly initialized
+## 🔧 WORK COMPLETED THIS SESSION
 
-### What the Mockups Show
+### 1. Created Minimal JSON Content for Mockups
+- **npcs.json**: Elena, Marcus, Bertram, Lord Aldwin, Viktor, Garrett, Lord Blackwood
+- **locations.json**: Market Square, Noble District, Merchant Row, Riverside  
+- **location_spots.json**: Copper Kettle, Central Fountain, merchant stalls, etc (removed legacy "type" field)
+- **letter_templates.json**: 5 letter templates matching mockup scenario
+- **gameWorld.json**: Start at Copper Kettle at 3:45 PM (15.75 hours)
+- **standing_obligations.json**: Cleared to empty array
 
-#### 1. **Conversation Screen (Elena at Copper Kettle)**
-From `/UI-MOCKUPS/conversation-elena.html`:
-- Attention bar with 3 dots (2 available, 1 spent)
-- Peripheral awareness: "⚡ Lord B: 2h 15m"
-- Elena DESPERATE: "leaning forward, fingers worrying her shawl"
-- Dialogue: "The letter contains Lord Aldwin's marriage proposal. My refusal..."
-- 5 systemic choices with mechanical effects:
-  - Free: "I understand. Your letter is second in my queue."
-  - 1 Att: "I'll prioritize your letter..." (⚠ Burns 1 Status)
-  - 1 Att: "Tell me about the situation..." (ℹ Gain rumor)
-  - 2 Att: "I swear I'll deliver..." (⛓ Creates obligation)
-  - 3 Att: [Locked] "Let me investigate..."
+### 2. Fixed LocationSpotFactory
+- Removed LocationSpotTypes type parameter from all methods
+- `CreateLocationSpot()` no longer requires type
+- `CreateLocationSpotFromIds()` no longer requires type
+- `CreateMinimalSpot()` no longer sets Type property
+- Phase2_LocationDependents updated to use fixed factory
 
-#### 2. **Location Screen**
-From `/UI-MOCKUPS/location-screens.html`:
-- Time bar: "Morning (9:00 AM)" with "Next deadline: 2h 15m"
-- NPCs present with emotional states
-- Action cards with time/cost indicators
-- Atmosphere tags
+### 3. Created Phase8_InitialLetters
+- Adds 5 letters directly to Player.LetterQueue array:
+  1. Elena's marriage refusal (pos 1, REPUTATION stakes, 2 day deadline)
+  2. Lord Blackwood's urgent letter (pos 2, REPUTATION, 2 days)
+  3. Marcus's trade deal (pos 3, WEALTH, 3 days)
+  4. Viktor's security report (pos 5, SAFETY, 6 days)
+  5. Garrett's mysterious package (pos 6, SECRET, 12 days)
 
-## 🔧 WORK COMPLETED THIS SESSION (2025-01-28)
+### 4. Updated GameUI to Show Letter Queue
+- Changed default view from LocationScreen to LetterQueueScreen
+- Removed GetDefaultView() logic that checked for Dawn/tutorial
+- GameUI.razor.cs now starts with `CurrentViews.LetterQueueScreen`
 
-### 1. Fixed Circular Dependencies
-- **Problem**: NPCEmotionalStateCalculator → LetterQueueManager → ConversationFactory → DeterministicNarrativeProvider → VerbContextualizer → NPCEmotionalStateCalculator
-- **Solution**: 
-  - Removed ConversationFactory dependency from LetterQueueManager
-  - Converted async methods to sync (PrepareSkipAction, PreparePurgeAction)
-  - VerbContextualizer now receives NPCEmotionalStateCalculator as parameter
+## ⚠️ REMAINING ISSUES
 
-### 2. Refactored Type-Unsafe Metadata Dictionary
-- **Problem**: GameWorld used Dictionary<string, object> for metadata (type-unsafe)
-- **Solution**: Created strongly typed `PendingQueueState` class:
-  ```csharp
-  public class PendingQueueState {
-      public QueueActionType? PendingAction { get; set; }
-      public int? PendingSkipPosition { get; set; }
-      public PurgeTokenSelection PendingPurgeTokens { get; set; }
-      public HashSet<string> NPCsWithSecrets { get; set; }
-  }
-  ```
-- Created `PurgeTokenSelection` with strongly typed properties (no dictionaries!)
-- Updated all references to use typed properties
+### 1. Build/Startup Errors
+- Phase 2 initialization failing (even after removing type field)
+- Need to verify all JSON validators work with new structure
+- LocationSpotValidator may still check for "type" field
 
-### 3. Fixed Build Issues
-- Created `/src/Models/TokenChange.cs` to fix compilation errors
-- Fixed port conflict (changed from 5011 to 5089)
-- Game now builds and starts successfully
+### 2. Missing UI Implementation
+The following screens need to match EXACT mockups:
+- **LetterQueueScreen**: Show 8 slots with letters, deadlines, peripheral awareness
+- **ConversationScreen**: Attention dots, body language, systemic choices
+- **LocationScreen**: NPCs with emotional states, action cards
 
-### 4. Literary UI System Implementation
-The complete conversation-as-mechanics system is implemented:
+### 3. Systemic Generation Not Connected
+- VerbContextualizer exists but not wired to UI
+- NPCEmotionalStateCalculator not calculating from letters
+- Choices still using templates, not queue state
 
-#### VerbContextualizer.cs
-- Generates ALL choices from queue state, tokens, NPCs, obligations
-- 4 hidden verbs (PLACATE, EXTRACT, DEFLECT, COMMIT)
-- Contextual filtering ensures max 5 choices
-- Attention economy (0/1 points) gates discovery
+## 📋 WHAT NEEDS TO BE DONE
 
-#### ConversationEffects.cs (15+ effect classes)
-- LetterReorderEffect, GainTokensEffect, BurnTokensEffect
-- AcceptLetterEffect, ExtendDeadlineEffect, ShareInformationEffect
-- CreateObligationEffect, UnlockRoutesEffect, UnlockNPCEffect
-- UnlockLocationEffect, DiscoverRouteEffect
+### STEP 1: Fix Initialization Error
+```bash
+# Debug Phase 2 error
+dotnet run 2>&1 | grep -A 20 "PHASE 2"
+```
+- Check if LocationSpotValidator still requires "type" field
+- Verify all JSON files are valid
+- Fix any remaining type references
 
-#### NPCConversationExtensions.cs
-- Extension methods for dynamic content generation
-- HasLetterToSend(), GenerateLetter(), GetContact()
-- GetSecretRoute(), HasObligationTo()
+### STEP 2: Create/Update UI Components
 
-## ❌ WHAT'S STILL NOT WORKING
+#### LetterQueueScreen.razor
+Must show:
+- 8 queue slots with visual letters
+- Deadline warnings ("⚡ Lord B: 2h 15m")
+- NPCs at current location
+- Click NPC → start conversation
 
-### 1. Game Doesn't Start with Mockup UI
-- **Current**: Starts with GameUI.razor showing CharacterCreation/MissingReferences
-- **Needed**: Should start with LetterQueueScreen showing 5 letters
+#### ConversationScreen.razor  
+Must show:
+- Attention bar (3 dots, show spent/available)
+- Character name and body language
+- Dialogue from letter stakes
+- 5 choices with mechanical effects
+- Bottom status bar
 
-### 2. No Initial Game State
-- **Current**: Empty queue, no NPCs initialized
-- **Needed**: 
-  - 5 letters (Elena/Marcus/Viktor/Aldwin/Garrett)
-  - NPCs at Copper Kettle
-  - Time at 9 AM
-  - 3 attention points
-
-### 3. Conversations Not Using Systemic Generation
-- **Current**: DeterministicNarrativeProvider calls VerbContextualizer but choices may not display
-- **Needed**: Choices should show in UI with mechanical effects
-
-## 📋 IMPLEMENTATION PLAN TO FIX
-
-### Step 1: Initialize Game with Proper State
-Create or update GameWorldInitializer to:
+### STEP 3: Wire Systemic Generation
 ```csharp
-// Add 5 initial letters
-queue.Add(new Letter {
-    SenderId = "elena", SenderName = "Elena",
-    TokenType = ConnectionType.Trust,
-    Stakes = StakeType.REPUTATION,
-    DeadlineInDays = 0.1f, // 2 hours
-    Size = SizeCategory.Medium
-});
-// Add Marcus, Viktor, Aldwin, Garrett letters...
-
-// Initialize NPCs
-world.NPCs.Add(new NPC { 
-    ID = "elena", Name = "Elena",
-    Location = "copper_kettle"
-});
-// Add Marcus, Viktor...
-
-// Set starting location
-player.CurrentLocationSpot = copperKettleSpot;
-player.CurrentTime = TimeBlocks.Morning;
+// In GameFacade.StartConversation()
+var choices = _verbContextualizer.GenerateChoicesFromQueueState(
+    npc, 
+    _attentionManager, 
+    _emotionalStateCalculator
+);
 ```
 
-### Step 2: Change Default UI
-Update GameUI.razor:
-```csharp
-@if (CurrentView == CurrentViews.LetterQueue) // DEFAULT
-{
-    <LetterQueueScreen />
-}
-```
+### STEP 4: Test Full Flow
+1. Game starts → LetterQueueScreen shows
+2. See 5 letters in queue
+3. Click Elena → ConversationScreen opens
+4. Elena shows DESPERATE state
+5. Choices generated from queue state
+6. Mechanical effects visible
 
-### Step 3: Create/Update LetterQueueScreen
-Match the mockup exactly:
-- Show 8 queue slots with letters
-- Display peripheral awareness (deadlines)
-- Show NPCs at current location
-- Action buttons for each NPC
+## 🚨 CRITICAL NOTES
 
-### Step 4: Fix ConversationScreen
-Ensure it:
-- Shows attention bar (3 dots)
-- Displays choices from VerbContextualizer
-- Shows mechanical effects for each choice
-- Matches mockup styling
+### User Frustration Points
+1. **"FUCKING USE SPOTFACTORY"** - Must use factory, not create spots directly
+2. **"remove the fucking field as it is legacy"** - Type field completely removed
+3. **"i hate dictionaries"** - All metadata replaced with strongly typed classes
+4. **"when i start the fucking game in browser, i want to see THE EXACT UI PAGES FROM OUR MOCK-UPS!"**
 
-### Step 5: Wire Everything Together
-- GameFacade.StartConversation() should use VerbContextualizer
-- Choices should display with proper mechanical effects
-- Navigation should flow: Queue → Conversation → Queue
+### Architecture Rules (from CLAUDE.md)
+- GameWorld has NO dependencies
+- Everything through DI (no `new()` in constructors)
+- No dictionaries, use strongly typed objects
+- Delete legacy code completely
+- ALWAYS test before claiming complete
 
 ## 🎯 SUCCESS CRITERIA
 
-When starting the game at http://localhost:5089, user should see:
-1. **Queue with 5 letters** (Elena, Marcus, Viktor, Aldwin, Garrett)
-2. **Copper Kettle location** with NPCs present
-3. **Click Elena** → See DESPERATE state conversation
-4. **Choices generated from queue state**, not templates
-5. **Mechanical effects visible** on each choice
-6. **Attention economy working** (3 dots, costs shown)
+When running `dotnet run` at http://localhost:5089:
 
-## 🚀 QUICK TEST COMMANDS
+✅ Game starts without errors
+✅ Shows LetterQueueScreen with 5 letters
+✅ Player at Copper Kettle Tavern
+✅ Time shows 3:45 PM (TUE)
+✅ Elena present and clickable
+✅ Conversation shows DESPERATE state
+✅ Choices generated from queue, not templates
+✅ Attention economy working (3 dots)
+✅ Mechanical effects visible on choices
 
-```bash
-# Build and run
-cd /mnt/c/git/wayfarer/src
-dotnet build
-dotnet run
-
-# Game should start at http://localhost:5089
-# Should see queue with letters, not character creation
-```
-
-## 📊 Architecture Reminders
-
-### CRITICAL Rules
-1. **NO dictionaries** - User hates them, use strongly typed objects
-2. **NO `new()` in constructors** - Everything through DI
-3. **GameWorld has NO dependencies** - It's the root
-4. **UI uses GameFacade only** - Never inject services directly
-5. **Delete legacy code** - No compatibility layers
-
-### Key Classes
-- `VerbContextualizer` - Generates choices from game state
-- `NPCEmotionalStateCalculator` - NPC states from letters
-- `PendingQueueState` - Strongly typed queue actions
-- `ConversationEffects` - All mechanical effect classes
+## 🔴 CURRENT BLOCKER
+Phase 2 initialization error prevents game from starting. Must fix this first before any UI work can be tested.
 
 ## 📝 Next Session Priority
+1. Fix Phase 2 initialization error
+2. Verify game starts
+3. Update UI components to match mockups
+4. Test full flow end-to-end
+5. Ensure systemic generation working
 
-**MANDATORY: Make the game show the EXACT UI mockups with systemic generation**
-1. Initialize game with 5 letters and NPCs
-2. Show LetterQueueScreen by default
-3. Generate choices from VerbContextualizer
-4. Display mechanical effects
-5. Test that everything is dynamic, not static
-
-The backend systems are complete. The UI components exist. They just need to be connected and shown by default with proper initial state.
-
-## Key Files Modified This Session
-- `/src/GameState/PendingQueueState.cs` - Created (strongly typed)
-- `/src/GameState/GameWorld.cs` - Removed metadata dictionary
-- `/src/GameState/LetterQueueManager.cs` - Removed ConversationFactory dependency
-- `/src/Services/GameFacade.cs` - Updated for typed state
-- `/src/Game/ConversationSystem/VerbContextualizer.cs` - Fixed circular dependency
-- `/src/Game/ConversationSystem/DeterministicNarrativeProvider.cs` - Pass stateCalculator
-- `/src/Properties/launchSettings.json` - Changed port to 5089
-- `/src/Models/TokenChange.cs` - Created for compilation fix
-
-## Previous Session Work (Still Valid)
-- Complete Literary UI backend implementation
-- VerbContextualizer generates choices from queue state
-- 15+ mechanical effect classes
-- NPCEmotionalStateCalculator working
-- Attention economy implemented
-
-The systems are built. The UI exists. We just need to SHOW IT with proper initialization!
+The backend systems are built. The JSON content exists. The initialization is failing. Fix that first, then connect the UI.

@@ -9,7 +9,7 @@ public class LocationSpotValidator : IContentValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "name", "locationId", "type"
+            "id", "name", "locationId"
         };
 
     public bool CanValidate(string fileName)
@@ -84,20 +84,7 @@ public class LocationSpotValidator : IContentValidator
             }
         }
 
-        // Validate type
-        if (spot.TryGetProperty("type", out JsonElement type) &&
-            type.ValueKind == JsonValueKind.String)
-        {
-            string? typeStr = type.GetString();
-            if (!string.IsNullOrEmpty(typeStr) &&
-                !EnumParser.TryParse<LocationSpotTypes>(typeStr, out _))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:{spotId}",
-                    $"Invalid location spot type: '{typeStr}'",
-                    ValidationSeverity.Critical));
-            }
-        }
+        // Type field removed - no longer needed
 
         // Validate CurrentTimeBlocks array (capital C to match JSON)
         if (spot.TryGetProperty("CurrentTimeBlocks", out JsonElement timeBlocks) &&

@@ -25,7 +25,6 @@ public static class LocationSpotParser
             Description = GetStringProperty(root, "description", ""),
             InitialState = GetStringProperty(root, "initialState", ""),
             LocationId = locationId,
-            Type = EnumParser.Parse<LocationSpotTypes>(GetStringProperty(root, "type", "FEATURE"), "LocationSpot.Type"),
             DomainTags = GetStringArrayFromProperty(root, "domainTags"),
             PreferredApproach = GetStringProperty(root, "preferredApproach", null),
             DislikedApproach = GetStringProperty(root, "dislikedApproach", null),

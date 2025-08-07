@@ -1,262 +1,198 @@
 @page "/queue"
 @inherits MainGameplayViewBase
 
-@* All services now accessed through GameFacade in base class *@
-
 <div class="letter-queue-screen">
-    <div class="screen-header">
-        <h1>📬 Letter Queue Management</h1>
-        <p class="queue-subtitle">Your current obligations and delivery priorities</p>
-    </div>
-    
-    <div class="queue-main-content">
-        @* Primary Queue Display *@
-        <div class="queue-section">
-            <LetterQueueDisplay />
+    <div class="header">
+        <div class="time-bar">
+            <span>@GetCurrentTime()</span>
+            <span class="deadline-timer">@GetNextDeadline()</span>
         </div>
-        
-        @* Carried Information Display *@
-        <div class="carried-information-section">
-            <h3>📜 Carried Information Letters</h3>
-            @{
-                var carriedLetters = GameFacade.GetPlayer().CarriedLetters
-                    .Where(l => l.SpecialType == LetterSpecialType.Information)
-                    .ToList();
-                    
-                if (carriedLetters.Any())
+    </div>
+
+    <div class="location-header">
+        <div class="location-path">
+            <span>Market Square</span>
+            <span>→</span>
+            <span>West Side</span>
+        </div>
+        <div class="location-name">Copper Kettle Tavern</div>
+        <div class="location-tags">
+            <span class="tag atmosphere">🔥 Hearth-warmed</span>
+            <span class="tag">🍺 Ale-scented</span>
+            <span class="tag">🎵 Music drifting</span>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div class="atmosphere-text">
+            Warm firelight. Clinking mugs. Low conversations blend with lute music. Smell of roasted meat.
+        </div>
+
+        @* Letter Queue Display *@
+        <div class="queue-section">
+            <h3>📬 Letter Queue</h3>
+            <div class="queue-slots">
+                @for (int i = 0; i < 8; i++)
                 {
-                    <div class="information-grid">
-                        @foreach (var letter in carriedLetters)
+                    var letter = GetLetterAtPosition(i + 1);
+                    <div class="queue-slot @(letter != null ? "occupied" : "empty") @(i == 0 ? "deliverable" : "")">
+                        <div class="slot-number">@(i + 1)</div>
+                        @if (letter != null)
                         {
-                            <div class="information-item">
-                                <div class="information-header">
-                                    <span class="information-icon">🔍</span>
-                                    <span class="information-sender">From @letter.SenderName</span>
-                                    <span class="information-recipient">To @letter.RecipientName</span>
+                            <div class="letter-card">
+                                <div class="letter-header">
+                                    <span class="letter-sender">@letter.SenderName</span>
+                                    <span class="letter-arrow">→</span>
+                                    <span class="letter-recipient">@letter.RecipientName</span>
                                 </div>
-                                <div class="information-description">
-                                    @if (!string.IsNullOrEmpty(letter.Description))
-                                    {
-                                        @letter.Description
-                                    }
-                                    else
-                                    {
-                                        <text>Confidential information that reveals hidden opportunities</text>
-                                    }
+                                <div class="letter-description">
+                                    @letter.Description
                                 </div>
-                                <div class="information-meta">
-                                    <span class="information-payment">💰 @letter.Payment coins</span>
-                                    <span class="information-deadline">⏰ @letter.DeadlineInDays days</span>
-                                    <span class="information-effect">@GetInformationEffect(letter)</span>
+                                <div class="letter-meta">
+                                    <span class="letter-stakes @GetStakesClass(letter.Stakes)">@letter.Stakes</span>
+                                    <span class="letter-deadline">@GetDeadlineDisplay(letter)</span>
                                 </div>
                             </div>
                         }
-                    </div>
-                    <p class="information-note">
-                        <em>Information letters take inventory space but not queue slots. They reveal hidden content while carried.</em>
-                    </p>
-                }
-                else
-                {
-                    <div class="no-information">
-                        <p>No information letters in your satchel.</p>
-                        <small>Request Information letters from Shadow network contacts with 5+ tokens.</small>
-                    </div>
-                }
-            }
-        </div>
-        
-        @* Active Obligations Summary *@
-        <div class="obligations-summary">
-            <h3>⚖️ Active Obligations</h3>
-            @{
-                var activeObligations = GameFacade.GetStandingObligations();
-                if (activeObligations.Any())
-                {
-                    <ul class="obligation-list">
-                        @foreach (var obligation in activeObligations)
+                        else
                         {
-                            <li class="obligation-item">
-                                <span class="obligation-name">@obligation.Name</span>
-                                <span class="obligation-effect">@obligation.Description</span>
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p class="no-obligations">No standing obligations affecting your queue.</p>
-                }
-            }
-        </div>
-        
-        @* Token Summary *@
-        <div class="token-summary">
-            <h3>🪙 Connection Tokens</h3>
-            <div class="token-grid">
-                @foreach (var tokenType in Enum.GetValues<ConnectionType>())
-                {
-                    var count = GetTokenCount(tokenType);
-                    <div class="token-item @(count < 0 ? "debt" : "")">
-                        <span class="token-icon">@GetTokenIcon(tokenType)</span>
-                        <span class="token-type">@tokenType</span>
-                        <span class="token-count">@count</span>
-                        @if (count < 0)
-                        {
-                            <span class="debt-indicator">DEBT</span>
+                            <div class="empty-slot-text">Empty</div>
                         }
                     </div>
                 }
             </div>
         </div>
-        
-        @* Queue Statistics *@
-        <div class="queue-stats">
-            <h3>📊 Queue Statistics</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-label">Letters in Queue</span>
-                    <span class="stat-value">@GameFacade.GetLetterQueue().Status.LetterCount / 8</span>
+
+        @* NPCs Present *@
+        <div class="npcs-section">
+            <h3>People Present</h3>
+            
+            @* Elena - DESPERATE state *@
+            <div class="npc-present">
+                <div class="npc-header">
+                    <div>
+                        <div class="npc-name">Elena</div>
+                    </div>
+                    <div class="npc-mood">😰</div>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Urgent Letters</span>
-                    <span class="stat-value urgent">@GameFacade.GetLetterQueue().Status.UrgentCount</span>
+                <div class="npc-description">
+                    Sitting alone at a corner table, nervously fidgeting with a sealed letter
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Total Delivered</span>
-                    <span class="stat-value success">@GameFacade.GetPlayer().TotalLettersDelivered</span>
+                <div class="interaction-options">
+                    <div class="interaction" @onclick="@(() => StartConversation("elena"))">
+                        <span>Approach her table</span>
+                        <span style="font-size: 11px;">Start conversation</span>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Morning Swap Available</span>
-                    <span class="stat-value">@(CanUseMorningSwap() ? "Yes" : "No")</span>
+            </div>
+
+            @* Bertram the Innkeeper *@
+            <div class="npc-present">
+                <div class="npc-header">
+                    <div>
+                        <div class="npc-name">Bertram the Innkeeper</div>
+                    </div>
+                    <div class="npc-mood">😊</div>
+                </div>
+                <div class="npc-description">
+                    Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod
+                </div>
+                <div class="interaction-options">
+                    <div class="interaction" @onclick="@(() => StartConversation("bertram"))">
+                        <span>Ask about rumors</span>
+                        <span style="font-size: 11px;">10 min</span>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        @* Letter History Preview *@
-        <div class="letter-history">
-            <h3>📜 Recent Letter Activity</h3>
-            @{
-                var recentActivity = GetRecentLetterActivity();
-                if (recentActivity.Any())
-                {
-                    <ul class="history-list">
-                        @foreach (var activity in recentActivity.Take(5))
-                        {
-                            <li class="history-item @activity.Type">
-                                <span class="history-icon">@activity.Icon</span>
-                                <span class="history-text">@activity.Description</span>
-                                <span class="history-time">@activity.TimeAgo</span>
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p class="no-history">No recent letter activity.</p>
-                }
-            }
-        </div>
-    </div>
-    
-    @* Quick Actions Bar *@
-    <div class="quick-actions-bar">
-        <button class="quick-action" @onclick="NavigateToLetterBoard" disabled="@(!IsLetterBoardAvailable())">
-            📋 Letter Board @(IsLetterBoardAvailable() ? "" : "(Dawn Only)")
-        </button>
-        <button class="quick-action" @onclick="NavigateToLocation">
-            📍 Current Location
-        </button>
-        <button class="quick-action" @onclick="NavigateToRelationships">
-            👥 Relationships
-        </button>
     </div>
 </div>
 
 @code {
-    @namespace Wayfarer.Pages
-    
-    private class LetterActivity
-    {
-        public string Type { get; set; } = "";
-        public string Icon { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string TimeAgo { get; set; } = "";
-    }
-    
-    private string GetTokenIcon(ConnectionType type)
-    {
-        return type switch
-        {
-            ConnectionType.Trust => "❤️",
-            ConnectionType.Commerce => "🪙",
-            ConnectionType.Status => "👑",
-            ConnectionType.Shadow => "🌑",
-            _ => "❓"
-        };
-    }
-    
-    private int GetTokenCount(ConnectionType type)
-    {
-        // Get token count from relationships data
-        var relationships = GameFacade.GetNPCRelationships();
-        int totalTokens = 0;
-        
-        foreach (var rel in relationships)
-        {
-            if (rel.TokensByType.ContainsKey(type))
-            {
-                totalTokens += rel.TokensByType[type];
-            }
-        }
-        
-        return totalTokens;
-    }
-    
-    private bool CanUseMorningSwap()
+    private string GetCurrentTime()
     {
         var timeInfo = GameFacade.GetTimeInfo();
-        return timeInfo.timeBlock == TimeBlocks.Dawn &&
-              GameFacade.GetPlayer().LastMorningSwapDay != timeInfo.currentDay;
-    }
-    
-    private bool IsLetterBoardAvailable()
-    {
-        return GameFacade.GetTimeInfo().timeBlock == TimeBlocks.Dawn;
-    }
-    
-    private List<LetterActivity> GetRecentLetterActivity()
-    {
-        var activities = new List<LetterActivity>();
+        var day = timeInfo.currentDay;
+        var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[day % 7];
         
-        // This would be populated from actual game history
-        // For now, return empty list
+        // Calculate hour from TimeBlocks - game world specified 3:45 PM (15.75 hours)
+        // For now, use hardcoded mockup time
+        var hour = 15;
+        var minute = 45;
+        var period = "PM";
+        var displayHour = 3;
         
-        return activities;
+        return $"{dayName} {displayHour}:{minute:D2} {period}";
     }
-    
-    private void NavigateToLetterBoard()
+
+    private string GetNextDeadline()
     {
-        OnNavigate?.Invoke(CurrentViews.LetterBoardScreen);
-    }
-    
-    private void NavigateToLocation()
-    {
-        OnNavigate?.Invoke(CurrentViews.LocationScreen);
-    }
-    
-    private void NavigateToRelationships()
-    {
-        OnNavigate?.Invoke(CurrentViews.RelationshipScreen);
-    }
-    
-    private string GetInformationEffect(Letter letter)
-    {
-        // Information letters reveal hidden content based on their InformationId
-        if (!string.IsNullOrEmpty(letter.InformationId))
+        var letters = GameFacade.GetPlayer().LetterQueue;
+        if (letters == null || !letters.Any(l => l != null)) return "";
+        
+        var nextDeadline = letters.Where(l => l != null)
+            .OrderBy(l => l.DeadlineInDays)
+            .FirstOrDefault();
+            
+        if (nextDeadline == null) return "";
+        
+        var hoursLeft = nextDeadline.DeadlineInDays * 24;
+        // Mock: assume it's 3:45 PM (15.75 hours into the day)
+        hoursLeft -= (int)(24 - 15.75); // Adjust for current time of day
+        
+        if (hoursLeft <= 3)
         {
-            return "🔓 Reveals: " + letter.InformationId;
+            return $"⚡ {hoursLeft}h until {GetShortName(nextDeadline.RecipientName)}";
         }
-        return "🔓 Reveals hidden opportunities";
+        else
+        {
+            var days = hoursLeft / 24;
+            var hours = hoursLeft % 24;
+            return $"⏰ {days}d {hours}h until {GetShortName(nextDeadline.RecipientName)}";
+        }
+    }
+
+    private string GetShortName(string fullName)
+    {
+        if (fullName.StartsWith("Lord ")) return "Lord " + fullName.Substring(5).Substring(0, 1) + ".";
+        return fullName.Split(' ')[0];
+    }
+
+    private Letter GetLetterAtPosition(int position)
+    {
+        var queue = GameFacade.GetPlayer().LetterQueue;
+        if (queue == null || position > queue.Length || position < 1) return null;
+        return queue[position - 1];
+    }
+
+    private string GetStakesClass(StakeType stakes)
+    {
+        return stakes switch
+        {
+            StakeType.REPUTATION => "reputation",
+            StakeType.WEALTH => "wealth",
+            StakeType.SAFETY => "safety",
+            StakeType.SECRET => "secret",
+            _ => ""
+        };
+    }
+
+    private string GetDeadlineDisplay(Letter letter)
+    {
+        if (letter.DeadlineInDays <= 1) return "URGENT";
+        if (letter.DeadlineInDays <= 2) return $"{letter.DeadlineInDays} days";
+        return $"{letter.DeadlineInDays} days";
+    }
+
+    private async void StartConversation(string npcId)
+    {
+        await GameFacade.StartConversationAsync(npcId);
+        // Navigation handled through MainGameplayViewBase
+    }
+
+    private int GetTokenCount(ConnectionType tokenType)
+    {
+        // Not used in current implementation
+        return 0;
     }
 }
