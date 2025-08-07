@@ -52,9 +52,23 @@ public class ConversationScreenBase : ComponentBase
     {
         try
         {
-            // Process choice through GameFacade
-            // This will update the conversation state
-            await LoadConversation();
+            Console.WriteLine($"[ConversationScreen] SelectChoice called with: {choiceId}");
+            
+            // Process the choice through GameFacade
+            var updatedModel = await GameFacade.ProcessConversationChoice(choiceId);
+            
+            if (updatedModel != null)
+            {
+                Model = updatedModel;
+                StateHasChanged();
+                Console.WriteLine($"[ConversationScreen] Conversation updated after choice");
+            }
+            else
+            {
+                Console.WriteLine($"[ConversationScreen] Conversation ended after choice");
+                // Navigate back to main screen or letter queue
+                Navigation.NavigateTo("/");
+            }
         }
         catch (Exception ex)
         {

@@ -96,6 +96,250 @@
 }
 
 
+/* ==================== Golden Attention Orbs (from mockup) ==================== */
+
+/* Attention Display */
+.attention-bar {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(44, 36, 22, 0.95);
+    padding: 8px 16px;
+    border-radius: 20px;
+    z-index: 100;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.attention-label {
+    color: var(--parchment);
+    font-size: 12px;
+    margin-right: 8px;
+    font-family: Georgia, serif;
+}
+
+.attention-point {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--attention-gold);
+    border: 2px solid var(--parchment);
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.attention-point.spent {
+    background: #3d3226;
+    opacity: 0.5;
+    box-shadow: none;
+}
+
+/* ==================== Conversation Screen Styles (from mockup) ==================== */
+
+.container {
+    max-width: 640px;
+    margin: 0 auto;
+    background: var(--parchment);
+    min-height: 100vh;
+    position: relative;
+    font-family: Georgia, serif;
+}
+
+/* Peripheral Elements */
+.peripheral-layer {
+    position: fixed;
+    width: 100%;
+    max-width: 640px;
+    z-index: 10;
+}
+
+.deadline-pressure {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    background: rgba(139, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.environmental-hints {
+    position: absolute;
+    bottom: 20px;
+    right: 10px;
+    background: rgba(44, 36, 22, 0.8);
+    color: var(--parchment);
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    font-style: italic;
+    cursor: pointer;
+}
+
+/* Location Context */
+.location-header {
+    background: #f9f7f3;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e8dfd0;
+    margin-top: 60px;
+}
+
+.location-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: var(--ink-black);
+}
+
+.location-atmosphere {
+    font-size: 12px;
+    color: #6b5d4f;
+    font-style: italic;
+}
+
+/* Main Scene */
+.scene-content {
+    padding: 20px;
+    padding-bottom: 100px;
+}
+
+/* Character Focus */
+.character-focus {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.character-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: var(--ink-black);
+}
+
+.character-state {
+    font-size: 13px;
+    color: #6b5d4f;
+    font-style: italic;
+    margin-bottom: 8px;
+}
+
+.relationship-status {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 12px;
+    margin-bottom: 16px;
+    color: var(--ink-black);
+}
+
+/* Dialogue Section */
+.dialogue-container {
+    background: white;
+    border: 1px solid #d4c5a0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.spoken-words {
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    color: var(--ink-black);
+}
+
+.character-action {
+    font-size: 13px;
+    font-style: italic;
+    color: #8b7355;
+    text-align: center;
+    margin: 12px 0;
+}
+
+/* Choice System */
+.choice-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.choice-option {
+    background: #f9f7f3;
+    border: 1px solid #e8dfd0;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.choice-option:hover:not(.locked) {
+    background: white;
+    border-color: #b8a584;
+    transform: translateX(4px);
+}
+
+.choice-option.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.attention-cost {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--attention-gold);
+    color: var(--ink-black);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.attention-cost.free {
+    background: #4caf50;
+    color: white;
+}
+
+.choice-text {
+    font-size: 14px;
+    margin-bottom: 6px;
+    font-style: italic;
+    color: var(--ink-black);
+    padding-right: 60px; /* Space for cost badge */
+}
+
+.choice-mechanics {
+    font-size: 12px;
+    color: #6b5d4f;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mechanic-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mechanic-positive {
+    color: #4caf50;
+}
+
+.mechanic-negative {
+    color: #d32f2f;
+}
+
+.mechanic-neutral {
+    color: #2196f3;
+}
+
 /* ==================== Encounter Styles ==================== */
 
 .encounter-status-bar {

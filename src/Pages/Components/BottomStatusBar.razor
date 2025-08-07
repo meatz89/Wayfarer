@@ -1,0 +1,82 @@
+@using Wayfarer.ViewModels
+@inject GameFacade GameFacade
+
+<div class="bottom-status-bar">
+    <div class="status-section">
+        <span class="status-icon">📍</span>
+        <span class="status-text">@GetCurrentLocation()</span>
+    </div>
+    
+    <div class="status-section">
+        <span class="status-icon">📜</span>
+        <span class="status-text">Queue: @GetQueueStatus()</span>
+    </div>
+    
+    <div class="status-section">
+        <span class="status-icon">💰</span>
+        <span class="status-text">@GetCoinDisplay()</span>
+    </div>
+</div>
+
+@code {
+    private string GetCurrentLocation()
+    {
+        try
+        {
+            var (location, spot) = GameFacade.GetCurrentLocation();
+            if (spot != null && !string.IsNullOrEmpty(spot.Name))
+            {
+                return spot.Name;
+            }
+            else if (location != null && !string.IsNullOrEmpty(location.Name))
+            {
+                return location.Name;
+            }
+            return "Market Square";
+        }
+        catch
+        {
+            return "Market Square";
+        }
+    }
+    
+    private string GetQueueStatus()
+    {
+        try
+        {
+            var queue = GameFacade.GetLetterQueue();
+            if (queue != null && queue.QueueSlots != null)
+            {
+                var activeLetters = queue.QueueSlots.Count(s => s.IsOccupied);
+                return $"{activeLetters}/8";
+            }
+            return "0/8";
+        }
+        catch
+        {
+            return "0/8";
+        }
+    }
+    
+    private string GetCoinDisplay()
+    {
+        try
+        {
+            var inventory = GameFacade.GetInventory();
+            if (inventory != null)
+            {
+                var coins = inventory.Coins;
+                if (coins >= 100)
+                {
+                    return $"{coins / 100}g {coins % 100}s";
+                }
+                return $"{coins}s";
+            }
+            return "0s";
+        }
+        catch
+        {
+            return "0s";
+        }
+    }
+}

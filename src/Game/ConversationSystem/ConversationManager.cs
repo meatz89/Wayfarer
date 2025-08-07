@@ -7,6 +7,7 @@ public class ConversationManager
     private ConversationState _state;
     private INarrativeProvider _narrativeProvider;
     private GameWorld _gameWorld;
+    private ConversationChoiceGenerator _choiceGenerator;
 
     public ConversationState State => _state;
 
@@ -22,12 +23,14 @@ public class ConversationManager
         SceneContext context,
         ConversationState state,
         INarrativeProvider narrativeProvider,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        ConversationChoiceGenerator choiceGenerator = null)
     {
         _context = context;
         _state = state;
         _narrativeProvider = narrativeProvider;
         _gameWorld = gameWorld;
+        _choiceGenerator = choiceGenerator;
     }
 
     public async Task InitializeConversation()
@@ -49,17 +52,25 @@ public class ConversationManager
 
         _isAwaitingAIResponse = true;
 
-        // Generate conversation choices
-        List<ChoiceTemplate> choiceTemplates = new List<ChoiceTemplate>(); // Empty for now, can be populated from context
-        if (_context is ActionConversationContext actionContext && actionContext.AvailableTemplates != null)
+        // Generate choices mechanically first
+        if (_choiceGenerator != null)
         {
-            choiceTemplates = actionContext.AvailableTemplates;
+            Choices = _choiceGenerator.GenerateChoices(_context, _state);
         }
-
-        Choices = await _narrativeProvider.GenerateChoices(
-            _context,
-            _state,
-            choiceTemplates);
+        else
+        {
+            // Fallback to narrative provider (temporary)
+            List<ChoiceTemplate> choiceTemplates = new List<ChoiceTemplate>();
+            if (_context is ActionConversationContext actionContext && actionContext.AvailableTemplates != null)
+            {
+                choiceTemplates = actionContext.AvailableTemplates;
+            }
+            
+            Choices = await _narrativeProvider.GenerateChoices(
+                _context,
+                _state,
+                choiceTemplates);
+        }
 
         _isAwaitingAIResponse = false;
         return true;
@@ -70,7 +81,30 @@ public class ConversationManager
         // Spend attention if required
         if (_context?.AttentionManager != null && selectedChoice.AttentionCost > 0)
         {
-            _context.AttentionManager.TrySpend(selectedChoice.AttentionCost);
+            bool spent = _context.AttentionManager.TrySpend(selectedChoice.AttentionCost);
+            if (!spent)
+            {
+                // Player doesn't have enough attention - this shouldn't happen if UI is correct
+                Console.WriteLine($"[ConversationManager] WARNING: Player tried to select choice without enough attention");
+            }
+        }
+
+        // Apply all mechanical effects from the choice
+        if (selectedChoice.MechanicalEffects != null)
+        {
+            Console.WriteLine($"[ConversationManager] Applying {selectedChoice.MechanicalEffects.Count} mechanical effects");
+            foreach (var effect in selectedChoice.MechanicalEffects)
+            {
+                try
+                {
+                    effect.Apply(_state);
+                    Console.WriteLine($"[ConversationManager] Applied effect: {effect.GetDescriptionForPlayer()}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ConversationManager] Error applying effect: {ex.Message}");
+                }
+            }
         }
 
         // Process the player's dialogue choice
@@ -88,8 +122,10 @@ public class ConversationManager
         _state.AdvanceDuration();
 
         // Check if conversation should complete
-        // For now, ALL conversations complete after one choice
-        bool shouldComplete = true;
+        // Conversation ends if: no attention left, or player chose to leave
+        bool shouldComplete = _context?.AttentionManager?.Current == 0 || 
+                             selectedChoice.ChoiceID == "leave" ||
+                             selectedChoice.NarrativeText.Contains("need to go");
 
         // Create outcome
         ConversationBeatOutcome outcome = new ConversationBeatOutcome

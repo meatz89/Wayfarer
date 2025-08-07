@@ -107,7 +107,13 @@ public static class ServiceConfiguration
         services.AddSingleton<MorningActivitiesManager>();
         services.AddSingleton<NoticeBoardService>();
 
+        // Conversation system components
+        services.AddSingleton<VerbContextualizer>();
+        services.AddSingleton<ConversationChoiceGenerator>();
         services.AddSingleton<ConversationFactory>();
+
+        // Action generation service
+        services.AddSingleton<ActionGenerator>();
 
         // Core services
         services.AddSingleton<FlagService>();

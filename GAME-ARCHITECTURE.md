@@ -287,6 +287,106 @@ Each token type has unique debt mechanics when going negative:
 - **Status Debt** - Social obligations restricting refusal options
 - **Shadow Debt** - Dangerous entanglements with severe consequences
 
+## Conversation System Architecture
+
+### Core Design Philosophy
+
+The conversation system is the primary interface for ALL game mechanics. Every meaningful game action flows through conversations - queue manipulation, token exchanges, information discovery, and obligation creation.
+
+### Strict Separation of Concerns
+
+#### ConversationChoiceGenerator (Mechanical Generation)
+**Responsibility**: Generate choices based purely on game state
+- Analyzes queue pressure, token levels, NPC state
+- Creates choices with mechanical effects
+- Assigns attention costs based on action depth
+- NO narrative text generation
+
+#### DeterministicNarrativeProvider (State-to-Text Mapping)  
+**Responsibility**: Convert game state to narrative text ONLY
+- Maps NPC emotional states to dialogue
+- Provides contextual introductions
+- Generates reaction text for choices
+- NEVER creates choices or mechanical effects
+- NEVER calls other services
+
+#### ConversationManager (Orchestration)
+**Responsibility**: Coordinate conversation flow and apply effects
+- Manages conversation state progression
+- Applies mechanical effects from choices
+- Tracks attention spending
+- Determines conversation completion
+
+#### ConversationFactory (Initialization)
+**Responsibility**: Wire up conversation components
+- Creates choice generator with required services
+- Initializes attention system (always starts at 3)
+- Sets up proper dependency injection
+- Ensures all components are connected
+
+### Attention System Implementation
+
+```csharp
+// Attention always starts at 3
+AttentionManager.ResetForNewScene(); // Sets to 3
+
+// Choice costs determine depth
+0 attention = Surface response (maintain state)
+1 attention = Meaningful action (queue/token change)  
+2 attention = Deep commitment (obligations)
+3 attention = Locked (requires full focus)
+
+// When attention hits 0, only exit available
+if (attention == 0) {
+    choices = [{ Text: "Leave", Cost: 0 }];
+}
+```
+
+### Mechanical Effects Pipeline
+
+```csharp
+// 1. GENERATION (ConversationChoiceGenerator)
+choice = new ConversationChoice {
+    ChoiceID = "prioritize",
+    AttentionCost = 1,
+    MechanicalEffects = [
+        new QueueReorderEffect(...),
+        new BurnTokenEffect(...),
+        new CreateMemoryEffect(...)
+    ]
+};
+
+// 2. EXECUTION (ConversationManager.ProcessPlayerChoice)
+- Validate attention available
+- Spend attention cost
+- Apply ALL mechanical effects
+- Generate narrative response
+- Check conversation continuation
+
+// 3. CONTINUATION
+- If attention > 0: Generate new choices
+- If attention == 0: Only show exit
+- If choice.ID == "leave": End conversation
+```
+
+### Elena Conversation Example (Hardcoded for Mockup)
+
+The Elena conversation demonstrates the full system:
+
+1. **Free Response (0 attention)**: Maintains current state
+2. **Prioritize (1 attention)**: Reorders queue, burns Status token
+3. **Investigate (1 attention)**: Gains information, costs time
+4. **Swear Oath (2 attention)**: Creates obligation, gains Trust
+5. **Deep Investigation (3 attention)**: Always locked (teaching mechanic)
+
+### Key Architectural Rules
+
+1. **Choices are mechanical first**: Generate from game state, add narrative after
+2. **Effects are atomic**: All effects apply or none do
+3. **Attention gates depth**: More attention = deeper mechanical changes
+4. **Transparency required**: Show ALL mechanical effects before selection
+5. **No hidden mechanics**: Every effect must be visible in UI
+
 ## UI Completeness Requirements
 
 ### Action Pipeline Audit Results

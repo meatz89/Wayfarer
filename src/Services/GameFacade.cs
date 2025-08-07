@@ -50,6 +50,7 @@ public class GameFacade
     private readonly ContextTagCalculator _contextTagCalculator;
     private readonly NPCEmotionalStateCalculator _npcEmotionalStateCalculator;
     private readonly VerbContextualizer _verbContextualizer;
+    private readonly ActionGenerator _actionGenerator;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -84,7 +85,8 @@ public class GameFacade
         InformationRevealService informationRevealService = null,
         ContextTagCalculator contextTagCalculator = null,
         NPCEmotionalStateCalculator npcEmotionalStateCalculator = null,
-        VerbContextualizer verbContextualizer = null
+        VerbContextualizer verbContextualizer = null,
+        ActionGenerator actionGenerator = null
 )
     {
         _gameWorld = gameWorld;
@@ -120,6 +122,7 @@ public class GameFacade
         _contextTagCalculator = contextTagCalculator;
         _npcEmotionalStateCalculator = npcEmotionalStateCalculator;
         _verbContextualizer = verbContextualizer;
+        _actionGenerator = actionGenerator;
     }
 
     // ========== HELPER METHODS ==========
@@ -2079,6 +2082,47 @@ public class GameFacade
         Console.WriteLine($"[GameFacade.GetCurrentConversation] Created ViewModel with NpcId: {viewModel?.NpcId}, Text: {viewModel?.CurrentText?.Substring(0, Math.Min(50, viewModel?.CurrentText?.Length ?? 0))}");
         return viewModel;
     }
+    
+    public async Task<ConversationViewModel> ProcessConversationChoice(string choiceId)
+    {
+        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Processing choice: {choiceId}");
+        
+        ConversationManager? currentConversation = _conversationStateManager.PendingConversationManager;
+        if (currentConversation == null || !_conversationStateManager.ConversationPending)
+        {
+            Console.WriteLine($"[GameFacade.ProcessConversationChoice] No active conversation");
+            return null;
+        }
+        
+        // Find the selected choice
+        var selectedChoice = currentConversation.Choices?.FirstOrDefault(c => c.ChoiceID == choiceId);
+        if (selectedChoice == null)
+        {
+            Console.WriteLine($"[GameFacade.ProcessConversationChoice] Choice not found: {choiceId}");
+            return GetCurrentConversation();
+        }
+        
+        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, AttentionCost: {selectedChoice.AttentionCost}");
+        
+        // Process the choice and get the outcome
+        var outcome = await currentConversation.ProcessPlayerChoice(selectedChoice);
+        
+        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Choice processed. Conversation complete: {outcome.IsConversationComplete}");
+        
+        // If conversation is complete, clear it
+        if (outcome.IsConversationComplete)
+        {
+            _conversationStateManager.ClearPendingConversation();
+            Console.WriteLine($"[GameFacade.ProcessConversationChoice] Conversation completed and cleared");
+            return null;
+        }
+        
+        // Generate new choices for the next beat
+        await currentConversation.ProcessNextBeat();
+        
+        // Return updated view model
+        return CreateConversationViewModel(currentConversation);
+    }
 
     private ConversationViewModel CreateConversationViewModel(ConversationManager conversation)
     {
@@ -2133,6 +2177,102 @@ public class GameFacade
         // Generate peripheral observations
         var peripheralObservations = GeneratePeripheralObservations(context);
         
+        // Generate deadline pressure text matching mockup format
+        string deadlinePressure = "";
+        if (_letterQueueManager != null)
+        {
+            var urgentLetters = _letterQueueManager.GetActiveLetters()
+                .Where(l => l.DeadlineInDays <= 0)
+                .ToList();
+            
+            if (urgentLetters.Any())
+            {
+                var mostUrgent = urgentLetters.First();
+                deadlinePressure = $"⚡ {mostUrgent.RecipientName}: OVERDUE!";
+            }
+            else
+            {
+                var soonestDeadline = _letterQueueManager.GetActiveLetters()
+                    .OrderBy(l => l.DeadlineInDays)
+                    .FirstOrDefault();
+                    
+                if (soonestDeadline != null && soonestDeadline.DeadlineInDays <= 1)
+                {
+                    // Calculate hours remaining
+                    var hoursRemaining = (soonestDeadline.DeadlineInDays * 24) - (_timeManager.GetCurrentTimeHours() - 6);
+                    if (hoursRemaining > 0)
+                    {
+                        var hours = hoursRemaining / 1;
+                        var minutes = (hoursRemaining % 1) * 60;
+                        
+                        // Format like mockup: "Lord B: 2h 15m"
+                        var recipientShort = soonestDeadline.RecipientName.Contains("Lord") ? 
+                            "Lord " + soonestDeadline.RecipientName.Split(' ').Last().Substring(0, 1) + "." :
+                            soonestDeadline.RecipientName.Split(' ').First();
+                            
+                        deadlinePressure = $"⚡ {recipientShort}: {hours}h {minutes:00}m";
+                    }
+                    else
+                    {
+                        deadlinePressure = $"⚡ {soonestDeadline.RecipientName}: Due NOW";
+                    }
+                }
+            }
+        }
+        
+        // Generate environmental hints based on location and time
+        var environmentalHints = new List<string>();
+        if (!string.IsNullOrEmpty(context?.LocationName))
+        {
+            var timeOfDay = _timeManager.GetCurrentTimeBlock();
+            
+            // Add contextual environmental hints matching the mockup style
+            // These should be subtle, atmospheric observations
+            
+            // If there are urgent letters, NPCs react to the tension
+            var hasUrgentLetters = _letterQueueManager?.GetActiveLetters()
+                .Any(l => l.DeadlineInDays <= 1) ?? false;
+                
+            if (hasUrgentLetters)
+            {
+                environmentalHints.Add("Guards shifting nervously...");
+            }
+            
+            // Location-specific atmospheric hints
+            if (context.LocationSpotName?.Contains("Tavern") == true || context.LocationSpotName?.Contains("Kettle") == true)
+            {
+                if (timeOfDay == TimeBlocks.Evening)
+                {
+                    environmentalHints.Add("Patrons huddle closer to the fire...");
+                }
+                else if (timeOfDay == TimeBlocks.Morning)
+                {
+                    environmentalHints.Add("Steam rises from fresh bread...");
+                }
+                else
+                {
+                    environmentalHints.Add("Murmured conversations drift past...");
+                }
+            }
+            else if (context.LocationName?.Contains("Market") == true)
+            {
+                environmentalHints.Add("Merchants counting their coins...");
+            }
+            else if (context.LocationName?.Contains("Noble") == true)
+            {
+                environmentalHints.Add("Servants scurry with urgent messages...");
+            }
+        }
+        
+        // Get location atmosphere
+        string locationAtmosphere = "";
+        if (!string.IsNullOrEmpty(context?.LocationSpotName))
+        {
+            locationAtmosphere = context.LocationSpotName.Contains("Kettle") 
+                ? "Warm hearth-light, nervous energy in the air"
+                : "The usual bustle of activity";
+        }
+        
         // Get the current narrative text, with fallback
         string currentText = conversation.State?.CurrentNarrative;
         if (string.IsNullOrWhiteSpace(currentText))
@@ -2155,7 +2295,9 @@ public class GameFacade
                 AttentionCost = c.AttentionCost,
                 AttentionDescription = GetAttentionDescription(c.AttentionCost),
                 IsInternalThought = c.NarrativeText.StartsWith("*") || c.TemplatePurpose?.Contains("INTERNAL") == true,
-                EmotionalTone = DetermineEmotionalTone(c)
+                EmotionalTone = DetermineEmotionalTone(c),
+                // Parse mechanical description into mechanics list
+                Mechanics = ParseMechanicalDescription(c.MechanicalDescription)
             }).ToList() ?? new List<ConversationChoiceViewModel>(),
             IsComplete = conversation.State?.IsConversationComplete ?? false,
             ConversationTopic = conversation.Context.ConversationTopic,
@@ -2179,6 +2321,15 @@ public class GameFacade
             // Body language and peripheral awareness
             BodyLanguageDescription = bodyLanguage,
             PeripheralObservations = peripheralObservations,
+            
+            // Literary UI elements
+            DeadlinePressure = deadlinePressure,
+            EnvironmentalHints = environmentalHints,
+            LocationName = context?.LocationSpotName ?? "Unknown Location",
+            LocationAtmosphere = locationAtmosphere,
+            CharacterState = bodyLanguage,
+            CharacterAction = "", // Can be populated from narrative parsing
+            RelationshipStatus = GetRelationshipStatusDisplay(npc),
             
             // Internal monologue (generated based on pressure)
             InternalMonologue = GenerateInternalMonologue(context)
@@ -3144,6 +3295,179 @@ public class GameFacade
             ConnectionType.Shadow => "Dangerous Enemy",
             _ => "Debt Obligation"
         };
+    }
+    
+    private Dictionary<string, string> GetRelationshipStatusDisplay(NPC npc)
+    {
+        var status = new Dictionary<string, string>();
+        
+        if (npc == null || _connectionTokenManager == null)
+            return status;
+        
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        
+        // Match mockup format: "Trust flows deep ●●●●●", "Status recognized ●●●○○"
+        foreach (var token in tokens)
+        {
+            if (token.Value != 0 || token.Key == ConnectionType.Trust || token.Key == ConnectionType.Status)
+            {
+                string description = "";
+                string circles = "";
+                
+                // Generate descriptive text based on token type and value
+                switch (token.Key)
+                {
+                    case ConnectionType.Trust:
+                        description = token.Value switch
+                        {
+                            >= 5 => "Trust flows deep",
+                            >= 3 => "Trust is building",
+                            >= 1 => "Trust tentative",
+                            0 => "Trust untested",
+                            _ => "Trust broken"
+                        };
+                        break;
+                    case ConnectionType.Status:
+                        description = token.Value switch
+                        {
+                            >= 5 => "Status revered",
+                            >= 3 => "Status recognized",
+                            >= 1 => "Status acknowledged",
+                            0 => "Status unknown",
+                            _ => "Status dismissed"
+                        };
+                        break;
+                    case ConnectionType.Commerce:
+                        description = token.Value switch
+                        {
+                            >= 5 => "Commerce flourishing",
+                            >= 3 => "Commerce steady",
+                            >= 1 => "Commerce tentative",
+                            0 => "Commerce untested",
+                            _ => "Commerce failed"
+                        };
+                        break;
+                    case ConnectionType.Shadow:
+                        description = token.Value switch
+                        {
+                            >= 5 => "Shadows entwined",
+                            >= 3 => "Shadows shared",
+                            >= 1 => "Shadows touched",
+                            0 => "Shadows separate",
+                            _ => "Shadows hostile"
+                        };
+                        break;
+                }
+                
+                // Generate circles (max 5, filled based on value)
+                int maxCircles = 5;
+                int filledCircles = Math.Min(Math.Max(token.Value, 0), maxCircles);
+                for (int i = 0; i < maxCircles; i++)
+                {
+                    circles += i < filledCircles ? "●" : "○";
+                }
+                
+                // Only add if there's any relationship (or for Trust/Status always show)
+                if (token.Value != 0 || token.Key == ConnectionType.Trust || token.Key == ConnectionType.Status)
+                {
+                    status[token.Key.ToString()] = $"{description} {circles}";
+                }
+            }
+        }
+        
+        return status;
+    }
+    
+    private List<MechanicEffectViewModel> ParseMechanicalDescription(string mechanicalDescription)
+    {
+        var mechanics = new List<MechanicEffectViewModel>();
+        
+        if (string.IsNullOrEmpty(mechanicalDescription))
+            return mechanics;
+        
+        // Split by common delimiters
+        var parts = mechanicalDescription.Split('|');
+        
+        foreach (var part in parts)
+        {
+            var trimmed = part.Trim();
+            if (string.IsNullOrEmpty(trimmed))
+                continue;
+            
+            // Determine type and icon based on content
+            MechanicEffectType type = MechanicEffectType.Neutral;
+            string icon = "→";
+            string description = trimmed;
+            
+            // Check for specific patterns
+            if (trimmed.StartsWith("✓") || trimmed.Contains("Opens") || trimmed.Contains("+"))
+            {
+                type = MechanicEffectType.Positive;
+                icon = "✓";
+                description = trimmed.TrimStart('✓').Trim();
+            }
+            else if (trimmed.StartsWith("⚠") || trimmed.Contains("Must") || trimmed.Contains("burn"))
+            {
+                type = MechanicEffectType.Negative;
+                icon = "⚠";
+                description = trimmed.TrimStart('⚠').Trim();
+            }
+            else if (trimmed.StartsWith("ℹ") || trimmed.Contains("Gain") || trimmed.Contains("Learn"))
+            {
+                type = MechanicEffectType.Positive;
+                icon = "ℹ";
+                description = trimmed.TrimStart('ℹ').Trim();
+            }
+            else if (trimmed.StartsWith("♥") || trimmed.Contains("Trust"))
+            {
+                type = MechanicEffectType.Positive;
+                icon = "♥";
+                description = trimmed.TrimStart('♥').Trim();
+            }
+            else if (trimmed.StartsWith("⛓") || trimmed.Contains("Obligation") || trimmed.Contains("Binding"))
+            {
+                type = MechanicEffectType.Negative;
+                icon = "⛓";
+                description = trimmed.TrimStart('⛓').Trim();
+            }
+            else if (trimmed.StartsWith("⏱") || trimmed.Contains("minutes") || trimmed.Contains("time"))
+            {
+                type = MechanicEffectType.Neutral;
+                icon = "⏱";
+                description = trimmed.TrimStart('⏱').Trim();
+            }
+            else if (trimmed.StartsWith("→"))
+            {
+                description = trimmed.TrimStart('→').Trim();
+            }
+            else if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+            {
+                // Locked/unavailable option
+                type = MechanicEffectType.Neutral;
+                icon = "🔒";
+                description = trimmed.Trim('[', ']');
+            }
+            
+            mechanics.Add(new MechanicEffectViewModel
+            {
+                Icon = icon,
+                Description = description,
+                Type = type
+            });
+        }
+        
+        // If no delimiters found, treat the whole string as one mechanic
+        if (mechanics.Count == 0 && !string.IsNullOrWhiteSpace(mechanicalDescription))
+        {
+            mechanics.Add(new MechanicEffectViewModel
+            {
+                Icon = "→",
+                Description = mechanicalDescription,
+                Type = MechanicEffectType.Neutral
+            });
+        }
+        
+        return mechanics;
     }
 
     // ========== SEAL MANAGEMENT ==========
@@ -4601,12 +4925,23 @@ public class GameFacade
             }
         }
         
-        // Add quick actions
-        // Quick action - Rest option removed for now
-        // Can be re-added when we implement action system
-        
-        // Market action removed for now  
-        // Can be re-added when we implement market integration
+        // Generate actions using ActionGenerator instead of hardcoding
+        if (_actionGenerator != null && location != null)
+        {
+            viewModel.QuickActions = _actionGenerator.GenerateActionsForLocation(location, spot);
+        }
+        else if (location != null)
+        {
+            // Fallback if ActionGenerator not available (for backwards compatibility)
+            // TODO: Remove this fallback once ActionGenerator is fully integrated
+            viewModel.QuickActions.Add(new Wayfarer.ViewModels.LocationActionViewModel
+            {
+                Icon = "⛲",
+                Title = "Rest at Fountain",
+                Detail = "5 min • Clear head",
+                Cost = "FREE"
+            });
+        }
         
         // Add NPCs present
         var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot?.SpotID ?? "", _timeManager.GetCurrentTimeBlock());
@@ -4628,13 +4963,39 @@ public class GameFacade
             viewModel.NPCsPresent.Add(npcPresence);
         }
         
-        // Add observations
-        viewModel.Observations.Add(new ObservationViewModel
+        // Add observations matching the mockup style
+        // Check for specific NPCs moving around
+        if (npcs.Any(n => n.Name == "Marcus"))
         {
-            Icon = "👀",
-            Text = "People going about their business",
-            IsUnknown = false
-        });
+            viewModel.Observations.Add(new ObservationViewModel
+            {
+                Icon = "🛒",
+                Text = "Marcus heading to his stall",
+                IsUnknown = false
+            });
+        }
+        
+        // Add contextual observations based on game state
+        if (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning)
+        {
+            viewModel.Observations.Add(new ObservationViewModel
+            {
+                Icon = "💂",
+                Text = "Guards changing shifts",
+                IsUnknown = false
+            });
+        }
+        
+        // Add mysterious unknown observation
+        if (player.LetterQueue.Any(l => l?.State == LetterState.Accepted && l.Stakes == StakeType.SECRET))
+        {
+            viewModel.Observations.Add(new ObservationViewModel
+            {
+                Icon = "❓",
+                Text = "Someone watching from the shadows",
+                IsUnknown = true
+            });
+        }
         
         // Add route options
         var routes = player.KnownRoutes.Values.SelectMany(r => r).ToList();

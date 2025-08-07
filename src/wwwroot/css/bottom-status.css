@@ -1,0 +1,40 @@
+/* Bottom Status Bar - Persistent UI Element */
+.bottom-status-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--ink-black);
+    color: var(--parchment);
+    padding: 8px 16px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    max-width: 640px;
+    margin: 0 auto;
+    z-index: 100;
+    font-family: Georgia, serif;
+    border-top: 1px solid rgba(254, 253, 251, 0.1);
+}
+
+.status-section {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-icon {
+    font-size: 14px;
+}
+
+.status-text {
+    color: var(--parchment);
+    font-weight: normal;
+}
+
+/* Ensure content doesn't hide behind status bar */
+.main-container,
+.container,
+.scene-content {
+    padding-bottom: 50px !important;
+}

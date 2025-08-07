@@ -101,63 +101,9 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 
     public Task<List<ConversationChoice>> GenerateChoices(SceneContext context, ConversationState state, List<ChoiceTemplate> availableTemplates)
     {
+        // THIS METHOD SHOULD NOT EXIST - choices should be generated mechanically elsewhere
+        // Return empty for now since ConversationManager uses ConversationChoiceGenerator instead
         List<ConversationChoice> choices = new List<ConversationChoice>();
-
-        // Special choices for Elena to match mockup exactly
-        if (context.TargetNPC != null && context.TargetNPC.ID == "elena")
-        {
-            // Free Response
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = "maintain_state",
-                NarrativeText = "\"I understand. Your letter is second in my queue.\"",
-                AttentionCost = 0,
-                IsAffordable = true,
-                MechanicalDescription = "→ Maintains current state"
-            });
-            
-            // 1 Attention: Queue Negotiation
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = "prioritize",
-                NarrativeText = "\"I'll prioritize your letter. Let me check what that means...\"",
-                AttentionCost = 1,
-                IsAffordable = context.AttentionManager?.Current >= 1,
-                MechanicalDescription = "✓ Opens negotiation | ⚠ Must burn 1 Status with Lord B"
-            });
-            
-            // 1 Attention: Information Trade
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = "investigate",
-                NarrativeText = "\"Lord Aldwin from Riverside? Tell me about the situation...\"",
-                AttentionCost = 1,
-                IsAffordable = context.AttentionManager?.Current >= 1,
-                MechanicalDescription = "ℹ Gain rumor: Noble carriage schedule | ⏱ +20 minutes conversation"
-            });
-            
-            // 2 Attention: Binding Obligation
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = "swear",
-                NarrativeText = "\"I swear I'll deliver your letter before any others today.\"",
-                AttentionCost = 2,
-                IsAffordable = context.AttentionManager?.Current >= 2,
-                MechanicalDescription = "♥ +2 Trust tokens immediately | ⛓ Creates Binding Obligation"
-            });
-            
-            // 3 Attention: Locked Option
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = "deep_investigate",
-                NarrativeText = "\"Let me investigate Lord Aldwin's current position at court...\"",
-                AttentionCost = 3,
-                IsAffordable = false, // Always locked since we start with 2 attention
-                MechanicalDescription = "[Requires 3 attention points]"
-            });
-            
-            return Task.FromResult(choices);
-        }
 
         // Check if we have a conversation override - if so, provide choices from the conversation
         if (context.TargetNPC != null && _conversationRepository.HasConversation(context.TargetNPC.ID))

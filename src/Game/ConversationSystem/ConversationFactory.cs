@@ -11,17 +11,20 @@ public class ConversationFactory
     private readonly ConnectionTokenManager _tokenManager;
     private readonly NPCEmotionalStateCalculator _stateCalculator;
     private readonly LetterQueueManager _queueManager;
+    private readonly VerbContextualizer _verbContextualizer;
 
     public ConversationFactory(
         INarrativeProvider narrativeProvider,
         ConnectionTokenManager tokenManager,
         NPCEmotionalStateCalculator stateCalculator,
-        LetterQueueManager queueManager)
+        LetterQueueManager queueManager,
+        VerbContextualizer verbContextualizer = null)
     {
         _narrativeProvider = narrativeProvider;
         _tokenManager = tokenManager;
         _stateCalculator = stateCalculator;
         _queueManager = queueManager;
+        _verbContextualizer = verbContextualizer;
     }
 
     public async Task<ConversationManager> CreateConversation(
@@ -39,6 +42,7 @@ public class ConversationFactory
         if (context.AttentionManager == null)
         {
             context.AttentionManager = new AttentionManager();
+            context.AttentionManager.ResetForNewScene(); // Start with full 3 attention points
         }
 
         // Calculate NPC emotional state from queue
@@ -66,12 +70,20 @@ public class ConversationFactory
             context.StartingFocusPoints > 0 ? context.StartingFocusPoints : 10,
             8); // Default max duration
 
+        // Create choice generator
+        var choiceGenerator = new ConversationChoiceGenerator(
+            _queueManager,
+            _tokenManager,
+            _stateCalculator,
+            _verbContextualizer);
+
         // Create the conversation manager
         ConversationManager conversationManager = new ConversationManager(
             context,
             state,
             _narrativeProvider,
-            context.GameWorld);
+            context.GameWorld,
+            choiceGenerator);
 
         // Initialize the conversation to generate initial narrative
         await conversationManager.InitializeConversation();

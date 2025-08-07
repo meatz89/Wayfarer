@@ -1,0 +1,114 @@
+{
+  "bodyLanguage": {
+    "desperate": [
+      "leans forward, fingers worrying her shawl",
+      "clutches your sleeve with trembling hands",
+      "eyes wide with barely contained panic",
+      "shifts weight anxiously from foot to foot",
+      "wrings hands repeatedly",
+      "voice cracks with strain"
+    ],
+    "calculating": [
+      "studies you with measured breaths",
+      "fingers steepled thoughtfully",
+      "pauses to choose words carefully",
+      "maintains steady eye contact",
+      "leans back with arms crossed",
+      "tilts head consideringly"
+    ],
+    "withdrawn": [
+      "avoids direct eye contact",
+      "shoulders hunched protectively",
+      "speaks in barely audible whispers",
+      "keeps distance between you",
+      "arms wrapped around themselves",
+      "face turned away"
+    ],
+    "hostile": [
+      "jaw clenched in anger",
+      "fists balled at sides",
+      "voice sharp as broken glass",
+      "stands with aggressive posture",
+      "eyes narrowed dangerously",
+      "spits words like venom"
+    ],
+    "neutral": [
+      "maintains polite distance",
+      "speaks in measured tones",
+      "hands folded calmly",
+      "expression carefully neutral",
+      "posture relaxed but attentive",
+      "voice steady and clear"
+    ]
+  },
+  "peripheralHints": {
+    "timePressure": [
+      "Sun moving toward {nextHour} o'clock position",
+      "Church bells will ring soon",
+      "Shadows lengthening noticeably",
+      "Market crowds beginning to thin"
+    ],
+    "queueWarning": [
+      "⚡ {npc}: {time} remaining",
+      "Your satchel strains with undelivered letters",
+      "Weight of obligations pressing down",
+      "Multiple deadlines approaching"
+    ],
+    "npcsNearby": [
+      "{npc} heading toward {location}",
+      "Familiar figure spotted in the crowd",
+      "Guards shifting positions nearby",
+      "Someone watching from across the square"
+    ],
+    "environmental": [
+      "Guards shifting nervously...",
+      "Merchants packing up their stalls",
+      "Dogs barking in the distance",
+      "Wind picking up suddenly",
+      "Crowd murmuring about something"
+    ]
+  },
+  "characterActions": {
+    "beforeChoice": [
+      "Her hand reaches toward yours across the table, trembling slightly",
+      "They lean closer, voice dropping to a whisper",
+      "A long pause filled with unspoken tension",
+      "Their eyes search yours for understanding",
+      "Fingers drum an anxious rhythm on the wood"
+    ],
+    "afterPositiveChoice": [
+      "Relief washes over their features",
+      "Shoulders relax visibly",
+      "A grateful smile breaks through",
+      "They reach out to clasp your hand",
+      "Tension drains from their posture"
+    ],
+    "afterNegativeChoice": [
+      "Face falls with disappointment",
+      "They pull back, creating distance",
+      "A bitter laugh escapes",
+      "Eyes harden with resignation",
+      "Turns away to hide their reaction"
+    ]
+  },
+  "relationshipIndicators": {
+    "trust": {
+      "high": "Trust flows deep ●●●●●",
+      "medium": "Trust carefully built ●●●○○",
+      "low": "Trust barely kindled ●○○○○",
+      "none": "No trust established ○○○○○"
+    },
+    "commerce": {
+      "high": "Business bond strong ●●●●●",
+      "medium": "Professional respect ●●●○○",
+      "low": "Tentative dealings ●○○○○",
+      "none": "No business history ○○○○○"
+    },
+    "status": {
+      "high": "Status recognized ●●●●●",
+      "medium": "Standing acknowledged ●●●○○",
+      "low": "Barely noticed ●○○○○",
+      "none": "Unknown to nobility ○○○○○"
+    }
+  }
+}

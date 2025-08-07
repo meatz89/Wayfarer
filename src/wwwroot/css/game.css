@@ -20,8 +20,13 @@ body {
 
 /* ==================== Base Styles & Variables ==================== */
 :root {
-    /* Primary Colors */
-    --parchment: #F2E8D5;
+    /* Primary Colors - Updated to match mockup */
+    --parchment: #fefdfb;
+    --ink-black: #2c2416;
+    --attention-gold: #ffd700;
+    --shadow-dark: rgba(44, 36, 22, 0.8);
+    
+    /* Legacy colors preserved for compatibility */
     --oak-dark: #5D4037;
     --oak-mid: #8D6E63;
     --leather: #A87D5F;
