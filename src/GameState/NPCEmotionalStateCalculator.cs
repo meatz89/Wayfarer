@@ -60,6 +60,21 @@ public class NPCEmotionalStateCalculator
     }
 
     /// <summary>
+    /// Get emoji representation of emotional state
+    /// </summary>
+    public string GetMoodEmoji(NPCEmotionalState state)
+    {
+        return state switch
+        {
+            NPCEmotionalState.DESPERATE => "😰",
+            NPCEmotionalState.HOSTILE => "😠",
+            NPCEmotionalState.CALCULATING => "🤔",
+            NPCEmotionalState.WITHDRAWN => "😐",
+            _ => "😊"
+        };
+    }
+
+    /// <summary>
     /// Generate body language based on emotional state and stakes
     /// </summary>
     public string GenerateBodyLanguage(NPCEmotionalState state, StakeType stakes)

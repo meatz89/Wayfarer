@@ -49,8 +49,11 @@ public class GameFacade
     private readonly InformationRevealService _informationRevealService;
     private readonly ContextTagCalculator _contextTagCalculator;
     private readonly NPCEmotionalStateCalculator _npcEmotionalStateCalculator;
+    private readonly EnvironmentalHintSystem _environmentalHintSystem;
+    private readonly ObservationSystem _observationSystem;
     private readonly VerbContextualizer _verbContextualizer;
     private readonly ActionGenerator _actionGenerator;
+    private readonly ActionBeatGenerator _actionBeatGenerator;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -86,7 +89,10 @@ public class GameFacade
         ContextTagCalculator contextTagCalculator = null,
         NPCEmotionalStateCalculator npcEmotionalStateCalculator = null,
         VerbContextualizer verbContextualizer = null,
-        ActionGenerator actionGenerator = null
+        ActionGenerator actionGenerator = null,
+        ActionBeatGenerator actionBeatGenerator = null,
+        EnvironmentalHintSystem environmentalHintSystem = null,
+        ObservationSystem observationSystem = null
 )
     {
         _gameWorld = gameWorld;
@@ -123,6 +129,9 @@ public class GameFacade
         _npcEmotionalStateCalculator = npcEmotionalStateCalculator;
         _verbContextualizer = verbContextualizer;
         _actionGenerator = actionGenerator;
+        _actionBeatGenerator = actionBeatGenerator;
+        _environmentalHintSystem = environmentalHintSystem;
+        _observationSystem = observationSystem;
     }
 
     // ========== HELPER METHODS ==========
@@ -2176,16 +2185,20 @@ public class GameFacade
             _ => ""
         };
         
+        // Get the most urgent letter for this NPC (used in multiple places)
+        Letter urgentLetter = null;
+        if (npc != null)
+        {
+            urgentLetter = _letterQueueManager.GetActiveLetters()
+                .Where(l => l.SenderId == npc.ID || l.SenderName == npc.Name)
+                .OrderBy(l => l.DeadlineInHours)
+                .FirstOrDefault();
+        }
+        
         // Generate body language description based on NPC emotional state
         string bodyLanguage = "";
         if (_npcEmotionalStateCalculator != null && npc != null)
         {
-            // Get the most urgent letter stakes for context
-            var urgentLetter = _letterQueueManager.GetActiveLetters()
-                .Where(l => l.SenderId == npc.ID || l.SenderName == npc.Name)
-                .OrderBy(l => l.DeadlineInHours)
-                .FirstOrDefault();
-            
             var stakes = urgentLetter?.Stakes ?? StakeType.REPUTATION;
             bodyLanguage = _npcEmotionalStateCalculator.GenerateBodyLanguage(npcState, stakes);
         }
@@ -2197,90 +2210,17 @@ public class GameFacade
         // Generate peripheral observations
         var peripheralObservations = GeneratePeripheralObservations(context);
         
-        // Generate deadline pressure text matching mockup format
-        string deadlinePressure = "";
-        if (_letterQueueManager != null)
-        {
-            var urgentLetters = _letterQueueManager.GetActiveLetters()
-                .Where(l => l.DeadlineInHours <= 0)
-                .ToList();
-            
-            if (urgentLetters.Any())
-            {
-                var mostUrgent = urgentLetters.First();
-                deadlinePressure = $"⚡ {mostUrgent.RecipientName}: OVERDUE!";
-            }
-            else
-            {
-                var soonestDeadline = _letterQueueManager.GetActiveLetters()
-                    .OrderBy(l => l.DeadlineInHours)
-                    .FirstOrDefault();
-                    
-                if (soonestDeadline != null && soonestDeadline.DeadlineInHours <= 24)
-                {
-                    // Calculate hours remaining
-                    var hoursRemaining = soonestDeadline.DeadlineInHours - (_timeManager.GetCurrentTimeHours() - 6);
-                    if (hoursRemaining > 0)
-                    {
-                        var hours = hoursRemaining / 1;
-                        var minutes = (hoursRemaining % 1) * 60;
-                        
-                        // Format like mockup: "Lord B: 2h 15m"
-                        var recipientShort = soonestDeadline.RecipientName.Contains("Lord") ? 
-                            "Lord " + soonestDeadline.RecipientName.Split(' ').Last().Substring(0, 1) + "." :
-                            soonestDeadline.RecipientName.Split(' ').First();
-                            
-                        deadlinePressure = $"⚡ {recipientShort}: {hours}h {minutes:00}m";
-                    }
-                    else
-                    {
-                        deadlinePressure = $"⚡ {soonestDeadline.RecipientName}: Due NOW";
-                    }
-                }
-            }
-        }
+        // Use EnvironmentalHintSystem for deadline pressure
+        string deadlinePressure = _environmentalHintSystem?.GetDeadlinePressure() ?? "";
         
-        // Generate environmental hints based on location and time
+        // Use EnvironmentalHintSystem for environmental hints
         var environmentalHints = new List<string>();
         if (!string.IsNullOrEmpty(context?.LocationName))
         {
-            var timeOfDay = _timeManager.GetCurrentTimeBlock();
-            
-            // Add contextual environmental hints matching the mockup style
-            // These should be subtle, atmospheric observations
-            
-            // If there are urgent letters, NPCs react to the tension
-            var hasUrgentLetters = _letterQueueManager?.GetActiveLetters()
-                .Any(l => l.DeadlineInHours <= 24) ?? false;
-                
-            if (hasUrgentLetters)
+            var hint = _environmentalHintSystem?.GetEnvironmentalHint(context.LocationName.ToLower().Replace(" ", "_"));
+            if (!string.IsNullOrEmpty(hint))
             {
-                environmentalHints.Add("Guards shifting nervously...");
-            }
-            
-            // Location-specific atmospheric hints
-            if (context.LocationSpotName?.Contains("Tavern") == true || context.LocationSpotName?.Contains("Kettle") == true)
-            {
-                if (timeOfDay == TimeBlocks.Evening)
-                {
-                    environmentalHints.Add("Patrons huddle closer to the fire...");
-                }
-                else if (timeOfDay == TimeBlocks.Morning)
-                {
-                    environmentalHints.Add("Steam rises from fresh bread...");
-                }
-                else
-                {
-                    environmentalHints.Add("Murmured conversations drift past...");
-                }
-            }
-            else if (context.LocationName?.Contains("Market") == true)
-            {
-                environmentalHints.Add("Merchants counting their coins...");
-            }
-            else if (context.LocationName?.Contains("Noble") == true)
-            {
-                environmentalHints.Add("Servants scurry with urgent messages...");
+                environmentalHints.Add(hint);
             }
         }
         
@@ -2348,12 +2288,34 @@ public class GameFacade
             LocationName = context?.LocationSpotName ?? "Unknown Location",
             LocationAtmosphere = locationAtmosphere,
             CharacterState = bodyLanguage,
-            CharacterAction = "", // Can be populated from narrative parsing
+            CharacterAction = GenerateCharacterAction(npcState, urgentLetter, conversation),
             RelationshipStatus = GetRelationshipStatusDisplay(npc),
             
             // Internal monologue (generated based on pressure)
             InternalMonologue = GenerateInternalMonologue(context)
         };
+    }
+    
+    private string GenerateCharacterAction(
+        NPCEmotionalState npcState, 
+        Letter urgentLetter, 
+        ConversationManager conversation)
+    {
+        if (_actionBeatGenerator == null) return "";
+        
+        // Determine conversation turn (simplified - could track actual turns)
+        int conversationTurn = 1; // Default to first turn
+        
+        // Check if urgent
+        bool isUrgent = urgentLetter?.DeadlineInHours <= 2;
+        
+        // Generate the action beat
+        return _actionBeatGenerator.GenerateActionBeat(
+            npcState,
+            urgentLetter?.Stakes,
+            conversationTurn,
+            isUrgent
+        );
     }
     
     private string GenerateBodyLanguageFromTags(SceneContext context)

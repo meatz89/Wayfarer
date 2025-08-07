@@ -19,6 +19,16 @@ public static class LiteraryUIConfiguration
         
         // Register Verb Contextualizer for hidden mechanics
         services.AddSingleton<VerbContextualizer>();
+        
+        // Register Environmental Systems
+        services.AddSingleton<EnvironmentalHintSystem>();
+        services.AddSingleton<ObservationSystem>();
+        
+        // Register Action Beat Generator for mid-dialogue atmosphere
+        services.AddSingleton<ActionBeatGenerator>();
+        
+        // Register Binding Obligation System for tracking promises and debts
+        services.AddSingleton<BindingObligationSystem>();
 
         return services;
     }
