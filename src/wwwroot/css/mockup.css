@@ -201,6 +201,10 @@
             transform: translateX(4px);
         }
 
+        .interaction-cost {
+            font-size: 11px;
+        }
+
         /* Observations */
         .observations {
             background: #fefdfb;
@@ -315,3 +319,138 @@
             font-weight: bold;
             color: #8b7355;
         }
+
+/* Letter Queue Section */
+.letter-queue-section {
+    margin: 24px 0;
+    padding: 20px;
+    background: white;
+    border: 2px solid #e8dfd0;
+    border-radius: 8px;
+}
+
+.section-header {
+    font-size: 16px;
+    margin-bottom: 16px;
+    color: #2c2416;
+    font-weight: 600;
+}
+
+.letter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 600px) {
+    .letter-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.letter-slot {
+    background: #fefdfb;
+    border: 2px solid #e8dfd0;
+    border-radius: 6px;
+    padding: 10px;
+    min-height: 100px;
+    position: relative;
+    font-size: 11px;
+}
+
+.letter-slot.occupied {
+    background: white;
+    border-color: #d4c8a0;
+}
+
+.letter-slot.deliverable {
+    border-color: #BC6C25;
+    box-shadow: 0 0 0 1px #BC6C25;
+}
+
+.slot-number {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    font-size: 9px;
+    font-weight: bold;
+    color: #a09070;
+}
+
+.letter-content {
+    margin-top: 12px;
+}
+
+.letter-route {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    margin-bottom: 4px;
+}
+
+.sender, .recipient {
+    font-weight: 600;
+    color: #2c2416;
+}
+
+.arrow {
+    color: #a09070;
+    font-size: 8px;
+}
+
+.letter-desc {
+    font-size: 9px;
+    color: #65513c;
+    line-height: 1.3;
+    margin-bottom: 6px;
+}
+
+.letter-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    margin-top: 6px;
+}
+
+.stakes {
+    padding: 1px 4px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 8px;
+}
+
+.stakes.reputation {
+    background: rgba(75, 0, 130, 0.1);
+    color: #4b0082;
+}
+
+.stakes.wealth {
+    background: rgba(255, 215, 0, 0.1);
+    color: #DAA520;
+}
+
+.stakes.safety {
+    background: rgba(158, 42, 43, 0.1);
+    color: #9E2A2B;
+}
+
+.deadline {
+    color: #9E2A2B;
+    font-weight: 600;
+    font-size: 9px;
+}
+
+.empty-slot {
+    color: #a09070;
+    text-align: center;
+    margin-top: 35px;
+    font-size: 10px;
+}
+
+.no-npcs {
+    padding: 20px;
+    text-align: center;
+    color: #8b7355;
+    font-style: italic;
+}

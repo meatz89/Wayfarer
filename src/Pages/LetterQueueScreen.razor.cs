@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Components;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Wayfarer.Pages
 {
     public partial class LetterQueueScreen : MainGameplayViewBase
     {
+        [Inject] private NPCRepository NPCRepository { get; set; }
+        [Inject] private ITimeManager TimeManager { get; set; }
         private string GetCurrentTime()
         {
             var timeInfo = GameFacade.GetTimeInfo();
@@ -91,6 +94,80 @@ namespace Wayfarer.Pages
         {
             // Not used in current implementation
             return 0;
+        }
+
+        private string GetLocationPath()
+        {
+            var location = GameFacade.GetCurrentLocation();
+            return location.location?.Name ?? "Unknown";
+        }
+
+        private string GetSpotPath()
+        {
+            var location = GameFacade.GetCurrentLocation();
+            return location.spot?.Name ?? "Unknown";
+        }
+
+        private string GetCurrentSpotName()
+        {
+            var location = GameFacade.GetCurrentLocation();
+            return location.spot?.Name ?? "Unknown Location";
+        }
+
+        private string GetAtmosphereText()
+        {
+            var location = GameFacade.GetCurrentLocation();
+            if (location.spot?.SpotID == "copper_kettle")
+            {
+                return "Warm firelight. Clinking mugs. Low conversations blend with lute music. Smell of roasted meat.";
+            }
+            return location.spot?.Description ?? "A quiet place.";
+        }
+
+        private string GetStakesDisplay(StakeType stakes)
+        {
+            return stakes.ToString();
+        }
+
+        private string GetNPCMood(NPC npc)
+        {
+            // Return emoji based on NPC state
+            if (npc.ID == "elena") return "😰";
+            if (npc.ID == "bertram") return "😊";
+            return "😐";
+        }
+
+        private string GetNPCDescription(NPC npc)
+        {
+            if (npc.ID == "elena")
+                return "Sitting alone at a corner table, nervously fidgeting with a sealed letter";
+            if (npc.ID == "bertram")
+                return "Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod";
+            return npc.Description ?? "Standing nearby";
+        }
+
+        private string GetInteractionText(NPC npc)
+        {
+            if (npc.ID == "elena") return "Approach her table";
+            if (npc.ID == "bertram") return "Ask about rumors";
+            return "Talk to " + npc.Name;
+        }
+
+        private string GetInteractionCost(NPC npc)
+        {
+            if (npc.ID == "elena") return "Start conversation";
+            if (npc.ID == "bertram") return "10 min";
+            return "Free";
+        }
+
+        private List<NPC> GetNPCsAtCurrentSpot()
+        {
+            var location = GameFacade.GetCurrentLocation();
+            if (location.spot == null) return new List<NPC>();
+            
+            // Get NPCs at the current spot and time
+            TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
+            return NPCRepository.GetNPCsForLocationSpotAndTime(location.spot.SpotID, currentTime);
         }
     }
 }
