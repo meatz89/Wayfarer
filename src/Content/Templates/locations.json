@@ -1,5 +1,28 @@
 [
 	{
+		"id": "your_room",
+		"name": "Your Room",
+		"description": "A small room above the courier office. Your bed, a worn desk, and letters waiting to be sorted.",
+		"environmentalProperties": {
+			"morning": [ "WELL-LIT", "QUIET", "PRIVATE" ],
+			"afternoon": [ "WELL-LIT", "QUIET", "PRIVATE" ],
+			"evening": [ "DIM", "QUIET", "PRIVATE" ],
+			"night": [ "DARK", "QUIET", "PRIVATE" ]
+		},
+		"domainTags": [ "HOME", "REST", "PRIVATE" ],
+		"locationSpots": [ "desk", "bed", "window" ],
+		"connectedTo": [ "market_square" ],
+		"socialExpectation": "Any",
+		"accessLevel": "Private",
+		"requiredSocialClasses": [],
+		"availableProfessionsByTime": {
+			"Morning": [],
+			"Afternoon": [],
+			"Evening": [],
+			"Night": []
+		}
+	},
+	{
 		"id": "market_square",
 		"name": "Market Square",
 		"description": "Bustling crowds. Merchant calls. Sun on cobblestones. Fountain spray catches the light.",
@@ -11,7 +34,7 @@
 		},
 		"domainTags": [ "COMMERCE", "SOCIAL", "PUBLIC" ],
 		"locationSpots": [ "central_fountain", "copper_kettle", "merchant_stall", "north_road" ],
-		"connectedTo": [ "noble_district", "merchant_row", "riverside", "city_gates" ],
+		"connectedTo": [ "your_room", "noble_district", "merchant_row", "riverside", "city_gates" ],
 		"socialExpectation": "Any",
 		"accessLevel": "Public",
 		"requiredSocialClasses": [],

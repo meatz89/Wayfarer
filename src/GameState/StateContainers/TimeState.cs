@@ -15,10 +15,13 @@ public sealed class TimeState
 
     // Private fields for encapsulation
     private readonly int _currentHour;
+    private readonly int _currentMinute;
     private readonly int _currentDay;
 
     // Public properties with validation
     public int CurrentHour => _currentHour;
+    
+    public int CurrentMinute => _currentMinute;
 
     public int CurrentDay => _currentDay;
 
@@ -29,18 +32,22 @@ public sealed class TimeState
     public bool IsActiveTime => _currentHour >= ACTIVE_DAY_START && _currentHour < ACTIVE_DAY_END;
 
     /// <summary>
-    /// Creates a new TimeState with the specified day and hour.
+    /// Creates a new TimeState with the specified day, hour, and minute.
     /// </summary>
-    public TimeState(int day = 1, int hour = ACTIVE_DAY_START)
+    public TimeState(int day = 1, int hour = ACTIVE_DAY_START, int minute = 0)
     {
         if (day < 1)
             throw new ArgumentException("Day must be at least 1", nameof(day));
 
         if (hour < 0 || hour >= HOURS_PER_DAY)
             throw new ArgumentException($"Hour must be between 0 and {HOURS_PER_DAY - 1}", nameof(hour));
+            
+        if (minute < 0 || minute >= 60)
+            throw new ArgumentException("Minute must be between 0 and 59", nameof(minute));
 
         _currentDay = day;
         _currentHour = hour;
+        _currentMinute = minute;
     }
 
     /// <summary>
@@ -58,13 +65,50 @@ public sealed class TimeState
         int newHour = totalHours % HOURS_PER_DAY;
         int newDay = _currentDay + daysAdvanced;
 
-        TimeState newState = new TimeState(newDay, newHour);
+        TimeState newState = new TimeState(newDay, newHour, _currentMinute);
 
         return new TimeAdvancementResult
         {
             OldState = this,
             NewState = newState,
             HoursAdvanced = hours,
+            DaysAdvanced = daysAdvanced,
+            CrossedDayBoundary = daysAdvanced > 0,
+            OldTimeBlock = oldTimeBlock,
+            NewTimeBlock = newState.CurrentTimeBlock,
+            CrossedTimeBlock = oldTimeBlock != newState.CurrentTimeBlock
+        };
+    }
+    
+    /// <summary>
+    /// Creates a new TimeState by advancing time by minutes.
+    /// Properly handles hour and day rollovers.
+    /// </summary>
+    public TimeAdvancementResult AdvanceTimeMinutes(int minutes)
+    {
+        if (minutes <= 0)
+            throw new ArgumentException("Minutes to advance must be positive", nameof(minutes));
+
+        TimeBlocks oldTimeBlock = CurrentTimeBlock;
+        
+        // Calculate new time
+        int totalMinutes = _currentMinute + minutes;
+        int additionalHours = totalMinutes / 60;
+        int newMinute = totalMinutes % 60;
+        
+        int totalHours = _currentHour + additionalHours;
+        int daysAdvanced = totalHours / HOURS_PER_DAY;
+        int newHour = totalHours % HOURS_PER_DAY;
+        int newDay = _currentDay + daysAdvanced;
+
+        TimeState newState = new TimeState(newDay, newHour, newMinute);
+
+        return new TimeAdvancementResult
+        {
+            OldState = this,
+            NewState = newState,
+            HoursAdvanced = additionalHours,
+            MinutesAdvanced = minutes,
             DaysAdvanced = daysAdvanced,
             CrossedDayBoundary = daysAdvanced > 0,
             OldTimeBlock = oldTimeBlock,
@@ -87,7 +131,17 @@ public sealed class TimeState
     /// </summary>
     public TimeState AdvanceToNextDay()
     {
-        return new TimeState(_currentDay + 1, ACTIVE_DAY_START);
+        return new TimeState(_currentDay + 1, ACTIVE_DAY_START, 0);
+    }
+    
+    /// <summary>
+    /// Gets a human-readable time string.
+    /// </summary>
+    public string GetTimeString()
+    {
+        var period = _currentHour >= 12 ? "PM" : "AM";
+        var displayHour = _currentHour > 12 ? _currentHour - 12 : (_currentHour == 0 ? 12 : _currentHour);
+        return $"{displayHour}:{_currentMinute:D2} {period}";
     }
 
     /// <summary>
@@ -111,23 +165,23 @@ public sealed class TimeState
     /// </summary>
     public TimeState Clone()
     {
-        return new TimeState(_currentDay, _currentHour);
+        return new TimeState(_currentDay, _currentHour, _currentMinute);
     }
 
     public override string ToString()
     {
-        return $"Day {_currentDay}, {_currentHour:00}:00 ({CurrentTimeBlock})";
+        return $"Day {_currentDay}, {_currentHour:00}:{_currentMinute:00} ({CurrentTimeBlock})";
     }
 
     public override bool Equals(object obj)
     {
         if (obj is not TimeState other) return false;
-        return _currentDay == other._currentDay && _currentHour == other._currentHour;
+        return _currentDay == other._currentDay && _currentHour == other._currentHour && _currentMinute == other._currentMinute;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(_currentDay, _currentHour);
+        return HashCode.Combine(_currentDay, _currentHour, _currentMinute);
     }
 }
 
@@ -139,6 +193,7 @@ public class TimeAdvancementResult
     public TimeState OldState { get; init; }
     public TimeState NewState { get; init; }
     public int HoursAdvanced { get; init; }
+    public int MinutesAdvanced { get; init; }
     public int DaysAdvanced { get; init; }
     public bool CrossedDayBoundary { get; init; }
     public TimeBlocks OldTimeBlock { get; init; }

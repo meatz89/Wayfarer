@@ -1,5 +1,32 @@
 [
 	{
+		"id": "desk",
+		"name": "Your Desk",
+		"description": "A worn wooden desk covered in letters, sealing wax, and delivery schedules.",
+		"initialState": "Papers scattered across the surface. An inkwell and quill rest nearby. The morning's letters await sorting.",
+		"locationId": "your_room",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "WORK", "ORGANIZATION", "PRIVATE" ]
+	},
+	{
+		"id": "bed",
+		"name": "Your Bed",
+		"description": "A simple bed with worn sheets. Your only respite from the endless deliveries.",
+		"initialState": "Unmade from this morning's early rise. A place to rest when exhaustion takes hold.",
+		"locationId": "your_room",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "REST", "RECOVERY", "PRIVATE" ]
+	},
+	{
+		"id": "window",
+		"name": "Window Overlooking Market Square",
+		"description": "A small window with a view of the market below. You can see the fountain from here.",
+		"initialState": "Morning light streams through. The sounds of the waking market drift up from below.",
+		"locationId": "your_room",
+		"CurrentTimeBlocks": [ "Morning", "Afternoon", "Evening", "Night" ],
+		"domainTags": [ "OBSERVATION", "PRIVATE" ]
+	},
+	{
 		"id": "copper_kettle",
 		"name": "Copper Kettle Tavern",
 		"description": "Warm firelight. Clinking mugs. Low conversations blend with lute music. Smell of roasted meat.",

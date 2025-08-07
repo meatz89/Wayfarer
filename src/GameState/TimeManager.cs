@@ -48,6 +48,11 @@ public class TimeManager : ITimeManager
     {
         return CurrentTimeHours;
     }
+    
+    public int GetCurrentMinutes()
+    {
+        return _timeModel.CurrentState.CurrentMinute;
+    }
 
     public int GetCurrentDay()
     {
@@ -85,28 +90,17 @@ public class TimeManager : ITimeManager
     {
         if (minutes <= 0) return;
 
-        // Convert minutes to hours and remainder
-        int hours = minutes / 60;
-        int remainingMinutes = minutes % 60;
-
         // Always show time passing message
         string timeDescription = GetTimePassingDescription(minutes);
         _messageSystem.AddSystemMessage(
             $"⏱️ {timeDescription}",
             SystemMessageTypes.Info);
 
-        // For now, advance by full hours only (we'll improve this later)
-        // TODO: Store minutes internally in TimeModel
-        if (hours > 0)
-        {
-            AdvanceTime(hours);
-        }
+        // Use the new minute-based advancement in TimeModel
+        var result = _timeModel.AdvanceTimeMinutes(minutes);
         
-        // Log the lost minutes for debugging
-        if (remainingMinutes > 0 && hours == 0)
-        {
-            _logger.LogWarning($"Lost {remainingMinutes} minutes due to hour-only time system");
-        }
+        // Log the time advancement
+        _logger.LogDebug($"Advanced time by {minutes} minutes. New time: Day {result.NewState.CurrentDay}, {result.NewState.CurrentHour:D2}:{result.NewState.CurrentMinute:D2}");
     }
     
     private string GetTimePassingDescription(int minutes)

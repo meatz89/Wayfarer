@@ -52,9 +52,9 @@ public class TimeModel
 
     // Events removed per architecture guidelines - use return values instead
 
-    public TimeModel(int startDay = 1, int startHour = ACTIVE_DAY_START)
+    public TimeModel(int startDay = 1, int startHour = ACTIVE_DAY_START, int startMinute = 0)
     {
-        _currentState = new TimeState(startDay, startHour);
+        _currentState = new TimeState(startDay, startHour, startMinute);
     }
 
     /// <summary>
@@ -82,6 +82,23 @@ public class TimeModel
         lock (_lock)
         {
             TimeAdvancementResult result = _currentState.AdvanceTime(hours);
+            _currentState = result.NewState;
+
+            return result;
+        }
+    }
+    
+    /// <summary>
+    /// Advances time by minutes with full validation.
+    /// </summary>
+    public TimeAdvancementResult AdvanceTimeMinutes(int minutes)
+    {
+        if (minutes <= 0)
+            throw new ArgumentException("Minutes must be positive", nameof(minutes));
+
+        lock (_lock)
+        {
+            TimeAdvancementResult result = _currentState.AdvanceTimeMinutes(minutes);
             _currentState = result.NewState;
 
             return result;

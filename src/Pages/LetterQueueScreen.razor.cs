@@ -15,13 +15,13 @@ namespace Wayfarer.Pages
             var day = timeInfo.currentDay;
             var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[day % 7];
             
-            // Get the actual current hour from TimeManager, NOT hours remaining
+            // Get the actual current hour and minute from TimeManager
             var currentHour = TimeManager.GetCurrentTimeHours();
+            var currentMinute = TimeManager.GetCurrentMinutes();
             var period = currentHour >= 12 ? "PM" : "AM";
             var displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
-            var minute = 0; // TODO: Get minutes when TimeManager supports them
             
-            return $"{dayName} {displayHour}:{minute:D2} {period}";
+            return $"{dayName} {displayHour}:{currentMinute:D2} {period}";
         }
 
         private string GetNextDeadline()

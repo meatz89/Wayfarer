@@ -7,6 +7,11 @@ public interface ITimeManager
     /// Get the current time in hours
     /// </summary>
     int GetCurrentTimeHours();
+    
+    /// <summary>
+    /// Get the current time in minutes (0-59)
+    /// </summary>
+    int GetCurrentMinutes();
 
     /// <summary>
     /// Get the current day

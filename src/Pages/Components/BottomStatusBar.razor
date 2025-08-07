@@ -1,5 +1,6 @@
 @using Wayfarer.ViewModels
 @inject GameFacade GameFacade
+@inject ITimeManager TimeManager
 
 <div class="bottom-status-bar">
     <div class="status-section">
@@ -15,6 +16,11 @@
     <div class="status-section">
         <span class="status-icon">💰</span>
         <span class="status-text">@GetCoinDisplay()</span>
+    </div>
+    
+    <div class="status-section">
+        <span class="status-icon">⏰</span>
+        <span class="status-text">@GetCurrentTime()</span>
     </div>
 </div>
 
@@ -72,6 +78,26 @@
         catch
         {
             return "0s";
+        }
+    }
+    
+    private string GetCurrentTime()
+    {
+        try
+        {
+            var day = TimeManager.GetCurrentDay();
+            var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[day % 7];
+            
+            var currentHour = TimeManager.GetCurrentTimeHours();
+            var currentMinute = TimeManager.GetCurrentMinutes();
+            var period = currentHour >= 12 ? "PM" : "AM";
+            var displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
+            
+            return $"{dayName} {displayHour}:{currentMinute:D2} {period}";
+        }
+        catch
+        {
+            return "MON 6:00 AM";
         }
     }
 }
