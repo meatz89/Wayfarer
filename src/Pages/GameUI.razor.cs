@@ -61,8 +61,13 @@ public class GameUIBase : ComponentBase
             }
             else if (!GameWorld.GetPlayer().IsInitialized)
             {
-                Console.WriteLine($"[GameUIBase.OnInitializedAsync] Player not initialized. Navigating to CharacterScreen...");
-                CurrentView = CurrentViews.CharacterScreen;
+                Console.WriteLine($"[GameUIBase.OnInitializedAsync] Player not initialized. Creating default player...");
+                // Create a default player for the mockup
+                var player = GameWorld.GetPlayer();
+                player.Name = "Wayfarer";
+                player.IsInitialized = true;
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Default player created. Showing Letter Queue...");
+                CurrentView = CurrentViews.LetterQueueScreen;
             }
             else
             {

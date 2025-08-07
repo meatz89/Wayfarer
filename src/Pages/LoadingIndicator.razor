@@ -1,4 +1,4 @@
-﻿@inject IJSRuntime JSRuntime
+﻿@inherits ComponentBase
 
 <div class="loading-container @(IsVisible ? "visible" : "hidden")">
     <div class="loading-spinner">
@@ -24,20 +24,3 @@
         </div>
     }
 </div>
-
-@code {
-
-@namespace Wayfarer.Pages
-    [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public string Message { get; set; }
-    [Parameter] public bool ShowProgress { get; set; }
-    [Parameter] public int Progress { get; set; }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (IsVisible)
-        {
-            await JSRuntime.InvokeVoidAsync("showLoadingAnimation");
-        }
-    }
-}

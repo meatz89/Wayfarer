@@ -1,14 +1,16 @@
 @page "/queue"
 @inherits MainGameplayViewBase
 
-<div class="letter-queue-screen">
+<div class="main-container">
+    <!-- Header -->
     <div class="header">
         <div class="time-bar">
-            <span>@GetCurrentTime()</span>
-            <span class="deadline-timer">@GetNextDeadline()</span>
+            <span>TUE 3:45 PM</span>
+            <span class="deadline-timer">⚡ 2h 15m until Lord B.</span>
         </div>
     </div>
 
+    <!-- EXAMPLE 2: Copper Kettle (NPC Location) -->
     <div class="location-header">
         <div class="location-path">
             <span>Market Square</span>
@@ -28,83 +30,48 @@
             Warm firelight. Clinking mugs. Low conversations blend with lute music. Smell of roasted meat.
         </div>
 
-        @* Letter Queue Display *@
-        <div class="queue-section">
-            <h3>📬 Letter Queue</h3>
-            <div class="queue-slots">
-                @for (int i = 0; i < 8; i++)
-                {
-                    var letter = GetLetterAtPosition(i + 1);
-                    <div class="queue-slot @(letter != null ? "occupied" : "empty") @(i == 0 ? "deliverable" : "")">
-                        <div class="slot-number">@(i + 1)</div>
-                        @if (letter != null)
-                        {
-                            <div class="letter-card">
-                                <div class="letter-header">
-                                    <span class="letter-sender">@letter.SenderName</span>
-                                    <span class="letter-arrow">→</span>
-                                    <span class="letter-recipient">@letter.RecipientName</span>
-                                </div>
-                                <div class="letter-description">
-                                    @letter.Description
-                                </div>
-                                <div class="letter-meta">
-                                    <span class="letter-stakes @GetStakesClass(letter.Stakes)">@letter.Stakes</span>
-                                    <span class="letter-deadline">@GetDeadlineDisplay(letter)</span>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="empty-slot-text">Empty</div>
-                        }
-                    </div>
-                }
+        <div class="npc-present">
+            <div class="npc-header">
+                <div>
+                    <div class="npc-name">Bertram the Innkeeper</div>
+                </div>
+                <div class="npc-mood">😊</div>
+            </div>
+            <div class="npc-description">
+                Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod
+            </div>
+            <div class="interaction-options">
+                <div class="interaction">
+                    <span>Order a drink</span>
+                    <span style="font-size: 11px;">2c</span>
+                </div>
+                <div class="interaction">
+                    <span>Ask about rumors</span>
+                    <span style="font-size: 11px;">10 min</span>
+                </div>
+                <div class="interaction">
+                    <span>Rent a room</span>
+                    <span style="font-size: 11px;">5s/night</span>
+                </div>
             </div>
         </div>
 
-        @* NPCs Present *@
-        <div class="npcs-section">
-            <h3>People Present</h3>
-            
-            @* Elena - DESPERATE state *@
-            <div class="npc-present">
-                <div class="npc-header">
-                    <div>
-                        <div class="npc-name">Elena</div>
-                    </div>
-                    <div class="npc-mood">😰</div>
+        <div class="npc-present">
+            <div class="npc-header">
+                <div>
+                    <div class="npc-name">Elena</div>
                 </div>
-                <div class="npc-description">
-                    Sitting alone at a corner table, nervously fidgeting with a sealed letter
-                </div>
-                <div class="interaction-options">
-                    <div class="interaction" @onclick="@(() => StartConversation("elena"))">
-                        <span>Approach her table</span>
-                        <span style="font-size: 11px;">Start conversation</span>
-                    </div>
-                </div>
+                <div class="npc-mood">😰</div>
             </div>
-
-            @* Bertram the Innkeeper *@
-            <div class="npc-present">
-                <div class="npc-header">
-                    <div>
-                        <div class="npc-name">Bertram the Innkeeper</div>
-                    </div>
-                    <div class="npc-mood">😊</div>
-                </div>
-                <div class="npc-description">
-                    Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod
-                </div>
-                <div class="interaction-options">
-                    <div class="interaction" @onclick="@(() => StartConversation("bertram"))">
-                        <span>Ask about rumors</span>
-                        <span style="font-size: 11px;">10 min</span>
-                    </div>
+            <div class="npc-description">
+                Sitting alone at a corner table, nervously fidgeting with a sealed letter
+            </div>
+            <div class="interaction-options">
+                <div class="interaction">
+                    <span>Approach her table</span>
+                    <span style="font-size: 11px;">Start conversation</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
-

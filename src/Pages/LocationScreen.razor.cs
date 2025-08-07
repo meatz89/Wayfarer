@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.ViewModels;
 
 namespace Wayfarer.Pages;
 
@@ -25,10 +26,39 @@ public partial class LocationScreen : ComponentBase
 
     // NPCs at current spot
     private List<NPC> NPCsAtCurrentSpot => GetNPCsAtCurrentSpot();
+    
+    // View Model
+    private LocationScreenViewModel Model { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await LoadLocation();
+    }
+    
+    private async Task LoadLocation()
+    {
+        Model = GameFacade.GetLocationScreen();
+        StateHasChanged();
+    }
+    
+    private async Task ExecuteAction(Wayfarer.ViewModels.LocationActionViewModel action)
+    {
+        // Execute action through GameFacade
+        await HandleActionExecuted();
+        await LoadLocation();
+    }
+    
+    private async Task StartInteraction(NPCPresenceViewModel npc, InteractionOptionViewModel interaction)
+    {
+        // Start conversation through navigation
+        await OnNavigate.InvokeAsync(CurrentViews.ConversationScreen);
+    }
+    
+    private async Task TravelTo(RouteOptionViewModel route)
+    {
+        // Travel to destination through GameFacade
+        await HandleActionExecuted();
+        await LoadLocation();
     }
 
     private Location GetCurrentLocation()

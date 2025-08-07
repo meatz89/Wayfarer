@@ -1,24 +1,11 @@
-﻿@page "/"
+@page "/"
 
 @inherits GameUIBase
 
 @namespace Wayfarer.Pages
 
 <div class="game-container">
-    @if (CurrentView == CurrentViews.MissingReferences)
-    {
-        <MissingReferences OnMissingReferencesResolved="ResolvedMissingReferences" />
-    }
-    else if (CurrentView == CurrentViews.CharacterScreen)
-    {
-        <CharacterCreation OnCharacterCreated="HandleCharacterCreated" />
-    }
-    else
-    {
-        <MainGameplayView CurrentView="@CurrentView" OnNavigate="@NavigateTo" />
-    }
-    <MusicSelector />
-    <MusicPlayer />
+    <MainGameplayView CurrentView="@CurrentView" OnNavigate="@NavigateTo" />
 </div>
 
 @if (LoadingStateService != null)

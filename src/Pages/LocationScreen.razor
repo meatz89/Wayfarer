@@ -154,38 +154,3 @@
         <div class="loading">Loading location...</div>
     }
 </div>
-
-@code {
-    private LocationScreenViewModel Model { get; set; }
-    
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadLocation();
-    }
-    
-    private async Task LoadLocation()
-    {
-        Model = GameFacade.GetLocationScreen();
-        StateHasChanged();
-    }
-    
-    private async Task ExecuteAction(LocationActionViewModel action)
-    {
-        // Execute action through GameFacade
-        await HandleActionExecuted();
-        await LoadLocation();
-    }
-    
-    private async Task StartInteraction(NPCPresenceViewModel npc, InteractionOptionViewModel interaction)
-    {
-        // Start conversation through navigation
-        await OnNavigate.InvokeAsync(CurrentViews.ConversationScreen);
-    }
-    
-    private async Task TravelTo(RouteOptionViewModel route)
-    {
-        // Travel to destination through GameFacade
-        await HandleActionExecuted();
-        await LoadLocation();
-    }
-}

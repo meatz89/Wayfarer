@@ -1,3 +1,22 @@
+/* RESET AND BASE STYLES */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Georgia, serif;
+    background: #2c2416;
+    color: #2c2416;
+    min-height: 100vh;
+}
+
+.game-container {
+    width: 100%;
+    min-height: 100vh;
+}
+
 
 /* ==================== Base Styles & Variables ==================== */
 :root {
@@ -431,4 +450,289 @@ body {
 
 .sidebar-section.collapsed .expand-icon {
     transform: rotate(-90deg);
+}
+
+/* ==================== Main Gameplay View Styles ==================== */
+.game-content {
+    position: relative;
+    min-height: calc(100vh - 120px);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.game-status-bar {
+    background: linear-gradient(to bottom, #2a2416, #1a1410);
+    color: #f4e8d0;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #3a3020;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.player-status {
+    display: flex;
+    gap: 30px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+    color: #c4b890;
+}
+
+.status-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #f4e8d0;
+    min-width: 30px;
+    text-align: center;
+}
+
+.status-item .danger {
+    color: #ff6b6b;
+    font-size: 14px;
+    margin-left: 4px;
+}
+
+.game-info {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.time-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.time-display.morning {
+    background: linear-gradient(135deg, #ffd89b, #19547b);
+    color: #2a2416;
+}
+
+.time-display.afternoon {
+    background: linear-gradient(135deg, #f4e8d0, #c4b890);
+    color: #2a2416;
+}
+
+.time-display.evening {
+    background: linear-gradient(135deg, #667db6, #0082c8);
+    color: #f4e8d0;
+}
+
+.time-display.night {
+    background: linear-gradient(135deg, #1a1410, #3a3020);
+    color: #c4b890;
+}
+
+.time-icon {
+    font-size: 20px;
+}
+
+.time-hours {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.weather-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.weather-icon {
+    font-size: 20px;
+}
+
+.weather-text {
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+/* Location Container Styles */
+.location-container {
+    background: #f4e8d0;
+    border-bottom: 2px solid #d4c8a0;
+    padding: 15px 20px;
+}
+
+.location-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.location-title {
+    font-size: 22px;
+    color: #3a3020;
+    margin: 0;
+    font-family: "Cinzel", serif;
+}
+
+/* Travel Container */
+.travel-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background: #faf4e8;
+}
+
+/* Debug Panel Styles */
+.debug-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #3a3020;
+    color: #f4e8d0;
+    border: 2px solid #5a4030;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.debug-toggle:hover {
+    background: #4a3525;
+    transform: scale(1.1);
+}
+
+.debug-panel {
+    position: fixed;
+    right: 20px;
+    bottom: 80px;
+    width: 350px;
+    max-height: 600px;
+    background: #2a2416;
+    border: 2px solid #5a4030;
+    border-radius: 8px;
+    color: #f4e8d0;
+    z-index: 999;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.debug-header {
+    background: #1a1410;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #3a3020;
+}
+
+.debug-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #c4b890;
+}
+
+.debug-close {
+    background: transparent;
+    border: none;
+    color: #c4b890;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.debug-close:hover {
+    color: #f4e8d0;
+}
+
+.debug-content {
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.debug-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #3a3020;
+}
+
+.debug-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.debug-section h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #c4b890;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.debug-section p {
+    margin: 5px 0;
+    font-size: 13px;
+    color: #a49470;
+}
+
+.debug-section button {
+    background: #3a3020;
+    border: 1px solid #5a4030;
+    color: #f4e8d0;
+    padding: 6px 12px;
+    margin: 5px 5px 5px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.debug-section button:hover {
+    background: #4a3525;
+    border-color: #6a5040;
+}
+
+/* Loading message */
+.loading-message {
+    padding: 40px;
+    text-align: center;
+    color: #8a7050;
+    font-style: italic;
 }
