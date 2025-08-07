@@ -7,7 +7,7 @@ cd /mnt/c/git/wayfarer/src
 
 # Build first
 echo "Building project..."
-dotnet build --no-restore > /dev/null 2>&1
+dotnet build > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "❌ Build failed!"
     exit 1
