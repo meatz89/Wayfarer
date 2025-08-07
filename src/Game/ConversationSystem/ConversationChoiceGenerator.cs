@@ -44,14 +44,7 @@ public class ConversationChoiceGenerator
             return choices;
         }
 
-        // Special handling for Elena conversation (temporary for mockup)
-        if (context?.TargetNPC != null && context.TargetNPC.ID == "elena")
-        {
-            Console.WriteLine("[WARNING] Using hardcoded Elena choices - should be using VerbContextualizer");
-            return GenerateElenaChoices(context, state);
-        }
-
-        // Use VerbContextualizer for systemic choice generation
+        // Use VerbContextualizer for systemic choice generation FIRST
         if (_verbContextualizer != null && context?.TargetNPC != null && context.AttentionManager != null)
         {
             choices = _verbContextualizer.GenerateChoicesFromQueueState(
@@ -63,6 +56,14 @@ public class ConversationChoiceGenerator
             {
                 return choices;
             }
+        }
+
+        // FALLBACK: Special handling for Elena conversation (temporary for mockup)
+        // Only use this if VerbContextualizer didn't generate choices
+        if (context?.TargetNPC != null && context.TargetNPC.ID == "elena")
+        {
+            Console.WriteLine("[WARNING] Falling back to hardcoded Elena choices - VerbContextualizer returned no choices");
+            return GenerateElenaChoices(context, state);
         }
 
         // Fallback: basic exit option

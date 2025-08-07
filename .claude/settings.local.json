@@ -115,7 +115,8 @@
       "Bash(./run-test.sh)",
       "Bash(/dev/null)",
       "mcp__playwright__browser_click",
-      "mcp__playwright__browser_snapshot"
+      "mcp__playwright__browser_snapshot",
+      "Bash(./test-verb-contextualizer.sh:*)"
     ],
     "deny": []
   }
