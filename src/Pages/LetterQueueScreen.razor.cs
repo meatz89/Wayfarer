@@ -84,10 +84,30 @@ namespace Wayfarer.Pages
             return $"{letter.DeadlineInDays} days";
         }
 
-        private async void StartConversation(string npcId)
+        private async Task StartConversation(string npcId)
         {
-            await GameFacade.StartConversationAsync(npcId);
-            // Navigation handled through MainGameplayViewBase
+            Console.WriteLine($"[LetterQueueScreen] Starting conversation with NPC: {npcId}");
+            var conversation = await GameFacade.StartConversationAsync(npcId);
+            Console.WriteLine($"[LetterQueueScreen] Conversation created: {conversation != null}");
+            
+            if (conversation != null)
+            {
+                // Set the selected NPC for the conversation screen
+                SelectedNpcId = npcId;
+                
+                // Navigate to conversation screen
+                Console.WriteLine($"[LetterQueueScreen] OnNavigate null? {OnNavigate == null}");
+                if (OnNavigate != null)
+                {
+                    Console.WriteLine($"[LetterQueueScreen] Navigating to ConversationScreen");
+                    OnNavigate.Invoke(CurrentViews.ConversationScreen);
+                }
+                else
+                {
+                    Console.WriteLine($"[LetterQueueScreen] ERROR: OnNavigate is null!");
+                }
+                StateHasChanged();
+            }
         }
 
         private int GetTokenCount(ConnectionType tokenType)

@@ -4,9 +4,7 @@
 
 @namespace Wayfarer.Pages
 
-<div class="game-container">
-    <MainGameplayView CurrentView="@CurrentView" OnNavigate="@NavigateTo" />
-</div>
+<MainGameplayView CurrentView="@CurrentView" OnNavigate="@NavigateTo" />
 
 @if (LoadingStateService != null)
 {

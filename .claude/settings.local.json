@@ -113,7 +113,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5089\" timeout 10 dotnet run)",
       "Bash(/mnt/c/git/wayfarer/test-startup.sh:*)",
       "Bash(/mnt/c/git/wayfarer/test-game.sh:*)",
-      "Bash(./test-game.sh:*)"
+      "Bash(./test-game.sh:*)",
+      "Bash(export ASPNETCORE_URLS=\"http://localhost:5089\")",
+      "Bash(./run-test.sh)"
     ],
     "deny": []
   }

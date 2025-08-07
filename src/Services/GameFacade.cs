@@ -2133,11 +2133,19 @@ public class GameFacade
         // Generate peripheral observations
         var peripheralObservations = GeneratePeripheralObservations(context);
         
+        // Get the current narrative text, with fallback
+        string currentText = conversation.State?.CurrentNarrative;
+        if (string.IsNullOrWhiteSpace(currentText))
+        {
+            // Fallback narrative if none was generated
+            currentText = $"{conversation.Context.TargetNPC.Name} looks at you expectantly, waiting for you to speak.";
+        }
+        
         return new ConversationViewModel
         {
             NpcName = conversation.Context.TargetNPC.Name,
             NpcId = conversation.Context.TargetNPC.ID,
-            CurrentText = conversation.State?.CurrentNarrative ?? "",
+            CurrentText = currentText,
             Choices = conversation.Choices?.Select(c => new ConversationChoiceViewModel
             {
                 Id = c.ChoiceID,

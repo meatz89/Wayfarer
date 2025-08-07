@@ -81,7 +81,7 @@
                             @GetNPCDescription(npc)
                         </div>
                         <div class="interaction-options">
-                            <div class="interaction" @onclick="@(() => StartConversation(npc.ID))">
+                            <div class="interaction" @onclick="@(async () => await StartConversation(npc.ID))">
                                 <span>@GetInteractionText(npc)</span>
                                 <span class="interaction-cost">@GetInteractionCost(npc)</span>
                             </div>

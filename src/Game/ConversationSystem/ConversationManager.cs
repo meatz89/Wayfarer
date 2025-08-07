@@ -144,6 +144,9 @@ public class ConversationChoice
     
     // Literary UI properties - hidden verb system
     public BaseVerb BaseVerb { get; set; }
+    
+    // Mechanical description for UI display
+    public string MechanicalDescription { get; set; }
     public bool IsAvailable { get; set; }
     
     // Mechanical effects to apply when choice is selected

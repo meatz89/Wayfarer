@@ -10,7 +10,7 @@
 @switch (CurrentScreen)
 {
     case CurrentViews.LetterQueueScreen:
-        <LetterQueueScreen />
+        <LetterQueueScreen OnNavigate="HandleNavigation" />
         break;
 
     case CurrentViews.ConversationScreen:
@@ -30,6 +30,6 @@
         
     default:
         // For any screen we haven't implemented, show LetterQueueScreen
-        <LetterQueueScreen />
+        <LetterQueueScreen OnNavigate="HandleNavigation" />
         break;
 }

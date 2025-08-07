@@ -73,6 +73,12 @@ public class ConversationFactory
             _narrativeProvider,
             context.GameWorld);
 
+        // Initialize the conversation to generate initial narrative
+        await conversationManager.InitializeConversation();
+        
+        // Generate initial choices
+        await conversationManager.ProcessNextBeat();
+
         return conversationManager;
     }
 }
