@@ -32,13 +32,59 @@
 
         <!-- Letter Queue Section -->
         <div class="letter-queue-section">
-            <h3 class="section-header">📬 Letter Queue</h3>
+            <h3 class="section-header">📬 Letter Queue <span class="queue-weight">[@GetTotalWeight()/@GetMaxWeight() weight]</span></h3>
+            
+            <!-- Visual Queue Display like mockup -->
+            <div class="visual-queue">
+                @for (int i = 0; i < 8; i++)
+                {
+                    var letter = GetLetterAtPosition(i + 1);
+                    <div class="queue-position">
+                        <div class="position-number">[@(i + 1)]</div>
+                        <div class="weight-blocks">
+                            @if (letter != null)
+                            {
+                                @for (int w = 0; w < letter.Weight; w++)
+                                {
+                                    <span class="weight-block">■</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="empty-slot">_</span>
+                            }
+                        </div>
+                        <div class="deadline-indicator">
+                            @if (letter != null)
+                            {
+                                <span class="@GetDeadlineClass(letter)">@GetShortDeadline(letter)</span>
+                            }
+                            else
+                            {
+                                <span class="no-deadline">_</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <!-- Detailed Letter Grid -->
             <div class="letter-grid">
                 @for (int i = 0; i < 8; i++)
                 {
                     var letter = GetLetterAtPosition(i + 1);
                     <div class="letter-slot @(letter != null ? "occupied" : "empty") @(i == 0 ? "deliverable" : "")">
-                        <div class="slot-number">@(i + 1)</div>
+                        <div class="slot-header">
+                            <span class="slot-number">Position @(i + 1)</span>
+                            @if (i == 0)
+                            {
+                                <span class="delivery-badge">CAN DELIVER</span>
+                            }
+                            @if (letter != null)
+                            {
+                                <span class="weight-indicator">Weight: @letter.Weight</span>
+                            }
+                        </div>
                         @if (letter != null)
                         {
                             <div class="letter-content">

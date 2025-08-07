@@ -3,6 +3,8 @@ using System.Linq;
 public class LetterQueue
 {
     private Letter[] slots = new Letter[8];
+    private const int MAX_SLOTS = 8;
+    private const int MAX_WEIGHT = 12; // Maximum total weight capacity
 
     // Get letter at specific position (1-8)
     public Letter GetLetterAt(int position)
@@ -11,14 +13,41 @@ public class LetterQueue
         return slots[position - 1];
     }
 
-    // Add letter to specific position (1-8)
-    public void AddLetter(Letter letter, int position)
+    // Add letter to specific position (1-8) with weight checking
+    public bool AddLetter(Letter letter, int position)
     {
-        if (position < 1 || position > 8) return;
-        if (letter == null) return;
+        if (position < 1 || position > 8) return false;
+        if (letter == null) return false;
+
+        // Check if adding this letter would exceed weight capacity
+        if (!CanAdd(letter)) return false;
+
+        // Check if position is occupied
+        if (slots[position - 1] != null) return false;
 
         slots[position - 1] = letter;
         letter.QueuePosition = position;
+        return true;
+    }
+
+    // Check if a letter can be added based on weight constraints
+    public bool CanAdd(Letter letter)
+    {
+        if (letter == null) return false;
+        int currentWeight = GetTotalWeight();
+        return (currentWeight + letter.Weight) <= MAX_WEIGHT;
+    }
+
+    // Get total weight of all letters in queue
+    public int GetTotalWeight()
+    {
+        return slots.Where(l => l != null).Sum(l => l.Weight);
+    }
+
+    // Get remaining weight capacity
+    public int GetRemainingWeightCapacity()
+    {
+        return MAX_WEIGHT - GetTotalWeight();
     }
 
     // Remove letter at position and don't shift yet (for minimal POC)
@@ -34,6 +63,19 @@ public class LetterQueue
         }
     }
 
+    // Deliver letter from position 1 (only allowed position for delivery)
+    public Letter Deliver()
+    {
+        Letter letter = slots[0];
+        if (letter != null)
+        {
+            RemoveLetterAt(1);
+            // Shift all letters up one position
+            ShiftLettersUp(2);
+        }
+        return letter;
+    }
+
     // Find first empty slot position (returns 0 if queue is full)
     public int FindFirstEmptySlot()
     {
@@ -45,10 +87,24 @@ public class LetterQueue
         return 0; // Queue is full
     }
 
-    // Check if queue is full
+    // Find lowest available position that can fit a letter by weight
+    public int FindLowestAvailablePosition(Letter letter)
+    {
+        if (!CanAdd(letter)) return 0;
+        
+        for (int i = 0; i < 8; i++)
+        {
+            if (slots[i] == null)
+                return i + 1;
+        }
+        return 0;
+    }
+
+    // Check if queue is full by weight or slots
     public bool IsFull()
     {
-        return slots.All(slot => slot != null);
+        // Queue is full if all slots are taken OR no more weight capacity
+        return slots.All(slot => slot != null) || GetRemainingWeightCapacity() == 0;
     }
 
     // Check if position is empty
@@ -76,22 +132,82 @@ public class LetterQueue
         return slots.Count(slot => slot != null);
     }
 
-    // For future: shift letters up when one is removed
+    // Shift letters up when one is removed (compact queue)
     public void ShiftLettersUp(int fromPosition)
     {
-        // Not implemented for minimal POC
-        // Will implement in full version
+        if (fromPosition < 2 || fromPosition > 8) return;
+        
+        // Shift all letters from fromPosition onwards up by one position
+        for (int i = fromPosition - 1; i < 7; i++)
+        {
+            if (slots[i] != null)
+            {
+                slots[i - 1] = slots[i];
+                slots[i - 1].QueuePosition = i;
+                slots[i] = null;
+            }
+        }
     }
 
-    // Get letters that are expiring soon (deadline <= days)
-    public Letter[] GetExpiringLetters(int days)
+    // Reorder letters in queue (costs tokens in game logic)
+    public bool Reorder(int fromPosition, int toPosition)
+    {
+        if (fromPosition < 1 || fromPosition > 8) return false;
+        if (toPosition < 1 || toPosition > 8) return false;
+        if (fromPosition == toPosition) return true;
+        
+        Letter letterToMove = slots[fromPosition - 1];
+        if (letterToMove == null) return false;
+        
+        // Check if target position is empty
+        if (slots[toPosition - 1] != null)
+        {
+            // Swap positions
+            Letter temp = slots[toPosition - 1];
+            slots[toPosition - 1] = letterToMove;
+            slots[fromPosition - 1] = temp;
+            
+            letterToMove.QueuePosition = toPosition;
+            temp.QueuePosition = fromPosition;
+        }
+        else
+        {
+            // Simple move to empty position
+            slots[toPosition - 1] = letterToMove;
+            slots[fromPosition - 1] = null;
+            letterToMove.QueuePosition = toPosition;
+        }
+        
+        return true;
+    }
+
+    // Get letters that are expiring soon (deadline <= hours)
+    public Letter[] GetExpiringLetters(int hours)
     {
         return slots
-            .Where(letter => letter != null && letter.DeadlineInHours <= days)
+            .Where(letter => letter != null && letter.DeadlineInHours <= hours)
             .OrderBy(letter => letter.DeadlineInHours)
             .ToArray();
     }
     
+    // Get letters from a specific NPC
+    public Letter[] GetLettersFrom(string npcId)
+    {
+        return slots
+            .Where(letter => letter != null && letter.SenderId == npcId)
+            .ToArray();
+    }
+
+    // Get active letters (for UI display)
+    public Letter[] GetActiveLetters()
+    {
+        return GetAllLetters();
+    }
+    
     // Property for easier access
     public Letter[] Letters => GetAllLetters();
+    
+    // Properties for UI display
+    public int MaxWeight => MAX_WEIGHT;
+    public int MaxSlots => MAX_SLOTS;
 }

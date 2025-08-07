@@ -1,4 +1,91 @@
 ﻿using Wayfarer.GameState.Constants;
+using System.Collections.Generic;
+
+public static class TravelTimeMatrix
+{
+    // Travel times in minutes between locations
+    private static readonly Dictionary<(string, string), int> travelTimes = new Dictionary<(string, string), int>
+    {
+        // Your Room connections (very close to Market Square)
+        { ("your_room", "market_square"), 10 },
+        { ("market_square", "your_room"), 10 },
+        
+        // Market Square as central hub
+        { ("market_square", "noble_district"), 30 },
+        { ("noble_district", "market_square"), 30 },
+        
+        { ("market_square", "merchant_row"), 15 },
+        { ("merchant_row", "market_square"), 15 },
+        
+        { ("market_square", "city_gates"), 30 },
+        { ("city_gates", "market_square"), 30 },
+        
+        { ("market_square", "riverside"), 45 },
+        { ("riverside", "market_square"), 45 },
+        
+        // Non-hub connections (longer)
+        { ("noble_district", "merchant_row"), 45 },
+        { ("merchant_row", "noble_district"), 45 },
+        
+        { ("noble_district", "city_gates"), 60 },
+        { ("city_gates", "noble_district"), 60 },
+        
+        { ("noble_district", "riverside"), 60 },
+        { ("riverside", "noble_district"), 60 },
+        
+        { ("merchant_row", "city_gates"), 30 },
+        { ("city_gates", "merchant_row"), 30 },
+        
+        { ("merchant_row", "riverside"), 60 },
+        { ("riverside", "merchant_row"), 60 },
+        
+        { ("city_gates", "riverside"), 30 },
+        { ("riverside", "city_gates"), 30 },
+        
+        // Your Room to other locations (must go through Market Square)
+        { ("your_room", "noble_district"), 40 },
+        { ("noble_district", "your_room"), 40 },
+        
+        { ("your_room", "merchant_row"), 25 },
+        { ("merchant_row", "your_room"), 25 },
+        
+        { ("your_room", "city_gates"), 40 },
+        { ("city_gates", "your_room"), 40 },
+        
+        { ("your_room", "riverside"), 55 },
+        { ("riverside", "your_room"), 55 },
+    };
+    
+    public static int GetTravelTime(string fromLocationId, string toLocationId)
+    {
+        // Same location = no travel time
+        if (fromLocationId == toLocationId)
+            return 0;
+            
+        // Look up travel time
+        var key = (fromLocationId, toLocationId);
+        if (travelTimes.TryGetValue(key, out int time))
+            return time;
+            
+        // Default fallback for undefined routes
+        return 60;
+    }
+    
+    public static Dictionary<string, int> GetTravelTimesFrom(string locationId)
+    {
+        var result = new Dictionary<string, int>();
+        
+        foreach (var kvp in travelTimes)
+        {
+            if (kvp.Key.Item1 == locationId)
+            {
+                result[kvp.Key.Item2] = kvp.Value;
+            }
+        }
+        
+        return result;
+    }
+}
 
 public class TravelManager
 {

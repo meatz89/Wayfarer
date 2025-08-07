@@ -22,6 +22,17 @@
         <span class="status-icon">⏰</span>
         <span class="status-text">@GetCurrentTime()</span>
     </div>
+    
+    @{
+        var deadline = GetMostUrgentDeadline();
+        if (deadline != null)
+        {
+            <div class="status-section deadline-warning">
+                <span class="status-icon">@deadline.Icon</span>
+                <span class="status-text">@deadline.Text</span>
+            </div>
+        }
+    }
 </div>
 
 @code {
@@ -50,6 +61,14 @@
     {
         try
         {
+            var queueVM = GameFacade.GetLetterQueue();
+            if (queueVM?.Status != null)
+            {
+                // Show both count and weight: "3/8 [7/12w]"
+                return $"{queueVM.Status.LetterCount}/8 [{queueVM.Status.TotalWeight}/{queueVM.Status.MaxWeight}w]";
+            }
+            
+            // Fallback to simple count
             int count = GameFacade.GetLetterQueueCount();
             return $"{count}/8";
         }
@@ -98,6 +117,60 @@
         catch
         {
             return "MON 6:00 AM";
+        }
+    }
+    
+    private class DeadlineInfo
+    {
+        public string Icon { get; set; }
+        public string Text { get; set; }
+    }
+    
+    private DeadlineInfo GetMostUrgentDeadline()
+    {
+        try
+        {
+            var queueVM = GameFacade.GetLetterQueue();
+            if (queueVM?.QueueSlots == null) return null;
+            
+            // Find the most urgent letter
+            LetterViewModel mostUrgent = null;
+            foreach (var slot in queueVM.QueueSlots)
+            {
+                if (slot.IsOccupied && slot.Letter != null)
+                {
+                    if (mostUrgent == null || slot.Letter.DeadlineInHours < mostUrgent.DeadlineInHours)
+                    {
+                        mostUrgent = slot.Letter;
+                    }
+                }
+            }
+            
+            if (mostUrgent == null) return null;
+            
+            // Format deadline display
+            if (mostUrgent.DeadlineInHours <= 0)
+            {
+                return new DeadlineInfo { Icon = "💀", Text = "EXPIRED!" };
+            }
+            else if (mostUrgent.DeadlineInHours <= 2)
+            {
+                return new DeadlineInfo { Icon = "🔥", Text = $"{mostUrgent.DeadlineInHours}h CRITICAL" };
+            }
+            else if (mostUrgent.DeadlineInHours <= 6)
+            {
+                return new DeadlineInfo { Icon = "⚠️", Text = $"{mostUrgent.DeadlineInHours}h urgent" };
+            }
+            else if (mostUrgent.DeadlineInHours <= 24)
+            {
+                return new DeadlineInfo { Icon = "📅", Text = $"{mostUrgent.DeadlineInHours}h" };
+            }
+            
+            return null; // Don't show deadline if > 24 hours
+        }
+        catch
+        {
+            return null;
         }
     }
 }

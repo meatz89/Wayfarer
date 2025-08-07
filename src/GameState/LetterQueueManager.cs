@@ -34,6 +34,24 @@ public class LetterQueueManager
         return _gameWorld.GetPlayer().LetterQueue;
     }
     
+    // Get the LetterQueue object wrapper for weight management
+    public LetterQueue GetLetterQueue()
+    {
+        var queue = new LetterQueue();
+        var playerQueue = _gameWorld.GetPlayer().LetterQueue;
+        
+        // Populate the LetterQueue wrapper with current letters
+        for (int i = 0; i < playerQueue.Length; i++)
+        {
+            if (playerQueue[i] != null)
+            {
+                queue.AddLetter(playerQueue[i], i + 1);
+            }
+        }
+        
+        return queue;
+    }
+    
     // Get active letters (non-null entries in the queue)
     public Letter[] GetActiveLetters()
     {

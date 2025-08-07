@@ -83,6 +83,35 @@ namespace Wayfarer.Pages
             return letter.GetDeadlineDescription();
         }
 
+        private string GetShortDeadline(Letter letter)
+        {
+            if (letter.DeadlineInHours <= 0) return "!EXP";
+            if (letter.DeadlineInHours <= 2) return $"!{letter.DeadlineInHours}h";
+            if (letter.DeadlineInHours <= 6) return $"{letter.DeadlineInHours}h";
+            if (letter.DeadlineInHours <= 24) return $"{letter.DeadlineInHours}h";
+            return $"{letter.DeadlineInHours / 24}d";
+        }
+
+        private string GetDeadlineClass(Letter letter)
+        {
+            if (letter.DeadlineInHours <= 0) return "deadline-expired";
+            if (letter.DeadlineInHours <= 2) return "deadline-critical";
+            if (letter.DeadlineInHours <= 6) return "deadline-urgent";
+            return "deadline-normal";
+        }
+
+        private int GetTotalWeight()
+        {
+            var queue = GameFacade.GetPlayer().LetterQueue;
+            if (queue == null) return 0;
+            return queue.Where(l => l != null).Sum(l => l.Weight);
+        }
+
+        private int GetMaxWeight()
+        {
+            return 12; // Max weight capacity
+        }
+
         private async Task StartConversation(string npcId)
         {
             Console.WriteLine($"[LetterQueueScreen] Starting conversation with NPC: {npcId}");

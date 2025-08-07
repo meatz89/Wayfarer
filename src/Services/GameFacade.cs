@@ -4581,6 +4581,8 @@ public class GameFacade
             TokenIcon = GetTokenIcon(letter.TokenType),
             Size = letter.Size.ToString(),
             SizeIcon = GetSizeIcon(letter.Size),
+            Weight = letter.Weight,
+            WeightDisplay = GetWeightDisplay(letter.Weight),
             IsPatronLetter = letter.IsFromPatron,
             IsCollected = letter.State == LetterState.Collected,
             PhysicalConstraints = letter.GetPhysicalConstraintsDescription(),
@@ -4614,13 +4616,21 @@ public class GameFacade
 
     private QueueStatusViewModel GetQueueStatus()
     {
+        var queue = _letterQueueManager.GetLetterQueue();
+        int totalWeight = queue.GetTotalWeight();
+        int maxWeight = queue.MaxWeight;
+        
         return new QueueStatusViewModel
         {
             LetterCount = _letterQueueManager.GetLetterCount(),
             MaxCapacity = 8,
             ExpiredCount = _letterQueueManager.GetExpiringLetters(0).Length,
             UrgentCount = _letterQueueManager.GetExpiringLetters(1).Length,
-            WarningCount = _letterQueueManager.GetExpiringLetters(2).Length
+            WarningCount = _letterQueueManager.GetExpiringLetters(2).Length,
+            TotalWeight = totalWeight,
+            MaxWeight = maxWeight,
+            RemainingWeight = maxWeight - totalWeight,
+            WeightDisplay = $"{totalWeight}/{maxWeight}"
         };
     }
 
@@ -4825,6 +4835,17 @@ public class GameFacade
         if (props.HasFlag(LetterPhysicalProperties.Valuable))
             return "💎";
         return "";
+    }
+
+    private string GetWeightDisplay(int weight)
+    {
+        return weight switch
+        {
+            1 => "■",
+            2 => "■■",
+            3 => "■■■",
+            _ => "■"
+        };
     }
 
     private string GetDeadlineClass(int deadlineHours)

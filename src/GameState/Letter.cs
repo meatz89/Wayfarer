@@ -106,6 +106,11 @@ public class Letter
     public bool IsExpired => DeadlineInHours <= 0;
     public bool IsSpecial => SpecialType != LetterSpecialType.None;
     public int CarryWeight => PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy) ? 3 : 1;
+    
+    /// <summary>
+    /// Get the weight of this letter for queue management (1-3 slots)
+    /// </summary>
+    public int Weight => GetRequiredSlots();
 
     /// <summary>
     /// Get the number of inventory slots this letter requires

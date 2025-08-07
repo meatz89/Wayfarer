@@ -44,6 +44,8 @@ public class LetterViewModel
     public string TokenIcon { get; init; }
     public string Size { get; init; }
     public string SizeIcon { get; init; }
+    public int Weight { get; init; } // Weight (1-3 slots)
+    public string WeightDisplay { get; init; } // Visual representation (e.g., "■■■")
     public bool IsPatronLetter { get; init; }
     public bool IsCollected { get; init; }
     public string PhysicalConstraints { get; init; }
@@ -106,6 +108,10 @@ public class QueueStatusViewModel
     public int ExpiredCount { get; init; }
     public int UrgentCount { get; init; }
     public int WarningCount { get; init; }
+    public int TotalWeight { get; init; } // Current total weight in queue
+    public int MaxWeight { get; init; } // Maximum weight capacity (12)
+    public int RemainingWeight { get; init; } // Available weight capacity
+    public string WeightDisplay { get; init; } // Visual representation (e.g., "7/12")
 }
 
 /// <summary>

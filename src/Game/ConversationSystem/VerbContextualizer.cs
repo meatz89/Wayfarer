@@ -7,10 +7,10 @@ using System.Linq;
 /// </summary>
 public enum BaseVerb
 {
-    PLACATE,
-    EXTRACT,
-    DEFLECT,
-    COMMIT
+    HELP,      // Accept letters, offer assistance, build trust
+    NEGOTIATE, // Trade positions, time, resources, queue manipulation
+    INVESTIGATE, // Learn information, discover options, probe for secrets
+    EXIT       // Leave conversation, no action taken
 }
 
 /// <summary>
@@ -75,7 +75,7 @@ public class VerbContextualizer
                 ChoiceID = Guid.NewGuid().ToString(),
                 NarrativeText = "Let me help you with something quick.",
                 AttentionCost = 0,
-                BaseVerb = BaseVerb.PLACATE,
+                BaseVerb = BaseVerb.HELP,
                 IsAvailable = true,
                 IsAffordable = true,
                 MechanicalEffects = new List<IMechanicalEffect> 
@@ -93,7 +93,7 @@ public class VerbContextualizer
                 ChoiceID = Guid.NewGuid().ToString(),
                 NarrativeText = "You've helped me before. Can you hold this letter for a day?",
                 AttentionCost = 0,
-                BaseVerb = BaseVerb.DEFLECT,
+                BaseVerb = BaseVerb.NEGOTIATE,
                 IsAvailable = true,
                 IsAffordable = true,
                 MechanicalEffects = new List<IMechanicalEffect>
@@ -113,7 +113,7 @@ public class VerbContextualizer
                 ChoiceID = Guid.NewGuid().ToString(),
                 NarrativeText = "I can deliver something for you.",
                 AttentionCost = 0,
-                BaseVerb = BaseVerb.PLACATE,
+                BaseVerb = BaseVerb.HELP,
                 IsAvailable = true,
                 IsAffordable = true,
                 MechanicalEffects = new List<IMechanicalEffect>
@@ -132,7 +132,7 @@ public class VerbContextualizer
                 ChoiceID = Guid.NewGuid().ToString(),
                 NarrativeText = "I need one more day for your letter. The roads are difficult.",
                 AttentionCost = 0,
-                BaseVerb = BaseVerb.COMMIT,
+                BaseVerb = BaseVerb.NEGOTIATE,
                 IsAvailable = true,
                 IsAffordable = true,
                 MechanicalEffects = new List<IMechanicalEffect>
@@ -154,7 +154,7 @@ public class VerbContextualizer
                 ChoiceID = Guid.NewGuid().ToString(),
                 NarrativeText = $"I know a shortcut through the area.",
                 AttentionCost = 0,
-                BaseVerb = BaseVerb.EXTRACT,
+                BaseVerb = BaseVerb.INVESTIGATE,
                 IsAvailable = true,
                 IsAffordable = true,
                 MechanicalEffects = new List<IMechanicalEffect>
@@ -177,7 +177,7 @@ public class VerbContextualizer
                     ChoiceID = Guid.NewGuid().ToString(),
                     NarrativeText = "I'll always prioritize your letters from now on.",
                     AttentionCost = 1,
-                    BaseVerb = BaseVerb.COMMIT,
+                    BaseVerb = BaseVerb.NEGOTIATE,
                     IsAvailable = true,
                     IsAffordable = true,
                     MechanicalEffects = new List<IMechanicalEffect>
@@ -197,7 +197,7 @@ public class VerbContextualizer
                     ChoiceID = Guid.NewGuid().ToString(),
                     NarrativeText = "Let's make a trade - I'll prioritize your letter if you introduce me to your contacts.",
                     AttentionCost = 1,
-                    BaseVerb = BaseVerb.COMMIT,
+                    BaseVerb = BaseVerb.NEGOTIATE,
                     IsAvailable = true,
                     IsAffordable = true,
                     MechanicalEffects = new List<IMechanicalEffect>
@@ -217,7 +217,7 @@ public class VerbContextualizer
                     ChoiceID = Guid.NewGuid().ToString(),
                     NarrativeText = "Tell me what you're not saying. I can see you're holding back.",
                     AttentionCost = 1,
-                    BaseVerb = BaseVerb.EXTRACT,
+                    BaseVerb = BaseVerb.INVESTIGATE,
                     IsAvailable = true,
                     IsAffordable = true,
                     MechanicalEffects = new List<IMechanicalEffect>
@@ -235,7 +235,7 @@ public class VerbContextualizer
                     ChoiceID = Guid.NewGuid().ToString(),
                     NarrativeText = "Could you introduce me to the merchant guild?",
                     AttentionCost = 1,
-                    BaseVerb = BaseVerb.EXTRACT,
+                    BaseVerb = BaseVerb.INVESTIGATE,
                     IsAvailable = true,
                     IsAffordable = true,
                     MechanicalEffects = new List<IMechanicalEffect>
@@ -261,7 +261,7 @@ public class VerbContextualizer
         {
             // Only keep engagement options when withdrawn
             allChoices = allChoices.Where(c => 
-                c.BaseVerb == BaseVerb.PLACATE || 
+                c.BaseVerb == BaseVerb.HELP || 
                 c.ChoiceID == "exit").ToList();
         }
         
@@ -314,7 +314,7 @@ public class VerbContextualizer
             ChoiceID = "exit",
             NarrativeText = text,
             AttentionCost = 0,
-            BaseVerb = BaseVerb.PLACATE, // Exit is a form of placation (ending conversation)
+            BaseVerb = BaseVerb.EXIT, // Exit conversation without action
             IsAvailable = true,
             IsAffordable = true
         };
@@ -431,23 +431,23 @@ public class VerbContextualizer
         switch (state)
         {
             case NPCEmotionalState.DESPERATE:
-                verbs.Add(BaseVerb.PLACATE);     // They need assistance
-                verbs.Add(BaseVerb.COMMIT);      // Can negotiate from weakness
-                verbs.Add(BaseVerb.EXTRACT);     // They'll share information freely
+                verbs.Add(BaseVerb.HELP);        // They need assistance
+                verbs.Add(BaseVerb.NEGOTIATE);   // Can negotiate from weakness
+                verbs.Add(BaseVerb.INVESTIGATE); // They'll share information freely
                 break;
                 
             case NPCEmotionalState.HOSTILE:
-                verbs.Add(BaseVerb.PLACATE);     // Try to appease
-                verbs.Add(BaseVerb.DEFLECT);     // Redirect their anger
+                verbs.Add(BaseVerb.HELP);        // Try to appease
+                verbs.Add(BaseVerb.NEGOTIATE);   // Redirect their anger
                 break;
                 
             case NPCEmotionalState.CALCULATING:
-                verbs.Add(BaseVerb.COMMIT);      // Trade resources
-                verbs.Add(BaseVerb.EXTRACT);     // Carefully probe for info
+                verbs.Add(BaseVerb.NEGOTIATE);   // Trade resources
+                verbs.Add(BaseVerb.INVESTIGATE); // Carefully probe for info
                 break;
                 
             case NPCEmotionalState.WITHDRAWN:
-                verbs.Add(BaseVerb.PLACATE);     // Offer assistance to engage
+                verbs.Add(BaseVerb.HELP);        // Offer assistance to engage
                 // Most verbs locked when withdrawn
                 break;
         }
@@ -457,7 +457,7 @@ public class VerbContextualizer
         var tokens = npcTokens.ContainsKey(ConnectionType.Trust) ? npcTokens[ConnectionType.Trust] : 0;
         if (tokens >= 5)
         {
-            verbs.Add(BaseVerb.EXTRACT);  // Trust allows deeper probing
+            verbs.Add(BaseVerb.INVESTIGATE);  // Trust allows deeper probing
         }
 
         return verbs.Distinct().ToList();
@@ -475,55 +475,47 @@ public class VerbContextualizer
     {
         return (verb, context, state) switch
         {
-            // PLACATE variations
-            (BaseVerb.PLACATE, ConnectionType.Trust, NPCEmotionalState.DESPERATE) =>
+            // HELP variations
+            (BaseVerb.HELP, ConnectionType.Trust, NPCEmotionalState.DESPERATE) =>
                 "Take her trembling hand in comfort",
-            (BaseVerb.PLACATE, ConnectionType.Trust, NPCEmotionalState.HOSTILE) =>
+            (BaseVerb.HELP, ConnectionType.Trust, NPCEmotionalState.HOSTILE) =>
                 "I understand why you're upset...",
-            (BaseVerb.PLACATE, ConnectionType.Commerce, NPCEmotionalState.DESPERATE) =>
+            (BaseVerb.HELP, ConnectionType.Commerce, NPCEmotionalState.DESPERATE) =>
                 "Let me see what I can do about the payment",
-            (BaseVerb.PLACATE, ConnectionType.Commerce, NPCEmotionalState.HOSTILE) =>
+            (BaseVerb.HELP, ConnectionType.Commerce, NPCEmotionalState.HOSTILE) =>
                 "Perhaps we can work out a partial payment",
-            (BaseVerb.PLACATE, ConnectionType.Status, _) =>
+            (BaseVerb.HELP, ConnectionType.Status, _) =>
                 "Of course, your position deserves respect",
-            (BaseVerb.PLACATE, ConnectionType.Shadow, _) =>
+            (BaseVerb.HELP, ConnectionType.Shadow, _) =>
                 "I mean no threat - see, my hands are empty",
 
-            // EXTRACT variations
-            (BaseVerb.EXTRACT, _, NPCEmotionalState.DESPERATE) when tokenCount >= 3 =>
+            // INVESTIGATE variations
+            (BaseVerb.INVESTIGATE, _, NPCEmotionalState.DESPERATE) when tokenCount >= 3 =>
                 "What's really troubling you? You can trust me",
-            (BaseVerb.EXTRACT, ConnectionType.Trust, _) =>
+            (BaseVerb.INVESTIGATE, ConnectionType.Trust, _) =>
                 "Tell me more about this situation",
-            (BaseVerb.EXTRACT, ConnectionType.Commerce, _) =>
+            (BaseVerb.INVESTIGATE, ConnectionType.Commerce, _) =>
                 "What information might sweeten this deal?",
-            (BaseVerb.EXTRACT, ConnectionType.Status, _) =>
+            (BaseVerb.INVESTIGATE, ConnectionType.Status, _) =>
                 "Who else knows about this matter?",
-            (BaseVerb.EXTRACT, ConnectionType.Shadow, _) =>
+            (BaseVerb.INVESTIGATE, ConnectionType.Shadow, _) =>
                 "I need to know what I'm really carrying",
 
-            // DEFLECT variations
-            (BaseVerb.DEFLECT, _, NPCEmotionalState.HOSTILE) =>
+            // NEGOTIATE variations (specific conditions first)
+            (BaseVerb.NEGOTIATE, _, NPCEmotionalState.HOSTILE) =>
                 "Perhaps you should speak with the postmaster about this",
-            (BaseVerb.DEFLECT, ConnectionType.Trust, _) =>
-                "Have you considered asking Elena instead?",
-            (BaseVerb.DEFLECT, ConnectionType.Commerce, _) =>
-                "The guild sets these rates, not I",
-            (BaseVerb.DEFLECT, ConnectionType.Status, _) =>
-                "Surely someone of your standing has other options",
-            (BaseVerb.DEFLECT, ConnectionType.Shadow, _) =>
-                "I'm just the messenger - take it up with them",
-
-            // COMMIT variations
-            (BaseVerb.COMMIT, _, NPCEmotionalState.DESPERATE) =>
+            (BaseVerb.NEGOTIATE, _, NPCEmotionalState.DESPERATE) =>
                 "I swear I'll deliver your letter before any others today",
-            (BaseVerb.COMMIT, ConnectionType.Trust, _) when tokenCount >= 5 =>
+            (BaseVerb.NEGOTIATE, ConnectionType.Trust, _) when tokenCount >= 5 =>
                 "You have my word as a friend",
-            (BaseVerb.COMMIT, ConnectionType.Commerce, _) =>
-                "I'll guarantee delivery for the agreed price",
-            (BaseVerb.COMMIT, ConnectionType.Status, _) =>
-                "I pledge my service to your cause",
-            (BaseVerb.COMMIT, ConnectionType.Shadow, _) =>
-                "Consider it done - no questions asked",
+            (BaseVerb.NEGOTIATE, ConnectionType.Trust, _) =>
+                "Have you considered asking Elena instead?",
+            (BaseVerb.NEGOTIATE, ConnectionType.Commerce, _) =>
+                "The guild sets these rates, not I",
+            (BaseVerb.NEGOTIATE, ConnectionType.Status, _) =>
+                "Surely someone of your standing has other options",
+            (BaseVerb.NEGOTIATE, ConnectionType.Shadow, _) =>
+                "I'm just the messenger - take it up with them",
 
             // Default fallbacks
             _ => GetGenericPresentation(verb)
@@ -538,10 +530,10 @@ public class VerbContextualizer
         // Base costs
         int baseCost = verb switch
         {
-            BaseVerb.PLACATE => 1,
-            BaseVerb.EXTRACT => 1,
-            BaseVerb.DEFLECT => 1,
-            BaseVerb.COMMIT => 2,  // Promises are more demanding
+            BaseVerb.HELP => 1,
+            BaseVerb.NEGOTIATE => 2,  // Negotiations are more demanding
+            BaseVerb.INVESTIGATE => 1,
+            BaseVerb.EXIT => 0,  // Exit is always free
             _ => 1
         };
 
@@ -589,10 +581,10 @@ public class VerbContextualizer
     {
         return verb switch
         {
-            BaseVerb.PLACATE => "Try to ease the tension",
-            BaseVerb.EXTRACT => "Probe for more information",
-            BaseVerb.DEFLECT => "Redirect the conversation",
-            BaseVerb.COMMIT => "Make a promise",
+            BaseVerb.HELP => "Offer your assistance",
+            BaseVerb.NEGOTIATE => "Propose a trade or deal",
+            BaseVerb.INVESTIGATE => "Probe for more information",
+            BaseVerb.EXIT => "Take your leave",
             _ => "Respond carefully"
         };
     }
