@@ -89,6 +89,12 @@ public class TimeManager : ITimeManager
         int hours = minutes / 60;
         int remainingMinutes = minutes % 60;
 
+        // Always show time passing message
+        string timeDescription = GetTimePassingDescription(minutes);
+        _messageSystem.AddSystemMessage(
+            $"⏱️ {timeDescription}",
+            SystemMessageTypes.Info);
+
         // For now, advance by full hours only (we'll improve this later)
         // TODO: Store minutes internally in TimeModel
         if (hours > 0)
@@ -97,13 +103,22 @@ public class TimeManager : ITimeManager
         }
         
         // Log the lost minutes for debugging
-        if (remainingMinutes > 0)
+        if (remainingMinutes > 0 && hours == 0)
         {
             _logger.LogWarning($"Lost {remainingMinutes} minutes due to hour-only time system");
-            _messageSystem.AddSystemMessage(
-                $"⏱️ Time passes... (~{minutes} minutes)",
-                SystemMessageTypes.Info);
         }
+    }
+    
+    private string GetTimePassingDescription(int minutes)
+    {
+        if (minutes < 60)
+            return $"{minutes} minutes pass...";
+        else if (minutes == 60)
+            return "An hour passes...";
+        else if (minutes < 120)
+            return $"An hour and {minutes - 60} minutes pass...";
+        else
+            return $"{minutes / 60} hours pass...";
     }
 
     public void SetNewTime(int hours)

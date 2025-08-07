@@ -62,11 +62,18 @@ public class LetterReorderEffect : IMechanicalEffect
     {
         if (_tokenCost > 0)
         {
-            return $"Letter prioritized (spent {_tokenCost} {_tokenType} tokens)";
+            var tokenIcon = _tokenType switch
+            {
+                ConnectionType.Trust => "❤",
+                ConnectionType.Commerce => "🪙",
+                ConnectionType.Status => "👑",
+                _ => "?"
+            };
+            return $"✓ Move letter to position {_targetPosition} | {tokenIcon} -{_tokenCost} {_tokenType} token{(_tokenCost != 1 ? "s" : "")}";
         }
         else
         {
-            return "Letter prioritized";
+            return $"✓ Move letter to position {_targetPosition}";
         }
     }
 }
@@ -102,7 +109,14 @@ public class GainTokensEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return $"Strengthened {_tokenType} connection";
+        var tokenIcon = _tokenType switch
+        {
+            ConnectionType.Trust => "♥",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
+            _ => "?"
+        };
+        return $"{tokenIcon} +{_amount} {_tokenType} token{(_amount != 1 ? "s" : "")}";
     }
 }
 
@@ -139,7 +153,14 @@ public class BurnTokensEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return $"Used {_tokenType} influence";
+        var tokenIcon = _tokenType switch
+        {
+            ConnectionType.Trust => "♥",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "👑",
+            _ => "?"
+        };
+        return $"{tokenIcon} -{_amount} {_tokenType} token{(_amount != 1 ? "s" : "")}";
     }
 }
 
@@ -202,7 +223,7 @@ public class RemoveLetterTemporarilyEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return "Letter held by NPC temporarily";
+        return "📜 Letter held temporarily (can be retrieved later)";
     }
 }
 
@@ -229,7 +250,7 @@ public class AcceptLetterEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return $"Accepted letter from {_letter.SenderName}";
+        return $"📜 +1 letter to queue (from {_letter.SenderName})";
     }
 }
 
@@ -261,7 +282,7 @@ public class ExtendDeadlineEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return $"Deadline extended by {_daysToAdd} day(s)";
+        return $"⏱ +{_daysToAdd * 24} hours to deadline";
     }
 }
 
@@ -286,7 +307,7 @@ public class ShareInformationEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return $"Shared knowledge of {_route.Name}";
+        return $"ℹ Shared route: {_route.Name}";
     }
 }
 
@@ -319,7 +340,7 @@ public class CreateObligationEffect : IMechanicalEffect
 
     public string GetDescriptionForPlayer()
     {
-        return "Created binding obligation";
+        return "⛓ Created permanent obligation (priority for their letters)";
     }
 }
 

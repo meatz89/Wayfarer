@@ -44,13 +44,8 @@
     {
         try
         {
-            var queue = GameFacade.GetLetterQueue();
-            if (queue != null && queue.QueueSlots != null)
-            {
-                var activeLetters = queue.QueueSlots.Count(s => s.IsOccupied);
-                return $"{activeLetters}/8";
-            }
-            return "0/8";
+            int count = GameFacade.GetLetterQueueCount();
+            return $"{count}/8";
         }
         catch
         {

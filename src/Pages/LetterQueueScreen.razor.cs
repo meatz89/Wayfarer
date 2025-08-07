@@ -15,12 +15,11 @@ namespace Wayfarer.Pages
             var day = timeInfo.currentDay;
             var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[day % 7];
             
-            // Calculate hour from TimeBlocks - game world specified 3:45 PM (15.75 hours)
-            // For now, use hardcoded mockup time
-            var hour = 15;
-            var minute = 45;
-            var period = "PM";
-            var displayHour = 3;
+            // Get the actual current hour from TimeManager, NOT hours remaining
+            var currentHour = TimeManager.GetCurrentTimeHours();
+            var period = currentHour >= 12 ? "PM" : "AM";
+            var displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
+            var minute = 0; // TODO: Get minutes when TimeManager supports them
             
             return $"{dayName} {displayHour}:{minute:D2} {period}";
         }

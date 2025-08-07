@@ -124,8 +124,10 @@ public class ConversationManager
         // Check if conversation should complete
         // Conversation ends if: no attention left, or player chose to leave
         bool shouldComplete = _context?.AttentionManager?.Current == 0 || 
+                             selectedChoice.ChoiceID == "exit" ||
                              selectedChoice.ChoiceID == "leave" ||
-                             selectedChoice.NarrativeText.Contains("need to go");
+                             selectedChoice.NarrativeText.Contains("need to go") ||
+                             selectedChoice.NarrativeText.Contains("be on my way");
 
         // Create outcome
         ConversationBeatOutcome outcome = new ConversationBeatOutcome

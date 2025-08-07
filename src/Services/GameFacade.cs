@@ -2316,8 +2316,8 @@ public class GameFacade
                 AttentionDescription = GetAttentionDescription(c.AttentionCost),
                 IsInternalThought = c.NarrativeText.StartsWith("*") || c.TemplatePurpose?.Contains("INTERNAL") == true,
                 EmotionalTone = DetermineEmotionalTone(c),
-                // Parse mechanical description into mechanics list
-                Mechanics = ParseMechanicalDescription(c.MechanicalDescription)
+                // Convert mechanical effects to display mechanics
+                Mechanics = ConvertMechanicalEffectsToDisplay(c.MechanicalEffects)
             }).ToList() ?? new List<ConversationChoiceViewModel>(),
             IsComplete = conversation.State?.IsConversationComplete ?? false,
             ConversationTopic = conversation.Context.ConversationTopic,
@@ -2430,6 +2430,50 @@ public class GameFacade
             return "anxious";
             
         return "neutral";
+    }
+    
+    private List<MechanicEffectViewModel> ConvertMechanicalEffectsToDisplay(List<IMechanicalEffect> effects)
+    {
+        var mechanics = new List<MechanicEffectViewModel>();
+        
+        if (effects == null || !effects.Any())
+            return mechanics;
+        
+        foreach (var effect in effects)
+        {
+            // Get the description for player display
+            var description = effect.GetDescriptionForPlayer();
+            if (string.IsNullOrEmpty(description))
+                continue;
+            
+            // Determine type and icon based on effect type
+            var (icon, type) = effect switch
+            {
+                GainTokensEffect => ("♥", MechanicEffectType.Positive),
+                BurnTokensEffect => ("⚠", MechanicEffectType.Negative),
+                LetterReorderEffect => ("→", MechanicEffectType.Neutral),
+                RemoveLetterTemporarilyEffect => ("📜", MechanicEffectType.Neutral),
+                AcceptLetterEffect => ("📜", MechanicEffectType.Positive),
+                ExtendDeadlineEffect => ("⏱", MechanicEffectType.Neutral),
+                ShareInformationEffect => ("ℹ", MechanicEffectType.Positive),
+                CreateObligationEffect => ("⛓", MechanicEffectType.Negative),
+                UnlockRoutesEffect => ("🗺️", MechanicEffectType.Positive),
+                UnlockNPCEffect => ("👥", MechanicEffectType.Positive),
+                DiscoverRouteEffect => ("🗺️", MechanicEffectType.Positive),
+                UnlockLocationEffect => ("🏪", MechanicEffectType.Positive),
+                ConversationTimeEffect => ("⏱", MechanicEffectType.Neutral),
+                _ => ("→", MechanicEffectType.Neutral)
+            };
+            
+            mechanics.Add(new MechanicEffectViewModel
+            {
+                Icon = icon,
+                Description = description,
+                Type = type
+            });
+        }
+        
+        return mechanics;
     }
 
     // ========== LETTER QUEUE ==========

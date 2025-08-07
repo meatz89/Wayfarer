@@ -78,11 +78,9 @@ public class VerbContextualizer
                 BaseVerb = BaseVerb.PLACATE,
                 IsAvailable = true,
                 IsAffordable = true,
-                BodyLanguageHint = "♥ +1 Trust | ⏱ +20 minutes",
                 MechanicalEffects = new List<IMechanicalEffect> 
                 { 
-                    new GainTokensEffect(ConnectionType.Trust, 1, npc.ID, _tokenManager),
-                    new ConversationTimeEffect(20, _timeManager)
+                    new GainTokensEffect(ConnectionType.Trust, 1, npc.ID, _tokenManager)
                 }
             });
         }
@@ -98,7 +96,6 @@ public class VerbContextualizer
                 BaseVerb = BaseVerb.DEFLECT,
                 IsAvailable = true,
                 IsAffordable = true,
-                BodyLanguageHint = "⚠ -2 Trust | 📜 Letter removed temporarily",
                 MechanicalEffects = new List<IMechanicalEffect>
                 {
                     new BurnTokensEffect(ConnectionType.Trust, 2, npc.ID, _tokenManager),
@@ -119,7 +116,6 @@ public class VerbContextualizer
                 BaseVerb = BaseVerb.PLACATE,
                 IsAvailable = true,
                 IsAffordable = true,
-                BodyLanguageHint = "📜 Accept letter | ♥ +1 Trust",
                 MechanicalEffects = new List<IMechanicalEffect>
                 {
                     new AcceptLetterEffect(npc.GenerateLetter(), _queueManager),
@@ -139,7 +135,6 @@ public class VerbContextualizer
                 BaseVerb = BaseVerb.COMMIT,
                 IsAvailable = true,
                 IsAffordable = true,
-                BodyLanguageHint = "⏱ +1 day deadline | ⚠ -1 Trust if desperate",
                 MechanicalEffects = new List<IMechanicalEffect>
                 {
                     new ExtendDeadlineEffect(mostUrgent.Id, 1, _queueManager),
@@ -162,7 +157,6 @@ public class VerbContextualizer
                 BaseVerb = BaseVerb.EXTRACT,
                 IsAvailable = true,
                 IsAffordable = true,
-                BodyLanguageHint = "ℹ Share route | ♥ +1 Commerce",
                 MechanicalEffects = new List<IMechanicalEffect>
                 {
                     new ShareInformationEffect(firstRoute, npc),
@@ -186,7 +180,6 @@ public class VerbContextualizer
                     BaseVerb = BaseVerb.COMMIT,
                     IsAvailable = true,
                     IsAffordable = true,
-                    BodyLanguageHint = "⛓ Creates permanent obligation | ♥ +3 Trust | 🗺️ Unlocks routes",
                     MechanicalEffects = new List<IMechanicalEffect>
                     {
                         new CreateObligationEffect($"{npc.Name}_Priority", npc.ID, player),
@@ -207,7 +200,6 @@ public class VerbContextualizer
                     BaseVerb = BaseVerb.COMMIT,
                     IsAvailable = true,
                     IsAffordable = true,
-                    BodyLanguageHint = "→ Move to position 1 | 👥 Unlock new NPC | ⚠ -2 Trust",
                     MechanicalEffects = new List<IMechanicalEffect>
                     {
                         new LetterReorderEffect(mostUrgent.Id, 1, 0, ConnectionType.Trust, _queueManager, _tokenManager, npc.ID),
@@ -228,11 +220,9 @@ public class VerbContextualizer
                     BaseVerb = BaseVerb.EXTRACT,
                     IsAvailable = true,
                     IsAffordable = true,
-                    BodyLanguageHint = "🗺️ Discover hidden route | ℹ Learn secret | ⏱ +30 minutes",
                     MechanicalEffects = new List<IMechanicalEffect>
                     {
-                        new DiscoverRouteEffect(npc.GetSecretRoute(), player),
-                        new ConversationTimeEffect(30, _timeManager)
+                        new DiscoverRouteEffect(npc.GetSecretRoute(), player)
                     }
                 });
             }
@@ -248,7 +238,6 @@ public class VerbContextualizer
                     BaseVerb = BaseVerb.EXTRACT,
                     IsAvailable = true,
                     IsAffordable = true,
-                    BodyLanguageHint = "⚠ -3 Trust | ♥ +2 Commerce | 🏪 Unlock guild",
                     MechanicalEffects = new List<IMechanicalEffect>
                     {
                         new BurnTokensEffect(ConnectionType.Trust, 3, npc.ID, _tokenManager),
@@ -327,8 +316,7 @@ public class VerbContextualizer
             AttentionCost = 0,
             BaseVerb = BaseVerb.PLACATE, // Exit is a form of placation (ending conversation)
             IsAvailable = true,
-            IsAffordable = true,
-            BodyLanguageHint = "Exit conversation"
+            IsAffordable = true
         };
     }
     
