@@ -121,7 +121,9 @@ public class Phase2_LocationDependents : IInitializationPhase
             return;
         }
 
-        List<NPCDTO> npcDTOs = context.ContentLoader.LoadValidatedContent<List<NPCDTO>>(npcsPath);
+        try
+        {
+            List<NPCDTO> npcDTOs = context.ContentLoader.LoadValidatedContent<List<NPCDTO>>(npcsPath);
 
         if (npcDTOs == null || !npcDTOs.Any())
         {
@@ -178,8 +180,23 @@ public class Phase2_LocationDependents : IInitializationPhase
 
             context.GameWorld.WorldState.NPCs.Add(npc);
             Console.WriteLine($"  Loaded NPC: {npc.Name} ({npc.ID}) at {npc.Location}");
-
-            Console.WriteLine($"Loaded {context.GameWorld.WorldState.NPCs.Count} NPCs");
+        }
+        
+        Console.WriteLine($"Loaded {context.GameWorld.WorldState.NPCs.Count} NPCs");
+        }
+        catch (ContentValidationException ex)
+        {
+            Console.WriteLine($"NPC validation failed with {ex.Errors.Count()} errors:");
+            foreach (ValidationError error in ex.Errors)
+            {
+                Console.WriteLine($"  - {error.Message}");
+                context.Errors.Add($"NPC validation: {error.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load NPCs: {ex.Message}");
+            context.Errors.Add($"Failed to load NPCs: {ex.Message}");
         }
     }
 }

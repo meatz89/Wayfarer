@@ -64,8 +64,6 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        // Initialize with current messages from GameWorld
-        AllEventMessages = GameWorld.EventLog?.ToList() ?? new List<SystemMessage>();
     }
     
     protected override void OnParametersSet()

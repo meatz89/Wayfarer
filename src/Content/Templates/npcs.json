@@ -7,7 +7,7 @@
 		"spotId": "copper_kettle",
 		"description": "A young woman nervously fidgeting with a sealed letter",
 		"personality": "Intelligent and desperate, worried about Lord Aldwin's proposal",
-		"services": ["conversation"],
+		"services": ["Information"],
 		"letterTokenTypes": ["Trust"]
 	},
 	{
@@ -18,7 +18,7 @@
 		"spotId": "merchant_stall",
 		"description": "A merchant heading to his stall",
 		"personality": "Businesslike and hurried",
-		"services": ["trade"],
+		"services": ["Trade"],
 		"letterTokenTypes": ["Commerce"]
 	},
 	{
@@ -29,7 +29,7 @@
 		"spotId": "copper_kettle",
 		"description": "Polishing glasses behind the bar, occasionally glancing your way with a welcoming nod",
 		"personality": "Friendly and observant",
-		"services": ["drinks", "rumors", "rooms"],
+		"services": ["Lodging", "Information"],
 		"letterTokenTypes": []
 	},
 	{
@@ -46,7 +46,7 @@
 	{
 		"id": "viktor",
 		"name": "Viktor",
-		"profession": "Guard",
+		"profession": "Soldier",
 		"locationId": "market_square",
 		"spotId": "north_road",
 		"description": "A guard captain blocking the north road",
@@ -57,7 +57,7 @@
 	{
 		"id": "garrett",
 		"name": "Garrett",
-		"profession": "Courier",
+		"profession": "Agent",
 		"locationId": "market_square",
 		"spotId": "central_fountain",
 		"description": "A fellow courier watching you carefully",
