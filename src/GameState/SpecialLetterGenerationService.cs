@@ -150,7 +150,7 @@ public class SpecialLetterGenerationService
             TokenType = tokenType,
             SpecialType = specialType,
             Payment = GetSpecialLetterPayment(specialType),
-            DeadlineInDays = GetSpecialLetterDeadline(specialType),
+            DeadlineInHours = GetSpecialLetterDeadline(specialType),
             Size = SizeCategory.Medium,
             Tier = 3, // Special letters are tier 3
             State = LetterState.Offered

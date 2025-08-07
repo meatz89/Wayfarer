@@ -12,19 +12,22 @@ public class ConversationFactory
     private readonly NPCEmotionalStateCalculator _stateCalculator;
     private readonly LetterQueueManager _queueManager;
     private readonly VerbContextualizer _verbContextualizer;
+    private readonly ITimeManager _timeManager;
 
     public ConversationFactory(
         INarrativeProvider narrativeProvider,
         ConnectionTokenManager tokenManager,
         NPCEmotionalStateCalculator stateCalculator,
         LetterQueueManager queueManager,
-        VerbContextualizer verbContextualizer)
+        VerbContextualizer verbContextualizer,
+        ITimeManager timeManager)
     {
         _narrativeProvider = narrativeProvider;
         _tokenManager = tokenManager;
         _stateCalculator = stateCalculator;
         _queueManager = queueManager;
         _verbContextualizer = verbContextualizer;
+        _timeManager = timeManager;
     }
 
     public async Task<ConversationManager> CreateConversation(
@@ -53,7 +56,7 @@ public class ConversationFactory
             // Find their most urgent letter for context
             var npcLetters = _queueManager.GetActiveLetters()
                 .Where(l => l.SenderId == context.TargetNPC.ID || l.SenderName == context.TargetNPC.Name)
-                .OrderBy(l => l.DeadlineInDays)
+                .OrderBy(l => l.DeadlineInHours)
                 .ToList();
                 
             // Store in context for narrative generation
@@ -75,7 +78,8 @@ public class ConversationFactory
             _queueManager,
             _tokenManager,
             _stateCalculator,
-            _verbContextualizer);
+            _verbContextualizer,
+            _timeManager);
 
         // Create the conversation manager
         ConversationManager conversationManager = new ConversationManager(

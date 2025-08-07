@@ -5,12 +5,12 @@
     private CancellationTokenSource _cancellationTokenSource;
     private ILogger<ConversationFactory> _logger;
 
-    public PreGenerationManager(ILogger<ConversationFactory> logger = null)
+    public PreGenerationManager(ILogger<ConversationFactory> logger)
     {
         _pendingGenerations = new Dictionary<string, Task<AIResponse>>();
         _cachedResults = new Dictionary<string, AIResponse>();
         _cancellationTokenSource = new CancellationTokenSource();
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public void StartPreGeneration(string choiceId, Task<AIResponse> generationTask)

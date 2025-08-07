@@ -29,8 +29,8 @@ public class LetterTemplateFactory
             Id = id,
             Description = $"A letter template called {name}",
             TokenType = ConnectionType.Trust, // Most basic type
-            MinDeadlineInDays = 24, // One day minimum
-            MaxDeadlineInDays = 48, // Two days maximum
+            MinDeadlineInHours = 24, // One day minimum
+            MaxDeadlineInHours = 48, // Two days maximum
             MinPayment = 2, // Low but reasonable
             MaxPayment = 5,
             Category = LetterCategory.Basic,
@@ -64,8 +64,8 @@ public class LetterTemplateFactory
         string id,
         string description,
         ConnectionType tokenType,
-        int minDeadlineInDays,
-        int maxDeadlineInDays,
+        int minDeadlineInHours,
+        int maxDeadlineInHours,
         int minPayment,
         int maxPayment,
         LetterCategory category = LetterCategory.Basic,
@@ -84,10 +84,10 @@ public class LetterTemplateFactory
             throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
         if (string.IsNullOrEmpty(description))
             throw new ArgumentException("Letter template description cannot be empty", nameof(description));
-        if (minDeadlineInDays < 1)
-            throw new ArgumentException("Minimum deadline must be at least 1 day", nameof(minDeadlineInDays));
-        if (maxDeadlineInDays < minDeadlineInDays)
-            throw new ArgumentException("Maximum deadline must be greater than or equal to minimum deadline", nameof(maxDeadlineInDays));
+        if (minDeadlineInHours < 1)
+            throw new ArgumentException("Minimum deadline must be at least 1 hour", nameof(minDeadlineInHours));
+        if (maxDeadlineInHours < minDeadlineInHours)
+            throw new ArgumentException("Maximum deadline must be greater than or equal to minimum deadline", nameof(maxDeadlineInHours));
         if (minPayment < 0)
             throw new ArgumentException("Minimum payment cannot be negative", nameof(minPayment));
         if (maxPayment < minPayment)
@@ -98,8 +98,8 @@ public class LetterTemplateFactory
             Id = id,
             Description = description,
             TokenType = tokenType,
-            MinDeadlineInDays = minDeadlineInDays,
-            MaxDeadlineInDays = maxDeadlineInDays,
+            MinDeadlineInHours = minDeadlineInHours,
+            MaxDeadlineInHours = maxDeadlineInHours,
             MinPayment = minPayment,
             MaxPayment = maxPayment,
             Category = category,
@@ -125,8 +125,8 @@ public class LetterTemplateFactory
         string id,
         string description,
         ConnectionType tokenType,
-        int minDeadlineInDays,
-        int maxDeadlineInDays,
+        int minDeadlineInHours,
+        int maxDeadlineInHours,
         int minPayment,
         int maxPayment,
         LetterCategory category,
@@ -188,7 +188,7 @@ public class LetterTemplateFactory
             }
         }
 
-        return CreateLetterTemplate(id, description, tokenType, minDeadlineInDays, maxDeadlineInDays,
+        return CreateLetterTemplate(id, description, tokenType, minDeadlineInHours, maxDeadlineInHours,
                                    minPayment, maxPayment, category, minTokensRequired,
                                    senders, recipients, unlocksLetterIds, isChainLetter,
                                    size, physicalProperties, requiredEquipment,

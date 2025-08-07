@@ -346,7 +346,7 @@ public class QueueDisplacementPlanner
             _messageSystem.AddSystemMessage("📬 Queue Changes:", SystemMessageTypes.Info);
             foreach (LetterMovement movement in plan.Movements)
             {
-                string urgency = movement.Letter.DeadlineInDays <= 2 ? " ⚠️" : "";
+                string urgency = movement.Letter.DeadlineInHours <= 2 ? " ⚠️" : "";
                 _messageSystem.AddSystemMessage(
                     $"  • {movement.Letter.SenderName}: position {movement.FromPosition} → {movement.ToPosition}{urgency}",
                     SystemMessageTypes.Info

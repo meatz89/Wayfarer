@@ -15,8 +15,8 @@ public static class LetterTemplateParser
         {
             Id = GetStringProperty(root, "id", ""),
             Description = GetStringProperty(root, "description", ""),
-            MinDeadlineInDays = GetIntProperty(root, "minDeadlineInDays", 3),
-            MaxDeadlineInDays = GetIntProperty(root, "maxDeadlineInDays", 5),
+            MinDeadlineInHours = GetIntProperty(root, "minDeadlineInHours", 72),
+            MaxDeadlineInHours = GetIntProperty(root, "maxDeadlineInHours", 120),
             MinPayment = GetIntProperty(root, "minPayment", 3),
             MaxPayment = GetIntProperty(root, "maxPayment", 5)
         };

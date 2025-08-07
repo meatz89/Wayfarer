@@ -23,6 +23,7 @@ public interface ITimeManager
     /// </summary>
     bool CanPerformAction(int hoursRequired = 1);
     void AdvanceTime(int hours);
+    void AdvanceTimeMinutes(int minutes);
     bool SpendHours(int hours);
 
     /// <summary>

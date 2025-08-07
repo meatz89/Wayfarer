@@ -12,17 +12,20 @@ public class ConversationChoiceGenerator
     private readonly ConnectionTokenManager _tokenManager;
     private readonly NPCEmotionalStateCalculator _stateCalculator;
     private readonly VerbContextualizer _verbContextualizer;
+    private readonly ITimeManager _timeManager;
 
     public ConversationChoiceGenerator(
         LetterQueueManager queueManager,
         ConnectionTokenManager tokenManager,
         NPCEmotionalStateCalculator stateCalculator,
-        VerbContextualizer verbContextualizer)
+        VerbContextualizer verbContextualizer,
+        ITimeManager timeManager)
     {
         _queueManager = queueManager;
         _tokenManager = tokenManager;
         _stateCalculator = stateCalculator;
         _verbContextualizer = verbContextualizer;
+        _timeManager = timeManager;
     }
 
     public List<ConversationChoice> GenerateChoices(SceneContext context, ConversationState state)
@@ -137,7 +140,7 @@ public class ConversationChoiceGenerator
                 MechanicalEffects = new List<IMechanicalEffect>
                 {
                     new CreateMemoryEffect("noble_carriage_schedule", "Noble carriages leave at dawn for Riverside", 2, -1),
-                    new ConversationTimeEffect(20, null) // 20 minutes conversation time
+                    new ConversationTimeEffect(20, _timeManager) // 20 minutes conversation time
                 }
             });
         }

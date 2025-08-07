@@ -112,8 +112,8 @@ public class PatronLetterService
                 Description = "Urgent instructions from your patron",
                 TokenType = ConnectionType.Status,
                 Category = LetterCategory.Premium,
-                MinDeadlineInDays = 2,
-                MaxDeadlineInDays = 4,
+                MinDeadlineInHours = 48,
+                MaxDeadlineInHours = 96,
                 MinPayment = 60,
                 MaxPayment = 100,
                 MinTokensRequired = 1
@@ -138,7 +138,7 @@ public class PatronLetterService
             Description = template.Description,
             TokenType = template.TokenType,
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
-            DeadlineInDays = _random.Next(template.MinDeadlineInDays, template.MaxDeadlineInDays + 1),
+            DeadlineInHours = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1),
             DaysInQueue = 0,
             IsGenerated = true,
             GenerationReason = "Patron Directive"

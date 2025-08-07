@@ -43,14 +43,14 @@ public class NPCEmotionalStateCalculator
         }
 
         // Check for overdue letters first
-        if (theirLetters.Any(l => l.DeadlineInDays <= 0))
+        if (theirLetters.Any(l => l.DeadlineInHours <= 0))
         {
             return NPCEmotionalState.HOSTILE;
         }
 
         // Check for urgent letters or safety stakes
-        var mostUrgent = theirLetters.OrderBy(l => l.DeadlineInDays).First();
-        if (mostUrgent.DeadlineInDays < 2 || mostUrgent.Stakes == StakeType.SAFETY)
+        var mostUrgent = theirLetters.OrderBy(l => l.DeadlineInHours).First();
+        if (mostUrgent.DeadlineInHours < 2 || mostUrgent.Stakes == StakeType.SAFETY)
         {
             return NPCEmotionalState.DESPERATE;
         }
@@ -124,16 +124,16 @@ public class NPCEmotionalStateCalculator
 
         var mostUrgent = queue.Letters
             .Where(l => l.State == LetterState.Accepted)
-            .OrderBy(l => l.DeadlineInDays)
+            .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
 
         if (mostUrgent == null) return null;
 
-        if (mostUrgent.DeadlineInDays <= 1)
+        if (mostUrgent.DeadlineInHours <= 1)
         {
             return $"⚡ {mostUrgent.SenderName}'s letter burns in your satchel";
         }
-        else if (mostUrgent.DeadlineInDays <= 3)
+        else if (mostUrgent.DeadlineInHours <= 3)
         {
             return $"The weight of {mostUrgent.SenderName}'s letter presses against your ribs";
         }
@@ -161,7 +161,7 @@ public class NPCEmotionalStateCalculator
         
         // Build dialogue from letter properties
         var stakesHint = mostUrgentLetter.GetStakesHint();
-        var urgency = GetUrgencyDescription(mostUrgentLetter.DeadlineInDays);
+        var urgency = GetUrgencyDescription(mostUrgentLetter.DeadlineInHours);
         
         return (state, mostUrgentLetter.Stakes) switch
         {

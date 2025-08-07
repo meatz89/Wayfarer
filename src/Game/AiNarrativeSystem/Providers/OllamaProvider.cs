@@ -20,10 +20,10 @@ public class OllamaProvider : IAIProvider
         _httpClient.Timeout = TimeSpan.FromMinutes(5);
     }
 
-    public OllamaProvider(string baseUrl, ILogger<ConversationFactory> logger = null)
+    public OllamaProvider(string baseUrl, ILogger<ConversationFactory> logger)
     {
         _baseUrl = baseUrl ?? throw new ArgumentNullException(nameof(baseUrl));
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         _httpClient = new HttpClient();
         _httpClient.Timeout = TimeSpan.FromMinutes(5);

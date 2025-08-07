@@ -35,7 +35,7 @@ public enum LetterPhysicalProperties
     None = 0,
     Fragile = 1,      // Requires careful handling, can't use fast travel
     Heavy = 2,        // Slows movement, requires strength
-    Perishable = 4,   // DeadlineInDays decreases faster
+    Perishable = 4,   // DeadlineInHours decreases faster
     Valuable = 8,     // Attracts unwanted attention
     Bulky = 16,       // Can't stack with other bulky items
     RequiresProtection = 32  // Needs waterproof container in rain
@@ -46,7 +46,7 @@ public class Letter
     public string Id { get; set; }
     public string SenderName { get; set; }  // Just a string for minimal POC
     public string RecipientName { get; set; }
-    public int DeadlineInDays { get; set; }
+    public int DeadlineInHours { get; set; } // Hours until letter expires
     public int Payment { get; set; }
     public ConnectionType TokenType { get; set; }
     
@@ -103,7 +103,7 @@ public class Letter
     public string InformationId { get; set; } = "";  // For Information letters
 
     // Helper properties
-    public bool IsExpired => DeadlineInDays <= 0;
+    public bool IsExpired => DeadlineInHours <= 0;
     public bool IsSpecial => SpecialType != LetterSpecialType.None;
     public int CarryWeight => PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy) ? 3 : 1;
 
@@ -146,7 +146,7 @@ public class Letter
         {
             Id = $"letter_{Id}",
             Name = $"Letter: {SenderName} to {RecipientName}",
-            Description = $"A sealed letter to be delivered. DeadlineInDays: {GetDeadlineInDaysDescription()}",
+            Description = $"A sealed letter to be delivered. Deadline: {GetDeadlineDescription()}",
             Categories = new List<ItemCategory> { ItemCategory.Documents },
             Size = GetItemSizeCategory(),
             Weight = HasPhysicalProperty(LetterPhysicalProperties.Heavy) ? 3 : 1,
@@ -190,12 +190,17 @@ public class Letter
         return constraints.Any() ? string.Join(", ", constraints) : "None";
     }
 
-    public string GetDeadlineInDaysDescription()
+    public string GetDeadlineDescription()
     {
-        if (IsExpired) return "EXPIRED";
-        if (DeadlineInDays == 1) return "1 day (URGENT!)";
-        if (DeadlineInDays <= 3) return $"{DeadlineInDays} days (urgent)";
-        return $"{DeadlineInDays} days";
+        if (IsExpired) return "EXPIRED!";
+        if (DeadlineInHours <= 2) return $"{DeadlineInHours}h ⚡ CRITICAL!";
+        if (DeadlineInHours <= 6) return $"{DeadlineInHours}h 🔥 URGENT";
+        if (DeadlineInHours <= 12) return $"{DeadlineInHours}h ⚠️ urgent";
+        if (DeadlineInHours <= 24) return $"{DeadlineInHours}h today";
+        int days = DeadlineInHours / 24;
+        int hours = DeadlineInHours % 24;
+        if (hours == 0) return $"{days}d";
+        return $"{days}d {hours}h";
     }
 
     public string GetTokenTypeIcon()

@@ -31,18 +31,20 @@ namespace Wayfarer.Pages
             if (letters == null || !letters.Any(l => l != null)) return "";
             
             var nextDeadline = letters.Where(l => l != null)
-                .OrderBy(l => l.DeadlineInDays)
+                .OrderBy(l => l.DeadlineInHours)
                 .FirstOrDefault();
                 
             if (nextDeadline == null) return "";
             
-            var hoursLeft = nextDeadline.DeadlineInDays * 24;
-            // Mock: assume it's 3:45 PM (15.75 hours into the day)
-            hoursLeft -= (int)(24 - 15.75); // Adjust for current time of day
+            var hoursLeft = nextDeadline.DeadlineInHours;
             
             if (hoursLeft <= 3)
             {
                 return $"⚡ {hoursLeft}h until {GetShortName(nextDeadline.RecipientName)}";
+            }
+            else if (hoursLeft <= 24)
+            {
+                return $"⏰ {hoursLeft}h until {GetShortName(nextDeadline.RecipientName)}";
             }
             else
             {
@@ -79,9 +81,7 @@ namespace Wayfarer.Pages
 
         private string GetDeadlineDisplay(Letter letter)
         {
-            if (letter.DeadlineInDays <= 1) return "URGENT";
-            if (letter.DeadlineInDays <= 2) return $"{letter.DeadlineInDays} days";
-            return $"{letter.DeadlineInDays} days";
+            return letter.GetDeadlineDescription();
         }
 
         private async Task StartConversation(string npcId)

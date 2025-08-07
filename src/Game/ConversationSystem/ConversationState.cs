@@ -22,11 +22,11 @@ public class ConversationState
     public ConversationOutcome Outcome { get; set; }
     public int ConversationSeed { get; }
 
-    public ConversationState(Player player, NPC npc, GameWorld gameWorld = null, int maxFocusPoints = 10, int maxDuration = 8)
+    public ConversationState(Player player, NPC npc, GameWorld gameWorld, int maxFocusPoints, int maxDuration)
     {
-        Player = player;
-        CurrentNPC = npc;
-        GameWorld = gameWorld;
+        Player = player ?? throw new ArgumentNullException(nameof(player));
+        CurrentNPC = npc ?? throw new ArgumentNullException(nameof(npc));
+        GameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         MaxFocusPoints = maxFocusPoints;
         MaxDuration = maxDuration;
         FocusPoints = MaxFocusPoints;
@@ -35,7 +35,7 @@ public class ConversationState
         ConversationSeed = Environment.TickCount;
     }
 
-    public void AdvanceDuration(int amount = 1)
+    public void AdvanceDuration(int amount)
     {
         DurationCounter += amount;
 

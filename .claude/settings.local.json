@@ -116,7 +116,14 @@
       "Bash(/dev/null)",
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_snapshot",
-      "Bash(./test-verb-contextualizer.sh:*)"
+      "Bash(./test-verb-contextualizer.sh:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 10 dotnet run --project src/Wayfarer.csproj)",
+      "Bash(export ASPNETCORE_URLS=\"http://localhost:5099\")",
+      "Bash(./test-time-system.sh:*)",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_console_messages",
+      "Bash(export ASPNETCORE_URLS=\"http://localhost:5100\")"
     ],
     "deny": []
   }

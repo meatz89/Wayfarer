@@ -250,8 +250,8 @@ public class MinimalGameWorldInitializer
                 TokenType = ConnectionType.Trust,
                 MinPayment = 2,
                 MaxPayment = 5,
-                MinDeadlineInDays = 24,
-                MaxDeadlineInDays = 48,
+                MinDeadlineInHours = 24,
+                MaxDeadlineInHours = 48,
                 Size = SizeCategory.Small
             };
 

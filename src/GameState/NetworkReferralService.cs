@@ -199,8 +199,8 @@ public class NetworkReferralService
                 Description = $"Letter of introduction from {referrer.Name}",
                 TokenType = tokenType,
                 Category = LetterCategory.Quality,
-                MinDeadlineInDays = 3,
-                MaxDeadlineInDays = 5,
+                MinDeadlineInHours = 3,
+                MaxDeadlineInHours = 5,
                 MinPayment = 8,
                 MaxPayment = 12
             };
@@ -216,7 +216,7 @@ public class NetworkReferralService
             Description = $"Introduction letter to {target.Name}",
             TokenType = tokenType,
             Payment = _random.Next(template.MinPayment, template.MaxPayment + 1),
-            DeadlineInDays = _random.Next(template.MinDeadlineInDays, template.MaxDeadlineInDays + 1),
+            DeadlineInHours = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1),
             IsGenerated = true,
             GenerationReason = "Network Referral",
             Message = $"{referrer.Name} speaks highly of your courier services and suggests we should meet."

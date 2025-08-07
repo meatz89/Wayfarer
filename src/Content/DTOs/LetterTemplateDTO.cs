@@ -9,8 +9,8 @@ public class LetterTemplateDTO
     public string Id { get; set; }
     public string Description { get; set; }
     public string TokenType { get; set; }
-    public int MinDeadlineInDays { get; set; }
-    public int MaxDeadlineInDays { get; set; }
+    public int MinDeadlineInHours { get; set; }
+    public int MaxDeadlineInHours { get; set; }
     public int MinPayment { get; set; }
     public int MaxPayment { get; set; }
 

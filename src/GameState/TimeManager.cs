@@ -81,6 +81,31 @@ public class TimeManager : ITimeManager
         transaction.Execute();
     }
 
+    public void AdvanceTimeMinutes(int minutes)
+    {
+        if (minutes <= 0) return;
+
+        // Convert minutes to hours and remainder
+        int hours = minutes / 60;
+        int remainingMinutes = minutes % 60;
+
+        // For now, advance by full hours only (we'll improve this later)
+        // TODO: Store minutes internally in TimeModel
+        if (hours > 0)
+        {
+            AdvanceTime(hours);
+        }
+        
+        // Log the lost minutes for debugging
+        if (remainingMinutes > 0)
+        {
+            _logger.LogWarning($"Lost {remainingMinutes} minutes due to hour-only time system");
+            _messageSystem.AddSystemMessage(
+                $"⏱️ Time passes... (~{minutes} minutes)",
+                SystemMessageTypes.Info);
+        }
+    }
+
     public void SetNewTime(int hours)
     {
         // This is a bit tricky - we need to calculate the difference

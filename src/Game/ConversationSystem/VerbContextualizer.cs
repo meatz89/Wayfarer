@@ -23,18 +23,21 @@ public class VerbContextualizer
     private readonly AttentionManager _attentionManager;
     private readonly LetterQueueManager _queueManager;
     private readonly GameWorld _gameWorld;
+    private readonly ITimeManager _timeManager;
     private readonly Random _random = new Random();
 
     public VerbContextualizer(
         ConnectionTokenManager tokenManager,
         AttentionManager attentionManager,
         LetterQueueManager queueManager,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        ITimeManager timeManager)
     {
         _tokenManager = tokenManager;
         _attentionManager = attentionManager;
         _queueManager = queueManager;
         _gameWorld = gameWorld;
+        _timeManager = timeManager;
     }
 
     /// <summary>
@@ -49,7 +52,7 @@ public class VerbContextualizer
         // ANALYZE COMPLETE GAME STATE
         var npcLetters = _queueManager.GetActiveLetters()
             .Where(l => l.SenderId == npc.ID || l.SenderName == npc.Name)
-            .OrderBy(l => l.DeadlineInDays)
+            .OrderBy(l => l.DeadlineInHours)
             .ToList();
             
         var mostUrgent = npcLetters.FirstOrDefault();
@@ -79,7 +82,7 @@ public class VerbContextualizer
                 MechanicalEffects = new List<IMechanicalEffect> 
                 { 
                     new GainTokensEffect(ConnectionType.Trust, 1, npc.ID, _tokenManager),
-                    new ConversationTimeEffect(20, null)
+                    new ConversationTimeEffect(20, _timeManager)
                 }
             });
         }
@@ -126,7 +129,7 @@ public class VerbContextualizer
         }
         
         // Request deadline extension
-        if (mostUrgent != null && mostUrgent.DeadlineInDays <= 2)
+        if (mostUrgent != null && mostUrgent.DeadlineInHours <= 48)
         {
             allChoices.Add(new ConversationChoice
             {
@@ -229,7 +232,7 @@ public class VerbContextualizer
                     MechanicalEffects = new List<IMechanicalEffect>
                     {
                         new DiscoverRouteEffect(npc.GetSecretRoute(), player),
-                        new ConversationTimeEffect(30, null)
+                        new ConversationTimeEffect(30, _timeManager)
                     }
                 });
             }
@@ -276,7 +279,7 @@ public class VerbContextualizer
         // Filter by urgency
         var urgentChoices = allChoices.Where(c => 
             c.MechanicalEffects?.Any(e => e is LetterReorderEffect) == true &&
-            mostUrgent?.DeadlineInDays <= 1).ToList();
+            mostUrgent?.DeadlineInHours <= 24).ToList();
             
         var highLeverageChoices = allChoices.Where(c =>
             c.MechanicalEffects?.Any(e => e is GainTokensEffect gte && gte.Amount >= 3) == true).ToList();
@@ -349,10 +352,11 @@ public class VerbContextualizer
     
     private string GenerateDesperateHelpText(NPC npc, Letter letter)
     {
-        var deadlineText = letter.DeadlineInDays switch
+        var deadlineText = letter.DeadlineInHours switch
         {
             <= 0 => "It's already too late, but",
-            1 => "There's barely time, but",
+            <= 6 => "There's barely time, but",
+            <= 24 => "Time is running out, but",
             _ => "Yes,"
         };
         
@@ -621,7 +625,7 @@ public class VerbContextualizer
         {
             tags.Add($"[{currentLetter.TokenType}]");
             tags.Add($"[{currentLetter.Stakes}]");
-            tags.Add($"[TTL:{currentLetter.DeadlineInDays}]");
+            tags.Add($"[TTL:{currentLetter.DeadlineInHours}]");
             tags.Add($"[Weight:{currentLetter.GetRequiredSlots()}]");
         }
 

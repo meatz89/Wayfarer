@@ -35,7 +35,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             TokenType = ConnectionType.Trust,
             Stakes = StakeType.REPUTATION,
             Size = SizeCategory.Small,
-            DeadlineInDays = 2, // ~2 days (simplified for now)
+            DeadlineInHours = 48, // ~2 days (simplified for now)
             QueuePosition = 1,
             State = LetterState.Accepted,
             Payment = 0
@@ -54,7 +54,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             TokenType = ConnectionType.Status,
             Stakes = StakeType.REPUTATION,
             Size = SizeCategory.Small,
-            DeadlineInDays = 2, // ~2 days (the one with deadline warning)
+            DeadlineInHours = 48, // ~2 days (the one with deadline warning)
             QueuePosition = 2,
             State = LetterState.Accepted,
             Payment = 10
@@ -73,7 +73,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             TokenType = ConnectionType.Commerce,
             Stakes = StakeType.WEALTH,
             Size = SizeCategory.Medium,
-            DeadlineInDays = 3, // ~3 days
+            DeadlineInHours = 72, // ~3 days
             QueuePosition = 3,
             State = LetterState.Accepted,
             Payment = 5
@@ -92,7 +92,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             TokenType = ConnectionType.Status,
             Stakes = StakeType.SAFETY,
             Size = SizeCategory.Small,
-            DeadlineInDays = 6, // ~6 days
+            DeadlineInHours = 144, // ~6 days
             QueuePosition = 5,
             State = LetterState.Accepted,
             Payment = 3
@@ -111,7 +111,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             TokenType = ConnectionType.Shadow,
             Stakes = StakeType.SECRET,
             Size = SizeCategory.Large,
-            DeadlineInDays = 12, // ~12 days
+            DeadlineInHours = 288, // ~12 days
             QueuePosition = 6,
             State = LetterState.Accepted,
             Payment = 15

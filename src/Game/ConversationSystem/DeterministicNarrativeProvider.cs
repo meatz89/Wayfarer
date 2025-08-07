@@ -72,7 +72,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             // Find their most urgent letter
             var npcLetters = _queueManager.GetActiveLetters()
                 .Where(l => l.SenderId == context.TargetNPC.ID || l.SenderName == context.TargetNPC.Name)
-                .OrderBy(l => l.DeadlineInDays)
+                .OrderBy(l => l.DeadlineInHours)
                 .FirstOrDefault();
             
             // Generate dialogue from letter properties and emotional state

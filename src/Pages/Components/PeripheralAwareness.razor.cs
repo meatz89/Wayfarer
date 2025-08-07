@@ -35,15 +35,16 @@ public class PeripheralAwarenessBase : ComponentBase
         // Get deadline narrative for most urgent letter
         var urgentLetter = letterQueue
             .Where(l => l != null && l.State == LetterState.Accepted)
-            .OrderBy(l => l.DeadlineInDays)
+            .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
             
-        if (urgentLetter != null && urgentLetter.DeadlineInDays <= 3)
+        if (urgentLetter != null && urgentLetter.DeadlineInHours <= 72) // 3 days = 72 hours
         {
-            DeadlineNarrative = urgentLetter.DeadlineInDays switch
+            DeadlineNarrative = urgentLetter.DeadlineInHours switch
             {
-                <= 1 => $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel",
-                <= 2 => $"⏰ {urgentLetter.SenderName} needs their letter delivered soon",
+                <= 6 => $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel - {urgentLetter.DeadlineInHours}h left!",
+                <= 24 => $"⏰ {urgentLetter.SenderName} needs their letter delivered today - {urgentLetter.DeadlineInHours}h",
+                <= 48 => $"📬 {urgentLetter.SenderName}'s letter needs attention soon",
                 _ => $"📬 {urgentLetter.SenderName}'s letter weighs on your mind"
             };
         }
@@ -54,9 +55,9 @@ public class PeripheralAwarenessBase : ComponentBase
         {
             QueuePressureNarrative = "Your satchel strains with accumulated correspondence";
         }
-        else if (urgentLetter != null && urgentLetter.DeadlineInDays <= 1)
+        else if (urgentLetter != null && urgentLetter.DeadlineInHours <= 24) // 1 day = 24 hours
         {
-            QueuePressureNarrative = $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel";
+            QueuePressureNarrative = $"⚡ {urgentLetter.SenderName}'s letter burns in your satchel - {urgentLetter.DeadlineInHours}h left!";
         }
     }
 }

@@ -218,16 +218,16 @@ public class ContextTagCalculator
         // Get the most urgent letter deadline
         var urgentLetter = _letterQueueManager?.GetPlayerQueue()?
             .Where(l => l != null)?
-            .Where(l => l.DeadlineInDays > 0)
-            .OrderBy(l => l.DeadlineInDays)
+            .Where(l => l.DeadlineInHours > 0)
+            .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
 
         if (urgentLetter == null)
             return 9999; // No deadline
 
         // Calculate minutes until deadline
-        // DeadlineInDays is the number of days remaining
-        var totalHours = urgentLetter.DeadlineInDays * 24;
+        // DeadlineInHours is the number of hours remaining
+        var totalHours = urgentLetter.DeadlineInHours;
         
         return Math.Max(0, totalHours * 60);
     }

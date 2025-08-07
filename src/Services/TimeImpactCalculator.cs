@@ -59,19 +59,20 @@ public class TimeImpactCalculator
     {
         List<AffectedLetterInfo> impacts = new List<AffectedLetterInfo>();
         Letter[] queue = _letterQueueManager.GetPlayerQueue();
+        int hoursAdvanced = daysAdvanced * 24;
 
         foreach (Letter? letter in queue.Where(l => l != null))
         {
-            int daysRemaining = letter.DeadlineInDays - daysAdvanced;
-            if (daysRemaining <= 0 && letter.DeadlineInDays > 0)
+            int hoursRemaining = letter.DeadlineInHours - hoursAdvanced;
+            if (hoursRemaining <= 0 && letter.DeadlineInHours > 0)
             {
                 // This letter would expire
                 impacts.Add(new AffectedLetterInfo
                 {
                     LetterId = letter.Id,
                     Route = $"{letter.SenderName} → {letter.RecipientName}",
-                    CurrentDaysRemaining = letter.DeadlineInDays,
-                    ResultDaysRemaining = daysRemaining
+                    CurrentHoursRemaining = letter.DeadlineInHours,
+                    ResultHoursRemaining = hoursRemaining
                 });
             }
         }
@@ -109,6 +110,6 @@ public class AffectedLetterInfo
 {
     public string LetterId { get; set; }
     public string Route { get; set; }
-    public int CurrentDaysRemaining { get; set; }
-    public int ResultDaysRemaining { get; set; }
+    public int CurrentHoursRemaining { get; set; }
+    public int ResultHoursRemaining { get; set; }
 }

@@ -79,7 +79,7 @@ public class NPC
             Description = $"Letter from {Name} about {Profession} matters",
             TokenType = LetterTokenTypes.FirstOrDefault(),
             Stakes = StakeType.REPUTATION,
-            DeadlineInDays = new Random().Next(2, 7),
+            DeadlineInHours = new Random().Next(2, 7) * 24,
             QueuePosition = 6, // Add to back of queue
             State = LetterState.Offered
         };

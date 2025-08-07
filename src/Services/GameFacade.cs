@@ -131,6 +131,26 @@ public class GameFacade
     {
         _timeManager.AdvanceTime(hours);
 
+        // Update letter deadlines when time advances
+        _letterQueueManager.ProcessHourlyDeadlines(hours);
+
+        // Process carried information letters after time change
+        _informationRevealService?.ProcessCarriedInformation();
+    }
+
+    private void ProcessTimeAdvancementMinutes(int minutes)
+    {
+        // Convert to hours for deadline processing
+        int hours = minutes / 60;
+        
+        _timeManager.AdvanceTimeMinutes(minutes);
+
+        // Update letter deadlines when time advances (even partial hours)
+        if (hours > 0)
+        {
+            _letterQueueManager.ProcessHourlyDeadlines(hours);
+        }
+
         // Process carried information letters after time change
         _informationRevealService?.ProcessCarriedInformation();
     }
@@ -1003,7 +1023,7 @@ public class GameFacade
             RecipientName = recipient.Name,
             RecipientId = recipient.ID,
             Payment = offer.Payment,
-            DeadlineInDays = offer.DeadlineInDays,
+            DeadlineInHours = offer.DeadlineInHours,
             DaysInQueue = 0,
             QueuePosition = 0,
             TokenType = offer.LetterType,
@@ -2163,7 +2183,7 @@ public class GameFacade
             // Get the most urgent letter stakes for context
             var urgentLetter = _letterQueueManager.GetActiveLetters()
                 .Where(l => l.SenderId == npc.ID || l.SenderName == npc.Name)
-                .OrderBy(l => l.DeadlineInDays)
+                .OrderBy(l => l.DeadlineInHours)
                 .FirstOrDefault();
             
             var stakes = urgentLetter?.Stakes ?? StakeType.REPUTATION;
@@ -2182,7 +2202,7 @@ public class GameFacade
         if (_letterQueueManager != null)
         {
             var urgentLetters = _letterQueueManager.GetActiveLetters()
-                .Where(l => l.DeadlineInDays <= 0)
+                .Where(l => l.DeadlineInHours <= 0)
                 .ToList();
             
             if (urgentLetters.Any())
@@ -2193,13 +2213,13 @@ public class GameFacade
             else
             {
                 var soonestDeadline = _letterQueueManager.GetActiveLetters()
-                    .OrderBy(l => l.DeadlineInDays)
+                    .OrderBy(l => l.DeadlineInHours)
                     .FirstOrDefault();
                     
-                if (soonestDeadline != null && soonestDeadline.DeadlineInDays <= 1)
+                if (soonestDeadline != null && soonestDeadline.DeadlineInHours <= 24)
                 {
                     // Calculate hours remaining
-                    var hoursRemaining = (soonestDeadline.DeadlineInDays * 24) - (_timeManager.GetCurrentTimeHours() - 6);
+                    var hoursRemaining = soonestDeadline.DeadlineInHours - (_timeManager.GetCurrentTimeHours() - 6);
                     if (hoursRemaining > 0)
                     {
                         var hours = hoursRemaining / 1;
@@ -2231,7 +2251,7 @@ public class GameFacade
             
             // If there are urgent letters, NPCs react to the tension
             var hasUrgentLetters = _letterQueueManager?.GetActiveLetters()
-                .Any(l => l.DeadlineInDays <= 1) ?? false;
+                .Any(l => l.DeadlineInHours <= 24) ?? false;
                 
             if (hasUrgentLetters)
             {
@@ -2651,7 +2671,7 @@ public class GameFacade
             RecipientName = "Various Recipients", // offer.RecipientName removed
             Description = offer.Message,
             Payment = offer.Payment,
-            DeadlineDays = offer.DeadlineInDays,
+            DeadlineDays = offer.DeadlineInHours / 24,
             CanAccept = true, // CanAcceptMore method removed
             CannotAcceptReason = null,
             TokenTypes = new List<string> { offer.LetterType.ToString() }
@@ -4243,7 +4263,9 @@ public class GameFacade
 
     public int GetLetterQueueCount()
     {
-        return _gameWorld.GetPlayer()?.CarriedLetters?.Count ?? 0;
+        var player = _gameWorld.GetPlayer();
+        if (player?.LetterQueue == null) return 0;
+        return player.LetterQueue.Count(l => l != null && l.State == LetterState.Accepted);
     }
 
     public bool IsLetterQueueFull()
@@ -4459,7 +4481,7 @@ public class GameFacade
             SenderName = "Notice Board Client",
             RecipientName = $"Recipient in {direction}",
             Payment = 20 + new Random().Next(10),
-            DeadlineInDays = 3 + new Random().Next(2),
+            DeadlineInHours = (3 + new Random().Next(2)) * 24,
             TokenType = (ConnectionType)new Random().Next(4)
         };
 
@@ -4474,7 +4496,7 @@ public class GameFacade
             SenderName = $"{tokenType} Contact",
             RecipientName = $"{tokenType} Recipient",
             Payment = tokenType == ConnectionType.Shadow ? 40 : 25,
-            DeadlineInDays = 4,
+            DeadlineInHours = 4 * 24,
             TokenType = tokenType
         };
 
@@ -4489,7 +4511,7 @@ public class GameFacade
             SenderName = "Urgent Client",
             RecipientName = "Time-Sensitive Recipient",
             Payment = 50 + new Random().Next(20),
-            DeadlineInDays = 2,
+            DeadlineInHours = 2 * 24,
             TokenType = (ConnectionType)new Random().Next(4),
             PhysicalProperties = LetterPhysicalProperties.Fragile
         };
@@ -4509,7 +4531,7 @@ public class GameFacade
             Id = letter.Id,
             SenderName = letter.SenderName,
             RecipientName = letter.RecipientName,
-            DeadlineInDays = letter.DeadlineInDays,
+            DeadlineInHours = letter.DeadlineInHours,
             Payment = letter.Payment,
             TokenType = letter.TokenType.ToString(),
             TokenIcon = GetTokenIcon(letter.TokenType),
@@ -4522,9 +4544,9 @@ public class GameFacade
             IsSpecial = letter.IsSpecial,
             SpecialIcon = letter.GetSpecialIcon(),
             SpecialDescription = letter.GetSpecialDescription(),
-            DeadlineClass = GetDeadlineClass(letter.DeadlineInDays),
-            DeadlineIcon = GetDeadlineIcon(letter.DeadlineInDays),
-            DeadlineDescription = GetDeadlineDescription(letter.DeadlineInDays),
+            DeadlineClass = GetDeadlineClass(letter.DeadlineInHours),
+            DeadlineIcon = GetDeadlineIcon(letter.DeadlineInHours),
+            DeadlineDescription = GetDeadlineDescription(letter.DeadlineInHours),
             LeverageIndicator = leverage.Indicator,
             LeverageTooltip = leverage.Tooltip,
             HasLeverage = leverage.HasLeverage,
@@ -4537,7 +4559,7 @@ public class GameFacade
             PaymentBonusAmount = obligationEffects.paymentBonus,
             PaymentBonusSource = obligationEffects.paymentBonusSource,
             HasDeadlineExtension = obligationEffects.deadlineExtension > 0,
-            DeadlineExtensionDays = obligationEffects.deadlineExtension,
+            DeadlineExtensionHours = obligationEffects.deadlineExtension,
             DeadlineExtensionSource = obligationEffects.deadlineExtensionSource,
             HasPositionModifier = obligationEffects.positionModifier != 0,
             PositionModifierAmount = obligationEffects.positionModifier,
@@ -4761,27 +4783,31 @@ public class GameFacade
         return "";
     }
 
-    private string GetDeadlineClass(int deadlineDays)
+    private string GetDeadlineClass(int deadlineHours)
     {
-        if (deadlineDays <= 0) return "deadline-expired";
-        if (deadlineDays == 1) return "deadline-urgent";
-        if (deadlineDays <= 2) return "deadline-warning";
+        if (deadlineHours <= 0) return "deadline-expired";
+        if (deadlineHours <= 6) return "deadline-urgent";
+        if (deadlineHours <= 24) return "deadline-warning";
         return "deadline-normal";
     }
 
-    private string GetDeadlineIcon(int deadlineDays)
+    private string GetDeadlineIcon(int deadlineHours)
     {
-        if (deadlineDays <= 0) return "💀";
-        if (deadlineDays == 1) return "🔥";
-        if (deadlineDays <= 2) return "⚠️";
+        if (deadlineHours <= 0) return "💀";
+        if (deadlineHours <= 6) return "🔥";
+        if (deadlineHours <= 24) return "⚠️";
         return "📅";
     }
 
-    private string GetDeadlineDescription(int deadlineDays)
+    private string GetDeadlineDescription(int deadlineHours)
     {
-        if (deadlineDays <= 0) return "EXPIRED!";
-        if (deadlineDays == 1) return "Due tomorrow!";
-        return $"{deadlineDays} days";
+        if (deadlineHours <= 0) return "EXPIRED!";
+        if (deadlineHours <= 6) return "Due within hours!";
+        if (deadlineHours <= 24) return "Due today!";
+        int days = deadlineHours / 24;
+        int hours = deadlineHours % 24;
+        if (hours == 0) return $"{days} days";
+        return $"{days}d {hours}h";
     }
 
     private string GetLeverageClass(int leverageStrength)
@@ -4863,12 +4889,12 @@ public class GameFacade
         // Add deadline pressure
         var urgentLetter = player.LetterQueue
             .Where(l => l != null && l.State == LetterState.Accepted)
-            .OrderBy(l => l.DeadlineInDays)
+            .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
             
-        if (urgentLetter != null && urgentLetter.DeadlineInDays <= 3)
+        if (urgentLetter != null && urgentLetter.DeadlineInHours <= 72)
         {
-            viewModel.DeadlinePressure = $"⚡ {urgentLetter.SenderName}: {urgentLetter.DeadlineInDays}d";
+            viewModel.DeadlinePressure = $"⚡ {urgentLetter.SenderName}: {urgentLetter.DeadlineInHours / 24}d";
         }
         
         return viewModel;
@@ -5064,12 +5090,12 @@ public class GameFacade
         var player = _gameWorld.GetPlayer();
         var urgentLetter = player.LetterQueue
             .Where(l => l != null && l.State == LetterState.Accepted)
-            .OrderBy(l => l.DeadlineInDays)
+            .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
             
-        if (urgentLetter != null && urgentLetter.DeadlineInDays <= 2)
+        if (urgentLetter != null && urgentLetter.DeadlineInHours <= 48)
         {
-            var hours = urgentLetter.DeadlineInDays * 24;
+            var hours = urgentLetter.DeadlineInHours;
             return $"⚡ {hours}h until {urgentLetter.SenderName}";
         }
         

@@ -119,7 +119,7 @@ public class ConversationManager
 
         _state.LastChoiceNarrative = selectedChoice.NarrativeText;
         _state.CurrentNarrative = reactionNarrative;
-        _state.AdvanceDuration();
+        _state.AdvanceDuration(1);
 
         // Check if conversation should complete
         // Conversation ends if: no attention left, or player chose to leave

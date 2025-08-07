@@ -182,7 +182,7 @@ public class StandingObligationManager
             RecipientName = shadowRecipients[random.Next(shadowRecipients.Length)],
             TokenType = ConnectionType.Shadow,
             Payment = random.Next(20, 40), // High base payment for dangerous work
-            DeadlineInDays = random.Next(1, 4), // Urgent deadlines
+            DeadlineInHours = random.Next(1, 4), // Urgent deadlines
             IsGenerated = true,
             GenerationReason = "Shadow Obligation Forced (Fallback)"
         };
@@ -206,7 +206,7 @@ public class StandingObligationManager
             RecipientName = "Resources Contact",
             TokenType = ConnectionType.Status, // Patron letters usually noble
             Payment = random.Next(50, 100), // Large resource package
-            DeadlineInDays = random.Next(3, 7), // Reasonable deadline
+            DeadlineInHours = random.Next(3, 7), // Reasonable deadline
             IsGenerated = true,
             GenerationReason = "Patron Monthly Package (Fallback)"
         };
@@ -782,7 +782,7 @@ public class StandingObligationManager
 
                     if (deadlineBonus > 0)
                     {
-                        letter.DeadlineInDays += deadlineBonus;
+                        letter.DeadlineInHours += deadlineBonus;
                         _messageSystem.AddSystemMessage(
                             $"📅 {obligation.Name} grants +{deadlineBonus} days deadline (scaled by {tokenCount} tokens)",
                             SystemMessageTypes.Info

@@ -124,7 +124,7 @@ public class LetterQueueManager
                     if (npc == null || npc.ID != obligation.RelatedNPCId) continue;
                 }
 
-                letter.DeadlineInDays += 2;
+                letter.DeadlineInHours += 48;
                 _messageSystem.AddSystemMessage(
                     $"📅 {obligation.Name} grants +2 days to deadline for letter from {letter.SenderName}",
                     SystemMessageTypes.Info
@@ -462,7 +462,7 @@ public class LetterQueueManager
     // Show narrative for normal letter entry
     private void ShowNormalEntryNarrative(Letter letter, int position)
     {
-        string urgency = letter.DeadlineInDays <= 3 ? " ⚠️" : "";
+        string urgency = letter.DeadlineInHours <= 72 ? " ⚠️" : "";
         _messageSystem.AddSystemMessage(
             $"📨 New letter from {letter.SenderName} enters queue at position {position}{urgency}",
             SystemMessageTypes.Info
@@ -498,10 +498,10 @@ public class LetterQueueManager
     // Notify when letter is shifted
     private void NotifyLetterShifted(Letter letter, int newPosition)
     {
-        string urgency = letter.DeadlineInDays <= 2 ? " 🆘" : "";
+        string urgency = letter.DeadlineInHours <= 48 ? " 🆘" : "";
         _messageSystem.AddSystemMessage(
             $"  • {letter.SenderName}'s letter pushed to position {newPosition}{urgency}",
-            letter.DeadlineInDays <= 2 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+            letter.DeadlineInHours <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
         );
     }
 
@@ -660,6 +660,9 @@ public class LetterQueueManager
         // Pay the player
         player.ModifyCoins(letter.Payment);
 
+        // Advance time for delivery (1 hour)
+        _timeManager.AdvanceTime(1); // 1 hour for delivery
+
         // Record delivery
         RecordLetterDelivery(letter);
 
@@ -685,8 +688,8 @@ public class LetterQueueManager
         }
     }
 
-    // Process daily deadline countdown
-    public void ProcessDailyDeadlines()
+    // Process hourly deadline countdown
+    public void ProcessHourlyDeadlines(int hoursElapsed = 1)
     {
         Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
 
@@ -696,8 +699,8 @@ public class LetterQueueManager
             Letter letter = queue[i];
             if (letter != null)
             {
-                letter.DeadlineInDays--;
-                if (letter.DeadlineInDays <= 0)
+                letter.DeadlineInHours -= hoursElapsed;
+                if (letter.DeadlineInHours <= 0)
                 {
                     // Apply relationship damage before removing
                     ApplyRelationshipDamage(letter, _connectionTokenManager);
@@ -987,8 +990,8 @@ public class LetterQueueManager
     public Letter[] GetExpiringLetters(int daysThreshold)
     {
         return _gameWorld.GetPlayer().LetterQueue
-            .Where(l => l != null && l.DeadlineInDays <= daysThreshold)
-            .OrderBy(l => l.DeadlineInDays)
+            .Where(l => l != null && l.DeadlineInHours <= daysThreshold * 24)
+            .OrderBy(l => l.DeadlineInHours)
             .ToArray();
     }
 
@@ -1046,12 +1049,12 @@ public class LetterQueueManager
                 letter.QueuePosition = writePosition + 1; // Convert back to 1-based
 
                 // Provide narrative context for each letter moving
-                string urgency = letter.DeadlineInDays <= 2 ? " ⚠️ URGENT!" : "";
-                string deadlineText = letter.DeadlineInDays == 1 ? "expires tomorrow!" : $"{letter.DeadlineInDays} days left";
+                string urgency = letter.DeadlineInHours <= 48 ? " ⚠️ URGENT!" : "";
+                string deadlineText = letter.DeadlineInHours <= 24 ? "expires today!" : $"{letter.DeadlineInHours / 24} days left";
 
                 _messageSystem.AddSystemMessage(
                     $"  • {letter.SenderName}'s letter moves from slot {oldPosition} → {letter.QueuePosition} ({deadlineText}){urgency}",
-                    letter.DeadlineInDays <= 2 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+                    letter.DeadlineInHours <= 48 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
                 );
             }
         }
@@ -1430,13 +1433,13 @@ public class LetterQueueManager
     // Show narrative for newly generated letter
     private void ShowGeneratedLetterNarrative(Letter letter, NPC sender, ConnectionType tokenType, int position)
     {
-        string urgency = letter.DeadlineInDays <= 3 ? " - needs urgent delivery!" : "";
+        string urgency = letter.DeadlineInHours <= 72 ? " - needs urgent delivery!" : "";
         string tokenTypeText = GetTokenTypeDescription(letter.TokenType);
         string categoryText = GetCategoryText(sender, tokenType);
 
         _messageSystem.AddSystemMessage(
             $"  • Letter from {sender.Name} to {letter.RecipientName} ({tokenTypeText} correspondence{categoryText}){urgency}",
-            letter.DeadlineInDays <= 3 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
+            letter.DeadlineInHours <= 72 ? SystemMessageTypes.Warning : SystemMessageTypes.Info
         );
 
         _messageSystem.AddSystemMessage(
@@ -1738,10 +1741,10 @@ public class LetterQueueManager
         );
 
         // Show current deadline pressure
-        string urgency = letter.DeadlineInDays <= 2 ? " 🆘 CRITICAL!" : "";
+        string urgency = letter.DeadlineInHours <= 48 ? " 🆘 CRITICAL!" : "";
         _messageSystem.AddSystemMessage(
-            $"  • Current deadline: {letter.DeadlineInDays} days{urgency}",
-            letter.DeadlineInDays <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
+            $"  • Current deadline: {letter.DeadlineInHours / 24} days{urgency}",
+            letter.DeadlineInHours <= 48 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
         );
 
         // Check token cost (2 matching tokens)
@@ -1770,8 +1773,8 @@ public class LetterQueueManager
         }
 
         // Extend the deadline
-        int oldDeadline = letter.DeadlineInDays;
-        letter.DeadlineInDays += 2;
+        int oldDeadlineHours = letter.DeadlineInHours;
+        letter.DeadlineInHours += 48;
 
         // Success narrative
         _messageSystem.AddSystemMessage(
@@ -1780,7 +1783,7 @@ public class LetterQueueManager
         );
 
         _messageSystem.AddSystemMessage(
-            $"  • New deadline: {letter.DeadlineInDays} days (was {oldDeadline})",
+            $"  • New deadline: {letter.DeadlineInHours / 24} days (was {oldDeadlineHours / 24})",
             SystemMessageTypes.Info
         );
 
@@ -1883,7 +1886,7 @@ public class LetterQueueManager
             chainLetter.ParentLetterId = parentLetter.Id;
 
             // Chain letters typically have similar or longer deadlines
-            chainLetter.DeadlineInDays = Math.Max(chainLetter.DeadlineInDays, parentLetter.DeadlineInDays + 1);
+            chainLetter.DeadlineInHours = Math.Max(chainLetter.DeadlineInHours, parentLetter.DeadlineInHours + 24);
 
             // Chain letters often have better payment (reward for completing the chain)
             chainLetter.Payment = (int)(chainLetter.Payment * 1.2f);

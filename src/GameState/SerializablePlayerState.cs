@@ -52,7 +52,7 @@ public class SerializableLetter
     public string Id { get; set; }
     public string SenderName { get; set; }
     public string RecipientName { get; set; }
-    public int DeadlineInDays { get; set; }
+    public int DeadlineInHours { get; set; }
     public int Payment { get; set; }
     public string TokenType { get; set; }
     public string State { get; set; }

@@ -37,7 +37,7 @@ public static class NPCConversationExtensions
             TokenType = tokenTypes[random.Next(tokenTypes.Length)],
             Stakes = stakeTypes[random.Next(stakeTypes.Length)],
             Size = (SizeCategory)random.Next(1, 4), // Small/Medium/Large
-            DeadlineInDays = random.Next(3, 8), // 3-7 days
+            DeadlineInHours = random.Next(3, 8), // 3-7 days
             State = LetterState.Offered,
             QueuePosition = -1 // Not in queue yet
         };

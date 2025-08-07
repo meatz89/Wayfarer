@@ -160,12 +160,19 @@ public class ConversationTimeEffect : IMechanicalEffect
     public void Apply(ConversationState state)
     {
         if (_timeManager != null)
-            _timeManager.AdvanceTime(_minutes);
+        {
+            // Use the new AdvanceTimeMinutes method to preserve minute granularity
+            _timeManager.AdvanceTimeMinutes(_minutes);
+        }
     }
 
     public string GetDescriptionForPlayer()
     {
-        return _minutes > 30 ? "The conversation takes time" : "";
+        if (_minutes >= 60)
+            return $"⏱ +{_minutes / 60} hour{(_minutes >= 120 ? "s" : "")} conversation";
+        else if (_minutes > 0)
+            return $"⏱ +{_minutes} minutes conversation";
+        return "";
     }
 }
 
@@ -248,7 +255,7 @@ public class ExtendDeadlineEffect : IMechanicalEffect
         if (position.HasValue)
         {
             var letter = _queueManager.GetLetterAt(position.Value);
-            letter.DeadlineInDays += _daysToAdd;
+            letter.DeadlineInHours += _daysToAdd * 24;
         }
     }
 
