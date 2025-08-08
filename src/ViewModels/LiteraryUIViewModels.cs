@@ -145,6 +145,7 @@ namespace Wayfarer.ViewModels
         public string Title { get; set; }
         public string Detail { get; set; }
         public string Cost { get; set; } // "FREE", "1c", "10m", etc.
+        public string ActionType { get; set; } // Optional type for special actions like "wait"
     }
     
     /// <summary>
@@ -152,6 +153,7 @@ namespace Wayfarer.ViewModels
     /// </summary>
     public class NPCPresenceViewModel
     {
+        public string Id { get; set; }  // NPC identifier for starting conversations
         public string Name { get; set; }
         public string MoodEmoji { get; set; }
         public string Description { get; set; }

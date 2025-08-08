@@ -518,6 +518,7 @@ public class GameFacade
                 MoveIntent move => await ExecuteMove(move),
                 TalkIntent talk => await ExecuteTalk(talk),
                 RestIntent rest => await ExecuteRest(rest),
+                WaitIntent wait => await ExecuteWait(wait),
                 DeliverLetterIntent deliver => await ExecuteDeliverLetter(deliver),
                 CollectLetterIntent collect => await ExecuteCollectLetter(collect),
                 ObserveLocationIntent observe => await ExecuteObserve(observe),
@@ -648,6 +649,63 @@ public class GameFacade
             _messageSystem.AddSystemMessage($"Error starting conversation: {ex.Message}", SystemMessageTypes.Danger);
             return false;
         }
+    }
+
+    private async Task<bool> ExecuteWait(WaitIntent intent)
+    {
+        // Calculate time to next period
+        var currentTime = _timeManager.GetCurrentTimeBlock();
+        var currentHour = _timeManager.GetCurrentTimeHours();
+        
+        // Determine next time block and hours to advance
+        int hoursToAdvance = currentTime switch
+        {
+            TimeBlocks.Dawn => 8 - currentHour,      // Dawn (6-8) -> Morning (8)
+            TimeBlocks.Morning => 12 - currentHour,   // Morning (8-12) -> Afternoon (12)
+            TimeBlocks.Afternoon => 17 - currentHour, // Afternoon (12-17) -> Evening (17)
+            TimeBlocks.Evening => 20 - currentHour,   // Evening (17-20) -> Night (20)
+            TimeBlocks.Night => 22 - currentHour,     // Night (20-22) -> Late Night (22)
+            TimeBlocks.LateNight => 30 - currentHour, // Late Night (22-6) -> Next Dawn (+6)
+            _ => 2 // Default advance 2 hours
+        };
+
+        // Make sure we advance at least 1 hour
+        if (hoursToAdvance <= 0) hoursToAdvance = 1;
+
+        // Advance time
+        _timeManager.AdvanceTime(hoursToAdvance);
+        
+        // The TimeBlockAttentionManager will automatically refresh attention for the new time block
+        
+        // Add narrative message about waiting
+        var newTime = _timeManager.GetCurrentTimeBlock();
+        var message = newTime switch
+        {
+            TimeBlocks.Dawn => "You wait as the first light breaks over the horizon.",
+            TimeBlocks.Morning => "The morning sun climbs higher as time passes.",
+            TimeBlocks.Afternoon => "The day wears on toward afternoon.",
+            TimeBlocks.Evening => "Shadows lengthen as evening approaches.",
+            TimeBlocks.Night => "Darkness falls across the town.",
+            TimeBlocks.LateNight => "The deep of night settles in.",
+            _ => "Time passes quietly."
+        };
+        
+        _messageSystem.AddSystemMessage(message, SystemMessageTypes.Info);
+        
+        // Check for missed deadlines from letter queue
+        var letterQueue = GetLetterQueue();
+        if (letterQueue?.QueueSlots != null)
+        {
+            foreach (var slot in letterQueue.QueueSlots)
+            {
+                if (slot.IsOccupied && slot.Letter?.DeadlineInHours <= 0)
+                {
+                    _messageSystem.AddSystemMessage($"Letter to {slot.Letter.RecipientName} has expired!", SystemMessageTypes.Danger);
+                }
+            }
+        }
+        
+        return true;
     }
 
     private async Task<bool> ExecuteRest(RestIntent intent)
@@ -1634,6 +1692,13 @@ public class GameFacade
         return routes;
     }
 
+    public async Task<bool> ExecuteWaitAction()
+    {
+        // Create and execute a wait intent
+        var intent = new WaitIntent();
+        return await ExecuteIntent(intent);
+    }
+
     public async Task<bool> TravelToDestinationAsync(string destinationId, string routeId)
     {
         // Find the route
@@ -2101,6 +2166,11 @@ public class GameFacade
         Location location = _locationRepository.GetCurrentLocation();
         LocationSpot spot = player.CurrentLocationSpot;
         var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
+        
+        // CRITICAL: Use persistent attention from time block manager
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        context.AttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        Console.WriteLine($"[StartConversationAsync] Using time-block attention for {currentTimeBlock}: {context.AttentionManager.GetAvailableAttention()}/{context.AttentionManager.GetMaxAttention()}");
 
         // Start conversation directly
         var conversation = await _conversationFactory.CreateConversation(context, player);
@@ -5094,6 +5164,7 @@ public class GameFacade
         {
             var npcPresence = new NPCPresenceViewModel
             {
+                Id = npc.ID,  // Add NPC ID for conversation initiation
                 Name = npc.Name,
                 MoodEmoji = GetNPCMoodEmoji(npc),
                 Description = GetNPCDescription(npc)

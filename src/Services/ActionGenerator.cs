@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState;
 
 public class ActionGenerator
 {
@@ -9,19 +10,22 @@ public class ActionGenerator
     private readonly NPCRepository _npcRepository;
     private readonly ConnectionTokenManager _tokenManager;
     private readonly GameWorld _gameWorld;
+    private readonly TimeBlockAttentionManager _timeBlockAttention;
 
     public ActionGenerator(
         ITimeManager timeManager,
         LocationRepository locationRepository,
         NPCRepository npcRepository,
         ConnectionTokenManager tokenManager,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        TimeBlockAttentionManager timeBlockAttention)
     {
         _timeManager = timeManager;
         _locationRepository = locationRepository;
         _npcRepository = npcRepository;
         _tokenManager = tokenManager;
         _gameWorld = gameWorld;
+        _timeBlockAttention = timeBlockAttention;
     }
 
     /// <summary>
@@ -31,6 +35,22 @@ public class ActionGenerator
     {
         var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
         var currentTime = _timeManager.GetCurrentTimeBlock();
+
+        // Check attention state to determine if wait/rest is needed
+        var attentionState = _timeBlockAttention?.GetAttentionState() ?? (3, 5);
+        bool isExhausted = attentionState.current == 0;
+        bool isLowAttention = attentionState.current <= 1;
+
+        // ALWAYS show Wait action for testing purposes
+        // Previously only showed when exhausted, but need it visible for testing time block transitions
+        actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
+        {
+            Icon = "⏳",
+            Title = "Wait",
+            Detail = isExhausted ? "Pass time until rested" : "Advance to next period",
+            Cost = "NEXT PERIOD",
+            ActionType = "wait" // Special type for handling
+        });
 
         // Generate service-based actions
         if (location.AvailableServices != null)
@@ -52,6 +72,19 @@ public class ActionGenerator
 
         // Generate atmosphere-based actions
         actions.AddRange(GenerateAtmosphereActions(location));
+
+        // Add optional Wait action when low on attention but not exhausted
+        if (!isExhausted && isLowAttention && actions.Count < 5)
+        {
+            actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
+            {
+                Icon = "🕐",
+                Title = "Rest a While",
+                Detail = "Advance to next period",
+                Cost = "TIME PASSES",
+                ActionType = "wait"
+            });
+        }
 
         // Limit to 4-5 actions max (per mockup)
         return actions.Take(5).ToList();

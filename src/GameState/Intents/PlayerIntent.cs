@@ -58,6 +58,17 @@ public class RestIntent : PlayerIntent
 }
 
 /// <summary>
+/// Intent to wait until the next time period (refreshes attention)
+/// </summary>
+public class WaitIntent : PlayerIntent
+{
+    public WaitIntent()
+    {
+        // No parameters needed - always advances to next time block
+    }
+}
+
+/// <summary>
 /// Intent to deliver a letter to its recipient
 /// </summary>
 public class DeliverLetterIntent : PlayerIntent

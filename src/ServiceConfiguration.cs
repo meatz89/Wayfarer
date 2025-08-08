@@ -1,4 +1,5 @@
 ﻿using Wayfarer.Services;
+using Wayfarer.GameState;
 
 public static class ServiceConfiguration
 {
@@ -111,6 +112,9 @@ public static class ServiceConfiguration
         services.AddSingleton<VerbContextualizer>();
         services.AddSingleton<ConversationChoiceGenerator>();
         services.AddSingleton<ConversationFactory>();
+
+        // Attention management
+        services.AddSingleton<TimeBlockAttentionManager>();
 
         // Action generation service
         services.AddSingleton<ActionGenerator>();

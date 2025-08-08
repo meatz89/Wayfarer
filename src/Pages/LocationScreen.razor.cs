@@ -43,15 +43,36 @@ public partial class LocationScreen : ComponentBase
     
     private async Task ExecuteAction(Wayfarer.ViewModels.LocationActionViewModel action)
     {
-        // Execute action through GameFacade
+        // Handle special action types
+        if (action.ActionType == "wait")
+        {
+            // Execute wait action to advance time
+            await GameFacade.ExecuteWaitAction();
+        }
+        else
+        {
+            // Execute normal action through GameFacade
+            // TODO: Implement other action types as needed
+        }
+        
         await HandleActionExecuted();
         await LoadLocation();
     }
     
     private async Task StartInteraction(NPCPresenceViewModel npc, InteractionOptionViewModel interaction)
     {
-        // Start conversation through navigation
-        await OnNavigate.InvokeAsync(CurrentViews.ConversationScreen);
+        // Start the conversation with the NPC through GameFacade
+        var conversationStarted = await GameFacade.StartConversationAsync(npc.Id);
+        
+        if (conversationStarted != null)
+        {
+            // Only navigate if conversation was successfully started
+            await OnNavigate.InvokeAsync(CurrentViews.ConversationScreen);
+        }
+        else
+        {
+            Console.WriteLine($"[LocationScreen] Failed to start conversation with NPC {npc.Id}");
+        }
     }
     
     private async Task TravelTo(RouteOptionViewModel route)

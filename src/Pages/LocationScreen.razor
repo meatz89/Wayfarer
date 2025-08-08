@@ -1,6 +1,10 @@
 @using Wayfarer.ViewModels
+@using Wayfarer.Pages.Components
 
 <div class="main-container">
+    @* Unified Attention Bar - Persistent across all screens *@
+    <UnifiedAttentionBar />
+    
     @if (Model != null)
     {
         <!-- Header -->
