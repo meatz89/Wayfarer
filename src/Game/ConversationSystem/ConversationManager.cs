@@ -172,6 +172,9 @@ public class ConversationChoice
     // Delivery-specific properties
     public DeliveryOutcome DeliveryOutcome { get; set; }
     public int Priority { get; set; } = 0;
+    
+    // UI display properties
+    public bool IsLocked { get; set; }
 
     // Travel encounter properties
     public TravelChoiceEffect? TravelEffect { get; set; }

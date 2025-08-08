@@ -59,7 +59,15 @@ public class VerbContextualizer
         var npcState = stateCalculator.CalculateState(npc);
         var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
         var trustTokens = tokens.ContainsKey(ConnectionType.Trust) ? tokens[ConnectionType.Trust] : 0;
+        var statusTokens = tokens.ContainsKey(ConnectionType.Status) ? tokens[ConnectionType.Status] : 0;
+        var commerceTokens = tokens.ContainsKey(ConnectionType.Commerce) ? tokens[ConnectionType.Commerce] : 0;
         var queueFull = _queueManager.GetActiveLetters().Count() >= 8;
+        
+        // For Elena's specific conversation (marriage proposal refusal letter)
+        if (npc.Name == "Elena" && mostUrgent != null && mostUrgent.Stakes == StakeType.REPUTATION)
+        {
+            return GenerateElenaMarriageProposalChoices(npc, mostUrgent, attention, npcState, trustTokens, statusTokens);
+        }
         
         // Always include exit option (FREE)
         allChoices.Add(CreateExitChoice(npcState));
@@ -318,6 +326,108 @@ public class VerbContextualizer
             IsAvailable = true,
             IsAffordable = true
         };
+    }
+
+    /// <summary>
+    /// Generate specific choices for Elena's marriage proposal refusal scenario
+    /// Matches the UI mockup exactly with proper costs and effects
+    /// </summary>
+    private List<ConversationChoice> GenerateElenaMarriageProposalChoices(
+        NPC elena, 
+        Letter urgentLetter, 
+        AttentionManager attention,
+        NPCEmotionalState state,
+        int trustTokens,
+        int statusTokens)
+    {
+        var choices = new List<ConversationChoice>();
+        
+        // Choice 1: Free Response - Maintain current state
+        choices.Add(new ConversationChoice
+        {
+            ChoiceID = Guid.NewGuid().ToString(),
+            NarrativeText = "\"I understand. Your letter is second in my queue.\"",
+            AttentionCost = 0,
+            BaseVerb = BaseVerb.EXIT,
+            IsAvailable = true,
+            IsAffordable = true,
+            MechanicalEffects = new List<IMechanicalEffect>
+            {
+                new MaintainStateEffect() // No change
+            }
+        });
+        
+        // Choice 2: 1 Attention - Queue Negotiation
+        var canAfford1 = attention.CanAfford(1);
+        choices.Add(new ConversationChoice
+        {
+            ChoiceID = Guid.NewGuid().ToString(),
+            NarrativeText = "\"I'll prioritize your letter. Let me check what that means...\"",
+            AttentionCost = 1,
+            BaseVerb = BaseVerb.NEGOTIATE,
+            IsAvailable = canAfford1,
+            IsAffordable = canAfford1,
+            MechanicalEffects = new List<IMechanicalEffect>
+            {
+                new OpenNegotiationEffect(), // Opens negotiation screen
+                new BurnTokensEffect(ConnectionType.Status, 1, "lord_b", _tokenManager) // Must burn Status with Lord B
+            }
+        });
+        
+        // Choice 3: 1 Attention - Information Trade
+        choices.Add(new ConversationChoice
+        {
+            ChoiceID = Guid.NewGuid().ToString(),
+            NarrativeText = "\"Lord Aldwin from Riverside? Tell me about the situation...\"",
+            AttentionCost = 1,
+            BaseVerb = BaseVerb.INVESTIGATE,
+            IsAvailable = canAfford1,
+            IsAffordable = canAfford1,
+            MechanicalEffects = new List<IMechanicalEffect>
+            {
+                new GainInformationEffect("Noble carriage schedule", InfoType.Rumor),
+                new TimePassageEffect(20) // +20 minutes conversation
+            }
+        });
+        
+        // Choice 4: 2 Attention - Binding Obligation
+        var canAfford2 = attention.CanAfford(2);
+        choices.Add(new ConversationChoice
+        {
+            ChoiceID = Guid.NewGuid().ToString(),
+            NarrativeText = "\"I swear I'll deliver your letter before any others today.\"",
+            AttentionCost = 2,
+            BaseVerb = BaseVerb.NEGOTIATE,
+            IsAvailable = canAfford2,
+            IsAffordable = canAfford2,
+            MechanicalEffects = new List<IMechanicalEffect>
+            {
+                new GainTokensEffect(ConnectionType.Trust, 2, elena.ID, _tokenManager), // +2 Trust immediately
+                new CreateBindingObligationEffect(elena.ID, "Deliver Elena's letter first") // Creates binding obligation
+            }
+        });
+        
+        // Choice 5: 3 Attention - Deep Investigation (Locked if not enough attention)
+        var canAfford3 = attention.CanAfford(3);
+        Console.WriteLine($"[VerbContextualizer] Elena choices - Current attention: {attention.Current}, Max: {attention.Max}, CanAfford(3): {canAfford3}");
+        choices.Add(new ConversationChoice
+        {
+            ChoiceID = Guid.NewGuid().ToString(),
+            NarrativeText = "\"Let me investigate Lord Aldwin's current position at court...\"",
+            AttentionCost = 3,
+            BaseVerb = BaseVerb.INVESTIGATE,
+            IsAvailable = canAfford3,
+            IsAffordable = canAfford3,
+            IsLocked = !canAfford3, // Show as locked if can't afford
+            MechanicalEffects = canAfford3 ? new List<IMechanicalEffect>
+            {
+                new DeepInvestigationEffect("Lord Aldwin's court standing"),
+                new UnlockRouteEffect("Noble Quarter Express"),
+                new GainTokensEffect(ConnectionType.Status, 3, elena.ID, _tokenManager)
+            } : new List<IMechanicalEffect> { new LockedEffect("[Requires 3 attention points]") }
+        });
+        
+        return choices;
     }
     
     private (int attention, int tokens) CalculateReorderCost(Letter letter, NPCEmotionalState state)

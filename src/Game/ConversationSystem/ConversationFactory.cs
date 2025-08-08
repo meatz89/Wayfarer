@@ -13,6 +13,7 @@ public class ConversationFactory
     private readonly LetterQueueManager _queueManager;
     private readonly VerbContextualizer _verbContextualizer;
     private readonly ITimeManager _timeManager;
+    private readonly AtmosphereCalculator _atmosphereCalculator;
 
     public ConversationFactory(
         INarrativeProvider narrativeProvider,
@@ -20,7 +21,8 @@ public class ConversationFactory
         NPCEmotionalStateCalculator stateCalculator,
         LetterQueueManager queueManager,
         VerbContextualizer verbContextualizer,
-        ITimeManager timeManager)
+        ITimeManager timeManager,
+        AtmosphereCalculator atmosphereCalculator = null)
     {
         _narrativeProvider = narrativeProvider;
         _tokenManager = tokenManager;
@@ -28,6 +30,7 @@ public class ConversationFactory
         _queueManager = queueManager;
         _verbContextualizer = verbContextualizer;
         _timeManager = timeManager;
+        _atmosphereCalculator = atmosphereCalculator;
     }
 
     public async Task<ConversationManager> CreateConversation(
@@ -41,11 +44,20 @@ public class ConversationFactory
             context.RelationshipLevel = context.CurrentTokens.Values.Sum();
         }
 
-        // Initialize attention manager for graduated system (0/1/2 points)
+        // CRITICAL CHANGE: Do NOT reset attention per conversation!
+        // Attention now persists across conversations within a time block
         if (context.AttentionManager == null)
         {
+            // This should only happen if attention wasn't provided from GameFacade
+            // In that case, create a default one (but this is an error condition)
+            Console.WriteLine("[ConversationFactory] WARNING: No AttentionManager provided! Creating default.");
             context.AttentionManager = new AttentionManager();
-            context.AttentionManager.ResetForNewScene(); // Start with full 3 attention points
+            context.AttentionManager.ResetForNewScene(); // Only for emergency fallback
+        }
+        else
+        {
+            // DO NOT RESET! Use the existing attention from the time block
+            Console.WriteLine($"[ConversationFactory] Using existing attention: Current={context.AttentionManager.Current}, Max={context.AttentionManager.Max}");
         }
 
         // Calculate NPC emotional state from queue

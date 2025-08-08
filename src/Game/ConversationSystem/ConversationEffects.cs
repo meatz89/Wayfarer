@@ -450,3 +450,192 @@ public class DiscoverRouteEffect : IMechanicalEffect
         return $"Discovered route: {_route?.Name ?? "new path"}";
     }
 }
+
+/// <summary>
+/// No change to game state - maintains current situation
+/// </summary>
+public class MaintainStateEffect : IMechanicalEffect
+{
+    public void Apply(ConversationState state) { }
+    public string GetDescriptionForPlayer() => "→ Maintains current state";
+}
+
+/// <summary>
+/// Opens queue negotiation interface
+/// </summary>
+public class OpenNegotiationEffect : IMechanicalEffect
+{
+    public void Apply(ConversationState state) 
+    {
+        // Mark that negotiation should be opened (handled by UI)
+        state.AdvanceDuration(1);
+    }
+    public string GetDescriptionForPlayer() => "✓ Opens negotiation";
+}
+
+/// <summary>
+/// Gain information or rumor
+/// </summary>
+public class GainInformationEffect : IMechanicalEffect
+{
+    private readonly string _information;
+    private readonly string _infoType;
+
+    public GainInformationEffect(string information, InfoType infoType)
+    {
+        _information = information;
+        _infoType = infoType.ToString().ToLower();
+    }
+
+    public void Apply(ConversationState state)
+    {
+        // Store information as a memory
+        var memory = new MemoryFlag
+        {
+            Key = $"info_{_infoType}_{Guid.NewGuid()}",
+            Description = _information,
+            Importance = 5
+        };
+        state.Player.Memories.Add(memory);
+    }
+
+    public string GetDescriptionForPlayer() => $"ℹ Gain {_infoType}: \"{_information}\"";
+}
+
+/// <summary>
+/// Time passes during conversation
+/// </summary>
+public class TimePassageEffect : IMechanicalEffect
+{
+    private readonly int _minutes;
+
+    public TimePassageEffect(int minutes)
+    {
+        _minutes = minutes;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        // Advance conversation duration
+        state.DurationCounter += _minutes / 5; // Convert to conversation rounds
+    }
+
+    public string GetDescriptionForPlayer() => $"⏱ +{_minutes} minutes conversation";
+}
+
+/// <summary>
+/// Create a binding obligation/promise
+/// </summary>
+public class CreateBindingObligationEffect : IMechanicalEffect
+{
+    private readonly string _npcId;
+    private readonly string _obligationText;
+
+    public CreateBindingObligationEffect(string npcId, string obligationText)
+    {
+        _npcId = npcId;
+        _obligationText = obligationText;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        // Create obligation that affects queue entry position
+        var obligation = new StandingObligation
+        {
+            ID = Guid.NewGuid().ToString(),
+            Name = _obligationText,
+            Description = _obligationText,
+            Source = _npcId
+        };
+        state.Player.StandingObligations.Add(obligation);
+    }
+
+    public string GetDescriptionForPlayer() => "⛓ Creates Binding Obligation";
+}
+
+/// <summary>
+/// Deep investigation reveals important information
+/// </summary>
+public class DeepInvestigationEffect : IMechanicalEffect
+{
+    private readonly string _topic;
+
+    public DeepInvestigationEffect(string topic)
+    {
+        _topic = topic;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        // Reveal hidden information as a memory
+        var memory = new MemoryFlag
+        {
+            Key = $"investigation_{Guid.NewGuid()}",
+            Description = $"Investigation revealed: {_topic}",
+            Importance = 10
+        };
+        state.Player.Memories.Add(memory);
+    }
+
+    public string GetDescriptionForPlayer() => $"🔍 Deep investigation: {_topic}";
+}
+
+/// <summary>
+/// Unlock a new route
+/// </summary>
+public class UnlockRouteEffect : IMechanicalEffect
+{
+    private readonly string _routeName;
+
+    public UnlockRouteEffect(string routeName)
+    {
+        _routeName = routeName;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        // Add route to player's known routes
+        var route = new RouteOption
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = _routeName,
+            TravelTimeHours = 1,
+            Description = $"Fast route to Noble Quarter via {_routeName}"
+        };
+        
+        var fromLocation = state.Player.CurrentLocationSpot?.LocationId ?? "market_square";
+        
+        if (!state.Player.KnownRoutes.ContainsKey(fromLocation))
+            state.Player.KnownRoutes.Add(fromLocation, new List<RouteOption>());
+            
+        state.Player.KnownRoutes[fromLocation].Add(route);
+    }
+
+    public string GetDescriptionForPlayer() => $"🗺 Unlock route: {_routeName}";
+}
+
+/// <summary>
+/// Choice is locked due to requirements
+/// </summary>
+public class LockedEffect : IMechanicalEffect
+{
+    private readonly string _reason;
+
+    public LockedEffect(string reason)
+    {
+        _reason = reason;
+    }
+
+    public void Apply(ConversationState state) { }
+    public string GetDescriptionForPlayer() => _reason;
+}
+
+// Info type enum for information effects
+public enum InfoType
+{
+    Rumor,
+    Secret,
+    Route,
+    Schedule,
+    Weakness
+}

@@ -125,7 +125,11 @@
       "mcp__playwright__browser_console_messages",
       "Bash(export ASPNETCORE_URLS=\"http://localhost:5100\")",
       "mcp__gemini-cli__brainstorm",
-      "Bash(./test-core-loop.sh:*)"
+      "Bash(./test-core-loop.sh:*)",
+      "Bash(pwsh test-attention-system.ps1)",
+      "mcp__playwright__browser_close",
+      "Bash(./test-conversation-flow.sh:*)",
+      "Bash(./test-attention-system.sh:*)"
     ],
     "deny": []
   }

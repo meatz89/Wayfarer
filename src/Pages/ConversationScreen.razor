@@ -1,18 +1,14 @@
 @page "/conversation/{NpcId}"
 @using Wayfarer.ViewModels
+@using Wayfarer.Pages.Components
 @inherits ConversationScreenBase
 
 <div class="container">
+    @* Unified Attention Bar - Persistent across all screens *@
+    <UnifiedAttentionBar />
+    
     @if (Model != null)
     {
-        <!-- Attention Display - ALWAYS VISIBLE -->
-        <div class="attention-bar">
-            <span class="attention-label">Attention:</span>
-            @for (int i = 0; i < Model.MaxAttention; i++)
-            {
-                <div class="attention-point @(i < Model.CurrentAttention ? "" : "spent")"></div>
-            }
-        </div>
 
         <!-- Peripheral Awareness - SUBTLE HINTS -->
         <div class="peripheral-layer">
@@ -71,63 +67,23 @@
                 }
             </div>
 
-            <!-- Choice Options - INTERNAL THOUGHTS WITH COSTS -->
+            <!-- Choice Options - Using Unified Components -->
             <div class="choice-container">
-                @if (Model.Choices?.Any() == true)
+                @if (UnifiedChoices?.Any() == true)
                 {
-                    @foreach (var choice in Model.Choices)
+                    @foreach (var choice in UnifiedChoices)
                     {
-                        <div class="choice-option @(!choice.IsAvailable ? "locked" : "")" 
-                             @onclick="@(async () => await SelectChoice(choice.Id))">
-                            <div class="attention-cost @(choice.AttentionCost == 0 ? "free" : "")">
-                                @if (choice.AttentionCost == 0)
-                                {
-                                    @:Free
-                                }
-                                else
-                                {
-                                    @for (int i = 0; i < choice.AttentionCost; i++)
-                                    {
-                                        @:◆
-                                    }
-                                    @: @choice.AttentionCost
-                                }
-                            </div>
-                            <div class="choice-text">@choice.Text</div>
-                            @if (choice.Mechanics?.Any() == true)
-                            {
-                                <div class="choice-mechanics">
-                                    @foreach (var mechanic in choice.Mechanics)
-                                    {
-                                        <div class="mechanic-item @GetMechanicTypeClass(mechanic.Type)">
-                                            @mechanic.Icon @mechanic.Description
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else if (!choice.IsAvailable)
-                            {
-                                <div class="choice-mechanics">
-                                    <div class="mechanic-item">
-                                        [@choice.UnavailableReason ?? $"Requires {choice.AttentionCost} attention points"]
-                                    </div>
-                                </div>
-                            }
-                        </div>
+                        <UnifiedChoice Choice="@choice" 
+                                      AvailableAttention="@CurrentAttention"
+                                      OnSelected="@HandleUnifiedChoice" />
                     }
                 }
                 else
                 {
-                    <!-- Default choices if none generated -->
-                    <div class="choice-option">
-                        <div class="attention-cost free">Free</div>
-                        <div class="choice-text">"I understand. I'll see what I can do."</div>
-                        <div class="choice-mechanics">
-                            <div class="mechanic-item mechanic-neutral">
-                                → Continue conversation
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Default choice using unified component -->
+                    <UnifiedChoice Choice="@GetDefaultChoice()" 
+                                  AvailableAttention="@CurrentAttention"
+                                  OnSelected="@HandleUnifiedChoice" />
                 }
             </div>
         </div>

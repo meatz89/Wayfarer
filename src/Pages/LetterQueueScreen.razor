@@ -18,11 +18,6 @@
             <span>@GetSpotPath()</span>
         </div>
         <div class="location-name">@GetCurrentSpotName()</div>
-        <div class="location-tags">
-            <span class="tag atmosphere">🔥 Hearth-warmed</span>
-            <span class="tag">🍺 Ale-scented</span>
-            <span class="tag">🎵 Music drifting</span>
-        </div>
     </div>
 
     <div class="content-area">
@@ -30,117 +25,144 @@
             @GetAtmosphereText()
         </div>
 
-        <!-- Letter Queue Section -->
+        <!-- Letter Queue Section - MINIMAL AS PER MOCKUP -->
         <div class="letter-queue-section">
-            <h3 class="section-header">📬 Letter Queue <span class="queue-weight">[@GetTotalWeight()/@GetMaxWeight() weight]</span></h3>
+            <h3 class="section-header">Letter Queue [@GetTotalWeight()/@GetMaxWeight() weight]</h3>
             
-            <!-- Visual Queue Display like mockup -->
+            <!-- Visual Queue Display - ASCII STYLE -->
             <div class="visual-queue">
                 @for (int i = 0; i < 8; i++)
                 {
-                    var letter = GetLetterAtPosition(i + 1);
-                    <div class="queue-position">
-                        <div class="position-number">[@(i + 1)]</div>
-                        <div class="weight-blocks">
+                    var position = i + 1;
+                    var letter = GetLetterAtPosition(position);
+                    <div class="queue-slot @(expandedPosition == position ? "expanded" : "")" 
+                         @onclick="() => TogglePosition(position)">
+                        
+                        <!-- Position and Weight Blocks -->
+                        <span class="slot-display">
+                            [@(position)]
                             @if (letter != null)
                             {
+                                <span class="weight-blocks">[</span>
                                 @for (int w = 0; w < letter.Weight; w++)
                                 {
-                                    <span class="weight-block">■</span>
+                                    <text>■</text>
                                 }
+                                <span class="weight-blocks">]</span>
                             }
                             else
                             {
-                                <span class="empty-slot">_</span>
+                                <span class="empty-display">[_]</span>
                             }
-                        </div>
-                        <div class="deadline-indicator">
-                            @if (letter != null)
-                            {
-                                <span class="@GetDeadlineClass(letter)">@GetShortDeadline(letter)</span>
-                            }
-                            else
-                            {
-                                <span class="no-deadline">_</span>
-                            }
-                        </div>
+                        </span>
+                        
+                        <!-- Deadline Indicator -->
+                        @if (letter != null)
+                        {
+                            var deadline = GetShortDeadline(letter);
+                            var isUrgent = letter.DeadlineInHours <= 48;
+                            <span class="deadline @(isUrgent ? "urgent" : "")">
+                                @(isUrgent ? "!" : "")@deadline
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="deadline empty">___</span>
+                        }
                     </div>
                 }
             </div>
             
-            <!-- Detailed Letter Grid -->
-            <div class="letter-grid">
-                @for (int i = 0; i < 8; i++)
+            <!-- Progressive Disclosure - Details for Expanded Letter -->
+            @if (expandedPosition > 0)
+            {
+                var letter = expandedPosition.HasValue ? GetLetterAtPosition(expandedPosition.Value) : null;
+                if (letter != null)
                 {
-                    var letter = GetLetterAtPosition(i + 1);
-                    <div class="letter-slot @(letter != null ? "occupied" : "empty") @(i == 0 ? "deliverable" : "")">
-                        <div class="slot-header">
-                            <span class="slot-number">Position @(i + 1)</span>
-                            @if (i == 0)
-                            {
-                                <span class="delivery-badge">CAN DELIVER</span>
-                            }
-                            @if (letter != null)
-                            {
-                                <span class="weight-indicator">Weight: @letter.Weight</span>
-                            }
+                    <div class="letter-details">
+                        <div class="detail-route">
+                            @letter.SenderName → @letter.RecipientName
                         </div>
-                        @if (letter != null)
+                        <div class="detail-desc">
+                            @letter.Description
+                        </div>
+                        <div class="detail-meta">
+                            Stakes: @GetStakesDisplay(letter.Stakes) | 
+                            Deadline: @GetDeadlineDisplay(letter)
+                        </div>
+                        @if (expandedPosition == 1)
                         {
-                            <div class="letter-content">
-                                <div class="letter-route">
-                                    <span class="sender">@letter.SenderName</span>
-                                    <span class="arrow">→</span>
-                                    <span class="recipient">@letter.RecipientName</span>
-                                </div>
-                                <div class="letter-desc">@letter.Description</div>
-                                <div class="letter-meta">
-                                    <span class="stakes @GetStakesClass(letter.Stakes)">@GetStakesDisplay(letter.Stakes)</span>
-                                    <span class="deadline">@GetDeadlineDisplay(letter)</span>
-                                </div>
+                            <div class="delivery-action">
+                                <button @onclick="DeliverLetter">Deliver This Letter</button>
                             </div>
                         }
-                        else
-                        {
-                            <div class="empty-slot">Empty</div>
-                        }
                     </div>
+                }
+            }
+        </div>
+
+        <!-- Available Actions -->
+        <div class="actions-section">
+            <h3>Actions</h3>
+            <div class="action-list">
+                <button @onclick="NavigateToLocation">Return to Location</button>
+                <button @onclick="NavigateToConversation">Talk to Someone</button>
+                @if (GetLetterAtPosition(1) != null)
+                {
+                    <button @onclick="NavigateToDelivery" class="primary-action">
+                        Deliver Letter (Position 1)
+                    </button>
                 }
             </div>
         </div>
-
-        <!-- Dynamic NPCs at Current Location -->
-        @{
-            var npcsHere = GetNPCsAtCurrentSpot();
-            if (npcsHere != null && npcsHere.Any())
-            {
-                foreach (var npc in npcsHere)
-                {
-                    <div class="npc-present">
-                        <div class="npc-header">
-                            <div>
-                                <div class="npc-name">@npc.Name</div>
-                            </div>
-                            <div class="npc-mood">@GetNPCMood(npc)</div>
-                        </div>
-                        <div class="npc-description">
-                            @GetNPCDescription(npc)
-                        </div>
-                        <div class="interaction-options">
-                            <div class="interaction" @onclick="@(async () => await StartConversation(npc.ID))">
-                                <span>@GetInteractionText(npc)</span>
-                                <span class="interaction-cost">@GetInteractionCost(npc)</span>
-                            </div>
-                        </div>
-                    </div>
-                }
-            }
-            else
-            {
-                <div class="no-npcs">
-                    <p>The location is quiet. No one is here at the moment.</p>
-                </div>
-            }
-        }
     </div>
 </div>
+
+@code {
+    private int? expandedPosition = null;
+
+    private void TogglePosition(int position)
+    {
+        if (expandedPosition == position)
+        {
+            expandedPosition = null;
+        }
+        else
+        {
+            expandedPosition = position;
+        }
+    }
+
+    private async Task DeliverLetter()
+    {
+        var letter = GetLetterAtPosition(1);
+        if (letter != null)
+        {
+            // Deliver the letter at position 1
+            await GameFacade.DeliverLetterAsync(letter.Id);
+            expandedPosition = null;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToLocation()
+    {
+        OnNavigate?.Invoke(CurrentViews.LocationScreen);
+    }
+
+    private void NavigateToConversation()
+    {
+        OnNavigate?.Invoke(CurrentViews.ConversationScreen);
+    }
+
+    private void NavigateToDelivery()
+    {
+        var letter = GetLetterAtPosition(1);
+        if (letter != null)
+        {
+            // Navigate to location screen to handle delivery
+            OnNavigate?.Invoke(CurrentViews.LocationScreen);
+        }
+    }
+}
+

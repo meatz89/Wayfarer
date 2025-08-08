@@ -42,6 +42,10 @@ No exceptions. Even "small" changes must be reviewed by all specialized personas
 **NEVER make changes to a file without reading it completely first. This is non-negotiable.**
 **DOUBLE-CHECK core architectural components (navigation, routing, service registration) - analyze ALL related files and dependencies before making ANY changes to avoid breaking the application architecture.**
 
+**🧪 TESTING PRINCIPLE: ALWAYS USE PLAYWRIGHT FOR E2E TESTS 🧪**
+**NEVER create test API endpoints. Use Playwright browser automation for all testing.**
+**Test the actual UI experience that players will see, not backend endpoints.**
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 *** PRIME PRINCIPLES ***
@@ -55,6 +59,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ** CODE WRITING PRINCIPLES **
 
+*** Async/Await Philosophy (CRITICAL) ***
+- **ALWAYS use async/await properly** - Never use .Wait(), .Result, or .GetAwaiter().GetResult()
+- **NEVER block async code** - These patterns cause deadlocks and performance issues
+- **NO Task.Run or parallel operations** - Keep everything sequential with async/await
+- **If a method calls async code, it MUST be async** - Propagate async all the way up to the UI
+- **NO synchronous wrappers for async methods** - Fix the callers to be async instead
+- **NO deprecated methods or compatibility shims** - Delete old code, update all callers immediately
+
 *** Error Handling Philosophy ***
 - **Let exceptions bubble up** naturally for better error visibility
 - NEVER THROW EXCEPTIONS
@@ -66,6 +78,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 *** Code Style ***
 - Self-descriptive code over excessive comments
 - Comments for intent, not implementation
+- **NO INLINE STYLES** - Always use separate CSS files (always scan for and read existing .css files first before creating new ones). Never use `<style>` blocks in Razor components
 
 *** Anti-Defensive Programming Philosophy ***
 - **Fail Fast**: Let exceptions bubble up naturally for clear debugging information
@@ -97,8 +110,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
 - You must run all tests and execute the game and do quick smoke tests before every commit
 - **BUILD COMMANDS** - Always use `cd /mnt/c/git/wayfarer/src && dotnet build` to build the project. The pipe operator can cause issues with dotnet build output parsing. To check for errors: build first, then check the output.
-- **Never keep legacy code for compatibility**
+- **Never keep legacy code for compatibility** - Delete it immediately and fix all callers
 - **NEVER use suffixes like "New", "Revised", "V2", etc.** - Replace old implementations completely and use the correct final name immediately. Delete old code, don't leave it behind.
+- **NO deprecated methods or backwards compatibility** - When changing a method signature, update ALL callers immediately. Never leave old versions around.
 - **NEVER use Compile Remove in .csproj files** - This hides compilation errors and mistakes. Fix the code, rename files, or delete them entirely. Using Remove patterns in project files masks problems instead of solving them.
 - **ALWAYS read files FULLY before making changes** - Never make assumptions about file contents. Read the entire file to understand context and avoid mistakes.
 - **RENAME instead of DELETE/RECREATE** - When refactoring systems (e.g., Encounter → Conversation), rename files and classes to preserve git history and ensure complete transformation.

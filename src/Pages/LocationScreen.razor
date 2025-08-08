@@ -14,7 +14,7 @@
             </div>
         </div>
 
-        <!-- Location Header with Feeling Tags -->
+        <!-- Location Header -->
         <div class="location-info-header">
             @if (Model.LocationPath?.Any() == true)
             {
@@ -30,19 +30,6 @@
                 </div>
             }
             <div class="location-title">@Model.LocationName</div>
-            @if (Model.Tags?.Any() == true)
-            {
-                <div class="location-tags">
-                    @foreach (var tag in Model.Tags)
-                    {
-                        <span class="location-tag @(tag.Type == LocationTagType.Atmosphere ? "atmosphere" : 
-                                                     tag.Type == LocationTagType.Danger ? "danger" : 
-                                                     tag.Type == LocationTagType.Nature ? "nature" : "")">
-                            @tag.Icon @tag.Text
-                        </span>
-                    }
-                </div>
-            }
         </div>
 
         <div class="location-content">

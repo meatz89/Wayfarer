@@ -1,0 +1,157 @@
+@using Wayfarer.GameState.Interactions
+
+@* 
+   Unified Choice Component - Used for ALL player interactions
+   Based on agent feedback: Narrative focus, not mechanical
+*@
+
+<div class="unified-choice @GetChoiceClass()" @onclick="HandleClick">
+    @* Attention cost indicator - subtle for low costs, prominent for high *@
+    @if (Choice.AttentionCost > 0)
+    {
+        <div class="attention-indicator attention-cost-@Choice.AttentionCost">
+            @GetCostDisplay()
+        </div>
+    }
+    else
+    {
+        <div class="attention-indicator free-action">
+            <!-- Free actions get subtle indicator -->
+        </div>
+    }
+    
+    @* Main choice text *@
+    <div class="choice-content">
+        <div class="choice-text">
+            @Choice.DisplayText
+        </div>
+        
+        @* Mechanical previews - only for non-obvious effects *@
+        @if (Choice.MechanicalPreviews?.Any() == true && ShowPreviews)
+        {
+            <div class="choice-effects">
+                @foreach (var preview in Choice.MechanicalPreviews)
+                {
+                    <span class="effect-preview @GetEffectClass(preview)">
+                        @preview
+                    </span>
+                }
+            </div>
+        }
+        
+        @* Lock reason if unavailable *@
+        @if (!IsAvailable && !string.IsNullOrEmpty(Choice.LockReason))
+        {
+            <div class="lock-reason">
+                @GetNarrativeLockReason()
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public IInteractiveChoice Choice { get; set; }
+    [Parameter] public EventCallback<IInteractiveChoice> OnSelected { get; set; }
+    [Parameter] public int AvailableAttention { get; set; }
+    [Parameter] public bool ShowPreviews { get; set; } = true;
+    
+    private bool IsAvailable => Choice.IsAvailable && Choice.AttentionCost <= AvailableAttention;
+    private bool IsProcessing { get; set; }
+
+    private string GetChoiceClass()
+    {
+        var classes = new List<string>();
+        
+        // Base style from choice type
+        classes.Add($"choice-type-{Choice.Type.ToString().ToLower()}");
+        
+        // Attention weight class
+        classes.Add($"attention-weight-{Choice.AttentionCost}");
+        
+        // Availability
+        if (!IsAvailable)
+        {
+            classes.Add("locked");
+            
+            // Different lock reasons get different styling
+            if (Choice.AttentionCost > AvailableAttention)
+                classes.Add("locked-exhausted");
+            else if (Choice.LockReason?.Contains("trust") == true)
+                classes.Add("locked-trust");
+            else if (Choice.LockReason?.Contains("time") == true)
+                classes.Add("locked-time");
+        }
+        
+        // Style hints  
+        if (Choice.Style != InteractionStyle.Default)
+            classes.Add($"style-{Choice.Style.ToString().ToLower()}");
+        
+        // Processing state
+        if (IsProcessing)
+            classes.Add("processing");
+            
+        return string.Join(" ", classes);
+    }
+
+    private string GetCostDisplay()
+    {
+        // Visual representation without numbers (per Jordan's feedback)
+        return Choice.AttentionCost switch
+        {
+            1 => "•",
+            2 => "••",
+            3 => "•••",
+            4 => "••••",
+            5 => "•••••",
+            _ => ""
+        };
+    }
+
+    private string GetNarrativeLockReason()
+    {
+        // Transform mechanical lock reasons into narrative ones
+        if (Choice.AttentionCost > AvailableAttention)
+        {
+            return AvailableAttention == 0 
+                ? "Too exhausted to focus on this"
+                : "Requires deeper concentration than you can muster";
+        }
+        
+        // Use the actual lock reason but make it narrative
+        return Choice.LockReason?.Replace("Requires", "You need")
+            .Replace("tokens", "trust")
+            .Replace("Not enough", "Lacking") 
+            ?? "Not available";
+    }
+
+    private string GetEffectClass(string preview)
+    {
+        // Style effects based on their type
+        if (preview.Contains("✓") || preview.Contains("trust") || preview.Contains("Gain"))
+            return "positive";
+        if (preview.Contains("⚠") || preview.Contains("cost") || preview.Contains("Lose"))
+            return "negative";
+        if (preview.Contains("ℹ") || preview.Contains("Learn"))
+            return "informational";
+        return "neutral";
+    }
+
+    private async Task HandleClick()
+    {
+        if (!IsAvailable || IsProcessing)
+            return;
+            
+        IsProcessing = true;
+        StateHasChanged();
+        
+        try
+        {
+            await OnSelected.InvokeAsync(Choice);
+        }
+        finally
+        {
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+}

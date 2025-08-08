@@ -1,62 +1,112 @@
-.letter-queue-screen {
+/* MINIMAL ASCII-STYLE LETTER QUEUE - Following UI mockup */
+.visual-queue {
+    font-family: 'Courier New', Consolas, Monaco, monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    padding: 16px 0;
+}
+
+.queue-slot {
     display: flex;
-    flex-direction: column;
-    height: 100%;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    gap: 16px;
+    padding: 4px 8px;
+    cursor: pointer;
+    user-select: none;
 }
 
-.screen-header {
-    text-align: center;
-    padding-bottom: var(--spacing-md);
-    border-bottom: 2px solid var(--border-color);
+.queue-slot:hover {
+    background: rgba(0, 0, 0, 0.05);
 }
 
-.screen-header h1 {
-    font-size: var(--font-size-2xl);
-    color: var(--text-primary);
-    margin: 0;
+.queue-slot.expanded {
+    background: rgba(0, 0, 0, 0.1);
+    font-weight: bold;
 }
 
-.queue-subtitle {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin-top: var(--spacing-xs);
+.slot-display {
+    font-family: monospace;
+    letter-spacing: -1px;
 }
 
-.queue-main-content {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: auto auto 1fr;
-    gap: var(--spacing-md);
-    overflow-y: auto;
+.weight-blocks {
+    letter-spacing: -2px;
 }
 
-.queue-section {
-    grid-column: 1;
-    grid-row: span 3;
+.deadline {
+    font-size: 12px;
+    color: #666;
+    min-width: 40px;
 }
 
-.obligations-summary,
-.token-summary,
-.queue-stats,
-.letter-history {
-    background: var(--bg-panel);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+.deadline.urgent {
+    color: #d32f2f;
+    font-weight: bold;
 }
 
-.obligations-summary h3,
-.token-summary h3,
-.queue-stats h3,
-.letter-history h3 {
-    font-size: var(--font-size-lg);
-    color: var(--text-primary);
-    margin: 0 0 var(--spacing-sm) 0;
+.deadline.empty {
+    color: #ccc;
 }
 
+.letter-details {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f5f5f5;
+    border-left: 3px solid #333;
+}
+
+.detail-route {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.detail-desc {
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.detail-meta {
+    font-size: 12px;
+    color: #888;
+}
+
+.delivery-action {
+    margin-top: 16px;
+}
+
+.actions-section {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid #ddd;
+}
+
+.action-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+button {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #333;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+button:hover {
+    background: #f5f5f5;
+}
+
+button.primary-action {
+    background: #333;
+    color: #fff;
+}
+
+button.primary-action:hover {
+    background: #555;
+}
+
+/* Legacy styles - kept for compatibility but should be removed once UI is fully simplified */
 /* Obligations */
 .obligation-list {
     list-style: none;

@@ -29,7 +29,7 @@
         break;
         
     default:
-        // For any screen we haven't implemented, show LetterQueueScreen
-        <LetterQueueScreen OnNavigate="HandleNavigation" />
+        // For any screen we haven't implemented, show LocationScreen
+        <LocationScreen OnActionExecuted="RefreshUI" OnNavigate="HandleNavigation" />
         break;
 }

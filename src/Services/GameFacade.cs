@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState;
 using Wayfarer.GameState.Constants;
 using Wayfarer.ViewModels;
 
@@ -54,6 +55,9 @@ public class GameFacade
     private readonly VerbContextualizer _verbContextualizer;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionBeatGenerator _actionBeatGenerator;
+    private readonly BindingObligationSystem _bindingObligationSystem;
+    private readonly AtmosphereCalculator _atmosphereCalculator;
+    private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -92,7 +96,9 @@ public class GameFacade
         ActionGenerator actionGenerator = null,
         ActionBeatGenerator actionBeatGenerator = null,
         EnvironmentalHintSystem environmentalHintSystem = null,
-        ObservationSystem observationSystem = null
+        ObservationSystem observationSystem = null,
+        BindingObligationSystem bindingObligationSystem = null,
+        AtmosphereCalculator atmosphereCalculator = null
 )
     {
         _gameWorld = gameWorld;
@@ -132,13 +138,52 @@ public class GameFacade
         _actionBeatGenerator = actionBeatGenerator;
         _environmentalHintSystem = environmentalHintSystem;
         _observationSystem = observationSystem;
+        _bindingObligationSystem = bindingObligationSystem;
+        _atmosphereCalculator = atmosphereCalculator;
+        
+        // Initialize the time-block attention manager
+        _timeBlockAttentionManager = new TimeBlockAttentionManager();
+    }
+
+    // ========== ATTENTION STATE ACCESS ==========
+    
+    /// <summary>
+    /// Get current attention state for UI display
+    /// This is the single source of truth for attention across all screens
+    /// </summary>
+    public (int Current, int Max, TimeBlocks TimeBlock) GetCurrentAttentionState()
+    {
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        var attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        
+        return (
+            attention.GetAvailableAttention(),
+            attention.GetMaxAttention(),
+            currentTimeBlock
+        );
+    }
+    
+    /// <summary>
+    /// Check if player has any attention remaining
+    /// </summary>
+    public bool HasAttentionRemaining()
+    {
+        return _timeBlockAttentionManager.HasAttentionRemaining();
     }
 
     // ========== HELPER METHODS ==========
 
     private void ProcessTimeAdvancement(int hours)
     {
+        var oldTimeBlock = _timeManager.GetCurrentTimeBlock();
         _timeManager.AdvanceTime(hours);
+        var newTimeBlock = _timeManager.GetCurrentTimeBlock();
+
+        // Check if we've moved to a new time block - this triggers attention refresh
+        if (oldTimeBlock != newTimeBlock)
+        {
+            Console.WriteLine($"[GameFacade] Time block changed from {oldTimeBlock} to {newTimeBlock} - attention will refresh on next use");
+        }
 
         // Update letter deadlines when time advances
         _letterQueueManager.ProcessHourlyDeadlines(hours);
@@ -2253,9 +2298,11 @@ public class GameFacade
                 IsAvailable = c.IsAffordable,
                 UnavailableReason = !c.IsAffordable ? $"Requires {c.AttentionCost} attention" : null,
                 AttentionCost = c.AttentionCost,
+                AttentionDisplay = GetAttentionDisplayString(c.AttentionCost),
                 AttentionDescription = GetAttentionDescription(c.AttentionCost),
                 IsInternalThought = c.NarrativeText.StartsWith("*") || c.TemplatePurpose?.Contains("INTERNAL") == true,
                 EmotionalTone = DetermineEmotionalTone(c),
+                IsLocked = c.IsLocked,
                 // Convert mechanical effects to display mechanics
                 Mechanics = ConvertMechanicalEffectsToDisplay(c.MechanicalEffects)
             }).ToList() ?? new List<ConversationChoiceViewModel>(),
@@ -2292,7 +2339,10 @@ public class GameFacade
             RelationshipStatus = GetRelationshipStatusDisplay(npc),
             
             // Internal monologue (generated based on pressure)
-            InternalMonologue = GenerateInternalMonologue(context)
+            InternalMonologue = GenerateInternalMonologue(context),
+            
+            // Binding obligations (promises and debts)
+            BindingObligations = _bindingObligationSystem?.GetActiveObligations() ?? new List<BindingObligationViewModel>()
         };
     }
     
@@ -2309,12 +2359,14 @@ public class GameFacade
         // Check if urgent
         bool isUrgent = urgentLetter?.DeadlineInHours <= 2;
         
-        // Generate the action beat
+        // Generate the action beat with NPC ID for determinism
+        var npcId = conversation?.Context?.TargetNPC?.ID;
         return _actionBeatGenerator.GenerateActionBeat(
             npcState,
             urgentLetter?.Stakes,
             conversationTurn,
-            isUrgent
+            isUrgent,
+            npcId
         );
     }
     
@@ -2408,34 +2460,56 @@ public class GameFacade
             if (string.IsNullOrEmpty(description))
                 continue;
             
-            // Determine type and icon based on effect type
-            var (icon, type) = effect switch
-            {
-                GainTokensEffect => ("♥", MechanicEffectType.Positive),
-                BurnTokensEffect => ("⚠", MechanicEffectType.Negative),
-                LetterReorderEffect => ("→", MechanicEffectType.Neutral),
-                RemoveLetterTemporarilyEffect => ("📜", MechanicEffectType.Neutral),
-                AcceptLetterEffect => ("📜", MechanicEffectType.Positive),
-                ExtendDeadlineEffect => ("⏱", MechanicEffectType.Neutral),
-                ShareInformationEffect => ("ℹ", MechanicEffectType.Positive),
-                CreateObligationEffect => ("⛓", MechanicEffectType.Negative),
-                UnlockRoutesEffect => ("🗺️", MechanicEffectType.Positive),
-                UnlockNPCEffect => ("👥", MechanicEffectType.Positive),
-                DiscoverRouteEffect => ("🗺️", MechanicEffectType.Positive),
-                UnlockLocationEffect => ("🏪", MechanicEffectType.Positive),
-                ConversationTimeEffect => ("⏱", MechanicEffectType.Neutral),
-                _ => ("→", MechanicEffectType.Neutral)
-            };
+            // Determine the effect type based on the description
+            var effectType = DetermineEffectType(description);
             
+            // Convert to view model
             mechanics.Add(new MechanicEffectViewModel
             {
-                Icon = icon,
+                Icon = GetEffectIcon(description),
                 Description = description,
-                Type = type
+                Type = effectType
             });
         }
         
         return mechanics;
+    }
+    
+    private string GetAttentionDisplayString(int cost)
+    {
+        return cost switch
+        {
+            0 => "Free",
+            1 => "◆ 1",
+            2 => "◆◆ 2",
+            3 => "◆◆◆ 3",
+            _ => $"◆ {cost}"
+        };
+    }
+    
+    private string GetEffectIcon(string description)
+    {
+        // Extract icon from description if it starts with an emoji/symbol
+        if (description.Length > 0)
+        {
+            var firstChar = description[0];
+            // Check if it's an emoji or special character
+            if (char.IsSymbol(firstChar) || firstChar > 127)
+            {
+                return firstChar.ToString();
+            }
+        }
+        return "→"; // Default arrow
+    }
+    
+    private MechanicEffectType DetermineEffectType(string description)
+    {
+        // Determine type based on description content
+        if (description.Contains("✓") || description.Contains("Gain") || description.Contains("Unlock"))
+            return MechanicEffectType.Positive;
+        if (description.Contains("⚠") || description.Contains("Spend") || description.Contains("Burn") || description.Contains("Must"))
+            return MechanicEffectType.Negative;
+        return MechanicEffectType.Neutral;
     }
 
     // ========== LETTER QUEUE ==========
@@ -4872,21 +4946,70 @@ public class GameFacade
     
     /// <summary>
     /// Get literary conversation data for the mockup-style UI
+    /// This starts a conversation if one isn't already active
     /// </summary>
-    public ConversationViewModel GetConversation(string npcId)
+    public async Task<ConversationViewModel> GetConversationAsync(string npcId)
     {
+        // Check if there's already an active conversation with this NPC
+        var existing = _conversationStateManager.PendingConversationManager;
+        if (existing != null && existing.Context?.TargetNPC?.ID == npcId)
+        {
+            return CreateConversationViewModel(existing);
+        }
+        
+        // Otherwise, start a new conversation properly with async/await
         var player = _gameWorld.GetPlayer();
         var npc = _npcRepository.GetById(npcId);
         var location = player.GetCurrentLocation(_locationRepository);
+        var spot = player.CurrentLocationSpot;
         
         if (npc == null) return null;
         
+        // Create context for conversation with PERSISTENT attention from time block
+        var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
+        
+        // CRITICAL: Pass the persistent attention manager for this time block
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        context.AttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+        Console.WriteLine($"[GameFacade] Providing attention for {currentTimeBlock}: {context.AttentionManager.GetAvailableAttention()}/{context.AttentionManager.GetMaxAttention()}");
+        
+        // Start the conversation to generate choices
+        var conversation = await _conversationFactory.CreateConversation(context, player);
+        
+        if (conversation != null)
+        {
+            _conversationStateManager.SetCurrentConversation(conversation);
+            return CreateConversationViewModel(conversation);
+        }
+        
+        // Fallback if conversation creation failed - create basic view model
+        int baseAttention = 3;
+        int attentionModifier = 0;
+        string atmosphereDescription = "The space feels neutral";
+        
+        // Use AtmosphereCalculator if available
+        if (_atmosphereCalculator != null && player.CurrentLocationSpot != null)
+        {
+            var atmosphere = _atmosphereCalculator.CalculateForLocation(player.CurrentLocationSpot.SpotID);
+            attentionModifier = atmosphere.AttentionModifier;
+            atmosphereDescription = atmosphere.Description;
+        }
+        
+        int maxAttention = Math.Max(1, Math.Min(5, baseAttention + attentionModifier));
+        int currentAttention = maxAttention; // Start with full attention
+        
+        string attentionNarrative = attentionModifier < 0 
+            ? "The distractions make it hard to focus" 
+            : attentionModifier > 0
+                ? "The comfortable atmosphere helps you focus"
+                : "You give your full attention";
+        
         var viewModel = new ConversationViewModel
         {
-            // Attention System - simplified for now
-            CurrentAttention = 3,
-            MaxAttention = 3,
-            AttentionNarrative = "You give your full attention",
+            // Attention System - dynamic based on environment
+            CurrentAttention = currentAttention,
+            MaxAttention = maxAttention,
+            AttentionNarrative = attentionNarrative,
             
             // Location Context
             LocationName = (location?.Name ?? "Unknown Location") + (player.CurrentLocationSpot != null ? $" - {player.CurrentLocationSpot.Name}" : ""),
@@ -4945,38 +5068,7 @@ public class GameFacade
             AtmosphereText = GenerateLocationAtmosphere(location)
         };
         
-        // Add location tags
-        if (location != null)
-        {
-            viewModel.Tags.Add(new LocationTagViewModel 
-            { 
-                Icon = "🏛️", 
-                Text = "Public", 
-                Type = LocationTagType.Normal 
-            });
-            
-            if (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning || _timeManager.GetCurrentTimeBlock() == TimeBlocks.Afternoon)
-            {
-                viewModel.Tags.Add(new LocationTagViewModel 
-                { 
-                    Icon = "☀️", 
-                    Text = "Sunny", 
-                    Type = LocationTagType.Atmosphere 
-                });
-            }
-            
-            // Add crowd tag based on NPCs present
-            var npcCount = _npcRepository.GetNPCsForLocationSpotAndTime(spot?.SpotID ?? "", _timeManager.GetCurrentTimeBlock()).Count;
-            if (npcCount > 3)
-            {
-                viewModel.Tags.Add(new LocationTagViewModel 
-                { 
-                    Icon = "👥", 
-                    Text = "Crowded", 
-                    Type = LocationTagType.Normal 
-                });
-            }
-        }
+        // Tags removed - atmosphere is now calculated from NPC presence instead
         
         // Generate actions using ActionGenerator instead of hardcoding
         if (_actionGenerator != null && location != null)
@@ -5016,38 +5108,48 @@ public class GameFacade
             viewModel.NPCsPresent.Add(npcPresence);
         }
         
-        // Add observations matching the mockup style
-        // Check for specific NPCs moving around
-        if (npcs.Any(n => n.Name == "Marcus"))
+        // Calculate current attention for observation checks
+        int baseAttention = 3;
+        bool isCrowded = npcs.Count > 3 || location?.Population?.GetPropertyValue() == "Crowded";
+        int attentionModifier = isCrowded ? -1 : 0;
+        int currentAttention = Math.Max(1, baseAttention + attentionModifier);
+        
+        // Use ObservationSystem to get dynamic observations (only if attention >= 2)
+        if (_observationSystem != null && location != null && currentAttention >= 2)
         {
-            viewModel.Observations.Add(new ObservationViewModel
+            var systemObservations = _observationSystem.GetObservations(location.Id);
+            foreach (var obs in systemObservations)
             {
-                Icon = "🛒",
-                Text = "Marcus heading to his stall",
+                viewModel.Observations.Add(new ObservationViewModel
+                {
+                    Icon = obs.Icon,
+                    Text = obs.Text,
+                    IsUnknown = !obs.IsKnown
+                });
+            }
+        }
+        else if (_observationSystem != null && location != null)
+        {
+            // Limited observations when distracted
+            viewModel.Observations.Add(new ObservationViewModel 
+            { 
+                Icon = "💭", 
+                Text = "Too distracted to notice details",
                 IsUnknown = false
             });
         }
-        
-        // Add contextual observations based on game state
-        if (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning)
+        else
         {
-            viewModel.Observations.Add(new ObservationViewModel
+            // Fallback observations if system not available
+            if (npcs.Any(n => n.Name == "Marcus"))
             {
-                Icon = "💂",
-                Text = "Guards changing shifts",
-                IsUnknown = false
-            });
-        }
-        
-        // Add mysterious unknown observation
-        if (player.LetterQueue.Any(l => l?.State == LetterState.Accepted && l.Stakes == StakeType.SECRET))
-        {
-            viewModel.Observations.Add(new ObservationViewModel
-            {
-                Icon = "❓",
-                Text = "Someone watching from the shadows",
-                IsUnknown = true
-            });
+                viewModel.Observations.Add(new ObservationViewModel
+                {
+                    Icon = "🛒",
+                    Text = "Marcus heading to his stall",
+                    IsUnknown = false
+                });
+            }
         }
         
         // Add route options

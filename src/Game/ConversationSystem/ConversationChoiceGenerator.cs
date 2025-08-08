@@ -13,6 +13,7 @@ public class ConversationChoiceGenerator
     private readonly NPCEmotionalStateCalculator _stateCalculator;
     private readonly VerbContextualizer _verbContextualizer;
     private readonly ITimeManager _timeManager;
+    private readonly ObservationTemplates _observationTemplates;
 
     public ConversationChoiceGenerator(
         LetterQueueManager queueManager,
@@ -26,6 +27,7 @@ public class ConversationChoiceGenerator
         _stateCalculator = stateCalculator;
         _verbContextualizer = verbContextualizer;
         _timeManager = timeManager;
+        _observationTemplates = new ObservationTemplates();
     }
 
     public List<ConversationChoice> GenerateChoices(SceneContext context, ConversationState state)
@@ -55,9 +57,53 @@ public class ConversationChoiceGenerator
                 context.AttentionManager,
                 _stateCalculator);
             
+            // Add observation choices based on location tags
+            if (context.LocationName != null)
+            {
+                var locationTags = LocationTagExtensions.GetLocationTags(context.LocationName);
+                var observationActions = LocationTagObservations.GetObservationActions(locationTags);
+                
+                // Add up to 2 observation choices if attention available
+                int observationIndex = 0;
+                foreach (var observation in observationActions.Take(2))
+                {
+                    if (context.AttentionManager.Current >= observation.AttentionCost)
+                    {
+                        // Generate templated observation text
+                        var observationText = "";
+                        if (locationTags.Any())
+                        {
+                            // Use the first relevant tag for this observation
+                            var relevantTag = locationTags.First();
+                            var seed = context.LocationName.GetHashCode() + observationIndex + _timeManager.GetCurrentTimeHours();
+                            observationText = _observationTemplates.GenerateObservation(relevantTag, context.LocationName.ToLower(), seed);
+                        }
+                        
+                        choices.Add(new ConversationChoice
+                        {
+                            ChoiceID = $"observe_{observation.Id}",
+                            NarrativeText = $"[Observe: {observation.Description}]",
+                            AttentionCost = observation.AttentionCost,
+                            IsAffordable = true,
+                            MechanicalDescription = "→ Notice environmental detail",
+                            MechanicalEffects = new List<IMechanicalEffect> 
+                            { 
+                                new CreateMemoryEffect(
+                                    observation.Id, 
+                                    observationText.Length > 0 ? observationText : observation.Description, 
+                                    1, // Low priority
+                                    1  // 1 day duration
+                                )
+                            }
+                        });
+                        observationIndex++;
+                    }
+                }
+            }
+            
             if (choices.Any())
             {
-                return choices;
+                return choices.Take(5).ToList(); // Max 5 choices total
             }
         }
 

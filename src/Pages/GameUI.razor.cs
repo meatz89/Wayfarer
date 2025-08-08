@@ -11,7 +11,7 @@ public class GameUIBase : ComponentBase
     [Inject] public FlagService FlagService { get; set; }
 
     // Navigation state managed directly in this component
-    public CurrentViews CurrentView { get; set; } = CurrentViews.LetterQueueScreen;
+    public CurrentViews CurrentView { get; set; } = CurrentViews.LocationScreen;
 
     // Navigation method for child components to use
     public void NavigateTo(CurrentViews view)
@@ -66,13 +66,13 @@ public class GameUIBase : ComponentBase
                 var player = GameWorld.GetPlayer();
                 player.Name = "Wayfarer";
                 player.IsInitialized = true;
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Default player created. Showing Letter Queue...");
-                CurrentView = CurrentViews.LetterQueueScreen;
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Default player created. Showing Location...");
+                CurrentView = CurrentViews.LocationScreen;
             }
             else
             {
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Showing Letter Queue...");
-                CurrentView = CurrentViews.LetterQueueScreen;
+                Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Showing Location...");
+                CurrentView = CurrentViews.LocationScreen;
             }
 
             Console.WriteLine($"[GameUIBase.OnInitializedAsync] Initialization completed. CurrentView: {CurrentView}");
@@ -87,8 +87,8 @@ public class GameUIBase : ComponentBase
 
     private CurrentViews GetDefaultView()
     {
-        // Show letter queue to match mockup
-        return CurrentViews.LetterQueueScreen;
+        // Show location screen as the main gameplay view
+        return CurrentViews.LocationScreen;
     }
 
 

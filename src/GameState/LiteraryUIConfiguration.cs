@@ -14,6 +14,9 @@ public static class LiteraryUIConfiguration
         // Register Attention Management
         services.AddSingleton<AttentionManager>();
         
+        // Register Atmosphere Calculator for NPC-based environmental effects
+        services.AddSingleton<AtmosphereCalculator>();
+        
         // Register NPC Emotional State Calculator
         services.AddSingleton<NPCEmotionalStateCalculator>();
         

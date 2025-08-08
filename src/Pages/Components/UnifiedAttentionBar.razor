@@ -1,0 +1,127 @@
+@inject GameFacade GameFacade
+@inject ITimeManager TimeManager
+@implements IDisposable
+
+@* 
+   Unified Attention Bar - Always visible, shows mental focus not points
+   Based on narrative feedback: No numbers, just visual state
+*@
+
+<div class="unified-attention-bar @GetFocusStateClass()">
+    <div class="focus-container">
+        @* Visual representation as golden orbs that dim when spent *@
+        <div class="focus-orbs">
+            @for (int i = 0; i < MaxAttention; i++)
+            {
+                <div class="focus-orb @(i < CurrentAttention ? "available" : "spent")" 
+                     aria-label="@GetOrbAriaLabel(i)">
+                    <span class="orb-icon">@(i < CurrentAttention ? "●" : "○")</span>
+                    @* Pattern for colorblind accessibility *@
+                    <span class="orb-pattern" aria-hidden="true">@(i < CurrentAttention ? "✓" : "✗")</span>
+                </div>
+            }
+        </div>
+        
+        @* Narrative description instead of numbers *@
+        <div class="focus-narrative">
+            @GetFocusNarrative()
+        </div>
+        
+        @* Time until refresh (subtle) *@
+        <div class="refresh-hint">
+            @GetRefreshHint()
+        </div>
+    </div>
+</div>
+
+@code {
+    private int CurrentAttention { get; set; }
+    private int MaxAttention { get; set; }
+    private TimeBlocks CurrentTimeBlock { get; set; }
+    private System.Threading.Timer _refreshTimer;
+
+    protected override void OnInitialized()
+    {
+        RefreshAttentionState();
+        // Poll for updates every second
+        _refreshTimer = new System.Threading.Timer(_ => 
+        {
+            InvokeAsync(() => 
+            {
+                RefreshAttentionState();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    private void RefreshAttentionState()
+    {
+        // Get current attention from the persistent manager
+        var attentionState = GameFacade.GetCurrentAttentionState();
+        CurrentAttention = attentionState.Current;
+        MaxAttention = attentionState.Max;
+        CurrentTimeBlock = TimeManager.GetCurrentTimeBlock();
+    }
+
+    private string GetFocusStateClass()
+    {
+        // Visual states based on remaining attention
+        return CurrentAttention switch
+        {
+            0 => "exhausted",
+            1 => "weary", 
+            2 => "focused",
+            _ => "clear"
+        };
+    }
+
+    private string GetFocusNarrative()
+    {
+        // Narrative description instead of "X/Y points"
+        return (CurrentAttention, MaxAttention) switch
+        {
+            (0, _) => "Mental fog clouds your thoughts",
+            (1, _) => "Your concentration wavers",
+            (2, _) when MaxAttention > 2 => "You maintain focus, barely",
+            (2, 2) => "Your mind is steady",
+            var (c, m) when c == m => "Your thoughts are clear",
+            var (c, m) when c > m / 2 => "You feel mentally present",
+            _ => "Weariness creeps in"
+        };
+    }
+
+    private string GetRefreshHint()
+    {
+        // Subtle hint about when attention refreshes
+        var nextBlock = GetNextRefreshBlock();
+        if (nextBlock == null) return "";
+        
+        return CurrentAttention == 0 
+            ? $"Rest comes with {nextBlock.ToLower()}"
+            : "";  // Only show when exhausted
+    }
+
+    private string GetNextRefreshBlock()
+    {
+        return CurrentTimeBlock switch
+        {
+            TimeBlocks.Dawn => "morning",
+            TimeBlocks.Morning => "afternoon",
+            TimeBlocks.Afternoon => "evening",
+            TimeBlocks.Evening => "night's end",
+            _ => null
+        };
+    }
+
+    private string GetOrbAriaLabel(int index)
+    {
+        return index < CurrentAttention 
+            ? "Focus point available" 
+            : "Focus point spent";
+    }
+
+    public void Dispose()
+    {
+        _refreshTimer?.Dispose();
+    }
+}

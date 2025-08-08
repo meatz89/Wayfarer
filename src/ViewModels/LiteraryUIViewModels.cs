@@ -43,6 +43,7 @@ namespace Wayfarer.ViewModels
         public string BodyLanguageDescription { get; set; }
         public List<string> PeripheralObservations { get; set; } = new();
         public string InternalMonologue { get; set; }
+        public List<BindingObligationViewModel> BindingObligations { get; set; } = new();
         
         // Bottom Status
         public string CurrentLocation { get; set; }
@@ -111,7 +112,7 @@ namespace Wayfarer.ViewModels
         // Location Info
         public List<string> LocationPath { get; set; } = new();
         public string LocationName { get; set; }
-        public List<LocationTagViewModel> Tags { get; set; } = new();
+        // Tags removed - atmosphere now calculated from NPC presence
         
         // Atmosphere
         public string AtmosphereText { get; set; }
@@ -133,23 +134,7 @@ namespace Wayfarer.ViewModels
         public TravelProgressViewModel TravelProgress { get; set; }
     }
     
-    /// <summary>
-    /// ViewModel for location feeling tags
-    /// </summary>
-    public class LocationTagViewModel
-    {
-        public string Icon { get; set; } // Emoji
-        public string Text { get; set; }
-        public LocationTagType Type { get; set; }
-    }
-    
-    public enum LocationTagType
-    {
-        Normal,
-        Atmosphere,
-        Danger,
-        Nature
-    }
+    // LocationTagViewModel and LocationTagType removed - tags replaced with atmosphere calculation
     
     /// <summary>
     /// ViewModel for location actions (the grid cards)
