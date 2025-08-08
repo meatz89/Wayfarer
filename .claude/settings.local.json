@@ -133,7 +133,9 @@
       "Bash(/mnt/c/git/wayfarer/test-complete-attention-flow.sh:*)",
       "mcp__playwright__browser_evaluate",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 30 dotnet run)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 10 dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 10 dotnet run)",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_resize"
     ],
     "deny": []
   }
