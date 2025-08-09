@@ -29,6 +29,15 @@ public class NPC
     public int LastConfrontationCount { get; set; } = 0;  // Track confrontations already shown
     public int RedemptionProgress { get; set; } = 0;      // Progress toward emotional recovery
     public bool HasPermanentScar { get; set; } = false;   // Some wounds never fully heal
+    
+    // Letter offering system
+    public bool HasLetterToOffer { get; set; } = false;
+    
+    // Schedule tracking (for INVESTIGATE verb discoveries)
+    public List<ScheduleEntry> DailySchedule { get; set; } = new List<ScheduleEntry>();
+    
+    // Known routes (for HELP verb sharing)
+    private List<RouteOption> _knownRoutes = new List<RouteOption>();
 
     // Helper methods for UI display
     public string ProfessionDescription => Profession.ToString().Replace('_', ' ');
@@ -108,6 +117,96 @@ public class NPC
         };
     }
 
+    // Method for adding known routes (used by HELP verb)
+    public void AddKnownRoute(RouteOption route)
+    {
+        if (!_knownRoutes.Any(r => r.Id == route.Id))
+        {
+            _knownRoutes.Add(route);
+        }
+    }
+    
+    // Method for generating letter offers (used by HELP verb)
+    public Letter GenerateLetterOffer()
+    {
+        // Generate a letter based on NPC's profession and current state
+        var letter = new Letter
+        {
+            Id = Guid.NewGuid().ToString(),
+            SenderId = this.ID,
+            SenderName = this.Name,
+            RecipientId = $"recipient_{new Random().Next(1, 5)}",
+            RecipientName = GetRecipientNameByProfession(),
+            Description = GetLetterDescriptionByProfession(),
+            TokenType = LetterTokenTypes.FirstOrDefault(),
+            Stakes = GetStakesByProfession(),
+            DeadlineInHours = new Random().Next(4, 24),
+            Payment = new Random().Next(5, 20),
+            // Weight is calculated, not set directly
+            State = LetterState.Offered,
+            HumanContext = GetHumanContextByProfession(),
+            ConsequenceIfLate = GetConsequenceByProfession()
+        };
+        
+        HasLetterToOffer = false; // Mark as offered
+        return letter;
+    }
+    
+    private string GetRecipientNameByProfession()
+    {
+        return Profession switch
+        {
+            Professions.Merchant => $"Master {new[] {"Goldwin", "Harwick", "Blackstone"}[new Random().Next(3)]}",
+            Professions.Scholar => $"Sister {new[] {"Mercy", "Grace", "Hope"}[new Random().Next(3)]}",
+            Professions.Noble => $"Lord {new[] {"Ashford", "Ravencrest", "Ironwood"}[new Random().Next(3)]}",
+            _ => $"Citizen {new Random().Next(1, 10)}"
+        };
+    }
+    
+    private string GetLetterDescriptionByProfession()
+    {
+        return Profession switch
+        {
+            Professions.Merchant => "Trade agreement requiring urgent signature",
+            Professions.Scholar => "Medical supplies request for the infirmary",
+            Professions.Noble => "Summons to appear before the council",
+            _ => "Personal correspondence"
+        };
+    }
+    
+    private StakeType GetStakesByProfession()
+    {
+        return Profession switch
+        {
+            Professions.Merchant => StakeType.WEALTH,
+            Professions.Scholar => StakeType.SAFETY,
+            Professions.Noble => StakeType.REPUTATION,
+            _ => StakeType.REPUTATION
+        };
+    }
+    
+    private string GetHumanContextByProfession()
+    {
+        return Profession switch
+        {
+            Professions.Merchant => "A crucial trade deal hangs in the balance",
+            Professions.Scholar => "Lives depend on these medical supplies arriving",
+            Professions.Noble => "Political alliances shift with every delayed message",
+            _ => "Someone's future depends on this letter"
+        };
+    }
+    
+    private string GetConsequenceByProfession()
+    {
+        return Profession switch
+        {
+            Professions.Merchant => "The merchant will lose their largest contract",
+            Professions.Scholar => "Patients may not survive without these supplies",
+            Professions.Noble => "Your standing with the nobility will be permanently damaged",
+            _ => "Trust will be broken beyond repair"
+        };
+    }
+    
     public RouteOption GetSecretRoute()
     {
         // Return a secret route this NPC knows

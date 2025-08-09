@@ -123,6 +123,7 @@
       "mcp__playwright__browser_press_key",
       "mcp__playwright__browser_console_messages",
       "Bash(export ASPNETCORE_URLS=\"http://localhost:5100\")",
+      "mcp__ GameFacade-cli__brainstorm",
       "Bash(./test-core-loop.sh:*)",
       "Bash(pwsh test-attention-system.ps1)",
       "mcp__playwright__browser_close",
@@ -146,9 +147,7 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" dotnet run --project Wayfarer.csproj)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 10 dotnet run --project Wayfarer.csproj)",
       "mcp__playwright__browser_type",
-      "Bash(./test-delivery.sh:*)",
-      "Bash(./test-verb-system.sh:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" dotnet run --no-build)"
+      "Bash(./test-delivery.sh:*)"
     ],
     "deny": []
   }

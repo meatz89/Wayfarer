@@ -15,8 +15,7 @@ public class ConversationChoiceGenerator
     private readonly ConnectionTokenManager _tokenManager;
     private readonly NPCEmotionalStateCalculator _stateCalculator;
     private readonly ITimeManager _timeManager;
-    private readonly BaseConversationTemplate _baseTemplate;
-    private readonly LetterPropertyChoiceGenerator _letterChoiceGenerator;
+    private readonly VerbOrganizedChoiceGenerator _verbChoiceGenerator;
     private readonly Player _player;
     private readonly GameWorld _gameWorld;
     private readonly ConsequenceEngine _consequenceEngine;
@@ -38,10 +37,9 @@ public class ConversationChoiceGenerator
         _gameWorld = gameWorld;
         _consequenceEngine = consequenceEngine;
         
-        // Initialize the additive system components
-        _baseTemplate = new BaseConversationTemplate(tokenManager, timeManager);
-        _letterChoiceGenerator = new LetterPropertyChoiceGenerator(
-            queueManager, tokenManager, timeManager, player, gameWorld);
+        // Initialize the new verb-organized choice generator
+        _verbChoiceGenerator = new VerbOrganizedChoiceGenerator(
+            queueManager, tokenManager, timeManager, consequenceEngine, player, gameWorld);
     }
 
     public List<ConversationChoice> GenerateChoices(SceneContext context, ConversationState state)
@@ -55,29 +53,68 @@ public class ConversationChoiceGenerator
         var npcState = _stateCalculator.CalculateState(context.TargetNPC);
         Console.WriteLine($"[ConversationChoiceGenerator] NPC {context.TargetNPC.Name} is in {npcState} state");
         
-        // STEP 1: Get base choices for NPC emotional state (1-2 choices)
-        var baseChoices = _baseTemplate.GetBaseChoices(context.TargetNPC, npcState);
-        Console.WriteLine($"[ConversationChoiceGenerator] Base template returned {baseChoices.Count} choices");
+        // Find all letters involving this NPC
+        var allLetters = _queueManager.GetActiveLetters();
+        var relevantLetters = allLetters
+            .Where(l => l.SenderId == context.TargetNPC.ID || 
+                       l.SenderName == context.TargetNPC.Name ||
+                       l.RecipientId == context.TargetNPC.ID ||
+                       l.RecipientName == context.TargetNPC.Name)
+            .ToList();
+        Console.WriteLine($"[ConversationChoiceGenerator] Found {relevantLetters.Count} relevant letters");
         
-        // STEP 2: Get additional choices from letter properties
-        var letterChoices = _letterChoiceGenerator.GenerateLetterBasedChoices(context.TargetNPC, npcState);
-        Console.WriteLine($"[ConversationChoiceGenerator] Letter generator returned {letterChoices.Count} additional choices");
+        // Generate choices for each verb based on context
+        var allChoices = new List<ConversationChoice>();
         
-        // STEP 3: Combine and deduplicate choices
-        var allChoices = CombineAndDeduplicateChoices(baseChoices, letterChoices, context.AttentionManager);
-        Console.WriteLine($"[ConversationChoiceGenerator] After deduplication: {allChoices.Count} choices");
+        // Always include EXIT
+        allChoices.AddRange(_verbChoiceGenerator.GenerateChoicesForVerb(
+            BaseVerb.EXIT, context.TargetNPC, npcState, relevantLetters));
         
-        // STEP 3.5: Filter out locked verbs from consequence system
+        // Add verb choices based on NPC state and player attention
+        if (context.AttentionManager.Current > 0)
+        {
+            // HELP choices (always available if attention exists)
+            var helpChoices = _verbChoiceGenerator.GenerateChoicesForVerb(
+                BaseVerb.HELP, context.TargetNPC, npcState, relevantLetters);
+            Console.WriteLine($"[ConversationChoiceGenerator] Generated {helpChoices.Count} HELP choices");
+            allChoices.AddRange(helpChoices);
+            
+            // NEGOTIATE choices (available when there's queue pressure)
+            if (relevantLetters.Any(l => l.DeadlineInHours < 12) || _queueManager.GetActiveLetters().Length > 5)
+            {
+                var negotiateChoices = _verbChoiceGenerator.GenerateChoicesForVerb(
+                    BaseVerb.NEGOTIATE, context.TargetNPC, npcState, relevantLetters);
+                Console.WriteLine($"[ConversationChoiceGenerator] Generated {negotiateChoices.Count} NEGOTIATE choices");
+                allChoices.AddRange(negotiateChoices);
+            }
+            
+            // INVESTIGATE choices (available when information would be valuable)
+            if (context.AttentionManager.Current >= 2 || relevantLetters.Any())
+            {
+                var investigateChoices = _verbChoiceGenerator.GenerateChoicesForVerb(
+                    BaseVerb.INVESTIGATE, context.TargetNPC, npcState, relevantLetters);
+                Console.WriteLine($"[ConversationChoiceGenerator] Generated {investigateChoices.Count} INVESTIGATE choices");
+                allChoices.AddRange(investigateChoices);
+            }
+        }
+        
+        // Filter affordability based on attention
+        foreach (var choice in allChoices)
+        {
+            choice.IsAffordable = context.AttentionManager.CanAfford(choice.AttentionCost);
+        }
+        
+        // Filter out locked verbs from consequence system
         allChoices = FilterLockedChoices(allChoices, context.TargetNPC);
         Console.WriteLine($"[ConversationChoiceGenerator] After filtering locked verbs: {allChoices.Count} choices");
         
-        // STEP 4: Apply priority rules and limit to 5 choices
+        // Apply priority rules and limit to 5 choices
         var finalChoices = ApplyPriorityAndLimit(allChoices);
         
         Console.WriteLine($"[ConversationChoiceGenerator] Final: Generated {finalChoices.Count} choices for {context.TargetNPC.Name} in {npcState} state");
         foreach (var choice in finalChoices)
         {
-            Console.WriteLine($"  - {choice.ChoiceID}: {choice.MechanicalDescription}");
+            Console.WriteLine($"  - [{choice.BaseVerb}] {choice.ChoiceID}: {choice.MechanicalDescription} (Attention: {choice.AttentionCost})");
         }
         
         return finalChoices;
@@ -140,19 +177,43 @@ public class ConversationChoiceGenerator
     
     private List<ConversationChoice> ApplyPriorityAndLimit(List<ConversationChoice> choices)
     {
-        // Priority order:
-        // 1. EXIT (always first)
-        // 2. Delivery choices
-        // 3. Urgent/binding choices (high attention cost)
-        // 4. Investigation choices
-        // 5. Basic help/negotiate choices
+        // Ensure verb diversity: try to include at least one choice from each verb
+        var result = new List<ConversationChoice>();
         
-        var prioritized = choices
-            .OrderBy(c => GetChoicePriority(c))
-            .Take(5)
-            .ToList();
+        // Always include EXIT first
+        var exitChoice = choices.FirstOrDefault(c => c.BaseVerb == BaseVerb.EXIT);
+        if (exitChoice != null)
+        {
+            result.Add(exitChoice);
+        }
         
-        return prioritized;
+        // Group remaining choices by verb
+        var choicesByVerb = choices
+            .Where(c => c.BaseVerb != BaseVerb.EXIT)
+            .GroupBy(c => c.BaseVerb)
+            .ToDictionary(g => g.Key, g => g.OrderBy(c => GetChoicePriority(c)).ToList());
+        
+        // First pass: Add the highest priority choice from each verb
+        foreach (var verbGroup in choicesByVerb)
+        {
+            if (verbGroup.Value.Any() && result.Count < 5)
+            {
+                result.Add(verbGroup.Value.First());
+            }
+        }
+        
+        // Second pass: Fill remaining slots with highest priority choices across all verbs
+        if (result.Count < 5)
+        {
+            var remainingChoices = choicesByVerb
+                .SelectMany(kvp => kvp.Value.Skip(1)) // Skip the first one we already added
+                .OrderBy(c => GetChoicePriority(c))
+                .Take(5 - result.Count);
+            
+            result.AddRange(remainingChoices);
+        }
+        
+        return result;
     }
     
     private int GetChoicePriority(ConversationChoice choice)
@@ -221,8 +282,23 @@ public class ConversationChoiceGenerator
     
     private List<ConversationChoice> GetFallbackChoices()
     {
-        // Simple fallback using base template
-        var fallbackNPC = new NPC { ID = "unknown", Name = "Someone" };
-        return _baseTemplate.GetBaseChoices(fallbackNPC, NPCEmotionalState.WITHDRAWN);
+        // Simple fallback - just EXIT choice
+        return new List<ConversationChoice>
+        {
+            new ConversationChoice
+            {
+                ChoiceID = "base_exit",
+                NarrativeText = "\"I should go.\"",
+                AttentionCost = 0,
+                BaseVerb = BaseVerb.EXIT,
+                IsAffordable = true,
+                IsAvailable = true,
+                MechanicalDescription = "→ Leave conversation",
+                MechanicalEffects = new List<IMechanicalEffect> 
+                { 
+                    new EndConversationEffect() 
+                }
+            }
+        };
     }
 }

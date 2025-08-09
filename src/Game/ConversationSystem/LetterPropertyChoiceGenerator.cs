@@ -98,11 +98,18 @@ public class LetterPropertyChoiceGenerator
             additionalChoices.Add(CreateRemoveTemporarilyChoice(priorityLetter));
         }
         
-        // DELIVERY CHOICE (if letter is in position 1 and ready)
-        if (position.HasValue && position.Value == 1 && 
-            priorityLetter.RecipientName == npc.Name)
+        // DELIVERY CHOICE (check if ANY letter in position 1 is for this NPC)
+        // Bug fix: Don't use priorityLetter here - check ALL relevant letters for position 1
+        var letterInPosition1 = relevantLetters
+            .FirstOrDefault(l => 
+            {
+                var pos = _queueManager.GetLetterPosition(l.Id);
+                return pos.HasValue && pos.Value == 1 && l.RecipientName == npc.Name;
+            });
+            
+        if (letterInPosition1 != null)
         {
-            additionalChoices.Add(CreateDeliveryChoice(priorityLetter));
+            additionalChoices.Add(CreateDeliveryChoice(letterInPosition1));
         }
         
         return additionalChoices;
