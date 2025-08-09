@@ -1,17 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Wayfarer.GameState;
 using Wayfarer.GameState.Constants;
+using Wayfarer.Services;
 using Wayfarer.ViewModels;
 
 /// <summary>
 /// GameFacade - THE single entry point for all UI-Backend communication.
 /// This class delegates to existing UIServices and managers to maintain clean separation.
 /// </summary>
-public class GameFacade
+public class GameFacade : ILetterQueueOperations
 {
+    // Queue operation lock to ensure atomicity
+    private readonly SemaphoreSlim _queueOperationLock = new(1, 1);
     // Core dependencies
     private readonly GameWorld _gameWorld;
     private readonly ITimeManager _timeManager;
@@ -310,6 +314,23 @@ public class GameFacade
     public int GetCurrentDay()
     {
         return _gameWorld.CurrentDay;
+    }
+    
+    /// <summary>
+    /// Gets the current hour of the day (0-23)
+    /// </summary>
+    public int GetCurrentHour()
+    {
+        return _timeManager.GetCurrentTimeHours();
+    }
+    
+    /// <summary>
+    /// Gets formatted time display with day name and time.
+    /// Returns format like "MON 3:30 PM"
+    /// </summary>
+    public string GetFormattedTimeDisplay()
+    {
+        return _timeManager.GetFormattedTimeDisplay();
     }
 
     // ========== LOCATION ACTIONS ==========
@@ -2840,6 +2861,300 @@ public class GameFacade
         // Letter offer acceptance now handled through LetterQueueManager
         // AcceptLetterOffer method removed - needs reimplementation
         return await Task.FromResult(false);
+    }
+
+    // ========== ILetterQueueOperations Implementation ==========
+
+    public Letter[] GetQueueSnapshot()
+    {
+        // Return defensive copy of queue
+        var player = _gameWorld.GetPlayer();
+        if (player?.LetterQueue == null) return new Letter[8];
+        return player.LetterQueue.ToArray();
+    }
+
+    public QueueOperationCost GetOperationCost(QueueOperationType operation, int position1, int? position2 = null)
+    {
+        var errors = new List<string>();
+        var costs = new Dictionary<ConnectionType, int>();
+        
+        // Validate positions
+        if (position1 < 1 || position1 > 8)
+            errors.Add($"Invalid position: {position1}");
+        if (position2.HasValue && (position2.Value < 1 || position2.Value > 8))
+            errors.Add($"Invalid position: {position2}");
+        
+        switch (operation)
+        {
+            case QueueOperationType.MorningSwap:
+                if (_timeManager.GetCurrentTimeHours() >= 10)
+                    errors.Add("Morning swaps only available before 10:00");
+                if (position1 == position2)
+                    errors.Add("Cannot swap same position");
+                // Morning swap is free during morning hours
+                break;
+                
+            case QueueOperationType.PriorityMove:
+                // Cost increases with distance moved
+                var distance = position1 - 1;
+                if (distance > 0)
+                {
+                    costs[ConnectionType.Commerce] = distance * 2;
+                    costs[ConnectionType.Trust] = distance;
+                }
+                break;
+                
+            case QueueOperationType.ExtendDeadline:
+                // Fixed cost for deadline extension
+                costs[ConnectionType.Status] = 3;
+                break;
+                
+            case QueueOperationType.Deliver:
+                if (position1 != 1)
+                    errors.Add("Can only deliver from position 1");
+                // Delivery itself is free
+                break;
+                
+            case QueueOperationType.SkipDeliver:
+                // High cost for skipping delivery obligation
+                costs[ConnectionType.Trust] = 5;
+                costs[ConnectionType.Status] = 2;
+                break;
+                
+            case QueueOperationType.Reorder:
+                // Basic reorder cost
+                if (position2.HasValue && position1 != position2.Value)
+                {
+                    costs[ConnectionType.Commerce] = 1;
+                }
+                break;
+        }
+        
+        return new QueueOperationCost(
+            costs,
+            operation == QueueOperationType.MorningSwap,
+            operation == QueueOperationType.Deliver,
+            errors.ToArray()
+        );
+    }
+
+    public bool CanPerformOperation(QueueOperationType operation, int position1, int? position2 = null)
+    {
+        var cost = GetOperationCost(operation, position1, position2);
+        
+        // Check for validation errors
+        if (cost.ValidationErrors.Length > 0)
+            return false;
+        
+        // Check token affordability
+        foreach (var tokenCost in cost.TokenCosts)
+        {
+            var available = _connectionTokenManager.GetTotalTokensOfType(tokenCost.Key);
+            if (available < tokenCost.Value)
+                return false;
+        }
+        
+        // Check specific operation requirements
+        switch (operation)
+        {
+            case QueueOperationType.Deliver:
+                return _letterQueueManager.CanDeliverFromPosition1();
+                
+            case QueueOperationType.MorningSwap:
+                return _timeManager.GetCurrentTimeHours() < 10;
+                
+            default:
+                return true;
+        }
+    }
+
+    public async Task<QueueOperationResult> TryMorningSwapAsync(int position1, int position2)
+    {
+        await _queueOperationLock.WaitAsync();
+        try
+        {
+            // Validate operation
+            var cost = GetOperationCost(QueueOperationType.MorningSwap, position1, position2);
+            if (cost.ValidationErrors.Length > 0)
+                return new QueueOperationResult(false, string.Join(", ", cost.ValidationErrors), null, GetQueueSnapshot());
+            
+            // Execute swap
+            bool success = _letterQueueManager.TryMorningSwap(position1, position2);
+            if (!success)
+                return new QueueOperationResult(false, "Failed to swap letters", null, GetQueueSnapshot());
+            
+            _messageSystem.AddSystemMessage($"Swapped positions {position1} and {position2}", SystemMessageTypes.Success);
+            return new QueueOperationResult(true, null, new Dictionary<ConnectionType, int>(), GetQueueSnapshot());
+        }
+        finally
+        {
+            _queueOperationLock.Release();
+        }
+    }
+
+    public async Task<QueueOperationResult> TryPriorityMoveAsync(int fromPosition, Dictionary<ConnectionType, int> payment)
+    {
+        await _queueOperationLock.WaitAsync();
+        try
+        {
+            // Validate tokens
+            foreach (var token in payment)
+            {
+                if (_connectionTokenManager.GetTotalTokensOfType(token.Key) < token.Value)
+                    return new QueueOperationResult(false, $"Insufficient {token.Key} tokens", null, GetQueueSnapshot());
+            }
+            
+            // Execute move
+            bool success = _letterQueueManager.TryPriorityMove(fromPosition);
+            if (!success)
+                return new QueueOperationResult(false, "Failed to move letter to priority", null, GetQueueSnapshot());
+            
+            // Deduct tokens
+            foreach (var token in payment)
+            {
+                _connectionTokenManager.SpendTokensOfType(token.Key, token.Value);
+            }
+            
+            _messageSystem.AddSystemMessage($"Moved letter to priority position", SystemMessageTypes.Success);
+            return new QueueOperationResult(true, null, payment, GetQueueSnapshot());
+        }
+        finally
+        {
+            _queueOperationLock.Release();
+        }
+    }
+
+    public async Task<QueueOperationResult> TryExtendDeadlineAsync(int position, Dictionary<ConnectionType, int> payment)
+    {
+        await _queueOperationLock.WaitAsync();
+        try
+        {
+            // Validate tokens
+            foreach (var token in payment)
+            {
+                if (_connectionTokenManager.GetTotalTokensOfType(token.Key) < token.Value)
+                    return new QueueOperationResult(false, $"Insufficient {token.Key} tokens", null, GetQueueSnapshot());
+            }
+            
+            // Execute extension
+            bool success = _letterQueueManager.TryExtendDeadline(position);
+            if (!success)
+                return new QueueOperationResult(false, "Failed to extend deadline", null, GetQueueSnapshot());
+            
+            // Deduct tokens
+            foreach (var token in payment)
+            {
+                _connectionTokenManager.SpendTokensOfType(token.Key, token.Value);
+            }
+            
+            _messageSystem.AddSystemMessage($"Extended deadline for letter at position {position}", SystemMessageTypes.Success);
+            return new QueueOperationResult(true, null, payment, GetQueueSnapshot());
+        }
+        finally
+        {
+            _queueOperationLock.Release();
+        }
+    }
+
+    public async Task<QueueOperationResult> DeliverFromPosition1Async()
+    {
+        await _queueOperationLock.WaitAsync();
+        try
+        {
+            if (!_letterQueueManager.CanDeliverFromPosition1())
+                return new QueueOperationResult(false, "Cannot deliver: not at recipient location or position 1 is empty", null, GetQueueSnapshot());
+            
+            bool success = _letterQueueManager.DeliverFromPosition1();
+            if (!success)
+                return new QueueOperationResult(false, "Failed to deliver letter", null, GetQueueSnapshot());
+            
+            _messageSystem.AddSystemMessage("Letter delivered successfully!", SystemMessageTypes.Success);
+            return new QueueOperationResult(true, null, new Dictionary<ConnectionType, int>(), GetQueueSnapshot());
+        }
+        finally
+        {
+            _queueOperationLock.Release();
+        }
+    }
+
+    public async Task<QueueOperationResult> TrySkipDeliverAsync(int position, Dictionary<ConnectionType, int> payment)
+    {
+        await _queueOperationLock.WaitAsync();
+        try
+        {
+            // Validate tokens
+            foreach (var token in payment)
+            {
+                if (_connectionTokenManager.GetTotalTokensOfType(token.Key) < token.Value)
+                    return new QueueOperationResult(false, $"Insufficient {token.Key} tokens", null, GetQueueSnapshot());
+            }
+            
+            // Execute skip
+            bool success = _letterQueueManager.TrySkipDeliver(position);
+            if (!success)
+                return new QueueOperationResult(false, "Failed to skip letter", null, GetQueueSnapshot());
+            
+            // Deduct tokens
+            foreach (var token in payment)
+            {
+                _connectionTokenManager.SpendTokensOfType(token.Key, token.Value);
+            }
+            
+            _messageSystem.AddSystemMessage($"Skipped letter at position {position}", SystemMessageTypes.Warning);
+            return new QueueOperationResult(true, null, payment, GetQueueSnapshot());
+        }
+        finally
+        {
+            _queueOperationLock.Release();
+        }
+    }
+
+    public async Task<QueueOperationResult> TryReorderAsync(int fromPosition, int toPosition)
+    {
+        await _queueOperationLock.WaitAsync();
+        try
+        {
+            // Get the queue object directly
+            var player = _gameWorld.GetPlayer();
+            var queue = _letterQueueManager.GetLetterQueue();
+            if (queue == null)
+                return new QueueOperationResult(false, "Queue not available", null, GetQueueSnapshot());
+            
+            // Use the LetterQueue's Reorder method
+            bool success = queue.Reorder(fromPosition, toPosition);
+            if (!success)
+                return new QueueOperationResult(false, "Failed to reorder queue", null, GetQueueSnapshot());
+            
+            _messageSystem.AddSystemMessage($"Reordered: moved position {fromPosition} to {toPosition}", SystemMessageTypes.Success);
+            return new QueueOperationResult(true, null, new Dictionary<ConnectionType, int>(), GetQueueSnapshot());
+        }
+        finally
+        {
+            _queueOperationLock.Release();
+        }
+    }
+
+    // ========== NAVIGATION SUPPORT ==========
+    
+    public async Task<bool> EndConversationAsync()
+    {
+        // End any active conversation
+        _conversationStateManager.ClearPendingConversation();
+        _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
+        return await Task.FromResult(true);
+    }
+    
+    public void RefreshLocationState()
+    {
+        // Refresh the current location state
+        // This ensures NPCs are in correct positions for current time
+        var player = _gameWorld.GetPlayer();
+        if (player?.CurrentLocationSpot != null)
+        {
+            // Update NPC positions for current time
+            var currentTime = _timeManager.GetCurrentTimeBlock();
+            Console.WriteLine($"[GameFacade.RefreshLocationState] Refreshing location for time: {currentTime}");
+        }
     }
 
     // ========== MARKET ==========

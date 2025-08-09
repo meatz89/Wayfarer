@@ -35,8 +35,8 @@
                 {
                     var position = i + 1;
                     var letter = GetLetterAtPosition(position);
-                    <div class="queue-slot @(expandedPosition == position ? "expanded" : "")" 
-                         @onclick="() => TogglePosition(position)">
+                    <div class="queue-slot @(expandedPosition == position ? "expanded" : "") @(_selectedForReorder == position ? "selected-for-reorder" : "") @(_isReordering && _selectedForReorder != position ? "reorder-target" : "")" 
+                         @onclick="() => HandleSlotClick(position)">
                         
                         <!-- Position and Weight Blocks -->
                         <span class="slot-display">
@@ -90,12 +90,28 @@
                             Stakes: @GetStakesDisplay(letter.Stakes) | 
                             Deadline: @GetDeadlineDisplay(letter)
                         </div>
-                        @if (expandedPosition == 1)
-                        {
-                            <div class="delivery-action">
-                                <button @onclick="DeliverLetter">Deliver This Letter</button>
-                            </div>
-                        }
+                        <div class="letter-actions">
+                            @if (expandedPosition == 1)
+                            {
+                                @if (CanDeliverNow())
+                                {
+                                    <button @onclick="DeliverLetter" class="primary-action">Deliver This Letter</button>
+                                }
+                                else
+                                {
+                                    <button @onclick="NavigateToRecipient" class="primary-action">Travel to Recipient</button>
+                                    <span class="delivery-hint">Must be at recipient's location to deliver</span>
+                                }
+                            }
+                            else if (expandedPosition > 1)
+                            {
+                                <button @onclick="() => StartReorder(expandedPosition.Value)" class="secondary-action">Reorder Letter</button>
+                                @if (TimeManager.GetCurrentTimeHours() < 10)
+                                {
+                                    <button @onclick="() => TryMorningSwap(expandedPosition.Value)" class="secondary-action">Morning Swap (Free)</button>
+                                }
+                            }
+                        </div>
                     </div>
                 }
             }
@@ -118,51 +134,4 @@
     </div>
 </div>
 
-@code {
-    private int? expandedPosition = null;
-
-    private void TogglePosition(int position)
-    {
-        if (expandedPosition == position)
-        {
-            expandedPosition = null;
-        }
-        else
-        {
-            expandedPosition = position;
-        }
-    }
-
-    private async Task DeliverLetter()
-    {
-        var letter = GetLetterAtPosition(1);
-        if (letter != null)
-        {
-            // Deliver the letter at position 1
-            await GameFacade.DeliverLetterAsync(letter.Id);
-            expandedPosition = null;
-            StateHasChanged();
-        }
-    }
-
-    private void NavigateToLocation()
-    {
-        OnNavigate?.Invoke(CurrentViews.LocationScreen);
-    }
-
-    private void NavigateToConversation()
-    {
-        OnNavigate?.Invoke(CurrentViews.ConversationScreen);
-    }
-
-    private void NavigateToDelivery()
-    {
-        var letter = GetLetterAtPosition(1);
-        if (letter != null)
-        {
-            // Navigate to location screen to handle delivery
-            OnNavigate?.Invoke(CurrentViews.LocationScreen);
-        }
-    }
-}
 

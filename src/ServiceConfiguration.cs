@@ -89,6 +89,9 @@ public static class ServiceConfiguration
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<ConnectionTokenManager>();
+        
+        // Consequence Engine for handling missed deadlines
+        services.AddSingleton<Wayfarer.GameState.ConsequenceEngine>();
 
         services.AddSingleton<LetterQueueManager>();
         services.AddSingleton<EndorsementManager>();
@@ -129,6 +132,8 @@ public static class ServiceConfiguration
 
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
+        services.AddSingleton<ILetterQueueOperations>(provider => provider.GetRequiredService<GameFacade>());
+        services.AddScoped<NavigationCoordinator>();
         services.AddSingleton<NPCService>();
         services.AddSingleton<LetterGenerationService>();
 

@@ -9,25 +9,34 @@ public class GameUIBase : ComponentBase
     [Inject] public ITimeManager TimeManager { get; set; }
     [Inject] public LoadingStateService LoadingStateService { get; set; }
     [Inject] public FlagService FlagService { get; set; }
+    [Inject] public Wayfarer.Services.NavigationCoordinator NavigationCoordinator { get; set; }
 
-    // Navigation state managed directly in this component
-    public CurrentViews CurrentView { get; set; } = CurrentViews.LocationScreen;
+    // Navigation state now managed by NavigationCoordinator
+    public CurrentViews CurrentView => NavigationCoordinator?.CurrentView ?? CurrentViews.LocationScreen;
 
     // Navigation method for child components to use
-    public void NavigateTo(CurrentViews view)
+    public async void NavigateTo(CurrentViews view)
     {
         Console.WriteLine($"[GameUIBase.NavigateTo] Called with view: {view}");
         Console.WriteLine($"[GameUIBase.NavigateTo] Current view before: {CurrentView}");
 
-        // Simple time-based validation for Letter Board
-        if (view == CurrentViews.LetterBoardScreen &&
-            TimeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
+        if (NavigationCoordinator == null)
         {
-            Console.WriteLine($"[GameUIBase.NavigateTo] Blocking navigation to LetterBoardScreen - not Dawn");
-            return; // Don't navigate
+            Console.WriteLine($"[GameUIBase.NavigateTo] NavigationCoordinator is null, cannot navigate");
+            return;
         }
 
-        CurrentView = view;
+        // Use NavigationCoordinator for validation and transition
+        bool success = await NavigationCoordinator.NavigateToAsync(view);
+        
+        if (!success)
+        {
+            string reason = NavigationCoordinator.GetBlockedReason(view);
+            Console.WriteLine($"[GameUIBase.NavigateTo] Navigation blocked: {reason}");
+            // Could show this to user via MessageSystem
+            return;
+        }
+
         Console.WriteLine($"[GameUIBase.NavigateTo] Current view after: {CurrentView}");
         Console.WriteLine($"[GameUIBase.NavigateTo] Calling StateHasChanged...");
         StateHasChanged();
@@ -57,7 +66,7 @@ public class GameUIBase : ComponentBase
             if (missingReferences)
             {
                 Console.WriteLine("[GameUIBase.OnInitializedAsync] Missing references detected. Navigating to MissingReferences view...");
-                CurrentView = CurrentViews.MissingReferences;
+                await NavigationCoordinator.NavigateToAsync(CurrentViews.MissingReferences);
             }
             else if (!GameWorld.GetPlayer().IsInitialized)
             {
@@ -67,12 +76,12 @@ public class GameUIBase : ComponentBase
                 player.Name = "Wayfarer";
                 player.IsInitialized = true;
                 Console.WriteLine("[GameUIBase.OnInitializedAsync] Default player created. Showing Location...");
-                CurrentView = CurrentViews.LocationScreen;
+                await NavigationCoordinator.NavigateToAsync(CurrentViews.LocationScreen);
             }
             else
             {
                 Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Showing Location...");
-                CurrentView = CurrentViews.LocationScreen;
+                await NavigationCoordinator.NavigateToAsync(CurrentViews.LocationScreen);
             }
 
             Console.WriteLine($"[GameUIBase.OnInitializedAsync] Initialization completed. CurrentView: {CurrentView}");
@@ -96,11 +105,11 @@ public class GameUIBase : ComponentBase
     {
         if (!GameWorld.GetPlayer().IsInitialized)
         {
-            CurrentView = CurrentViews.CharacterScreen;
+            await NavigationCoordinator.NavigateToAsync(CurrentViews.CharacterScreen);
         }
         else
         {
-            CurrentView = GetDefaultView();
+            await NavigationCoordinator.NavigateToAsync(GetDefaultView());
         }
         StateHasChanged();
     }
@@ -112,7 +121,7 @@ public class GameUIBase : ComponentBase
         await GameFacade.StartGame();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] GameFacade.StartGame() completed.");
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigating to LocationScreen...");
-        CurrentView = CurrentViews.LocationScreen;
+        await NavigationCoordinator.NavigateToAsync(CurrentViews.LocationScreen);
         StateHasChanged();
         Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigation to LocationScreen completed.");
     }

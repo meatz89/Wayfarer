@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using Wayfarer.GameState;
+
 public class LetterQueueManager
 {
     private readonly GameWorld _gameWorld;
@@ -12,9 +14,10 @@ public class LetterQueueManager
     private readonly GameConfiguration _config;
     private readonly IGameRuleEngine _ruleEngine;
     private readonly ITimeManager _timeManager;
+    private readonly ConsequenceEngine _consequenceEngine;
     private readonly Random _random = new Random();
 
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager, ConsequenceEngine consequenceEngine = null)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -26,6 +29,7 @@ public class LetterQueueManager
         _config = config;
         _ruleEngine = ruleEngine;
         _timeManager = timeManager;
+        _consequenceEngine = consequenceEngine;
     }
 
     // Get the player's letter queue
@@ -184,6 +188,26 @@ public class LetterQueueManager
             {
                 // Massive debt creates overwhelming leverage
                 leveragePosition = Math.Max(1, leveragePosition);
+            }
+        }
+        
+        // Apply consequence-based leverage (from failed deliveries)
+        if (_consequenceEngine != null)
+        {
+            int failureLeverage = _consequenceEngine.GetLeverage(senderId);
+            if (failureLeverage > 0)
+            {
+                // Each point of leverage moves letter up by 1 position
+                leveragePosition = Math.Max(1, leveragePosition - failureLeverage);
+                
+                // Show this in the message
+                if (failureLeverage >= 2)
+                {
+                    _messageSystem.AddSystemMessage(
+                        $"⚖️ {letter.SenderName}'s LEVERAGE forces letter to position {leveragePosition}",
+                        SystemMessageTypes.Warning
+                    );
+                }
             }
         }
         else if (tokenBalance >= 4)
@@ -588,22 +612,20 @@ public class LetterQueueManager
         return _gameWorld.GetPlayer().LetterQueue[position - 1];
     }
 
-    // Check if position 1 has a letter AND it's collected
+    // Check if position 1 has a letter and player is at recipient location
     public bool CanDeliverFromPosition1()
     {
         Letter letter = GetLetterAt(1);
         if (letter == null) return false;
 
-        // Must be collected to deliver
-        if (letter.State != LetterState.Collected)
+        // Check if player is at the recipient's location
+        if (!IsPlayerAtRecipientLocation(letter))
         {
+            NPC recipient = _npcRepository.GetById(letter.RecipientId);
+            string recipientName = recipient?.Name ?? "recipient";
             _messageSystem.AddSystemMessage(
-                $"⚠️ Cannot deliver! Letter from {letter.SenderName} is not collected yet.",
+                $"⚠️ Cannot deliver! You must be at {recipientName}'s location.",
                 SystemMessageTypes.Warning
-            );
-            _messageSystem.AddSystemMessage(
-                $"  • Visit {letter.SenderName} to collect the physical letter",
-                SystemMessageTypes.Info
             );
             return false;
         }
@@ -802,13 +824,24 @@ public class LetterQueueManager
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId)) return;
 
-        int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
-        NPC senderNpc = _npcRepository.GetById(senderId);
-
-        ShowExpiryFailure(letter);
-        ApplyTokenPenalty(letter, senderId, tokenPenalty);
+        // Record in history first (needed for failure count)
         RecordExpiryInHistory(senderId);
-        ShowRelationshipDamageNarrative(letter, senderNpc, tokenPenalty, senderId);
+        
+        // Use ConsequenceEngine if available, otherwise fall back to basic penalties
+        if (_consequenceEngine != null)
+        {
+            _consequenceEngine.ApplyMissedDeadlineConsequences(letter);
+        }
+        else
+        {
+            // Fallback to basic penalty system
+            int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
+            NPC senderNpc = _npcRepository.GetById(senderId);
+            
+            ShowExpiryFailure(letter);
+            ApplyTokenPenalty(letter, senderId, tokenPenalty);
+            ShowRelationshipDamageNarrative(letter, senderNpc, tokenPenalty, senderId);
+        }
     }
 
     // Show the dramatic moment of letter expiry

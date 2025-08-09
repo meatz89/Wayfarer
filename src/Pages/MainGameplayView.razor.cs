@@ -136,7 +136,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         // Update time info
         (TimeBlocks timeBlock, int hoursRemaining, int currentDay) = GameFacade.GetTimeInfo();
         CurrentTimeBlock = timeBlock;
-        CurrentHour = hoursRemaining;
+        CurrentHour = GameFacade.GetCurrentHour(); // Get actual hour (0-23), not hours remaining
 
         // Update player state
         PlayerState = GameFacade.GetPlayer();
@@ -286,9 +286,19 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
         // Use the route's ID property
         string routeId = route.Id;
-        await GameFacade.TravelToDestinationAsync(route.Destination, routeId);
-
-        Console.WriteLine("HandleTravelRoute completed - waiting for polling to detect conversation");
+        bool success = await GameFacade.TravelToDestinationAsync(route.Destination, routeId);
+        
+        if (success)
+        {
+            // Navigate back to location screen after travel
+            OnNavigate?.Invoke(CurrentViews.LocationScreen);
+            Console.WriteLine("HandleTravelRoute: Travel completed, navigating to LocationScreen");
+        }
+        else
+        {
+            Console.WriteLine("HandleTravelRoute: Travel failed");
+        }
+        
         UpdateState();
     }
 

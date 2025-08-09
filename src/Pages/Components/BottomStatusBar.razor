@@ -1,7 +1,6 @@
 @using Wayfarer.ViewModels
 @using Wayfarer.Pages.Helpers
 @inject GameFacade GameFacade
-@inject ITimeManager TimeManager
 
 <div class="bottom-status-bar">
     <div class="status-section">
@@ -113,7 +112,7 @@
     
     private string GetCurrentTime()
     {
-        return TimeDisplayHelper.GetFormattedTime(TimeManager);
+        return GameFacade.GetFormattedTimeDisplay();
     }
     
     private class DeadlineInfo

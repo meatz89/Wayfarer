@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using Wayfarer.GameState;
 
 /// <summary>
 /// Generates conversation choices using additive system:
@@ -18,6 +19,7 @@ public class ConversationChoiceGenerator
     private readonly LetterPropertyChoiceGenerator _letterChoiceGenerator;
     private readonly Player _player;
     private readonly GameWorld _gameWorld;
+    private readonly ConsequenceEngine _consequenceEngine;
 
     public ConversationChoiceGenerator(
         LetterQueueManager queueManager,
@@ -25,7 +27,8 @@ public class ConversationChoiceGenerator
         NPCEmotionalStateCalculator stateCalculator,
         ITimeManager timeManager,
         Player player,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        ConsequenceEngine consequenceEngine = null)
     {
         _queueManager = queueManager;
         _tokenManager = tokenManager;
@@ -33,6 +36,7 @@ public class ConversationChoiceGenerator
         _timeManager = timeManager;
         _player = player;
         _gameWorld = gameWorld;
+        _consequenceEngine = consequenceEngine;
         
         // Initialize the additive system components
         _baseTemplate = new BaseConversationTemplate(tokenManager, timeManager);
@@ -62,6 +66,10 @@ public class ConversationChoiceGenerator
         // STEP 3: Combine and deduplicate choices
         var allChoices = CombineAndDeduplicateChoices(baseChoices, letterChoices, context.AttentionManager);
         Console.WriteLine($"[ConversationChoiceGenerator] After deduplication: {allChoices.Count} choices");
+        
+        // STEP 3.5: Filter out locked verbs from consequence system
+        allChoices = FilterLockedChoices(allChoices, context.TargetNPC);
+        Console.WriteLine($"[ConversationChoiceGenerator] After filtering locked verbs: {allChoices.Count} choices");
         
         // STEP 4: Apply priority rules and limit to 5 choices
         var finalChoices = ApplyPriorityAndLimit(allChoices);
@@ -163,6 +171,52 @@ public class ConversationChoiceGenerator
         if (choice.AttentionCost == 1)
             return 5;
         return 6; // Basic choices
+    }
+    
+    private List<ConversationChoice> FilterLockedChoices(List<ConversationChoice> choices, NPC targetNPC)
+    {
+        if (_consequenceEngine == null)
+            return choices;
+        
+        var filtered = new List<ConversationChoice>();
+        
+        foreach (var choice in choices)
+        {
+            // Check if this verb is locked for this NPC
+            var verb = MapBaseVerbToConversationVerb(choice.BaseVerb);
+            if (verb.HasValue && _consequenceEngine.IsVerbLocked(targetNPC.ID, verb.Value))
+            {
+                // Replace with locked version that shows why it's unavailable
+                var lockedChoice = CreateLockedChoice(choice, targetNPC);
+                filtered.Add(lockedChoice);
+            }
+            else
+            {
+                filtered.Add(choice);
+            }
+        }
+        
+        return filtered;
+    }
+    
+    private BaseVerb? MapBaseVerbToConversationVerb(BaseVerb baseVerb)
+    {
+        // Direct mapping since we're using BaseVerb in ConsequenceEngine
+        return baseVerb == BaseVerb.EXIT ? null : baseVerb;
+    }
+    
+    private ConversationChoice CreateLockedChoice(ConversationChoice original, NPC npc)
+    {
+        return new ConversationChoice
+        {
+            ChoiceID = original.ChoiceID + "_locked",
+            NarrativeText = $"[TRUST BROKEN] {original.NarrativeText}",
+            MechanicalDescription = $"{npc.Name} refuses - too many failed deliveries",
+            BaseVerb = original.BaseVerb,
+            AttentionCost = 999, // Make it unaffordable
+            IsAffordable = false,
+            MechanicalEffects = new List<IMechanicalEffect>() // No effects
+        };
     }
     
     private List<ConversationChoice> GetFallbackChoices()

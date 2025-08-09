@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Components;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Wayfarer.Pages.Helpers;
+using Wayfarer.Services;
 
 namespace Wayfarer.Pages
 {
@@ -10,6 +12,11 @@ namespace Wayfarer.Pages
     {
         [Inject] private NPCRepository NPCRepository { get; set; }
         [Inject] private ITimeManager TimeManager { get; set; }
+        [Inject] private ILetterQueueOperations QueueOperations { get; set; }
+        
+        private bool _isReordering = false;
+        private int? _selectedForReorder = null;
+        private int? expandedPosition = null;
         private string GetCurrentTime()
         {
             return TimeDisplayHelper.GetFormattedTime(TimeManager);
@@ -207,6 +214,136 @@ namespace Wayfarer.Pages
             // Get NPCs at the current spot and time
             TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
             return NPCRepository.GetNPCsForLocationSpotAndTime(location.spot.SpotID, currentTime);
+        }
+
+        private void TogglePosition(int position)
+        {
+            if (expandedPosition == position)
+            {
+                expandedPosition = null;
+            }
+            else
+            {
+                expandedPosition = position;
+            }
+        }
+        
+        private void HandleSlotClick(int position)
+        {
+            if (_isReordering)
+            {
+                if (_selectedForReorder == position)
+                {
+                    CancelReorder();
+                }
+                else
+                {
+                    CompleteReorder(position);
+                }
+            }
+            else
+            {
+                TogglePosition(position);
+            }
+        }
+
+        private async Task DeliverLetter()
+        {
+            var result = await QueueOperations.DeliverFromPosition1Async();
+            if (result.Success)
+            {
+                expandedPosition = null;
+                StateHasChanged();
+            }
+            else
+            {
+                // Show error message - would normally use MessageSystem
+                Console.WriteLine($"Delivery failed: {result.FailureReason}");
+            }
+        }
+        
+        private async Task StartReorder(int position)
+        {
+            var letter = GetLetterAtPosition(position);
+            if (letter != null)
+            {
+                _isReordering = true;
+                _selectedForReorder = position;
+                StateHasChanged();
+            }
+        }
+        
+        private async Task CompleteReorder(int targetPosition)
+        {
+            if (_selectedForReorder.HasValue)
+            {
+                var result = await QueueOperations.TryReorderAsync(_selectedForReorder.Value, targetPosition);
+                if (result.Success)
+                {
+                    _isReordering = false;
+                    _selectedForReorder = null;
+                    StateHasChanged();
+                }
+            }
+        }
+        
+        private void CancelReorder()
+        {
+            _isReordering = false;
+            _selectedForReorder = null;
+            StateHasChanged();
+        }
+
+        private void NavigateToLocation()
+        {
+            OnNavigate?.Invoke(CurrentViews.LocationScreen);
+        }
+
+        private void NavigateToConversation()
+        {
+            OnNavigate?.Invoke(CurrentViews.ConversationScreen);
+        }
+
+        private void NavigateToDelivery()
+        {
+            var letter = GetLetterAtPosition(1);
+            if (letter != null)
+            {
+                // Navigate to location screen to handle delivery
+                OnNavigate?.Invoke(CurrentViews.LocationScreen);
+            }
+        }
+        
+        private async Task TryMorningSwap(int position)
+        {
+            // For morning swap, we swap with position 1
+            if (position > 1)
+            {
+                var result = await QueueOperations.TryMorningSwapAsync(1, position);
+                if (!result.Success)
+                {
+                    Console.WriteLine($"Morning swap failed: {result.FailureReason}");
+                }
+                expandedPosition = null;
+                StateHasChanged();
+            }
+        }
+        
+        private bool CanDeliverNow()
+        {
+            // Check if we can deliver the letter at position 1 right now
+            return QueueOperations.CanPerformOperation(QueueOperationType.Deliver, 1);
+        }
+        
+        private void NavigateToRecipient()
+        {
+            // Navigate to travel screen to go to recipient's location
+            var letter = GetLetterAtPosition(1);
+            if (letter != null)
+            {
+                // TODO: Pass recipient location to travel screen
+                OnNavigate?.Invoke(CurrentViews.TravelScreen);
+            }
         }
     }
 }

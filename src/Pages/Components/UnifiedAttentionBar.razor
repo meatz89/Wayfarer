@@ -1,5 +1,4 @@
 @inject GameFacade GameFacade
-@inject ITimeManager TimeManager
 @implements IDisposable
 
 @* 
@@ -60,7 +59,8 @@
         var attentionState = GameFacade.GetCurrentAttentionState();
         CurrentAttention = attentionState.Current;
         MaxAttention = attentionState.Max;
-        CurrentTimeBlock = TimeManager.GetCurrentTimeBlock();
+        var (timeBlock, _, _) = GameFacade.GetTimeInfo();
+        CurrentTimeBlock = timeBlock;
     }
 
     private string GetFocusStateClass()
