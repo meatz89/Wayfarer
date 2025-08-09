@@ -5140,22 +5140,10 @@ public class GameFacade
         
         // Tags removed - atmosphere is now calculated from NPC presence instead
         
-        // Generate actions using ActionGenerator instead of hardcoding
+        // Generate actions using ActionGenerator
         if (_actionGenerator != null && location != null)
         {
             viewModel.QuickActions = _actionGenerator.GenerateActionsForLocation(location, spot);
-        }
-        else if (location != null)
-        {
-            // Fallback if ActionGenerator not available (for backwards compatibility)
-            // TODO: Remove this fallback once ActionGenerator is fully integrated
-            viewModel.QuickActions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-            {
-                Icon = "⛲",
-                Title = "Rest at Fountain",
-                Detail = "5 min • Clear head",
-                Cost = "FREE"
-            });
         }
         
         // Add NPCs present
@@ -5275,14 +5263,8 @@ public class GameFacade
     
     private string FormatGameTime()
     {
-        var day = ((DayOfWeek)(_gameWorld.CurrentDay % 7)).ToString();
-        var timeBlock = _timeManager.GetCurrentTimeBlock();
-        var hour = timeBlock == TimeBlocks.Morning ? 9 : (timeBlock == TimeBlocks.Afternoon ? 15 : (timeBlock == TimeBlocks.Evening ? 19 : 23));
-        var minute = 0;
-        var period = hour >= 12 ? "PM" : "AM";
-        var displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-        
-        return $"{day.ToUpper().Substring(0, 3)} {displayHour}:{minute:00} {period}";
+        // Use TimeManager's consistent formatting
+        return _timeManager.GetFormattedTimeDisplay();
     }
     
     private string GetDeadlineTimer()

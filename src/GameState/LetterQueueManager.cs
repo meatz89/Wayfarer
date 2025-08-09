@@ -661,6 +661,22 @@ public class LetterQueueManager
         return letter;
     }
 
+    // Check if player is at the recipient's location
+    private bool IsPlayerAtRecipientLocation(Letter letter)
+    {
+        if (letter == null) return false;
+        
+        Player player = _gameWorld.GetPlayer();
+        if (player.CurrentLocationSpot == null) return false;
+        
+        // Get the recipient NPC
+        NPC recipient = _npcRepository.GetById(letter.RecipientId);
+        if (recipient == null) return false;
+        
+        // Check if recipient is at the same spot as the player
+        return recipient.SpotId == player.CurrentLocationSpot.SpotID;
+    }
+    
     // Deliver letter from position 1
     public bool DeliverFromPosition1()
     {
@@ -668,6 +684,20 @@ public class LetterQueueManager
 
         Player player = _gameWorld.GetPlayer();
         Letter letter = GetLetterAt(1);
+        
+        // CRITICAL: Validate player is at recipient's location
+        if (!IsPlayerAtRecipientLocation(letter))
+        {
+            _messageSystem.AddSystemMessage(
+                $"❌ Cannot deliver! You must be at {letter.RecipientName}'s location.",
+                SystemMessageTypes.Danger
+            );
+            _messageSystem.AddSystemMessage(
+                $"  • Find {letter.RecipientName} and deliver the letter in person",
+                SystemMessageTypes.Info
+            );
+            return false;
+        }
 
         // Remove from queue
         player.LetterQueue[0] = null;
@@ -719,24 +749,50 @@ public class LetterQueueManager
     // Process hourly deadline countdown
     public void ProcessHourlyDeadlines(int hoursElapsed = 1)
     {
+        if (hoursElapsed <= 0) return;
+        
         Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-
-        // Process from back to front to avoid issues with shifting
-        for (int i = 7; i >= 0; i--)
+        
+        // PHASE 1: Update deadlines and track expired letters - O(8)
+        List<Letter> expiredLetters = new List<Letter>();
+        for (int i = 0; i < 8; i++)
         {
-            Letter letter = queue[i];
-            if (letter != null)
+            if (queue[i] != null)
             {
-                letter.DeadlineInHours -= hoursElapsed;
-                if (letter.DeadlineInHours <= 0)
+                queue[i].DeadlineInHours -= hoursElapsed;
+                if (queue[i].DeadlineInHours <= 0)
                 {
-                    // Apply relationship damage before removing
-                    ApplyRelationshipDamage(letter, _connectionTokenManager);
-
-                    // Remove expired letter (which will shift the queue)
-                    RemoveLetterFromQueue(i + 1);
+                    expiredLetters.Add(queue[i]);
                 }
             }
+        }
+        
+        // PHASE 2: Apply consequences for all expired letters - O(k)
+        foreach (Letter letter in expiredLetters)
+        {
+            ApplyRelationshipDamage(letter, _connectionTokenManager);
+        }
+        
+        // PHASE 3: Compact array in-place, removing expired letters - O(8)
+        int writeIndex = 0;
+        for (int readIndex = 0; readIndex < 8; readIndex++)
+        {
+            if (queue[readIndex] != null && queue[readIndex].DeadlineInHours > 0)
+            {
+                if (writeIndex != readIndex)
+                {
+                    queue[writeIndex] = queue[readIndex];
+                    queue[writeIndex].QueuePosition = writeIndex + 1; // Update position
+                    queue[readIndex] = null;
+                }
+                writeIndex++;
+            }
+        }
+        
+        // Clear remaining positions
+        for (int i = writeIndex; i < 8; i++)
+        {
+            queue[i] = null;
         }
     }
 

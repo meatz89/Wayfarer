@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Wayfarer.Pages.Helpers;
 
 namespace Wayfarer.Pages
 {
@@ -11,17 +12,7 @@ namespace Wayfarer.Pages
         [Inject] private ITimeManager TimeManager { get; set; }
         private string GetCurrentTime()
         {
-            var timeInfo = GameFacade.GetTimeInfo();
-            var day = timeInfo.currentDay;
-            var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[day % 7];
-            
-            // Get the actual current hour and minute from TimeManager
-            var currentHour = TimeManager.GetCurrentTimeHours();
-            var currentMinute = TimeManager.GetCurrentMinutes();
-            var period = currentHour >= 12 ? "PM" : "AM";
-            var displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
-            
-            return $"{dayName} {displayHour}:{currentMinute:D2} {period}";
+            return TimeDisplayHelper.GetFormattedTime(TimeManager);
         }
 
         private string GetNextDeadline()

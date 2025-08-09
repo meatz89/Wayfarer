@@ -35,4 +35,10 @@ public interface ITimeManager
     /// Get remaining hours in the current day
     /// </summary>
     int HoursRemaining { get; }
+    
+    /// <summary>
+    /// Gets formatted time display with day name and time.
+    /// Returns format like "MON 3:30 PM"
+    /// </summary>
+    string GetFormattedTimeDisplay();
 }

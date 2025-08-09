@@ -185,6 +185,24 @@ public class TimeManager : ITimeManager
     {
         return _timeModel.GetTimeString();
     }
+    
+    /// <summary>
+    /// Gets formatted time display with day name and time.
+    /// Returns format like "MON 3:30 PM"
+    /// </summary>
+    public string GetFormattedTimeDisplay()
+    {
+        var day = GetCurrentDay();
+        // Day 1 = Monday, so subtract 1 to get correct array index
+        var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[(day - 1) % 7];
+        
+        var currentHour = GetCurrentTimeHours();
+        var currentMinute = GetCurrentMinutes();
+        var period = currentHour >= 12 ? "PM" : "AM";
+        var displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
+        
+        return $"{dayName} {displayHour}:{currentMinute:D2} {period}";
+    }
 
     // Handle time advancement result directly
     private void HandleTimeAdvancement(TimeAdvancementResult result)

@@ -13,6 +13,7 @@ public class ConversationScreenBase : ComponentBase
     
     [Parameter] public string NpcId { get; set; }
     [Parameter] public Action OnConversationEnd { get; set; }
+    [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
     
     protected ConversationViewModel Model { get; set; }
     protected List<IInteractiveChoice> UnifiedChoices { get; set; }

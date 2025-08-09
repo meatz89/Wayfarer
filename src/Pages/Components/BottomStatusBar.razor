@@ -1,4 +1,5 @@
 @using Wayfarer.ViewModels
+@using Wayfarer.Pages.Helpers
 @inject GameFacade GameFacade
 @inject ITimeManager TimeManager
 
@@ -112,22 +113,7 @@
     
     private string GetCurrentTime()
     {
-        try
-        {
-            var day = TimeManager.GetCurrentDay();
-            var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[(day - 1) % 7];
-            
-            var currentHour = TimeManager.GetCurrentTimeHours();
-            var currentMinute = TimeManager.GetCurrentMinutes();
-            var period = currentHour >= 12 ? "PM" : "AM";
-            var displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
-            
-            return $"{dayName} {displayHour}:{currentMinute:D2} {period}";
-        }
-        catch
-        {
-            return "MON 6:00 AM";
-        }
+        return TimeDisplayHelper.GetFormattedTime(TimeManager);
     }
     
     private class DeadlineInfo

@@ -298,14 +298,6 @@ public class RouteOption
 
     // Season availability removed - game timeframe is only days/weeks
 
-    /// <summary>
-    /// Check if route is blocked by weather - DEPRECATED, always returns false
-    /// Weather now affects difficulty, not availability
-    /// </summary>
-    public bool IsBlockedByWeather(WeatherCondition weather)
-    {
-        return false; // Weather never blocks routes, only makes them harder
-    }
 
 
     /// <summary>
