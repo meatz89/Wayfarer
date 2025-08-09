@@ -27,27 +27,33 @@ namespace Wayfarer.Pages
             var letters = GameFacade.GetPlayer().LetterQueue;
             if (letters == null || !letters.Any(l => l != null)) return "";
             
-            var nextDeadline = letters.Where(l => l != null)
+            var nextDeadline = letters.Where(l => l != null && l.DeadlineInHours > 0)
                 .OrderBy(l => l.DeadlineInHours)
                 .FirstOrDefault();
                 
             if (nextDeadline == null) return "";
             
             var hoursLeft = nextDeadline.DeadlineInHours;
+            var recipientShort = GetShortName(nextDeadline.RecipientName);
+            
+            // Use our human-readable format
+            var timeDesc = GetShortDeadline(nextDeadline);
             
             if (hoursLeft <= 3)
             {
-                return $"⚡ {hoursLeft}h until {GetShortName(nextDeadline.RecipientName)}";
+                return $"⚡ {recipientShort}: {timeDesc}";
+            }
+            else if (hoursLeft <= 6)
+            {
+                return $"🔥 {recipientShort}: {timeDesc}";
             }
             else if (hoursLeft <= 24)
             {
-                return $"⏰ {hoursLeft}h until {GetShortName(nextDeadline.RecipientName)}";
+                return $"⏰ {recipientShort}: {timeDesc}";
             }
             else
             {
-                var days = hoursLeft / 24;
-                var hours = hoursLeft % 24;
-                return $"⏰ {days}d {hours}h until {GetShortName(nextDeadline.RecipientName)}";
+                return $"📜 Next: {recipientShort} {timeDesc}";
             }
         }
 
@@ -78,23 +84,101 @@ namespace Wayfarer.Pages
 
         private string GetDeadlineDisplay(Letter letter)
         {
-            return letter.GetDeadlineDescription();
+            var hoursLeft = letter.DeadlineInHours;
+            var currentHour = TimeManager.GetCurrentTimeHours();
+            var daysAway = hoursLeft / 24;
+            var hoursRemaining = hoursLeft % 24;
+            
+            if (hoursLeft <= 0) return "Letter has expired - permanent consequences applied";
+            if (hoursLeft <= 3) return $"CRITICAL: {hoursLeft} hour{(hoursLeft == 1 ? "" : "s")} remaining!";
+            
+            if (daysAway == 0)
+            {
+                return $"Due today ({hoursLeft} hours remaining)";
+            }
+            else if (daysAway == 1)
+            {
+                return $"Due tomorrow ({hoursLeft} hours remaining)";
+            }
+            else
+            {
+                return $"Due in {daysAway} days and {hoursRemaining} hours";
+            }
+        }
+        
+        private string GetDeadlineIcon(Letter letter)
+        {
+            return letter.DeadlineInHours switch
+            {
+                <= 0 => "💀",    // Expired
+                <= 3 => "⚡",    // Critical
+                <= 6 => "🔥",    // Very Urgent  
+                <= 12 => "⏰",   // Urgent
+                <= 24 => "⏱️",   // Today
+                _ => ""          // Normal
+            };
         }
 
         private string GetShortDeadline(Letter letter)
         {
-            if (letter.DeadlineInHours <= 0) return "!EXP";
-            if (letter.DeadlineInHours <= 2) return $"!{letter.DeadlineInHours}h";
-            if (letter.DeadlineInHours <= 6) return $"{letter.DeadlineInHours}h";
-            if (letter.DeadlineInHours <= 24) return $"{letter.DeadlineInHours}h";
-            return $"{letter.DeadlineInHours / 24}d";
+            var hoursLeft = letter.DeadlineInHours;
+            var currentHour = TimeManager.GetCurrentTimeHours();
+            var currentMinute = TimeManager.GetCurrentMinutes();
+            var targetHour = (currentHour + hoursLeft) % 24;
+            var daysAway = hoursLeft / 24;
+            
+            // EXPIRED
+            if (hoursLeft <= 0) return "EXPIRED!";
+            
+            // CRITICAL: Less than 3 hours - show exact time
+            if (hoursLeft == 1) return "1 HOUR!";
+            if (hoursLeft == 2) return "2 HOURS!";
+            if (hoursLeft <= 3) return $"{hoursLeft} HOURS!";
+            
+            // URGENT: Today - use medieval time references
+            if (daysAway == 0)
+            {
+                // Calculate actual target time
+                var targetTime = currentHour + hoursLeft;
+                if (targetTime >= 24) targetTime -= 24;
+                
+                return targetTime switch
+                {
+                    >= 6 and < 9 => "By Dawn",
+                    >= 9 and < 12 => "By Morning",
+                    12 => "By Midday",
+                    >= 12 and < 15 => "By Afternoon",
+                    >= 15 and < 18 => "By Evening",
+                    >= 18 and < 21 => "By Nightfall",
+                    >= 21 and < 24 => "By Late Night",
+                    _ => "Tonight"
+                };
+            }
+            
+            // TOMORROW
+            if (daysAway == 1)
+            {
+                return targetHour switch
+                {
+                    >= 6 and < 12 => "Tomorrow Morn",
+                    >= 12 and < 18 => "Tomorrow Aft.",
+                    _ => "Tomorrow Eve"
+                };
+            }
+            
+            // DISTANT (2+ days)
+            if (daysAway == 2) return "In 2 days";
+            if (daysAway == 3) return "In 3 days";
+            return $"In {daysAway} days";
         }
 
         private string GetDeadlineClass(Letter letter)
         {
             if (letter.DeadlineInHours <= 0) return "deadline-expired";
-            if (letter.DeadlineInHours <= 2) return "deadline-critical";
+            if (letter.DeadlineInHours <= 3) return "deadline-critical";
             if (letter.DeadlineInHours <= 6) return "deadline-urgent";
+            if (letter.DeadlineInHours <= 24) return "deadline-today";
+            if (letter.DeadlineInHours <= 48) return "deadline-tomorrow";
             return "deadline-normal";
         }
 
@@ -172,7 +256,26 @@ namespace Wayfarer.Pages
 
         private string GetStakesDisplay(StakeType stakes)
         {
-            return stakes.ToString();
+            return stakes switch
+            {
+                StakeType.REPUTATION => "Social Standing",
+                StakeType.WEALTH => "Financial Survival",
+                StakeType.SAFETY => "Physical Danger",
+                StakeType.SECRET => "Hidden Truth",
+                _ => stakes.ToString()
+            };
+        }
+        
+        private string GetEmotionalWeightDisplay(EmotionalWeight weight)
+        {
+            return weight switch
+            {
+                EmotionalWeight.LOW => "Routine",
+                EmotionalWeight.MEDIUM => "Important",
+                EmotionalWeight.HIGH => "Life-Changing",
+                EmotionalWeight.CRITICAL => "Life or Death",
+                _ => weight.ToString()
+            };
         }
 
         private string GetNPCMood(NPC npc)
@@ -344,6 +447,35 @@ namespace Wayfarer.Pages
                 // TODO: Pass recipient location to travel screen
                 OnNavigate?.Invoke(CurrentViews.TravelScreen);
             }
+        }
+        
+        private bool HasCriticalDeadlines()
+        {
+            var letters = GameFacade.GetPlayer().LetterQueue;
+            if (letters == null) return false;
+            return letters.Any(l => l != null && l.DeadlineInHours <= 3 && l.DeadlineInHours > 0);
+        }
+        
+        private Letter GetMostUrgentLetter()
+        {
+            var letters = GameFacade.GetPlayer().LetterQueue;
+            if (letters == null) return null;
+            
+            return letters.Where(l => l != null && l.DeadlineInHours > 0)
+                .OrderBy(l => l.DeadlineInHours)
+                .FirstOrDefault();
+        }
+        
+        private string GetCriticalLetterWarning()
+        {
+            var urgent = GetMostUrgentLetter();
+            if (urgent == null) return "";
+            
+            if (urgent.DeadlineInHours <= 1)
+                return $"⚠️ CRITICAL: {urgent.RecipientName} letter expires in 1 HOUR!";
+            else if (urgent.DeadlineInHours <= 3)
+                return $"⚠️ URGENT: {urgent.RecipientName} letter expires in {urgent.DeadlineInHours} hours!";
+            return "";
         }
     }
 }

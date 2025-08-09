@@ -34,4 +34,11 @@ public class LetterTemplateDTO
     public string Size { get; set; } = "Medium";
     public List<string> PhysicalProperties { get; set; }
     public string RequiredEquipment { get; set; }
+    
+    // Human context and consequences
+    public string HumanContext { get; set; }
+    public string ConsequenceIfLate { get; set; }
+    public string ConsequenceIfDelivered { get; set; }
+    public string EmotionalWeight { get; set; } = "MEDIUM";
+    public string Stakes { get; set; } = "REPUTATION";
 }

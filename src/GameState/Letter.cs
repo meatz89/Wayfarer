@@ -12,6 +12,17 @@ public enum StakeType
     SECRET       // Hidden information, dangerous knowledge
 }
 
+/// <summary>
+/// The emotional weight of this letter - how much it should weigh on the player's conscience
+/// </summary>
+public enum EmotionalWeight
+{
+    LOW,      // Routine correspondence
+    MEDIUM,   // Important but not life-changing
+    HIGH,     // Life-altering consequences
+    CRITICAL  // Life or death situations
+}
+
 public enum LetterState
 {
     Offered,    // NPC has mentioned it, not in queue yet
@@ -93,8 +104,12 @@ public class Letter
     public string ParentLetterId { get; set; } = "";
     public bool IsChainLetter { get; set; } = false;
 
-    // Content
+    // Content and Human Context
     public string Message { get; set; } = "";
+    public string HumanContext { get; set; } = ""; // One-line emotional hook showing what's really at stake
+    public string ConsequenceIfLate { get; set; } = ""; // What happens if we fail to deliver
+    public string ConsequenceIfDelivered { get; set; } = ""; // What we prevent by delivering
+    public EmotionalWeight EmotionalWeight { get; set; } = EmotionalWeight.MEDIUM; // How heavy this weighs on conscience
 
     // Special letter properties
     public string UnlocksNPCId { get; set; } = "";  // For Introduction letters
@@ -249,6 +264,10 @@ public class Letter
     /// </summary>
     public string GetStakesHint()
     {
+        // Use the human context if available, otherwise fall back to generic descriptions
+        if (!string.IsNullOrEmpty(HumanContext))
+            return HumanContext;
+            
         return (TokenType, Stakes) switch
         {
             (ConnectionType.Trust, StakeType.REPUTATION) => "a matter of personal honor",
@@ -272,6 +291,39 @@ public class Letter
             (ConnectionType.Shadow, StakeType.SECRET) => "information that kills",
             
             _ => "correspondence"
+        };
+    }
+    
+    /// <summary>
+    /// Get the emotional weight icon for UI display
+    /// </summary>
+    public string GetEmotionalWeightIcon()
+    {
+        return EmotionalWeight switch
+        {
+            EmotionalWeight.LOW => "",
+            EmotionalWeight.MEDIUM => "💭",
+            EmotionalWeight.HIGH => "💔",
+            EmotionalWeight.CRITICAL => "⚠️",
+            _ => ""
+        };
+    }
+    
+    /// <summary>
+    /// Get a short consequence preview for the UI
+    /// </summary>
+    public string GetConsequencePreview()
+    {
+        if (!string.IsNullOrEmpty(ConsequenceIfLate))
+            return $"If late: {ConsequenceIfLate}";
+            
+        return Stakes switch
+        {
+            StakeType.REPUTATION => "If late: Reputation destroyed",
+            StakeType.WEALTH => "If late: Financial ruin",
+            StakeType.SAFETY => "If late: Someone gets hurt",
+            StakeType.SECRET => "If late: Truth remains hidden",
+            _ => "If late: Opportunity lost"
         };
     }
 

@@ -43,7 +43,12 @@ public class LetterTemplateFactory
             PhysicalProperties = LetterPhysicalProperties.None,
             RequiredEquipment = null,
             SpecialType = LetterSpecialType.None,
-            SpecialTargetId = ""
+            SpecialTargetId = "",
+            HumanContext = "A routine correspondence",
+            ConsequenceIfLate = "The message arrives late",
+            ConsequenceIfDelivered = "Communication reaches its destination",
+            EmotionalWeight = EmotionalWeight.LOW,
+            Stakes = StakeType.REPUTATION
         };
     }
 
@@ -78,7 +83,12 @@ public class LetterTemplateFactory
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
         ItemCategory? requiredEquipment = null,
         LetterSpecialType specialType = LetterSpecialType.None,
-        string specialTargetId = null)
+        string specialTargetId = null,
+        string humanContext = null,
+        string consequenceIfLate = null,
+        string consequenceIfDelivered = null,
+        EmotionalWeight emotionalWeight = EmotionalWeight.MEDIUM,
+        StakeType stakes = StakeType.REPUTATION)
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
@@ -112,7 +122,12 @@ public class LetterTemplateFactory
             PhysicalProperties = physicalProperties,
             RequiredEquipment = requiredEquipment,
             SpecialType = specialType,
-            SpecialTargetId = specialTargetId ?? ""
+            SpecialTargetId = specialTargetId ?? "",
+            HumanContext = humanContext ?? "",
+            ConsequenceIfLate = consequenceIfLate ?? "",
+            ConsequenceIfDelivered = consequenceIfDelivered ?? "",
+            EmotionalWeight = emotionalWeight,
+            Stakes = stakes
         };
 
         return template;
@@ -140,7 +155,12 @@ public class LetterTemplateFactory
         LetterPhysicalProperties physicalProperties = LetterPhysicalProperties.None,
         ItemCategory? requiredEquipment = null,
         LetterSpecialType specialType = LetterSpecialType.None,
-        string specialTargetId = null)
+        string specialTargetId = null,
+        string humanContext = null,
+        string consequenceIfLate = null,
+        string consequenceIfDelivered = null,
+        EmotionalWeight emotionalWeight = EmotionalWeight.MEDIUM,
+        StakeType stakes = StakeType.REPUTATION)
     {
         // Special narrative letter templates that use placeholder names, not NPC IDs
         HashSet<string> narrativeTemplates = new HashSet<string>
@@ -192,6 +212,7 @@ public class LetterTemplateFactory
                                    minPayment, maxPayment, category, minTokensRequired,
                                    senders, recipients, unlocksLetterIds, isChainLetter,
                                    size, physicalProperties, requiredEquipment,
-                                   specialType, specialTargetId);
+                                   specialType, specialTargetId, humanContext, consequenceIfLate,
+                                   consequenceIfDelivered, emotionalWeight, stakes);
     }
 }

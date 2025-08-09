@@ -56,7 +56,12 @@ public class LetterGenerationService
             Size = template.Size,
             PhysicalProperties = template.PhysicalProperties,
             RequiredEquipment = template.RequiredEquipment,
-            Description = template.Description
+            Description = template.Description,
+            HumanContext = template.HumanContext,
+            ConsequenceIfLate = template.ConsequenceIfLate,
+            ConsequenceIfDelivered = template.ConsequenceIfDelivered,
+            EmotionalWeight = template.EmotionalWeight,
+            Stakes = template.Stakes
         };
 
         _logger.LogDebug($"Generated letter from template '{template.Id}': {senderName} -> {recipientName}");
@@ -89,7 +94,12 @@ public class LetterGenerationService
             Size = template.Size,
             PhysicalProperties = template.PhysicalProperties,
             RequiredEquipment = template.RequiredEquipment,
-            Description = template.Description
+            Description = template.Description,
+            HumanContext = template.HumanContext,
+            ConsequenceIfLate = template.ConsequenceIfLate,
+            ConsequenceIfDelivered = template.ConsequenceIfDelivered,
+            EmotionalWeight = template.EmotionalWeight,
+            Stakes = template.Stakes
         };
 
         _logger.LogDebug($"Generated forced letter from template '{template.Id}': {letter.SenderName} -> {letter.RecipientName}");

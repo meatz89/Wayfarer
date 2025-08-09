@@ -36,4 +36,11 @@ public class LetterTemplate
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
     public LetterPhysicalProperties PhysicalProperties { get; set; } = LetterPhysicalProperties.None;
     public ItemCategory? RequiredEquipment { get; set; } = null;
+    
+    // Human context and consequences
+    public string HumanContext { get; set; } = ""; // One-line emotional hook
+    public string ConsequenceIfLate { get; set; } = ""; // What happens if we fail
+    public string ConsequenceIfDelivered { get; set; } = ""; // What we prevent
+    public EmotionalWeight EmotionalWeight { get; set; } = EmotionalWeight.MEDIUM;
+    public StakeType Stakes { get; set; } = StakeType.REPUTATION; // What's at stake
 }

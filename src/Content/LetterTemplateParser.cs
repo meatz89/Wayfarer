@@ -33,6 +33,19 @@ public static class LetterTemplateParser
         string specialTypeStr = GetStringProperty(root, "specialType", "None");
         template.SpecialType = ParseSpecialType(specialTypeStr);
         template.SpecialTargetId = GetStringProperty(root, "specialTargetId", "");
+        
+        // Parse human context and consequences
+        template.HumanContext = GetStringProperty(root, "humanContext", "");
+        template.ConsequenceIfLate = GetStringProperty(root, "consequenceIfLate", "");
+        template.ConsequenceIfDelivered = GetStringProperty(root, "consequenceIfDelivered", "");
+        
+        // Parse emotional weight
+        string emotionalWeightStr = GetStringProperty(root, "emotionalWeight", "MEDIUM");
+        template.EmotionalWeight = ParseEmotionalWeight(emotionalWeightStr);
+        
+        // Parse stakes
+        string stakesStr = GetStringProperty(root, "stakes", "REPUTATION");
+        template.Stakes = ParseStakeType(stakesStr);
 
         return template;
     }
@@ -60,6 +73,30 @@ public static class LetterTemplateParser
             "Information" => LetterSpecialType.Information,
             "None" => LetterSpecialType.None,
             _ => LetterSpecialType.None // Default fallback
+        };
+    }
+    
+    private static EmotionalWeight ParseEmotionalWeight(string weightStr)
+    {
+        return weightStr?.ToUpper() switch
+        {
+            "LOW" => EmotionalWeight.LOW,
+            "MEDIUM" => EmotionalWeight.MEDIUM,
+            "HIGH" => EmotionalWeight.HIGH,
+            "CRITICAL" => EmotionalWeight.CRITICAL,
+            _ => EmotionalWeight.MEDIUM // Default fallback
+        };
+    }
+    
+    private static StakeType ParseStakeType(string stakeStr)
+    {
+        return stakeStr?.ToUpper() switch
+        {
+            "REPUTATION" => StakeType.REPUTATION,
+            "WEALTH" => StakeType.WEALTH,
+            "SAFETY" => StakeType.SAFETY,
+            "SECRET" => StakeType.SECRET,
+            _ => StakeType.REPUTATION // Default fallback
         };
     }
 

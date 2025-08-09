@@ -32,19 +32,94 @@
     letter-spacing: -2px;
 }
 
-.deadline {
-    font-size: 12px;
-    color: #666;
-    min-width: 40px;
+/* Deadline Display Wrapper */
+.deadline-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 8px;
 }
 
-.deadline.urgent {
+.deadline-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.deadline {
+    font-size: 12px;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+/* Deadline urgency levels */
+.deadline-expired {
+    color: #b71c1c;
+    font-weight: bold;
+    text-decoration: line-through;
+    animation: blink 2s infinite;
+}
+
+.deadline-critical {
     color: #d32f2f;
     font-weight: bold;
+    text-transform: uppercase;
+    animation: pulse-urgent 1s infinite;
+}
+
+.deadline-urgent {
+    color: #f57c00;
+    font-weight: 600;
+}
+
+.deadline-today {
+    color: #fbc02d;
+    font-weight: 500;
+}
+
+.deadline-tomorrow {
+    color: #8bc34a;
+}
+
+.deadline-normal {
+    color: #666;
 }
 
 .deadline.empty {
     color: #ccc;
+}
+
+/* Animations for critical deadlines */
+@keyframes pulse-urgent {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.85;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0.5; }
+}
+
+/* Critical deadline alert banner */
+.critical-deadline-alert {
+    background: linear-gradient(90deg, #d32f2f, #f44336);
+    color: white;
+    padding: 8px 16px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    animation: alert-flash 2s ease-in-out infinite;
+    margin-top: 4px;
+}
+
+@keyframes alert-flash {
+    0%, 100% { background: linear-gradient(90deg, #d32f2f, #f44336); }
+    50% { background: linear-gradient(90deg, #b71c1c, #d32f2f); }
 }
 
 .letter-details {
@@ -104,5 +179,71 @@ button.primary-action {
 
 button.primary-action:hover {
     background: #555;
+}
+
+/* Human Context and Emotional Weight */
+.route-preview {
+    font-size: 11px;
+    color: #666;
+    margin-left: 4px;
+    opacity: 0.8;
+}
+
+.human-context {
+    font-size: 11px;
+    font-style: italic;
+    color: #444;
+    margin-left: 8px;
+    opacity: 0.9;
+}
+
+.emotional-indicator {
+    margin-left: 4px;
+    font-size: 14px;
+}
+
+.human-context-full {
+    font-size: 14px;
+    font-style: italic;
+    color: #222;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.detail-consequences {
+    margin: 12px 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+}
+
+.consequence-success {
+    color: #2e7d32;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+.consequence-failure {
+    color: #c62828;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Queue slot states for reordering */
+.queue-slot.selected-for-reorder {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px dashed #2196f3;
+    animation: pulse 1s infinite;
+}
+
+.queue-slot.reorder-target:hover {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px dashed #4caf50;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
 }
 

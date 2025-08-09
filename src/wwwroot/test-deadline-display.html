@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Improved Deadline Display Demo</title>
+    <style>
+        body {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            background: #f5f4f0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        
+        h1 {
+            font-size: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 16px;
+            margin-top: 30px;
+            color: #666;
+        }
+        
+        /* Header with critical alert */
+        .header {
+            background: #333;
+            color: white;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .time-bar {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .critical-deadline-alert {
+            background: linear-gradient(90deg, #d32f2f, #f44336);
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            animation: alert-flash 2s ease-in-out infinite;
+            margin-top: 8px;
+        }
+        
+        @keyframes alert-flash {
+            0%, 100% { background: linear-gradient(90deg, #d32f2f, #f44336); }
+            50% { background: linear-gradient(90deg, #b71c1c, #d32f2f); }
+        }
+        
+        /* Queue display */
+        .visual-queue {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            padding: 16px 0;
+        }
+        
+        .queue-slot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .queue-slot:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .slot-display {
+            font-family: monospace;
+            letter-spacing: -1px;
+            min-width: 100px;
+        }
+        
+        /* Deadline wrapper and icon */
+        .deadline-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin: 0 8px;
+        }
+        
+        .deadline-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+        
+        .deadline {
+            font-size: 13px;
+            font-weight: 500;
+            min-width: 100px;
+        }
+        
+        /* Urgency levels */
+        .deadline-expired {
+            color: #b71c1c;
+            font-weight: bold;
+            text-decoration: line-through;
+            animation: blink 2s infinite;
+        }
+        
+        .deadline-critical {
+            color: #d32f2f;
+            font-weight: bold;
+            text-transform: uppercase;
+            animation: pulse-urgent 1s infinite;
+        }
+        
+        .deadline-urgent {
+            color: #f57c00;
+            font-weight: 600;
+        }
+        
+        .deadline-today {
+            color: #fbc02d;
+            font-weight: 500;
+        }
+        
+        .deadline-tomorrow {
+            color: #8bc34a;
+        }
+        
+        .deadline-normal {
+            color: #666;
+        }
+        
+        @keyframes pulse-urgent {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.85;
+                transform: scale(1.02);
+            }
+        }
+        
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.5; }
+        }
+        
+        .route-preview {
+            font-size: 11px;
+            color: #666;
+            opacity: 0.8;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .old-style, .new-style {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        
+        .old-style h3, .new-style h3 {
+            margin-top: 0;
+            font-size: 14px;
+        }
+        
+        .old-style {
+            background: #fff5f5;
+        }
+        
+        .new-style {
+            background: #f5fff5;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>Wayfarer Queue - Improved Deadline Visibility</h1>
+        
+        <!-- New Header with Critical Alert -->
+        <div class="header">
+            <div class="time-bar">
+                <span>MON 9:30 AM - Morning</span>
+                <span class="deadline-timer">⚡ Lord Aldric: 2 HOURS!</span>
+            </div>
+            <div class="critical-deadline-alert">
+                ⚠️ CRITICAL: Lord Aldric letter expires in 2 HOURS!
+            </div>
+        </div>
+        
+        <h2>Letter Queue [8/12 weight]</h2>
+        
+        <div class="visual-queue">
+            <!-- Critical letter (2 hours) -->
+            <div class="queue-slot">
+                <span class="slot-display">[1] [■■■]</span>
+                <span class="deadline-wrapper">
+                    <span class="deadline-icon">⚡</span>
+                    <span class="deadline deadline-critical">2 HOURS!</span>
+                </span>
+                <span class="route-preview">Lord Aldric</span>
+            </div>
+            
+            <!-- Urgent letter (5 hours) -->
+            <div class="queue-slot">
+                <span class="slot-display">[2] [■■]</span>
+                <span class="deadline-wrapper">
+                    <span class="deadline-icon">🔥</span>
+                    <span class="deadline deadline-urgent">By Afternoon</span>
+                </span>
+                <span class="route-preview">Elena</span>
+            </div>
+            
+            <!-- Today letter (10 hours) -->
+            <div class="queue-slot">
+                <span class="slot-display">[3] [■]</span>
+                <span class="deadline-wrapper">
+                    <span class="deadline-icon">⏰</span>
+                    <span class="deadline deadline-today">By Evening</span>
+                </span>
+                <span class="route-preview">Merchant Finn</span>
+            </div>
+            
+            <!-- Tomorrow letter -->
+            <div class="queue-slot">
+                <span class="slot-display">[4] [■■]</span>
+                <span class="deadline-wrapper">
+                    <span class="deadline-icon">⏱️</span>
+                    <span class="deadline deadline-tomorrow">Tomorrow Morn</span>
+                </span>
+                <span class="route-preview">Sister Margaret</span>
+            </div>
+            
+            <!-- Normal letter (3 days) -->
+            <div class="queue-slot">
+                <span class="slot-display">[5] [■]</span>
+                <span class="deadline-wrapper">
+                    <span class="deadline-icon"></span>
+                    <span class="deadline deadline-normal">In 3 days</span>
+                </span>
+                <span class="route-preview">Blacksmith</span>
+            </div>
+            
+            <!-- Expired letter -->
+            <div class="queue-slot">
+                <span class="slot-display">[6] [■■]</span>
+                <span class="deadline-wrapper">
+                    <span class="deadline-icon">💀</span>
+                    <span class="deadline deadline-expired">EXPIRED!</span>
+                </span>
+                <span class="route-preview">Tavern Keep</span>
+            </div>
+            
+            <!-- Empty slots -->
+            <div class="queue-slot">
+                <span class="slot-display">[7] [_]</span>
+                <span class="deadline-wrapper">
+                    <span class="deadline-icon"></span>
+                    <span class="deadline" style="color: #ccc;">___</span>
+                </span>
+            </div>
+            
+            <div class="queue-slot">
+                <span class="slot-display">[8] [_]</span>
+                <span class="deadline-wrapper">
+                    <span class="deadline-icon"></span>
+                    <span class="deadline" style="color: #ccc;">___</span>
+                </span>
+            </div>
+        </div>
+        
+        <h2>Before vs After Comparison</h2>
+        
+        <div class="comparison">
+            <div class="old-style">
+                <h3>❌ OLD: Raw Hours</h3>
+                <ul>
+                    <li>!2h - What does this mean?</li>
+                    <li>48h - Is this urgent?</li>
+                    <li>72h - When is this exactly?</li>
+                    <li>No visual hierarchy</li>
+                    <li>Breaks immersion</li>
+                </ul>
+            </div>
+            
+            <div class="new-style">
+                <h3>✅ NEW: Human-Readable</h3>
+                <ul>
+                    <li>⚡ 2 HOURS! - CRITICAL</li>
+                    <li>🔥 By Afternoon - Urgent today</li>
+                    <li>⏰ Tomorrow Morning - Clear timing</li>
+                    <li>Color-coded urgency</li>
+                    <li>Medieval time references</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h2>Design Benefits</h2>
+        <ul>
+            <li><strong>Immediate Recognition:</strong> Icons and colors create instant urgency awareness</li>
+            <li><strong>Medieval Immersion:</strong> "By Vespers", "Tomorrow Morn" fit the setting</li>
+            <li><strong>Progressive Disclosure:</strong> Critical info in collapsed view, details on expand</li>
+            <li><strong>Reduced Cognitive Load:</strong> No mental math to convert hours to actual times</li>
+            <li><strong>Visual Hierarchy:</strong> Most urgent letters demand attention through animation</li>
+        </ul>
+    </div>
+</body>
+</html>

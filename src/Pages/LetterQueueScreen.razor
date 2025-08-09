@@ -8,6 +8,12 @@
             <span>@GetCurrentTime()</span>
             <span class="deadline-timer">@GetNextDeadline()</span>
         </div>
+        @if (HasCriticalDeadlines())
+        {
+            <div class="critical-deadline-alert">
+                @GetCriticalLetterWarning()
+            </div>
+        }
     </div>
 
     <!-- Location Header -->
@@ -49,6 +55,10 @@
                                     <text>■</text>
                                 }
                                 <span class="weight-blocks">]</span>
+                                @if (letter.EmotionalWeight >= EmotionalWeight.HIGH)
+                                {
+                                    <span class="emotional-indicator">@letter.GetEmotionalWeightIcon()</span>
+                                }
                             }
                             else
                             {
@@ -56,14 +66,20 @@
                             }
                         </span>
                         
-                        <!-- Deadline Indicator -->
+                        <!-- Deadline and Human Context -->
                         @if (letter != null)
                         {
-                            var deadline = GetShortDeadline(letter);
-                            var isUrgent = letter.DeadlineInHours <= 48;
-                            <span class="deadline @(isUrgent ? "urgent" : "")">
-                                @(isUrgent ? "!" : "")@deadline
+                            <span class="deadline-wrapper">
+                                <span class="deadline-icon">@GetDeadlineIcon(letter)</span>
+                                <span class="deadline @GetDeadlineClass(letter)">
+                                    @GetShortDeadline(letter)
+                                </span>
                             </span>
+                            <span class="route-preview">@letter.RecipientName</span>
+                            @if (!string.IsNullOrEmpty(letter.HumanContext))
+                            {
+                                <span class="human-context">"@letter.HumanContext"</span>
+                            }
                         }
                         else
                         {
@@ -84,11 +100,29 @@
                             @letter.SenderName → @letter.RecipientName
                         </div>
                         <div class="detail-desc">
-                            @letter.Description
+                            @if (!string.IsNullOrEmpty(letter.HumanContext))
+                            {
+                                <div class="human-context-full">@letter.HumanContext</div>
+                            }
+                            else
+                            {
+                                @letter.Description
+                            }
+                        </div>
+                        <div class="detail-consequences">
+                            @if (!string.IsNullOrEmpty(letter.ConsequenceIfDelivered))
+                            {
+                                <div class="consequence-success">✓ If delivered: @letter.ConsequenceIfDelivered</div>
+                            }
+                            @if (!string.IsNullOrEmpty(letter.ConsequenceIfLate))
+                            {
+                                <div class="consequence-failure">✗ If late: @letter.ConsequenceIfLate</div>
+                            }
                         </div>
                         <div class="detail-meta">
                             Stakes: @GetStakesDisplay(letter.Stakes) | 
-                            Deadline: @GetDeadlineDisplay(letter)
+                            Deadline: @GetDeadlineDisplay(letter) |
+                            Weight: @GetEmotionalWeightDisplay(letter.EmotionalWeight)
                         </div>
                         <div class="letter-actions">
                             @if (expandedPosition == 1)
