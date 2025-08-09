@@ -135,7 +135,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 30 dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 10 dotnet run)",
       "mcp__playwright__browser_wait_for",
-      "mcp__playwright__browser_resize"
+      "mcp__playwright__browser_resize",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 15 dotnet run)",
+      "Bash(./test-elena-choices.sh:*)"
     ],
     "deny": []
   }

@@ -1,0 +1,101 @@
+{
+  "conversationId": "elena_neutral",
+  "npcId": "elena",
+  "initialNode": "calm_greeting",
+  "nodes": {
+    "calm_greeting": {
+      "text": "Elena looks up from her writing desk with a gentle smile. 'Good to see you, wayfarer. How are the roads treating you today? Is there anything I can help you with?'",
+      "choices": [
+        {
+          "id": "exit",
+          "text": "\"Just passing through. Take care, Elena.\"",
+          "nextNode": "friendly_farewell",
+          "attentionCost": 0
+        },
+        {
+          "id": "help_with_writing",
+          "text": "\"Could you help me write a letter?\"",
+          "nextNode": "offer_services",
+          "attentionCost": 0
+        },
+        {
+          "id": "trade_information",
+          "text": "\"I heard you know about the merchant schedules...\"",
+          "nextNode": "share_knowledge",
+          "attentionCost": 1
+        },
+        {
+          "id": "ask_about_fire",
+          "text": "\"How have you been since the fire?\"",
+          "nextNode": "reflect_on_past",
+          "attentionCost": 1
+        },
+        {
+          "id": "offer_work",
+          "text": "\"I might know someone who needs a scribe.\"",
+          "nextNode": "eager_interest",
+          "attentionCost": 1
+        }
+      ]
+    },
+    "friendly_farewell": {
+      "text": "Elena waves warmly. 'Safe travels, friend. May your deliveries be swift and your roads clear.'",
+      "isEnd": true,
+      "effects": {
+        "endConversation": true
+      }
+    },
+    "offer_services": {
+      "text": "Elena's eyes light up. 'Of course! I charge 2 coins for a simple letter, 5 for official formatting. Your words will be given the respect and clarity they deserve.'",
+      "isEnd": true,
+      "effects": {
+        "offerService": {
+          "type": "letter_writing",
+          "cost": 2
+        }
+      }
+    },
+    "share_knowledge": {
+      "text": "Elena nods knowingly. 'The merchants gather at the east gate every morning at the seventh bell. The caravan to Riverside leaves shortly after. This information has served me well - may it do the same for you.'",
+      "isEnd": true,
+      "effects": {
+        "addInformation": {
+          "id": "merchant_gathering_time",
+          "text": "Merchants gather at east gate at seventh bell each morning"
+        },
+        "addToken": {
+          "npcId": "elena",
+          "tokenType": "Commerce",
+          "amount": 1
+        }
+      }
+    },
+    "reflect_on_past": {
+      "text": "Elena's expression grows thoughtful. 'It's been difficult, but I'm rebuilding. Every day gets a little easier. The kindness of people like you helps more than you know. We all need to look after each other in these times.'",
+      "isEnd": true,
+      "effects": {
+        "addToken": {
+          "npcId": "elena",
+          "tokenType": "Trust",
+          "amount": 1
+        },
+        "addTime": 15
+      }
+    },
+    "eager_interest": {
+      "text": "Elena sits up straighter, hope brightening her features. 'Really? Oh, that would be wonderful! I promise they won't regret hiring me. My penmanship is flawless and I know all the proper forms. Please, tell them about me!'",
+      "isEnd": true,
+      "effects": {
+        "addToken": {
+          "npcId": "elena",
+          "tokenType": "Trust",
+          "amount": 2
+        },
+        "createQuest": {
+          "id": "find_elena_work",
+          "description": "Find permanent scribing work for Elena"
+        }
+      }
+    }
+  }
+}

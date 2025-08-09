@@ -109,8 +109,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NoticeBoardService>();
 
         // Conversation system components
-        services.AddSingleton<VerbContextualizer>();
-        services.AddSingleton<ConversationChoiceGenerator>();
+        // ConversationChoiceGenerator is now created per-conversation in ConversationFactory
         services.AddSingleton<ConversationFactory>();
 
         // Attention management

@@ -184,6 +184,38 @@ public partial class LocationScreen : ComponentBase
             await OnNavigate.InvokeAsync(CurrentViews.TravelScreen);
         }
     }
+    
+    private async Task NavigateToQueue()
+    {
+        if (OnNavigate.HasDelegate)
+        {
+            await OnNavigate.InvokeAsync(CurrentViews.LetterQueueScreen);
+        }
+    }
+    
+    private string GetQueueDisplay()
+    {
+        try
+        {
+            var queueVM = GameFacade.GetLetterQueue();
+            if (queueVM?.Status != null)
+            {
+                // Show count/max and urgent indicator if needed
+                var hasUrgent = queueVM.QueueSlots?.Any(s => s.IsOccupied && s.Letter?.DeadlineInHours <= 6) ?? false;
+                var display = $"{queueVM.Status.LetterCount}/8";
+                if (hasUrgent)
+                {
+                    return $"⚠️ {display}";
+                }
+                return display;
+            }
+            return "0/8";
+        }
+        catch
+        {
+            return "QUEUE";
+        }
+    }
 
     private async Task HandleActionExecuted()
     {

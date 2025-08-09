@@ -37,25 +37,39 @@ public class NPCEmotionalStateCalculator
         var theirLetters = queue.Where(l => 
             l.SenderId == npc.ID || l.SenderName == npc.Name).ToList();
 
+        Console.WriteLine($"[NPCEmotionalStateCalculator] Calculating state for {npc.Name} (ID: {npc.ID})");
+        Console.WriteLine($"[NPCEmotionalStateCalculator] Found {theirLetters.Count} letters for this NPC");
+        
+        foreach (var letter in theirLetters)
+        {
+            Console.WriteLine($"  - Letter: {letter.Description}, Deadline: {letter.DeadlineInHours}h, Stakes: {letter.Stakes}");
+        }
+
         if (!theirLetters.Any())
         {
+            Console.WriteLine($"[NPCEmotionalStateCalculator] No letters found - returning WITHDRAWN");
             return NPCEmotionalState.WITHDRAWN;
         }
 
         // Check for overdue letters first
         if (theirLetters.Any(l => l.DeadlineInHours <= 0))
         {
+            Console.WriteLine($"[NPCEmotionalStateCalculator] Found overdue letter - returning HOSTILE");
             return NPCEmotionalState.HOSTILE;
         }
 
         // Check for urgent letters or safety stakes
         var mostUrgent = theirLetters.OrderBy(l => l.DeadlineInHours).First();
+        Console.WriteLine($"[NPCEmotionalStateCalculator] Most urgent letter: {mostUrgent.Description}, Deadline: {mostUrgent.DeadlineInHours}h, Stakes: {mostUrgent.Stakes}");
+        
         if (mostUrgent.DeadlineInHours < 2 || mostUrgent.Stakes == StakeType.SAFETY)
         {
+            Console.WriteLine($"[NPCEmotionalStateCalculator] Urgent or safety stakes - returning DESPERATE");
             return NPCEmotionalState.DESPERATE;
         }
 
         // Default to calculating for normal pressure
+        Console.WriteLine($"[NPCEmotionalStateCalculator] Normal pressure - returning CALCULATING");
         return NPCEmotionalState.CALCULATING;
     }
 

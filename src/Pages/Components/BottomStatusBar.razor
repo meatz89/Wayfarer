@@ -8,9 +8,9 @@
         <span class="status-text">@GetCurrentLocation()</span>
     </div>
     
-    <div class="status-section">
+    <div class="status-section queue-section" @onclick="NavigateToQueue" style="cursor: pointer; background: rgba(218, 165, 32, 0.1); border: 1px solid rgba(218, 165, 32, 0.3); border-radius: 4px; padding: 4px 8px;">
         <span class="status-icon">📜</span>
-        <span class="status-text">Queue: @GetQueueStatus()</span>
+        <span class="status-text" style="font-weight: bold;">Queue: @GetQueueStatus()</span>
     </div>
     
     <div class="status-section">
@@ -36,6 +36,16 @@
 </div>
 
 @code {
+    [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
+
+    private async Task NavigateToQueue()
+    {
+        if (OnNavigate.HasDelegate)
+        {
+            await OnNavigate.InvokeAsync(CurrentViews.LetterQueueScreen);
+        }
+    }
+
     private string GetCurrentLocation()
     {
         try
@@ -105,7 +115,7 @@
         try
         {
             var day = TimeManager.GetCurrentDay();
-            var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[day % 7];
+            var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[(day - 1) % 7];
             
             var currentHour = TimeManager.GetCurrentTimeHours();
             var currentMinute = TimeManager.GetCurrentMinutes();

@@ -33,11 +33,11 @@ public class Phase8_InitialLetters : IInitializationPhase
             RecipientName = "Lord Aldwin",
             Description = "Elena's refusal of Lord Aldwin's marriage proposal",
             TokenType = ConnectionType.Trust,
-            Stakes = StakeType.REPUTATION,
+            Stakes = StakeType.SAFETY, // Changed to SAFETY to trigger DESPERATE state
             Size = SizeCategory.Small,
-            DeadlineInHours = 48, // ~2 days (simplified for now)
+            DeadlineInHours = 1, // URGENT! Less than 2 hours makes Elena DESPERATE
             QueuePosition = 1,
-            State = LetterState.Accepted,
+            State = LetterState.Collected,
             Payment = 0
         };
         letters.Add(elenaLetter);
@@ -56,7 +56,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Size = SizeCategory.Small,
             DeadlineInHours = 48, // ~2 days (the one with deadline warning)
             QueuePosition = 2,
-            State = LetterState.Accepted,
+            State = LetterState.Collected,
             Payment = 10
         };
         letters.Add(lordBLetter);
@@ -75,7 +75,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Size = SizeCategory.Medium,
             DeadlineInHours = 72, // ~3 days
             QueuePosition = 3,
-            State = LetterState.Accepted,
+            State = LetterState.Collected,
             Payment = 5
         };
         letters.Add(marcusLetter);
@@ -94,7 +94,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Size = SizeCategory.Small,
             DeadlineInHours = 144, // ~6 days
             QueuePosition = 5,
-            State = LetterState.Accepted,
+            State = LetterState.Collected,
             Payment = 3
         };
         letters.Add(viktorLetter);
@@ -113,7 +113,7 @@ public class Phase8_InitialLetters : IInitializationPhase
             Size = SizeCategory.Large,
             DeadlineInHours = 288, // ~12 days
             QueuePosition = 6,
-            State = LetterState.Accepted,
+            State = LetterState.Collected,
             Payment = 15
         };
         letters.Add(garrettLetter);

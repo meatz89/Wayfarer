@@ -18,8 +18,7 @@ public class ConversationState
     public int FocusPoints { get; set; }
     public int MaxFocusPoints { get; set; }
 
-    // Conversation outcome tracking
-    public ConversationOutcome Outcome { get; set; }
+    // Conversation seed for deterministic generation
     public int ConversationSeed { get; }
 
     public ConversationState(Player player, NPC npc, GameWorld gameWorld, int maxFocusPoints, int maxDuration)
@@ -42,16 +41,6 @@ public class ConversationState
         if (DurationCounter >= MaxDuration)
         {
             IsConversationComplete = true;
-            Outcome = ConversationOutcome.TimedOut;
         }
     }
-}
-
-public enum ConversationOutcome
-{
-    Ongoing,
-    Success,
-    Failure,
-    TimedOut,
-    Abandoned
 }

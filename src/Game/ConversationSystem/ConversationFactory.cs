@@ -11,7 +11,6 @@ public class ConversationFactory
     private readonly ConnectionTokenManager _tokenManager;
     private readonly NPCEmotionalStateCalculator _stateCalculator;
     private readonly LetterQueueManager _queueManager;
-    private readonly VerbContextualizer _verbContextualizer;
     private readonly ITimeManager _timeManager;
     private readonly AtmosphereCalculator _atmosphereCalculator;
 
@@ -20,7 +19,6 @@ public class ConversationFactory
         ConnectionTokenManager tokenManager,
         NPCEmotionalStateCalculator stateCalculator,
         LetterQueueManager queueManager,
-        VerbContextualizer verbContextualizer,
         ITimeManager timeManager,
         AtmosphereCalculator atmosphereCalculator = null)
     {
@@ -28,7 +26,6 @@ public class ConversationFactory
         _tokenManager = tokenManager;
         _stateCalculator = stateCalculator;
         _queueManager = queueManager;
-        _verbContextualizer = verbContextualizer;
         _timeManager = timeManager;
         _atmosphereCalculator = atmosphereCalculator;
     }
@@ -85,13 +82,14 @@ public class ConversationFactory
             context.StartingFocusPoints > 0 ? context.StartingFocusPoints : 10,
             8); // Default max duration
 
-        // Create choice generator
+        // Create choice generator with player and gameWorld for additive system
         var choiceGenerator = new ConversationChoiceGenerator(
             _queueManager,
             _tokenManager,
             _stateCalculator,
-            _verbContextualizer,
-            _timeManager);
+            _timeManager,
+            player,
+            context.GameWorld);
 
         // Create the conversation manager
         ConversationManager conversationManager = new ConversationManager(

@@ -56,7 +56,7 @@ public class LetterQueueManager
     public Letter[] GetActiveLetters()
     {
         return _gameWorld.GetPlayer().LetterQueue
-            .Where(l => l != null && l.State == LetterState.Accepted)
+            .Where(l => l != null && (l.State == LetterState.Accepted || l.State == LetterState.Collected))
             .ToArray();
     }
 
@@ -677,6 +677,16 @@ public class LetterQueueManager
 
         // Pay the player
         player.ModifyCoins(letter.Payment);
+        
+        // Show success message with payment details
+        _messageSystem.AddSystemMessage(
+            $"📬 Letter delivered to {letter.RecipientName}!",
+            SystemMessageTypes.Success
+        );
+        _messageSystem.AddSystemMessage(
+            $"💰 Earned {letter.Payment} coins for delivery.",
+            SystemMessageTypes.Success
+        );
 
         // Advance time for delivery (1 hour)
         _timeManager.AdvanceTime(1); // 1 hour for delivery

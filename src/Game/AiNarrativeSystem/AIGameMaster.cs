@@ -202,7 +202,7 @@
         string systemMessage = _promptBuilder.GetSystemMessage(worldStateInput);
 
         AIPrompt prompt = _promptBuilder
-            .BuildConversationConclusionPrompt(context, state, state.Outcome, finalChoice);
+            .BuildConversationConclusionPrompt(context, state, finalChoice);
         MessageType messageType = MessageType.Conclusion;
 
         _contextManager.UpdateSystemMessage(conversationId, systemMessage);

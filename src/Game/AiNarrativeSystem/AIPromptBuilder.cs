@@ -141,7 +141,6 @@ public class AIPromptBuilder
     public AIPrompt BuildConversationConclusionPrompt(
         SceneContext context,
         ConversationState state,
-        ConversationOutcome outcome,
         ConversationChoice finalChoice
         )
     {
@@ -375,15 +374,10 @@ public class AIPromptBuilder
         prompt.AppendLine();
 
         prompt.AppendLine("ENCOUNTER GOAL CONTEXT:");
-
-        ConversationOutcome outcome = state.Outcome;
-
-        string goalAchievementStatus =
-            outcome == ConversationOutcome.Success ? "You have successfully achieved your goal" :
-            outcome == ConversationOutcome.Failure ? "You have failed to achieve your goal" : string.Empty;
-
-        prompt.AppendLine(goalAchievementStatus);
-
+        
+        // Goal achievement is determined by choices made, not conversation ending
+        prompt.AppendLine("Conversation concluded.");
+        
         prompt.AppendLine();
     }
 

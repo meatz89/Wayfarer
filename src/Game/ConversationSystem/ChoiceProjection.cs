@@ -25,9 +25,9 @@
     public int LocationModifierValue { get; set; }
     public SkillOptionProjection SkillOption { get; set; }
 
-    // Consequences & Outcomes
+    // Consequences
     public NegativeConsequenceTypes NegativeConsequenceType { get; }
-    public ConversationOutcomes ProjectedOutcome { get; set; }
+    // Outcomes removed - consequences flow from choices, not endings
 
     public ChoiceProjection(ConversationChoice choice)
     {
