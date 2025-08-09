@@ -152,7 +152,7 @@ public class NPCEmotionalStateCalculator
         if (queue == null || !queue.Letters.Any()) return null;
 
         var mostUrgent = queue.Letters
-            .Where(l => l.State == LetterState.Accepted)
+            .Where(l => l.State == LetterState.Collected)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
 
@@ -166,7 +166,7 @@ public class NPCEmotionalStateCalculator
         {
             return $"The weight of {mostUrgent.SenderName}'s letter presses against your ribs";
         }
-        else if (queue.Letters.Count(l => l.State == LetterState.Accepted) > 6)
+        else if (queue.Letters.Count(l => l.State == LetterState.Collected) > 6)
         {
             return "Your satchel strains with accumulated correspondence";
         }

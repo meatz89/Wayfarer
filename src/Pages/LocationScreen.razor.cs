@@ -49,6 +49,12 @@ public partial class LocationScreen : ComponentBase
             // Execute wait action to advance time
             await GameFacade.ExecuteWaitAction();
         }
+        else if (action.ActionType == "travel")
+        {
+            // Navigate to travel screen
+            await NavigateToTravel();
+            return; // Don't reload location since we're navigating away
+        }
         else
         {
             // Execute normal action through GameFacade
@@ -77,9 +83,29 @@ public partial class LocationScreen : ComponentBase
     
     private async Task TravelTo(RouteOptionViewModel route)
     {
-        // Travel to destination through GameFacade
+        // Execute travel using the route ID
+        if (string.IsNullOrEmpty(route.RouteId))
+        {
+            Console.WriteLine($"[LocationScreen] Route ID missing for travel to {route.Destination}");
+            return;
+        }
+        
+        // Create travel intent and execute through GameFacade
+        var travelIntent = new TravelIntent(route.RouteId);
+        bool success = await GameFacade.ExecuteIntent(travelIntent);
+        
+        if (success)
+        {
+            Console.WriteLine($"[LocationScreen] Successfully traveled to {route.Destination}");
+            // Reload location to show new location
+            await LoadLocation();
+        }
+        else
+        {
+            Console.WriteLine($"[LocationScreen] Failed to travel to {route.Destination}");
+        }
+        
         await HandleActionExecuted();
-        await LoadLocation();
     }
 
     private Location GetCurrentLocation()

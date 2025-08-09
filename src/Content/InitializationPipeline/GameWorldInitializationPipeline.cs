@@ -42,6 +42,9 @@ public class GameWorldInitializationPipeline
             // Phase 4: Conversation definitions from JSON
             new Phase4_Conversations(),
             
+            // Phase 4.5: Apply content fallbacks for missing references
+            new Phase4_5_ContentFallbacks(),
+            
             // Phase 5: Complex entities with multiple dependencies
             new Phase5_ComplexEntities(),
             

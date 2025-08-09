@@ -137,7 +137,18 @@
       "mcp__playwright__browser_wait_for",
       "mcp__playwright__browser_resize",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 15 dotnet run)",
-      "Bash(./test-elena-choices.sh:*)"
+      "Bash(./test-elena-choices.sh:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" dotnet run --project /mnt/c/git/wayfarer/src/Wayfarer.csproj)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5100\" dotnet run)",
+      "Bash(npx playwright test:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5100\" timeout 10 dotnet run --no-build)",
+      "Bash(export ASPNETCORE_URLS=\"http://localhost:5101\")",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5103\" timeout 30 dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" dotnet run --project Wayfarer.csproj)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 10 dotnet run --project Wayfarer.csproj)",
+      "mcp__playwright__browser_type",
+      "Bash(./test-delivery.sh:*)"
     ],
     "deny": []
   }

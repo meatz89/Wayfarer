@@ -184,6 +184,7 @@ namespace Wayfarer.ViewModels
     /// </summary>
     public class RouteOptionViewModel
     {
+        public string RouteId { get; set; } // Added to enable travel
         public string Destination { get; set; }
         public string TravelTime { get; set; }
         public string Detail { get; set; } // e.g., "West side", "Uphill"

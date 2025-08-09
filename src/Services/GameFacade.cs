@@ -8,6 +8,7 @@ using Wayfarer.GameState.Constants;
 using Wayfarer.Services;
 using Wayfarer.ViewModels;
 using Wayfarer.Game.ConversationSystem;
+using Wayfarer.GameState;
 
 /// <summary>
 /// GameFacade - THE single entry point for all UI-Backend communication.
@@ -65,6 +66,8 @@ public class GameFacade : ILetterQueueOperations
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
     private readonly ConfrontationService _confrontationService;
     private readonly ConsequenceEngine _consequenceEngine;
+    private readonly WorldMemorySystem _worldMemorySystem;
+    private readonly AmbientDialogueSystem _ambientDialogueSystem;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -107,7 +110,9 @@ public class GameFacade : ILetterQueueOperations
         BindingObligationSystem bindingObligationSystem = null,
         AtmosphereCalculator atmosphereCalculator = null,
         ConfrontationService confrontationService = null,
-        ConsequenceEngine consequenceEngine = null
+        ConsequenceEngine consequenceEngine = null,
+        WorldMemorySystem worldMemorySystem = null,
+        AmbientDialogueSystem ambientDialogueSystem = null
 )
     {
         _gameWorld = gameWorld;
@@ -151,6 +156,8 @@ public class GameFacade : ILetterQueueOperations
         _atmosphereCalculator = atmosphereCalculator;
         _confrontationService = confrontationService;
         _consequenceEngine = consequenceEngine;
+        _worldMemorySystem = worldMemorySystem;
+        _ambientDialogueSystem = ambientDialogueSystem;
         
         // Initialize the time-block attention manager
         _timeBlockAttentionManager = new TimeBlockAttentionManager();
@@ -180,6 +187,28 @@ public class GameFacade : ILetterQueueOperations
     public bool HasAttentionRemaining()
     {
         return _timeBlockAttentionManager.HasAttentionRemaining();
+    }
+
+    // ========== TIME ADVANCEMENT ==========
+    
+    /// <summary>
+    /// Public method for advancing game time. Ensures all time-dependent systems are updated.
+    /// This should be used by ALL managers instead of calling TimeManager directly.
+    /// </summary>
+    public void AdvanceGameTime(int hours)
+    {
+        if (hours <= 0) return;
+        ProcessTimeAdvancement(hours);
+    }
+    
+    /// <summary>
+    /// Public method for advancing game time by minutes. Ensures all time-dependent systems are updated.
+    /// This should be used by ALL managers instead of calling TimeManager directly.
+    /// </summary>
+    public void AdvanceGameTimeMinutes(int minutes)
+    {
+        if (minutes <= 0) return;
+        ProcessTimeAdvancementMinutes(minutes);
     }
 
     // ========== HELPER METHODS ==========
@@ -321,6 +350,27 @@ public class GameFacade : ILetterQueueOperations
     public int GetCurrentDay()
     {
         return _gameWorld.CurrentDay;
+    }
+    
+    /// <summary>
+    /// Record a significant event for environmental storytelling
+    /// </summary>
+    public void RecordWorldEvent(WorldEventType type, string actorId, string targetId = null, string locationId = null)
+    {
+        _worldMemorySystem?.RecordEvent(type, actorId, targetId, locationId);
+    }
+    
+    /// <summary>
+    /// Get ambient dialogue for NPCs at current location
+    /// </summary>
+    public List<string> GetLocationAmbience()
+    {
+        if (_ambientDialogueSystem == null) return new List<string>();
+        
+        var currentLocation = _locationRepository.GetCurrentLocation();
+        if (currentLocation == null) return new List<string>();
+        
+        return _ambientDialogueSystem.GetLocationAmbience(currentLocation.Id);
     }
     
     /// <summary>
@@ -700,8 +750,8 @@ public class GameFacade : ILetterQueueOperations
         // Make sure we advance at least 1 hour
         if (hoursToAdvance <= 0) hoursToAdvance = 1;
 
-        // Advance time
-        _timeManager.AdvanceTime(hoursToAdvance);
+        // Advance time (using ProcessTimeAdvancement to ensure deadlines are updated)
+        ProcessTimeAdvancement(hoursToAdvance);
         
         // The TimeBlockAttentionManager will automatically refresh attention for the new time block
         
@@ -1745,12 +1795,9 @@ public class GameFacade : ILetterQueueOperations
 
     public async Task<bool> TravelAsync(string routeId)
     {
-        RouteOption route = _routeRepository.GetRouteById(routeId);
-        if (route == null) return false;
-
-        // Execute travel directly
-        _travelManager.TravelToLocation(route);
-        return true;
+        // Use the proper ExecuteIntent flow to ensure time advancement is handled correctly
+        TravelIntent intent = new TravelIntent(routeId);
+        return await ExecuteIntent(intent);
     }
 
     public async Task<bool> UnlockRouteAsync(string discoveryId)
@@ -2119,17 +2166,17 @@ public class GameFacade : ILetterQueueOperations
         }).ToList();
     }
 
-    private List<LocationActionViewModel> GetRestLocationActions()
+    private List<RestLocationActionViewModel> GetRestLocationActions()
     {
         Player player = _gameWorld.GetPlayer();
-        List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
+        List<RestLocationActionViewModel> actions = new List<RestLocationActionViewModel>();
 
         // Add rest options
         (int, int)[] restOptions = new[] { (1, 2), (2, 4), (4, 10) };
 
         foreach ((int hours, int stamina) in restOptions)
         {
-            actions.Add(new LocationActionViewModel
+            actions.Add(new RestLocationActionViewModel
             {
                 Id = $"rest_{hours}",
                 Description = $"Rest for {hours} hour{(hours > 1 ? "s" : "")}",
@@ -2388,8 +2435,40 @@ public class GameFacade : ILetterQueueOperations
         
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, AttentionCost: {selectedChoice.AttentionCost}");
         
+        // Track time before processing to handle any ConversationTimeEffects
+        int hoursBefore = _timeManager.GetCurrentTimeHours();
+        int minutesBefore = _timeManager.GetCurrentMinutes();
+        int dayBefore = _timeManager.GetCurrentDay();
+        
         // Process the choice and get the outcome
         var outcome = await currentConversation.ProcessPlayerChoice(selectedChoice);
+        
+        // Check if time advanced during choice processing (from ConversationTimeEffect)
+        int hoursAfter = _timeManager.GetCurrentTimeHours();
+        int minutesAfter = _timeManager.GetCurrentMinutes();
+        int dayAfter = _timeManager.GetCurrentDay();
+        
+        // Calculate time difference and process letter deadlines if time advanced
+        int totalMinutesAdvanced = 0;
+        if (dayAfter > dayBefore)
+        {
+            // Crossed day boundary
+            totalMinutesAdvanced = ((dayAfter - dayBefore) * 24 * 60) + ((hoursAfter - hoursBefore) * 60) + (minutesAfter - minutesBefore);
+        }
+        else
+        {
+            totalMinutesAdvanced = ((hoursAfter - hoursBefore) * 60) + (minutesAfter - minutesBefore);
+        }
+        
+        if (totalMinutesAdvanced > 0)
+        {
+            // ConversationTimeEffect advanced time - process letter deadlines
+            int hoursAdvanced = totalMinutesAdvanced / 60;
+            if (hoursAdvanced > 0)
+            {
+                _letterQueueManager.ProcessHourlyDeadlines(hoursAdvanced);
+            }
+        }
         
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Choice processed. Conversation complete: {outcome.IsConversationComplete}");
         
@@ -2814,6 +2893,14 @@ public class GameFacade : ILetterQueueOperations
                 bool deliverSuccess = _letterQueueManager.DeliverFromPosition1();
                 if (deliverSuccess)
                 {
+                    // Record successful delivery for environmental storytelling
+                    RecordWorldEvent(WorldEventType.LetterDelivered, 
+                        letter.SenderName, 
+                        letter.RecipientName,
+                        _locationRepository.GetCurrentLocation()?.Id);
+                    
+                    // Delivery takes 1 hour
+                    ProcessTimeAdvancement(1);
                     _messageSystem.AddSystemMessage("Letter delivered successfully", SystemMessageTypes.Success);
                 }
                 return deliverSuccess;
@@ -2849,6 +2936,8 @@ public class GameFacade : ILetterQueueOperations
         bool success = _letterQueueManager.DeliverFromPosition1();
         if (success)
         {
+            // Delivery takes 1 hour
+            ProcessTimeAdvancement(1);
             _messageSystem.AddSystemMessage("Letter delivered successfully", SystemMessageTypes.Success);
         }
         return success;
@@ -3187,6 +3276,8 @@ public class GameFacade : ILetterQueueOperations
             if (!success)
                 return new QueueOperationResult(false, "Failed to deliver letter", null, GetQueueSnapshot());
             
+            // Delivery takes 1 hour
+            ProcessTimeAdvancement(1);
             _messageSystem.AddSystemMessage("Letter delivered successfully!", SystemMessageTypes.Success);
             return new QueueOperationResult(true, null, new Dictionary<ConnectionType, int>(), GetQueueSnapshot());
         }
@@ -3367,6 +3458,8 @@ public class GameFacade : ILetterQueueOperations
             result = _marketManager.TryBuyItem(itemId, locationId);
             if (result.IsSuccess)
             {
+                // Trading takes 1 hour
+                ProcessTimeAdvancement(1);
                 _messageSystem.AddSystemMessage($"Successfully purchased item", SystemMessageTypes.Success);
             }
             else
@@ -3379,6 +3472,8 @@ public class GameFacade : ILetterQueueOperations
             result = _marketManager.TrySellItem(itemId, locationId);
             if (result.IsSuccess)
             {
+                // Trading takes 1 hour
+                ProcessTimeAdvancement(1);
                 _messageSystem.AddSystemMessage($"Successfully sold item", SystemMessageTypes.Success);
             }
             else
@@ -4849,7 +4944,7 @@ public class GameFacade : ILetterQueueOperations
     {
         var player = _gameWorld.GetPlayer();
         if (player?.LetterQueue == null) return 0;
-        return player.LetterQueue.Count(l => l != null && l.State == LetterState.Accepted);
+        return player.LetterQueue.Count(l => l != null && l.State == LetterState.Collected);
     }
 
     public bool IsLetterQueueFull()
@@ -5542,7 +5637,7 @@ public class GameFacade : ILetterQueueOperations
         
         // Add deadline pressure
         var urgentLetter = player.LetterQueue
-            .Where(l => l != null && l.State == LetterState.Accepted)
+            .Where(l => l != null && l.State == LetterState.Collected)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
             
@@ -5578,6 +5673,12 @@ public class GameFacade : ILetterQueueOperations
         if (_actionGenerator != null && location != null)
         {
             viewModel.QuickActions = _actionGenerator.GenerateActionsForLocation(location, spot);
+        }
+        
+        // Ensure QuickActions is initialized
+        if (viewModel.QuickActions == null)
+        {
+            viewModel.QuickActions = new List<LocationActionViewModel>();
         }
         
         // Add NPCs present
@@ -5645,15 +5746,67 @@ public class GameFacade : ILetterQueueOperations
             }
         }
         
-        // Add route options
-        var routes = player.KnownRoutes.Values.SelectMany(r => r).ToList();
-        foreach (var route in routes.Take(3))
+        // Add ambient dialogue from NPCs (environmental storytelling)
+        var ambientComments = GetLocationAmbience();
+        foreach (var comment in ambientComments.Take(2)) // Limit to 2 comments to avoid clutter
         {
+            viewModel.Observations.Insert(0, new ObservationViewModel
+            {
+                Icon = "💬",
+                Text = comment,
+                IsUnknown = false
+            });
+        }
+        
+        // CRITICAL FIX: Always add travel button as first action so players can navigate
+        // Insert at position 0 to ensure it's always visible
+        viewModel.QuickActions.Insert(0, new LocationActionViewModel
+        {
+            ActionType = "travel",
+            Title = "Travel",
+            Icon = "🗺️",
+            Cost = "FREE",
+            Detail = "Go to another location"
+        });
+        
+        // Add route options from current location
+        // CRITICAL FIX: Use the actual location ID, not the spot ID
+        // Copper Kettle is a spot within Market Square
+        var currentLocationId = location?.Id ?? "market_square"; // Default to market_square
+        var allLocations = _locationRepository.GetAllLocations();
+        
+        Console.WriteLine($"[GameFacade] Getting routes from location: {currentLocationId}");
+        var availableRoutes = new List<RouteOption>();
+        
+        // Get routes to each possible destination
+        foreach (var dest in allLocations.Where(l => l.Id != currentLocationId))
+        {
+            var routesToDest = _travelManager.GetAvailableRoutes(currentLocationId, dest.Id);
+            if (routesToDest.Any())
+            {
+                Console.WriteLine($"[GameFacade] Found {routesToDest.Count} routes from {currentLocationId} to {dest.Id}");
+            }
+            availableRoutes.AddRange(routesToDest);
+        }
+        
+        Console.WriteLine($"[GameFacade] Total available routes: {availableRoutes.Count}");
+        
+        // Group routes by destination and show simplified travel options
+        var destinations = availableRoutes
+            .Where(r => r.IsDiscovered)
+            .GroupBy(r => r.Destination)
+            .Take(4); // Increased from 3 to show more destinations
+            
+        foreach (var destGroup in destinations)
+        {
+            var cheapestRoute = destGroup.OrderBy(r => r.BaseStaminaCost).First();
+            var destination = _locationRepository.GetLocation(cheapestRoute.Destination);
             viewModel.Routes.Add(new RouteOptionViewModel
             {
-                Destination = route.Destination,
-                TravelTime = $"{route.TravelTimeHours * 60} min",
-                Detail = route.Description ?? ""
+                RouteId = cheapestRoute.Id, // Added route ID for travel
+                Destination = destination?.Name ?? cheapestRoute.Destination,
+                TravelTime = $"{cheapestRoute.TravelTimeHours * 60} min",
+                Detail = cheapestRoute.Description ?? ""
             });
         }
         
@@ -5705,7 +5858,7 @@ public class GameFacade : ILetterQueueOperations
     {
         var player = _gameWorld.GetPlayer();
         var urgentLetter = player.LetterQueue
-            .Where(l => l != null && l.State == LetterState.Accepted)
+            .Where(l => l != null && l.State == LetterState.Collected)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
             

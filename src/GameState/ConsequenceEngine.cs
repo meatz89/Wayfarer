@@ -14,7 +14,7 @@ namespace Wayfarer.GameState
         private readonly ConnectionTokenManager _tokenManager;
         private readonly NPCRepository _npcRepository;
         private readonly MessageSystem _messageSystem;
-        private readonly NPCEmotionalStateCalculator _emotionalStateCalculator;
+        private readonly WorldMemorySystem _worldMemory;
         
         // Track leverage for each NPC (how much power they have over player)
         private readonly Dictionary<string, int> _npcLeverage = new Dictionary<string, int>();
@@ -30,13 +30,13 @@ namespace Wayfarer.GameState
             ConnectionTokenManager tokenManager,
             NPCRepository npcRepository,
             MessageSystem messageSystem,
-            NPCEmotionalStateCalculator emotionalStateCalculator)
+            WorldMemorySystem worldMemory = null)
         {
             _gameWorld = gameWorld;
             _tokenManager = tokenManager;
             _npcRepository = npcRepository;
             _messageSystem = messageSystem;
-            _emotionalStateCalculator = emotionalStateCalculator;
+            _worldMemory = worldMemory;
         }
         
         /// <summary>
@@ -55,6 +55,13 @@ namespace Wayfarer.GameState
             
             // Get failure count for escalating consequences
             int failureCount = GetFailureCount(senderId);
+            
+            // Record event for environmental storytelling
+            _worldMemory?.RecordEvent(
+                WorldEventType.DeadlineMissed,
+                senderId,
+                expiredLetter.RecipientName,
+                sender.Location);
             
             // 1. IMMEDIATE CONSEQUENCE: Token penalty and leverage increase
             ApplyImmediateConsequences(expiredLetter, sender, failureCount);

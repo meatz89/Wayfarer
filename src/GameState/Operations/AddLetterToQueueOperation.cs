@@ -40,7 +40,7 @@ public class AddLetterToQueueOperation : IGameOperation
         {
             queue[_targetPosition - 1] = _letter;
             _letter.QueuePosition = _targetPosition;
-            _letter.State = LetterState.Accepted;
+            _letter.State = LetterState.Collected;
             return;
         }
 
@@ -60,7 +60,7 @@ public class AddLetterToQueueOperation : IGameOperation
         // Insert new letter at target position
         queue[_targetPosition - 1] = _letter;
         _letter.QueuePosition = _targetPosition;
-        _letter.State = LetterState.Accepted;
+        _letter.State = LetterState.Collected;
 
         // Reinsert displaced letters
         int nextAvailable = _targetPosition;

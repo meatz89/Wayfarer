@@ -143,7 +143,7 @@ public class TutorialGuidanceViewModel
 public class RestOptionsViewModel
 {
     public List<RestOptionViewModel> RestOptions { get; set; }
-    public List<LocationActionViewModel> LocationActions { get; set; }
+    public List<RestLocationActionViewModel> LocationActions { get; set; }
     public List<WaitOptionViewModel> WaitOptions { get; set; }
 }
 
@@ -166,9 +166,9 @@ public class RestOptionViewModel
 }
 
 /// <summary>
-/// ViewModel for a location action
+/// ViewModel for a location action in rest context
 /// </summary>
-public class LocationActionViewModel
+public class RestLocationActionViewModel
 {
     public string Id { get; set; }
     public string Description { get; set; }

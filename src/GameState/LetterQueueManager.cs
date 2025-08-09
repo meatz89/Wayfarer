@@ -59,9 +59,27 @@ public class LetterQueueManager
     // Get active letters (non-null entries in the queue)
     public Letter[] GetActiveLetters()
     {
-        return _gameWorld.GetPlayer().LetterQueue
-            .Where(l => l != null && (l.State == LetterState.Accepted || l.State == LetterState.Collected))
+        var player = _gameWorld.GetPlayer();
+        Console.WriteLine($"[GetActiveLetters] Player has {player.LetterQueue.Length} queue slots");
+        
+        var activeLetters = player.LetterQueue
+            .Where(l => l != null)
             .ToArray();
+            
+        Console.WriteLine($"[GetActiveLetters] Found {activeLetters.Length} non-null letters");
+        
+        foreach (var letter in activeLetters)
+        {
+            Console.WriteLine($"  - Letter: {letter.Description}, State: {letter.State}");
+        }
+        
+        var collected = activeLetters
+            .Where(l => l.State == LetterState.Collected)
+            .ToArray();
+            
+        Console.WriteLine($"[GetActiveLetters] Returning {collected.Length} collected letters");
+        
+        return collected;
     }
 
     // Add letter to queue at specific position
@@ -96,7 +114,7 @@ public class LetterQueueManager
             {
                 queue[i] = letter;
                 letter.QueuePosition = i + 1;
-                letter.State = LetterState.Accepted; // Letter enters queue in Accepted state
+                letter.State = LetterState.Collected; // Letter enters queue in Accepted state
 
                 _messageSystem.AddSystemMessage(
                     $"📨 New letter from {letter.SenderName} enters queue at position {i + 1}",
@@ -323,7 +341,7 @@ public class LetterQueueManager
         Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
         queue[position - 1] = letter;
         letter.QueuePosition = position;
-        letter.State = LetterState.Accepted;
+        letter.State = LetterState.Collected;
 
         // Track original vs actual position for leverage visibility
         int basePosition = GetBasePositionForTokenType(letter.TokenType);
@@ -414,7 +432,7 @@ public class LetterQueueManager
             letter.OriginalQueuePosition = basePosition;
             letter.LeverageBoost = basePosition - targetPosition;
         }
-        letter.State = LetterState.Accepted;
+        letter.State = LetterState.Collected;
 
         // Reinsert displaced letters
         int nextAvailable = targetPosition;
@@ -740,8 +758,7 @@ public class LetterQueueManager
             SystemMessageTypes.Success
         );
 
-        // Advance time for delivery (1 hour)
-        _timeManager.AdvanceTime(1); // 1 hour for delivery
+        // Time advancement for delivery handled by GameFacade to ensure letter deadlines are updated
 
         // Record delivery
         RecordLetterDelivery(letter);

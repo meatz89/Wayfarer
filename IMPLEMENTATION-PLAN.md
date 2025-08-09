@@ -38,8 +38,11 @@ class Letter {
     int Weight // 1-3 slots in queue
     int HoursUntilDeadline // Countdown in hours
     string ContentHint // One-line description
+    bool IsTravelPermit // Special letter type for routes
 }
 ```
+
+**Note**: Travel permits are special letters - see TRAVEL-SYSTEM-DESIGN.md
 
 #### Queue
 ```csharp
@@ -224,6 +227,9 @@ Required Locations:
 4. **Merchant Quarter** - Commerce-focused, trade hub
 5. **City Gates** - Edge location, travelers
 
+**Note: Travel System Details**
+See TRAVEL-SYSTEM-DESIGN.md for complete route mechanics, transport NPCs, and travel permits
+
 #### Location Actions
 - Rest (restore energy if implemented)
 - Observe (learn who's present)
@@ -341,6 +347,13 @@ Destinations:
 - 45 min walk
 - Travelers in morning only
 ```
+
+**Note: Advanced Travel Mechanics**
+See TRAVEL-SYSTEM-DESIGN.md for:
+- Route unlocking with permits
+- Transport NPCs (boat captains, carriage drivers)
+- Travel method selection
+- Route progression system
 
 ### 4. Consequence Display
 

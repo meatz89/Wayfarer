@@ -270,6 +270,13 @@ Four types of special letters provide unique mechanics:
 3. **Endorsements** (Status) - Vouch for your standing in noble circles
 4. **Information Letters** (Shadow) - Reveal hidden knowledge and opportunities
 
+**CRITICAL: Travel Permits**
+See TRAVEL-SYSTEM-DESIGN.md for how travel permits work:
+- Special letters that unlock routes when delivered to Transport NPCs
+- Transport NPCs (boat captains, carriage drivers) at departure locations
+- Player must choose: keep permit for route access OR deliver for rewards
+- Route progression is core to the game's "80 Days" influence
+
 ### Tier System
 
 Everything in the game has tiers 1-5 with triple-gated access:
@@ -441,9 +448,9 @@ public enum CommandType
    - EquipmentSocializeCommand - Equipment-based social interactions
 
 3. **System Features**:
-   - Route Discovery - Active exploration interface
+   - Route Discovery - Active exploration interface (see TRAVEL-SYSTEM-DESIGN.md)
    - Standing Obligations - Interaction and resolution mechanics
-   - Transport Methods - Selection beyond hardcoded "Walking"
+   - Transport Methods - Selection beyond hardcoded "Walking" (see TRAVEL-SYSTEM-DESIGN.md)
 
 ### Testing UI Completeness
 

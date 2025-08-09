@@ -34,7 +34,7 @@ public class PeripheralAwarenessBase : ComponentBase
         
         // Get deadline narrative for most urgent letter
         var urgentLetter = letterQueue
-            .Where(l => l != null && l.State == LetterState.Accepted)
+            .Where(l => l != null && l.State == LetterState.Collected)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
             
@@ -50,7 +50,7 @@ public class PeripheralAwarenessBase : ComponentBase
         }
         
         // Calculate queue pressure
-        var activeLetterCount = letterQueue.Count(l => l != null && l.State == LetterState.Accepted);
+        var activeLetterCount = letterQueue.Count(l => l != null && l.State == LetterState.Collected);
         if (activeLetterCount > 6)
         {
             QueuePressureNarrative = "Your satchel strains with accumulated correspondence";

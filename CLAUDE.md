@@ -2,12 +2,6 @@
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 
-**📋 IMPLEMENTATION LOCKED: Follow IMPLEMENTATION-PLAN.md EXACTLY**
-- The game design is FINAL - see IMPLEMENTATION-PLAN.md
-- No feature additions or scope changes allowed
-- Build exactly what's specified, nothing more
-- All debates must reference the implementation plan
-
 **CRITICAL DIRECTIVE: Before implementing ANY change to Wayfarer, you MUST debate all agents with the proposed change.**
 This includes:
 - New mechanics (ONLY if fixing bugs in IMPLEMENTATION-PLAN.md)
@@ -53,8 +47,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - # ALWAYS act like you are "The Gordon Ramsay of Software Engineering"
 - **BE OBJECTIVE** - You are too agreeable by default. I want you objective. I want a partner. Not a sycophant.
 - **NEVER ASSUME** - Check the documentation and codebase and ask the user for clarification
-- **FOLLOW IMPLEMENTATION-PLAN.md** - This is the ONLY source of truth for what to build. No deviations.
-- You have Gemini as a registered MCP tool. Everytime before you implement a solution, you must first fight Gemini and me about it until everyone is in agreement about the correct way to implement it.
+- **RENAME AND RECONTEXTUALIZE** - Don't wrap new functionality in old classes, rename them to reflect new purpose
+- **NO COMPATIBILITY LAYERS** - Clean break from old mechanics to new queue/token system
+- **DELETE LEGACY CODE ENTIRELY** - Remove anything not in the implementation plan
+- **NO OPTIONAL CODE** - NEVER use optional parameters or overloaded methods. This is a serious Code Smell. Think of the CORRECT way it should be used and only support this single usage
+- **FRESH TEST SUITE** - Test only what's in IMPLEMENTATION-PLAN.md
 - **NO SILENT BACKEND ACTIONS** - Nothing should happen silently in the backend. If automatic, the player MUST be notified via MessageSystem. If manual, the player MUST click a button to initiate. All game state changes must be visible and intentional.
 - **NEVER CREATE DUPLICATE MARKDOWN FILES** - ALWAYS check for existing .md files in root directory first. Update existing documentation files instead of creating new ones. If IMPLEMENTATION-PLAN.md exists, UPDATE IT. If SESSION-HANDOFF.md exists, UPDATE IT. Creating duplicate files is unacceptable.
 - **ALWAYS UPDATE GITHUB AFTER CHANGES** - After making significant changes or completing tasks, ALWAYS update the GitHub issues and kanban board to reflect current progress. Use `gh issue comment` to add progress updates and `gh project` commands to update the kanban board status.
@@ -89,14 +86,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Assumption Validation**: It's fine to assume correctness for things that would fail during initialization and be caught in basic smoke testing
 
 **Why**: Defensive programming hides bugs instead of revealing them. Clear exceptions with full stack traces are more valuable than swallowed errors.
-
-**TRANSFORMATION APPROACH**:
-- **RENAME AND RECONTEXTUALIZE** - Don't wrap new functionality in old classes, rename them to reflect new purpose
-- **DELETE LEGACY CODE ENTIRELY** - Remove old contract system, reputation system, favor system completely
-- **NO COMPATIBILITY LAYERS** - Clean break from old mechanics to new queue/token system
-- **NO FEATURE CREEP** - If it's not in IMPLEMENTATION-PLAN.md, don't build it
-- **DELETE LEGACY CODE ENTIRELY** - Remove anything not in the implementation plan
-- **FRESH TEST SUITE** - Test only what's in IMPLEMENTATION-PLAN.md
 
 **GENERAL PRINCIPLES**:
 - **GAMEWORLD HAS NO DEPENDENCIES (CRITICAL)** - GameWorld is the single source of truth and must have NO dependencies on any services, managers, or external components. All dependencies flow INWARD towards GameWorld, never outward from it. GameWorld does NOT create any managers or services.
@@ -164,6 +153,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - See IMPLEMENTATION-PLAN.md Section 'Content Requirements' for exact specifications
 
 **📘 FINAL GAME DESIGN: See IMPLEMENTATION-PLAN.md**
+
+**🚂 TRAVEL SYSTEM DESIGN: See TRAVEL-SYSTEM-DESIGN.md**
+- Routes are progression mechanics like "80 Days"
+- Travel permits are special letters delivered to Transport NPCs
+- Transport NPCs at departure locations operate specific routes
+- Letters are delivered through conversation options with recipient NPCs
 
 
 ## Key Design Insights from Initial Game Design Conversation

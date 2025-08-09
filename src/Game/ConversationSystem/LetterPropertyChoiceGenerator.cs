@@ -38,6 +38,12 @@ public class LetterPropertyChoiceGenerator
         
         // Find all letters involving this NPC
         var relevantLetters = FindRelevantLetters(npc);
+        Console.WriteLine($"[LetterPropertyChoiceGenerator] Found {relevantLetters.Count} relevant letters for {npc.Name}");
+        foreach (var letter in relevantLetters)
+        {
+            Console.WriteLine($"  - Letter: {letter.Description}, From: {letter.SenderName}, To: {letter.RecipientName}, Position: {letter.QueuePosition}");
+        }
+        
         if (!relevantLetters.Any())
             return additionalChoices;
         
@@ -94,7 +100,6 @@ public class LetterPropertyChoiceGenerator
         
         // DELIVERY CHOICE (if letter is in position 1 and ready)
         if (position.HasValue && position.Value == 1 && 
-            priorityLetter.State == LetterState.Collected &&
             priorityLetter.RecipientName == npc.Name)
         {
             additionalChoices.Add(CreateDeliveryChoice(priorityLetter));
@@ -105,7 +110,19 @@ public class LetterPropertyChoiceGenerator
     
     private List<Letter> FindRelevantLetters(NPC npc)
     {
-        return _queueManager.GetActiveLetters()
+        var allLetters = _queueManager.GetActiveLetters();
+        Console.WriteLine($"[FindRelevantLetters] Checking {allLetters.Length} letters for NPC {npc.Name} (ID: {npc.ID})");
+        
+        foreach (var letter in allLetters)
+        {
+            Console.WriteLine($"  Letter: From {letter.SenderName} (ID: {letter.SenderId}) To {letter.RecipientName} (ID: {letter.RecipientId})");
+            Console.WriteLine($"    Checking: SenderId({letter.SenderId}) == {npc.ID}? {letter.SenderId == npc.ID}");
+            Console.WriteLine($"    Checking: SenderName({letter.SenderName}) == {npc.Name}? {letter.SenderName == npc.Name}");  
+            Console.WriteLine($"    Checking: RecipientId({letter.RecipientId}) == {npc.ID}? {letter.RecipientId == npc.ID}");
+            Console.WriteLine($"    Checking: RecipientName({letter.RecipientName}) == {npc.Name}? {letter.RecipientName == npc.Name}");
+        }
+        
+        return allLetters
             .Where(l => l.SenderId == npc.ID || 
                        l.SenderName == npc.Name ||
                        l.RecipientId == npc.ID ||

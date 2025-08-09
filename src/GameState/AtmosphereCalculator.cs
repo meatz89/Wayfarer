@@ -1,20 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState;
 
 /// <summary>
 /// Calculates atmospheric effects based on NPC presence at locations.
-/// No tags, no stored state - pure functional calculation.
+/// Enhanced to include recent events for environmental storytelling.
 /// </summary>
 public class AtmosphereCalculator
 {
     private readonly NPCRepository _npcRepository;
     private readonly ITimeManager _timeManager;
+    private readonly WorldMemorySystem _worldMemory;
 
-    public AtmosphereCalculator(NPCRepository npcRepository, ITimeManager timeManager)
+    public AtmosphereCalculator(
+        NPCRepository npcRepository, 
+        ITimeManager timeManager,
+        WorldMemorySystem worldMemory = null)
     {
         _npcRepository = npcRepository;
         _timeManager = timeManager;
+        _worldMemory = worldMemory; // Optional for backward compatibility
     }
 
     /// <summary>
@@ -78,6 +84,18 @@ public class AtmosphereCalculator
     {
         int count = npcs.Count;
         
+        // Check for recent events to color the atmosphere
+        if (_worldMemory != null)
+        {
+            var recentEvent = _worldMemory.GetMostRecentEvent();
+            if (recentEvent != null && 
+                (DateTime.Now - recentEvent.Timestamp).TotalMinutes < 30)
+            {
+                return GenerateEventColoredDescription(npcs, recentEvent);
+            }
+        }
+        
+        // Default descriptions
         if (count == 0)
             return "The space is quiet and empty";
         
@@ -92,6 +110,35 @@ public class AtmosphereCalculator
         
         // 3 or more
         return "The space bustles with activity and conversation";
+    }
+    
+    private string GenerateEventColoredDescription(List<NPC> npcs, WorldEvent recentEvent)
+    {
+        int count = npcs.Count;
+        
+        // Color the atmosphere based on recent events
+        if (recentEvent.Type == WorldEventType.DeadlineMissed || 
+            recentEvent.Type == WorldEventType.ConfrontationOccurred)
+        {
+            if (count == 0)
+                return "The space feels heavy with unspoken disappointment";
+            if (count == 1)
+                return $"{npcs.First().Name} is here, the air thick with tension";
+            return "People exchange knowing glances, the atmosphere tense";
+        }
+        
+        if (recentEvent.Type == WorldEventType.LetterDelivered ||
+            recentEvent.Type == WorldEventType.ObligationFulfilled)
+        {
+            if (count == 0)
+                return "The space holds a lingering warmth of satisfaction";
+            if (count == 1)
+                return $"{npcs.First().Name} is here, a sense of quiet respect in the air";
+            return "There's a subtle warmth in how people acknowledge you";
+        }
+        
+        // Default to normal description if event doesn't affect atmosphere
+        return GenerateDescription(npcs);
     }
 }
 

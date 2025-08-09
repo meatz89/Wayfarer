@@ -335,8 +335,7 @@ public class MarketManager
             SystemMessageTypes.Info
         );
 
-        // Trading takes time
-        _timeManager.AdvanceTime(1); // 1 hour for trading
+        // Trading takes time - handled by GameFacade to ensure letter deadlines are updated
 
 
         return true;
@@ -380,8 +379,7 @@ public class MarketManager
             SystemMessageTypes.Info
         );
 
-        // Trading takes time
-        _timeManager.AdvanceTime(1); // 1 hour for trading
+        // Trading takes time - handled by GameFacade to ensure letter deadlines are updated
 
 
         return true;

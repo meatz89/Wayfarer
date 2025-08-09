@@ -26,8 +26,7 @@ public enum EmotionalWeight
 public enum LetterState
 {
     Offered,    // NPC has mentioned it, not in queue yet
-    Accepted,   // In queue (positions 1-8), not physical
-    Collected,  // Physical item in inventory, ready for delivery
+    Collected,  // In queue, ready for delivery
     Delivering  // Currently being delivered
 }
 

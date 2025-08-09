@@ -540,7 +540,7 @@ public class NPCLetterOfferService
             DeadlineInHours = (_gameWorld.CurrentDay + _random.Next(3, 5)) * 24,
             IsGenerated = true,
             GenerationReason = "Return Letter",
-            State = LetterState.Accepted,
+            State = LetterState.Collected,
             Message = $"Reply to: {originalLetter.SenderName}"
         };
 

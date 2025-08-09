@@ -172,8 +172,7 @@ public class TravelManager
         // Route usage counting removed - violates NO USAGE COUNTERS principle
         // Routes are discovered through NPC relationships and token spending
 
-        // Advance time
-        _timeManager.AdvanceTime(selectedRoute.TravelTimeHours);
+        // Time advancement handled by GameFacade to ensure letter deadlines are updated
 
         // Update location
         Location targetLocation = LocationSystem.GetLocation(selectedRoute.Destination);
@@ -225,7 +224,34 @@ public class TravelManager
 
         // Find connection to destination
         LocationConnection connection = fromLocation.Connections.Find(c => c.DestinationLocationId == toLocationId);
-        if (connection == null) return availableRoutes;
+        
+        // CRITICAL FIX: If no connection exists, create a basic walking route
+        // This ensures players can always travel between locations
+        if (connection == null) 
+        {
+            // Check if a travel time exists in the matrix
+            int travelTime = TravelTimeMatrix.GetTravelTime(fromLocationId, toLocationId);
+            if (travelTime > 0 && travelTime < 100) // Valid travel time exists
+            {
+                // Create a basic walking route
+                var walkingRoute = new RouteOption
+                {
+                    Id = $"walk_{fromLocationId}_to_{toLocationId}",
+                    Origin = fromLocationId,
+                    Destination = toLocationId,
+                    Method = TravelMethods.Walking,
+                    TravelTimeHours = (int)(travelTime / 60.0f), // Convert minutes to hours as int
+                    BaseStaminaCost = Math.Max(1, travelTime / 30), // 1 stamina per 30 minutes
+                    IsDiscovered = true, // All walking routes are discovered
+                    Description = "On foot"
+                    // Note: CoinCost is calculated, not set directly
+                    // Note: TransportNPCId doesn't exist in RouteOption
+                };
+                availableRoutes.Add(walkingRoute);
+                return availableRoutes;
+            }
+            return availableRoutes;
+        }
 
         foreach (RouteOption route in connection.RouteOptions)
         {

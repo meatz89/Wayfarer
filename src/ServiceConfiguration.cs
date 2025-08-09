@@ -55,6 +55,9 @@ public static class ServiceConfiguration
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
         services.AddSingleton<LetterTemplateRepository>();
+        
+        // Register content fallback service for resilience
+        services.AddSingleton<ContentFallbackService>();
 
         services.AddSingleton<LocationSystem>();
         services.AddSingleton<CharacterSystem>();
@@ -95,6 +98,11 @@ public static class ServiceConfiguration
         
         // Confrontation Service for emotional confrontation scenes
         services.AddSingleton<Wayfarer.Game.ConversationSystem.ConfrontationService>();
+        
+        // Environmental Storytelling Systems
+        services.AddSingleton<Wayfarer.GameState.WorldMemorySystem>();
+        services.AddSingleton<Wayfarer.GameState.AmbientDialogueSystem>();
+        services.AddSingleton<AtmosphereCalculator>();
 
         services.AddSingleton<LetterQueueManager>();
         services.AddSingleton<EndorsementManager>();
