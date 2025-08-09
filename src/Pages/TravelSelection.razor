@@ -4,6 +4,13 @@
 @namespace Wayfarer.Pages
 
 <div class="world-map-container">
+    @* Back button to return to location *@
+    <div class="travel-navigation-controls">
+        <button class="back-to-location-btn" @onclick="HandleBackToLocation">
+            ← Back to Location
+        </button>
+    </div>
+    
     @* Context-aware travel planning status *@
     <div class="travel-status travel-context">
         @{

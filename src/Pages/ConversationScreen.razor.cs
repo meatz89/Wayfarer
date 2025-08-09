@@ -134,6 +134,30 @@ public class ConversationScreenBase : ComponentBase
         };
     }
     
+    protected async Task HandleExitConversation()
+    {
+        try
+        {
+            Console.WriteLine($"[ConversationScreen] HandleExitConversation - manually exiting conversation");
+            
+            // End the conversation through GameFacade
+            await GameFacade.EndConversationAsync();
+            
+            // Notify parent that conversation has ended
+            OnConversationEnd?.Invoke();
+            
+            // Also trigger navigation if we have the callback
+            if (OnNavigate.HasDelegate)
+            {
+                await OnNavigate.InvokeAsync(CurrentViews.LocationScreen);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error exiting conversation: {ex.Message}");
+        }
+    }
+    
     private InteractionType DetermineInteractionType(ConversationChoiceViewModel choice)
     {
         if (choice.AttentionCost == 0) return InteractionType.ConversationFree;

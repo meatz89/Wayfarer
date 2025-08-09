@@ -1,3 +1,5 @@
+using Wayfarer.Game.ConversationSystem;
+
 /// <summary>
 /// Manages conversation state separately from GameWorld to maintain clean architecture.
 /// GameWorld should only contain pure game state, not UI flow state.
@@ -6,6 +8,7 @@ public class ConversationStateManager
 {
     private ConversationManager _pendingConversationManager;
     private bool _conversationPending;
+    private ConfrontationData _pendingConfrontation;
 
     /// <summary>
     /// Gets or sets the pending conversation manager.
@@ -65,5 +68,39 @@ public class ConversationStateManager
     public void SetCurrentConversation(ConversationManager conversationManager)
     {
         SetPendingConversation(conversationManager);
+    }
+
+    /// <summary>
+    /// Sets pending confrontation data for processing responses.
+    /// </summary>
+    public void SetConfrontationData(ConfrontationData confrontation)
+    {
+        _pendingConfrontation = confrontation;
+        _conversationPending = true; // Mark as pending conversation
+    }
+
+    /// <summary>
+    /// Gets the pending confrontation data.
+    /// </summary>
+    public ConfrontationData GetConfrontationData()
+    {
+        return _pendingConfrontation;
+    }
+
+    /// <summary>
+    /// Checks if there's a pending confrontation.
+    /// </summary>
+    public bool HasPendingConfrontation()
+    {
+        return _pendingConfrontation != null;
+    }
+
+    /// <summary>
+    /// Clears the confrontation data.
+    /// </summary>
+    public void ClearConfrontation()
+    {
+        _pendingConfrontation = null;
+        _conversationPending = false;
     }
 }

@@ -92,6 +92,9 @@ public static class ServiceConfiguration
         
         // Consequence Engine for handling missed deadlines
         services.AddSingleton<Wayfarer.GameState.ConsequenceEngine>();
+        
+        // Confrontation Service for emotional confrontation scenes
+        services.AddSingleton<Wayfarer.Game.ConversationSystem.ConfrontationService>();
 
         services.AddSingleton<LetterQueueManager>();
         services.AddSingleton<EndorsementManager>();

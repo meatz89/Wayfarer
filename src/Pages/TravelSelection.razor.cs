@@ -14,6 +14,7 @@ namespace Wayfarer.Pages
         [Parameter] public List<Location> Locations { get; set; }
         [Parameter] public EventCallback<string> OnTravel { get; set; }
         [Parameter] public EventCallback<RouteOption> OnTravelRoute { get; set; }
+        [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
 
         protected RouteOption GetRouteOption(TravelRouteViewModel viewModel)
         {
@@ -60,6 +61,15 @@ namespace Wayfarer.Pages
             if (OnTravelRoute.HasDelegate)
             {
                 await OnTravelRoute.InvokeAsync(routeOption);
+            }
+        }
+        
+        protected async Task HandleBackToLocation()
+        {
+            Console.WriteLine("[TravelSelection] HandleBackToLocation - returning to LocationScreen without travel");
+            if (OnNavigate.HasDelegate)
+            {
+                await OnNavigate.InvokeAsync(CurrentViews.LocationScreen);
             }
         }
 

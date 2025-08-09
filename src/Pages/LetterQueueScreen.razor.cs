@@ -449,6 +449,12 @@ namespace Wayfarer.Pages
             }
         }
         
+        private void HandleExitQueue()
+        {
+            Console.WriteLine("[LetterQueueScreen] HandleExitQueue - returning to LocationScreen");
+            OnNavigate?.Invoke(CurrentViews.LocationScreen);
+        }
+        
         private bool HasCriticalDeadlines()
         {
             var letters = GameFacade.GetPlayer().LetterQueue;

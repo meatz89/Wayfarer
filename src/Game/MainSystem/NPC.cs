@@ -25,6 +25,11 @@ public class NPC
     // Work Properties
     public bool OffersWork => ProvidedServices.Contains(ServiceTypes.Work);
 
+    // Confrontation Tracking
+    public int LastConfrontationCount { get; set; } = 0;  // Track confrontations already shown
+    public int RedemptionProgress { get; set; } = 0;      // Progress toward emotional recovery
+    public bool HasPermanentScar { get; set; } = false;   // Some wounds never fully heal
+
     // Helper methods for UI display
     public string ProfessionDescription => Profession.ToString().Replace('_', ' ');
 

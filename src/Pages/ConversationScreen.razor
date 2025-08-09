@@ -10,6 +10,13 @@
     @* Bottom Status Bar - Shows queue status and allows navigation *@
     <BottomStatusBar OnNavigate="@OnNavigate" />
     
+    @* Exit button for manual conversation exit *@
+    <div class="conversation-exit-controls">
+        <button class="exit-conversation-btn" @onclick="HandleExitConversation">
+            ← Exit Conversation
+        </button>
+    </div>
+    
     @if (Model != null)
     {
 

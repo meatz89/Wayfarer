@@ -2,6 +2,13 @@
 @inherits MainGameplayViewBase
 
 <div class="main-container">
+    <!-- Exit button -->
+    <div class="queue-navigation-controls">
+        <button class="exit-queue-btn" @onclick="HandleExitQueue">
+            ← Back to Location
+        </button>
+    </div>
+    
     <!-- Header -->
     <div class="header">
         <div class="time-bar">

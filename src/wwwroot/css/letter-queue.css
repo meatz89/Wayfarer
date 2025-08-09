@@ -7,6 +7,31 @@
     font-family: 'Georgia', serif;
 }
 
+/* Navigation controls */
+.queue-navigation-controls {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 150;
+}
+
+.exit-queue-btn {
+    background-color: var(--bg-card);
+    border: 2px solid var(--oak-mid);
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.exit-queue-btn:hover {
+    background-color: var(--bg-active);
+    border-color: var(--oak-dark);
+    transform: translateY(-1px);
+}
+
 /* Header */
 .letter-queue-screen .header {
     background: #2c2416;
