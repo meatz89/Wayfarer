@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Effect that delivers a letter from position 1 in the queue to the recipient
@@ -29,8 +30,14 @@ public class DeliverLetterEffect : IMechanicalEffect
         }
     }
     
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "Deliver letter";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = "Deliver letter",
+                Category = EffectCategory.StateChange,
+                LetterId = _letterId
+            }
+        };
     }
 }

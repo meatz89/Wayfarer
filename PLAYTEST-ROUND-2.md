@@ -328,7 +328,7 @@ The game needs to surface its humanity. Every letter should feel like Elena's. E
 #### What's Promised (Implementation Plan)
 - **45 Conversation Combinations**: 5 NPCs × 3 verbs × 3 states
 - **Dynamic emotional states**: NPCs should change based on player actions
-- **Token-based relationship tracking**: Trust, Commerce, Status per NPC
+- **Token-based relationship tracking**: Trust, Commerce, Status, Shadow per NPC
 - **Verb system**: HELP, NEGOTIATE, INVESTIGATE actions
 - **Queue manipulation mechanics**: Complex reordering based on tokens
 
@@ -636,7 +636,7 @@ StateManager<LocationId, PlayerState>:
 - Complexity: O(1) lookup, O(1) transition
 
 TokenLedger<TokenType, Int>:
-- Types: Trust, Commerce, Status, Shadow
+- Types: Trust, Commerce, Status, Shadow, Shadow
 - Operations: Spend(type, amount), Gain(type, amount)
 - Constraints: Non-negative values
 ```

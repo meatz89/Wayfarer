@@ -33,7 +33,7 @@ class Letter {
     Guid Id
     string SenderId  
     string RecipientId
-    LetterType Type // Trust, Commerce, Status
+    LetterType Type // Trust, Commerce, Status, Shadow
     StakeType Stakes // URGENT, VALUABLE, DANGEROUS
     int Weight // 1-3 slots in queue
     int HoursUntilDeadline // Countdown in hours

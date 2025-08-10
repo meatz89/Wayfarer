@@ -98,7 +98,7 @@ public class ConversationManager
                 try
                 {
                     effect.Apply(_state);
-                    Console.WriteLine($"[ConversationManager] Applied effect: {effect.GetDescriptionForPlayer()}");
+                    Console.WriteLine($"[ConversationManager] Applied effect: {effect.GetDescriptionsForPlayer().FirstOrDefault()?.Text ?? ""}");
                 }
                 catch (Exception ex)
                 {

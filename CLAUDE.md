@@ -13,6 +13,8 @@ This includes:
 - Feature removals (NOT ALLOWED - build complete plan)
 No exceptions. Even "small" changes must be reviewed by all specialized personas.
 
+**🚨 USE PLAYWRIGHT TO TEST THE GAME IN CHROME 🚨**
+
 **🚨 MANDATORY: ANALYZE BEFORE ANY CHANGE 🚨**
 - You MUST ALWAYS proactively DEBATE WITH EVERY ONE of my specialized agents for EVERY CHANGE
 - You MUST ALWAYS proactively think ahead and plan your steps BEFORE making ANY change
@@ -178,7 +180,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Information and relationships as primary gameplay mechanics
 
 **Core Mechanical Innovations:**
-- Multi-context token system (Trust, Commerce, Status, Shadow)
+- Multi-context token system (Trust, Commerce, Status, Shadow, Shadow)
 - Isolated relationship tracking per context
 - Time as universal pressure
 - Tiered access system (routes, actions, information)
@@ -208,7 +210,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Exact Systems (No Additions):**
 - **3 Verbs**: HELP, NEGOTIATE, INVESTIGATE
-- **3 Tokens**: Trust, Commerce, Status (no Shadow)
+- **3 Tokens**: Trust, Commerce, Status, Shadow (no Shadow)
 - **8-Slot Queue**: Weight system, position-based delivery
 - **16 Active Hours**: 6 AM to 10 PM gameplay
 - **5 NPCs**: Each with schedules and emotional states

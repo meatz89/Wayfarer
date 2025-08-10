@@ -88,7 +88,6 @@ namespace Wayfarer.ViewModels
     /// </summary>
     public class MechanicEffectViewModel
     {
-        public string Icon { get; set; } // "→", "✓", "⚠", "ℹ", "⏱", "⛓"
         public string Description { get; set; }
         public MechanicEffectType Type { get; set; }
     }

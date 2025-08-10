@@ -223,15 +223,18 @@ public class ConversationChoiceGenerator
             return 0;
         if (choice.ChoiceID.Contains("deliver"))
             return 1;
-        if (choice.ChoiceID.Contains("promise") || choice.ChoiceID.Contains("urgent"))
+        // CRITICAL: Letter acceptance is the core mechanic - prioritize it!
+        if (choice.ChoiceID.Contains("accept_letter") || choice.ChoiceID.Contains("accept_urgent"))
             return 2;
-        if (choice.AttentionCost >= 2)
+        if (choice.ChoiceID.Contains("promise") || choice.ChoiceID.Contains("urgent"))
             return 3;
-        if (choice.BaseVerb == BaseVerb.INVESTIGATE)
+        if (choice.AttentionCost >= 2)
             return 4;
-        if (choice.AttentionCost == 1)
+        if (choice.BaseVerb == BaseVerb.INVESTIGATE)
             return 5;
-        return 6; // Basic choices
+        if (choice.AttentionCost == 1)
+            return 6;
+        return 7; // Basic choices
     }
     
     private List<ConversationChoice> FilterLockedChoices(List<ConversationChoice> choices, NPC targetNPC)

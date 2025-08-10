@@ -18,6 +18,9 @@ public class ConversationState
     public int FocusPoints { get; set; }
     public int MaxFocusPoints { get; set; }
 
+    // UI state flags
+    public bool IsQueueInterfaceOpen { get; set; }
+
     // Conversation seed for deterministic generation
     public int ConversationSeed { get; }
 

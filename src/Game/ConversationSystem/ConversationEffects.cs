@@ -58,23 +58,25 @@ public class LetterReorderEffect : IMechanicalEffect
         _queueManager.MoveLetterToPosition(letter, _targetPosition);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
+        var desc = new MechanicalEffectDescription
+        {
+            Text = _tokenCost > 0 
+                ? $"Move letter to position {_targetPosition} | -{_tokenCost} {_tokenType} token{(_tokenCost != 1 ? "s" : "")}"
+                : $"Move letter to position {_targetPosition}",
+            Category = EffectCategory.LetterReorder,
+            LetterPosition = _targetPosition,
+            LetterId = _letterId
+        };
+        
         if (_tokenCost > 0)
         {
-            var tokenIcon = _tokenType switch
-            {
-                ConnectionType.Trust => "❤",
-                ConnectionType.Commerce => "🪙",
-                ConnectionType.Status => "👑",
-                _ => "?"
-            };
-            return $"✓ Move letter to position {_targetPosition} | {tokenIcon} -{_tokenCost} {_tokenType} token{(_tokenCost != 1 ? "s" : "")}";
+            desc.TokenType = _tokenType;
+            desc.TokenAmount = _tokenCost;
         }
-        else
-        {
-            return $"✓ Move letter to position {_targetPosition}";
-        }
+        
+        return new List<MechanicalEffectDescription> { desc };
     }
 }
 
@@ -107,16 +109,19 @@ public class GainTokensEffect : IMechanicalEffect
         _tokenManager.AddTokensToNPC(_tokenType, _amount, _npcId);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        var tokenIcon = _tokenType switch
+        return new List<MechanicalEffectDescription>
         {
-            ConnectionType.Trust => "♥",
-            ConnectionType.Commerce => "🪙",
-            ConnectionType.Status => "👑",
-            _ => "?"
+            new MechanicalEffectDescription
+            {
+                Text = $"+{_amount} {_tokenType} token{(_amount != 1 ? "s" : "")}",
+                Category = EffectCategory.TokenGain,
+                TokenType = _tokenType,
+                TokenAmount = _amount,
+                NpcId = _npcId
+            }
         };
-        return $"{tokenIcon} +{_amount} {_tokenType} token{(_amount != 1 ? "s" : "")}";
     }
 }
 
@@ -151,16 +156,19 @@ public class BurnTokensEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        var tokenIcon = _tokenType switch
+        return new List<MechanicalEffectDescription>
         {
-            ConnectionType.Trust => "♥",
-            ConnectionType.Commerce => "🪙",
-            ConnectionType.Status => "👑",
-            _ => "?"
+            new MechanicalEffectDescription
+            {
+                Text = $"-{_amount} {_tokenType} token{(_amount != 1 ? "s" : "")}",
+                Category = EffectCategory.TokenSpend,
+                TokenType = _tokenType,
+                TokenAmount = _amount,
+                NpcId = _npcId
+            }
         };
-        return $"{tokenIcon} -{_amount} {_tokenType} token{(_amount != 1 ? "s" : "")}";
     }
 }
 
@@ -187,13 +195,25 @@ public class ConversationTimeEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
+        string text;
         if (_minutes >= 60)
-            return $"⏱ +{_minutes / 60} hour{(_minutes >= 120 ? "s" : "")} conversation";
+            text = $"+{_minutes / 60} hour{(_minutes >= 120 ? "s" : "")} conversation";
         else if (_minutes > 0)
-            return $"⏱ +{_minutes} minutes conversation";
-        return "";
+            text = $"+{_minutes} minutes conversation";
+        else
+            text = "";
+            
+        return new List<MechanicalEffectDescription>
+        {
+            new MechanicalEffectDescription
+            {
+                Text = text,
+                Category = EffectCategory.TimePassage,
+                TimeMinutes = _minutes
+            }
+        };
     }
 }
 
@@ -221,9 +241,14 @@ public class RemoveLetterTemporarilyEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "📜 Letter held temporarily (can be retrieved later)";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = "Letter held temporarily (can be retrieved later)",
+                Category = EffectCategory.LetterRemove
+            }
+        };
     }
 }
 
@@ -248,9 +273,15 @@ public class AcceptLetterEffect : IMechanicalEffect
         _queueManager.AddLetterToQueue(_letter, currentCount + 1);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return $"📜 +1 letter to queue (from {_letter.SenderName})";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = $"+1 letter to queue (from {_letter.SenderName})",
+                Category = EffectCategory.LetterAdd,
+                LetterId = _letter.Id
+            }
+        };
     }
 }
 
@@ -280,9 +311,16 @@ public class ExtendDeadlineEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return $"⏱ +{_daysToAdd * 24} hours to deadline";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = $"+{_daysToAdd * 24} hours to deadline",
+                Category = EffectCategory.DeadlineExtend,
+                TimeMinutes = _daysToAdd * 24 * 60,
+                LetterId = _letterId
+            }
+        };
     }
 }
 
@@ -305,9 +343,15 @@ public class ShareInformationEffect : IMechanicalEffect
         _npc.AddKnownRoute(_route);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return $"ℹ Shared route: {_route.Name}";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = $"Shared route: {_route.Name}",
+                Category = EffectCategory.InformationReveal,
+                RouteName = _route.Name
+            }
+        };
     }
 }
 
@@ -338,9 +382,16 @@ public class CreateObligationEffect : IMechanicalEffect
         // });
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "⛓ Created permanent obligation (priority for their letters)";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = "Created permanent obligation (priority for their letters)",
+                Category = EffectCategory.ObligationCreate,
+                IsObligationBinding = true,
+                NpcId = _npcId
+            }
+        };
     }
 }
 
@@ -366,9 +417,14 @@ public class UnlockRoutesEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return $"Learned {_routes.Count} new route(s)";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = $"Learned {_routes.Count} new route(s)",
+                Category = EffectCategory.RouteUnlock
+            }
+        };
     }
 }
 
@@ -395,9 +451,15 @@ public class UnlockNPCEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return $"Met {_npcToUnlock?.Name ?? "someone new"}";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = $"Met {_npcToUnlock?.Name ?? "someone new"}",
+                Category = EffectCategory.NpcUnlock,
+                NpcId = _npcToUnlock?.ID
+            }
+        };
     }
 }
 
@@ -420,9 +482,15 @@ public class UnlockLocationEffect : IMechanicalEffect
         state.Player.AddKnownLocation(_locationId);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return $"Discovered new location";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = "Discovered new location",
+                Category = EffectCategory.LocationUnlock,
+                LocationId = _locationId
+            }
+        };
     }
 }
 
@@ -445,9 +513,15 @@ public class DiscoverRouteEffect : IMechanicalEffect
         _player.AddKnownRoute(_route);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return $"Discovered route: {_route?.Name ?? "new path"}";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = $"Discovered route: {_route?.Name ?? "new path"}",
+                Category = EffectCategory.RouteUnlock,
+                RouteName = _route?.Name
+            }
+        };
     }
 }
 
@@ -457,7 +531,12 @@ public class DiscoverRouteEffect : IMechanicalEffect
 public class MaintainStateEffect : IMechanicalEffect
 {
     public void Apply(ConversationState state) { }
-    public string GetDescriptionForPlayer() => "→ Maintains current state";
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = "Maintains current state",
+            Category = EffectCategory.StateChange
+        }
+    };
 }
 
 /// <summary>
@@ -470,7 +549,12 @@ public class OpenNegotiationEffect : IMechanicalEffect
         // Mark that negotiation should be opened (handled by UI)
         state.AdvanceDuration(1);
     }
-    public string GetDescriptionForPlayer() => "✓ Opens negotiation";
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = "Opens negotiation",
+            Category = EffectCategory.NegotiationOpen
+        }
+    };
 }
 
 /// <summary>
@@ -499,7 +583,13 @@ public class GainInformationEffect : IMechanicalEffect
         state.Player.Memories.Add(memory);
     }
 
-    public string GetDescriptionForPlayer() => $"ℹ Gain {_infoType}: \"{_information}\"";
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = $"Gain {_infoType}: \"{_information}\"",
+            Category = EffectCategory.InformationGain,
+            IsInformationRevealed = true
+        }
+    };
 }
 
 /// <summary>
@@ -520,7 +610,13 @@ public class TimePassageEffect : IMechanicalEffect
         state.DurationCounter += _minutes / 5; // Convert to conversation rounds
     }
 
-    public string GetDescriptionForPlayer() => $"⏱ +{_minutes} minutes conversation";
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = $"+{_minutes} minutes conversation",
+            Category = EffectCategory.TimePassage,
+            TimeMinutes = _minutes
+        }
+    };
 }
 
 /// <summary>
@@ -550,7 +646,13 @@ public class CreateBindingObligationEffect : IMechanicalEffect
         state.Player.StandingObligations.Add(obligation);
     }
 
-    public string GetDescriptionForPlayer() => "⛓ Creates Binding Obligation";
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = "Creates Binding Obligation",
+            Category = EffectCategory.ObligationCreate,
+            IsObligationBinding = true
+        }
+    };
 }
 
 /// <summary>
@@ -577,7 +679,13 @@ public class DeepInvestigationEffect : IMechanicalEffect
         state.Player.Memories.Add(memory);
     }
 
-    public string GetDescriptionForPlayer() => $"🔍 Deep investigation: {_topic}";
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = $"Deep investigation: {_topic}",
+            Category = EffectCategory.InformationGain,
+            IsInformationRevealed = true
+        }
+    };
 }
 
 /// <summary>
@@ -611,7 +719,13 @@ public class UnlockRouteEffect : IMechanicalEffect
         state.Player.KnownRoutes[fromLocation].Add(route);
     }
 
-    public string GetDescriptionForPlayer() => $"🗺 Unlock route: {_routeName}";
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = $"Unlock route: {_routeName}",
+            Category = EffectCategory.RouteUnlock,
+            RouteName = _routeName
+        }
+    };
 }
 
 /// <summary>
@@ -627,7 +741,12 @@ public class LockedEffect : IMechanicalEffect
     }
 
     public void Apply(ConversationState state) { }
-    public string GetDescriptionForPlayer() => _reason;
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = _reason,
+            Category = EffectCategory.StateChange
+        }
+    };
 }
 
 // Info type enum for information effects
@@ -638,4 +757,25 @@ public enum InfoType
     Route,
     Schedule,
     Weakness
+}
+
+/// <summary>
+/// Opens the queue management interface during conversation.
+/// Allows direct manipulation without leaving conversation.
+/// </summary>
+public class OpenQueueInterfaceEffect : IMechanicalEffect
+{
+    public void Apply(ConversationState state)
+    {
+        // This effect triggers UI state change
+        // The actual UI handling happens in the conversation screen
+        state.IsQueueInterfaceOpen = true;
+    }
+
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+        new MechanicalEffectDescription {
+            Text = "Open queue management interface",
+            Category = EffectCategory.InterfaceAction
+        }
+    };
 }

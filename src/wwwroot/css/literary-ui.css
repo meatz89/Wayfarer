@@ -30,7 +30,8 @@
 }
 
 /* Attention Bar - Fixed at Top Like Mockup */
-.attention-bar {
+.attention-bar,
+.unified-attention-bar {
     position: fixed;
     top: 10px;
     left: 50%;
@@ -62,6 +63,83 @@
 .attention-point.spent {
     background: var(--bg-card);
     opacity: 0.5;
+}
+
+/* Unified Attention Bar Components */
+.focus-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.focus-orbs {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.focus-orb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.focus-orb.available {
+    background: var(--attention-gold);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.focus-orb.spent {
+    background: var(--attention-spent);
+    opacity: 0.6;
+}
+
+.orb-icon {
+    font-size: 14px;
+    color: var(--ink-black);
+}
+
+.orb-pattern {
+    position: absolute;
+    font-size: 10px;
+    color: var(--ink-black);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.focus-narrative {
+    font-size: 12px;
+    color: var(--text-primary);
+    font-style: italic;
+}
+
+.refresh-hint {
+    font-size: 11px;
+    color: var(--thought-gray);
+    font-style: italic;
+    margin-left: auto;
+}
+
+/* Focus state modifiers */
+.unified-attention-bar.exhausted {
+    opacity: 0.8;
+}
+
+.unified-attention-bar.exhausted .focus-narrative {
+    color: var(--pressure-red);
+}
+
+.unified-attention-bar.weary .focus-narrative {
+    color: var(--comfort-warm);
+}
+
+.unified-attention-bar.clear .focus-narrative {
+    color: var(--attention-gold);
 }
 
 /* Context Tags */
@@ -242,7 +320,8 @@
     padding: 20px;
 }
 
-.choice-option {
+.choice-option,
+.unified-choice {
     background: #f9f7f3;
     border: 1px solid #e8dfd0;
     padding: 12px;
@@ -252,13 +331,15 @@
     position: relative;
 }
 
-.choice-option:hover {
+.choice-option:hover,
+.unified-choice:hover {
     background: white;
     border-color: var(--leather);
     transform: translateX(4px);
 }
 
-.choice-option.locked {
+.choice-option.locked,
+.unified-choice.locked {
     opacity: 0.6;
     cursor: not-allowed;
 }
@@ -293,6 +374,105 @@
 .attention-cost.free {
     background: var(--moss);
     color: white;
+}
+
+/* Unified Choice Components */
+.unified-choice .attention-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 12px;
+    color: var(--attention-gold);
+}
+
+.unified-choice .attention-indicator.free-action {
+    color: var(--moss);
+}
+
+.unified-choice .choice-content {
+    padding-right: 60px; /* Space for attention indicator */
+}
+
+.unified-choice .choice-effects {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.unified-choice .effect-preview {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.unified-choice .effect-preview.positive {
+    color: var(--moss);
+    background: rgba(0, 128, 0, 0.1);
+}
+
+.unified-choice .effect-preview.negative {
+    color: var(--rust);
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.unified-choice .effect-preview.informational {
+    color: var(--mystery-purple);
+    background: rgba(75, 0, 130, 0.1);
+}
+
+.unified-choice .lock-reason {
+    font-size: 11px;
+    color: var(--pressure-red);
+    font-style: italic;
+    margin-top: 6px;
+}
+
+/* Attention weight styling */
+.unified-choice.attention-weight-0 .attention-indicator {
+    display: none;
+}
+
+.unified-choice.attention-weight-1 .attention-indicator {
+    opacity: 0.6;
+}
+
+.unified-choice.attention-weight-2 .attention-indicator {
+    opacity: 0.8;
+}
+
+.unified-choice.attention-weight-3 .attention-indicator {
+    opacity: 1;
+    font-weight: bold;
+}
+
+/* Lock state variations */
+.unified-choice.locked-exhausted {
+    background: rgba(139, 115, 85, 0.1);
+    border-color: var(--attention-spent);
+}
+
+.unified-choice.locked-trust {
+    background: rgba(75, 0, 130, 0.05);
+    border-color: var(--mystery-purple);
+}
+
+.unified-choice.locked-time {
+    background: rgba(158, 42, 43, 0.05);
+    border-color: var(--pressure-red);
+}
+
+.unified-choice.processing {
+    opacity: 0.7;
+    pointer-events: none;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 0.5; }
+    100% { opacity: 0.7; }
 }
 
 .choice-text {

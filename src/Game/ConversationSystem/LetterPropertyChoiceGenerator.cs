@@ -163,13 +163,12 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.HELP,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "⛓ Creates binding obligation | ♥ +2 Trust tokens",
+            MechanicalDescription = "Creates obligation | +2 Trust",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new CreateBindingObligationEffect(npc.ID, 
                     $"Sworn to prioritize {npc.Name}'s letters"),
-                new GainTokensEffect(ConnectionType.Trust, 2, npc.ID, _tokenManager),
-                new ConversationTimeEffect(30, _timeManager)
+                new GainTokensEffect(ConnectionType.Trust, 2, npc.ID, _tokenManager)
             }
         };
     }
@@ -184,7 +183,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.NEGOTIATE,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "⏱ +24 hours to deadline | 🪙 -1 Commerce token",
+            MechanicalDescription = "+24 hours deadline | -1 Commerce",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new ExtendDeadlineEffect(letter.Id, 1, _queueManager),
@@ -206,7 +205,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.HELP,
             IsAffordable = true,
             IsAvailable = position > 1,
-            MechanicalDescription = "✓ Move to position 1 | ⛓ Creates obligation",
+            MechanicalDescription = "Position 1 | Creates obligation",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new LetterReorderEffect(letter.Id, 1, 0, ConnectionType.Trust, 
@@ -226,11 +225,10 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.HELP,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "🗺 Unlock secret safe route",
+            MechanicalDescription = "Unlock safe route",
             MechanicalEffects = new List<IMechanicalEffect>
             {
-                new UnlockRouteEffect("Cemetery Path (Safe)"),
-                new ConversationTimeEffect(15, _timeManager)
+                new UnlockRouteEffect("Cemetery Path (Safe)")
             }
         };
     }
@@ -247,7 +245,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.INVESTIGATE,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "🔍 Deep investigation reveals hidden information",
+            MechanicalDescription = "Deep investigation | 40 min",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new DeepInvestigationEffect($"The truth about {letter.RecipientName}"),
@@ -266,7 +264,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.HELP,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "ℹ Share route information",
+            MechanicalDescription = "Share route | +1 Trust",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new ShareInformationEffect(
@@ -289,7 +287,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.NEGOTIATE,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "🪙 +2 Commerce tokens | ✓ Move to position 2",
+            MechanicalDescription = "+2 Commerce | Position 2",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new GainTokensEffect(ConnectionType.Commerce, 2, npc.ID, _tokenManager),
@@ -311,7 +309,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.HELP,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "♥ +1 Trust | Creates memory of secret",
+            MechanicalDescription = "+1 Trust | Learns secret",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new GainTokensEffect(ConnectionType.Trust, 1, npc.ID, _tokenManager),
@@ -333,11 +331,10 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.HELP,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "🏰 Unlock Noble Quarter access",
+            MechanicalDescription = "Unlock Noble Quarter",
             MechanicalEffects = new List<IMechanicalEffect>
             {
-                new UnlockLocationEffect("noble_quarter", _gameWorld),
-                new ConversationTimeEffect(20, _timeManager)
+                new UnlockLocationEffect("noble_quarter", _gameWorld)
             }
         };
     }
@@ -352,7 +349,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.INVESTIGATE,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "👑 +1 Status token | Creates political leverage",
+            MechanicalDescription = "+1 Status | Political leverage",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new GainTokensEffect(ConnectionType.Status, 1, letter.SenderId, _tokenManager),
@@ -374,7 +371,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.NEGOTIATE,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "✓ Move to position 1 | 👑 -1 Status token",
+            MechanicalDescription = "Position 1 | -1 Status",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new LetterReorderEffect(letter.Id, 1, 1, ConnectionType.Status, 
@@ -393,7 +390,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.NEGOTIATE,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "📜 Letter held temporarily",
+            MechanicalDescription = "Hold letter temporarily",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new RemoveLetterTemporarilyEffect(letter.Id, _queueManager)
@@ -413,7 +410,7 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.EXIT,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = $"📜 Deliver letter | +{letter.Payment} coins",
+            MechanicalDescription = $"Deliver letter | +{letter.Payment} coins",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new DeliverLetterEffect(letter.Id, _queueManager, _timeManager)

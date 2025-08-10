@@ -1,0 +1,219 @@
+@using Wayfarer.Models
+@using Wayfarer.GameState
+@using System.Collections.Generic
+@using System.Linq
+
+<div class="token-display">
+    @if (GetRelevantTokens().Any())
+    {
+        <div class="relationship-container">
+            @foreach (var relationship in GetRelevantTokens())
+            {
+                <div class="relationship-insight @GetRelationshipClass(relationship.Key, relationship.Value)">
+                    @GetNarrativeDescription(relationship.Key, relationship.Value)
+                </div>
+            }
+        </div>
+    }
+    else if (ShowEmptyState)
+    {
+        <div class="relationship-container">
+            <div class="relationship-empty">
+                @GetEmptyStateDescription()
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Dictionary<ConnectionType, int>? Tokens { get; set; }
+    [Parameter] public bool ShowEmptyState { get; set; } = true;
+    [Parameter] public string? NpcName { get; set; }
+    [Parameter] public string? ConversationContext { get; set; } // "help", "negotiate", "investigate"
+    [Parameter] public string? NpcRole { get; set; } // "merchant", "noble", "friend", etc.
+    [Parameter] public bool ShowOnlyRelevant { get; set; } = true;
+    [Parameter] public bool UseNarrativeDescriptions { get; set; } = true;
+
+    private Dictionary<ConnectionType, int> GetRelevantTokens()
+    {
+        if (Tokens == null || !Tokens.Any())
+            return new Dictionary<ConnectionType, int>();
+
+        if (!ShowOnlyRelevant)
+            return Tokens;
+
+        var relevant = new Dictionary<ConnectionType, int>();
+
+        // Filter tokens based on context and NPC role
+        foreach (var token in Tokens)
+        {
+            if (IsTokenRelevant(token.Key, token.Value))
+            {
+                relevant[token.Key] = token.Value;
+            }
+        }
+
+        return relevant;
+    }
+
+    private bool IsTokenRelevant(ConnectionType type, int value)
+    {
+        // Always show debts - they create narrative tension
+        if (value < 0)
+            return true;
+
+        // Show based on conversation context
+        if (!string.IsNullOrEmpty(ConversationContext))
+        {
+            return ConversationContext?.ToLower() switch
+            {
+                "help" => type == ConnectionType.Trust,
+                "negotiate" => type == ConnectionType.Commerce || type == ConnectionType.Status,
+                "investigate" => type == ConnectionType.Shadow || type == ConnectionType.Trust,
+                _ => value != 0 // Show non-zero values by default
+            };
+        }
+
+        // Show based on NPC role
+        if (!string.IsNullOrEmpty(NpcRole))
+        {
+            return NpcRole?.ToLower() switch
+            {
+                "merchant" => type == ConnectionType.Commerce,
+                "noble" => type == ConnectionType.Status,
+                "friend" => type == ConnectionType.Trust,
+                "informant" => type == ConnectionType.Shadow,
+                _ => value != 0
+            };
+        }
+
+        // Default: show non-zero values
+        return value != 0;
+    }
+
+    private string GetNarrativeDescription(ConnectionType type, int value)
+    {
+        if (!UseNarrativeDescriptions)
+        {
+            // Fall back to simple display for debugging
+            return $"{type}: {value}";
+        }
+
+        // Narrative descriptions based on token type and value
+        return type switch
+        {
+            ConnectionType.Trust => GetTrustDescription(value),
+            ConnectionType.Commerce => GetCommerceDescription(value),
+            ConnectionType.Status => GetStatusDescription(value),
+            ConnectionType.Shadow => GetShadowDescription(value),
+            _ => ""
+        };
+    }
+
+    private string GetTrustDescription(int value)
+    {
+        if (value < -5)
+            return $"{NpcName ?? "They"} no longer trusts you";
+        if (value < -2)
+            return $"Old debts strain your friendship with {NpcName ?? "them"}";
+        if (value < 0)
+            return $"You owe {NpcName ?? "them"} more than words can repay";
+        if (value == 0)
+            return $"No personal connection with {NpcName ?? "them"}";
+        if (value < 3)
+            return $"A tentative trust is building";
+        if (value < 5)
+            return $"{NpcName ?? "They"} considers you reliable";
+        if (value < 8)
+            return $"Years of friendship bind you";
+        return $"{NpcName ?? "They"} trusts you completely";
+    }
+
+    private string GetCommerceDescription(int value)
+    {
+        if (value < -5)
+            return $"Your business reputation is ruined with {NpcName ?? "them"}";
+        if (value < -2)
+            return $"Outstanding debts make {NpcName ?? "them"} wary";
+        if (value < 0)
+            return $"You're in {NpcName ?? "their"} ledger - in red ink";
+        if (value == 0)
+            return $"No business dealings established";
+        if (value < 3)
+            return $"A new business relationship";
+        if (value < 5)
+            return $"Reliable trading partner";
+        if (value < 8)
+            return $"Established business associate";
+        return $"Most trusted business partner";
+    }
+
+    private string GetStatusDescription(int value)
+    {
+        if (value < -5)
+            return $"Your reputation with {NpcName ?? "them"} lies in tatters";
+        if (value < -2)
+            return $"{NpcName ?? "They"} questions your standing";
+        if (value < 0)
+            return $"You've lost face in {NpcName ?? "their"} eyes";
+        if (value == 0)
+            return $"Unknown to {NpcName ?? "their"} social circles";
+        if (value < 3)
+            return $"Beginning to earn recognition";
+        if (value < 5)
+            return $"Respected in {NpcName ?? "their"} circles";
+        if (value < 8)
+            return $"Well-regarded by {NpcName ?? "them"}";
+        return $"Held in highest esteem";
+    }
+
+    private string GetShadowDescription(int value)
+    {
+        if (value < -5)
+            return $"{NpcName ?? "They"} knows you've betrayed their secrets";
+        if (value < -2)
+            return $"Broken confidences hang between you";
+        if (value < 0)
+            return $"You've failed to keep {NpcName ?? "their"} secrets";
+        if (value == 0)
+            return $"No shared secrets";
+        if (value < 3)
+            return $"A few whispered confidences";
+        if (value < 5)
+            return $"{NpcName ?? "They"} shares sensitive information";
+        if (value < 8)
+            return $"Keeper of {NpcName ?? "their"} darker secrets";
+        return $"Trusted with everything {NpcName ?? "they"} hides";
+    }
+
+    private string GetRelationshipClass(ConnectionType type, int value)
+    {
+        var classes = new List<string> { "relationship-type-" + type.ToString().ToLower() };
+        
+        if (value < 0)
+            classes.Add("relationship-debt");
+        else if (value == 0)
+            classes.Add("relationship-neutral");
+        else if (value < 5)
+            classes.Add("relationship-positive");
+        else
+            classes.Add("relationship-strong");
+
+        return string.Join(" ", classes);
+    }
+
+    private string GetEmptyStateDescription()
+    {
+        if (!string.IsNullOrEmpty(NpcName))
+        {
+            return NpcRole?.ToLower() switch
+            {
+                "merchant" => $"No business dealings with {NpcName} yet",
+                "noble" => $"{NpcName} doesn't know who you are",
+                "friend" => $"You haven't met {NpcName} yet",
+                _ => $"No established relationship with {NpcName}"
+            };
+        }
+        return "A stranger to these parts";
+    }
+}

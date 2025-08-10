@@ -5,18 +5,18 @@
    Based on agent feedback: Narrative focus, not mechanical
 *@
 
-<div class="unified-choice @GetChoiceClass()" @onclick="HandleClick">
-    @* Attention cost indicator - subtle for low costs, prominent for high *@
+<div class="choice-option @GetChoiceClass()" @onclick="HandleClick">
+    @* Attention cost badge - matching mockup exactly *@
     @if (Choice.AttentionCost > 0)
     {
-        <div class="attention-indicator attention-cost-@Choice.AttentionCost">
+        <div class="attention-cost">
             @GetCostDisplay()
         </div>
     }
     else
     {
-        <div class="attention-indicator free-action">
-            <!-- Free actions get subtle indicator -->
+        <div class="attention-cost free">
+            FREE
         </div>
     }
     
@@ -26,15 +26,20 @@
             @Choice.DisplayText
         </div>
         
-        @* Mechanical previews - only for non-obvious effects *@
+        @* Mechanical previews - with proper color coding *@
         @if (Choice.MechanicalPreviews?.Any() == true && ShowPreviews)
         {
-            <div class="choice-effects">
+            <div class="choice-mechanics">
                 @foreach (var preview in Choice.MechanicalPreviews)
                 {
-                    <span class="effect-preview @GetEffectClass(preview)">
-                        @preview
-                    </span>
+                    <div class="mechanic-item @GetMechanicClass(preview)">
+                        <span class="mechanic-icon">
+                            <i class="@GetIconForEffect(preview)"></i>
+                        </span>
+                        <span class="mechanic-text">
+                            @preview
+                        </span>
+                    </div>
                 }
             </div>
         }
@@ -95,14 +100,14 @@
 
     private string GetCostDisplay()
     {
-        // Visual representation without numbers (per Jordan's feedback)
+        // Diamond symbol for attention cost (matching mockup)
         return Choice.AttentionCost switch
         {
-            1 => "•",
-            2 => "••",
-            3 => "•••",
-            4 => "••••",
-            5 => "•••••",
+            1 => "◆",
+            2 => "◆◆",
+            3 => "◆◆◆",
+            4 => "◆◆◆◆",
+            5 => "◆◆◆◆◆",
             _ => ""
         };
     }
@@ -124,16 +129,75 @@
             ?? "Not available";
     }
 
-    private string GetEffectClass(string preview)
+    private string GetIconForEffect(string description)
     {
-        // Style effects based on their type
-        if (preview.Contains("✓") || preview.Contains("trust") || preview.Contains("Gain"))
-            return "positive";
-        if (preview.Contains("⚠") || preview.Contains("cost") || preview.Contains("Lose"))
-            return "negative";
-        if (preview.Contains("ℹ") || preview.Contains("Learn"))
-            return "informational";
-        return "neutral";
+        // Map description keywords to Font Awesome icon classes
+        var lowerDesc = description.ToLowerInvariant();
+        
+        // Token types
+        if (lowerDesc.Contains("trust"))
+            return "fas fa-heart";
+        if (lowerDesc.Contains("commerce") || lowerDesc.Contains("coin"))
+            return "fas fa-coins";
+        if (lowerDesc.Contains("status"))
+            return "fas fa-crown";
+        if (lowerDesc.Contains("shadow"))
+            return "fas fa-moon";
+            
+        // Actions
+        if (lowerDesc.Contains("obligation") || lowerDesc.Contains("binding"))
+            return "fas fa-link";
+        if (lowerDesc.Contains("time") || lowerDesc.Contains("minute") || lowerDesc.Contains("hour"))
+            return "fas fa-clock";
+        if (lowerDesc.Contains("deliver") || lowerDesc.Contains("letter"))
+            return "fas fa-envelope";
+        if (lowerDesc.Contains("travel") || lowerDesc.Contains("route"))
+            return "fas fa-map";
+        if (lowerDesc.Contains("investigate") || lowerDesc.Contains("learn") || lowerDesc.Contains("discover"))
+            return "fas fa-search";
+        if (lowerDesc.Contains("negotiate") || lowerDesc.Contains("swap") || lowerDesc.Contains("reorder"))
+            return "fas fa-exchange-alt";
+        if (lowerDesc.Contains("help") || lowerDesc.Contains("accept"))
+            return "fas fa-hands-helping";
+            
+        // State changes
+        if (lowerDesc.Contains("gain") || lowerDesc.Contains("unlock") || lowerDesc.Contains("open"))
+            return "fas fa-check";
+        if (lowerDesc.Contains("lose") || lowerDesc.Contains("burn") || lowerDesc.Contains("cost"))
+            return "fas fa-exclamation-triangle";
+        if (lowerDesc.Contains("maintain") || lowerDesc.Contains("continue"))
+            return "fas fa-arrow-right";
+            
+        // Default
+        return "fas fa-arrow-right";
+    }
+
+    private string GetMechanicClass(string preview)
+    {
+        // Style effects based on their type - matching mockup colors
+        var lowerPreview = preview.ToLowerInvariant();
+        
+        // Positive effects (green)
+        if (preview.Contains("✓") || lowerPreview.Contains("gain") || 
+            lowerPreview.Contains("opens") || lowerPreview.Contains("+") ||
+            lowerPreview.Contains("unlock"))
+            return "mechanic-positive";
+            
+        // Negative effects (red)
+        if (preview.Contains("⚠") || lowerPreview.Contains("lose") || 
+            lowerPreview.Contains("burn") || lowerPreview.Contains("cost") ||
+            lowerPreview.Contains("-") || lowerPreview.Contains("obligation") ||
+            lowerPreview.Contains("binding"))
+            return "mechanic-negative";
+            
+        // Informational effects (blue)
+        if (preview.Contains("ℹ") || preview.Contains("→") || 
+            lowerPreview.Contains("learn") || lowerPreview.Contains("maintain") ||
+            lowerPreview.Contains("time") || lowerPreview.Contains("minute") ||
+            lowerPreview.Contains("investigate") || lowerPreview.Contains("discover"))
+            return "mechanic-neutral";
+            
+        return "mechanic-neutral";
     }
 
     private async Task HandleClick()

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 /// <summary>
 /// Effect that ends the current conversation and returns to location screen.
 /// This is THE way to exit conversations - used everywhere for consistency.
@@ -16,8 +18,13 @@ public class EndConversationEffect : IMechanicalEffect
         state.IsConversationComplete = true;
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "End conversation";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = "End conversation",
+                Category = EffectCategory.StateChange
+            }
+        };
     }
 }

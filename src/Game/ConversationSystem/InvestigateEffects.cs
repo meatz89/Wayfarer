@@ -54,9 +54,16 @@ public class RevealLetterPropertyEffect : IMechanicalEffect
         _player.Memories.Add(memory);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return $"🔍 Reveal letter's {_propertyToReveal}";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = $"Reveal letter's {_propertyToReveal}",
+                Category = EffectCategory.InformationReveal,
+                LetterId = _letterId,
+                IsInformationRevealed = true
+            }
+        };
     }
 }
 
@@ -116,9 +123,16 @@ public class PredictConsequenceEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "⚠️ Predict failure consequences";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = "Predict failure consequences",
+                Category = EffectCategory.InformationGain,
+                LetterId = _letterId,
+                IsInformationRevealed = true
+            }
+        };
     }
 }
 
@@ -174,9 +188,16 @@ public class LearnNPCScheduleEffect : IMechanicalEffect
         _player.Memories.Add(summaryMemory);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "📅 Learn NPC's daily schedule";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = "Learn NPC's daily schedule",
+                Category = EffectCategory.InformationGain,
+                NpcId = _npcId,
+                IsInformationRevealed = true
+            }
+        };
     }
 }
 
@@ -241,9 +262,16 @@ public class DiscoverLetterNetworkEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "🕸️ Discover letter connections";
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = "Discover letter connections",
+                Category = EffectCategory.InformationGain,
+                LetterId = _letterId,
+                IsInformationRevealed = true
+            }
+        };
     }
 }
 
@@ -313,19 +341,23 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
         _queueManager.MoveLetterToPosition(letter1, pos2.Value);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
+        var text = _tokenCost > 0 
+            ? $"Swap two letters | -{_tokenCost} {_tokenType}"
+            : "Swap two letter positions";
+            
+        var desc = new MechanicalEffectDescription {
+            Text = text,
+            Category = EffectCategory.LetterSwap
+        };
+        
         if (_tokenCost > 0)
         {
-            var tokenIcon = _tokenType switch
-            {
-                ConnectionType.Trust => "♥",
-                ConnectionType.Commerce => "🪙",
-                ConnectionType.Status => "👑",
-                _ => "?"
-            };
-            return $"🔄 Swap two letters | {tokenIcon} -{_tokenCost} {_tokenType}";
+            desc.TokenType = _tokenType;
+            desc.TokenAmount = _tokenCost;
         }
-        return "🔄 Swap two letter positions";
+        
+        return new List<MechanicalEffectDescription> { desc };
     }
 }

@@ -113,7 +113,7 @@
 
         effect.Apply(state);
 
-        projection.MechanicalDescription = effect.GetDescriptionForPlayer();
+        projection.MechanicalDescription = effect.GetDescriptionsForPlayer().FirstOrDefault()?.Text ?? "";
 
         return projection;
     }

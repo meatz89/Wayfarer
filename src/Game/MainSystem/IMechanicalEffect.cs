@@ -1,14 +1,25 @@
-﻿
+﻿using System.Collections.Generic;
+
 public interface IMechanicalEffect
 {
     void Apply(ConversationState state);
-    string GetDescriptionForPlayer();
+    List<MechanicalEffectDescription> GetDescriptionsForPlayer();
 }
 
 public class NoEffect : IMechanicalEffect
 {
     public void Apply(ConversationState state) { }
-    public string GetDescriptionForPlayer() { return "No effect"; }
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() 
+    { 
+        return new List<MechanicalEffectDescription> 
+        { 
+            new MechanicalEffectDescription 
+            { 
+                Text = "No effect", 
+                Category = EffectCategory.StateChange 
+            }
+        }; 
+    }
 }
 
 public class AdvanceDurationEffect : IMechanicalEffect
@@ -25,9 +36,17 @@ public class AdvanceDurationEffect : IMechanicalEffect
         state.DurationCounter += amount;
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "Time advances";
+        return new List<MechanicalEffectDescription> 
+        { 
+            new MechanicalEffectDescription 
+            { 
+                Text = "Time advances",
+                Category = EffectCategory.TimePassage,
+                TimeMinutes = amount * 5
+            }
+        };
     }
 }
 
@@ -51,9 +70,16 @@ public class CreateMemoryEffect : IMechanicalEffect
         state.Player.AddMemory(memoryKey, memoryDescription, importance, expirationDays);
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "You will remember this event";
+        return new List<MechanicalEffectDescription> 
+        { 
+            new MechanicalEffectDescription 
+            { 
+                Text = "You will remember this event",
+                Category = EffectCategory.InformationGain
+            }
+        };
     }
 }
 
@@ -83,9 +109,16 @@ public class CheckMemoryEffect : IMechanicalEffect
         }
     }
 
-    public string GetDescriptionForPlayer()
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return "Your past experiences affect this outcome";
+        return new List<MechanicalEffectDescription> 
+        { 
+            new MechanicalEffectDescription 
+            { 
+                Text = "Your past experiences affect this outcome",
+                Category = EffectCategory.StateChange
+            }
+        };
     }
 
     public class CompleteGoalRequirementEffect : IMechanicalEffect
@@ -108,9 +141,16 @@ public class CheckMemoryEffect : IMechanicalEffect
             }
         }
 
-        public string GetDescriptionForPlayer()
+        public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            return $"Progress toward {goalName}";
+            return new List<MechanicalEffectDescription>
+            {
+                new MechanicalEffectDescription
+                {
+                    Text = $"Progress toward {goalName}",
+                    Category = EffectCategory.StateChange
+                }
+            };
         }
     }
 
@@ -128,9 +168,16 @@ public class CheckMemoryEffect : IMechanicalEffect
             state.Player.AddGoal(goalToAdd);
         }
 
-        public string GetDescriptionForPlayer()
+        public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            return $"New goal: {goalToAdd.Name}";
+            return new List<MechanicalEffectDescription>
+            {
+                new MechanicalEffectDescription
+                {
+                    Text = $"New goal: {goalToAdd.Name}",
+                    Category = EffectCategory.StateChange
+                }
+            };
         }
     }
 
@@ -148,9 +195,17 @@ public class CheckMemoryEffect : IMechanicalEffect
             state.Player.AddKnownRoute(routeToDiscover);
         }
 
-        public string GetDescriptionForPlayer()
+        public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            return $"Discovered route to {routeToDiscover.Destination}";
+            return new List<MechanicalEffectDescription>
+            {
+                new MechanicalEffectDescription
+                {
+                    Text = $"Discovered route to {routeToDiscover.Destination}",
+                    Category = EffectCategory.RouteUnlock,
+                    RouteName = routeToDiscover.Name
+                }
+            };
         }
     }
 
@@ -172,12 +227,16 @@ public class CheckMemoryEffect : IMechanicalEffect
             state.FocusPoints = Math.Max(0, Math.Min(state.FocusPoints, state.MaxFocusPoints));
         }
 
-        public string GetDescriptionForPlayer()
+        public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            if (amount > 0)
-                return "Regain " + amount + " Focus";
-            else
-                return "Lose " + Math.Abs(amount) + " Focus";
+            return new List<MechanicalEffectDescription>
+            {
+                new MechanicalEffectDescription
+                {
+                    Text = amount > 0 ? $"Regain {amount} Focus" : $"Lose {Math.Abs(amount)} Focus",
+                    Category = EffectCategory.StateChange
+                }
+            };
         }
     }
 
@@ -206,16 +265,16 @@ public class CheckMemoryEffect : IMechanicalEffect
             }
         }
 
-        public string GetDescriptionForPlayer()
+        public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            if (amount > 0)
+            return new List<MechanicalEffectDescription>
             {
-                return $"+{amount} Focus Point{(amount > 1 ? "s" : "")}";
-            }
-            else
-            {
-                return $"{amount} Focus Point{(amount < -1 ? "s" : "")}";
-            }
+                new MechanicalEffectDescription
+                {
+                    Text = amount > 0 ? $"+{amount} Focus Point{(amount > 1 ? "s" : "")}" : $"{amount} Focus Point{(amount < -1 ? "s" : "")}",
+                    Category = EffectCategory.StateChange
+                }
+            };
         }
     }
 
@@ -233,9 +292,17 @@ public class CheckMemoryEffect : IMechanicalEffect
             state.AdvanceDuration(amount);
         }
 
-        public string GetDescriptionForPlayer()
+        public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            return $"Advances conversation duration by {amount}";
+            return new List<MechanicalEffectDescription>
+            {
+                new MechanicalEffectDescription
+                {
+                    Text = $"Advances conversation duration by {amount}",
+                    Category = EffectCategory.TimePassage,
+                    TimeMinutes = amount * 5
+                }
+            };
         }
     }
 
@@ -253,16 +320,16 @@ public class CheckMemoryEffect : IMechanicalEffect
             // Progress tracking removed - conversations use duration
         }
 
-        public string GetDescriptionForPlayer()
+        public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            if (amount > 0)
+            return new List<MechanicalEffectDescription>
             {
-                return $"+{amount} Progress";
-            }
-            else
-            {
-                return $"{amount} Progress";
-            }
+                new MechanicalEffectDescription
+                {
+                    Text = amount > 0 ? $"+{amount} Progress" : $"{amount} Progress",
+                    Category = EffectCategory.StateChange
+                }
+            };
         }
     }
 
@@ -283,16 +350,16 @@ public class CheckMemoryEffect : IMechanicalEffect
             }
         }
 
-        public string GetDescriptionForPlayer()
+        public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            List<string> descriptions = new List<string>();
-
+            var descriptions = new List<MechanicalEffectDescription>();
+            
             foreach (IMechanicalEffect effect in effects)
             {
-                descriptions.Add(effect.GetDescriptionForPlayer());
+                descriptions.AddRange(effect.GetDescriptionsForPlayer());
             }
-
-            return string.Join(", ", descriptions);
+            
+            return descriptions;
         }
     }
 }

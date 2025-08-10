@@ -2264,7 +2264,6 @@ public class GameFacade : ILetterQueueOperations
                 {
                     new MechanicEffectViewModel 
                     { 
-                        Icon = "⚠", 
                         Description = c.Description ?? "Confrontation Response",
                         Type = MechanicEffectType.Neutral
                     }
@@ -2300,6 +2299,14 @@ public class GameFacade : ILetterQueueOperations
         Player player = _gameWorld.GetPlayer();
         Location location = _locationRepository.GetCurrentLocation();
         LocationSpot spot = player.CurrentLocationSpot;
+        
+        // NPCs should have letters to offer when starting conversations
+        // This creates the core tension: accepting letters fills your queue
+        if (npc != null)
+        {
+            npc.HasLetterToOffer = true; // NPCs always have something to ask of you
+        }
+        
         var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
         
         // CRITICAL: Use persistent attention from time block manager
@@ -2745,7 +2752,7 @@ public class GameFacade : ILetterQueueOperations
         foreach (var effect in effects)
         {
             // Get the description for player display
-            var description = effect.GetDescriptionForPlayer();
+            var description = effect.GetDescriptionsForPlayer().FirstOrDefault()?.Text ?? "";
             if (string.IsNullOrEmpty(description))
                 continue;
             
@@ -2755,7 +2762,6 @@ public class GameFacade : ILetterQueueOperations
             // Convert to view model
             mechanics.Add(new MechanicEffectViewModel
             {
-                Icon = GetEffectIcon(description),
                 Description = description,
                 Type = effectType
             });
@@ -2774,21 +2780,6 @@ public class GameFacade : ILetterQueueOperations
             3 => "◆◆◆ 3",
             _ => $"◆ {cost}"
         };
-    }
-    
-    private string GetEffectIcon(string description)
-    {
-        // Extract icon from description if it starts with an emoji/symbol
-        if (description.Length > 0)
-        {
-            var firstChar = description[0];
-            // Check if it's an emoji or special character
-            if (char.IsSymbol(firstChar) || firstChar > 127)
-            {
-                return firstChar.ToString();
-            }
-        }
-        return "→"; // Default arrow
     }
     
     private MechanicEffectType DetermineEffectType(string description)
@@ -4093,63 +4084,60 @@ public class GameFacade : ILetterQueueOperations
             if (string.IsNullOrEmpty(trimmed))
                 continue;
             
-            // Determine type and icon based on content
+            // Determine type based on content
             MechanicEffectType type = MechanicEffectType.Neutral;
-            string icon = "→";
             string description = trimmed;
             
-            // Check for specific patterns
-            if (trimmed.StartsWith("✓") || trimmed.Contains("Opens") || trimmed.Contains("+"))
+            // Check for specific patterns - NO ICON GENERATION, just clean up and categorize
+            if (trimmed.StartsWith("✓") || trimmed.StartsWith("+") || trimmed.Contains("Opens") || trimmed.Contains("+"))
             {
                 type = MechanicEffectType.Positive;
-                icon = "✓";
-                description = trimmed.TrimStart('✓').Trim();
+                description = trimmed.TrimStart('✓', '+').Trim();
             }
-            else if (trimmed.StartsWith("⚠") || trimmed.Contains("Must") || trimmed.Contains("burn"))
+            else if (trimmed.StartsWith("⚠") || trimmed.StartsWith("!") || trimmed.Contains("Must") || trimmed.Contains("burn"))
             {
                 type = MechanicEffectType.Negative;
-                icon = "⚠";
-                description = trimmed.TrimStart('⚠').Trim();
+                description = trimmed.TrimStart('⚠', '!').Trim();
             }
-            else if (trimmed.StartsWith("ℹ") || trimmed.Contains("Gain") || trimmed.Contains("Learn"))
+            else if (trimmed.StartsWith("ℹ") || trimmed.StartsWith("i") || trimmed.Contains("Gain") || trimmed.Contains("Learn"))
             {
                 type = MechanicEffectType.Positive;
-                icon = "ℹ";
-                description = trimmed.TrimStart('ℹ').Trim();
+                description = trimmed.TrimStart('ℹ', 'i').Trim();
             }
-            else if (trimmed.StartsWith("♥") || trimmed.Contains("Trust"))
+            else if (trimmed.StartsWith("♥") || trimmed.StartsWith("<3") || trimmed.Contains("Trust"))
             {
                 type = MechanicEffectType.Positive;
-                icon = "♥";
                 description = trimmed.TrimStart('♥').Trim();
+                if (description.StartsWith("<3"))
+                    description = description.Substring(2).Trim();
             }
-            else if (trimmed.StartsWith("⛓") || trimmed.Contains("Obligation") || trimmed.Contains("Binding"))
+            else if (trimmed.StartsWith("⛓") || trimmed.StartsWith("[]") || trimmed.Contains("Obligation") || trimmed.Contains("Binding"))
             {
                 type = MechanicEffectType.Negative;
-                icon = "⛓";
                 description = trimmed.TrimStart('⛓').Trim();
+                if (description.StartsWith("[]"))
+                    description = description.Substring(2).Trim();
             }
-            else if (trimmed.StartsWith("⏱") || trimmed.Contains("minutes") || trimmed.Contains("time"))
+            else if (trimmed.StartsWith("⏱") || trimmed.StartsWith("~") || trimmed.Contains("minutes") || trimmed.Contains("time"))
             {
                 type = MechanicEffectType.Neutral;
-                icon = "⏱";
-                description = trimmed.TrimStart('⏱').Trim();
+                description = trimmed.TrimStart('⏱', '~').Trim();
             }
-            else if (trimmed.StartsWith("→"))
+            else if (trimmed.StartsWith("→") || trimmed.StartsWith("->"))
             {
                 description = trimmed.TrimStart('→').Trim();
+                if (description.StartsWith("->"))
+                    description = description.Substring(2).Trim();
             }
             else if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
             {
                 // Locked/unavailable option
                 type = MechanicEffectType.Neutral;
-                icon = "🔒";
                 description = trimmed.Trim('[', ']');
             }
             
             mechanics.Add(new MechanicEffectViewModel
             {
-                Icon = icon,
                 Description = description,
                 Type = type
             });
@@ -4160,7 +4148,6 @@ public class GameFacade : ILetterQueueOperations
         {
             mechanics.Add(new MechanicEffectViewModel
             {
-                Icon = "→",
                 Description = mechanicalDescription,
                 Type = MechanicEffectType.Neutral
             });

@@ -453,11 +453,11 @@ public class AIPromptBuilder
             // Effects
             if (template.SuccessEffect != null)
             {
-                prompt.AppendLine($"Success Effect: {template.SuccessEffect.GetDescriptionForPlayer()}");
+                prompt.AppendLine($"Success Effect: {template.SuccessEffect.GetDescriptionsForPlayer().FirstOrDefault()?.Text ?? ""}");
             }
             if (template.FailureEffect != null)
             {
-                prompt.AppendLine($"Failure Effect: {template.FailureEffect.GetDescriptionForPlayer()}");
+                prompt.AppendLine($"Failure Effect: {template.FailureEffect.GetDescriptionsForPlayer().FirstOrDefault()?.Text ?? ""}");
             }
         }
 

@@ -8,27 +8,17 @@
 
 <div class="unified-attention-bar @GetFocusStateClass()">
     <div class="focus-container">
+        @* Label matching mockup *@
+        <span class="attention-label">Attention:</span>
+        
         @* Visual representation as golden orbs that dim when spent *@
         <div class="focus-orbs">
             @for (int i = 0; i < MaxAttention; i++)
             {
-                <div class="focus-orb @(i < CurrentAttention ? "available" : "spent")" 
+                <div class="attention-point @(i < CurrentAttention ? "" : "spent")" 
                      aria-label="@GetOrbAriaLabel(i)">
-                    <span class="orb-icon">@(i < CurrentAttention ? "●" : "○")</span>
-                    @* Pattern for colorblind accessibility *@
-                    <span class="orb-pattern" aria-hidden="true">@(i < CurrentAttention ? "✓" : "✗")</span>
                 </div>
             }
-        </div>
-        
-        @* Narrative description instead of numbers *@
-        <div class="focus-narrative">
-            @GetFocusNarrative()
-        </div>
-        
-        @* Time until refresh (subtle) *@
-        <div class="refresh-hint">
-            @GetRefreshHint()
         </div>
     </div>
 </div>

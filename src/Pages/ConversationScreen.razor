@@ -52,6 +52,19 @@
             <div class="character-focus">
                 <div class="character-name">@Model.NpcName</div>
                 <div class="character-state">@(Model.CharacterState ?? "leaning forward, fingers worrying her shawl")</div>
+                
+                @* Token Display - Shows contextually relevant relationship currency *@
+                @if (NpcTokens != null)
+                {
+                    <TokenDisplay 
+                        Tokens="@NpcTokens" 
+                        NpcName="@Model.NpcName" 
+                        ConversationContext="@GetCurrentConversationContext()"
+                        NpcRole="@GetNpcRole()"
+                        ShowOnlyRelevant="true"
+                        UseNarrativeDescriptions="true" />
+                }
+                
                 @if (Model.RelationshipStatus?.Any() == true)
                 {
                     <div class="relationship-status">
@@ -104,14 +117,3 @@
     }
 </div>
 
-@code {
-    private string GetMechanicTypeClass(MechanicEffectType type)
-    {
-        return type switch
-        {
-            MechanicEffectType.Positive => "mechanic-positive",
-            MechanicEffectType.Negative => "mechanic-negative",
-            _ => "mechanic-neutral"
-        };
-    }
-}

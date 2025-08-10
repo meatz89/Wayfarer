@@ -18,11 +18,13 @@ public class ConversationScreenBase : ComponentBase
     protected ConversationViewModel Model { get; set; }
     protected List<IInteractiveChoice> UnifiedChoices { get; set; }
     protected int CurrentAttention { get; set; }
+    protected Dictionary<ConnectionType, int> NpcTokens { get; set; }
     
     protected override async Task OnInitializedAsync()
     {
         await LoadConversation();
         RefreshAttentionState();
+        LoadTokenData();
     }
     
     protected async Task LoadConversation()
@@ -88,7 +90,11 @@ public class ConversationScreenBase : ComponentBase
     protected async Task HandleUnifiedChoice(IInteractiveChoice choice)
     {
         await SelectChoice(choice.Id);
-        RefreshAttentionState();
+        // SelectChoice already updates the Model and calls StateHasChanged
+        // Now load the fresh token data AFTER the choice has been fully processed
+        LoadTokenData(); // Load fresh token data after effects applied
+        RefreshAttentionState(); // Update attention state
+        StateHasChanged(); // Ensure UI refreshes with new data
     }
     
     protected async Task SelectChoice(string choiceId)
@@ -104,6 +110,8 @@ public class ConversationScreenBase : ComponentBase
             {
                 Model = updatedModel;
                 GenerateUnifiedChoices();
+                LoadTokenData(); // Reload tokens after processing choice
+                RefreshAttentionState(); // Update attention 
                 StateHasChanged();
                 Console.WriteLine($"[ConversationScreen] Conversation updated after choice");
             }
@@ -158,6 +166,92 @@ public class ConversationScreenBase : ComponentBase
         }
     }
     
+    protected void LoadTokenData()
+    {
+        if (!string.IsNullOrEmpty(NpcId))
+        {
+            var tokenBalance = GameFacade.GetTokensWithNPC(NpcId);
+            NpcTokens = new Dictionary<ConnectionType, int>();
+            
+            // Convert NPCTokenBalance to Dictionary
+            if (tokenBalance != null && tokenBalance.Balances != null)
+            {
+                foreach (var balance in tokenBalance.Balances)
+                {
+                    NpcTokens[balance.TokenType] = balance.Amount;
+                }
+            }
+            
+            // Ensure all token types are represented
+            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
+            {
+                if (!NpcTokens.ContainsKey(tokenType))
+                {
+                    NpcTokens[tokenType] = 0;
+                }
+            }
+        }
+    }
+    
+    protected string GetCurrentConversationContext()
+    {
+        // Determine context from the current choices or conversation state
+        if (UnifiedChoices != null && UnifiedChoices.Any())
+        {
+            // Check what types of choices are available
+            var hasHelp = UnifiedChoices.Any(c => c.Type == InteractionType.ConversationHelp);
+            var hasNegotiate = UnifiedChoices.Any(c => c.Type == InteractionType.ConversationNegotiate);
+            var hasInvestigate = UnifiedChoices.Any(c => c.Type == InteractionType.ConversationInvestigate);
+            
+            // Return the most relevant context
+            if (hasNegotiate) return "negotiate";
+            if (hasInvestigate) return "investigate";
+            if (hasHelp) return "help";
+        }
+        
+        // Default based on conversation state (check CharacterState text)
+        if (Model?.CharacterState?.Contains("desperate") == true || 
+            Model?.CharacterState?.Contains("urgent") == true) return "help";
+        if (Model?.CharacterState?.Contains("calculating") == true || 
+            Model?.CharacterState?.Contains("thoughtful") == true) return "negotiate";
+        
+        return "help"; // Default context
+    }
+    
+    protected string GetNpcRole()
+    {
+        // Determine NPC role from their ID or other context
+        // This would ideally come from NPC data, but we can infer from name/ID
+        if (string.IsNullOrEmpty(NpcId)) return null;
+        
+        var lowerNpcId = NpcId.ToLower();
+        
+        if (lowerNpcId.Contains("merchant") || lowerNpcId.Contains("trader") || lowerNpcId.Contains("shop"))
+            return "merchant";
+        if (lowerNpcId.Contains("noble") || lowerNpcId.Contains("lord") || lowerNpcId.Contains("lady"))
+            return "noble";
+        if (lowerNpcId.Contains("guard") || lowerNpcId.Contains("captain") || lowerNpcId.Contains("soldier"))
+            return "guard";
+        if (lowerNpcId.Contains("friend") || lowerNpcId == "elena" || lowerNpcId == "tam")
+            return "friend";
+        if (lowerNpcId.Contains("shadow") || lowerNpcId.Contains("informant"))
+            return "informant";
+            
+        // Check NPC name if available
+        if (Model?.NpcName != null)
+        {
+            var lowerName = Model.NpcName.ToLower();
+            if (lowerName.Contains("merchant") || lowerName.Contains("trader"))
+                return "merchant";
+            if (lowerName.Contains("lord") || lowerName.Contains("lady"))
+                return "noble";
+            if (lowerName == "elena" || lowerName == "tam")
+                return "friend";
+        }
+        
+        return null; // Unknown role
+    }
+    
     private InteractionType DetermineInteractionType(ConversationChoiceViewModel choice)
     {
         if (choice.AttentionCost == 0) return InteractionType.ConversationFree;
@@ -184,7 +278,20 @@ public class ConversationScreenBase : ComponentBase
         {
             foreach (var mechanic in choice.Mechanics)
             {
-                previews.Add($"{mechanic.Icon} {mechanic.Description}");
+                // Replace problematic Unicode in the description with Font Awesome icons
+                var description = mechanic.Description
+                    .Replace("⛓", "<i class='fas fa-link'></i>")
+                    .Replace("♥", "<i class='fas fa-heart'></i>")
+                    .Replace("⏱", "<i class='fas fa-clock'></i>")
+                    .Replace("ℹ", "<i class='fas fa-info-circle'></i>")
+                    .Replace("✓", "<i class='fas fa-check'></i>")
+                    .Replace("⚠", "<i class='fas fa-exclamation-triangle'></i>")
+                    .Replace("→", "<i class='fas fa-arrow-right'></i>")
+                    .Replace("🪙", "<i class='fas fa-coins'></i>")
+                    .Replace("🔍", "<i class='fas fa-search'></i>");
+                    
+                // Just add the description without icon - frontend will handle icon mapping
+                previews.Add(description);
             }
         }
         return previews;

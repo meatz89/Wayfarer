@@ -1,8 +1,15 @@
-﻿/* Header area */
+﻿/* Import Georgia font as primary */
+body {
+	font-family: 'Georgia', serif;
+	background: #0a0806;
+	color: #2c2416;
+}
+
+/* Header area */
 .encounter-header {
-	background-color: var(--bg-card);
+	background-color: #f9f7f3;
 	padding: 10px 20px;
-	border-bottom: 1px solid var(--oak-dark);
+	border-bottom: 1px solid #e8dfd0;
 	display: flex;
 	justify-content: space-between;
 }
@@ -16,28 +23,30 @@
 }
 
 .exit-conversation-btn {
-	background-color: var(--bg-card);
-	border: 2px solid var(--oak-mid);
+	background-color: #f9f7f3;
+	border: 2px solid #d4c5a0;
 	border-radius: 5px;
 	padding: 8px 16px;
 	cursor: pointer;
 	font-size: 14px;
-	color: var(--text-primary);
+	color: #2c2416;
 	transition: all 0.2s ease;
+	font-family: 'Georgia', serif;
 }
 
 .exit-conversation-btn:hover {
-	background-color: var(--bg-active);
-	border-color: var(--oak-dark);
+	background-color: white;
+	border-color: #b8a584;
 	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Text content */
 .narrative-text, .streaming-text {
 	line-height: 1.6;
-	font-family: var(--font-tertiary);
-	font-size: 1.2rem;
-	color: var(--text-primary);
+	font-family: 'Georgia', serif;
+	font-size: 15px;
+	color: #2c2416;
 	white-space: pre-line;
 	flex: 1;
 	overflow-y: auto;
@@ -54,20 +63,21 @@
 
 /* Individual choice */
 .choice-button {
-	background-color: var(--bg-card);
-	border-radius: 5px;
-	padding: 15px;
+	background-color: #f9f7f3;
+	border-radius: 6px;
+	padding: 12px;
 	cursor: pointer;
 	transition: all 0.2s ease;
 	text-align: left;
-	border: 1px solid var(--oak-mid);
-	border-left: 4px solid var(--leather);
+	border: 1px solid #e8dfd0;
+	font-family: 'Georgia', serif;
 }
 
 	.choice-button:hover {
-		background-color: var(--bg-active);
-		transform: translateY(-2px);
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		background-color: white;
+		border-color: #b8a584;
+		transform: translateX(4px);
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 	}
 
 .choice-header {
@@ -79,8 +89,10 @@
 }
 
 .choice-text {
-	font-family: var(--font-tertiary);
-	color: var(--text-primary);
+	font-family: 'Georgia', serif;
+	color: #2c2416;
+	font-style: italic;
+	font-size: 14px;
 }
 
 /* Loading indicator */
@@ -139,7 +151,7 @@
 }
 
 .attention-label {
-    color: var(--parchment);
+    color: #f4f1e8;
     font-size: 12px;
     margin-right: 8px;
     font-family: Georgia, serif;
@@ -318,8 +330,8 @@
     position: absolute;
     top: 8px;
     right: 8px;
-    background: var(--attention-gold);
-    color: var(--ink-black);
+    background: #ffd700;
+    color: #2c2416;
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 11px;
@@ -354,15 +366,15 @@
 }
 
 .mechanic-positive {
-    color: #4caf50;
+    color: #4caf50 !important;
 }
 
 .mechanic-negative {
-    color: #d32f2f;
+    color: #d32f2f !important;
 }
 
 .mechanic-neutral {
-    color: #2196f3;
+    color: #2196f3 !important;
 }
 
 /* ==================== Encounter Styles ==================== */

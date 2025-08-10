@@ -152,6 +152,24 @@ public class NPC
         return letter;
     }
     
+    // Check if NPC has an urgent letter to offer
+    public bool HasUrgentLetter()
+    {
+        // Simple random chance for now - in full implementation would check state
+        return new Random().Next(100) < 20; // 20% chance of urgent letter
+    }
+    
+    // Generate an urgent letter with tight deadline
+    public Letter GenerateUrgentLetter()
+    {
+        var letter = GenerateLetterOffer();
+        letter.DeadlineInHours = new Random().Next(2, 8); // Much tighter deadline
+        letter.Stakes = StakeType.SAFETY; // Higher stakes
+        letter.Payment = new Random().Next(15, 30); // Better payment for urgency
+        letter.Description = $"URGENT: {letter.Description}";
+        return letter;
+    }
+    
     private string GetRecipientNameByProfession()
     {
         return Profession switch
