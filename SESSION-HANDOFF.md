@@ -1,192 +1,121 @@
-# Session Handoff - Unified Action System Design
+# Session Handoff - Complete Wayfarer Implementation Fix
 
-## Latest Update: Tier System for Conversation Choices (2025-08-10)
+## Session Summary (Date: 2025-08-11)
 
-### What Was Done
-Added tier checking to the ConversationChoiceGenerator system, matching the pattern already implemented in ActionGenerator. Conversation choices are now gated by the player's tier level (T1: Stranger, T2: Associate, T3: Confidant).
+### Previous Context
+User implemented unified action system but discovered fundamental misalignments with the vision document. The current implementation has complex calculations when it should have simple, interconnected mechanics.
 
-### Files Modified
-- `/src/Game/ConversationSystem/VerbOrganizedChoiceGenerator.cs` - Added tier checking for all conversation verbs
+### Critical Issues Identified
 
-### Tier Requirements Implemented
+#### 1. Emotional State Calculation WRONG
+- **Current**: Complex weighted math (30% letter, 25% tokens, 20% history)
+- **Should Be**: Simple formula: Stakes + Time = State
+  - Personal Safety + <6h = DESPERATE
+  - Reputation + <12h = ANXIOUS
+  - Wealth = CALCULATING
+  - No letter = NEUTRAL
 
-#### HELP Verb
-- **T1 (Always Available)**: Accept letters, basic trust building
-- **T2 (Associate)**: Accept urgent letters, deeper commitments (+4 trust)
-- **T3 (Confidant)**: Deep bonds (+6 trust, also requires 5 existing trust)
+#### 2. Token Types Have No Distinct Mechanics
+- **Current**: All tokens work identically (just numbers)
+- **Should Be**:
+  - **Trust**: Affects deadlines (+2h per token)
+  - **Commerce**: Affects queue entry position
+  - **Status**: Affects letter tier access
+  - **Shadow**: Reveals hidden information
 
-#### NEGOTIATE Verb  
-- **T1 (Always Available)**: Simple swaps, queue interface
-- **T2 (Associate)**: Refuse letters, prioritize to position 1
-- **T3 (Confidant)**: Major token trades (5 Commerce → 3 Status)
+#### 3. Queue Manipulation Wrong
+- **Current**: Generic token burning
+- **Should Be**: Position-based costs (move 3 positions = 3 tokens)
 
-#### INVESTIGATE Verb
-- **T2 (Associate)**: ALL basic investigation (schedules, letters, networks)
-- **T3 (Confidant)**: Expose conspiracies (also requires 3 trust)
+#### 4. No Systemic Interconnection
+- **Current**: Systems work in isolation
+- **Should Be**: Letter properties → States → Choices → Tokens → Queue → Letters
 
-### Narrative Design Preserved
-- Lock messages feel like social barriers: "I'm not familiar enough..." instead of "Level too low"
-- Maintains the wayfarer fantasy - a stranger gradually earning trust and standing
-- Dual requirements (tier + tokens) create layered progression
+### Agent Consensus on Fix
 
-### Test File Created
-- `/src/test-tier-conversation-choices.cs` - Documents and validates the tier system design
+#### Implementation Approach (80 hours total)
+1. **Phase 1**: Simplify emotional states (8h)
+2. **Phase 2**: Token mechanics with debt system (15h)
+3. **Phase 2.5**: Consequence preview UI (10h)
+4. **Phase 3**: Queue manipulation (10h)
+5. **Phase 4**: Letter properties integration (15h)
+6. **Phase 5**: Literary presentation layer (15h)
+7. **Phase 6**: Content and testing (7h)
 
-### Known Issues
-- Multiple pre-existing compilation errors unrelated to tier system
-- These appear to be from incomplete refactoring of other systems
-
-### Next Steps
-1. Fix compilation errors in EmergentMechanicalEffects.cs and other files
-2. Test the tier system in-game with Playwright
-3. Verify that tier progression feels natural during play
-4. Consider adding visual indicators for locked choices in the UI
-
----
-
-## Previous Session Summary (Date: Earlier)
-
-### Context
-The user requested implementation of a unified action system where location actions and NPC conversation actions share the same attention resource pool. The system must use binary availability (actions are either available or not) based on tags and state, with a tier progression system (T1-T3) for letters and routes.
-
-### Key Constraints
-- NO HashSet, Dictionary, or untyped data structures
-- NO Func<> or delegate types  
-- Must REFACTOR existing code, not create new
-- Binary availability only (no variable costs)
-- AI will generate narrative content on-the-fly
-
-### What Was Discussed
-
-#### 1. Initial Proposal
-User proposed fully unified action system where location and conversation actions appear in same list, sharing attention pool, with tier-based progression.
-
-#### 2. Agent Analysis
-
-**Chen (Game Design)**: 
-- Strongly opposed full unification, calling it "menu soup"
-- Warned it would destroy the tension between exploration and social navigation
-- Supported tier system for progression but emphasized it must feel earned, not gated
-- Advocated for keeping contexts separate but making both meaningful
-
-**Kai (Systems Architect)**:
-- Designed technical implementation using strongly-typed structures
-- Proposed binary availability checker without HashSet/Dictionary
-- Created TierAccessList and ActionAvailability structures
-- Could implement either unified or separate technically
-
-**Jordan (Narrative Designer)**:
-- Initially supported unification with strong narrative framing
-- Proposed attention as "emotional bandwidth" metaphor
-- Suggested tier names reflect social standing (Stranger→Acquaintance→Associate→Confidant)
-- Ultimately agreed narrative goals achievable without mechanical unification
-
-**Alex (Content Production)**:
-- Calculated 39 hours for enhanced separation vs 126 hours for full unification
-- Warned against throwing away 687 lines of working code
-- Showed content explosion risk with unified system (210 tier variations)
-- Strongly recommended keeping systems separate
-
-**Priya (UI/UX Designer)**:
-- Identified "categorical confusion" problem with mixed action lists
-- Warned of cognitive overload and context pollution
-- Noted existing UnifiedChoice.razor already provides visual consistency
-- Recommended maintaining separation with shared resources
-
-### Final Decision: Enhanced Separation with Shared Resources
-
-**Consensus**: Keep ActionGenerator and ConversationChoiceGenerator separate, but share attention pool and add tier system.
+#### Critical Requirements
+- **Vertical Slice First**: One complete path (1 NPC, 1 location, 3 verbs)
+- **Token Debt Must Be Systemic**: Debt affects ALL interactions globally
+- **Preview System Mandatory**: Players must see consequences before acting
+- **Delete First, Build Second**: Remove complex systems entirely
 
 ### Implementation Plan
 
-#### Phase 1: Link Attention Pools (2 hours)
-```csharp
-// Both systems use same TimeBlockAttentionManager
-var attention = _timeBlockAttention.GetAttentionState();
-conversationChoices.FilterByAttention(attention);
-locationActions.FilterByAttention(attention);
-```
+#### Files to DELETE
+- NPCEmotionalStateCalculator.cs (270 lines of complexity)
+- LeverageCalculator.cs (entire leverage system)
+- All weighted calculation code
 
-#### Phase 2: Add Tier System (4 hours)
-```csharp
-public class TierAccessList
-{
-    private readonly bool[] _tiers = new bool[3]; // T1, T2, T3
-    public void SetAccess(int tier, bool hasAccess) => _tiers[tier-1] = hasAccess;
-    public bool HasAccess(int tier) => tier > 0 && tier <= 3 && _tiers[tier-1];
-}
-```
+#### Files to CREATE
+- SimplifiedEmotionalStateCalculator.cs (~50 lines)
+- TokenEffectRegistry.cs (~100 lines)
+- LetterPropertyHub.cs (~150 lines)
+- ConsequencePreviewSystem.cs (~200 lines)
 
-#### Phase 3: Binary Availability (2 hours)
-```csharp
-public class ActionAvailability 
-{
-    public string ActionId { get; set; }
-    public bool IsAvailable { get; set; }
-    public string RequiredTag { get; set; }
-    public int RequiredTier { get; set; }
-    public string UnavailableReason { get; set; }
-}
-```
+#### Files to REFACTOR
+- LetterQueueManager.cs (position-based costs)
+- ConnectionTokenManager.cs (unique token mechanics)
+- ConversationChoiceGenerator.cs (state-driven choices)
 
-#### Phase 4: Content Creation (31 hours)
-- Tier-appropriate descriptions for actions
-- Testing all combinations
-- AI prompt templates for dynamic generation
+### Current Implementation Status
 
-### What Exists in Codebase
+#### Completed
+✅ Unified action system architecture
+✅ Tier system (T1-T3) implementation
+✅ Binary availability checker
+✅ Shared attention pools
+✅ Route and letter tier systems
 
-#### Working Systems to Keep:
-- `ActionGenerator.cs` (377 lines) - Generates location actions
-- `ConversationChoiceGenerator.cs` (310 lines) - Generates NPC choices  
-- `VerbOrganizedChoiceGenerator.cs` - HELP/NEGOTIATE/INVESTIGATE verbs
-- `TimeBlockAttentionManager.cs` - Already manages attention per time block
-- `UnifiedChoice.razor` - UI component for consistent display
-- `LocationTags.cs` - Tag-based action enabling (needs HashSet removal)
+#### In Progress
+🔄 Vertical slice implementation (Elena, Copper Kettle, 3 verbs)
+🔄 Simplifying emotional state calculator
 
-#### Systems Needing Refactor:
-- Remove HashSet usage in LocationTags.cs (use List<string>)
-- Add tier checks to both generators
-- Create binary availability checker
-- Link attention pools between systems
+#### Pending
+⏳ Token mechanics with debt system
+⏳ Consequence preview UI
+⏳ Position-based queue costs
+⏳ Literary presentation layer
+⏳ Full system interconnection
 
-### Key Design Principles Established
+### Key Design Principles (From Vision)
 
-1. **Separation Creates Focus**: Location exploration and NPC conversations are distinct mental modes
-2. **Shared Resources, Not Shared Lists**: Same attention pool, different contexts
-3. **Binary Availability**: Actions either available or not, no variable costs
-4. **Tier Progression**: T1-T3 represents social standing and trust, not arbitrary gates
-5. **AI Generation**: Reduces content burden from 126 to 39 hours
+1. **Emotional States = Stakes + Time** (not calculations)
+2. **Every System Interconnects** (no isolation)
+3. **Players Never See Machinery** (literary presentation)
+4. **Mechanics Generate Narrative** (not skin over mechanics)
+5. **Simple Rules Create Depth** (through interconnection)
 
-### Risks and Mitigations
+### Production Notes
 
-**Risk**: Players confused by attention spanning both systems
-**Mitigation**: Clear UI indicators showing attention is universal resource
+- **Vertical Slice by Hour 20**: Critical milestone
+- **Save System Will Break**: Needs complete rewrite (+5h)
+- **Content Creation**: 45 conversation combinations needed
+- **Testing Buffer**: Add 50% to all estimates
 
-**Risk**: Tier system feels like arbitrary gating
-**Mitigation**: Frame as social standing (Stranger/Associate/Confidant) not numbers
+### Agent Insights
 
-**Risk**: Binary availability too restrictive
-**Mitigation**: Always ensure 3-5 meaningful choices available
+- **Chen**: "Token debt must hurt EVERYWHERE or tension collapses"
+- **Jordan**: "Mechanics are story - don't hide them, celebrate them"
+- **Alex**: "Vertical slice or we're in trouble"
+- **Priya**: "Preview everything - players must feel clever, not lucky"
+- **Kai**: "Delete first, build second - legacy code poisons implementation"
 
-### Next Steps
+### Next Immediate Steps
 
-1. Refactor LocationTags.cs to remove HashSet usage
-2. Add tier checking to ActionGenerator
-3. Link attention pools in both generators
-4. Test binary availability with actual gameplay
-5. Create AI prompt templates for tier-based narrative generation
-
-### Total Estimated Time: 39 hours
-- Technical implementation: 8 hours
-- Content creation: 31 hours
-- Risk: LOW (using existing, working systems)
-
-### Session Notes
-- User emphasized tier systems are required, not optional
-- AI generation will handle narrative variety, reducing content burden
-- Must refactor existing code rather than creating new systems
-- Strong consensus against full unification despite initial proposal
+1. Create SimplifiedEmotionalStateCalculator
+2. Implement Elena vertical slice
+3. Add token debt system
+4. Build consequence preview
+5. Test with Playwright
 
 ---
-*End of Session Handoff*
+*Session continues with full implementation...*

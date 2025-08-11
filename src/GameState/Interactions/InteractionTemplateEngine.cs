@@ -260,7 +260,7 @@ public class InteractionTemplateEngine
     private Dictionary<string, string> DetermineNPCContext(NPC npc)
     {
         // Generate appropriate context based on NPC state
-        // TODO: Get actual emotional state from NPCEmotionalStateCalculator
+        // TODO: Get actual emotional state from NPCStateResolver
         return new()
         {
             ["npc_name"] = npc.Name,

@@ -73,8 +73,8 @@ public static class ServiceConfiguration
         // Literary UI System - attention, NPC states, verb contextualization
         services.AddLiteraryUISystem();
         
-        // Register NPCEmotionalStateCalculator with all dependencies
-        services.AddSingleton<NPCEmotionalStateCalculator>();
+        // Register NPCStateResolver with all dependencies
+        services.AddSingleton<NPCStateResolver>();
 
         // Managers that depend on TimeManager
         services.AddSingleton<TravelManager>();

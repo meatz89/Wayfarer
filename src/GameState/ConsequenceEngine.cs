@@ -137,7 +137,7 @@ namespace Wayfarer.GameState
                 _ => EmotionalState.Closed
             };
             
-            // TODO: Store the emotional state change when NPCEmotionalStateCalculator supports it
+            // TODO: Store the emotional state change when NPCStateResolver supports it
             // For now, just show the message
             
             if (newState != EmotionalState.Neutral)

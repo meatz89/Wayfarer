@@ -9,47 +9,32 @@ using Wayfarer.GameState;
 /// </summary>
 public enum NPCEmotionalState
 {
-    DESPERATE,    // Urgent need (high pressure from multiple factors)
-    HOSTILE,      // Angry (overdue letters, betrayed trust, broken obligations)
-    CALCULATING,  // Balanced pressure, normal interaction
-    WITHDRAWN     // No engagement (no letters, no relationship), limited options
+    DESPERATE,    // Personal Safety + <6h deadline
+    ANXIOUS,      // Personal Safety + >6h, Reputation + <12h, Secrets + <6h 
+    CALCULATING,  // Reputation + >12h, Wealth always, Secrets + >6h
+    HOSTILE,      // Overdue letters
+    WITHDRAWN     // No letters in queue
 }
 
 /// <summary>
-/// Calculates NPC emotional states based on multiple weighted factors.
+/// Resolves NPC emotional states using simple Stakes + Time formula.
 /// This is the core of the literary UI system - emotional states emerge from game state.
 /// </summary>
-public class NPCEmotionalStateCalculator
+public class NPCStateResolver
 {
     private readonly LetterQueueManager _letterQueueManager;
-    private readonly ConnectionTokenManager _tokenManager;
     private readonly ITimeManager _timeManager;
-    private readonly StandingObligationManager _obligationManager;
-    private readonly ConsequenceEngine _consequenceEngine;
 
-    // Multi-factor weights for emotional state calculation
-    private const float LETTER_PRESSURE_WEIGHT = 0.30f;  // 30% - urgency and stakes of letters
-    private const float TOKEN_RELATIONSHIP_WEIGHT = 0.25f; // 25% - current token relationships
-    private const float HISTORY_WEIGHT = 0.20f;          // 20% - past failures/successes
-    private const float TIME_CONSTRAINT_WEIGHT = 0.15f;  // 15% - current time of day vs deadlines
-    private const float OBLIGATION_WEIGHT = 0.10f;       // 10% - standing obligations
-
-    public NPCEmotionalStateCalculator(
+    public NPCStateResolver(
         LetterQueueManager letterQueueManager,
-        ConnectionTokenManager tokenManager = null,
-        ITimeManager timeManager = null,
-        StandingObligationManager obligationManager = null,
-        ConsequenceEngine consequenceEngine = null)
+        ITimeManager timeManager = null)
     {
         _letterQueueManager = letterQueueManager;
-        _tokenManager = tokenManager;
         _timeManager = timeManager;
-        _obligationManager = obligationManager;
-        _consequenceEngine = consequenceEngine;
     }
 
     /// <summary>
-    /// Calculate an NPC's emotional state based on multiple weighted factors
+    /// Resolve an NPC's emotional state using simple Stakes + Time formula
     /// </summary>
     public NPCEmotionalState CalculateState(NPC npc)
     {
@@ -59,157 +44,49 @@ public class NPCEmotionalStateCalculator
         var theirLetters = queue.Where(l => 
             l.SenderId == npc.ID || l.SenderName == npc.Name).ToList();
 
-        Console.WriteLine($"[NPCEmotionalStateCalculator] Calculating state for {npc.Name} (ID: {npc.ID})");
+        Console.WriteLine($"[NPCStateResolver] Resolving state for {npc.Name} (ID: {npc.ID})");
         
-        // Quick check for immediate triggers
-        if (theirLetters.Any(l => l.DeadlineInHours <= 0))
+        // No letters = WITHDRAWN
+        if (!theirLetters.Any())
         {
-            Console.WriteLine($"[NPCEmotionalStateCalculator] Found overdue letter - returning HOSTILE");
-            return NPCEmotionalState.HOSTILE;
-        }
-
-        // Calculate multi-factor emotional pressure
-        float totalPressure = 0f;
-        
-        // Factor 1: Letter Pressure (30%)
-        float letterPressure = CalculateLetterPressure(theirLetters);
-        totalPressure += letterPressure * LETTER_PRESSURE_WEIGHT;
-        
-        // Factor 2: Token Relationships (25%)
-        if (_tokenManager != null)
-        {
-            float tokenPressure = CalculateTokenPressure(npc);
-            totalPressure += tokenPressure * TOKEN_RELATIONSHIP_WEIGHT;
-        }
-        
-        // Factor 3: History (20%)
-        if (_consequenceEngine != null)
-        {
-            float historyPressure = CalculateHistoryPressure(npc);
-            totalPressure += historyPressure * HISTORY_WEIGHT;
-        }
-        
-        // Factor 4: Time Constraints (15%)
-        if (_timeManager != null)
-        {
-            float timePressure = CalculateTimePressure(theirLetters);
-            totalPressure += timePressure * TIME_CONSTRAINT_WEIGHT;
-        }
-        
-        // Factor 5: Obligations (10%)
-        if (_obligationManager != null)
-        {
-            float obligationPressure = CalculateObligationPressure(npc);
-            totalPressure += obligationPressure * OBLIGATION_WEIGHT;
-        }
-
-        Console.WriteLine($"[NPCEmotionalStateCalculator] Total pressure: {totalPressure:F2}");
-        Console.WriteLine($"  - Letter: {letterPressure:F2}, Token: {(_tokenManager != null ? CalculateTokenPressure(npc) : 0):F2}");
-        
-        // Map total pressure to emotional state
-        if (totalPressure >= 0.75f)
-        {
-            return NPCEmotionalState.DESPERATE;
-        }
-        else if (totalPressure >= 0.5f)
-        {
-            return NPCEmotionalState.HOSTILE;
-        }
-        else if (theirLetters.Any() || (_tokenManager != null && HasAnyTokens(npc)))
-        {
-            return NPCEmotionalState.CALCULATING;
-        }
-        else
-        {
+            Console.WriteLine($"[NPCStateResolver] No letters - returning WITHDRAWN");
             return NPCEmotionalState.WITHDRAWN;
         }
-    }
-    
-    private float CalculateLetterPressure(List<Letter> letters)
-    {
-        if (!letters.Any()) return 0f;
         
-        float pressure = 0f;
-        foreach (var letter in letters)
+        // Check for overdue letters first = HOSTILE
+        if (theirLetters.Any(l => l.DeadlineInHours <= 0))
         {
-            // Urgency component
-            if (letter.DeadlineInHours <= 1) pressure += 0.4f;
-            else if (letter.DeadlineInHours <= 3) pressure += 0.2f;
-            else if (letter.DeadlineInHours <= 6) pressure += 0.1f;
+            Console.WriteLine($"[NPCStateResolver] Found overdue letter - returning HOSTILE");
+            return NPCEmotionalState.HOSTILE;
+        }
+
+        // Find most urgent letter to determine state
+        var mostUrgent = theirLetters.OrderBy(l => l.DeadlineInHours).First();
+        var hoursRemaining = mostUrgent.DeadlineInHours;
+        
+        Console.WriteLine($"[NPCStateResolver] Most urgent letter: {mostUrgent.Stakes} with {hoursRemaining}h remaining");
+        
+        // Apply simple Stakes + Time formula
+        return (mostUrgent.Stakes, hoursRemaining) switch
+        {
+            // Personal Safety
+            (StakeType.SAFETY, <= 6) => NPCEmotionalState.DESPERATE,
+            (StakeType.SAFETY, > 6) => NPCEmotionalState.ANXIOUS,
             
-            // Stakes component
-            if (letter.Stakes == StakeType.SAFETY) pressure += 0.3f;
-            else if (letter.Stakes == StakeType.SECRET) pressure += 0.2f;
-            else if (letter.Stakes == StakeType.REPUTATION) pressure += 0.15f;
-            else if (letter.Stakes == StakeType.WEALTH) pressure += 0.1f;
+            // Reputation  
+            (StakeType.REPUTATION, <= 12) => NPCEmotionalState.ANXIOUS,
+            (StakeType.REPUTATION, > 12) => NPCEmotionalState.CALCULATING,
             
-            // Position component (letters stuck in bad positions)
-            var position = _letterQueueManager.GetLetterPosition(letter.Id);
-            if (position.HasValue && position.Value > 4) pressure += 0.1f;
-        }
-        
-        return Math.Min(1f, pressure / Math.Max(1, letters.Count));
-    }
-    
-    private float CalculateTokenPressure(NPC npc)
-    {
-        var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
-        
-        // Negative tokens create pressure
-        float pressure = 0f;
-        foreach (var kvp in tokens)
-        {
-            if (kvp.Value < 0)
-            {
-                pressure += Math.Abs(kvp.Value) * 0.1f;
-            }
-        }
-        
-        // Lack of any positive relationship also creates pressure
-        if (!tokens.Any(kvp => kvp.Value > 0))
-        {
-            pressure += 0.2f;
-        }
-        
-        return Math.Min(1f, pressure);
-    }
-    
-    private float CalculateHistoryPressure(NPC npc)
-    {
-        // This would check consequence history for this NPC
-        // For now, return moderate pressure
-        return 0.3f;
-    }
-    
-    private float CalculateTimePressure(List<Letter> letters)
-    {
-        if (!letters.Any()) return 0f;
-        
-        var currentHour = _timeManager.GetCurrentTimeHours();
-        var remainingHours = 22 - currentHour; // Hours until late night
-        
-        // Check if we have enough time to deliver urgent letters
-        var urgentCount = letters.Count(l => l.DeadlineInHours <= remainingHours);
-        
-        if (urgentCount > 2) return 0.8f;
-        if (urgentCount > 1) return 0.5f;
-        if (urgentCount > 0) return 0.3f;
-        
-        return 0f;
-    }
-    
-    private float CalculateObligationPressure(NPC npc)
-    {
-        var obligations = _obligationManager.GetActiveObligations()
-            .Where(o => o.RelatedNPCId == npc.ID);
-        
-        return obligations.Any() ? 0.5f : 0f;
-    }
-    
-    private bool HasAnyTokens(NPC npc)
-    {
-        var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
-        return tokens.Any(kvp => kvp.Value != 0);
+            // Wealth - always calculating
+            (StakeType.WEALTH, _) => NPCEmotionalState.CALCULATING,
+            
+            // Secrets
+            (StakeType.SECRET, <= 6) => NPCEmotionalState.ANXIOUS,
+            (StakeType.SECRET, > 6) => NPCEmotionalState.CALCULATING,
+            
+            // Default fallback
+            _ => NPCEmotionalState.CALCULATING
+        };
     }
 
     /// <summary>
@@ -220,6 +97,7 @@ public class NPCEmotionalStateCalculator
         return state switch
         {
             NPCEmotionalState.DESPERATE => "😰",
+            NPCEmotionalState.ANXIOUS => "😟",
             NPCEmotionalState.HOSTILE => "😠",
             NPCEmotionalState.CALCULATING => "🤔",
             NPCEmotionalState.WITHDRAWN => "😐",
@@ -242,6 +120,15 @@ public class NPCEmotionalStateCalculator
                 "glancing over their shoulder, voice barely a whisper",
             (NPCEmotionalState.DESPERATE, StakeType.SECRET) => 
                 "leaning close, hands trembling slightly",
+            
+            (NPCEmotionalState.ANXIOUS, StakeType.REPUTATION) => 
+                "shifting weight nervously, eyes searching yours",
+            (NPCEmotionalState.ANXIOUS, StakeType.WEALTH) => 
+                "wringing hands, forced smile not reaching their eyes",
+            (NPCEmotionalState.ANXIOUS, StakeType.SAFETY) => 
+                "tense shoulders, ready to flee at any moment",
+            (NPCEmotionalState.ANXIOUS, StakeType.SECRET) => 
+                "hushed voice, constantly checking surroundings",
             
             (NPCEmotionalState.HOSTILE, StakeType.REPUTATION) => 
                 "chin raised, eyes cold with disdain",
@@ -276,6 +163,7 @@ public class NPCEmotionalStateCalculator
         return state switch
         {
             NPCEmotionalState.DESPERATE => -1,  // Easier to interact with
+            NPCEmotionalState.ANXIOUS => 0,     // Normal cost
             NPCEmotionalState.HOSTILE => 1,     // Harder to interact with
             NPCEmotionalState.CALCULATING => 0, // Normal cost
             NPCEmotionalState.WITHDRAWN => 0,   // Normal cost but fewer options
@@ -345,6 +233,18 @@ public class NPCEmotionalStateCalculator
             (NPCEmotionalState.DESPERATE, StakeType.SECRET) =>
                 $"The letter... it contains {stakesHint}. {urgency} If the wrong people learn of this...",
                 
+            (NPCEmotionalState.ANXIOUS, StakeType.REPUTATION) =>
+                $"My {stakesHint} hangs in the balance. {urgency} Please, I need your help.",
+                
+            (NPCEmotionalState.ANXIOUS, StakeType.SAFETY) =>
+                $"The {stakesHint} worries me deeply. {urgency} Can you prioritize this?",
+                
+            (NPCEmotionalState.ANXIOUS, StakeType.SECRET) =>
+                $"That {stakesHint}... {urgency} I'm concerned about who might be watching.",
+                
+            (NPCEmotionalState.ANXIOUS, StakeType.WEALTH) =>
+                $"The {stakesHint} needs attention. {urgency} Time is money, as they say.",
+                
             (NPCEmotionalState.HOSTILE, StakeType.REPUTATION) =>
                 $"You still haven't delivered my letter about {stakesHint}. {urgency} This negligence is unacceptable.",
                 
@@ -379,7 +279,9 @@ public class NPCEmotionalStateCalculator
         {
             NPCEmotionalState.WITHDRAWN => $"{npc.Name} barely acknowledges your presence.",
             NPCEmotionalState.CALCULATING => $"{npc.Name} watches you with measured interest.",
+            NPCEmotionalState.ANXIOUS => $"{npc.Name} seems worried about something.",
             NPCEmotionalState.HOSTILE => $"{npc.Name} glares at you with barely concealed anger.",
+            NPCEmotionalState.DESPERATE => $"{npc.Name} looks at you with pleading eyes.",
             _ => $"{npc.Name} seems preoccupied."
         };
     }
