@@ -63,8 +63,8 @@ public class Letter
     // Literary UI properties - drives narrative generation
     public StakeType Stakes { get; set; } = StakeType.REPUTATION;
 
-    // Tier system (1-5) for difficulty progression
-    public int Tier { get; set; } = 1;
+    // Tier system (T1-T3) for difficulty progression
+    public TierLevel Tier { get; set; } = TierLevel.T1;
 
     // Three-state system
     public LetterState State { get; set; } = LetterState.Offered;

@@ -1,0 +1,244 @@
+/* Simple Travel UI - Focused and minimal */
+
+.simple-travel-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f7f3;
+    font-family: 'Georgia', serif;
+}
+
+/* Header */
+.travel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.travel-title {
+    font-size: 1.2rem;
+    color: #2c2416;
+    margin: 0;
+    font-weight: normal;
+}
+
+.travel-back-btn {
+    background: transparent;
+    border: 1px solid #d4c5a0;
+    color: #2c2416;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.travel-back-btn:hover {
+    background-color: white;
+    border-color: #b8a584;
+}
+
+/* Resource bar - minimal, only essentials */
+.travel-resources-bar {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #faf8f4;
+    border-radius: 4px;
+}
+
+.resource-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #2c2416;
+}
+
+.resource-indicator.penalty {
+    color: #8b6c42;
+}
+
+.resource-icon {
+    font-size: 1rem;
+}
+
+.resource-value {
+    font-size: 0.95rem;
+    font-weight: normal;
+}
+
+/* Destination list */
+.destination-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.destination-item {
+    background-color: white;
+    border: 1px solid #e8dfd0;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.destination-header {
+    margin-bottom: 10px;
+}
+
+.destination-name {
+    font-size: 1rem;
+    color: #2c2416;
+    margin: 0;
+    font-weight: normal;
+}
+
+/* Route options - styled like conversation choices */
+.route-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.route-option {
+    background-color: #f9f7f3;
+    border: 1px solid #e8dfd0;
+    border-radius: 4px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Georgia', serif;
+    width: 100%;
+    text-align: left;
+}
+
+.route-option:hover:not(.disabled) {
+    background-color: white;
+    border-color: #b8a584;
+    transform: translateX(4px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.route-option.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.route-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #2c2416;
+    font-size: 0.9rem;
+}
+
+.route-method {
+    font-size: 1.1rem;
+}
+
+.route-time,
+.route-stamina,
+.route-cost {
+    color: #5a4a3a;
+}
+
+.route-blocker {
+    font-size: 0.85rem;
+    color: #8b6c42;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Locked routes - minimal info */
+.route-locked {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background-color: #faf8f4;
+    border-radius: 4px;
+    color: #8b6c42;
+    font-size: 0.9rem;
+}
+
+.lock-icon {
+    font-size: 1rem;
+}
+
+.unlock-hint {
+    font-style: italic;
+}
+
+.no-routes {
+    color: #8b6c42;
+    font-style: italic;
+    font-size: 0.9rem;
+    padding: 8px;
+}
+
+/* Deadline warning - minimal overlay */
+.deadline-warning-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.deadline-warning-box {
+    background-color: #f9f7f3;
+    border: 2px solid #d4c5a0;
+    border-radius: 4px;
+    padding: 20px;
+    max-width: 400px;
+    font-family: 'Georgia', serif;
+}
+
+.deadline-warning-box h4 {
+    margin: 0 0 10px 0;
+    color: #2c2416;
+    font-weight: normal;
+}
+
+.deadline-warning-box p {
+    color: #8b6c42;
+    margin: 0 0 15px 0;
+}
+
+.warning-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.warning-button {
+    background-color: #f9f7f3;
+    border: 1px solid #d4c5a0;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.warning-button:hover {
+    background-color: white;
+    border-color: #b8a584;
+}
+
+.warning-button.confirm {
+    background-color: #e8dfd0;
+}
+
+.warning-button.cancel {
+    background-color: white;
+}

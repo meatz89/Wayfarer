@@ -60,14 +60,16 @@ public class LetterReorderEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
+        string npcName = GetNpcDisplayName(_npcId);
         var desc = new MechanicalEffectDescription
         {
             Text = _tokenCost > 0 
-                ? $"Move letter to position {_targetPosition} | -{_tokenCost} {_tokenType} token{(_tokenCost != 1 ? "s" : "")}"
+                ? $"Move to slot {_targetPosition} (burn {_tokenCost} {_tokenType} with {npcName})"
                 : $"Move letter to position {_targetPosition}",
             Category = EffectCategory.LetterReorder,
             LetterPosition = _targetPosition,
-            LetterId = _letterId
+            LetterId = _letterId,
+            NpcId = _npcId
         };
         
         if (_tokenCost > 0)
@@ -77,6 +79,19 @@ public class LetterReorderEffect : IMechanicalEffect
         }
         
         return new List<MechanicalEffectDescription> { desc };
+    }
+    
+    private string GetNpcDisplayName(string npcId)
+    {
+        return npcId switch
+        {
+            "elena" => "Elena",
+            "marcus" => "Brother Marcus",
+            "lord_aldwin" => "Lord Aldwin",
+            "captain_thorne" => "Captain Thorne",
+            "sister_agatha" => "Sister Agatha",
+            _ => "them"
+        };
     }
 }
 
@@ -111,16 +126,34 @@ public class GainTokensEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
+        // Get NPC name for clarity
+        string npcName = GetNpcDisplayName(_npcId);
+        
         return new List<MechanicalEffectDescription>
         {
             new MechanicalEffectDescription
             {
-                Text = $"+{_amount} {_tokenType} token{(_amount != 1 ? "s" : "")}",
+                Text = $"+{_amount} {_tokenType} with {npcName}",
                 Category = EffectCategory.TokenGain,
                 TokenType = _tokenType,
                 TokenAmount = _amount,
                 NpcId = _npcId
             }
+        };
+    }
+    
+    private string GetNpcDisplayName(string npcId)
+    {
+        // TODO: Get from NPC repository or pass in constructor
+        // For now, use a reasonable default
+        return npcId switch
+        {
+            "elena" => "Elena",
+            "marcus" => "Brother Marcus",
+            "lord_aldwin" => "Lord Aldwin",
+            "captain_thorne" => "Captain Thorne",
+            "sister_agatha" => "Sister Agatha",
+            _ => "them"
         };
     }
 }
@@ -158,16 +191,34 @@ public class BurnTokensEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
+        // Get NPC name for clarity
+        string npcName = GetNpcDisplayName(_npcId);
+        
         return new List<MechanicalEffectDescription>
         {
             new MechanicalEffectDescription
             {
-                Text = $"-{_amount} {_tokenType} token{(_amount != 1 ? "s" : "")}",
+                Text = $"Burn {_amount} {_tokenType} with {npcName}",
                 Category = EffectCategory.TokenSpend,
                 TokenType = _tokenType,
                 TokenAmount = _amount,
                 NpcId = _npcId
             }
+        };
+    }
+    
+    private string GetNpcDisplayName(string npcId)
+    {
+        // TODO: Get from NPC repository or pass in constructor
+        // For now, use a reasonable default
+        return npcId switch
+        {
+            "elena" => "Elena",
+            "marcus" => "Brother Marcus",
+            "lord_aldwin" => "Lord Aldwin",
+            "captain_thorne" => "Captain Thorne",
+            "sister_agatha" => "Sister Agatha",
+            _ => "them"
         };
     }
 }
@@ -646,13 +697,31 @@ public class CreateBindingObligationEffect : IMechanicalEffect
         state.Player.StandingObligations.Add(obligation);
     }
 
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
-        new MechanicalEffectDescription {
-            Text = "Creates Binding Obligation",
-            Category = EffectCategory.ObligationCreate,
-            IsObligationBinding = true
-        }
-    };
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() 
+    {
+        string npcName = GetNpcDisplayName(_npcId);
+        return new List<MechanicalEffectDescription> {
+            new MechanicalEffectDescription {
+                Text = $"⚠️ Binding Obligation to {npcName} (permanent)",
+                Category = EffectCategory.ObligationCreate,
+                IsObligationBinding = true,
+                NpcId = _npcId
+            }
+        };
+    }
+    
+    private string GetNpcDisplayName(string npcId)
+    {
+        return npcId switch
+        {
+            "elena" => "Elena",
+            "marcus" => "Brother Marcus",
+            "lord_aldwin" => "Lord Aldwin",
+            "captain_thorne" => "Captain Thorne",
+            "sister_agatha" => "Sister Agatha",
+            _ => "them"
+        };
+    }
 }
 
 /// <summary>
@@ -681,7 +750,7 @@ public class DeepInvestigationEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
-            Text = $"Deep investigation: {_topic}",
+            Text = $"🔍 Uncover: {_topic}",
             Category = EffectCategory.InformationGain,
             IsInformationRevealed = true
         }

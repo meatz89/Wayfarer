@@ -14,6 +14,9 @@ public class Player
     public int Level { get; set; } = 1;
     public int CurrentXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = GameConstants.Game.XP_TO_NEXT_LEVEL_BASE;
+    
+    // Tier system (T1: Stranger, T2: Associate, T3: Confidant)
+    public TierLevel CurrentTier { get; set; } = TierLevel.T1;
 
     // Resources
     public int Coins { get; set; } = 10; // Starting coins - intentionally kept as literal as it's game balance
@@ -647,5 +650,129 @@ public class Player
     public bool UnequipSeal(Seal seal)
     {
         return WornSeals.Remove(seal);
+    }
+
+    /// <summary>
+    /// Get connection tokens with a specific NPC.
+    /// Returns a connection object that can be modified.
+    /// </summary>
+    public NPCConnection GetConnection(string npcId, ConnectionType tokenType)
+    {
+        // Initialize NPC token tracking if needed
+        if (!NPCTokens.ContainsKey(npcId))
+        {
+            NPCTokens[npcId] = new Dictionary<ConnectionType, int>();
+            foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+            {
+                NPCTokens[npcId][type] = 0;
+            }
+        }
+
+        // Return a connection wrapper that can be modified
+        return new NPCConnection(this, npcId, tokenType);
+    }
+
+    /// <summary>
+    /// Get total token count across all NPCs and types.
+    /// Used for progression and special letter generation.
+    /// </summary>
+    public int GetTotalTokenCount()
+    {
+        int total = 0;
+        foreach (var tokenCounts in NPCTokens.Values)
+        {
+            total += tokenCounts.Values.Sum();
+        }
+        return total;
+    }
+    
+    /// <summary>
+    /// Updates player tier based on deliveries and trust tokens.
+    /// T1 (Stranger): Default starting tier
+    /// T2 (Associate): 5+ deliveries OR 10+ total tokens
+    /// T3 (Confidant): 15+ deliveries AND 25+ total tokens
+    /// </summary>
+    public void UpdateTier()
+    {
+        int totalTokens = GetTotalTokenCount();
+        int totalDeliveries = TotalLettersDelivered;
+        
+        TierLevel newTier = TierLevel.T1;
+        
+        // Check for T3 (Confidant) - requires both deliveries AND tokens
+        if (totalDeliveries >= 15 && totalTokens >= 25)
+        {
+            newTier = TierLevel.T3;
+        }
+        // Check for T2 (Associate) - requires deliveries OR tokens
+        else if (totalDeliveries >= 5 || totalTokens >= 10)
+        {
+            newTier = TierLevel.T2;
+        }
+        
+        CurrentTier = newTier;
+    }
+    
+    /// <summary>
+    /// Get the display name for the current tier.
+    /// </summary>
+    public string GetTierDisplayName()
+    {
+        return CurrentTier switch
+        {
+            TierLevel.T1 => "Stranger",
+            TierLevel.T2 => "Associate", 
+            TierLevel.T3 => "Confidant",
+            _ => "Stranger"
+        };
+    }
+}
+
+/// <summary>
+/// Wrapper class for NPC connections that allows token manipulation.
+/// CONTENT EFFICIENT: Works with existing token system.
+/// </summary>
+public class NPCConnection
+{
+    private readonly Player _player;
+    private readonly string _npcId;
+    private readonly ConnectionType _tokenType;
+
+    public NPCConnection(Player player, string npcId, ConnectionType tokenType)
+    {
+        _player = player;
+        _npcId = npcId;
+        _tokenType = tokenType;
+    }
+
+    public int GetCurrentValue()
+    {
+        if (_player.NPCTokens.ContainsKey(_npcId) && 
+            _player.NPCTokens[_npcId].ContainsKey(_tokenType))
+        {
+            return _player.NPCTokens[_npcId][_tokenType];
+        }
+        return 0;
+    }
+
+    public void AdjustValue(int amount)
+    {
+        // Ensure NPC tracking exists
+        if (!_player.NPCTokens.ContainsKey(_npcId))
+        {
+            _player.NPCTokens[_npcId] = new Dictionary<ConnectionType, int>();
+            foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+            {
+                _player.NPCTokens[_npcId][type] = 0;
+            }
+        }
+
+        // Adjust the token value
+        int currentValue = _player.NPCTokens[_npcId].GetValueOrDefault(_tokenType, 0);
+        _player.NPCTokens[_npcId][_tokenType] = Math.Max(0, currentValue + amount);
+
+        // Also update global token count
+        int globalValue = _player.ConnectionTokens.GetValueOrDefault(_tokenType, 0);
+        _player.ConnectionTokens[_tokenType] = Math.Max(0, globalValue + amount);
     }
 }

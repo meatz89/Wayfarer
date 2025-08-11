@@ -12,7 +12,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "Down the stairs from your room to the market square."
+		"description": "Down the stairs from your room to the market square.",
+		"tierRequired": "T1"
 	},
 	{
 		"id": "market_to_room",
@@ -27,7 +28,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "Back up the stairs to your room."
+		"description": "Back up the stairs to your room.",
+		"tierRequired": "T1"
 	},
 	{
 		"id": "market_to_noble",
@@ -42,7 +44,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "The uphill road to the noble district."
+		"description": "The uphill road to the noble district.",
+		"tierRequired": "T2"
 	},
 	{
 		"id": "noble_to_market",
@@ -57,7 +60,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "The downhill path back to the market."
+		"description": "The downhill path back to the market.",
+		"tierRequired": "T2"
 	},
 	{
 		"id": "market_to_merchants",
@@ -72,7 +76,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "A short walk to the merchant district."
+		"description": "A short walk to the merchant district.",
+		"tierRequired": "T1"
 	},
 	{
 		"id": "merchants_to_market",
@@ -87,7 +92,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "Back to the central market square."
+		"description": "Back to the central market square.",
+		"tierRequired": "T1"
 	},
 	{
 		"id": "market_to_gates",
@@ -102,7 +108,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "The main road to the city gates."
+		"description": "The main road to the city gates.",
+		"tierRequired": "T1"
 	},
 	{
 		"id": "gates_to_market",
@@ -117,7 +124,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "Back to the market square from the gates."
+		"description": "Back to the market square from the gates.",
+		"tierRequired": "T1"
 	},
 	{
 		"id": "market_to_riverside",
@@ -132,7 +140,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "A longer walk down to the riverside."
+		"description": "A longer walk down to the riverside.",
+		"tierRequired": "T1"
 	},
 	{
 		"id": "riverside_to_market",
@@ -147,7 +156,8 @@
 		"isDiscovered": true,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "The uphill path back to the market."
+		"description": "The uphill path back to the market.",
+		"tierRequired": "T1"
 	},
 	{
 		"id": "gates_to_riverside",
@@ -163,6 +173,7 @@
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
 		"description": "A hidden path along the city walls.",
+		"tierRequired": "T3",
 		"accessRequirement": {
 			"name": "Guild Associate Status",
 			"requiredTokensPerType": {
@@ -186,6 +197,7 @@
 		"isDiscovered": false,
 		"terrainCategories": [],
 		"maxItemCapacity": 5,
-		"description": "Follow the river to reach the city gates."
+		"description": "Follow the river to reach the city gates.",
+		"tierRequired": "T3"
 	}
 ]

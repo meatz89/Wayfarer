@@ -1,0 +1,133 @@
+@using Wayfarer.Services
+@using Wayfarer.GameState.Constants
+
+@namespace Wayfarer.Pages.Components
+
+<div class="simple-travel-container">
+    @* Header with clear context *@
+    <div class="travel-header">
+        <h3 class="travel-title">Select Destination</h3>
+        <button class="travel-back-btn" @onclick="OnBackToLocation">
+            ← Return
+        </button>
+    </div>
+
+    @* Essential travel resources (max 3 items) *@
+    <div class="travel-resources-bar">
+        <div class="resource-indicator">
+            <span class="resource-icon">⚡</span>
+            <span class="resource-value">@Context.CurrentStamina</span>
+        </div>
+        @if (Context.BaseStaminaPenalty > 0)
+        {
+            <div class="resource-indicator penalty">
+                <span class="resource-icon">⚖️</span>
+                <span class="resource-value">+@Context.BaseStaminaPenalty</span>
+            </div>
+        }
+        @if (Context.CarriedLetterCount > 0)
+        {
+            <div class="resource-indicator">
+                <span class="resource-icon">📬</span>
+                <span class="resource-value">@Context.CarriedLetterCount</span>
+            </div>
+        }
+    </div>
+
+    @* Simple destination list *@
+    <div class="destination-list">
+        @foreach (var destination in Destinations.Where(d => !d.IsCurrent))
+        {
+            <div class="destination-item">
+                <div class="destination-header">
+                    <h4 class="destination-name">@destination.LocationName</h4>
+                </div>
+                
+                @* Show only available routes *@
+                @{
+                    var availableRoutes = destination.Routes
+                        .Where(r => r.IsDiscovered && !r.IsBlocked)
+                        .OrderBy(r => r.TotalStaminaCost)
+                        .Take(3) // Max 3 routes per destination
+                        .ToList();
+                }
+                
+                @if (availableRoutes.Any())
+                {
+                    <div class="route-list">
+                        @foreach (var route in availableRoutes)
+                        {
+                            <button class="route-option @(!route.CanTravel ? "disabled" : "")"
+                                    @onclick="() => HandleSelectRoute(route)"
+                                    disabled="@(!route.CanTravel)">
+                                <div class="route-main">
+                                    <span class="route-method">@GetTransportIcon(route.TransportMethod)</span>
+                                    <span class="route-time">@route.TimeCost hr</span>
+                                    <span class="route-stamina">⚡@route.TotalStaminaCost</span>
+                                    @if (route.CoinCost > 0)
+                                    {
+                                        <span class="route-cost">💰@route.CoinCost</span>
+                                    }
+                                </div>
+                                @if (!route.CanTravel)
+                                {
+                                    <div class="route-blocker">@route.CannotTravelReason</div>
+                                }
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    @* Show ONE locked route with unlock hint if no routes available *@
+                    var lockedRoute = destination.Routes
+                        .Where(r => !r.IsDiscovered && r.DiscoveryOptions?.Any() == true)
+                        .FirstOrDefault();
+                        
+                    @if (lockedRoute != null)
+                    {
+                        <div class="route-locked">
+                            <span class="lock-icon">🔒</span>
+                            @if (lockedRoute.DiscoveryOptions.First() is var discovery)
+                            {
+                                <span class="unlock-hint">Ask @discovery.TeachingNPCName (@discovery.RequiredTokens tokens)</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-routes">No routes available</div>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public TravelContextViewModel Context { get; set; }
+    [Parameter] public List<TravelDestinationViewModel> Destinations { get; set; }
+    [Parameter] public EventCallback<TravelRouteViewModel> OnSelectRoute { get; set; }
+    [Parameter] public EventCallback OnBackToLocation { get; set; }
+    
+    private async Task HandleSelectRoute(TravelRouteViewModel route)
+    {
+        if (route.CanTravel && OnSelectRoute.HasDelegate)
+        {
+            await OnSelectRoute.InvokeAsync(route);
+        }
+    }
+    
+    private string GetTransportIcon(TravelMethods method)
+    {
+        return method switch
+        {
+            TravelMethods.Walking => "🚶",
+            TravelMethods.Horseback => "🐎",
+            TravelMethods.Cart => "🛒",
+            TravelMethods.Carriage => "🚌",
+            TravelMethods.Boat => "⛵",
+            _ => "❓"
+        };
+    }
+}

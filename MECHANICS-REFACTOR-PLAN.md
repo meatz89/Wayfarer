@@ -1,8 +1,8 @@
-# Mechanics Refactor Plan - Achieving Mockup Quality Through Systemic Generation
+# Mechanics Refactor Plan - AI-Driven Narrative with Categorical Mechanics
 
-## Executive Summary
+## Executive Summary (UPDATED: Jan 10, 2025)
 
-After analyzing the mockup vs current implementation with all specialized agents, we've identified that the core issue isn't narrative content but **mechanical clarity**. The mockup succeeds because each choice has a **single clear purpose** with **appropriate cost**. We can achieve this through systemic changes to verb generation without needing hundreds of template files.
+The final implementation uses **categorical mechanics** that provide rich context for **AI-generated narrative**. Instead of pre-written templates or systemic text generation, the mechanics create meaningful game states that AI can interpret into specific, emotional stories like Elena's marriage proposal.
 
 ## The Core Problem
 
@@ -54,23 +54,33 @@ After analyzing the mockup vs current implementation with all specialized agents
 - Mixed verb purposes
 - Time effects as separate items (embed in primary effect)
 
-### 3. Dynamic Text Generation (Not Templates)
+### 3. AI-Driven Narrative Generation
 
-**Base Pattern**:
+**Mechanical Categories** (provide structure):
 ```
-[Verb Action] + [Emotional Modifier] + [Context Reference]
+0. EXIT (Free) - Maintain state
+1. EXCHANGE (1◆) - Information/Tokens/Time
+2. INFLUENCE (2◆) - Queue/Accept/Refuse
+3. COMMIT (2◆) - Promises with deadlines
+4. TRANSFORM (3◆) - Major changes (locked)
 ```
 
-**Examples**:
-- HELP + Desperate: "I need to help you immediately..."
-- HELP + Calculating: "Building trust could be valuable..."
-- NEGOTIATE + Hostile: "Despite our differences, let's adjust priorities..."
-- INVESTIGATE + Anxious: "I must know what's really happening..."
+**Context Provided to AI**:
+```typescript
+{
+  npc: { id, profession, emotionalState, leverage },
+  relevantLetters: { sender, recipient, deadline, stakes },
+  location: { type, atmosphere },
+  time: { hour, pressure },
+  playerState: { tokens, obligations, attention }
+}
+```
 
-**This Creates**:
-- 3 verbs × 4 emotional states × 5 contexts = 60 variations
-- From only 12 base patterns
-- No template explosion
+**AI Generates**:
+- Specific narrative ("Lord Aldwin's marriage proposal")
+- Emotional details ("trembling hand")
+- Contextual choices based on mechanical state
+- No templates or patterns needed
 
 ### 4. Minimal NPC-Specific Content
 

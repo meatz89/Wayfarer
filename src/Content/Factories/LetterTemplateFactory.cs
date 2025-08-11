@@ -48,7 +48,8 @@ public class LetterTemplateFactory
             ConsequenceIfLate = "The message arrives late",
             ConsequenceIfDelivered = "Communication reaches its destination",
             EmotionalWeight = EmotionalWeight.LOW,
-            Stakes = StakeType.REPUTATION
+            Stakes = StakeType.REPUTATION,
+            TierLevel = TierLevel.T1
         };
     }
 
@@ -88,7 +89,8 @@ public class LetterTemplateFactory
         string consequenceIfLate = null,
         string consequenceIfDelivered = null,
         EmotionalWeight emotionalWeight = EmotionalWeight.MEDIUM,
-        StakeType stakes = StakeType.REPUTATION)
+        StakeType stakes = StakeType.REPUTATION,
+        TierLevel tierLevel = TierLevel.T1)
     {
         if (string.IsNullOrEmpty(id))
             throw new ArgumentException("Letter template ID cannot be empty", nameof(id));
@@ -127,7 +129,8 @@ public class LetterTemplateFactory
             ConsequenceIfLate = consequenceIfLate ?? "",
             ConsequenceIfDelivered = consequenceIfDelivered ?? "",
             EmotionalWeight = emotionalWeight,
-            Stakes = stakes
+            Stakes = stakes,
+            TierLevel = tierLevel
         };
 
         return template;
@@ -160,7 +163,8 @@ public class LetterTemplateFactory
         string consequenceIfLate = null,
         string consequenceIfDelivered = null,
         EmotionalWeight emotionalWeight = EmotionalWeight.MEDIUM,
-        StakeType stakes = StakeType.REPUTATION)
+        StakeType stakes = StakeType.REPUTATION,
+        TierLevel tierLevel = TierLevel.T1)
     {
         // Special narrative letter templates that use placeholder names, not NPC IDs
         HashSet<string> narrativeTemplates = new HashSet<string>
@@ -213,6 +217,6 @@ public class LetterTemplateFactory
                                    senders, recipients, unlocksLetterIds, isChainLetter,
                                    size, physicalProperties, requiredEquipment,
                                    specialType, specialTargetId, humanContext, consequenceIfLate,
-                                   consequenceIfDelivered, emotionalWeight, stakes);
+                                   consequenceIfDelivered, emotionalWeight, stakes, tierLevel);
     }
 }

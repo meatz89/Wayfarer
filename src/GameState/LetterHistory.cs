@@ -3,6 +3,7 @@ public class LetterHistory
     public int DeliveredCount { get; set; }
     public int SkippedCount { get; set; }
     public int ExpiredCount { get; set; }
+    public int RefusedCount { get; set; } // Worse than expired - you CHOSE to break your word
     public DateTime LastInteraction { get; set; }
 
     public LetterHistory()
@@ -10,6 +11,7 @@ public class LetterHistory
         DeliveredCount = 0;
         SkippedCount = 0;
         ExpiredCount = 0;
+        RefusedCount = 0;
         LastInteraction = DateTime.Now;
     }
 
@@ -31,5 +33,11 @@ public class LetterHistory
         LastInteraction = DateTime.Now;
     }
 
-    public bool HasHistory => DeliveredCount > 0 || SkippedCount > 0 || ExpiredCount > 0;
+    public void RecordRefusal()
+    {
+        RefusedCount++;
+        LastInteraction = DateTime.Now;
+    }
+
+    public bool HasHistory => DeliveredCount > 0 || SkippedCount > 0 || ExpiredCount > 0 || RefusedCount > 0;
 }

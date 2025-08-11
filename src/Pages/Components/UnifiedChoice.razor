@@ -23,7 +23,7 @@
     @* Main choice text *@
     <div class="choice-content">
         <div class="choice-text">
-            @Choice.DisplayText
+            "@Choice.DisplayText"
         </div>
         
         @* Mechanical previews - with proper color coding *@
@@ -34,10 +34,10 @@
                 {
                     <div class="mechanic-item @GetMechanicClass(preview)">
                         <span class="mechanic-icon">
-                            <i class="@GetIconForEffect(preview)"></i>
+                            @GetEffectIcon(preview)
                         </span>
                         <span class="mechanic-text">
-                            @preview
+                            @((MarkupString)StripHtmlTags(preview))
                         </span>
                     </div>
                 }
@@ -100,15 +100,13 @@
 
     private string GetCostDisplay()
     {
-        // Diamond symbol for attention cost (matching mockup)
+        // Show dots matching mockup style (●)
         return Choice.AttentionCost switch
         {
-            1 => "◆",
-            2 => "◆◆",
-            3 => "◆◆◆",
-            4 => "◆◆◆◆",
-            5 => "◆◆◆◆◆",
-            _ => ""
+            1 => "● 1",
+            2 => "●● 2",
+            3 => "●●● 3",
+            _ => $"{new string('●', Math.Min(Choice.AttentionCost, 5))} {Choice.AttentionCost}"
         };
     }
 
@@ -129,47 +127,35 @@
             ?? "Not available";
     }
 
-    private string GetIconForEffect(string description)
+    private string GetEffectIcon(string description)
     {
-        // Map description keywords to Font Awesome icon classes
+        // Use simple Unicode symbols matching mockup (✓, ⚠, ℹ, →)
         var lowerDesc = description.ToLowerInvariant();
         
-        // Token types
-        if (lowerDesc.Contains("trust"))
-            return "fas fa-heart";
-        if (lowerDesc.Contains("commerce") || lowerDesc.Contains("coin"))
-            return "fas fa-coins";
-        if (lowerDesc.Contains("status"))
-            return "fas fa-crown";
-        if (lowerDesc.Contains("shadow"))
-            return "fas fa-moon";
+        // Check for explicit icons in the description first
+        if (description.Contains("✓")) return "✓";
+        if (description.Contains("⚠")) return "⚠";
+        if (description.Contains("ℹ")) return "ℹ";
+        if (description.Contains("→")) return "→";
+        
+        // Positive outcomes
+        if (lowerDesc.Contains("gain") || lowerDesc.Contains("unlock") || 
+            lowerDesc.Contains("open") || lowerDesc.Contains("+"))
+            return "✓";
             
-        // Actions
-        if (lowerDesc.Contains("obligation") || lowerDesc.Contains("binding"))
-            return "fas fa-link";
-        if (lowerDesc.Contains("time") || lowerDesc.Contains("minute") || lowerDesc.Contains("hour"))
-            return "fas fa-clock";
-        if (lowerDesc.Contains("deliver") || lowerDesc.Contains("letter"))
-            return "fas fa-envelope";
-        if (lowerDesc.Contains("travel") || lowerDesc.Contains("route"))
-            return "fas fa-map";
-        if (lowerDesc.Contains("investigate") || lowerDesc.Contains("learn") || lowerDesc.Contains("discover"))
-            return "fas fa-search";
-        if (lowerDesc.Contains("negotiate") || lowerDesc.Contains("swap") || lowerDesc.Contains("reorder"))
-            return "fas fa-exchange-alt";
-        if (lowerDesc.Contains("help") || lowerDesc.Contains("accept"))
-            return "fas fa-hands-helping";
+        // Negative/warning outcomes  
+        if (lowerDesc.Contains("lose") || lowerDesc.Contains("burn") || 
+            lowerDesc.Contains("cost") || lowerDesc.Contains("obligation") ||
+            lowerDesc.Contains("binding") || lowerDesc.Contains("-"))
+            return "⚠";
             
-        // State changes
-        if (lowerDesc.Contains("gain") || lowerDesc.Contains("unlock") || lowerDesc.Contains("open"))
-            return "fas fa-check";
-        if (lowerDesc.Contains("lose") || lowerDesc.Contains("burn") || lowerDesc.Contains("cost"))
-            return "fas fa-exclamation-triangle";
-        if (lowerDesc.Contains("maintain") || lowerDesc.Contains("continue"))
-            return "fas fa-arrow-right";
+        // Informational/neutral
+        if (lowerDesc.Contains("learn") || lowerDesc.Contains("discover") ||
+            lowerDesc.Contains("investigate") || lowerDesc.Contains("maintain"))
+            return "ℹ";
             
-        // Default
-        return "fas fa-arrow-right";
+        // Directional/progression
+        return "→";
     }
 
     private string GetMechanicClass(string preview)
@@ -217,5 +203,15 @@
             IsProcessing = false;
             StateHasChanged();
         }
+    }
+    
+    private string StripHtmlTags(string input)
+    {
+        // Remove HTML tags and leave just the text content
+        if (string.IsNullOrEmpty(input))
+            return input;
+            
+        // Simple regex to strip HTML tags
+        return System.Text.RegularExpressions.Regex.Replace(input, "<.*?>", string.Empty);
     }
 }

@@ -10,5 +10,6 @@
     Trading,
     Lodging,
     Market,
-    Work
+    Work,
+    Transport  // NPCs who control routes and accept travel permits
 }

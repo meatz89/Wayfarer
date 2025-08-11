@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState;
 
 /// <summary>
 /// Emotional states that emerge from letter properties in the queue.
@@ -7,27 +9,47 @@ using System.Linq;
 /// </summary>
 public enum NPCEmotionalState
 {
-    DESPERATE,    // Urgent need (TTL < 2 or SAFETY stakes), easier interaction
-    HOSTILE,      // Angry (has overdue letters), harder interaction
+    DESPERATE,    // Urgent need (high pressure from multiple factors)
+    HOSTILE,      // Angry (overdue letters, betrayed trust, broken obligations)
     CALCULATING,  // Balanced pressure, normal interaction
-    WITHDRAWN     // No engagement (no letters), limited options
+    WITHDRAWN     // No engagement (no letters, no relationship), limited options
 }
 
 /// <summary>
-/// Calculates NPC emotional states based on their letters in the queue.
-/// This is the core of the literary UI system - the queue IS the story.
+/// Calculates NPC emotional states based on multiple weighted factors.
+/// This is the core of the literary UI system - emotional states emerge from game state.
 /// </summary>
 public class NPCEmotionalStateCalculator
 {
     private readonly LetterQueueManager _letterQueueManager;
+    private readonly ConnectionTokenManager _tokenManager;
+    private readonly ITimeManager _timeManager;
+    private readonly StandingObligationManager _obligationManager;
+    private readonly ConsequenceEngine _consequenceEngine;
 
-    public NPCEmotionalStateCalculator(LetterQueueManager letterQueueManager)
+    // Multi-factor weights for emotional state calculation
+    private const float LETTER_PRESSURE_WEIGHT = 0.30f;  // 30% - urgency and stakes of letters
+    private const float TOKEN_RELATIONSHIP_WEIGHT = 0.25f; // 25% - current token relationships
+    private const float HISTORY_WEIGHT = 0.20f;          // 20% - past failures/successes
+    private const float TIME_CONSTRAINT_WEIGHT = 0.15f;  // 15% - current time of day vs deadlines
+    private const float OBLIGATION_WEIGHT = 0.10f;       // 10% - standing obligations
+
+    public NPCEmotionalStateCalculator(
+        LetterQueueManager letterQueueManager,
+        ConnectionTokenManager tokenManager = null,
+        ITimeManager timeManager = null,
+        StandingObligationManager obligationManager = null,
+        ConsequenceEngine consequenceEngine = null)
     {
         _letterQueueManager = letterQueueManager;
+        _tokenManager = tokenManager;
+        _timeManager = timeManager;
+        _obligationManager = obligationManager;
+        _consequenceEngine = consequenceEngine;
     }
 
     /// <summary>
-    /// Calculate an NPC's emotional state based on their letters in the queue
+    /// Calculate an NPC's emotional state based on multiple weighted factors
     /// </summary>
     public NPCEmotionalState CalculateState(NPC npc)
     {
@@ -38,39 +60,156 @@ public class NPCEmotionalStateCalculator
             l.SenderId == npc.ID || l.SenderName == npc.Name).ToList();
 
         Console.WriteLine($"[NPCEmotionalStateCalculator] Calculating state for {npc.Name} (ID: {npc.ID})");
-        Console.WriteLine($"[NPCEmotionalStateCalculator] Found {theirLetters.Count} letters for this NPC");
         
-        foreach (var letter in theirLetters)
-        {
-            Console.WriteLine($"  - Letter: {letter.Description}, Deadline: {letter.DeadlineInHours}h, Stakes: {letter.Stakes}");
-        }
-
-        if (!theirLetters.Any())
-        {
-            Console.WriteLine($"[NPCEmotionalStateCalculator] No letters found - returning WITHDRAWN");
-            return NPCEmotionalState.WITHDRAWN;
-        }
-
-        // Check for overdue letters first
+        // Quick check for immediate triggers
         if (theirLetters.Any(l => l.DeadlineInHours <= 0))
         {
             Console.WriteLine($"[NPCEmotionalStateCalculator] Found overdue letter - returning HOSTILE");
             return NPCEmotionalState.HOSTILE;
         }
 
-        // Check for urgent letters or safety stakes
-        var mostUrgent = theirLetters.OrderBy(l => l.DeadlineInHours).First();
-        Console.WriteLine($"[NPCEmotionalStateCalculator] Most urgent letter: {mostUrgent.Description}, Deadline: {mostUrgent.DeadlineInHours}h, Stakes: {mostUrgent.Stakes}");
+        // Calculate multi-factor emotional pressure
+        float totalPressure = 0f;
         
-        if (mostUrgent.DeadlineInHours < 2 || mostUrgent.Stakes == StakeType.SAFETY)
+        // Factor 1: Letter Pressure (30%)
+        float letterPressure = CalculateLetterPressure(theirLetters);
+        totalPressure += letterPressure * LETTER_PRESSURE_WEIGHT;
+        
+        // Factor 2: Token Relationships (25%)
+        if (_tokenManager != null)
         {
-            Console.WriteLine($"[NPCEmotionalStateCalculator] Urgent or safety stakes - returning DESPERATE");
-            return NPCEmotionalState.DESPERATE;
+            float tokenPressure = CalculateTokenPressure(npc);
+            totalPressure += tokenPressure * TOKEN_RELATIONSHIP_WEIGHT;
+        }
+        
+        // Factor 3: History (20%)
+        if (_consequenceEngine != null)
+        {
+            float historyPressure = CalculateHistoryPressure(npc);
+            totalPressure += historyPressure * HISTORY_WEIGHT;
+        }
+        
+        // Factor 4: Time Constraints (15%)
+        if (_timeManager != null)
+        {
+            float timePressure = CalculateTimePressure(theirLetters);
+            totalPressure += timePressure * TIME_CONSTRAINT_WEIGHT;
+        }
+        
+        // Factor 5: Obligations (10%)
+        if (_obligationManager != null)
+        {
+            float obligationPressure = CalculateObligationPressure(npc);
+            totalPressure += obligationPressure * OBLIGATION_WEIGHT;
         }
 
-        // Default to calculating for normal pressure
-        Console.WriteLine($"[NPCEmotionalStateCalculator] Normal pressure - returning CALCULATING");
-        return NPCEmotionalState.CALCULATING;
+        Console.WriteLine($"[NPCEmotionalStateCalculator] Total pressure: {totalPressure:F2}");
+        Console.WriteLine($"  - Letter: {letterPressure:F2}, Token: {(_tokenManager != null ? CalculateTokenPressure(npc) : 0):F2}");
+        
+        // Map total pressure to emotional state
+        if (totalPressure >= 0.75f)
+        {
+            return NPCEmotionalState.DESPERATE;
+        }
+        else if (totalPressure >= 0.5f)
+        {
+            return NPCEmotionalState.HOSTILE;
+        }
+        else if (theirLetters.Any() || (_tokenManager != null && HasAnyTokens(npc)))
+        {
+            return NPCEmotionalState.CALCULATING;
+        }
+        else
+        {
+            return NPCEmotionalState.WITHDRAWN;
+        }
+    }
+    
+    private float CalculateLetterPressure(List<Letter> letters)
+    {
+        if (!letters.Any()) return 0f;
+        
+        float pressure = 0f;
+        foreach (var letter in letters)
+        {
+            // Urgency component
+            if (letter.DeadlineInHours <= 1) pressure += 0.4f;
+            else if (letter.DeadlineInHours <= 3) pressure += 0.2f;
+            else if (letter.DeadlineInHours <= 6) pressure += 0.1f;
+            
+            // Stakes component
+            if (letter.Stakes == StakeType.SAFETY) pressure += 0.3f;
+            else if (letter.Stakes == StakeType.SECRET) pressure += 0.2f;
+            else if (letter.Stakes == StakeType.REPUTATION) pressure += 0.15f;
+            else if (letter.Stakes == StakeType.WEALTH) pressure += 0.1f;
+            
+            // Position component (letters stuck in bad positions)
+            var position = _letterQueueManager.GetLetterPosition(letter.Id);
+            if (position.HasValue && position.Value > 4) pressure += 0.1f;
+        }
+        
+        return Math.Min(1f, pressure / Math.Max(1, letters.Count));
+    }
+    
+    private float CalculateTokenPressure(NPC npc)
+    {
+        var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        
+        // Negative tokens create pressure
+        float pressure = 0f;
+        foreach (var kvp in tokens)
+        {
+            if (kvp.Value < 0)
+            {
+                pressure += Math.Abs(kvp.Value) * 0.1f;
+            }
+        }
+        
+        // Lack of any positive relationship also creates pressure
+        if (!tokens.Any(kvp => kvp.Value > 0))
+        {
+            pressure += 0.2f;
+        }
+        
+        return Math.Min(1f, pressure);
+    }
+    
+    private float CalculateHistoryPressure(NPC npc)
+    {
+        // This would check consequence history for this NPC
+        // For now, return moderate pressure
+        return 0.3f;
+    }
+    
+    private float CalculateTimePressure(List<Letter> letters)
+    {
+        if (!letters.Any()) return 0f;
+        
+        var currentHour = _timeManager.GetCurrentTimeHours();
+        var remainingHours = 22 - currentHour; // Hours until late night
+        
+        // Check if we have enough time to deliver urgent letters
+        var urgentCount = letters.Count(l => l.DeadlineInHours <= remainingHours);
+        
+        if (urgentCount > 2) return 0.8f;
+        if (urgentCount > 1) return 0.5f;
+        if (urgentCount > 0) return 0.3f;
+        
+        return 0f;
+    }
+    
+    private float CalculateObligationPressure(NPC npc)
+    {
+        var obligations = _obligationManager.GetActiveObligations()
+            .Where(o => o.RelatedNPCId == npc.ID);
+        
+        return obligations.Any() ? 0.5f : 0f;
+    }
+    
+    private bool HasAnyTokens(NPC npc)
+    {
+        var tokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        return tokens.Any(kvp => kvp.Value != 0);
     }
 
     /// <summary>

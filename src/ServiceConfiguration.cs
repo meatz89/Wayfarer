@@ -72,6 +72,9 @@ public static class ServiceConfiguration
         
         // Literary UI System - attention, NPC states, verb contextualization
         services.AddLiteraryUISystem();
+        
+        // Register NPCEmotionalStateCalculator with all dependencies
+        services.AddSingleton<NPCEmotionalStateCalculator>();
 
         // Managers that depend on TimeManager
         services.AddSingleton<TravelManager>();
@@ -95,6 +98,15 @@ public static class ServiceConfiguration
         
         // Consequence Engine for handling missed deadlines
         services.AddSingleton<Wayfarer.GameState.ConsequenceEngine>();
+        
+        // Leverage Calculator for power dynamics
+        services.AddSingleton<Wayfarer.GameState.LeverageCalculator>();
+        
+        // Relationship tracking for contextual conversations
+        services.AddSingleton<Wayfarer.GameState.NPCRelationshipTracker>();
+        
+        // Contextual conversation system
+        // Removed - using existing ConversationChoiceGenerator instead
         
         // Confrontation Service for emotional confrontation scenes
         services.AddSingleton<Wayfarer.Game.ConversationSystem.ConfrontationService>();

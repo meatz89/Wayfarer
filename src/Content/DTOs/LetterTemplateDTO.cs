@@ -17,6 +17,9 @@ public class LetterTemplateDTO
     // Letter category and requirements
     public string Category { get; set; } = "Basic";
     public int? MinTokensRequired { get; set; } = 3;
+    
+    // Tier level for this letter template
+    public string TierLevel { get; set; } = "T1";
 
     // Special letter properties
     public string SpecialType { get; set; } = "None";

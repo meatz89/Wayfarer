@@ -13,6 +13,9 @@ public class ConversationFactory
     private readonly LetterQueueManager _queueManager;
     private readonly ITimeManager _timeManager;
     private readonly AtmosphereCalculator _atmosphereCalculator;
+    private readonly Wayfarer.GameState.ConsequenceEngine _consequenceEngine;
+    private readonly Wayfarer.GameState.LeverageCalculator _leverageCalculator;
+    private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
 
     public ConversationFactory(
         INarrativeProvider narrativeProvider,
@@ -20,7 +23,10 @@ public class ConversationFactory
         NPCEmotionalStateCalculator stateCalculator,
         LetterQueueManager queueManager,
         ITimeManager timeManager,
-        AtmosphereCalculator atmosphereCalculator = null)
+        AtmosphereCalculator atmosphereCalculator,
+        Wayfarer.GameState.ConsequenceEngine consequenceEngine,
+        Wayfarer.GameState.LeverageCalculator leverageCalculator,
+        Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager)
     {
         _narrativeProvider = narrativeProvider;
         _tokenManager = tokenManager;
@@ -28,6 +34,9 @@ public class ConversationFactory
         _queueManager = queueManager;
         _timeManager = timeManager;
         _atmosphereCalculator = atmosphereCalculator;
+        _consequenceEngine = consequenceEngine;
+        _leverageCalculator = leverageCalculator;
+        _timeBlockAttentionManager = timeBlockAttentionManager;
     }
 
     public async Task<ConversationManager> CreateConversation(
@@ -83,13 +92,17 @@ public class ConversationFactory
             8); // Default max duration
 
         // Create choice generator with player and gameWorld for additive system
+        // Pass TimeBlockAttentionManager to share attention pool with ActionGenerator
         var choiceGenerator = new ConversationChoiceGenerator(
             _queueManager,
             _tokenManager,
             _stateCalculator,
             _timeManager,
             player,
-            context.GameWorld);
+            context.GameWorld,
+            _consequenceEngine,
+            _leverageCalculator,
+            _timeBlockAttentionManager);
 
         // Create the conversation manager
         ConversationManager conversationManager = new ConversationManager(

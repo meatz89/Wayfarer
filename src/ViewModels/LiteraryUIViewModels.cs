@@ -145,6 +145,11 @@ namespace Wayfarer.ViewModels
         public string Detail { get; set; }
         public string Cost { get; set; } // "FREE", "1c", "10m", etc.
         public string ActionType { get; set; } // Optional type for special actions like "wait"
+        
+        // Tier-based availability
+        public bool IsAvailable { get; set; } = true;
+        public string LockReason { get; set; } // e.g., "Requires Associate status"
+        public TierLevel? RequiredTier { get; set; } // The tier needed to unlock this action
     }
     
     /// <summary>
@@ -187,6 +192,12 @@ namespace Wayfarer.ViewModels
         public string Destination { get; set; }
         public string TravelTime { get; set; }
         public string Detail { get; set; } // e.g., "West side", "Uphill"
+        
+        // Tier and accessibility information
+        public bool IsLocked { get; set; }
+        public string LockReason { get; set; } // e.g., "Requires T2 (Associate)", "Needs Transport Permit"
+        public TierLevel RequiredTier { get; set; }
+        public bool CanUnlockWithPermit { get; set; }
     }
     
     /// <summary>
@@ -198,5 +209,48 @@ namespace Wayfarer.ViewModels
         public int ProgressPercent { get; set; }
         public string TimeWalked { get; set; }
         public string TimeRemaining { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel for displaying leverage (power dynamics) data
+    /// </summary>
+    public class LeverageViewModel
+    {
+        public string NPCId { get; set; }
+        public string NPCName { get; set; }
+        public ConnectionType TokenType { get; set; }
+        
+        // Leverage components
+        public int TotalLeverage { get; set; }
+        public int TokenDebtLeverage { get; set; }
+        public int ObligationLeverage { get; set; }
+        public int FailureLeverage { get; set; }
+        
+        // Calculated effects
+        public int TargetQueuePosition { get; set; }
+        public int DisplacementCost { get; set; }
+        
+        // Display data
+        public string Level { get; set; } // None, Low, Moderate, High, Extreme
+        public string Narrative { get; set; } // Human-readable leverage description
+        
+        // Visual indicators
+        public string LeverageIcon => TotalLeverage switch
+        {
+            >= 10 => "🔴", // Extreme
+            >= 5 => "🟠",  // High
+            >= 3 => "🟡",  // Moderate
+            >= 1 => "⚪",  // Low
+            _ => ""
+        };
+        
+        public string LeverageColor => TotalLeverage switch
+        {
+            >= 10 => "danger",
+            >= 5 => "warning",
+            >= 3 => "caution",
+            >= 1 => "info",
+            _ => "default"
+        };
     }
 }

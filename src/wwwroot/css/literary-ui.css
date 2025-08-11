@@ -46,9 +46,10 @@
 }
 
 .attention-label {
-    color: var(--text-primary);
+    color: #f4f1e8;
     font-size: 12px;
     margin-right: 8px;
+    font-family: Georgia, serif;
 }
 
 .attention-point {
@@ -56,13 +57,16 @@
     height: 24px;
     border-radius: 50%;
     background: var(--attention-gold);
-    border: 2px solid var(--text-primary);
+    border: 2px solid #f4f1e8;
     transition: all 0.3s;
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
 }
 
 .attention-point.spent {
-    background: var(--bg-card);
-    opacity: 0.5;
+    background: #3d3226;
+    border: 2px solid #5a4a3a;
+    opacity: 0.4;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Unified Attention Bar Components */

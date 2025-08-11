@@ -5,6 +5,10 @@ public class LetterQueue
     private Letter[] slots = new Letter[8];
     private const int MAX_SLOTS = 8;
     private const int MAX_WEIGHT = 12; // Maximum total weight capacity
+    
+    // Player tier for restricting which letters can be accepted
+    // Set this from the game state when creating/updating the queue
+    public TierLevel PlayerTier { get; set; } = TierLevel.T1;
 
     // Get letter at specific position (1-8)
     public Letter GetLetterAt(int position)
@@ -13,11 +17,25 @@ public class LetterQueue
         return slots[position - 1];
     }
 
-    // Add letter to specific position (1-8) with weight checking
+    // Add letter to specific position (1-8) with weight and tier checking
     public bool AddLetter(Letter letter, int position)
     {
         if (position < 1 || position > 8) return false;
         if (letter == null) return false;
+        
+        // Special letters (permits, introductions) should not enter the queue
+        // They go directly to inventory instead
+        if (letter.IsSpecial)
+        {
+            // Log or handle special letter differently
+            return false; // Don't add special letters to queue
+        }
+        
+        // Check tier restriction - player can only accept letters at or below their tier
+        if (letter.Tier > PlayerTier)
+        {
+            return false; // Letter tier too high for player
+        }
 
         // Check if adding this letter would exceed weight capacity
         if (!CanAdd(letter)) return false;
@@ -30,10 +48,17 @@ public class LetterQueue
         return true;
     }
 
-    // Check if a letter can be added based on weight constraints
+    // Check if a letter can be added based on weight and tier constraints
     public bool CanAdd(Letter letter)
     {
         if (letter == null) return false;
+        
+        // Special letters don't go in the queue
+        if (letter.IsSpecial) return false;
+        
+        // Check tier restriction
+        if (letter.Tier > PlayerTier) return false;
+        
         int currentWeight = GetTotalWeight();
         return (currentWeight + letter.Weight) <= MAX_WEIGHT;
     }

@@ -92,20 +92,30 @@ namespace Wayfarer.GameState
         /// </summary>
         private void ApplyImmediateConsequences(Letter letter, NPC sender, int failureCount)
         {
-            // Token penalty scales with failure count
-            int baseTokenPenalty = 2;
-            int tokenPenalty = (int)(baseTokenPenalty * (1 + failureCount * 0.5f));
+            // Trust penalty for breaking your promise - this is the emotional cost
+            // You promised to deliver and failed. Trust is broken.
+            int trustPenalty = 2; // Breaking a promise hurts, but not as much as refusing
             
-            // Apply token loss
+            // Apply trust loss - this is the primary consequence
+            _tokenManager.RemoveTokensFromNPC(ConnectionType.Trust, trustPenalty, sender.ID);
+            
+            // Also lose tokens of the letter's type
+            int baseTokenPenalty = 1;
+            int tokenPenalty = (int)(baseTokenPenalty * (1 + failureCount * 0.5f));
             _tokenManager.RemoveTokensFromNPC(letter.TokenType, tokenPenalty, sender.ID);
             
             // Increase leverage - this NPC now has power over you
             IncreaseLeverage(sender.ID, 2);
             
-            // Show immediate feedback
+            // Show immediate feedback - emphasize the broken promise
             _messageSystem.AddSystemMessage(
-                $"💔 Lost {tokenPenalty} {letter.TokenType} tokens with {sender.Name}!",
+                $"💔 Lost {trustPenalty} Trust with {sender.Name} - you broke your promise!",
                 SystemMessageTypes.Danger
+            );
+            
+            _messageSystem.AddSystemMessage(
+                $"Lost {tokenPenalty} {letter.TokenType} tokens with {sender.Name}",
+                SystemMessageTypes.Warning
             );
             
             _messageSystem.AddSystemMessage(
@@ -226,13 +236,13 @@ namespace Wayfarer.GameState
                 SystemMessageTypes.Danger
             );
             
-            // Contextual narrative based on failure count
+            // Contextual narrative based on failure count - emphasize broken promises
             string narrative = failureCount switch
             {
-                1 => $"\"{sender.Name} trusted you with this. That trust is damaged.\"",
-                2 => $"\"{sender.Name} tells others about your unreliability.\"",
-                3 => $"\"You've become known as someone who can't be trusted.\"",
-                _ => $"\"Your reputation as a letter carrier is in ruins.\""
+                1 => $"\"{sender.Name} trusted you with this. You promised to deliver. That promise is broken.\"",
+                2 => $"\"{sender.Name} tells others: 'They make promises they can't keep.'\"",
+                3 => $"\"Word spreads: You're someone who breaks their word when things get hard.\"",
+                _ => $"\"No one trusts your promises anymore. Your word means nothing.\""
             };
             
             _messageSystem.AddSystemMessage(narrative, SystemMessageTypes.Warning);

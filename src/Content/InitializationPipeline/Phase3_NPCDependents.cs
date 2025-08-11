@@ -22,6 +22,20 @@ public class Phase3_NPCDependents : IInitializationPhase
         LoadLetterTemplates(context);
     }
 
+    private TierLevel ParseTierLevel(string tierString)
+    {
+        if (string.IsNullOrEmpty(tierString))
+            return TierLevel.T1;
+            
+        return tierString.ToUpper() switch
+        {
+            "T1" => TierLevel.T1,
+            "T2" => TierLevel.T2,
+            "T3" => TierLevel.T3,
+            _ => TierLevel.T1
+        };
+    }
+    
     private void LoadRoutes(InitializationContext context)
     {
         string routesPath = Path.Combine(context.ContentPath, "routes.json");
@@ -93,7 +107,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                         IsDiscovered = dto.IsDiscovered,
                         DepartureTime = departureTime,
                         Description = dto.Description ?? $"Route from {origin.Name} to {destination.Name}",
-                        Tier = dto.Tier
+                        TierRequired = ParseTierLevel(dto.TierRequired)
                     };
 
                     context.GameWorld.WorldState.Routes.Add(route);
@@ -177,6 +191,36 @@ public class Phase3_NPCDependents : IInitializationPhase
                             context.Warnings.Add($"Invalid letter category '{dto.Category}' for template {dto.Id}, defaulting to Basic");
                         }
                     }
+                    
+                    // Parse tier level
+                    TierLevel tierLevel = TierLevel.T1;
+                    if (!string.IsNullOrEmpty(dto.TierLevel))
+                    {
+                        if (!Enum.TryParse<TierLevel>(dto.TierLevel, true, out tierLevel))
+                        {
+                            context.Warnings.Add($"Invalid tier level '{dto.TierLevel}' for template {dto.Id}, defaulting to T1");
+                        }
+                    }
+                    
+                    // Parse emotional weight
+                    EmotionalWeight emotionalWeight = EmotionalWeight.MEDIUM;
+                    if (!string.IsNullOrEmpty(dto.EmotionalWeight))
+                    {
+                        if (!Enum.TryParse<EmotionalWeight>(dto.EmotionalWeight, true, out emotionalWeight))
+                        {
+                            context.Warnings.Add($"Invalid emotional weight '{dto.EmotionalWeight}' for template {dto.Id}, defaulting to MEDIUM");
+                        }
+                    }
+                    
+                    // Parse stakes
+                    StakeType stakes = StakeType.REPUTATION;
+                    if (!string.IsNullOrEmpty(dto.Stakes))
+                    {
+                        if (!Enum.TryParse<StakeType>(dto.Stakes, true, out stakes))
+                        {
+                            context.Warnings.Add($"Invalid stakes type '{dto.Stakes}' for template {dto.Id}, defaulting to REPUTATION");
+                        }
+                    }
 
                     // Create template using DTO
                     LetterTemplate template = new LetterTemplate
@@ -194,7 +238,13 @@ public class Phase3_NPCDependents : IInitializationPhase
                         PossibleSenders = dto.PossibleSenders?.ToArray() ?? new string[0],
                         PossibleRecipients = dto.PossibleRecipients?.ToArray() ?? new string[0],
                         UnlocksLetterIds = dto.UnlocksLetterIds?.ToArray() ?? new string[0],
-                        IsChainLetter = dto.IsChainLetter
+                        IsChainLetter = dto.IsChainLetter,
+                        TierLevel = tierLevel,
+                        HumanContext = dto.HumanContext ?? "",
+                        ConsequenceIfLate = dto.ConsequenceIfLate ?? "",
+                        ConsequenceIfDelivered = dto.ConsequenceIfDelivered ?? "",
+                        EmotionalWeight = emotionalWeight,
+                        Stakes = stakes
                     };
 
                     context.GameWorld.WorldState.LetterTemplates.Add(template);

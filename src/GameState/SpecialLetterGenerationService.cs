@@ -152,7 +152,7 @@ public class SpecialLetterGenerationService
             Payment = GetSpecialLetterPayment(specialType),
             DeadlineInHours = GetSpecialLetterDeadline(specialType),
             Size = SizeCategory.Medium,
-            Tier = 3, // Special letters are tier 3
+            Tier = TierLevel.T3, // Special letters are tier 3
             State = LetterState.Offered
         };
 

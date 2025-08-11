@@ -245,11 +245,11 @@ public class LetterPropertyChoiceGenerator
             BaseVerb = BaseVerb.INVESTIGATE,
             IsAffordable = true,
             IsAvailable = true,
-            MechanicalDescription = "Deep investigation | 40 min",
+            MechanicalDescription = "Deep investigation | 20 min",
             MechanicalEffects = new List<IMechanicalEffect>
             {
                 new DeepInvestigationEffect($"The truth about {letter.RecipientName}"),
-                new ConversationTimeEffect(40, _timeManager)
+                new ConversationTimeEffect(20, _timeManager)
             }
         };
     }
@@ -413,7 +413,7 @@ public class LetterPropertyChoiceGenerator
             MechanicalDescription = $"Deliver letter | +{letter.Payment} coins",
             MechanicalEffects = new List<IMechanicalEffect>
             {
-                new DeliverLetterEffect(letter.Id, _queueManager, _timeManager)
+                new DeliverLetterEffect(letter.Id, letter, _queueManager, _timeManager, _tokenManager)
             }
         };
     }

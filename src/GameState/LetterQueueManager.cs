@@ -15,9 +15,10 @@ public class LetterQueueManager
     private readonly IGameRuleEngine _ruleEngine;
     private readonly ITimeManager _timeManager;
     private readonly ConsequenceEngine _consequenceEngine;
+    private readonly LeverageCalculator _leverageCalculator;
     private readonly Random _random = new Random();
 
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager, ConsequenceEngine consequenceEngine = null)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager, ConsequenceEngine consequenceEngine, LeverageCalculator leverageCalculator)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -30,6 +31,7 @@ public class LetterQueueManager
         _ruleEngine = ruleEngine;
         _timeManager = timeManager;
         _consequenceEngine = consequenceEngine;
+        _leverageCalculator = leverageCalculator;
     }
 
     // Get the player's letter queue
@@ -179,69 +181,32 @@ public class LetterQueueManager
     // Calculate leverage-based entry position for a letter
     private int CalculateLeveragePosition(Letter letter)
     {
-        // Get base position from social status
-        int basePosition = GetBasePositionForTokenType(letter.TokenType);
-
-        // Get token balance with sender
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId))
         {
-            return basePosition; // Default if NPC not found
+            // Default to base position if NPC not found
+            return GetBasePositionForTokenType(letter.TokenType);
         }
 
-        Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(senderId);
-        int tokenBalance = npcTokens[letter.TokenType];
-
-        // Apply token-based leverage
-        int leveragePosition = basePosition;
-
-        if (tokenBalance < 0)
+        // Use the comprehensive LeverageCalculator
+        var leverageData = _leverageCalculator.CalculateLeverage(senderId, letter.TokenType);
+        
+        // Apply pattern modifiers on top of leverage calculation
+        int position = ApplyPatternModifiers(leverageData.TargetQueuePosition, senderId, leverageData.TokenBalance);
+        
+        // Show leverage narrative if significant
+        if (leverageData.TotalLeverage > 0)
         {
-            // Debt creates leverage - each negative token moves position up
-            leveragePosition += tokenBalance; // Subtracts since negative
-
-            // Extreme debt (patron-level) can push to position 1
-            // This replaces the special patron letter handling
-            if (tokenBalance <= -10)
+            string narrative = _leverageCalculator.GetLeverageNarrative(leverageData);
+            if (!string.IsNullOrEmpty(narrative))
             {
-                // Massive debt creates overwhelming leverage
-                leveragePosition = Math.Max(1, leveragePosition);
+                _messageSystem.AddSystemMessage(narrative, 
+                    leverageData.Level >= LeverageLevel.High ? SystemMessageTypes.Warning : SystemMessageTypes.Info);
             }
         }
         
-        // Apply consequence-based leverage (from failed deliveries)
-        if (_consequenceEngine != null)
-        {
-            int failureLeverage = _consequenceEngine.GetLeverage(senderId);
-            if (failureLeverage > 0)
-            {
-                // Each point of leverage moves letter up by 1 position
-                leveragePosition = Math.Max(1, leveragePosition - failureLeverage);
-                
-                // Show this in the message
-                if (failureLeverage >= 2)
-                {
-                    _messageSystem.AddSystemMessage(
-                        $"⚖️ {letter.SenderName}'s LEVERAGE forces letter to position {leveragePosition}",
-                        SystemMessageTypes.Warning
-                    );
-                }
-            }
-        }
-        else if (tokenBalance >= 4)
-        {
-            // High positive relationship reduces leverage
-            leveragePosition += 1;
-        }
-
-        // Apply pattern modifiers
-        leveragePosition = ApplyPatternModifiers(leveragePosition, senderId, tokenBalance);
-
-        // Apply obligation modifiers
-        leveragePosition = _obligationManager.ApplyLeverageModifiers(letter, leveragePosition);
-
         // Clamp to valid queue range
-        return Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, leveragePosition));
+        return Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, position));
     }
 
     // Get base position for token type

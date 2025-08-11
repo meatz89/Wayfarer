@@ -93,42 +93,51 @@ public class ActionGenerator
     private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateServiceActions(ServiceTypes service, Location location, TimeBlocks currentTime)
     {
         var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+        var playerTier = _gameWorld.GetPlayer().CurrentTier;
 
         switch (service)
         {
             case ServiceTypes.Rest:
-                actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                {
-                    Icon = GetRestIcon(location),
-                    Title = GetRestTitle(location),
-                    Detail = GetRestDetail(location, currentTime),
-                    Cost = GetRestCost(location)
-                });
+                // Basic rest is always available (T1)
+                actions.Add(CreateActionWithTierCheck(
+                    GetRestIcon(location),
+                    GetRestTitle(location),
+                    GetRestDetail(location, currentTime),
+                    GetRestCost(location),
+                    TierLevel.T1,
+                    playerTier,
+                    "rest"
+                ));
                 break;
 
             case ServiceTypes.Trade:
                 if (IsMarketOpen(currentTime))
                 {
-                    actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                    {
-                        Icon = "🛍️",
-                        Title = "Browse Wares",
-                        Detail = GetMarketDetail(location, currentTime),
-                        Cost = "FREE"
-                    });
+                    // Basic trading is always T1 for now
+                    var tradeTier = TierLevel.T1;
+                    actions.Add(CreateActionWithTierCheck(
+                        "🛍️",
+                        "Browse Wares",
+                        GetMarketDetail(location, currentTime),
+                        "FREE",
+                        tradeTier,
+                        playerTier,
+                        "trade"
+                    ));
                 }
                 break;
 
-            // Letter checking would be a specific location feature, not a service type
-
             case ServiceTypes.Information:
-                actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                {
-                    Icon = "👂",
-                    Title = "Listen In",
-                    Detail = GetInformationDetail(location, currentTime),
-                    Cost = "10m"
-                });
+                // Information gathering requires T2 (Associate) status
+                actions.Add(CreateActionWithTierCheck(
+                    "👂",
+                    "Listen In",
+                    GetInformationDetail(location, currentTime),
+                    "10m",
+                    TierLevel.T2,
+                    playerTier,
+                    "information"
+                ));
                 break;
         }
 
@@ -155,89 +164,104 @@ public class ActionGenerator
 
     private Wayfarer.ViewModels.LocationActionViewModel GenerateTagAction(string tag, LocationSpot spot)
     {
+        var playerTier = _gameWorld.GetPlayer().CurrentTier;
+        
         return tag.ToLower() switch
         {
-            "social" => new Wayfarer.ViewModels.LocationActionViewModel
-            {
-                Icon = "💬",
-                Title = "Join Conversation",
-                Detail = "Locals chatting",
-                Cost = "15m"
-            },
-            "commerce" => new Wayfarer.ViewModels.LocationActionViewModel
-            {
-                Icon = "🪙",
-                Title = "Trade Gossip",
-                Detail = "Exchange news",
-                Cost = "FREE"
-            },
-            "religious" => new Wayfarer.ViewModels.LocationActionViewModel
-            {
-                Icon = "🕯️",
-                Title = "Light Candle",
-                Detail = "Quiet moment",
-                Cost = "1c"
-            },
-            "nature" => new Wayfarer.ViewModels.LocationActionViewModel
-            {
-                Icon = "🌿",
-                Title = "Gather Herbs",
-                Detail = "If you know them",
-                Cost = "30m"
-            },
-            "shadow" => new Wayfarer.ViewModels.LocationActionViewModel
-            {
-                Icon = "🎭",
-                Title = "Whispered Deal",
-                Detail = "Risky business",
-                Cost = "2s"
-            },
+            "social" => CreateActionWithTierCheck(
+                "💬", "Join Conversation", "Locals chatting", "15m",
+                TierLevel.T1, playerTier, null),
+                
+            "commerce" => CreateActionWithTierCheck(
+                "🪙", "Trade Gossip", "Exchange news", "FREE",
+                TierLevel.T1, playerTier, null),
+                
+            "religious" => CreateActionWithTierCheck(
+                "🕯️", "Light Candle", "Quiet moment", "1c",
+                TierLevel.T1, playerTier, null),
+                
+            "nature" => CreateActionWithTierCheck(
+                "🌿", "Gather Herbs", "If you know them", "30m",
+                TierLevel.T2, playerTier, "herb_gathering"),
+                
+            "shadow" => CreateActionWithTierCheck(
+                "🎭", "Whispered Deal", "Risky business", "2s",
+                TierLevel.T3, playerTier, "shadow_dealings"),
+                
             _ => null
+        };
+    }
+    
+    /// <summary>
+    /// Creates an action with tier checking and appropriate lock messages.
+    /// </summary>
+    private Wayfarer.ViewModels.LocationActionViewModel CreateActionWithTierCheck(
+        string icon, string title, string detail, string cost,
+        TierLevel requiredTier, TierLevel playerTier, string actionType)
+    {
+        bool isAvailable = playerTier >= requiredTier;
+        string lockReason = null;
+        
+        if (!isAvailable)
+        {
+            lockReason = requiredTier switch
+            {
+                TierLevel.T2 => "Requires Associate status",
+                TierLevel.T3 => "Requires Confidant status",
+                _ => null
+            };
+        }
+        
+        return new Wayfarer.ViewModels.LocationActionViewModel
+        {
+            Icon = isAvailable ? icon : "🔒",
+            Title = title,
+            Detail = isAvailable ? detail : lockReason,
+            Cost = isAvailable ? cost : "LOCKED",
+            ActionType = actionType,
+            IsAvailable = isAvailable,
+            LockReason = lockReason,
+            RequiredTier = requiredTier
         };
     }
 
     private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateTimeBasedActions(Location location, TimeBlocks currentTime)
     {
         var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+        var playerTier = _gameWorld.GetPlayer().CurrentTier;
 
         switch (currentTime)
         {
             case TimeBlocks.Morning:
                 if (location.MorningProperties?.Contains("market_day") == true)
                 {
-                    actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                    {
-                        Icon = "🥖",
-                        Title = "Fresh Bread",
-                        Detail = "Still warm",
-                        Cost = "2c"
-                    });
+                    // Basic purchases are T1
+                    actions.Add(CreateActionWithTierCheck(
+                        "🥖", "Fresh Bread", "Still warm", "2c",
+                        TierLevel.T1, playerTier, "purchase_bread"
+                    ));
                 }
                 break;
 
             case TimeBlocks.Afternoon:
                 if (location.Population?.GetPropertyValue() == "Crowded")
                 {
-                    actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                    {
-                        Icon = "👥",
-                        Title = "People Watch",
-                        Detail = "Learn patterns",
-                        Cost = "20m"
-                    });
+                    // People watching for information requires T2
+                    actions.Add(CreateActionWithTierCheck(
+                        "👥", "People Watch", "Learn patterns", "20m",
+                        TierLevel.T2, playerTier, "observe_patterns"
+                    ));
                 }
                 break;
 
             case TimeBlocks.Evening:
                 if (location.Illumination?.GetPropertyValue() == "Thiefy" || location.Illumination?.GetPropertyValue() == "Dark")
                 {
-                    actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                    {
-                        Icon = "🕯️",
-                        Title = "Find Shadows",
-                        Detail = "Avoid notice",
-                        Cost = "FREE"
-                    });
+                    // Shadow activities require T3 (Confidant)
+                    actions.Add(CreateActionWithTierCheck(
+                        "🕯️", "Find Shadows", "Avoid notice", "FREE",
+                        TierLevel.T3, playerTier, "shadow_movement"
+                    ));
                 }
                 break;
 
@@ -252,39 +276,34 @@ public class ActionGenerator
     private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateAtmosphereActions(Location location)
     {
         var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+        var playerTier = _gameWorld.GetPlayer().CurrentTier;
 
         // Generate actions based on atmosphere
         var atmosphereValue = location.Atmosphere?.GetPropertyValue();
         switch (atmosphereValue)
         {
             case "Tense":
-                actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                {
-                    Icon = "⚠️",
-                    Title = "Stay Alert",
-                    Detail = "Watch carefully",
-                    Cost = "FREE"
-                });
+                // Basic awareness is T1
+                actions.Add(CreateActionWithTierCheck(
+                    "⚠️", "Stay Alert", "Watch carefully", "FREE",
+                    TierLevel.T1, playerTier, "alert"
+                ));
                 break;
 
             case "Chaotic":
-                actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                {
-                    Icon = "🎉",
-                    Title = "Navigate Chaos",
-                    Detail = "Find your way",
-                    Cost = "5m"
-                });
+                // Navigating chaos effectively requires T2
+                actions.Add(CreateActionWithTierCheck(
+                    "🎉", "Navigate Chaos", "Find your way", "5m",
+                    TierLevel.T2, playerTier, "navigate_chaos"
+                ));
                 break;
 
             case "Formal":
-                actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                {
-                    Icon = "🤫",
-                    Title = "Respectful Silence",
-                    Detail = "Observe quietly",
-                    Cost = "FREE"
-                });
+                // Formal settings require T2 for proper etiquette
+                actions.Add(CreateActionWithTierCheck(
+                    "🤫", "Respectful Silence", "Observe quietly", "FREE",
+                    TierLevel.T2, playerTier, "formal_observe"
+                ));
                 break;
         }
 
@@ -293,33 +312,27 @@ public class ActionGenerator
         switch (physicalValue)
         {
             case "Expansive":
-                actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                {
-                    Icon = "👀",
-                    Title = "Survey Area",
-                    Detail = "Get bearings",
-                    Cost = "5m"
-                });
+                // Basic surveying is T1
+                actions.Add(CreateActionWithTierCheck(
+                    "👀", "Survey Area", "Get bearings", "5m",
+                    TierLevel.T1, playerTier, "survey"
+                ));
                 break;
 
             case "Confined":
-                actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                {
-                    Icon = "🚪",
-                    Title = "Find Exit",
-                    Detail = "Note escape routes",
-                    Cost = "FREE"
-                });
+                // Finding hidden exits requires T2
+                actions.Add(CreateActionWithTierCheck(
+                    "🚪", "Find Exit", "Note escape routes", "FREE",
+                    TierLevel.T2, playerTier, "find_exits"
+                ));
                 break;
 
             case "Hazardous":
-                actions.Add(new Wayfarer.ViewModels.LocationActionViewModel
-                {
-                    Icon = "⚠️",
-                    Title = "Check Safety",
-                    Detail = "Avoid dangers",
-                    Cost = "FREE"
-                });
+                // Basic safety is T1
+                actions.Add(CreateActionWithTierCheck(
+                    "⚠️", "Check Safety", "Avoid dangers", "FREE",
+                    TierLevel.T1, playerTier, "safety_check"
+                ));
                 break;
         }
 

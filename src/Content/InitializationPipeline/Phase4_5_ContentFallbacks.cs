@@ -28,7 +28,8 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
         );
         
         var locationRepository = new LocationRepository(context.GameWorld);
-        var routeRepository = new RouteRepository(context.GameWorld);
+        var itemRepository = new ItemRepository(context.GameWorld);
+        var routeRepository = new RouteRepository(context.GameWorld, itemRepository);
 
         // Create fallback service
         var fallbackService = new ContentFallbackService(

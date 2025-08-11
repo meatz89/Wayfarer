@@ -19,6 +19,8 @@ public class ConversationChoiceGenerator
     private readonly Player _player;
     private readonly GameWorld _gameWorld;
     private readonly ConsequenceEngine _consequenceEngine;
+    private readonly LeverageCalculator _leverageCalculator;
+    private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
 
     public ConversationChoiceGenerator(
         LetterQueueManager queueManager,
@@ -27,7 +29,9 @@ public class ConversationChoiceGenerator
         ITimeManager timeManager,
         Player player,
         GameWorld gameWorld,
-        ConsequenceEngine consequenceEngine = null)
+        ConsequenceEngine consequenceEngine,
+        LeverageCalculator leverageCalculator,
+        Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager)
     {
         _queueManager = queueManager;
         _tokenManager = tokenManager;
@@ -36,18 +40,24 @@ public class ConversationChoiceGenerator
         _player = player;
         _gameWorld = gameWorld;
         _consequenceEngine = consequenceEngine;
+        _leverageCalculator = leverageCalculator;
+        _timeBlockAttentionManager = timeBlockAttentionManager;
         
-        // Initialize the new verb-organized choice generator
+        // Initialize the new verb-organized choice generator with TimeBlockAttentionManager
         _verbChoiceGenerator = new VerbOrganizedChoiceGenerator(
-            queueManager, tokenManager, timeManager, consequenceEngine, player, gameWorld);
+            queueManager, tokenManager, timeManager, consequenceEngine, leverageCalculator, player, gameWorld, timeBlockAttentionManager);
     }
 
     public List<ConversationChoice> GenerateChoices(SceneContext context, ConversationState state)
     {
-        if (context?.TargetNPC == null || context.AttentionManager == null)
+        if (context?.TargetNPC == null)
         {
             return GetFallbackChoices();
         }
+        
+        // Get shared attention from TimeBlockAttentionManager
+        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        var attentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
 
         // Calculate NPC emotional state
         var npcState = _stateCalculator.CalculateState(context.TargetNPC);
@@ -71,7 +81,7 @@ public class ConversationChoiceGenerator
             BaseVerb.EXIT, context.TargetNPC, npcState, relevantLetters));
         
         // Add verb choices based on NPC state and player attention
-        if (context.AttentionManager.Current > 0)
+        if (attentionManager.Current > 0)
         {
             // HELP choices (always available if attention exists)
             var helpChoices = _verbChoiceGenerator.GenerateChoicesForVerb(
@@ -89,7 +99,7 @@ public class ConversationChoiceGenerator
             }
             
             // INVESTIGATE choices (available when information would be valuable)
-            if (context.AttentionManager.Current >= 2 || relevantLetters.Any())
+            if (attentionManager.Current >= 2 || relevantLetters.Any())
             {
                 var investigateChoices = _verbChoiceGenerator.GenerateChoicesForVerb(
                     BaseVerb.INVESTIGATE, context.TargetNPC, npcState, relevantLetters);
@@ -98,10 +108,10 @@ public class ConversationChoiceGenerator
             }
         }
         
-        // Filter affordability based on attention
+        // Filter affordability based on shared attention pool
         foreach (var choice in allChoices)
         {
-            choice.IsAffordable = context.AttentionManager.CanAfford(choice.AttentionCost);
+            choice.IsAffordable = attentionManager.CanAfford(choice.AttentionCost);
         }
         
         // Filter out locked verbs from consequence system

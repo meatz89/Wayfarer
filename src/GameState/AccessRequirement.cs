@@ -54,6 +54,18 @@ public class AccessRequirement
     public string RequiredInformationId { get; set; } = string.Empty;
 
     /// <summary>
+    /// Special letter type that can unlock this access (alternative to other requirements).
+    /// CONTENT EFFICIENT: Allows travel permits to unlock routes without extra NPCs.
+    /// </summary>
+    public LetterSpecialType? AlternativeLetterUnlock { get; set; } = null;
+
+    /// <summary>
+    /// Whether a travel permit has been delivered to unlock this requirement.
+    /// Tracked per-route to allow multiple paths to the same destination.
+    /// </summary>
+    public bool HasReceivedPermit { get; set; } = false;
+
+    /// <summary>
     /// Whether all requirements must be met (AND) or just one (OR).
     /// </summary>
     public RequirementLogic Logic { get; set; } = RequirementLogic.And;

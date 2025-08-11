@@ -66,6 +66,7 @@ public class GameFacade : ILetterQueueOperations
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
     private readonly ConfrontationService _confrontationService;
     private readonly ConsequenceEngine _consequenceEngine;
+    private readonly LeverageCalculator _leverageCalculator;
     private readonly WorldMemorySystem _worldMemorySystem;
     private readonly AmbientDialogueSystem _ambientDialogueSystem;
 
@@ -111,8 +112,10 @@ public class GameFacade : ILetterQueueOperations
         AtmosphereCalculator atmosphereCalculator = null,
         ConfrontationService confrontationService = null,
         ConsequenceEngine consequenceEngine = null,
+        LeverageCalculator leverageCalculator = null,
         WorldMemorySystem worldMemorySystem = null,
-        AmbientDialogueSystem ambientDialogueSystem = null
+        AmbientDialogueSystem ambientDialogueSystem = null,
+        TimeBlockAttentionManager timeBlockAttentionManager = null
 )
     {
         _gameWorld = gameWorld;
@@ -156,11 +159,12 @@ public class GameFacade : ILetterQueueOperations
         _atmosphereCalculator = atmosphereCalculator;
         _confrontationService = confrontationService;
         _consequenceEngine = consequenceEngine;
+        _leverageCalculator = leverageCalculator;
         _worldMemorySystem = worldMemorySystem;
         _ambientDialogueSystem = ambientDialogueSystem;
         
-        // Initialize the time-block attention manager
-        _timeBlockAttentionManager = new TimeBlockAttentionManager();
+        // Use injected TimeBlockAttentionManager (shared with ConversationFactory)
+        _timeBlockAttentionManager = timeBlockAttentionManager ?? new TimeBlockAttentionManager();
     }
 
     // ========== ATTENTION STATE ACCESS ==========
@@ -4156,6 +4160,96 @@ public class GameFacade : ILetterQueueOperations
         return mechanics;
     }
 
+    // ========== LEVERAGE SYSTEM ==========
+
+    /// <summary>
+    /// Get leverage data for a specific NPC and token type.
+    /// Used to display power dynamics in UI.
+    /// </summary>
+    public LeverageViewModel GetNPCLeverage(string npcId, ConnectionType tokenType)
+    {
+        if (_leverageCalculator == null || string.IsNullOrEmpty(npcId))
+        {
+            return new LeverageViewModel();
+        }
+
+        var leverageData = _leverageCalculator.CalculateLeverage(npcId, tokenType);
+        var npc = _npcRepository.GetById(npcId);
+        
+        return new LeverageViewModel
+        {
+            NPCId = leverageData.NPCId,
+            NPCName = npc?.Name ?? "Unknown",
+            TokenType = leverageData.TokenType,
+            TotalLeverage = leverageData.TotalLeverage,
+            TokenDebtLeverage = leverageData.TokenDebtLeverage,
+            ObligationLeverage = leverageData.ObligationLeverage,
+            FailureLeverage = leverageData.FailureLeverage,
+            TargetQueuePosition = leverageData.TargetQueuePosition,
+            DisplacementCost = leverageData.DisplacementCost,
+            Level = leverageData.Level.ToString(),
+            Narrative = _leverageCalculator.GetLeverageNarrative(leverageData)
+        };
+    }
+
+    /// <summary>
+    /// Get leverage data for all NPCs with active relationships.
+    /// Used for relationship overview screens.
+    /// </summary>
+    public List<LeverageViewModel> GetAllNPCLeverage()
+    {
+        if (_leverageCalculator == null)
+        {
+            return new List<LeverageViewModel>();
+        }
+
+        var leverageList = new List<LeverageViewModel>();
+        var player = _gameWorld.GetPlayer();
+        
+        // Get all NPCs with token relationships
+        foreach (var kvp in player.NPCTokens)
+        {
+            var npcId = kvp.Key;
+            var npc = _npcRepository.GetById(npcId);
+            if (npc == null) continue;
+            
+            // Calculate leverage for each token type the NPC uses
+            foreach (var tokenType in npc.LetterTokenTypes)
+            {
+                var leverageData = _leverageCalculator.CalculateLeverage(npcId, tokenType);
+                
+                // Only include if there's actual leverage
+                if (leverageData.TotalLeverage > 0)
+                {
+                    leverageList.Add(new LeverageViewModel
+                    {
+                        NPCId = leverageData.NPCId,
+                        NPCName = npc.Name,
+                        TokenType = leverageData.TokenType,
+                        TotalLeverage = leverageData.TotalLeverage,
+                        TokenDebtLeverage = leverageData.TokenDebtLeverage,
+                        ObligationLeverage = leverageData.ObligationLeverage,
+                        FailureLeverage = leverageData.FailureLeverage,
+                        TargetQueuePosition = leverageData.TargetQueuePosition,
+                        DisplacementCost = leverageData.DisplacementCost,
+                        Level = leverageData.Level.ToString(),
+                        Narrative = _leverageCalculator.GetLeverageNarrative(leverageData)
+                    });
+                }
+            }
+        }
+        
+        return leverageList.OrderByDescending(l => l.TotalLeverage).ToList();
+    }
+
+    /// <summary>
+    /// Clear leverage cache at turn boundaries.
+    /// </summary>
+    public void ClearLeverageCache()
+    {
+        _leverageCalculator?.ClearCache(_gameWorld.CurrentDay);
+    }
+
     // ========== SEAL MANAGEMENT ==========
 
     public SealProgressionViewModel GetSealProgression()
@@ -5765,35 +5859,56 @@ public class GameFacade : ILetterQueueOperations
         Console.WriteLine($"[GameFacade] Getting routes from location: {currentLocationId}");
         var availableRoutes = new List<RouteOption>();
         
-        // Get routes to each possible destination
-        foreach (var dest in allLocations.Where(l => l.Id != currentLocationId))
-        {
-            var routesToDest = _travelManager.GetAvailableRoutes(currentLocationId, dest.Id);
-            if (routesToDest.Any())
-            {
-                Console.WriteLine($"[GameFacade] Found {routesToDest.Count} routes from {currentLocationId} to {dest.Id}");
-            }
-            availableRoutes.AddRange(routesToDest);
-        }
+        // Get ALL routes (available and locked) to show tier requirements
+        // player is already declared at the top of this method
+        var allRoutesFromLocation = _routeRepository.GetRoutesFromLocation(currentLocationId)
+            .Where(r => r.IsDiscovered) // Only show discovered routes
+            .ToList();
+            
+        Console.WriteLine($"[GameFacade] Total discovered routes from {currentLocationId}: {allRoutesFromLocation.Count}");
         
-        Console.WriteLine($"[GameFacade] Total available routes: {availableRoutes.Count}");
-        
-        // Group routes by destination and show simplified travel options
-        var destinations = availableRoutes
-            .Where(r => r.IsDiscovered)
+        // Group routes by destination and create view models
+        var destinations = allRoutesFromLocation
             .GroupBy(r => r.Destination)
-            .Take(4); // Increased from 3 to show more destinations
+            .Take(5); // Show up to 5 destinations
             
         foreach (var destGroup in destinations)
         {
             var cheapestRoute = destGroup.OrderBy(r => r.BaseStaminaCost).First();
             var destination = _locationRepository.GetLocation(cheapestRoute.Destination);
+            
+            // Check if route is accessible
+            bool isLocked = false;
+            string lockReason = "";
+            
+            // Check tier requirement
+            if (cheapestRoute.TierRequired > player.CurrentTier && !cheapestRoute.HasPermitUnlock)
+            {
+                isLocked = true;
+                lockReason = cheapestRoute.TierRequired switch
+                {
+                    TierLevel.T2 => "Requires T2 (Associate)",
+                    TierLevel.T3 => "Requires T3 (Confidant)",
+                    _ => "Tier requirement not met"
+                };
+            }
+            // Check access requirements
+            else if (cheapestRoute.AccessRequirement != null && !cheapestRoute.AccessRequirement.HasReceivedPermit)
+            {
+                isLocked = true;
+                lockReason = "Needs Transport Permit";
+            }
+            
             viewModel.Routes.Add(new RouteOptionViewModel
             {
-                RouteId = cheapestRoute.Id, // Added route ID for travel
+                RouteId = cheapestRoute.Id,
                 Destination = destination?.Name ?? cheapestRoute.Destination,
                 TravelTime = $"{cheapestRoute.TravelTimeHours * 60} min",
-                Detail = cheapestRoute.Description ?? ""
+                Detail = cheapestRoute.Description ?? "",
+                IsLocked = isLocked,
+                LockReason = lockReason,
+                RequiredTier = cheapestRoute.TierRequired,
+                CanUnlockWithPermit = cheapestRoute.TierRequired > player.CurrentTier
             });
         }
         

@@ -14,6 +14,7 @@ public class SpecialLetterHandler
     private readonly InformationDiscoveryManager _informationManager;
     private readonly ConnectionTokenManager _tokenManager;
     private readonly EndorsementManager _endorsementManager;
+    private readonly RouteRepository _routeRepository;
 
     public SpecialLetterHandler(
         GameWorld gameWorld,
@@ -22,7 +23,8 @@ public class SpecialLetterHandler
         LocationRepository locationRepository,
         InformationDiscoveryManager informationManager,
         ConnectionTokenManager tokenManager,
-        EndorsementManager endorsementManager = null)
+        EndorsementManager endorsementManager = null,
+        RouteRepository routeRepository = null)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -31,6 +33,7 @@ public class SpecialLetterHandler
         _informationManager = informationManager;
         _tokenManager = tokenManager;
         _endorsementManager = endorsementManager ?? new EndorsementManager(gameWorld, messageSystem);
+        _routeRepository = routeRepository ?? new RouteRepository(gameWorld, new ItemRepository(gameWorld));
     }
 
     /// <summary>
@@ -101,7 +104,7 @@ public class SpecialLetterHandler
             $"npc_introduced_{npc.ID}",
             $"Introduced to {npc.Name} by {letter.SenderName}",
             _gameWorld.CurrentDay,
-            letter.Tier
+            (int)letter.Tier
         );
 
         // Grant initial trust tokens with the new NPC
@@ -117,45 +120,166 @@ public class SpecialLetterHandler
     }
 
     /// <summary>
-    /// Commerce - Access Permit letters unlock new locations
+    /// Commerce - Access Permit letters unlock new locations and routes
+    /// CONTENT EFFICIENT: Works with Transport NPCs to unlock routes
     /// </summary>
     private void ProcessAccessPermitLetter(Letter letter)
     {
-        if (string.IsNullOrEmpty(letter.UnlocksLocationId))
-        {
-            _messageSystem.AddSystemMessage(
-                "This access permit seems incomplete...",
-                SystemMessageTypes.Warning
-            );
-            return;
-        }
-
-        Location location = _locationRepository.GetLocation(letter.UnlocksLocationId);
-        if (location == null)
-        {
-            _messageSystem.AddSystemMessage(
-                "The location this permit grants access to cannot be found...",
-                SystemMessageTypes.Warning
-            );
-            return;
-        }
-
-        // Mark location as accessible
         Player player = _gameWorld.GetPlayer();
-        player.AddMemory(
-            $"location_permit_{location.Id}",
-            $"Access permit to {location.Name} granted by {letter.SenderName}",
-            _gameWorld.CurrentDay,
-            letter.Tier
-        );
+        
+        // Check if delivered to a Transport NPC
+        NPC recipient = _npcRepository.GetById(letter.RecipientId);
+        if (recipient != null && recipient.ProvidedServices.Contains(ServiceTypes.Transport))
+        {
+            // Transport NPC - unlock routes they control
+            ProcessTransportPermit(letter, recipient);
+            return;
+        }
+        
+        // Original location unlocking logic
+        if (!string.IsNullOrEmpty(letter.UnlocksLocationId))
+        {
+            Location location = _locationRepository.GetLocation(letter.UnlocksLocationId);
+            if (location == null)
+            {
+                _messageSystem.AddSystemMessage(
+                    "The location this permit grants access to cannot be found...",
+                    SystemMessageTypes.Warning
+                );
+                return;
+            }
 
-        _messageSystem.AddSystemMessage(
-            $"🔓 Access granted to {location.Name}! New routes may now be available.",
-            SystemMessageTypes.Success
-        );
+            // Mark location as accessible
+            player.AddMemory(
+                $"location_permit_{location.Id}",
+                $"Access permit to {location.Name} granted by {letter.SenderName}",
+                _gameWorld.CurrentDay,
+                (int)letter.Tier
+            );
 
-        // Discover information about this location
-        _informationManager.DiscoverFromLocationVisit(location.Id);
+            _messageSystem.AddSystemMessage(
+                $"🔓 Access granted to {location.Name}! New routes may now be available.",
+                SystemMessageTypes.Success
+            );
+
+            // Discover information about this location
+            _informationManager.DiscoverFromLocationVisit(location.Id);
+        }
+        else
+        {
+            // Generic permit - unlock a route from current location
+            UnlockRouteFromCurrentLocation(letter);
+        }
+    }
+    
+    /// <summary>
+    /// Process travel permit delivered to Transport NPC
+    /// CONTENT EFFICIENT: Unlocks routes without requiring extra NPCs
+    /// </summary>
+    private void ProcessTransportPermit(Letter letter, NPC transportNPC)
+    {
+        // Find routes this Transport NPC controls based on their profession and location
+        var controlledRoutes = GetTransportNPCRoutes(transportNPC, _routeRepository);
+        
+        // Unlock the first locked route, or mark permit as used for access requirements
+        bool routeUnlocked = false;
+        foreach (var route in controlledRoutes)
+        {
+            // Check if route has permit-based access requirement
+            if (route.AccessRequirement != null && 
+                route.AccessRequirement.AlternativeLetterUnlock == LetterSpecialType.AccessPermit)
+            {
+                route.AccessRequirement.HasReceivedPermit = true;
+                route.HasPermitUnlock = true; // Also mark tier bypass
+                _messageSystem.AddSystemMessage(
+                    $"🚢 {transportNPC.Name} accepts your permit. The {route.Name} is now available!",
+                    SystemMessageTypes.Success
+                );
+                routeUnlocked = true;
+                break;
+            }
+            else if (!route.IsDiscovered)
+            {
+                route.IsDiscovered = true;
+                _messageSystem.AddSystemMessage(
+                    $"🚢 {transportNPC.Name} stamps your permit. You can now use the {route.Name}!",
+                    SystemMessageTypes.Success
+                );
+                routeUnlocked = true;
+                break;
+            }
+        }
+        
+        if (!routeUnlocked)
+        {
+            // All routes already available - grant commerce tokens as bonus
+            _tokenManager.AddTokensToNPC(ConnectionType.Commerce, 5, transportNPC.ID);
+            _messageSystem.AddSystemMessage(
+                $"{transportNPC.Name} notes you already have access to all routes. Your permit is filed. (+5 Commerce)",
+                SystemMessageTypes.Info
+            );
+        }
+    }
+    
+    /// <summary>
+    /// Get routes controlled by a Transport NPC
+    /// CONTENT EFFICIENT: Based on profession and location, not extra data
+    /// </summary>
+    private List<RouteOption> GetTransportNPCRoutes(NPC transportNPC, RouteRepository routeRepository)
+    {
+        var allRoutes = routeRepository.GetRoutesFromLocation(transportNPC.Location);
+        
+        // Filter based on Transport NPC's profession
+        return transportNPC.Profession switch
+        {
+            Professions.Ferryman => allRoutes.Where(r => 
+                r.Method == TravelMethods.Boat || 
+                r.TerrainCategories.Contains(TerrainCategory.Requires_Water_Transport)).ToList(),
+                
+            Professions.Harbor_Master => allRoutes.Where(r => 
+                r.Method == TravelMethods.Boat || 
+                r.Method == TravelMethods.Carriage).ToList(),
+                
+            _ => allRoutes.Where(r => (int)r.TierRequired <= (int)TierLevel.T2).ToList()
+        };
+    }
+    
+    /// <summary>
+    /// Unlock a route from player's current location
+    /// </summary>
+    private void UnlockRouteFromCurrentLocation(Letter letter)
+    {
+        var player = _gameWorld.GetPlayer();
+        var currentLocation = player.GetCurrentLocation(_locationRepository);
+        if (currentLocation == null) return;
+        
+        var lockedRoutes = _routeRepository.GetRoutesFromLocation(currentLocation.Id)
+            .Where(r => !r.IsDiscovered || 
+                   (r.AccessRequirement != null && !r.AccessRequirement.HasReceivedPermit))
+            .ToList();
+            
+        if (lockedRoutes.Any())
+        {
+            var routeToUnlock = lockedRoutes.First();
+            if (routeToUnlock.AccessRequirement != null)
+            {
+                routeToUnlock.AccessRequirement.HasReceivedPermit = true;
+            }
+            routeToUnlock.IsDiscovered = true;
+            routeToUnlock.HasPermitUnlock = true; // Mark tier bypass
+            
+            _messageSystem.AddSystemMessage(
+                $"🔓 Travel permit accepted! The {routeToUnlock.Name} is now available.",
+                SystemMessageTypes.Success
+            );
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage(
+                "All routes from this location are already available.",
+                SystemMessageTypes.Info
+            );
+        }
     }
 
     /// <summary>
@@ -170,14 +294,14 @@ public class SpecialLetterHandler
 
         // Also record temporary benefits
         int endDate = _gameWorld.CurrentDay + letter.BonusDuration;
-        string endorsementKey = $"endorsement_{letter.SenderId}_{letter.Tier}";
+        string endorsementKey = $"endorsement_{letter.SenderId}_{(int)letter.Tier}";
         string description = GetEndorsementDescription(letter);
 
         player.AddMemory(
             endorsementKey,
             description,
             _gameWorld.CurrentDay,
-            letter.Tier
+            (int)letter.Tier
         );
 
         // Store expiration date in a separate memory entry
@@ -233,7 +357,7 @@ public class SpecialLetterHandler
     private int CalculateSpecialLetterTokenBonus(Letter letter)
     {
         // Base bonus based on tier
-        int baseBonus = letter.Tier;
+        int baseBonus = (int)letter.Tier;
 
         // Additional bonus for matching token type
         switch (letter.SpecialType)
@@ -258,9 +382,9 @@ public class SpecialLetterHandler
     {
         return letter.Tier switch
         {
-            1 => "minor social privileges",
-            2 or 3 => "improved status letter handling",
-            4 or 5 => "significant social advantages",
+            TierLevel.T1 => "minor social privileges",
+            TierLevel.T2 => "improved status letter handling",
+            TierLevel.T3 => "significant social advantages",
             _ => "social benefits"
         };
     }
@@ -273,27 +397,25 @@ public class SpecialLetterHandler
         // This demonstrates what a full implementation would do
         switch (letter.Tier)
         {
-            case 1:
+            case TierLevel.T1:
                 _messageSystem.AddSystemMessage(
                     "  • Status letters will pay +3 bonus coins",
                     SystemMessageTypes.Info
                 );
                 break;
 
-            case 2:
-            case 3:
+            case TierLevel.T2:
                 _messageSystem.AddSystemMessage(
                     "  • Status letters enter queue at position 3",
                     SystemMessageTypes.Info
                 );
                 _messageSystem.AddSystemMessage(
-                    "  • Status letters get +2 days deadline",
+                    "  • Automatic priority for Status obligations",
                     SystemMessageTypes.Info
                 );
                 break;
 
-            case 4:
-            case 5:
+            case TierLevel.T3:
                 _messageSystem.AddSystemMessage(
                     "  • Status letters enter queue at position 3",
                     SystemMessageTypes.Info
@@ -342,8 +464,9 @@ public class SpecialLetterHandler
 
         string discoveredInfo = letter.Tier switch
         {
-            1 => tier1Info[random.Next(tier1Info.Length)],
-            2 => tier2Info[random.Next(tier2Info.Length)],
+            TierLevel.T1 => tier1Info[random.Next(tier1Info.Length)],
+            TierLevel.T2 => tier2Info[random.Next(tier2Info.Length)],
+            TierLevel.T3 => tier3PlusInfo[random.Next(tier3PlusInfo.Length)],
             _ => tier3PlusInfo[random.Next(tier3PlusInfo.Length)]
         };
 
@@ -351,7 +474,7 @@ public class SpecialLetterHandler
             $"shadow_info_{letter.Id}",
             discoveredInfo,
             _gameWorld.CurrentDay,
-            letter.Tier
+            (int)letter.Tier
         );
 
         _messageSystem.AddSystemMessage(

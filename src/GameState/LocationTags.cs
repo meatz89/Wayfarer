@@ -1,5 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// Tier levels for letters and routes
+/// Determines access requirements and complexity
+/// </summary>
+public enum TierLevel
+{
+    T1 = 1,  // Basic tier - always accessible
+    T2 = 2,  // Intermediate tier - requires some progress
+    T3 = 3   // Advanced tier - requires significant investment
+}
 
 /// <summary>
 /// Location tags that enable specific observation actions during conversations
@@ -87,7 +99,9 @@ public static class LocationTagObservations
     /// </summary>
     public static List<ObservationAction> GetObservationActions(IEnumerable<LocationTag> tags)
     {
-        var actions = new HashSet<ObservationAction>();
+        // Use List with explicit deduplication instead of HashSet
+        var actions = new List<ObservationAction>();
+        var addedActionIds = new List<string>();
         
         foreach (var tag in tags)
         {
@@ -95,12 +109,18 @@ public static class LocationTagObservations
             {
                 foreach (var action in TagActions[tag])
                 {
-                    actions.Add(action);
+                    // Binary availability: action is either in the list or not
+                    // Deduplicate by checking if action ID already exists
+                    if (!addedActionIds.Contains(action.Id))
+                    {
+                        actions.Add(action);
+                        addedActionIds.Add(action.Id);
+                    }
                 }
             }
         }
         
-        return new List<ObservationAction>(actions);
+        return actions;
     }
 }
 
@@ -112,12 +132,14 @@ public class ObservationAction : IEquatable<ObservationAction>
     public string Id { get; }
     public string Description { get; }
     public int AttentionCost { get; }
+    public TierLevel RequiredTier { get; }
     
-    public ObservationAction(string id, string description, int attentionCost)
+    public ObservationAction(string id, string description, int attentionCost, TierLevel requiredTier = TierLevel.T1)
     {
         Id = id;
         Description = description;
         AttentionCost = attentionCost;
+        RequiredTier = requiredTier;
     }
     
     public bool Equals(ObservationAction other)
@@ -134,6 +156,36 @@ public class ObservationAction : IEquatable<ObservationAction>
     public override int GetHashCode()
     {
         return Id?.GetHashCode() ?? 0;
+    }
+}
+
+/// <summary>
+/// Strongly-typed structure for tier-based action requirements
+/// </summary>
+public class TierRequirement
+{
+    public TierLevel MinimumTier { get; set; }
+    public List<string> RequiredTags { get; set; } = new List<string>();
+    public string FailureReason { get; set; }
+    
+    /// <summary>
+    /// Check if a player meets the tier requirement
+    /// Binary check - either meets requirement or doesn't
+    /// </summary>
+    public bool IsMet(TierLevel playerTier, List<string> playerTags)
+    {
+        // Check tier level first
+        if (playerTier < MinimumTier)
+            return false;
+            
+        // Check required tags (all must be present)
+        foreach (var requiredTag in RequiredTags)
+        {
+            if (!playerTags.Contains(requiredTag))
+                return false;
+        }
+        
+        return true;
     }
 }
 

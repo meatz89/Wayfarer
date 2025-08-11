@@ -19,6 +19,9 @@ public class LetterTemplate
     // Letter category and requirements
     public LetterCategory Category { get; set; } = LetterCategory.Basic;
     public int MinTokensRequired { get; set; } = 1; // Minimum tokens with NPC to unlock this template
+    
+    // Tier level for this letter template (T1-T3)
+    public TierLevel TierLevel { get; set; } = TierLevel.T1;
 
     // Special letter properties
     public LetterSpecialType SpecialType { get; set; } = LetterSpecialType.None;

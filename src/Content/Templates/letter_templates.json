@@ -17,7 +17,8 @@
 		"physicalProperties": ["Sealed", "Urgent"],
 		"possibleSenders": ["elena"],
 		"possibleRecipients": ["lord_aldwin"],
-		"stakes": "REPUTATION"
+		"stakes": "REPUTATION",
+		"tierLevel": "T3"
 	},
 	{
 		"id": "marcus_trade_deal",
@@ -37,7 +38,8 @@
 		"physicalProperties": ["Package"],
 		"possibleSenders": ["marcus"],
 		"possibleRecipients": ["merchant_row"],
-		"stakes": "WEALTH"
+		"stakes": "WEALTH",
+		"tierLevel": "T2"
 	},
 	{
 		"id": "lord_b_urgent",
@@ -57,7 +59,8 @@
 		"physicalProperties": ["Sealed", "Noble"],
 		"possibleSenders": ["lord_b"],
 		"possibleRecipients": ["noble_district"],
-		"stakes": "REPUTATION"
+		"stakes": "REPUTATION",
+		"tierLevel": "T3"
 	},
 	{
 		"id": "viktor_report",
@@ -77,7 +80,8 @@
 		"physicalProperties": ["Official"],
 		"possibleSenders": ["viktor"],
 		"possibleRecipients": ["noble_district"],
-		"stakes": "SAFETY"
+		"stakes": "SAFETY",
+		"tierLevel": "T1"
 	},
 	{
 		"id": "garrett_secret",
@@ -97,7 +101,8 @@
 		"physicalProperties": ["Concealed", "Dangerous"],
 		"possibleSenders": ["garrett"],
 		"possibleRecipients": ["riverside"],
-		"stakes": "SECRET"
+		"stakes": "SECRET",
+		"tierLevel": "T3"
 	},
 	{
 		"id": "trust_wealth_crisis",
@@ -117,7 +122,8 @@
 		"physicalProperties": [],
 		"possibleSenders": ["elena", "marcus"],
 		"possibleRecipients": ["merchant_row", "noble_district"],
-		"stakes": "WEALTH"
+		"stakes": "WEALTH",
+		"tierLevel": "T1"
 	},
 	{
 		"id": "trust_safety_warning",
@@ -137,7 +143,8 @@
 		"physicalProperties": ["Urgent"],
 		"possibleSenders": ["elena", "viktor"],
 		"possibleRecipients": ["market_square", "city_gates"],
-		"stakes": "SAFETY"
+		"stakes": "SAFETY",
+		"tierLevel": "T2"
 	},
 	{
 		"id": "commerce_reputation_deal",
@@ -157,7 +164,8 @@
 		"physicalProperties": ["Package"],
 		"possibleSenders": ["marcus"],
 		"possibleRecipients": ["merchant_row", "market_square"],
-		"stakes": "REPUTATION"
+		"stakes": "REPUTATION",
+		"tierLevel": "T2"
 	},
 	{
 		"id": "commerce_safety_cargo",
@@ -177,7 +185,8 @@
 		"physicalProperties": ["Heavy", "Fragile"],
 		"possibleSenders": ["marcus"],
 		"possibleRecipients": ["riverside", "city_gates"],
-		"stakes": "SAFETY"
+		"stakes": "SAFETY",
+		"tierLevel": "T3"
 	},
 	{
 		"id": "status_wealth_inheritance",
@@ -197,6 +206,7 @@
 		"physicalProperties": ["Sealed", "Noble"],
 		"possibleSenders": ["lord_b"],
 		"possibleRecipients": ["noble_district"],
-		"stakes": "WEALTH"
+		"stakes": "WEALTH",
+		"tierLevel": "T3"
 	}
 ]
