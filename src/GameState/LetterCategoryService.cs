@@ -9,13 +9,13 @@ using System.Linq;
 public class LetterCategoryService
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
     private readonly GameConfiguration _config;
     private LetterTemplateRepository _letterTemplateRepository;
 
-    public LetterCategoryService(GameWorld gameWorld, ConnectionTokenManager connectionTokenManager,
+    public LetterCategoryService(GameWorld gameWorld, TokenMechanicsManager connectionTokenManager,
         NPCRepository npcRepository, MessageSystem messageSystem, GameConfiguration config)
     {
         _gameWorld = gameWorld;

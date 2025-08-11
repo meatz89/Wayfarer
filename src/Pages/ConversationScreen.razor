@@ -1,6 +1,8 @@
 @page "/conversation/{NpcId}"
 @using Wayfarer.ViewModels
 @using Wayfarer.Pages.Components
+@using Wayfarer.Models
+@using Wayfarer.GameState
 @inherits ConversationScreenBase
 
 <div class="container">
@@ -48,10 +50,24 @@
 
         <!-- Main Scene Content -->
         <div class="scene-content">
-            <!-- Character Focus - BODY LANGUAGE NOT STATS -->
+            <!-- Character Focus - TRANSPARENT EMOTIONAL STATE -->
             <div class="character-focus">
-                <div class="character-name">@Model.NpcName</div>
-                <div class="character-state">@(Model.CharacterState ?? "leaning forward, fingers worrying her shawl")</div>
+                @if (CurrentEmotionalState != null)
+                {
+                    <EmotionalStateDisplay 
+                        NpcName="@Model.NpcName"
+                        CurrentState="@CurrentEmotionalState.Value"
+                        Stakes="@CurrentStakes"
+                        StakesDescription="@GetStakesDescription()"
+                        TimeRemaining="@GetTimeRemaining()"
+                        ShowFormula="true"
+                        ShowMechanicalEffects="true" />
+                }
+                else
+                {
+                    <div class="character-name">@Model.NpcName</div>
+                    <div class="character-state">@(Model.CharacterState ?? "leaning forward, fingers worrying her shawl")</div>
+                }
                 
                 @* Token Display - Shows contextually relevant relationship currency *@
                 @if (NpcTokens != null)

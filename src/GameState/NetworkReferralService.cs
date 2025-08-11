@@ -11,7 +11,7 @@ public class NetworkReferralService
     private readonly NPCRepository _npcRepository;
     private readonly LetterQueueManager _letterQueueManager;
     private readonly LetterTemplateRepository _letterTemplateRepository;
-    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly NPCLetterOfferService _letterOfferService;
     private readonly MessageSystem _messageSystem;
     private readonly Random _random = new Random();
@@ -24,7 +24,7 @@ public class NetworkReferralService
         NPCRepository npcRepository,
         LetterQueueManager letterQueueManager,
         LetterTemplateRepository letterTemplateRepository,
-        ConnectionTokenManager connectionTokenManager,
+        TokenMechanicsManager connectionTokenManager,
         NPCLetterOfferService letterOfferService,
         MessageSystem messageSystem)
     {

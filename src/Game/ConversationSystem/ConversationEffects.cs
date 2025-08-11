@@ -12,7 +12,7 @@ public class LetterReorderEffect : IMechanicalEffect
     private readonly int _tokenCost;
     private readonly ConnectionType _tokenType;
     private readonly LetterQueueManager _queueManager;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly string _npcId;
 
     public LetterReorderEffect(
@@ -21,7 +21,7 @@ public class LetterReorderEffect : IMechanicalEffect
         int tokenCost, 
         ConnectionType tokenType,
         LetterQueueManager queueManager,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         string npcId)
     {
         _letterId = letterId;
@@ -103,7 +103,7 @@ public class GainTokensEffect : IMechanicalEffect
     private readonly ConnectionType _tokenType;
     private readonly int _amount;
     private readonly string _npcId;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
 
     public int Amount => _amount; // Expose for filtering
 
@@ -111,7 +111,7 @@ public class GainTokensEffect : IMechanicalEffect
         ConnectionType tokenType, 
         int amount, 
         string npcId,
-        ConnectionTokenManager tokenManager)
+        TokenMechanicsManager tokenManager)
     {
         _tokenType = tokenType;
         _amount = amount;
@@ -166,13 +166,13 @@ public class BurnTokensEffect : IMechanicalEffect
     private readonly ConnectionType _tokenType;
     private readonly int _amount;
     private readonly string _npcId;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
 
     public BurnTokensEffect(
         ConnectionType tokenType, 
         int amount, 
         string npcId,
-        ConnectionTokenManager tokenManager)
+        TokenMechanicsManager tokenManager)
     {
         _tokenType = tokenType;
         _amount = amount;

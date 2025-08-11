@@ -94,13 +94,12 @@ public static class ServiceConfiguration
         services.AddSingleton<ConversationStateManager>();
 
         // Wire up circular dependencies after initial creation
-        services.AddSingleton<ConnectionTokenManager>();
+        services.AddSingleton<TokenMechanicsManager>();
         
         // Consequence Engine for handling missed deadlines
         services.AddSingleton<Wayfarer.GameState.ConsequenceEngine>();
         
         // Leverage Calculator for power dynamics
-        services.AddSingleton<Wayfarer.GameState.LeverageCalculator>();
         
         // Relationship tracking for contextual conversations
         services.AddSingleton<Wayfarer.GameState.NPCRelationshipTracker>();

@@ -7,7 +7,7 @@ public class NoticeBoardService
     private readonly GameWorld _gameWorld;
     private readonly LetterTemplateRepository _letterTemplateRepository;
     private readonly NPCRepository _npcRepository;
-    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly MessageSystem _messageSystem;
     private readonly Random _random = new Random();
 
@@ -15,7 +15,7 @@ public class NoticeBoardService
         GameWorld gameWorld,
         LetterTemplateRepository letterTemplateRepository,
         NPCRepository npcRepository,
-        ConnectionTokenManager connectionTokenManager,
+        TokenMechanicsManager connectionTokenManager,
         MessageSystem messageSystem)
     {
         _gameWorld = gameWorld;

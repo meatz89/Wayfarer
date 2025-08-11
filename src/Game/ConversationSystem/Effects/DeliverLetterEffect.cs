@@ -10,7 +10,7 @@ public class DeliverLetterEffect : IMechanicalEffect
     private readonly string _letterId;
     private readonly LetterQueueManager _queueManager;
     private readonly ITimeManager _timeManager;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly Letter _letter;
     
     public DeliverLetterEffect(
@@ -18,7 +18,7 @@ public class DeliverLetterEffect : IMechanicalEffect
         Letter letter,
         LetterQueueManager queueManager, 
         ITimeManager timeManager,
-        ConnectionTokenManager tokenManager)
+        TokenMechanicsManager tokenManager)
     {
         _letterId = letterId;
         _letter = letter;

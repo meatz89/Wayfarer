@@ -7,9 +7,9 @@ public class SpendTokensOperation : IGameOperation
     private readonly ConnectionType _tokenType;
     private readonly int _amount;
     private readonly string _npcId;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
 
-    public SpendTokensOperation(ConnectionType tokenType, int amount, string npcId, ConnectionTokenManager tokenManager)
+    public SpendTokensOperation(ConnectionType tokenType, int amount, string npcId, TokenMechanicsManager tokenManager)
     {
         if (amount <= 0)
             throw new ArgumentException("Amount must be positive", nameof(amount));

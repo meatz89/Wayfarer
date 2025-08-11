@@ -11,20 +11,18 @@ using Wayfarer.Models;
 public class VerbOrganizedChoiceGenerator
 {
     private readonly LetterQueueManager _queueManager;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly ITimeManager _timeManager;
     private readonly ConsequenceEngine _consequenceEngine;
-    private readonly LeverageCalculator _leverageCalculator;
     private readonly Player _player;
     private readonly GameWorld _gameWorld;
     private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
     
     public VerbOrganizedChoiceGenerator(
         LetterQueueManager queueManager,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         ITimeManager timeManager,
         ConsequenceEngine consequenceEngine,
-        LeverageCalculator leverageCalculator,
         Player player,
         GameWorld gameWorld,
         Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager)
@@ -33,7 +31,6 @@ public class VerbOrganizedChoiceGenerator
         _tokenManager = tokenManager;
         _timeManager = timeManager;
         _consequenceEngine = consequenceEngine;
-        _leverageCalculator = leverageCalculator;
         _player = player;
         _gameWorld = gameWorld;
         _timeBlockAttentionManager = timeBlockAttentionManager;
@@ -84,7 +81,7 @@ public class VerbOrganizedChoiceGenerator
     
     /// <summary>
     /// HELP verb choices: Accept burdens to build trust.
-    /// Core tension: Taking letters fills queue but builds relationships.
+    /// Emotional states strongly affect what help is offered/accepted.
     /// </summary>
     private List<ConversationChoice> GenerateHelpChoices(
         NPC npc, 
@@ -97,72 +94,134 @@ public class VerbOrganizedChoiceGenerator
         var hasSpace = queueSlots < 8;
         var playerTier = _player.CurrentTier;
         
-        // 1 ATTENTION: Accept letter - trust comes from DELIVERY, not promises
-        // Basic letter acceptance is T1 (always available to Strangers)
-        if (hasSpace && npc.HasLetterToOffer)
+        // Emotional states affect letter offers
+        // DESPERATE: Offers urgent, high-stakes letters
+        // ANXIOUS: Offers time-sensitive letters  
+        // CALCULATING: Offers profitable letters
+        // HOSTILE: Refuses to offer letters
+        // WITHDRAWN: No letters available
+        
+        // 1 ATTENTION: Accept letter - but what's offered depends on state!
+        if (hasSpace && npc.HasLetterToOffer && state != NPCEmotionalState.HOSTILE)
         {
             var offeredLetter = npc.GenerateLetterOffer();
+            
+            // Modify letter urgency based on emotional state
+            if (state == NPCEmotionalState.DESPERATE)
+            {
+                offeredLetter.DeadlineInHours = Math.Min(offeredLetter.DeadlineInHours, 6);
+                offeredLetter.Payment = (int)(offeredLetter.Payment * 1.5); // Desperate pays more
+            }
+            else if (state == NPCEmotionalState.ANXIOUS)
+            {
+                offeredLetter.DeadlineInHours = Math.Min(offeredLetter.DeadlineInHours, 12);
+            }
+            
             string acceptText = GenerateAcceptLetterNarrativeText(npc, state, offeredLetter);
-            bool isAvailable = playerTier >= TierLevel.T1; // Always available
+            bool isAvailable = playerTier >= TierLevel.T1;
             
             choices.Add(new ConversationChoice
             {
                 ChoiceID = "help_accept_letter",
                 NarrativeText = acceptText,
-                AttentionCost = 1,
+                AttentionCost = state == NPCEmotionalState.DESPERATE ? 0 : 1, // Desperate makes it free!
                 BaseVerb = BaseVerb.HELP,
                 IsAffordable = true,
                 IsAvailable = isAvailable,
-                MechanicalDescription = $"Accept {offeredLetter.SenderName}'s letter (trust earned on delivery)",
+                MechanicalDescription = state == NPCEmotionalState.DESPERATE 
+                    ? $"URGENT: {offeredLetter.SenderName}'s letter ({offeredLetter.DeadlineInHours}h!) +${offeredLetter.Payment}"
+                    : $"Accept {offeredLetter.SenderName}'s letter (trust on delivery)",
                 MechanicalEffects = new List<IMechanicalEffect>
                 {
                     new AcceptLetterEffect(offeredLetter, _queueManager)
-                    // NO immediate trust - promises are cheap, delivery is what matters
                 }
             });
         }
         
-        // 1 ATTENTION: Pure trust building (when no letters or queue full)
-        // Basic trust building is T1 (always available)
-        string helpText = GenerateHelpNarrativeText(npc, state, 1);
-        bool trustBuildAvailable = playerTier >= TierLevel.T1; // Always available
-        
-        choices.Add(new ConversationChoice
+        // 1 ATTENTION: Pure trust building - affected by emotional state
+        // HOSTILE blocks this entirely
+        if (state != NPCEmotionalState.HOSTILE)
         {
-            ChoiceID = "help_build_trust",
-            NarrativeText = helpText,
-            AttentionCost = 1,
-            BaseVerb = BaseVerb.HELP,
-            IsAffordable = true,
-            IsAvailable = trustBuildAvailable,
-            MechanicalDescription = $"+2 Trust with {npc.Name}",
-            MechanicalEffects = new List<IMechanicalEffect>
+            string helpText = GenerateHelpNarrativeText(npc, state, 1);
+            bool trustBuildAvailable = playerTier >= TierLevel.T1;
+            
+            // Emotional state affects trust gain amount
+            int trustGain = state switch
             {
-                new GainTokensEffect(ConnectionType.Trust, 2, npc.ID, _tokenManager)
-            }
-        });
+                NPCEmotionalState.DESPERATE => 3,  // Desperate NPCs bond quickly
+                NPCEmotionalState.ANXIOUS => 2,    // Normal trust gain
+                NPCEmotionalState.CALCULATING => 1, // Calculating NPCs are cautious
+                NPCEmotionalState.WITHDRAWN => 1,  // Withdrawn NPCs barely engage
+                _ => 2
+            };
+            
+            choices.Add(new ConversationChoice
+            {
+                ChoiceID = "help_build_trust",
+                NarrativeText = helpText,
+                AttentionCost = 1,
+                BaseVerb = BaseVerb.HELP,
+                IsAffordable = true,
+                IsAvailable = trustBuildAvailable,
+                MechanicalDescription = $"+{trustGain} Trust with {npc.Name}",
+                MechanicalEffects = new List<IMechanicalEffect>
+                {
+                    new GainTokensEffect(ConnectionType.Trust, trustGain, npc.ID, _tokenManager)
+                }
+            });
+        }
+        else
+        {
+            // HOSTILE: Trust building is blocked
+            choices.Add(new ConversationChoice
+            {
+                ChoiceID = "help_build_trust_blocked",
+                NarrativeText = GenerateHelpNarrativeText(npc, state, 1),
+                AttentionCost = 999, // Unaffordable
+                BaseVerb = BaseVerb.HELP,
+                IsAffordable = false,
+                IsAvailable = false,
+                MechanicalDescription = $"{npc.Name} refuses your help (HOSTILE)",
+                MechanicalEffects = new List<IMechanicalEffect>
+                {
+                    new LockedEffect("Trust blocked while HOSTILE")
+                }
+            });
+        }
         
-        // 2 ATTENTION: Accept difficult letter - harder promise, but still just a promise
-        // Urgent letters require T2 (Associate) - you need some standing to be trusted with urgent matters
-        if (hasSpace && npc.HasUrgentLetter())
+        // 2 ATTENTION: Accept difficult letter - emotional state affects what's offered
+        if (hasSpace && npc.HasUrgentLetter() && state != NPCEmotionalState.WITHDRAWN)
         {
             var urgentLetter = npc.GenerateUrgentLetter();
-            bool canAcceptUrgent = playerTier >= TierLevel.T2;
-            string urgentText = canAcceptUrgent 
-                ? GenerateAcceptUrgentNarrativeText(npc, state, urgentLetter)
-                : "\"I wish I could help with urgent matters, but...\"";
+            
+            // DESPERATE NPCs offer impossible deadlines
+            if (state == NPCEmotionalState.DESPERATE)
+            {
+                urgentLetter.DeadlineInHours = Math.Min(4, urgentLetter.DeadlineInHours);
+                urgentLetter.Payment = (int)(urgentLetter.Payment * 2); // Double payment for impossible task
+            }
+            else if (state == NPCEmotionalState.HOSTILE)
+            {
+                urgentLetter.Payment = (int)(urgentLetter.Payment * 0.5); // Hostile pays less
+            }
+            
+            bool canAcceptUrgent = playerTier >= TierLevel.T2 || state == NPCEmotionalState.DESPERATE;
+            string urgentText = GenerateAcceptUrgentNarrativeText(npc, state, urgentLetter);
+            
+            // DESPERATE makes urgent letters cheaper to accept
+            int urgentCost = state == NPCEmotionalState.DESPERATE ? 1 : 2;
                 
             choices.Add(new ConversationChoice
             {
                 ChoiceID = "help_accept_urgent",
                 NarrativeText = urgentText,
-                AttentionCost = 2,
+                AttentionCost = urgentCost,
                 BaseVerb = BaseVerb.HELP,
                 IsAffordable = canAcceptUrgent,
                 IsAvailable = canAcceptUrgent,
-                MechanicalDescription = canAcceptUrgent 
-                    ? $"Take urgent letter (deadline: {urgentLetter.DeadlineInHours}h) - bigger trust reward on delivery"
-                    : "Requires Associate standing to accept urgent letters",
+                MechanicalDescription = state == NPCEmotionalState.DESPERATE
+                    ? $"CRISIS: {urgentLetter.DeadlineInHours}h deadline! +${urgentLetter.Payment}!"
+                    : $"Urgent letter ({urgentLetter.DeadlineInHours}h) +${urgentLetter.Payment}",
                 MechanicalEffects = canAcceptUrgent
                     ? new List<IMechanicalEffect> { new AcceptLetterEffect(urgentLetter, _queueManager) }
                     : new List<IMechanicalEffect> { new LockedEffect("Requires Associate standing") }
@@ -231,7 +290,7 @@ public class VerbOrganizedChoiceGenerator
     
     /// <summary>
     /// NEGOTIATE verb choices: Queue manipulation and token trading.
-    /// Pure queue management - no letter acceptance (that's HELP's job).
+    /// Emotional states affect negotiation costs and options.
     /// </summary>
     private List<ConversationChoice> GenerateNegotiateChoices(
         NPC npc,
@@ -248,15 +307,32 @@ public class VerbOrganizedChoiceGenerator
         var lettersInQueue = relevantLetters.Where(l => 
             _queueManager.GetLetterPosition(l.Id).HasValue).ToList();
         
-        // 1 ATTENTION OPTION A: Simple swap with clear cost
-        // Basic swapping requires T1 (always available)
-        if (lettersInQueue.Count >= 2 && commerceTokens >= 2)
+        // Emotional states affect negotiation costs
+        // DESPERATE: Accepts bad deals (cheaper for player)
+        // CALCULATING: Demands fair trades (normal cost)
+        // HOSTILE: Demands more (expensive)
+        
+        // 1 ATTENTION OPTION A: Simple swap - cost varies by emotional state
+        if (lettersInQueue.Count >= 2)
         {
             var letter1 = lettersInQueue[0];
             var letter2 = lettersInQueue[1];
             var pos1 = _queueManager.GetLetterPosition(letter1.Id) ?? 8;
             var pos2 = _queueManager.GetLetterPosition(letter2.Id) ?? 8;
-            bool canSwap = playerTier >= TierLevel.T1; // Basic negotiate is always available
+            bool canSwap = playerTier >= TierLevel.T1;
+            
+            // Emotional state affects swap cost
+            int swapCost = state switch
+            {
+                NPCEmotionalState.DESPERATE => 1,   // Desperate accepts any deal
+                NPCEmotionalState.ANXIOUS => 2,     // Normal cost
+                NPCEmotionalState.CALCULATING => 2, // Fair trade
+                NPCEmotionalState.HOSTILE => 4,     // Demands more
+                NPCEmotionalState.WITHDRAWN => 2,   // Indifferent
+                _ => 2
+            };
+            
+            bool canAfford = commerceTokens >= swapCost;
             
             choices.Add(new ConversationChoice
             {
@@ -264,12 +340,14 @@ public class VerbOrganizedChoiceGenerator
                 NarrativeText = GenerateNegotiateNarrativeText(npc, state, "swap", pos1, pos2),
                 AttentionCost = 1,
                 BaseVerb = BaseVerb.NEGOTIATE,
-                IsAffordable = commerceTokens >= 2 && canSwap,
+                IsAffordable = canAfford && canSwap,
                 IsAvailable = canSwap,
-                MechanicalDescription = $"Swap slots {pos1} ↔ {pos2} (burn 2 Commerce with {npc.Name})",
+                MechanicalDescription = state == NPCEmotionalState.DESPERATE
+                    ? $"DEAL: Swap {pos1} ↔ {pos2} (only {swapCost} Commerce!)"
+                    : $"Swap slots {pos1} ↔ {pos2} (burn {swapCost} Commerce)",
                 MechanicalEffects = new List<IMechanicalEffect>
                 {
-                    new SwapLetterPositionsEffect(letter1.Id, letter2.Id, 2,
+                    new SwapLetterPositionsEffect(letter1.Id, letter2.Id, swapCost,
                         ConnectionType.Commerce, _queueManager, _tokenManager, npc.ID)
                 }
             });
@@ -292,16 +370,23 @@ public class VerbOrganizedChoiceGenerator
             }
         });
         
-        // 1 ATTENTION OPTION C: REFUSE a letter - burn relationships to survive
-        // This is the human moment of choosing survival over promises
-        // Refusing letters requires T2 (Associate) - strangers can't just refuse obligations
+        // 1 ATTENTION OPTION C: REFUSE a letter - emotional state affects cost
         var letterFromThisNPC = lettersInQueue.FirstOrDefault(l => l.SenderId == npc.ID || l.SenderName == npc.Name);
-        if (letterFromThisNPC != null && trustTokens >= 3)
+        if (letterFromThisNPC != null)
         {
-            bool canRefuse = playerTier >= TierLevel.T2;
-            string refuseText = canRefuse
-                ? GenerateRefuseLetterNarrativeText(npc, state, letterFromThisNPC)
-                : "\"I'm not in a position to refuse obligations...\"";
+            // Emotional state affects refuse cost
+            int refuseCost = state switch
+            {
+                NPCEmotionalState.DESPERATE => 5,    // Devastating to refuse desperate NPC
+                NPCEmotionalState.ANXIOUS => 3,      // Normal damage
+                NPCEmotionalState.CALCULATING => 2,  // They understand business
+                NPCEmotionalState.HOSTILE => 1,      // Already damaged relationship
+                NPCEmotionalState.WITHDRAWN => 1,    // They don't care much
+                _ => 3
+            };
+            
+            bool canRefuse = playerTier >= TierLevel.T2 && trustTokens >= refuseCost;
+            string refuseText = GenerateRefuseLetterNarrativeText(npc, state, letterFromThisNPC);
                 
             choices.Add(new ConversationChoice
             {
@@ -309,15 +394,15 @@ public class VerbOrganizedChoiceGenerator
                 NarrativeText = refuseText,
                 AttentionCost = 1,
                 BaseVerb = BaseVerb.NEGOTIATE,
-                IsAffordable = trustTokens >= 3 && canRefuse,
+                IsAffordable = canRefuse,
                 IsAvailable = canRefuse,
-                MechanicalDescription = canRefuse
-                    ? $"REFUSE {letterFromThisNPC.SenderName}'s letter | Burns 3 Trust (permanent damage)"
-                    : "Requires Associate standing to refuse obligations",
+                MechanicalDescription = state == NPCEmotionalState.DESPERATE
+                    ? $"BETRAY {letterFromThisNPC.SenderName} | Burns {refuseCost} Trust!"
+                    : $"Refuse {letterFromThisNPC.SenderName}'s letter | -{refuseCost} Trust",
                 MechanicalEffects = canRefuse
                     ? new List<IMechanicalEffect> { new RefuseLetterEffect(
                         letterFromThisNPC.Id, npc.ID, npc.Name, _queueManager, _tokenManager) }
-                    : new List<IMechanicalEffect> { new LockedEffect("Requires Associate standing") }
+                    : new List<IMechanicalEffect> { new LockedEffect($"Need {refuseCost} Trust to refuse") }
             });
         }
         
@@ -358,18 +443,18 @@ public class VerbOrganizedChoiceGenerator
             string displacedNPCName = letterInPosition1?.SenderName ?? "unknown";
             string displacedNPCId = letterInPosition1?.SenderId ?? "";
             
-            // Use LeverageCalculator to determine displacement cost intelligently
-            var tokenTypeToBurn = ConnectionType.Status; // Default
-            int tokenCost = 3; // Base cost
+            // Simple displacement cost calculation
+            var tokenTypeToBurn = letterInPosition1?.TokenType ?? ConnectionType.Status;
+            int tokenCost = 3; // Base cost for displacement
             
             if (!string.IsNullOrEmpty(displacedNPCId))
             {
-                // Calculate leverage-aware displacement cost
-                var leverageData = _leverageCalculator.CalculateLeverage(displacedNPCId, letterInPosition1.TokenType);
-                var displacementInfo = _leverageCalculator.GetDisplacementTokenType(displacedNPCId, leverageData.DisplacementCost);
+                // Calculate simple leverage-based displacement cost
+                int leverage = _tokenManager.GetLeverage(displacedNPCId, letterInPosition1.TokenType);
+                tokenCost = Math.Max(2, leverage + 2); // Simple cost: leverage + base
                 
-                tokenTypeToBurn = displacementInfo.tokenType;
-                tokenCost = displacementInfo.cost;
+                // Use the letter's token type for displacement
+                tokenTypeToBurn = letterInPosition1.TokenType;
             }
             
             var tokensWithDisplaced = !string.IsNullOrEmpty(displacedNPCId)
@@ -438,7 +523,7 @@ public class VerbOrganizedChoiceGenerator
     
     /// <summary>
     /// INVESTIGATE verb choices: Information discovery at time cost.
-    /// Mechanical rule: INVESTIGATE only reveals info and costs time, no token changes.
+    /// Emotional states determine what information is revealed.
     /// </summary>
     private List<ConversationChoice> GenerateInvestigateChoices(
         NPC npc,
@@ -449,31 +534,50 @@ public class VerbOrganizedChoiceGenerator
         var trustTokens = _tokenManager.GetTokensWithNPC(npc.ID).GetValueOrDefault(ConnectionType.Trust, 0);
         var playerTier = _player.CurrentTier;
         
-        // 1 ATTENTION: Learn schedule with time cost
-        // Basic investigation requires T2 (Associate) - strangers don't get to pry
-        bool canInvestigateBasic = playerTier >= TierLevel.T2;
-        string scheduleText = canInvestigateBasic
-            ? GenerateInvestigateNarrativeText(npc, state, "schedule")
-            : "\"I'm not familiar enough to ask about schedules...\"";
-            
+        // Emotional states affect information availability:
+        // DESPERATE: Reveals everything, no time cost
+        // ANXIOUS: Reveals urgent info quickly
+        // CALCULATING: Standard investigation costs
+        // HOSTILE: Blocks most investigation
+        // WITHDRAWN: Vague info only
+        
+        // 1 ATTENTION: Learn schedule - time cost varies by state
+        bool canInvestigateBasic = playerTier >= TierLevel.T2 || state == NPCEmotionalState.DESPERATE;
+        string scheduleText = GenerateInvestigateNarrativeText(npc, state, "schedule");
+        
+        // Time cost depends on emotional state
+        int scheduleCost = state switch
+        {
+            NPCEmotionalState.DESPERATE => 0,    // Spills everything immediately
+            NPCEmotionalState.ANXIOUS => 5,      // Quick info
+            NPCEmotionalState.CALCULATING => 10, // Standard cost
+            NPCEmotionalState.HOSTILE => 20,     // Makes you work for it
+            NPCEmotionalState.WITHDRAWN => 15,   // Takes time to engage
+            _ => 10
+        };
+        
+        bool isBlocked = state == NPCEmotionalState.HOSTILE && playerTier < TierLevel.T3;
+        
         choices.Add(new ConversationChoice
         {
             ChoiceID = "investigate_schedule",
             NarrativeText = scheduleText,
             AttentionCost = 1,
             BaseVerb = BaseVerb.INVESTIGATE,
-            IsAffordable = canInvestigateBasic,
-            IsAvailable = canInvestigateBasic,
-            MechanicalDescription = canInvestigateBasic
-                ? $"Learn {npc.Name}'s schedule (+10 min)"
-                : "Requires Associate standing to investigate",
-            MechanicalEffects = canInvestigateBasic
+            IsAffordable = canInvestigateBasic && !isBlocked,
+            IsAvailable = canInvestigateBasic && !isBlocked,
+            MechanicalDescription = isBlocked
+                ? "HOSTILE: Information blocked"
+                : state == NPCEmotionalState.DESPERATE
+                    ? $"FREE INFO: {npc.Name}'s full schedule!"
+                    : $"Learn {npc.Name}'s schedule (+{scheduleCost} min)",
+            MechanicalEffects = canInvestigateBasic && !isBlocked
                 ? new List<IMechanicalEffect>
                   {
                       new LearnNPCScheduleEffect(npc.ID, _gameWorld, _player),
-                      new ConversationTimeEffect(10, _timeManager)
+                      new ConversationTimeEffect(scheduleCost, _timeManager)
                   }
-                : new List<IMechanicalEffect> { new LockedEffect("Requires Associate standing") }
+                : new List<IMechanicalEffect> { new LockedEffect(isBlocked ? "Blocked by HOSTILE state" : "Requires Associate standing") }
         });
         
         // 1 ATTENTION: Reveal letter property with time cost
@@ -644,130 +748,271 @@ public class VerbOrganizedChoiceGenerator
     }
     
     /// <summary>
-    /// Generate narrative text for HELP choices that feels specific but stays mechanical.
+    /// Generate narrative text for HELP choices that reflects emotional state strongly.
+    /// DESPERATE NPCs are vulnerable, ANXIOUS are focused, CALCULATING are strategic.
     /// </summary>
     private string GenerateHelpNarrativeText(NPC npc, NPCEmotionalState state, int attentionLevel)
     {
-        // Base it on emotional state for variety, but keep focused on trust-building
+        // Emotional states drive the narrative - make them VISIBLE
         return (state, attentionLevel) switch
         {
-            (NPCEmotionalState.DESPERATE, 1) => "\"I understand your urgency. Let me see what I can do.\"",
-            (NPCEmotionalState.DESPERATE, 2) => "\"This is serious. I want to help you through this.\"",
-            (NPCEmotionalState.DESPERATE, 3) => "\"We'll get through this crisis together.\"",
+            // DESPERATE: Vulnerability, pleading, desperation bleeding through
+            (NPCEmotionalState.DESPERATE, 1) => "\"Please, I'll do anything. Just help me.\"",
+            (NPCEmotionalState.DESPERATE, 2) => "\"I'm begging you. I need this more than you know.\"",
+            (NPCEmotionalState.DESPERATE, 3) => "\"Save me. I have nowhere else to turn.\"",
             
-            (NPCEmotionalState.HOSTILE, 1) => "\"I know things have been difficult. Let me make it right.\"",
-            (NPCEmotionalState.HOSTILE, 2) => "\"I want to repair what's been damaged between us.\"",
-            (NPCEmotionalState.HOSTILE, 3) => "\"Let's rebuild our trust, step by step.\"",
+            // ANXIOUS: Focused on their specific urgent need
+            (NPCEmotionalState.ANXIOUS, 1) => "\"This is urgent. Can you help?\"",
+            (NPCEmotionalState.ANXIOUS, 2) => "\"Time is running out. I need your commitment.\"",
+            (NPCEmotionalState.ANXIOUS, 3) => "\"Every moment matters. Please, prioritize this.\"",
             
-            (NPCEmotionalState.CALCULATING, 1) => "\"I'd like to build something meaningful with you.\"",
-            (NPCEmotionalState.CALCULATING, 2) => "\"Our connection matters to me.\"",
-            (NPCEmotionalState.CALCULATING, 3) => "\"Let's deepen our understanding.\"",
+            // CALCULATING: Strategic, measured, transactional
+            (NPCEmotionalState.CALCULATING, 1) => "\"Let's establish mutual benefit.\"",
+            (NPCEmotionalState.CALCULATING, 2) => "\"I propose a deeper arrangement.\"",
+            (NPCEmotionalState.CALCULATING, 3) => "\"Our interests could align perfectly.\"",
             
-            (NPCEmotionalState.WITHDRAWN, 1) => "\"I'd like to help, if you'll let me.\"",
-            (NPCEmotionalState.WITHDRAWN, 2) => "\"Let me show you I'm reliable.\"",
-            (NPCEmotionalState.WITHDRAWN, 3) => "\"I want to earn your trust.\"",
+            // HOSTILE: Blocked, demanding, no trust
+            (NPCEmotionalState.HOSTILE, 1) => "\"After what you've done? Help means nothing.\"",
+            (NPCEmotionalState.HOSTILE, 2) => "\"Actions, not words. Prove yourself.\"",
+            (NPCEmotionalState.HOSTILE, 3) => "\"I don't trust your promises anymore.\"",
             
-            _ => "\"I want to help.\""
+            // WITHDRAWN: Minimal engagement, indifferent
+            (NPCEmotionalState.WITHDRAWN, 1) => "\"If you insist on helping...\"",
+            (NPCEmotionalState.WITHDRAWN, 2) => "\"I suppose you could try.\"",
+            (NPCEmotionalState.WITHDRAWN, 3) => "\"Do what you will.\"",
+            
+            _ => "\"I could use your help.\""
         };
     }
     
     /// <summary>
-    /// Generate narrative text for accepting a letter (HELP verb).
+    /// Generate narrative text for accepting a letter based on emotional state.
+    /// State + Stakes create the narrative tension.
     /// </summary>
     private string GenerateAcceptLetterNarrativeText(NPC npc, NPCEmotionalState state, Letter letter)
     {
-        return state switch
+        // Let emotional state transform how the letter acceptance feels
+        return (state, letter.Stakes) switch
         {
-            NPCEmotionalState.DESPERATE => $"\"Of course I'll deliver this. {letter.RecipientName} will have it soon.\"",
-            NPCEmotionalState.HOSTILE => "\"Despite everything, I'll take your letter.\"",
-            NPCEmotionalState.CALCULATING => "\"I can handle this delivery for you.\"",
-            NPCEmotionalState.WITHDRAWN => "\"Leave it with me. I'll see it delivered.\"",
-            _ => $"\"I'll deliver your letter to {letter.RecipientName}.\""
+            // DESPERATE + Stakes combinations
+            (NPCEmotionalState.DESPERATE, StakeType.SAFETY) => 
+                $"\"Please! This could save {letter.RecipientName}'s life!\"",
+            (NPCEmotionalState.DESPERATE, StakeType.REPUTATION) => 
+                $"\"My entire standing depends on {letter.RecipientName} getting this!\"",
+            (NPCEmotionalState.DESPERATE, StakeType.WEALTH) => 
+                $"\"I'll lose everything if {letter.RecipientName} doesn't receive this!\"",
+            (NPCEmotionalState.DESPERATE, _) => 
+                $"\"I'm begging you to deliver this to {letter.RecipientName}.\"",
+            
+            // ANXIOUS + Stakes combinations
+            (NPCEmotionalState.ANXIOUS, StakeType.SAFETY) => 
+                $"\"This is urgent - {letter.RecipientName} needs warning immediately.\"",
+            (NPCEmotionalState.ANXIOUS, StakeType.REPUTATION) => 
+                $"\"My reputation with {letter.RecipientName} hangs on this delivery.\"",
+            (NPCEmotionalState.ANXIOUS, StakeType.WEALTH) => 
+                $"\"Time is money - {letter.RecipientName} awaits this urgently.\"",
+            (NPCEmotionalState.ANXIOUS, _) => 
+                $"\"Please hurry this to {letter.RecipientName}.\"",
+            
+            // CALCULATING + Stakes combinations
+            (NPCEmotionalState.CALCULATING, StakeType.WEALTH) => 
+                $"\"A profitable arrangement for {letter.RecipientName}. Handle it well.\"",
+            (NPCEmotionalState.CALCULATING, StakeType.REPUTATION) => 
+                $"\"This will position us favorably with {letter.RecipientName}.\"",
+            (NPCEmotionalState.CALCULATING, _) => 
+                $"\"Deliver this to {letter.RecipientName}. There's advantage in it.\"",
+            
+            // HOSTILE doesn't offer letters easily
+            (NPCEmotionalState.HOSTILE, _) => 
+                "\"Take it then. See if I care about your promises.\"",
+            
+            // WITHDRAWN is disconnected
+            (NPCEmotionalState.WITHDRAWN, _) => 
+                $"\"If you must... {letter.RecipientName} expects it.\"",
+            
+            _ => $"\"Please deliver this to {letter.RecipientName}.\""
         };
     }
     
     /// <summary>
-    /// Generate narrative text for accepting an urgent letter (HELP verb, higher attention).
+    /// Generate narrative text for accepting an urgent letter.
+    /// Emotional state + urgency creates dramatic tension.
     /// </summary>
     private string GenerateAcceptUrgentNarrativeText(NPC npc, NPCEmotionalState state, Letter letter)
     {
-        var hoursText = letter.DeadlineInHours <= 4 ? "immediately" : "as quickly as possible";
-        return state switch
+        var hoursText = letter.DeadlineInHours <= 4 ? "NOW" : letter.DeadlineInHours <= 8 ? "TODAY" : "SOON";
+        
+        return (state, letter.Stakes) switch
         {
-            NPCEmotionalState.DESPERATE => $"\"This is urgent? I'll handle it {hoursText}, I promise.\"",
-            NPCEmotionalState.HOSTILE => $"\"Even with our troubles, I won't let this fail. It'll be delivered {hoursText}.\"",
-            NPCEmotionalState.CALCULATING => $"\"An urgent matter deserves priority. I'll ensure it reaches {letter.RecipientName}.\"",
-            NPCEmotionalState.WITHDRAWN => $"\"Urgent... I understand. Consider it done.\"",
-            _ => $"\"I'll prioritize this urgent delivery to {letter.RecipientName}.\""
+            // DESPERATE combinations - maximum drama
+            (NPCEmotionalState.DESPERATE, StakeType.SAFETY) => 
+                $"\"PLEASE! Lives hang in the balance! {letter.RecipientName} needs this {hoursText}!\"",
+            (NPCEmotionalState.DESPERATE, StakeType.REPUTATION) => 
+                $"\"I'm ruined if {letter.RecipientName} doesn't get this {hoursText}!\"",
+            (NPCEmotionalState.DESPERATE, StakeType.WEALTH) => 
+                $"\"Everything depends on {letter.RecipientName} receiving this {hoursText}!\"",
+            (NPCEmotionalState.DESPERATE, _) => 
+                $"\"I'm begging - {letter.RecipientName} MUST have this {hoursText}!\"",
+            
+            // ANXIOUS combinations - focused urgency
+            (NPCEmotionalState.ANXIOUS, StakeType.SAFETY) => 
+                $"\"Critical warning for {letter.RecipientName} - deliver {hoursText}!\"",
+            (NPCEmotionalState.ANXIOUS, StakeType.REPUTATION) => 
+                $"\"My reputation with {letter.RecipientName} expires {hoursText}.\"",
+            (NPCEmotionalState.ANXIOUS, _) => 
+                $"\"Urgent for {letter.RecipientName} - needed {hoursText}.\"",
+            
+            // CALCULATING sees opportunity in urgency
+            (NPCEmotionalState.CALCULATING, _) => 
+                $"\"Premium delivery to {letter.RecipientName}. Worth expediting.\"",
+            
+            // HOSTILE doesn't offer urgent letters
+            (NPCEmotionalState.HOSTILE, _) => 
+                $"\"Take it or leave it. {letter.RecipientName} can wait.\"",
+            
+            // WITHDRAWN is disconnected even from urgency
+            (NPCEmotionalState.WITHDRAWN, _) => 
+                $"\"Urgent, apparently. For {letter.RecipientName}.\"",
+            
+            _ => $"\"Urgent delivery to {letter.RecipientName} ({hoursText}).\""
         };
     }
     
     /// <summary>
     /// Generate narrative text for refusing a letter - this should feel heavy, consequential.
-    /// The player is choosing to break their word to survive.
+    /// The emotional state of the NPC affects how they react to your betrayal.
     /// </summary>
     private string GenerateRefuseLetterNarrativeText(NPC npc, NPCEmotionalState state, Letter letter)
     {
-        // This is a moment of human failure - make it feel that way
+        // This is a moment of human failure - the NPC's state shows in their reaction
         return state switch
         {
             NPCEmotionalState.DESPERATE => 
-                "\"I... I can't do this anymore. I have to give your letter back.\"",
-            NPCEmotionalState.HOSTILE => 
-                "\"I know this will make things worse, but I can't deliver your letter.\"",
+                "\"NO! You can't do this to me! Not now! Please!\"",
+            NPCEmotionalState.ANXIOUS => 
+                "\"What? But you promised! This is urgent!\"",
             NPCEmotionalState.CALCULATING => 
-                "\"I must return your letter. The mathematics of survival demand it.\"",
+                "\"I see. Breaking our arrangement will have... consequences.\"",
+            NPCEmotionalState.HOSTILE => 
+                "\"Of course you'd fail me. I expected nothing less.\"",
             NPCEmotionalState.WITHDRAWN => 
-                "\"I'm sorry. I'm returning your letter. I know what this means.\"",
-            _ => "\"I have to give your letter back. I can't keep this promise.\""
+                "\"Oh. I suppose it doesn't matter anyway.\"",
+            _ => "\"You're returning my letter? After promising to deliver it?\""
         };
     }
     
     /// <summary>
-    /// Generate narrative text for NEGOTIATE choices focused on queue/priorities.
+    /// Generate narrative text for NEGOTIATE choices that reflects emotional state.
+    /// DESPERATE NPCs accept bad deals, CALCULATING seek advantage.
     /// </summary>
     private string GenerateNegotiateNarrativeText(NPC npc, NPCEmotionalState state, string negotiationType, params int[] positions)
     {
-        return negotiationType switch
+        return (state, negotiationType) switch
         {
-            "swap" when positions.Length >= 2 => 
-                $"\"Could we rearrange positions {positions[0]} and {positions[1]}?\"",
-            "interface" => 
-                state == NPCEmotionalState.DESPERATE 
-                    ? "\"Let me reorganize these urgent matters.\"" 
-                    : "\"Let's review my delivery priorities.\"",
-            "priority" => 
-                state == NPCEmotionalState.DESPERATE
-                    ? "\"This can't wait - I need to move it forward.\""
-                    : "\"I need to prioritize this delivery.\"",
-            "trade" =>
-                state == NPCEmotionalState.CALCULATING
-                    ? "\"I propose a token exchange - mutually beneficial.\""
-                    : "\"Let's trade - my merchant connections for your noble influence.\"",
-            _ => "\"Let's adjust my priorities.\""
+            // DESPERATE: Will accept anything, make bad deals
+            (NPCEmotionalState.DESPERATE, "swap") when positions.Length >= 2 => 
+                $"\"Please! Just move them around - positions {positions[0]} and {positions[1]}!\"",
+            (NPCEmotionalState.DESPERATE, "interface") => 
+                "\"Do whatever you need with the queue. I trust you!\"",
+            (NPCEmotionalState.DESPERATE, "priority") => 
+                "\"Move it to the front! I'll pay any price!\"",
+            (NPCEmotionalState.DESPERATE, "trade") =>
+                "\"Take whatever tokens you need. Just help me!\"",
+            
+            // ANXIOUS: Focused on specific urgent needs
+            (NPCEmotionalState.ANXIOUS, "swap") when positions.Length >= 2 => 
+                $"\"Can we quickly swap {positions[0]} and {positions[1]}?\"",
+            (NPCEmotionalState.ANXIOUS, "interface") => 
+                "\"Let's fix the queue - time is critical.\"",
+            (NPCEmotionalState.ANXIOUS, "priority") => 
+                "\"This needs to jump ahead. It's urgent.\"",
+            (NPCEmotionalState.ANXIOUS, "trade") =>
+                "\"I need different tokens. Can we trade quickly?\"",
+            
+            // CALCULATING: Strategic trades, seeking advantage
+            (NPCEmotionalState.CALCULATING, "swap") when positions.Length >= 2 => 
+                $"\"A strategic swap of {positions[0]} and {positions[1]} benefits us both.\"",
+            (NPCEmotionalState.CALCULATING, "interface") => 
+                "\"Let's optimize the queue arrangement.\"",
+            (NPCEmotionalState.CALCULATING, "priority") => 
+                "\"Moving this forward serves our mutual interests.\"",
+            (NPCEmotionalState.CALCULATING, "trade") =>
+                "\"I propose an exchange - favorable rates for both parties.\"",
+            
+            // HOSTILE: Demands, no negotiation
+            (NPCEmotionalState.HOSTILE, _) => 
+                "\"Fix your failures. Now.\"",
+            
+            // WITHDRAWN: Minimal interest
+            (NPCEmotionalState.WITHDRAWN, _) => 
+                "\"Rearrange as you see fit.\"",
+            
+            // Default fallbacks for specific types
+            (_, "swap") when positions.Length >= 2 => 
+                $"\"Could we swap positions {positions[0]} and {positions[1]}?\"",
+            (_, "interface") => 
+                "\"Let's review the queue.\"",
+            (_, "priority") => 
+                "\"I need to move this forward.\"",
+            (_, "trade") =>
+                "\"Shall we trade tokens?\"",
+            _ => "\"Let's negotiate.\""
         };
     }
     
     /// <summary>
-    /// Generate narrative text for INVESTIGATE choices focused on understanding.
+    /// Generate narrative text for INVESTIGATE choices that reflects emotional state.
+    /// DESPERATE NPCs reveal everything, CALCULATING are selective.
     /// </summary>
     private string GenerateInvestigateNarrativeText(NPC npc, NPCEmotionalState state, string investigationType)
     {
-        return investigationType switch
+        return (state, investigationType) switch
         {
-            "schedule" => 
-                state == NPCEmotionalState.DESPERATE
-                    ? "\"I need to know where to find help tomorrow.\""
-                    : "\"Tell me about everyone's schedules.\"",
-            "letter" => 
-                "\"I need to understand what's really at stake here.\"",
-            "deep" => 
-                state == NPCEmotionalState.DESPERATE
-                    ? "\"There's more to this crisis. I need the full picture.\""
-                    : "\"Help me understand the deeper connections.\"",
-            "network" => 
-                "\"Who's really behind all of this?\"",
-            _ => "\"I need to understand this situation.\""
+            // DESPERATE: Spills everything, no secrets
+            (NPCEmotionalState.DESPERATE, "schedule") => 
+                "\"Everyone avoids me now. Here's where they hide...\"",
+            (NPCEmotionalState.DESPERATE, "letter") => 
+                "\"Look at it! See what's destroying me!\"",
+            (NPCEmotionalState.DESPERATE, "deep") => 
+                "\"I'll tell you everything. Every secret. Just help!\"",
+            (NPCEmotionalState.DESPERATE, "network") => 
+                "\"They're all against me! I'll name names!\"",
+            
+            // ANXIOUS: Focused revelations about urgent matters
+            (NPCEmotionalState.ANXIOUS, "schedule") => 
+                "\"You need to know when to catch them.\"",
+            (NPCEmotionalState.ANXIOUS, "letter") => 
+                "\"Check the letter - you'll see why I'm worried.\"",
+            (NPCEmotionalState.ANXIOUS, "deep") => 
+                "\"There's more at stake than you realize.\"",
+            (NPCEmotionalState.ANXIOUS, "network") => 
+                "\"Careful - powerful people are involved.\"",
+            
+            // CALCULATING: Information as currency
+            (NPCEmotionalState.CALCULATING, "schedule") => 
+                "\"Strategic timing is everything. Let me enlighten you.\"",
+            (NPCEmotionalState.CALCULATING, "letter") => 
+                "\"The letter's properties might interest you.\"",
+            (NPCEmotionalState.CALCULATING, "deep") => 
+                "\"Information has value. This is worth knowing.\"",
+            (NPCEmotionalState.CALCULATING, "network") => 
+                "\"The web of connections might surprise you.\"",
+            
+            // HOSTILE: Refuses to share
+            (NPCEmotionalState.HOSTILE, _) => 
+                "\"Why should I tell you anything?\"",
+            
+            // WITHDRAWN: Vague, disconnected
+            (NPCEmotionalState.WITHDRAWN, "schedule") => 
+                "\"People come and go...\"",
+            (NPCEmotionalState.WITHDRAWN, "letter") => 
+                "\"Look if you want.\"",
+            (NPCEmotionalState.WITHDRAWN, "deep") => 
+                "\"Does it matter?\"",
+            (NPCEmotionalState.WITHDRAWN, "network") => 
+                "\"Everyone's connected somehow.\"",
+            
+            _ => "\"Let me investigate.\""
         };
     }
     

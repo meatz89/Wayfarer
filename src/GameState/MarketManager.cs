@@ -26,6 +26,61 @@ public class MarketManager
         public bool IsAvailable { get; set; }
     }
 
+    /// <summary>
+    /// Market price information for an item at a location
+    /// </summary>
+    public class MarketPriceInfo
+    {
+        public string LocationId { get; set; }
+        public string LocationName { get; set; }
+        public string ItemId { get; set; }
+        public int BuyPrice { get; set; }
+        public int SellPrice { get; set; }
+        public float SupplyLevel { get; set; }
+        public bool IsCurrentLocation { get; set; }
+        public bool CanBuy { get; set; }
+    }
+
+    /// <summary>
+    /// Result of a trade action
+    /// </summary>
+    public class TradeActionResult
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public string Action { get; set; }
+        public string ItemId { get; set; }
+        public string LocationId { get; set; }
+        public int CoinsChanged { get; set; }
+        public int QuantityChanged { get; set; }
+        public int CoinsBefore { get; set; }
+        public int CoinsAfter { get; set; }
+        public bool HadItemBefore { get; set; }
+        public bool HasItemAfter { get; set; }
+        public string ErrorMessage { get; set; }
+        public int TransactionPrice { get; set; }
+    }
+
+    /// <summary>
+    /// Information about arbitrage opportunities
+    /// </summary>
+    public class MarketArbitrageInfo
+    {
+        public string ItemId { get; set; }
+        public string ItemName { get; set; }
+        public string BuyLocationId { get; set; }
+        public string BuyLocationName { get; set; }
+        public int BuyPrice { get; set; }
+        public string SellLocationId { get; set; }
+        public string SellLocationName { get; set; }
+        public int SellPrice { get; set; }
+        public int PotentialProfit { get; set; }
+        public MarketPriceInfo BestBuyLocation { get; set; }
+        public MarketPriceInfo BestSellLocation { get; set; }
+        public int MaxProfit { get; set; }
+        public List<MarketPriceInfo> AllPrices { get; set; }
+    }
+
     public MarketManager(GameWorld gameWorld, LocationSystem locationSystem, ItemRepository itemRepository,
                         NPCRepository npcRepository, LocationRepository locationRepository, MessageSystem messageSystem,
                         ITimeManager timeManager)

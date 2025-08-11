@@ -12,7 +12,7 @@ public class SpecialLetterHandler
     private readonly NPCRepository _npcRepository;
     private readonly LocationRepository _locationRepository;
     private readonly InformationDiscoveryManager _informationManager;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly EndorsementManager _endorsementManager;
     private readonly RouteRepository _routeRepository;
 
@@ -22,7 +22,7 @@ public class SpecialLetterHandler
         NPCRepository npcRepository,
         LocationRepository locationRepository,
         InformationDiscoveryManager informationManager,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         EndorsementManager endorsementManager = null,
         RouteRepository routeRepository = null)
     {

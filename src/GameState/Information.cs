@@ -69,13 +69,13 @@ public class InformationDiscoveryManager
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
 
     // Information registry
     private readonly Dictionary<string, Information> _allInformation = new Dictionary<string, Information>();
     private readonly Dictionary<string, List<string>> _informationByTarget = new Dictionary<string, List<string>>();
 
-    public InformationDiscoveryManager(GameWorld gameWorld, MessageSystem messageSystem, ConnectionTokenManager tokenManager)
+    public InformationDiscoveryManager(GameWorld gameWorld, MessageSystem messageSystem, TokenMechanicsManager tokenManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;

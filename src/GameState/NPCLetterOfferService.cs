@@ -11,7 +11,7 @@ public class NPCLetterOfferService
     private readonly GameWorld _gameWorld;
     private readonly NPCRepository _npcRepository;
     private readonly LetterTemplateRepository _letterTemplateRepository;
-    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly LetterQueueManager _letterQueueManager;
     private readonly MessageSystem _messageSystem;
     private readonly ITimeManager _timeManager;
@@ -28,7 +28,7 @@ public class NPCLetterOfferService
         GameWorld gameWorld,
         NPCRepository npcRepository,
         LetterTemplateRepository letterTemplateRepository,
-        ConnectionTokenManager connectionTokenManager,
+        TokenMechanicsManager connectionTokenManager,
         LetterQueueManager letterQueueManager,
         MessageSystem messageSystem,
         ITimeManager timeManager)

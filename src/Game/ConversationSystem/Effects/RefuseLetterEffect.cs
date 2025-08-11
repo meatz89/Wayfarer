@@ -12,7 +12,7 @@ public class RefuseLetterEffect : IMechanicalEffect
     private readonly string _senderId;
     private readonly string _senderName;
     private readonly LetterQueueManager _queueManager;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly int _trustPenalty = 3; // Heavy cost - this is betrayal
     
     public RefuseLetterEffect(
@@ -20,7 +20,7 @@ public class RefuseLetterEffect : IMechanicalEffect
         string senderId,
         string senderName,
         LetterQueueManager queueManager,
-        ConnectionTokenManager tokenManager)
+        TokenMechanicsManager tokenManager)
     {
         _letterId = letterId;
         _senderId = senderId;

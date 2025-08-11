@@ -1,0 +1,136 @@
+@using Wayfarer.Models
+@using Wayfarer.GameState
+
+@* 
+   Queue Manipulation Preview Component
+   Shows transparent math for queue operations
+*@
+
+<div class="queue-manipulation-preview">
+    @if (OperationType == QueueOperation.Move)
+    {
+        <div class="operation-header">
+            <span class="operation-icon">↔</span>
+            <span class="operation-title">Move Letter</span>
+        </div>
+        
+        <div class="position-display">
+            <div class="position-from">
+                <span class="position-label">From:</span>
+                <span class="position-number">Position @FromPosition</span>
+            </div>
+            <div class="position-arrow">→</div>
+            <div class="position-to">
+                <span class="position-label">To:</span>
+                <span class="position-number">Position @ToPosition</span>
+            </div>
+        </div>
+        
+        <div class="cost-calculation">
+            <div class="formula-display">
+                <span class="formula-label">Cost Formula:</span>
+                <span class="formula-math">
+                    @PositionsMoved positions × 1 token/position = 
+                    <span class="cost-total">@TokenCost @TokenType tokens</span>
+                </span>
+            </div>
+        </div>
+        
+        @if (CurrentTokenBalance.HasValue)
+        {
+            <div class="balance-preview">
+                <span class="balance-label">Your Balance:</span>
+                <span class="balance-current">@CurrentTokenBalance</span>
+                <span class="balance-arrow">→</span>
+                <span class="balance-after @(AfterBalance < 0 ? "negative" : "")">@AfterBalance</span>
+            </div>
+        }
+    }
+    else if (OperationType == QueueOperation.Swap)
+    {
+        <div class="operation-header">
+            <span class="operation-icon">⇄</span>
+            <span class="operation-title">Swap Letters</span>
+        </div>
+        
+        <div class="swap-display">
+            <div class="swap-letter">
+                <span class="letter-position">Position @FromPosition</span>
+                <span class="letter-detail">@LetterDescription1</span>
+            </div>
+            <div class="swap-icon">⇄</div>
+            <div class="swap-letter">
+                <span class="letter-position">Position @ToPosition</span>
+                <span class="letter-detail">@LetterDescription2</span>
+            </div>
+        </div>
+        
+        <div class="cost-display">
+            <span class="cost-label">Cost:</span>
+            <span class="cost-value">2 @TokenType tokens (fixed swap cost)</span>
+        </div>
+    }
+    else if (OperationType == QueueOperation.Remove)
+    {
+        <div class="operation-header">
+            <span class="operation-icon">✕</span>
+            <span class="operation-title">Remove Letter</span>
+        </div>
+        
+        <div class="remove-warning">
+            <span class="warning-icon">⚠</span>
+            <span class="warning-text">
+                Removing "@LetterDescription1" will create a permanent obligation
+            </span>
+        </div>
+        
+        <div class="consequence-display">
+            <div class="consequence-item">
+                <span class="consequence-icon">⚠</span>
+                <span class="consequence-text">-5 @TokenType with @RecipientName</span>
+            </div>
+            <div class="consequence-item">
+                <span class="consequence-icon">⚠</span>
+                <span class="consequence-text">Their letters enter at position 2 (Leverage)</span>
+            </div>
+        </div>
+    }
+    
+    @if (ShowConfirmation)
+    {
+        <div class="confirmation-buttons">
+            <button class="btn-confirm" @onclick="OnConfirm">
+                Confirm (@TokenCost @TokenType)
+            </button>
+            <button class="btn-cancel" @onclick="OnCancel">
+                Cancel
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public QueueOperation OperationType { get; set; }
+    [Parameter] public int FromPosition { get; set; }
+    [Parameter] public int ToPosition { get; set; }
+    [Parameter] public string LetterDescription1 { get; set; }
+    [Parameter] public string LetterDescription2 { get; set; }
+    [Parameter] public string RecipientName { get; set; }
+    [Parameter] public ConnectionType TokenType { get; set; }
+    [Parameter] public int TokenCost { get; set; }
+    [Parameter] public int? CurrentTokenBalance { get; set; }
+    [Parameter] public bool ShowConfirmation { get; set; } = false;
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    
+    private int PositionsMoved => Math.Abs(ToPosition - FromPosition);
+    private int AfterBalance => CurrentTokenBalance.HasValue ? CurrentTokenBalance.Value - TokenCost : 0;
+    
+    public enum QueueOperation
+    {
+        Move,
+        Swap,
+        Remove,
+        Add
+    }
+}

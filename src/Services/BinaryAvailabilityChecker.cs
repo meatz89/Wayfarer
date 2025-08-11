@@ -11,12 +11,12 @@ using Wayfarer.GameState.Interactions;
 /// </summary>
 public class BinaryAvailabilityChecker
 {
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly ITimeManager _timeManager;
     private readonly GameWorld _gameWorld;
     
     public BinaryAvailabilityChecker(
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         ITimeManager timeManager,
         GameWorld gameWorld)
     {

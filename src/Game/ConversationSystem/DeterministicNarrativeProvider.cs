@@ -11,13 +11,13 @@ public class DeterministicNarrativeProvider : INarrativeProvider
 {
     private readonly ConversationRepository _conversationRepository;
     private readonly VerbContextualizer _verbContextualizer;
-    private readonly NPCEmotionalStateCalculator _stateCalculator;
+    private readonly NPCStateResolver _stateCalculator;
     private readonly LetterQueueManager _queueManager;
 
     public DeterministicNarrativeProvider(
         ConversationRepository conversationRepository,
         VerbContextualizer verbContextualizer,
-        NPCEmotionalStateCalculator stateCalculator,
+        NPCStateResolver stateCalculator,
         LetterQueueManager queueManager)
     {
         _conversationRepository = conversationRepository;

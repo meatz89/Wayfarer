@@ -286,7 +286,7 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
     private readonly int _tokenCost;
     private readonly ConnectionType _tokenType;
     private readonly LetterQueueManager _queueManager;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly string _npcId;
 
     public SwapLetterPositionsEffect(
@@ -295,7 +295,7 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
         int tokenCost,
         ConnectionType tokenType,
         LetterQueueManager queueManager,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         string npcId)
     {
         _letterId1 = letterId1;

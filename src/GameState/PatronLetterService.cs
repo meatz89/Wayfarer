@@ -21,14 +21,14 @@ public class PatronLetterService
 
     // Patron letter template IDs - no longer hardcoded, we'll get them dynamically
 
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
 
     public PatronLetterService(
         GameWorld gameWorld,
         LetterQueueManager letterQueueManager,
         LetterTemplateRepository letterTemplateRepository,
         MessageSystem messageSystem,
-        ConnectionTokenManager tokenManager)
+        TokenMechanicsManager tokenManager)
     {
         _gameWorld = gameWorld;
         _letterQueueManager = letterQueueManager;

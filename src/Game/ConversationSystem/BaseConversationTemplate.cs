@@ -8,11 +8,11 @@ using System.Linq;
 /// </summary>
 public class BaseConversationTemplate
 {
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly ITimeManager _timeManager;
     
     public BaseConversationTemplate(
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         ITimeManager timeManager)
     {
         _tokenManager = tokenManager;

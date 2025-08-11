@@ -12,9 +12,9 @@ using System.IO;
 public class HybridNarrativeProvider : INarrativeProvider
 {
     private readonly ConversationRepository _conversationRepository;
-    private readonly NPCEmotionalStateCalculator _stateCalculator;
+    private readonly NPCStateResolver _stateCalculator;
     private readonly LetterQueueManager _queueManager;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly BodyLanguageTemplates _bodyLanguage;
     
     // Authored core stories for each NPC
@@ -22,9 +22,9 @@ public class HybridNarrativeProvider : INarrativeProvider
     
     public HybridNarrativeProvider(
         ConversationRepository conversationRepository,
-        NPCEmotionalStateCalculator stateCalculator,
+        NPCStateResolver stateCalculator,
         LetterQueueManager queueManager,
-        ConnectionTokenManager tokenManager)
+        TokenMechanicsManager tokenManager)
     {
         _conversationRepository = conversationRepository;
         _stateCalculator = stateCalculator;

@@ -10,14 +10,14 @@ public class NetworkUnlockManager
     private readonly GameWorld _gameWorld;
     private readonly NPCRepository _npcRepository;
     private readonly NetworkUnlockRepository _unlockRepository;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
 
     public NetworkUnlockManager(
         GameWorld gameWorld,
         NPCRepository npcRepository,
         NetworkUnlockRepository unlockRepository,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         MessageSystem messageSystem)
     {
         _gameWorld = gameWorld;

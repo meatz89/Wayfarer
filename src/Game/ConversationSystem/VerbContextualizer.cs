@@ -19,7 +19,7 @@ public enum BaseVerb
 /// </summary>
 public class VerbContextualizer
 {
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly AttentionManager _attentionManager;
     private readonly LetterQueueManager _queueManager;
     private readonly GameWorld _gameWorld;
@@ -27,7 +27,7 @@ public class VerbContextualizer
     private readonly Random _random = new Random();
 
     public VerbContextualizer(
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         AttentionManager attentionManager,
         LetterQueueManager queueManager,
         GameWorld gameWorld,
@@ -44,7 +44,7 @@ public class VerbContextualizer
     /// Generate choices from queue state - CONVERSATIONS ARE THE INTERFACE TO ALL MECHANICS
     /// Every choice touches multiple systems: queue, tokens, routes, NPCs, obligations
     /// </summary>
-    public List<ConversationChoice> GenerateChoicesFromQueueState(NPC npc, AttentionManager attention, NPCEmotionalStateCalculator stateCalculator)
+    public List<ConversationChoice> GenerateChoicesFromQueueState(NPC npc, AttentionManager attention, NPCStateResolver stateCalculator)
     {
         var allChoices = new List<ConversationChoice>();
         var player = _gameWorld.GetPlayer();

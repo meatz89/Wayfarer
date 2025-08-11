@@ -9,7 +9,7 @@ using System.Linq;
 public class SpecialLetterGenerationService
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly LetterQueueManager _letterQueueManager;
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
@@ -22,7 +22,7 @@ public class SpecialLetterGenerationService
 
     public SpecialLetterGenerationService(
         GameWorld gameWorld,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         LetterQueueManager letterQueueManager,
         MessageSystem messageSystem,
         NPCRepository npcRepository,

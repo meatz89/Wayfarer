@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.ViewModels;
 using Wayfarer.GameState.Interactions;
+using Wayfarer.Models;
+using Wayfarer.GameState;
 
 public class ConversationScreenBase : ComponentBase
 {
@@ -20,11 +22,17 @@ public class ConversationScreenBase : ComponentBase
     protected int CurrentAttention { get; set; }
     protected Dictionary<ConnectionType, int> NpcTokens { get; set; }
     
+    // Transparent mechanics properties
+    protected EmotionalState? CurrentEmotionalState { get; set; }
+    protected StakeType? CurrentStakes { get; set; }
+    protected TimeSpan? TimeToDeadline { get; set; }
+    
     protected override async Task OnInitializedAsync()
     {
         await LoadConversation();
         RefreshAttentionState();
         LoadTokenData();
+        LoadEmotionalStateData();
     }
     
     protected async Task LoadConversation()
@@ -295,6 +303,91 @@ public class ConversationScreenBase : ComponentBase
             }
         }
         return previews;
+    }
+    
+    protected void LoadEmotionalStateData()
+    {
+        if (string.IsNullOrEmpty(NpcId)) return;
+        
+        // For now, derive emotional state from character description in Model
+        // This would ideally come from NPC state tracking
+        DeriveEmotionalStateFromModel();
+        
+        // Check the letter queue for any letters from this NPC
+        var queue = GameFacade.GetLetterQueue();
+        if (queue?.QueueSlots != null)
+        {
+            var npcLetterSlot = queue.QueueSlots.FirstOrDefault(s => s.Letter?.SenderName == NpcId);
+            if (npcLetterSlot?.Letter != null)
+            {
+                var npcLetter = npcLetterSlot.Letter;
+                // Infer stakes from the letter type/urgency
+                CurrentStakes = DetermineStakesFromLetter(npcLetter);
+                
+                // Use the DeadlineInHours property directly
+                TimeToDeadline = TimeSpan.FromHours(npcLetter.DeadlineInHours);
+            }
+        }
+    }
+    
+    private void DeriveEmotionalStateFromModel()
+    {
+        if (Model?.CharacterState == null) return;
+        
+        var state = Model.CharacterState.ToLower();
+        if (state.Contains("anxious") || state.Contains("worried") || state.Contains("nervous"))
+            CurrentEmotionalState = EmotionalState.Anxious;
+        else if (state.Contains("hostile") || state.Contains("angry") || state.Contains("furious"))
+            CurrentEmotionalState = EmotionalState.Hostile;
+        else if (state.Contains("closed") || state.Contains("withdrawn") || state.Contains("distant"))
+            CurrentEmotionalState = EmotionalState.Closed;
+        else
+            CurrentEmotionalState = EmotionalState.Neutral; // Default
+    }
+    
+    private StakeType DetermineStakesFromLetter(LetterViewModel letter)
+    {
+        // Infer stakes from letter properties
+        // Since we don't have subject/content, use what we have
+        
+        // Check deadline urgency
+        if (letter.DeadlineInHours < 4)
+            return StakeType.SAFETY; // Very urgent = safety at stake
+        
+        // Check payment amount
+        if (letter.Payment > 50)
+            return StakeType.WEALTH; // High payment = financial stakes
+        
+        // Check if special letter
+        if (letter.IsSpecial)
+            return StakeType.SECRET; // Special letters often carry secrets
+        
+        // Default to reputation
+        return StakeType.REPUTATION;
+    }
+    
+    protected string GetStakesDescription()
+    {
+        if (CurrentStakes == null) return "No urgent letter";
+        
+        // Get the letter from the queue if it exists
+        var queue = GameFacade.GetLetterQueue();
+        var npcLetter = queue?.QueueSlots?.FirstOrDefault(s => s.Letter?.SenderName == NpcId)?.Letter;
+        var subject = npcLetter?.SenderName ?? "matter";
+        
+        return CurrentStakes switch
+        {
+            StakeType.REPUTATION => $"Reputation at stake ({subject})",
+            StakeType.WEALTH => $"Financial matter ({subject})",
+            StakeType.SAFETY => $"Safety concerns ({subject})",
+            StakeType.SECRET => $"Sensitive information ({subject})",
+            _ => "Unknown stakes"
+        };
+    }
+    
+    protected TimeSpan? GetTimeRemaining()
+    {
+        return TimeToDeadline;
     }
     
     // Helper class for conversion

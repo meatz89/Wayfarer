@@ -26,7 +26,7 @@
             "@Choice.DisplayText"
         </div>
         
-        @* Mechanical previews - with proper color coding *@
+        @* Mechanical previews - TRANSPARENT MATH *@
         @if (Choice.MechanicalPreviews?.Any() == true && ShowPreviews)
         {
             <div class="choice-mechanics">
@@ -37,7 +37,7 @@
                             @GetEffectIcon(preview)
                         </span>
                         <span class="mechanic-text">
-                            @((MarkupString)StripHtmlTags(preview))
+                            @((MarkupString)GetTransparentMechanics(preview))
                         </span>
                     </div>
                 }
@@ -213,5 +213,73 @@
             
         // Simple regex to strip HTML tags
         return System.Text.RegularExpressions.Regex.Replace(input, "<.*?>", string.Empty);
+    }
+    
+    private string GetTransparentMechanics(string preview)
+    {
+        // Transform hidden mechanics into transparent formulas
+        var result = StripHtmlTags(preview);
+        
+        // Queue manipulation: Show the math
+        if (result.Contains("Move letter") || result.Contains("Reorder"))
+        {
+            // Extract positions if mentioned
+            var match = System.Text.RegularExpressions.Regex.Match(result, @"position (\d+).* position (\d+)");
+            if (match.Success)
+            {
+                var from = int.Parse(match.Groups[1].Value);
+                var to = int.Parse(match.Groups[2].Value);
+                var cost = Math.Abs(from - to);
+                return $"Move letter: Position {from} → {to} <span class='formula'>(Cost: {cost} tokens for {cost} positions)</span>";
+            }
+        }
+        
+        // Token exchanges: Show the formula
+        if (result.Contains("Trust") || result.Contains("Commerce") || result.Contains("Status") || result.Contains("Shadow"))
+        {
+            // Add visual indicators for token math
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"(\+|-)?\s*(\d+)\s*(Trust|Commerce|Status|Shadow)", 
+                m => {
+                    var sign = m.Groups[1].Value;
+                    var amount = m.Groups[2].Value;
+                    var type = m.Groups[3].Value;
+                    var symbol = GetTokenSymbol(type);
+                    
+                    if (sign == "-" || result.Contains("Spend") || result.Contains("Cost"))
+                        return $"<span class='token-math negative'>{symbol} -{amount}</span>";
+                    else
+                        return $"<span class='token-math positive'>{symbol} +{amount}</span>";
+                });
+        }
+        
+        // Deadline extensions: Show the calculation
+        if (result.Contains("deadline") || result.Contains("extension"))
+        {
+            result = System.Text.RegularExpressions.Regex.Replace(result, @"(\d+)\s*hour", 
+                m => $"<span class='time-math'>+{m.Groups[1].Value}h deadline</span>");
+        }
+        
+        // State changes: Show the formula
+        if (result.Contains("Desperate") || result.Contains("Anxious") || result.Contains("Calculating"))
+        {
+            // Add state calculation preview
+            result = System.Text.RegularExpressions.Regex.Replace(result, 
+                @"(Desperate|Anxious|Calculating|Hostile|Withdrawn)",
+                m => $"<span class='state-indicator {m.Groups[1].Value.ToLower()}'>{m.Groups[1].Value}</span>");
+        }
+        
+        return result;
+    }
+    
+    private string GetTokenSymbol(string tokenType)
+    {
+        return tokenType switch
+        {
+            "Trust" => "●",
+            "Commerce" => "🪙",
+            "Status" => "◆",
+            "Shadow" => "▲",
+            _ => "○"
+        };
     }
 }

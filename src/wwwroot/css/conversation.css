@@ -19,6 +19,17 @@ body {
 	--border-hover: #b8a584;
 	--text-secondary: #6b5d4f;
 	--shadow-soft: rgba(0,0,0,0.1);
+	
+	/* Emotional State Colors */
+	--state-anxious: #ffa500;
+	--state-hostile: #8b0000;
+	--state-closed: #696969;
+	--state-neutral: #6b5d4f;
+	
+	/* Formula Display Colors */
+	--formula-bg: rgba(44, 36, 22, 0.05);
+	--formula-border: rgba(44, 36, 22, 0.2);
+	--formula-text: #5a4a3a;
 }
 
 /* Header area */
@@ -790,4 +801,345 @@ body {
 	50% {
 		opacity: 0;
 	}
+}
+
+/* ==================== Transparent Mechanics Styles ==================== */
+
+/* Token Math Display */
+.token-math {
+	display: inline-block;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-family: 'Courier New', monospace;
+	font-size: 12px;
+	margin: 0 2px;
+}
+
+.token-math.positive {
+	background: rgba(76, 175, 80, 0.1);
+	color: var(--effect-positive);
+	border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.token-math.negative {
+	background: rgba(211, 47, 47, 0.1);
+	color: var(--effect-negative);
+	border: 1px solid rgba(211, 47, 47, 0.3);
+}
+
+/* Formula Display */
+.formula {
+	display: inline-block;
+	padding: 2px 8px;
+	background: var(--formula-bg);
+	border: 1px solid var(--formula-border);
+	border-radius: 4px;
+	font-size: 11px;
+	color: var(--formula-text);
+	margin-left: 8px;
+	font-family: 'Courier New', monospace;
+}
+
+/* Time Math */
+.time-math {
+	display: inline-block;
+	padding: 2px 6px;
+	background: rgba(33, 150, 243, 0.1);
+	color: var(--effect-neutral);
+	border: 1px solid rgba(33, 150, 243, 0.3);
+	border-radius: 4px;
+	font-size: 12px;
+	margin: 0 2px;
+}
+
+/* State Indicators */
+.state-indicator {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-weight: bold;
+	font-size: 11px;
+	text-transform: uppercase;
+	margin: 0 2px;
+}
+
+.state-indicator.anxious {
+	background: var(--state-anxious);
+	color: white;
+}
+
+.state-indicator.hostile {
+	background: var(--state-hostile);
+	color: white;
+}
+
+.state-indicator.closed {
+	background: var(--state-closed);
+	color: white;
+}
+
+.state-indicator.neutral {
+	background: var(--state-neutral);
+	color: white;
+}
+
+/* Token Display Enhancement */
+.token-display {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+}
+
+.token-icon {
+	font-size: 16px;
+	width: 20px;
+	text-align: center;
+}
+
+.token-value {
+	font-family: 'Courier New', monospace;
+	font-weight: bold;
+	font-size: 14px;
+	min-width: 30px;
+}
+
+.token-value.negative {
+	color: var(--effect-negative);
+}
+
+.token-value.positive {
+	color: var(--effect-positive);
+}
+
+.token-formula {
+	font-size: 11px;
+	color: var(--formula-text);
+	margin-left: 8px;
+	font-family: 'Courier New', monospace;
+}
+
+/* Leverage Warning */
+.leverage-warning {
+	display: inline-block;
+	padding: 4px 8px;
+	background: rgba(139, 0, 0, 0.1);
+	border: 1px solid rgba(139, 0, 0, 0.3);
+	border-radius: 4px;
+	color: var(--state-hostile);
+	font-size: 12px;
+	font-weight: bold;
+}
+
+/* Emotional State Display Component */
+.emotional-state-display {
+	background: var(--parchment-dark);
+	border: 1px solid var(--border-subtle);
+	border-radius: 8px;
+	padding: 12px;
+	margin-bottom: 16px;
+}
+
+.state-header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.npc-name {
+	font-size: 16px;
+	font-weight: bold;
+	color: var(--ink-brown);
+}
+
+.state-badge {
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: bold;
+	color: white;
+}
+
+.state-badge.state-anxious { background: var(--state-anxious); }
+.state-badge.state-hostile { background: var(--state-hostile); }
+.state-badge.state-closed { background: var(--state-closed); }
+.state-badge.state-neutral { background: var(--state-neutral); }
+
+.state-formula {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px;
+	background: var(--formula-bg);
+	border: 1px solid var(--formula-border);
+	border-radius: 4px;
+	margin-bottom: 8px;
+	font-size: 13px;
+	color: var(--formula-text);
+}
+
+.formula-label {
+	color: var(--text-secondary);
+	margin-right: 4px;
+}
+
+.formula-components {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.stakes-component {
+	color: var(--ink-brown);
+	font-weight: 500;
+}
+
+.time-component {
+	color: var(--effect-neutral);
+	font-family: 'Courier New', monospace;
+}
+
+/* Queue Manipulation Preview Component */
+.queue-manipulation-preview {
+	background: var(--parchment);
+	border: 2px solid var(--border-hover);
+	border-radius: 8px;
+	padding: 16px;
+	box-shadow: 0 4px 8px var(--shadow-soft);
+}
+
+.operation-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+	font-size: 16px;
+	font-weight: bold;
+	color: var(--ink-brown);
+}
+
+.operation-icon {
+	font-size: 20px;
+}
+
+.position-display {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	margin-bottom: 16px;
+	padding: 12px;
+	background: var(--parchment-dark);
+	border-radius: 6px;
+}
+
+.position-from, .position-to {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.position-label {
+	font-size: 11px;
+	color: var(--text-secondary);
+	text-transform: uppercase;
+}
+
+.position-number {
+	font-size: 18px;
+	font-weight: bold;
+	color: var(--ink-brown);
+}
+
+.position-arrow {
+	font-size: 24px;
+	color: var(--text-secondary);
+}
+
+.cost-calculation {
+	background: var(--formula-bg);
+	border: 1px solid var(--formula-border);
+	border-radius: 6px;
+	padding: 12px;
+	margin-bottom: 12px;
+}
+
+.formula-display {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.formula-math {
+	font-family: 'Courier New', monospace;
+	font-size: 14px;
+	color: var(--formula-text);
+}
+
+.cost-total {
+	font-weight: bold;
+	color: var(--effect-negative);
+}
+
+.balance-preview {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px;
+	background: var(--parchment-dark);
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.balance-current {
+	font-weight: bold;
+	color: var(--ink-brown);
+}
+
+.balance-after {
+	font-weight: bold;
+	color: var(--effect-positive);
+}
+
+.balance-after.negative {
+	color: var(--effect-negative);
+}
+
+.confirmation-buttons {
+	display: flex;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.btn-confirm, .btn-cancel {
+	flex: 1;
+	padding: 10px;
+	border-radius: 6px;
+	border: none;
+	font-size: 14px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.btn-confirm {
+	background: var(--effect-positive);
+	color: white;
+}
+
+.btn-confirm:hover {
+	background: #45a049;
+	transform: translateY(-1px);
+}
+
+.btn-cancel {
+	background: var(--parchment-dark);
+	color: var(--ink-brown);
+	border: 1px solid var(--border-subtle);
+}
+
+.btn-cancel:hover {
+	background: var(--parchment);
+	border-color: var(--border-hover);
 }

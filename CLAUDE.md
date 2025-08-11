@@ -4,13 +4,13 @@
 
 **CRITICAL DIRECTIVE: Before implementing ANY change to Wayfarer, you MUST debate all agents with the proposed change.**
 This includes:
-- New mechanics (ONLY if fixing bugs in IMPLEMENTATION-PLAN.md)
-- Modified systems (ONLY if specified in IMPLEMENTATION-PLAN.md)
-- UI changes (MUST match IMPLEMENTATION-PLAN.md specifications)
-- Content structures (MUST follow IMPLEMENTATION-PLAN.md)
-- Rule adjustments (NOT ALLOWED - plan is final)
-- Feature additions (NOT ALLOWED - scope is locked)
-- Feature removals (NOT ALLOWED - build complete plan)
+- New mechanics
+- Modified systems
+- UI changes 
+- Content structures 
+- Rule adjustments 
+- Feature additions 
+- Feature removals
 No exceptions. Even "small" changes must be reviewed by all specialized personas.
 
 **🚨 USE PLAYWRIGHT TO TEST THE GAME IN CHROME 🚨**
@@ -53,7 +53,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **NO COMPATIBILITY LAYERS** - Clean break from old mechanics to new queue/token system
 - **DELETE LEGACY CODE ENTIRELY** - Remove anything not in the implementation plan
 - **NO OPTIONAL CODE** - NEVER use optional parameters or overloaded methods. This is a serious Code Smell. Think of the CORRECT way it should be used and only support this single usage
-- **FRESH TEST SUITE** - Test only what's in IMPLEMENTATION-PLAN.md
+- **FRESH TEST SUITE** - Test only what's
 - **NO SILENT BACKEND ACTIONS** - Nothing should happen silently in the backend. If automatic, the player MUST be notified via MessageSystem. If manual, the player MUST click a button to initiate. All game state changes must be visible and intentional.
 - **NEVER CREATE DUPLICATE MARKDOWN FILES** - ALWAYS check for existing .md files in root directory first. Update existing documentation files instead of creating new ones. If IMPLEMENTATION-PLAN.md exists, UPDATE IT. If SESSION-HANDOFF.md exists, UPDATE IT. Creating duplicate files is unacceptable.
 - **ALWAYS UPDATE GITHUB AFTER CHANGES** - After making significant changes or completing tasks, ALWAYS update the GitHub issues and kanban board to reflect current progress. Use `gh issue comment` to add progress updates and `gh project` commands to update the kanban board status.
@@ -145,16 +145,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Always use case-insensitive property matching** - JSON files use camelCase while C# DTOs use PascalCase
 - **Inherit from BaseValidator** - Provides TryGetPropertyCaseInsensitive helper method for robust validation
 - **Test validators with actual JSON** - Don't assume field names match between JSON and DTOs
-- 
-**📝 CONTENT REQUIREMENTS (from IMPLEMENTATION-PLAN.md)**
-- **5 NPCs** with schedules, tokens, conversation templates
-- **5 Locations** with travel times and available actions
-- **9 Letter Templates** (3 types × 3 stakes)
-- **45 Conversation Combinations** (5 NPCs × 3 verbs × 3 states)
-- **No procedural generation** - All content is deterministic
-- See IMPLEMENTATION-PLAN.md Section 'Content Requirements' for exact specifications
-
-**📘 FINAL GAME DESIGN: See IMPLEMENTATION-PLAN.md**
 
 **🚂 TRAVEL SYSTEM DESIGN: See TRAVEL-SYSTEM-DESIGN.md**
 - Routes are progression mechanics like "80 Days"
@@ -236,11 +226,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Complex branching stories
 - Magic or fantasy elements
 - RPG progression systems
-- Anything not in IMPLEMENTATION-PLAN.md
+- Anything not
 
 **Principles and Memories:**
 - ALWAYS read the full file before editing
-- ALWAYS check IMPLEMENTATION-PLAN.md before making any decision
 - NEVER add features not in the implementation plan
 - NEVER change core mechanics from the plan
 - Build EXACTLY what's specified, test it, ship it

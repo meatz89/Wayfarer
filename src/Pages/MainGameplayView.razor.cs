@@ -712,7 +712,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     public MessageSystem MessageSystem => null; // Should use GameFacade.GetSystemMessages() instead
     public NPCLetterOfferService NPCLetterOfferService => null; // Should use GameFacade.AcceptLetterOfferAsync() instead
     public LetterQueueManager LetterQueueManager => null; // Should use GameFacade.ExecuteLetterActionAsync() instead
-    public ConnectionTokenManager ConnectionTokenManager => null; // Should use GameFacade methods instead
+    public TokenMechanicsManager TokenMechanicsManager => null; // Should use GameFacade methods instead
     public NPCRepository NPCRepository => null; // Should use GameFacade.GetLocationActions() instead
     public LocationRepository LocationRepository => null; // Should use GameFacade.GetCurrentLocation() instead
     public ItemRepository ItemRepository => null; // Should use GameFacade.GetInventory() instead

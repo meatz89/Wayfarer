@@ -8,7 +8,7 @@ using System.Linq;
 public class RouteDiscoveryManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly RouteRepository _routeRepository;
     private readonly RouteDiscoveryRepository _routeDiscoveryRepository;
@@ -18,7 +18,7 @@ public class RouteDiscoveryManager
 
     public RouteDiscoveryManager(
         GameWorld gameWorld,
-        ConnectionTokenManager connectionTokenManager,
+        TokenMechanicsManager connectionTokenManager,
         NPCRepository npcRepository,
         RouteRepository routeRepository,
         RouteDiscoveryRepository routeDiscoveryRepository,

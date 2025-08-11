@@ -11,13 +11,13 @@ public class QueueDisplacementPlanner
 {
     private readonly LetterQueueManager _queueManager;
     private readonly GameConfiguration _config;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
 
     public QueueDisplacementPlanner(
         LetterQueueManager queueManager,
         GameConfiguration config,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         MessageSystem messageSystem)
     {
         _queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));

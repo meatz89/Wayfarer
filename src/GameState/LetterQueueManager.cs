@@ -9,16 +9,15 @@ public class LetterQueueManager
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
     private readonly StandingObligationManager _obligationManager;
-    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly LetterCategoryService _categoryService;
     private readonly GameConfiguration _config;
     private readonly IGameRuleEngine _ruleEngine;
     private readonly ITimeManager _timeManager;
     private readonly ConsequenceEngine _consequenceEngine;
-    private readonly LeverageCalculator _leverageCalculator;
     private readonly Random _random = new Random();
 
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, ConnectionTokenManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager, ConsequenceEngine consequenceEngine, LeverageCalculator leverageCalculator)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, TokenMechanicsManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager, ConsequenceEngine consequenceEngine)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -31,7 +30,6 @@ public class LetterQueueManager
         _ruleEngine = ruleEngine;
         _timeManager = timeManager;
         _consequenceEngine = consequenceEngine;
-        _leverageCalculator = leverageCalculator;
     }
 
     // Get the player's letter queue
@@ -178,7 +176,7 @@ public class LetterQueueManager
         _obligationManager.ApplyDynamicDeadlineBonuses(letter);
     }
 
-    // Calculate leverage-based entry position for a letter
+    // Calculate leverage-based entry position for a letter using simple token balance
     private int CalculateLeveragePosition(Letter letter)
     {
         string senderId = GetNPCIdByName(letter.SenderName);
@@ -188,25 +186,55 @@ public class LetterQueueManager
             return GetBasePositionForTokenType(letter.TokenType);
         }
 
-        // Use the comprehensive LeverageCalculator
-        var leverageData = _leverageCalculator.CalculateLeverage(senderId, letter.TokenType);
+        // Get token balance and leverage
+        var tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
+        int leverage = _connectionTokenManager.GetLeverage(senderId, letter.TokenType);
         
-        // Apply pattern modifiers on top of leverage calculation
-        int position = ApplyPatternModifiers(leverageData.TargetQueuePosition, senderId, leverageData.TokenBalance);
+        // Start with base position for token type
+        int basePosition = GetBasePositionForTokenType(letter.TokenType);
         
-        // Show leverage narrative if significant
-        if (leverageData.TotalLeverage > 0)
+        // Apply leverage boost (negative tokens = better position)
+        int targetPosition = basePosition;
+        if (leverage > 0)
         {
-            string narrative = _leverageCalculator.GetLeverageNarrative(leverageData);
-            if (!string.IsNullOrEmpty(narrative))
+            // Every 2 points of leverage = 1 position forward
+            int leverageBoost = leverage / 2;
+            targetPosition = Math.Max(1, basePosition - leverageBoost);
+            
+            // Extreme leverage thresholds
+            if (leverage >= 10)
             {
-                _messageSystem.AddSystemMessage(narrative, 
-                    leverageData.Level >= LeverageLevel.High ? SystemMessageTypes.Warning : SystemMessageTypes.Info);
+                targetPosition = 1; // Extreme leverage = position 1
+            }
+            else if (leverage >= 5)
+            {
+                targetPosition = Math.Min(2, targetPosition); // High leverage = at least position 2
             }
         }
         
+        // Apply pattern modifiers
+        targetPosition = ApplyPatternModifiers(targetPosition, senderId, tokenBalance);
+        
+        // Show leverage narrative if significant
+        if (leverage > 0)
+        {
+            ShowSimpleLeverageNarrative(letter, leverage, targetPosition);
+        }
+        
         // Clamp to valid queue range
-        return Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, position));
+        return Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, targetPosition));
+    }
+    
+    // Show simple leverage narrative without LeverageCalculator
+    private void ShowSimpleLeverageNarrative(Letter letter, int leverage, int position)
+    {
+        string severity = leverage >= 10 ? "EXTREME" : leverage >= 5 ? "HIGH" : "MODERATE";
+        var messageType = leverage >= 5 ? SystemMessageTypes.Warning : SystemMessageTypes.Info;
+        
+        _messageSystem.AddSystemMessage(
+            $"💸 {severity} LEVERAGE: You owe {letter.SenderName} {leverage} {letter.TokenType} tokens - letter enters at position {position}",
+            messageType
+        );
     }
 
     // Get base position for token type
@@ -801,7 +829,7 @@ public class LetterQueueManager
     }
 
     // Apply token penalty when a letter expires
-    private void ApplyRelationshipDamage(Letter letter, ConnectionTokenManager _connectionTokenManager)
+    private void ApplyRelationshipDamage(Letter letter, TokenMechanicsManager _connectionTokenManager)
     {
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId)) return;
@@ -2125,6 +2153,110 @@ public class LetterQueueManager
         if (letterAt1 != null && letterAt1.State == LetterState.Delivering)
             return false;
 
+        return true;
+    }
+    
+    // === SIMPLE POSITION-BASED QUEUE MANIPULATION ===
+    
+    // Calculate simple position-based reorder cost
+    public int CalculateReorderCost(int fromPosition, int toPosition)
+    {
+        return Math.Abs(toPosition - fromPosition);
+    }
+    
+    // Check if player can afford to reorder based on tokens with sender
+    public bool CanAffordReorder(string npcId, ConnectionType tokenType, int fromPos, int toPos)
+    {
+        int cost = CalculateReorderCost(fromPos, toPos);
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId)[tokenType];
+        return tokens >= cost;
+    }
+    
+    // Execute reorder with token spending
+    public bool ExecuteReorder(Letter letter, int fromPos, int toPos)
+    {
+        if (letter == null) return false;
+        
+        // Validate positions
+        if (fromPos < 1 || fromPos > _config.LetterQueue.MaxQueueSize ||
+            toPos < 1 || toPos > _config.LetterQueue.MaxQueueSize)
+            return false;
+            
+        int cost = CalculateReorderCost(fromPos, toPos);
+        
+        // Get sender NPC ID
+        string senderId = GetNPCIdByName(letter.SenderName);
+        if (string.IsNullOrEmpty(senderId)) return false;
+        
+        // Spend tokens with the letter's sender
+        if (!_connectionTokenManager.SpendTokensWithNPC(
+            letter.TokenType, 
+            cost, 
+            senderId))
+        {
+            _messageSystem.AddSystemMessage(
+                $"❌ Cannot reorder - insufficient {letter.TokenType} tokens with {letter.SenderName}",
+                SystemMessageTypes.Danger
+            );
+            return false;
+        }
+        
+        // Move the letter
+        bool success = MoveLetterInQueue(fromPos, toPos);
+        
+        if (success)
+        {
+            _messageSystem.AddSystemMessage(
+                $"✅ Reordered {letter.SenderName}'s letter from position {fromPos} to {toPos} (cost: {cost} {letter.TokenType} tokens)",
+                SystemMessageTypes.Success
+            );
+        }
+        
+        return success;
+    }
+    
+    // Move letter between positions in queue
+    private bool MoveLetterInQueue(int fromPos, int toPos)
+    {
+        Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
+        
+        // Get the letter to move
+        Letter letterToMove = queue[fromPos - 1];
+        if (letterToMove == null) return false;
+        
+        // Check if target position is occupied
+        if (queue[toPos - 1] != null)
+        {
+            // Need to shift other letters
+            if (toPos < fromPos)
+            {
+                // Moving up - shift letters down
+                for (int i = fromPos - 1; i > toPos - 1; i--)
+                {
+                    queue[i] = queue[i - 1];
+                    if (queue[i] != null) queue[i].QueuePosition = i + 1;
+                }
+            }
+            else
+            {
+                // Moving down - shift letters up
+                for (int i = fromPos - 1; i < toPos - 1; i++)
+                {
+                    queue[i] = queue[i + 1];
+                    if (queue[i] != null) queue[i].QueuePosition = i + 1;
+                }
+            }
+        }
+        else
+        {
+            // Simple move - clear old position
+            queue[fromPos - 1] = null;
+        }
+        
+        // Place letter in new position
+        queue[toPos - 1] = letterToMove;
+        letterToMove.QueuePosition = toPos;
+        
         return true;
     }
 }

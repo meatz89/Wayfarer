@@ -39,7 +39,7 @@ public class GameFacade : ILetterQueueOperations
     private readonly FlagService _flagService;
     private readonly ItemRepository _itemRepository;
     private readonly ConversationStateManager _conversationStateManager;
-    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly NPCLetterOfferService _letterOfferService;
     private readonly GameConfiguration _gameConfiguration;
     private readonly InformationDiscoveryManager _informationDiscoveryManager;
@@ -55,7 +55,7 @@ public class GameFacade : ILetterQueueOperations
     private readonly LetterTemplateRepository _letterTemplateRepository;
     private readonly InformationRevealService _informationRevealService;
     private readonly ContextTagCalculator _contextTagCalculator;
-    private readonly NPCEmotionalStateCalculator _npcEmotionalStateCalculator;
+    private readonly NPCStateResolver _npcStateResolver;
     private readonly EnvironmentalHintSystem _environmentalHintSystem;
     private readonly ObservationSystem _observationSystem;
     private readonly VerbContextualizer _verbContextualizer;
@@ -66,7 +66,6 @@ public class GameFacade : ILetterQueueOperations
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
     private readonly ConfrontationService _confrontationService;
     private readonly ConsequenceEngine _consequenceEngine;
-    private readonly LeverageCalculator _leverageCalculator;
     private readonly WorldMemorySystem _worldMemorySystem;
     private readonly AmbientDialogueSystem _ambientDialogueSystem;
 
@@ -84,7 +83,7 @@ public class GameFacade : ILetterQueueOperations
         FlagService flagService,
         ItemRepository itemRepository,
         ConversationStateManager conversationStateManager,
-        ConnectionTokenManager connectionTokenManager,
+        TokenMechanicsManager connectionTokenManager,
         NPCLetterOfferService letterOfferService,
         GameConfiguration gameConfiguration,
         InformationDiscoveryManager informationDiscoveryManager = null,
@@ -102,7 +101,7 @@ public class GameFacade : ILetterQueueOperations
         LetterTemplateRepository letterTemplateRepository = null,
         InformationRevealService informationRevealService = null,
         ContextTagCalculator contextTagCalculator = null,
-        NPCEmotionalStateCalculator npcEmotionalStateCalculator = null,
+        NPCStateResolver npcStateResolver = null,
         VerbContextualizer verbContextualizer = null,
         ActionGenerator actionGenerator = null,
         ActionBeatGenerator actionBeatGenerator = null,
@@ -112,7 +111,6 @@ public class GameFacade : ILetterQueueOperations
         AtmosphereCalculator atmosphereCalculator = null,
         ConfrontationService confrontationService = null,
         ConsequenceEngine consequenceEngine = null,
-        LeverageCalculator leverageCalculator = null,
         WorldMemorySystem worldMemorySystem = null,
         AmbientDialogueSystem ambientDialogueSystem = null,
         TimeBlockAttentionManager timeBlockAttentionManager = null
@@ -149,7 +147,7 @@ public class GameFacade : ILetterQueueOperations
         _letterTemplateRepository = letterTemplateRepository;
         _informationRevealService = informationRevealService;
         _contextTagCalculator = contextTagCalculator;
-        _npcEmotionalStateCalculator = npcEmotionalStateCalculator;
+        _npcStateResolver = npcStateResolver;
         _verbContextualizer = verbContextualizer;
         _actionGenerator = actionGenerator;
         _actionBeatGenerator = actionBeatGenerator;
@@ -159,7 +157,6 @@ public class GameFacade : ILetterQueueOperations
         _atmosphereCalculator = atmosphereCalculator;
         _confrontationService = confrontationService;
         _consequenceEngine = consequenceEngine;
-        _leverageCalculator = leverageCalculator;
         _worldMemorySystem = worldMemorySystem;
         _ambientDialogueSystem = ambientDialogueSystem;
         
@@ -2511,9 +2508,9 @@ public class GameFacade : ILetterQueueOperations
         
         // Calculate NPC emotional state from letter queue
         NPCEmotionalState npcState = NPCEmotionalState.WITHDRAWN;
-        if (_npcEmotionalStateCalculator != null && npc != null)
+        if (_npcStateResolver != null && npc != null)
         {
-            npcState = _npcEmotionalStateCalculator.CalculateState(npc);
+            npcState = _npcStateResolver.CalculateState(npc);
         }
         
         // Get attention information
@@ -2542,10 +2539,10 @@ public class GameFacade : ILetterQueueOperations
         
         // Generate body language description based on NPC emotional state
         string bodyLanguage = "";
-        if (_npcEmotionalStateCalculator != null && npc != null)
+        if (_npcStateResolver != null && npc != null)
         {
             var stakes = urgentLetter?.Stakes ?? StakeType.REPUTATION;
-            bodyLanguage = _npcEmotionalStateCalculator.GenerateBodyLanguage(npcState, stakes);
+            bodyLanguage = _npcStateResolver.GenerateBodyLanguage(npcState, stakes);
         }
         else
         {
@@ -3447,11 +3444,11 @@ public class GameFacade : ILetterQueueOperations
             return false;
         }
 
-        TradeActionResult result;
+        MarketManager.TradeActionResult result;
         if (action.ToLower() == "buy")
         {
             result = _marketManager.TryBuyItem(itemId, locationId);
-            if (result.IsSuccess)
+            if (result.Success)
             {
                 // Trading takes 1 hour
                 ProcessTimeAdvancement(1);
@@ -3465,7 +3462,7 @@ public class GameFacade : ILetterQueueOperations
         else
         {
             result = _marketManager.TrySellItem(itemId, locationId);
-            if (result.IsSuccess)
+            if (result.Success)
             {
                 // Trading takes 1 hour
                 ProcessTimeAdvancement(1);
@@ -3477,7 +3474,7 @@ public class GameFacade : ILetterQueueOperations
             }
         }
 
-        return result.IsSuccess;
+        return result.Success;
     }
 
     // ========== INVENTORY ==========
@@ -4168,27 +4165,75 @@ public class GameFacade : ILetterQueueOperations
     /// </summary>
     public LeverageViewModel GetNPCLeverage(string npcId, ConnectionType tokenType)
     {
-        if (_leverageCalculator == null || string.IsNullOrEmpty(npcId))
+        if (string.IsNullOrEmpty(npcId))
         {
             return new LeverageViewModel();
         }
 
-        var leverageData = _leverageCalculator.CalculateLeverage(npcId, tokenType);
         var npc = _npcRepository.GetById(npcId);
+        if (npc == null)
+        {
+            return new LeverageViewModel();
+        }
+        
+        // Get simple leverage from TokenMechanicsManager
+        int leverage = _connectionTokenManager.GetLeverage(npcId, tokenType);
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        int tokenBalance = tokens.GetValueOrDefault(tokenType, 0);
+        
+        // Calculate target queue position based on leverage
+        int basePosition = tokenType switch
+        {
+            ConnectionType.Status => 3,
+            ConnectionType.Commerce => 5,
+            ConnectionType.Trust => 6,
+            ConnectionType.Shadow => 7,
+            _ => 8
+        };
+        
+        int targetPosition = basePosition;
+        if (leverage > 0)
+        {
+            int leverageBoost = leverage / 2;
+            targetPosition = Math.Max(1, basePosition - leverageBoost);
+            
+            if (leverage >= 10)
+                targetPosition = 1;
+            else if (leverage >= 5)
+                targetPosition = Math.Min(2, targetPosition);
+        }
+        
+        // Simple displacement cost (leverage + base cost)
+        int displacementCost = Math.Max(2, leverage + 2);
+        
+        // Determine leverage level
+        string level = leverage switch
+        {
+            >= 10 => "Extreme",
+            >= 5 => "High",
+            >= 3 => "Moderate",
+            >= 1 => "Low",
+            _ => "None"
+        };
+        
+        // Generate narrative
+        string narrative = leverage > 0 
+            ? $"You owe {npc.Name} {leverage} {tokenType} tokens, giving them {level.ToLower()} leverage over you."
+            : $"No leverage with {npc.Name}";
         
         return new LeverageViewModel
         {
-            NPCId = leverageData.NPCId,
-            NPCName = npc?.Name ?? "Unknown",
-            TokenType = leverageData.TokenType,
-            TotalLeverage = leverageData.TotalLeverage,
-            TokenDebtLeverage = leverageData.TokenDebtLeverage,
-            ObligationLeverage = leverageData.ObligationLeverage,
-            FailureLeverage = leverageData.FailureLeverage,
-            TargetQueuePosition = leverageData.TargetQueuePosition,
-            DisplacementCost = leverageData.DisplacementCost,
-            Level = leverageData.Level.ToString(),
-            Narrative = _leverageCalculator.GetLeverageNarrative(leverageData)
+            NPCId = npcId,
+            NPCName = npc.Name,
+            TokenType = tokenType,
+            TotalLeverage = leverage,
+            TokenDebtLeverage = leverage,
+            ObligationLeverage = 0,  // Simplified - no separate obligation leverage
+            FailureLeverage = 0,     // Simplified - incorporated into token debt
+            TargetQueuePosition = targetPosition,
+            DisplacementCost = displacementCost,
+            Level = level,
+            Narrative = narrative
         };
     }
 
@@ -4198,11 +4243,6 @@ public class GameFacade : ILetterQueueOperations
     /// </summary>
     public List<LeverageViewModel> GetAllNPCLeverage()
     {
-        if (_leverageCalculator == null)
-        {
-            return new List<LeverageViewModel>();
-        }
-
         var leverageList = new List<LeverageViewModel>();
         var player = _gameWorld.GetPlayer();
         
@@ -4216,25 +4256,13 @@ public class GameFacade : ILetterQueueOperations
             // Calculate leverage for each token type the NPC uses
             foreach (var tokenType in npc.LetterTokenTypes)
             {
-                var leverageData = _leverageCalculator.CalculateLeverage(npcId, tokenType);
+                int leverage = _connectionTokenManager.GetLeverage(npcId, tokenType);
                 
                 // Only include if there's actual leverage
-                if (leverageData.TotalLeverage > 0)
+                if (leverage > 0)
                 {
-                    leverageList.Add(new LeverageViewModel
-                    {
-                        NPCId = leverageData.NPCId,
-                        NPCName = npc.Name,
-                        TokenType = leverageData.TokenType,
-                        TotalLeverage = leverageData.TotalLeverage,
-                        TokenDebtLeverage = leverageData.TokenDebtLeverage,
-                        ObligationLeverage = leverageData.ObligationLeverage,
-                        FailureLeverage = leverageData.FailureLeverage,
-                        TargetQueuePosition = leverageData.TargetQueuePosition,
-                        DisplacementCost = leverageData.DisplacementCost,
-                        Level = leverageData.Level.ToString(),
-                        Narrative = _leverageCalculator.GetLeverageNarrative(leverageData)
-                    });
+                    var leverageViewModel = GetNPCLeverage(npcId, tokenType);
+                    leverageList.Add(leverageViewModel);
                 }
             }
         }
@@ -4247,7 +4275,7 @@ public class GameFacade : ILetterQueueOperations
     /// </summary>
     public void ClearLeverageCache()
     {
-        _leverageCalculator?.ClearCache(_gameWorld.CurrentDay);
+        // No cache to clear with simplified leverage system
     }
 
     // ========== SEAL MANAGEMENT ==========

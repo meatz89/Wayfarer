@@ -9,14 +9,14 @@ using System.Linq;
 public class LetterPropertyChoiceGenerator
 {
     private readonly LetterQueueManager _queueManager;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly ITimeManager _timeManager;
     private readonly Player _player;
     private readonly GameWorld _gameWorld;
     
     public LetterPropertyChoiceGenerator(
         LetterQueueManager queueManager,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         ITimeManager timeManager,
         Player player,
         GameWorld gameWorld)

@@ -11,7 +11,7 @@ namespace Wayfarer.GameState
     public class ConsequenceEngine
     {
         private readonly GameWorld _gameWorld;
-        private readonly ConnectionTokenManager _tokenManager;
+        private readonly TokenMechanicsManager _tokenManager;
         private readonly NPCRepository _npcRepository;
         private readonly MessageSystem _messageSystem;
         private readonly WorldMemorySystem _worldMemory;
@@ -27,7 +27,7 @@ namespace Wayfarer.GameState
         
         public ConsequenceEngine(
             GameWorld gameWorld,
-            ConnectionTokenManager tokenManager,
+            TokenMechanicsManager tokenManager,
             NPCRepository npcRepository,
             MessageSystem messageSystem,
             WorldMemorySystem worldMemory = null)

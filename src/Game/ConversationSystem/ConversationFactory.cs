@@ -8,24 +8,22 @@ using System.Threading.Tasks;
 public class ConversationFactory
 {
     private readonly INarrativeProvider _narrativeProvider;
-    private readonly ConnectionTokenManager _tokenManager;
-    private readonly NPCEmotionalStateCalculator _stateCalculator;
+    private readonly TokenMechanicsManager _tokenManager;
+    private readonly NPCStateResolver _stateCalculator;
     private readonly LetterQueueManager _queueManager;
     private readonly ITimeManager _timeManager;
     private readonly AtmosphereCalculator _atmosphereCalculator;
     private readonly Wayfarer.GameState.ConsequenceEngine _consequenceEngine;
-    private readonly Wayfarer.GameState.LeverageCalculator _leverageCalculator;
     private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
 
     public ConversationFactory(
         INarrativeProvider narrativeProvider,
-        ConnectionTokenManager tokenManager,
-        NPCEmotionalStateCalculator stateCalculator,
+        TokenMechanicsManager tokenManager,
+        NPCStateResolver stateCalculator,
         LetterQueueManager queueManager,
         ITimeManager timeManager,
         AtmosphereCalculator atmosphereCalculator,
         Wayfarer.GameState.ConsequenceEngine consequenceEngine,
-        Wayfarer.GameState.LeverageCalculator leverageCalculator,
         Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager)
     {
         _narrativeProvider = narrativeProvider;
@@ -35,7 +33,6 @@ public class ConversationFactory
         _timeManager = timeManager;
         _atmosphereCalculator = atmosphereCalculator;
         _consequenceEngine = consequenceEngine;
-        _leverageCalculator = leverageCalculator;
         _timeBlockAttentionManager = timeBlockAttentionManager;
     }
 
@@ -101,7 +98,6 @@ public class ConversationFactory
             player,
             context.GameWorld,
             _consequenceEngine,
-            _leverageCalculator,
             _timeBlockAttentionManager);
 
         // Create the conversation manager

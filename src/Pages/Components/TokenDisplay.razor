@@ -10,7 +10,11 @@
             @foreach (var relationship in GetRelevantTokens())
             {
                 <div class="relationship-insight @GetRelationshipClass(relationship.Key, relationship.Value)">
-                    @GetNarrativeDescription(relationship.Key, relationship.Value)
+                    <div class="token-display">
+                        <span class="token-icon">@GetTokenSymbol(relationship.Key)</span>
+                        <span class="token-value @(relationship.Value < 0 ? "negative" : "positive")">@(relationship.Value >= 0 ? "+" : "")@relationship.Value</span>
+                        <span class="token-narrative">@((MarkupString)GetNarrativeDescription(relationship.Key, relationship.Value))</span>
+                    </div>
                 </div>
             }
         </div>
@@ -95,18 +99,55 @@
     {
         if (!UseNarrativeDescriptions)
         {
-            // Fall back to simple display for debugging
-            return $"{type}: {value}";
+            // Show transparent mechanics
+            return GetMechanicalDescription(type, value);
         }
 
-        // Narrative descriptions based on token type and value
-        return type switch
+        // Blend narrative with mechanical transparency
+        var narrative = type switch
         {
             ConnectionType.Trust => GetTrustDescription(value),
             ConnectionType.Commerce => GetCommerceDescription(value),
             ConnectionType.Status => GetStatusDescription(value),
             ConnectionType.Shadow => GetShadowDescription(value),
             _ => ""
+        };
+        
+        // Add mechanical overlay
+        var mechanical = GetMechanicalDescription(type, value);
+        return $"{narrative} <span class='token-formula'>{mechanical}</span>";
+    }
+    
+    private string GetMechanicalDescription(ConnectionType type, int value)
+    {
+        var symbol = GetTokenSymbol(type);
+        var mechanic = type switch
+        {
+            ConnectionType.Trust => value >= 0 ? $"[+{value * 2}h deadline bonus]" : $"[Letters at position {Math.Max(2, 1 - value)}]",
+            ConnectionType.Commerce => $"[{symbol} x{Math.Abs(value)} = Queue boost {(value > 0 ? "+" : "")}{value / 2}]",
+            ConnectionType.Status => value >= 3 ? $"[Tier {value / 3} access]" : "[No tier access]",
+            ConnectionType.Shadow => value > 0 ? $"[{value * 20}% info visible]" : "[Info hidden]",
+            _ => $"[{value}]"
+        };
+        
+        if (value < 0)
+        {
+            // Show leverage warning
+            return $"<span class='leverage-warning'>⚠️ Leverage: {mechanic}</span>";
+        }
+        
+        return mechanic;
+    }
+    
+    private string GetTokenSymbol(ConnectionType type)
+    {
+        return type switch
+        {
+            ConnectionType.Trust => "●",
+            ConnectionType.Commerce => "🪙",
+            ConnectionType.Status => "◆",
+            ConnectionType.Shadow => "▲",
+            _ => "○"
         };
     }
 

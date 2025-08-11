@@ -12,25 +12,23 @@ using Wayfarer.GameState;
 public class ConversationChoiceGenerator
 {
     private readonly LetterQueueManager _queueManager;
-    private readonly ConnectionTokenManager _tokenManager;
-    private readonly NPCEmotionalStateCalculator _stateCalculator;
+    private readonly TokenMechanicsManager _tokenManager;
+    private readonly NPCStateResolver _stateCalculator;
     private readonly ITimeManager _timeManager;
     private readonly VerbOrganizedChoiceGenerator _verbChoiceGenerator;
     private readonly Player _player;
     private readonly GameWorld _gameWorld;
     private readonly ConsequenceEngine _consequenceEngine;
-    private readonly LeverageCalculator _leverageCalculator;
     private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
 
     public ConversationChoiceGenerator(
         LetterQueueManager queueManager,
-        ConnectionTokenManager tokenManager,
-        NPCEmotionalStateCalculator stateCalculator,
+        TokenMechanicsManager tokenManager,
+        NPCStateResolver stateCalculator,
         ITimeManager timeManager,
         Player player,
         GameWorld gameWorld,
         ConsequenceEngine consequenceEngine,
-        LeverageCalculator leverageCalculator,
         Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager)
     {
         _queueManager = queueManager;
@@ -40,12 +38,11 @@ public class ConversationChoiceGenerator
         _player = player;
         _gameWorld = gameWorld;
         _consequenceEngine = consequenceEngine;
-        _leverageCalculator = leverageCalculator;
         _timeBlockAttentionManager = timeBlockAttentionManager;
         
         // Initialize the new verb-organized choice generator with TimeBlockAttentionManager
         _verbChoiceGenerator = new VerbOrganizedChoiceGenerator(
-            queueManager, tokenManager, timeManager, consequenceEngine, leverageCalculator, player, gameWorld, timeBlockAttentionManager);
+            queueManager, tokenManager, timeManager, consequenceEngine, player, gameWorld, timeBlockAttentionManager);
     }
 
     public List<ConversationChoice> GenerateChoices(SceneContext context, ConversationState state)

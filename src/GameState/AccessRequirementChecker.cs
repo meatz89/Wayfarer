@@ -8,7 +8,7 @@ public class AccessRequirementChecker
 {
     private readonly GameWorld _gameWorld;
     private readonly ItemRepository _itemRepository;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
     private readonly InformationDiscoveryManager _informationManager;
@@ -16,7 +16,7 @@ public class AccessRequirementChecker
     public AccessRequirementChecker(
         GameWorld gameWorld,
         ItemRepository itemRepository,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         NPCRepository npcRepository,
         MessageSystem messageSystem,
         InformationDiscoveryManager informationManager)

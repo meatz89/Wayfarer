@@ -7,7 +7,7 @@ public class BodyLanguageDisplayBase : ComponentBase
     [Parameter] public NPCEmotionalState? EmotionalState { get; set; }
     [Parameter] public StakeType? Stakes { get; set; }
     
-    [Inject] private NPCEmotionalStateCalculator StateCalculator { get; set; }
+    [Inject] private NPCStateResolver StateCalculator { get; set; }
     
     protected override void OnParametersSet()
     {

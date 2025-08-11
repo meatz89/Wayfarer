@@ -9,13 +9,13 @@ using System.Linq;
 public class GameRuleEngine : IGameRuleEngine
 {
     private readonly GameConfiguration _config;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly NPCRepository _npcRepository;
     private readonly TimeManager _timeManager;
 
     public GameRuleEngine(
         GameConfiguration config,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         NPCRepository npcRepository,
         TimeManager timeManager)
     {

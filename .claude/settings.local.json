@@ -151,7 +151,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" dotnet run --no-build)",
       "Bash(/mnt/c/git/wayfarer/fix_interface.sh:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 15 dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5100\" timeout 15 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5100\" timeout 15 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 30 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5101\" timeout 30 dotnet run --no-build)"
     ],
     "deny": []
   }

@@ -9,13 +9,13 @@ using System.Linq;
 public class DeliveryConversationService
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly StandingObligationManager _obligationManager;
     private readonly Random _random;
 
     public DeliveryConversationService(
         GameWorld gameWorld,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         StandingObligationManager obligationManager)
     {
         _gameWorld = gameWorld;

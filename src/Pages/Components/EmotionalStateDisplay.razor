@@ -1,0 +1,129 @@
+@using Wayfarer.Models
+@using Wayfarer.GameState
+@using Wayfarer
+
+@* 
+   Emotional State Display Component
+   Shows the transparent formula: State = Stakes + Time
+*@
+
+<div class="emotional-state-display @GetStateClass()">
+    <div class="state-header">
+        <span class="npc-name">@NpcName</span>
+        <span class="state-badge @GetStateClass()">[@CurrentState.ToString().ToUpper()]</span>
+    </div>
+    
+    @if (ShowFormula)
+    {
+        <div class="state-formula">
+            <span class="formula-label">↳</span>
+            <span class="formula-components">
+                @if (!string.IsNullOrEmpty(StakesDescription))
+                {
+                    <span class="stakes-component">@StakesDescription</span>
+                }
+                @if (TimeRemaining.HasValue)
+                {
+                    <span class="time-component">+ @GetTimeDescription()</span>
+                }
+            </span>
+        </div>
+    }
+    
+    @if (ShowMechanicalEffects)
+    {
+        <div class="state-effects">
+            @foreach (var effect in GetStateEffects())
+            {
+                <div class="effect-item @GetEffectClass(effect)">
+                    <span class="effect-icon">@GetEffectIcon(effect)</span>
+                    <span class="effect-text">@effect</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string NpcName { get; set; }
+    [Parameter] public EmotionalState CurrentState { get; set; }
+    [Parameter] public StakeType? Stakes { get; set; }
+    [Parameter] public string StakesDescription { get; set; }
+    [Parameter] public TimeSpan? TimeRemaining { get; set; }
+    [Parameter] public bool ShowFormula { get; set; } = true;
+    [Parameter] public bool ShowMechanicalEffects { get; set; } = true;
+    
+    private string GetStateClass()
+    {
+        return CurrentState switch
+        {
+            EmotionalState.Anxious => "state-anxious",
+            EmotionalState.Hostile => "state-hostile",
+            EmotionalState.Closed => "state-closed",
+            EmotionalState.Neutral => "state-neutral",
+            _ => "state-neutral"
+        };
+    }
+    
+    private string GetTimeDescription()
+    {
+        if (!TimeRemaining.HasValue)
+            return "";
+            
+        var hours = (int)TimeRemaining.Value.TotalHours;
+        var minutes = TimeRemaining.Value.Minutes;
+        
+        if (hours > 0)
+            return $"{hours}h {minutes}m remaining";
+        else
+            return $"{minutes}m remaining";
+    }
+    
+    private List<string> GetStateEffects()
+    {
+        var effects = new List<string>();
+        
+        switch (CurrentState)
+        {                
+            case EmotionalState.Anxious:
+                effects.Add("⚠ Worried about reliability");
+                effects.Add("→ Standard token costs");
+                effects.Add("ℹ Open to negotiation");
+                break;
+                
+            case EmotionalState.Hostile:
+                effects.Add("⚠ Actively angry");
+                effects.Add("⚠ +2 to all token costs");
+                effects.Add("⚠ Remembers failures");
+                break;
+                
+            case EmotionalState.Closed:
+                effects.Add("⚠ Refuses most interaction");
+                effects.Add("ℹ Multiple failures have consequences");
+                break;
+                
+            case EmotionalState.Neutral:
+                effects.Add("✓ Normal interaction available");
+                effects.Add("→ Standard token costs");
+                break;
+        }
+        
+        return effects;
+    }
+    
+    private string GetEffectIcon(string effect)
+    {
+        if (effect.StartsWith("✓")) return "✓";
+        if (effect.StartsWith("⚠")) return "⚠";
+        if (effect.StartsWith("ℹ")) return "ℹ";
+        if (effect.StartsWith("→")) return "→";
+        return "•";
+    }
+    
+    private string GetEffectClass(string effect)
+    {
+        if (effect.Contains("✓")) return "effect-positive";
+        if (effect.Contains("⚠")) return "effect-negative";
+        return "effect-neutral";
+    }
+}

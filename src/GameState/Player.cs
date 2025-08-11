@@ -471,7 +471,7 @@ public class Player
 
     public void ModifyRelationship(string id, int amount, string source)
     {
-        // Relationships now handled through ConnectionTokenManager
+        // Relationships now handled through TokenMechanicsManager
         // This method kept for compatibility but does nothing
     }
 
@@ -502,7 +502,7 @@ public class Player
 
     public int GetRelationship(object iD)
     {
-        // Relationships now handled through ConnectionTokenManager
+        // Relationships now handled through TokenMechanicsManager
         return 0;
     }
 

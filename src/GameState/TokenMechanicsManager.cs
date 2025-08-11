@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-public class ConnectionTokenManager
+public class TokenMechanicsManager
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
@@ -10,7 +10,12 @@ public class ConnectionTokenManager
     private LetterCategoryService _categoryService;
     private StandingObligationManager _obligationManager;
 
-    public ConnectionTokenManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository, ItemRepository itemRepository)
+    // Token mechanic constants
+    private const int TRUST_DEADLINE_HOURS_PER_TOKEN = 2;
+    private const int MAX_QUEUE_POSITION_BONUS = 3;
+    private const int STATUS_TOKENS_PER_TIER = 2;
+
+    public TokenMechanicsManager(GameWorld gameWorld, MessageSystem messageSystem, NPCRepository npcRepository, ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -263,6 +268,118 @@ public class ConnectionTokenManager
         if (totalTokens >= GameRules.TOKENS_QUALITY_THRESHOLD) return 6;  // Strong connection
         if (totalTokens >= GameRules.TOKENS_BASIC_THRESHOLD) return 7;  // Moderate connection
         return 8;                        // Default position
+    }
+
+    // ============== TOKEN TYPE SPECIFIC MECHANICS ==============
+
+    /// <summary>
+    /// Trust Mechanic: Each positive trust token adds 2 hours to deadline tolerance
+    /// </summary>
+    public int GetDeadlineBonus(string npcId)
+    {
+        if (string.IsNullOrEmpty(npcId)) return 0;
+        
+        var tokens = GetTokensWithNPC(npcId);
+        int trustTokens = tokens.GetValueOrDefault(ConnectionType.Trust, 0);
+        
+        // Only positive trust tokens provide deadline bonus
+        return Math.Max(0, trustTokens * TRUST_DEADLINE_HOURS_PER_TOKEN);
+    }
+
+    /// <summary>
+    /// Commerce Mechanic: Positive commerce tokens allow better queue position when adding letters
+    /// </summary>
+    public int GetQueuePositionBonus(string npcId)
+    {
+        if (string.IsNullOrEmpty(npcId)) return 0;
+        
+        var tokens = GetTokensWithNPC(npcId);
+        int commerceTokens = tokens.GetValueOrDefault(ConnectionType.Commerce, 0);
+        
+        // Cap at MAX_QUEUE_POSITION_BONUS positions forward
+        return Math.Max(0, Math.Min(commerceTokens, MAX_QUEUE_POSITION_BONUS));
+    }
+
+    /// <summary>
+    /// Status Mechanic: Higher status tokens unlock access to higher tier letters
+    /// Tier 1: 2 tokens, Tier 2: 4 tokens, Tier 3: 6 tokens
+    /// </summary>
+    public bool CanAccessTier(string npcId, int tier)
+    {
+        if (string.IsNullOrEmpty(npcId)) return false;
+        if (tier < 1 || tier > 3) return false;
+        
+        var tokens = GetTokensWithNPC(npcId);
+        int statusTokens = tokens.GetValueOrDefault(ConnectionType.Status, 0);
+        
+        // Need STATUS_TOKENS_PER_TIER * tier tokens for access
+        int requiredTokens = tier * STATUS_TOKENS_PER_TIER;
+        return statusTokens >= requiredTokens;
+    }
+
+    /// <summary>
+    /// Shadow Mechanic: Any positive shadow tokens reveal hidden letter properties
+    /// </summary>
+    public bool CanRevealProperty(string npcId, string property)
+    {
+        if (string.IsNullOrEmpty(npcId)) return false;
+        if (string.IsNullOrEmpty(property)) return false;
+        
+        var tokens = GetTokensWithNPC(npcId);
+        int shadowTokens = tokens.GetValueOrDefault(ConnectionType.Shadow, 0);
+        
+        // Any positive shadow tokens enable property revelation
+        return shadowTokens > 0;
+    }
+
+    /// <summary>
+    /// Leverage Mechanic: Negative tokens represent leverage the NPC has over the player
+    /// </summary>
+    public int GetLeverage(string npcId, ConnectionType type)
+    {
+        if (string.IsNullOrEmpty(npcId)) return 0;
+        
+        var tokens = GetTokensWithNPC(npcId);
+        int tokenCount = tokens.GetValueOrDefault(type, 0);
+        
+        // Return absolute value if negative, 0 otherwise
+        return tokenCount < 0 ? Math.Abs(tokenCount) : 0;
+    }
+
+    /// <summary>
+    /// Get total leverage across all token types for an NPC
+    /// </summary>
+    public int GetTotalLeverage(string npcId)
+    {
+        if (string.IsNullOrEmpty(npcId)) return 0;
+        
+        int totalLeverage = 0;
+        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+        {
+            totalLeverage += GetLeverage(npcId, type);
+        }
+        return totalLeverage;
+    }
+
+    /// <summary>
+    /// Check if NPC has any leverage over the player
+    /// </summary>
+    public bool HasLeverage(string npcId)
+    {
+        return GetTotalLeverage(npcId) > 0;
+    }
+
+    /// <summary>
+    /// Get the maximum tier the player can access with an NPC
+    /// </summary>
+    public int GetMaxAccessibleTier(string npcId)
+    {
+        for (int tier = 3; tier >= 1; tier--)
+        {
+            if (CanAccessTier(npcId, tier))
+                return tier;
+        }
+        return 0; // No tier access
     }
 
     // Remove tokens from NPC relationship (for expired letters)

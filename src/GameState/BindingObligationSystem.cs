@@ -9,13 +9,13 @@ using System.Linq;
 public class BindingObligationSystem
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly ITimeManager _timeManager;
     private readonly List<BindingObligation> _activeObligations;
     
     public BindingObligationSystem(
         GameWorld gameWorld,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         ITimeManager timeManager)
     {
         _gameWorld = gameWorld;

@@ -10,14 +10,14 @@ using System.Linq;
 public class ContextTagCalculator
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly LetterQueueManager _letterQueueManager;
     private readonly StandingObligationManager _obligationManager;
     private readonly TimeManager _timeManager;
 
     public ContextTagCalculator(
         GameWorld gameWorld,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         LetterQueueManager letterQueueManager,
         StandingObligationManager obligationManager,
         TimeManager timeManager)

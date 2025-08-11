@@ -8,7 +8,7 @@ public class ActionGenerator
     private readonly ITimeManager _timeManager;
     private readonly LocationRepository _locationRepository;
     private readonly NPCRepository _npcRepository;
-    private readonly ConnectionTokenManager _tokenManager;
+    private readonly TokenMechanicsManager _tokenManager;
     private readonly GameWorld _gameWorld;
     private readonly TimeBlockAttentionManager _timeBlockAttention;
 
@@ -16,7 +16,7 @@ public class ActionGenerator
         ITimeManager timeManager,
         LocationRepository locationRepository,
         NPCRepository npcRepository,
-        ConnectionTokenManager tokenManager,
+        TokenMechanicsManager tokenManager,
         GameWorld gameWorld,
         TimeBlockAttentionManager timeBlockAttention)
     {

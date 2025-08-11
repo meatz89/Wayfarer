@@ -90,7 +90,7 @@ public void AddLetter(Letter letter)
     _emotionalCalculatorV2.InvalidateCache(letter.SenderId);
 }
 
-// In ConnectionTokenManager
+// In TokenMechanicsManager
 public void AddTokensToNPC(ConnectionType type, int count, string npcId)
 {
     // ... existing code ...

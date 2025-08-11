@@ -5,11 +5,11 @@ public class StandingObligationManager
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly LetterTemplateRepository _letterTemplateRepository;
-    private readonly ConnectionTokenManager _connectionTokenManager;
+    private readonly TokenMechanicsManager _connectionTokenManager;
     private readonly StandingObligationRepository _obligationRepository;
     private readonly ITimeManager _timeManager;
 
-    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, LetterTemplateRepository letterTemplateRepository, ConnectionTokenManager connectionTokenManager, StandingObligationRepository obligationRepository, ITimeManager timeManager)
+    public StandingObligationManager(GameWorld gameWorld, MessageSystem messageSystem, LetterTemplateRepository letterTemplateRepository, TokenMechanicsManager connectionTokenManager, StandingObligationRepository obligationRepository, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
