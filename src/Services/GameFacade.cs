@@ -7,8 +7,6 @@ using Wayfarer.GameState;
 using Wayfarer.GameState.Constants;
 using Wayfarer.Services;
 using Wayfarer.ViewModels;
-using Wayfarer.Game.ConversationSystem;
-using Wayfarer.GameState;
 
 /// <summary>
 /// GameFacade - THE single entry point for all UI-Backend communication.
@@ -64,7 +62,6 @@ public class GameFacade : ILetterQueueOperations
     private readonly BindingObligationSystem _bindingObligationSystem;
     private readonly AtmosphereCalculator _atmosphereCalculator;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
-    private readonly ConfrontationService _confrontationService;
     private readonly ConsequenceEngine _consequenceEngine;
     private readonly WorldMemorySystem _worldMemorySystem;
     private readonly AmbientDialogueSystem _ambientDialogueSystem;
@@ -109,7 +106,6 @@ public class GameFacade : ILetterQueueOperations
         ObservationSystem observationSystem = null,
         BindingObligationSystem bindingObligationSystem = null,
         AtmosphereCalculator atmosphereCalculator = null,
-        ConfrontationService confrontationService = null,
         ConsequenceEngine consequenceEngine = null,
         WorldMemorySystem worldMemorySystem = null,
         AmbientDialogueSystem ambientDialogueSystem = null,
@@ -155,7 +151,6 @@ public class GameFacade : ILetterQueueOperations
         _observationSystem = observationSystem;
         _bindingObligationSystem = bindingObligationSystem;
         _atmosphereCalculator = atmosphereCalculator;
-        _confrontationService = confrontationService;
         _consequenceEngine = consequenceEngine;
         _worldMemorySystem = worldMemorySystem;
         _ambientDialogueSystem = ambientDialogueSystem;
@@ -2588,6 +2583,12 @@ public class GameFacade : ILetterQueueOperations
             NpcName = conversation.Context.TargetNPC.Name,
             NpcId = conversation.Context.TargetNPC.ID,
             CurrentText = currentText,
+            
+            // Emotional State (from NPCStateResolver)
+            EmotionalState = npcState,
+            CurrentStakes = urgentLetter?.Stakes,
+            HoursToDeadline = urgentLetter?.DeadlineInHours,
+            
             Choices = conversation.Choices?.Select(c => new ConversationChoiceViewModel
             {
                 Id = c.ChoiceID,

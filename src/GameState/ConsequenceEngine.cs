@@ -367,11 +367,4 @@ namespace Wayfarer.GameState
     /// <summary>
     /// Emotional states that NPCs can be in based on player failures
     /// </summary>
-    public enum EmotionalState
-    {
-        Neutral,    // Default state, no failures
-        Anxious,    // 1 failure - worried about reliability
-        Hostile,    // 2 failures - actively angry
-        Closed      // 3+ failures - refuses most interaction
-    }
 }

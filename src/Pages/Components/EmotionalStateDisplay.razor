@@ -46,7 +46,7 @@
 
 @code {
     [Parameter] public string NpcName { get; set; }
-    [Parameter] public EmotionalState CurrentState { get; set; }
+    [Parameter] public NPCEmotionalState CurrentState { get; set; }
     [Parameter] public StakeType? Stakes { get; set; }
     [Parameter] public string StakesDescription { get; set; }
     [Parameter] public TimeSpan? TimeRemaining { get; set; }
@@ -57,10 +57,11 @@
     {
         return CurrentState switch
         {
-            EmotionalState.Anxious => "state-anxious",
-            EmotionalState.Hostile => "state-hostile",
-            EmotionalState.Closed => "state-closed",
-            EmotionalState.Neutral => "state-neutral",
+            NPCEmotionalState.DESPERATE => "state-desperate",
+            NPCEmotionalState.ANXIOUS => "state-anxious",
+            NPCEmotionalState.CALCULATING => "state-calculating",
+            NPCEmotionalState.HOSTILE => "state-hostile",
+            NPCEmotionalState.WITHDRAWN => "state-withdrawn",
             _ => "state-neutral"
         };
     }
@@ -85,26 +86,34 @@
         
         switch (CurrentState)
         {                
-            case EmotionalState.Anxious:
-                effects.Add("⚠ Worried about reliability");
+            case NPCEmotionalState.DESPERATE:
+                effects.Add("⚠ Will accept any help");
+                effects.Add("→ 0 attention cost choices");
+                effects.Add("⚠ Extreme time pressure");
+                break;
+                
+            case NPCEmotionalState.ANXIOUS:
+                effects.Add("⚠ Worried about deadlines");
                 effects.Add("→ Standard token costs");
                 effects.Add("ℹ Open to negotiation");
                 break;
                 
-            case EmotionalState.Hostile:
-                effects.Add("⚠ Actively angry");
-                effects.Add("⚠ +2 to all token costs");
-                effects.Add("⚠ Remembers failures");
+            case NPCEmotionalState.CALCULATING:
+                effects.Add("✓ Strategic thinking");
+                effects.Add("→ Balanced exchanges");
+                effects.Add("ℹ Evaluating options");
                 break;
                 
-            case EmotionalState.Closed:
-                effects.Add("⚠ Refuses most interaction");
-                effects.Add("ℹ Multiple failures have consequences");
+            case NPCEmotionalState.HOSTILE:
+                effects.Add("⚠ Letter overdue");
+                effects.Add("⚠ Trust building blocked");
+                effects.Add("⚠ Permanent consequences");
                 break;
                 
-            case EmotionalState.Neutral:
-                effects.Add("✓ Normal interaction available");
-                effects.Add("→ Standard token costs");
+            case NPCEmotionalState.WITHDRAWN:
+                effects.Add("ℹ No active letters");
+                effects.Add("→ Minimal interaction");
+                effects.Add("✓ No pressure");
                 break;
         }
         

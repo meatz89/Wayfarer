@@ -21,9 +21,11 @@ body {
 	--shadow-soft: rgba(0,0,0,0.1);
 	
 	/* Emotional State Colors */
+	--state-desperate: #ff1744;  /* Bright red - extreme urgency */
 	--state-anxious: #ffa500;
+	--state-calculating: #4a7c7e;  /* Teal - strategic thinking */
 	--state-hostile: #8b0000;
-	--state-closed: #696969;
+	--state-withdrawn: #696969;  /* Gray - no engagement */
 	--state-neutral: #6b5d4f;
 	
 	/* Formula Display Colors */
@@ -961,9 +963,11 @@ body {
 	color: white;
 }
 
+.state-badge.state-desperate { background: var(--state-desperate); }
 .state-badge.state-anxious { background: var(--state-anxious); }
+.state-badge.state-calculating { background: var(--state-calculating); }
 .state-badge.state-hostile { background: var(--state-hostile); }
-.state-badge.state-closed { background: var(--state-closed); }
+.state-badge.state-withdrawn { background: var(--state-withdrawn); }
 .state-badge.state-neutral { background: var(--state-neutral); }
 
 .state-formula {

@@ -23,7 +23,7 @@ public class ConversationScreenBase : ComponentBase
     protected Dictionary<ConnectionType, int> NpcTokens { get; set; }
     
     // Transparent mechanics properties
-    protected EmotionalState? CurrentEmotionalState { get; set; }
+    protected NPCEmotionalState? CurrentEmotionalState { get; set; }
     protected StakeType? CurrentStakes { get; set; }
     protected TimeSpan? TimeToDeadline { get; set; }
     
@@ -307,43 +307,21 @@ public class ConversationScreenBase : ComponentBase
     
     protected void LoadEmotionalStateData()
     {
-        if (string.IsNullOrEmpty(NpcId)) return;
+        if (Model == null) return;
         
-        // For now, derive emotional state from character description in Model
-        // This would ideally come from NPC state tracking
-        DeriveEmotionalStateFromModel();
-        
-        // Check the letter queue for any letters from this NPC
-        var queue = GameFacade.GetLetterQueue();
-        if (queue?.QueueSlots != null)
+        // Use the emotional state from the ViewModel (calculated by NPCStateResolver)
+        if (Model.EmotionalState.HasValue)
         {
-            var npcLetterSlot = queue.QueueSlots.FirstOrDefault(s => s.Letter?.SenderName == NpcId);
-            if (npcLetterSlot?.Letter != null)
+            CurrentEmotionalState = Model.EmotionalState.Value;
+            CurrentStakes = Model.CurrentStakes;
+            
+            if (Model.HoursToDeadline.HasValue)
             {
-                var npcLetter = npcLetterSlot.Letter;
-                // Infer stakes from the letter type/urgency
-                CurrentStakes = DetermineStakesFromLetter(npcLetter);
-                
-                // Use the DeadlineInHours property directly
-                TimeToDeadline = TimeSpan.FromHours(npcLetter.DeadlineInHours);
+                TimeToDeadline = TimeSpan.FromHours(Model.HoursToDeadline.Value);
             }
         }
     }
     
-    private void DeriveEmotionalStateFromModel()
-    {
-        if (Model?.CharacterState == null) return;
-        
-        var state = Model.CharacterState.ToLower();
-        if (state.Contains("anxious") || state.Contains("worried") || state.Contains("nervous"))
-            CurrentEmotionalState = EmotionalState.Anxious;
-        else if (state.Contains("hostile") || state.Contains("angry") || state.Contains("furious"))
-            CurrentEmotionalState = EmotionalState.Hostile;
-        else if (state.Contains("closed") || state.Contains("withdrawn") || state.Contains("distant"))
-            CurrentEmotionalState = EmotionalState.Closed;
-        else
-            CurrentEmotionalState = EmotionalState.Neutral; // Default
-    }
     
     private StakeType DetermineStakesFromLetter(LetterViewModel letter)
     {

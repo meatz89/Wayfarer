@@ -15,6 +15,11 @@ namespace Wayfarer.ViewModels
         public bool IsComplete { get; set; }
         public string ConversationTopic { get; set; }
         
+        // NPC Emotional State (from NPCStateResolver)
+        public NPCEmotionalState? EmotionalState { get; set; }
+        public StakeType? CurrentStakes { get; set; }
+        public int? HoursToDeadline { get; set; }
+        
         // Attention System
         public int CurrentAttention { get; set; }
         public int MaxAttention { get; set; } = 3;

@@ -1,4 +1,4 @@
-# Session Handoff - Complete Wayfarer Implementation Fix
+# Session Handoff - HIGHLANDER PRINCIPLE Implementation
 
 ## Session Summary (Date: 2025-08-11)
 
@@ -137,13 +137,106 @@ Successfully refactored Wayfarer's core systems from complex weighted calculatio
 - **Net Reduction**: 200 lines (simpler is better)
 - **Risk Level**: LOW - all changes are simplifications
 
-### Next Session Should
+## Current Session (2025-08-11 - Continued)
 
-1. Fix remaining compilation errors
-2. Run comprehensive test suite
-3. Test queue manipulation in-game
-4. Verify emotional states feel distinct
-5. Ensure save/load works with renamed classes
+### HIGHLANDER PRINCIPLE Established
+
+**"THERE CAN BE ONLY ONE"** - Added to CLAUDE.md as prime directive:
+- NEVER have duplicate enums, classes, or concepts
+- Found `EmotionalState` and `NPCEmotionalState` enums for the same concept
+- Deleted the old `EmotionalState` enum completely
+- Using ONLY `NPCEmotionalState` everywhere
+
+### Major Changes This Session
+
+#### 1. ✅ Fixed Transparent Mechanics Display Issue
+- **Problem**: EmotionalStateDisplay component wasn't showing in conversations
+- **Root Cause**: ConversationScreen was trying to derive state from text instead of using NPCStateResolver
+- **Solution**: 
+  - Added `EmotionalState`, `CurrentStakes`, and `HoursToDeadline` to ConversationViewModel
+  - GameFacade now populates these from NPCStateResolver when creating ConversationViewModel
+  - ConversationScreen uses the ViewModel properties directly
+
+#### 2. ✅ Applied HIGHLANDER PRINCIPLE
+- **Deleted**: Old `EmotionalState` enum (Neutral, Anxious, Hostile, Closed) based on failure counting
+- **Kept**: `NPCEmotionalState` enum (DESPERATE, ANXIOUS, CALCULATING, HOSTILE, WITHDRAWN) based on Stakes + Time
+- **Updated**: All components to use NPCEmotionalState
+- **Created**: New CSS classes for all NPCEmotionalState values with distinct colors:
+  - DESPERATE: Bright red (#ff1744)
+  - ANXIOUS: Orange (#ffa500)  
+  - CALCULATING: Teal (#4a7c7e)
+  - HOSTILE: Dark red (#8b0000)
+  - WITHDRAWN: Gray (#696969)
+
+#### 3. ⚠️ Partially Deleted ConfrontationService
+- **Deleted**: `/mnt/c/git/wayfarer/src/Game/ConversationSystem/ConfrontationService.cs` file
+- **Partially Fixed**: Some references removed from GameFacade
+- **Still Broken**: 15 compilation errors remain from ConfrontationService references
+
+### Current Status
+
+#### ⚠️ Build Status: 15 ERRORS
+Compilation errors remaining:
+- `EmotionalState` references in ConsequenceEngine.cs (7 errors)
+- `_confrontationService` references in GameFacade.cs (multiple errors)
+- Missing methods in ConversationStateManager (SetConfrontationData, HasPendingConfrontation, etc.)
+- ServiceConfiguration still trying to register ConfrontationService
+
+#### ✅ Documentation Review Complete
+- Read CLAUDE.md fully - understand HIGHLANDER PRINCIPLE and other directives
+- Read README.md fully - understand 4-token system and core design
+- Read IMPLEMENTATION-PLAN.md - understand exact requirements
+
+### Agent Analysis Results
+
+#### Chen (Game Design Review) - CRITICAL FINDINGS:
+1. **BROKEN**: Queue is invisible during conversations - core mechanic hidden
+2. **BROKEN**: No deadline countdowns visible - no time pressure
+3. **MISSING**: Only 2 of 4 token types shown in UI (Trust/Status, missing Commerce/Shadow)
+4. **WEAK**: 3-verb system exists but lacks clear identity in UI
+5. **GOOD**: Emotional states calculated correctly via NPCStateResolver
+6. **VERDICT**: "Mechanically complete, experientially broken"
+
+#### Jordan (Narrative Design) - KEY ISSUES:
+1. **SPREADSHEET LANGUAGE**: "+3 Trust" instead of "Elena will remember this"
+2. **LETTERS AS CARGO**: Queue shows positions/weights not human stories
+3. **NO MEMORY**: Each conversation isolated, no reference to past
+4. **LOST FANTASY**: Medieval wayfarer feeling replaced by optimization puzzle
+5. **RECOMMENDATION**: Hide every number behind human truth
+
+### Next Session MUST Complete
+
+#### 1. 🔥 Fix Compilation (BLOCKING EVERYTHING)
+- [ ] Fix EmotionalState → NPCEmotionalState in ConsequenceEngine
+- [ ] Remove all _confrontationService references from GameFacade
+- [ ] Remove StartConfrontationAsync method completely
+- [ ] Fix ServiceConfiguration registration
+- [ ] Clean up ConversationStateManager methods
+
+#### 2. 🎯 Core UI Fixes (CRITICAL FOR GAMEPLAY)
+- [ ] Make queue visible during conversations
+- [ ] Add deadline countdown displays
+- [ ] Show all 4 token types (Trust, Commerce, Status, Shadow)
+- [ ] Add verb identity to choices (HELP/NEGOTIATE/INVESTIGATE)
+- [ ] Display time costs on choices
+
+#### 3. 🧪 Testing
+- [ ] Playwright E2E test of full conversation flow
+- [ ] Verify emotional states display correctly
+- [ ] Test queue manipulation mechanics
+- [ ] Verify token exchanges work
+
+### Critical Insights
+
+**THE CORE PROBLEM**: The game has all the right mechanics but hides them from the player. It's like Tetris where you can't see the falling blocks. The tension engine exists but is invisible.
+
+**HIGHLANDER PRINCIPLE SUCCESS**: Removing duplicate enums/systems is working. NPCEmotionalState is now the single source of truth.
+
+**NEXT PRIORITY**: Fix compilation, then immediately surface the hidden mechanics in the UI. The game doesn't need new features - it needs to SHOW what it already has.
+
+### Key Learning
+
+**HIGHLANDER PRINCIPLE is now a core directive**: When you find two ways of doing the same thing, DELETE ONE. No mapping, no conversion, no compatibility layers. This keeps the codebase clean and maintainable.
 
 ### Success Metrics
 
