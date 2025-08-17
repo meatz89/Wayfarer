@@ -5,10 +5,10 @@
             @onclick="HandleClick" 
             disabled="@(!Choice?.IsAvailable ?? true)">
         <em class="thought-text">@Choice?.Text</em>
-        @if (Choice?.AttentionCost > 0)
+        @if (Choice?.PatienceCost > 0)
         {
             <span class="attention-cost">
-                @for (int i = 0; i < Choice.AttentionCost; i++)
+                @for (int i = 0; i < Choice.PatienceCost; i++)
                 {
                     <span class="cost-symbol">◆</span>
                 }

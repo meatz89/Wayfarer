@@ -114,10 +114,10 @@
                     {
                         <div class="@GetChoiceClass(choice)" @onclick="() => HandleChoice(choice)">
                             <!-- Attention cost badge -->
-                            @if (choice.AttentionCost > 0)
+                            @if (choice.PatienceCost > 0)
                             {
                                 <div class="attention-cost">
-                                    @GetCostDisplay(choice.AttentionCost)
+                                    @GetCostDisplay(choice.PatienceCost)
                                 </div>
                             }
                             else

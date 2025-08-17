@@ -27,6 +27,9 @@ public class ConversationCard
     public string NeutralOutcome { get; set; }
     public string FailureOutcome { get; set; }
     
+    // Mechanical effects when this card is played
+    public List<IMechanicalEffect> MechanicalEffects { get; set; } = new List<IMechanicalEffect>();
+    
     // Success probability calculation based on current patience
     public int CalculateSuccessProbability(int currentPatience)
     {

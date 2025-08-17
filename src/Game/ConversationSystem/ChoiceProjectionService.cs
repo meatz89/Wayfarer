@@ -13,7 +13,7 @@
         ChoiceProjection projection = new ChoiceProjection(choice);
 
         // Check if player can afford this choice
-        projection.IsAffordable = state.FocusPoints >= choice.AttentionCost;
+        projection.IsAffordable = state.FocusPoints >= choice.PatienceCost;
         projection.IsAffordableFocus = projection.IsAffordable;
 
         // Process skill options

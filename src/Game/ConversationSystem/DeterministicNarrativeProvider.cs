@@ -132,7 +132,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             {
                 ChoiceID = template.TemplateName ?? "unknown",
                 NarrativeText = template.Description ?? "Make a choice",
-                AttentionCost = 1, // Default attention cost
+                PatienceCost = 1, // Default attention cost
                 IsAffordable = true,
                 IsAvailable = true,
                 MechanicalDescription = template.TemplatePurpose ?? "No description",

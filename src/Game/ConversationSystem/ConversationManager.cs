@@ -78,15 +78,13 @@ public class ConversationManager
 
     public async Task<ConversationBeatOutcome> ProcessPlayerChoice(ConversationChoice selectedChoice)
     {
-        // Spend attention if required
-        if (_context?.AttentionManager != null && selectedChoice.AttentionCost > 0)
+        // FIXED: Choices cost NPC patience, not player attention
+        // Attention was already spent when starting the conversation
+        // Now we deduct patience from the NPC for this choice
+        if (selectedChoice.PatienceCost > 0)
         {
-            bool spent = _context.AttentionManager.TrySpend(selectedChoice.AttentionCost);
-            if (!spent)
-            {
-                // Player doesn't have enough attention - this shouldn't happen if UI is correct
-                Console.WriteLine($"[ConversationManager] WARNING: Player tried to select choice without enough attention");
-            }
+            // TODO: Implement patience deduction from NPC/conversation state
+            Console.WriteLine($"[ConversationManager] Choice costs {selectedChoice.PatienceCost} patience");
         }
 
         // Apply all mechanical effects from the choice
@@ -156,7 +154,7 @@ public class ConversationChoice
 {
     public string ChoiceID { get; set; }
     public string NarrativeText { get; set; }
-    public int AttentionCost { get; set; }
+    public int PatienceCost { get; set; }  // FIXED: Choices cost NPC patience, not attention
     public bool IsAffordable { get; set; }
     public string TemplatePurpose { get; set; }
     public ConversationChoiceType ChoiceType { get; set; } = ConversationChoiceType.Default;

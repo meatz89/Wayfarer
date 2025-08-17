@@ -75,15 +75,15 @@ namespace Wayfarer.ViewModels
     {
         public string Id { get; set; }
         public string Text { get; set; } // The italicized thought text
-        public int AttentionCost { get; set; }
-        public string AttentionDisplay { get; set; } // "Free", "◆ 1", "◆◆ 2", etc.
+        public int PatienceCost { get; set; }
+        public string PatienceDisplay { get; set; } // "Free", "◆ 1", "◆◆ 2", etc.
         public bool IsLocked { get; set; }
         public List<MechanicEffectViewModel> Mechanics { get; set; } = new();
         
         // Additional properties for compatibility
         public bool IsAvailable { get; set; } = true;
         public string UnavailableReason { get; set; }
-        public string AttentionDescription { get; set; }
+        public string PatienceDescription { get; set; }
         public bool IsInternalThought { get; set; }
         public string EmotionalTone { get; set; }
     }

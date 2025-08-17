@@ -15,9 +15,12 @@ public class NPCDeck
     // Maximum deck size to prevent bloat
     public const int MaxDeckSize = 20;
     
-    public NPCDeck(string npcId, PersonalityType personalityType = PersonalityType.STEADFAST)
+    private readonly TokenMechanicsManager _tokenManager;
+    
+    public NPCDeck(string npcId, PersonalityType personalityType = PersonalityType.STEADFAST, TokenMechanicsManager tokenManager = null)
     {
         NpcId = npcId;
+        _tokenManager = tokenManager;
         InitializeStartingDeck(personalityType);
     }
     
@@ -109,7 +112,8 @@ public class NPCDeck
                 Difficulty = 3,
                 PatienceCost = 3,
                 ComfortGain = 6,
-                Category = RelationshipCardCategory.Crisis
+                Category = RelationshipCardCategory.Crisis,
+                MechanicalEffects = GetPromisePersonalHelpEffects(NpcId)
             },
             new ConversationCard
             {
@@ -119,7 +123,8 @@ public class NPCDeck
                 Difficulty = 4,
                 PatienceCost = 2,
                 ComfortGain = 5,
-                Category = RelationshipCardCategory.Crisis
+                Category = RelationshipCardCategory.Crisis,
+                MechanicalEffects = GetEmergencyArrangementEffects(NpcId)
             }
         });
 
@@ -366,5 +371,41 @@ public class NPCDeck
     {
         var negativeCards = Cards.Where(c => c.ComfortGain < 0).Count();
         return negativeCards * 0.5;
+    }
+    
+    /// <summary>
+    /// Get mechanical effects for Promise Personal Help crisis card
+    /// </summary>
+    private List<IMechanicalEffect> GetPromisePersonalHelpEffects(string npcId)
+    {
+        var effects = new List<IMechanicalEffect>
+        {
+            new CreateBindingObligationEffect(npcId, "Priority delivery promise")
+        };
+        
+        if (_tokenManager != null)
+        {
+            effects.Add(new GainTokensEffect(ConnectionType.Trust, 2, npcId, _tokenManager));
+        }
+        
+        return effects;
+    }
+    
+    /// <summary>
+    /// Get mechanical effects for Emergency Arrangement crisis card
+    /// </summary>
+    private List<IMechanicalEffect> GetEmergencyArrangementEffects(string npcId)
+    {
+        var effects = new List<IMechanicalEffect>
+        {
+            new TimePassageEffect(20)
+        };
+        
+        if (_tokenManager != null)
+        {
+            effects.Add(new GainTokensEffect(ConnectionType.Trust, 1, npcId, _tokenManager));
+        }
+        
+        return effects;
     }
 }

@@ -3,7 +3,7 @@
     // Core Choice Data
     public string ChoiceID { get; }
     public string NarrativeText { get; }
-    public int AttentionCost { get; }
+    public int PatienceCost { get; }
     public ConversationChoice Choice { get; }
 
     // Narrative & Descriptions
@@ -33,7 +33,7 @@
     {
         ChoiceID = choice.ChoiceID;
         NarrativeText = choice.NarrativeText;
-        AttentionCost = choice.AttentionCost;
+        PatienceCost = choice.PatienceCost;
         Choice = choice;
     }
 }

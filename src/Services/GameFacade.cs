@@ -2325,7 +2325,7 @@ public class GameFacade : ILetterQueueOperations
             return GetCurrentConversation();
         }
         
-        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, AttentionCost: {selectedChoice.AttentionCost}");
+        Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}");
         
         // Track time before processing to handle any ConversationTimeEffects
         int hoursBefore = _timeManager.GetCurrentTimeHours();
@@ -2483,10 +2483,10 @@ public class GameFacade : ILetterQueueOperations
                 Id = c.ChoiceID,
                 Text = c.NarrativeText,
                 IsAvailable = c.IsAffordable,
-                UnavailableReason = !c.IsAffordable ? $"Requires {c.AttentionCost} attention" : null,
-                AttentionCost = c.AttentionCost,
-                AttentionDisplay = GetAttentionDisplayString(c.AttentionCost),
-                AttentionDescription = GetAttentionDescription(c.AttentionCost),
+                UnavailableReason = !c.IsAffordable ? $"Requires {c.PatienceCost} attention" : null,
+                PatienceCost = c.PatienceCost,
+                PatienceDisplay = GetAttentionDisplayString(c.PatienceCost),
+                PatienceDescription = GetAttentionDescription(c.PatienceCost),
                 IsInternalThought = c.NarrativeText.StartsWith("*") || c.TemplatePurpose?.Contains("INTERNAL") == true,
                 EmotionalTone = DetermineEmotionalTone(c),
                 IsLocked = c.IsLocked,
@@ -2627,7 +2627,7 @@ public class GameFacade : ILetterQueueOperations
             return "mysterious";
         if (choice.OfferTokenType == ConnectionType.Commerce)
             return "confident";
-        if (choice.AttentionCost >= 2)
+        if (choice.PatienceCost >= 2)
             return "anxious";
             
         return "neutral";

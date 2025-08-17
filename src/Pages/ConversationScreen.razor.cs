@@ -134,7 +134,7 @@ public class ConversationScreenBase : ComponentBase
         {
             ChoiceID = "default",
             NarrativeText = "I understand. I'll see what I can do.",
-            AttentionCost = 0,
+            PatienceCost = 0,
             IsAvailable = true,
             MechanicalDescription = "→ Maintains current state",
             MechanicalEffects = new List<IMechanicalEffect>()
@@ -357,7 +357,7 @@ public class ConversationScreenBase : ComponentBase
             {
                 ChoiceID = "maintain_state",
                 NarrativeText = "I understand. Your letter is second in my queue.",
-                AttentionCost = 0,
+                PatienceCost = 0,
                 IsAffordable = true,
                 IsAvailable = true,
                 MechanicalDescription = "→ Maintains current state",
@@ -367,7 +367,7 @@ public class ConversationScreenBase : ComponentBase
             {
                 ChoiceID = "negotiate_priority",
                 NarrativeText = "I'll prioritize your letter. Let me check what that means...",
-                AttentionCost = 1,
+                PatienceCost = 1,
                 IsAffordable = true,
                 IsAvailable = true,
                 MechanicalDescription = "✓ Opens negotiation | ⚠ Must burn 1 Status with Lord B",
@@ -377,7 +377,7 @@ public class ConversationScreenBase : ComponentBase
             {
                 ChoiceID = "investigate_situation",
                 NarrativeText = "Lord Aldwin from Riverside? Tell me about the situation...",
-                AttentionCost = 1,
+                PatienceCost = 1,
                 IsAffordable = true,
                 IsAvailable = true,
                 MechanicalDescription = "ℹ Gain rumor: 'Noble carriage schedule' | ⏱ +20 minutes conversation",
@@ -387,7 +387,7 @@ public class ConversationScreenBase : ComponentBase
             {
                 ChoiceID = "binding_promise",
                 NarrativeText = "I swear I'll deliver your letter before any others today.",
-                AttentionCost = 2,
+                PatienceCost = 2,
                 IsAffordable = true,
                 IsAvailable = true,
                 MechanicalDescription = "♥ +2 Trust tokens immediately | ⛓ Creates Binding Obligation",
@@ -397,7 +397,7 @@ public class ConversationScreenBase : ComponentBase
             {
                 ChoiceID = "deep_investigation",
                 NarrativeText = "Let me investigate Lord Aldwin's current position at court...",
-                AttentionCost = 3,
+                PatienceCost = 3,
                 IsAffordable = false,
                 IsAvailable = false,
                 MechanicalDescription = "[Requires 3 attention points]",
@@ -541,7 +541,7 @@ public class ConversationScreenBase : ComponentBase
     {
         var classes = new List<string> { "choice-option" };
         
-        if (!choice.IsAvailable || choice.AttentionCost > CurrentAttention)
+        if (!choice.IsAvailable || choice.PatienceCost > CurrentAttention)
         {
             classes.Add("locked");
         }

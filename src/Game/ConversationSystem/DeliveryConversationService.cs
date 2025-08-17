@@ -146,7 +146,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Deliver professionally ({letter.Payment} coins + 1 {tokenType} token)",
-            AttentionCost = 0,
+            PatienceCost = 0,
             IsAffordable = true,
             TemplatePurpose = "Standard delivery with relationship building",
             Priority = 0,
@@ -170,7 +170,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Apologize for delay and offer discount ({letter.Payment - 2} coins + 2 tokens)",
-            AttentionCost = 1,
+            PatienceCost = 1,
             IsAffordable = true,
             TemplatePurpose = "Build goodwill despite late delivery",
             Priority = 1,
@@ -193,7 +193,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Make elaborate excuse for delay ({letter.Payment} coins, no token)",
-            AttentionCost = 2,
+            PatienceCost = 2,
             IsAffordable = true,
             TemplatePurpose = "Avoid consequences for very late delivery",
             Priority = 2,
@@ -217,7 +217,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Admit to tardiness honestly ({letter.Payment - penalty} coins + respect)",
-            AttentionCost = 0,
+            PatienceCost = 0,
             IsAffordable = true,
             TemplatePurpose = "Take responsibility for late delivery",
             Priority = 1,
@@ -242,7 +242,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Emphasize careful handling ({letter.Payment + 2} coins + 1 token)",
-            AttentionCost = 0,
+            PatienceCost = 0,
             IsAffordable = true,
             TemplatePurpose = "Highlight protection of fragile item",
             Priority = 1,
@@ -267,7 +267,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Deliver with utmost discretion ({letter.Payment} coins + 2 tokens)",
-            AttentionCost = 1,
+            PatienceCost = 1,
             IsAffordable = true,
             TemplatePurpose = "Show trustworthiness with valuable items",
             Priority = 2,
@@ -292,7 +292,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Insist on private delivery ({letter.Payment + 3} coins + 1 token)",
-            AttentionCost = 1,
+            PatienceCost = 1,
             IsAffordable = true,
             TemplatePurpose = "Protect confidential information",
             Priority = 1,
@@ -317,7 +317,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Hint at juicy contents ({letter.Payment + 5} coins, lose 1 token)",
-            AttentionCost = 0,
+            PatienceCost = 0,
             IsAffordable = context.RecipientTokens >= 1,
             TemplatePurpose = "Trade relationship for immediate profit",
             Priority = 3,
@@ -344,7 +344,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Plead desperate circumstances ({letter.Payment} coins + possible tip)",
-            AttentionCost = 2,
+            PatienceCost = 2,
             IsAffordable = true,
             TemplatePurpose = "Appeal for extra help when desperate",
             Priority = 3,
@@ -371,7 +371,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Report on obligation progress ({letter.Payment} coins + patron approval)",
-            AttentionCost = 0,
+            PatienceCost = 0,
             IsAffordable = true,
             TemplatePurpose = "Update patron on delivery obligations",
             Priority = 1,
@@ -397,7 +397,7 @@ public class DeliveryConversationService
         {
             ChoiceID = id.ToString(),
             NarrativeText = $"Explain chain letter opportunity ({letter.Payment} coins + unlock chain)",
-            AttentionCost = 1,
+            PatienceCost = 1,
             IsAffordable = true,
             TemplatePurpose = "Unlock chain letter sequence",
             Priority = 2,
