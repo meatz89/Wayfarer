@@ -677,23 +677,48 @@ public class CreateBindingObligationEffect : IMechanicalEffect
 {
     private readonly string _npcId;
     private readonly string _obligationText;
+    private readonly ConnectionType _obligationType;
 
-    public CreateBindingObligationEffect(string npcId, string obligationText)
+    public CreateBindingObligationEffect(string npcId, string obligationText, ConnectionType obligationType = ConnectionType.Trust)
     {
         _npcId = npcId;
         _obligationText = obligationText;
+        _obligationType = obligationType;
     }
 
     public void Apply(ConversationState state)
     {
-        // Create obligation that affects queue entry position
+        // Create categorical obligation based on relationship type
         var obligation = new StandingObligation
         {
-            ID = Guid.NewGuid().ToString(),
+            ID = $"crisis_obligation_{_npcId}_{_obligationType}",
             Name = _obligationText,
             Description = _obligationText,
-            Source = _npcId
+            Source = _npcId,
+            RelatedTokenType = _obligationType,
+            RelatedNPCId = _npcId,
+            IsActive = true,
+            DayAccepted = state.GameWorld?.CurrentDay ?? 1,
+            DaysSinceAccepted = 0
         };
+
+        // Add categorical effects based on obligation type
+        switch (_obligationType)
+        {
+            case ConnectionType.Trust:
+                obligation.BenefitEffects.Add(ObligationEffect.PatronLettersPosition1);
+                break;
+            case ConnectionType.Commerce:
+                obligation.BenefitEffects.Add(ObligationEffect.CommercePriority);
+                break;
+            case ConnectionType.Status:
+                obligation.ConstraintEffects.Add(ObligationEffect.NoStatusRefusal);
+                break;
+            case ConnectionType.Shadow:
+                obligation.ConstraintEffects.Add(ObligationEffect.CannotRefuseLetters);
+                break;
+        }
+
         state.Player.StandingObligations.Add(obligation);
     }
 
@@ -847,4 +872,62 @@ public class OpenQueueInterfaceEffect : IMechanicalEffect
             Category = EffectCategory.InterfaceAction
         }
     };
+}
+
+/// <summary>
+/// Restores NPC relationship from Betrayed state to a specific target relationship.
+/// Simplified betrayal recovery system - immediate but costly restoration.
+/// </summary>
+public class RestoreRelationshipEffect : IMechanicalEffect
+{
+    private readonly string _npcId;
+    private readonly NPCRelationship _targetRelationship;
+    private readonly GameWorld _gameWorld;
+
+    public RestoreRelationshipEffect(string npcId, NPCRelationship targetRelationship, GameWorld gameWorld)
+    {
+        _npcId = npcId;
+        _targetRelationship = targetRelationship;
+        _gameWorld = gameWorld;
+    }
+
+    public void Apply(ConversationState state)
+    {
+        var npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == _npcId);
+        if (npc == null) return;
+
+        // Only restore if currently in Betrayed state
+        if (npc.PlayerRelationship == NPCRelationship.Betrayed)
+        {
+            // Use proper NPCStateOperations for state change
+            NPCState currentState = NPCState.FromNPC(npc);
+            NPCOperationResult result = NPCStateOperations.UpdateRelationship(currentState, _targetRelationship);
+
+            if (result.IsSuccess)
+            {
+                // Update mutable NPC object
+                npc.PlayerRelationship = _targetRelationship;
+            }
+        }
+    }
+
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        var relationshipName = _targetRelationship switch
+        {
+            NPCRelationship.Unfriendly => "Unfriendly",
+            NPCRelationship.Neutral => "Neutral", 
+            NPCRelationship.Wary => "Wary",
+            _ => _targetRelationship.ToString()
+        };
+
+        return new List<MechanicalEffectDescription>
+        {
+            new MechanicalEffectDescription
+            {
+                Text = $"Restore relationship to {relationshipName}",
+                Category = EffectCategory.RelationshipChange
+            }
+        };
+    }
 }

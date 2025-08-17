@@ -39,5 +39,6 @@ public enum EffectCategory
     ObligationCreate,
     StateChange,
     NegotiationOpen,
-    InterfaceAction
+    InterfaceAction,
+    RelationshipChange
 }

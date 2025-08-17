@@ -7,6 +7,7 @@
 		"spotId": "copper_kettle",
 		"description": "A young woman nervously fidgeting with a sealed letter",
 		"personality": "Intelligent and desperate, worried about Lord Aldwin's proposal",
+		"personalityType": "DEVOTED",
 		"services": ["Information"],
 		"letterTokenTypes": ["Trust"]
 	},

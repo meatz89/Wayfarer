@@ -47,12 +47,9 @@ public class NPC
     public NPCDeck ConversationDeck { get; set; }
     
     // Initialize deck when NPC is created
-    public void InitializeConversationDeck()
+    public void InitializeConversationDeck(NPCDeckFactory deckFactory)
     {
-        if (ConversationDeck == null)
-        {
-            ConversationDeck = new NPCDeck(ID, PersonalityType);
-        }
+        ConversationDeck ??= deckFactory.CreateDeck(ID, PersonalityType);
     }
 
     // Helper methods for UI display

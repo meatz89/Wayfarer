@@ -40,11 +40,18 @@ public class NPCStateResolver
     {
         if (npc == null) return NPCEmotionalState.WITHDRAWN;
 
+        Console.WriteLine($"[NPCStateResolver] Resolving state for {npc.Name} (ID: {npc.ID})");
+        
+        // Check NPCRelationship.Betrayed - obligation breaking triggers this
+        if (npc.PlayerRelationship == NPCRelationship.Betrayed)
+        {
+            Console.WriteLine($"[NPCStateResolver] NPCRelationship is BETRAYED - returning HOSTILE");
+            return NPCEmotionalState.HOSTILE;
+        }
+
         var queue = _letterQueueManager.GetActiveLetters();
         var theirLetters = queue.Where(l => 
             l.SenderId == npc.ID || l.SenderName == npc.Name).ToList();
-
-        Console.WriteLine($"[NPCStateResolver] Resolving state for {npc.Name} (ID: {npc.ID})");
         
         // No letters = WITHDRAWN
         if (!theirLetters.Any())
@@ -53,12 +60,6 @@ public class NPCStateResolver
             return NPCEmotionalState.WITHDRAWN;
         }
         
-        // Check for overdue letters first = HOSTILE
-        if (theirLetters.Any(l => l.DeadlineInHours <= 0))
-        {
-            Console.WriteLine($"[NPCStateResolver] Found overdue letter - returning HOSTILE");
-            return NPCEmotionalState.HOSTILE;
-        }
 
         // Find most urgent letter to determine state
         var mostUrgent = theirLetters.OrderBy(l => l.DeadlineInHours).First();

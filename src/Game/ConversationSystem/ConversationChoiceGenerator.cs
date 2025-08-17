@@ -16,6 +16,7 @@ public class ConversationChoiceGenerator
     private readonly Player _player;
     private readonly GameWorld _gameWorld;
     private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
+    private readonly NPCDeckFactory _deckFactory;
 
     public ConversationChoiceGenerator(
         LetterQueueManager queueManager,
@@ -24,7 +25,8 @@ public class ConversationChoiceGenerator
         ITimeManager timeManager,
         Player player,
         GameWorld gameWorld,
-        Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager)
+        Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager,
+        NPCDeckFactory deckFactory)
     {
         _queueManager = queueManager;
         _tokenManager = tokenManager;
@@ -33,17 +35,14 @@ public class ConversationChoiceGenerator
         _player = player;
         _gameWorld = gameWorld;
         _timeBlockAttentionManager = timeBlockAttentionManager;
+        _deckFactory = deckFactory;
     }
 
     public List<ConversationChoice> GenerateChoices(SceneContext context, ConversationState state)
     {
-        if (context?.TargetNPC == null)
-        {
-            return GetFallbackChoices();
-        }
         
         // Initialize NPC deck if needed
-        context.TargetNPC.InitializeConversationDeck();
+        context.TargetNPC.InitializeConversationDeck(_deckFactory);
         
         // Calculate NPC emotional state based on current letters and deadlines
         var emotionalState = _stateCalculator.CalculateState(context.TargetNPC);
@@ -79,7 +78,7 @@ public class ConversationChoiceGenerator
                 IsAffordable = true, // Will be set based on patience in conversation
                 IsAvailable = card.CanPlay(tokenDict, 0),
                 MechanicalDescription = GetRichMechanicalDescription(card, context.TargetNPC),
-                MechanicalEffects = new List<IMechanicalEffect>()
+                MechanicalEffects = card.MechanicalEffects ?? new List<IMechanicalEffect>()
             });
         }
         
@@ -98,7 +97,7 @@ public class ConversationChoiceGenerator
                 PatienceCost = 0,  // FIXED: Use PatienceCost
                 IsAffordable = false,
                 IsAvailable = false,
-                MechanicalDescription = "⛔ Conversation blocked - deliver overdue letter to restore communication",
+                MechanicalDescription = "Conversation blocked - deliver overdue letter to restore communication",
                 MechanicalEffects = new List<IMechanicalEffect>()
             },
             new ConversationChoice
@@ -124,27 +123,27 @@ public class ConversationChoiceGenerator
         // Add comfort gain/loss (this is a card property, not hardcoded)
         if (card.ComfortGain > 0)
         {
-            parts.Add($"✓ +{card.ComfortGain} comfort");
+            parts.Add($"+{card.ComfortGain} comfort");
         }
         else if (card.ComfortGain < 0)
         {
-            parts.Add($"⚠ {card.ComfortGain} comfort");
+            parts.Add($"{card.ComfortGain} comfort");
         }
         
         // Add difficulty indication (derived from card property)
         if (card.Difficulty > 6)
         {
-            parts.Add("⚠ High difficulty");
+            parts.Add("High difficulty");
         }
         else if (card.Difficulty < 3)
         {
-            parts.Add("✓ Easy approach");
+            parts.Add("Easy approach");
         }
         
         // Add special effects based on card type (categorical)
         if (card.Category == RelationshipCardCategory.Crisis)
         {
-            parts.Add("🚨 Emergency option");
+            parts.Add("Emergency option");
         }
         
         // Read from actual mechanical effects
@@ -164,39 +163,12 @@ public class ConversationChoiceGenerator
     }
     
     /// <summary>
-    /// Translate mechanical effect descriptions to match UI mockup style
+    /// Translate mechanical effect descriptions without ugly Unicode symbols
+    /// CSS classes will handle beautiful icons
     /// </summary>
     private string TranslateEffectDescription(MechanicalEffectDescription desc)
     {
-        return desc.Category switch
-        {
-            EffectCategory.TokenGain => $"♥ {desc.Text}",
-            EffectCategory.TokenSpend => $"⚠ {desc.Text}",
-            EffectCategory.ObligationCreate => $"⛓ {desc.Text}",
-            EffectCategory.TimePassage => $"⏱ {desc.Text}",
-            EffectCategory.LetterReorder => $"📬 {desc.Text}",
-            EffectCategory.RouteUnlock => $"🗺️ {desc.Text}",
-            EffectCategory.InformationGain => $"ℹ {desc.Text}",
-            EffectCategory.NegotiationOpen => $"✓ {desc.Text}",
-            _ => desc.Text
-        };
+        return desc.Text; // No Unicode symbols - let CSS handle icons via effect categorization
     }
     
-    private List<ConversationChoice> GetFallbackChoices()
-    {
-        // Simple fallback choices when no NPC deck is available
-        return new List<ConversationChoice>
-        {
-            new ConversationChoice
-            {
-                ChoiceID = "exit",
-                NarrativeText = "I should go.",
-                PatienceCost = 0,  // FIXED: Use PatienceCost
-                IsAffordable = true,
-                IsAvailable = true,
-                MechanicalDescription = "→ End conversation",
-                MechanicalEffects = new List<IMechanicalEffect>()
-            }
-        };
-    }
 }

@@ -14,6 +14,7 @@ public class ConversationFactory
     private readonly ITimeManager _timeManager;
     private readonly AtmosphereCalculator _atmosphereCalculator;
     private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
+    private readonly NPCDeckFactory _deckFactory;
 
     public ConversationFactory(
         INarrativeProvider narrativeProvider,
@@ -22,7 +23,8 @@ public class ConversationFactory
         LetterQueueManager queueManager,
         ITimeManager timeManager,
         AtmosphereCalculator atmosphereCalculator,
-        Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager)
+        Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager,
+        NPCDeckFactory deckFactory)
     {
         _narrativeProvider = narrativeProvider;
         _tokenManager = tokenManager;
@@ -31,6 +33,7 @@ public class ConversationFactory
         _timeManager = timeManager;
         _atmosphereCalculator = atmosphereCalculator;
         _timeBlockAttentionManager = timeBlockAttentionManager;
+        _deckFactory = deckFactory;
     }
 
     public async Task<ConversationManager> CreateConversation(
@@ -94,7 +97,8 @@ public class ConversationFactory
             _timeManager,
             player,
             context.GameWorld,
-            _timeBlockAttentionManager);
+            _timeBlockAttentionManager,
+            _deckFactory);
 
         // Create the conversation manager
         ConversationManager conversationManager = new ConversationManager(

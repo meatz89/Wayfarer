@@ -1,129 +1,187 @@
-/* Token Display Component - Narrative-Focused Styles */
-.token-display {
-    margin: 12px 0;
-    font-family: 'Georgia', serif;
-    font-size: 14px;
+/* Geometric Token Icon System */
+.token-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    vertical-align: middle;
 }
 
-/* Container for relationship insights */
+.token-icon--small {
+    width: 12px;
+    height: 12px;
+}
+
+.token-icon--large {
+    width: 20px;
+    height: 20px;
+}
+
+/* Trust - Circle (personal bonds, completeness) */
+.token-icon--trust {
+    border-radius: 50%;
+    background-color: #d4a574; /* warm brown */
+}
+
+.token-icon--trust.token-icon--debt {
+    background-color: transparent;
+    border: 2px solid #d4a574;
+}
+
+/* Commerce - Square (structure, business stability) */
+.token-icon--commerce {
+    background-color: #b8860b; /* dark golden rod */
+}
+
+.token-icon--commerce.token-icon--debt {
+    background-color: transparent;
+    border: 2px solid #dc3545; /* red for debt */
+}
+
+/* Status - Diamond (prestige, elevated standing) */
+.token-icon--status {
+    background-color: #6f42c1; /* purple */
+    transform: rotate(45deg);
+}
+
+.token-icon--status.token-icon--debt {
+    background-color: transparent;
+    border: 2px solid #6f42c1;
+    transform: rotate(45deg);
+}
+
+/* Shadow - Triangle (sharp secrets, directional flow) */
+.token-icon--shadow {
+    width: 0;
+    height: 0;
+    background-color: transparent;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 14px solid #495057; /* dark gray */
+}
+
+.token-icon--shadow.token-icon--debt {
+    border-bottom: 14px solid transparent;
+    border-top: 14px solid #495057; /* downward triangle for betrayal */
+}
+
+.token-icon--shadow--small {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 10px solid #495057;
+}
+
+.token-icon--shadow--small.token-icon--debt {
+    border-bottom: 10px solid transparent;
+    border-top: 10px solid #495057;
+}
+
+.token-icon--shadow--large {
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 18px solid #495057;
+}
+
+.token-icon--shadow--large.token-icon--debt {
+    border-bottom: 18px solid transparent;
+    border-top: 18px solid #495057;
+}
+
+/* Token Display Layout */
+.token-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.token-value {
+    font-weight: bold;
+    min-width: 3ch;
+}
+
+.token-value.positive {
+    color: #28a745;
+}
+
+.token-value.negative {
+    color: #dc3545;
+}
+
+.token-narrative {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.token-formula {
+    font-size: 0.8rem;
+    color: #868e96;
+    font-family: monospace;
+}
+
+/* Relationship Container Styles */
 .relationship-container {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0.75rem;
+    padding: 0.5rem;
 }
 
-/* Individual relationship insight */
 .relationship-insight {
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-style: italic;
-    color: #6b5d4f;
-    background: linear-gradient(90deg, transparent, rgba(244, 241, 232, 0.2), transparent);
-    border-left: 3px solid transparent;
-    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border-left: 3px solid #dee2e6;
 }
 
-/* Trust relationships - warm, personal */
 .relationship-type-trust {
-    border-left-color: #8b7355;
-    background: linear-gradient(90deg, transparent, rgba(139, 115, 85, 0.05), transparent);
-}
-
-.relationship-type-trust.relationship-debt {
     border-left-color: #d4a574;
-    color: #8b6914;
-    font-style: normal;
-    background: linear-gradient(90deg, transparent, rgba(212, 165, 116, 0.1), transparent);
+    background-color: rgba(212, 165, 116, 0.1);
 }
 
-/* Commerce relationships - practical, ledger-like */
 .relationship-type-commerce {
-    border-left-color: #5a7c5a;
-    background: linear-gradient(90deg, transparent, rgba(90, 124, 90, 0.05), transparent);
+    border-left-color: #b8860b;
+    background-color: rgba(184, 134, 11, 0.1);
 }
 
-.relationship-type-commerce.relationship-debt {
-    border-left-color: #c9302c;
-    color: #a02622;
-    font-style: normal;
-    background: linear-gradient(90deg, transparent, rgba(201, 48, 44, 0.1), transparent);
-}
-
-/* Status relationships - formal, hierarchical */
 .relationship-type-status {
-    border-left-color: #7c5a7c;
-    background: linear-gradient(90deg, transparent, rgba(124, 90, 124, 0.05), transparent);
+    border-left-color: #6f42c1;
+    background-color: rgba(111, 66, 193, 0.1);
 }
 
-.relationship-type-status.relationship-debt {
-    border-left-color: #8b4789;
-    color: #6b3769;
-    font-style: normal;
-    background: linear-gradient(90deg, transparent, rgba(139, 71, 137, 0.1), transparent);
-}
-
-/* Shadow relationships - secretive, hidden */
 .relationship-type-shadow {
-    border-left-color: #4a4a4a;
-    background: linear-gradient(90deg, transparent, rgba(74, 74, 74, 0.05), transparent);
-    opacity: 0.9;
+    border-left-color: #495057;
+    background-color: rgba(73, 80, 87, 0.1);
 }
 
-.relationship-type-shadow.relationship-debt {
-    border-left-color: #2a2a2a;
-    color: #4a4a4a;
-    font-style: normal;
-    font-weight: bold;
-    background: linear-gradient(90deg, transparent, rgba(42, 42, 42, 0.15), transparent);
+.relationship-debt {
+    border-left-color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
 }
 
-/* Relationship strength modifiers */
 .relationship-neutral {
-    opacity: 0.7;
-    font-size: 13px;
+    border-left-color: #6c757d;
+    background-color: rgba(108, 117, 125, 0.05);
 }
 
 .relationship-positive {
-    border-left-width: 3px;
+    border-left-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
 }
 
 .relationship-strong {
-    border-left-width: 4px;
-    font-weight: 500;
-    background: linear-gradient(90deg, transparent, rgba(244, 241, 232, 0.3), transparent);
+    border-left-color: #20c997;
+    background-color: rgba(32, 201, 151, 0.1);
 }
 
-/* Debt emphasis without numbers */
-.relationship-debt {
-    position: relative;
-    padding-left: 16px;
-}
-
-.relationship-debt::before {
-    content: "⚠";
-    position: absolute;
-    left: 4px;
-    opacity: 0.6;
-    font-size: 12px;
-}
-
-/* Empty state */
 .relationship-empty {
+    color: #6c757d;
     font-style: italic;
-    color: #8b7355;
-    opacity: 0.6;
-    padding: 6px 12px;
-    font-size: 13px;
+    text-align: center;
+    padding: 1rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
-    .token-type {
-        min-width: 60px;
-        font-size: 12px;
-    }
-    
-    .token-dot {
-        font-size: 14px;
-    }
+.leverage-warning {
+    color: #dc3545;
+    font-weight: bold;
 }

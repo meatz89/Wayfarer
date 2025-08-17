@@ -25,4 +25,8 @@
     public const int TOKENS_BASIC_THRESHOLD = 1;       // Basic letters offered (1-2 tokens)
     public const int TOKENS_QUALITY_THRESHOLD = 3;     // Quality letters offered (3-4 tokens)
     public const int TOKENS_PREMIUM_THRESHOLD = 5;     // Premium letters & routes (5+ tokens)
+
+    // Standing Obligations: Crisis Card Rewards
+    public const int CRISIS_CARD_TOKEN_REWARD = 3;     // Immediate token gain from crisis cards (US-8.1)
+    public const int OBLIGATION_BREAKING_PENALTY = 5;  // Token loss for breaking obligations (US-8.3)
 }

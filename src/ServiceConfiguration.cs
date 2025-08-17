@@ -92,6 +92,7 @@ public static class ServiceConfiguration
         // Conversation System
         services.AddSingleton<DeterministicStreamingService>();
         services.AddSingleton<ConversationStateManager>();
+        services.AddSingleton<NPCDeckFactory>();
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();

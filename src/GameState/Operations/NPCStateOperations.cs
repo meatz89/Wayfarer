@@ -109,9 +109,12 @@ public static class NPCStateOperations
     {
         return relationship switch
         {
+            NPCRelationship.Betrayed => -3,    // Worst relationship state
             NPCRelationship.Hostile => -2,
             NPCRelationship.Unfriendly => -1,
+            NPCRelationship.Wary => -1,
             NPCRelationship.Neutral => 0,
+            NPCRelationship.Helpful => 1,
             NPCRelationship.Friendly => 1,
             NPCRelationship.Allied => 2,
             _ => 0

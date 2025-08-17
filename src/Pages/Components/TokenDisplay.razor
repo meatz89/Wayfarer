@@ -11,7 +11,7 @@
             {
                 <div class="relationship-insight @GetRelationshipClass(relationship.Key, relationship.Value)">
                     <div class="token-display">
-                        <span class="token-icon">@GetTokenSymbol(relationship.Key)</span>
+                        <div class="@GetTokenIconClass(relationship.Key, relationship.Value)"></div>
                         <span class="token-value @(relationship.Value < 0 ? "negative" : "positive")">@(relationship.Value >= 0 ? "+" : "")@relationship.Value</span>
                         <span class="token-narrative">@((MarkupString)GetNarrativeDescription(relationship.Key, relationship.Value))</span>
                     </div>
@@ -120,11 +120,10 @@
     
     private string GetMechanicalDescription(ConnectionType type, int value)
     {
-        var symbol = GetTokenSymbol(type);
         var mechanic = type switch
         {
             ConnectionType.Trust => value >= 0 ? $"[+{value * 2}h deadline bonus]" : $"[Letters at position {Math.Max(2, 1 - value)}]",
-            ConnectionType.Commerce => $"[{symbol} x{Math.Abs(value)} = Queue boost {(value > 0 ? "+" : "")}{value / 2}]",
+            ConnectionType.Commerce => $"[x{Math.Abs(value)} = Queue boost {(value > 0 ? "+" : "")}{value / 2}]",
             ConnectionType.Status => value >= 3 ? $"[Tier {value / 3} access]" : "[No tier access]",
             ConnectionType.Shadow => value > 0 ? $"[{value * 20}% info visible]" : "[Info hidden]",
             _ => $"[{value}]"
@@ -133,22 +132,29 @@
         if (value < 0)
         {
             // Show leverage warning
-            return $"<span class='leverage-warning'>⚠️ Leverage: {mechanic}</span>";
+            return $"<span class='leverage-warning'>Leverage: {mechanic}</span>";
         }
         
         return mechanic;
     }
     
-    private string GetTokenSymbol(ConnectionType type)
+    private string GetTokenIconClass(ConnectionType type, int value)
     {
-        return type switch
+        var baseClass = type switch
         {
-            ConnectionType.Trust => "●",
-            ConnectionType.Commerce => "🪙",
-            ConnectionType.Status => "◆",
-            ConnectionType.Shadow => "▲",
-            _ => "○"
+            ConnectionType.Trust => "token-icon token-icon--trust",
+            ConnectionType.Commerce => "token-icon token-icon--commerce",
+            ConnectionType.Status => "token-icon token-icon--status",
+            ConnectionType.Shadow => "token-icon token-icon--shadow",
+            _ => "token-icon"
         };
+
+        if (value < 0)
+        {
+            baseClass += " token-icon--debt";
+        }
+
+        return baseClass;
     }
 
     private string GetTrustDescription(int value)

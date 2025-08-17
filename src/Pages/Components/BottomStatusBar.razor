@@ -4,22 +4,22 @@
 
 <div class="bottom-status-bar">
     <div class="status-section">
-        <span class="status-icon">📍</span>
+        <span class="status-icon icon icon-location"></span>
         <span class="status-text">@GetCurrentLocation()</span>
     </div>
     
     <div class="status-section queue-section" @onclick="NavigateToQueue" style="cursor: pointer; background: rgba(218, 165, 32, 0.1); border: 1px solid rgba(218, 165, 32, 0.3); border-radius: 4px; padding: 4px 8px;">
-        <span class="status-icon">📜</span>
+        <span class="status-icon icon icon-queue"></span>
         <span class="status-text" style="font-weight: bold;">Queue: @GetQueueStatus()</span>
     </div>
     
     <div class="status-section">
-        <span class="status-icon">💰</span>
+        <span class="status-icon icon icon-coins"></span>
         <span class="status-text">@GetCoinDisplay()</span>
     </div>
     
     <div class="status-section">
-        <span class="status-icon">⏰</span>
+        <span class="status-icon icon icon-time"></span>
         <span class="status-text">@GetCurrentTime()</span>
     </div>
     
@@ -28,7 +28,7 @@
         if (deadline != null)
         {
             <div class="status-section deadline-warning">
-                <span class="status-icon">@deadline.Icon</span>
+                <span class="status-icon icon @GetDeadlineIconClass(deadline.Severity)"></span>
                 <span class="status-text">@deadline.Text</span>
             </div>
         }
@@ -115,9 +115,17 @@
         return GameFacade.GetFormattedTimeDisplay();
     }
     
+    private enum DeadlineSeverity
+    {
+        Expired,
+        Critical,
+        Urgent,
+        Normal
+    }
+    
     private class DeadlineInfo
     {
-        public string Icon { get; set; }
+        public DeadlineSeverity Severity { get; set; }
         public string Text { get; set; }
     }
     
@@ -146,19 +154,19 @@
             // Format deadline display
             if (mostUrgent.DeadlineInHours <= 0)
             {
-                return new DeadlineInfo { Icon = "💀", Text = "EXPIRED!" };
+                return new DeadlineInfo { Severity = DeadlineSeverity.Expired, Text = "EXPIRED!" };
             }
             else if (mostUrgent.DeadlineInHours <= 2)
             {
-                return new DeadlineInfo { Icon = "🔥", Text = $"{mostUrgent.DeadlineInHours}h CRITICAL" };
+                return new DeadlineInfo { Severity = DeadlineSeverity.Critical, Text = $"{mostUrgent.DeadlineInHours}h CRITICAL" };
             }
             else if (mostUrgent.DeadlineInHours <= 6)
             {
-                return new DeadlineInfo { Icon = "⚠️", Text = $"{mostUrgent.DeadlineInHours}h urgent" };
+                return new DeadlineInfo { Severity = DeadlineSeverity.Urgent, Text = $"{mostUrgent.DeadlineInHours}h urgent" };
             }
             else if (mostUrgent.DeadlineInHours <= 24)
             {
-                return new DeadlineInfo { Icon = "📅", Text = $"{mostUrgent.DeadlineInHours}h" };
+                return new DeadlineInfo { Severity = DeadlineSeverity.Normal, Text = $"{mostUrgent.DeadlineInHours}h" };
             }
             
             return null; // Don't show deadline if > 24 hours
@@ -167,5 +175,17 @@
         {
             return null;
         }
+    }
+    
+    private string GetDeadlineIconClass(DeadlineSeverity severity)
+    {
+        return severity switch
+        {
+            DeadlineSeverity.Expired => "icon-deadline-expired",
+            DeadlineSeverity.Critical => "icon-deadline-fire", 
+            DeadlineSeverity.Urgent => "icon-warning",
+            DeadlineSeverity.Normal => "icon-deadline-calendar",
+            _ => "icon-deadline-calendar"
+        };
     }
 }

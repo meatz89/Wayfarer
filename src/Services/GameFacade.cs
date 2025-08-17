@@ -61,6 +61,7 @@ public class GameFacade : ILetterQueueOperations
     private readonly BindingObligationSystem _bindingObligationSystem;
     private readonly AtmosphereCalculator _atmosphereCalculator;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
+    private readonly NPCDeckFactory _deckFactory;
     private readonly WorldMemorySystem _worldMemorySystem;
     private readonly AmbientDialogueSystem _ambientDialogueSystem;
 
@@ -81,31 +82,32 @@ public class GameFacade : ILetterQueueOperations
         TokenMechanicsManager connectionTokenManager,
         NPCLetterOfferService letterOfferService,
         GameConfiguration gameConfiguration,
-        InformationDiscoveryManager informationDiscoveryManager = null,
-        StandingObligationManager standingObligationManager = null,
-        StandingObligationRepository standingObligationRepository = null,
-        MarketManager marketManager = null,
-        RestManager restManager = null,
-        IGameRuleEngine ruleEngine = null,
-        LetterCategoryService letterCategoryService = null,
-        SpecialLetterGenerationService specialLetterService = null,
-        MorningActivitiesManager morningActivitiesManager = null,
-        DeliveryConversationService deliveryConversationService = null,
-        EndorsementManager endorsementManager = null,
-        NoticeBoardService noticeBoardService = null,
-        LetterTemplateRepository letterTemplateRepository = null,
-        InformationRevealService informationRevealService = null,
-        ContextTagCalculator contextTagCalculator = null,
-        NPCStateResolver npcStateResolver = null,
-        ActionGenerator actionGenerator = null,
-        ActionBeatGenerator actionBeatGenerator = null,
-        EnvironmentalHintSystem environmentalHintSystem = null,
-        ObservationSystem observationSystem = null,
-        BindingObligationSystem bindingObligationSystem = null,
-        AtmosphereCalculator atmosphereCalculator = null,
-        WorldMemorySystem worldMemorySystem = null,
-        AmbientDialogueSystem ambientDialogueSystem = null,
-        TimeBlockAttentionManager timeBlockAttentionManager = null
+        InformationDiscoveryManager informationDiscoveryManager,
+        StandingObligationManager standingObligationManager,
+        StandingObligationRepository standingObligationRepository,
+        MarketManager marketManager,
+        RestManager restManager,
+        IGameRuleEngine ruleEngine,
+        LetterCategoryService letterCategoryService,
+        SpecialLetterGenerationService specialLetterService,
+        MorningActivitiesManager morningActivitiesManager,
+        DeliveryConversationService deliveryConversationService,
+        EndorsementManager endorsementManager,
+        NoticeBoardService noticeBoardService,
+        LetterTemplateRepository letterTemplateRepository,
+        InformationRevealService informationRevealService,
+        ContextTagCalculator contextTagCalculator,
+        NPCStateResolver npcStateResolver,
+        ActionGenerator actionGenerator,
+        ActionBeatGenerator actionBeatGenerator,
+        EnvironmentalHintSystem environmentalHintSystem,
+        ObservationSystem observationSystem,
+        BindingObligationSystem bindingObligationSystem,
+        AtmosphereCalculator atmosphereCalculator,
+        WorldMemorySystem worldMemorySystem,
+        AmbientDialogueSystem ambientDialogueSystem,
+        TimeBlockAttentionManager timeBlockAttentionManager,
+        NPCDeckFactory deckFactory
 )
     {
         _gameWorld = gameWorld;
@@ -150,7 +152,8 @@ public class GameFacade : ILetterQueueOperations
         _ambientDialogueSystem = ambientDialogueSystem;
         
         // Use injected TimeBlockAttentionManager (shared with ConversationFactory)
-        _timeBlockAttentionManager = timeBlockAttentionManager ?? new TimeBlockAttentionManager();
+        _timeBlockAttentionManager = timeBlockAttentionManager;
+        _deckFactory = deckFactory;
     }
 
     // ========== ATTENTION STATE ACCESS ==========
@@ -2306,6 +2309,11 @@ public class GameFacade : ILetterQueueOperations
         return viewModel;
     }
     
+    public ConversationManager GetCurrentConversationManager()
+    {
+        return _conversationStateManager.PendingConversationManager;
+    }
+    
     public async Task<ConversationViewModel> ProcessConversationChoice(string choiceId)
     {
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Processing choice: {choiceId}");
@@ -3882,81 +3890,88 @@ public class GameFacade : ILetterQueueOperations
     {
         var status = new Dictionary<string, string>();
         
-        if (npc == null || _connectionTokenManager == null)
+        if (npc == null)
             return status;
         
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        // Get conversation-specific context instead of token balances
+        // Focus on NPC's current emotional state and conversation disposition
         
-        // Match mockup format: "Trust flows deep ●●●●●", "Status recognized ●●●○○"
-        foreach (var token in tokens)
+        // Get NPC's current emotional state for conversation context
+        var currentState = _npcStateResolver?.CalculateState(npc) ?? NPCEmotionalState.WITHDRAWN;
+        var personalityType = npc.PersonalityType;
+        
+        // Add emotional state context
+        string emotionalContext = currentState switch
         {
-            if (token.Value != 0 || token.Key == ConnectionType.Trust || token.Key == ConnectionType.Status)
-            {
-                string description = "";
-                string circles = "";
-                
-                // Generate descriptive text based on token type and value
-                switch (token.Key)
-                {
-                    case ConnectionType.Trust:
-                        description = token.Value switch
-                        {
-                            >= 5 => "Trust flows deep",
-                            >= 3 => "Trust is building",
-                            >= 1 => "Trust tentative",
-                            0 => "Trust untested",
-                            _ => "Trust broken"
-                        };
-                        break;
-                    case ConnectionType.Status:
-                        description = token.Value switch
-                        {
-                            >= 5 => "Status revered",
-                            >= 3 => "Status recognized",
-                            >= 1 => "Status acknowledged",
-                            0 => "Status unknown",
-                            _ => "Status dismissed"
-                        };
-                        break;
-                    case ConnectionType.Commerce:
-                        description = token.Value switch
-                        {
-                            >= 5 => "Commerce flourishing",
-                            >= 3 => "Commerce steady",
-                            >= 1 => "Commerce tentative",
-                            0 => "Commerce untested",
-                            _ => "Commerce failed"
-                        };
-                        break;
-                    case ConnectionType.Shadow:
-                        description = token.Value switch
-                        {
-                            >= 5 => "Shadows entwined",
-                            >= 3 => "Shadows shared",
-                            >= 1 => "Shadows touched",
-                            0 => "Shadows separate",
-                            _ => "Shadows hostile"
-                        };
-                        break;
-                }
-                
-                // Generate circles (max 5, filled based on value)
-                int maxCircles = 5;
-                int filledCircles = Math.Min(Math.Max(token.Value, 0), maxCircles);
-                for (int i = 0; i < maxCircles; i++)
-                {
-                    circles += i < filledCircles ? "●" : "○";
-                }
-                
-                // Only add if there's any relationship (or for Trust/Status always show)
-                if (token.Value != 0 || token.Key == ConnectionType.Trust || token.Key == ConnectionType.Status)
-                {
-                    status[token.Key.ToString()] = $"{description} {circles}";
-                }
-            }
+            NPCEmotionalState.DESPERATE => "Seeking urgent help",
+            NPCEmotionalState.ANXIOUS => "Worried about something",
+            NPCEmotionalState.CALCULATING => "Considering options carefully",
+            NPCEmotionalState.WITHDRAWN => "Keeping thoughts private",
+            NPCEmotionalState.HOSTILE => "Angry about past events",
+            _ => "Ready to talk"
+        };
+        
+        status["Current Mood"] = emotionalContext;
+        
+        // Add personality-based conversation style
+        string conversationStyle = personalityType switch
+        {
+            PersonalityType.DEVOTED => "Values emotional connection",
+            PersonalityType.MERCANTILE => "Focuses on practical matters",
+            PersonalityType.PROUD => "Expects respect and formality",
+            PersonalityType.CUNNING => "Speaks in subtle meanings",
+            PersonalityType.STEADFAST => "Prefers direct, honest talk",
+            _ => "Open to various approaches"
+        };
+        
+        status["Conversation Style"] = conversationStyle;
+        
+        // Add context about what they might want to discuss
+        string topicHint = GetConversationTopicHint(npc, currentState);
+        if (!string.IsNullOrEmpty(topicHint))
+        {
+            status["Main Concern"] = topicHint;
         }
         
         return status;
+    }
+    
+    private string GetConversationTopicHint(NPC npc, NPCEmotionalState currentState)
+    {
+        // Provide hints about what the NPC might want to talk about
+        // Based on their current state and any pressing matters
+        
+        if (currentState == NPCEmotionalState.DESPERATE || currentState == NPCEmotionalState.ANXIOUS)
+        {
+            // Check if they have urgent letters or deadlines
+            var playerQueue = GetPlayer().LetterQueue;
+            var urgentLetter = playerQueue?.FirstOrDefault(l => l != null && 
+                l.SenderName == npc.Name && l.DeadlineInHours <= 6);
+            
+            if (urgentLetter != null)
+            {
+                return $"Urgent letter deadline approaching ({urgentLetter.DeadlineInHours}h)";
+            }
+            
+            return "Has urgent personal matters to discuss";
+        }
+        
+        if (currentState == NPCEmotionalState.HOSTILE)
+        {
+            return "Upset about previous interactions";
+        }
+        
+        if (npc.PersonalityType == PersonalityType.MERCANTILE)
+        {
+            return "May discuss business opportunities";
+        }
+        
+        if (npc.PersonalityType == PersonalityType.CUNNING)
+        {
+            return "Might share information or secrets";
+        }
+        
+        return "Open to general conversation";
     }
     
     private List<MechanicEffectViewModel> ParseMechanicalDescription(string mechanicalDescription)
@@ -5985,7 +6000,8 @@ public class GameFacade : ILetterQueueOperations
                 _timeManager,
                 player,
                 _gameWorld,
-                _timeBlockAttentionManager);
+                _timeBlockAttentionManager,
+                _deckFactory);
             
             // Generate choices from card deck
             var state = new ConversationState(player, npc, _gameWorld, 3, 8); // Basic state for choice generation

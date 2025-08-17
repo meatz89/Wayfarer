@@ -239,3 +239,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - NEVER add features not in the implementation plan
 - NEVER change core mechanics from the plan
 - Build EXACTLY what's specified, test it, ship it
+- game mechanical values, that could be changed during balancing, should be read from GameRules configuration file.
+- avoid defensive programming like checking for null values, try catch blocks, throwing exceptions, using defaults or fallback values and so on. this increases complexity of the code and hides errors. just let it fail and let the program crash fast

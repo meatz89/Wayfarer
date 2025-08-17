@@ -94,6 +94,13 @@ public class StandingObligationManager
 
         foreach (StandingObligation existing in activeObligations)
         {
+            // Max one obligation per NPC rule (US-8.1)
+            if (existing.RelatedNPCId == newObligation.RelatedNPCId)
+            {
+                conflicts.Add(existing);
+                continue;
+            }
+
             // Same token type with conflicting effects
             if (existing.RelatedTokenType == newObligation.RelatedTokenType)
             {
@@ -748,22 +755,57 @@ public class StandingObligationManager
 
     private void ApplyBreakingConsequences(StandingObligation obligation)
     {
-        // Apply relationship damage or other consequences for breaking obligations
-        // Remove tokens based on obligation type
-        if (obligation.RelatedTokenType.HasValue)
-        {
-            int penaltyTokens = Math.Min(5, _connectionTokenManager.GetTokenCount(obligation.RelatedTokenType.Value));
-            if (penaltyTokens > 0)
-            {
-                _connectionTokenManager.SpendTokens(obligation.RelatedTokenType.Value, penaltyTokens);
+        // Apply exactly -5 token penalty for breaking obligations (US-8.3)
+        _connectionTokenManager.SpendTokens(obligation.RelatedTokenType.Value, GameRules.OBLIGATION_BREAKING_PENALTY);
 
-                _messageSystem.AddSystemMessage(
-                    $"Lost {penaltyTokens} {obligation.RelatedTokenType} tokens for breaking {obligation.Name}",
-                    SystemMessageTypes.Danger
-                );
-            }
+        _messageSystem.AddSystemMessage(
+            $"Lost {GameRules.OBLIGATION_BREAKING_PENALTY} {obligation.RelatedTokenType} tokens for breaking {obligation.Name}",
+            SystemMessageTypes.Danger
+        );
+
+        // CRITICAL: Trigger HOSTILE state by making NPC's letters overdue
+        // This creates the path: obligation breaking → overdue letters → HOSTILE state → betrayal cards available
+        if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
+        {
+            TriggerHostileStateForNPC(obligation.RelatedNPCId, obligation.Name);
         }
     }
+
+    /// <summary>
+    /// Trigger HOSTILE relationship state for an NPC due to broken obligation.
+    /// Uses proper NPCRelationship.Hostile state instead of temporal data corruption.
+    /// </summary>
+    private void TriggerHostileStateForNPC(string npcId, string obligationName)
+    {
+        NPC npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null) return;
+
+        // Use proper NPCStateOperations to set BETRAYED relationship
+        NPCState currentState = NPCState.FromNPC(npc);
+        NPCOperationResult result = NPCStateOperations.UpdateRelationship(currentState, NPCRelationship.Betrayed);
+
+        if (result.IsSuccess)
+        {
+            // Update the mutable NPC object (until full immutable migration)
+            npc.PlayerRelationship = NPCRelationship.Betrayed;
+
+            _messageSystem.AddSystemMessage(
+                $"💀 {npc.Name} is now HOSTILE - breaking {obligationName} has severe consequences!",
+                SystemMessageTypes.Danger
+            );
+            
+            _messageSystem.AddSystemMessage(
+                $"🗡️ Betrayal conversation options are now available with {npc.Name}",
+                SystemMessageTypes.Warning
+            );
+
+            _messageSystem.AddSystemMessage(
+                result.Message,
+                SystemMessageTypes.Info
+            );
+        }
+    }
+
 
     // Apply dynamic deadline bonuses from obligations
     public void ApplyDynamicDeadlineBonuses(Letter letter)

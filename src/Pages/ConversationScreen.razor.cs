@@ -19,7 +19,9 @@ public class ConversationScreenBase : ComponentBase
     
     protected ConversationViewModel Model { get; set; }
     protected List<ConversationChoice> Choices { get; set; }
-    protected int CurrentAttention { get; set; }
+    protected int CurrentPatience { get; set; }
+    protected int MaxPatience { get; set; }
+    protected int CurrentComfort { get; set; }
     protected Dictionary<ConnectionType, int> NpcTokens { get; set; }
     protected ConversationChoice DefaultChoice => GetDefaultChoice();
     
@@ -31,7 +33,7 @@ public class ConversationScreenBase : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         await LoadConversation();
-        RefreshAttentionState();
+        RefreshConversationState();
         LoadTokenData();
         LoadEmotionalStateData();
     }
@@ -66,25 +68,40 @@ public class ConversationScreenBase : ComponentBase
         }
     }
     
-    protected void RefreshAttentionState()
+    protected void RefreshConversationState()
     {
-        var (current, max, timeBlock) = GameFacade.GetCurrentAttentionState();
-        CurrentAttention = current;
+        // Get NPC patience and comfort for conversation UI display from GameFacade
+        var conversationManager = GameFacade.GetCurrentConversationManager();
+        var conversationState = conversationManager?.State;
+        if (conversationState != null)
+        {
+            // Map FocusPoints to Patience for UI display (these represent NPC patience in conversation)
+            CurrentPatience = conversationState.FocusPoints;
+            MaxPatience = conversationState.MaxFocusPoints;
+            // For now, use a simple comfort calculation based on emotional state
+            CurrentComfort = Model?.EmotionalState switch
+            {
+                NPCEmotionalState.DESPERATE => -1,
+                NPCEmotionalState.ANXIOUS => -1,
+                NPCEmotionalState.CALCULATING => 0,
+                NPCEmotionalState.WITHDRAWN => -2,
+                NPCEmotionalState.HOSTILE => -2,
+                _ => 0
+            };
+        }
+        else
+        {
+            // Default values if conversation state not available
+            CurrentPatience = 3;
+            MaxPatience = 3;
+            CurrentComfort = 0;
+        }
     }
     
     protected async Task GenerateChoicesAsync()
     {
-        // Use enhanced card-based choices
-        var enhancedChoices = await GenerateCardBasedChoicesAsync();
-        if (enhancedChoices?.Any() == true)
-        {
-            Choices = enhancedChoices;
-        }
-        else
-        {
-            // Fallback to placeholder choices
-            Choices = GeneratePlaceholderChoices();
-        }
+        // Use card-based choices exclusively - no fallbacks
+        Choices = await GenerateCardBasedChoicesAsync();
     }
     
     protected async Task HandleChoice(ConversationChoice choice)
@@ -93,7 +110,7 @@ public class ConversationScreenBase : ComponentBase
         // SelectChoice already updates the Model and calls StateHasChanged
         // Now load the fresh token data AFTER the choice has been fully processed
         LoadTokenData(); // Load fresh token data after effects applied
-        RefreshAttentionState(); // Update attention state
+        RefreshConversationState(); // Update patience and comfort state
         StateHasChanged(); // Ensure UI refreshes with new data
     }
     
@@ -111,7 +128,7 @@ public class ConversationScreenBase : ComponentBase
                 Model = updatedModel;
                 await GenerateChoicesAsync();
                 LoadTokenData(); // Reload tokens after processing choice
-                RefreshAttentionState(); // Update attention 
+                RefreshConversationState(); // Update conversation state 
                 StateHasChanged();
                 Console.WriteLine($"[ConversationScreen] Conversation updated after choice");
             }
@@ -321,8 +338,7 @@ public class ConversationScreenBase : ComponentBase
             // HIGHLANDER PRINCIPLE: Model.NpcId is the ONLY source of truth
             if (string.IsNullOrEmpty(Model?.NpcId))
             {
-                Console.WriteLine("[ConversationScreen] No Model.NpcId available for card generation");
-                return GeneratePlaceholderChoices();
+                throw new InvalidOperationException("Cannot generate conversation choices: Model.NpcId is required");
             }
             
             // Get real card-based choices from GameFacade
@@ -335,88 +351,22 @@ public class ConversationScreenBase : ComponentBase
             }
             else
             {
-                Console.WriteLine($"[ConversationScreen] No card choices available for {Model.NpcId}, using placeholders");
-                return GeneratePlaceholderChoices();
+                throw new InvalidOperationException($"NPC deck failed to generate choices for {Model.NpcId} - conversation system error");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error generating card-based choices: {ex.Message}");
-            return GeneratePlaceholderChoices();
+            Console.WriteLine($"Critical error generating card-based choices: {ex.Message}");
+            throw; // Let the exception bubble up - no fallbacks allowed
         }
     }
     
-    /// <summary>
-    /// Generate placeholder choices that match the conversation-elena.html mockup exactly
-    /// </summary>
-    private List<ConversationChoice> GeneratePlaceholderChoices()
-    {
-        return new List<ConversationChoice>
-        {
-            new ConversationChoice
-            {
-                ChoiceID = "maintain_state",
-                NarrativeText = "I understand. Your letter is second in my queue.",
-                PatienceCost = 0,
-                IsAffordable = true,
-                IsAvailable = true,
-                MechanicalDescription = "→ Maintains current state",
-                MechanicalEffects = new List<IMechanicalEffect>()
-            },
-            new ConversationChoice
-            {
-                ChoiceID = "negotiate_priority",
-                NarrativeText = "I'll prioritize your letter. Let me check what that means...",
-                PatienceCost = 1,
-                IsAffordable = true,
-                IsAvailable = true,
-                MechanicalDescription = "✓ Opens negotiation | ⚠ Must burn 1 Status with Lord B",
-                MechanicalEffects = new List<IMechanicalEffect>()
-            },
-            new ConversationChoice
-            {
-                ChoiceID = "investigate_situation",
-                NarrativeText = "Lord Aldwin from Riverside? Tell me about the situation...",
-                PatienceCost = 1,
-                IsAffordable = true,
-                IsAvailable = true,
-                MechanicalDescription = "ℹ Gain rumor: 'Noble carriage schedule' | ⏱ +20 minutes conversation",
-                MechanicalEffects = new List<IMechanicalEffect>()
-            },
-            new ConversationChoice
-            {
-                ChoiceID = "binding_promise",
-                NarrativeText = "I swear I'll deliver your letter before any others today.",
-                PatienceCost = 2,
-                IsAffordable = true,
-                IsAvailable = true,
-                MechanicalDescription = "♥ +2 Trust tokens immediately | ⛓ Creates Binding Obligation",
-                MechanicalEffects = new List<IMechanicalEffect>()
-            },
-            new ConversationChoice
-            {
-                ChoiceID = "deep_investigation",
-                NarrativeText = "Let me investigate Lord Aldwin's current position at court...",
-                PatienceCost = 3,
-                IsAffordable = false,
-                IsAvailable = false,
-                MechanicalDescription = "[Requires 3 attention points]",
-                MechanicalEffects = new List<IMechanicalEffect>()
-            }
-        };
-    }
     
     // UI Helper methods for conversation choices
     protected string GetCostDisplay(int cost)
     {
-        // Show dots matching mockup style (◆)
-        return cost switch
-        {
-            1 => "◆ 1",
-            2 => "◆◆ 2",
-            3 => "◆◆◆ 3",
-            _ => $"{new string('◆', Math.Min(cost, 5))} {cost}"
-        };
+        // Return just the number - CSS will handle beautiful diamond icons
+        return cost.ToString();
     }
 
     protected List<string> ParseMechanicalDescription(string description)
@@ -480,33 +430,27 @@ public class ConversationScreenBase : ComponentBase
 
     protected string GetEffectIcon(string description)
     {
-        // Use simple Unicode symbols matching mockup (✓, ⚠, ℹ, →)
+        // Use beautiful CSS-based icons instead of ugly Unicode symbols
         var lowerDesc = description.ToLowerInvariant();
         
-        // Check for explicit icons in the description first
-        if (description.Contains("✓")) return "✓";
-        if (description.Contains("⚠")) return "⚠";
-        if (description.Contains("ℹ")) return "ℹ";
-        if (description.Contains("→")) return "→";
-        
-        // Positive outcomes
+        // Positive outcomes - return CSS class for green plus icon
         if (lowerDesc.Contains("gain") || lowerDesc.Contains("unlock") || 
-            lowerDesc.Contains("open") || lowerDesc.Contains("+"))
-            return "✓";
+            lowerDesc.Contains("open") || lowerDesc.Contains("+") ||
+            lowerDesc.Contains("comfort") || lowerDesc.Contains("trust"))
+            return "icon icon-positive";
             
-        // Negative/warning outcomes  
+        // Negative/warning outcomes - return CSS class for red minus icon
         if (lowerDesc.Contains("lose") || lowerDesc.Contains("burn") || 
             lowerDesc.Contains("cost") || lowerDesc.Contains("obligation") ||
             lowerDesc.Contains("binding") || lowerDesc.Contains("-"))
-            return "⚠";
+            return "icon icon-negative";
             
-        // Informational/neutral
-        if (lowerDesc.Contains("learn") || lowerDesc.Contains("discover") ||
-            lowerDesc.Contains("investigate") || lowerDesc.Contains("maintain"))
-            return "ℹ";
+        // Arrow/progression - return CSS class for arrow
+        if (lowerDesc.Contains("maintain") || lowerDesc.Contains("negotiation"))
+            return "icon icon-arrow";
             
-        // Directional/progression
-        return "→";
+        // Informational/neutral - return CSS class for blue info icon
+        return "icon icon-neutral";
     }
 
     protected string GetMechanicClass(string preview)
@@ -541,11 +485,42 @@ public class ConversationScreenBase : ComponentBase
     {
         var classes = new List<string> { "choice-option" };
         
-        if (!choice.IsAvailable || choice.PatienceCost > CurrentAttention)
+        if (!choice.IsAvailable || choice.PatienceCost > CurrentPatience)
         {
             classes.Add("locked");
         }
         
         return string.Join(" ", classes);
+    }
+    
+    protected string GetPatienceOrbLabel(int index)
+    {
+        return index < CurrentPatience 
+            ? $"Patience point {index + 1} available" 
+            : $"Patience point {index + 1} spent";
+    }
+    
+    protected string GetComfortClass()
+    {
+        return CurrentComfort switch
+        {
+            <= -2 => "comfort-hostile",
+            -1 => "comfort-uncomfortable", 
+            0 => "comfort-neutral",
+            1 => "comfort-at-ease",
+            _ => "comfort-relaxed"  // 2 and above
+        };
+    }
+    
+    protected string GetComfortDescription()
+    {
+        return CurrentComfort switch
+        {
+            <= -2 => "Hostile",
+            -1 => "Uncomfortable", 
+            0 => "Neutral",
+            1 => "At Ease",
+            _ => "Relaxed"  // 2 and above
+        };
     }
 }

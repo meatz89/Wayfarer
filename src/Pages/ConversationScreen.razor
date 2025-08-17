@@ -6,8 +6,6 @@
 @inherits ConversationScreenBase
 
 <div class="container">
-    @* Unified Attention Bar - Persistent across all screens *@
-    <UnifiedAttentionBar />
     
     @* Bottom Status Bar - Shows queue status and allows navigation *@
     <BottomStatusBar OnNavigate="@OnNavigate" />
@@ -27,7 +25,7 @@
             @if (!string.IsNullOrEmpty(Model.DeadlinePressure))
             {
                 <div class="deadline-pressure">
-                    ⚡ @Model.DeadlinePressure
+                    <span class="icon icon-deadline-critical"></span> @Model.DeadlinePressure
                 </div>
             }
             
@@ -69,17 +67,29 @@
                     <div class="character-state">@(Model.CharacterState ?? "leaning forward, fingers worrying her shawl")</div>
                 }
                 
-                @* Token Display - Shows contextually relevant relationship currency *@
-                @if (NpcTokens != null)
-                {
-                    <TokenDisplay 
-                        Tokens="@NpcTokens" 
-                        NpcName="@Model.NpcName" 
-                        ConversationContext="@GetCurrentConversationContext()"
-                        NpcRole="@GetNpcRole()"
-                        ShowOnlyRelevant="false"
-                        UseNarrativeDescriptions="true" />
-                }
+                @* NPC Patience and Comfort Display - Core conversation mechanics *@
+                <div class="npc-conversation-state">
+                    <div class="patience-display">
+                        <span class="patience-label">@Model.NpcName's Patience:</span>
+                        <div class="patience-orbs">
+                            @* Debug: Show patience values *@
+                            <span style="font-size: 0.8em; color: #888;">(@CurrentPatience/@MaxPatience)</span>
+                            @for (int i = 0; i < MaxPatience; i++)
+                            {
+                                <div class="patience-orb @(i < CurrentPatience ? "active" : "spent")" 
+                                     aria-label="@GetPatienceOrbLabel(i)">
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="comfort-display">
+                        <span class="comfort-label">Comfort Level:</span>
+                        <div class="comfort-indicator @GetComfortClass()">
+                            @GetComfortDescription()
+                        </div>
+                    </div>
+                </div>
                 
                 @if (Model.RelationshipStatus?.Any() == true)
                 {
@@ -113,16 +123,16 @@
                     @foreach (var choice in Choices)
                     {
                         <div class="@GetChoiceClass(choice)" @onclick="() => HandleChoice(choice)">
-                            <!-- Attention cost badge -->
+                            <!-- Patience cost badge -->
                             @if (choice.PatienceCost > 0)
                             {
-                                <div class="attention-cost">
+                                <div class="patience-cost">
                                     @GetCostDisplay(choice.PatienceCost)
                                 </div>
                             }
                             else
                             {
-                                <div class="attention-cost free">
+                                <div class="patience-cost free">
                                     FREE
                                 </div>
                             }
@@ -140,9 +150,7 @@
                                         @foreach (var part in ParseMechanicalDescription(choice.MechanicalDescription))
                                         {
                                             <div class="mechanic-item @GetMechanicClass(part)">
-                                                <span class="mechanic-icon">
-                                                    @GetEffectIcon(part)
-                                                </span>
+                                                <span class="@GetEffectIcon(part)"></span>
                                                 <span class="mechanic-text">
                                                     @((MarkupString)part)
                                                 </span>
@@ -165,12 +173,12 @@
                 else
                 {
                     <div class="choice-option" @onclick="() => HandleChoice(DefaultChoice)">
-                        <div class="attention-cost free">FREE</div>
+                        <div class="patience-cost free">FREE</div>
                         <div class="choice-content">
                             <div class="choice-text">"@DefaultChoice.NarrativeText"</div>
                             <div class="choice-mechanics">
                                 <div class="mechanic-item mechanic-neutral">
-                                    <span class="mechanic-icon">→</span>
+                                    <span class="icon icon-arrow"></span>
                                     <span class="mechanic-text">@DefaultChoice.MechanicalDescription</span>
                                 </div>
                             </div>

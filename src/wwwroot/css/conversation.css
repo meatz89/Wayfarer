@@ -204,6 +204,425 @@ body {
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+/* ==================== NPC Conversation State Display ==================== */
+
+/* NPC Patience and Comfort Display */
+.npc-conversation-state {
+    background: var(--parchment-dark);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+}
+
+.patience-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.patience-label {
+    font-size: 14px;
+    color: var(--ink-brown);
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.patience-orbs {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.patience-orb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--border-subtle);
+    transition: all 0.3s ease;
+    font-size: 0; /* Hide unicode symbols */
+}
+
+.patience-orb.active {
+    background: var(--attention-gold);
+    border-color: var(--attention-gold-dark);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.patience-orb.spent {
+    background: var(--parchment);
+    border-color: var(--border-subtle);
+    opacity: 0.4;
+}
+
+.comfort-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.comfort-label {
+    font-size: 14px;
+    color: var(--ink-brown);
+    font-weight: bold;
+}
+
+.comfort-indicator {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    min-width: 100px;
+}
+
+.comfort-hostile {
+    background: var(--state-hostile);
+    box-shadow: 0 2px 4px rgba(139, 0, 0, 0.3);
+}
+
+.comfort-uncomfortable {
+    background: var(--state-anxious);
+    box-shadow: 0 2px 4px rgba(255, 165, 0, 0.3);
+}
+
+.comfort-neutral {
+    background: var(--state-neutral);
+    box-shadow: 0 2px 4px rgba(107, 93, 79, 0.3);
+}
+
+.comfort-at-ease {
+    background: var(--effect-positive);
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.comfort-relaxed {
+    background: var(--effect-positive);
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.4);
+    transform: scale(1.05);
+}
+
+/* ==================== Beautiful SVG-Style Icons (No Unicode) ====================
+
+/* Icon system using CSS shapes instead of ugly Unicode symbols */
+.icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    position: relative;
+    vertical-align: middle;
+}
+
+/* Positive effect icons */
+.icon-positive {
+    background: var(--effect-positive);
+    border-radius: 50%;
+    position: relative;
+}
+
+.icon-positive::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 2px;
+    background: white;
+    border-radius: 1px;
+}
+
+.icon-positive::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 8px;
+    background: white;
+    border-radius: 1px;
+}
+
+/* Negative effect icons */
+.icon-negative {
+    background: var(--effect-negative);
+    border-radius: 3px;
+    position: relative;
+}
+
+.icon-negative::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 2px;
+    background: white;
+    border-radius: 1px;
+}
+
+/* Neutral/info effect icons */
+.icon-neutral {
+    background: var(--effect-neutral);
+    border-radius: 3px;
+    position: relative;
+}
+
+.icon-neutral::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 0 white, 0 8px 0 white;
+}
+
+/* Arrow/progression icons */
+.icon-arrow {
+    background: var(--effect-neutral);
+    width: 0;
+    height: 0;
+    border-left: 8px solid var(--effect-neutral);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-radius: 1px;
+}
+
+/* Diamond shapes for patience cost (replacing ugly Unicode) */
+.patience-diamond {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--attention-gold);
+    transform: rotate(45deg);
+    margin: 0 2px;
+    border-radius: 1px;
+}
+
+/* Cost display improvements */
+.cost-display {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Deadline pressure icons */
+.icon-deadline-critical {
+    background: var(--state-desperate);
+    border-radius: 3px;
+    position: relative;
+}
+
+.icon-deadline-critical::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background: white;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+/* Warning icons */
+.icon-warning {
+    background: var(--state-anxious);
+    border-radius: 3px;
+    position: relative;
+}
+
+.icon-warning::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 6px;
+    background: white;
+    border-radius: 1px;
+}
+
+.icon-warning::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 2px;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Status bar icons */
+.icon-location {
+    background: var(--ink-brown);
+    border-radius: 50%;
+    position: relative;
+}
+
+.icon-location::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+}
+
+.icon-queue {
+    background: var(--attention-gold);
+    border-radius: 3px;
+    position: relative;
+}
+
+.icon-queue::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 12px;
+    height: 2px;
+    background: white;
+    box-shadow: 0 4px 0 white, 0 8px 0 white, 0 12px 0 white;
+}
+
+.icon-coins {
+    background: var(--attention-gold);
+    border-radius: 50%;
+    position: relative;
+}
+
+.icon-coins::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.icon-time {
+    background: var(--ink-brown);
+    border-radius: 50%;
+    position: relative;
+}
+
+.icon-time::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 6px;
+    background: white;
+    border-radius: 1px;
+}
+
+.icon-time::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 2px;
+    background: white;
+    border-radius: 1px;
+}
+
+/* Deadline severity icons */
+.icon-deadline-expired {
+    background: #000;
+    border-radius: 3px;
+    position: relative;
+}
+
+.icon-deadline-expired::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 10px;
+    background: white;
+    clip-path: polygon(50% 0%, 80% 20%, 100% 50%, 80% 80%, 50% 100%, 20% 80%, 0% 50%, 20% 20%);
+}
+
+.icon-deadline-fire {
+    background: var(--state-desperate);
+    border-radius: 3px;
+    position: relative;
+}
+
+.icon-deadline-fire::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-bottom: 8px solid white;
+}
+
+.icon-deadline-calendar {
+    background: var(--effect-neutral);
+    border-radius: 3px;
+    position: relative;
+}
+
+.icon-deadline-calendar::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 4px;
+    width: 12px;
+    height: 8px;
+    background: white;
+    border-radius: 1px;
+}
+
+.icon-deadline-calendar::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 2px;
+    width: 2px;
+    height: 4px;
+    background: white;
+    box-shadow: 6px 0 0 white;
+}
+
 /* ==================== Conversation Screen Styles (from mockup) ==================== */
 
 .container {
@@ -371,6 +790,46 @@ body {
     opacity: 0.5;
 }
 
+.patience-cost {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--attention-gold);
+    color: var(--ink-brown);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    gap: 4px;
+}
+
+.patience-cost::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--ink-brown);
+    transform: rotate(45deg);
+    border-radius: 1px;
+}
+
+.patience-cost.free {
+    background: var(--effect-positive);
+    color: white;
+    font-size: 11px;
+    padding: 3px 8px;
+}
+
+.patience-cost.free::before {
+    display: none;
+}
+
+/* Backward compatibility - remove attention-cost references */
 .attention-cost {
     position: absolute;
     top: 12px;

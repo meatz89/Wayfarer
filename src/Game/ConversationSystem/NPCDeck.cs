@@ -16,11 +16,13 @@ public class NPCDeck
     public const int MaxDeckSize = 20;
     
     private readonly TokenMechanicsManager _tokenManager;
+    private readonly GameWorld _gameWorld;
     
-    public NPCDeck(string npcId, PersonalityType personalityType = PersonalityType.STEADFAST, TokenMechanicsManager tokenManager = null)
+    public NPCDeck(string npcId, PersonalityType personalityType = PersonalityType.STEADFAST, TokenMechanicsManager tokenManager = null, GameWorld gameWorld = null)
     {
         NpcId = npcId;
         _tokenManager = tokenManager;
+        _gameWorld = gameWorld;
         InitializeStartingDeck(personalityType);
     }
     
@@ -125,6 +127,44 @@ public class NPCDeck
                 ComfortGain = 5,
                 Category = RelationshipCardCategory.Crisis,
                 MechanicalEffects = GetEmergencyArrangementEffects(NpcId)
+            }
+        });
+
+        // Add betrayal cards - only available during HOSTILE states
+        Cards.AddRange(new List<ConversationCard>
+        {
+            new ConversationCard
+            {
+                Id = "desperate_apology",
+                Name = "Desperate Apology",
+                Description = "Acknowledge your failures and beg for forgiveness",
+                Difficulty = 8,
+                PatienceCost = 2,
+                ComfortGain = 3,
+                Category = RelationshipCardCategory.Betrayal,
+                MechanicalEffects = GetDesperateApologyEffects(NpcId)
+            },
+            new ConversationCard
+            {
+                Id = "compensation_offer",
+                Name = "Offer Compensation",
+                Description = "Promise payment or services to make amends",
+                Difficulty = 6,
+                PatienceCost = 1,
+                ComfortGain = 2,
+                Category = RelationshipCardCategory.Betrayal,
+                MechanicalEffects = GetCompensationOfferEffects(NpcId)
+            },
+            new ConversationCard
+            {
+                Id = "blame_circumstances",
+                Name = "Blame Circumstances",
+                Description = "Deflect responsibility to external factors",
+                Difficulty = 5,
+                PatienceCost = 1,
+                ComfortGain = -1,
+                Category = RelationshipCardCategory.Betrayal,
+                MechanicalEffects = GetBlameCircumstancesEffects(NpcId)
             }
         });
 
@@ -385,7 +425,7 @@ public class NPCDeck
         
         if (_tokenManager != null)
         {
-            effects.Add(new GainTokensEffect(ConnectionType.Trust, 2, npcId, _tokenManager));
+            effects.Add(new GainTokensEffect(ConnectionType.Trust, GameRules.CRISIS_CARD_TOKEN_REWARD, npcId, _tokenManager));
         }
         
         return effects;
@@ -398,12 +438,63 @@ public class NPCDeck
     {
         var effects = new List<IMechanicalEffect>
         {
-            new TimePassageEffect(20)
+            new CreateBindingObligationEffect(npcId, "Emergency assistance obligation")
         };
         
         if (_tokenManager != null)
         {
-            effects.Add(new GainTokensEffect(ConnectionType.Trust, 1, npcId, _tokenManager));
+            effects.Add(new GainTokensEffect(ConnectionType.Trust, GameRules.CRISIS_CARD_TOKEN_REWARD, npcId, _tokenManager));
+        }
+        
+        return effects;
+    }
+
+    /// <summary>
+    /// Get mechanical effects for Desperate Apology betrayal card
+    /// </summary>
+    private List<IMechanicalEffect> GetDesperateApologyEffects(string npcId)
+    {
+        var effects = new List<IMechanicalEffect>();
+        
+        if (_tokenManager != null)
+        {
+            // Desperate apology restores relationship but at great personal cost
+            effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Unfriendly, _gameWorld));
+            effects.Add(new BurnTokensEffect(ConnectionType.Status, 3, npcId, _tokenManager)); // Lose dignity
+        }
+        
+        return effects;
+    }
+    
+    /// <summary>
+    /// Get mechanical effects for Compensation Offer betrayal card
+    /// </summary>
+    private List<IMechanicalEffect> GetCompensationOfferEffects(string npcId)
+    {
+        var effects = new List<IMechanicalEffect>();
+        
+        if (_tokenManager != null && _gameWorld != null)
+        {
+            // Compensation offer - restore relationship but at financial cost
+            effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Wary, _gameWorld));
+            effects.Add(new BurnTokensEffect(ConnectionType.Commerce, 3, npcId, _tokenManager)); // Financial cost
+        }
+        
+        return effects;
+    }
+    
+    /// <summary>
+    /// Get mechanical effects for Blame Circumstances betrayal card
+    /// </summary>
+    private List<IMechanicalEffect> GetBlameCircumstancesEffects(string npcId)
+    {
+        var effects = new List<IMechanicalEffect>();
+        
+        if (_tokenManager != null && _gameWorld != null)
+        {
+            // Blame circumstances - partial restoration but damages trust (poor strategy)
+            effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Hostile, _gameWorld)); // Still hostile
+            effects.Add(new BurnTokensEffect(ConnectionType.Trust, 2, npcId, _tokenManager)); // Deflection backfires
         }
         
         return effects;

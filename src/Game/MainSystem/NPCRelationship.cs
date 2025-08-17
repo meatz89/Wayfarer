@@ -6,5 +6,6 @@
     Hostile,
     Unfriendly,
     Friendly,
-    Allied
+    Allied,
+    Betrayed      // Actively hostile due to betrayal - simplified system
 }

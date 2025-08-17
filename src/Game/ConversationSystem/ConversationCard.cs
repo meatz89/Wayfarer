@@ -58,6 +58,8 @@ public class ConversationCard
             RelationshipCardCategory.Crisis => 
                 emotionalState == NPCEmotionalState.DESPERATE || 
                 emotionalState == NPCEmotionalState.ANXIOUS,
+            RelationshipCardCategory.Betrayal => 
+                emotionalState == NPCEmotionalState.HOSTILE, // Only when hostile
             RelationshipCardCategory.Basic => 
                 emotionalState != NPCEmotionalState.HOSTILE,
             RelationshipCardCategory.Personal => 
@@ -74,5 +76,6 @@ public enum RelationshipCardCategory
     Basic,      // Always available
     Personal,   // Requires relationship progress
     Crisis,     // Only when NPC is desperate/anxious
+    Betrayal,   // Only when relationship is severely damaged (-3+ tokens)
     Special     // Unlocked through specific letter deliveries
 }

@@ -16,7 +16,7 @@
     @if (ShowFormula)
     {
         <div class="state-formula">
-            <span class="formula-label">↳</span>
+            <span class="formula-label"><span class="icon icon-arrow"></span></span>
             <span class="formula-components">
                 @if (!string.IsNullOrEmpty(StakesDescription))
                 {
@@ -35,9 +35,12 @@
         <div class="state-effects">
             @foreach (var effect in GetStateEffects())
             {
-                <div class="effect-item @GetEffectClass(effect)">
-                    <span class="effect-icon">@GetEffectIcon(effect)</span>
-                    <span class="effect-text">@effect</span>
+                var parts = effect.Split('|');
+                var effectType = parts[0];
+                var effectText = parts[1];
+                <div class="effect-item @GetEffectClass(effectType)">
+                    <span class="effect-icon @GetEffectIconClass(effectType)"></span>
+                    <span class="effect-text">@effectText</span>
                 </div>
             }
         </div>
@@ -87,52 +90,58 @@
         switch (CurrentState)
         {                
             case NPCEmotionalState.DESPERATE:
-                effects.Add("⚠ Will accept any help");
-                effects.Add("→ 0 attention cost choices");
-                effects.Add("⚠ Extreme time pressure");
+                effects.Add("WARNING|Will accept any help");
+                effects.Add("NEUTRAL|0 attention cost choices");
+                effects.Add("WARNING|Extreme time pressure");
                 break;
                 
             case NPCEmotionalState.ANXIOUS:
-                effects.Add("⚠ Worried about deadlines");
-                effects.Add("→ Standard token costs");
-                effects.Add("ℹ Open to negotiation");
+                effects.Add("WARNING|Worried about deadlines");
+                effects.Add("NEUTRAL|Standard token costs");
+                effects.Add("POSITIVE|Open to negotiation");
                 break;
                 
             case NPCEmotionalState.CALCULATING:
-                effects.Add("✓ Strategic thinking");
-                effects.Add("→ Balanced exchanges");
-                effects.Add("ℹ Evaluating options");
+                effects.Add("POSITIVE|Strategic thinking");
+                effects.Add("NEUTRAL|Balanced exchanges");
+                effects.Add("POSITIVE|Evaluating options");
                 break;
                 
             case NPCEmotionalState.HOSTILE:
-                effects.Add("⚠ Letter overdue");
-                effects.Add("⚠ Trust building blocked");
-                effects.Add("⚠ Permanent consequences");
+                effects.Add("WARNING|Letter overdue");
+                effects.Add("WARNING|Trust building blocked");
+                effects.Add("WARNING|Permanent consequences");
                 break;
                 
             case NPCEmotionalState.WITHDRAWN:
-                effects.Add("ℹ No active letters");
-                effects.Add("→ Minimal interaction");
-                effects.Add("✓ No pressure");
+                effects.Add("POSITIVE|No active letters");
+                effects.Add("NEUTRAL|Minimal interaction");
+                effects.Add("POSITIVE|No pressure");
                 break;
         }
         
         return effects;
     }
     
-    private string GetEffectIcon(string effect)
+    private string GetEffectIconClass(string effectType)
     {
-        if (effect.StartsWith("✓")) return "✓";
-        if (effect.StartsWith("⚠")) return "⚠";
-        if (effect.StartsWith("ℹ")) return "ℹ";
-        if (effect.StartsWith("→")) return "→";
-        return "•";
+        return effectType switch
+        {
+            "POSITIVE" => "icon icon-positive",
+            "WARNING" => "icon icon-warning", 
+            "NEUTRAL" => "icon icon-arrow",
+            _ => "icon icon-neutral"
+        };
     }
     
-    private string GetEffectClass(string effect)
+    private string GetEffectClass(string effectType)
     {
-        if (effect.Contains("✓")) return "effect-positive";
-        if (effect.Contains("⚠")) return "effect-negative";
-        return "effect-neutral";
+        return effectType switch
+        {
+            "POSITIVE" => "effect-positive",
+            "WARNING" => "effect-negative",
+            "NEUTRAL" => "effect-neutral",
+            _ => "effect-info"
+        };
     }
 }
