@@ -75,6 +75,7 @@ public class ConversationChoiceGenerator
                 ChoiceID = card.Id,
                 NarrativeText = card.Description,
                 PatienceCost = card.PatienceCost,  // FIXED: Use PatienceCost not AttentionCost
+                ComfortGain = card.ComfortGain,    // Pass comfort gain from card
                 IsAffordable = true, // Will be set based on patience in conversation
                 IsAvailable = card.CanPlay(tokenDict, 0),
                 MechanicalDescription = GetRichMechanicalDescription(card, context.TargetNPC),

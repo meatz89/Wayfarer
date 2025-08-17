@@ -84,10 +84,24 @@
                     </div>
                     
                     <div class="comfort-display">
-                        <span class="comfort-label">Comfort Level:</span>
+                        <span class="comfort-label">Connection:</span>
                         <div class="comfort-indicator @GetComfortClass()">
                             @GetComfortDescription()
                         </div>
+                        <div class="comfort-progress-bar">
+                            <div class="comfort-progress-fill" style="width: @GetComfortProgressPercentage()%"></div>
+                            <div class="comfort-thresholds">
+                                <div class="threshold maintain @(GetComfortThresholdClass("maintain"))"></div>
+                                <div class="threshold letter @(GetComfortThresholdClass("letter"))"></div>
+                                <div class="threshold perfect @(GetComfortThresholdClass("perfect"))"></div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(GetComfortProgressHint()))
+                        {
+                            <div class="comfort-progress-hint">
+                                @GetComfortProgressHint()
+                            </div>
+                        }
                     </div>
                 </div>
                 

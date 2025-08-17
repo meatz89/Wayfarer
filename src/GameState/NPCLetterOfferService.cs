@@ -563,6 +563,202 @@ public class NPCLetterOfferService
 
         return letter;
     }
+    
+    /// <summary>
+    /// Generate letter from successful conversation based on comfort thresholds
+    /// </summary>
+    public List<Letter> GenerateFromConversation(string npcId, int totalComfort, int startingPatience)
+    {
+        List<Letter> generatedLetters = new List<Letter>();
+        
+        NPC npc = _npcRepository.GetById(npcId);
+        if (npc == null)
+        {
+            Console.WriteLine($"[NPCLetterOfferService] NPC not found: {npcId}");
+            return generatedLetters;
+        }
+        
+        // Check if letter threshold was reached
+        bool reachedLetterThreshold = totalComfort >= (startingPatience * GameRules.COMFORT_LETTER_THRESHOLD);
+        bool reachedPerfectThreshold = totalComfort >= (startingPatience * GameRules.COMFORT_PERFECT_THRESHOLD);
+        
+        if (!reachedLetterThreshold)
+        {
+            Console.WriteLine($"[NPCLetterOfferService] Comfort {totalComfort} did not reach letter threshold {startingPatience * GameRules.COMFORT_LETTER_THRESHOLD}");
+            return generatedLetters;
+        }
+        
+        Console.WriteLine($"[NPCLetterOfferService] Generating letters from conversation with {npc.Name} - Comfort: {totalComfort}, Patience: {startingPatience}");
+        
+        // Get current relationship tokens with this NPC
+        Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        
+        // Determine letter type based on highest relationship
+        ConnectionType letterType = GetHighestRelationshipType(npcTokens);
+        
+        // Generate appropriate letter template
+        List<LetterTemplate> availableTemplates = _letterTemplateRepository.GetTemplatesByTokenType(letterType);
+        if (!availableTemplates.Any())
+        {
+            Console.WriteLine($"[NPCLetterOfferService] No templates found for token type: {letterType}");
+            return generatedLetters;
+        }
+        
+        // Filter by relationship level
+        int tokenLevel = npcTokens.GetValueOrDefault(letterType, 0);
+        List<LetterTemplate> suitableTemplates = availableTemplates
+            .Where(t => tokenLevel >= t.MinTokensRequired)
+            .ToList();
+            
+        if (!suitableTemplates.Any())
+        {
+            Console.WriteLine($"[NPCLetterOfferService] No suitable templates for token level {tokenLevel}");
+            return generatedLetters;
+        }
+        
+        // Select template based on comfort level
+        LetterTemplate selectedTemplate;
+        if (reachedPerfectThreshold && suitableTemplates.Any(t => t.Category == LetterCategory.Premium))
+        {
+            // Perfect conversation gets premium letters if available
+            selectedTemplate = suitableTemplates.Where(t => t.Category == LetterCategory.Premium).First();
+        }
+        else if (totalComfort >= startingPatience * 1.2 && suitableTemplates.Any(t => t.Category == LetterCategory.Quality))
+        {
+            // High comfort gets quality letters
+            selectedTemplate = suitableTemplates.Where(t => t.Category == LetterCategory.Quality).First();
+        }
+        else
+        {
+            // Basic comfort gets basic letters
+            selectedTemplate = suitableTemplates.Where(t => t.Category == LetterCategory.Basic).FirstOrDefault() ?? suitableTemplates.First();
+        }
+        
+        // Generate letter from template
+        Letter? letter = CreateLetterFromConversationSuccess(npc, selectedTemplate, totalComfort, startingPatience, reachedPerfectThreshold);
+        
+        if (letter != null)
+        {
+            generatedLetters.Add(letter);
+            
+            // Perfect conversations might generate additional letters
+            if (reachedPerfectThreshold && _random.Next(100) < 40) // 40% chance for bonus letter
+            {
+                Letter? bonusLetter = CreateBonusLetter(npc, letterType);
+                if (bonusLetter != null)
+                {
+                    generatedLetters.Add(bonusLetter);
+                    Console.WriteLine($"[NPCLetterOfferService] Perfect conversation bonus: Generated additional letter");
+                }
+            }
+        }
+        
+        Console.WriteLine($"[NPCLetterOfferService] Returning {generatedLetters.Count} letters from conversation");
+        
+        return generatedLetters;
+    }
+    
+    /// <summary>
+    /// Create letter from conversation success
+    /// </summary>
+    private Letter CreateLetterFromConversationSuccess(NPC npc, LetterTemplate template, int totalComfort, int startingPatience, bool perfectConversation)
+    {
+        // Find recipient NPC (different from sender)
+        List<NPC> allNPCs = _npcRepository.GetAllNPCs();
+        List<NPC> possibleRecipients = allNPCs.Where(n => n.ID != npc.ID).ToList();
+        
+        if (!possibleRecipients.Any())
+        {
+            return null;
+        }
+        
+        NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
+        
+        // Generate letter using template
+        Letter? letter = _letterTemplateRepository.GenerateLetterFromTemplate(template, npc.Name, recipient.Name);
+        
+        if (letter != null)
+        {
+            // Apply comfort-based bonuses
+            int basePayment = _random.Next(template.MinPayment, template.MaxPayment + 1);
+            int comfortBonus = Math.Max(0, (totalComfort - startingPatience) / 2); // +1 coin per 2 comfort over threshold
+            int perfectBonus = perfectConversation ? 5 : 0;
+            
+            letter.Payment = basePayment + comfortBonus + perfectBonus;
+            
+            // Generous deadlines for conversation-generated letters
+            int baseDeadline = _random.Next(template.MinDeadlineInHours, template.MaxDeadlineInHours + 1);
+            int generosityBonus = perfectConversation ? 24 : 12; // +1 or +0.5 days extra
+            letter.DeadlineInHours = baseDeadline + generosityBonus;
+            
+            // Mark as conversation-generated
+            letter.IsGenerated = true;
+            letter.GenerationReason = perfectConversation ? "Perfect Conversation" : "Successful Conversation";
+            letter.TokenType = template.TokenType;
+            
+            Console.WriteLine($"[NPCLetterOfferService] Generated {template.Category} {template.TokenType} letter: {letter.Payment} coins, {letter.DeadlineInHours}h deadline");
+        }
+        
+        return letter;
+    }
+    
+    /// <summary>
+    /// Create bonus letter for perfect conversations
+    /// </summary>
+    private Letter CreateBonusLetter(NPC npc, ConnectionType primaryType)
+    {
+        // Bonus letters are often different type to diversify queue
+        List<ConnectionType> allTypes = Enum.GetValues<ConnectionType>().ToList();
+        ConnectionType bonusType = allTypes.Where(t => t != primaryType).OrderBy(x => _random.Next()).First();
+        
+        List<LetterTemplate> bonusTemplates = _letterTemplateRepository.GetTemplatesByTokenType(bonusType)
+            .Where(t => t.Category == LetterCategory.Basic) // Bonus letters are basic category
+            .ToList();
+            
+        if (!bonusTemplates.Any())
+        {
+            return null;
+        }
+        
+        LetterTemplate bonusTemplate = bonusTemplates[_random.Next(bonusTemplates.Count)];
+        
+        // Find recipient
+        List<NPC> allNPCs = _npcRepository.GetAllNPCs();
+        List<NPC> possibleRecipients = allNPCs.Where(n => n.ID != npc.ID).ToList();
+        
+        if (!possibleRecipients.Any())
+        {
+            return null;
+        }
+        
+        NPC recipient = possibleRecipients[_random.Next(possibleRecipients.Count)];
+        
+        Letter? bonusLetter = _letterTemplateRepository.GenerateLetterFromTemplate(bonusTemplate, npc.Name, recipient.Name);
+        
+        if (bonusLetter != null)
+        {
+            bonusLetter.Payment = _random.Next(bonusTemplate.MinPayment, bonusTemplate.MaxPayment + 1);
+            bonusLetter.DeadlineInHours = _random.Next(bonusTemplate.MinDeadlineInHours, bonusTemplate.MaxDeadlineInHours + 1);
+            bonusLetter.IsGenerated = true;
+            bonusLetter.GenerationReason = "Perfect Conversation Bonus";
+            bonusLetter.TokenType = bonusType;
+        }
+        
+        return bonusLetter;
+    }
+    
+    /// <summary>
+    /// Determine the highest relationship type with an NPC
+    /// </summary>
+    private ConnectionType GetHighestRelationshipType(Dictionary<ConnectionType, int> tokens)
+    {
+        if (!tokens.Any() || tokens.Values.All(v => v == 0))
+        {
+            return ConnectionType.Trust; // Default to Trust for new relationships
+        }
+        
+        return tokens.OrderByDescending(kvp => kvp.Value).First().Key;
+    }
 }
 
 /// <summary>

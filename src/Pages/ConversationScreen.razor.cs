@@ -78,16 +78,8 @@ public class ConversationScreenBase : ComponentBase
             // Map FocusPoints to Patience for UI display (these represent NPC patience in conversation)
             CurrentPatience = conversationState.FocusPoints;
             MaxPatience = conversationState.MaxFocusPoints;
-            // For now, use a simple comfort calculation based on emotional state
-            CurrentComfort = Model?.EmotionalState switch
-            {
-                NPCEmotionalState.DESPERATE => -1,
-                NPCEmotionalState.ANXIOUS => -1,
-                NPCEmotionalState.CALCULATING => 0,
-                NPCEmotionalState.WITHDRAWN => -2,
-                NPCEmotionalState.HOSTILE => -2,
-                _ => 0
-            };
+            // Use actual comfort tracking from conversation state
+            CurrentComfort = conversationState.TotalComfort;
         }
         else
         {
@@ -502,25 +494,95 @@ public class ConversationScreenBase : ComponentBase
     
     protected string GetComfortClass()
     {
-        return CurrentComfort switch
-        {
-            <= -2 => "comfort-hostile",
-            -1 => "comfort-uncomfortable", 
-            0 => "comfort-neutral",
-            1 => "comfort-at-ease",
-            _ => "comfort-relaxed"  // 2 and above
-        };
+        var conversationManager = GameFacade.GetCurrentConversationManager();
+        var state = conversationManager?.State;
+        
+        if (state == null) return "comfort-neutral";
+        
+        // Use threshold-based classes for meaningful feedback
+        if (state.HasReachedPerfectThreshold())
+            return "comfort-perfect";
+        else if (state.HasReachedLetterThreshold()) 
+            return "comfort-letter-ready";
+        else if (state.HasReachedMaintainThreshold())
+            return "comfort-maintaining";
+        else if (CurrentComfort > 0)
+            return "comfort-building";
+        else if (CurrentComfort == 0)
+            return "comfort-neutral";
+        else
+            return "comfort-declining";
     }
     
     protected string GetComfortDescription()
     {
-        return CurrentComfort switch
+        var conversationManager = GameFacade.GetCurrentConversationManager();
+        var state = conversationManager?.State;
+        
+        if (state == null) return "Unknown";
+        
+        // Show threshold progress for meaningful feedback
+        if (state.HasReachedPerfectThreshold())
+            return $"Perfect! ({CurrentComfort})";
+        else if (state.HasReachedLetterThreshold()) 
+            return $"Trust Earned ({CurrentComfort})";
+        else if (state.HasReachedMaintainThreshold())
+            return $"Comfortable ({CurrentComfort})";
+        else if (CurrentComfort > 0)
+            return $"Building ({CurrentComfort})";
+        else if (CurrentComfort == 0)
+            return "Neutral (0)";
+        else
+            return $"Strained ({CurrentComfort})";
+    }
+    
+    protected string GetComfortProgressHint()
+    {
+        var conversationManager = GameFacade.GetCurrentConversationManager();
+        var state = conversationManager?.State;
+        
+        if (state == null) return "";
+        
+        int maintainThreshold = (int)(state.StartingPatience * GameRules.COMFORT_MAINTAIN_THRESHOLD);
+        int letterThreshold = (int)(state.StartingPatience * GameRules.COMFORT_LETTER_THRESHOLD);
+        int perfectThreshold = (int)(state.StartingPatience * GameRules.COMFORT_PERFECT_THRESHOLD);
+        
+        if (state.HasReachedPerfectThreshold())
+            return "Perfect conversation achieved!";
+        else if (state.HasReachedLetterThreshold())
+            return $"Letter available! ({perfectThreshold - CurrentComfort} more for perfect)";
+        else if (state.HasReachedMaintainThreshold())
+            return $"Good relationship! ({letterThreshold - CurrentComfort} more for letter)";
+        else
+            return $"Need {maintainThreshold - CurrentComfort} more to maintain relationship";
+    }
+    
+    protected double GetComfortProgressPercentage()
+    {
+        var conversationManager = GameFacade.GetCurrentConversationManager();
+        var state = conversationManager?.State;
+        
+        if (state == null) return 0;
+        
+        int perfectThreshold = (int)(state.StartingPatience * GameRules.COMFORT_PERFECT_THRESHOLD);
+        if (perfectThreshold == 0) return 0;
+        
+        return Math.Min(100, (double)CurrentComfort / perfectThreshold * 100);
+    }
+    
+    protected string GetComfortThresholdClass(string thresholdType)
+    {
+        var conversationManager = GameFacade.GetCurrentConversationManager();
+        var state = conversationManager?.State;
+        
+        if (state == null) return "";
+        
+        return thresholdType switch
         {
-            <= -2 => "Hostile",
-            -1 => "Uncomfortable", 
-            0 => "Neutral",
-            1 => "At Ease",
-            _ => "Relaxed"  // 2 and above
+            "maintain" => state.HasReachedMaintainThreshold() ? "reached" : "",
+            "letter" => state.HasReachedLetterThreshold() ? "reached" : "",
+            "perfect" => state.HasReachedPerfectThreshold() ? "reached" : "",
+            _ => ""
         };
     }
 }

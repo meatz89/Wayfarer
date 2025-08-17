@@ -135,6 +135,9 @@ public static class ServiceConfiguration
         // ConversationChoiceGenerator is now created per-conversation in ConversationFactory
         services.AddSingleton<ConversationFactory>();
 
+        // Context and tag calculation
+        services.AddSingleton<ContextTagCalculator>();
+
         // Attention management
         services.AddSingleton<TimeBlockAttentionManager>();
 

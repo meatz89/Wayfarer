@@ -2372,9 +2372,10 @@ public class GameFacade : ILetterQueueOperations
         
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Choice processed. Conversation complete: {outcome.IsConversationComplete}");
         
-        // If conversation is complete, clear it
+        // If conversation is complete, check comfort thresholds and generate letters
         if (outcome.IsConversationComplete)
         {
+            await ProcessConversationCompletion(currentConversation);
             _conversationStateManager.ClearPendingConversation();
             Console.WriteLine($"[GameFacade.ProcessConversationChoice] Conversation completed and cleared");
             return null;
@@ -3238,10 +3239,149 @@ public class GameFacade : ILetterQueueOperations
     
     public async Task<bool> EndConversationAsync()
     {
+        // Check comfort thresholds before ending conversation
+        var currentConversation = _conversationStateManager.PendingConversationManager;
+        if (currentConversation != null)
+        {
+            await ProcessConversationCompletion(currentConversation);
+        }
+        
         // End any active conversation
         _conversationStateManager.ClearPendingConversation();
         _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
         return await Task.FromResult(true);
+    }
+    
+    /// <summary>
+    /// Process conversation completion - check comfort thresholds and generate letters
+    /// </summary>
+    private async Task ProcessConversationCompletion(ConversationManager conversation)
+    {
+        var state = conversation.State;
+        var npc = conversation.Context.TargetNPC;
+        
+        if (state == null || npc == null)
+        {
+            Console.WriteLine("[GameFacade] Cannot process conversation completion - missing state or NPC");
+            return;
+        }
+        
+        int totalComfort = state.TotalComfort;
+        int startingPatience = state.StartingPatience;
+        
+        Console.WriteLine($"[GameFacade] Processing conversation completion with {npc.Name} - Comfort: {totalComfort}, Starting Patience: {startingPatience}");
+        
+        // Check if minimum threshold for relationship maintenance was reached
+        if (!state.HasReachedMaintainThreshold())
+        {
+            _messageSystem.AddSystemMessage($"Conversation with {npc.Name} ended awkwardly", SystemMessageTypes.Warning);
+            Console.WriteLine($"[GameFacade] Conversation did not reach maintain threshold ({startingPatience * GameRules.COMFORT_MAINTAIN_THRESHOLD})");
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage($"Good conversation with {npc.Name}", SystemMessageTypes.Success);
+        }
+        
+        // Check for letter generation threshold
+        if (state.HasReachedLetterThreshold())
+        {
+            Console.WriteLine($"[GameFacade] Letter threshold reached! Generating letters from conversation");
+            
+            try
+            {
+                var generatedLetters = _letterOfferService.GenerateFromConversation(npc.ID, totalComfort, startingPatience);
+                
+                Console.WriteLine($"[GameFacade] Generated {generatedLetters.Count} letters from conversation");
+                Console.WriteLine($"[GameFacade] generatedLetters.Any(): {generatedLetters.Any()}");
+                Console.WriteLine($"[GameFacade] generatedLetters is null: {generatedLetters == null}");
+                if (generatedLetters != null && generatedLetters.Count > 0)
+                {
+                    for (int i = 0; i < generatedLetters.Count; i++)
+                    {
+                        var letter = generatedLetters[i];
+                        Console.WriteLine($"[GameFacade] Letter {i}: {(letter == null ? "NULL" : $"Valid - {letter.Id}")}");
+                    }
+                }
+                
+                if (generatedLetters.Count > 0)
+                {
+                    Console.WriteLine($"[GameFacade] Entering foreach loop for {generatedLetters.Count} letters");
+                    foreach (var letter in generatedLetters)
+                    {
+                        if (letter == null)
+                        {
+                            Console.WriteLine($"[GameFacade] Skipping null letter in collection");
+                            continue;
+                        }
+                        
+                        Console.WriteLine($"[GameFacade] Processing letter: {letter.Id} - {letter.SenderName} to {letter.RecipientName}");
+                        // Add letters to queue using existing positioning logic
+                        int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
+                        Console.WriteLine($"[GameFacade] Letter added to queue at position: {position}");
+                        
+                        string perfectBonus = state.HasReachedPerfectThreshold() ? " (Perfect Conversation!)" : "";
+                        _messageSystem.AddSystemMessage(
+                            $"✉️ {npc.Name} trusts you with a {letter.TokenType} letter{perfectBonus}", 
+                            SystemMessageTypes.Success
+                        );
+                        _messageSystem.AddSystemMessage(
+                            $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInHours/24} days deadline", 
+                            SystemMessageTypes.Info
+                        );
+                    }
+                    
+                    // Show queue impact
+                    var queueSnapshot = GetQueueSnapshot();
+                    int filledSlots = queueSnapshot.Count(letter => letter != null);
+                    _messageSystem.AddSystemMessage(
+                        $"📋 Queue: {filledSlots}/{queueSnapshot.Length} slots", 
+                        SystemMessageTypes.Info
+                    );
+                }
+                else
+                {
+                    Console.WriteLine($"[GameFacade] Letter threshold reached but no letters generated");
+                    _messageSystem.AddSystemMessage($"{npc.Name} considered offering a letter but has none available right now", SystemMessageTypes.Info);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GameFacade] Error generating letters from conversation: {ex.Message}");
+                _messageSystem.AddSystemMessage("Something went wrong with letter generation", SystemMessageTypes.Danger);
+            }
+        }
+        else
+        {
+            Console.WriteLine($"[GameFacade] Letter threshold not reached (need {startingPatience * GameRules.COMFORT_LETTER_THRESHOLD}, got {totalComfort})");
+        }
+        
+        // Perfect conversation bonus feedback
+        if (state.HasReachedPerfectThreshold())
+        {
+            _messageSystem.AddSystemMessage($"🌟 Perfect conversation with {npc.Name}! Your bond has deepened significantly.", SystemMessageTypes.Success);
+            
+            // Award bonus relationship tokens for perfect conversations
+            var highestTokenType = GetHighestRelationshipType(npc.ID);
+            _connectionTokenManager.AddTokensToNPC(highestTokenType, 1, npc.ID);
+            
+            Console.WriteLine($"[GameFacade] Perfect conversation bonus: +1 {highestTokenType} token with {npc.Name}");
+        }
+        
+        await Task.CompletedTask;
+    }
+    
+    /// <summary>
+    /// Get the highest relationship type with an NPC for bonus rewards
+    /// </summary>
+    private ConnectionType GetHighestRelationshipType(string npcId)
+    {
+        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        if (!tokens.Any() || tokens.Values.All(v => v == 0))
+        {
+            return ConnectionType.Trust; // Default to Trust for new relationships
+        }
+        
+        return tokens.OrderByDescending(kvp => kvp.Value).First().Key;
     }
     
     public void RefreshLocationState()

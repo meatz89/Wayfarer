@@ -287,6 +287,46 @@ body {
     min-width: 100px;
 }
 
+/* Threshold-based comfort indicators */
+.comfort-perfect {
+    background: linear-gradient(135deg, #ffd700, #ffb347);
+    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5);
+    transform: scale(1.1);
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from { box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5); }
+    to { box-shadow: 0 6px 12px rgba(255, 215, 0, 0.8); }
+}
+
+.comfort-letter-ready {
+    background: var(--effect-positive);
+    box-shadow: 0 3px 6px rgba(76, 175, 80, 0.4);
+    transform: scale(1.05);
+}
+
+.comfort-maintaining {
+    background: #4caf50;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.comfort-building {
+    background: #8bc34a;
+    box-shadow: 0 2px 4px rgba(139, 195, 74, 0.3);
+}
+
+.comfort-neutral {
+    background: var(--state-neutral);
+    box-shadow: 0 2px 4px rgba(107, 93, 79, 0.3);
+}
+
+.comfort-declining {
+    background: var(--state-anxious);
+    box-shadow: 0 2px 4px rgba(255, 165, 0, 0.3);
+}
+
+/* Legacy classes for backwards compatibility */
 .comfort-hostile {
     background: var(--state-hostile);
     box-shadow: 0 2px 4px rgba(139, 0, 0, 0.3);
@@ -295,11 +335,6 @@ body {
 .comfort-uncomfortable {
     background: var(--state-anxious);
     box-shadow: 0 2px 4px rgba(255, 165, 0, 0.3);
-}
-
-.comfort-neutral {
-    background: var(--state-neutral);
-    box-shadow: 0 2px 4px rgba(107, 93, 79, 0.3);
 }
 
 .comfort-at-ease {
@@ -311,6 +346,82 @@ body {
     background: var(--effect-positive);
     box-shadow: 0 2px 4px rgba(76, 175, 80, 0.4);
     transform: scale(1.05);
+}
+
+/* Comfort progress hint styling */
+.comfort-progress-hint {
+    font-size: 11px;
+    color: var(--ink-brown);
+    text-align: center;
+    margin-top: 4px;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+/* Enhanced Comfort Progress Bar */
+.comfort-progress-bar {
+    position: relative;
+    width: 120px;
+    height: 8px;
+    background: var(--parchment-dark);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    margin: 6px 0;
+    overflow: hidden;
+}
+
+.comfort-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--effect-positive), var(--attention-gold));
+    border-radius: 3px;
+    transition: width 0.5s ease-out;
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.3);
+}
+
+.comfort-thresholds {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.threshold {
+    position: absolute;
+    top: -2px;
+    width: 3px;
+    height: 12px;
+    background: var(--border-subtle);
+    border-radius: 1px;
+    transition: all 0.3s ease;
+}
+
+.threshold.maintain {
+    left: 50%; /* 50% of perfect threshold */
+    transform: translateX(-50%);
+}
+
+.threshold.letter {
+    left: 80%; /* 80% of perfect threshold */
+    transform: translateX(-50%);
+}
+
+.threshold.perfect {
+    right: 0;
+    width: 2px;
+    background: var(--attention-gold);
+}
+
+.threshold.reached {
+    background: var(--attention-gold);
+    box-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
+    transform: translateX(-50%) scale(1.2);
+}
+
+.threshold.perfect.reached {
+    transform: scale(1.2);
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.8);
 }
 
 /* ==================== Beautiful SVG-Style Icons (No Unicode) ====================

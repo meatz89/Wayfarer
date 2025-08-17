@@ -87,6 +87,13 @@ public class ConversationManager
             Console.WriteLine($"[ConversationManager] Choice costs {selectedChoice.PatienceCost} patience");
         }
 
+        // Apply comfort gain/loss from the choice
+        if (selectedChoice.ComfortGain != 0)
+        {
+            _state.AddComfort(selectedChoice.ComfortGain);
+            Console.WriteLine($"[ConversationManager] Applied {selectedChoice.ComfortGain} comfort. Total: {_state.TotalComfort}");
+        }
+
         // Apply all mechanical effects from the choice
         if (selectedChoice.MechanicalEffects != null)
         {
@@ -161,6 +168,9 @@ public class ConversationChoice
     public string SuccessNarrative { get; internal set; }
     public string FailureNarrative { get; internal set; }
     public SkillOption SkillOption { get; set; }
+    
+    // Comfort gain/loss from this choice (from ConversationCard)
+    public int ComfortGain { get; set; }
     public bool RequiresSkillCheck { get; internal set; }
 
     // Category-based properties for letter offers

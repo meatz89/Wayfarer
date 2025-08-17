@@ -14,9 +14,13 @@ public class ConversationState
     public string CurrentNarrative { get; set; }
     public string LastChoiceNarrative { get; set; }
 
-    // Focus for complex conversations
+    // Focus for complex conversations (maps to Patience in UI)
     public int FocusPoints { get; set; }
     public int MaxFocusPoints { get; set; }
+    
+    // Comfort tracking for letter generation thresholds
+    public int TotalComfort { get; set; }
+    public int StartingPatience { get; set; }
 
     // UI state flags
     public bool IsQueueInterfaceOpen { get; set; }
@@ -32,6 +36,8 @@ public class ConversationState
         MaxFocusPoints = maxFocusPoints;
         MaxDuration = maxDuration;
         FocusPoints = MaxFocusPoints;
+        StartingPatience = maxFocusPoints;
+        TotalComfort = 0;
         DurationCounter = 0;
         IsConversationComplete = false;
         ConversationSeed = Environment.TickCount;
@@ -45,5 +51,37 @@ public class ConversationState
         {
             IsConversationComplete = true;
         }
+    }
+    
+    /// <summary>
+    /// Add comfort from successful card plays
+    /// </summary>
+    public void AddComfort(int amount)
+    {
+        TotalComfort += amount;
+    }
+    
+    /// <summary>
+    /// Check if comfort threshold for letter generation is met
+    /// </summary>
+    public bool HasReachedLetterThreshold()
+    {
+        return TotalComfort >= StartingPatience;
+    }
+    
+    /// <summary>
+    /// Check if comfort threshold for perfect conversation is met
+    /// </summary>
+    public bool HasReachedPerfectThreshold()
+    {
+        return TotalComfort >= (StartingPatience * 1.5);
+    }
+    
+    /// <summary>
+    /// Check if minimum comfort to maintain relationship is met
+    /// </summary>
+    public bool HasReachedMaintainThreshold()
+    {
+        return TotalComfort >= (StartingPatience / 2);
     }
 }

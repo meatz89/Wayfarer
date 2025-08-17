@@ -29,4 +29,9 @@
     // Standing Obligations: Crisis Card Rewards
     public const int CRISIS_CARD_TOKEN_REWARD = 3;     // Immediate token gain from crisis cards (US-8.1)
     public const int OBLIGATION_BREAKING_PENALTY = 5;  // Token loss for breaking obligations (US-8.3)
+    
+    // Conversation Comfort Thresholds
+    public const double COMFORT_MAINTAIN_THRESHOLD = 0.5;    // Comfort ≥ Patience/2: Maintain relationship
+    public const double COMFORT_LETTER_THRESHOLD = 1.0;      // Comfort ≥ Patience: Letter becomes available
+    public const double COMFORT_PERFECT_THRESHOLD = 1.5;     // Comfort ≥ Patience × 1.5: Perfect conversation bonus
 }
