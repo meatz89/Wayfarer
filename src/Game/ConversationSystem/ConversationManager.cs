@@ -65,7 +65,7 @@ public class ConversationManager
             {
                 choiceTemplates = actionContext.AvailableTemplates;
             }
-            
+
             Choices = await _narrativeProvider.GenerateChoices(
                 _context,
                 _state,
@@ -98,7 +98,7 @@ public class ConversationManager
         if (selectedChoice.MechanicalEffects != null)
         {
             Console.WriteLine($"[ConversationManager] Applying {selectedChoice.MechanicalEffects.Count} mechanical effects");
-            foreach (var effect in selectedChoice.MechanicalEffects)
+            foreach (IMechanicalEffect effect in selectedChoice.MechanicalEffects)
             {
                 try
                 {
@@ -128,7 +128,7 @@ public class ConversationManager
 
         // Check if conversation should complete
         // Conversation ends if: no attention left, or player chose to leave
-        bool shouldComplete = _context?.AttentionManager?.Current == 0 || 
+        bool shouldComplete = _context?.AttentionManager?.Current == 0 ||
                              selectedChoice.ChoiceID == "exit" ||
                              selectedChoice.ChoiceID == "leave" ||
                              selectedChoice.NarrativeText.Contains("need to go") ||
@@ -168,7 +168,7 @@ public class ConversationChoice
     public string SuccessNarrative { get; internal set; }
     public string FailureNarrative { get; internal set; }
     public SkillOption SkillOption { get; set; }
-    
+
     // Comfort gain/loss from this choice (from ConversationCard)
     public int ComfortGain { get; set; }
     public bool RequiresSkillCheck { get; internal set; }
@@ -180,7 +180,7 @@ public class ConversationChoice
     // Delivery-specific properties
     public DeliveryOutcome DeliveryOutcome { get; set; }
     public int Priority { get; set; } = 0;
-    
+
     // UI display properties
     public bool IsLocked { get; set; }
 
@@ -190,16 +190,16 @@ public class ConversationChoice
     public int? TimeModifierMinutes { get; set; }
     public int? StaminaCost { get; set; }
     public int? CoinReward { get; set; }
-    
+
     // Card-based conversation system - no verb references needed
-    
+
     // Mechanical description for UI display
     public string MechanicalDescription { get; set; }
     public bool IsAvailable { get; set; }
-    
+
     // Mechanical effects to apply when choice is selected
     public List<IMechanicalEffect> MechanicalEffects { get; set; }
-    
+
     // Multiple system effects - choices should touch 2-3 systems minimum
     public string BodyLanguageHint { get; set; } // "Relief floods their features"
 }

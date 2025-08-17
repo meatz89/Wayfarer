@@ -12,24 +12,24 @@ namespace Wayfarer.Services
     {
         private readonly GameFacade _gameFacade;
         private readonly ITimeManager _timeManager;
-        
+
         private CurrentViews _currentView = CurrentViews.LocationScreen;
         private CurrentViews _previousView = CurrentViews.LocationScreen;
         private bool _isTransitioning = false;
-        
+
         // Context for certain screens
         private string _currentNpcId = null;
         private string _targetLocationId = null;
-        
+
         public CurrentViews CurrentView => _currentView;
         public bool IsTransitioning => _isTransitioning;
-        
+
         public NavigationCoordinator(GameFacade gameFacade, ITimeManager timeManager)
         {
             _gameFacade = gameFacade;
             _timeManager = timeManager;
         }
-        
+
         /// <summary>
         /// Navigate to a screen with validation
         /// </summary>
@@ -37,11 +37,11 @@ namespace Wayfarer.Services
         {
             if (_isTransitioning)
                 return false;
-                
+
             // Validate transition
             if (!CanNavigateTo(targetView, context))
                 return false;
-            
+
             _isTransitioning = true;
             try
             {
@@ -54,17 +54,17 @@ namespace Wayfarer.Services
                 {
                     _targetLocationId = locationId;
                 }
-                
+
                 // Perform any cleanup for current screen
                 await OnLeavingScreen(_currentView);
-                
+
                 // Update state
-                var previousView = _currentView;
+                CurrentViews previousView = _currentView;
                 _currentView = targetView;
-                
+
                 // Initialize new screen
                 await OnEnteringScreen(targetView, context);
-                
+
                 return true;
             }
             finally
@@ -72,7 +72,7 @@ namespace Wayfarer.Services
                 _isTransitioning = false;
             }
         }
-        
+
         /// <summary>
         /// Check if navigation to target is allowed from current state
         /// </summary>
@@ -81,7 +81,7 @@ namespace Wayfarer.Services
             // Can't navigate while already transitioning
             if (_isTransitioning)
                 return false;
-            
+
             // Define allowed transitions
             switch (_currentView)
             {
@@ -91,28 +91,28 @@ namespace Wayfarer.Services
                            targetView == CurrentViews.LetterQueueScreen ||
                            targetView == CurrentViews.TravelScreen ||
                            (targetView == CurrentViews.LetterBoardScreen && _timeManager.GetCurrentTimeBlock() == TimeBlocks.Dawn);
-                
+
                 case CurrentViews.ConversationScreen:
                     // From conversation, can only return to location
                     return targetView == CurrentViews.LocationScreen;
-                
+
                 case CurrentViews.LetterQueueScreen:
                     // From queue, can return to location
                     return targetView == CurrentViews.LocationScreen;
-                
+
                 case CurrentViews.TravelScreen:
                     // From travel selection, can go to location (cancel or arrive)
                     return targetView == CurrentViews.LocationScreen;
-                
+
                 case CurrentViews.LetterBoardScreen:
                     // From letter board, return to location
                     return targetView == CurrentViews.LocationScreen;
-                
+
                 default:
                     return false;
             }
         }
-        
+
         /// <summary>
         /// Get user-friendly reason why navigation is blocked
         /// </summary>
@@ -120,19 +120,19 @@ namespace Wayfarer.Services
         {
             if (_isTransitioning)
                 return "Please wait...";
-            
+
             if (_currentView == CurrentViews.ConversationScreen && targetView != CurrentViews.LocationScreen)
                 return "Finish your conversation first";
-            
+
             if (targetView == CurrentViews.LetterBoardScreen && _timeManager.GetCurrentTimeBlock() != TimeBlocks.Dawn)
                 return "Letter board only opens at dawn";
-            
+
             if (targetView == CurrentViews.TravelScreen && _currentView == CurrentViews.ConversationScreen)
                 return "Can't travel during a conversation";
-            
+
             return "Can't go there from here";
         }
-        
+
         private async Task OnLeavingScreen(CurrentViews screen)
         {
             switch (screen)
@@ -145,13 +145,13 @@ namespace Wayfarer.Services
                         _currentNpcId = null;
                     }
                     break;
-                
+
                 case CurrentViews.TravelScreen:
                     _targetLocationId = null;
                     break;
             }
         }
-        
+
         private async Task OnEnteringScreen(CurrentViews screen, object context)
         {
             switch (screen)
@@ -163,14 +163,14 @@ namespace Wayfarer.Services
                         await _gameFacade.StartConversationAsync(npcId);
                     }
                     break;
-                
+
                 case CurrentViews.LocationScreen:
                     // Refresh location state
                     _gameFacade.RefreshLocationState();
                     break;
             }
         }
-        
+
         /// <summary>
         /// Quick navigation helpers for common transitions
         /// </summary>
@@ -178,17 +178,17 @@ namespace Wayfarer.Services
         {
             return await NavigateToAsync(CurrentViews.LocationScreen);
         }
-        
+
         public async Task<bool> OpenLetterQueueAsync()
         {
             return await NavigateToAsync(CurrentViews.LetterQueueScreen);
         }
-        
+
         public async Task<bool> StartConversationAsync(string npcId)
         {
             return await NavigateToAsync(CurrentViews.ConversationScreen, npcId);
         }
-        
+
         public async Task<bool> OpenTravelSelectionAsync(string targetLocationId = null)
         {
             return await NavigateToAsync(CurrentViews.TravelScreen, targetLocationId);

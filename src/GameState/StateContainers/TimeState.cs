@@ -20,7 +20,7 @@ public sealed class TimeState
 
     // Public properties with validation
     public int CurrentHour => _currentHour;
-    
+
     public int CurrentMinute => _currentMinute;
 
     public int CurrentDay => _currentDay;
@@ -41,7 +41,7 @@ public sealed class TimeState
 
         if (hour < 0 || hour >= HOURS_PER_DAY)
             throw new ArgumentException($"Hour must be between 0 and {HOURS_PER_DAY - 1}", nameof(hour));
-            
+
         if (minute < 0 || minute >= 60)
             throw new ArgumentException("Minute must be between 0 and 59", nameof(minute));
 
@@ -79,7 +79,7 @@ public sealed class TimeState
             CrossedTimeBlock = oldTimeBlock != newState.CurrentTimeBlock
         };
     }
-    
+
     /// <summary>
     /// Creates a new TimeState by advancing time by minutes.
     /// Properly handles hour and day rollovers.
@@ -90,12 +90,12 @@ public sealed class TimeState
             throw new ArgumentException("Minutes to advance must be positive", nameof(minutes));
 
         TimeBlocks oldTimeBlock = CurrentTimeBlock;
-        
+
         // Calculate new time
         int totalMinutes = _currentMinute + minutes;
         int additionalHours = totalMinutes / 60;
         int newMinute = totalMinutes % 60;
-        
+
         int totalHours = _currentHour + additionalHours;
         int daysAdvanced = totalHours / HOURS_PER_DAY;
         int newHour = totalHours % HOURS_PER_DAY;
@@ -133,14 +133,14 @@ public sealed class TimeState
     {
         return new TimeState(_currentDay + 1, ACTIVE_DAY_START, 0);
     }
-    
+
     /// <summary>
     /// Gets a human-readable time string.
     /// </summary>
     public string GetTimeString()
     {
-        var period = _currentHour >= 12 ? "PM" : "AM";
-        var displayHour = _currentHour > 12 ? _currentHour - 12 : (_currentHour == 0 ? 12 : _currentHour);
+        string period = _currentHour >= 12 ? "PM" : "AM";
+        int displayHour = _currentHour > 12 ? _currentHour - 12 : (_currentHour == 0 ? 12 : _currentHour);
         return $"{displayHour}:{_currentMinute:D2} {period}";
     }
 

@@ -15,7 +15,7 @@ public class RevealLetterPropertyEffect : IMechanicalEffect
     private readonly Player _player;
 
     public RevealLetterPropertyEffect(
-        string letterId, 
+        string letterId,
         string propertyToReveal,
         LetterQueueManager queueManager,
         Player player)
@@ -28,11 +28,11 @@ public class RevealLetterPropertyEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        var position = _queueManager.GetLetterPosition(_letterId);
+        int? position = _queueManager.GetLetterPosition(_letterId);
         if (!position.HasValue) return;
-        
-        var letter = _queueManager.GetLetterAt(position.Value);
-        
+
+        Letter letter = _queueManager.GetLetterAt(position.Value);
+
         // Store the revealed information as a memory
         string revelation = _propertyToReveal switch
         {
@@ -42,15 +42,15 @@ public class RevealLetterPropertyEffect : IMechanicalEffect
             "recipient" => $"The real recipient may not be {letter.RecipientName}",
             _ => $"Hidden truth about the letter: {_propertyToReveal}"
         };
-        
-        var memory = new MemoryFlag
+
+        MemoryFlag memory = new MemoryFlag
         {
             Key = $"letter_truth_{_letterId}",
             Description = revelation,
             Importance = 8,
             ExpirationDay = -1 // Permanent knowledge
         };
-        
+
         _player.Memories.Add(memory);
     }
 
@@ -89,25 +89,25 @@ public class PredictConsequenceEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        var position = _queueManager.GetLetterPosition(_letterId);
+        int? position = _queueManager.GetLetterPosition(_letterId);
         if (!position.HasValue) return;
-        
-        var letter = _queueManager.GetLetterAt(position.Value);
-        
+
+        Letter letter = _queueManager.GetLetterAt(position.Value);
+
         // Get actual consequence from the letter
         string predictedConsequence = letter.ConsequenceIfLate ?? "Unknown consequences";
-        
+
         // Store as strategic knowledge
-        var memory = new MemoryFlag
+        MemoryFlag memory = new MemoryFlag
         {
             Key = $"consequence_prediction_{_letterId}",
             Description = $"If {letter.RecipientName}'s letter fails: {predictedConsequence}",
             Importance = 9,
             ExpirationDay = -1
         };
-        
+
         _player.Memories.Add(memory);
-        
+
         // Also add strategic weight knowledge
         if (letter.Stakes == StakeType.SAFETY)
         {
@@ -155,17 +155,17 @@ public class LearnNPCScheduleEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        var npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == _npcId);
+        NPC? npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == _npcId);
         if (npc == null) return;
-        
+
         // Get NPC's schedule
-        var schedule = npc.DailySchedule;
+        List<ScheduleEntry> schedule = npc.DailySchedule;
         if (schedule == null || schedule.Count() == 0) return;
-        
+
         // Create detailed schedule knowledge
-        foreach (var entry in schedule)
+        foreach (ScheduleEntry entry in schedule)
         {
-            var memory = new MemoryFlag
+            MemoryFlag memory = new MemoryFlag
             {
                 Key = $"schedule_{_npcId}_{entry.TimeBlock}",
                 Description = $"{npc.Name} is at {entry.LocationId} during {entry.TimeBlock}",
@@ -174,9 +174,9 @@ public class LearnNPCScheduleEffect : IMechanicalEffect
             };
             _player.Memories.Add(memory);
         }
-        
+
         // Add summary knowledge
-        var summaryMemory = new MemoryFlag
+        MemoryFlag summaryMemory = new MemoryFlag
         {
             Key = $"schedule_summary_{_npcId}",
             Description = $"Learned {npc.Name}'s complete daily schedule",
@@ -220,25 +220,25 @@ public class DiscoverLetterNetworkEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        var position = _queueManager.GetLetterPosition(_letterId);
+        int? position = _queueManager.GetLetterPosition(_letterId);
         if (!position.HasValue) return;
-        
-        var letter = _queueManager.GetLetterAt(position.Value);
-        var allLetters = _queueManager.GetActiveLetters();
-        
+
+        Letter letter = _queueManager.GetLetterAt(position.Value);
+        Letter[] allLetters = _queueManager.GetActiveLetters();
+
         // Find related letters (same sender, recipient, or stakes)
-        var relatedLetters = allLetters.Where(l => 
-            l.Id != _letterId && 
-            (l.SenderId == letter.SenderId || 
+        List<Letter> relatedLetters = allLetters.Where(l =>
+            l.Id != _letterId &&
+            (l.SenderId == letter.SenderId ||
              l.RecipientId == letter.RecipientId ||
              l.Stakes == letter.Stakes)).ToList();
-        
+
         if (relatedLetters.Any())
         {
-            string connections = string.Join(", ", 
+            string connections = string.Join(", ",
                 relatedLetters.Select(l => $"{l.SenderName} to {l.RecipientName}"));
-            
-            var memory = new MemoryFlag
+
+            MemoryFlag memory = new MemoryFlag
             {
                 Key = $"letter_network_{_letterId}",
                 Description = $"This letter is connected to: {connections}",
@@ -246,7 +246,7 @@ public class DiscoverLetterNetworkEffect : IMechanicalEffect
             };
             _player.Memories.Add(memory);
         }
-        
+
         // Reveal if this letter affects others
         if (letter.Stakes == StakeType.REPUTATION)
         {
@@ -319,7 +319,7 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
         // Get positions of both letters
         int? pos1 = _queueManager.GetLetterPosition(_letterId1);
         int? pos2 = _queueManager.GetLetterPosition(_letterId2);
-        
+
         if (!pos1.HasValue || !pos2.HasValue)
         {
             throw new InvalidOperationException("One or both letters not found in queue");
@@ -328,11 +328,11 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
         // Get the letters
         Letter letter1 = _queueManager.GetLetterAt(pos1.Value);
         Letter letter2 = _queueManager.GetLetterAt(pos2.Value);
-        
+
         // Remove both from queue
         _queueManager.RemoveLetterFromQueue(Math.Max(pos1.Value, pos2.Value));
         _queueManager.RemoveLetterFromQueue(Math.Min(pos1.Value, pos2.Value));
-        
+
         // Add them back in swapped positions
         _queueManager.MoveLetterToPosition(letter2, pos1.Value);
         _queueManager.MoveLetterToPosition(letter1, pos2.Value);
@@ -340,21 +340,22 @@ public class SwapLetterPositionsEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        var text = _tokenCost > 0 
+        string text = _tokenCost > 0
             ? $"Swap two letters | -{_tokenCost} {_tokenType}"
             : "Swap two letter positions";
-            
-        var desc = new MechanicalEffectDescription {
+
+        MechanicalEffectDescription desc = new MechanicalEffectDescription
+        {
             Text = text,
             Category = EffectCategory.LetterSwap
         };
-        
+
         if (_tokenCost > 0)
         {
             desc.TokenType = _tokenType;
             desc.TokenAmount = _tokenCost;
         }
-        
+
         return new List<MechanicalEffectDescription> { desc };
     }
 }

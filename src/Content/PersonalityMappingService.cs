@@ -87,7 +87,7 @@ public class PersonalityMappingService
         }
 
         // Check for substring matches (for complex descriptions)
-        foreach (var mapping in PersonalityMappings)
+        foreach (KeyValuePair<string, PersonalityType> mapping in PersonalityMappings)
         {
             if (normalized.Contains(mapping.Key))
             {

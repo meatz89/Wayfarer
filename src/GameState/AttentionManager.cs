@@ -86,7 +86,7 @@ public class AttentionManager
         _currentAttention = _maxAttentionThisScene;
         _totalSpentThisScene = 0;
     }
-    
+
     /// <summary>
     /// Get current available attention without resetting
     /// </summary>
@@ -94,7 +94,7 @@ public class AttentionManager
     {
         return _currentAttention;
     }
-    
+
     /// <summary>
     /// Get maximum attention for this time block
     /// </summary>
@@ -102,7 +102,7 @@ public class AttentionManager
     {
         return _maxAttentionThisScene;
     }
-    
+
     /// <summary>
     /// Set maximum attention (used by TimeBlockAttentionManager)
     /// </summary>

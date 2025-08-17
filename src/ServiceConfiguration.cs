@@ -1,5 +1,5 @@
-﻿using Wayfarer.Services;
-using Wayfarer.GameState;
+﻿using Wayfarer.GameState;
+using Wayfarer.Services;
 
 public static class ServiceConfiguration
 {
@@ -55,7 +55,7 @@ public static class ServiceConfiguration
         services.AddSingleton<RouteDiscoveryRepository>();
         services.AddSingleton<NetworkUnlockRepository>();
         services.AddSingleton<LetterTemplateRepository>();
-        
+
         // Register content fallback service for resilience
         services.AddSingleton<ContentFallbackService>();
 
@@ -69,10 +69,10 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationCreationSystem>();
         services.AddSingleton<LocationPropertyManager>();
         services.AddTimeSystem();
-        
+
         // Literary UI System - attention, NPC states, verb contextualization
         services.AddLiteraryUISystem();
-        
+
         // Register NPCStateResolver with all dependencies
         services.AddSingleton<NPCStateResolver>();
 
@@ -96,18 +96,18 @@ public static class ServiceConfiguration
 
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();
-        
-        
+
+
         // Leverage Calculator for power dynamics
-        
+
         // Relationship tracking for contextual conversations
         services.AddSingleton<Wayfarer.GameState.NPCRelationshipTracker>();
-        
+
         // Contextual conversation system
         // Removed - using existing ConversationChoiceGenerator instead
-        
+
         // Card-based conversation system - no confrontation service needed
-        
+
         // Environmental Storytelling Systems
         services.AddSingleton<Wayfarer.GameState.WorldMemorySystem>();
         services.AddSingleton<Wayfarer.GameState.AmbientDialogueSystem>();

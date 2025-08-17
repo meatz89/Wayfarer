@@ -33,11 +33,11 @@ public class ActionGenerator
     /// </summary>
     public List<Wayfarer.ViewModels.LocationActionViewModel> GenerateActionsForLocation(Location location, LocationSpot spot)
     {
-        var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
-        var currentTime = _timeManager.GetCurrentTimeBlock();
+        List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
         // Check attention state to determine if wait/rest is needed
-        var attentionState = _timeBlockAttention?.GetAttentionState() ?? (3, 5);
+        (int current, int max) attentionState = _timeBlockAttention?.GetAttentionState() ?? (3, 5);
         bool isExhausted = attentionState.current == 0;
         bool isLowAttention = attentionState.current <= 1;
 
@@ -55,7 +55,7 @@ public class ActionGenerator
         // Generate service-based actions
         if (location.AvailableServices != null)
         {
-            foreach (var service in location.AvailableServices)
+            foreach (ServiceTypes service in location.AvailableServices)
             {
                 actions.AddRange(GenerateServiceActions(service, location, currentTime));
             }
@@ -92,8 +92,8 @@ public class ActionGenerator
 
     private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateServiceActions(ServiceTypes service, Location location, TimeBlocks currentTime)
     {
-        var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
-        var playerTier = _gameWorld.GetPlayer().CurrentTier;
+        List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+        TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
 
         switch (service)
         {
@@ -114,7 +114,7 @@ public class ActionGenerator
                 if (IsMarketOpen(currentTime))
                 {
                     // Basic trading is always T1 for now
-                    var tradeTier = TierLevel.T1;
+                    TierLevel tradeTier = TierLevel.T1;
                     actions.Add(CreateActionWithTierCheck(
                         "🛍️",
                         "Browse Wares",
@@ -146,14 +146,14 @@ public class ActionGenerator
 
     private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateSpotActions(LocationSpot spot, TimeBlocks currentTime)
     {
-        var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+        List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
 
         // Generate actions based on spot's domain tags
         if (spot.DomainTags != null)
         {
-            foreach (var tag in spot.DomainTags)
+            foreach (string tag in spot.DomainTags)
             {
-                var action = GenerateTagAction(tag, spot);
+                Wayfarer.ViewModels.LocationActionViewModel action = GenerateTagAction(tag, spot);
                 if (action != null)
                     actions.Add(action);
             }
@@ -164,34 +164,34 @@ public class ActionGenerator
 
     private Wayfarer.ViewModels.LocationActionViewModel GenerateTagAction(string tag, LocationSpot spot)
     {
-        var playerTier = _gameWorld.GetPlayer().CurrentTier;
-        
+        TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
+
         return tag.ToLower() switch
         {
             "social" => CreateActionWithTierCheck(
                 "💬", "Join Conversation", "Locals chatting", "15m",
                 TierLevel.T1, playerTier, null),
-                
+
             "commerce" => CreateActionWithTierCheck(
                 "🪙", "Trade Gossip", "Exchange news", "FREE",
                 TierLevel.T1, playerTier, null),
-                
+
             "religious" => CreateActionWithTierCheck(
                 "🕯️", "Light Candle", "Quiet moment", "1c",
                 TierLevel.T1, playerTier, null),
-                
+
             "nature" => CreateActionWithTierCheck(
                 "🌿", "Gather Herbs", "If you know them", "30m",
                 TierLevel.T2, playerTier, "herb_gathering"),
-                
+
             "shadow" => CreateActionWithTierCheck(
                 "🎭", "Whispered Deal", "Risky business", "2s",
                 TierLevel.T3, playerTier, "shadow_dealings"),
-                
+
             _ => null
         };
     }
-    
+
     /// <summary>
     /// Creates an action with tier checking and appropriate lock messages.
     /// </summary>
@@ -201,7 +201,7 @@ public class ActionGenerator
     {
         bool isAvailable = playerTier >= requiredTier;
         string lockReason = null;
-        
+
         if (!isAvailable)
         {
             lockReason = requiredTier switch
@@ -211,7 +211,7 @@ public class ActionGenerator
                 _ => null
             };
         }
-        
+
         return new Wayfarer.ViewModels.LocationActionViewModel
         {
             Icon = isAvailable ? icon : "🔒",
@@ -227,8 +227,8 @@ public class ActionGenerator
 
     private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateTimeBasedActions(Location location, TimeBlocks currentTime)
     {
-        var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
-        var playerTier = _gameWorld.GetPlayer().CurrentTier;
+        List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+        TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
 
         switch (currentTime)
         {
@@ -275,11 +275,11 @@ public class ActionGenerator
 
     private List<Wayfarer.ViewModels.LocationActionViewModel> GenerateAtmosphereActions(Location location)
     {
-        var actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
-        var playerTier = _gameWorld.GetPlayer().CurrentTier;
+        List<Wayfarer.ViewModels.LocationActionViewModel> actions = new List<Wayfarer.ViewModels.LocationActionViewModel>();
+        TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
 
         // Generate actions based on atmosphere
-        var atmosphereValue = location.Atmosphere?.GetPropertyValue();
+        string? atmosphereValue = location.Atmosphere?.GetPropertyValue();
         switch (atmosphereValue)
         {
             case "Tense":
@@ -308,7 +308,7 @@ public class ActionGenerator
         }
 
         // Generate actions based on physical properties
-        var physicalValue = location.Physical?.GetPropertyValue();
+        string? physicalValue = location.Physical?.GetPropertyValue();
         switch (physicalValue)
         {
             case "Expansive":
@@ -358,8 +358,8 @@ public class ActionGenerator
 
     private string GetRestDetail(Location location, TimeBlocks time)
     {
-        var baseTime = location.Physical?.GetPropertyValue() == "Expansive" ? "5 min" : "10 min";
-        var detail = time == TimeBlocks.Morning ? "Clear head" : "Catch breath";
+        string baseTime = location.Physical?.GetPropertyValue() == "Expansive" ? "5 min" : "10 min";
+        string detail = time == TimeBlocks.Morning ? "Clear head" : "Catch breath";
         return $"{baseTime} • {detail}";
     }
 

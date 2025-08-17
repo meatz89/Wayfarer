@@ -121,7 +121,7 @@ public class LetterGenerationService
             _logger.LogWarning($"No templates available for NPC '{npcId}' with token type {tokenType}");
             return null;
         }
-        
+
         // Filter templates by player tier - can only receive letters at or below their tier
         availableTemplates = availableTemplates.Where(t => t.TierLevel <= playerTier).ToList();
         if (!availableTemplates.Any())
@@ -182,7 +182,7 @@ public class LetterGenerationService
 
         return _categoryService.GetAvailableTemplates(npcId, tokenType);
     }
-    
+
     /// <summary>
     /// Get templates available for a player based on their tier level
     /// </summary>
@@ -228,7 +228,7 @@ public class LetterGenerationService
     /// </summary>
     public Letter GenerateSpecialLetter(LetterSpecialType specialType, string recipientNpcId = null)
     {
-        var letter = new Letter
+        Letter letter = new Letter
         {
             SpecialType = specialType,
             DeadlineInHours = _random.Next(36, 72), // Special letters have longer deadlines
@@ -249,7 +249,7 @@ public class LetterGenerationService
                 // Target Transport NPCs (Ferryman, Harbor_Master) or NPCs with Transport service
                 if (recipient == null)
                 {
-                    var transportNpcs = _npcRepository.GetNPCsProvidingService(ServiceTypes.Transport);
+                    List<NPC> transportNpcs = _npcRepository.GetNPCsProvidingService(ServiceTypes.Transport);
                     if (!transportNpcs.Any())
                     {
                         // Fallback to NPCs who might control routes
@@ -259,7 +259,7 @@ public class LetterGenerationService
                     }
                     recipient = transportNpcs.Any() ? transportNpcs[_random.Next(transportNpcs.Count)] : _npcRepository.GetAllNPCs().FirstOrDefault();
                 }
-                
+
                 letter.TokenType = ConnectionType.Commerce;
                 letter.Stakes = StakeType.WEALTH;
                 letter.SenderName = "Trade Authority";
@@ -277,10 +277,10 @@ public class LetterGenerationService
                 // Target higher-tier NPCs for introductions
                 if (recipient == null)
                 {
-                    var higherTierNpcs = _npcRepository.GetAllNPCs().Where(n => n.Tier >= 2).ToList();
+                    List<NPC> higherTierNpcs = _npcRepository.GetAllNPCs().Where(n => n.Tier >= 2).ToList();
                     recipient = higherTierNpcs.Any() ? higherTierNpcs[_random.Next(higherTierNpcs.Count)] : _npcRepository.GetAllNPCs().FirstOrDefault();
                 }
-                
+
                 letter.TokenType = ConnectionType.Trust;
                 letter.Stakes = StakeType.REPUTATION;
                 letter.SenderName = "Respected Merchant";
@@ -291,9 +291,9 @@ public class LetterGenerationService
                 letter.ConsequenceIfLate = "The introduction loses its value";
                 letter.ConsequenceIfDelivered = "Access to previously unreachable contacts";
                 letter.Payment = _random.Next(10, 20);
-                
+
                 // Specify which NPC this unlocks (if any)
-                var lockedNpcs = _npcRepository.GetAllNPCs().Where(n => n.Tier > 1).ToList();
+                List<NPC> lockedNpcs = _npcRepository.GetAllNPCs().Where(n => n.Tier > 1).ToList();
                 if (lockedNpcs.Any())
                 {
                     letter.UnlocksNPCId = lockedNpcs[_random.Next(lockedNpcs.Count)].ID;
@@ -304,12 +304,12 @@ public class LetterGenerationService
                 // Target Status-aligned NPCs
                 if (recipient == null)
                 {
-                    var statusNpcs = _npcRepository.GetAllNPCs()
+                    List<NPC> statusNpcs = _npcRepository.GetAllNPCs()
                         .Where(n => n.LetterTokenTypes.Contains(ConnectionType.Status))
                         .ToList();
                     recipient = statusNpcs.Any() ? statusNpcs[_random.Next(statusNpcs.Count)] : _npcRepository.GetAllNPCs().FirstOrDefault();
                 }
-                
+
                 letter.TokenType = ConnectionType.Status;
                 letter.Stakes = StakeType.REPUTATION;
                 letter.SenderName = "Noble Patron";
@@ -327,12 +327,12 @@ public class LetterGenerationService
                 // Target Shadow-aligned NPCs or Information service providers
                 if (recipient == null)
                 {
-                    var infoNpcs = _npcRepository.GetNPCsProvidingService(ServiceTypes.Information)
+                    List<NPC> infoNpcs = _npcRepository.GetNPCsProvidingService(ServiceTypes.Information)
                         .Concat(_npcRepository.GetAllNPCs().Where(n => n.LetterTokenTypes.Contains(ConnectionType.Shadow)))
                         .ToList();
                     recipient = infoNpcs.Any() ? infoNpcs[_random.Next(infoNpcs.Count)] : _npcRepository.GetAllNPCs().FirstOrDefault();
                 }
-                
+
                 letter.TokenType = ConnectionType.Shadow;
                 letter.Stakes = StakeType.SECRET;
                 letter.SenderName = "Anonymous Source";
@@ -367,7 +367,7 @@ public class LetterGenerationService
         };
 
         _logger.LogDebug($"Generated special letter: {letter.SpecialType} from {letter.SenderName} to {letter.RecipientName}");
-        
+
         return letter;
     }
 
@@ -382,20 +382,20 @@ public class LetterGenerationService
         // 2. When player has high tokens with specific NPCs
         // 3. When player reaches new tier
         // 4. When queue is getting low (help player)
-        
+
         // Simple probability based on day
         if (currentDay % 3 == 0)
         {
             return _random.Next(100) < 40; // 40% chance every 3 days
         }
-        
+
         // Higher chance if player is doing well (has tokens)
         int totalTokens = player.GetTotalTokenCount();
         if (totalTokens > 10)
         {
             return _random.Next(100) < 25; // 25% chance when successful
         }
-        
+
         return _random.Next(100) < 10; // 10% base chance
     }
 }

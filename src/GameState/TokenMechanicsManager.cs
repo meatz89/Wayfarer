@@ -278,10 +278,10 @@ public class TokenMechanicsManager
     public int GetDeadlineBonus(string npcId)
     {
         if (string.IsNullOrEmpty(npcId)) return 0;
-        
-        var tokens = GetTokensWithNPC(npcId);
+
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
         int trustTokens = tokens.GetValueOrDefault(ConnectionType.Trust, 0);
-        
+
         // Only positive trust tokens provide deadline bonus
         return Math.Max(0, trustTokens * TRUST_DEADLINE_HOURS_PER_TOKEN);
     }
@@ -292,10 +292,10 @@ public class TokenMechanicsManager
     public int GetQueuePositionBonus(string npcId)
     {
         if (string.IsNullOrEmpty(npcId)) return 0;
-        
-        var tokens = GetTokensWithNPC(npcId);
+
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
         int commerceTokens = tokens.GetValueOrDefault(ConnectionType.Commerce, 0);
-        
+
         // Cap at MAX_QUEUE_POSITION_BONUS positions forward
         return Math.Max(0, Math.Min(commerceTokens, MAX_QUEUE_POSITION_BONUS));
     }
@@ -308,10 +308,10 @@ public class TokenMechanicsManager
     {
         if (string.IsNullOrEmpty(npcId)) return false;
         if (tier < 1 || tier > 3) return false;
-        
-        var tokens = GetTokensWithNPC(npcId);
+
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
         int statusTokens = tokens.GetValueOrDefault(ConnectionType.Status, 0);
-        
+
         // Need STATUS_TOKENS_PER_TIER * tier tokens for access
         int requiredTokens = tier * STATUS_TOKENS_PER_TIER;
         return statusTokens >= requiredTokens;
@@ -324,10 +324,10 @@ public class TokenMechanicsManager
     {
         if (string.IsNullOrEmpty(npcId)) return false;
         if (string.IsNullOrEmpty(property)) return false;
-        
-        var tokens = GetTokensWithNPC(npcId);
+
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
         int shadowTokens = tokens.GetValueOrDefault(ConnectionType.Shadow, 0);
-        
+
         // Any positive shadow tokens enable property revelation
         return shadowTokens > 0;
     }
@@ -338,10 +338,10 @@ public class TokenMechanicsManager
     public int GetLeverage(string npcId, ConnectionType type)
     {
         if (string.IsNullOrEmpty(npcId)) return 0;
-        
-        var tokens = GetTokensWithNPC(npcId);
+
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
         int tokenCount = tokens.GetValueOrDefault(type, 0);
-        
+
         // Return absolute value if negative, 0 otherwise
         return tokenCount < 0 ? Math.Abs(tokenCount) : 0;
     }
@@ -352,7 +352,7 @@ public class TokenMechanicsManager
     public int GetTotalLeverage(string npcId)
     {
         if (string.IsNullOrEmpty(npcId)) return 0;
-        
+
         int totalLeverage = 0;
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {

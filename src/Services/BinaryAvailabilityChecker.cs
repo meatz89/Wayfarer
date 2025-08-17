@@ -14,7 +14,7 @@ public class BinaryAvailabilityChecker
     private readonly TokenMechanicsManager _tokenManager;
     private readonly ITimeManager _timeManager;
     private readonly GameWorld _gameWorld;
-    
+
     public BinaryAvailabilityChecker(
         TokenMechanicsManager tokenManager,
         ITimeManager timeManager,
@@ -24,7 +24,7 @@ public class BinaryAvailabilityChecker
         _timeManager = timeManager;
         _gameWorld = gameWorld;
     }
-    
+
     /// <summary>
     /// Check if a conversation choice is available.
     /// Validates: tier, tokens, time, NPC state.
@@ -38,37 +38,37 @@ public class BinaryAvailabilityChecker
         {
             return new AvailabilityResult(false, "Invalid conversation context");
         }
-        
+
         // 1. Check tier requirement (MOST RESTRICTIVE FIRST)
         if (requirements.RequiredTier > context.Player.CurrentTier)
         {
             return new AvailabilityResult(false, GetTierLockMessage(requirements.RequiredTier));
         }
-        
+
         // 2. Check token requirements (exact amounts needed)
-        foreach (var tokenReq in requirements.TokenRequirements)
+        foreach (TokenAmountRequirement tokenReq in requirements.TokenRequirements)
         {
-            var tokens = _tokenManager.GetTokensWithNPC(context.NPC.ID);
+            Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(context.NPC.ID);
             int available = tokens.GetValueOrDefault(tokenReq.Type, 0);
-            
+
             if (available < tokenReq.Amount)
             {
-                return new AvailabilityResult(false, 
+                return new AvailabilityResult(false,
                     $"Requires {tokenReq.Amount} {tokenReq.Type} with {context.NPC.Name}");
             }
         }
-        
+
         // 3. Check time requirements (certain actions only at specific times)
         if (requirements.TimeRequirements.Any())
         {
-            var currentTime = _timeManager.GetCurrentTimeBlock();
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             if (!requirements.TimeRequirements.Contains(currentTime))
             {
-                return new AvailabilityResult(false, 
+                return new AvailabilityResult(false,
                     $"Only available during {string.Join("/", requirements.TimeRequirements)}");
             }
         }
-        
+
         // 4. Check NPC state requirements
         if (requirements.RequiredNPCStates.Any())
         {
@@ -78,21 +78,21 @@ public class BinaryAvailabilityChecker
                     $"{context.NPC.Name} must be {string.Join(" or ", requirements.RequiredNPCStates)}");
             }
         }
-        
+
         // 5. Check queue state requirements
         if (requirements.RequiresQueueSpace)
         {
-            var queueSize = context.QueueManager?.GetActiveLetters()?.Length ?? 0;
+            int queueSize = context.QueueManager?.GetActiveLetters()?.Length ?? 0;
             if (queueSize >= 8)
             {
                 return new AvailabilityResult(false, "Queue is full");
             }
         }
-        
+
         // All requirements met
         return new AvailabilityResult(true, null);
     }
-    
+
     /// <summary>
     /// Check if a location action is available.
     /// Validates: tier, tags, time, resources.
@@ -106,38 +106,38 @@ public class BinaryAvailabilityChecker
         {
             return new AvailabilityResult(false, "Invalid location context");
         }
-        
+
         // 1. Check tier requirement (MOST RESTRICTIVE FIRST)
         if (requirements.RequiredTier > context.Player.CurrentTier)
         {
             return new AvailabilityResult(false, GetTierLockMessage(requirements.RequiredTier));
         }
-        
+
         // 2. Check location tag requirements
         if (requirements.RequiredLocationTags.Any())
         {
-            var locationTags = GetLocationTags(context.Location, context.LocationSpot);
+            HashSet<string> locationTags = GetLocationTags(context.Location, context.LocationSpot);
             bool hasRequiredTag = requirements.RequiredLocationTags
                 .Any(tag => locationTags.Contains(tag));
-                
+
             if (!hasRequiredTag)
             {
                 return new AvailabilityResult(false,
                     $"Location needs: {string.Join(" or ", requirements.RequiredLocationTags)}");
             }
         }
-        
+
         // 3. Check time requirements
         if (requirements.TimeRequirements.Any())
         {
-            var currentTime = _timeManager.GetCurrentTimeBlock();
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             if (!requirements.TimeRequirements.Contains(currentTime))
             {
                 return new AvailabilityResult(false,
                     $"Only available during {string.Join("/", requirements.TimeRequirements)}");
             }
         }
-        
+
         // 4. Check resource requirements (coins)
         if (requirements.CoinCost > 0)
         {
@@ -147,21 +147,21 @@ public class BinaryAvailabilityChecker
                     $"Requires {requirements.CoinCost} coins");
             }
         }
-        
+
         // 5. Check attention availability (for location actions that cost attention)
         if (requirements.RequiresAttention && context.TimeBlockAttentionManager != null)
         {
-            var attentionState = context.TimeBlockAttentionManager.GetAttentionState();
+            (int current, int max) attentionState = context.TimeBlockAttentionManager.GetAttentionState();
             if (attentionState.current == 0)
             {
                 return new AvailabilityResult(false, "No attention remaining");
             }
         }
-        
+
         // All requirements met
         return new AvailabilityResult(true, null);
     }
-    
+
     /// <summary>
     /// Unified check for any interactive choice implementing IInteractiveChoice.
     /// Routes to appropriate specific checker based on interaction type.
@@ -176,18 +176,18 @@ public class BinaryAvailabilityChecker
         {
             return new AvailabilityResult(true, null);
         }
-        
+
         // Check attention availability first (universal requirement)
         if (choice.AttentionCost > 0 && context.TimeBlockAttentionManager != null)
         {
-            var attentionState = context.TimeBlockAttentionManager.GetAttentionState();
+            (int current, int max) attentionState = context.TimeBlockAttentionManager.GetAttentionState();
             if (attentionState.current < choice.AttentionCost)
             {
                 return new AvailabilityResult(false,
                     $"Requires {choice.AttentionCost} attention");
             }
         }
-        
+
         // Route to specific checkers based on type
         switch (choice.Type)
         {
@@ -195,16 +195,16 @@ public class BinaryAvailabilityChecker
             case InteractionType.ConversationNegotiate:
             case InteractionType.ConversationInvestigate:
                 // Build requirements from choice properties
-                var convReqs = BuildConversationRequirements(choice);
+                ConversationChoiceRequirements convReqs = BuildConversationRequirements(choice);
                 return CheckConversationChoice(convReqs, context);
-                
+
             case InteractionType.LocationMove:
             case InteractionType.LocationWait:
             case InteractionType.LocationInteract:
                 // Build requirements from choice properties
-                var locReqs = BuildLocationRequirements(choice);
+                LocationActionRequirements locReqs = BuildLocationRequirements(choice);
                 return CheckLocationAction(locReqs, context);
-                
+
             case InteractionType.ObserveEnvironment:
             case InteractionType.ObserveNPC:
             case InteractionType.ObserveDetail:
@@ -215,13 +215,13 @@ public class BinaryAvailabilityChecker
                         "Requires Associate standing to observe deeply");
                 }
                 return new AvailabilityResult(true, null);
-                
+
             default:
                 // Unknown type defaults to available
                 return new AvailabilityResult(true, null);
         }
     }
-    
+
     /// <summary>
     /// Get standardized tier lock message.
     /// </summary>
@@ -234,57 +234,57 @@ public class BinaryAvailabilityChecker
             _ => "Available to all"
         };
     }
-    
+
     /// <summary>
     /// Extract all tags from location and spot.
     /// </summary>
     private HashSet<string> GetLocationTags(Location location, LocationSpot spot)
     {
-        var tags = new HashSet<string>();
-        
+        HashSet<string> tags = new HashSet<string>();
+
         // Add location service tags
         if (location.AvailableServices != null)
         {
-            foreach (var service in location.AvailableServices)
+            foreach (ServiceTypes service in location.AvailableServices)
             {
                 tags.Add(service.ToString().ToLower());
             }
         }
-        
+
         // Add spot domain tags
         if (spot?.DomainTags != null)
         {
-            foreach (var tag in spot.DomainTags)
+            foreach (string tag in spot.DomainTags)
             {
                 tags.Add(tag.ToLower());
             }
         }
-        
+
         // Add time-based tags
-        var currentTime = _timeManager.GetCurrentTimeBlock();
-        if (currentTime == TimeBlocks.Morning && 
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        if (currentTime == TimeBlocks.Morning &&
             location.MorningProperties?.Contains("market_day") == true)
         {
             tags.Add("market");
         }
-        
+
         // Add atmosphere-based tags
         if (location.Atmosphere?.GetPropertyValue() != null)
         {
             tags.Add(location.Atmosphere.GetPropertyValue().ToLower());
         }
-        
+
         return tags;
     }
-    
+
     /// <summary>
     /// Build conversation requirements from an interactive choice.
     /// This is used when checking choices through the unified interface.
     /// </summary>
     private ConversationChoiceRequirements BuildConversationRequirements(IInteractiveChoice choice)
     {
-        var reqs = new ConversationChoiceRequirements();
-        
+        ConversationChoiceRequirements reqs = new ConversationChoiceRequirements();
+
         // Infer tier from interaction type
         reqs.RequiredTier = choice.Type switch
         {
@@ -293,7 +293,7 @@ public class BinaryAvailabilityChecker
             InteractionType.ConversationInvestigate => TierLevel.T2, // Investigate requires T2
             _ => TierLevel.T1
         };
-        
+
         // High attention costs usually indicate higher tier requirements
         if (choice.AttentionCost >= 3)
         {
@@ -303,26 +303,26 @@ public class BinaryAvailabilityChecker
         {
             reqs.RequiredTier = TierLevel.T2;
         }
-        
+
         return reqs;
     }
-    
+
     /// <summary>
     /// Build location requirements from an interactive choice.
     /// </summary>
     private LocationActionRequirements BuildLocationRequirements(IInteractiveChoice choice)
     {
-        var reqs = new LocationActionRequirements();
-        
+        LocationActionRequirements reqs = new LocationActionRequirements();
+
         // Default tier is T1 for most location actions
         reqs.RequiredTier = TierLevel.T1;
-        
+
         // Wait actions require attention
         if (choice.Type == InteractionType.LocationWait)
         {
             reqs.RequiresAttention = false; // Wait is free when exhausted
         }
-        
+
         return reqs;
     }
 }
@@ -334,12 +334,12 @@ public class AvailabilityResult
 {
     public bool IsAvailable { get; }
     public string LockReason { get; }
-    
+
     public AvailabilityResult(bool isAvailable, string lockReason)
     {
         IsAvailable = isAvailable;
         LockReason = lockReason;
-        
+
         // Validation: locked actions MUST have a reason
         if (!isAvailable && string.IsNullOrEmpty(lockReason))
         {
@@ -395,7 +395,7 @@ public class TokenAmountRequirement
 {
     public ConnectionType Type { get; set; }
     public int Amount { get; set; }
-    
+
     public TokenAmountRequirement(ConnectionType type, int amount)
     {
         Type = type;

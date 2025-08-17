@@ -17,16 +17,16 @@ public static class NPCConversationExtensions
         // For now, randomly decide based on NPC properties
         return new Random(npc.ID.GetHashCode()).Next(100) < 30; // 30% chance
     }
-    
+
     /// <summary>
     /// Generate a letter from this NPC.
     /// </summary>
     public static Letter GenerateLetter(this NPC npc)
     {
-        var random = new Random();
-        var tokenTypes = Enum.GetValues<ConnectionType>();
-        var stakeTypes = Enum.GetValues<StakeType>();
-        
+        Random random = new Random();
+        ConnectionType[] tokenTypes = Enum.GetValues<ConnectionType>();
+        StakeType[] stakeTypes = Enum.GetValues<StakeType>();
+
         return new Letter
         {
             Id = Guid.NewGuid().ToString(),
@@ -42,7 +42,7 @@ public static class NPCConversationExtensions
             QueuePosition = -1 // Not in queue yet
         };
     }
-    
+
     /// <summary>
     /// Check if the NPC knows a specific route.
     /// </summary>
@@ -52,7 +52,7 @@ public static class NPCConversationExtensions
         // TODO: Implement actual route knowledge system
         return false;
     }
-    
+
     /// <summary>
     /// Get an NPC contact that this NPC can introduce.
     /// </summary>
@@ -68,7 +68,7 @@ public static class NPCConversationExtensions
             Location = npc.Location
         };
     }
-    
+
     /// <summary>
     /// Get a secret route that this NPC knows.
     /// </summary>
@@ -85,7 +85,7 @@ public static class NPCConversationExtensions
             Method = TravelMethods.Walking
         };
     }
-    
+
     /// <summary>
     /// Get a secret that this NPC holds.
     /// </summary>
@@ -98,7 +98,7 @@ public static class NPCConversationExtensions
             Description = $"Secret information from {npc.Name}",
         };
     }
-    
+
     /// <summary>
     /// Add a known route to the NPC.
     /// </summary>
@@ -107,7 +107,7 @@ public static class NPCConversationExtensions
         // TODO: Implement NPC route knowledge storage
         // For now, this is a no-op
     }
-    
+
     /// <summary>
     /// Get the NPC's known routes.
     /// </summary>
@@ -131,7 +131,7 @@ public static class PlayerConversationExtensions
         // TODO: Check actual obligations
         return false;
     }
-    
+
     /// <summary>
     /// Add an obligation for the player.
     /// </summary>
@@ -140,7 +140,7 @@ public static class PlayerConversationExtensions
         // TODO: Implement obligation storage
         // For now, this is a no-op
     }
-    
+
     /// <summary>
     /// Add a known NPC to the player's network.
     /// </summary>
@@ -149,7 +149,7 @@ public static class PlayerConversationExtensions
         // TODO: Implement NPC network storage
         // For now, this is a no-op
     }
-    
+
     /// <summary>
     /// Add a known location to the player's map.
     /// </summary>

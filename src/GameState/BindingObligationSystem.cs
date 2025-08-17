@@ -12,7 +12,7 @@ public class BindingObligationSystem
     private readonly TokenMechanicsManager _tokenManager;
     private readonly ITimeManager _timeManager;
     private readonly List<BindingObligation> _activeObligations;
-    
+
     public BindingObligationSystem(
         GameWorld gameWorld,
         TokenMechanicsManager tokenManager,
@@ -23,7 +23,7 @@ public class BindingObligationSystem
         _timeManager = timeManager;
         _activeObligations = new List<BindingObligation>();
     }
-    
+
     /// <summary>
     /// Create a new binding obligation from a conversation choice
     /// </summary>
@@ -34,7 +34,7 @@ public class BindingObligationSystem
         string description,
         int hoursUntilDue = 24)
     {
-        var obligation = new BindingObligation
+        BindingObligation obligation = new BindingObligation
         {
             Id = Guid.NewGuid().ToString(),
             NpcId = npcId,
@@ -45,29 +45,29 @@ public class BindingObligationSystem
             DueByHour = _timeManager.GetCurrentTimeHours() + hoursUntilDue,
             IsActive = true
         };
-        
+
         _activeObligations.Add(obligation);
     }
-    
+
     /// <summary>
     /// Get active obligations for display
     /// </summary>
     public List<BindingObligationViewModel> GetActiveObligations()
     {
-        var currentHour = _timeManager.GetCurrentTimeHours();
-        var viewModels = new List<BindingObligationViewModel>();
-        
-        foreach (var obligation in _activeObligations.Where(o => o.IsActive))
+        int currentHour = _timeManager.GetCurrentTimeHours();
+        List<BindingObligationViewModel> viewModels = new List<BindingObligationViewModel>();
+
+        foreach (BindingObligation? obligation in _activeObligations.Where(o => o.IsActive))
         {
-            var hoursRemaining = obligation.DueByHour - currentHour;
-            var urgency = hoursRemaining switch
+            int hoursRemaining = obligation.DueByHour - currentHour;
+            ObligationUrgency urgency = hoursRemaining switch
             {
                 <= 2 => ObligationUrgency.Critical,
                 <= 6 => ObligationUrgency.Urgent,
                 <= 12 => ObligationUrgency.Soon,
                 _ => ObligationUrgency.Later
             };
-            
+
             viewModels.Add(new BindingObligationViewModel
             {
                 Icon = GetObligationIcon(obligation.Type, urgency),
@@ -76,58 +76,58 @@ public class BindingObligationSystem
                 NpcName = obligation.NpcName
             });
         }
-        
+
         // Sort by urgency
         return viewModels.OrderBy(o => o.Urgency).Take(3).ToList();
     }
-    
+
     /// <summary>
     /// Check if player has specific type of obligation to an NPC
     /// </summary>
     public bool HasObligationTo(string npcId, ObligationType type)
     {
-        return _activeObligations.Any(o => 
-            o.IsActive && 
-            o.NpcId == npcId && 
+        return _activeObligations.Any(o =>
+            o.IsActive &&
+            o.NpcId == npcId &&
             o.Type == type);
     }
-    
+
     /// <summary>
     /// Fulfill an obligation
     /// </summary>
     public void FulfillObligation(string obligationId)
     {
-        var obligation = _activeObligations.FirstOrDefault(o => o.Id == obligationId);
+        BindingObligation? obligation = _activeObligations.FirstOrDefault(o => o.Id == obligationId);
         if (obligation != null)
         {
             obligation.IsActive = false;
             obligation.FulfilledAtHour = _timeManager.GetCurrentTimeHours();
         }
     }
-    
+
     /// <summary>
     /// Check for broken obligations and apply consequences
     /// </summary>
     public void ProcessBrokenObligations()
     {
-        var currentHour = _timeManager.GetCurrentTimeHours();
-        
-        foreach (var obligation in _activeObligations.Where(o => 
+        int currentHour = _timeManager.GetCurrentTimeHours();
+
+        foreach (BindingObligation? obligation in _activeObligations.Where(o =>
             o.IsActive && o.DueByHour < currentHour))
         {
             // Apply token penalties for broken promises
             ApplyBrokenObligationPenalty(obligation);
-            
+
             // Mark as broken
             obligation.IsActive = false;
             obligation.WasBroken = true;
         }
     }
-    
+
     private void ApplyBrokenObligationPenalty(BindingObligation obligation)
     {
         // Different penalties based on obligation type
-        var penalty = obligation.Type switch
+        int penalty = obligation.Type switch
         {
             ObligationType.Promise => -2,      // Breaking promises hurts trust
             ObligationType.Debt => -1,         // Unpaid debts hurt commerce
@@ -135,9 +135,9 @@ public class BindingObligationSystem
             ObligationType.Secret => -3,       // Betraying secrets is severe
             _ => -1
         };
-        
+
         // Apply the penalty
-        var tokenType = obligation.Type switch
+        ConnectionType tokenType = obligation.Type switch
         {
             ObligationType.Promise => ConnectionType.Trust,
             ObligationType.Debt => ConnectionType.Commerce,
@@ -145,15 +145,15 @@ public class BindingObligationSystem
             ObligationType.Secret => ConnectionType.Shadow,
             _ => ConnectionType.Trust
         };
-        
+
         _tokenManager.AddTokensToNPC(tokenType, penalty, obligation.NpcId);
     }
-    
+
     private string GetObligationIcon(ObligationType type, ObligationUrgency urgency)
     {
         if (urgency == ObligationUrgency.Critical)
             return "🔥"; // Critical obligations burn
-            
+
         return type switch
         {
             ObligationType.Promise => "🤝",
@@ -163,16 +163,16 @@ public class BindingObligationSystem
             _ => "⛓"
         };
     }
-    
+
     private string FormatObligationText(BindingObligation obligation, int hoursRemaining)
     {
-        var timeText = hoursRemaining switch
+        string timeText = hoursRemaining switch
         {
             <= 0 => "OVERDUE",
             1 => "1 hour",
             _ => $"{hoursRemaining} hours"
         };
-        
+
         return $"{obligation.NpcName}: {obligation.Description} ({timeText})";
     }
 }

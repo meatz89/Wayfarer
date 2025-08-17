@@ -45,14 +45,14 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         if (context.TargetNPC != null)
         {
             Console.WriteLine($"[DeterministicNarrativeProvider] Checking dialogue for NPC: {context.TargetNPC.ID}");
-            
+
             // Special hardcoded dialogue for Elena to match mockup
             if (context.TargetNPC.ID == "elena")
             {
                 string elenaDialogue = "\"The letter contains Lord Aldwin's marriage proposal. My refusal.\" She meets your eyes. \"If he learns before my cousin can intervene at court, I'll be ruined.\"\n\nHer hand reaches toward yours across the table, trembling slightly.\n\n\"Please. I know you have obligations, but I need this delivered today.\"";
                 return elenaDialogue;
             }
-            
+
             string? introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             Console.WriteLine($"[DeterministicNarrativeProvider] Got dialogue: {introduction ?? "null"}");
             if (!string.IsNullOrEmpty(introduction))
@@ -64,28 +64,28 @@ public class DeterministicNarrativeProvider : INarrativeProvider
         // Generate systemic dialogue from queue state
         if (context.TargetNPC != null)
         {
-            var npcState = _stateCalculator.CalculateState(context.TargetNPC);
-            
+            NPCEmotionalState npcState = _stateCalculator.CalculateState(context.TargetNPC);
+
             // Find their most urgent letter
-            var npcLetters = _queueManager.GetActiveLetters()
+            Letter? npcLetters = _queueManager.GetActiveLetters()
                 .Where(l => l.SenderId == context.TargetNPC.ID || l.SenderName == context.TargetNPC.Name)
                 .OrderBy(l => l.DeadlineInHours)
                 .FirstOrDefault();
-            
+
             // Generate dialogue from letter properties and emotional state
             string dialogue = _stateCalculator.GenerateNPCDialogue(
-                context.TargetNPC, 
-                npcState, 
-                npcLetters, 
+                context.TargetNPC,
+                npcState,
+                npcLetters,
                 context);
-                
+
             // Add body language for literary presentation
-            string bodyLanguage = npcLetters != null 
+            string bodyLanguage = npcLetters != null
                 ? _stateCalculator.GenerateBodyLanguage(npcState, npcLetters.Stakes)
                 : _stateCalculator.GenerateBodyLanguage(npcState, StakeType.REPUTATION);
-                
+
             string fullIntroduction = $"{context.TargetNPC.Name} {bodyLanguage}. {dialogue}";
-            
+
             return fullIntroduction;
         }
 
@@ -124,11 +124,11 @@ public class DeterministicNarrativeProvider : INarrativeProvider
     {
         // DeterministicNarrativeProvider provides literary text for mechanically generated choices
         // The choices themselves come from the NPC's card deck, this just enhances the narrative text
-        var enhancedChoices = new List<ConversationChoice>();
-        
-        foreach (var template in availableTemplates)
+        List<ConversationChoice> enhancedChoices = new List<ConversationChoice>();
+
+        foreach (ChoiceTemplate template in availableTemplates)
         {
-            var choice = new ConversationChoice
+            ConversationChoice choice = new ConversationChoice
             {
                 ChoiceID = template.TemplateName ?? "unknown",
                 NarrativeText = template.Description ?? "Make a choice",
@@ -144,7 +144,7 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             };
             enhancedChoices.Add(choice);
         }
-        
+
         return enhancedChoices;
     }
 

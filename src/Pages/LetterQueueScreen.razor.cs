@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.Pages.Helpers;
 using Wayfarer.Services;
@@ -13,9 +13,9 @@ namespace Wayfarer.Pages
         [Inject] private NPCRepository NPCRepository { get; set; }
         [Inject] private ITimeManager TimeManager { get; set; }
         [Inject] private ILetterQueueOperations QueueOperations { get; set; }
-        
+
         [Parameter] public CurrentViews ReturnView { get; set; } = CurrentViews.LocationScreen;
-        
+
         private bool _isReordering = false;
         private int? _selectedForReorder = null;
         private int? expandedPosition = null;
@@ -26,21 +26,21 @@ namespace Wayfarer.Pages
 
         private string GetNextDeadline()
         {
-            var letters = GameFacade.GetPlayer().LetterQueue;
+            Letter[] letters = GameFacade.GetPlayer().LetterQueue;
             if (letters == null || !letters.Any(l => l != null)) return "";
-            
-            var nextDeadline = letters.Where(l => l != null && l.DeadlineInHours > 0)
+
+            Letter? nextDeadline = letters.Where(l => l != null && l.DeadlineInHours > 0)
                 .OrderBy(l => l.DeadlineInHours)
                 .FirstOrDefault();
-                
+
             if (nextDeadline == null) return "";
-            
-            var hoursLeft = nextDeadline.DeadlineInHours;
-            var recipientShort = GetShortName(nextDeadline.RecipientName);
-            
+
+            int hoursLeft = nextDeadline.DeadlineInHours;
+            string recipientShort = GetShortName(nextDeadline.RecipientName);
+
             // Use our human-readable format
-            var timeDesc = GetShortDeadline(nextDeadline);
-            
+            string timeDesc = GetShortDeadline(nextDeadline);
+
             if (hoursLeft <= 3)
             {
                 return $"⚡ {recipientShort}: {timeDesc}";
@@ -67,7 +67,7 @@ namespace Wayfarer.Pages
 
         private Letter GetLetterAtPosition(int position)
         {
-            var queue = GameFacade.GetPlayer().LetterQueue;
+            Letter[] queue = GameFacade.GetPlayer().LetterQueue;
             if (queue == null || position > queue.Length || position < 1) return null;
             return queue[position - 1];
         }
@@ -86,14 +86,14 @@ namespace Wayfarer.Pages
 
         private string GetDeadlineDisplay(Letter letter)
         {
-            var hoursLeft = letter.DeadlineInHours;
-            var currentHour = TimeManager.GetCurrentTimeHours();
-            var daysAway = hoursLeft / 24;
-            var hoursRemaining = hoursLeft % 24;
-            
+            int hoursLeft = letter.DeadlineInHours;
+            int currentHour = TimeManager.GetCurrentTimeHours();
+            int daysAway = hoursLeft / 24;
+            int hoursRemaining = hoursLeft % 24;
+
             if (hoursLeft <= 0) return "Letter has expired - permanent consequences applied";
             if (hoursLeft <= 3) return $"CRITICAL: {hoursLeft} hour{(hoursLeft == 1 ? "" : "s")} remaining!";
-            
+
             if (daysAway == 0)
             {
                 return $"Due today ({hoursLeft} hours remaining)";
@@ -107,7 +107,7 @@ namespace Wayfarer.Pages
                 return $"Due in {daysAway} days and {hoursRemaining} hours";
             }
         }
-        
+
         private string GetDeadlineIcon(Letter letter)
         {
             return letter.DeadlineInHours switch
@@ -123,27 +123,27 @@ namespace Wayfarer.Pages
 
         private string GetShortDeadline(Letter letter)
         {
-            var hoursLeft = letter.DeadlineInHours;
-            var currentHour = TimeManager.GetCurrentTimeHours();
-            var currentMinute = TimeManager.GetCurrentMinutes();
-            var targetHour = (currentHour + hoursLeft) % 24;
-            var daysAway = hoursLeft / 24;
-            
+            int hoursLeft = letter.DeadlineInHours;
+            int currentHour = TimeManager.GetCurrentTimeHours();
+            int currentMinute = TimeManager.GetCurrentMinutes();
+            int targetHour = (currentHour + hoursLeft) % 24;
+            int daysAway = hoursLeft / 24;
+
             // EXPIRED
             if (hoursLeft <= 0) return "EXPIRED!";
-            
+
             // CRITICAL: Less than 3 hours - show exact time
             if (hoursLeft == 1) return "1 HOUR!";
             if (hoursLeft == 2) return "2 HOURS!";
             if (hoursLeft <= 3) return $"{hoursLeft} HOURS!";
-            
+
             // URGENT: Today - use medieval time references
             if (daysAway == 0)
             {
                 // Calculate actual target time
-                var targetTime = currentHour + hoursLeft;
+                int targetTime = currentHour + hoursLeft;
                 if (targetTime >= 24) targetTime -= 24;
-                
+
                 return targetTime switch
                 {
                     >= 6 and < 9 => "By Dawn",
@@ -156,7 +156,7 @@ namespace Wayfarer.Pages
                     _ => "Tonight"
                 };
             }
-            
+
             // TOMORROW
             if (daysAway == 1)
             {
@@ -167,7 +167,7 @@ namespace Wayfarer.Pages
                     _ => "Tomorrow Eve"
                 };
             }
-            
+
             // DISTANT (2+ days)
             if (daysAway == 2) return "In 2 days";
             if (daysAway == 3) return "In 3 days";
@@ -186,7 +186,7 @@ namespace Wayfarer.Pages
 
         private int GetTotalWeight()
         {
-            var queue = GameFacade.GetPlayer().LetterQueue;
+            Letter[] queue = GameFacade.GetPlayer().LetterQueue;
             if (queue == null) return 0;
             return queue.Where(l => l != null).Sum(l => l.Weight);
         }
@@ -199,14 +199,14 @@ namespace Wayfarer.Pages
         private async Task StartConversation(string npcId)
         {
             Console.WriteLine($"[LetterQueueScreen] Starting conversation with NPC: {npcId}");
-            var conversation = await GameFacade.StartConversationAsync(npcId);
+            ViewModels.ConversationViewModel? conversation = await GameFacade.StartConversationAsync(npcId);
             Console.WriteLine($"[LetterQueueScreen] Conversation created: {conversation != null}");
-            
+
             if (conversation != null)
             {
                 // Set the selected NPC for the conversation screen
                 SelectedNpcId = npcId;
-                
+
                 // Navigate to conversation screen
                 Console.WriteLine($"[LetterQueueScreen] OnNavigate null? {OnNavigate == null}");
                 if (OnNavigate != null)
@@ -230,25 +230,25 @@ namespace Wayfarer.Pages
 
         private string GetLocationPath()
         {
-            var location = GameFacade.GetCurrentLocation();
+            (Location location, LocationSpot spot) location = GameFacade.GetCurrentLocation();
             return location.location?.Name ?? "Unknown";
         }
 
         private string GetSpotPath()
         {
-            var location = GameFacade.GetCurrentLocation();
+            (Location location, LocationSpot spot) location = GameFacade.GetCurrentLocation();
             return location.spot?.Name ?? "Unknown";
         }
 
         private string GetCurrentSpotName()
         {
-            var location = GameFacade.GetCurrentLocation();
+            (Location location, LocationSpot spot) location = GameFacade.GetCurrentLocation();
             return location.spot?.Name ?? "Unknown Location";
         }
 
         private string GetAtmosphereText()
         {
-            var location = GameFacade.GetCurrentLocation();
+            (Location location, LocationSpot spot) location = GameFacade.GetCurrentLocation();
             if (location.spot?.SpotID == "copper_kettle")
             {
                 return "Warm firelight. Clinking mugs. Low conversations blend with lute music. Smell of roasted meat.";
@@ -267,7 +267,7 @@ namespace Wayfarer.Pages
                 _ => stakes.ToString()
             };
         }
-        
+
         private string GetEmotionalWeightDisplay(EmotionalWeight weight)
         {
             return weight switch
@@ -313,9 +313,9 @@ namespace Wayfarer.Pages
 
         private List<NPC> GetNPCsAtCurrentSpot()
         {
-            var location = GameFacade.GetCurrentLocation();
+            (Location location, LocationSpot spot) location = GameFacade.GetCurrentLocation();
             if (location.spot == null) return new List<NPC>();
-            
+
             // Get NPCs at the current spot and time
             TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
             return NPCRepository.GetNPCsForLocationSpotAndTime(location.spot.SpotID, currentTime);
@@ -332,7 +332,7 @@ namespace Wayfarer.Pages
                 expandedPosition = position;
             }
         }
-        
+
         private void HandleSlotClick(int position)
         {
             if (_isReordering)
@@ -354,7 +354,7 @@ namespace Wayfarer.Pages
 
         private async Task DeliverLetter()
         {
-            var result = await QueueOperations.DeliverFromPosition1Async();
+            QueueOperationResult result = await QueueOperations.DeliverFromPosition1Async();
             if (result.Success)
             {
                 expandedPosition = null;
@@ -366,10 +366,10 @@ namespace Wayfarer.Pages
                 Console.WriteLine($"Delivery failed: {result.FailureReason}");
             }
         }
-        
+
         private async Task StartReorder(int position)
         {
-            var letter = GetLetterAtPosition(position);
+            Letter letter = GetLetterAtPosition(position);
             if (letter != null)
             {
                 _isReordering = true;
@@ -377,12 +377,12 @@ namespace Wayfarer.Pages
                 StateHasChanged();
             }
         }
-        
+
         private async Task CompleteReorder(int targetPosition)
         {
             if (_selectedForReorder.HasValue)
             {
-                var result = await QueueOperations.TryReorderAsync(_selectedForReorder.Value, targetPosition);
+                QueueOperationResult result = await QueueOperations.TryReorderAsync(_selectedForReorder.Value, targetPosition);
                 if (result.Success)
                 {
                     _isReordering = false;
@@ -391,7 +391,7 @@ namespace Wayfarer.Pages
                 }
             }
         }
-        
+
         private void CancelReorder()
         {
             _isReordering = false;
@@ -411,20 +411,20 @@ namespace Wayfarer.Pages
 
         private void NavigateToDelivery()
         {
-            var letter = GetLetterAtPosition(1);
+            Letter letter = GetLetterAtPosition(1);
             if (letter != null)
             {
                 // Navigate to location screen to handle delivery
                 OnNavigate?.Invoke(CurrentViews.LocationScreen);
             }
         }
-        
+
         private async Task TryMorningSwap(int position)
         {
             // For morning swap, we swap with position 1
             if (position > 1)
             {
-                var result = await QueueOperations.TryMorningSwapAsync(1, position);
+                QueueOperationResult result = await QueueOperations.TryMorningSwapAsync(1, position);
                 if (!result.Success)
                 {
                     Console.WriteLine($"Morning swap failed: {result.FailureReason}");
@@ -433,52 +433,52 @@ namespace Wayfarer.Pages
                 StateHasChanged();
             }
         }
-        
+
         private bool CanDeliverNow()
         {
             // Check if we can deliver the letter at position 1 right now
             return QueueOperations.CanPerformOperation(QueueOperationType.Deliver, 1);
         }
-        
+
         private void NavigateToRecipient()
         {
             // Navigate to travel screen to go to recipient's location
-            var letter = GetLetterAtPosition(1);
+            Letter letter = GetLetterAtPosition(1);
             if (letter != null)
             {
                 // TODO: Pass recipient location to travel screen
                 OnNavigate?.Invoke(CurrentViews.TravelScreen);
             }
         }
-        
+
         private void HandleExitQueue()
         {
             Console.WriteLine($"[LetterQueueScreen] HandleExitQueue - returning to {ReturnView}");
             OnNavigate?.Invoke(ReturnView);
         }
-        
+
         private bool HasCriticalDeadlines()
         {
-            var letters = GameFacade.GetPlayer().LetterQueue;
+            Letter[] letters = GameFacade.GetPlayer().LetterQueue;
             if (letters == null) return false;
             return letters.Any(l => l != null && l.DeadlineInHours <= 3 && l.DeadlineInHours > 0);
         }
-        
+
         private Letter GetMostUrgentLetter()
         {
-            var letters = GameFacade.GetPlayer().LetterQueue;
+            Letter[] letters = GameFacade.GetPlayer().LetterQueue;
             if (letters == null) return null;
-            
+
             return letters.Where(l => l != null && l.DeadlineInHours > 0)
                 .OrderBy(l => l.DeadlineInHours)
                 .FirstOrDefault();
         }
-        
+
         private string GetCriticalLetterWarning()
         {
-            var urgent = GetMostUrgentLetter();
+            Letter urgent = GetMostUrgentLetter();
             if (urgent == null) return "";
-            
+
             if (urgent.DeadlineInHours <= 1)
                 return $"⚠️ CRITICAL: {urgent.RecipientName} letter expires in 1 HOUR!";
             else if (urgent.DeadlineInHours <= 3)

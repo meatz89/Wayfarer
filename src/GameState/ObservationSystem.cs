@@ -31,21 +31,21 @@ public class ObservationSystem
     /// </summary>
     public List<ObservableViewModel> GetObservations(string locationId)
     {
-        var results = new List<ObservableViewModel>();
-        
+        List<ObservableViewModel> results = new List<ObservableViewModel>();
+
         if (!_locationObservables.ContainsKey(locationId))
             return results;
 
-        var observables = _locationObservables[locationId];
-        var context = CreateContext();
+        List<Observable> observables = _locationObservables[locationId];
+        ObservationContext context = CreateContext();
 
-        foreach (var obs in observables)
+        foreach (Observable obs in observables)
         {
             if (obs.DisplayCondition(context))
             {
-                bool isRevealed = _revealedObservations.Contains(obs.Id) || 
+                bool isRevealed = _revealedObservations.Contains(obs.Id) ||
                                   obs.RevealCondition(context);
-                
+
                 if (isRevealed)
                 {
                     _revealedObservations.Add(obs.Id);
@@ -62,9 +62,9 @@ public class ObservationSystem
         }
 
         // Add dynamic NPCs moving through location
-        var allNpcs = _npcRepository.GetAllNPCs();
-        var npcsHere = allNpcs.Where(n => n.Location == locationId).ToList();
-        foreach (var npc in npcsHere.Take(2)) // Max 2 NPC observations
+        List<NPC> allNpcs = _npcRepository.GetAllNPCs();
+        List<NPC> npcsHere = allNpcs.Where(n => n.Location == locationId).ToList();
+        foreach (NPC? npc in npcsHere.Take(2)) // Max 2 NPC observations
         {
             results.Add(new ObservableViewModel
             {
@@ -214,8 +214,8 @@ public class ObservationSystem
 
     private string GetNPCActivity(NPC npc)
     {
-        var hour = _timeManager.GetCurrentTimeHours();
-        
+        int hour = _timeManager.GetCurrentTimeHours();
+
         return npc.Profession switch
         {
             Professions.Merchant when hour < 12 => "setting up shop",
@@ -230,14 +230,14 @@ public class ObservationSystem
 
     private ObservationContext CreateContext()
     {
-        var player = _gameWorld.GetPlayer();
-        var tokens = player.ConnectionTokens;
-        
+        Player player = _gameWorld.GetPlayer();
+        Dictionary<ConnectionType, int> tokens = player.ConnectionTokens;
+
         return new ObservationContext
         {
             Hour = _timeManager.GetCurrentTimeHours(),
             HasDebt = tokens.Values.Any(v => v < 0),
-            HasShadowDebt = tokens.ContainsKey(ConnectionType.Shadow) && 
+            HasShadowDebt = tokens.ContainsKey(ConnectionType.Shadow) &&
                 tokens[ConnectionType.Shadow] < 0,
             TrustTokens = GetTokenValue(tokens, ConnectionType.Trust),
             CommerceTokens = GetTokenValue(tokens, ConnectionType.Commerce),

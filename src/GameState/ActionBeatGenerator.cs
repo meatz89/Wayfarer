@@ -21,26 +21,26 @@ public class ActionBeatGenerator
     {
         // Create deterministic seed from NPC ID and conversation turn
         int seed = (npcId?.GetHashCode() ?? 0) + conversationTurn;
-        
+
         // For early turns, use establishing beats
         if (conversationTurn <= 1)
         {
             return GenerateEstablishingBeat(emotionalState, seed);
         }
-        
+
         // For mid-conversation, use emotional beats
         if (conversationTurn <= 3)
         {
             return GenerateEmotionalBeat(emotionalState, stakes, isUrgent, seed);
         }
-        
+
         // For late conversation, use closing beats
         return GenerateClosingBeat(emotionalState, seed);
     }
-    
+
     private string GenerateEstablishingBeat(NPCEmotionalState state, int seed)
     {
-        var beats = state switch
+        string[] beats = state switch
         {
             NPCEmotionalState.DESPERATE => new[]
             {
@@ -68,11 +68,11 @@ public class ActionBeatGenerator
             },
             _ => new[] { "They wait for you to speak" }
         };
-        
+
         // Use seed for deterministic selection
         return beats[Math.Abs(seed) % beats.Length];
     }
-    
+
     private string GenerateEmotionalBeat(
         NPCEmotionalState state,
         StakeType? stakes,
@@ -90,7 +90,7 @@ public class ActionBeatGenerator
                 _ => "Their breathing quickens with mounting panic"
             };
         }
-        
+
         if (state == NPCEmotionalState.HOSTILE)
         {
             return stakes switch
@@ -102,7 +102,7 @@ public class ActionBeatGenerator
                 _ => "Their patience visibly frays"
             };
         }
-        
+
         if (state == NPCEmotionalState.CALCULATING)
         {
             return stakes switch
@@ -113,14 +113,14 @@ public class ActionBeatGenerator
                 _ => "They wait, letting silence do their work"
             };
         }
-        
+
         // Default withdrawn
         return "They shift uncomfortably in their seat";
     }
-    
+
     private string GenerateClosingBeat(NPCEmotionalState state, int seed)
     {
-        var beats = state switch
+        string[] beats = state switch
         {
             NPCEmotionalState.DESPERATE => new[]
             {
@@ -148,18 +148,18 @@ public class ActionBeatGenerator
             },
             _ => new[] { "The conversation ends" }
         };
-        
+
         // Use seed for deterministic selection
         return beats[Math.Abs(seed) % beats.Length];
     }
-    
+
     /// <summary>
     /// Generate environmental action beats based on location
     /// Now uses deterministic selection based on location and hour
     /// </summary>
     public string GenerateEnvironmentalBeat(string locationId, int hour)
     {
-        var beats = locationId switch
+        string[] beats = locationId switch
         {
             "market_square" when hour < 12 => new[]
             {
@@ -198,7 +198,7 @@ public class ActionBeatGenerator
                 "Everything else fades to background"
             }
         };
-        
+
         // Create deterministic seed from location and hour
         int seed = (locationId?.GetHashCode() ?? 0) + hour;
         return beats[Math.Abs(seed) % beats.Length];

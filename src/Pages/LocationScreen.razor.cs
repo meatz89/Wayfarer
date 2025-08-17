@@ -26,7 +26,7 @@ public partial class LocationScreen : ComponentBase
 
     // NPCs at current spot
     private List<NPC> NPCsAtCurrentSpot => GetNPCsAtCurrentSpot();
-    
+
     // View Model
     private LocationScreenViewModel Model { get; set; }
 
@@ -34,13 +34,13 @@ public partial class LocationScreen : ComponentBase
     {
         await LoadLocation();
     }
-    
+
     private async Task LoadLocation()
     {
         Model = GameFacade.GetLocationScreen();
         StateHasChanged();
     }
-    
+
     private async Task ExecuteAction(Wayfarer.ViewModels.LocationActionViewModel action)
     {
         // Handle special action types
@@ -60,16 +60,16 @@ public partial class LocationScreen : ComponentBase
             // Execute normal action through GameFacade
             // TODO: Implement other action types as needed
         }
-        
+
         await HandleActionExecuted();
         await LoadLocation();
     }
-    
+
     private async Task StartInteraction(NPCPresenceViewModel npc, InteractionOptionViewModel interaction)
     {
         // Start the conversation with the NPC through GameFacade
-        var conversationStarted = await GameFacade.StartConversationAsync(npc.Id);
-        
+        ConversationViewModel conversationStarted = await GameFacade.StartConversationAsync(npc.Id);
+
         if (conversationStarted != null)
         {
             // Only navigate if conversation was successfully started
@@ -80,7 +80,7 @@ public partial class LocationScreen : ComponentBase
             Console.WriteLine($"[LocationScreen] Failed to start conversation with NPC {npc.Id}");
         }
     }
-    
+
     private async Task TravelTo(RouteOptionViewModel route)
     {
         // Execute travel using the route ID
@@ -89,11 +89,11 @@ public partial class LocationScreen : ComponentBase
             Console.WriteLine($"[LocationScreen] Route ID missing for travel to {route.Destination}");
             return;
         }
-        
+
         // Create travel intent and execute through GameFacade
-        var travelIntent = new TravelIntent(route.RouteId);
+        TravelIntent travelIntent = new TravelIntent(route.RouteId);
         bool success = await GameFacade.ExecuteIntent(travelIntent);
-        
+
         if (success)
         {
             Console.WriteLine($"[LocationScreen] Successfully traveled to {route.Destination}");
@@ -104,7 +104,7 @@ public partial class LocationScreen : ComponentBase
         {
             Console.WriteLine($"[LocationScreen] Failed to travel to {route.Destination}");
         }
-        
+
         await HandleActionExecuted();
     }
 
@@ -210,7 +210,7 @@ public partial class LocationScreen : ComponentBase
             await OnNavigate.InvokeAsync(CurrentViews.TravelScreen);
         }
     }
-    
+
     private async Task NavigateToQueue()
     {
         if (OnNavigate.HasDelegate)
@@ -218,17 +218,17 @@ public partial class LocationScreen : ComponentBase
             await OnNavigate.InvokeAsync(CurrentViews.LetterQueueScreen);
         }
     }
-    
+
     private string GetQueueDisplay()
     {
         try
         {
-            var queueVM = GameFacade.GetLetterQueue();
+            LetterQueueViewModel queueVM = GameFacade.GetLetterQueue();
             if (queueVM?.Status != null)
             {
                 // Show count/max and urgent indicator if needed
-                var hasUrgent = queueVM.QueueSlots?.Any(s => s.IsOccupied && s.Letter?.DeadlineInHours <= 6) ?? false;
-                var display = $"{queueVM.Status.LetterCount}/8";
+                bool hasUrgent = queueVM.QueueSlots?.Any(s => s.IsOccupied && s.Letter?.DeadlineInHours <= 6) ?? false;
+                string display = $"{queueVM.Status.LetterCount}/8";
                 if (hasUrgent)
                 {
                     return $"⚠️ {display}";

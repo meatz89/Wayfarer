@@ -66,16 +66,16 @@ public class ConversationFactory
         // Calculate NPC emotional state from queue
         if (context.TargetNPC != null)
         {
-            var npcState = _stateCalculator.CalculateState(context.TargetNPC);
-            
+            NPCEmotionalState npcState = _stateCalculator.CalculateState(context.TargetNPC);
+
             // Find their most urgent letter for context
-            var npcLetters = _queueManager.GetActiveLetters()
+            List<Letter> npcLetters = _queueManager.GetActiveLetters()
                 .Where(l => l.SenderId == context.TargetNPC.ID || l.SenderName == context.TargetNPC.Name)
                 .OrderBy(l => l.DeadlineInHours)
                 .ToList();
-                
+
             // Store in context for narrative generation
-            context.ConversationTopic = npcLetters.Any() 
+            context.ConversationTopic = npcLetters.Any()
                 ? $"Letter to {npcLetters.First().RecipientName}"
                 : "General conversation";
         }
@@ -90,7 +90,7 @@ public class ConversationFactory
 
         // Create choice generator with player and gameWorld for additive system
         // Pass TimeBlockAttentionManager to share attention pool with ActionGenerator
-        var choiceGenerator = new ConversationChoiceGenerator(
+        ConversationChoiceGenerator choiceGenerator = new ConversationChoiceGenerator(
             _queueManager,
             _tokenManager,
             _stateCalculator,
@@ -110,7 +110,7 @@ public class ConversationFactory
 
         // Initialize the conversation to generate initial narrative
         await conversationManager.InitializeConversation();
-        
+
         // Generate initial choices
         await conversationManager.ProcessNextBeat();
 

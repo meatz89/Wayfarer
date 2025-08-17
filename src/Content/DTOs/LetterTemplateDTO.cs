@@ -17,7 +17,7 @@ public class LetterTemplateDTO
     // Letter category and requirements
     public string Category { get; set; } = "Basic";
     public int? MinTokensRequired { get; set; } = 3;
-    
+
     // Tier level for this letter template
     public string TierLevel { get; set; } = "T1";
 
@@ -37,7 +37,7 @@ public class LetterTemplateDTO
     public string Size { get; set; } = "Medium";
     public List<string> PhysicalProperties { get; set; }
     public string RequiredEquipment { get; set; }
-    
+
     // Human context and consequences
     public string HumanContext { get; set; }
     public string ConsequenceIfLate { get; set; }

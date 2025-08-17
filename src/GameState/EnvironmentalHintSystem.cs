@@ -14,7 +14,7 @@ public class EnvironmentalHintSystem
     private readonly Dictionary<string, List<EnvironmentalHint>> _locationHints;
 
     public EnvironmentalHintSystem(
-        GameWorld gameWorld, 
+        GameWorld gameWorld,
         ITimeManager timeManager,
         LetterQueueManager letterQueueManager)
     {
@@ -32,8 +32,8 @@ public class EnvironmentalHintSystem
         if (!_locationHints.ContainsKey(locationId))
             return null;
 
-        var hints = _locationHints[locationId];
-        var gameState = new GameStateContext
+        List<EnvironmentalHint> hints = _locationHints[locationId];
+        GameStateContext gameState = new GameStateContext
         {
             CurrentHour = _timeManager.GetCurrentTimeHours(),
             CurrentMinute = _timeManager.GetCurrentMinutes(),
@@ -46,7 +46,7 @@ public class EnvironmentalHintSystem
         EnvironmentalHint bestHint = null;
         int highestPriority = -1;
 
-        foreach (var hint in hints)
+        foreach (EnvironmentalHint hint in hints)
         {
             if (hint.Condition(gameState) && hint.Priority > highestPriority)
             {
@@ -63,7 +63,7 @@ public class EnvironmentalHintSystem
     /// </summary>
     public string GetDeadlinePressure()
     {
-        var mostUrgent = _letterQueueManager.GetActiveLetters()
+        Letter? mostUrgent = _letterQueueManager.GetActiveLetters()
             .Where(l => l != null)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
@@ -72,7 +72,7 @@ public class EnvironmentalHintSystem
 
         if (mostUrgent.DeadlineInHours <= 0)
             return $"💀 {mostUrgent.RecipientName}: EXPIRED!";
-        
+
         if (mostUrgent.DeadlineInHours <= 3)
         {
             int hours = mostUrgent.DeadlineInHours;
@@ -230,22 +230,22 @@ public class EnvironmentalHintSystem
 
     private float GetQueuePressure()
     {
-        var letters = _letterQueueManager.GetActiveLetters();
+        Letter[] letters = _letterQueueManager.GetActiveLetters();
         return letters.Count(l => l != null) / 8.0f;
     }
 
     private int GetPlayerDebt()
     {
         // Sum all negative token balances
-        var tokens = _gameWorld.GetPlayer().ConnectionTokens;
+        Dictionary<ConnectionType, int> tokens = _gameWorld.GetPlayer().ConnectionTokens;
         int totalDebt = 0;
-        
-        foreach (var tokenValue in tokens.Values)
+
+        foreach (int tokenValue in tokens.Values)
         {
             if (tokenValue < 0)
                 totalDebt += Math.Abs(tokenValue);
         }
-        
+
         return totalDebt;
     }
 }

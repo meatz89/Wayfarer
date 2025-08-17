@@ -11,14 +11,14 @@ namespace Wayfarer.GameState
     public class NPCRelationshipTracker
     {
         private readonly Dictionary<string, RelationshipHistory> _histories = new Dictionary<string, RelationshipHistory>();
-        
+
         /// <summary>
         /// Record a successful delivery for an NPC.
         /// </summary>
         public void RecordDelivery(string npcId, bool onTime)
         {
             EnsureHistory(npcId);
-            
+
             if (onTime)
             {
                 _histories[npcId].SuccessfulDeliveries++;
@@ -29,10 +29,10 @@ namespace Wayfarer.GameState
                 _histories[npcId].LateDeliveries++;
                 _histories[npcId].LastInteractionOutcome = "late_delivery";
             }
-            
+
             _histories[npcId].LastInteractionTime = DateTime.Now;
         }
-        
+
         /// <summary>
         /// Record a failed delivery (deadline missed completely).
         /// </summary>
@@ -43,7 +43,7 @@ namespace Wayfarer.GameState
             _histories[npcId].LastInteractionOutcome = "failed_delivery";
             _histories[npcId].LastInteractionTime = DateTime.Now;
         }
-        
+
         /// <summary>
         /// Record that a letter was refused.
         /// </summary>
@@ -54,7 +54,7 @@ namespace Wayfarer.GameState
             _histories[npcId].LastInteractionOutcome = "refused_letter";
             _histories[npcId].LastInteractionTime = DateTime.Now;
         }
-        
+
         /// <summary>
         /// Record that a promise was made to an NPC.
         /// </summary>
@@ -69,45 +69,45 @@ namespace Wayfarer.GameState
             _histories[npcId].LastInteractionOutcome = "promise_made";
             _histories[npcId].LastInteractionTime = DateTime.Now;
         }
-        
+
         /// <summary>
         /// Record that a promise was fulfilled.
         /// </summary>
         public void RecordPromiseFulfilled(string npcId, string promiseType)
         {
             EnsureHistory(npcId);
-            var promise = _histories[npcId].ActivePromises
+            Promise? promise = _histories[npcId].ActivePromises
                 .FirstOrDefault(p => p.Type == promiseType);
-            
+
             if (promise != null)
             {
                 _histories[npcId].ActivePromises.Remove(promise);
                 _histories[npcId].FulfilledPromises++;
                 _histories[npcId].LastInteractionOutcome = "promise_fulfilled";
             }
-            
+
             _histories[npcId].LastInteractionTime = DateTime.Now;
         }
-        
+
         /// <summary>
         /// Record that a promise was broken.
         /// </summary>
         public void RecordPromiseBroken(string npcId, string promiseType)
         {
             EnsureHistory(npcId);
-            var promise = _histories[npcId].ActivePromises
+            Promise? promise = _histories[npcId].ActivePromises
                 .FirstOrDefault(p => p.Type == promiseType);
-            
+
             if (promise != null)
             {
                 _histories[npcId].ActivePromises.Remove(promise);
                 _histories[npcId].BrokenPromises++;
                 _histories[npcId].LastInteractionOutcome = "promise_broken";
             }
-            
+
             _histories[npcId].LastInteractionTime = DateTime.Now;
         }
-        
+
         /// <summary>
         /// Get the number of failed deliveries for an NPC.
         /// </summary>
@@ -115,7 +115,7 @@ namespace Wayfarer.GameState
         {
             return _histories.ContainsKey(npcId) ? _histories[npcId].FailedDeliveries : 0;
         }
-        
+
         /// <summary>
         /// Get the total number of successful deliveries for an NPC.
         /// </summary>
@@ -123,7 +123,7 @@ namespace Wayfarer.GameState
         {
             return _histories.ContainsKey(npcId) ? _histories[npcId].SuccessfulDeliveries : 0;
         }
-        
+
         /// <summary>
         /// Get the last interaction outcome with an NPC.
         /// </summary>
@@ -131,7 +131,7 @@ namespace Wayfarer.GameState
         {
             return _histories.ContainsKey(npcId) ? _histories[npcId].LastInteractionOutcome : "none";
         }
-        
+
         /// <summary>
         /// Check if we've broken promises to this NPC before.
         /// </summary>
@@ -139,7 +139,7 @@ namespace Wayfarer.GameState
         {
             return _histories.ContainsKey(npcId) && _histories[npcId].BrokenPromises > 0;
         }
-        
+
         /// <summary>
         /// Get the trust pattern with an NPC (reliable, unreliable, mixed).
         /// </summary>
@@ -147,15 +147,15 @@ namespace Wayfarer.GameState
         {
             if (!_histories.ContainsKey(npcId))
                 return "unknown";
-            
-            var history = _histories[npcId];
-            var totalDeliveries = history.SuccessfulDeliveries + history.LateDeliveries + history.FailedDeliveries;
-            
+
+            RelationshipHistory history = _histories[npcId];
+            int totalDeliveries = history.SuccessfulDeliveries + history.LateDeliveries + history.FailedDeliveries;
+
             if (totalDeliveries < 3)
                 return "new_relationship";
-            
-            var successRate = (float)history.SuccessfulDeliveries / totalDeliveries;
-            
+
+            float successRate = (float)history.SuccessfulDeliveries / totalDeliveries;
+
             if (successRate >= 0.8f)
                 return "reliable";
             else if (successRate <= 0.3f)
@@ -163,7 +163,7 @@ namespace Wayfarer.GameState
             else
                 return "mixed";
         }
-        
+
         /// <summary>
         /// Get contextual modifiers for conversation based on history.
         /// </summary>
@@ -178,16 +178,16 @@ namespace Wayfarer.GameState
                     HistoricalContext = "first_meeting"
                 };
             }
-            
-            var history = _histories[npcId];
-            var modifiers = new ConversationModifiers();
-            
+
+            RelationshipHistory history = _histories[npcId];
+            ConversationModifiers modifiers = new ConversationModifiers();
+
             // Calculate trust modifier based on history
-            modifiers.TrustModifier = history.SuccessfulDeliveries * 2 
-                                     - history.FailedDeliveries * 3 
+            modifiers.TrustModifier = history.SuccessfulDeliveries * 2
+                                     - history.FailedDeliveries * 3
                                      - history.BrokenPromises * 5
                                      + history.FulfilledPromises * 3;
-            
+
             // Determine emotional modifier based on recent interactions
             switch (history.LastInteractionOutcome)
             {
@@ -206,7 +206,7 @@ namespace Wayfarer.GameState
                     modifiers.EmotionalModifier = EmotionalModifier.Neutral;
                     break;
             }
-            
+
             // Set historical context for narrative generation
             if (history.BrokenPromises > 2)
                 modifiers.HistoricalContext = "serial_promise_breaker";
@@ -218,10 +218,10 @@ namespace Wayfarer.GameState
                 modifiers.HistoricalContext = "selective_carrier";
             else
                 modifiers.HistoricalContext = "established_relationship";
-            
+
             return modifiers;
         }
-        
+
         private void EnsureHistory(string npcId)
         {
             if (!_histories.ContainsKey(npcId))
@@ -229,7 +229,7 @@ namespace Wayfarer.GameState
                 _histories[npcId] = new RelationshipHistory { NPCId = npcId };
             }
         }
-        
+
         private class RelationshipHistory
         {
             public string NPCId { get; set; }
@@ -243,14 +243,14 @@ namespace Wayfarer.GameState
             public string LastInteractionOutcome { get; set; } = "none";
             public DateTime LastInteractionTime { get; set; }
         }
-        
+
         private class Promise
         {
             public string Type { get; set; }
             public DateTime MadeAt { get; set; }
         }
     }
-    
+
     /// <summary>
     /// Modifiers for conversation based on relationship history.
     /// </summary>
@@ -260,7 +260,7 @@ namespace Wayfarer.GameState
         public EmotionalModifier EmotionalModifier { get; set; }
         public string HistoricalContext { get; set; }
     }
-    
+
     /// <summary>
     /// Emotional modifier based on recent interactions.
     /// </summary>

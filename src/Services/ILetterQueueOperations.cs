@@ -9,7 +9,7 @@ namespace Wayfarer.Services
         Letter[] GetQueueSnapshot();
         QueueOperationCost GetOperationCost(QueueOperationType operation, int position1, int? position2 = null);
         bool CanPerformOperation(QueueOperationType operation, int position1, int? position2 = null);
-        
+
         // Mutation Operations - O(n) time worst case, O(1) space
         Task<QueueOperationResult> TryMorningSwapAsync(int position1, int position2);
         Task<QueueOperationResult> TryPriorityMoveAsync(int fromPosition, Dictionary<ConnectionType, int> payment);

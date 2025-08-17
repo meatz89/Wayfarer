@@ -7,7 +7,7 @@ public class MechanicalEffectDescription
 {
     public string Text { get; set; }
     public EffectCategory Category { get; set; }
-    
+
     // Strongly typed properties for specific effect types
     public ConnectionType? TokenType { get; set; }
     public int? TokenAmount { get; set; }

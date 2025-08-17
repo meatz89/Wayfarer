@@ -14,7 +14,7 @@ public class Player
     public int Level { get; set; } = 1;
     public int CurrentXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = GameConstants.Game.XP_TO_NEXT_LEVEL_BASE;
-    
+
     // Tier system (T1: Stranger, T2: Associate, T3: Confidant)
     public TierLevel CurrentTier { get; set; } = TierLevel.T1;
 
@@ -679,13 +679,13 @@ public class Player
     public int GetTotalTokenCount()
     {
         int total = 0;
-        foreach (var tokenCounts in NPCTokens.Values)
+        foreach (Dictionary<ConnectionType, int> tokenCounts in NPCTokens.Values)
         {
             total += tokenCounts.Values.Sum();
         }
         return total;
     }
-    
+
     /// <summary>
     /// Updates player tier based on deliveries and trust tokens.
     /// T1 (Stranger): Default starting tier
@@ -696,9 +696,9 @@ public class Player
     {
         int totalTokens = GetTotalTokenCount();
         int totalDeliveries = TotalLettersDelivered;
-        
+
         TierLevel newTier = TierLevel.T1;
-        
+
         // Check for T3 (Confidant) - requires both deliveries AND tokens
         if (totalDeliveries >= 15 && totalTokens >= 25)
         {
@@ -709,10 +709,10 @@ public class Player
         {
             newTier = TierLevel.T2;
         }
-        
+
         CurrentTier = newTier;
     }
-    
+
     /// <summary>
     /// Get the display name for the current tier.
     /// </summary>
@@ -721,7 +721,7 @@ public class Player
         return CurrentTier switch
         {
             TierLevel.T1 => "Stranger",
-            TierLevel.T2 => "Associate", 
+            TierLevel.T2 => "Associate",
             TierLevel.T3 => "Confidant",
             _ => "Stranger"
         };
@@ -747,7 +747,7 @@ public class NPCConnection
 
     public int GetCurrentValue()
     {
-        if (_player.NPCTokens.ContainsKey(_npcId) && 
+        if (_player.NPCTokens.ContainsKey(_npcId) &&
             _player.NPCTokens[_npcId].ContainsKey(_tokenType))
         {
             return _player.NPCTokens[_npcId][_tokenType];

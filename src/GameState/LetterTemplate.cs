@@ -19,7 +19,7 @@ public class LetterTemplate
     // Letter category and requirements
     public LetterCategory Category { get; set; } = LetterCategory.Basic;
     public int MinTokensRequired { get; set; } = 1; // Minimum tokens with NPC to unlock this template
-    
+
     // Tier level for this letter template (T1-T3)
     public TierLevel TierLevel { get; set; } = TierLevel.T1;
 
@@ -39,7 +39,7 @@ public class LetterTemplate
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
     public LetterPhysicalProperties PhysicalProperties { get; set; } = LetterPhysicalProperties.None;
     public ItemCategory? RequiredEquipment { get; set; } = null;
-    
+
     // Human context and consequences
     public string HumanContext { get; set; } = ""; // One-line emotional hook
     public string ConsequenceIfLate { get; set; } = ""; // What happens if we fail

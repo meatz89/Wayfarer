@@ -40,35 +40,35 @@ public class ConversationChoiceGenerator
 
     public List<ConversationChoice> GenerateChoices(SceneContext context, ConversationState state)
     {
-        
+
         // Initialize NPC deck if needed
         context.TargetNPC.InitializeConversationDeck(_deckFactory);
-        
+
         // Calculate NPC emotional state based on current letters and deadlines
-        var emotionalState = _stateCalculator.CalculateState(context.TargetNPC);
-        
+        NPCEmotionalState emotionalState = _stateCalculator.CalculateState(context.TargetNPC);
+
         // HOSTILE NPCs refuse conversation entirely
         if (!ConversationPatienceCalculator.CanConverse(emotionalState))
         {
             return GetHostileChoices(context.TargetNPC);
         }
-        
+
         // Get current relationship tokens
-        var tokenDict = _tokenManager.GetTokensWithNPC(context.TargetNPC.ID);
-        
+        Dictionary<ConnectionType, int> tokenDict = _tokenManager.GetTokensWithNPC(context.TargetNPC.ID);
+
         // Calculate starting patience based on emotional state and relationships
-        var startingPatience = ConversationPatienceCalculator.CalculateStartingPatience(
+        int startingPatience = ConversationPatienceCalculator.CalculateStartingPatience(
             context.TargetNPC, emotionalState, tokenDict);
-            
+
         // Store emotional state context for conversation flow
         context.CurrentTokens = tokenDict;
-        
+
         // Draw 5 cards from NPC's deck filtered by emotional state
-        var drawnCards = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState);
-        
+        List<ConversationCard> drawnCards = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState);
+
         // Convert cards to ConversationChoice objects
-        var choices = new List<ConversationChoice>();
-        foreach (var card in drawnCards)
+        List<ConversationChoice> choices = new List<ConversationChoice>();
+        foreach (ConversationCard card in drawnCards)
         {
             choices.Add(new ConversationChoice
             {
@@ -82,10 +82,10 @@ public class ConversationChoiceGenerator
                 MechanicalEffects = card.MechanicalEffects ?? new List<IMechanicalEffect>()
             });
         }
-        
+
         return choices;
     }
-    
+
     private List<ConversationChoice> GetHostileChoices(NPC npc)
     {
         // HOSTILE NPCs refuse conversation - show why and how to resolve
@@ -113,14 +113,14 @@ public class ConversationChoiceGenerator
             }
         };
     }
-    
+
     /// <summary>
     /// Generate rich mechanical descriptions by reading from actual mechanical effects
     /// </summary>
     private string GetRichMechanicalDescription(ConversationCard card, NPC npc)
     {
-        var parts = new List<string>();
-        
+        List<string> parts = new List<string>();
+
         // Add comfort gain/loss (this is a card property, not hardcoded)
         if (card.ComfortGain > 0)
         {
@@ -130,7 +130,7 @@ public class ConversationChoiceGenerator
         {
             parts.Add($"{card.ComfortGain} comfort");
         }
-        
+
         // Add difficulty indication (derived from card property)
         if (card.Difficulty > 6)
         {
@@ -140,29 +140,29 @@ public class ConversationChoiceGenerator
         {
             parts.Add("Easy approach");
         }
-        
+
         // Add special effects based on card type (categorical)
         if (card.Category == RelationshipCardCategory.Crisis)
         {
             parts.Add("Emergency option");
         }
-        
+
         // Read from actual mechanical effects
         if (card.MechanicalEffects != null && card.MechanicalEffects.Any())
         {
-            foreach (var effect in card.MechanicalEffects)
+            foreach (IMechanicalEffect effect in card.MechanicalEffects)
             {
-                var descriptions = effect.GetDescriptionsForPlayer();
-                foreach (var desc in descriptions)
+                List<MechanicalEffectDescription> descriptions = effect.GetDescriptionsForPlayer();
+                foreach (MechanicalEffectDescription desc in descriptions)
                 {
                     parts.Add(TranslateEffectDescription(desc));
                 }
             }
         }
-        
+
         return string.Join(" • ", parts);
     }
-    
+
     /// <summary>
     /// Translate mechanical effect descriptions without ugly Unicode symbols
     /// CSS classes will handle beautiful icons
@@ -171,5 +171,5 @@ public class ConversationChoiceGenerator
     {
         return desc.Text; // No Unicode symbols - let CSS handle icons via effect categorization
     }
-    
+
 }

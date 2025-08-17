@@ -14,7 +14,7 @@ namespace Wayfarer.Pages.Helpers
         {
             if (timeManager == null)
                 return "Time Unknown";
-                
+
             try
             {
                 return timeManager.GetFormattedTimeDisplay();

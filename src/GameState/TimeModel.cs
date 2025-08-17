@@ -87,7 +87,7 @@ public class TimeModel
             return result;
         }
     }
-    
+
     /// <summary>
     /// Advances time by minutes with full validation.
     /// </summary>

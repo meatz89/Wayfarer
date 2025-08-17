@@ -9,16 +9,16 @@ public interface IMechanicalEffect
 public class NoEffect : IMechanicalEffect
 {
     public void Apply(ConversationState state) { }
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() 
-    { 
-        return new List<MechanicalEffectDescription> 
-        { 
-            new MechanicalEffectDescription 
-            { 
-                Text = "No effect", 
-                Category = EffectCategory.StateChange 
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription>
+        {
+            new MechanicalEffectDescription
+            {
+                Text = "No effect",
+                Category = EffectCategory.StateChange
             }
-        }; 
+        };
     }
 }
 
@@ -38,10 +38,10 @@ public class AdvanceDurationEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return new List<MechanicalEffectDescription> 
-        { 
-            new MechanicalEffectDescription 
-            { 
+        return new List<MechanicalEffectDescription>
+        {
+            new MechanicalEffectDescription
+            {
                 Text = "Time advances",
                 Category = EffectCategory.TimePassage,
                 TimeMinutes = amount * 5
@@ -72,10 +72,10 @@ public class CreateMemoryEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return new List<MechanicalEffectDescription> 
-        { 
-            new MechanicalEffectDescription 
-            { 
+        return new List<MechanicalEffectDescription>
+        {
+            new MechanicalEffectDescription
+            {
                 Text = "You will remember this event",
                 Category = EffectCategory.InformationGain
             }
@@ -111,10 +111,10 @@ public class CheckMemoryEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        return new List<MechanicalEffectDescription> 
-        { 
-            new MechanicalEffectDescription 
-            { 
+        return new List<MechanicalEffectDescription>
+        {
+            new MechanicalEffectDescription
+            {
                 Text = "Your past experiences affect this outcome",
                 Category = EffectCategory.StateChange
             }
@@ -352,13 +352,13 @@ public class CheckMemoryEffect : IMechanicalEffect
 
         public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
         {
-            var descriptions = new List<MechanicalEffectDescription>();
-            
+            List<MechanicalEffectDescription> descriptions = new List<MechanicalEffectDescription>();
+
             foreach (IMechanicalEffect effect in effects)
             {
                 descriptions.AddRange(effect.GetDescriptionsForPlayer());
             }
-            
+
             return descriptions;
         }
     }

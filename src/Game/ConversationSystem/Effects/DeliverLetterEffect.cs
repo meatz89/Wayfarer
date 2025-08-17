@@ -12,11 +12,11 @@ public class DeliverLetterEffect : IMechanicalEffect
     private readonly ITimeManager _timeManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly Letter _letter;
-    
+
     public DeliverLetterEffect(
-        string letterId, 
+        string letterId,
         Letter letter,
-        LetterQueueManager queueManager, 
+        LetterQueueManager queueManager,
         ITimeManager timeManager,
         TokenMechanicsManager tokenManager)
     {
@@ -26,51 +26,51 @@ public class DeliverLetterEffect : IMechanicalEffect
         _timeManager = timeManager;
         _tokenManager = tokenManager;
     }
-    
+
     public void Apply(ConversationState state)
     {
         // Deliver the letter from position 1
         bool success = _queueManager.DeliverFromPosition1();
-        
+
         if (success)
         {
             // THIS is where trust is earned - by keeping your word
             // Award trust based on the difficulty of the promise kept
             int trustReward = CalculateTrustReward(_letter);
-            
+
             // Get sender ID to award trust to the right NPC
             string senderId = GetNPCIdByName(_letter.SenderName);
             if (!string.IsNullOrEmpty(senderId))
             {
                 _tokenManager.AddTokensToNPC(ConnectionType.Trust, trustReward, senderId);
             }
-            
+
             // Mark conversation as complete after successful delivery
             // Player delivered the letter, conversation naturally ends
             state.IsConversationComplete = true;
         }
     }
-    
+
     private int CalculateTrustReward(Letter letter)
     {
         // Base trust for keeping your word
         int baseTrust = 3;
-        
+
         // Urgent letters (deadline < 24h) give more trust - you kept a harder promise
         if (letter.DeadlineInHours < 24)
         {
             baseTrust = 4;
         }
-        
+
         // Critical letters (deadline < 12h) give even more
         if (letter.DeadlineInHours < 12)
         {
             baseTrust = 5;
         }
-        
+
         return baseTrust;
     }
-    
+
     private string GetNPCIdByName(string npcName)
     {
         // TODO: This should ideally come from NPC repository
@@ -85,7 +85,7 @@ public class DeliverLetterEffect : IMechanicalEffect
             _ => ""
         };
     }
-    
+
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
         int trustReward = _letter != null ? CalculateTrustReward(_letter) : 3;

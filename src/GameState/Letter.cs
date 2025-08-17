@@ -59,7 +59,7 @@ public class Letter
     public int DeadlineInHours { get; set; } // Hours until letter expires
     public int Payment { get; set; }
     public ConnectionType TokenType { get; set; }
-    
+
     // Literary UI properties - drives narrative generation
     public StakeType Stakes { get; set; } = StakeType.REPUTATION;
 
@@ -126,7 +126,7 @@ public class Letter
     public bool IsExpired => DeadlineInHours <= 0;
     public bool IsSpecial => SpecialType != LetterSpecialType.None;
     public int CarryWeight => PhysicalProperties.HasFlag(LetterPhysicalProperties.Heavy) ? 3 : 1;
-    
+
     /// <summary>
     /// Get the weight of this letter for queue management (1-3 slots)
     /// </summary>
@@ -272,33 +272,33 @@ public class Letter
         // Use the human context if available, otherwise fall back to generic descriptions
         if (!string.IsNullOrEmpty(HumanContext))
             return HumanContext;
-            
+
         return (TokenType, Stakes) switch
         {
             (ConnectionType.Trust, StakeType.REPUTATION) => "a matter of personal honor",
             (ConnectionType.Trust, StakeType.WEALTH) => "a family's financial crisis",
             (ConnectionType.Trust, StakeType.SAFETY) => "a warning between friends",
             (ConnectionType.Trust, StakeType.SECRET) => "a dangerous confession",
-            
+
             (ConnectionType.Commerce, StakeType.REPUTATION) => "a merchant's credibility",
             (ConnectionType.Commerce, StakeType.WEALTH) => "an urgent trade arrangement",
             (ConnectionType.Commerce, StakeType.SAFETY) => "dangerous cargo manifest",
             (ConnectionType.Commerce, StakeType.SECRET) => "smuggler's instructions",
-            
+
             (ConnectionType.Status, StakeType.REPUTATION) => "a noble's standing",
             (ConnectionType.Status, StakeType.WEALTH) => "an inheritance dispute",
             (ConnectionType.Status, StakeType.SAFETY) => "a challenge to duel",
             (ConnectionType.Status, StakeType.SECRET) => "court intrigue",
-            
+
             (ConnectionType.Shadow, StakeType.REPUTATION) => "blackmail material",
             (ConnectionType.Shadow, StakeType.WEALTH) => "thieves' guild dues",
             (ConnectionType.Shadow, StakeType.SAFETY) => "an assassin's warning",
             (ConnectionType.Shadow, StakeType.SECRET) => "information that kills",
-            
+
             _ => "correspondence"
         };
     }
-    
+
     /// <summary>
     /// Get the emotional weight icon for UI display
     /// </summary>
@@ -313,7 +313,7 @@ public class Letter
             _ => ""
         };
     }
-    
+
     /// <summary>
     /// Get a short consequence preview for the UI
     /// </summary>
@@ -321,7 +321,7 @@ public class Letter
     {
         if (!string.IsNullOrEmpty(ConsequenceIfLate))
             return $"If late: {ConsequenceIfLate}";
-            
+
         return Stakes switch
         {
             StakeType.REPUTATION => "If late: Reputation destroyed",

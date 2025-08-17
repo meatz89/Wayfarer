@@ -150,30 +150,30 @@ public class GameFacade : ILetterQueueOperations
         _atmosphereCalculator = atmosphereCalculator;
         _worldMemorySystem = worldMemorySystem;
         _ambientDialogueSystem = ambientDialogueSystem;
-        
+
         // Use injected TimeBlockAttentionManager (shared with ConversationFactory)
         _timeBlockAttentionManager = timeBlockAttentionManager;
         _deckFactory = deckFactory;
     }
 
     // ========== ATTENTION STATE ACCESS ==========
-    
+
     /// <summary>
     /// Get current attention state for UI display
     /// This is the single source of truth for attention across all screens
     /// </summary>
     public (int Current, int Max, TimeBlocks TimeBlock) GetCurrentAttentionState()
     {
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        var attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
-        
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        AttentionManager attention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
+
         return (
             attention.GetAvailableAttention(),
             attention.GetMaxAttention(),
             currentTimeBlock
         );
     }
-    
+
     /// <summary>
     /// Check if player has any attention remaining
     /// </summary>
@@ -183,7 +183,7 @@ public class GameFacade : ILetterQueueOperations
     }
 
     // ========== TIME ADVANCEMENT ==========
-    
+
     /// <summary>
     /// Public method for advancing game time. Ensures all time-dependent systems are updated.
     /// This should be used by ALL managers instead of calling TimeManager directly.
@@ -193,7 +193,7 @@ public class GameFacade : ILetterQueueOperations
         if (hours <= 0) return;
         ProcessTimeAdvancement(hours);
     }
-    
+
     /// <summary>
     /// Public method for advancing game time by minutes. Ensures all time-dependent systems are updated.
     /// This should be used by ALL managers instead of calling TimeManager directly.
@@ -208,9 +208,9 @@ public class GameFacade : ILetterQueueOperations
 
     private void ProcessTimeAdvancement(int hours)
     {
-        var oldTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks oldTimeBlock = _timeManager.GetCurrentTimeBlock();
         _timeManager.AdvanceTime(hours);
-        var newTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks newTimeBlock = _timeManager.GetCurrentTimeBlock();
 
         // Check if we've moved to a new time block - this triggers attention refresh
         if (oldTimeBlock != newTimeBlock)
@@ -229,7 +229,7 @@ public class GameFacade : ILetterQueueOperations
     {
         // Convert to hours for deadline processing
         int hours = minutes / 60;
-        
+
         _timeManager.AdvanceTimeMinutes(minutes);
 
         // Update letter deadlines when time advances (even partial hours)
@@ -344,7 +344,7 @@ public class GameFacade : ILetterQueueOperations
     {
         return _gameWorld.CurrentDay;
     }
-    
+
     /// <summary>
     /// Record a significant event for environmental storytelling
     /// </summary>
@@ -352,20 +352,20 @@ public class GameFacade : ILetterQueueOperations
     {
         _worldMemorySystem?.RecordEvent(type, actorId, targetId, locationId);
     }
-    
+
     /// <summary>
     /// Get ambient dialogue for NPCs at current location
     /// </summary>
     public List<string> GetLocationAmbience()
     {
         if (_ambientDialogueSystem == null) return new List<string>();
-        
-        var currentLocation = _locationRepository.GetCurrentLocation();
+
+        Location currentLocation = _locationRepository.GetCurrentLocation();
         if (currentLocation == null) return new List<string>();
-        
+
         return _ambientDialogueSystem.GetLocationAmbience(currentLocation.Id);
     }
-    
+
     /// <summary>
     /// Gets the current hour of the day (0-23)
     /// </summary>
@@ -373,7 +373,7 @@ public class GameFacade : ILetterQueueOperations
     {
         return _timeManager.GetCurrentTimeHours();
     }
-    
+
     /// <summary>
     /// Gets formatted time display with day name and time.
     /// Returns format like "MON 3:30 PM"
@@ -690,10 +690,10 @@ public class GameFacade : ILetterQueueOperations
             // Create conversation context
             Location location = _locationRepository.GetCurrentLocation();
             LocationSpot? spot = player.CurrentLocationSpot;
-            var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
+            SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
 
             // Create conversation - this should always succeed with fallback content
-            var conversation = await _conversationFactory.CreateConversation(context, player);
+            ConversationManager conversation = await _conversationFactory.CreateConversation(context, player);
             if (conversation == null)
             {
                 // This should never happen with proper fallback, but handle it anyway
@@ -725,9 +725,9 @@ public class GameFacade : ILetterQueueOperations
     private async Task<bool> ExecuteWait(WaitIntent intent)
     {
         // Calculate time to next period
-        var currentTime = _timeManager.GetCurrentTimeBlock();
-        var currentHour = _timeManager.GetCurrentTimeHours();
-        
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        int currentHour = _timeManager.GetCurrentTimeHours();
+
         // Determine next time block and hours to advance
         int hoursToAdvance = currentTime switch
         {
@@ -745,12 +745,12 @@ public class GameFacade : ILetterQueueOperations
 
         // Advance time (using ProcessTimeAdvancement to ensure deadlines are updated)
         ProcessTimeAdvancement(hoursToAdvance);
-        
+
         // The TimeBlockAttentionManager will automatically refresh attention for the new time block
-        
+
         // Add narrative message about waiting
-        var newTime = _timeManager.GetCurrentTimeBlock();
-        var message = newTime switch
+        TimeBlocks newTime = _timeManager.GetCurrentTimeBlock();
+        string message = newTime switch
         {
             TimeBlocks.Dawn => "You wait as the first light breaks over the horizon.",
             TimeBlocks.Morning => "The morning sun climbs higher as time passes.",
@@ -760,14 +760,14 @@ public class GameFacade : ILetterQueueOperations
             TimeBlocks.LateNight => "The deep of night settles in.",
             _ => "Time passes quietly."
         };
-        
+
         _messageSystem.AddSystemMessage(message, SystemMessageTypes.Info);
-        
+
         // Check for missed deadlines from letter queue
-        var letterQueue = GetLetterQueue();
+        LetterQueueViewModel letterQueue = GetLetterQueue();
         if (letterQueue?.QueueSlots != null)
         {
-            foreach (var slot in letterQueue.QueueSlots)
+            foreach (QueueSlotViewModel slot in letterQueue.QueueSlots)
             {
                 if (slot.IsOccupied && slot.Letter?.DeadlineInHours <= 0)
                 {
@@ -775,7 +775,7 @@ public class GameFacade : ILetterQueueOperations
                 }
             }
         }
-        
+
         return true;
     }
 
@@ -1766,7 +1766,7 @@ public class GameFacade : ILetterQueueOperations
     public async Task<bool> ExecuteWaitAction()
     {
         // Create and execute a wait intent
-        var intent = new WaitIntent();
+        WaitIntent intent = new WaitIntent();
         return await ExecuteIntent(intent);
     }
 
@@ -2236,23 +2236,23 @@ public class GameFacade : ILetterQueueOperations
         Player player = _gameWorld.GetPlayer();
         Location location = _locationRepository.GetCurrentLocation();
         LocationSpot spot = player.CurrentLocationSpot;
-        
+
         // NPCs should have letters to offer when starting conversations
         // This creates the core tension: accepting letters fills your queue
         if (npc != null)
         {
             npc.HasLetterToOffer = true; // NPCs always have something to ask of you
         }
-        
-        var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
-        
+
+        SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
+
         // CRITICAL: Use persistent attention from time block manager
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         context.AttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
         Console.WriteLine($"[StartConversationAsync] Using time-block attention for {currentTimeBlock}: {context.AttentionManager.GetAvailableAttention()}/{context.AttentionManager.GetMaxAttention()}");
 
         // Start conversation directly
-        var conversation = await _conversationFactory.CreateConversation(context, player);
+        ConversationManager conversation = await _conversationFactory.CreateConversation(context, player);
         if (conversation != null)
         {
             _conversationStateManager.SetCurrentConversation(conversation);
@@ -2308,46 +2308,46 @@ public class GameFacade : ILetterQueueOperations
         Console.WriteLine($"[GameFacade.GetCurrentConversation] Created ViewModel with NpcId: {viewModel?.NpcId}, Text: {viewModel?.CurrentText?.Substring(0, Math.Min(50, viewModel?.CurrentText?.Length ?? 0))}");
         return viewModel;
     }
-    
+
     public ConversationManager GetCurrentConversationManager()
     {
         return _conversationStateManager.PendingConversationManager;
     }
-    
+
     public async Task<ConversationViewModel> ProcessConversationChoice(string choiceId)
     {
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Processing choice: {choiceId}");
-        
+
         ConversationManager? currentConversation = _conversationStateManager.PendingConversationManager;
         if (currentConversation == null || !_conversationStateManager.ConversationPending)
         {
             Console.WriteLine($"[GameFacade.ProcessConversationChoice] No active conversation");
             return null;
         }
-        
+
         // Find the selected choice
-        var selectedChoice = currentConversation.Choices?.FirstOrDefault(c => c.ChoiceID == choiceId);
+        ConversationChoice? selectedChoice = currentConversation.Choices?.FirstOrDefault(c => c.ChoiceID == choiceId);
         if (selectedChoice == null)
         {
             Console.WriteLine($"[GameFacade.ProcessConversationChoice] Choice not found: {choiceId}");
             return GetCurrentConversation();
         }
-        
+
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Found choice: {selectedChoice.NarrativeText}, PatienceCost: {selectedChoice.PatienceCost}");
-        
+
         // Track time before processing to handle any ConversationTimeEffects
         int hoursBefore = _timeManager.GetCurrentTimeHours();
         int minutesBefore = _timeManager.GetCurrentMinutes();
         int dayBefore = _timeManager.GetCurrentDay();
-        
+
         // Process the choice and get the outcome
-        var outcome = await currentConversation.ProcessPlayerChoice(selectedChoice);
-        
+        ConversationBeatOutcome outcome = await currentConversation.ProcessPlayerChoice(selectedChoice);
+
         // Check if time advanced during choice processing (from ConversationTimeEffect)
         int hoursAfter = _timeManager.GetCurrentTimeHours();
         int minutesAfter = _timeManager.GetCurrentMinutes();
         int dayAfter = _timeManager.GetCurrentDay();
-        
+
         // Calculate time difference and process letter deadlines if time advanced
         int totalMinutesAdvanced = 0;
         if (dayAfter > dayBefore)
@@ -2359,7 +2359,7 @@ public class GameFacade : ILetterQueueOperations
         {
             totalMinutesAdvanced = ((hoursAfter - hoursBefore) * 60) + (minutesAfter - minutesBefore);
         }
-        
+
         if (totalMinutesAdvanced > 0)
         {
             // ConversationTimeEffect advanced time - process letter deadlines
@@ -2369,9 +2369,9 @@ public class GameFacade : ILetterQueueOperations
                 _letterQueueManager.ProcessHourlyDeadlines(hoursAdvanced);
             }
         }
-        
+
         Console.WriteLine($"[GameFacade.ProcessConversationChoice] Choice processed. Conversation complete: {outcome.IsConversationComplete}");
-        
+
         // If conversation is complete, check comfort thresholds and generate letters
         if (outcome.IsConversationComplete)
         {
@@ -2380,36 +2380,36 @@ public class GameFacade : ILetterQueueOperations
             Console.WriteLine($"[GameFacade.ProcessConversationChoice] Conversation completed and cleared");
             return null;
         }
-        
+
         // Generate new choices for the next beat
         await currentConversation.ProcessNextBeat();
-        
+
         // Return updated view model
         return CreateConversationViewModel(currentConversation);
     }
 
     private ConversationViewModel CreateConversationViewModel(ConversationManager conversation)
     {
-        var context = conversation.Context;
-        var npc = conversation.Context?.TargetNPC;
-        
+        SceneContext? context = conversation.Context;
+        NPC? npc = conversation.Context?.TargetNPC;
+
         // Use ContextTagCalculator to populate tags if available
         if (_contextTagCalculator != null && context != null)
         {
             _contextTagCalculator.PopulateContextTags(context);
         }
-        
+
         // Calculate NPC emotional state from letter queue
         NPCEmotionalState npcState = NPCEmotionalState.WITHDRAWN;
         if (_npcStateResolver != null && npc != null)
         {
             npcState = _npcStateResolver.CalculateState(npc);
         }
-        
+
         // Get attention information
-        var currentAttention = context?.AttentionManager?.Current ?? 3;
-        var maxAttention = context?.AttentionManager?.Max ?? 3;
-        
+        int currentAttention = context?.AttentionManager?.Current ?? 3;
+        int maxAttention = context?.AttentionManager?.Max ?? 3;
+
         // Generate attention narrative based on remaining points
         string attentionNarrative = currentAttention switch
         {
@@ -2419,7 +2419,7 @@ public class GameFacade : ILetterQueueOperations
             0 => "Mental fatigue clouds your thoughts. You can only respond simply.",
             _ => ""
         };
-        
+
         // Get the most urgent letter for this NPC (used in multiple places)
         Letter urgentLetter = null;
         if (npc != null)
@@ -2429,45 +2429,45 @@ public class GameFacade : ILetterQueueOperations
                 .OrderBy(l => l.DeadlineInHours)
                 .FirstOrDefault();
         }
-        
+
         // Generate body language description based on NPC emotional state
         string bodyLanguage = "";
         if (_npcStateResolver != null && npc != null)
         {
-            var stakes = urgentLetter?.Stakes ?? StakeType.REPUTATION;
+            StakeType stakes = urgentLetter?.Stakes ?? StakeType.REPUTATION;
             bodyLanguage = _npcStateResolver.GenerateBodyLanguage(npcState, stakes);
         }
         else
         {
             bodyLanguage = GenerateBodyLanguageFromTags(context);
         }
-        
+
         // Generate peripheral observations
-        var peripheralObservations = GeneratePeripheralObservations(context);
-        
+        List<string> peripheralObservations = GeneratePeripheralObservations(context);
+
         // Use EnvironmentalHintSystem for deadline pressure
         string deadlinePressure = _environmentalHintSystem?.GetDeadlinePressure() ?? "";
-        
+
         // Use EnvironmentalHintSystem for environmental hints
-        var environmentalHints = new List<string>();
+        List<string> environmentalHints = new List<string>();
         if (!string.IsNullOrEmpty(context?.LocationName))
         {
-            var hint = _environmentalHintSystem?.GetEnvironmentalHint(context.LocationName.ToLower().Replace(" ", "_"));
+            string? hint = _environmentalHintSystem?.GetEnvironmentalHint(context.LocationName.ToLower().Replace(" ", "_"));
             if (!string.IsNullOrEmpty(hint))
             {
                 environmentalHints.Add(hint);
             }
         }
-        
+
         // Get location atmosphere
         string locationAtmosphere = "";
         if (!string.IsNullOrEmpty(context?.LocationSpotName))
         {
-            locationAtmosphere = context.LocationSpotName.Contains("Kettle") 
+            locationAtmosphere = context.LocationSpotName.Contains("Kettle")
                 ? "Warm hearth-light, nervous energy in the air"
                 : "The usual bustle of activity";
         }
-        
+
         // Get the current narrative text, with fallback
         string currentText = conversation.State?.CurrentNarrative;
         if (string.IsNullOrWhiteSpace(currentText))
@@ -2475,18 +2475,18 @@ public class GameFacade : ILetterQueueOperations
             // Fallback narrative if none was generated
             currentText = $"{conversation.Context.TargetNPC.Name} looks at you expectantly, waiting for you to speak.";
         }
-        
+
         return new ConversationViewModel
         {
             NpcName = conversation.Context.TargetNPC.Name,
             NpcId = conversation.Context.TargetNPC.ID,
             CurrentText = currentText,
-            
+
             // Emotional State (from NPCStateResolver)
             EmotionalState = npcState,
             CurrentStakes = urgentLetter?.Stakes,
             HoursToDeadline = urgentLetter?.DeadlineInHours,
-            
+
             Choices = conversation.Choices?.Select(c => new ConversationChoiceViewModel
             {
                 Id = c.ChoiceID,
@@ -2504,27 +2504,27 @@ public class GameFacade : ILetterQueueOperations
             }).ToList() ?? new List<ConversationChoiceViewModel>(),
             IsComplete = conversation.State?.IsConversationComplete ?? false,
             ConversationTopic = conversation.Context.ConversationTopic,
-            
+
             // Literary UI properties
             CurrentAttention = currentAttention,
             MaxAttention = maxAttention,
             AttentionNarrative = attentionNarrative,
-            
+
             // Context tags
             PressureTags = context?.PressureTags?.Select(t => t.ToString()).ToList() ?? new(),
             RelationshipTags = context?.RelationshipTags?.Select(t => t.ToString()).ToList() ?? new(),
             FeelingTags = context?.FeelingTags?.Select(t => t.ToString()).ToList() ?? new(),
             DiscoveryTags = context?.DiscoveryTags?.Select(t => t.ToString()).ToList() ?? new(),
             ResourceTags = context?.ResourceTags?.Select(t => t.ToString()).ToList() ?? new(),
-            
+
             // Scene pressure metrics
             MinutesUntilDeadline = context?.MinutesUntilDeadline ?? 0,
             LetterQueueSize = context?.LetterQueueSize ?? 0,
-            
+
             // Body language and peripheral awareness
             BodyLanguageDescription = bodyLanguage,
             PeripheralObservations = peripheralObservations,
-            
+
             // Literary UI elements
             DeadlinePressure = deadlinePressure,
             EnvironmentalHints = environmentalHints,
@@ -2533,30 +2533,30 @@ public class GameFacade : ILetterQueueOperations
             CharacterState = bodyLanguage,
             CharacterAction = GenerateCharacterAction(npcState, urgentLetter, conversation),
             RelationshipStatus = GetRelationshipStatusDisplay(npc),
-            
+
             // Internal monologue (generated based on pressure)
             InternalMonologue = GenerateInternalMonologue(context),
-            
+
             // Binding obligations (promises and debts)
             BindingObligations = _bindingObligationSystem?.GetActiveObligations() ?? new List<BindingObligationViewModel>()
         };
     }
-    
+
     private string GenerateCharacterAction(
-        NPCEmotionalState npcState, 
-        Letter urgentLetter, 
+        NPCEmotionalState npcState,
+        Letter urgentLetter,
         ConversationManager conversation)
     {
         if (_actionBeatGenerator == null) return "";
-        
+
         // Determine conversation turn (simplified - could track actual turns)
         int conversationTurn = 1; // Default to first turn
-        
+
         // Check if urgent
         bool isUrgent = urgentLetter?.DeadlineInHours <= 2;
-        
+
         // Generate the action beat with NPC ID for determinism
-        var npcId = conversation?.Context?.TargetNPC?.ID;
+        string? npcId = conversation?.Context?.TargetNPC?.ID;
         return _actionBeatGenerator.GenerateActionBeat(
             npcState,
             urgentLetter?.Stakes,
@@ -2565,14 +2565,14 @@ public class GameFacade : ILetterQueueOperations
             npcId
         );
     }
-    
+
     private string GenerateBodyLanguageFromTags(SceneContext context)
     {
         if (context?.RelationshipTags == null || !context.RelationshipTags.Any())
             return "Their posture is neutral, giving little away.";
-            
-        var bodyLanguage = new List<string>();
-        
+
+        List<string> bodyLanguage = new List<string>();
+
         if (context.RelationshipTags.Contains(RelationshipTag.TRUST_HIGH))
             bodyLanguage.Add("leaning forward with open gestures");
         if (context.RelationshipTags.Contains(RelationshipTag.TRUST_NEGATIVE))
@@ -2583,24 +2583,24 @@ public class GameFacade : ILetterQueueOperations
             bodyLanguage.Add("glancing around nervously");
         if (context.RelationshipTags.Contains(RelationshipTag.STRANGER))
             bodyLanguage.Add("maintaining polite distance");
-            
+
         return bodyLanguage.Any() ? string.Join(", ", bodyLanguage) : "Their expression is unreadable.";
     }
-    
+
     private List<string> GeneratePeripheralObservations(SceneContext context)
     {
-        var observations = new List<string>();
-        
+        List<string> observations = new List<string>();
+
         if (context?.PressureTags?.Contains(PressureTag.DEADLINE_IMMINENT) == true)
             observations.Add("Time pressure weighs heavily...");
         if (context?.FeelingTags?.Contains(FeelingTag.DANGER_LURKS) == true)
             observations.Add("Something feels off about this place...");
         if (context?.DiscoveryTags?.Contains(DiscoveryTag.SECRET_PRESENT) == true)
             observations.Add("They seem to be holding something back...");
-            
+
         return observations;
     }
-    
+
     private string GenerateInternalMonologue(SceneContext context)
     {
         if (context?.PressureTags?.Contains(PressureTag.DEADLINE_IMMINENT) == true)
@@ -2609,10 +2609,10 @@ public class GameFacade : ILetterQueueOperations
             return "I can't afford to make enemies now...";
         if (context?.ResourceTags?.Contains(ResourceTag.STAMINA_EXHAUSTED) == true)
             return "I can barely focus through the exhaustion...";
-            
+
         return null;
     }
-    
+
     private string GetAttentionDescription(int cost)
     {
         return cost switch
@@ -2624,7 +2624,7 @@ public class GameFacade : ILetterQueueOperations
             _ => ""
         };
     }
-    
+
     private string DetermineEmotionalTone(ConversationChoice choice)
     {
         // Determine emotional tone based on choice properties
@@ -2638,27 +2638,27 @@ public class GameFacade : ILetterQueueOperations
             return "confident";
         if (choice.PatienceCost >= 2)
             return "anxious";
-            
+
         return "neutral";
     }
-    
+
     private List<MechanicEffectViewModel> ConvertMechanicalEffectsToDisplay(List<IMechanicalEffect> effects)
     {
-        var mechanics = new List<MechanicEffectViewModel>();
-        
+        List<MechanicEffectViewModel> mechanics = new List<MechanicEffectViewModel>();
+
         if (effects == null || !effects.Any())
             return mechanics;
-        
-        foreach (var effect in effects)
+
+        foreach (IMechanicalEffect effect in effects)
         {
             // Get the description for player display
-            var description = effect.GetDescriptionsForPlayer().FirstOrDefault()?.Text ?? "";
+            string description = effect.GetDescriptionsForPlayer().FirstOrDefault()?.Text ?? "";
             if (string.IsNullOrEmpty(description))
                 continue;
-            
+
             // Determine the effect type based on the description
-            var effectType = DetermineEffectType(description);
-            
+            MechanicEffectType effectType = DetermineEffectType(description);
+
             // Convert to view model
             mechanics.Add(new MechanicEffectViewModel
             {
@@ -2666,10 +2666,10 @@ public class GameFacade : ILetterQueueOperations
                 Type = effectType
             });
         }
-        
+
         return mechanics;
     }
-    
+
     private string GetAttentionDisplayString(int cost)
     {
         return cost switch
@@ -2681,7 +2681,7 @@ public class GameFacade : ILetterQueueOperations
             _ => $"◆ {cost}"
         };
     }
-    
+
     private MechanicEffectType DetermineEffectType(string description)
     {
         // Determine type based on description content
@@ -2785,11 +2785,11 @@ public class GameFacade : ILetterQueueOperations
                 if (deliverSuccess)
                 {
                     // Record successful delivery for environmental storytelling
-                    RecordWorldEvent(WorldEventType.LetterDelivered, 
-                        letter.SenderName, 
+                    RecordWorldEvent(WorldEventType.LetterDelivered,
+                        letter.SenderName,
                         letter.RecipientName,
                         _locationRepository.GetCurrentLocation()?.Id);
-                    
+
                     // Delivery takes 1 hour
                     ProcessTimeAdvancement(1);
                     _messageSystem.AddSystemMessage("Letter delivered successfully", SystemMessageTypes.Success);
@@ -2903,7 +2903,7 @@ public class GameFacade : ILetterQueueOperations
         }
 
         // Store for later use in conversation - strongly typed
-        foreach (var selection in enumSelection)
+        foreach (KeyValuePair<ConnectionType, int> selection in enumSelection)
         {
             _gameWorld.PendingQueueState.PendingPurgeTokens.SetTokenCount(selection.Key, selection.Value);
         }
@@ -2967,22 +2967,22 @@ public class GameFacade : ILetterQueueOperations
     public Letter[] GetQueueSnapshot()
     {
         // Return defensive copy of queue
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player?.LetterQueue == null) return new Letter[8];
         return player.LetterQueue.ToArray();
     }
 
     public QueueOperationCost GetOperationCost(QueueOperationType operation, int position1, int? position2 = null)
     {
-        var errors = new List<string>();
-        var costs = new Dictionary<ConnectionType, int>();
-        
+        List<string> errors = new List<string>();
+        Dictionary<ConnectionType, int> costs = new Dictionary<ConnectionType, int>();
+
         // Validate positions
         if (position1 < 1 || position1 > 8)
             errors.Add($"Invalid position: {position1}");
         if (position2.HasValue && (position2.Value < 1 || position2.Value > 8))
             errors.Add($"Invalid position: {position2}");
-        
+
         switch (operation)
         {
             case QueueOperationType.MorningSwap:
@@ -2992,34 +2992,34 @@ public class GameFacade : ILetterQueueOperations
                     errors.Add("Cannot swap same position");
                 // Morning swap is free during morning hours
                 break;
-                
+
             case QueueOperationType.PriorityMove:
                 // Cost increases with distance moved
-                var distance = position1 - 1;
+                int distance = position1 - 1;
                 if (distance > 0)
                 {
                     costs[ConnectionType.Commerce] = distance * 2;
                     costs[ConnectionType.Trust] = distance;
                 }
                 break;
-                
+
             case QueueOperationType.ExtendDeadline:
                 // Fixed cost for deadline extension
                 costs[ConnectionType.Status] = 3;
                 break;
-                
+
             case QueueOperationType.Deliver:
                 if (position1 != 1)
                     errors.Add("Can only deliver from position 1");
                 // Delivery itself is free
                 break;
-                
+
             case QueueOperationType.SkipDeliver:
                 // High cost for skipping delivery obligation
                 costs[ConnectionType.Trust] = 5;
                 costs[ConnectionType.Status] = 2;
                 break;
-                
+
             case QueueOperationType.Reorder:
                 // Basic reorder cost
                 if (position2.HasValue && position1 != position2.Value)
@@ -3028,7 +3028,7 @@ public class GameFacade : ILetterQueueOperations
                 }
                 break;
         }
-        
+
         return new QueueOperationCost(
             costs,
             operation == QueueOperationType.MorningSwap,
@@ -3039,29 +3039,29 @@ public class GameFacade : ILetterQueueOperations
 
     public bool CanPerformOperation(QueueOperationType operation, int position1, int? position2 = null)
     {
-        var cost = GetOperationCost(operation, position1, position2);
-        
+        QueueOperationCost cost = GetOperationCost(operation, position1, position2);
+
         // Check for validation errors
         if (cost.ValidationErrors.Length > 0)
             return false;
-        
+
         // Check token affordability
-        foreach (var tokenCost in cost.TokenCosts)
+        foreach (KeyValuePair<ConnectionType, int> tokenCost in cost.TokenCosts)
         {
-            var available = _connectionTokenManager.GetTotalTokensOfType(tokenCost.Key);
+            int available = _connectionTokenManager.GetTotalTokensOfType(tokenCost.Key);
             if (available < tokenCost.Value)
                 return false;
         }
-        
+
         // Check specific operation requirements
         switch (operation)
         {
             case QueueOperationType.Deliver:
                 return _letterQueueManager.CanDeliverFromPosition1();
-                
+
             case QueueOperationType.MorningSwap:
                 return _timeManager.GetCurrentTimeHours() < 10;
-                
+
             default:
                 return true;
         }
@@ -3073,15 +3073,15 @@ public class GameFacade : ILetterQueueOperations
         try
         {
             // Validate operation
-            var cost = GetOperationCost(QueueOperationType.MorningSwap, position1, position2);
+            QueueOperationCost cost = GetOperationCost(QueueOperationType.MorningSwap, position1, position2);
             if (cost.ValidationErrors.Length > 0)
                 return new QueueOperationResult(false, string.Join(", ", cost.ValidationErrors), null, GetQueueSnapshot());
-            
+
             // Execute swap
             bool success = _letterQueueManager.TryMorningSwap(position1, position2);
             if (!success)
                 return new QueueOperationResult(false, "Failed to swap letters", null, GetQueueSnapshot());
-            
+
             _messageSystem.AddSystemMessage($"Swapped positions {position1} and {position2}", SystemMessageTypes.Success);
             return new QueueOperationResult(true, null, new Dictionary<ConnectionType, int>(), GetQueueSnapshot());
         }
@@ -3097,23 +3097,23 @@ public class GameFacade : ILetterQueueOperations
         try
         {
             // Validate tokens
-            foreach (var token in payment)
+            foreach (KeyValuePair<ConnectionType, int> token in payment)
             {
                 if (_connectionTokenManager.GetTotalTokensOfType(token.Key) < token.Value)
                     return new QueueOperationResult(false, $"Insufficient {token.Key} tokens", null, GetQueueSnapshot());
             }
-            
+
             // Execute move
             bool success = _letterQueueManager.TryPriorityMove(fromPosition);
             if (!success)
                 return new QueueOperationResult(false, "Failed to move letter to priority", null, GetQueueSnapshot());
-            
+
             // Deduct tokens
-            foreach (var token in payment)
+            foreach (KeyValuePair<ConnectionType, int> token in payment)
             {
                 _connectionTokenManager.SpendTokensOfType(token.Key, token.Value);
             }
-            
+
             _messageSystem.AddSystemMessage($"Moved letter to priority position", SystemMessageTypes.Success);
             return new QueueOperationResult(true, null, payment, GetQueueSnapshot());
         }
@@ -3129,23 +3129,23 @@ public class GameFacade : ILetterQueueOperations
         try
         {
             // Validate tokens
-            foreach (var token in payment)
+            foreach (KeyValuePair<ConnectionType, int> token in payment)
             {
                 if (_connectionTokenManager.GetTotalTokensOfType(token.Key) < token.Value)
                     return new QueueOperationResult(false, $"Insufficient {token.Key} tokens", null, GetQueueSnapshot());
             }
-            
+
             // Execute extension
             bool success = _letterQueueManager.TryExtendDeadline(position);
             if (!success)
                 return new QueueOperationResult(false, "Failed to extend deadline", null, GetQueueSnapshot());
-            
+
             // Deduct tokens
-            foreach (var token in payment)
+            foreach (KeyValuePair<ConnectionType, int> token in payment)
             {
                 _connectionTokenManager.SpendTokensOfType(token.Key, token.Value);
             }
-            
+
             _messageSystem.AddSystemMessage($"Extended deadline for letter at position {position}", SystemMessageTypes.Success);
             return new QueueOperationResult(true, null, payment, GetQueueSnapshot());
         }
@@ -3162,11 +3162,11 @@ public class GameFacade : ILetterQueueOperations
         {
             if (!_letterQueueManager.CanDeliverFromPosition1())
                 return new QueueOperationResult(false, "Cannot deliver: not at recipient location or position 1 is empty", null, GetQueueSnapshot());
-            
+
             bool success = _letterQueueManager.DeliverFromPosition1();
             if (!success)
                 return new QueueOperationResult(false, "Failed to deliver letter", null, GetQueueSnapshot());
-            
+
             // Delivery takes 1 hour
             ProcessTimeAdvancement(1);
             _messageSystem.AddSystemMessage("Letter delivered successfully!", SystemMessageTypes.Success);
@@ -3184,23 +3184,23 @@ public class GameFacade : ILetterQueueOperations
         try
         {
             // Validate tokens
-            foreach (var token in payment)
+            foreach (KeyValuePair<ConnectionType, int> token in payment)
             {
                 if (_connectionTokenManager.GetTotalTokensOfType(token.Key) < token.Value)
                     return new QueueOperationResult(false, $"Insufficient {token.Key} tokens", null, GetQueueSnapshot());
             }
-            
+
             // Execute skip
             bool success = _letterQueueManager.TrySkipDeliver(position);
             if (!success)
                 return new QueueOperationResult(false, "Failed to skip letter", null, GetQueueSnapshot());
-            
+
             // Deduct tokens
-            foreach (var token in payment)
+            foreach (KeyValuePair<ConnectionType, int> token in payment)
             {
                 _connectionTokenManager.SpendTokensOfType(token.Key, token.Value);
             }
-            
+
             _messageSystem.AddSystemMessage($"Skipped letter at position {position}", SystemMessageTypes.Warning);
             return new QueueOperationResult(true, null, payment, GetQueueSnapshot());
         }
@@ -3216,16 +3216,16 @@ public class GameFacade : ILetterQueueOperations
         try
         {
             // Get the queue object directly
-            var player = _gameWorld.GetPlayer();
-            var queue = _letterQueueManager.GetLetterQueue();
+            Player player = _gameWorld.GetPlayer();
+            LetterQueue queue = _letterQueueManager.GetLetterQueue();
             if (queue == null)
                 return new QueueOperationResult(false, "Queue not available", null, GetQueueSnapshot());
-            
+
             // Use the LetterQueue's Reorder method
             bool success = queue.Reorder(fromPosition, toPosition);
             if (!success)
                 return new QueueOperationResult(false, "Failed to reorder queue", null, GetQueueSnapshot());
-            
+
             _messageSystem.AddSystemMessage($"Reordered: moved position {fromPosition} to {toPosition}", SystemMessageTypes.Success);
             return new QueueOperationResult(true, null, new Dictionary<ConnectionType, int>(), GetQueueSnapshot());
         }
@@ -3236,41 +3236,41 @@ public class GameFacade : ILetterQueueOperations
     }
 
     // ========== NAVIGATION SUPPORT ==========
-    
+
     public async Task<bool> EndConversationAsync()
     {
         // Check comfort thresholds before ending conversation
-        var currentConversation = _conversationStateManager.PendingConversationManager;
+        ConversationManager currentConversation = _conversationStateManager.PendingConversationManager;
         if (currentConversation != null)
         {
             await ProcessConversationCompletion(currentConversation);
         }
-        
+
         // End any active conversation
         _conversationStateManager.ClearPendingConversation();
         _messageSystem.AddSystemMessage("Conversation ended", SystemMessageTypes.Info);
         return await Task.FromResult(true);
     }
-    
+
     /// <summary>
     /// Process conversation completion - check comfort thresholds and generate letters
     /// </summary>
     private async Task ProcessConversationCompletion(ConversationManager conversation)
     {
-        var state = conversation.State;
-        var npc = conversation.Context.TargetNPC;
-        
+        ConversationState state = conversation.State;
+        NPC npc = conversation.Context.TargetNPC;
+
         if (state == null || npc == null)
         {
             Console.WriteLine("[GameFacade] Cannot process conversation completion - missing state or NPC");
             return;
         }
-        
+
         int totalComfort = state.TotalComfort;
         int startingPatience = state.StartingPatience;
-        
+
         Console.WriteLine($"[GameFacade] Processing conversation completion with {npc.Name} - Comfort: {totalComfort}, Starting Patience: {startingPatience}");
-        
+
         // Check if minimum threshold for relationship maintenance was reached
         if (!state.HasReachedMaintainThreshold())
         {
@@ -3281,16 +3281,16 @@ public class GameFacade : ILetterQueueOperations
         {
             _messageSystem.AddSystemMessage($"Good conversation with {npc.Name}", SystemMessageTypes.Success);
         }
-        
+
         // Check for letter generation threshold
         if (state.HasReachedLetterThreshold())
         {
             Console.WriteLine($"[GameFacade] Letter threshold reached! Generating letters from conversation");
-            
+
             try
             {
-                var generatedLetters = _letterOfferService.GenerateFromConversation(npc.ID, totalComfort, startingPatience);
-                
+                List<Letter>? generatedLetters = _letterOfferService.GenerateFromConversation(npc.ID, totalComfort, startingPatience);
+
                 Console.WriteLine($"[GameFacade] Generated {generatedLetters.Count} letters from conversation");
                 Console.WriteLine($"[GameFacade] generatedLetters.Any(): {generatedLetters.Any()}");
                 Console.WriteLine($"[GameFacade] generatedLetters is null: {generatedLetters == null}");
@@ -3298,43 +3298,43 @@ public class GameFacade : ILetterQueueOperations
                 {
                     for (int i = 0; i < generatedLetters.Count; i++)
                     {
-                        var letter = generatedLetters[i];
+                        Letter letter = generatedLetters[i];
                         Console.WriteLine($"[GameFacade] Letter {i}: {(letter == null ? "NULL" : $"Valid - {letter.Id}")}");
                     }
                 }
-                
+
                 if (generatedLetters.Count > 0)
                 {
                     Console.WriteLine($"[GameFacade] Entering foreach loop for {generatedLetters.Count} letters");
-                    foreach (var letter in generatedLetters)
+                    foreach (Letter letter in generatedLetters)
                     {
                         if (letter == null)
                         {
                             Console.WriteLine($"[GameFacade] Skipping null letter in collection");
                             continue;
                         }
-                        
+
                         Console.WriteLine($"[GameFacade] Processing letter: {letter.Id} - {letter.SenderName} to {letter.RecipientName}");
                         // Add letters to queue using existing positioning logic
                         int position = _letterQueueManager.AddLetterWithObligationEffects(letter);
                         Console.WriteLine($"[GameFacade] Letter added to queue at position: {position}");
-                        
+
                         string perfectBonus = state.HasReachedPerfectThreshold() ? " (Perfect Conversation!)" : "";
                         _messageSystem.AddSystemMessage(
-                            $"✉️ {npc.Name} trusts you with a {letter.TokenType} letter{perfectBonus}", 
+                            $"✉️ {npc.Name} trusts you with a {letter.TokenType} letter{perfectBonus}",
                             SystemMessageTypes.Success
                         );
                         _messageSystem.AddSystemMessage(
-                            $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInHours/24} days deadline", 
+                            $"💰 {letter.Payment} coins • ⏰ {letter.DeadlineInHours / 24} days deadline",
                             SystemMessageTypes.Info
                         );
                     }
-                    
+
                     // Show queue impact
-                    var queueSnapshot = GetQueueSnapshot();
+                    Letter[] queueSnapshot = GetQueueSnapshot();
                     int filledSlots = queueSnapshot.Count(letter => letter != null);
                     _messageSystem.AddSystemMessage(
-                        $"📋 Queue: {filledSlots}/{queueSnapshot.Length} slots", 
+                        $"📋 Queue: {filledSlots}/{queueSnapshot.Length} slots",
                         SystemMessageTypes.Info
                     );
                 }
@@ -3354,45 +3354,45 @@ public class GameFacade : ILetterQueueOperations
         {
             Console.WriteLine($"[GameFacade] Letter threshold not reached (need {startingPatience * GameRules.COMFORT_LETTER_THRESHOLD}, got {totalComfort})");
         }
-        
+
         // Perfect conversation bonus feedback
         if (state.HasReachedPerfectThreshold())
         {
             _messageSystem.AddSystemMessage($"🌟 Perfect conversation with {npc.Name}! Your bond has deepened significantly.", SystemMessageTypes.Success);
-            
+
             // Award bonus relationship tokens for perfect conversations
-            var highestTokenType = GetHighestRelationshipType(npc.ID);
+            ConnectionType highestTokenType = GetHighestRelationshipType(npc.ID);
             _connectionTokenManager.AddTokensToNPC(highestTokenType, 1, npc.ID);
-            
+
             Console.WriteLine($"[GameFacade] Perfect conversation bonus: +1 {highestTokenType} token with {npc.Name}");
         }
-        
+
         await Task.CompletedTask;
     }
-    
+
     /// <summary>
     /// Get the highest relationship type with an NPC for bonus rewards
     /// </summary>
     private ConnectionType GetHighestRelationshipType(string npcId)
     {
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
         if (!tokens.Any() || tokens.Values.All(v => v == 0))
         {
             return ConnectionType.Trust; // Default to Trust for new relationships
         }
-        
+
         return tokens.OrderByDescending(kvp => kvp.Value).First().Key;
     }
-    
+
     public void RefreshLocationState()
     {
         // Refresh the current location state
         // This ensures NPCs are in correct positions for current time
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player?.CurrentLocationSpot != null)
         {
             // Update NPC positions for current time
-            var currentTime = _timeManager.GetCurrentTimeBlock();
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             Console.WriteLine($"[GameFacade.RefreshLocationState] Refreshing location for time: {currentTime}");
         }
     }
@@ -4025,21 +4025,21 @@ public class GameFacade : ILetterQueueOperations
             _ => "Debt Obligation"
         };
     }
-    
+
     private Dictionary<string, string> GetRelationshipStatusDisplay(NPC npc)
     {
-        var status = new Dictionary<string, string>();
-        
+        Dictionary<string, string> status = new Dictionary<string, string>();
+
         if (npc == null)
             return status;
-        
+
         // Get conversation-specific context instead of token balances
         // Focus on NPC's current emotional state and conversation disposition
-        
+
         // Get NPC's current emotional state for conversation context
-        var currentState = _npcStateResolver?.CalculateState(npc) ?? NPCEmotionalState.WITHDRAWN;
-        var personalityType = npc.PersonalityType;
-        
+        NPCEmotionalState currentState = _npcStateResolver?.CalculateState(npc) ?? NPCEmotionalState.WITHDRAWN;
+        PersonalityType personalityType = npc.PersonalityType;
+
         // Add emotional state context
         string emotionalContext = currentState switch
         {
@@ -4050,9 +4050,9 @@ public class GameFacade : ILetterQueueOperations
             NPCEmotionalState.HOSTILE => "Angry about past events",
             _ => "Ready to talk"
         };
-        
+
         status["Current Mood"] = emotionalContext;
-        
+
         // Add personality-based conversation style
         string conversationStyle = personalityType switch
         {
@@ -4063,77 +4063,77 @@ public class GameFacade : ILetterQueueOperations
             PersonalityType.STEADFAST => "Prefers direct, honest talk",
             _ => "Open to various approaches"
         };
-        
+
         status["Conversation Style"] = conversationStyle;
-        
+
         // Add context about what they might want to discuss
         string topicHint = GetConversationTopicHint(npc, currentState);
         if (!string.IsNullOrEmpty(topicHint))
         {
             status["Main Concern"] = topicHint;
         }
-        
+
         return status;
     }
-    
+
     private string GetConversationTopicHint(NPC npc, NPCEmotionalState currentState)
     {
         // Provide hints about what the NPC might want to talk about
         // Based on their current state and any pressing matters
-        
+
         if (currentState == NPCEmotionalState.DESPERATE || currentState == NPCEmotionalState.ANXIOUS)
         {
             // Check if they have urgent letters or deadlines
-            var playerQueue = GetPlayer().LetterQueue;
-            var urgentLetter = playerQueue?.FirstOrDefault(l => l != null && 
+            Letter[] playerQueue = GetPlayer().LetterQueue;
+            Letter? urgentLetter = playerQueue?.FirstOrDefault(l => l != null &&
                 l.SenderName == npc.Name && l.DeadlineInHours <= 6);
-            
+
             if (urgentLetter != null)
             {
                 return $"Urgent letter deadline approaching ({urgentLetter.DeadlineInHours}h)";
             }
-            
+
             return "Has urgent personal matters to discuss";
         }
-        
+
         if (currentState == NPCEmotionalState.HOSTILE)
         {
             return "Upset about previous interactions";
         }
-        
+
         if (npc.PersonalityType == PersonalityType.MERCANTILE)
         {
             return "May discuss business opportunities";
         }
-        
+
         if (npc.PersonalityType == PersonalityType.CUNNING)
         {
             return "Might share information or secrets";
         }
-        
+
         return "Open to general conversation";
     }
-    
+
     private List<MechanicEffectViewModel> ParseMechanicalDescription(string mechanicalDescription)
     {
-        var mechanics = new List<MechanicEffectViewModel>();
-        
+        List<MechanicEffectViewModel> mechanics = new List<MechanicEffectViewModel>();
+
         if (string.IsNullOrEmpty(mechanicalDescription))
             return mechanics;
-        
+
         // Split by common delimiters
-        var parts = mechanicalDescription.Split('|');
-        
-        foreach (var part in parts)
+        string[] parts = mechanicalDescription.Split('|');
+
+        foreach (string part in parts)
         {
-            var trimmed = part.Trim();
+            string trimmed = part.Trim();
             if (string.IsNullOrEmpty(trimmed))
                 continue;
-            
+
             // Determine type based on content
             MechanicEffectType type = MechanicEffectType.Neutral;
             string description = trimmed;
-            
+
             // Check for specific patterns - NO ICON GENERATION, just clean up and categorize
             if (trimmed.StartsWith("✓") || trimmed.StartsWith("+") || trimmed.Contains("Opens") || trimmed.Contains("+"))
             {
@@ -4181,14 +4181,14 @@ public class GameFacade : ILetterQueueOperations
                 type = MechanicEffectType.Neutral;
                 description = trimmed.Trim('[', ']');
             }
-            
+
             mechanics.Add(new MechanicEffectViewModel
             {
                 Description = description,
                 Type = type
             });
         }
-        
+
         // If no delimiters found, treat the whole string as one mechanic
         if (mechanics.Count == 0 && !string.IsNullOrWhiteSpace(mechanicalDescription))
         {
@@ -4198,7 +4198,7 @@ public class GameFacade : ILetterQueueOperations
                 Type = MechanicEffectType.Neutral
             });
         }
-        
+
         return mechanics;
     }
 
@@ -4215,17 +4215,17 @@ public class GameFacade : ILetterQueueOperations
             return new LeverageViewModel();
         }
 
-        var npc = _npcRepository.GetById(npcId);
+        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null)
         {
             return new LeverageViewModel();
         }
-        
+
         // Get simple leverage from TokenMechanicsManager
         int leverage = _connectionTokenManager.GetLeverage(npcId, tokenType);
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
         int tokenBalance = tokens.GetValueOrDefault(tokenType, 0);
-        
+
         // Calculate target queue position based on leverage
         int basePosition = tokenType switch
         {
@@ -4235,22 +4235,22 @@ public class GameFacade : ILetterQueueOperations
             ConnectionType.Shadow => 7,
             _ => 8
         };
-        
+
         int targetPosition = basePosition;
         if (leverage > 0)
         {
             int leverageBoost = leverage / 2;
             targetPosition = Math.Max(1, basePosition - leverageBoost);
-            
+
             if (leverage >= 10)
                 targetPosition = 1;
             else if (leverage >= 5)
                 targetPosition = Math.Min(2, targetPosition);
         }
-        
+
         // Simple displacement cost (leverage + base cost)
         int displacementCost = Math.Max(2, leverage + 2);
-        
+
         // Determine leverage level
         string level = leverage switch
         {
@@ -4260,12 +4260,12 @@ public class GameFacade : ILetterQueueOperations
             >= 1 => "Low",
             _ => "None"
         };
-        
+
         // Generate narrative
-        string narrative = leverage > 0 
+        string narrative = leverage > 0
             ? $"You owe {npc.Name} {leverage} {tokenType} tokens, giving them {level.ToLower()} leverage over you."
             : $"No leverage with {npc.Name}";
-        
+
         return new LeverageViewModel
         {
             NPCId = npcId,
@@ -4288,30 +4288,30 @@ public class GameFacade : ILetterQueueOperations
     /// </summary>
     public List<LeverageViewModel> GetAllNPCLeverage()
     {
-        var leverageList = new List<LeverageViewModel>();
-        var player = _gameWorld.GetPlayer();
-        
+        List<LeverageViewModel> leverageList = new List<LeverageViewModel>();
+        Player player = _gameWorld.GetPlayer();
+
         // Get all NPCs with token relationships
-        foreach (var kvp in player.NPCTokens)
+        foreach (KeyValuePair<string, Dictionary<ConnectionType, int>> kvp in player.NPCTokens)
         {
-            var npcId = kvp.Key;
-            var npc = _npcRepository.GetById(npcId);
+            string npcId = kvp.Key;
+            NPC npc = _npcRepository.GetById(npcId);
             if (npc == null) continue;
-            
+
             // Calculate leverage for each token type the NPC uses
-            foreach (var tokenType in npc.LetterTokenTypes)
+            foreach (ConnectionType tokenType in npc.LetterTokenTypes)
             {
                 int leverage = _connectionTokenManager.GetLeverage(npcId, tokenType);
-                
+
                 // Only include if there's actual leverage
                 if (leverage > 0)
                 {
-                    var leverageViewModel = GetNPCLeverage(npcId, tokenType);
+                    LeverageViewModel leverageViewModel = GetNPCLeverage(npcId, tokenType);
                     leverageList.Add(leverageViewModel);
                 }
             }
         }
-        
+
         return leverageList.OrderByDescending(l => l.TotalLeverage).ToList();
     }
 
@@ -5096,7 +5096,7 @@ public class GameFacade : ILetterQueueOperations
 
     public int GetLetterQueueCount()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         if (player?.LetterQueue == null) return 0;
         return player.LetterQueue.Count(l => l != null && l.State == LetterState.Collected);
     }
@@ -5405,10 +5405,10 @@ public class GameFacade : ILetterQueueOperations
 
     private QueueStatusViewModel GetQueueStatus()
     {
-        var queue = _letterQueueManager.GetLetterQueue();
+        LetterQueue queue = _letterQueueManager.GetLetterQueue();
         int totalWeight = queue.GetTotalWeight();
         int maxWeight = queue.MaxWeight;
-        
+
         return new QueueStatusViewModel
         {
             LetterCount = _letterQueueManager.GetLetterCount(),
@@ -5694,9 +5694,9 @@ public class GameFacade : ILetterQueueOperations
     {
         return _travelManager.CanTravelTo(locationId);
     }
-    
+
     #region Literary UI Support
-    
+
     /// <summary>
     /// Get literary conversation data for the mockup-style UI
     /// This starts a conversation if one isn't already active
@@ -5704,115 +5704,115 @@ public class GameFacade : ILetterQueueOperations
     public async Task<ConversationViewModel> GetConversationAsync(string npcId)
     {
         // Check if there's already an active conversation with this NPC
-        var existing = _conversationStateManager.PendingConversationManager;
+        ConversationManager existing = _conversationStateManager.PendingConversationManager;
         if (existing != null && existing.Context?.TargetNPC?.ID == npcId)
         {
             return CreateConversationViewModel(existing);
         }
-        
+
         // Otherwise, start a new conversation properly with async/await
-        var player = _gameWorld.GetPlayer();
-        var npc = _npcRepository.GetById(npcId);
-        var location = player.GetCurrentLocation(_locationRepository);
-        var spot = player.CurrentLocationSpot;
-        
+        Player player = _gameWorld.GetPlayer();
+        NPC npc = _npcRepository.GetById(npcId);
+        Location? location = player.GetCurrentLocation(_locationRepository);
+        LocationSpot spot = player.CurrentLocationSpot;
+
         if (npc == null) return null;
-        
+
         // Create context for conversation with PERSISTENT attention from time block
-        var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
-        
+        SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
+
         // CRITICAL: Pass the persistent attention manager for this time block
-        var currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         context.AttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
         Console.WriteLine($"[GameFacade] Providing attention for {currentTimeBlock}: {context.AttentionManager.GetAvailableAttention()}/{context.AttentionManager.GetMaxAttention()}");
-        
+
         // Start the conversation to generate choices
-        var conversation = await _conversationFactory.CreateConversation(context, player);
-        
+        ConversationManager conversation = await _conversationFactory.CreateConversation(context, player);
+
         if (conversation != null)
         {
             _conversationStateManager.SetCurrentConversation(conversation);
             return CreateConversationViewModel(conversation);
         }
-        
+
         // Fallback if conversation creation failed - create basic view model
         int baseAttention = 3;
         int attentionModifier = 0;
         string atmosphereDescription = "The space feels neutral";
-        
+
         // Use AtmosphereCalculator if available
         if (_atmosphereCalculator != null && player.CurrentLocationSpot != null)
         {
-            var atmosphere = _atmosphereCalculator.CalculateForLocation(player.CurrentLocationSpot.SpotID);
+            AtmosphereEffect atmosphere = _atmosphereCalculator.CalculateForLocation(player.CurrentLocationSpot.SpotID);
             attentionModifier = atmosphere.AttentionModifier;
             atmosphereDescription = atmosphere.Description;
         }
-        
+
         int maxAttention = Math.Max(1, Math.Min(5, baseAttention + attentionModifier));
         int currentAttention = maxAttention; // Start with full attention
-        
-        string attentionNarrative = attentionModifier < 0 
-            ? "The distractions make it hard to focus" 
+
+        string attentionNarrative = attentionModifier < 0
+            ? "The distractions make it hard to focus"
             : attentionModifier > 0
                 ? "The comfortable atmosphere helps you focus"
                 : "You give your full attention";
-        
-        var viewModel = new ConversationViewModel
+
+        ConversationViewModel viewModel = new ConversationViewModel
         {
             // Attention System - dynamic based on environment
             CurrentAttention = currentAttention,
             MaxAttention = maxAttention,
             AttentionNarrative = attentionNarrative,
-            
+
             // Location Context
             LocationName = (location?.Name ?? "Unknown Location") + (player.CurrentLocationSpot != null ? $" - {player.CurrentLocationSpot.Name}" : ""),
             LocationAtmosphere = GenerateLocationAtmosphere(location),
             LocationPath = GetLocationPath(player.CurrentLocationSpot),
-            
+
             // Character Focus
             CharacterName = npc.Name,
             CharacterState = GetNPCBodyLanguage(npc),
-            
+
             // Bottom Status
             CurrentLocation = player.CurrentLocationSpot?.Name ?? "Unknown",
             QueueStatus = $"{player.LetterQueue.Count(l => l != null)}/8",
             CoinStatus = $"{player.Coins}s",
             CurrentTime = FormatGameTime()
         };
-        
+
         // Add relationship status
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
-        foreach (var token in tokens)
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npcId);
+        foreach (KeyValuePair<ConnectionType, int> token in tokens)
         {
-            var dots = new string('●', Math.Min(5, Math.Max(0, token.Value)));
-            var empty = new string('○', 5 - dots.Length);
+            string dots = new string('●', Math.Min(5, Math.Max(0, token.Value)));
+            string empty = new string('○', 5 - dots.Length);
             viewModel.RelationshipStatus[token.Key.ToString()] = $"{token.Key} {dots}{empty}";
         }
-        
+
         // Add deadline pressure
-        var urgentLetter = player.LetterQueue
+        Letter? urgentLetter = player.LetterQueue
             .Where(l => l != null && l.State == LetterState.Collected)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
-            
+
         if (urgentLetter != null && urgentLetter.DeadlineInHours <= 72)
         {
             viewModel.DeadlinePressure = $"⚡ {urgentLetter.SenderName}: {urgentLetter.DeadlineInHours / 24}d";
         }
-        
+
         return viewModel;
     }
-    
+
     /// <summary>
     /// Get location screen data for the mockup-style UI
     /// </summary>
     public LocationScreenViewModel GetLocationScreen()
     {
-        var player = _gameWorld.GetPlayer();
-        var location = player.GetCurrentLocation(_locationRepository);
-        var spot = player.CurrentLocationSpot;
-        
-        var viewModel = new LocationScreenViewModel
+        Player player = _gameWorld.GetPlayer();
+        Location? location = player.GetCurrentLocation(_locationRepository);
+        LocationSpot? spot = player.CurrentLocationSpot;
+
+        LocationScreenViewModel viewModel = new LocationScreenViewModel
         {
             CurrentTime = FormatGameTime(),
             DeadlineTimer = GetDeadlineTimer(),
@@ -5820,53 +5820,53 @@ public class GameFacade : ILetterQueueOperations
             LocationName = spot?.Name ?? "Unknown Location",
             AtmosphereText = GenerateLocationAtmosphere(location)
         };
-        
+
         // Tags removed - atmosphere is now calculated from NPC presence instead
-        
+
         // Generate actions using ActionGenerator
         if (_actionGenerator != null && location != null)
         {
             viewModel.QuickActions = _actionGenerator.GenerateActionsForLocation(location, spot);
         }
-        
+
         // Ensure QuickActions is initialized
         if (viewModel.QuickActions == null)
         {
             viewModel.QuickActions = new List<LocationActionViewModel>();
         }
-        
+
         // Add NPCs present
-        var npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot?.SpotID ?? "", _timeManager.GetCurrentTimeBlock());
-        foreach (var npc in npcs)
+        List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot?.SpotID ?? "", _timeManager.GetCurrentTimeBlock());
+        foreach (NPC npc in npcs)
         {
-            var npcPresence = new NPCPresenceViewModel
+            NPCPresenceViewModel npcPresence = new NPCPresenceViewModel
             {
                 Id = npc.ID,  // Add NPC ID for conversation initiation
                 Name = npc.Name,
                 MoodEmoji = GetNPCMoodEmoji(npc),
                 Description = GetNPCDescription(npc)
             };
-            
+
             npcPresence.Interactions.Add(new InteractionOptionViewModel
             {
                 Text = "Start conversation",
                 Cost = "10 min"
             });
-            
+
             viewModel.NPCsPresent.Add(npcPresence);
         }
-        
+
         // Calculate current attention for observation checks
         int baseAttention = 3;
         bool isCrowded = npcs.Count > 3 || location?.Population?.GetPropertyValue() == "Crowded";
         int attentionModifier = isCrowded ? -1 : 0;
         int currentAttention = Math.Max(1, baseAttention + attentionModifier);
-        
+
         // Use ObservationSystem to get dynamic observations (only if attention >= 2)
         if (_observationSystem != null && location != null && currentAttention >= 2)
         {
-            var systemObservations = _observationSystem.GetObservations(location.Id);
-            foreach (var obs in systemObservations)
+            List<ObservableViewModel> systemObservations = _observationSystem.GetObservations(location.Id);
+            foreach (ObservableViewModel obs in systemObservations)
             {
                 viewModel.Observations.Add(new ObservationViewModel
                 {
@@ -5879,9 +5879,9 @@ public class GameFacade : ILetterQueueOperations
         else if (_observationSystem != null && location != null)
         {
             // Limited observations when distracted
-            viewModel.Observations.Add(new ObservationViewModel 
-            { 
-                Icon = "💭", 
+            viewModel.Observations.Add(new ObservationViewModel
+            {
+                Icon = "💭",
                 Text = "Too distracted to notice details",
                 IsUnknown = false
             });
@@ -5899,10 +5899,10 @@ public class GameFacade : ILetterQueueOperations
                 });
             }
         }
-        
+
         // Add ambient dialogue from NPCs (environmental storytelling)
-        var ambientComments = GetLocationAmbience();
-        foreach (var comment in ambientComments.Take(2)) // Limit to 2 comments to avoid clutter
+        List<string> ambientComments = GetLocationAmbience();
+        foreach (string? comment in ambientComments.Take(2)) // Limit to 2 comments to avoid clutter
         {
             viewModel.Observations.Insert(0, new ObservationViewModel
             {
@@ -5911,7 +5911,7 @@ public class GameFacade : ILetterQueueOperations
                 IsUnknown = false
             });
         }
-        
+
         // CRITICAL FIX: Always add travel button as first action so players can navigate
         // Insert at position 0 to ensure it's always visible
         viewModel.QuickActions.Insert(0, new LocationActionViewModel
@@ -5922,38 +5922,38 @@ public class GameFacade : ILetterQueueOperations
             Cost = "FREE",
             Detail = "Go to another location"
         });
-        
+
         // Add route options from current location
         // CRITICAL FIX: Use the actual location ID, not the spot ID
         // Copper Kettle is a spot within Market Square
-        var currentLocationId = location?.Id ?? "market_square"; // Default to market_square
-        var allLocations = _locationRepository.GetAllLocations();
-        
+        string currentLocationId = location?.Id ?? "market_square"; // Default to market_square
+        List<Location> allLocations = _locationRepository.GetAllLocations();
+
         Console.WriteLine($"[GameFacade] Getting routes from location: {currentLocationId}");
-        var availableRoutes = new List<RouteOption>();
-        
+        List<RouteOption> availableRoutes = new List<RouteOption>();
+
         // Get ALL routes (available and locked) to show tier requirements
         // player is already declared at the top of this method
-        var allRoutesFromLocation = _routeRepository.GetRoutesFromLocation(currentLocationId)
+        List<RouteOption> allRoutesFromLocation = _routeRepository.GetRoutesFromLocation(currentLocationId)
             .Where(r => r.IsDiscovered) // Only show discovered routes
             .ToList();
-            
+
         Console.WriteLine($"[GameFacade] Total discovered routes from {currentLocationId}: {allRoutesFromLocation.Count}");
-        
+
         // Group routes by destination and create view models
-        var destinations = allRoutesFromLocation
+        IEnumerable<IGrouping<string, RouteOption>> destinations = allRoutesFromLocation
             .GroupBy(r => r.Destination)
             .Take(5); // Show up to 5 destinations
-            
-        foreach (var destGroup in destinations)
+
+        foreach (IGrouping<string, RouteOption>? destGroup in destinations)
         {
-            var cheapestRoute = destGroup.OrderBy(r => r.BaseStaminaCost).First();
-            var destination = _locationRepository.GetLocation(cheapestRoute.Destination);
-            
+            RouteOption cheapestRoute = destGroup.OrderBy(r => r.BaseStaminaCost).First();
+            Location destination = _locationRepository.GetLocation(cheapestRoute.Destination);
+
             // Check if route is accessible
             bool isLocked = false;
             string lockReason = "";
-            
+
             // Check tier requirement
             if (cheapestRoute.TierRequired > player.CurrentTier && !cheapestRoute.HasPermitUnlock)
             {
@@ -5971,7 +5971,7 @@ public class GameFacade : ILetterQueueOperations
                 isLocked = true;
                 lockReason = "Needs Transport Permit";
             }
-            
+
             viewModel.Routes.Add(new RouteOptionViewModel
             {
                 RouteId = cheapestRoute.Id,
@@ -5984,32 +5984,32 @@ public class GameFacade : ILetterQueueOperations
                 CanUnlockWithPermit = cheapestRoute.TierRequired > player.CurrentTier
             });
         }
-        
+
         return viewModel;
     }
-    
+
     private string GenerateLocationAtmosphere(Location location)
     {
         if (location == null) return "A quiet place.";
-        
-        var timeOfDay = (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning || _timeManager.GetCurrentTimeBlock() == TimeBlocks.Afternoon) ? "day" : "evening";
-        var activity = location?.AvailableServices?.FirstOrDefault() switch
+
+        string timeOfDay = (_timeManager.GetCurrentTimeBlock() == TimeBlocks.Morning || _timeManager.GetCurrentTimeBlock() == TimeBlocks.Afternoon) ? "day" : "evening";
+        string activity = location?.AvailableServices?.FirstOrDefault() switch
         {
             ServiceTypes.Trade => "Bustling crowds. Merchant calls.",
             ServiceTypes.Rest => "Warm firelight. Clinking mugs.",
             _ => "People moving with purpose."
         };
-        
+
         return $"{activity} The {timeOfDay} continues.";
     }
-    
+
     private List<string> GetLocationPath(LocationSpot spot)
     {
-        var path = new List<string>();
-        
+        List<string> path = new List<string>();
+
         if (spot != null)
         {
-            var location = _locationRepository.GetLocation(spot.LocationId);
+            Location location = _locationRepository.GetLocation(spot.LocationId);
             if (location != null)
             {
                 path.Add(location.Name);
@@ -6019,51 +6019,51 @@ public class GameFacade : ILetterQueueOperations
                 }
             }
         }
-        
+
         return path;
     }
-    
+
     private string FormatGameTime()
     {
         // Use TimeManager's consistent formatting
         return _timeManager.GetFormattedTimeDisplay();
     }
-    
+
     private string GetDeadlineTimer()
     {
-        var player = _gameWorld.GetPlayer();
-        var urgentLetter = player.LetterQueue
+        Player player = _gameWorld.GetPlayer();
+        Letter? urgentLetter = player.LetterQueue
             .Where(l => l != null && l.State == LetterState.Collected)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
-            
+
         if (urgentLetter != null && urgentLetter.DeadlineInHours <= 48)
         {
-            var hours = urgentLetter.DeadlineInHours;
+            int hours = urgentLetter.DeadlineInHours;
             return $"⚡ {hours}h until {urgentLetter.SenderName}";
         }
-        
+
         return "";
     }
-    
+
     private string GetNPCBodyLanguage(NPC npc)
     {
         // Simplified body language based on tokens
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-        var trustTokens = tokens.TryGetValue(ConnectionType.Trust, out var trust) ? trust : 0;
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        int trustTokens = tokens.TryGetValue(ConnectionType.Trust, out int trust) ? trust : 0;
+
         if (trustTokens < -2) return "arms crossed, looking away";
         else if (trustTokens < 1) return "watching you carefully";
         else if (trustTokens < 3) return "leaning forward with interest";
         else return "hands clasped together anxiously";
     }
-    
+
     private string GetNPCMoodEmoji(NPC npc)
     {
         // Simplified mood calculation based on tokens
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-        var trustTokens = tokens.TryGetValue(ConnectionType.Trust, out var trust) ? trust : 0;
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        int trustTokens = tokens.TryGetValue(ConnectionType.Trust, out int trust) ? trust : 0;
+
         NPCEmotionalState state;
         if (trustTokens < -2) state = NPCEmotionalState.HOSTILE;
         else if (trustTokens < 1) state = NPCEmotionalState.WITHDRAWN;
@@ -6078,13 +6078,13 @@ public class GameFacade : ILetterQueueOperations
             _ => "😊"
         };
     }
-    
+
     private string GetNPCDescription(NPC npc)
     {
         // Simplified description based on tokens
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
-        var trustTokens = tokens.TryGetValue(ConnectionType.Trust, out var trust) ? trust : 0;
-        
+        Dictionary<ConnectionType, int> tokens = _connectionTokenManager.GetTokensWithNPC(npc.ID);
+        int trustTokens = tokens.TryGetValue(ConnectionType.Trust, out int trust) ? trust : 0;
+
         NPCEmotionalState state;
         if (trustTokens < -2) state = NPCEmotionalState.HOSTILE;
         else if (trustTokens < 1) state = NPCEmotionalState.WITHDRAWN;
@@ -6099,7 +6099,7 @@ public class GameFacade : ILetterQueueOperations
             _ => $"Available to talk"
         };
     }
-    
+
     /// <summary>
     /// Get conversation choices from NPC's card deck for frontend integration
     /// </summary>
@@ -6108,7 +6108,7 @@ public class GameFacade : ILetterQueueOperations
         try
         {
             // Get the current conversation if available
-            var currentConversation = _conversationStateManager.PendingConversationManager;
+            ConversationManager currentConversation = _conversationStateManager.PendingConversationManager;
             if (currentConversation != null && currentConversation.Context?.TargetNPC?.ID == npcId)
             {
                 // Use existing conversation's choices if available
@@ -6117,23 +6117,23 @@ public class GameFacade : ILetterQueueOperations
                     return currentConversation.Choices;
                 }
             }
-            
+
             // Create new choice generator to get card-based choices
-            var player = _gameWorld.GetPlayer();
-            var npc = _npcRepository.GetById(npcId);
+            Player player = _gameWorld.GetPlayer();
+            NPC npc = _npcRepository.GetById(npcId);
             if (npc == null)
             {
                 Console.WriteLine($"[GameFacade] NPC not found: {npcId}");
                 return new List<ConversationChoice>();
             }
-            
+
             // Create context for choice generation
-            var location = player.GetCurrentLocation(_locationRepository);
-            var spot = player.CurrentLocationSpot;
-            var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
-            
+            Location location = player.GetCurrentLocation(_locationRepository);
+            LocationSpot spot = player.CurrentLocationSpot;
+            SceneContext context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
+
             // Create choice generator
-            var choiceGenerator = new ConversationChoiceGenerator(
+            ConversationChoiceGenerator choiceGenerator = new ConversationChoiceGenerator(
                 _letterQueueManager,
                 _connectionTokenManager,
                 _npcStateResolver,
@@ -6142,11 +6142,11 @@ public class GameFacade : ILetterQueueOperations
                 _gameWorld,
                 _timeBlockAttentionManager,
                 _deckFactory);
-            
+
             // Generate choices from card deck
-            var state = new ConversationState(player, npc, _gameWorld, 3, 8); // Basic state for choice generation
-            var choices = choiceGenerator.GenerateChoices(context, state);
-            
+            ConversationState state = new ConversationState(player, npc, _gameWorld, 3, 8); // Basic state for choice generation
+            List<ConversationChoice> choices = choiceGenerator.GenerateChoices(context, state);
+
             Console.WriteLine($"[GameFacade] Generated {choices.Count} card-based choices for {npcId}");
             return choices;
         }
@@ -6156,7 +6156,7 @@ public class GameFacade : ILetterQueueOperations
             return new List<ConversationChoice>();
         }
     }
-    
+
     #endregion
 
 }

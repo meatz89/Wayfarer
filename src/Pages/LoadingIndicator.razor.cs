@@ -7,7 +7,7 @@ namespace Wayfarer.Pages
     public partial class LoadingIndicator : ComponentBase
     {
         [Inject] private IJSRuntime JSRuntime { get; set; }
-        
+
         [Parameter] public bool IsVisible { get; set; }
         [Parameter] public string Message { get; set; }
         [Parameter] public bool ShowProgress { get; set; }

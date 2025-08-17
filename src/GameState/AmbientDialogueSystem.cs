@@ -29,16 +29,16 @@ namespace Wayfarer.GameState
         public string GetAmbientComment(string npcId)
         {
             // Check cooldown
-            if (_lastSpeakTime.TryGetValue(npcId, out var lastTime))
+            if (_lastSpeakTime.TryGetValue(npcId, out DateTime lastTime))
             {
                 if (DateTime.Now - lastTime < COOLDOWN)
                     return null;
             }
 
-            var npc = _npcRepository.GetById(npcId);
+            NPC npc = _npcRepository.GetById(npcId);
             if (npc == null) return null;
 
-            var comment = GenerateComment(npc);
+            string comment = GenerateComment(npc);
             if (!string.IsNullOrEmpty(comment))
             {
                 _lastSpeakTime[npcId] = DateTime.Now;
@@ -53,11 +53,11 @@ namespace Wayfarer.GameState
         private string GenerateComment(NPC npc)
         {
             // Check for recent events involving this NPC
-            var npcEvents = _worldMemory.GetEventsForNPC(npc.ID);
-            
+            List<WorldEvent> npcEvents = _worldMemory.GetEventsForNPC(npc.ID);
+
             if (npcEvents.Any())
             {
-                var mostRecent = npcEvents.First();
+                WorldEvent mostRecent = npcEvents.First();
                 return GenerateEventComment(npc, mostRecent);
             }
 
@@ -81,21 +81,21 @@ namespace Wayfarer.GameState
         {
             return worldEvent.Type switch
             {
-                WorldEventType.DeadlineMissed => 
+                WorldEventType.DeadlineMissed =>
                     $"{npc.Name} mutters: \"Can't rely on anyone these days...\"",
-                
-                WorldEventType.LetterDelivered => 
+
+                WorldEventType.LetterDelivered =>
                     $"{npc.Name} nods approvingly: \"Good to see someone keeping their word.\"",
-                
-                WorldEventType.ConfrontationOccurred => 
+
+                WorldEventType.ConfrontationOccurred =>
                     $"{npc.Name} avoids eye contact and hurries past.",
-                
-                WorldEventType.TrustLost => 
+
+                WorldEventType.TrustLost =>
                     $"{npc.Name} shakes their head disapprovingly.",
-                
-                WorldEventType.TrustGained => 
+
+                WorldEventType.TrustGained =>
                     $"{npc.Name}: \"You're building quite a reputation.\"",
-                
+
                 _ => null
             };
         }
@@ -128,7 +128,7 @@ namespace Wayfarer.GameState
         private string GenerateDefaultComment(NPC npc)
         {
             // Occasional neutral ambient dialogue
-            var random = new Random();
+            Random random = new Random();
             if (random.Next(100) > 70) // 30% chance
             {
                 return npc.Profession switch
@@ -150,13 +150,13 @@ namespace Wayfarer.GameState
         /// </summary>
         public List<string> GetLocationAmbience(string locationId)
         {
-            var comments = new List<string>();
-            var npcsAtLocation = _npcRepository.GetAllNPCs()
+            List<string> comments = new List<string>();
+            IEnumerable<NPC> npcsAtLocation = _npcRepository.GetAllNPCs()
                 .Where(npc => npc.Location == locationId);
 
-            foreach (var npc in npcsAtLocation)
+            foreach (NPC? npc in npcsAtLocation)
             {
-                var comment = GetAmbientComment(npc.ID);
+                string comment = GetAmbientComment(npc.ID);
                 if (!string.IsNullOrEmpty(comment))
                 {
                     comments.Add(comment);

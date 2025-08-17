@@ -63,7 +63,7 @@ namespace Wayfarer.Pages
                 await OnTravelRoute.InvokeAsync(routeOption);
             }
         }
-        
+
         protected async Task HandleBackToLocation()
         {
             Console.WriteLine("[TravelSelection] HandleBackToLocation - returning to LocationScreen without travel");

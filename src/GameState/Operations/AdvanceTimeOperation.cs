@@ -27,20 +27,20 @@ public class AdvanceTimeOperation : IGameOperation
     {
         // Advance time
         _timeManager.AdvanceTime(_hours);
-        
+
         // CRITICAL: Update all letter deadlines when time advances
         // This creates the core tension - letters expire if not delivered
-        var player = gameWorld.GetPlayer();
-        
+        Player? player = gameWorld.GetPlayer();
+
         // Update deadlines for letters in queue
         if (player?.LetterQueue != null)
         {
-            foreach (var letter in player.LetterQueue)
+            foreach (Letter letter in player.LetterQueue)
             {
                 if (letter != null && !letter.IsExpired)
                 {
                     letter.DeadlineInHours -= _hours;
-                    
+
                     // Clamp to 0, never go negative
                     if (letter.DeadlineInHours < 0)
                     {
@@ -49,16 +49,16 @@ public class AdvanceTimeOperation : IGameOperation
                 }
             }
         }
-        
+
         // Also update deadlines for carried letters (physical letters in inventory)
         if (player?.CarriedLetters != null)
         {
-            foreach (var letter in player.CarriedLetters)
+            foreach (Letter letter in player.CarriedLetters)
             {
                 if (letter != null && !letter.IsExpired)
                 {
                     letter.DeadlineInHours -= _hours;
-                    
+
                     // Clamp to 0, never go negative
                     if (letter.DeadlineInHours < 0)
                     {

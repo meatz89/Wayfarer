@@ -19,7 +19,7 @@ public class ContentFallbackService
 
     public ContentFallbackService(
         NPCRepository npcRepository,
-        LocationRepository locationRepository, 
+        LocationRepository locationRepository,
         RouteRepository routeRepository)
     {
         _npcRepository = npcRepository;
@@ -62,7 +62,7 @@ public class ContentFallbackService
         // Register the fallback
         _fallbackNPCs[npcId] = fallbackNpc;
         _npcRepository.AddNPC(fallbackNpc);
-        
+
         // Log the fallback creation
         LogFallback(ContentType.NPC, npcId, "NPC referenced but not defined in npcs.json");
 
@@ -97,7 +97,7 @@ public class ContentFallbackService
         // Register the fallback
         _fallbackLocations[locationId] = fallbackLocation;
         // Note: LocationRepository doesn't have AddLocation, locations are managed by GameWorld
-        
+
         // Log the fallback creation
         LogFallback(ContentType.Location, locationId, "Location referenced but not defined in locations.json");
 
@@ -114,9 +114,9 @@ public class ContentFallbackService
         List<RouteOption> routes)
     {
         _fallbackLog.Clear();
-        
+
         // Validate conversation NPC references
-        foreach (var conversation in conversations.Values)
+        foreach (ConversationDefinition conversation in conversations.Values)
         {
             if (!string.IsNullOrEmpty(conversation.NpcId))
             {
@@ -126,7 +126,7 @@ public class ContentFallbackService
             // Check NPC references in effects
             if (conversation.Nodes != null)
             {
-                foreach (var node in conversation.Nodes.Values)
+                foreach (ConversationNode node in conversation.Nodes.Values)
                 {
                     if (node.Effects?.AddToken?.NpcId != null)
                     {
@@ -137,7 +137,7 @@ public class ContentFallbackService
         }
 
         // Validate letter sender/recipient references
-        foreach (var letter in letters)
+        foreach (Letter letter in letters)
         {
             if (!string.IsNullOrEmpty(letter.SenderId))
             {
@@ -150,7 +150,7 @@ public class ContentFallbackService
         }
 
         // Validate route location references
-        foreach (var route in routes)
+        foreach (RouteOption route in routes)
         {
             if (!string.IsNullOrEmpty(route.Origin))
             {
@@ -183,18 +183,18 @@ public class ContentFallbackService
             return "No content fallbacks needed - all references valid.";
         }
 
-        var summary = $"⚠️ CONTENT FALLBACKS ACTIVE ⚠️\n";
+        string summary = $"⚠️ CONTENT FALLBACKS ACTIVE ⚠️\n";
         summary += $"Created {_fallbackLog.Count} fallback entities due to missing content:\n\n";
-        
-        foreach (var group in _fallbackLog.GroupBy(f => f.Type))
+
+        foreach (IGrouping<ContentType, ContentFallbackEntry> group in _fallbackLog.GroupBy(f => f.Type))
         {
             summary += $"{group.Key}s ({group.Count()}):\n";
-            foreach (var entry in group)
+            foreach (ContentFallbackEntry? entry in group)
             {
                 summary += $"  - {entry.MissingId}: {entry.Reason}\n";
             }
         }
-        
+
         summary += "\nThese fallbacks allow the game to run but should be fixed in content files.";
         return summary;
     }
@@ -204,7 +204,7 @@ public class ContentFallbackService
     /// </summary>
     public bool IsFallback(string entityId)
     {
-        return _fallbackNPCs.ContainsKey(entityId) || 
+        return _fallbackNPCs.ContainsKey(entityId) ||
                _fallbackLocations.ContainsKey(entityId) ||
                _fallbackRoutes.ContainsKey(entityId);
     }

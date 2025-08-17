@@ -34,16 +34,16 @@ public static class LetterTemplateParser
         string specialTypeStr = GetStringProperty(root, "specialType", "None");
         template.SpecialType = ParseSpecialType(specialTypeStr);
         template.SpecialTargetId = GetStringProperty(root, "specialTargetId", "");
-        
+
         // Parse human context and consequences
         template.HumanContext = GetStringProperty(root, "humanContext", "");
         template.ConsequenceIfLate = GetStringProperty(root, "consequenceIfLate", "");
         template.ConsequenceIfDelivered = GetStringProperty(root, "consequenceIfDelivered", "");
-        
+
         // Parse emotional weight
         string emotionalWeightStr = GetStringProperty(root, "emotionalWeight", "MEDIUM");
         template.EmotionalWeight = ParseEmotionalWeight(emotionalWeightStr);
-        
+
         // Parse stakes
         string stakesStr = GetStringProperty(root, "stakes", "REPUTATION");
         template.Stakes = ParseStakeType(stakesStr);
@@ -76,7 +76,7 @@ public static class LetterTemplateParser
             _ => LetterSpecialType.None // Default fallback
         };
     }
-    
+
     private static EmotionalWeight ParseEmotionalWeight(string weightStr)
     {
         return weightStr?.ToUpper() switch
@@ -88,7 +88,7 @@ public static class LetterTemplateParser
             _ => EmotionalWeight.MEDIUM // Default fallback
         };
     }
-    
+
     private static StakeType ParseStakeType(string stakeStr)
     {
         return stakeStr?.ToUpper() switch

@@ -8,36 +8,36 @@ public class PeripheralAwarenessBase : ComponentBase
     [Parameter] public string DeadlineNarrative { get; set; }
     [Parameter] public string QueuePressureNarrative { get; set; }
     [Parameter] public List<string> EnvironmentalHints { get; set; } = new();
-    
+
     [Inject] private GameFacade GameFacade { get; set; }
-    
+
     protected bool HasContent => HasDeadlinePressure || HasEnvironmentalHints || HasQueuePressure || Observations?.Any() == true;
     protected bool HasDeadlinePressure => !string.IsNullOrEmpty(DeadlineNarrative);
     protected bool HasQueuePressure => !string.IsNullOrEmpty(QueuePressureNarrative);
     protected bool HasEnvironmentalHints => EnvironmentalHints?.Any() == true;
-    
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
         UpdatePeripheralInfo();
     }
-    
+
     private void UpdatePeripheralInfo()
     {
         if (GameFacade == null) return;
-        
+
         // Get the actual letter queue from the player
-        var player = GameFacade.GetPlayer();
+        Player player = GameFacade.GetPlayer();
         if (player == null) return;
-        
-        var letterQueue = player.LetterQueue;
-        
+
+        Letter[] letterQueue = player.LetterQueue;
+
         // Get deadline narrative for most urgent letter
-        var urgentLetter = letterQueue
+        Letter? urgentLetter = letterQueue
             .Where(l => l != null && l.State == LetterState.Collected)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
-            
+
         if (urgentLetter != null && urgentLetter.DeadlineInHours <= 72) // 3 days = 72 hours
         {
             DeadlineNarrative = urgentLetter.DeadlineInHours switch
@@ -48,9 +48,9 @@ public class PeripheralAwarenessBase : ComponentBase
                 _ => $"📬 {urgentLetter.SenderName}'s letter weighs on your mind"
             };
         }
-        
+
         // Calculate queue pressure
-        var activeLetterCount = letterQueue.Count(l => l != null && l.State == LetterState.Collected);
+        int activeLetterCount = letterQueue.Count(l => l != null && l.State == LetterState.Collected);
         if (activeLetterCount > 6)
         {
             QueuePressureNarrative = "Your satchel strains with accumulated correspondence";

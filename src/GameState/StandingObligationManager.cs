@@ -793,7 +793,7 @@ public class StandingObligationManager
                 $"💀 {npc.Name} is now HOSTILE - breaking {obligationName} has severe consequences!",
                 SystemMessageTypes.Danger
             );
-            
+
             _messageSystem.AddSystemMessage(
                 $"🗡️ Betrayal conversation options are now available with {npc.Name}",
                 SystemMessageTypes.Warning

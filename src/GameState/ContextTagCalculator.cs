@@ -74,7 +74,7 @@ public class ContextTagCalculator
             tags.Add(PressureTag.DEADLINE_IMMINENT);
 
         // Check queue pressure
-        var queueSize = _letterQueueManager?.GetPlayerQueue()?.Count(l => l != null) ?? 0;
+        int queueSize = _letterQueueManager?.GetPlayerQueue()?.Count(l => l != null) ?? 0;
         if (queueSize >= 6)
             tags.Add(PressureTag.QUEUE_OVERFLOW);
 
@@ -86,7 +86,7 @@ public class ContextTagCalculator
 
             foreach (ConnectionType tokenType in Enum.GetValues(typeof(ConnectionType)))
             {
-                var totalTokens = _tokenManager.GetTokenCount(tokenType);
+                int totalTokens = _tokenManager.GetTokenCount(tokenType);
                 if (totalTokens < 0)
                 {
                     hasDebt = true;
@@ -116,7 +116,7 @@ public class ContextTagCalculator
             return tags;
 
         // Check each token type
-        var npcTokens = _tokenManager.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npcId);
         int trustTokens = npcTokens.GetValueOrDefault(ConnectionType.Trust);
         int commerceTokens = npcTokens.GetValueOrDefault(ConnectionType.Commerce);
         int statusTokens = npcTokens.GetValueOrDefault(ConnectionType.Status);
@@ -204,7 +204,7 @@ public class ContextTagCalculator
             tags.Add(ResourceTag.STAMINA_EXHAUSTED);
 
         // Inventory tags
-        var inventoryItems = _gameWorld.PlayerInventory?.GetAllItems();
+        List<string>? inventoryItems = _gameWorld.PlayerInventory?.GetAllItems();
         if (inventoryItems == null || !inventoryItems.Any(i => !string.IsNullOrEmpty(i)))
             tags.Add(ResourceTag.INVENTORY_EMPTY);
         else if (inventoryItems.Count(i => !string.IsNullOrEmpty(i)) >= 10) // Assuming 10 is max
@@ -216,7 +216,7 @@ public class ContextTagCalculator
     private int CalculateMinutesUntilDeadline()
     {
         // Get the most urgent letter deadline
-        var urgentLetter = _letterQueueManager?.GetPlayerQueue()?
+        Letter? urgentLetter = _letterQueueManager?.GetPlayerQueue()?
             .Where(l => l != null)?
             .Where(l => l.DeadlineInHours > 0)
             .OrderBy(l => l.DeadlineInHours)
@@ -227,8 +227,8 @@ public class ContextTagCalculator
 
         // Calculate minutes until deadline
         // DeadlineInHours is the number of hours remaining
-        var totalHours = urgentLetter.DeadlineInHours;
-        
+        int totalHours = urgentLetter.DeadlineInHours;
+
         return Math.Max(0, totalHours * 60);
     }
 

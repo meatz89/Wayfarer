@@ -35,13 +35,13 @@ public class LetterQueueManager
     {
         return _gameWorld.GetPlayer().LetterQueue;
     }
-    
+
     // Get the LetterQueue object wrapper for weight management
     public LetterQueue GetLetterQueue()
     {
-        var queue = new LetterQueue();
-        var playerQueue = _gameWorld.GetPlayer().LetterQueue;
-        
+        LetterQueue queue = new LetterQueue();
+        Letter[] playerQueue = _gameWorld.GetPlayer().LetterQueue;
+
         // Populate the LetterQueue wrapper with current letters
         for (int i = 0; i < playerQueue.Length; i++)
         {
@@ -50,33 +50,33 @@ public class LetterQueueManager
                 queue.AddLetter(playerQueue[i], i + 1);
             }
         }
-        
+
         return queue;
     }
-    
+
     // Get active letters (non-null entries in the queue)
     public Letter[] GetActiveLetters()
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
         Console.WriteLine($"[GetActiveLetters] Player has {player.LetterQueue.Length} queue slots");
-        
-        var activeLetters = player.LetterQueue
+
+        Letter[] activeLetters = player.LetterQueue
             .Where(l => l != null)
             .ToArray();
-            
+
         Console.WriteLine($"[GetActiveLetters] Found {activeLetters.Length} non-null letters");
-        
-        foreach (var letter in activeLetters)
+
+        foreach (Letter? letter in activeLetters)
         {
             Console.WriteLine($"  - Letter: {letter.Description}, State: {letter.State}");
         }
-        
-        var collected = activeLetters
+
+        Letter[] collected = activeLetters
             .Where(l => l.State == LetterState.Collected)
             .ToArray();
-            
+
         Console.WriteLine($"[GetActiveLetters] Returning {collected.Length} collected letters");
-        
+
         return collected;
     }
 
@@ -192,27 +192,27 @@ public class LetterQueueManager
         }
 
         // Get all token balances with this NPC
-        var allTokens = _connectionTokenManager.GetTokensWithNPC(senderId);
-        
+        Dictionary<ConnectionType, int> allTokens = _connectionTokenManager.GetTokensWithNPC(senderId);
+
         // Calculate position using specification algorithm
         int highestPositiveToken = GetHighestPositiveToken(allTokens);
         int worstNegativeTokenPenalty = GetWorstNegativeTokenPenalty(allTokens);
-        
+
         // Base algorithm: Position = 8 - (highest positive token) + (worst negative token penalty)
         int position = _config.LetterQueue.MaxQueueSize - highestPositiveToken + worstNegativeTokenPenalty;
-        
+
         // Apply Commerce debt leverage override
         if (allTokens.ContainsKey(ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
         {
             position = 2; // Commerce debt >= 3 forces position 2
         }
-        
+
         // Clamp to valid queue range
         position = Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, position));
-        
+
         // Record positioning data for UI translation
         RecordLetterPositioning(letter, senderId, allTokens, position, highestPositiveToken, worstNegativeTokenPenalty);
-        
+
         return position;
     }
 
@@ -231,7 +231,7 @@ public class LetterQueueManager
     private int GetHighestPositiveToken(Dictionary<ConnectionType, int> allTokens)
     {
         int highest = 0;
-        foreach (var tokenCount in allTokens.Values)
+        foreach (int tokenCount in allTokens.Values)
         {
             if (tokenCount > highest)
             {
@@ -247,7 +247,7 @@ public class LetterQueueManager
     private int GetWorstNegativeTokenPenalty(Dictionary<ConnectionType, int> allTokens)
     {
         int worstPenalty = 0;
-        foreach (var tokenCount in allTokens.Values)
+        foreach (int tokenCount in allTokens.Values)
         {
             if (tokenCount < 0)
             {
@@ -265,18 +265,18 @@ public class LetterQueueManager
     /// Record letter positioning data for frontend translation
     /// Backend only sets categorical types - UI translates to text
     /// </summary>
-    private void RecordLetterPositioning(Letter letter, string senderId, Dictionary<ConnectionType, int> allTokens, 
+    private void RecordLetterPositioning(Letter letter, string senderId, Dictionary<ConnectionType, int> allTokens,
         int finalPosition, int highestPositiveToken, int worstNegativeTokenPenalty)
     {
         // Determine positioning reason category
         LetterPositioningReason reason = DeterminePositioningReason(senderId, allTokens, worstNegativeTokenPenalty);
-        
+
         // Store categorical data on letter for UI translation
         letter.PositioningReason = reason;
         letter.RelationshipStrength = highestPositiveToken;
         letter.RelationshipDebt = worstNegativeTokenPenalty;
         letter.FinalQueuePosition = finalPosition;
-        
+
         // Send categorical message for frontend translation
         _messageSystem.AddLetterPositioningMessage(letter.SenderName, reason, finalPosition, highestPositiveToken, worstNegativeTokenPenalty);
     }
@@ -290,22 +290,22 @@ public class LetterQueueManager
         {
             return LetterPositioningReason.Obligation;
         }
-        
+
         if (allTokens.ContainsKey(ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
         {
             return LetterPositioningReason.CommerceDebt;
         }
-        
+
         if (worstNegativeTokenPenalty > 0)
         {
             return LetterPositioningReason.PoorStanding;
         }
-        
+
         if (GetHighestPositiveToken(allTokens) > 0)
         {
             return LetterPositioningReason.GoodStanding;
         }
-        
+
         return LetterPositioningReason.Neutral;
     }
 
@@ -745,18 +745,18 @@ public class LetterQueueManager
     private bool IsPlayerAtRecipientLocation(Letter letter)
     {
         if (letter == null) return false;
-        
+
         Player player = _gameWorld.GetPlayer();
         if (player.CurrentLocationSpot == null) return false;
-        
+
         // Get the recipient NPC
         NPC recipient = _npcRepository.GetById(letter.RecipientId);
         if (recipient == null) return false;
-        
+
         // Check if recipient is at the same spot as the player
         return recipient.SpotId == player.CurrentLocationSpot.SpotID;
     }
-    
+
     // Deliver letter from position 1
     public bool DeliverFromPosition1()
     {
@@ -764,7 +764,7 @@ public class LetterQueueManager
 
         Player player = _gameWorld.GetPlayer();
         Letter letter = GetLetterAt(1);
-        
+
         // CRITICAL: Validate player is at recipient's location
         if (!IsPlayerAtRecipientLocation(letter))
         {
@@ -787,7 +787,7 @@ public class LetterQueueManager
 
         // Pay the player
         player.ModifyCoins(letter.Payment);
-        
+
         // Show success message with payment details
         _messageSystem.AddSystemMessage(
             $"📬 Letter delivered to {letter.RecipientName}!",
@@ -829,9 +829,9 @@ public class LetterQueueManager
     public void ProcessHourlyDeadlines(int hoursElapsed = 1)
     {
         if (hoursElapsed <= 0) return;
-        
+
         Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-        
+
         // PHASE 1: Update deadlines and track expired letters - O(8)
         List<Letter> expiredLetters = new List<Letter>();
         for (int i = 0; i < 8; i++)
@@ -845,13 +845,13 @@ public class LetterQueueManager
                 }
             }
         }
-        
+
         // PHASE 2: Apply consequences for all expired letters - O(k)
         foreach (Letter letter in expiredLetters)
         {
             ApplyRelationshipDamage(letter, _connectionTokenManager);
         }
-        
+
         // PHASE 3: Compact array in-place, removing expired letters - O(8)
         int writeIndex = 0;
         for (int readIndex = 0; readIndex < 8; readIndex++)
@@ -867,7 +867,7 @@ public class LetterQueueManager
                 writeIndex++;
             }
         }
-        
+
         // Clear remaining positions
         for (int i = writeIndex; i < 8; i++)
         {
@@ -883,11 +883,11 @@ public class LetterQueueManager
 
         // Record in history first (needed for failure count)
         RecordExpiryInHistory(senderId);
-        
+
         // Apply basic penalty system for missed deadlines
         int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
         NPC senderNpc = _npcRepository.GetById(senderId);
-        
+
         ShowExpiryFailure(letter);
         ApplyTokenPenalty(letter, senderId, tokenPenalty);
         ShowRelationshipDamageNarrative(letter, senderNpc, tokenPenalty, senderId);
@@ -2194,43 +2194,43 @@ public class LetterQueueManager
 
         return true;
     }
-    
+
     // === SIMPLE POSITION-BASED QUEUE MANIPULATION ===
-    
+
     // Calculate simple position-based reorder cost
     public int CalculateReorderCost(int fromPosition, int toPosition)
     {
         return Math.Abs(toPosition - fromPosition);
     }
-    
+
     // Check if player can afford to reorder based on tokens with sender
     public bool CanAffordReorder(string npcId, ConnectionType tokenType, int fromPos, int toPos)
     {
         int cost = CalculateReorderCost(fromPos, toPos);
-        var tokens = _connectionTokenManager.GetTokensWithNPC(npcId)[tokenType];
+        int tokens = _connectionTokenManager.GetTokensWithNPC(npcId)[tokenType];
         return tokens >= cost;
     }
-    
+
     // Execute reorder with token spending
     public bool ExecuteReorder(Letter letter, int fromPos, int toPos)
     {
         if (letter == null) return false;
-        
+
         // Validate positions
         if (fromPos < 1 || fromPos > _config.LetterQueue.MaxQueueSize ||
             toPos < 1 || toPos > _config.LetterQueue.MaxQueueSize)
             return false;
-            
+
         int cost = CalculateReorderCost(fromPos, toPos);
-        
+
         // Get sender NPC ID
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId)) return false;
-        
+
         // Spend tokens with the letter's sender
         if (!_connectionTokenManager.SpendTokensWithNPC(
-            letter.TokenType, 
-            cost, 
+            letter.TokenType,
+            cost,
             senderId))
         {
             _messageSystem.AddSystemMessage(
@@ -2239,10 +2239,10 @@ public class LetterQueueManager
             );
             return false;
         }
-        
+
         // Move the letter
         bool success = MoveLetterInQueue(fromPos, toPos);
-        
+
         if (success)
         {
             _messageSystem.AddSystemMessage(
@@ -2250,19 +2250,19 @@ public class LetterQueueManager
                 SystemMessageTypes.Success
             );
         }
-        
+
         return success;
     }
-    
+
     // Move letter between positions in queue
     private bool MoveLetterInQueue(int fromPos, int toPos)
     {
         Letter[] queue = _gameWorld.GetPlayer().LetterQueue;
-        
+
         // Get the letter to move
         Letter letterToMove = queue[fromPos - 1];
         if (letterToMove == null) return false;
-        
+
         // Check if target position is occupied
         if (queue[toPos - 1] != null)
         {
@@ -2291,11 +2291,11 @@ public class LetterQueueManager
             // Simple move - clear old position
             queue[fromPos - 1] = null;
         }
-        
+
         // Place letter in new position
         queue[toPos - 1] = letterToMove;
         letterToMove.QueuePosition = toPos;
-        
+
         return true;
     }
 }

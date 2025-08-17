@@ -9,7 +9,7 @@ namespace Wayfarer.GameState.Interactions;
 public class InteractionTemplateEngine
 {
     private readonly Random _random = new();
-    
+
     // Template patterns for different interaction types
     private readonly Dictionary<InteractionType, List<string>> _templates = new()
     {
@@ -20,7 +20,7 @@ public class InteractionTemplateEngine
             "Something about {location_feature} catches your attention",
             "{detail} becomes apparent as you focus"
         },
-        
+
         [InteractionType.ObserveNPC] = new()
         {
             "{npc_name}'s {body_part} {action_verb}, suggesting {emotion}",
@@ -28,7 +28,7 @@ public class InteractionTemplateEngine
             "{npc_name} seems {emotional_state}, judging by {tell}",
             "The way {npc_name} {action_verb} reveals {insight}"
         },
-        
+
         [InteractionType.ConversationHelp] = new()
         {
             "Offer assistance with {problem}",
@@ -36,7 +36,7 @@ public class InteractionTemplateEngine
             "Provide aid regarding {topic}",
             "Lend support for {situation}"
         },
-        
+
         [InteractionType.ConversationNegotiate] = new()
         {
             "Negotiate about {topic}",
@@ -44,7 +44,7 @@ public class InteractionTemplateEngine
             "Discuss terms for {arrangement}",
             "Propose a deal about {matter}"
         },
-        
+
         [InteractionType.ConversationInvestigate] = new()
         {
             "Ask about {topic}",
@@ -53,7 +53,7 @@ public class InteractionTemplateEngine
             "Inquire about {rumor}"
         }
     };
-    
+
     // Context vocabularies for template filling
     private readonly Dictionary<string, List<string>> _vocabularies = new()
     {
@@ -68,7 +68,7 @@ public class InteractionTemplateEngine
         ["tell"] = new() { "their clenched jaw", "the way they hold themselves", "their rapid breathing", "their forced smile" },
         ["insight"] = new() { "their true priorities", "hidden concerns", "unspoken fears", "desperate hope" }
     };
-    
+
     /// <summary>
     /// Generate an interactive choice from a template and context
     /// This is where we avoid writing 400+ hours of unique content
@@ -79,9 +79,9 @@ public class InteractionTemplateEngine
         int attentionCost = 1,
         int timeCost = 0)
     {
-        var template = SelectTemplate(type);
-        var text = FillTemplate(template, context);
-        
+        string template = SelectTemplate(type);
+        string text = FillTemplate(template, context);
+
         return new TemplatedChoice
         {
             Id = $"{type}_{Guid.NewGuid():N}",
@@ -94,7 +94,7 @@ public class InteractionTemplateEngine
             Style = DetermineStyle(type, context)
         };
     }
-    
+
     /// <summary>
     /// Generate observation choices for a location
     /// This creates varied content without manual writing
@@ -105,47 +105,49 @@ public class InteractionTemplateEngine
         List<NPC> presentNPCs,
         TimeBlocks timeBlock)
     {
-        var choices = new List<IInteractiveChoice>();
-        
+        List<IInteractiveChoice> choices = new List<IInteractiveChoice>();
+
         // Environmental observations based on location tags
         if (spot.DomainTags?.Contains("Crowded") == true)
         {
             choices.Add(GenerateChoice(
                 InteractionType.ObserveEnvironment,
-                new() { 
+                new()
+                {
                     ["location_feature"] = "the crowd",
                     ["detail"] = "patterns in people's movement"
                 },
                 attentionCost: 1
             ));
         }
-        
+
         if (spot.DomainTags?.Contains("Shadowed") == true)
         {
             choices.Add(GenerateChoice(
                 InteractionType.ObserveEnvironment,
-                new() { 
+                new()
+                {
                     ["location_feature"] = "the dark corners",
                     ["detail"] = "someone watching"
                 },
                 attentionCost: 1
             ));
         }
-        
+
         // NPC observations
-        foreach (var npc in presentNPCs.Take(2)) // Limit to avoid choice overload
+        foreach (NPC? npc in presentNPCs.Take(2)) // Limit to avoid choice overload
         {
-            var emotionContext = DetermineNPCContext(npc);
+            Dictionary<string, string> emotionContext = DetermineNPCContext(npc);
             choices.Add(GenerateChoice(
                 InteractionType.ObserveNPC,
                 emotionContext,
                 attentionCost: 1
             ));
         }
-        
+
         return choices;
     }
-    
+
     /// <summary>
     /// Generate conversation choices with appropriate depth
     /// </summary>
@@ -154,8 +156,8 @@ public class InteractionTemplateEngine
         SceneContext context,
         AttentionManager attention)
     {
-        var choices = new List<IInteractiveChoice>();
-        
+        List<IInteractiveChoice> choices = new List<IInteractiveChoice>();
+
         // Always include a free option
         choices.Add(new TemplatedChoice
         {
@@ -166,7 +168,7 @@ public class InteractionTemplateEngine
             IsAvailable = true,
             Style = InteractionStyle.Default
         });
-        
+
         // Add verb-based choices if attention available
         if (attention.GetAvailableAttention() >= 1)
         {
@@ -176,7 +178,7 @@ public class InteractionTemplateEngine
                 attentionCost: 1
             ));
         }
-        
+
         if (attention.GetAvailableAttention() >= 2)
         {
             choices.Add(GenerateChoice(
@@ -185,7 +187,7 @@ public class InteractionTemplateEngine
                 attentionCost: 2
             ));
         }
-        
+
         if (attention.GetAvailableAttention() >= 3)
         {
             choices.Add(GenerateChoice(
@@ -194,45 +196,45 @@ public class InteractionTemplateEngine
                 attentionCost: 3
             ));
         }
-        
+
         return choices;
     }
-    
+
     private string SelectTemplate(InteractionType type)
     {
         if (!_templates.ContainsKey(type))
             return "{placeholder}";
-            
-        var templates = _templates[type];
+
+        List<string> templates = _templates[type];
         return templates[_random.Next(templates.Count)];
     }
-    
+
     private string FillTemplate(string template, Dictionary<string, string> context)
     {
-        var result = template;
-        
+        string result = template;
+
         // First fill from provided context
-        foreach (var kvp in context)
+        foreach (KeyValuePair<string, string> kvp in context)
         {
             result = result.Replace($"{{{kvp.Key}}}", kvp.Value);
         }
-        
+
         // Then fill remaining placeholders from vocabularies
-        var placeholders = Regex.Matches(result, @"\{(\w+)\}");
+        MatchCollection placeholders = Regex.Matches(result, @"\{(\w+)\}");
         foreach (Match match in placeholders)
         {
-            var key = match.Groups[1].Value;
+            string key = match.Groups[1].Value;
             if (_vocabularies.ContainsKey(key))
             {
-                var options = _vocabularies[key];
-                var value = options[_random.Next(options.Count)];
+                List<string> options = _vocabularies[key];
+                string value = options[_random.Next(options.Count)];
                 result = result.Replace($"{{{key}}}", value);
             }
         }
-        
+
         return result;
     }
-    
+
     private List<string> GeneratePreviews(InteractionType type, Dictionary<string, string> context)
     {
         return type switch
@@ -245,7 +247,7 @@ public class InteractionTemplateEngine
             _ => new()
         };
     }
-    
+
     private InteractionStyle DetermineStyle(InteractionType type, Dictionary<string, string> context)
     {
         if (context.ContainsKey("urgent"))
@@ -256,7 +258,7 @@ public class InteractionTemplateEngine
             return InteractionStyle.Mysterious;
         return InteractionStyle.Default;
     }
-    
+
     private Dictionary<string, string> DetermineNPCContext(NPC npc)
     {
         // Generate appropriate context based on NPC state
@@ -285,7 +287,7 @@ public class TemplatedChoice : IInteractiveChoice
     public bool IsAvailable { get; set; }
     public string LockReason { get; set; }
     public InteractionStyle Style { get; set; }
-    
+
     public InteractionResult Execute(GameWorld gameWorld, AttentionManager attention)
     {
         // Deduct attention cost
@@ -297,9 +299,9 @@ public class TemplatedChoice : IInteractiveChoice
                 NarrativeText = "You're too mentally exhausted to focus on this."
             };
         }
-        
+
         // Execute based on type
-        var result = Type switch
+        InteractionResult result = Type switch
         {
             InteractionType.ObserveEnvironment => ExecuteEnvironmentObservation(gameWorld),
             InteractionType.ObserveNPC => ExecuteNPCObservation(gameWorld),
@@ -308,10 +310,10 @@ public class TemplatedChoice : IInteractiveChoice
             InteractionType.ConversationInvestigate => ExecuteInvestigateAction(gameWorld),
             _ => new InteractionResult { Success = true, NarrativeText = "You take the action." }
         };
-        
+
         return result;
     }
-    
+
     private InteractionResult ExecuteEnvironmentObservation(GameWorld gameWorld)
     {
         return new InteractionResult
@@ -321,7 +323,7 @@ public class TemplatedChoice : IInteractiveChoice
             SystemMessages = { "Gained insight about the location." }
         };
     }
-    
+
     private InteractionResult ExecuteNPCObservation(GameWorld gameWorld)
     {
         return new InteractionResult
@@ -331,7 +333,7 @@ public class TemplatedChoice : IInteractiveChoice
             SystemMessages = { "Learned about NPC's emotional state." }
         };
     }
-    
+
     private InteractionResult ExecuteHelpAction(GameWorld gameWorld)
     {
         return new InteractionResult
@@ -341,7 +343,7 @@ public class TemplatedChoice : IInteractiveChoice
             StateChanges = { ["trust_gained"] = 1 }
         };
     }
-    
+
     private InteractionResult ExecuteNegotiateAction(GameWorld gameWorld)
     {
         return new InteractionResult
@@ -351,7 +353,7 @@ public class TemplatedChoice : IInteractiveChoice
             StateChanges = { ["queue_modified"] = true }
         };
     }
-    
+
     private InteractionResult ExecuteInvestigateAction(GameWorld gameWorld)
     {
         return new InteractionResult

@@ -9,13 +9,13 @@ public class PendingQueueState
     public QueueActionType? PendingAction { get; set; }
     public int? PendingSkipPosition { get; set; }
     public int? PendingPurgePosition { get; set; }
-    
+
     // Token selection for purge action - strongly typed
     public PurgeTokenSelection PendingPurgeTokens { get; set; } = new PurgeTokenSelection();
-    
+
     // NPC-specific secrets (using HashSet is fine - it's not a dictionary)
     public HashSet<string> NPCsWithSecrets { get; set; } = new HashSet<string>();
-    
+
     public void ClearPendingAction()
     {
         PendingAction = null;
@@ -23,7 +23,7 @@ public class PendingQueueState
         PendingPurgePosition = null;
         PendingPurgeTokens.Clear();
     }
-    
+
     public bool HasPendingAction()
     {
         return PendingAction.HasValue;
@@ -39,7 +39,7 @@ public class PurgeTokenSelection
     public int CommerceTokens { get; set; }
     public int StatusTokens { get; set; }
     public int ShadowTokens { get; set; }
-    
+
     public void Clear()
     {
         TrustTokens = 0;
@@ -47,7 +47,7 @@ public class PurgeTokenSelection
         StatusTokens = 0;
         ShadowTokens = 0;
     }
-    
+
     public int GetTokenCount(ConnectionType tokenType)
     {
         return tokenType switch
@@ -59,7 +59,7 @@ public class PurgeTokenSelection
             _ => 0
         };
     }
-    
+
     public void SetTokenCount(ConnectionType tokenType, int count)
     {
         switch (tokenType)
@@ -78,7 +78,7 @@ public class PurgeTokenSelection
                 break;
         }
     }
-    
+
     public int TotalTokens => TrustTokens + CommerceTokens + StatusTokens + ShadowTokens;
 }
 

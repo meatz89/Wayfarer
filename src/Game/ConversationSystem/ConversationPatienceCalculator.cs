@@ -14,34 +14,34 @@ public static class ConversationPatienceCalculator
     /// This becomes the FocusPoints in ConversationState.
     /// </summary>
     public static int CalculateStartingPatience(
-        NPC npc, 
-        NPCEmotionalState emotionalState, 
+        NPC npc,
+        NPCEmotionalState emotionalState,
         Dictionary<ConnectionType, int> playerTokens)
     {
         if (npc == null) throw new ArgumentNullException(nameof(npc));
         if (playerTokens == null) throw new ArgumentNullException(nameof(playerTokens));
-        
+
         // Base patience derived from NPC personality
-        var basePatience = GetBasePatience(npc.PersonalityType);
-        
+        int basePatience = GetBasePatience(npc.PersonalityType);
+
         // Trust tokens add to patience (deeper relationships = more conversation depth)
-        var trustBonus = playerTokens.ContainsKey(ConnectionType.Trust) 
-            ? playerTokens[ConnectionType.Trust] 
+        int trustBonus = playerTokens.ContainsKey(ConnectionType.Trust)
+            ? playerTokens[ConnectionType.Trust]
             : 0;
-            
+
         // Negative cards in deck reduce starting patience
-        var deckPenalty = npc.ConversationDeck?.GetPatiencePenalty() ?? 0;
-        
+        double deckPenalty = npc.ConversationDeck?.GetPatiencePenalty() ?? 0;
+
         // Emotional state affects patience based on human stress responses
-        var emotionalPenalty = GetEmotionalStatePenalty(emotionalState);
-        
+        int emotionalPenalty = GetEmotionalStatePenalty(emotionalState);
+
         // Calculate final patience ensuring minimum viable conversation
-        var result = basePatience + trustBonus - emotionalPenalty - (int)deckPenalty;
-        
+        int result = basePatience + trustBonus - emotionalPenalty - (int)deckPenalty;
+
         // Ensure minimum patience for meaningful interaction
         return Math.Max(1, result);
     }
-    
+
     /// <summary>
     /// Get patience penalty based on emotional state.
     /// Represents how stress and emotional pressure affect conversation capacity.
@@ -59,7 +59,7 @@ public static class ConversationPatienceCalculator
             _ => 0
         };
     }
-    
+
     /// <summary>
     /// Get narrative explanation for patience level changes due to emotional state.
     /// Used for UI to explain why conversations are harder without showing formulas.
@@ -67,7 +67,7 @@ public static class ConversationPatienceCalculator
     public static string GetPatienceNarrative(NPCEmotionalState state, string npcName)
     {
         if (string.IsNullOrEmpty(npcName)) npcName = "They";
-        
+
         return state switch
         {
             NPCEmotionalState.DESPERATE => $"{npcName} seems distracted and keeps checking the time",
@@ -78,7 +78,7 @@ public static class ConversationPatienceCalculator
             _ => null
         };
     }
-    
+
     /// <summary>
     /// Check if NPC can engage in conversation based on emotional state.
     /// </summary>
@@ -86,7 +86,7 @@ public static class ConversationPatienceCalculator
     {
         return state != NPCEmotionalState.HOSTILE;
     }
-    
+
     /// <summary>
     /// Get base patience for NPC based on personality type.
     /// Based on user stories indicating personality determines base patience (3-10).

@@ -98,7 +98,7 @@ public class RouteOption
     // Enhanced Access Requirements (in addition to terrain categories)
     public AccessRequirement AccessRequirement { get; set; }
     public RouteType RouteType { get; set; }
-    
+
     // Track if this specific route has been unlocked via permit
     // (Separate from IsDiscovered - permits unlock tier-restricted routes)
     public bool HasPermitUnlock { get; set; } = false;

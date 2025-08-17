@@ -24,14 +24,14 @@ public enum LocationTag
     Quiet,          // Can notice subtle sounds, whispers
     Public,         // Can observe social interactions
     Private,        // Can notice hidden details
-    
+
     // Atmospheric features that create opportunities
     HearthWarmed,   // Can observe who sits where, social dynamics
     AleScented,     // Can notice who's drinking, loose tongues
     MusicDrifting,  // Can observe reactions to music, covered sounds
     Sunny,          // Can see clearly, notice visual details
     Shadowed,       // Can spot hidden figures, concealed items
-    
+
     // Activity types that provide context
     MarketDay,      // Can observe commerce, trades, deals
     GuardPatrol,    // Can notice security, restricted areas
@@ -100,14 +100,14 @@ public static class LocationTagObservations
     public static List<ObservationAction> GetObservationActions(IEnumerable<LocationTag> tags)
     {
         // Use List with explicit deduplication instead of HashSet
-        var actions = new List<ObservationAction>();
-        var addedActionIds = new List<string>();
-        
-        foreach (var tag in tags)
+        List<ObservationAction> actions = new List<ObservationAction>();
+        List<string> addedActionIds = new List<string>();
+
+        foreach (LocationTag tag in tags)
         {
             if (TagActions.ContainsKey(tag))
             {
-                foreach (var action in TagActions[tag])
+                foreach (ObservationAction action in TagActions[tag])
                 {
                     // Binary availability: action is either in the list or not
                     // Deduplicate by checking if action ID already exists
@@ -119,7 +119,7 @@ public static class LocationTagObservations
                 }
             }
         }
-        
+
         return actions;
     }
 }
@@ -133,7 +133,7 @@ public class ObservationAction : IEquatable<ObservationAction>
     public string Description { get; }
     public int AttentionCost { get; }
     public TierLevel RequiredTier { get; }
-    
+
     public ObservationAction(string id, string description, int attentionCost, TierLevel requiredTier = TierLevel.T1)
     {
         Id = id;
@@ -141,18 +141,18 @@ public class ObservationAction : IEquatable<ObservationAction>
         AttentionCost = attentionCost;
         RequiredTier = requiredTier;
     }
-    
+
     public bool Equals(ObservationAction other)
     {
         if (other == null) return false;
         return Id == other.Id;
     }
-    
+
     public override bool Equals(object obj)
     {
         return Equals(obj as ObservationAction);
     }
-    
+
     public override int GetHashCode()
     {
         return Id?.GetHashCode() ?? 0;
@@ -167,7 +167,7 @@ public class TierRequirement
     public TierLevel MinimumTier { get; set; }
     public List<string> RequiredTags { get; set; } = new List<string>();
     public string FailureReason { get; set; }
-    
+
     /// <summary>
     /// Check if a player meets the tier requirement
     /// Binary check - either meets requirement or doesn't
@@ -177,14 +177,14 @@ public class TierRequirement
         // Check tier level first
         if (playerTier < MinimumTier)
             return false;
-            
+
         // Check required tags (all must be present)
-        foreach (var requiredTag in RequiredTags)
+        foreach (string requiredTag in RequiredTags)
         {
             if (!playerTags.Contains(requiredTag))
                 return false;
         }
-        
+
         return true;
     }
 }
@@ -204,11 +204,11 @@ public static class LocationTagExtensions
         ["riverside"] = new() { LocationTag.Public, LocationTag.Industrial, LocationTag.Shadowed },
         ["city_gates"] = new() { LocationTag.Public, LocationTag.GuardPatrol, LocationTag.Crowded }
     };
-    
+
     public static List<LocationTag> GetLocationTags(string locationId)
     {
-        return LocationTagMap.ContainsKey(locationId?.ToLower()) 
-            ? LocationTagMap[locationId.ToLower()] 
+        return LocationTagMap.ContainsKey(locationId?.ToLower())
+            ? LocationTagMap[locationId.ToLower()]
             : new List<LocationTag>();
     }
 }

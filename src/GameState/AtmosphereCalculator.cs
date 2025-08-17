@@ -14,7 +14,7 @@ public class AtmosphereCalculator
     private readonly WorldMemorySystem _worldMemory;
 
     public AtmosphereCalculator(
-        NPCRepository npcRepository, 
+        NPCRepository npcRepository,
         ITimeManager timeManager,
         WorldMemorySystem worldMemory = null)
     {
@@ -28,9 +28,9 @@ public class AtmosphereCalculator
     /// </summary>
     public AtmosphereEffect CalculateForLocation(string locationSpotId)
     {
-        var currentTime = _timeManager.GetCurrentTimeBlock();
-        var npcsPresent = _npcRepository.GetNPCsForLocationSpotAndTime(locationSpotId, currentTime);
-        
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+        List<NPC> npcsPresent = _npcRepository.GetNPCsForLocationSpotAndTime(locationSpotId, currentTime);
+
         return CalculateFromNPCPresence(npcsPresent);
     }
 
@@ -50,7 +50,7 @@ public class AtmosphereCalculator
         }
 
         int npcCount = npcs.Count;
-        
+
         // Simple, predictable rules based on NPC count
         int attentionModifier = npcCount switch
         {
@@ -83,41 +83,41 @@ public class AtmosphereCalculator
     private string GenerateDescription(List<NPC> npcs)
     {
         int count = npcs.Count;
-        
+
         // Check for recent events to color the atmosphere
         if (_worldMemory != null)
         {
-            var recentEvent = _worldMemory.GetMostRecentEvent();
-            if (recentEvent != null && 
+            WorldEvent recentEvent = _worldMemory.GetMostRecentEvent();
+            if (recentEvent != null &&
                 (DateTime.Now - recentEvent.Timestamp).TotalMinutes < 30)
             {
                 return GenerateEventColoredDescription(npcs, recentEvent);
             }
         }
-        
+
         // Default descriptions
         if (count == 0)
             return "The space is quiet and empty";
-        
+
         if (count == 1)
         {
-            var npc = npcs.First();
+            NPC npc = npcs.First();
             return $"{npc.Name} is here, the space feels calm";
         }
-        
+
         if (count == 2)
             return "A few people are present, creating a gentle murmur";
-        
+
         // 3 or more
         return "The space bustles with activity and conversation";
     }
-    
+
     private string GenerateEventColoredDescription(List<NPC> npcs, WorldEvent recentEvent)
     {
         int count = npcs.Count;
-        
+
         // Color the atmosphere based on recent events
-        if (recentEvent.Type == WorldEventType.DeadlineMissed || 
+        if (recentEvent.Type == WorldEventType.DeadlineMissed ||
             recentEvent.Type == WorldEventType.ConfrontationOccurred)
         {
             if (count == 0)
@@ -126,7 +126,7 @@ public class AtmosphereCalculator
                 return $"{npcs.First().Name} is here, the air thick with tension";
             return "People exchange knowing glances, the atmosphere tense";
         }
-        
+
         if (recentEvent.Type == WorldEventType.LetterDelivered ||
             recentEvent.Type == WorldEventType.ObligationFulfilled)
         {
@@ -136,7 +136,7 @@ public class AtmosphereCalculator
                 return $"{npcs.First().Name} is here, a sense of quiet respect in the air";
             return "There's a subtle warmth in how people acknowledge you";
         }
-        
+
         // Default to normal description if event doesn't affect atmosphere
         return GenerateDescription(npcs);
     }
@@ -151,12 +151,12 @@ public struct AtmosphereEffect
     /// Modifier to attention points (-2 to +2)
     /// </summary>
     public int AttentionModifier { get; set; }
-    
+
     /// <summary>
     /// Modifier to conversation time in minutes
     /// </summary>
     public int ConversationTimeModifier { get; set; }
-    
+
     /// <summary>
     /// Natural language description for UI
     /// </summary>

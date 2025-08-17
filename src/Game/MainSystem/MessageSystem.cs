@@ -32,7 +32,7 @@
     /// </summary>
     public void AddLetterPositioningMessage(string senderName, LetterPositioningReason reason, int position, int strength, int debt)
     {
-        var positioningMessage = new LetterPositioningMessage
+        LetterPositioningMessage positioningMessage = new LetterPositioningMessage
         {
             SenderName = senderName,
             Reason = reason,
@@ -40,7 +40,7 @@
             RelationshipStrength = strength,
             RelationshipDebt = debt
         };
-        
+
         // Store categorical data for UI translation
         _gameWorld.LetterPositioningMessages.Add(positioningMessage);
     }
@@ -53,9 +53,9 @@
     {
         // Store categorical data for UI translation
         _gameWorld.SpecialLetterEvents.Add(letterEvent);
-        
+
         // Also create a simple system message for immediate display
-        var severity = letterEvent.Severity switch
+        SystemMessageTypes severity = letterEvent.Severity switch
         {
             NarrativeSeverity.Success => SystemMessageTypes.Success,
             NarrativeSeverity.Warning => SystemMessageTypes.Warning,
@@ -63,7 +63,7 @@
             NarrativeSeverity.Celebration => SystemMessageTypes.Success,
             _ => SystemMessageTypes.Info
         };
-        
+
         // Add basic categorical reference for UI to translate
         AddSystemMessage($"SPECIAL_LETTER_EVENT:{letterEvent.EventType}:{letterEvent.TargetNPCId}", severity);
     }

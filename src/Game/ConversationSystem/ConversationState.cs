@@ -17,7 +17,7 @@ public class ConversationState
     // Focus for complex conversations (maps to Patience in UI)
     public int FocusPoints { get; set; }
     public int MaxFocusPoints { get; set; }
-    
+
     // Comfort tracking for letter generation thresholds
     public int TotalComfort { get; set; }
     public int StartingPatience { get; set; }
@@ -52,7 +52,7 @@ public class ConversationState
             IsConversationComplete = true;
         }
     }
-    
+
     /// <summary>
     /// Add comfort from successful card plays
     /// </summary>
@@ -60,7 +60,7 @@ public class ConversationState
     {
         TotalComfort += amount;
     }
-    
+
     /// <summary>
     /// Check if comfort threshold for letter generation is met
     /// </summary>
@@ -68,7 +68,7 @@ public class ConversationState
     {
         return TotalComfort >= StartingPatience;
     }
-    
+
     /// <summary>
     /// Check if comfort threshold for perfect conversation is met
     /// </summary>
@@ -76,7 +76,7 @@ public class ConversationState
     {
         return TotalComfort >= (StartingPatience * 1.5);
     }
-    
+
     /// <summary>
     /// Check if minimum comfort to maintain relationship is met
     /// </summary>

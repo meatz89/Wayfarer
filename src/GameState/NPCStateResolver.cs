@@ -41,7 +41,7 @@ public class NPCStateResolver
         if (npc == null) return NPCEmotionalState.WITHDRAWN;
 
         Console.WriteLine($"[NPCStateResolver] Resolving state for {npc.Name} (ID: {npc.ID})");
-        
+
         // Check NPCRelationship.Betrayed - obligation breaking triggers this
         if (npc.PlayerRelationship == NPCRelationship.Betrayed)
         {
@@ -49,42 +49,42 @@ public class NPCStateResolver
             return NPCEmotionalState.HOSTILE;
         }
 
-        var queue = _letterQueueManager.GetActiveLetters();
-        var theirLetters = queue.Where(l => 
+        Letter[] queue = _letterQueueManager.GetActiveLetters();
+        List<Letter> theirLetters = queue.Where(l =>
             l.SenderId == npc.ID || l.SenderName == npc.Name).ToList();
-        
+
         // No letters = WITHDRAWN
         if (!theirLetters.Any())
         {
             Console.WriteLine($"[NPCStateResolver] No letters - returning WITHDRAWN");
             return NPCEmotionalState.WITHDRAWN;
         }
-        
+
 
         // Find most urgent letter to determine state
-        var mostUrgent = theirLetters.OrderBy(l => l.DeadlineInHours).First();
-        var hoursRemaining = mostUrgent.DeadlineInHours;
-        
+        Letter mostUrgent = theirLetters.OrderBy(l => l.DeadlineInHours).First();
+        int hoursRemaining = mostUrgent.DeadlineInHours;
+
         Console.WriteLine($"[NPCStateResolver] Most urgent letter: {mostUrgent.Stakes} with {hoursRemaining}h remaining");
-        
+
         // Apply simple Stakes + Time formula
         return (mostUrgent.Stakes, hoursRemaining) switch
         {
             // Personal Safety
             (StakeType.SAFETY, <= 6) => NPCEmotionalState.DESPERATE,
             (StakeType.SAFETY, > 6) => NPCEmotionalState.ANXIOUS,
-            
+
             // Reputation  
             (StakeType.REPUTATION, <= 12) => NPCEmotionalState.ANXIOUS,
             (StakeType.REPUTATION, > 12) => NPCEmotionalState.CALCULATING,
-            
+
             // Wealth - always calculating
             (StakeType.WEALTH, _) => NPCEmotionalState.CALCULATING,
-            
+
             // Secrets
             (StakeType.SECRET, <= 6) => NPCEmotionalState.ANXIOUS,
             (StakeType.SECRET, > 6) => NPCEmotionalState.CALCULATING,
-            
+
             // Default fallback
             _ => NPCEmotionalState.CALCULATING
         };
@@ -113,45 +113,45 @@ public class NPCStateResolver
     {
         return (state, stakes) switch
         {
-            (NPCEmotionalState.DESPERATE, StakeType.REPUTATION) => 
+            (NPCEmotionalState.DESPERATE, StakeType.REPUTATION) =>
                 "fingers worrying their shawl, eyes darting to the door",
-            (NPCEmotionalState.DESPERATE, StakeType.WEALTH) => 
+            (NPCEmotionalState.DESPERATE, StakeType.WEALTH) =>
                 "counting coins nervously, sweat beading on their brow",
-            (NPCEmotionalState.DESPERATE, StakeType.SAFETY) => 
+            (NPCEmotionalState.DESPERATE, StakeType.SAFETY) =>
                 "glancing over their shoulder, voice barely a whisper",
-            (NPCEmotionalState.DESPERATE, StakeType.SECRET) => 
+            (NPCEmotionalState.DESPERATE, StakeType.SECRET) =>
                 "leaning close, hands trembling slightly",
-            
-            (NPCEmotionalState.ANXIOUS, StakeType.REPUTATION) => 
+
+            (NPCEmotionalState.ANXIOUS, StakeType.REPUTATION) =>
                 "shifting weight nervously, eyes searching yours",
-            (NPCEmotionalState.ANXIOUS, StakeType.WEALTH) => 
+            (NPCEmotionalState.ANXIOUS, StakeType.WEALTH) =>
                 "wringing hands, forced smile not reaching their eyes",
-            (NPCEmotionalState.ANXIOUS, StakeType.SAFETY) => 
+            (NPCEmotionalState.ANXIOUS, StakeType.SAFETY) =>
                 "tense shoulders, ready to flee at any moment",
-            (NPCEmotionalState.ANXIOUS, StakeType.SECRET) => 
+            (NPCEmotionalState.ANXIOUS, StakeType.SECRET) =>
                 "hushed voice, constantly checking surroundings",
-            
-            (NPCEmotionalState.HOSTILE, StakeType.REPUTATION) => 
+
+            (NPCEmotionalState.HOSTILE, StakeType.REPUTATION) =>
                 "chin raised, eyes cold with disdain",
-            (NPCEmotionalState.HOSTILE, StakeType.WEALTH) => 
+            (NPCEmotionalState.HOSTILE, StakeType.WEALTH) =>
                 "arms crossed tight, tapping their foot impatiently",
-            (NPCEmotionalState.HOSTILE, StakeType.SAFETY) => 
+            (NPCEmotionalState.HOSTILE, StakeType.SAFETY) =>
                 "hand near their weapon, stance aggressive",
-            (NPCEmotionalState.HOSTILE, StakeType.SECRET) => 
+            (NPCEmotionalState.HOSTILE, StakeType.SECRET) =>
                 "lips pursed, suspicious glare boring into you",
-            
-            (NPCEmotionalState.CALCULATING, StakeType.REPUTATION) => 
+
+            (NPCEmotionalState.CALCULATING, StakeType.REPUTATION) =>
                 "measured breathing, each word carefully chosen",
-            (NPCEmotionalState.CALCULATING, StakeType.WEALTH) => 
+            (NPCEmotionalState.CALCULATING, StakeType.WEALTH) =>
                 "fingers steepled, assessing your worth",
-            (NPCEmotionalState.CALCULATING, StakeType.SAFETY) => 
+            (NPCEmotionalState.CALCULATING, StakeType.SAFETY) =>
                 "watchful stance, ready for anything",
-            (NPCEmotionalState.CALCULATING, StakeType.SECRET) => 
+            (NPCEmotionalState.CALCULATING, StakeType.SECRET) =>
                 "thoughtful pause, weighing what to reveal",
-            
-            (NPCEmotionalState.WITHDRAWN, _) => 
+
+            (NPCEmotionalState.WITHDRAWN, _) =>
                 "distant gaze, minimal acknowledgment of your presence",
-            
+
             _ => "watching you with guarded interest"
         };
     }
@@ -179,7 +179,7 @@ public class NPCStateResolver
     {
         if (queue == null || !queue.Letters.Any()) return null;
 
-        var mostUrgent = queue.Letters
+        Letter? mostUrgent = queue.Letters
             .Where(l => l.State == LetterState.Collected)
             .OrderBy(l => l.DeadlineInHours)
             .FirstOrDefault();
@@ -215,65 +215,65 @@ public class NPCStateResolver
         {
             return GenerateNoLetterDialogue(npc, state);
         }
-        
+
         // Build dialogue from letter properties
-        var stakesHint = mostUrgentLetter.GetStakesHint();
-        var urgency = GetUrgencyDescription(mostUrgentLetter.DeadlineInHours);
-        
+        string stakesHint = mostUrgentLetter.GetStakesHint();
+        string urgency = GetUrgencyDescription(mostUrgentLetter.DeadlineInHours);
+
         return (state, mostUrgentLetter.Stakes) switch
         {
             (NPCEmotionalState.DESPERATE, StakeType.REPUTATION) =>
                 $"The letter contains {stakesHint}. {urgency} If this isn't delivered, my standing will be ruined.",
-                
+
             (NPCEmotionalState.DESPERATE, StakeType.SAFETY) =>
                 $"This is {stakesHint}! {urgency} Lives depend on this reaching {mostUrgentLetter.RecipientName}!",
-                
+
             (NPCEmotionalState.DESPERATE, StakeType.WEALTH) =>
                 $"It's {stakesHint}. {urgency} Everything I've worked for depends on this delivery.",
-                
+
             (NPCEmotionalState.DESPERATE, StakeType.SECRET) =>
                 $"The letter... it contains {stakesHint}. {urgency} If the wrong people learn of this...",
-                
+
             (NPCEmotionalState.ANXIOUS, StakeType.REPUTATION) =>
                 $"My {stakesHint} hangs in the balance. {urgency} Please, I need your help.",
-                
+
             (NPCEmotionalState.ANXIOUS, StakeType.SAFETY) =>
                 $"The {stakesHint} worries me deeply. {urgency} Can you prioritize this?",
-                
+
             (NPCEmotionalState.ANXIOUS, StakeType.SECRET) =>
                 $"That {stakesHint}... {urgency} I'm concerned about who might be watching.",
-                
+
             (NPCEmotionalState.ANXIOUS, StakeType.WEALTH) =>
                 $"The {stakesHint} needs attention. {urgency} Time is money, as they say.",
-                
+
             (NPCEmotionalState.HOSTILE, StakeType.REPUTATION) =>
                 $"You still haven't delivered my letter about {stakesHint}. {urgency} This negligence is unacceptable.",
-                
+
             (NPCEmotionalState.HOSTILE, StakeType.SAFETY) =>
                 $"People are in danger because of your delays! The {stakesHint} I sent - {urgency}",
-                
+
             (NPCEmotionalState.HOSTILE, StakeType.WEALTH) =>
                 $"My {stakesHint} sits undelivered while you waste time. {urgency} The losses mount daily.",
-                
+
             (NPCEmotionalState.HOSTILE, StakeType.SECRET) =>
                 $"That {stakesHint} in your satchel - {urgency} Do you understand what you're risking?",
-                
+
             (NPCEmotionalState.CALCULATING, StakeType.WEALTH) =>
                 $"My letter concerns {stakesHint}. {urgency} There may be profit in swift delivery.",
-                
+
             (NPCEmotionalState.CALCULATING, StakeType.REPUTATION) =>
                 $"I've entrusted you with {stakesHint}. {urgency} Handle it wisely.",
-                
+
             (NPCEmotionalState.CALCULATING, StakeType.SAFETY) =>
                 $"The {stakesHint} needs careful handling. {urgency} Discretion is paramount.",
-                
+
             (NPCEmotionalState.CALCULATING, StakeType.SECRET) =>
                 $"About that {stakesHint} you're carrying... {urgency} Some things are worth more than coin.",
-                
+
             _ => $"I need this letter delivered. It's about {stakesHint}. {urgency}"
         };
     }
-    
+
     private string GenerateNoLetterDialogue(NPC npc, NPCEmotionalState state)
     {
         return state switch
@@ -286,7 +286,7 @@ public class NPCStateResolver
             _ => $"{npc.Name} seems preoccupied."
         };
     }
-    
+
     private string GetUrgencyDescription(int deadlineDays)
     {
         return deadlineDays switch

@@ -11,7 +11,7 @@ public class NPC
 
     // Categorical Properties for Logical System Interactions
     public Professions Profession { get; set; }
-    
+
     // Personality system
     public string PersonalityDescription { get; set; } = string.Empty; // Authentic description from JSON
     public PersonalityType PersonalityType { get; set; } = PersonalityType.STEADFAST; // Categorical type for mechanics
@@ -33,19 +33,19 @@ public class NPC
     public int LastConfrontationCount { get; set; } = 0;  // Track confrontations already shown
     public int RedemptionProgress { get; set; } = 0;      // Progress toward emotional recovery
     public bool HasPermanentScar { get; set; } = false;   // Some wounds never fully heal
-    
+
     // Letter offering system
     public bool HasLetterToOffer { get; set; } = false;
-    
+
     // Schedule tracking (for INVESTIGATE verb discoveries)
     public List<ScheduleEntry> DailySchedule { get; set; } = new List<ScheduleEntry>();
-    
+
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
-    
+
     // Conversation deck - each NPC has unique cards representing shared history
     public NPCDeck ConversationDeck { get; set; }
-    
+
     // Initialize deck when NPC is created
     public void InitializeConversationDeck(NPCDeckFactory deckFactory)
     {
@@ -96,7 +96,7 @@ public class NPC
     public Letter GenerateLetter()
     {
         // Generate a simple letter from this NPC
-        var letter = new Letter
+        Letter letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = this.ID,
@@ -138,12 +138,12 @@ public class NPC
             _knownRoutes.Add(route);
         }
     }
-    
+
     // Method for generating letter offers (used by HELP verb)
     public Letter GenerateLetterOffer()
     {
         // Generate a letter based on NPC's profession and current state
-        var letter = new Letter
+        Letter letter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = this.ID,
@@ -160,40 +160,40 @@ public class NPC
             HumanContext = GetHumanContextByProfession(),
             ConsequenceIfLate = GetConsequenceByProfession()
         };
-        
+
         HasLetterToOffer = false; // Mark as offered
         return letter;
     }
-    
+
     // Check if NPC has an urgent letter to offer
     public bool HasUrgentLetter()
     {
         // Simple random chance for now - in full implementation would check state
         return new Random().Next(100) < 20; // 20% chance of urgent letter
     }
-    
+
     // Generate an urgent letter with tight deadline
     public Letter GenerateUrgentLetter()
     {
-        var letter = GenerateLetterOffer();
+        Letter letter = GenerateLetterOffer();
         letter.DeadlineInHours = new Random().Next(2, 8); // Much tighter deadline
         letter.Stakes = StakeType.SAFETY; // Higher stakes
         letter.Payment = new Random().Next(15, 30); // Better payment for urgency
         letter.Description = $"URGENT: {letter.Description}";
         return letter;
     }
-    
+
     private string GetRecipientNameByProfession()
     {
         return Profession switch
         {
-            Professions.Merchant => $"Master {new[] {"Goldwin", "Harwick", "Blackstone"}[new Random().Next(3)]}",
-            Professions.Scholar => $"Sister {new[] {"Mercy", "Grace", "Hope"}[new Random().Next(3)]}",
-            Professions.Noble => $"Lord {new[] {"Ashford", "Ravencrest", "Ironwood"}[new Random().Next(3)]}",
+            Professions.Merchant => $"Master {new[] { "Goldwin", "Harwick", "Blackstone" }[new Random().Next(3)]}",
+            Professions.Scholar => $"Sister {new[] { "Mercy", "Grace", "Hope" }[new Random().Next(3)]}",
+            Professions.Noble => $"Lord {new[] { "Ashford", "Ravencrest", "Ironwood" }[new Random().Next(3)]}",
             _ => $"Citizen {new Random().Next(1, 10)}"
         };
     }
-    
+
     private string GetLetterDescriptionByProfession()
     {
         return Profession switch
@@ -204,7 +204,7 @@ public class NPC
             _ => "Personal correspondence"
         };
     }
-    
+
     private StakeType GetStakesByProfession()
     {
         return Profession switch
@@ -215,7 +215,7 @@ public class NPC
             _ => StakeType.REPUTATION
         };
     }
-    
+
     private string GetHumanContextByProfession()
     {
         return Profession switch
@@ -226,7 +226,7 @@ public class NPC
             _ => "Someone's future depends on this letter"
         };
     }
-    
+
     private string GetConsequenceByProfession()
     {
         return Profession switch
@@ -237,7 +237,7 @@ public class NPC
             _ => "Trust will be broken beyond repair"
         };
     }
-    
+
     public RouteOption GetSecretRoute()
     {
         // Return a secret route this NPC knows
@@ -257,8 +257,8 @@ public class NPC
     {
         // Return list of routes this NPC knows
         // In full implementation, would be based on NPC's profession and tier
-        return new List<RouteOption> 
-        { 
+        return new List<RouteOption>
+        {
             new RouteOption
             {
                 Id = $"route_{Location}_common",

@@ -13,7 +13,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     // Navigation parameters from parent component
     [Parameter] public CurrentViews CurrentView { get; set; }
     [Parameter] public Action<CurrentViews> OnNavigate { get; set; }
-    
+
     // Track previous screen for queue navigation
     public CurrentViews PreviousView { get; private set; } = CurrentViews.LocationScreen;
 
@@ -290,7 +290,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         // Use the route's ID property
         string routeId = route.Id;
         bool success = await GameFacade.TravelToDestinationAsync(route.Destination, routeId);
-        
+
         if (success)
         {
             // Navigate back to location screen after travel
@@ -301,7 +301,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
         {
             Console.WriteLine("HandleTravelRoute: Travel failed");
         }
-        
+
         UpdateState();
     }
 

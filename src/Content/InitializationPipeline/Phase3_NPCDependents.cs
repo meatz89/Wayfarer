@@ -26,7 +26,7 @@ public class Phase3_NPCDependents : IInitializationPhase
     {
         if (string.IsNullOrEmpty(tierString))
             return TierLevel.T1;
-            
+
         return tierString.ToUpper() switch
         {
             "T1" => TierLevel.T1,
@@ -35,7 +35,7 @@ public class Phase3_NPCDependents : IInitializationPhase
             _ => TierLevel.T1
         };
     }
-    
+
     private void LoadRoutes(InitializationContext context)
     {
         string routesPath = Path.Combine(context.ContentPath, "routes.json");
@@ -191,7 +191,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                             context.Warnings.Add($"Invalid letter category '{dto.Category}' for template {dto.Id}, defaulting to Basic");
                         }
                     }
-                    
+
                     // Parse tier level
                     TierLevel tierLevel = TierLevel.T1;
                     if (!string.IsNullOrEmpty(dto.TierLevel))
@@ -201,7 +201,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                             context.Warnings.Add($"Invalid tier level '{dto.TierLevel}' for template {dto.Id}, defaulting to T1");
                         }
                     }
-                    
+
                     // Parse emotional weight
                     EmotionalWeight emotionalWeight = EmotionalWeight.MEDIUM;
                     if (!string.IsNullOrEmpty(dto.EmotionalWeight))
@@ -211,7 +211,7 @@ public class Phase3_NPCDependents : IInitializationPhase
                             context.Warnings.Add($"Invalid emotional weight '{dto.EmotionalWeight}' for template {dto.Id}, defaulting to MEDIUM");
                         }
                     }
-                    
+
                     // Parse stakes
                     StakeType stakes = StakeType.REPUTATION;
                     if (!string.IsNullOrEmpty(dto.Stakes))

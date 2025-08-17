@@ -28,7 +28,7 @@ public class GameUIBase : ComponentBase
 
         // Use NavigationCoordinator for validation and transition
         bool success = await NavigationCoordinator.NavigateToAsync(view);
-        
+
         if (!success)
         {
             string reason = NavigationCoordinator.GetBlockedReason(view);
@@ -72,7 +72,7 @@ public class GameUIBase : ComponentBase
             {
                 Console.WriteLine($"[GameUIBase.OnInitializedAsync] Player not initialized. Creating default player...");
                 // Create a default player for the mockup
-                var player = GameWorld.GetPlayer();
+                Player player = GameWorld.GetPlayer();
                 player.Name = "Wayfarer";
                 player.IsInitialized = true;
                 Console.WriteLine("[GameUIBase.OnInitializedAsync] Default player created. Showing Location...");

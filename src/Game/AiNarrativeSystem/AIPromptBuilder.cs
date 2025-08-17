@@ -374,10 +374,10 @@ public class AIPromptBuilder
         prompt.AppendLine();
 
         prompt.AppendLine("ENCOUNTER GOAL CONTEXT:");
-        
+
         // Goal achievement is determined by choices made, not conversation ending
         prompt.AppendLine("Conversation concluded.");
-        
+
         prompt.AppendLine();
     }
 

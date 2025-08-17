@@ -5,7 +5,7 @@ public class LetterQueue
     private Letter[] slots = new Letter[8];
     private const int MAX_SLOTS = 8;
     private const int MAX_WEIGHT = 12; // Maximum total weight capacity
-    
+
     // Player tier for restricting which letters can be accepted
     // Set this from the game state when creating/updating the queue
     public TierLevel PlayerTier { get; set; } = TierLevel.T1;
@@ -22,7 +22,7 @@ public class LetterQueue
     {
         if (position < 1 || position > 8) return false;
         if (letter == null) return false;
-        
+
         // Special letters (permits, introductions) should not enter the queue
         // They go directly to inventory instead
         if (letter.IsSpecial)
@@ -30,7 +30,7 @@ public class LetterQueue
             // Log or handle special letter differently
             return false; // Don't add special letters to queue
         }
-        
+
         // Check tier restriction - player can only accept letters at or below their tier
         if (letter.Tier > PlayerTier)
         {
@@ -52,13 +52,13 @@ public class LetterQueue
     public bool CanAdd(Letter letter)
     {
         if (letter == null) return false;
-        
+
         // Special letters don't go in the queue
         if (letter.IsSpecial) return false;
-        
+
         // Check tier restriction
         if (letter.Tier > PlayerTier) return false;
-        
+
         int currentWeight = GetTotalWeight();
         return (currentWeight + letter.Weight) <= MAX_WEIGHT;
     }
@@ -116,7 +116,7 @@ public class LetterQueue
     public int FindLowestAvailablePosition(Letter letter)
     {
         if (!CanAdd(letter)) return 0;
-        
+
         for (int i = 0; i < 8; i++)
         {
             if (slots[i] == null)
@@ -144,7 +144,7 @@ public class LetterQueue
     {
         return slots.ToArray();
     }
-    
+
     // Get all non-null letters  
     public Letter[] GetAllLetters()
     {
@@ -161,7 +161,7 @@ public class LetterQueue
     public void ShiftLettersUp(int fromPosition)
     {
         if (fromPosition < 2 || fromPosition > 8) return;
-        
+
         // Shift all letters from fromPosition onwards up by one position
         for (int i = fromPosition - 1; i < 7; i++)
         {
@@ -180,10 +180,10 @@ public class LetterQueue
         if (fromPosition < 1 || fromPosition > 8) return false;
         if (toPosition < 1 || toPosition > 8) return false;
         if (fromPosition == toPosition) return true;
-        
+
         Letter letterToMove = slots[fromPosition - 1];
         if (letterToMove == null) return false;
-        
+
         // Check if target position is empty
         if (slots[toPosition - 1] != null)
         {
@@ -191,7 +191,7 @@ public class LetterQueue
             Letter temp = slots[toPosition - 1];
             slots[toPosition - 1] = letterToMove;
             slots[fromPosition - 1] = temp;
-            
+
             letterToMove.QueuePosition = toPosition;
             temp.QueuePosition = fromPosition;
         }
@@ -202,7 +202,7 @@ public class LetterQueue
             slots[fromPosition - 1] = null;
             letterToMove.QueuePosition = toPosition;
         }
-        
+
         return true;
     }
 
@@ -214,7 +214,7 @@ public class LetterQueue
             .OrderBy(letter => letter.DeadlineInHours)
             .ToArray();
     }
-    
+
     // Get letters from a specific NPC
     public Letter[] GetLettersFrom(string npcId)
     {
@@ -228,10 +228,10 @@ public class LetterQueue
     {
         return GetAllLetters();
     }
-    
+
     // Property for easier access
     public Letter[] Letters => GetAllLetters();
-    
+
     // Properties for UI display
     public int MaxWeight => MAX_WEIGHT;
     public int MaxSlots => MAX_SLOTS;

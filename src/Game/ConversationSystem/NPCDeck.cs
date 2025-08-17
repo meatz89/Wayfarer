@@ -11,13 +11,13 @@ public class NPCDeck
 {
     public string NpcId { get; set; }
     public List<ConversationCard> Cards { get; set; } = new List<ConversationCard>();
-    
+
     // Maximum deck size to prevent bloat
     public const int MaxDeckSize = 20;
-    
+
     private readonly TokenMechanicsManager _tokenManager;
     private readonly GameWorld _gameWorld;
-    
+
     public NPCDeck(string npcId, PersonalityType personalityType = PersonalityType.STEADFAST, TokenMechanicsManager tokenManager = null, GameWorld gameWorld = null)
     {
         NpcId = npcId;
@@ -25,7 +25,7 @@ public class NPCDeck
         _gameWorld = gameWorld;
         InitializeStartingDeck(personalityType);
     }
-    
+
     /// <summary>
     /// Initialize with universal starting cards + personality-specific cards
     /// </summary>
@@ -109,7 +109,7 @@ public class NPCDeck
             new ConversationCard
             {
                 Id = "promise_personal_help",
-                Name = "Promise Personal Help", 
+                Name = "Promise Personal Help",
                 Description = "Swear to prioritize their needs above all others",
                 Difficulty = 3,
                 PatienceCost = 3,
@@ -353,48 +353,48 @@ public class NPCDeck
             _ => new List<ConversationCard>() // Fallback to no personality cards
         };
     }
-    
+
     /// <summary>
     /// Draw 5 cards from deck for this conversation round
     /// </summary>
     public List<ConversationCard> DrawCards(Dictionary<ConnectionType, int> currentTokens, int currentComfort = 0, NPCEmotionalState emotionalState = NPCEmotionalState.CALCULATING)
     {
-        var availableCards = Cards
+        List<ConversationCard> availableCards = Cards
             .Where(card => card.CanPlay(currentTokens, currentComfort) && card.IsAvailableInState(emotionalState))
             .ToList();
-        
+
         // Shuffle available cards
-        var random = new Random();
+        Random random = new Random();
         availableCards = availableCards.OrderBy(x => random.Next()).ToList();
-        
+
         // Draw up to 5 cards, always include Quick Exit if available
-        var drawnCards = new List<ConversationCard>();
-        var exitCard = availableCards.FirstOrDefault(c => c.Id == "quick_exit");
+        List<ConversationCard> drawnCards = new List<ConversationCard>();
+        ConversationCard? exitCard = availableCards.FirstOrDefault(c => c.Id == "quick_exit");
         if (exitCard != null)
         {
             drawnCards.Add(exitCard);
             availableCards.Remove(exitCard);
         }
-        
+
         // Fill remaining slots with other cards
         drawnCards.AddRange(availableCards.Take(4));
-        
+
         return drawnCards;
     }
-    
+
     /// <summary>
     /// Add a card to the deck (from letter delivery rewards)
     /// </summary>
     public void AddCard(ConversationCard card)
     {
         if (Cards.Count >= MaxDeckSize) return;
-        
+
         // Don't add duplicates
         if (Cards.Any(c => c.Id == card.Id)) return;
-        
+
         Cards.Add(card);
     }
-    
+
     /// <summary>
     /// Remove a card from the deck (clearing negatives)
     /// </summary>
@@ -402,50 +402,50 @@ public class NPCDeck
     {
         Cards.RemoveAll(c => c.Id == cardId);
     }
-    
+
     /// <summary>
     /// Calculate starting patience for conversations
     /// Negative cards reduce starting patience by 0.5 each
     /// </summary>
     public double GetPatiencePenalty()
     {
-        var negativeCards = Cards.Where(c => c.ComfortGain < 0).Count();
+        int negativeCards = Cards.Where(c => c.ComfortGain < 0).Count();
         return negativeCards * 0.5;
     }
-    
+
     /// <summary>
     /// Get mechanical effects for Promise Personal Help crisis card
     /// </summary>
     private List<IMechanicalEffect> GetPromisePersonalHelpEffects(string npcId)
     {
-        var effects = new List<IMechanicalEffect>
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>
         {
             new CreateBindingObligationEffect(npcId, "Priority delivery promise")
         };
-        
+
         if (_tokenManager != null)
         {
             effects.Add(new GainTokensEffect(ConnectionType.Trust, GameRules.CRISIS_CARD_TOKEN_REWARD, npcId, _tokenManager));
         }
-        
+
         return effects;
     }
-    
+
     /// <summary>
     /// Get mechanical effects for Emergency Arrangement crisis card
     /// </summary>
     private List<IMechanicalEffect> GetEmergencyArrangementEffects(string npcId)
     {
-        var effects = new List<IMechanicalEffect>
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>
         {
             new CreateBindingObligationEffect(npcId, "Emergency assistance obligation")
         };
-        
+
         if (_tokenManager != null)
         {
             effects.Add(new GainTokensEffect(ConnectionType.Trust, GameRules.CRISIS_CARD_TOKEN_REWARD, npcId, _tokenManager));
         }
-        
+
         return effects;
     }
 
@@ -454,49 +454,49 @@ public class NPCDeck
     /// </summary>
     private List<IMechanicalEffect> GetDesperateApologyEffects(string npcId)
     {
-        var effects = new List<IMechanicalEffect>();
-        
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>();
+
         if (_tokenManager != null)
         {
             // Desperate apology restores relationship but at great personal cost
             effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Unfriendly, _gameWorld));
             effects.Add(new BurnTokensEffect(ConnectionType.Status, 3, npcId, _tokenManager)); // Lose dignity
         }
-        
+
         return effects;
     }
-    
+
     /// <summary>
     /// Get mechanical effects for Compensation Offer betrayal card
     /// </summary>
     private List<IMechanicalEffect> GetCompensationOfferEffects(string npcId)
     {
-        var effects = new List<IMechanicalEffect>();
-        
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>();
+
         if (_tokenManager != null && _gameWorld != null)
         {
             // Compensation offer - restore relationship but at financial cost
             effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Wary, _gameWorld));
             effects.Add(new BurnTokensEffect(ConnectionType.Commerce, 3, npcId, _tokenManager)); // Financial cost
         }
-        
+
         return effects;
     }
-    
+
     /// <summary>
     /// Get mechanical effects for Blame Circumstances betrayal card
     /// </summary>
     private List<IMechanicalEffect> GetBlameCircumstancesEffects(string npcId)
     {
-        var effects = new List<IMechanicalEffect>();
-        
+        List<IMechanicalEffect> effects = new List<IMechanicalEffect>();
+
         if (_tokenManager != null && _gameWorld != null)
         {
             // Blame circumstances - partial restoration but damages trust (poor strategy)
             effects.Add(new RestoreRelationshipEffect(npcId, NPCRelationship.Hostile, _gameWorld)); // Still hostile
             effects.Add(new BurnTokensEffect(ConnectionType.Trust, 2, npcId, _tokenManager)); // Deflection backfires
         }
-        
+
         return effects;
     }
 }

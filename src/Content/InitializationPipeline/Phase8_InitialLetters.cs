@@ -14,17 +14,17 @@ public class Phase8_InitialLetters : IInitializationPhase
     {
         Console.WriteLine("Initializing letter queue with mockup letters...");
 
-        var gameWorld = context.GameWorld;
-        
+        GameWorld gameWorld = context.GameWorld;
+
         // Store initial letters in shared data for later initialization
         // Since LetterQueueManager is a service, we'll just create the letters here
         // and they'll be picked up when the game starts
-        
+
         // Create the 5 letters from the mockup
-        var letters = new System.Collections.Generic.List<Letter>();
-        
+        List<Letter> letters = new System.Collections.Generic.List<Letter>();
+
         // 1. Elena's marriage refusal (URGENT - 2h 15m)
-        var elenaLetter = new Letter
+        Letter elenaLetter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = "elena",
@@ -43,7 +43,7 @@ public class Phase8_InitialLetters : IInitializationPhase
         letters.Add(elenaLetter);
 
         // 2. Lord Blackwood's urgent letter (position 2)
-        var lordBLetter = new Letter
+        Letter lordBLetter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = "lord_b",
@@ -62,7 +62,7 @@ public class Phase8_InitialLetters : IInitializationPhase
         letters.Add(lordBLetter);
 
         // 3. Marcus's trade deal (position 3)
-        var marcusLetter = new Letter
+        Letter marcusLetter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = "marcus",
@@ -81,13 +81,13 @@ public class Phase8_InitialLetters : IInitializationPhase
         letters.Add(marcusLetter);
 
         // 4. Viktor's report (position 5 - after Marcus's 2-slot letter)
-        var viktorLetter = new Letter
+        Letter viktorLetter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = "viktor",
             SenderName = "Viktor",
             RecipientId = "noble_district",
-            RecipientName = "Noble District", 
+            RecipientName = "Noble District",
             Description = "Guard Captain Viktor's security report",
             TokenType = ConnectionType.Status,
             Stakes = StakeType.SAFETY,
@@ -100,7 +100,7 @@ public class Phase8_InitialLetters : IInitializationPhase
         letters.Add(viktorLetter);
 
         // 5. Garrett's package (position 6)
-        var garrettLetter = new Letter
+        Letter garrettLetter = new Letter
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = "garrett",
@@ -119,18 +119,18 @@ public class Phase8_InitialLetters : IInitializationPhase
         letters.Add(garrettLetter);
 
         // Add letters directly to the player's queue
-        var player = gameWorld.GetPlayer();
+        Player player = gameWorld.GetPlayer();
         if (player != null && player.LetterQueue != null)
         {
             // Add letters to their positions (queue already initialized in Player constructor)
-            foreach (var letter in letters)
+            foreach (Letter letter in letters)
             {
                 if (letter.QueuePosition > 0 && letter.QueuePosition <= 8)
                 {
                     player.LetterQueue[letter.QueuePosition - 1] = letter;
                 }
             }
-            
+
             Console.WriteLine($"  Added {letters.Count} initial letters to player's queue");
             Console.WriteLine($"  - Elena's marriage refusal (pos 1)");
             Console.WriteLine($"  - Lord Blackwood's urgent letter (pos 2)");

@@ -48,7 +48,7 @@ public class TimeManager : ITimeManager
     {
         return CurrentTimeHours;
     }
-    
+
     public int GetCurrentMinutes()
     {
         return _timeModel.CurrentState.CurrentMinute;
@@ -97,12 +97,12 @@ public class TimeManager : ITimeManager
             SystemMessageTypes.Info);
 
         // Use the new minute-based advancement in TimeModel
-        var result = _timeModel.AdvanceTimeMinutes(minutes);
-        
+        TimeAdvancementResult result = _timeModel.AdvanceTimeMinutes(minutes);
+
         // Log the time advancement
         _logger.LogDebug($"Advanced time by {minutes} minutes. New time: Day {result.NewState.CurrentDay}, {result.NewState.CurrentHour:D2}:{result.NewState.CurrentMinute:D2}");
     }
-    
+
     private string GetTimePassingDescription(int minutes)
     {
         if (minutes < 60)
@@ -185,22 +185,22 @@ public class TimeManager : ITimeManager
     {
         return _timeModel.GetTimeString();
     }
-    
+
     /// <summary>
     /// Gets formatted time display with day name and time.
     /// Returns format like "MON 3:30 PM"
     /// </summary>
     public string GetFormattedTimeDisplay()
     {
-        var day = GetCurrentDay();
+        int day = GetCurrentDay();
         // Day 1 = Monday, so subtract 1 to get correct array index
-        var dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[(day - 1) % 7];
-        
-        var currentHour = GetCurrentTimeHours();
-        var currentMinute = GetCurrentMinutes();
-        var period = currentHour >= 12 ? "PM" : "AM";
-        var displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
-        
+        string dayName = new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" }[(day - 1) % 7];
+
+        int currentHour = GetCurrentTimeHours();
+        int currentMinute = GetCurrentMinutes();
+        string period = currentHour >= 12 ? "PM" : "AM";
+        int displayHour = currentHour > 12 ? currentHour - 12 : (currentHour == 0 ? 12 : currentHour);
+
         return $"{dayName} {displayHour}:{currentMinute:D2} {period}";
     }
 

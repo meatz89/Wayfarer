@@ -45,16 +45,16 @@
         NPC? npc = _gameWorld.WorldState.GetCharacters()?.FirstOrDefault(n => n.ID == id);
         if (npc != null && !IsNPCVisible(npc))
             return null;
-        
+
         // If NPC not found and we have a fallback service, try to get/create a fallback
         if (npc == null && _fallbackService != null)
         {
             npc = _fallbackService.GetOrCreateFallbackNPC(id);
         }
-        
+
         return npc;
     }
-    
+
     /// <summary>
     /// Sets the fallback service for this repository
     /// </summary>

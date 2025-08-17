@@ -21,39 +21,39 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
         // Get repositories from GameWorld
         // Note: We can't easily create DebugLogger here as it needs TimeManager and ConversationStateManager
         // For now, we'll create a minimal version or skip the fallback service in the repository
-        var npcRepository = new NPCRepository(
+        NPCRepository npcRepository = new NPCRepository(
             context.GameWorld,
             null, // DebugLogger not available during initialization
             new NPCVisibilityService()
         );
-        
-        var locationRepository = new LocationRepository(context.GameWorld);
-        var itemRepository = new ItemRepository(context.GameWorld);
-        var routeRepository = new RouteRepository(context.GameWorld, itemRepository);
+
+        LocationRepository locationRepository = new LocationRepository(context.GameWorld);
+        ItemRepository itemRepository = new ItemRepository(context.GameWorld);
+        RouteRepository routeRepository = new RouteRepository(context.GameWorld, itemRepository);
 
         // Create fallback service
-        var fallbackService = new ContentFallbackService(
+        ContentFallbackService fallbackService = new ContentFallbackService(
             npcRepository,
             locationRepository,
             routeRepository
         );
 
         // Get loaded conversations from shared data
-        var conversations = context.SharedData.ContainsKey("Conversations") 
+        Dictionary<string, ConversationDefinition> conversations = context.SharedData.ContainsKey("Conversations")
             ? (Dictionary<string, ConversationDefinition>)context.SharedData["Conversations"]
             : new Dictionary<string, ConversationDefinition>();
 
         // Get current letters if any
-        var player = context.GameWorld.GetPlayer();
-        List<Letter> letters = player?.LetterQueue != null 
+        Player player = context.GameWorld.GetPlayer();
+        List<Letter> letters = player?.LetterQueue != null
             ? player.LetterQueue.Where(l => l != null).ToList()
             : new List<Letter>();
 
         // Get routes
-        var routes = context.GameWorld.WorldState.Routes ?? new List<RouteOption>();
+        List<RouteOption> routes = context.GameWorld.WorldState.Routes ?? new List<RouteOption>();
 
         // Validate and patch all content
-        var report = fallbackService.ValidateAndPatchContent(conversations, letters, routes);
+        ContentFallbackReport report = fallbackService.ValidateAndPatchContent(conversations, letters, routes);
 
         // Store fallback service for later use
         context.SharedData["ContentFallbackService"] = fallbackService;
@@ -63,15 +63,15 @@ public class Phase4_5_ContentFallbacks : IInitializationPhase
         if (report.HasFallbacks)
         {
             Console.WriteLine($"\n{fallbackService.GetFallbackSummary()}");
-            
+
             // Add warnings for each fallback
-            foreach (var detail in report.Details)
+            foreach (ContentFallbackEntry detail in report.Details)
             {
                 context.Warnings.Add($"Created fallback {detail.Type} '{detail.MissingId}': {detail.Reason}");
             }
 
             // Also add a prominent warning that will be visible in the UI
-            context.Warnings.Insert(0, 
+            context.Warnings.Insert(0,
                 $"⚠️ CONTENT FALLBACKS ACTIVE: {report.TotalFallbacksCreated} missing references were auto-generated. " +
                 "Check console for details.");
         }

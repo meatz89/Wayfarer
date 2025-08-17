@@ -148,7 +148,7 @@ public class SpecialLetterHandler
     private void ProcessAccessPermitLetter(Letter letter)
     {
         Player player = _gameWorld.GetPlayer();
-        
+
         // Check if delivered to a Transport NPC
         NPC recipient = _npcRepository.GetById(letter.RecipientId);
         if (recipient != null && recipient.ProvidedServices.Contains(ServiceTypes.Transport))
@@ -157,7 +157,7 @@ public class SpecialLetterHandler
             ProcessTransportPermit(letter, recipient);
             return;
         }
-        
+
         // Original location unlocking logic
         if (!string.IsNullOrEmpty(letter.UnlocksLocationId))
         {
@@ -203,7 +203,7 @@ public class SpecialLetterHandler
             UnlockRouteFromCurrentLocation(letter);
         }
     }
-    
+
     /// <summary>
     /// Process travel permit delivered to Transport NPC
     /// CONTENT EFFICIENT: Unlocks routes without requiring extra NPCs
@@ -211,14 +211,14 @@ public class SpecialLetterHandler
     private void ProcessTransportPermit(Letter letter, NPC transportNPC)
     {
         // Find routes this Transport NPC controls based on their profession and location
-        var controlledRoutes = GetTransportNPCRoutes(transportNPC, _routeRepository);
-        
+        List<RouteOption> controlledRoutes = GetTransportNPCRoutes(transportNPC, _routeRepository);
+
         // Unlock the first locked route, or mark permit as used for access requirements
         bool routeUnlocked = false;
-        foreach (var route in controlledRoutes)
+        foreach (RouteOption route in controlledRoutes)
         {
             // Check if route has permit-based access requirement
-            if (route.AccessRequirement != null && 
+            if (route.AccessRequirement != null &&
                 route.AccessRequirement.AlternativeLetterUnlock == LetterSpecialType.AccessPermit)
             {
                 route.AccessRequirement.HasReceivedPermit = true;
@@ -241,7 +241,7 @@ public class SpecialLetterHandler
                 break;
             }
         }
-        
+
         if (!routeUnlocked)
         {
             // All routes already available - grant commerce tokens as bonus
@@ -252,54 +252,54 @@ public class SpecialLetterHandler
             );
         }
     }
-    
+
     /// <summary>
     /// Get routes controlled by a Transport NPC
     /// CONTENT EFFICIENT: Based on profession and location, not extra data
     /// </summary>
     private List<RouteOption> GetTransportNPCRoutes(NPC transportNPC, RouteRepository routeRepository)
     {
-        var allRoutes = routeRepository.GetRoutesFromLocation(transportNPC.Location);
-        
+        IEnumerable<RouteOption> allRoutes = routeRepository.GetRoutesFromLocation(transportNPC.Location);
+
         // Filter based on Transport NPC's profession
         return transportNPC.Profession switch
         {
-            Professions.Ferryman => allRoutes.Where(r => 
-                r.Method == TravelMethods.Boat || 
+            Professions.Ferryman => allRoutes.Where(r =>
+                r.Method == TravelMethods.Boat ||
                 r.TerrainCategories.Contains(TerrainCategory.Requires_Water_Transport)).ToList(),
-                
-            Professions.Harbor_Master => allRoutes.Where(r => 
-                r.Method == TravelMethods.Boat || 
+
+            Professions.Harbor_Master => allRoutes.Where(r =>
+                r.Method == TravelMethods.Boat ||
                 r.Method == TravelMethods.Carriage).ToList(),
-                
+
             _ => allRoutes.Where(r => (int)r.TierRequired <= (int)TierLevel.T2).ToList()
         };
     }
-    
+
     /// <summary>
     /// Unlock a route from player's current location
     /// </summary>
     private void UnlockRouteFromCurrentLocation(Letter letter)
     {
-        var player = _gameWorld.GetPlayer();
-        var currentLocation = player.GetCurrentLocation(_locationRepository);
+        Player player = _gameWorld.GetPlayer();
+        Location currentLocation = player.GetCurrentLocation(_locationRepository);
         if (currentLocation == null) return;
-        
-        var lockedRoutes = _routeRepository.GetRoutesFromLocation(currentLocation.Id)
-            .Where(r => !r.IsDiscovered || 
+
+        List<RouteOption> lockedRoutes = _routeRepository.GetRoutesFromLocation(currentLocation.Id)
+            .Where(r => !r.IsDiscovered ||
                    (r.AccessRequirement != null && !r.AccessRequirement.HasReceivedPermit))
             .ToList();
-            
+
         if (lockedRoutes.Any())
         {
-            var routeToUnlock = lockedRoutes.First();
+            RouteOption routeToUnlock = lockedRoutes.First();
             if (routeToUnlock.AccessRequirement != null)
             {
                 routeToUnlock.AccessRequirement.HasReceivedPermit = true;
             }
             routeToUnlock.IsDiscovered = true;
             routeToUnlock.HasPermitUnlock = true; // Mark tier bypass
-            
+
             _messageSystem.AddSystemMessage(
                 $"🔓 Travel permit accepted! The {routeToUnlock.Name} is now available.",
                 SystemMessageTypes.Success

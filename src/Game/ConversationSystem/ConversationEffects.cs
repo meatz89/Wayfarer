@@ -16,9 +16,9 @@ public class LetterReorderEffect : IMechanicalEffect
     private readonly string _npcId;
 
     public LetterReorderEffect(
-        string letterId, 
-        int targetPosition, 
-        int tokenCost, 
+        string letterId,
+        int targetPosition,
+        int tokenCost,
         ConnectionType tokenType,
         LetterQueueManager queueManager,
         TokenMechanicsManager tokenManager,
@@ -61,9 +61,9 @@ public class LetterReorderEffect : IMechanicalEffect
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
         string npcName = GetNpcDisplayName(_npcId);
-        var desc = new MechanicalEffectDescription
+        MechanicalEffectDescription desc = new MechanicalEffectDescription
         {
-            Text = _tokenCost > 0 
+            Text = _tokenCost > 0
                 ? $"Move to slot {_targetPosition} (burn {_tokenCost} {_tokenType} with {npcName})"
                 : $"Move letter to position {_targetPosition}",
             Category = EffectCategory.LetterReorder,
@@ -71,16 +71,16 @@ public class LetterReorderEffect : IMechanicalEffect
             LetterId = _letterId,
             NpcId = _npcId
         };
-        
+
         if (_tokenCost > 0)
         {
             desc.TokenType = _tokenType;
             desc.TokenAmount = _tokenCost;
         }
-        
+
         return new List<MechanicalEffectDescription> { desc };
     }
-    
+
     private string GetNpcDisplayName(string npcId)
     {
         return npcId switch
@@ -108,8 +108,8 @@ public class GainTokensEffect : IMechanicalEffect
     public int Amount => _amount; // Expose for filtering
 
     public GainTokensEffect(
-        ConnectionType tokenType, 
-        int amount, 
+        ConnectionType tokenType,
+        int amount,
         string npcId,
         TokenMechanicsManager tokenManager)
     {
@@ -128,7 +128,7 @@ public class GainTokensEffect : IMechanicalEffect
     {
         // Get NPC name for clarity
         string npcName = GetNpcDisplayName(_npcId);
-        
+
         return new List<MechanicalEffectDescription>
         {
             new MechanicalEffectDescription
@@ -141,7 +141,7 @@ public class GainTokensEffect : IMechanicalEffect
             }
         };
     }
-    
+
     private string GetNpcDisplayName(string npcId)
     {
         // TODO: Get from NPC repository or pass in constructor
@@ -169,8 +169,8 @@ public class BurnTokensEffect : IMechanicalEffect
     private readonly TokenMechanicsManager _tokenManager;
 
     public BurnTokensEffect(
-        ConnectionType tokenType, 
-        int amount, 
+        ConnectionType tokenType,
+        int amount,
         string npcId,
         TokenMechanicsManager tokenManager)
     {
@@ -193,7 +193,7 @@ public class BurnTokensEffect : IMechanicalEffect
     {
         // Get NPC name for clarity
         string npcName = GetNpcDisplayName(_npcId);
-        
+
         return new List<MechanicalEffectDescription>
         {
             new MechanicalEffectDescription
@@ -206,7 +206,7 @@ public class BurnTokensEffect : IMechanicalEffect
             }
         };
     }
-    
+
     private string GetNpcDisplayName(string npcId)
     {
         // TODO: Get from NPC repository or pass in constructor
@@ -255,7 +255,7 @@ public class ConversationTimeEffect : IMechanicalEffect
             text = $"+{_minutes} minutes conversation";
         else
             text = "";
-            
+
         return new List<MechanicalEffectDescription>
         {
             new MechanicalEffectDescription
@@ -284,7 +284,7 @@ public class RemoveLetterTemporarilyEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        var position = _queueManager.GetLetterPosition(_letterId);
+        int? position = _queueManager.GetLetterPosition(_letterId);
         if (position.HasValue)
         {
             _queueManager.RemoveLetterFromQueue(position.Value);
@@ -320,7 +320,7 @@ public class AcceptLetterEffect : IMechanicalEffect
     public void Apply(ConversationState state)
     {
         // Add to next available position
-        var currentCount = _queueManager.GetActiveLetters().Count();
+        int currentCount = _queueManager.GetActiveLetters().Count();
         _queueManager.AddLetterToQueue(_letter, currentCount + 1);
     }
 
@@ -354,10 +354,10 @@ public class ExtendDeadlineEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        var position = _queueManager.GetLetterPosition(_letterId);
+        int? position = _queueManager.GetLetterPosition(_letterId);
         if (position.HasValue)
         {
-            var letter = _queueManager.GetLetterAt(position.Value);
+            Letter letter = _queueManager.GetLetterAt(position.Value);
             letter.DeadlineInHours += _daysToAdd * 24;
         }
     }
@@ -462,7 +462,7 @@ public class UnlockRoutesEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        foreach (var route in _routes)
+        foreach (RouteOption route in _routes)
         {
             _player.AddKnownRoute(route);
         }
@@ -582,12 +582,15 @@ public class DiscoverRouteEffect : IMechanicalEffect
 public class MaintainStateEffect : IMechanicalEffect
 {
     public void Apply(ConversationState state) { }
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
             Text = "Maintains current state",
             Category = EffectCategory.StateChange
         }
     };
+    }
 }
 
 /// <summary>
@@ -595,17 +598,20 @@ public class MaintainStateEffect : IMechanicalEffect
 /// </summary>
 public class OpenNegotiationEffect : IMechanicalEffect
 {
-    public void Apply(ConversationState state) 
+    public void Apply(ConversationState state)
     {
         // Mark that negotiation should be opened (handled by UI)
         state.AdvanceDuration(1);
     }
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
             Text = "Opens negotiation",
             Category = EffectCategory.NegotiationOpen
         }
     };
+    }
 }
 
 /// <summary>
@@ -625,7 +631,7 @@ public class GainInformationEffect : IMechanicalEffect
     public void Apply(ConversationState state)
     {
         // Store information as a memory
-        var memory = new MemoryFlag
+        MemoryFlag memory = new MemoryFlag
         {
             Key = $"info_{_infoType}_{Guid.NewGuid()}",
             Description = _information,
@@ -634,13 +640,16 @@ public class GainInformationEffect : IMechanicalEffect
         state.Player.Memories.Add(memory);
     }
 
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
             Text = $"Gain {_infoType}: \"{_information}\"",
             Category = EffectCategory.InformationGain,
             IsInformationRevealed = true
         }
     };
+    }
 }
 
 /// <summary>
@@ -661,13 +670,16 @@ public class TimePassageEffect : IMechanicalEffect
         state.DurationCounter += _minutes / 5; // Convert to conversation rounds
     }
 
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
             Text = $"+{_minutes} minutes conversation",
             Category = EffectCategory.TimePassage,
             TimeMinutes = _minutes
         }
     };
+    }
 }
 
 /// <summary>
@@ -689,7 +701,7 @@ public class CreateBindingObligationEffect : IMechanicalEffect
     public void Apply(ConversationState state)
     {
         // Create categorical obligation based on relationship type
-        var obligation = new StandingObligation
+        StandingObligation obligation = new StandingObligation
         {
             ID = $"crisis_obligation_{_npcId}_{_obligationType}",
             Name = _obligationText,
@@ -722,7 +734,7 @@ public class CreateBindingObligationEffect : IMechanicalEffect
         state.Player.StandingObligations.Add(obligation);
     }
 
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() 
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
         string npcName = GetNpcDisplayName(_npcId);
         return new List<MechanicalEffectDescription> {
@@ -734,7 +746,7 @@ public class CreateBindingObligationEffect : IMechanicalEffect
             }
         };
     }
-    
+
     private string GetNpcDisplayName(string npcId)
     {
         return npcId switch
@@ -764,7 +776,7 @@ public class DeepInvestigationEffect : IMechanicalEffect
     public void Apply(ConversationState state)
     {
         // Reveal hidden information as a memory
-        var memory = new MemoryFlag
+        MemoryFlag memory = new MemoryFlag
         {
             Key = $"investigation_{Guid.NewGuid()}",
             Description = $"Investigation revealed: {_topic}",
@@ -773,13 +785,16 @@ public class DeepInvestigationEffect : IMechanicalEffect
         state.Player.Memories.Add(memory);
     }
 
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
             Text = $"🔍 Uncover: {_topic}",
             Category = EffectCategory.InformationGain,
             IsInformationRevealed = true
         }
     };
+    }
 }
 
 /// <summary>
@@ -797,29 +812,32 @@ public class UnlockRouteEffect : IMechanicalEffect
     public void Apply(ConversationState state)
     {
         // Add route to player's known routes
-        var route = new RouteOption
+        RouteOption route = new RouteOption
         {
             Id = Guid.NewGuid().ToString(),
             Name = _routeName,
             TravelTimeHours = 1,
             Description = $"Fast route to Noble Quarter via {_routeName}"
         };
-        
-        var fromLocation = state.Player.CurrentLocationSpot?.LocationId ?? "market_square";
-        
+
+        string fromLocation = state.Player.CurrentLocationSpot?.LocationId ?? "market_square";
+
         if (!state.Player.KnownRoutes.ContainsKey(fromLocation))
             state.Player.KnownRoutes.Add(fromLocation, new List<RouteOption>());
-            
+
         state.Player.KnownRoutes[fromLocation].Add(route);
     }
 
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
             Text = $"Unlock route: {_routeName}",
             Category = EffectCategory.RouteUnlock,
             RouteName = _routeName
         }
     };
+    }
 }
 
 /// <summary>
@@ -835,12 +853,15 @@ public class LockedEffect : IMechanicalEffect
     }
 
     public void Apply(ConversationState state) { }
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
             Text = _reason,
             Category = EffectCategory.StateChange
         }
     };
+    }
 }
 
 // Info type enum for information effects
@@ -866,12 +887,15 @@ public class OpenQueueInterfaceEffect : IMechanicalEffect
         state.IsQueueInterfaceOpen = true;
     }
 
-    public List<MechanicalEffectDescription> GetDescriptionsForPlayer() => new List<MechanicalEffectDescription> {
+    public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
+    {
+        return new List<MechanicalEffectDescription> {
         new MechanicalEffectDescription {
             Text = "Open queue management interface",
             Category = EffectCategory.InterfaceAction
         }
     };
+    }
 }
 
 /// <summary>
@@ -893,7 +917,7 @@ public class RestoreRelationshipEffect : IMechanicalEffect
 
     public void Apply(ConversationState state)
     {
-        var npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == _npcId);
+        NPC? npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == _npcId);
         if (npc == null) return;
 
         // Only restore if currently in Betrayed state
@@ -913,10 +937,10 @@ public class RestoreRelationshipEffect : IMechanicalEffect
 
     public List<MechanicalEffectDescription> GetDescriptionsForPlayer()
     {
-        var relationshipName = _targetRelationship switch
+        string relationshipName = _targetRelationship switch
         {
             NPCRelationship.Unfriendly => "Unfriendly",
-            NPCRelationship.Neutral => "Neutral", 
+            NPCRelationship.Neutral => "Neutral",
             NPCRelationship.Wary => "Wary",
             _ => _targetRelationship.ToString()
         };

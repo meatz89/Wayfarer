@@ -9,7 +9,7 @@ public class TimeBlockAttentionManager
     private readonly Dictionary<string, AttentionManager> _timeBlockAttention = new();
     private string _currentTimeBlock;
     private AttentionManager _currentAttention;
-    
+
     public TimeBlockAttentionManager()
     {
         // Initialize with morning attention
@@ -17,37 +17,37 @@ public class TimeBlockAttentionManager
         _currentAttention = CreateFreshAttention();
         _timeBlockAttention[_currentTimeBlock] = _currentAttention;
     }
-    
+
     /// <summary>
     /// Get the attention manager for the current time block
     /// Creates new one if time block has changed
     /// </summary>
     public AttentionManager GetCurrentAttention(TimeBlocks currentTime)
     {
-        var timeBlockKey = GetTimeBlockKey(currentTime);
-        
+        string timeBlockKey = GetTimeBlockKey(currentTime);
+
         // Check if we've moved to a new time block
         if (timeBlockKey != _currentTimeBlock)
         {
             Console.WriteLine($"[TimeBlockAttention] Transitioning from {_currentTimeBlock} to {timeBlockKey}");
-            
+
             // Archive the old attention state
             _timeBlockAttention[_currentTimeBlock] = _currentAttention;
-            
+
             // Create or retrieve attention for new time block
             if (!_timeBlockAttention.ContainsKey(timeBlockKey))
             {
                 _timeBlockAttention[timeBlockKey] = CreateFreshAttention();
                 Console.WriteLine($"[TimeBlockAttention] Created fresh attention for {timeBlockKey}");
             }
-            
+
             _currentAttention = _timeBlockAttention[timeBlockKey];
             _currentTimeBlock = timeBlockKey;
         }
-        
+
         return _currentAttention;
     }
-    
+
     /// <summary>
     /// Force a refresh (e.g., after sleeping or special events)
     /// </summary>
@@ -57,7 +57,7 @@ public class TimeBlockAttentionManager
         _currentAttention = CreateFreshAttention();
         _timeBlockAttention[_currentTimeBlock] = _currentAttention;
     }
-    
+
     /// <summary>
     /// Check if player has any attention left in current time block
     /// </summary>
@@ -65,7 +65,7 @@ public class TimeBlockAttentionManager
     {
         return _currentAttention?.GetAvailableAttention() > 0;
     }
-    
+
     /// <summary>
     /// Get a summary of attention state for UI display
     /// </summary>
@@ -73,19 +73,19 @@ public class TimeBlockAttentionManager
     {
         if (_currentAttention == null)
             return (0, 5);
-            
+
         return (_currentAttention.GetAvailableAttention(), _currentAttention.GetMaxAttention());
     }
-    
+
     private AttentionManager CreateFreshAttention()
     {
-        var attention = new AttentionManager();
+        AttentionManager attention = new AttentionManager();
         // Set to 5 base attention (can be modified by location/state)
         attention.SetMaxAttention(5);
         attention.ResetForNewScene(); // This now means "reset for new time block"
         return attention;
     }
-    
+
     private string GetTimeBlockKey(TimeBlocks timeBlock)
     {
         // Each time block has its own attention pool - no grouping!
@@ -100,7 +100,7 @@ public class TimeBlockAttentionManager
             _ => "unknown"
         };
     }
-    
+
     /// <summary>
     /// Clear all stored attention states (for new day)
     /// </summary>
@@ -111,7 +111,7 @@ public class TimeBlockAttentionManager
         _currentAttention = CreateFreshAttention();
         _timeBlockAttention[_currentTimeBlock] = _currentAttention;
     }
-    
+
     /// <summary>
     /// Modify current attention based on location or events
     /// </summary>
@@ -119,7 +119,7 @@ public class TimeBlockAttentionManager
     {
         if (_currentAttention != null)
         {
-            var newMax = Math.Clamp(_currentAttention.GetMaxAttention() + modifier, 3, 7);
+            int newMax = Math.Clamp(_currentAttention.GetMaxAttention() + modifier, 3, 7);
             _currentAttention.SetMaxAttention(newMax);
             Console.WriteLine($"[TimeBlockAttention] Modified attention by {modifier} due to {reason}. New max: {newMax}");
         }

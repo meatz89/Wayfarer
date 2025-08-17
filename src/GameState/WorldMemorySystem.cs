@@ -24,7 +24,7 @@ namespace Wayfarer.GameState
         /// </summary>
         public void RecordEvent(WorldEventType type, string actorId, string targetId = null, string locationId = null)
         {
-            var worldEvent = new WorldEvent
+            WorldEvent worldEvent = new WorldEvent
             {
                 Type = type,
                 ActorId = actorId,
@@ -80,9 +80,9 @@ namespace Wayfarer.GameState
         /// </summary>
         public bool HasRecentFailureWith(string npcId)
         {
-            return _recentEvents.Any(e => 
+            return _recentEvents.Any(e =>
                 (e.ActorId == npcId || e.TargetId == npcId) &&
-                (e.Type == WorldEventType.DeadlineMissed || 
+                (e.Type == WorldEventType.DeadlineMissed ||
                  e.Type == WorldEventType.ConfrontationOccurred));
         }
 
@@ -91,7 +91,7 @@ namespace Wayfarer.GameState
         /// </summary>
         public bool HasRecentSuccessWith(string npcId)
         {
-            return _recentEvents.Any(e => 
+            return _recentEvents.Any(e =>
                 (e.ActorId == npcId || e.TargetId == npcId) &&
                 e.Type == WorldEventType.LetterDelivered);
         }

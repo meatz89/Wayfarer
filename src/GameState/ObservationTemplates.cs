@@ -10,13 +10,13 @@ public class ObservationTemplates
 {
     private readonly Dictionary<LocationTag, ObservationTemplate> _templates;
     private readonly Random _random;
-    
+
     public ObservationTemplates()
     {
         _random = new Random();
         _templates = InitializeTemplates();
     }
-    
+
     /// <summary>
     /// Generate an observation based on location tag and context
     /// </summary>
@@ -24,22 +24,22 @@ public class ObservationTemplates
     {
         if (!_templates.ContainsKey(tag))
             return "You notice nothing unusual.";
-            
-        var template = _templates[tag];
-        
+
+        ObservationTemplate template = _templates[tag];
+
         // Use seed for deterministic generation if provided
-        var rnd = seed > 0 ? new Random(seed) : _random;
-        
+        Random rnd = seed > 0 ? new Random(seed) : _random;
+
         // Select template variation
-        var templateText = template.Variations[rnd.Next(template.Variations.Count)];
-        
+        string templateText = template.Variations[rnd.Next(template.Variations.Count)];
+
         // Get location-specific detail
-        var detail = GetLocationDetail(tag, locationId, rnd);
-        
+        string detail = GetLocationDetail(tag, locationId, rnd);
+
         // Replace placeholder
         return templateText.Replace("{detail}", detail);
     }
-    
+
     private Dictionary<LocationTag, ObservationTemplate> InitializeTemplates()
     {
         return new Dictionary<LocationTag, ObservationTemplate>
@@ -53,7 +53,7 @@ public class ObservationTemplates
                     "Amid the bustle, {detail} catches your attention"
                 }
             },
-            
+
             [LocationTag.Quiet] = new ObservationTemplate
             {
                 Variations = new List<string>
@@ -63,7 +63,7 @@ public class ObservationTemplates
                     "Without distraction, {detail} becomes apparent"
                 }
             },
-            
+
             [LocationTag.HearthWarmed] = new ObservationTemplate
             {
                 Variations = new List<string>
@@ -73,7 +73,7 @@ public class ObservationTemplates
                     "Near the hearth, {detail} is visible"
                 }
             },
-            
+
             [LocationTag.AleScented] = new ObservationTemplate
             {
                 Variations = new List<string>
@@ -83,7 +83,7 @@ public class ObservationTemplates
                     "The tavern atmosphere shows {detail}"
                 }
             },
-            
+
             [LocationTag.MusicDrifting] = new ObservationTemplate
             {
                 Variations = new List<string>
@@ -93,7 +93,7 @@ public class ObservationTemplates
                     "Under cover of song, {detail} happens"
                 }
             },
-            
+
             [LocationTag.MarketDay] = new ObservationTemplate
             {
                 Variations = new List<string>
@@ -103,7 +103,7 @@ public class ObservationTemplates
                     "The market reveals {detail}"
                 }
             },
-            
+
             [LocationTag.GuardPatrol] = new ObservationTemplate
             {
                 Variations = new List<string>
@@ -113,7 +113,7 @@ public class ObservationTemplates
                     "Security measures reveal {detail}"
                 }
             },
-            
+
             [LocationTag.Shadowed] = new ObservationTemplate
             {
                 Variations = new List<string>
@@ -125,28 +125,28 @@ public class ObservationTemplates
             }
         };
     }
-    
+
     private string GetLocationDetail(LocationTag tag, string locationId, Random rnd)
     {
         // Location-specific details based on tag and location
-        var details = GetDetailsForLocation(tag, locationId);
-        
+        List<string> details = GetDetailsForLocation(tag, locationId);
+
         if (details.Any())
             return details[rnd.Next(details.Count)];
-            
+
         // Fallback generic details
         return GetGenericDetail(tag, rnd);
     }
-    
+
     private List<string> GetDetailsForLocation(LocationTag tag, string locationId)
     {
-        var key = $"{locationId}_{tag}";
-        
-        var locationDetails = new Dictionary<string, List<string>>
+        string key = $"{locationId}_{tag}";
+
+        Dictionary<string, List<string>> locationDetails = new Dictionary<string, List<string>>
         {
             // Market Square
-            ["market_square_Crowded"] = new() 
-            { 
+            ["market_square_Crowded"] = new()
+            {
                 "a pickpocket at work",
                 "fresh bread being sold",
                 "guards pushing through"
@@ -163,7 +163,7 @@ public class ObservationTemplates
                 "beggars being moved along",
                 "children chasing a dog"
             },
-            
+
             // Copper Kettle Tavern
             ["copper_kettle_HearthWarmed"] = new()
             {
@@ -183,7 +183,7 @@ public class ObservationTemplates
                 "someone humming along sadly",
                 "the lute player's broken string"
             },
-            
+
             // Noble District
             ["noble_district_Quiet"] = new()
             {
@@ -203,7 +203,7 @@ public class ObservationTemplates
                 "a nervous visitor waiting",
                 "the captain taking bribes"
             },
-            
+
             // Merchant Row
             ["merchant_row_Crowded"] = new()
             {
@@ -223,7 +223,7 @@ public class ObservationTemplates
                 "leather being worked",
                 "wheels being repaired"
             },
-            
+
             // Riverside
             ["riverside_Public"] = new()
             {
@@ -243,7 +243,7 @@ public class ObservationTemplates
                 "ropes being coiled",
                 "tar being heated"
             },
-            
+
             // City Gates
             ["city_gates_Public"] = new()
             {
@@ -264,16 +264,16 @@ public class ObservationTemplates
                 "peddlers hawking to travelers"
             }
         };
-        
+
         return locationDetails.ContainsKey(key) ? locationDetails[key] : new List<string>();
     }
-    
+
     private string GetGenericDetail(LocationTag tag, Random rnd)
     {
-        var genericDetails = new Dictionary<LocationTag, List<string>>
+        Dictionary<LocationTag, List<string>> genericDetails = new Dictionary<LocationTag, List<string>>
         {
-            [LocationTag.Crowded] = new() 
-            { 
+            [LocationTag.Crowded] = new()
+            {
                 "too many people to track",
                 "someone pushing past",
                 "voices overlapping"
@@ -351,13 +351,13 @@ public class ObservationTemplates
                 "faithful gathered"
             }
         };
-        
+
         if (genericDetails.ContainsKey(tag))
         {
-            var details = genericDetails[tag];
+            List<string> details = genericDetails[tag];
             return details[rnd.Next(details.Count)];
         }
-        
+
         return "something noteworthy";
     }
 }
