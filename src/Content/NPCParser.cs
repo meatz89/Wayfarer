@@ -29,6 +29,11 @@ public static class NPCParser
         string professionStr = GetStringProperty(root, "profession", "");
         npc.Profession = MapProfessionFromJson(professionStr);
 
+        // Parse personality - preserve authentic description and map to categorical type
+        string personalityDescription = GetStringProperty(root, "personality", "");
+        npc.PersonalityDescription = personalityDescription;
+        npc.PersonalityType = PersonalityMappingService.GetPersonalityType(personalityDescription);
+
         // NPCs are always available - no schedule parsing needed
 
         // Parse services and map to ServiceTypes enum

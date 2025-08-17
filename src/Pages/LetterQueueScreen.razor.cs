@@ -14,6 +14,8 @@ namespace Wayfarer.Pages
         [Inject] private ITimeManager TimeManager { get; set; }
         [Inject] private ILetterQueueOperations QueueOperations { get; set; }
         
+        [Parameter] public CurrentViews ReturnView { get; set; } = CurrentViews.LocationScreen;
+        
         private bool _isReordering = false;
         private int? _selectedForReorder = null;
         private int? expandedPosition = null;
@@ -451,8 +453,8 @@ namespace Wayfarer.Pages
         
         private void HandleExitQueue()
         {
-            Console.WriteLine("[LetterQueueScreen] HandleExitQueue - returning to LocationScreen");
-            OnNavigate?.Invoke(CurrentViews.LocationScreen);
+            Console.WriteLine($"[LetterQueueScreen] HandleExitQueue - returning to {ReturnView}");
+            OnNavigate?.Invoke(ReturnView);
         }
         
         private bool HasCriticalDeadlines()

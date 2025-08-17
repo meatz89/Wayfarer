@@ -1,5 +1,8 @@
 * CLAUDE.md
 
+**📋 IMPLEMENTATION PLAN: READ IMPLEMENTATION-PLAN.MD FOR COMPLETE ROADMAP**
+**This file provides the comprehensive implementation plan for all 88 user stories across 15 epics.**
+
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 
 **⚠️ MANDATORY: READ ALL MARKDOWN FILES IN /DOCS FOLDER FULLY ⚠️**

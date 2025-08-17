@@ -57,7 +57,7 @@ public class ConversationScreenBase : ComponentBase
             else
             {
                 Console.WriteLine($"[ConversationScreen] Loaded conversation with NPC: {Model.NpcId}, Text: {Model.CurrentText?.Substring(0, Math.Min(50, Model.CurrentText?.Length ?? 0))}...");
-                GenerateChoices();
+                await GenerateChoicesAsync();
             }
         }
         catch (Exception ex)
@@ -72,10 +72,10 @@ public class ConversationScreenBase : ComponentBase
         CurrentAttention = current;
     }
     
-    protected void GenerateChoices()
+    protected async Task GenerateChoicesAsync()
     {
         // Use enhanced card-based choices
-        var enhancedChoices = GenerateCardBasedChoices();
+        var enhancedChoices = await GenerateCardBasedChoicesAsync();
         if (enhancedChoices?.Any() == true)
         {
             Choices = enhancedChoices;
@@ -109,7 +109,7 @@ public class ConversationScreenBase : ComponentBase
             if (updatedModel != null)
             {
                 Model = updatedModel;
-                GenerateChoices();
+                await GenerateChoicesAsync();
                 LoadTokenData(); // Reload tokens after processing choice
                 RefreshAttentionState(); // Update attention 
                 StateHasChanged();
@@ -311,16 +311,33 @@ public class ConversationScreenBase : ComponentBase
     }
     
     /// <summary>
-    /// Generate enhanced conversation choices using the RelationshipMemoryCard system
-    /// This integrates with ConversationDeckManager.GenerateEnhancedChoices
+    /// Generate enhanced conversation choices using the card deck system
+    /// This integrates with the backend ConversationChoiceGenerator
     /// </summary>
-    protected List<ConversationChoice> GenerateCardBasedChoices()
+    protected async Task<List<ConversationChoice>> GenerateCardBasedChoicesAsync()
     {
         try
         {
-            // TODO: Implement GameFacade method to access ConversationDeckManager.GenerateEnhancedChoices
-            // For now return basic placeholder choices that match the mockup
-            return GeneratePlaceholderChoices();
+            // HIGHLANDER PRINCIPLE: Model.NpcId is the ONLY source of truth
+            if (string.IsNullOrEmpty(Model?.NpcId))
+            {
+                Console.WriteLine("[ConversationScreen] No Model.NpcId available for card generation");
+                return GeneratePlaceholderChoices();
+            }
+            
+            // Get real card-based choices from GameFacade
+            var cardChoices = await GameFacade.GetConversationChoicesFromDeckAsync(Model.NpcId);
+            
+            if (cardChoices?.Any() == true)
+            {
+                Console.WriteLine($"[ConversationScreen] Generated {cardChoices.Count} card-based choices for {Model.NpcId}");
+                return cardChoices;
+            }
+            else
+            {
+                Console.WriteLine($"[ConversationScreen] No card choices available for {Model.NpcId}, using placeholders");
+                return GeneratePlaceholderChoices();
+            }
         }
         catch (Exception ex)
         {
@@ -404,10 +421,61 @@ public class ConversationScreenBase : ComponentBase
 
     protected List<string> ParseMechanicalDescription(string description)
     {
-        // Split by pipe (|) for multiple effects
+        // Split by pipe (|) for multiple effects and add relationship impact previews
         return description.Split('|', StringSplitOptions.RemoveEmptyEntries)
                          .Select(s => s.Trim())
+                         .Select(effect => AddRelationshipImpactPreview(effect))
                          .ToList();
+    }
+
+    /// <summary>
+    /// Add relationship impact preview to mechanical effects
+    /// Frontend UI translates mechanical effects to human relationship context
+    /// </summary>
+    protected string AddRelationshipImpactPreview(string mechanicalEffect)
+    {
+        var lower = mechanicalEffect.ToLowerInvariant();
+        
+        // Add human relationship context to token effects while preserving mechanical display
+        if (lower.Contains("trust") && lower.Contains("+"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>({Model?.NpcName} will remember this kindness)</span>";
+        }
+        else if (lower.Contains("trust") && lower.Contains("-"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>({Model?.NpcName} will feel betrayed)</span>";
+        }
+        else if (lower.Contains("commerce") && lower.Contains("+"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>(Improved business relationship)</span>";
+        }
+        else if (lower.Contains("commerce") && lower.Contains("-"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>(You owe {Model?.NpcName} for this favor)</span>";
+        }
+        else if (lower.Contains("status") && lower.Contains("+"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>(Enhanced social standing)</span>";
+        }
+        else if (lower.Contains("status") && lower.Contains("-"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>(Loss of respect and standing)</span>";
+        }
+        else if (lower.Contains("shadow") && lower.Contains("+"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>(Deeper into secretive circles)</span>";
+        }
+        else if (lower.Contains("shadow") && lower.Contains("-"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>(Information networks distance themselves)</span>";
+        }
+        else if (lower.Contains("binding obligation"))
+        {
+            return $"{mechanicalEffect} <span class='relationship-preview'>(Creates ongoing commitment)</span>";
+        }
+        
+        // Return original effect if no relationship context applies
+        return mechanicalEffect;
     }
 
     protected string GetEffectIcon(string description)

@@ -174,90 +174,139 @@ public class LetterQueueManager
         _obligationManager.ApplyDynamicDeadlineBonuses(letter);
     }
 
-    // Calculate leverage-based entry position for a letter using simple token balance
+    // Calculate relationship-based entry position using the queue position algorithm
+    // Position = 8 - (highest positive token) + (worst negative token penalty)
     private int CalculateLeveragePosition(Letter letter)
     {
         string senderId = GetNPCIdByName(letter.SenderName);
         if (string.IsNullOrEmpty(senderId))
         {
-            // Default to base position if NPC not found
-            return GetBasePositionForTokenType(letter.TokenType);
+            // Default to position 8 if NPC not found
+            return _config.LetterQueue.MaxQueueSize;
         }
 
-        // Get token balance and leverage
-        var tokenBalance = _connectionTokenManager.GetTokensWithNPC(senderId)[letter.TokenType];
-        int leverage = _connectionTokenManager.GetLeverage(senderId, letter.TokenType);
-        
-        // Start with base position for token type
-        int basePosition = GetBasePositionForTokenType(letter.TokenType);
-        
-        // Apply leverage boost (negative tokens = better position)
-        int targetPosition = basePosition;
-        if (leverage > 0)
+        // Check for active obligations first - highest priority
+        if (HasActiveObligationWithNPC(senderId))
         {
-            // Every 2 points of leverage = 1 position forward
-            int leverageBoost = leverage / 2;
-            targetPosition = Math.Max(1, basePosition - leverageBoost);
-            
-            // Extreme leverage thresholds
-            if (leverage >= 10)
-            {
-                targetPosition = 1; // Extreme leverage = position 1
-            }
-            else if (leverage >= 5)
-            {
-                targetPosition = Math.Min(2, targetPosition); // High leverage = at least position 2
-            }
+            return 1; // Obligation letters always enter at position 1
         }
+
+        // Get all token balances with this NPC
+        var allTokens = _connectionTokenManager.GetTokensWithNPC(senderId);
         
-        // Apply pattern modifiers
-        targetPosition = ApplyPatternModifiers(targetPosition, senderId, tokenBalance);
+        // Calculate position using specification algorithm
+        int highestPositiveToken = GetHighestPositiveToken(allTokens);
+        int worstNegativeTokenPenalty = GetWorstNegativeTokenPenalty(allTokens);
         
-        // Show leverage narrative if significant
-        if (leverage > 0)
+        // Base algorithm: Position = 8 - (highest positive token) + (worst negative token penalty)
+        int position = _config.LetterQueue.MaxQueueSize - highestPositiveToken + worstNegativeTokenPenalty;
+        
+        // Apply Commerce debt leverage override
+        if (allTokens.ContainsKey(ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
         {
-            ShowSimpleLeverageNarrative(letter, leverage, targetPosition);
+            position = 2; // Commerce debt >= 3 forces position 2
         }
         
         // Clamp to valid queue range
-        return Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, targetPosition));
-    }
-    
-    // Show simple leverage narrative without LeverageCalculator
-    private void ShowSimpleLeverageNarrative(Letter letter, int leverage, int position)
-    {
-        string severity = leverage >= 10 ? "EXTREME" : leverage >= 5 ? "HIGH" : "MODERATE";
-        var messageType = leverage >= 5 ? SystemMessageTypes.Warning : SystemMessageTypes.Info;
+        position = Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, position));
         
-        _messageSystem.AddSystemMessage(
-            $"💸 {severity} LEVERAGE: You owe {letter.SenderName} {leverage} {letter.TokenType} tokens - letter enters at position {position}",
-            messageType
-        );
+        // Record positioning data for UI translation
+        RecordLetterPositioning(letter, senderId, allTokens, position, highestPositiveToken, worstNegativeTokenPenalty);
+        
+        return position;
     }
 
-    // Get base position for token type
-    private int GetBasePositionForTokenType(ConnectionType tokenType)
+    /// <summary>
+    /// Check if an NPC has any active standing obligations with the player
+    /// </summary>
+    private bool HasActiveObligationWithNPC(string npcId)
     {
-        return _config.LetterQueue.BasePositions.GetValueOrDefault(
-            tokenType,
-            _config.LetterQueue.MaxQueueSize - 1
-        );
+        List<StandingObligation> activeObligations = _obligationManager.GetActiveObligations();
+        return activeObligations.Any(obligation => obligation.RelatedNPCId == npcId);
     }
 
-    // Apply relationship pattern modifiers
-    private int ApplyPatternModifiers(int currentPosition, string npcId, int tokenBalance)
+    /// <summary>
+    /// Get the highest positive token value across all connection types with an NPC
+    /// </summary>
+    private int GetHighestPositiveToken(Dictionary<ConnectionType, int> allTokens)
     {
-        Player player = _gameWorld.GetPlayer();
-        LetterHistory? history = player.NPCLetterHistory.GetValueOrDefault(npcId);
-        if (history == null) return currentPosition;
-
-        // Repeated skipping creates leverage even without debt
-        if (history.SkippedCount >= 2 && tokenBalance >= 0)
+        int highest = 0;
+        foreach (var tokenCount in allTokens.Values)
         {
-            currentPosition -= 1; // More leverage due to pattern
+            if (tokenCount > highest)
+            {
+                highest = tokenCount;
+            }
         }
+        return highest;
+    }
 
-        return currentPosition;
+    /// <summary>
+    /// Get the worst negative token penalty (absolute value of most negative token)
+    /// </summary>
+    private int GetWorstNegativeTokenPenalty(Dictionary<ConnectionType, int> allTokens)
+    {
+        int worstPenalty = 0;
+        foreach (var tokenCount in allTokens.Values)
+        {
+            if (tokenCount < 0)
+            {
+                int penalty = Math.Abs(tokenCount);
+                if (penalty > worstPenalty)
+                {
+                    worstPenalty = penalty;
+                }
+            }
+        }
+        return worstPenalty;
+    }
+
+    /// <summary>
+    /// Record letter positioning data for frontend translation
+    /// Backend only sets categorical types - UI translates to text
+    /// </summary>
+    private void RecordLetterPositioning(Letter letter, string senderId, Dictionary<ConnectionType, int> allTokens, 
+        int finalPosition, int highestPositiveToken, int worstNegativeTokenPenalty)
+    {
+        // Determine positioning reason category
+        LetterPositioningReason reason = DeterminePositioningReason(senderId, allTokens, worstNegativeTokenPenalty);
+        
+        // Store categorical data on letter for UI translation
+        letter.PositioningReason = reason;
+        letter.RelationshipStrength = highestPositiveToken;
+        letter.RelationshipDebt = worstNegativeTokenPenalty;
+        letter.FinalQueuePosition = finalPosition;
+        
+        // Send categorical message for frontend translation
+        _messageSystem.AddLetterPositioningMessage(letter.SenderName, reason, finalPosition, highestPositiveToken, worstNegativeTokenPenalty);
+    }
+
+    /// <summary>
+    /// Determine categorical reason for letter positioning
+    /// </summary>
+    private LetterPositioningReason DeterminePositioningReason(string senderId, Dictionary<ConnectionType, int> allTokens, int worstNegativeTokenPenalty)
+    {
+        if (HasActiveObligationWithNPC(senderId))
+        {
+            return LetterPositioningReason.Obligation;
+        }
+        
+        if (allTokens.ContainsKey(ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
+        {
+            return LetterPositioningReason.CommerceDebt;
+        }
+        
+        if (worstNegativeTokenPenalty > 0)
+        {
+            return LetterPositioningReason.PoorStanding;
+        }
+        
+        if (GetHighestPositiveToken(allTokens) > 0)
+        {
+            return LetterPositioningReason.GoodStanding;
+        }
+        
+        return LetterPositioningReason.Neutral;
     }
 
     // Add letter with leverage-based displacement
@@ -335,7 +384,7 @@ public class LetterQueueManager
         letter.State = LetterState.Collected;
 
         // Track original vs actual position for leverage visibility
-        int basePosition = GetBasePositionForTokenType(letter.TokenType);
+        int basePosition = _config.LetterQueue.MaxQueueSize;
         if (position < basePosition)
         {
             letter.OriginalQueuePosition = basePosition;
@@ -351,7 +400,7 @@ public class LetterQueueManager
     // Show narrative explaining why letter entered at this position
     private void ShowLeverageNarrative(Letter letter, int actualPosition)
     {
-        int basePosition = GetBasePositionForTokenType(letter.TokenType);
+        int basePosition = _config.LetterQueue.MaxQueueSize;
 
         if (actualPosition < basePosition)
         {
@@ -417,7 +466,7 @@ public class LetterQueueManager
         letter.QueuePosition = targetPosition;
 
         // Track leverage effect
-        int basePosition = GetBasePositionForTokenType(letter.TokenType);
+        int basePosition = _config.LetterQueue.MaxQueueSize;
         if (targetPosition < basePosition)
         {
             letter.OriginalQueuePosition = basePosition;

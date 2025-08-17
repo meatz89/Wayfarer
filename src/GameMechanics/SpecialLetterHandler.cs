@@ -67,10 +67,16 @@ public class SpecialLetterHandler
         if (bonusTokens > 0)
         {
             _tokenManager.AddTokensToNPC(letter.TokenType, bonusTokens, letter.RecipientId);
-            _messageSystem.AddSystemMessage(
-                $"+{bonusTokens} {letter.TokenType} bonus tokens for delivering special letter!",
-                SystemMessageTypes.Success
-            );
+            _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
+            {
+                EventType = SpecialLetterEventType.SpecialLetterTokenBonus,
+                LetterType = letter.SpecialType,
+                TokenType = letter.TokenType,
+                TokenAmount = bonusTokens,
+                SenderName = letter.SenderName,
+                RecipientName = letter.RecipientName,
+                Severity = NarrativeSeverity.Success
+            });
         }
     }
 
@@ -81,20 +87,29 @@ public class SpecialLetterHandler
     {
         if (string.IsNullOrEmpty(letter.UnlocksNPCId))
         {
-            _messageSystem.AddSystemMessage(
-                "This introduction letter seems incomplete...",
-                SystemMessageTypes.Warning
-            );
+            _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
+            {
+                EventType = SpecialLetterEventType.IntroductionLetterIncomplete,
+                LetterType = LetterSpecialType.Introduction,
+                SenderName = letter.SenderName,
+                RecipientName = letter.RecipientName,
+                Severity = NarrativeSeverity.Warning
+            });
             return;
         }
 
         NPC npc = _npcRepository.GetById(letter.UnlocksNPCId);
         if (npc == null)
         {
-            _messageSystem.AddSystemMessage(
-                "The person this letter introduces cannot be found...",
-                SystemMessageTypes.Warning
-            );
+            _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
+            {
+                EventType = SpecialLetterEventType.IntroductionTargetNotFound,
+                LetterType = LetterSpecialType.Introduction,
+                TargetNPCId = letter.UnlocksNPCId,
+                SenderName = letter.SenderName,
+                RecipientName = letter.RecipientName,
+                Severity = NarrativeSeverity.Warning
+            });
             return;
         }
 
@@ -110,10 +125,17 @@ public class SpecialLetterHandler
         // Grant initial trust tokens with the new NPC
         _tokenManager.AddTokensToNPC(ConnectionType.Trust, 1, npc.ID);
 
-        _messageSystem.AddSystemMessage(
-            $"📜 You've been introduced to {npc.Name}! They will now offer you work.",
-            SystemMessageTypes.Success
-        );
+        _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
+        {
+            EventType = SpecialLetterEventType.NPCIntroduced,
+            LetterType = LetterSpecialType.Introduction,
+            TargetNPCId = npc.ID,
+            SenderName = letter.SenderName,
+            RecipientName = letter.RecipientName,
+            TokenType = ConnectionType.Trust,
+            TokenAmount = 1,
+            Severity = NarrativeSeverity.Success
+        });
 
         // Discover any information this NPC might share with new contacts
         _informationManager.TryDiscoverFromNPC(npc.ID, ConnectionType.Trust);
@@ -142,10 +164,15 @@ public class SpecialLetterHandler
             Location location = _locationRepository.GetLocation(letter.UnlocksLocationId);
             if (location == null)
             {
-                _messageSystem.AddSystemMessage(
-                    "The location this permit grants access to cannot be found...",
-                    SystemMessageTypes.Warning
-                );
+                _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
+                {
+                    EventType = SpecialLetterEventType.AccessTargetNotFound,
+                    LetterType = LetterSpecialType.AccessPermit,
+                    TargetLocationId = letter.UnlocksLocationId,
+                    SenderName = letter.SenderName,
+                    RecipientName = letter.RecipientName,
+                    Severity = NarrativeSeverity.Warning
+                });
                 return;
             }
 
@@ -157,10 +184,15 @@ public class SpecialLetterHandler
                 (int)letter.Tier
             );
 
-            _messageSystem.AddSystemMessage(
-                $"🔓 Access granted to {location.Name}! New routes may now be available.",
-                SystemMessageTypes.Success
-            );
+            _messageSystem.AddSpecialLetterEvent(new SpecialLetterEvent
+            {
+                EventType = SpecialLetterEventType.LocationAccessGranted,
+                LetterType = LetterSpecialType.AccessPermit,
+                TargetLocationId = location.Id,
+                SenderName = letter.SenderName,
+                RecipientName = letter.RecipientName,
+                Severity = NarrativeSeverity.Success
+            });
 
             // Discover information about this location
             _informationManager.DiscoverFromLocationVisit(location.Id);

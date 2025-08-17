@@ -11,6 +11,10 @@ public class NPC
 
     // Categorical Properties for Logical System Interactions
     public Professions Profession { get; set; }
+    
+    // Personality system
+    public string PersonalityDescription { get; set; } = string.Empty; // Authentic description from JSON
+    public PersonalityType PersonalityType { get; set; } = PersonalityType.STEADFAST; // Categorical type for mechanics
 
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;
@@ -47,7 +51,7 @@ public class NPC
     {
         if (ConversationDeck == null)
         {
-            ConversationDeck = new NPCDeck(ID);
+            ConversationDeck = new NPCDeck(ID, PersonalityType);
         }
     }
 

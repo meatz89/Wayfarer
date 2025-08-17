@@ -46,6 +46,24 @@ public class ConversationCard
         }
         return true;
     }
+    
+    // Check if card is available in current emotional state
+    public bool IsAvailableInState(NPCEmotionalState emotionalState)
+    {
+        return Category switch
+        {
+            RelationshipCardCategory.Crisis => 
+                emotionalState == NPCEmotionalState.DESPERATE || 
+                emotionalState == NPCEmotionalState.ANXIOUS,
+            RelationshipCardCategory.Basic => 
+                emotionalState != NPCEmotionalState.HOSTILE,
+            RelationshipCardCategory.Personal => 
+                emotionalState != NPCEmotionalState.HOSTILE,
+            RelationshipCardCategory.Special => 
+                emotionalState != NPCEmotionalState.HOSTILE,
+            _ => true
+        };
+    }
 }
 
 public enum RelationshipCardCategory

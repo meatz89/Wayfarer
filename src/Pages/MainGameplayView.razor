@@ -10,7 +10,7 @@
 @switch (CurrentScreen)
 {
     case CurrentViews.LetterQueueScreen:
-        <LetterQueueScreen OnNavigate="HandleNavigation" />
+        <LetterQueueScreen OnNavigate="HandleNavigation" ReturnView="@PreviousView" />
         break;
 
     case CurrentViews.ConversationScreen:

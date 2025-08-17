@@ -153,7 +153,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 15 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5100\" timeout 15 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 30 dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:5101\" timeout 30 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5101\" timeout 30 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:5099\" timeout 10 dotnet run --no-build)",
+      "mcp__gemini-cli__ask-gemini"
     ],
     "deny": []
   }

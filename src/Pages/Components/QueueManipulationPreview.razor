@@ -17,12 +17,12 @@
         <div class="position-display">
             <div class="position-from">
                 <span class="position-label">From:</span>
-                <span class="position-number">Position @FromPosition</span>
+                <span class="position-number">@GetPositionDescription(FromPosition) <span class="mechanical-detail">(Position @FromPosition)</span></span>
             </div>
             <div class="position-arrow">→</div>
             <div class="position-to">
                 <span class="position-label">To:</span>
-                <span class="position-number">Position @ToPosition</span>
+                <span class="position-number">@GetPositionDescription(ToPosition) <span class="mechanical-detail">(Position @ToPosition)</span></span>
             </div>
         </div>
         
@@ -55,12 +55,12 @@
         
         <div class="swap-display">
             <div class="swap-letter">
-                <span class="letter-position">Position @FromPosition</span>
+                <span class="letter-position">@GetPositionDescription(FromPosition) <span class="mechanical-detail">(Position @FromPosition)</span></span>
                 <span class="letter-detail">@LetterDescription1</span>
             </div>
             <div class="swap-icon">⇄</div>
             <div class="swap-letter">
-                <span class="letter-position">Position @ToPosition</span>
+                <span class="letter-position">@GetPositionDescription(ToPosition) <span class="mechanical-detail">(Position @ToPosition)</span></span>
                 <span class="letter-detail">@LetterDescription2</span>
             </div>
         </div>
@@ -91,7 +91,7 @@
             </div>
             <div class="consequence-item">
                 <span class="consequence-icon">⚠</span>
-                <span class="consequence-text">Their letters enter at position 2 (Leverage)</span>
+                <span class="consequence-text">Their letters enter at @GetPositionDescription(2) <span class="mechanical-detail">(Position 2 - Leverage)</span></span>
             </div>
         </div>
     }
@@ -125,6 +125,26 @@
     
     private int PositionsMoved => Math.Abs(ToPosition - FromPosition);
     private int AfterBalance => CurrentTokenBalance.HasValue ? CurrentTokenBalance.Value - TokenCost : 0;
+    
+    /// <summary>
+    /// Convert mechanical position number to literary medieval description
+    /// Frontend UI translates categories to narrative while preserving mechanical transparency
+    /// </summary>
+    private string GetPositionDescription(int position)
+    {
+        return position switch
+        {
+            1 => "Immediate priority",
+            2 => "Urgent matter", 
+            3 => "Third commitment",
+            4 => "Fourth obligation",
+            5 => "Fifth duty",
+            6 => "Sixth responsibility", 
+            7 => "Seventh task",
+            8 => "Final burden",
+            _ => $"Position {position}"
+        };
+    }
     
     public enum QueueOperation
     {

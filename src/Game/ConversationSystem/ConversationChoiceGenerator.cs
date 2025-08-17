@@ -45,11 +45,27 @@ public class ConversationChoiceGenerator
         // Initialize NPC deck if needed
         context.TargetNPC.InitializeConversationDeck();
         
+        // Calculate NPC emotional state based on current letters and deadlines
+        var emotionalState = _stateCalculator.CalculateState(context.TargetNPC);
+        
+        // HOSTILE NPCs refuse conversation entirely
+        if (!ConversationPatienceCalculator.CanConverse(emotionalState))
+        {
+            return GetHostileChoices(context.TargetNPC);
+        }
+        
         // Get current relationship tokens
         var tokenDict = _tokenManager.GetTokensWithNPC(context.TargetNPC.ID);
         
-        // Draw 5 cards from NPC's deck (comfort level starts at 0)
-        var drawnCards = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0);
+        // Calculate starting patience based on emotional state and relationships
+        var startingPatience = ConversationPatienceCalculator.CalculateStartingPatience(
+            context.TargetNPC, emotionalState, tokenDict);
+            
+        // Store emotional state context for conversation flow
+        context.CurrentTokens = tokenDict;
+        
+        // Draw 5 cards from NPC's deck filtered by emotional state
+        var drawnCards = context.TargetNPC.ConversationDeck.DrawCards(tokenDict, 0, emotionalState);
         
         // Convert cards to ConversationChoice objects
         var choices = new List<ConversationChoice>();
@@ -68,6 +84,34 @@ public class ConversationChoiceGenerator
         }
         
         return choices;
+    }
+    
+    private List<ConversationChoice> GetHostileChoices(NPC npc)
+    {
+        // HOSTILE NPCs refuse conversation - show why and how to resolve
+        return new List<ConversationChoice>
+        {
+            new ConversationChoice
+            {
+                ChoiceID = "hostile_blocked",
+                NarrativeText = $"{npc.Name} refuses to speak with you. Their letter deadline has passed.",
+                AttentionCost = 0,
+                IsAffordable = false,
+                IsAvailable = false,
+                MechanicalDescription = "→ Conversation blocked - deliver overdue letter to restore communication",
+                MechanicalEffects = new List<IMechanicalEffect>()
+            },
+            new ConversationChoice
+            {
+                ChoiceID = "exit",
+                NarrativeText = "Step away quietly.",
+                AttentionCost = 0,
+                IsAffordable = true,
+                IsAvailable = true,
+                MechanicalDescription = "→ End conversation",
+                MechanicalEffects = new List<IMechanicalEffect>()
+            }
+        };
     }
     
     private List<ConversationChoice> GetFallbackChoices()

@@ -5945,6 +5945,62 @@ public class GameFacade : ILetterQueueOperations
         };
     }
     
+    /// <summary>
+    /// Get conversation choices from NPC's card deck for frontend integration
+    /// </summary>
+    public async Task<List<ConversationChoice>> GetConversationChoicesFromDeckAsync(string npcId)
+    {
+        try
+        {
+            // Get the current conversation if available
+            var currentConversation = _conversationStateManager.PendingConversationManager;
+            if (currentConversation != null && currentConversation.Context?.TargetNPC?.ID == npcId)
+            {
+                // Use existing conversation's choices if available
+                if (currentConversation.Choices?.Any() == true)
+                {
+                    return currentConversation.Choices;
+                }
+            }
+            
+            // Create new choice generator to get card-based choices
+            var player = _gameWorld.GetPlayer();
+            var npc = _npcRepository.GetById(npcId);
+            if (npc == null)
+            {
+                Console.WriteLine($"[GameFacade] NPC not found: {npcId}");
+                return new List<ConversationChoice>();
+            }
+            
+            // Create context for choice generation
+            var location = player.GetCurrentLocation(_locationRepository);
+            var spot = player.CurrentLocationSpot;
+            var context = SceneContext.Standard(_gameWorld, player, npc, location, spot);
+            
+            // Create choice generator
+            var choiceGenerator = new ConversationChoiceGenerator(
+                _letterQueueManager,
+                _connectionTokenManager,
+                _npcStateResolver,
+                _timeManager,
+                player,
+                _gameWorld,
+                _timeBlockAttentionManager);
+            
+            // Generate choices from card deck
+            var state = new ConversationState(player, npc, _gameWorld, 3, 8); // Basic state for choice generation
+            var choices = choiceGenerator.GenerateChoices(context, state);
+            
+            Console.WriteLine($"[GameFacade] Generated {choices.Count} card-based choices for {npcId}");
+            return choices;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GameFacade] Error generating card choices for {npcId}: {ex.Message}");
+            return new List<ConversationChoice>();
+        }
+    }
+    
     #endregion
 
 }

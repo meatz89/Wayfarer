@@ -14,6 +14,7 @@ namespace Wayfarer.Services
         private readonly ITimeManager _timeManager;
         
         private CurrentViews _currentView = CurrentViews.LocationScreen;
+        private CurrentViews _previousView = CurrentViews.LocationScreen;
         private bool _isTransitioning = false;
         
         // Context for certain screens

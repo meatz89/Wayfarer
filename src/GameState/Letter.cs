@@ -76,6 +76,12 @@ public class Letter
     public int? OriginalQueuePosition { get; set; }
     public int LeverageBoost { get; set; } = 0;
 
+    // Relationship-based positioning data (categorical - UI translates to text)
+    public LetterPositioningReason PositioningReason { get; set; } = LetterPositioningReason.Neutral;
+    public int RelationshipStrength { get; set; } = 0; // Highest positive token count
+    public int RelationshipDebt { get; set; } = 0; // Worst negative token penalty
+    public int FinalQueuePosition { get; set; } = 0; // Position after algorithm calculation
+
     // Additional properties for future use but set defaults for POC
     public int QueuePosition { get; set; } = 0;
     public SizeCategory Size { get; set; } = SizeCategory.Medium;

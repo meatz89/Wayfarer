@@ -13,6 +13,9 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
     // Navigation parameters from parent component
     [Parameter] public CurrentViews CurrentView { get; set; }
     [Parameter] public Action<CurrentViews> OnNavigate { get; set; }
+    
+    // Track previous screen for queue navigation
+    public CurrentViews PreviousView { get; private set; } = CurrentViews.LocationScreen;
 
     // UI State Properties
     public int StateVersion = 0;
@@ -605,6 +608,7 @@ public class MainGameplayViewBase : ComponentBase, IDisposable
 
     public void HandleNavigation(CurrentViews view)
     {
+        PreviousView = CurrentView;
         OnNavigate?.Invoke(view);
         StateHasChanged();
     }
