@@ -10,23 +10,20 @@ using System.Threading.Tasks;
 public class DeterministicNarrativeProvider : INarrativeProvider
 {
     private readonly ConversationRepository _conversationRepository;
-    private readonly VerbContextualizer _verbContextualizer;
     private readonly NPCStateResolver _stateCalculator;
     private readonly LetterQueueManager _queueManager;
 
     public DeterministicNarrativeProvider(
         ConversationRepository conversationRepository,
-        VerbContextualizer verbContextualizer,
         NPCStateResolver stateCalculator,
         LetterQueueManager queueManager)
     {
         _conversationRepository = conversationRepository;
-        _verbContextualizer = verbContextualizer;
         _stateCalculator = stateCalculator;
         _queueManager = queueManager;
     }
 
-    public Task<string> GenerateIntroduction(SceneContext context)
+    public async Task<string> GenerateIntroduction(SceneContext context)
     {
         // Check for conversation override
         if (context.TargetNPC != null)
@@ -34,15 +31,15 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             string introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             if (!string.IsNullOrEmpty(introduction))
             {
-                return Task.FromResult(introduction);
+                return introduction;
             }
         }
 
         // Default introduction
-        return Task.FromResult("You begin a conversation.");
+        return "You begin a conversation.";
     }
 
-    public Task<string> GenerateIntroduction(SceneContext context, ConversationState state)
+    public async Task<string> GenerateIntroduction(SceneContext context, ConversationState state)
     {
         // Check for conversation override (tutorial, special conversations)
         if (context.TargetNPC != null)
@@ -53,14 +50,14 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             if (context.TargetNPC.ID == "elena")
             {
                 string elenaDialogue = "\"The letter contains Lord Aldwin's marriage proposal. My refusal.\" She meets your eyes. \"If he learns before my cousin can intervene at court, I'll be ruined.\"\n\nHer hand reaches toward yours across the table, trembling slightly.\n\n\"Please. I know you have obligations, but I need this delivered today.\"";
-                return Task.FromResult(elenaDialogue);
+                return elenaDialogue;
             }
             
             string? introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             Console.WriteLine($"[DeterministicNarrativeProvider] Got dialogue: {introduction ?? "null"}");
             if (!string.IsNullOrEmpty(introduction))
             {
-                return Task.FromResult(introduction);
+                return introduction;
             }
         }
 
@@ -89,70 +86,24 @@ public class DeterministicNarrativeProvider : INarrativeProvider
                 
             string fullIntroduction = $"{context.TargetNPC.Name} {bodyLanguage}. {dialogue}";
             
-            return Task.FromResult(fullIntroduction);
+            return fullIntroduction;
         }
 
         // Fallback
         Console.WriteLine("[DeterministicNarrativeProvider] Using default introduction");
         string npcName = context.TargetNPC?.Name ?? "the person";
         string greeting = GenerateContextualGreeting(context, state);
-        return Task.FromResult(greeting);
+        return greeting;
     }
 
-    public Task<List<ConversationChoice>> GenerateChoices(SceneContext context, ConversationState state, List<ChoiceTemplate> availableTemplates)
-    {
-        // THIS METHOD SHOULD NOT EXIST - choices should be generated mechanically elsewhere
-        // Return empty for now since ConversationManager uses ConversationChoiceGenerator instead
-        List<ConversationChoice> choices = new List<ConversationChoice>();
-
-        // Check if we have a conversation override - if so, provide choices from the conversation
-        if (context.TargetNPC != null && _conversationRepository.HasConversation(context.TargetNPC.ID))
-        {
-            // For special conversations (like tutorial), provide a simple continue option
-            choices.Add(new ConversationChoice
-            {
-                ChoiceID = "continue",
-                NarrativeText = "Continue",
-                AttentionCost = 0,  // Free response
-                IsAffordable = true
-            });
-            return Task.FromResult(choices);
-        }
-
-        // NEW: Generate choices from queue state using VerbContextualizer
-        if (context.TargetNPC != null && _verbContextualizer != null && context.AttentionManager != null)
-        {
-            choices = _verbContextualizer.GenerateChoicesFromQueueState(
-                context.TargetNPC, 
-                context.AttentionManager,
-                _stateCalculator);
-            
-            if (choices.Count > 0)
-            {
-                return Task.FromResult(choices);
-            }
-        }
-
-        // FALLBACK: If no systemic choices generated, provide default exit
-        choices.Add(new ConversationChoice
-        {
-            ChoiceID = "end",
-            NarrativeText = "End conversation",
-            AttentionCost = 0,
-            IsAffordable = true
-        });
-
-        return Task.FromResult(choices);
-    }
-
-    public Task<string> GenerateReaction(SceneContext context, ConversationState state, ConversationChoice selectedChoice, bool success)
+    public async Task<string> GenerateReaction(SceneContext context, ConversationState state, ConversationChoice selectedChoice, bool success)
     {
         // Special handling for "continue" choice in tutorial dialogues
         if (selectedChoice.ChoiceID == "continue")
         {
             // Mark conversation as complete after the continue choice
             state.IsConversationComplete = true;
-            return Task.FromResult(""); // Empty response since conversation is ending
+            return ""; // Empty response since conversation is ending
         }
 
         // Check for conversation override
@@ -161,15 +112,39 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             string introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             if (!string.IsNullOrEmpty(introduction))
             {
-                return Task.FromResult(introduction);
+                return introduction;
             }
         }
 
         // Default reaction
-        return Task.FromResult("They respond to your choice.");
+        return "They respond to your choice.";
     }
 
-    public Task<string> GenerateConclusion(SceneContext context, ConversationState state, ConversationChoice lastChoice)
+    public async Task<List<ConversationChoice>> GenerateChoices(SceneContext context, ConversationState state, List<ChoiceTemplate> availableTemplates)
+    {
+        // DeterministicNarrativeProvider provides literary text for mechanically generated choices
+        // The choices themselves come from the NPC's card deck, this just enhances the narrative text
+        var enhancedChoices = new List<ConversationChoice>();
+        
+        foreach (var template in availableTemplates)
+        {
+            var choice = new ConversationChoice
+            {
+                ChoiceID = template.Id,
+                NarrativeText = template.Text,
+                AttentionCost = template.AttentionCost,
+                IsAffordable = template.IsAffordable,
+                IsAvailable = template.IsAvailable,
+                MechanicalDescription = template.MechanicalDescription,
+                MechanicalEffects = template.MechanicalEffects
+            };
+            enhancedChoices.Add(choice);
+        }
+        
+        return enhancedChoices;
+    }
+
+    public async Task<string> GenerateConclusion(SceneContext context, ConversationState state, ConversationChoice lastChoice)
     {
         // Check for conversation override
         if (context.TargetNPC != null)
@@ -177,42 +152,18 @@ public class DeterministicNarrativeProvider : INarrativeProvider
             string introduction = _conversationRepository.GetNpcIntroduction(context.TargetNPC.ID);
             if (!string.IsNullOrEmpty(introduction))
             {
-                return Task.FromResult(introduction);
+                return introduction;
             }
         }
 
         // Default conclusion
-        return Task.FromResult("The conversation ends.");
+        return "The conversation ends.";
     }
 
-    public Task<bool> IsAvailable()
+    public async Task<bool> IsAvailable()
     {
         // STUB: Always available
-        return Task.FromResult(true);
-    }
-
-    private int DetermineAttentionCost(ChoiceTemplate template)
-    {
-        // Basic responses are free
-        if (template.TemplateName.ToLower().Contains("goodbye") ||
-            template.TemplateName.ToLower().Contains("leave") ||
-            template.TemplateName.ToLower().Contains("nevermind"))
-            return 0;
-
-        // Information gathering costs 1
-        if (template.TemplateName.ToLower().Contains("ask") ||
-            template.TemplateName.ToLower().Contains("tell") ||
-            template.TemplateName.ToLower().Contains("rumor"))
-            return 1;
-
-        // Major actions cost 2
-        if (template.TemplateName.ToLower().Contains("promise") ||
-            template.TemplateName.ToLower().Contains("swear") ||
-            template.TemplateName.ToLower().Contains("negotiate"))
-            return 2;
-
-        // Default cost is 1 for any meaningful interaction
-        return 1;
+        return true;
     }
 
     private string GenerateContextualGreeting(SceneContext context, ConversationState state)

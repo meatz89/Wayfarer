@@ -106,23 +106,76 @@
                 }
             </div>
 
-            <!-- Choice Options - Using Unified Components -->
+            <!-- Choice Options - Card-based conversation system -->
             <div class="choice-container">
-                @if (UnifiedChoices?.Any() == true)
+                @if (Choices?.Any() == true)
                 {
-                    @foreach (var choice in UnifiedChoices)
+                    @foreach (var choice in Choices)
                     {
-                        <UnifiedChoice Choice="@choice" 
-                                      AvailableAttention="@CurrentAttention"
-                                      OnSelected="@HandleUnifiedChoice" />
+                        <div class="@GetChoiceClass(choice)" @onclick="() => HandleChoice(choice)">
+                            <!-- Attention cost badge -->
+                            @if (choice.AttentionCost > 0)
+                            {
+                                <div class="attention-cost">
+                                    @GetCostDisplay(choice.AttentionCost)
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="attention-cost free">
+                                    FREE
+                                </div>
+                            }
+                            
+                            <!-- Main choice text -->
+                            <div class="choice-content">
+                                <div class="choice-text">
+                                    "@choice.NarrativeText"
+                                </div>
+                                
+                                <!-- Mechanical previews -->
+                                @if (!string.IsNullOrEmpty(choice.MechanicalDescription))
+                                {
+                                    <div class="choice-mechanics">
+                                        @foreach (var part in ParseMechanicalDescription(choice.MechanicalDescription))
+                                        {
+                                            <div class="mechanic-item @GetMechanicClass(part)">
+                                                <span class="mechanic-icon">
+                                                    @GetEffectIcon(part)
+                                                </span>
+                                                <span class="mechanic-text">
+                                                    @((MarkupString)part)
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                
+                                <!-- Lock reason if unavailable -->
+                                @if (!choice.IsAvailable && !string.IsNullOrEmpty(choice.MechanicalDescription))
+                                {
+                                    <div class="lock-reason">
+                                        @choice.MechanicalDescription
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     }
                 }
                 else
                 {
-                    <!-- Default choice using unified component -->
-                    <UnifiedChoice Choice="@GetDefaultChoice()" 
-                                  AvailableAttention="@CurrentAttention"
-                                  OnSelected="@HandleUnifiedChoice" />
+                    <div class="choice-option" @onclick="() => HandleChoice(DefaultChoice)">
+                        <div class="attention-cost free">FREE</div>
+                        <div class="choice-content">
+                            <div class="choice-text">"@DefaultChoice.NarrativeText"</div>
+                            <div class="choice-mechanics">
+                                <div class="mechanic-item mechanic-neutral">
+                                    <span class="mechanic-icon">→</span>
+                                    <span class="mechanic-text">@DefaultChoice.MechanicalDescription</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 }
             </div>
         </div>

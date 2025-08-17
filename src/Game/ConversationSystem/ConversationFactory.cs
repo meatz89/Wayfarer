@@ -13,7 +13,6 @@ public class ConversationFactory
     private readonly LetterQueueManager _queueManager;
     private readonly ITimeManager _timeManager;
     private readonly AtmosphereCalculator _atmosphereCalculator;
-    private readonly Wayfarer.GameState.ConsequenceEngine _consequenceEngine;
     private readonly Wayfarer.GameState.TimeBlockAttentionManager _timeBlockAttentionManager;
 
     public ConversationFactory(
@@ -23,7 +22,6 @@ public class ConversationFactory
         LetterQueueManager queueManager,
         ITimeManager timeManager,
         AtmosphereCalculator atmosphereCalculator,
-        Wayfarer.GameState.ConsequenceEngine consequenceEngine,
         Wayfarer.GameState.TimeBlockAttentionManager timeBlockAttentionManager)
     {
         _narrativeProvider = narrativeProvider;
@@ -32,7 +30,6 @@ public class ConversationFactory
         _queueManager = queueManager;
         _timeManager = timeManager;
         _atmosphereCalculator = atmosphereCalculator;
-        _consequenceEngine = consequenceEngine;
         _timeBlockAttentionManager = timeBlockAttentionManager;
     }
 
@@ -97,7 +94,6 @@ public class ConversationFactory
             _timeManager,
             player,
             context.GameWorld,
-            _consequenceEngine,
             _timeBlockAttentionManager);
 
         // Create the conversation manager

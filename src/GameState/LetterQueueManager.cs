@@ -14,10 +14,9 @@ public class LetterQueueManager
     private readonly GameConfiguration _config;
     private readonly IGameRuleEngine _ruleEngine;
     private readonly ITimeManager _timeManager;
-    private readonly ConsequenceEngine _consequenceEngine;
     private readonly Random _random = new Random();
 
-    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, TokenMechanicsManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager, ConsequenceEngine consequenceEngine)
+    public LetterQueueManager(GameWorld gameWorld, LetterTemplateRepository letterTemplateRepository, NPCRepository npcRepository, MessageSystem messageSystem, StandingObligationManager obligationManager, TokenMechanicsManager connectionTokenManager, LetterCategoryService categoryService, GameConfiguration config, IGameRuleEngine ruleEngine, ITimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _letterTemplateRepository = letterTemplateRepository;
@@ -29,7 +28,6 @@ public class LetterQueueManager
         _config = config;
         _ruleEngine = ruleEngine;
         _timeManager = timeManager;
-        _consequenceEngine = consequenceEngine;
     }
 
     // Get the player's letter queue
@@ -837,21 +835,13 @@ public class LetterQueueManager
         // Record in history first (needed for failure count)
         RecordExpiryInHistory(senderId);
         
-        // Use ConsequenceEngine if available, otherwise fall back to basic penalties
-        if (_consequenceEngine != null)
-        {
-            _consequenceEngine.ApplyMissedDeadlineConsequences(letter);
-        }
-        else
-        {
-            // Fallback to basic penalty system
-            int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
-            NPC senderNpc = _npcRepository.GetById(senderId);
-            
-            ShowExpiryFailure(letter);
-            ApplyTokenPenalty(letter, senderId, tokenPenalty);
-            ShowRelationshipDamageNarrative(letter, senderNpc, tokenPenalty, senderId);
-        }
+        // Apply basic penalty system for missed deadlines
+        int tokenPenalty = _config.LetterQueue.DeadlinePenaltyTokens;
+        NPC senderNpc = _npcRepository.GetById(senderId);
+        
+        ShowExpiryFailure(letter);
+        ApplyTokenPenalty(letter, senderId, tokenPenalty);
+        ShowRelationshipDamageNarrative(letter, senderNpc, tokenPenalty, senderId);
     }
 
     // Show the dramatic moment of letter expiry

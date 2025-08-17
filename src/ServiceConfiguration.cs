@@ -96,8 +96,6 @@ public static class ServiceConfiguration
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();
         
-        // Consequence Engine for handling missed deadlines
-        services.AddSingleton<Wayfarer.GameState.ConsequenceEngine>();
         
         // Leverage Calculator for power dynamics
         

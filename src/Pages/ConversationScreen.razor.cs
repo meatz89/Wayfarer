@@ -18,9 +18,10 @@ public class ConversationScreenBase : ComponentBase
     [Parameter] public EventCallback<CurrentViews> OnNavigate { get; set; }
     
     protected ConversationViewModel Model { get; set; }
-    protected List<IInteractiveChoice> UnifiedChoices { get; set; }
+    protected List<ConversationChoice> Choices { get; set; }
     protected int CurrentAttention { get; set; }
     protected Dictionary<ConnectionType, int> NpcTokens { get; set; }
+    protected ConversationChoice DefaultChoice => GetDefaultChoice();
     
     // Transparent mechanics properties
     protected NPCEmotionalState? CurrentEmotionalState { get; set; }
@@ -56,7 +57,7 @@ public class ConversationScreenBase : ComponentBase
             else
             {
                 Console.WriteLine($"[ConversationScreen] Loaded conversation with NPC: {Model.NpcId}, Text: {Model.CurrentText?.Substring(0, Math.Min(50, Model.CurrentText?.Length ?? 0))}...");
-                GenerateUnifiedChoices();
+                GenerateChoices();
             }
         }
         catch (Exception ex)
@@ -71,33 +72,24 @@ public class ConversationScreenBase : ComponentBase
         CurrentAttention = current;
     }
     
-    protected void GenerateUnifiedChoices()
+    protected void GenerateChoices()
     {
-        UnifiedChoices = new List<IInteractiveChoice>();
-        
-        // Convert existing choices to unified format
-        if (Model?.Choices != null)
+        // Use enhanced card-based choices
+        var enhancedChoices = GenerateCardBasedChoices();
+        if (enhancedChoices?.Any() == true)
         {
-            foreach (var choice in Model.Choices)
-            {
-                UnifiedChoices.Add(new ConversationChoice
-                {
-                    Id = choice.Id,
-                    DisplayText = choice.Text,
-                    AttentionCost = choice.AttentionCost,
-                    IsAvailable = choice.IsAvailable,
-                    LockReason = choice.UnavailableReason,
-                    Type = DetermineInteractionType(choice),
-                    Style = DetermineChoiceStyle(choice),
-                    MechanicalPreviews = GeneratePreviews(choice)
-                });
-            }
+            Choices = enhancedChoices;
+        }
+        else
+        {
+            // Fallback to placeholder choices
+            Choices = GeneratePlaceholderChoices();
         }
     }
     
-    protected async Task HandleUnifiedChoice(IInteractiveChoice choice)
+    protected async Task HandleChoice(ConversationChoice choice)
     {
-        await SelectChoice(choice.Id);
+        await SelectChoice(choice.ChoiceID);
         // SelectChoice already updates the Model and calls StateHasChanged
         // Now load the fresh token data AFTER the choice has been fully processed
         LoadTokenData(); // Load fresh token data after effects applied
@@ -117,7 +109,7 @@ public class ConversationScreenBase : ComponentBase
             if (updatedModel != null)
             {
                 Model = updatedModel;
-                GenerateUnifiedChoices();
+                GenerateChoices();
                 LoadTokenData(); // Reload tokens after processing choice
                 RefreshAttentionState(); // Update attention 
                 StateHasChanged();
@@ -136,17 +128,16 @@ public class ConversationScreenBase : ComponentBase
         }
     }
     
-    protected IInteractiveChoice GetDefaultChoice()
+    protected ConversationChoice GetDefaultChoice()
     {
         return new ConversationChoice
         {
-            Id = "default",
-            DisplayText = "\"I understand. I'll see what I can do.\"",
+            ChoiceID = "default",
+            NarrativeText = "I understand. I'll see what I can do.",
             AttentionCost = 0,
             IsAvailable = true,
-            Type = InteractionType.ConversationFree,
-            Style = InteractionStyle.Default,
-            MechanicalPreviews = new List<string> { "→ Continue conversation" }
+            MechanicalDescription = "→ Maintains current state",
+            MechanicalEffects = new List<IMechanicalEffect>()
         };
     }
     
@@ -203,27 +194,22 @@ public class ConversationScreenBase : ComponentBase
     
     protected string GetCurrentConversationContext()
     {
-        // Determine context from the current choices or conversation state
-        if (UnifiedChoices != null && UnifiedChoices.Any())
+        // Determine context from NPC emotional state - no string matching
+        if (CurrentEmotionalState.HasValue)
         {
-            // Check what types of choices are available
-            var hasHelp = UnifiedChoices.Any(c => c.Type == InteractionType.ConversationHelp);
-            var hasNegotiate = UnifiedChoices.Any(c => c.Type == InteractionType.ConversationNegotiate);
-            var hasInvestigate = UnifiedChoices.Any(c => c.Type == InteractionType.ConversationInvestigate);
-            
-            // Return the most relevant context
-            if (hasNegotiate) return "negotiate";
-            if (hasInvestigate) return "investigate";
-            if (hasHelp) return "help";
+            return CurrentEmotionalState.Value switch
+            {
+                NPCEmotionalState.DESPERATE => "help",      // Desperate NPCs need assistance
+                NPCEmotionalState.ANXIOUS => "help",        // Anxious NPCs need comfort
+                NPCEmotionalState.CALCULATING => "negotiate", // Calculating NPCs prefer deals
+                NPCEmotionalState.HOSTILE => "negotiate",   // Hostile NPCs require negotiation
+                NPCEmotionalState.WITHDRAWN => "investigate", // Withdrawn NPCs need probing
+                _ => "help"
+            };
         }
         
-        // Default based on conversation state (check CharacterState text)
-        if (Model?.CharacterState?.Contains("desperate") == true || 
-            Model?.CharacterState?.Contains("urgent") == true) return "help";
-        if (Model?.CharacterState?.Contains("calculating") == true || 
-            Model?.CharacterState?.Contains("thoughtful") == true) return "negotiate";
-        
-        return "help"; // Default context
+        // Fallback: Default context based on categorical mechanics
+        return "help"; // Default context when no emotional state available
     }
     
     protected string GetNpcRole()
@@ -260,50 +246,6 @@ public class ConversationScreenBase : ComponentBase
         return null; // Unknown role
     }
     
-    private InteractionType DetermineInteractionType(ConversationChoiceViewModel choice)
-    {
-        if (choice.AttentionCost == 0) return InteractionType.ConversationFree;
-        if (choice.Text.Contains("negotiate") || choice.Text.Contains("prioritize")) 
-            return InteractionType.ConversationNegotiate;
-        if (choice.Text.Contains("investigate") || choice.Text.Contains("tell me"))
-            return InteractionType.ConversationInvestigate;
-        return InteractionType.ConversationHelp;
-    }
-    
-    private InteractionStyle DetermineChoiceStyle(ConversationChoiceViewModel choice)
-    {
-        if (choice.Text.Contains("swear") || choice.Text.Contains("promise"))
-            return InteractionStyle.Urgent;
-        if (choice.Mechanics?.Any(m => m.Type == MechanicEffectType.Positive) == true)
-            return InteractionStyle.Beneficial;
-        return InteractionStyle.Default;
-    }
-    
-    private List<string> GeneratePreviews(ConversationChoiceViewModel choice)
-    {
-        var previews = new List<string>();
-        if (choice.Mechanics != null)
-        {
-            foreach (var mechanic in choice.Mechanics)
-            {
-                // Replace problematic Unicode in the description with Font Awesome icons
-                var description = mechanic.Description
-                    .Replace("⛓", "<i class='fas fa-link'></i>")
-                    .Replace("♥", "<i class='fas fa-heart'></i>")
-                    .Replace("⏱", "<i class='fas fa-clock'></i>")
-                    .Replace("ℹ", "<i class='fas fa-info-circle'></i>")
-                    .Replace("✓", "<i class='fas fa-check'></i>")
-                    .Replace("⚠", "<i class='fas fa-exclamation-triangle'></i>")
-                    .Replace("→", "<i class='fas fa-arrow-right'></i>")
-                    .Replace("🪙", "<i class='fas fa-coins'></i>")
-                    .Replace("🔍", "<i class='fas fa-search'></i>");
-                    
-                // Just add the description without icon - frontend will handle icon mapping
-                previews.Add(description);
-            }
-        }
-        return previews;
-    }
     
     protected void LoadEmotionalStateData()
     {
@@ -368,23 +310,174 @@ public class ConversationScreenBase : ComponentBase
         return TimeToDeadline;
     }
     
-    // Helper class for conversion
-    private class ConversationChoice : IInteractiveChoice
+    /// <summary>
+    /// Generate enhanced conversation choices using the RelationshipMemoryCard system
+    /// This integrates with ConversationDeckManager.GenerateEnhancedChoices
+    /// </summary>
+    protected List<ConversationChoice> GenerateCardBasedChoices()
     {
-        public string Id { get; set; }
-        public string DisplayText { get; set; }
-        public int AttentionCost { get; set; }
-        public int TimeCostMinutes { get; set; } = 0; // Conversations don't cost time directly
-        public InteractionType Type { get; set; }
-        public bool IsAvailable { get; set; }
-        public string LockReason { get; set; }
-        public InteractionStyle Style { get; set; }
-        public List<string> MechanicalPreviews { get; set; }
-        
-        public InteractionResult Execute(GameWorld gameWorld, AttentionManager attention)
+        try
         {
-            // This is handled by the screen's SelectChoice method
-            throw new NotImplementedException();
+            // TODO: Implement GameFacade method to access ConversationDeckManager.GenerateEnhancedChoices
+            // For now return basic placeholder choices that match the mockup
+            return GeneratePlaceholderChoices();
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating card-based choices: {ex.Message}");
+            return GeneratePlaceholderChoices();
+        }
+    }
+    
+    /// <summary>
+    /// Generate placeholder choices that match the conversation-elena.html mockup exactly
+    /// </summary>
+    private List<ConversationChoice> GeneratePlaceholderChoices()
+    {
+        return new List<ConversationChoice>
+        {
+            new ConversationChoice
+            {
+                ChoiceID = "maintain_state",
+                NarrativeText = "I understand. Your letter is second in my queue.",
+                AttentionCost = 0,
+                IsAffordable = true,
+                IsAvailable = true,
+                MechanicalDescription = "→ Maintains current state",
+                MechanicalEffects = new List<IMechanicalEffect>()
+            },
+            new ConversationChoice
+            {
+                ChoiceID = "negotiate_priority",
+                NarrativeText = "I'll prioritize your letter. Let me check what that means...",
+                AttentionCost = 1,
+                IsAffordable = true,
+                IsAvailable = true,
+                MechanicalDescription = "✓ Opens negotiation | ⚠ Must burn 1 Status with Lord B",
+                MechanicalEffects = new List<IMechanicalEffect>()
+            },
+            new ConversationChoice
+            {
+                ChoiceID = "investigate_situation",
+                NarrativeText = "Lord Aldwin from Riverside? Tell me about the situation...",
+                AttentionCost = 1,
+                IsAffordable = true,
+                IsAvailable = true,
+                MechanicalDescription = "ℹ Gain rumor: 'Noble carriage schedule' | ⏱ +20 minutes conversation",
+                MechanicalEffects = new List<IMechanicalEffect>()
+            },
+            new ConversationChoice
+            {
+                ChoiceID = "binding_promise",
+                NarrativeText = "I swear I'll deliver your letter before any others today.",
+                AttentionCost = 2,
+                IsAffordable = true,
+                IsAvailable = true,
+                MechanicalDescription = "♥ +2 Trust tokens immediately | ⛓ Creates Binding Obligation",
+                MechanicalEffects = new List<IMechanicalEffect>()
+            },
+            new ConversationChoice
+            {
+                ChoiceID = "deep_investigation",
+                NarrativeText = "Let me investigate Lord Aldwin's current position at court...",
+                AttentionCost = 3,
+                IsAffordable = false,
+                IsAvailable = false,
+                MechanicalDescription = "[Requires 3 attention points]",
+                MechanicalEffects = new List<IMechanicalEffect>()
+            }
+        };
+    }
+    
+    // UI Helper methods for conversation choices
+    protected string GetCostDisplay(int cost)
+    {
+        // Show dots matching mockup style (◆)
+        return cost switch
+        {
+            1 => "◆ 1",
+            2 => "◆◆ 2",
+            3 => "◆◆◆ 3",
+            _ => $"{new string('◆', Math.Min(cost, 5))} {cost}"
+        };
+    }
+
+    protected List<string> ParseMechanicalDescription(string description)
+    {
+        // Split by pipe (|) for multiple effects
+        return description.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                         .Select(s => s.Trim())
+                         .ToList();
+    }
+
+    protected string GetEffectIcon(string description)
+    {
+        // Use simple Unicode symbols matching mockup (✓, ⚠, ℹ, →)
+        var lowerDesc = description.ToLowerInvariant();
+        
+        // Check for explicit icons in the description first
+        if (description.Contains("✓")) return "✓";
+        if (description.Contains("⚠")) return "⚠";
+        if (description.Contains("ℹ")) return "ℹ";
+        if (description.Contains("→")) return "→";
+        
+        // Positive outcomes
+        if (lowerDesc.Contains("gain") || lowerDesc.Contains("unlock") || 
+            lowerDesc.Contains("open") || lowerDesc.Contains("+"))
+            return "✓";
+            
+        // Negative/warning outcomes  
+        if (lowerDesc.Contains("lose") || lowerDesc.Contains("burn") || 
+            lowerDesc.Contains("cost") || lowerDesc.Contains("obligation") ||
+            lowerDesc.Contains("binding") || lowerDesc.Contains("-"))
+            return "⚠";
+            
+        // Informational/neutral
+        if (lowerDesc.Contains("learn") || lowerDesc.Contains("discover") ||
+            lowerDesc.Contains("investigate") || lowerDesc.Contains("maintain"))
+            return "ℹ";
+            
+        // Directional/progression
+        return "→";
+    }
+
+    protected string GetMechanicClass(string preview)
+    {
+        // Style effects based on their type - matching mockup colors
+        var lowerPreview = preview.ToLowerInvariant();
+        
+        // Positive effects (green)
+        if (preview.Contains("✓") || lowerPreview.Contains("gain") || 
+            lowerPreview.Contains("opens") || lowerPreview.Contains("+") ||
+            lowerPreview.Contains("unlock"))
+            return "mechanic-positive";
+            
+        // Negative effects (red)
+        if (preview.Contains("⚠") || lowerPreview.Contains("lose") || 
+            lowerPreview.Contains("burn") || lowerPreview.Contains("cost") ||
+            lowerPreview.Contains("-") || lowerPreview.Contains("obligation") ||
+            lowerPreview.Contains("binding"))
+            return "mechanic-negative";
+            
+        // Informational effects (blue)
+        if (preview.Contains("ℹ") || preview.Contains("→") || 
+            lowerPreview.Contains("learn") || lowerPreview.Contains("maintain") ||
+            lowerPreview.Contains("time") || lowerPreview.Contains("minute") ||
+            lowerPreview.Contains("investigate") || lowerPreview.Contains("discover"))
+            return "mechanic-neutral";
+            
+        return "mechanic-neutral";
+    }
+    
+    protected string GetChoiceClass(ConversationChoice choice)
+    {
+        var classes = new List<string> { "choice-option" };
+        
+        if (!choice.IsAvailable || choice.AttentionCost > CurrentAttention)
+        {
+            classes.Add("locked");
+        }
+        
+        return string.Join(" ", classes);
     }
 }

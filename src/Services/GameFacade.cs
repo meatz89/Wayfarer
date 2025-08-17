@@ -56,13 +56,11 @@ public class GameFacade : ILetterQueueOperations
     private readonly NPCStateResolver _npcStateResolver;
     private readonly EnvironmentalHintSystem _environmentalHintSystem;
     private readonly ObservationSystem _observationSystem;
-    private readonly VerbContextualizer _verbContextualizer;
     private readonly ActionGenerator _actionGenerator;
     private readonly ActionBeatGenerator _actionBeatGenerator;
     private readonly BindingObligationSystem _bindingObligationSystem;
     private readonly AtmosphereCalculator _atmosphereCalculator;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
-    private readonly ConsequenceEngine _consequenceEngine;
     private readonly WorldMemorySystem _worldMemorySystem;
     private readonly AmbientDialogueSystem _ambientDialogueSystem;
 
@@ -99,14 +97,12 @@ public class GameFacade : ILetterQueueOperations
         InformationRevealService informationRevealService = null,
         ContextTagCalculator contextTagCalculator = null,
         NPCStateResolver npcStateResolver = null,
-        VerbContextualizer verbContextualizer = null,
         ActionGenerator actionGenerator = null,
         ActionBeatGenerator actionBeatGenerator = null,
         EnvironmentalHintSystem environmentalHintSystem = null,
         ObservationSystem observationSystem = null,
         BindingObligationSystem bindingObligationSystem = null,
         AtmosphereCalculator atmosphereCalculator = null,
-        ConsequenceEngine consequenceEngine = null,
         WorldMemorySystem worldMemorySystem = null,
         AmbientDialogueSystem ambientDialogueSystem = null,
         TimeBlockAttentionManager timeBlockAttentionManager = null
@@ -144,14 +140,12 @@ public class GameFacade : ILetterQueueOperations
         _informationRevealService = informationRevealService;
         _contextTagCalculator = contextTagCalculator;
         _npcStateResolver = npcStateResolver;
-        _verbContextualizer = verbContextualizer;
         _actionGenerator = actionGenerator;
         _actionBeatGenerator = actionBeatGenerator;
         _environmentalHintSystem = environmentalHintSystem;
         _observationSystem = observationSystem;
         _bindingObligationSystem = bindingObligationSystem;
         _atmosphereCalculator = atmosphereCalculator;
-        _consequenceEngine = consequenceEngine;
         _worldMemorySystem = worldMemorySystem;
         _ambientDialogueSystem = ambientDialogueSystem;
         

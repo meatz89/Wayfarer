@@ -183,8 +183,7 @@ public class ConversationChoice
     public int? StaminaCost { get; set; }
     public int? CoinReward { get; set; }
     
-    // Literary UI properties - hidden verb system
-    public BaseVerb BaseVerb { get; set; }
+    // Card-based conversation system - no verb references needed
     
     // Mechanical description for UI display
     public string MechanicalDescription { get; set; }

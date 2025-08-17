@@ -38,6 +38,18 @@ public class NPC
     
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
+    
+    // Conversation deck - each NPC has unique cards representing shared history
+    public NPCDeck ConversationDeck { get; set; }
+    
+    // Initialize deck when NPC is created
+    public void InitializeConversationDeck()
+    {
+        if (ConversationDeck == null)
+        {
+            ConversationDeck = new NPCDeck(ID);
+        }
+    }
 
     // Helper methods for UI display
     public string ProfessionDescription => Profession.ToString().Replace('_', ' ');

@@ -75,18 +75,15 @@ public class PredictConsequenceEffect : IMechanicalEffect
 {
     private readonly string _letterId;
     private readonly LetterQueueManager _queueManager;
-    private readonly ConsequenceEngine _consequenceEngine;
     private readonly Player _player;
 
     public PredictConsequenceEffect(
         string letterId,
         LetterQueueManager queueManager,
-        ConsequenceEngine consequenceEngine,
         Player player)
     {
         _letterId = letterId;
         _queueManager = queueManager;
-        _consequenceEngine = consequenceEngine;
         _player = player;
     }
 
